@@ -7,7 +7,7 @@
     "[typescript][javascript][json][jsonc]": {
         // "editor.formatOnSave": true,
         "editor.defaultFormatter": "dprint.dprint"
-    }
+    },
 
     // To ignore commits listed in .git-blame-ignore-revs in GitLens:
     "gitlens.advanced.blame.customArguments": [

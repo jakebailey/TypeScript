@@ -133,7 +133,8 @@ export function runRWCTest(jsonPath: string) {
                 opts.options,
                 // Since each RWC json file specifies its current directory in its json file, we need
                 // to pass this information in explicitly instead of acquiring it from the process.
-                currentDirectory);
+                currentDirectory,
+            );
             compilerOptions = compilerResult.options;
 
             function getHarnessCompilerInputUnit(fileName: string): Harness.Compiler.TestFile {
@@ -149,32 +150,49 @@ export function runRWCTest(jsonPath: string) {
             }
         });
 
-
         it("has the expected emitted code", function (this: Mocha.Context) {
             this.timeout(100_000); // Allow longer timeouts for RWC js verification
-            Harness.Baseline.runMultifileBaseline(baseName, "", () => {
-                return Harness.Compiler.iterateOutputs(compilerResult.js.values());
-            }, baselineOpts, [".js", ".jsx"]);
+            Harness.Baseline.runMultifileBaseline(
+                baseName,
+                "",
+                () => {
+                    return Harness.Compiler.iterateOutputs(compilerResult.js.values());
+                },
+                baselineOpts,
+                [".js", ".jsx"],
+            );
         });
 
         it("has the expected declaration file content", () => {
-            Harness.Baseline.runMultifileBaseline(baseName, "", () => {
-                if (!compilerResult.dts.size) {
-                    return null; // eslint-disable-line no-null/no-null
-                }
+            Harness.Baseline.runMultifileBaseline(
+                baseName,
+                "",
+                () => {
+                    if (!compilerResult.dts.size) {
+                        return null; // eslint-disable-line no-null/no-null
+                    }
 
-                return Harness.Compiler.iterateOutputs(compilerResult.dts.values());
-            }, baselineOpts, [".d.ts"]);
+                    return Harness.Compiler.iterateOutputs(compilerResult.dts.values());
+                },
+                baselineOpts,
+                [".d.ts"],
+            );
         });
 
         it("has the expected source maps", () => {
-            Harness.Baseline.runMultifileBaseline(baseName, "", () => {
-                if (!compilerResult.maps.size) {
-                    return null; // eslint-disable-line no-null/no-null
-                }
+            Harness.Baseline.runMultifileBaseline(
+                baseName,
+                "",
+                () => {
+                    if (!compilerResult.maps.size) {
+                        return null; // eslint-disable-line no-null/no-null
+                    }
 
-                return Harness.Compiler.iterateOutputs(compilerResult.maps.values());
-            }, baselineOpts, [".map"]);
+                    return Harness.Compiler.iterateOutputs(compilerResult.maps.values());
+                },
+                baselineOpts,
+                [".map"],
+            );
         });
 
         it("has the expected errors", () => {
@@ -199,7 +217,12 @@ export function runRWCTest(jsonPath: string) {
                     }
 
                     const declContext = Harness.Compiler.prepareDeclarationCompilationContext(
-                        inputFiles, otherFiles, compilerResult, /*harnessSettings*/ undefined!, compilerOptions, currentDirectory // TODO: GH#18217
+                        inputFiles,
+                        otherFiles,
+                        compilerResult,
+                        /*harnessSettings*/ undefined!,
+                        compilerOptions,
+                        currentDirectory, // TODO: GH#18217
                     );
                     // Reset compilerResult before calling into `compileDeclarationFiles` so the memory from the original compilation can be freed
                     const links = compilerResult.symlinks;

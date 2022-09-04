@@ -21,7 +21,11 @@ import {
     textChanges,
     TypeAliasDeclaration,
 } from "../_namespaces/ts";
-import { codeFixAll, createCodeFixAction, registerCodeFix } from "../_namespaces/ts.codefix";
+import {
+    codeFixAll,
+    createCodeFixAction,
+    registerCodeFix,
+} from "../_namespaces/ts.codefix";
 
 const fixId = "convertTypedefToType";
 const errorCodes = [Diagnostics.JSDoc_typedef_may_be_converted_to_TypeScript_type.code];
@@ -31,7 +35,7 @@ registerCodeFix({
     getCodeActions(context) {
         const node = getTokenAtPosition(
             context.sourceFile,
-            context.span.start
+            context.span.start,
         );
         if (!node) return;
         const changes = textChanges.ChangeTracker.with(context, t => doChange(t, node, context.sourceFile));
@@ -48,10 +52,11 @@ registerCodeFix({
             ];
         }
     },
-    getAllCodeActions: context => codeFixAll(context, errorCodes, (changes, diag) => {
-        const node = getTokenAtPosition(diag.file, diag.start);
-        if (node) doChange(changes, node, diag.file);
-    }),
+    getAllCodeActions: context =>
+        codeFixAll(context, errorCodes, (changes, diag) => {
+            const node = getTokenAtPosition(diag.file, diag.start);
+            if (node) doChange(changes, node, diag.file);
+        }),
 });
 
 function doChange(changes: textChanges.ChangeTracker, node: Node, sourceFile: SourceFile) {
@@ -75,7 +80,7 @@ function fixSingleTypeDef(
     changes.replaceNode(
         sourceFile,
         comment,
-        declaration
+        declaration,
     );
 }
 
@@ -99,7 +104,7 @@ function createDeclaration(tag: JSDocTypedefTag): InterfaceDeclaration | TypeAli
 
 function createInterfaceForTypeLiteral(
     typeName: string,
-    typeLiteral: JSDocTypeLiteral
+    typeLiteral: JSDocTypeLiteral,
 ): InterfaceDeclaration | undefined {
     const propertySignatures = createSignatureFromTypeLiteral(typeLiteral);
     if (!some(propertySignatures)) return;
@@ -115,7 +120,7 @@ function createInterfaceForTypeLiteral(
 
 function createTypeAliasForTypeExpression(
     typeName: string,
-    typeExpression: JSDocTypeExpression
+    typeExpression: JSDocTypeExpression,
 ): TypeAliasDeclaration | undefined {
     const typeReference = getSynthesizedDeepClone(typeExpression.type);
     if (!typeReference) return;
@@ -123,7 +128,7 @@ function createTypeAliasForTypeExpression(
         /*modifiers*/ undefined,
         factory.createIdentifier(typeName),
         /*typeParameters*/ undefined,
-        typeReference
+        typeReference,
     );
     return declaration;
 }
@@ -154,7 +159,7 @@ function createSignatureFromTypeLiteral(typeLiteral: JSDocTypeLiteral): Property
                 /*modifiers*/ undefined,
                 name,
                 questionToken,
-                typeReference
+                typeReference,
             );
 
             return prop;
@@ -172,7 +177,7 @@ function getPropertyName(tag: JSDocPropertyLikeTag): string | undefined {
 /** @internal */
 export function getJSDocTypedefNode(node: Node): JSDocTypedefTag | undefined {
     if (hasJSDocNodes(node)) {
-        return forEach(node.jsDoc, (node) => node.tags?.find(isJSDocTypedefTag));
+        return forEach(node.jsDoc, node => node.tags?.find(isJSDocTypedefTag));
     }
     return undefined;
 }

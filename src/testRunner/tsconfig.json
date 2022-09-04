@@ -2,7 +2,9 @@
     "extends": "../tsconfig-base",
     "compilerOptions": {
         "types": [
-            "node", "mocha", "chai"
+            "node",
+            "mocha",
+            "chai"
         ]
     },
     "references": [

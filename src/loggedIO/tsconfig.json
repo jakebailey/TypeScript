@@ -1,8 +1,7 @@
 {
     "extends": "../tsconfig-base",
     "compilerOptions": {
-        "types": [
-        ]
+        "types": []
     },
     "references": [
         { "path": "../compiler" },
@@ -10,7 +9,7 @@
         { "path": "../jsTyping" },
         { "path": "../server" },
         { "path": "../typingsInstallerCore" },
-        { "path": "../harness" },
+        { "path": "../harness" }
     ],
 
     "include": ["**/*"]

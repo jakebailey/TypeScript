@@ -2,7 +2,9 @@ import {
     emptyArray,
     SyntaxKind,
 } from "../_namespaces/ts";
-import { FormattingContext } from "../_namespaces/ts.formatting";
+import {
+    FormattingContext,
+} from "../_namespaces/ts.formatting";
 
 /** @internal */
 export interface Rule {
@@ -20,14 +22,14 @@ export const anyContext: readonly ContextPredicate[] = emptyArray;
 
 /** @internal */
 export const enum RuleAction {
-    None                       = 0,
+    None = 0,
     StopProcessingSpaceActions = 1 << 0,
     StopProcessingTokenActions = 1 << 1,
-    InsertSpace                = 1 << 2,
-    InsertNewLine              = 1 << 3,
-    DeleteSpace                = 1 << 4,
-    DeleteToken                = 1 << 5,
-    InsertTrailingSemicolon    = 1 << 6,
+    InsertSpace = 1 << 2,
+    InsertNewLine = 1 << 3,
+    DeleteSpace = 1 << 4,
+    DeleteToken = 1 << 5,
+    InsertTrailingSemicolon = 1 << 6,
 
     StopAction = StopProcessingSpaceActions | StopProcessingTokenActions,
     ModifySpaceAction = InsertSpace | InsertNewLine | DeleteSpace,

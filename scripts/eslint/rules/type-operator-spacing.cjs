@@ -22,7 +22,7 @@ module.exports = createRule({
         const text = sourceCode.getText();
 
         /** @type {(node: TSESTree.TSIntersectionType | TSESTree.TSUnionType) => void} */
-        const checkTypeOperatorSpacing = (node) => {
+        const checkTypeOperatorSpacing = node => {
             node.types.forEach(node => {
                 const token = sourceCode.getTokenBefore(node);
 

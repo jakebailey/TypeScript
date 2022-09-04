@@ -6,15 +6,7 @@
     },
     "rules": {
         "@typescript-eslint/no-unnecessary-type-assertion": "error",
-        "no-restricted-globals": ["error",
-            { "name": "setTimeout" },
-            { "name": "clearTimeout" },
-            { "name": "setInterval" },
-            { "name": "clearInterval" },
-            { "name": "setImmediate" },
-            { "name": "clearImmediate" },
-            { "name": "performance" }
-        ]
+        "no-restricted-globals": ["error", { "name": "setTimeout" }, { "name": "clearTimeout" }, { "name": "setInterval" }, { "name": "clearInterval" }, { "name": "setImmediate" }, { "name": "clearImmediate" }, { "name": "performance" }]
     },
     "overrides": [
         {

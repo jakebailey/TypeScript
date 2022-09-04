@@ -59,8 +59,6 @@ if (!options.bundle && !options.typecheck) {
 
 export default options;
 
-
-
 /**
  * @typedef CommandLineOptions
  * @property {boolean} dirty

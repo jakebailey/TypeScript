@@ -11,9 +11,9 @@
         "terminal.integrated.profiles.linux": {
             "bash": {
                 "path": "/bin/bash",
-                "icon": "terminal-bash",
-            },
-        },
+                "icon": "terminal-bash"
+            }
+        }
     },
     "extensions": [
         "dbaeumer.vscode-eslint"

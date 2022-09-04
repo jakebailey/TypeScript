@@ -21,7 +21,7 @@ module.exports = createRule({
         const lines = sourceCode.getLines();
 
         /** @type {(node: TSESTree.Node | null) => boolean} */
-        const isStringLiteral = (node) => {
+        const isStringLiteral = node => {
             return !!(node && (
                 (node.type === AST_NODE_TYPES.TemplateElement) ||
                 (node.type === AST_NODE_TYPES.TemplateLiteral && node.quasis) ||
@@ -30,12 +30,12 @@ module.exports = createRule({
         };
 
         /** @type {(node: TSESTree.Node | null) => boolean} */
-        const isRegexLiteral = (node) => {
+        const isRegexLiteral = node => {
             return !!(node && node.type === AST_NODE_TYPES.Literal && Object.prototype.hasOwnProperty.call(node, "regex"));
         };
 
         /** @type {(node: TSESTree.Node) => void} */
-        const checkDoubleSpace = (node) => {
+        const checkDoubleSpace = node => {
             lines.forEach((line, index) => {
                 const firstNonSpace = /\S/.exec(line);
                 if (!firstNonSpace || line.includes("@param")) {
@@ -48,7 +48,7 @@ module.exports = createRule({
                 // * To indent inside a comment
                 // * To use two spaces after a period
                 // * To include aligned `->` in a comment
-                const rgx =  /[^/*. ][ ]{2}[^-!/= ]/g;
+                const rgx = /[^/*. ][ ]{2}[^-!/= ]/g;
                 rgx.lastIndex = firstNonSpace.index;
                 const doubleSpace = rgx.exec(line);
 

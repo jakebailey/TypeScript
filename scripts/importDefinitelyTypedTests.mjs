@@ -91,7 +91,7 @@ function importDefinitelyTypedTest(tscPath, rwcTestPath, testCaseName, testFiles
         const testCasePath = path.join(rwcTestPath, "DefinitelyTyped_" + testCaseName + ".json");
         copyFileSync(outputFilePath, testCasePath);
 
-        //console.log("output generated at: " + outputFilePath);
+        // console.log("output generated at: " + outputFilePath);
 
         if (!fs.existsSync(testCasePath)) {
             throw new Error("could not find test case at: " + testCasePath);
@@ -99,12 +99,11 @@ function importDefinitelyTypedTest(tscPath, rwcTestPath, testCaseName, testFiles
         else {
             fs.unlinkSync(outputFilePath);
             fs.rmdirSync(testDirectoryPath);
-            //console.log("testcase generated at: " + testCasePath);
-            //console.log("Done.");
+            // console.log("testcase generated at: " + testCasePath);
+            // console.log("Done.");
         }
-        //console.log("\r\n");
-
-    }).on("error", (error) => {
+        // console.log("\r\n");
+    }).on("error", error => {
         console.log("==> error " + JSON.stringify(error));
         console.log("\r\n");
     });

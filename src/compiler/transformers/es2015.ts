@@ -264,8 +264,8 @@ interface LoopOutParameter {
 
 const enum LoopOutParameterFlags {
     None = 0,
-    Body = 1 << 0,          // Modified in the body of the iteration statement
-    Initializer = 1 << 1,   // Set in the initializer of a ForStatement
+    Body = 1 << 0, // Modified in the body of the iteration statement
+    Initializer = 1 << 1, // Set in the initializer of a ForStatement
 }
 
 const enum CopyDirection {
@@ -274,9 +274,9 @@ const enum CopyDirection {
 }
 
 const enum Jump {
-    Break       = 1 << 1,
-    Continue    = 1 << 2,
-    Return      = 1 << 3,
+    Break = 1 << 1,
+    Continue = 1 << 2,
+    Return = 1 << 3,
 }
 
 interface ConvertedLoopState {
@@ -367,21 +367,21 @@ const enum HierarchyFacts {
     // Ancestor facts
     //
 
-    Function = 1 << 0,                      // Enclosed in a non-arrow function
-    ArrowFunction = 1 << 1,                 // Enclosed in an arrow function
-    AsyncFunctionBody = 1 << 2,             // Enclosed in an async function body
-    NonStaticClassElement = 1 << 3,         // Enclosed in a non-static, non-async class element
-    CapturesThis = 1 << 4,                  // Enclosed in a function that captures the lexical 'this' (used in substitution)
-    ExportedVariableStatement = 1 << 5,     // Enclosed in an exported variable statement in the current scope
-    TopLevel = 1 << 6,                      // Enclosing block-scoped container is a top-level container
-    Block = 1 << 7,                         // Enclosing block-scoped container is a Block
-    IterationStatement = 1 << 8,            // Immediately enclosed in an IterationStatement
-    IterationStatementBlock = 1 << 9,       // Enclosing Block is enclosed in an IterationStatement
-    IterationContainer = 1 << 10,           // Enclosed in an outer IterationStatement
-    ForStatement = 1 << 11,                 // Enclosing block-scoped container is a ForStatement
-    ForInOrForOfStatement = 1 << 12,        // Enclosing block-scoped container is a ForInStatement or ForOfStatement
+    Function = 1 << 0, // Enclosed in a non-arrow function
+    ArrowFunction = 1 << 1, // Enclosed in an arrow function
+    AsyncFunctionBody = 1 << 2, // Enclosed in an async function body
+    NonStaticClassElement = 1 << 3, // Enclosed in a non-static, non-async class element
+    CapturesThis = 1 << 4, // Enclosed in a function that captures the lexical 'this' (used in substitution)
+    ExportedVariableStatement = 1 << 5, // Enclosed in an exported variable statement in the current scope
+    TopLevel = 1 << 6, // Enclosing block-scoped container is a top-level container
+    Block = 1 << 7, // Enclosing block-scoped container is a Block
+    IterationStatement = 1 << 8, // Immediately enclosed in an IterationStatement
+    IterationStatementBlock = 1 << 9, // Enclosing Block is enclosed in an IterationStatement
+    IterationContainer = 1 << 10, // Enclosed in an outer IterationStatement
+    ForStatement = 1 << 11, // Enclosing block-scoped container is a ForStatement
+    ForInOrForOfStatement = 1 << 12, // Enclosing block-scoped container is a ForInStatement or ForOfStatement
     ConstructorWithCapturedSuper = 1 << 13, // Enclosed in a constructor that captures 'this' for use with 'super'
-    StaticInitializer = 1 << 14,            // Enclosed in a static initializer
+    StaticInitializer = 1 << 14, // Enclosed in a static initializer
 
     // NOTE: do not add more ancestor flags without also updating AncestorFactsMask below.
     // NOTE: when adding a new ancestor flag, be sure to update the subtree flags below.
@@ -446,8 +446,8 @@ const enum HierarchyFacts {
     // Subtree facts
     //
 
-    NewTarget = 1 << 15,                            // Contains a 'new.target' meta-property
-    CapturedLexicalThis = 1 << 16,                  // Contains a lexical `this` reference captured by an arrow function.
+    NewTarget = 1 << 15, // Contains a 'new.target' meta-property
+    CapturedLexicalThis = 1 << 16, // Contains a lexical `this` reference captured by an arrow function.
 
     //
     // Subtree masks
@@ -460,9 +460,9 @@ const enum HierarchyFacts {
 }
 
 const enum SpreadSegmentKind {
-    None,           // Not a spread segment
+    None, // Not a spread segment
     UnpackedSpread, // A spread segment that must be packed (i.e., converting `[...[1, , 2]]` into `[1, undefined, 2]`)
-    PackedSpread,   // A spread segment that is known to already be packed (i.e., `[...[1, 2]]` or `[...__read(a)]`)
+    PackedSpread, // A spread segment that is known to already be packed (i.e., `[...[1, 2]]` or `[...__read(a)]`)
 }
 
 interface SpreadSegment {
@@ -500,7 +500,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
     function recordTaggedTemplateString(temp: Identifier) {
         taggedTemplateStringDeclarations = append(
             taggedTemplateStringDeclarations,
-            factory.createVariableDeclaration(temp));
+            factory.createVariableDeclaration(temp),
+        );
     }
 
     /**
@@ -601,7 +602,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             if (isPropertyDeclaration(original) && hasStaticModifier(original)) {
                 const ancestorFacts = enterSubtree(
                     HierarchyFacts.StaticInitializerExcludes,
-                    HierarchyFacts.StaticInitializerIncludes
+                    HierarchyFacts.StaticInitializerIncludes,
                 );
                 const result = visitorWorker(node, /*expressionResultIsUnused*/ false);
                 exitSubtree(ancestorFacts, HierarchyFacts.FunctionSubtreeExcludes, HierarchyFacts.None);
@@ -776,15 +777,15 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         addRange(statements, visitNodes(node.statements, visitor, isStatement, statementOffset));
         if (taggedTemplateStringDeclarations) {
             statements.push(
-                factory.createVariableStatement(/*modifiers*/ undefined,
-                    factory.createVariableDeclarationList(taggedTemplateStringDeclarations)));
+                factory.createVariableStatement(/*modifiers*/ undefined, factory.createVariableDeclarationList(taggedTemplateStringDeclarations)),
+            );
         }
         factory.mergeLexicalEnvironment(prologue, endLexicalEnvironment());
         insertCaptureThisForNodeIfNeeded(prologue, node);
         exitSubtree(ancestorFacts, HierarchyFacts.None, HierarchyFacts.None);
         return factory.updateSourceFile(
             node,
-            setTextRange(factory.createNodeArray(concatenate(prologue, statements)), node.statements)
+            setTextRange(factory.createNodeArray(concatenate(prologue, statements)), node.statements),
         );
     }
 
@@ -824,10 +825,10 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                             factory.createIdentifier("value"),
                             node.expression
                                 ? Debug.checkDefined(visitNode(node.expression, visitor, isExpression))
-                                : factory.createVoidZero()
+                                : factory.createVoidZero(),
                         ),
-                    ]
-                )
+                    ],
+                ),
             );
         }
         else if (isReturnVoidStatementInConstructorWithCapturedSuper(node)) {
@@ -862,10 +863,13 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             }
         }
         if (node.flags & NodeFlags.IdentifierHasExtendedUnicodeEscape) {
-            return setOriginalNode(setTextRange(
-                factory.createIdentifier(unescapeLeadingUnderscores(node.escapedText)),
-                node
-            ), node);
+            return setOriginalNode(
+                setTextRange(
+                    factory.createIdentifier(unescapeLeadingUnderscores(node.escapedText)),
+                    node,
+                ),
+                node,
+            );
         }
         return node;
     }
@@ -877,8 +881,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             //   - break/continue is labeled and label is located inside the converted loop
             //   - break/continue is non-labeled and located in non-converted loop/switch statement
             const jump = node.kind === SyntaxKind.BreakStatement ? Jump.Break : Jump.Continue;
-            const canUseBreakOrContinue =
-                (node.label && convertedLoopState.labels && convertedLoopState.labels.get(idText(node.label))) ||
+            const canUseBreakOrContinue = (node.label && convertedLoopState.labels && convertedLoopState.labels.get(idText(node.label))) ||
                 (!node.label && (convertedLoopState.allowedNonLabeledJumps! & jump));
 
             if (!canUseBreakOrContinue) {
@@ -946,7 +949,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             factory.getLocalName(node, /*allowComments*/ true),
             /*exclamationToken*/ undefined,
             /*type*/ undefined,
-            transformClassLikeDeclarationToExpression(node)
+            transformClassLikeDeclarationToExpression(node),
         );
 
         setOriginalNode(variable, node);
@@ -1032,7 +1035,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             /*typeParameters*/ undefined,
             extendsClauseElement ? [factory.createParameterDeclaration(/*modifiers*/ undefined, /*dotDotDotToken*/ undefined, factory.createUniqueName("_super", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel))] : [],
             /*type*/ undefined,
-            transformClassBody(node, extendsClauseElement)
+            transformClassBody(node, extendsClauseElement),
         );
 
         // To preserve the behavior of the old emitter, we explicitly indent
@@ -1056,8 +1059,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 /*typeArguments*/ undefined,
                 extendsClauseElement
                     ? [Debug.checkDefined(visitNode(extendsClauseElement.expression, visitor, isExpression))]
-                    : []
-            )
+                    : [],
+            ),
         );
         addSyntheticLeadingComment(result, SyntaxKind.MultiLineCommentTrivia, "* @class ");
         return result;
@@ -1111,10 +1114,10 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             statements.push(
                 setTextRange(
                     factory.createExpressionStatement(
-                        emitHelpers().createExtendsHelper(factory.getInternalName(node))
+                        emitHelpers().createExtendsHelper(factory.getInternalName(node)),
                     ),
-                    /*location*/ extendsClauseElement
-                )
+                    /*location*/ extendsClauseElement,
+                ),
             );
         }
     }
@@ -1139,7 +1142,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             /*typeParameters*/ undefined,
             transformConstructorParameters(constructor, hasSynthesizedSuper),
             /*type*/ undefined,
-            transformConstructorBody(constructor, node, extendsClauseElement, hasSynthesizedSuper)
+            transformConstructorBody(constructor, node, extendsClauseElement, hasSynthesizedSuper),
         );
 
         setTextRange(constructorFunction, constructor || node);
@@ -1198,7 +1201,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         statementOffset: number,
         superPath: readonly number[],
         superPathDepth: number,
-        constructor: ConstructorDeclaration & { body: FunctionBody },
+        constructor: ConstructorDeclaration & { body: FunctionBody; },
         isDerivedClass: boolean,
         hasSynthesizedSuper: boolean,
         isFirstStatement: boolean,
@@ -1237,7 +1240,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 constructor,
                 isDerivedClass,
                 hasSynthesizedSuper,
-                isFirstStatement);
+                isFirstStatement,
+            );
 
             const tryBlockStatementsArray = factory.createNodeArray(tryBlockStatements);
             setTextRange(tryBlockStatementsArray, superStatement.tryBlock.statements);
@@ -1246,7 +1250,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 superStatement,
                 factory.updateBlock(superStatement.tryBlock, tryBlockStatements),
                 visitNode(superStatement.catchClause, visitor, isCatchClause),
-                visitNode(superStatement.finallyBlock, visitor, isBlock)));
+                visitNode(superStatement.finallyBlock, visitor, isBlock),
+            ));
         }
         else {
             const superCall = superStatement && getSuperCallFromStatement(superStatement);
@@ -1261,9 +1266,11 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             }
 
             if (isDerivedClass || superCallExpression) {
-                if (superCallExpression &&
+                if (
+                    superCallExpression &&
                     superStatementIndex === statementsIn.length - 1 &&
-                    !(constructor.body.transformFlags & TransformFlags.ContainsLexicalThis)) {
+                    !(constructor.body.transformFlags & TransformFlags.ContainsLexicalThis)
+                ) {
                     // If the subclass constructor does *not* contain `this` and *ends* with a `super()` call, we will use the
                     // following representation:
                     //
@@ -1384,7 +1391,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
      * @param hasSynthesizedSuper A value indicating whether the constructor starts with a
      *                            synthesized `super` call.
      */
-    function transformConstructorBody(constructor: ConstructorDeclaration & { body: FunctionBody } | undefined, node: ClassDeclaration | ClassExpression, extendsClauseElement: ExpressionWithTypeArguments | undefined, hasSynthesizedSuper: boolean) {
+    function transformConstructorBody(constructor: ConstructorDeclaration & { body: FunctionBody; } | undefined, node: ClassDeclaration | ClassExpression, extendsClauseElement: ExpressionWithTypeArguments | undefined, hasSynthesizedSuper: boolean) {
         // determine whether the class is known syntactically to be a derived class (e.g. a
         // class that extends a value that is not syntactically known to be `null`).
         const isDerivedClass = !!extendsClauseElement && skipOuterExpressions(extendsClauseElement.expression).kind !== SyntaxKind.NullKeyword;
@@ -1429,7 +1436,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             constructor,
             isDerivedClass,
             hasSynthesizedSuper,
-            /*isFirstStatement*/ true // NOTE: this will be recalculated inside of transformConstructorBodyWorker
+            /*isFirstStatement*/ true, // NOTE: this will be recalculated inside of transformConstructorBodyWorker
         );
 
         // Add parameter defaults at the beginning of the output, with prologue statements
@@ -1448,11 +1455,11 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                     [
                         ...prologue,
                         ...statements,
-                    ]
+                    ],
                 ),
-                /*location*/ constructor.body.statements
+                /*location*/ constructor.body.statements,
             ),
-            /*multiLine*/ true
+            /*multiLine*/ true,
         );
 
         setTextRange(body, constructor.body);
@@ -1497,15 +1504,15 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             factory.createLogicalAnd(
                 factory.createStrictInequality(
                     factory.createUniqueName("_super", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel),
-                    factory.createNull()
+                    factory.createNull(),
                 ),
                 factory.createFunctionApplyCall(
                     factory.createUniqueName("_super", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel),
                     createActualThis(),
                     factory.createIdentifier("arguments"),
-                )
+                ),
             ),
-            createActualThis()
+            createActualThis(),
         );
     }
 
@@ -1530,11 +1537,11 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                         factory.getGeneratedNameForNode(node),
                         /*questionToken*/ undefined,
                         /*type*/ undefined,
-                        /*initializer*/ undefined
+                        /*initializer*/ undefined,
                     ),
-                    /*location*/ node
+                    /*location*/ node,
                 ),
-                /*original*/ node
+                /*original*/ node,
             );
         }
         else if (node.initializer) {
@@ -1547,11 +1554,11 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                         node.name,
                         /*questionToken*/ undefined,
                         /*type*/ undefined,
-                        /*initializer*/ undefined
+                        /*initializer*/ undefined,
                     ),
-                    /*location*/ node
+                    /*location*/ node,
                 ),
-                /*original*/ node
+                /*original*/ node,
             );
         }
         else {
@@ -1621,12 +1628,12 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                                 visitor,
                                 context,
                                 FlattenLevel.All,
-                                factory.getGeneratedNameForNode(parameter)
-                            )
-                        )
+                                factory.getGeneratedNameForNode(parameter),
+                            ),
+                        ),
                     ),
-                    EmitFlags.CustomPrologue
-                )
+                    EmitFlags.CustomPrologue,
+                ),
             );
             return true;
         }
@@ -1637,11 +1644,11 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                     factory.createExpressionStatement(
                         factory.createAssignment(
                             factory.getGeneratedNameForNode(parameter),
-                            Debug.checkDefined(visitNode(initializer, visitor, isExpression))
-                        )
+                            Debug.checkDefined(visitNode(initializer, visitor, isExpression)),
+                        ),
                     ),
-                    EmitFlags.CustomPrologue
-                )
+                    EmitFlags.CustomPrologue,
+                ),
             );
             return true;
         }
@@ -1669,18 +1676,18 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                                     factory.createAssignment(
                                         // TODO(rbuckton): Does this need to be parented?
                                         setEmitFlags(setParent(setTextRange(factory.cloneNode(name), name), name.parent), EmitFlags.NoSourceMap),
-                                        setEmitFlags(initializer, EmitFlags.NoSourceMap | getEmitFlags(initializer) | EmitFlags.NoComments)
+                                        setEmitFlags(initializer, EmitFlags.NoSourceMap | getEmitFlags(initializer) | EmitFlags.NoComments),
                                     ),
-                                    parameter
+                                    parameter,
                                 ),
-                                EmitFlags.NoComments
-                            )
+                                EmitFlags.NoComments,
+                            ),
                         ),
                     ]),
-                    parameter
+                    parameter,
                 ),
-                EmitFlags.SingleLine | EmitFlags.NoTrailingSourceMap | EmitFlags.NoTokenSourceMaps | EmitFlags.NoComments
-            )
+                EmitFlags.SingleLine | EmitFlags.NoTrailingSourceMap | EmitFlags.NoTokenSourceMaps | EmitFlags.NoComments,
+            ),
         );
 
         startOnNewLine(statement);
@@ -1738,14 +1745,14 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                                 declarationName,
                                 /*exclamationToken*/ undefined,
                                 /*type*/ undefined,
-                                factory.createArrayLiteralExpression([])
+                                factory.createArrayLiteralExpression([]),
                             ),
-                        ])
+                        ]),
                     ),
-                    /*location*/ parameter
+                    /*location*/ parameter,
                 ),
-                EmitFlags.CustomPrologue
-            )
+                EmitFlags.CustomPrologue,
+            ),
         );
 
         // for (var _i = restIndex; _i < arguments.length; _i++) {
@@ -1756,14 +1763,14 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 factory.createVariableDeclarationList([
                     factory.createVariableDeclaration(temp, /*exclamationToken*/ undefined, /*type*/ undefined, factory.createNumericLiteral(restIndex)),
                 ]),
-                parameter
+                parameter,
             ),
             setTextRange(
                 factory.createLessThan(
                     temp,
-                    factory.createPropertyAccessExpression(factory.createIdentifier("arguments"), "length")
+                    factory.createPropertyAccessExpression(factory.createIdentifier("arguments"), "length"),
                 ),
-                parameter
+                parameter,
             ),
             setTextRange(factory.createPostfixIncrement(temp), parameter),
             factory.createBlock([
@@ -1775,15 +1782,15 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                                     expressionName,
                                     restIndex === 0
                                         ? temp
-                                        : factory.createSubtract(temp, factory.createNumericLiteral(restIndex))
+                                        : factory.createSubtract(temp, factory.createNumericLiteral(restIndex)),
                                 ),
-                                factory.createElementAccessExpression(factory.createIdentifier("arguments"), temp)
-                            )
+                                factory.createElementAccessExpression(factory.createIdentifier("arguments"), temp),
+                            ),
                         ),
-                        /*location*/ parameter
-                    )
+                        /*location*/ parameter,
+                    ),
                 ),
-            ])
+            ]),
         );
 
         setEmitFlags(forStatement, EmitFlags.CustomPrologue);
@@ -1799,12 +1806,12 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                             /*modifiers*/ undefined,
                             factory.createVariableDeclarationList(
                                 flattenDestructuringBinding(parameter, visitor, context, FlattenLevel.All, expressionName),
-                            )
+                            ),
                         ),
-                        parameter
+                        parameter,
                     ),
-                    EmitFlags.CustomPrologue
-                )
+                    EmitFlags.CustomPrologue,
+                ),
             );
         }
 
@@ -1839,8 +1846,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             factory.createBinaryExpression(
                 factory.createThis(),
                 SyntaxKind.EqualsToken,
-                superExpression
-            )
+                superExpression,
+            ),
         );
         statements.push(assignSuperExpression);
         setCommentRange(assignSuperExpression, getOriginalNode(superExpression).parent);
@@ -1855,9 +1862,9 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                     factory.createUniqueName("_this", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel),
                     /*exclamationToken*/ undefined,
                     /*type*/ undefined,
-                    initializer
+                    initializer,
                 ),
-            ])
+            ]),
         );
         setEmitFlags(captureThisStatement, EmitFlags.NoComments | EmitFlags.CustomPrologue);
         setSourceMapRange(captureThisStatement, node);
@@ -1884,7 +1891,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                     // should be relatively safe to use.
                     newTarget = factory.createPropertyAccessExpression(
                         setEmitFlags(factory.createThis(), EmitFlags.NoSubstitution),
-                        "constructor"
+                        "constructor",
                     );
                     break;
 
@@ -1898,16 +1905,16 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                             factory.createBinaryExpression(
                                 setEmitFlags(factory.createThis(), EmitFlags.NoSubstitution),
                                 SyntaxKind.InstanceOfKeyword,
-                                factory.getLocalName(node)
-                            )
+                                factory.getLocalName(node),
+                            ),
                         ),
                         /*questionToken*/ undefined,
                         factory.createPropertyAccessExpression(
                             setEmitFlags(factory.createThis(), EmitFlags.NoSubstitution),
-                            "constructor"
+                            "constructor",
                         ),
                         /*colonToken*/ undefined,
-                        factory.createVoidZero()
+                        factory.createVoidZero(),
                     );
                     break;
 
@@ -1922,9 +1929,9 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                         factory.createUniqueName("_newTarget", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel),
                         /*exclamationToken*/ undefined,
                         /*type*/ undefined,
-                        newTarget
+                        newTarget,
                     ),
-                ])
+                ]),
             );
 
             setEmitFlags(captureNewTargetStatement, EmitFlags.NoComments | EmitFlags.CustomPrologue);
@@ -2079,7 +2086,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
 
         properties.push(
             factory.createPropertyAssignment("enumerable", getAccessor || setAccessor ? factory.createFalse() : factory.createTrue()),
-            factory.createPropertyAssignment("configurable", factory.createTrue())
+            factory.createPropertyAssignment("configurable", factory.createTrue()),
         );
 
         const call = factory.createCallExpression(
@@ -2089,7 +2096,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 target,
                 propertyName,
                 factory.createObjectLiteralExpression(properties, /*multiLine*/ true),
-            ]
+            ],
         );
         if (startsOnNewLine) {
             startOnNewLine(call);
@@ -2118,7 +2125,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             /*typeParameters*/ undefined,
             visitParameterList(node.parameters, visitor, context),
             /*type*/ undefined,
-            transformFunctionBody(node)
+            transformFunctionBody(node),
         );
         setTextRange(func, node);
         setOriginalNode(func, node);
@@ -2159,7 +2166,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             /*typeParameters*/ undefined,
             parameters,
             /*type*/ undefined,
-            body
+            body,
         );
     }
 
@@ -2188,7 +2195,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             /*typeParameters*/ undefined,
             parameters,
             /*type*/ undefined,
-            body
+            body,
         );
     }
 
@@ -2222,11 +2229,11 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                     /*typeParameters*/ undefined,
                     parameters,
                     /*type*/ undefined,
-                    body
+                    body,
                 ),
-                location
+                location,
             ),
-            /*original*/ node
+            /*original*/ node,
         );
     }
 
@@ -2378,14 +2385,15 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 visitor,
                 context,
                 FlattenLevel.All,
-                !expressionResultIsUnused);
+                !expressionResultIsUnused,
+            );
         }
         if (node.operatorToken.kind === SyntaxKind.CommaToken) {
             return factory.updateBinaryExpression(
                 node,
                 Debug.checkDefined(visitNode(node.left, visitorWithUnusedExpressionResult, isExpression)),
                 node.operatorToken,
-                Debug.checkDefined(visitNode(node.right, expressionResultIsUnused ? visitorWithUnusedExpressionResult : visitor, isExpression))
+                Debug.checkDefined(visitNode(node.right, expressionResultIsUnused ? visitorWithUnusedExpressionResult : visitor, isExpression)),
             );
         }
         return visitEachChild(node, visitor, context);
@@ -2434,7 +2442,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                             decl,
                             visitor,
                             context,
-                            FlattenLevel.All
+                            FlattenLevel.All,
                         );
                     }
                     else {
@@ -2472,9 +2480,13 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 enableSubstitutionsForBlockScopedBindings();
             }
 
-            const declarations = visitNodes(node.declarations, node.flags & NodeFlags.Let
-                ? visitVariableDeclarationInLetDeclarationList
-                : visitVariableDeclaration, isVariableDeclaration);
+            const declarations = visitNodes(
+                node.declarations,
+                node.flags & NodeFlags.Let
+                    ? visitVariableDeclarationInLetDeclarationList
+                    : visitVariableDeclaration,
+                isVariableDeclaration,
+            );
 
             const declarationList = factory.createVariableDeclarationList(declarations);
             setOriginalNode(declarationList, node);
@@ -2483,8 +2495,10 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
 
             // If the first or last declaration is a binding pattern, we need to modify
             // the source map range for the declaration list.
-            if (node.transformFlags & TransformFlags.ContainsBindingPattern
-                && (isBindingPattern(node.declarations[0].name) || isBindingPattern(last(node.declarations).name))) {
+            if (
+                node.transformFlags & TransformFlags.ContainsBindingPattern
+                && (isBindingPattern(node.declarations[0].name) || isBindingPattern(last(node.declarations).name))
+            ) {
                 setSourceMapRange(declarationList, getRangeUnion(declarations));
             }
 
@@ -2554,14 +2568,12 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         const flags = resolver.getNodeCheckFlags(node);
         const isCapturedInFunction = flags & NodeCheckFlags.CapturedBlockScopedBinding;
         const isDeclaredInLoop = flags & NodeCheckFlags.BlockScopedBindingInLoop;
-        const emittedAsTopLevel =
-            (hierarchyFacts & HierarchyFacts.TopLevel) !== 0
+        const emittedAsTopLevel = (hierarchyFacts & HierarchyFacts.TopLevel) !== 0
             || (isCapturedInFunction
                 && isDeclaredInLoop
                 && (hierarchyFacts & HierarchyFacts.IterationStatementBlock) !== 0);
 
-        const emitExplicitInitializer =
-            !emittedAsTopLevel
+        const emitExplicitInitializer = !emittedAsTopLevel
             && (hierarchyFacts & HierarchyFacts.ForInOrForOfStatement) === 0
             && (!resolver.isDeclarationWithCollidingName(node)
                 || (isDeclaredInLoop
@@ -2607,7 +2619,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 context,
                 FlattenLevel.All,
                 /*rval*/ undefined,
-                (ancestorFacts & HierarchyFacts.ExportedVariableStatement) !== 0
+                (ancestorFacts & HierarchyFacts.ExportedVariableStatement) !== 0,
             );
         }
         else {
@@ -2662,7 +2674,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             HierarchyFacts.DoOrWhileStatementExcludes,
             HierarchyFacts.DoOrWhileStatementIncludes,
             node,
-            outermostLabeledStatement);
+            outermostLabeledStatement,
+        );
     }
 
     function visitForStatement(node: ForStatement, outermostLabeledStatement: LabeledStatement | undefined) {
@@ -2670,7 +2683,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             HierarchyFacts.ForStatementExcludes,
             HierarchyFacts.ForStatementIncludes,
             node,
-            outermostLabeledStatement);
+            outermostLabeledStatement,
+        );
     }
 
     function visitEachChildOfForStatement(node: ForStatement) {
@@ -2679,7 +2693,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             visitNode(node.initializer, visitorWithUnusedExpressionResult, isForInitializer),
             visitNode(node.condition, visitor, isExpression),
             visitNode(node.incrementor, visitorWithUnusedExpressionResult, isExpression),
-            Debug.checkDefined(visitNode(node.statement, visitor, isStatement, factory.liftToBlock))
+            Debug.checkDefined(visitNode(node.statement, visitor, isStatement, factory.liftToBlock)),
         );
     }
 
@@ -2688,7 +2702,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             HierarchyFacts.ForInOrForOfStatementExcludes,
             HierarchyFacts.ForInOrForOfStatementIncludes,
             node,
-            outermostLabeledStatement);
+            outermostLabeledStatement,
+        );
     }
 
     function visitForOfStatement(node: ForOfStatement, outermostLabeledStatement: LabeledStatement | undefined): VisitResult<Statement> {
@@ -2697,7 +2712,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             HierarchyFacts.ForInOrForOfStatementIncludes,
             node,
             outermostLabeledStatement,
-            compilerOptions.downlevelIteration ? convertForOfStatementForIterable : convertForOfStatementForArray);
+            compilerOptions.downlevelIteration ? convertForOfStatementForIterable : convertForOfStatementForArray,
+        );
     }
 
     function convertForOfStatementHead(node: ForOfStatement, boundValue: Expression, convertedLoopBodyStatements: Statement[] | undefined) {
@@ -2717,7 +2733,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                     visitor,
                     context,
                     FlattenLevel.All,
-                    boundValue
+                    boundValue,
                 );
 
                 const declarationList = setTextRange(factory.createVariableDeclarationList(declarations), node.initializer);
@@ -2730,8 +2746,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 statements.push(
                     factory.createVariableStatement(
                         /*modifiers*/ undefined,
-                        declarationList
-                    )
+                        declarationList,
+                    ),
                 );
             }
             else {
@@ -2748,16 +2764,16 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                                             firstOriginalDeclaration ? firstOriginalDeclaration.name : factory.createTempVariable(/*recordTempVariable*/ undefined),
                                             /*exclamationToken*/ undefined,
                                             /*type*/ undefined,
-                                            boundValue
+                                            boundValue,
                                         ),
                                     ]),
-                                    moveRangePos(initializer, -1)
+                                    moveRangePos(initializer, -1),
                                 ),
-                                initializer
-                            )
+                                initializer,
+                            ),
                         ),
-                        moveRangeEnd(initializer, -1)
-                    )
+                        moveRangeEnd(initializer, -1),
+                    ),
                 );
             }
         }
@@ -2794,9 +2810,9 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         return setEmitFlags(
             factory.createBlock(
                 factory.createNodeArray(statements),
-                /*multiLine*/ true
+                /*multiLine*/ true,
             ),
-            EmitFlags.NoSourceMap | EmitFlags.NoTokenSourceMaps
+            EmitFlags.NoSourceMap | EmitFlags.NoTokenSourceMaps,
         );
     }
 
@@ -2844,25 +2860,25 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                             setTextRange(factory.createVariableDeclaration(counter, /*exclamationToken*/ undefined, /*type*/ undefined, factory.createNumericLiteral(0)), moveRangePos(node.expression, -1)),
                             setTextRange(factory.createVariableDeclaration(rhsReference, /*exclamationToken*/ undefined, /*type*/ undefined, expression), node.expression),
                         ]),
-                        node.expression
+                        node.expression,
                     ),
-                    EmitFlags.NoHoisting
+                    EmitFlags.NoHoisting,
                 ),
                 /*condition*/ setTextRange(
                     factory.createLessThan(
                         counter,
-                        factory.createPropertyAccessExpression(rhsReference, "length")
+                        factory.createPropertyAccessExpression(rhsReference, "length"),
                     ),
-                    node.expression
+                    node.expression,
                 ),
                 /*incrementor*/ setTextRange(factory.createPostfixIncrement(counter), node.expression),
                 /*statement*/ convertForOfStatementHead(
                     node,
                     factory.createElementAccessExpression(rhsReference, counter),
-                    convertedLoopBodyStatements
-                )
+                    convertedLoopBodyStatements,
+                ),
             ),
-            /*location*/ node
+            /*location*/ node,
         );
 
         // Disable trailing source maps for the OpenParenToken to align source map emit with the old emitter.
@@ -2899,21 +2915,21 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                                 setTextRange(factory.createVariableDeclaration(iterator, /*exclamationToken*/ undefined, /*type*/ undefined, initializer), node.expression),
                                 factory.createVariableDeclaration(result, /*exclamationToken*/ undefined, /*type*/ undefined, next),
                             ]),
-                            node.expression
+                            node.expression,
                         ),
-                        EmitFlags.NoHoisting
+                        EmitFlags.NoHoisting,
                     ),
                     /*condition*/ factory.createLogicalNot(factory.createPropertyAccessExpression(result, "done")),
                     /*incrementor*/ factory.createAssignment(result, next),
                     /*statement*/ convertForOfStatementHead(
                         node,
                         factory.createPropertyAccessExpression(result, "value"),
-                        convertedLoopBodyStatements
-                    )
+                        convertedLoopBodyStatements,
+                    ),
                 ),
-                /*location*/ node
+                /*location*/ node,
             ),
-            EmitFlags.NoTokenTrailingSourceMaps
+            EmitFlags.NoTokenTrailingSourceMaps,
         );
 
         return factory.createTryStatement(
@@ -2921,10 +2937,11 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 factory.restoreEnclosingLabel(
                     forStatement,
                     outermostLabeledStatement,
-                    convertedLoopState && resetLabel
+                    convertedLoopState && resetLabel,
                 ),
             ]),
-            factory.createCatchClause(factory.createVariableDeclaration(catchVariable),
+            factory.createCatchClause(
+                factory.createVariableDeclaration(catchVariable),
                 setEmitFlags(
                     factory.createBlock([
                         factory.createExpressionStatement(
@@ -2932,12 +2949,12 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                                 errorRecord,
                                 factory.createObjectLiteralExpression([
                                     factory.createPropertyAssignment("error", catchVariable),
-                                ])
-                            )
+                                ]),
+                            ),
                         ),
                     ]),
-                    EmitFlags.SingleLine
-                )
+                    EmitFlags.SingleLine,
+                ),
             ),
             factory.createBlock([
                 factory.createTryStatement(
@@ -2948,19 +2965,19 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                                     factory.createLogicalAnd(
                                         result,
                                         factory.createLogicalNot(
-                                            factory.createPropertyAccessExpression(result, "done")
-                                        )
+                                            factory.createPropertyAccessExpression(result, "done"),
+                                        ),
                                     ),
                                     factory.createAssignment(
                                         returnMethod,
-                                        factory.createPropertyAccessExpression(iterator, "return")
-                                    )
+                                        factory.createPropertyAccessExpression(iterator, "return"),
+                                    ),
                                 ),
                                 factory.createExpressionStatement(
-                                    factory.createFunctionCallCall(returnMethod, iterator, [])
-                                )
+                                    factory.createFunctionCallCall(returnMethod, iterator, []),
+                                ),
                             ),
-                            EmitFlags.SingleLine
+                            EmitFlags.SingleLine,
                         ),
                     ]),
                     /*catchClause*/ undefined,
@@ -2970,16 +2987,16 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                                 factory.createIfStatement(
                                     errorRecord,
                                     factory.createThrowStatement(
-                                        factory.createPropertyAccessExpression(errorRecord, "error")
-                                    )
+                                        factory.createPropertyAccessExpression(errorRecord, "error"),
+                                    ),
                                 ),
-                                EmitFlags.SingleLine
+                                EmitFlags.SingleLine,
                             ),
                         ]),
-                        EmitFlags.SingleLine
-                    )
+                        EmitFlags.SingleLine,
+                    ),
                 ),
-            ])
+            ]),
         );
     }
 
@@ -2996,9 +3013,11 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         let numInitialProperties = -1, hasComputed = false;
         for (let i = 0; i < properties.length; i++) {
             const property = properties[i];
-            if ((property.transformFlags & TransformFlags.ContainsYield &&
-                 hierarchyFacts & HierarchyFacts.AsyncFunctionBody)
-                || (hasComputed = Debug.checkDefined(property.name).kind === SyntaxKind.ComputedPropertyName)) {
+            if (
+                (property.transformFlags & TransformFlags.ContainsYield &&
+                    hierarchyFacts & HierarchyFacts.AsyncFunctionBody)
+                || (hasComputed = Debug.checkDefined(property.name).kind === SyntaxKind.ComputedPropertyName)
+            ) {
                 numInitialProperties = i;
                 break;
             }
@@ -3019,10 +3038,10 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             setEmitFlags(
                 factory.createObjectLiteralExpression(
                     visitNodes(properties, visitor, isObjectLiteralElementLike, 0, numInitialProperties),
-                    node.multiLine
+                    node.multiLine,
                 ),
-                hasComputed ? EmitFlags.Indented : 0
-            )
+                hasComputed ? EmitFlags.Indented : 0,
+            ),
         );
 
         if (node.multiLine) {
@@ -3115,7 +3134,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 : factory.restoreEnclosingLabel(
                     isForStatement(node) ? visitEachChildOfForStatement(node) : visitEachChild(node, visitor, context),
                     outermostLabeledStatement,
-                    convertedLoopState && resetLabel);
+                    convertedLoopState && resetLabel,
+                );
 
             if (convertedLoopState) {
                 convertedLoopState.allowedNonLabeledJumps = saveAllowedNonLabeledJumps;
@@ -3164,12 +3184,18 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
 
     function convertIterationStatementCore(node: IterationStatement, initializerFunction: IterationStatementPartFunction<VariableDeclarationList> | undefined, convertedLoopBody: Statement) {
         switch (node.kind) {
-            case SyntaxKind.ForStatement: return convertForStatement(node as ForStatement, initializerFunction, convertedLoopBody);
-            case SyntaxKind.ForInStatement: return convertForInStatement(node as ForInStatement, convertedLoopBody);
-            case SyntaxKind.ForOfStatement: return convertForOfStatement(node as ForOfStatement, convertedLoopBody);
-            case SyntaxKind.DoStatement: return convertDoStatement(node as DoStatement, convertedLoopBody);
-            case SyntaxKind.WhileStatement: return convertWhileStatement(node as WhileStatement, convertedLoopBody);
-            default: return Debug.failBadSyntaxKind(node, "IterationStatement expected");
+            case SyntaxKind.ForStatement:
+                return convertForStatement(node as ForStatement, initializerFunction, convertedLoopBody);
+            case SyntaxKind.ForInStatement:
+                return convertForInStatement(node as ForInStatement, convertedLoopBody);
+            case SyntaxKind.ForOfStatement:
+                return convertForOfStatement(node as ForOfStatement, convertedLoopBody);
+            case SyntaxKind.DoStatement:
+                return convertDoStatement(node as DoStatement, convertedLoopBody);
+            case SyntaxKind.WhileStatement:
+                return convertWhileStatement(node as WhileStatement, convertedLoopBody);
+            default:
+                return Debug.failBadSyntaxKind(node, "IterationStatement expected");
         }
     }
 
@@ -3181,7 +3207,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             visitNode(initializerFunction ? initializerFunction.part : node.initializer, visitorWithUnusedExpressionResult, isForInitializer),
             visitNode(shouldConvertCondition ? undefined : node.condition, visitor, isExpression),
             visitNode(shouldConvertIncrementor ? undefined : node.incrementor, visitorWithUnusedExpressionResult, isExpression),
-            convertedLoopBody
+            convertedLoopBody,
         );
     }
 
@@ -3191,7 +3217,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             /*awaitModifier*/ undefined,
             Debug.checkDefined(visitNode(node.initializer, visitor, isForInitializer)),
             Debug.checkDefined(visitNode(node.expression, visitor, isExpression)),
-            convertedLoopBody);
+            convertedLoopBody,
+        );
     }
 
     function convertForInStatement(node: ForInStatement, convertedLoopBody: Statement) {
@@ -3199,21 +3226,24 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             node,
             Debug.checkDefined(visitNode(node.initializer, visitor, isForInitializer)),
             Debug.checkDefined(visitNode(node.expression, visitor, isExpression)),
-            convertedLoopBody);
+            convertedLoopBody,
+        );
     }
 
     function convertDoStatement(node: DoStatement, convertedLoopBody: Statement) {
         return factory.updateDoStatement(
             node,
             convertedLoopBody,
-            Debug.checkDefined(visitNode(node.expression, visitor, isExpression)));
+            Debug.checkDefined(visitNode(node.expression, visitor, isExpression)),
+        );
     }
 
     function convertWhileStatement(node: WhileStatement, convertedLoopBody: Statement) {
         return factory.updateWhileStatement(
             node,
             Debug.checkDefined(visitNode(node.expression, visitor, isExpression)),
-            convertedLoopBody);
+            convertedLoopBody,
+        );
     }
 
     function createConvertedLoopState(node: IterationStatement) {
@@ -3281,8 +3311,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                         state.argumentsName,
                         /*exclamationToken*/ undefined,
                         /*type*/ undefined,
-                        factory.createIdentifier("arguments")
-                    )
+                        factory.createIdentifier("arguments"),
+                    ),
                 );
             }
         }
@@ -3303,8 +3333,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                         state.thisName,
                         /*exclamationToken*/ undefined,
                         /*type*/ undefined,
-                        factory.createIdentifier("this")
-                    )
+                        factory.createIdentifier("this"),
+                    ),
                 );
             }
         }
@@ -3347,7 +3377,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         if (extraVariableDeclarations) {
             statements.push(factory.createVariableStatement(
                 /*modifiers*/ undefined,
-                factory.createVariableDeclarationList(extraVariableDeclarations)
+                factory.createVariableDeclarationList(extraVariableDeclarations),
             ));
         }
     }
@@ -3421,15 +3451,15 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                                 Debug.checkDefined(visitNode(
                                     factory.createBlock(statements, /*multiLine*/ true),
                                     visitor,
-                                    isBlock
-                                ))
+                                    isBlock,
+                                )),
                             ),
-                            emitFlags
-                        )
+                            emitFlags,
+                        ),
                     ),
                 ]),
-                EmitFlags.NoHoisting
-            )
+                EmitFlags.NoHoisting,
+            ),
         );
 
         const part = factory.createVariableDeclarationList(map(currentState.loopOutParameters, createOutVariable));
@@ -3493,20 +3523,20 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 statements.push(factory.createIfStatement(
                     currentState.conditionVariable,
                     factory.createExpressionStatement(Debug.checkDefined(visitNode(node.incrementor, visitor, isExpression))),
-                    factory.createExpressionStatement(factory.createAssignment(currentState.conditionVariable, factory.createTrue()))
+                    factory.createExpressionStatement(factory.createAssignment(currentState.conditionVariable, factory.createTrue())),
                 ));
             }
             else {
                 statements.push(factory.createIfStatement(
                     factory.createLogicalNot(currentState.conditionVariable),
-                    factory.createExpressionStatement(factory.createAssignment(currentState.conditionVariable, factory.createTrue()))
+                    factory.createExpressionStatement(factory.createAssignment(currentState.conditionVariable, factory.createTrue())),
                 ));
             }
 
             if (shouldConvertConditionOfForStatement(node)) {
                 statements.push(factory.createIfStatement(
                     factory.createPrefixUnaryExpression(SyntaxKind.ExclamationToken, Debug.checkDefined(visitNode(node.condition, visitor, isExpression))),
-                    Debug.checkDefined(visitNode(factory.createBreakStatement(), visitor, isStatement))
+                    Debug.checkDefined(visitNode(factory.createBreakStatement(), visitor, isStatement)),
                 ));
             }
         }
@@ -3546,34 +3576,33 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         //      _loop_1(i);
         //  }
 
-        const functionDeclaration =
-            factory.createVariableStatement(
-                /*modifiers*/ undefined,
-                setEmitFlags(
-                    factory.createVariableDeclarationList(
-                        [
-                            factory.createVariableDeclaration(
-                                functionName,
-                                /*exclamationToken*/ undefined,
-                                /*type*/ undefined,
-                                setEmitFlags(
-                                    factory.createFunctionExpression(
-                                        /*modifiers*/ undefined,
-                                        containsYield ? factory.createToken(SyntaxKind.AsteriskToken) : undefined,
-                                        /*name*/ undefined,
-                                        /*typeParameters*/ undefined,
-                                        currentState.loopParameters,
-                                        /*type*/ undefined,
-                                        loopBody
-                                    ),
-                                    emitFlags
-                                )
+        const functionDeclaration = factory.createVariableStatement(
+            /*modifiers*/ undefined,
+            setEmitFlags(
+                factory.createVariableDeclarationList(
+                    [
+                        factory.createVariableDeclaration(
+                            functionName,
+                            /*exclamationToken*/ undefined,
+                            /*type*/ undefined,
+                            setEmitFlags(
+                                factory.createFunctionExpression(
+                                    /*modifiers*/ undefined,
+                                    containsYield ? factory.createToken(SyntaxKind.AsteriskToken) : undefined,
+                                    /*name*/ undefined,
+                                    /*typeParameters*/ undefined,
+                                    currentState.loopParameters,
+                                    /*type*/ undefined,
+                                    loopBody,
+                                ),
+                                emitFlags,
                             ),
-                        ]
-                    ),
-                    EmitFlags.NoHoisting
-                )
-            );
+                        ),
+                    ],
+                ),
+                EmitFlags.NoHoisting,
+            ),
+        );
 
         const part = generateCallToConvertedLoop(functionName, currentState, outerState, containsYield);
         return { functionName, containsYield, functionDeclaration, part };
@@ -3598,20 +3627,18 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         const callResult = containsYield
             ? factory.createYieldExpression(
                 factory.createToken(SyntaxKind.AsteriskToken),
-                setEmitFlags(call, EmitFlags.Iterator)
+                setEmitFlags(call, EmitFlags.Iterator),
             )
             : call;
         return factory.createExpressionStatement(callResult);
     }
 
     function generateCallToConvertedLoop(loopFunctionExpressionName: Identifier, state: ConvertedLoopState, outerState: ConvertedLoopState | undefined, containsYield: boolean): Statement[] {
-
         const statements: Statement[] = [];
         // loop is considered simple if it does not have any return statements or break\continue that transfer control outside of the loop
         // simple loops are emitted as just 'loop()';
         // NOTE: if loop uses only 'continue' it still will be emitted as simple loop
-        const isSimpleLoop =
-            !(state.nonLocalJumps! & ~Jump.Continue) &&
+        const isSimpleLoop = !(state.nonLocalJumps! & ~Jump.Continue) &&
             !state.labeledNonLocalBreaks &&
             !state.labeledNonLocalContinues;
 
@@ -3619,7 +3646,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         const callResult = containsYield
             ? factory.createYieldExpression(
                 factory.createToken(SyntaxKind.AsteriskToken),
-                setEmitFlags(call, EmitFlags.Iterator)
+                setEmitFlags(call, EmitFlags.Iterator),
             )
             : call;
         if (isSimpleLoop) {
@@ -3631,8 +3658,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             const stateVariable = factory.createVariableStatement(
                 /*modifiers*/ undefined,
                 factory.createVariableDeclarationList(
-                    [factory.createVariableDeclaration(loopResultName, /*exclamationToken*/ undefined, /*type*/ undefined, callResult)]
-                )
+                    [factory.createVariableDeclaration(loopResultName, /*exclamationToken*/ undefined, /*type*/ undefined, callResult)],
+                ),
             );
             statements.push(stateVariable);
             copyOutParameters(state.loopOutParameters, LoopOutParameterFlags.Body, CopyDirection.ToOriginal, statements);
@@ -3649,8 +3676,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 statements.push(
                     factory.createIfStatement(
                         factory.createTypeCheck(loopResultName, "object"),
-                        returnStatement
-                    )
+                        returnStatement,
+                    ),
                 );
             }
 
@@ -3659,10 +3686,10 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                     factory.createIfStatement(
                         factory.createStrictEquality(
                             loopResultName,
-                            factory.createStringLiteral("break")
+                            factory.createStringLiteral("break"),
                         ),
-                        factory.createBreakStatement()
-                    )
+                        factory.createBreakStatement(),
+                    ),
                 );
             }
 
@@ -3673,8 +3700,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 statements.push(
                     factory.createSwitchStatement(
                         loopResultName,
-                        factory.createCaseBlock(caseClauses)
-                    )
+                        factory.createCaseBlock(caseClauses),
+                    ),
                 );
             }
         }
@@ -3739,8 +3766,10 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                     if (container.initializer && resolver.isBindingCapturedByNode(container.initializer, decl)) {
                         flags |= LoopOutParameterFlags.Initializer;
                     }
-                    if (container.condition && resolver.isBindingCapturedByNode(container.condition, decl) ||
-                        container.incrementor && resolver.isBindingCapturedByNode(container.incrementor, decl)) {
+                    if (
+                        container.condition && resolver.isBindingCapturedByNode(container.condition, decl) ||
+                        container.incrementor && resolver.isBindingCapturedByNode(container.incrementor, decl)
+                    ) {
                         flags |= LoopOutParameterFlags.Body;
                     }
                 }
@@ -3804,9 +3833,9 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             createMemberAccessForPropertyName(
                 factory,
                 receiver,
-                Debug.checkDefined(visitNode(property.name, visitor, isPropertyName))
+                Debug.checkDefined(visitNode(property.name, visitor, isPropertyName)),
             ),
-            Debug.checkDefined(visitNode(property.initializer, visitor, isExpression))
+            Debug.checkDefined(visitNode(property.initializer, visitor, isExpression)),
         );
         setTextRange(expression, property);
         if (startsOnNewLine) {
@@ -3827,9 +3856,9 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             createMemberAccessForPropertyName(
                 factory,
                 receiver,
-                Debug.checkDefined(visitNode(property.name, visitor, isPropertyName))
+                Debug.checkDefined(visitNode(property.name, visitor, isPropertyName)),
             ),
-            factory.cloneNode(property.name)
+            factory.cloneNode(property.name),
         );
         setTextRange(expression, property);
         if (startsOnNewLine) {
@@ -3850,9 +3879,9 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             createMemberAccessForPropertyName(
                 factory,
                 receiver,
-                Debug.checkDefined(visitNode(method.name, visitor, isPropertyName))
+                Debug.checkDefined(visitNode(method.name, visitor, isPropertyName)),
             ),
-            transformFunctionLikeToExpression(method, /*location*/ method, /*name*/ undefined, container)
+            transformFunctionLikeToExpression(method, /*location*/ method, /*name*/ undefined, container),
         );
         setTextRange(expression, method);
         if (startsOnNewLine) {
@@ -3874,7 +3903,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 visitor,
                 context,
                 FlattenLevel.All,
-                temp
+                temp,
             );
             const list = factory.createVariableDeclarationList(vars);
             setTextRange(list, node.variableDeclaration);
@@ -3910,9 +3939,9 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         return setTextRange(
             factory.createPropertyAssignment(
                 node.name,
-                functionExpression
+                functionExpression,
             ),
-            /*location*/ node
+            /*location*/ node,
         );
     }
 
@@ -3949,9 +3978,9 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         return setTextRange(
             factory.createPropertyAssignment(
                 node.name,
-                visitIdentifier(factory.cloneNode(node.name))
+                visitIdentifier(factory.cloneNode(node.name)),
             ),
-            /*location*/ node
+            /*location*/ node,
         );
     }
 
@@ -3993,9 +4022,11 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         }
 
         const expression = skipOuterExpressions(node.expression);
-        if (expression.kind === SyntaxKind.SuperKeyword ||
+        if (
+            expression.kind === SyntaxKind.SuperKeyword ||
             isSuperProperty(expression) ||
-            some(node.arguments, isSpreadElement)) {
+            some(node.arguments, isSpreadElement)
+        ) {
             return visitCallExpressionWithPotentialCapturedThisAssignment(node, /*assignToCapturedThis*/ true);
         }
 
@@ -4003,7 +4034,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             node,
             Debug.checkDefined(visitNode(node.expression, callExpressionVisitor, isExpression)),
             /*typeArguments*/ undefined,
-            visitNodes(node.arguments, visitor, isExpression)
+            visitNodes(node.arguments, visitor, isExpression),
         );
     }
 
@@ -4109,9 +4140,9 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 factory.createExpressionStatement(
                     factory.createAssignment(
                         aliasAssignment.left,
-                        cast(variable.name, isIdentifier)
-                    )
-                )
+                        cast(variable.name, isIdentifier),
+                    ),
+                ),
             );
         }
 
@@ -4137,8 +4168,10 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         // of the inner wrapper if its expression is not trivially an Identifier.
         const returnStatement = tryCast(elementAt(funcStatements, classBodyEnd), isReturnStatement);
         for (const statement of remainingStatements) {
-            if (isReturnStatement(statement) && returnStatement?.expression &&
-                !isIdentifier(returnStatement.expression)) {
+            if (
+                isReturnStatement(statement) && returnStatement?.expression &&
+                !isIdentifier(returnStatement.expression)
+            ) {
                 statements.push(returnStatement);
             }
             else {
@@ -4152,11 +4185,16 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
 
         // Recreate any outer parentheses or partially-emitted expressions to preserve source map
         // and comment locations.
-        return factory.restoreOuterExpressions(node.expression,
-            factory.restoreOuterExpressions(variable.initializer,
-                factory.restoreOuterExpressions(aliasAssignment && aliasAssignment.right,
-                    factory.updateCallExpression(call,
-                        factory.restoreOuterExpressions(call.expression,
+        return factory.restoreOuterExpressions(
+            node.expression,
+            factory.restoreOuterExpressions(
+                variable.initializer,
+                factory.restoreOuterExpressions(
+                    aliasAssignment && aliasAssignment.right,
+                    factory.updateCallExpression(
+                        call,
+                        factory.restoreOuterExpressions(
+                            call.expression,
                             factory.updateFunctionExpression(
                                 func,
                                 /*modifiers*/ undefined,
@@ -4167,15 +4205,15 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                                 /*type*/ undefined,
                                 factory.updateBlock(
                                     func.body,
-                                    statements
-                                )
-                            )
+                                    statements,
+                                ),
+                            ),
                         ),
                         /*typeArguments*/ undefined,
-                        call.arguments
-                    )
-                )
-            )
+                        call.arguments,
+                    ),
+                ),
+            ),
         );
     }
 
@@ -4186,10 +4224,11 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
     function visitCallExpressionWithPotentialCapturedThisAssignment(node: CallExpression, assignToCapturedThis: boolean): CallExpression | BinaryExpression {
         // We are here either because SuperKeyword was used somewhere in the expression, or
         // because we contain a SpreadElementExpression.
-        if (node.transformFlags & TransformFlags.ContainsRestOrSpread ||
+        if (
+            node.transformFlags & TransformFlags.ContainsRestOrSpread ||
             node.expression.kind === SyntaxKind.SuperKeyword ||
-            isSuperProperty(skipOuterExpressions(node.expression))) {
-
+            isSuperProperty(skipOuterExpressions(node.expression))
+        ) {
             const { target, thisArg } = factory.createCallBinding(node.expression, hoistVariableDeclaration);
             if (node.expression.kind === SyntaxKind.SuperKeyword) {
                 setEmitFlags(thisArg, EmitFlags.NoSubstitution);
@@ -4214,7 +4253,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 resultingCall = factory.createFunctionApplyCall(
                     Debug.checkDefined(visitNode(target, callExpressionVisitor, isExpression)),
                     node.expression.kind === SyntaxKind.SuperKeyword ? thisArg : Debug.checkDefined(visitNode(thisArg, visitor, isExpression)),
-                    transformAndSpreadElements(node.arguments, /*isArgumentList*/ true, /*multiLine*/ false, /*hasTrailingComma*/ false)
+                    transformAndSpreadElements(node.arguments, /*isArgumentList*/ true, /*multiLine*/ false, /*hasTrailingComma*/ false),
                 );
             }
             else {
@@ -4231,18 +4270,17 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                     factory.createFunctionCallCall(
                         Debug.checkDefined(visitNode(target, callExpressionVisitor, isExpression)),
                         node.expression.kind === SyntaxKind.SuperKeyword ? thisArg : Debug.checkDefined(visitNode(thisArg, visitor, isExpression)),
-                        visitNodes(node.arguments, visitor, isExpression)
+                        visitNodes(node.arguments, visitor, isExpression),
                     ),
-                    node
+                    node,
                 );
             }
 
             if (node.expression.kind === SyntaxKind.SuperKeyword) {
-                const initializer =
-                    factory.createLogicalOr(
-                        resultingCall,
-                        createActualThis()
-                    );
+                const initializer = factory.createLogicalOr(
+                    resultingCall,
+                    createActualThis(),
+                );
                 resultingCall = assignToCapturedThis
                     ? factory.createAssignment(factory.createUniqueName("_this", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel), initializer)
                     : initializer;
@@ -4272,10 +4310,10 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 factory.createFunctionApplyCall(
                     Debug.checkDefined(visitNode(target, visitor, isExpression)),
                     thisArg,
-                    transformAndSpreadElements(factory.createNodeArray([factory.createVoidZero(), ...node.arguments!]), /*isArgumentList*/ true, /*multiLine*/ false, /*hasTrailingComma*/ false)
+                    transformAndSpreadElements(factory.createNodeArray([factory.createVoidZero(), ...node.arguments!]), /*isArgumentList*/ true, /*multiLine*/ false, /*hasTrailingComma*/ false),
                 ),
                 /*typeArguments*/ undefined,
-                []
+                [],
             );
         }
         return visitEachChild(node, visitor, context);
@@ -4329,9 +4367,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             // As we visit each element, we return one of two functions to use as the "key":
             // - `visitSpanOfSpreads` for one or more contiguous `...` spread expressions, i.e. `...a, ...b` in `[1, 2, ...a, ...b]`
             // - `visitSpanOfNonSpreads` for one or more contiguous non-spread elements, i.e. `1, 2`, in `[1, 2, ...a, ...b]`
-            spanMap(elements, partitionSpread, (partition, visitPartition, _start, end) =>
-                visitPartition(partition, multiLine, hasTrailingComma && end === numElements)
-            )
+            spanMap(elements, partitionSpread, (partition, visitPartition, _start, end) => visitPartition(partition, multiLine, hasTrailingComma && end === numElements)),
         );
 
         if (segments.length === 1) {
@@ -4340,17 +4376,18 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             // a CallExpression or NewExpression. When using `--downlevelIteration`, we need
             // to coerce this into an array for use with `apply`, so we will use the code path
             // that follows instead.
-            if (isArgumentList && !compilerOptions.downlevelIteration
+            if (
+                isArgumentList && !compilerOptions.downlevelIteration
                 || isPackedArrayLiteral(firstSegment.expression) // see NOTE (above)
-                || isCallToHelper(firstSegment.expression, "___spreadArray" as __String)) {
+                || isCallToHelper(firstSegment.expression, "___spreadArray" as __String)
+            ) {
                 return firstSegment.expression;
             }
         }
 
         const helpers = emitHelpers();
         const startsWithSpread = segments[0].kind !== SpreadSegmentKind.None;
-        let expression: Expression =
-            startsWithSpread ? factory.createArrayLiteralExpression() :
+        let expression: Expression = startsWithSpread ? factory.createArrayLiteralExpression() :
             segments[0].expression;
         for (let i = startsWithSpread ? 0 : 1; i < segments.length; i++) {
             const segment = segments[i];
@@ -4358,7 +4395,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             expression = helpers.createSpreadArrayHelper(
                 expression,
                 segment.expression,
-                segment.kind === SpreadSegmentKind.UnpackedSpread && !isArgumentList);
+                segment.kind === SpreadSegmentKind.UnpackedSpread && !isArgumentList,
+            );
         }
         return expression;
     }
@@ -4395,7 +4433,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
     function visitSpanOfNonSpreads(chunk: Expression[], multiLine: boolean, hasTrailingComma: boolean): SpreadSegment {
         const expression = factory.createArrayLiteralExpression(
             visitNodes(factory.createNodeArray(chunk, hasTrailingComma), visitor, isExpression),
-            multiLine);
+            multiLine,
+        );
 
         // We do not pack non-spread segments, this is so that `[1, , ...[2, , 3], , 4]` is properly downleveled to
         // `[1, , 2, undefined, 3, , 4]`. See the NOTE in `transformAndSpreadElements`
@@ -4451,7 +4490,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             visitor,
             currentSourceFile,
             recordTaggedTemplateString,
-            ProcessLevel.All
+            ProcessLevel.All,
         );
     }
 
@@ -4484,9 +4523,9 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
      */
     function visitSuperKeyword(isExpressionOfCall: boolean): LeftHandSideExpression {
         return hierarchyFacts & HierarchyFacts.NonStaticClassElement
-            && !isExpressionOfCall
-                ? factory.createPropertyAccessExpression(factory.createUniqueName("_super", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel), "prototype")
-                : factory.createUniqueName("_super", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel);
+                && !isExpressionOfCall
+            ? factory.createPropertyAccessExpression(factory.createUniqueName("_super", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel), "prototype")
+            : factory.createUniqueName("_super", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel);
     }
 
     function visitMetaProperty(node: MetaProperty) {
@@ -4511,7 +4550,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
                 HierarchyFacts.FunctionExcludes,
                 getEmitFlags(node) & EmitFlags.CapturesThis
                     ? HierarchyFacts.FunctionIncludes | HierarchyFacts.CapturesThis
-                    : HierarchyFacts.FunctionIncludes);
+                    : HierarchyFacts.FunctionIncludes,
+            );
             previousOnEmitNode(hint, node, emitCallback);
             exitSubtree(ancestorFacts, HierarchyFacts.None, HierarchyFacts.None);
             return;
@@ -4666,8 +4706,10 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
      * @param node The ThisKeyword node.
      */
     function substituteThisKeyword(node: PrimaryExpression): PrimaryExpression {
-        if (enabledSubstitutions & ES2015SubstitutionFlags.CapturedThis
-            && hierarchyFacts & HierarchyFacts.CapturesThis) {
+        if (
+            enabledSubstitutions & ES2015SubstitutionFlags.CapturedThis
+            && hierarchyFacts & HierarchyFacts.CapturesThis
+        ) {
             return setTextRange(factory.createUniqueName("_this", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel), node);
         }
         return node;

@@ -103,7 +103,8 @@ describe("unittests:: Public APIs:: getTypeAtLocation", () => {
         const host = new fakes.CompilerHost(vfs.createFromFileSystem(
             Harness.IO,
             /*ignoreCase*/ true,
-            { documents: [new documents.TextDocument("/file.ts", content)], cwd: "/" }));
+            { documents: [new documents.TextDocument("/file.ts", content)], cwd: "/" },
+        ));
 
         const program = ts.createProgram({
             host,
@@ -125,7 +126,8 @@ describe("unittests:: Public APIs:: getTypeAtLocation", () => {
         const host = new fakes.CompilerHost(vfs.createFromFileSystem(
             Harness.IO,
             /*ignoreCase*/ true,
-            { documents: [new documents.TextDocument("/file.ts", content)], cwd: "/" }));
+            { documents: [new documents.TextDocument("/file.ts", content)], cwd: "/" },
+        ));
 
         const program = ts.createProgram({
             host,
@@ -149,7 +151,8 @@ describe("unittests:: Public APIs:: getTypeAtLocation", () => {
         const host = new fakes.CompilerHost(vfs.createFromFileSystem(
             Harness.IO,
             /*ignoreCase*/ true,
-            { documents: [new documents.TextDocument("/file.ts", content)], cwd: "/" }));
+            { documents: [new documents.TextDocument("/file.ts", content)], cwd: "/" },
+        ));
 
         const program = ts.createProgram({
             host,
@@ -169,7 +172,8 @@ describe("unittests:: Public APIs:: getTypeAtLocation", () => {
         const host = new fakes.CompilerHost(vfs.createFromFileSystem(
             Harness.IO,
             /*ignoreCase*/ true,
-            { documents: [new documents.TextDocument("/file.ts", content)], cwd: "/" }));
+            { documents: [new documents.TextDocument("/file.ts", content)], cwd: "/" },
+        ));
 
         const program = ts.createProgram({
             host,
