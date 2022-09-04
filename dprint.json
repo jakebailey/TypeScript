@@ -1,0 +1,57 @@
+{
+    "indentWidth": 4,
+    "lineWidth": 1000, // TODO: This should be a lot smaller. Hopefully 120.
+    "newLineKind": "auto",
+    "useTabs": false,
+    "typescript": {
+        "semiColons": "always",
+        "quoteStyle": "preferDouble",
+        "useBraces": "whenNotSingleLine",
+        "bracePosition": "sameLineUnlessHanging",
+        "singleBodyPosition": "sameLine",
+        "nextControlFlowPosition": "nextLine", // Stroustrup style braces.
+        "trailingCommas": "onlyMultiLine",
+        "preferHanging": false,
+
+        "arrowFunction.useParentheses": "preferNone",
+        "conditionalExpression.linePerExpression": false, // Keep our "match/case"-ish conditionals.
+        "functionExpression.spaceAfterFunctionKeyword": true,
+        "importDeclaration.forceMultiLine": true,
+
+        // Don't reorder imports/exports; this can change runtime behavior, which matters
+        // once TS is modules. (Also, eslint and organize will manage this.)
+        "module.sortImportDeclarations": "maintain",
+        "module.sortExportDeclarations": "maintain",
+
+        // TODO: use maintain instead when simple-import-sort is in use?
+        "exportDeclaration.sortNamedExports": "caseInsensitive",
+        "importDeclaration.sortNamedImports": "caseInsensitive",
+
+        "constructorType.spaceAfterNewKeyword": true,
+        "constructSignature.spaceAfterNewKeyword": true,
+
+        // TODO: This is currently "maintain", but my (Jake's) preference would be "nextLine".
+        // The current state seems to be a mismash of some "nextLine" but mostly "sameLine". Unfortunate.
+        "operatorPosition": "maintain"
+    },
+    "json": {
+    },
+    "includes": ["**/*.{ts,tsx,mts,cts,js,jsx,cjs,mjs,json}"],
+    "excludes": [
+        "**/node_modules",
+        "**/*-lock.json",
+        "coverage/**",
+        "lib/**",
+        "built/**",
+        "tests/**",
+        "internal/**",
+        "**/*.generated.*",
+        "scripts/*.d.*"
+    ],
+    "plugins": [
+        // Local debug version of the plugin.
+        // "../dprint-plugin-typescript/target/wasm32-unknown-unknown/release/dprint_plugin_typescript.wasm",
+        "https://plugins.dprint.dev/typescript-0.85.1.wasm",
+        "https://plugins.dprint.dev/json-0.17.4.wasm"
+    ]
+}
