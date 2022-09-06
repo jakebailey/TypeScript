@@ -1052,7 +1052,7 @@ export function createResolutionCache(resolutionHost: ResolutionCacheHost, rootD
                     actualWatcher.close();
                     // Ensure when watching symlinked package.json, we can close the actual file watcher only once
                     actualWatcher = noopFileWatcher;
-                }
+                },
             } : actualWatcher,
             resolutions: forResolution ? 1 : 0,
             files: forResolution ? 0 : 1,
@@ -1399,7 +1399,7 @@ export function createResolutionCache(resolutionHost: ResolutionCacheHost, rootD
                 arrayToMap(typeRoots, tr => resolutionHost.toPath(tr)),
                 {
                     createNewValue: createTypeRootsWatch,
-                    onDeleteValue: closeFileWatcher
+                    onDeleteValue: closeFileWatcher,
                 }
             );
         }

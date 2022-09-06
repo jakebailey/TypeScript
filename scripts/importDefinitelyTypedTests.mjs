@@ -71,7 +71,7 @@ function importDefinitelyTypedTest(tscPath, rwcTestPath, testCaseName, testFiles
 
     childProcess.exec(cmd, {
         maxBuffer: 1 * 1024 * 1024,
-        cwd: testDirectoryPath
+        cwd: testDirectoryPath,
     }, (error, stdout, stderr) => {
         console.log("importing " + testCaseName + " ...");
         console.log(cmd);

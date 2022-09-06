@@ -51,7 +51,7 @@ registerCodeFix({
     getAllCodeActions: context => codeFixAll(context, errorCodes, (changes, diag) => {
         const node = getTokenAtPosition(diag.file, diag.start);
         if (node) doChange(changes, node, diag.file);
-    })
+    }),
 });
 
 function doChange(changes: textChanges.ChangeTracker, node: Node, sourceFile: SourceFile) {

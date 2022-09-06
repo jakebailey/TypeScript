@@ -1319,7 +1319,7 @@ export function getDefaultCompilerOptions(): CompilerOptions {
     // Always default to "ScriptTarget.ES5" for the language service
     return {
         target: ScriptTarget.ES5,
-        jsx: JsxEmit.Preserve
+        jsx: JsxEmit.Preserve,
     };
 }
 
@@ -1359,7 +1359,7 @@ class SyntaxTreeCache {
                     this.host,
                     this.host.getCompilationSettings()
                 ),
-                setExternalModuleIndicator: getSetExternalModuleIndicator(this.host.getCompilationSettings())
+                setExternalModuleIndicator: getSetExternalModuleIndicator(this.host.getCompilationSettings()),
             };
             sourceFile = createLanguageServiceSourceFile(fileName, scriptSnapshot, options, version, /*setNodeParents*/ true, scriptKind);
         }
@@ -1595,7 +1595,7 @@ export function createLanguageService(
         readFile: maybeBind(host, host.readFile),
         getDocumentPositionMapper: maybeBind(host, host.getDocumentPositionMapper),
         getSourceFileLike: maybeBind(host, host.getSourceFileLike),
-        log
+        log,
     });
 
     function getValidSourceFile(fileName: string): SourceFile {
@@ -1734,7 +1734,7 @@ export function createLanguageService(
             options: newSettings,
             host: compilerHost,
             oldProgram: program,
-            projectReferences
+            projectReferences,
         };
         program = createProgram(options);
 
@@ -2054,7 +2054,7 @@ export function createLanguageService(
                 textSpan: createTextSpanFromNode(nodeForQuickInfo, sourceFile),
                 displayParts: typeChecker.runWithCancellationToken(cancellationToken, typeChecker => typeToDisplayParts(typeChecker, type, getContainerNode(nodeForQuickInfo))),
                 documentation: type.symbol ? type.symbol.getDocumentationComment(typeChecker) : undefined,
-                tags: type.symbol ? type.symbol.getJsDocTags(typeChecker) : undefined
+                tags: type.symbol ? type.symbol.getJsDocTags(typeChecker) : undefined,
             };
         }
 
@@ -2153,7 +2153,7 @@ export function createLanguageService(
                 return {
                     fileName: sourceFile.fileName,
                     textSpan,
-                    ...FindAllReferences.toContextSpan(textSpan, sourceFile, node.parent)
+                    ...FindAllReferences.toContextSpan(textSpan, sourceFile, node.parent),
                 };
             });
         }
@@ -2567,7 +2567,7 @@ export function createLanguageService(
         return {
             lineStarts: sourceFile.getLineStarts(),
             firstLine: sourceFile.getLineAndCharacterOfPosition(textRange.pos).line,
-            lastLine: sourceFile.getLineAndCharacterOfPosition(textRange.end).line
+            lastLine: sourceFile.getLineAndCharacterOfPosition(textRange.end).line,
         };
     }
 
@@ -2618,8 +2618,8 @@ export function createLanguageService(
                         newText: openComment,
                         span: {
                             length: 0,
-                            start: lineStarts[i] + leftMostPosition
-                        }
+                            start: lineStarts[i] + leftMostPosition,
+                        },
                     });
                 }
                 else if (sourceFile.text.substr(lineStarts[i] + lineTextStart, openComment.length) === openComment) {
@@ -2627,8 +2627,8 @@ export function createLanguageService(
                         newText: "",
                         span: {
                             length: openComment.length,
-                            start: lineStarts[i] + lineTextStart
-                        }
+                            start: lineStarts[i] + lineTextStart,
+                        },
                     });
                 }
             }
@@ -2701,8 +2701,8 @@ export function createLanguageService(
                     newText: openMultiline,
                     span: {
                         length: 0,
-                        start: firstPos
-                    }
+                        start: firstPos,
+                    },
                 });
             }
 
@@ -2713,8 +2713,8 @@ export function createLanguageService(
                         newText: closeMultiline,
                         span: {
                             length: 0,
-                            start: positions[i]
-                        }
+                            start: positions[i],
+                        },
                     });
                 }
 
@@ -2723,8 +2723,8 @@ export function createLanguageService(
                         newText: openMultiline,
                         span: {
                             length: 0,
-                            start: positions[i]
-                        }
+                            start: positions[i],
+                        },
                     });
                 }
             }
@@ -2735,8 +2735,8 @@ export function createLanguageService(
                     newText: closeMultiline,
                     span: {
                         length: 0,
-                        start: positions[positions.length - 1]
-                    }
+                        start: positions[positions.length - 1],
+                    },
                 });
             }
         }
@@ -2749,8 +2749,8 @@ export function createLanguageService(
                     newText: "",
                     span: {
                         length: openMultiline.length,
-                        start: pos - offset
-                    }
+                        start: pos - offset,
+                    },
                 });
             }
         }
@@ -2977,7 +2977,7 @@ export function createLanguageService(
             cancellationToken,
             preferences,
             triggerReason,
-            kind
+            kind,
         };
     }
 

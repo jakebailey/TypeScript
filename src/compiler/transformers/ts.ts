@@ -197,7 +197,7 @@ import {
     visitNode,
     visitNodes,
     visitParameterList,
-    VisitResult
+    VisitResult,
 } from "../_namespaces/ts";
 
 /**
@@ -209,7 +209,7 @@ const enum TypeScriptSubstitutionFlags {
     /** Enables substitutions for namespace exports. */
     NamespaceExports = 1 << 1,
     /* Enables substitutions for unqualified enum members */
-    NonQualifiedEnumMembers = 1 << 3
+    NonQualifiedEnumMembers = 1 << 3,
 }
 
 const enum ClassFacts {
@@ -952,19 +952,19 @@ export function transformTypeScript(context: TransformationContext) {
             if (facts & ClassFacts.IsExportOfNamespace) {
                 return [
                     statement,
-                    createExportMemberAssignmentStatement(node)
+                    createExportMemberAssignmentStatement(node),
                 ];
             }
             if (facts & ClassFacts.IsDefaultExternalExport) {
                 return [
                     statement,
-                    factory.createExportDefault(factory.getLocalName(node, /*allowComments*/ false, /*allowSourceMaps*/ true))
+                    factory.createExportDefault(factory.getLocalName(node, /*allowComments*/ false, /*allowSourceMaps*/ true)),
                 ];
             }
             if (facts & ClassFacts.IsNamedExternalExport) {
                 return [
                     statement,
-                    factory.createExternalModuleExport(factory.getDeclarationName(node, /*allowComments*/ false, /*allowSourceMaps*/ true))
+                    factory.createExternalModuleExport(factory.getDeclarationName(node, /*allowComments*/ false, /*allowSourceMaps*/ true)),
                 ];
             }
         }
@@ -2409,7 +2409,7 @@ export function transformTypeScript(context: TransformationContext) {
                                     moduleReference
                                 ),
                                 node
-                            )
+                            ),
                         ])
                     ),
                     node

@@ -128,7 +128,7 @@ function withPackageId(packageInfo: PackageJsonInfo | undefined, r: PathAndExten
             packageId = {
                 name: packageJsonContent.name,
                 subModuleName: r.path.slice(packageInfo.packageDirectory.length + directorySeparator.length),
-                version: packageJsonContent.version
+                version: packageJsonContent.version,
             };
         }
     }
@@ -1060,7 +1060,7 @@ export function createModeAwareCache<T>(): ModeAwareCache<T> {
         },
         size() {
             return underlying.size;
-        }
+        },
     };
     return cache;
 
@@ -2575,7 +2575,7 @@ function getLoadModuleFromTargetImportOrExport(extensions: Extensions, state: Mo
                         extension: result.resolvedModule.extension,
                         packageId: result.resolvedModule.packageId,
                         originalPath: result.resolvedModule.originalPath,
-                        resolvedUsingTsExtension: result.resolvedModule.resolvedUsingTsExtension
+                        resolvedUsingTsExtension: result.resolvedModule.resolvedUsingTsExtension,
                     } : undefined);
                 }
                 if (state.traceEnabled) {
@@ -3033,8 +3033,8 @@ function tryFindNonRelativeModuleNameInCache(cache: NonRelativeModuleNameResolut
                 originalPath: result.resolvedModule.originalPath || true,
                 extension: result.resolvedModule.extension,
                 packageId: result.resolvedModule.packageId,
-                resolvedUsingTsExtension: result.resolvedModule.resolvedUsingTsExtension
-            }
+                resolvedUsingTsExtension: result.resolvedModule.resolvedUsingTsExtension,
+            },
         };
     }
 }

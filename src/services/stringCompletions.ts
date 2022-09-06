@@ -266,7 +266,7 @@ function convertStringLiteralCompletions(
                 kindModifiers: ScriptElementKindModifier.none,
                 kind: ScriptElementKind.string,
                 sortText: SortText.LocationPriority,
-                replacementSpan: getReplacementSpanForContextToken(contextToken)
+                replacementSpan: getReplacementSpanForContextToken(contextToken),
             }));
             return { isGlobalCompletion: false, isMemberCompletion: false, isNewIdentifierLocation: completion.isNewIdentifier, optionalReplacementSpan, entries };
         }
@@ -505,7 +505,7 @@ function stringLiteralCompletionsFromProperties(type: Type | undefined): StringL
     return type && {
         kind: StringLiteralCompletionKind.Properties,
         symbols: filter(type.getApparentProperties(), prop => !(prop.valueDeclaration && isPrivateIdentifierClassElementDeclaration(prop.valueDeclaration))),
-        hasIndexSignature: hasIndexSignature(type)
+        hasIndexSignature: hasIndexSignature(type),
     };
 }
 
@@ -524,7 +524,7 @@ function stringLiteralCompletionsForObjectLiteral(checker: TypeChecker, objectLi
     return {
         kind: StringLiteralCompletionKind.Properties,
         symbols,
-        hasIndexSignature: hasIndexSignature(contextualType)
+        hasIndexSignature: hasIndexSignature(contextualType),
     };
 }
 

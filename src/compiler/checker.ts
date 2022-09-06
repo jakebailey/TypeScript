@@ -1229,7 +1229,7 @@ const typeofNEFacts: ReadonlyMap<string, TypeFacts> = new Map(Object.entries({
     symbol: TypeFacts.TypeofNESymbol,
     undefined: TypeFacts.NEUndefined,
     object: TypeFacts.TypeofNEObject,
-    function: TypeFacts.TypeofNEFunction
+    function: TypeFacts.TypeofNEFunction,
 }));
 
 type TypeSystemEntity = Node | Symbol | Type | Signature;
@@ -1302,7 +1302,7 @@ const enum ExpandingFlags {
 
 const enum MembersOrExportsResolutionKind {
     resolvedExports = "resolvedExports",
-    resolvedMembers = "resolvedMembers"
+    resolvedMembers = "resolvedMembers",
 }
 
 const enum UnusedKind {
@@ -1342,14 +1342,14 @@ const enum IntrinsicTypeKind {
     Uppercase,
     Lowercase,
     Capitalize,
-    Uncapitalize
+    Uncapitalize,
 }
 
 const intrinsicTypeKinds: ReadonlyMap<string, IntrinsicTypeKind> = new Map(Object.entries({
     Uppercase: IntrinsicTypeKind.Uppercase,
     Lowercase: IntrinsicTypeKind.Lowercase,
     Capitalize: IntrinsicTypeKind.Capitalize,
-    Uncapitalize: IntrinsicTypeKind.Uncapitalize
+    Uncapitalize: IntrinsicTypeKind.Uncapitalize,
 }));
 
 const SymbolLinks = class implements SymbolLinks {
@@ -5291,7 +5291,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 target.set(id, sourceSymbol);
                 if (lookupTable && exportNode) {
                     lookupTable.set(id, {
-                        specifierText: getTextOfNode(exportNode.moduleSpecifier!)
+                        specifierText: getTextOfNode(exportNode.moduleSpecifier!),
                     });
                 }
             }
@@ -5939,7 +5939,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     }
                     // Any meaning of a module symbol is always accessible via an `import` type
                     return {
-                        accessibility: SymbolAccessibility.Accessible
+                        accessibility: SymbolAccessibility.Accessible,
                     };
                 }
             }
@@ -5966,7 +5966,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
 
         if (earlyModuleBail) {
             return {
-                accessibility: SymbolAccessibility.Accessible
+                accessibility: SymbolAccessibility.Accessible,
             };
         }
 
@@ -6138,7 +6138,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         return (symbol && hasVisibleDeclarations(symbol, /*shouldComputeAliasToMakeVisible*/ true)) || {
             accessibility: SymbolAccessibility.NotAccessible,
             errorSymbolName: getTextOfNode(firstIdentifier),
-            errorNode: firstIdentifier
+            errorNode: firstIdentifier,
         };
     }
 
@@ -6291,7 +6291,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 visitedTypes: undefined,
                 symbolDepth: undefined,
                 inferTypeParameters: undefined,
-                approximateLength: 0
+                approximateLength: 0,
             };
             context.tracker = new SymbolTrackerImpl(context, tracker, moduleResolverHost);
             const resultingNode = cb(context);
@@ -7201,7 +7201,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         return [
                             typeToTypeNodeHelper(types[0], context),
                             factory.createTypeReferenceNode(`... ${types.length - 2} more ...`, /*typeArguments*/ undefined),
-                            typeToTypeNodeHelper(types[types.length - 1], context)
+                            typeToTypeNodeHelper(types[types.length - 1], context),
                         ];
                     }
                 }
@@ -7768,7 +7768,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                             factory.createAssertEntry(
                                 factory.createStringLiteral("resolution-mode"),
                                 factory.createStringLiteral("import")
-                            )
+                            ),
                         ])));
                         context.tracker.reportImportTypeNodeResolutionModeOverride?.();
                     }
@@ -7792,7 +7792,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                                 factory.createAssertEntry(
                                     factory.createStringLiteral("resolution-mode"),
                                     factory.createStringLiteral(swappedMode === ModuleKind.ESNext ? "import" : "require")
-                                )
+                                ),
                             ])));
                             context.tracker.reportImportTypeNodeResolutionModeOverride?.();
                         }
@@ -8349,7 +8349,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                                 const resolverHost = {
                                     getCanonicalFileName,
                                     getCurrentDirectory: () => context.tracker.moduleResolverHost!.getCurrentDirectory(),
-                                    getCommonSourceDirectory: () => context.tracker.moduleResolverHost!.getCommonSourceDirectory()
+                                    getCommonSourceDirectory: () => context.tracker.moduleResolverHost!.getCommonSourceDirectory(),
                                 };
                                 const newName = getResolvedExternalModuleName(resolverHost, targetFile);
                                 return factory.createStringLiteral(newName);
@@ -8506,7 +8506,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                                         /*isTypeOnly*/ false,
                                         factory.createNamedExports(flatMap(group, e => cast(e.exportClause, isNamedExports).elements)),
                                         group[0].moduleSpecifier
-                                    )
+                                    ),
                                 ];
                             }
                         }
@@ -8712,7 +8712,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                             }
                             else {
                                 const statement = setTextRange(factory.createVariableStatement(/*modifiers*/ undefined, factory.createVariableDeclarationList([
-                                    factory.createVariableDeclaration(name, /*exclamationToken*/ undefined, serializeTypeForDeclaration(context, type, symbol, enclosingDeclaration, includePrivateSymbol, bundled))
+                                    factory.createVariableDeclaration(name, /*exclamationToken*/ undefined, serializeTypeForDeclaration(context, type, symbol, enclosingDeclaration, includePrivateSymbol, bundled)),
                                 ], flags)), textRange);
                                 addResult(statement, name !== localName ? modifierFlags & ~ModifierFlags.Export : modifierFlags);
                                 if (name !== localName && !isPrivate) {
@@ -9109,7 +9109,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     : anyType;
                 const heritageClauses = [
                     ...!length(baseTypes) ? [] : [factory.createHeritageClause(SyntaxKind.ExtendsKeyword, map(baseTypes, b => serializeBaseType(b, staticBaseType, localName)))],
-                    ...!length(implementsExpressions) ? [] : [factory.createHeritageClause(SyntaxKind.ImplementsKeyword, implementsExpressions)]
+                    ...!length(implementsExpressions) ? [] : [factory.createHeritageClause(SyntaxKind.ImplementsKeyword, implementsExpressions)],
                 ];
                 const symbolProps = getNonInheritedProperties(classType, baseTypes, getPropertiesOfType(classType));
                 const publicSymbolProps = filter(symbolProps, s => {
@@ -9326,7 +9326,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                                         /*isTypeOnly*/ false,
                                         localName !== verbatimTargetName ? factory.createIdentifier(verbatimTargetName) : undefined,
                                         factory.createIdentifier(localName)
-                                    )
+                                    ),
                                 ])),
                             specifier,
                             (node as ImportSpecifier).parent.parent.parent.assertClause,
@@ -9453,7 +9453,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     }
                     else {
                         const statement = factory.createVariableStatement(/*modifiers*/ undefined, factory.createVariableDeclarationList([
-                            factory.createVariableDeclaration(varName, /*exclamationToken*/ undefined, serializeTypeForDeclaration(context, typeToSerialize, symbol, enclosingDeclaration, includePrivateSymbol, bundled))
+                            factory.createVariableDeclaration(varName, /*exclamationToken*/ undefined, serializeTypeForDeclaration(context, typeToSerialize, symbol, enclosingDeclaration, includePrivateSymbol, bundled)),
                         ], context.enclosingDeclaration?.kind === SyntaxKind.ModuleDeclaration ? NodeFlags.Let : NodeFlags.Const));
                         // Inlined JSON types exported with [module.]exports= will already emit an export=, so should use `declare`.
                         // Otherwise, the type itself should be exported.
@@ -9598,7 +9598,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                                 {
                                     name,
                                     questionToken: p.flags & SymbolFlags.Optional ? factory.createToken(SyntaxKind.QuestionToken) : undefined,
-                                    modifiers: flag ? factory.createModifiersFromModifierFlags(flag) : undefined
+                                    modifiers: flag ? factory.createModifiersFromModifierFlags(flag) : undefined,
                                 }
                             );
                             const location = sig.declaration && isPrototypePropertyAssignment(sig.declaration.parent) ? sig.declaration.parent : sig.declaration;
@@ -9687,7 +9687,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 }
                 const tempName = getUnusedName(`${rootName}_base`);
                 const statement = factory.createVariableStatement(/*modifiers*/ undefined, factory.createVariableDeclarationList([
-                    factory.createVariableDeclaration(tempName, /*exclamationToken*/ undefined, typeToTypeNodeHelper(staticType, context))
+                    factory.createVariableDeclaration(tempName, /*exclamationToken*/ undefined, typeToTypeNodeHelper(staticType, context)),
                 ], NodeFlags.Const));
                 addResult(statement, ModifierFlags.None);
                 return factory.createExpressionWithTypeArguments(factory.createIdentifier(tempName), /*typeArguments*/ undefined);
@@ -18027,7 +18027,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 outerTypeParameters,
                 instantiations: undefined,
                 aliasSymbol,
-                aliasTypeArguments
+                aliasTypeArguments,
             };
             links.resolvedType = getConditionalType(root, /*mapper*/ undefined);
             if (outerTypeParameters) {
@@ -20849,7 +20849,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         targetId: target.id,
                         targetSize,
                         pos: errorNode?.pos,
-                        end: errorNode?.end
+                        end: errorNode?.end,
                     });
                 }
             }
@@ -21255,7 +21255,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     targetId: target.id,
                     targetIdStack: targetStack.map(t => t.id),
                     depth: sourceDepth,
-                    targetDepth
+                    targetDepth,
                 });
                 result = Ternary.Maybe;
             }
@@ -24022,7 +24022,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             priority: undefined,
             topLevel: true,
             isFixed: false,
-            impliedArity: undefined
+            impliedArity: undefined,
         };
     }
 
@@ -24035,7 +24035,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             priority: inference.priority,
             topLevel: inference.topLevel,
             isFixed: inference.isFixed,
-            impliedArity: inference.impliedArity
+            impliedArity: inference.impliedArity,
         };
     }
 
@@ -34861,7 +34861,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             const isRestTupleElement = !!associatedName?.dotDotDotToken;
             return associatedName ? [
                 getTupleElementLabel(associatedName),
-                isRestTupleElement
+                isRestTupleElement,
             ] : undefined;
         }
 
@@ -36304,7 +36304,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 if (node.operator === SyntaxKind.MinusToken) {
                     return getFreshTypeOfLiteralType(getBigIntLiteralType({
                         negative: true,
-                        base10Value: parsePseudoBigInt((node.operand as BigIntLiteral).text)
+                        base10Value: parsePseudoBigInt((node.operand as BigIntLiteral).text),
                     }));
                 }
         }
@@ -37955,7 +37955,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 checkGrammarBigIntLiteral(node as BigIntLiteral);
                 return getFreshTypeOfLiteralType(getBigIntLiteralType({
                     negative: false,
-                    base10Value: parsePseudoBigInt((node as BigIntLiteral).text)
+                    base10Value: parsePseudoBigInt((node as BigIntLiteral).text),
                 }));
             case SyntaxKind.TrueKeyword:
                 return trueType;
@@ -46825,7 +46825,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     firstAccessor,
                     secondAccessor,
                     setAccessor,
-                    getAccessor
+                    getAccessor,
                 };
             },
             getSymbolOfExternalModuleSpecifier: moduleName => resolveExternalModuleNameWorker(moduleName, moduleName, /*moduleNotFoundError*/ undefined),

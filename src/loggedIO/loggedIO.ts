@@ -126,7 +126,7 @@ function createEmptyLog(): IoLog {
         dirExists: [],
         dirsCreated: [],
         pathsResolved: [],
-        executingPath: ""
+        executingPath: "",
     };
 }
 

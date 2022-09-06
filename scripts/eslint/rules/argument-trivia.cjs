@@ -133,7 +133,7 @@ module.exports = createRule({
                         node,
                         fix: (fixer) => {
                             return fixer.insertTextBefore(node, `/*${expectedName}*/ `);
-                        }
+                        },
                     });
                 }
                 else {
@@ -168,7 +168,7 @@ module.exports = createRule({
                     node,
                     fix: (fixer) => {
                         return fixer.replaceTextRange([commentRangeEnd, argRangeStart], " ");
-                    }
+                    },
                 });
             }
         };

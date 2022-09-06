@@ -30,7 +30,7 @@ export function runRWCTest(jsonPath: string) {
         let compilerOptions: ts.CompilerOptions;
         const baselineOpts: Harness.Baseline.BaselineOptions = {
             Subfolder: "rwc",
-            Baselinefolder: "internal/baselines"
+            Baselinefolder: "internal/baselines",
         };
         const baseName = ts.getBaseFileName(jsonPath);
         let currentDirectory: string;
@@ -79,7 +79,7 @@ export function runRWCTest(jsonPath: string) {
                         useCaseSensitiveFileNames: Harness.IO.useCaseSensitiveFileNames(),
                         fileExists: Harness.IO.fileExists,
                         readDirectory: Harness.IO.readDirectory,
-                        readFile: Harness.IO.readFile
+                        readFile: Harness.IO.readFile,
                     };
                     const configParseResult = ts.parseJsonSourceFileConfigFileContent(parsedTsconfigFileContents, configParseHost, ts.getDirectoryPath(tsconfigFile.path));
                     fileNames = configParseResult.fileNames;
