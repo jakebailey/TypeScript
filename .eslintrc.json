@@ -88,6 +88,9 @@
 
         "@typescript-eslint/no-extra-non-null-assertion": "error",
 
+        // TODO(jakebailey): remove this and other formatting related rules once dprint is enabled.
+        "@typescript-eslint/comma-dangle": ["error", "always-multiline"],
+
         // scripts/eslint/rules
         "local/object-literal-surrounding-space": "error",
         "local/no-type-assertion-whitespace": "error",
