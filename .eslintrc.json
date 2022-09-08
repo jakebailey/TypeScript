@@ -36,9 +36,6 @@
         "@typescript-eslint/array-type": "error",
         "@typescript-eslint/no-array-constructor": "error",
 
-        "brace-style": "off",
-        "@typescript-eslint/brace-style": ["error", "stroustrup", { "allowSingleLine": true }],
-
         "@typescript-eslint/naming-convention": [
             "error",
             { "selector": "typeLike", "format": ["PascalCase"], "filter": { "regex": "^(__String|[A-Za-z]+_[A-Za-z]+)$", "match": false } },
@@ -55,16 +52,12 @@
         "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
         "@typescript-eslint/consistent-type-assertions": ["error", { "assertionStyle": "as" }],
 
-        "max-statements-per-line": ["error", { "max": 1 }],
-
-        "no-duplicate-imports": "off",
         "@typescript-eslint/no-duplicate-imports": "error",
 
         "@typescript-eslint/no-inferrable-types": "error",
         "@typescript-eslint/no-misused-new": "error",
         "@typescript-eslint/no-this-alias": "error",
 
-        "no-unused-expressions": "off",
         "@typescript-eslint/no-unused-expressions": ["error", { "allowTernary": true }],
 
         "@typescript-eslint/prefer-for-of": "error",
@@ -72,41 +65,20 @@
         "@typescript-eslint/prefer-namespace-keyword": "error",
         "@typescript-eslint/prefer-as-const": "error",
 
-        "quotes": "off",
-        "@typescript-eslint/quotes": ["error", "double", { "avoidEscape": true, "allowTemplateLiterals": true }],
-
-        "semi": "off",
-        "@typescript-eslint/semi": "error",
-        "@typescript-eslint/no-extra-semi": "error",
-
-        "space-before-function-paren": "off",
-        "@typescript-eslint/space-before-function-paren": ["error", {
-            "asyncArrow": "always",
-            "anonymous": "always",
-            "named": "never"
-        }],
-
         "@typescript-eslint/triple-slash-reference": "error",
-        "@typescript-eslint/type-annotation-spacing": "error",
         "@typescript-eslint/unified-signatures": "error",
 
         "@typescript-eslint/no-extra-non-null-assertion": "error",
 
-        // TODO(jakebailey): remove this and other formatting related rules once dprint is enabled.
-        "@typescript-eslint/comma-dangle": ["error", "always-multiline"],
-
         // scripts/eslint/rules
-        "local/object-literal-surrounding-space": "error",
-        "local/no-type-assertion-whitespace": "error",
-        "local/type-operator-spacing": "error",
+        // TODO(jakebailey): no-double-space covers formatting of code that dprint handles, but also reads the text in comments.
+        "local/no-double-space": "error",
         "local/only-arrow-functions": ["error", {
             "allowNamedFunctions": true,
             "allowDeclarations": true
         }],
-        "local/no-double-space": "error",
         "local/argument-trivia": "error",
         "local/no-in-operator": "error",
-        "local/simple-indent": "error",
         "local/debug-assert": "error",
         "local/no-keywords": "error",
         "local/jsdoc-format": "error",
@@ -119,11 +91,9 @@
 
         // eslint
         "constructor-super": "error",
-        "curly": ["error", "multi-line"],
         "dot-notation": "error",
         "eqeqeq": "error",
         "linebreak-style": ["error", "windows"],
-        "new-parens": "error",
         "no-caller": "error",
         "no-duplicate-case": "error",
         "no-empty": "error",
@@ -137,7 +107,6 @@
         "no-sparse-arrays": "error",
         "no-template-curly-in-string": "error",
         "no-throw-literal": "error",
-        "no-trailing-spaces": "error",
         "no-undef-init": "error",
         "no-unsafe-finally": "error",
         "no-unused-labels": "error",
@@ -146,7 +115,6 @@
         "prefer-const": "error",
         "prefer-object-spread": "error",
         "quote-props": ["error", "consistent-as-needed"],
-        "space-in-parens": "error",
         "unicode-bom": ["error", "never"],
         "use-isnan": "error",
         "no-prototype-builtins": "error",
