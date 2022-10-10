@@ -82,7 +82,8 @@ const leadingParameterNameCommentRegexFactory = (name: string) => {
 };
 
 function shouldShowParameterNameHints(preferences: UserPreferences) {
-    return preferences.includeInlayParameterNameHints === "literals" || preferences.includeInlayParameterNameHints === "all";
+    return preferences.includeInlayParameterNameHints === "literals"
+        || preferences.includeInlayParameterNameHints === "all";
 }
 
 function shouldShowLiteralParameterNameHintsOnly(preferences: UserPreferences) {
@@ -143,7 +144,10 @@ export function provideInlayHints(context: InlayHintsContext): InlayHint[] {
             visitCallOrNewExpression(node);
         }
         else {
-            if (preferences.includeInlayFunctionParameterTypeHints && isFunctionLikeDeclaration(node) && hasContextSensitiveParameters(node)) {
+            if (
+                preferences.includeInlayFunctionParameterTypeHints && isFunctionLikeDeclaration(node)
+                && hasContextSensitiveParameters(node)
+            ) {
                 visitFunctionLikeForParameterType(node);
             }
             if (preferences.includeInlayFunctionLikeReturnTypeHints && isSignatureSupportingReturnAnnotation(node)) {
@@ -153,11 +157,20 @@ export function provideInlayHints(context: InlayHintsContext): InlayHint[] {
         return forEachChild(node, visitor);
     }
 
-    function isSignatureSupportingReturnAnnotation(node: Node): node is FunctionDeclaration | ArrowFunction | FunctionExpression | MethodDeclaration | GetAccessorDeclaration {
-        return isArrowFunction(node) || isFunctionExpression(node) || isFunctionDeclaration(node) || isMethodDeclaration(node) || isGetAccessorDeclaration(node);
+    function isSignatureSupportingReturnAnnotation(
+        node: Node,
+    ): node is FunctionDeclaration | ArrowFunction | FunctionExpression | MethodDeclaration | GetAccessorDeclaration {
+        return isArrowFunction(node) || isFunctionExpression(node) || isFunctionDeclaration(node)
+            || isMethodDeclaration(node) || isGetAccessorDeclaration(node);
     }
 
-    function addParameterHints(text: string, parameter: Identifier, position: number, isFirstVariadicArgument: boolean, sourceFile: SourceFile | undefined) {
+    function addParameterHints(
+        text: string,
+        parameter: Identifier,
+        position: number,
+        isFirstVariadicArgument: boolean,
+        sourceFile: SourceFile | undefined,
+    ) {
         let hintText = `${isFirstVariadicArgument ? "..." : ""}${text}`;
         let displayParts: InlayHintDisplayPart[] | undefined;
         if (shouldUseInteractiveInlayHints(preferences)) {
@@ -179,7 +192,9 @@ export function provideInlayHints(context: InlayHintsContext): InlayHint[] {
 
     function addTypeHints(text: string, position: number) {
         result.push({
-            text: `: ${text.length > maxTypeHintLength ? text.substr(0, maxTypeHintLength - "...".length) + "..." : text}`,
+            text: `: ${
+                text.length > maxTypeHintLength ? text.substr(0, maxTypeHintLength - "...".length) + "..." : text
+            }`,
             position,
             kind: InlayHintKind.Type,
             whitespaceBefore: true,
@@ -211,7 +226,10 @@ export function provideInlayHints(context: InlayHintsContext): InlayHint[] {
     }
 
     function visitVariableLikeDeclaration(decl: VariableDeclaration | PropertyDeclaration) {
-        if (!decl.initializer || isBindingPattern(decl.name) || isVariableDeclaration(decl) && !isHintableDeclaration(decl)) {
+        if (
+            !decl.initializer || isBindingPattern(decl.name)
+            || isVariableDeclaration(decl) && !isHintableDeclaration(decl)
+        ) {
             return;
         }
 
@@ -227,7 +245,8 @@ export function provideInlayHints(context: InlayHintsContext): InlayHint[] {
 
         const typeDisplayString = printTypeInSingleLine(declarationType);
         if (typeDisplayString) {
-            const isVariableNameMatchesType = preferences.includeInlayVariableTypeHintsWhenTypeMatchesName === false && equateStringsCaseInsensitive(decl.name.getText(), typeDisplayString);
+            const isVariableNameMatchesType = preferences.includeInlayVariableTypeHintsWhenTypeMatchesName === false
+                && equateStringsCaseInsensitive(decl.name.getText(), typeDisplayString);
             if (isVariableNameMatchesType) {
                 return;
             }
@@ -277,7 +296,9 @@ export function provideInlayHints(context: InlayHintsContext): InlayHint[] {
             signatureParamPos = signatureParamPos + (spreadArgs || 1);
             if (identifierInfo) {
                 const { parameter, parameterName, isRestParameter: isFirstVariadicArgument } = identifierInfo;
-                const isParameterNameNotSameAsArgument = preferences.includeInlayParameterNameHintsWhenArgumentMatchesName || !identifierOrAccessExpressionPostfixMatchesParameterName(arg, parameterName);
+                const isParameterNameNotSameAsArgument =
+                    preferences.includeInlayParameterNameHintsWhenArgumentMatchesName
+                    || !identifierOrAccessExpressionPostfixMatchesParameterName(arg, parameterName);
                 if (!isParameterNameNotSameAsArgument && !isFirstVariadicArgument) {
                     continue;
                 }
@@ -320,7 +341,8 @@ export function provideInlayHints(context: InlayHintsContext): InlayHint[] {
         switch (node.kind) {
             case SyntaxKind.PrefixUnaryExpression: {
                 const operand = (node as PrefixUnaryExpression).operand;
-                return isLiteralExpression(operand) || isIdentifier(operand) && isInfinityOrNaNString(operand.escapedText);
+                return isLiteralExpression(operand)
+                    || isIdentifier(operand) && isInfinityOrNaNString(operand.escapedText);
             }
             case SyntaxKind.TrueKeyword:
             case SyntaxKind.FalseKeyword:
@@ -336,7 +358,9 @@ export function provideInlayHints(context: InlayHintsContext): InlayHint[] {
         return isLiteralExpression(node);
     }
 
-    function visitFunctionDeclarationLikeForReturnType(decl: FunctionDeclaration | ArrowFunction | FunctionExpression | MethodDeclaration | GetAccessorDeclaration) {
+    function visitFunctionDeclarationLikeForReturnType(
+        decl: FunctionDeclaration | ArrowFunction | FunctionExpression | MethodDeclaration | GetAccessorDeclaration,
+    ) {
         if (isArrowFunction(decl)) {
             if (!findChildOfKind(decl, SyntaxKind.OpenParenToken, file)) {
                 return;
@@ -366,7 +390,9 @@ export function provideInlayHints(context: InlayHintsContext): InlayHint[] {
         addTypeHints(typeDisplayString, getTypeAnnotationPosition(decl));
     }
 
-    function getTypeAnnotationPosition(decl: FunctionDeclaration | ArrowFunction | FunctionExpression | MethodDeclaration | GetAccessorDeclaration) {
+    function getTypeAnnotationPosition(
+        decl: FunctionDeclaration | ArrowFunction | FunctionExpression | MethodDeclaration | GetAccessorDeclaration,
+    ) {
         const closeParenToken = findChildOfKind(decl, SyntaxKind.CloseParenToken, file);
         if (closeParenToken) {
             return closeParenToken.end;
@@ -415,7 +441,8 @@ export function provideInlayHints(context: InlayHintsContext): InlayHint[] {
     }
 
     function printTypeInSingleLine(type: Type) {
-        const flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.AllowUniqueESSymbolType | NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope;
+        const flags = NodeBuilderFlags.IgnoreErrors | NodeBuilderFlags.AllowUniqueESSymbolType
+            | NodeBuilderFlags.UseAliasDefinedOutsideCurrentScope;
         const printer = createPrinterWithRemoveComments();
 
         return usingSingleLineStringWriter(writer => {
@@ -432,7 +459,8 @@ export function provideInlayHints(context: InlayHintsContext): InlayHint[] {
     function isHintableDeclaration(node: VariableDeclaration | ParameterDeclaration) {
         if ((isParameterDeclaration(node) || isVariableDeclaration(node) && isVarConst(node)) && node.initializer) {
             const initializer = skipParentheses(node.initializer);
-            return !(isHintableLiteral(initializer) || isNewExpression(initializer) || isObjectLiteralExpression(initializer) || isAssertionExpression(initializer));
+            return !(isHintableLiteral(initializer) || isNewExpression(initializer)
+                || isObjectLiteralExpression(initializer) || isAssertionExpression(initializer));
         }
         return true;
     }

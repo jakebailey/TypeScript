@@ -75,7 +75,11 @@ describe("unittests:: tsserver:: projects::", () => {
         host.runQueuedTimeoutCallbacks(); // Update the configured project + refresh inferred projects
 
         openFilesForSession([commonFile2], session);
-        baselineTsserverLogs("projects", "should create new inferred projects for files excluded from a configured project", session);
+        baselineTsserverLogs(
+            "projects",
+            "should create new inferred projects for files excluded from a configured project",
+            session,
+        );
     });
 
     it("should disable features when the files are too large", () => {
@@ -100,11 +104,23 @@ describe("unittests:: tsserver:: projects::", () => {
         const host = createServerHost([file1, file2, file3]);
         const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
 
-        openExternalProjectForSession({ rootFiles: toExternalFiles([file1.path]), options: {}, projectFileName: proj1name }, session);
+        openExternalProjectForSession({
+            rootFiles: toExternalFiles([file1.path]),
+            options: {},
+            projectFileName: proj1name,
+        }, session);
 
-        openExternalProjectForSession({ rootFiles: toExternalFiles([file2.path]), options: {}, projectFileName: proj2name }, session);
+        openExternalProjectForSession({
+            rootFiles: toExternalFiles([file2.path]),
+            options: {},
+            projectFileName: proj2name,
+        }, session);
 
-        openExternalProjectForSession({ rootFiles: toExternalFiles([file3.path]), options: {}, projectFileName: proj3name }, session);
+        openExternalProjectForSession({
+            rootFiles: toExternalFiles([file3.path]),
+            options: {},
+            projectFileName: proj3name,
+        }, session);
         baselineTsserverLogs("projects", "should disable features when the files are too large", session);
     });
 
@@ -123,12 +139,23 @@ describe("unittests:: tsserver:: projects::", () => {
         const projName = "proj1";
 
         const host = createServerHost([file1, file2]);
-        const session = createSession(host, { useSingleInferredProject: true, logger: createLoggerWithInMemoryLogs(host) });
+        const session = createSession(host, {
+            useSingleInferredProject: true,
+            logger: createLoggerWithInMemoryLogs(host),
+        });
 
-        openExternalProjectForSession({ rootFiles: toExternalFiles([file1.path, file2.path]), options: {}, projectFileName: projName }, session);
+        openExternalProjectForSession({
+            rootFiles: toExternalFiles([file1.path, file2.path]),
+            options: {},
+            projectFileName: projName,
+        }, session);
 
         openFilesForSession([file2], session);
-        baselineTsserverLogs("projects", "should not crash when opening a file in a project with a disabled language service", session);
+        baselineTsserverLogs(
+            "projects",
+            "should not crash when opening a file in a project with a disabled language service",
+            session,
+        );
     });
 
     describe("ignoreConfigFiles", () => {
@@ -149,7 +176,11 @@ describe("unittests:: tsserver:: projects::", () => {
 
             const externalProjectName = "externalproject";
             const host = createServerHost([file1, config1]);
-            const projectService = createProjectService(host, { useSingleInferredProject: true, serverMode: ts.LanguageServiceMode.Syntactic, logger: createLoggerWithInMemoryLogs(host) });
+            const projectService = createProjectService(host, {
+                useSingleInferredProject: true,
+                serverMode: ts.LanguageServiceMode.Syntactic,
+                logger: createLoggerWithInMemoryLogs(host),
+            });
             projectService.openExternalProject({
                 rootFiles: toExternalFiles([file1.path, config1.path]),
                 options: {},
@@ -175,7 +206,11 @@ describe("unittests:: tsserver:: projects::", () => {
             };
 
             const host = createServerHost([file1, config1]);
-            const projectService = createProjectService(host, { useSingleInferredProject: true, serverMode: ts.LanguageServiceMode.Syntactic, logger: createLoggerWithInMemoryLogs(host) });
+            const projectService = createProjectService(host, {
+                useSingleInferredProject: true,
+                serverMode: ts.LanguageServiceMode.Syntactic,
+                logger: createLoggerWithInMemoryLogs(host),
+            });
             projectService.openClientFile(file1.path, file1.content);
             baselineTsserverLogs("projects", "loose file included in config file (openClientFile)", projectService);
         });
@@ -196,7 +231,11 @@ describe("unittests:: tsserver:: projects::", () => {
             };
 
             const host = createServerHost([file1, config1]);
-            const projectService = createProjectService(host, { useSingleInferredProject: true, serverMode: ts.LanguageServiceMode.Syntactic, logger: createLoggerWithInMemoryLogs(host) });
+            const projectService = createProjectService(host, {
+                useSingleInferredProject: true,
+                serverMode: ts.LanguageServiceMode.Syntactic,
+                logger: createLoggerWithInMemoryLogs(host),
+            });
             projectService.applyChangesInOpenFiles(ts.singleIterator({ fileName: file1.path, content: file1.content }));
 
             baselineTsserverLogs("projects", "loose file included in config file (applyCodeChanges)", projectService);
@@ -215,7 +254,11 @@ describe("unittests:: tsserver:: projects::", () => {
 
         const host = createServerHost([f1, f2, libFile]);
         const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
-        openExternalProjectForSession({ projectFileName: "/a/b/project", rootFiles: toExternalFiles([f1.path, f2.path]), options: {} }, session);
+        openExternalProjectForSession({
+            projectFileName: "/a/b/project",
+            rootFiles: toExternalFiles([f1.path, f2.path]),
+            options: {},
+        }, session);
 
         openFilesForSession([f1, { file: f2.path, content: "let x: string" }], session);
         // should contain completions for string
@@ -245,7 +288,11 @@ describe("unittests:: tsserver:: projects::", () => {
 
         const host = createServerHost([f1, f2, libFile]);
         const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
-        openExternalProjectForSession({ projectFileName: "/a/b/project", rootFiles: [{ fileName: f1.path }, { fileName: f2.path, hasMixedContent: true }], options: {} }, session);
+        openExternalProjectForSession({
+            projectFileName: "/a/b/project",
+            rootFiles: [{ fileName: f1.path }, { fileName: f2.path, hasMixedContent: true }],
+            options: {},
+        }, session);
         openFilesForSession([f1, { file: f2.path, content: "let somelongname: string" }], session);
 
         session.executeCommandSeq<ts.server.protocol.CompletionsRequest>({
@@ -323,8 +370,16 @@ describe("unittests:: tsserver:: projects::", () => {
         const host = createServerHost([file1, office, customTypesMap]);
         const projectService = createProjectService(host, { logger: createLoggerWithInMemoryLogs(host) });
         try {
-            projectService.openExternalProject({ projectFileName: "project", options: {}, rootFiles: toExternalFiles([file1.path, office.path]) });
-            projectService.logger.log(`TypeAcquisition:: ${JSON.stringify(projectService.externalProjects[0].getTypeAcquisition(), undefined, " ")}`);
+            projectService.openExternalProject({
+                projectFileName: "project",
+                options: {},
+                rootFiles: toExternalFiles([file1.path, office.path]),
+            });
+            projectService.logger.log(
+                `TypeAcquisition:: ${
+                    JSON.stringify(projectService.externalProjects[0].getTypeAcquisition(), undefined, " ")
+                }`,
+            );
         }
         finally {
             projectService.resetSafeList();
@@ -353,7 +408,14 @@ describe("unittests:: tsserver:: projects::", () => {
             installPackage: ts.notImplemented,
             enqueueInstallTypingsRequest: (proj, typeAcquisition, unresolvedImports) => {
                 assert.isUndefined(request);
-                request = JSON.stringify(ts.server.createInstallTypingsRequest(proj, typeAcquisition, unresolvedImports || ts.server.emptyArray, cachePath));
+                request = JSON.stringify(
+                    ts.server.createInstallTypingsRequest(
+                        proj,
+                        typeAcquisition,
+                        unresolvedImports || ts.server.emptyArray,
+                        cachePath,
+                    ),
+                );
             },
             attach: ts.noop,
             onProjectClosed: ts.noop,
@@ -361,8 +423,15 @@ describe("unittests:: tsserver:: projects::", () => {
         };
 
         const projectName = "project";
-        const projectService = createProjectService(host, { typingsInstaller, logger: createLoggerWithInMemoryLogs(host) });
-        projectService.openExternalProject({ projectFileName: projectName, options: {}, rootFiles: toExternalFiles([file1.path, constructorFile.path, bliss.path]) });
+        const projectService = createProjectService(host, {
+            typingsInstaller,
+            logger: createLoggerWithInMemoryLogs(host),
+        });
+        projectService.openExternalProject({
+            projectFileName: projectName,
+            options: {},
+            rootFiles: toExternalFiles([file1.path, constructorFile.path, bliss.path]),
+        });
         assert.equal(
             request,
             JSON.stringify({
@@ -389,7 +458,11 @@ describe("unittests:: tsserver:: projects::", () => {
 
         projectService.testhost.logTimeoutQueueLength();
         assert.isUndefined(request);
-        baselineTsserverLogs("projects", "file with name constructor.js doesnt cause issue with typeAcquisition when safe type list", projectService);
+        baselineTsserverLogs(
+            "projects",
+            "file with name constructor.js doesnt cause issue with typeAcquisition when safe type list",
+            projectService,
+        );
     });
 
     it("ignores files excluded by the default type list", () => {
@@ -425,8 +498,16 @@ describe("unittests:: tsserver:: projects::", () => {
         const host = createServerHost(files);
         const projectService = createProjectService(host, { logger: createLoggerWithInMemoryLogs(host) });
         try {
-            projectService.openExternalProject({ projectFileName: "project", options: {}, rootFiles: toExternalFiles(files.map(f => f.path)) });
-            projectService.logger.log(`TypeAcquisition:: ${JSON.stringify(projectService.externalProjects[0].getTypeAcquisition(), undefined, " ")}`);
+            projectService.openExternalProject({
+                projectFileName: "project",
+                options: {},
+                rootFiles: toExternalFiles(files.map(f => f.path)),
+            });
+            projectService.logger.log(
+                `TypeAcquisition:: ${
+                    JSON.stringify(projectService.externalProjects[0].getTypeAcquisition(), undefined, " ")
+                }`,
+            );
         }
         finally {
             projectService.resetSafeList();
@@ -466,7 +547,12 @@ describe("unittests:: tsserver:: projects::", () => {
         const host = createServerHost([file1, file2, file3, customTypesMap]);
         const projectService = createProjectService(host, { logger: createLoggerWithInMemoryLogs(host) });
         try {
-            projectService.openExternalProject({ projectFileName: "project", options: {}, rootFiles: toExternalFiles([file1.path, file2.path]), typeAcquisition: { enable: true } });
+            projectService.openExternalProject({
+                projectFileName: "project",
+                options: {},
+                rootFiles: toExternalFiles([file1.path, file2.path]),
+                typeAcquisition: { enable: true },
+            });
         }
         finally {
             projectService.resetSafeList();
@@ -529,7 +615,9 @@ describe("unittests:: tsserver:: projects::", () => {
         const projectService = createProjectService(host, { logger: createLoggerWithInMemoryLogs(host) });
         projectService.applyChangesInOpenFiles(ts.singleIterator(tsFile));
         const projs = projectService.synchronizeProjectList([]);
-        projectService.findProject(projs[0].info!.projectName)!.getLanguageService().getNavigationBarItems(tsFile.fileName);
+        projectService.findProject(projs[0].info!.projectName)!.getLanguageService().getNavigationBarItems(
+            tsFile.fileName,
+        );
         projectService.synchronizeProjectList([projs[0].info!]);
         projectService.applyChangesInOpenFiles(ts.singleIterator(jsFile));
         baselineTsserverLogs("projects", "regression test for crash in acquireOrUpdateDocument", projectService);
@@ -687,14 +775,24 @@ describe("unittests:: tsserver:: projects::", () => {
 
         // Specify .html extension as mixed content in a configure host request
         const extraFileExtensions = [{ extension: ".html", scriptKind: ts.ScriptKind.JS, isMixedContent: true }];
-        verfiy(config1, createServerHost([file1, file2, config1, libFile], { executingFilePath: ts.combinePaths(ts.getDirectoryPath(libFile.path), "tsc.js") }));
+        verfiy(
+            config1,
+            createServerHost([file1, file2, config1, libFile], {
+                executingFilePath: ts.combinePaths(ts.getDirectoryPath(libFile.path), "tsc.js"),
+            }),
+        );
 
         //  #2. Ensure no errors when allowJs is false
         const config2 = {
             path: "/a/b/tsconfig.json",
             content: JSON.stringify({ compilerOptions: { allowJs: false } }),
         };
-        verfiy(config2, createServerHost([file1, file2, config2, libFile], { executingFilePath: ts.combinePaths(ts.getDirectoryPath(libFile.path), "tsc.js") }));
+        verfiy(
+            config2,
+            createServerHost([file1, file2, config2, libFile], {
+                executingFilePath: ts.combinePaths(ts.getDirectoryPath(libFile.path), "tsc.js"),
+            }),
+        );
 
         //  #3. Ensure no errors when compiler options aren't specified
         const config3 = {
@@ -702,7 +800,12 @@ describe("unittests:: tsserver:: projects::", () => {
             content: JSON.stringify({}),
         };
 
-        verfiy(config3, createServerHost([file1, file2, config3, libFile], { executingFilePath: ts.combinePaths(ts.getDirectoryPath(libFile.path), "tsc.js") }));
+        verfiy(
+            config3,
+            createServerHost([file1, file2, config3, libFile], {
+                executingFilePath: ts.combinePaths(ts.getDirectoryPath(libFile.path), "tsc.js"),
+            }),
+        );
 
         //  #4. Ensure no errors when files are explicitly specified in tsconfig
         const config4 = {
@@ -710,7 +813,12 @@ describe("unittests:: tsserver:: projects::", () => {
             content: JSON.stringify({ compilerOptions: { allowJs: true }, files: [file1.path, file2.path] }),
         };
 
-        verfiy(config4, createServerHost([file1, file2, config4, libFile], { executingFilePath: ts.combinePaths(ts.getDirectoryPath(libFile.path), "tsc.js") }));
+        verfiy(
+            config4,
+            createServerHost([file1, file2, config4, libFile], {
+                executingFilePath: ts.combinePaths(ts.getDirectoryPath(libFile.path), "tsc.js"),
+            }),
+        );
 
         //  #4. Ensure no errors when files are explicitly excluded in tsconfig
         const config5 = {
@@ -718,12 +826,19 @@ describe("unittests:: tsserver:: projects::", () => {
             content: JSON.stringify({ compilerOptions: { allowJs: true }, exclude: [file2.path] }),
         };
 
-        const session = verfiy(config5, createServerHost([file1, file2, config5, libFile], { executingFilePath: ts.combinePaths(ts.getDirectoryPath(libFile.path), "tsc.js") }));
+        const session = verfiy(
+            config5,
+            createServerHost([file1, file2, config5, libFile], {
+                executingFilePath: ts.combinePaths(ts.getDirectoryPath(libFile.path), "tsc.js"),
+            }),
+        );
         baselineTsserverLogs("projects", "no tsconfig script block diagnostic errors", session);
 
         function verfiy(config: File, host: TestServerHost) {
             logger.host = host;
-            logger.log(`currentDirectory:: ${host.getCurrentDirectory()} useCaseSensitiveFileNames: ${host.useCaseSensitiveFileNames}`);
+            logger.log(
+                `currentDirectory:: ${host.getCurrentDirectory()} useCaseSensitiveFileNames: ${host.useCaseSensitiveFileNames}`,
+            );
             const session = createSession(host, { logger });
             session.executeCommandSeq<ts.server.protocol.ConfigureRequest>({
                 command: ts.server.protocol.CommandTypes.Configure,
@@ -758,12 +873,19 @@ describe("unittests:: tsserver:: projects::", () => {
 
         projectService.applyChangesInOpenFiles(
             /*openFiles*/ undefined,
-            /*changedFiles*/ ts.singleIterator({ fileName: file1.path, changes: ts.singleIterator({ span: ts.createTextSpan(0, file1.path.length), newText: "let y = 1" }) }),
+            /*changedFiles*/ ts.singleIterator({
+                fileName: file1.path,
+                changes: ts.singleIterator({ span: ts.createTextSpan(0, file1.path.length), newText: "let y = 1" }),
+            }),
             /*closedFiles*/ undefined,
         );
 
         projectService.ensureInferredProjectsUpToDate_TestOnly();
-        baselineTsserverLogs("projects", "project structure update is deferred if files are not added or removed", projectService);
+        baselineTsserverLogs(
+            "projects",
+            "project structure update is deferred if files are not added or removed",
+            projectService,
+        );
     });
 
     it("files with mixed content are handled correctly", () => {
@@ -774,7 +896,11 @@ describe("unittests:: tsserver:: projects::", () => {
         const host = createServerHost([file1]);
         const projectService = createProjectService(host, { logger: createLoggerWithInMemoryLogs(host) });
         const projectFileName = "projectFileName";
-        projectService.openExternalProject({ projectFileName, options: {}, rootFiles: [{ fileName: file1.path, scriptKind: ts.ScriptKind.JS, hasMixedContent: true }] });
+        projectService.openExternalProject({
+            projectFileName,
+            options: {},
+            rootFiles: [{ fileName: file1.path, scriptKind: ts.ScriptKind.JS, hasMixedContent: true }],
+        });
 
         const project = projectService.externalProjects[0];
 
@@ -803,13 +929,20 @@ describe("unittests:: tsserver:: projects::", () => {
             content: "{x: 1}",
         };
         const host = createServerHost([file1]);
-        const projectService = createProjectService(host, { useSingleInferredProject: true, logger: createLoggerWithInMemoryLogs(host) });
+        const projectService = createProjectService(host, {
+            useSingleInferredProject: true,
+            logger: createLoggerWithInMemoryLogs(host),
+        });
         projectService.setCompilerOptionsForInferredProjects({ target: ts.ScriptTarget.ES5, allowJs: false });
         projectService.openClientFile(file1.path);
-        projectService.inferredProjects[0].getLanguageService(/*ensureSynchronized*/ false).getOutliningSpans(file1.path);
+        projectService.inferredProjects[0].getLanguageService(/*ensureSynchronized*/ false).getOutliningSpans(
+            file1.path,
+        );
         projectService.setCompilerOptionsForInferredProjects({ target: ts.ScriptTarget.ES5, allowJs: true });
         projectService.getScriptInfo(file1.path)!.editContent(0, 0, " ");
-        projectService.inferredProjects[0].getLanguageService(/*ensureSynchronized*/ false).getOutliningSpans(file1.path);
+        projectService.inferredProjects[0].getLanguageService(/*ensureSynchronized*/ false).getOutliningSpans(
+            file1.path,
+        );
         projectService.closeClientFile(file1.path);
         baselineTsserverLogs("projects", "syntax tree cache handles changes in project settings", projectService);
     });
@@ -908,7 +1041,11 @@ describe("unittests:: tsserver:: projects::", () => {
                 files: [f1.path],
             },
         } as ts.server.protocol.GeterrRequest);
-        baselineTsserverLogs("projects", "getting errors from closed script info does not throw exception because of getting project from orphan script info", session);
+        baselineTsserverLogs(
+            "projects",
+            "getting errors from closed script info does not throw exception because of getting project from orphan script info",
+            session,
+        );
     });
 
     it("Properly handle Windows-style outDir", () => {
@@ -1037,7 +1174,11 @@ describe("unittests:: tsserver:: projects::", () => {
             command: ts.server.protocol.CommandTypes.GetApplicableRefactors,
             arguments: { file: file2.path, startLine: 1, startOffset, endLine: 1, endOffset: startOffset + 1 },
         });
-        baselineTsserverLogs("projects", "requests are done on file on pendingReload but has svc for previous version", session);
+        baselineTsserverLogs(
+            "projects",
+            "requests are done on file on pendingReload but has svc for previous version",
+            session,
+        );
     });
 
     describe("includes deferred files in the project context", () => {
@@ -1065,7 +1206,11 @@ describe("unittests:: tsserver:: projects::", () => {
             });
 
             // Configure the deferred extension.
-            const extraFileExtensions = [{ extension: ".deferred", scriptKind: ts.ScriptKind.Deferred, isMixedContent: true }];
+            const extraFileExtensions = [{
+                extension: ".deferred",
+                scriptKind: ts.ScriptKind.Deferred,
+                isMixedContent: true,
+            }];
             session.executeCommandSeq<ts.server.protocol.ConfigureRequest>({
                 command: ts.server.protocol.CommandTypes.Configure,
                 arguments: { extraFileExtensions },
@@ -1086,9 +1231,20 @@ describe("unittests:: tsserver:: projects::", () => {
             }
 
             // Allow allowNonTsExtensions will be set to true for deferred extensions.
-            session.logger.info(`Has allowNonTsExtension: ${session.getProjectService().configuredProjects.get(tsconfig.path)!.getCompilerOptions().allowNonTsExtensions}`);
+            session.logger.info(
+                `Has allowNonTsExtension: ${
+                    session.getProjectService().configuredProjects.get(tsconfig.path)!.getCompilerOptions()
+                        .allowNonTsExtensions
+                }`,
+            );
 
-            baselineTsserverLogs("projects", `deferred files in the project context${lazyConfiguredProjectsFromExternalProject ? " with lazyConfiguredProjectsFromExternalProject" : ""}`, session);
+            baselineTsserverLogs(
+                "projects",
+                `deferred files in the project context${
+                    lazyConfiguredProjectsFromExternalProject ? " with lazyConfiguredProjectsFromExternalProject" : ""
+                }`,
+                session,
+            );
         }
 
         it("when lazyConfiguredProjectsFromExternalProject not set", () => {
@@ -1138,7 +1294,9 @@ describe("unittests:: tsserver:: projects::", () => {
 
         function verifyFile2InfoIsOrphan() {
             const info = ts.Debug.checkDefined(service.getScriptInfoForPath(file2.path as ts.Path));
-            service.logger.log(`Containing projects for ${file2.path}:: ${info.containingProjects.map(p => p.projectName).join(",")}`);
+            service.logger.log(
+                `Containing projects for ${file2.path}:: ${info.containingProjects.map(p => p.projectName).join(",")}`,
+            );
         }
     });
 
@@ -1159,7 +1317,11 @@ describe("unittests:: tsserver:: projects::", () => {
 
         host.modifyFile(file1.path, file1.content, { invokeFileDeleteCreateAsPartInsteadOfChange: true });
         service.testhost.logTimeoutQueueLength();
-        baselineTsserverLogs("projects", "no project structure update on directory watch invoke on open file save", service);
+        baselineTsserverLogs(
+            "projects",
+            "no project structure update on directory watch invoke on open file save",
+            service,
+        );
     });
 
     it("synchronizeProjectList provides redirect info when requested", () => {
@@ -1247,7 +1409,10 @@ describe("unittests:: tsserver:: projects::", () => {
             command: ts.server.protocol.CommandTypes.SynchronizeProjectList,
             arguments: { knownProjects: [], includeProjectReferenceRedirectInfo: true },
         });
-        const knownProjects = session.getProjectService().synchronizeProjectList([], /*includeProjectReferenceRedirectInfo*/ true);
+        const knownProjects = session.getProjectService().synchronizeProjectList(
+            [],
+            /*includeProjectReferenceRedirectInfo*/ true,
+        );
 
         host.modifyFile(
             configA.path,
@@ -1265,9 +1430,16 @@ describe("unittests:: tsserver:: projects::", () => {
 
         session.executeCommandSeq<ts.server.protocol.SynchronizeProjectListRequest>({
             command: ts.server.protocol.CommandTypes.SynchronizeProjectList,
-            arguments: { knownProjects: knownProjects.map(proj => proj.info!), includeProjectReferenceRedirectInfo: true },
+            arguments: {
+                knownProjects: knownProjects.map(proj => proj.info!),
+                includeProjectReferenceRedirectInfo: true,
+            },
         });
-        baselineTsserverLogs("projects", "synchronizeProjectList provides updates to redirect info when requested", session);
+        baselineTsserverLogs(
+            "projects",
+            "synchronizeProjectList provides updates to redirect info when requested",
+            session,
+        );
     });
 
     it("synchronizeProjectList returns correct information when base configuration file cannot be resolved", () => {
@@ -1286,7 +1458,11 @@ describe("unittests:: tsserver:: projects::", () => {
             command: ts.server.protocol.CommandTypes.SynchronizeProjectList,
             arguments: { knownProjects: [], includeProjectReferenceRedirectInfo: false },
         });
-        baselineTsserverLogs("projects", "synchronizeProjectList returns correct information when base configuration file cannot be resolved", session);
+        baselineTsserverLogs(
+            "projects",
+            "synchronizeProjectList returns correct information when base configuration file cannot be resolved",
+            session,
+        );
     });
 
     it("synchronizeProjectList returns correct information when base configuration file cannot be resolved and redirect info is requested", () => {
@@ -1305,7 +1481,11 @@ describe("unittests:: tsserver:: projects::", () => {
             command: ts.server.protocol.CommandTypes.SynchronizeProjectList,
             arguments: { knownProjects: [], includeProjectReferenceRedirectInfo: true },
         });
-        baselineTsserverLogs("projects", "synchronizeProjectList returns correct information when base configuration file cannot be resolved and redirect info is requested", session);
+        baselineTsserverLogs(
+            "projects",
+            "synchronizeProjectList returns correct information when base configuration file cannot be resolved and redirect info is requested",
+            session,
+        );
     });
 
     it("handles delayed directory watch invoke on file creation", () => {
@@ -1328,7 +1508,11 @@ describe("unittests:: tsserver:: projects::", () => {
         };
         const files = [fileSubA, fileB, config, libFile];
         const host = createServerHost(files);
-        const session = createSession(host, { canUseEvents: true, noGetErrOnBackgroundUpdate: true, logger: createLoggerWithInMemoryLogs(host) });
+        const session = createSession(host, {
+            canUseEvents: true,
+            noGetErrOnBackgroundUpdate: true,
+            logger: createLoggerWithInMemoryLogs(host),
+        });
         openFile(fileB);
         openFile(fileSubA);
 
@@ -1382,13 +1566,18 @@ describe("unittests:: tsserver:: projects::", () => {
         service.openClientFile(commonFile1.path);
         const project = service.inferredProjects[0];
         // Intentionally create scriptinfo and attach it to project
-        const info = service.getOrCreateScriptInfoForNormalizedPath(commonFile2.path as ts.server.NormalizedPath, /*openedByClient*/ false)!;
+        const info = service.getOrCreateScriptInfoForNormalizedPath(
+            commonFile2.path as ts.server.NormalizedPath,
+            /*openedByClient*/ false,
+        )!;
         info.attachToProject(project);
         try {
             service.applyChangesInOpenFiles(/*openFiles*/ undefined, /*changedFiles*/ undefined, [commonFile1.path]);
         }
         catch (e) {
-            assert.isTrue(e.message.indexOf("Debug Failure. False expression: Found script Info still attached to project") === 0);
+            assert.isTrue(
+                e.message.indexOf("Debug Failure. False expression: Found script Info still attached to project") === 0,
+            );
         }
         baselineTsserverLogs("projects", "assert when removing project", service);
     });
@@ -1405,7 +1594,10 @@ describe("unittests:: tsserver:: projects::", () => {
             { path: nodeModulesProjectPath1, content: "{}" },
             { path: nodeModulesFilePath2, content: "{}" },
         ]);
-        const projectService = createProjectService(serverHost, { useSingleInferredProject: true, logger: createLoggerWithInMemoryLogs(serverHost) });
+        const projectService = createProjectService(serverHost, {
+            useSingleInferredProject: true,
+            logger: createLoggerWithInMemoryLogs(serverHost),
+        });
 
         const openRootFileResult = projectService.openClientFile(rootFilePath);
         assert.strictEqual(openRootFileResult.configFileName?.toString(), rootProjectPath);
@@ -1416,11 +1608,18 @@ describe("unittests:: tsserver:: projects::", () => {
         const openNodeModulesFileResult2 = projectService.openClientFile(nodeModulesFilePath2);
         assert.isUndefined(openNodeModulesFileResult2.configFileName);
 
-        baselineTsserverLogs("projects", "does not look beyond node_modules folders for default configured projects", projectService);
+        baselineTsserverLogs(
+            "projects",
+            "does not look beyond node_modules folders for default configured projects",
+            projectService,
+        );
     });
 
     describe("file opened is in configured project that will be removed", () => {
-        function runOnTs<T extends ts.server.protocol.Request>(scenario: string, getRequest: (innerFile: File) => TestSessionRequest<T>) {
+        function runOnTs<T extends ts.server.protocol.Request>(
+            scenario: string,
+            getRequest: (innerFile: File) => TestSessionRequest<T>,
+        ) {
             it(scenario, () => {
                 const testsConfig: File = {
                     path: `/user/username/projects/myproject/playground/tsconfig.json`,

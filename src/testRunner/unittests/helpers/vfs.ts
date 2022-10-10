@@ -16,9 +16,9 @@ export interface FsOptions {
 export type FsOptionsOrLibContentsToAppend = FsOptions | string;
 
 function valueOfFsOptions(options: FsOptionsOrLibContentsToAppend | undefined, key: keyof FsOptions) {
-    return typeof options === "string" ?
-        key === "libContentToAppend" ? options : undefined :
-        options?.[key];
+    return typeof options === "string"
+        ? key === "libContentToAppend" ? options : undefined
+        : options?.[key];
 }
 
 /**
@@ -50,7 +50,10 @@ export function loadProjectFromFiles(
     });
     const libContentToAppend = valueOfFsOptions(options, "libContentToAppend");
     fs.mkdirpSync(defaultLibLocation);
-    fs.writeFileSync(`${defaultLibLocation}/lib.d.ts`, libContentToAppend ? `${libContent}${libContentToAppend}` : libContent);
+    fs.writeFileSync(
+        `${defaultLibLocation}/lib.d.ts`,
+        libContentToAppend ? `${libContent}${libContentToAppend}` : libContent,
+    );
     fs.makeReadonly();
     return fs;
 }

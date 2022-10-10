@@ -30,7 +30,10 @@ describe("unittests:: tsserver:: events:: ProjectLoadingStart and ProjectLoading
     const configBPath = `/user/username/projects/b/tsconfig.json`;
     const files = [libFile, aTs, configA];
 
-    function verifyProjectLoadingStartAndFinish(sessionType: string, createSession: (host: TestServerHost) => TestSession) {
+    function verifyProjectLoadingStartAndFinish(
+        sessionType: string,
+        createSession: (host: TestServerHost) => TestSession,
+    ) {
         describe(sessionType, () => {
             it("when project is created by open file", () => {
                 const bTs: File = {
@@ -45,7 +48,11 @@ describe("unittests:: tsserver:: events:: ProjectLoadingStart and ProjectLoading
                 const session = createSession(host);
                 openFilesForSession([aTs], session);
                 openFilesForSession([bTs], session);
-                baselineTsserverLogs("events/projectLoading", `project is created by open file ${sessionType}`, session);
+                baselineTsserverLogs(
+                    "events/projectLoading",
+                    `project is created by open file ${sessionType}`,
+                    session,
+                );
             });
 
             it("when change is detected in the config file", () => {
@@ -55,7 +62,11 @@ describe("unittests:: tsserver:: events:: ProjectLoadingStart and ProjectLoading
 
                 host.writeFile(configA.path, configA.content);
                 host.runQueuedTimeoutCallbacks();
-                baselineTsserverLogs("events/projectLoading", `change is detected in the config file ${sessionType}`, session);
+                baselineTsserverLogs(
+                    "events/projectLoading",
+                    `change is detected in the config file ${sessionType}`,
+                    session,
+                );
             });
 
             it("when change is detected in an extended config file", () => {
@@ -75,7 +86,11 @@ describe("unittests:: tsserver:: events:: ProjectLoadingStart and ProjectLoading
 
                 host.writeFile(configA.path, configA.content);
                 host.runQueuedTimeoutCallbacks();
-                baselineTsserverLogs("events/projectLoading", `change is detected in an extended config file ${sessionType}`, session);
+                baselineTsserverLogs(
+                    "events/projectLoading",
+                    `change is detected in an extended config file ${sessionType}`,
+                    session,
+                );
             });
 
             describe("when opening original location project", () => {
@@ -97,7 +112,8 @@ describe("unittests:: tsserver:: events:: ProjectLoadingStart and ProjectLoading
                     };
                     const aDTsMap: File = {
                         path: `/user/username/projects/a/a.d.ts.map`,
-                        content: `{"version":3,"file":"a.d.ts","sourceRoot":"","sources":["./a.ts"],"names":[],"mappings":"AAAA,qBAAa,CAAC;CAAI"}`,
+                        content:
+                            `{"version":3,"file":"a.d.ts","sourceRoot":"","sources":["./a.ts"],"names":[],"mappings":"AAAA,qBAAa,CAAC;CAAI"}`,
                     };
                     const bTs: File = {
                         path: bTsPath,
@@ -126,7 +142,13 @@ describe("unittests:: tsserver:: events:: ProjectLoadingStart and ProjectLoading
                             ...protocolLocationFromSubstring(bTs.content, "A()"),
                         },
                     });
-                    baselineTsserverLogs("events/projectLoading", `opening original location project${disableSourceOfProjectReferenceRedirect ? " disableSourceOfProjectReferenceRedirect" : ""} ${sessionType}`, session);
+                    baselineTsserverLogs(
+                        "events/projectLoading",
+                        `opening original location project${
+                            disableSourceOfProjectReferenceRedirect ? " disableSourceOfProjectReferenceRedirect" : ""
+                        } ${sessionType}`,
+                        session,
+                    );
                 }
             });
 
@@ -152,13 +174,21 @@ describe("unittests:: tsserver:: events:: ProjectLoadingStart and ProjectLoading
 
                 it("when lazyConfiguredProjectsFromExternalProject is false", () => {
                     const session = createSessionAndOpenProject(/*lazyConfiguredProjectsFromExternalProject*/ false);
-                    baselineTsserverLogs("events/projectLoading", `lazyConfiguredProjectsFromExternalProject is false ${sessionType}`, session);
+                    baselineTsserverLogs(
+                        "events/projectLoading",
+                        `lazyConfiguredProjectsFromExternalProject is false ${sessionType}`,
+                        session,
+                    );
                 });
 
                 it("when lazyConfiguredProjectsFromExternalProject is true and file is opened", () => {
                     const session = createSessionAndOpenProject(/*lazyConfiguredProjectsFromExternalProject*/ true);
                     openFilesForSession([aTs], session);
-                    baselineTsserverLogs("events/projectLoading", `lazyConfiguredProjectsFromExternalProject is true and file is opened ${sessionType}`, session);
+                    baselineTsserverLogs(
+                        "events/projectLoading",
+                        `lazyConfiguredProjectsFromExternalProject is true and file is opened ${sessionType}`,
+                        session,
+                    );
                 });
 
                 it("when lazyConfiguredProjectsFromExternalProject is disabled", () => {
@@ -169,7 +199,11 @@ describe("unittests:: tsserver:: events:: ProjectLoadingStart and ProjectLoading
                             preferences: { lazyConfiguredProjectsFromExternalProject: false },
                         },
                     });
-                    baselineTsserverLogs("events/projectLoading", `lazyConfiguredProjectsFromExternalProject is disabled ${sessionType}`, session);
+                    baselineTsserverLogs(
+                        "events/projectLoading",
+                        `lazyConfiguredProjectsFromExternalProject is disabled ${sessionType}`,
+                        session,
+                    );
                 });
             });
         });

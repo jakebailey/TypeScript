@@ -153,7 +153,13 @@ function baselineMatches(subScenario: string, json: any, host: fakes.ParseConfig
             basePath,
             baselineParsed: (baseline, parsed) => {
                 const wildcardDirectories = parsed.wildcardDirectories ? {} as ts.MapLike<string> : undefined;
-                if (parsed.wildcardDirectories) ts.getOwnKeys(parsed.wildcardDirectories).forEach(dir => wildcardDirectories![dir] = `WatchDirectoryFlags.${(ts as any).WatchDirectoryFlags[parsed.wildcardDirectories![dir]]}`);
+                if (parsed.wildcardDirectories) {
+                    ts.getOwnKeys(parsed.wildcardDirectories).forEach(dir =>
+                        wildcardDirectories![dir] = `WatchDirectoryFlags.${
+                            (ts as any).WatchDirectoryFlags[parsed.wildcardDirectories![dir]]
+                        }`
+                    );
+                }
                 baseline.push(
                     "Result",
                     JSON.stringify(
@@ -926,8 +932,18 @@ describe("unittests:: config:: matchFiles", () => {
         );
     });
 
-    baselineMatches("can include files in the same order on multiple platforms case sensitive", {}, caseSensitiveOrderingDiffersWithCaseHost, caseSensitiveBasePath);
-    baselineMatches("can include files in the same order on multiple platforms case insensitive", {}, caseInsensitiveOrderingDiffersWithCaseHost, caseInsensitiveBasePath);
+    baselineMatches(
+        "can include files in the same order on multiple platforms case sensitive",
+        {},
+        caseSensitiveOrderingDiffersWithCaseHost,
+        caseSensitiveBasePath,
+    );
+    baselineMatches(
+        "can include files in the same order on multiple platforms case insensitive",
+        {},
+        caseInsensitiveOrderingDiffersWithCaseHost,
+        caseInsensitiveBasePath,
+    );
 
     describe("when recursive symlinked directories are present", () => {
         const fs = new vfs.FileSystem(/*ignoreCase*/ true, {

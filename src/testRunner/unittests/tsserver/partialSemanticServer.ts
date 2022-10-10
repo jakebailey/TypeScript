@@ -117,7 +117,8 @@ import { something } from "something";
             command: ts.server.protocol.CommandTypes.SyntacticDiagnosticsSync,
             arguments: { file: file1.path },
         };
-        const response = session.executeCommandSeq(request).response as ts.server.protocol.SyntacticDiagnosticsSyncResponse["body"];
+        const response = session.executeCommandSeq(request)
+            .response as ts.server.protocol.SyntacticDiagnosticsSyncResponse["body"];
         assert.isDefined(response);
         assert.equal(response!.length, 1);
         assert.equal((response![0] as ts.server.protocol.Diagnostic).text, expectedErrorMessage);
@@ -174,7 +175,11 @@ function fooB() { }`,
             logger: createLoggerWithInMemoryLogs(host),
         });
         openFilesForSession([file1], session);
-        baselineTsserverLogs("partialSemanticServer", "should not include referenced files from unopened files", session);
+        baselineTsserverLogs(
+            "partialSemanticServer",
+            "should not include referenced files from unopened files",
+            session,
+        );
     });
 
     it("should not crash when external module name resolution is reused", () => {
@@ -187,7 +192,11 @@ function fooB() { }`,
 
         // Open file with non relative external module name
         openFilesForSession([file2], session);
-        baselineTsserverLogs("partialSemanticServer", "should not crash when external module name resolution is reused", session);
+        baselineTsserverLogs(
+            "partialSemanticServer",
+            "should not crash when external module name resolution is reused",
+            session,
+        );
     });
 
     it("should not create autoImportProvider or handle package jsons", () => {
@@ -211,15 +220,30 @@ function fooB() { }`,
             path: "/index.ts",
             content: "",
         };
-        const host = createServerHost([angularFormsDts, angularFormsPackageJson, tsconfig, packageJson, indexTs, libFile]);
-        const session = createSession(host, { serverMode: ts.LanguageServiceMode.PartialSemantic, useSingleInferredProject: true, logger: createLoggerWithInMemoryLogs(host) });
+        const host = createServerHost([
+            angularFormsDts,
+            angularFormsPackageJson,
+            tsconfig,
+            packageJson,
+            indexTs,
+            libFile,
+        ]);
+        const session = createSession(host, {
+            serverMode: ts.LanguageServiceMode.PartialSemantic,
+            useSingleInferredProject: true,
+            logger: createLoggerWithInMemoryLogs(host),
+        });
         const service = session.getProjectService();
         openFilesForSession([indexTs], session);
         const project = service.inferredProjects[0];
         assert.isFalse(project.autoImportProviderHost);
         assert.isUndefined(project.getPackageJsonAutoImportProvider());
         assert.deepEqual(project.getPackageJsonsForAutoImport(), ts.emptyArray);
-        baselineTsserverLogs("partialSemanticServer", "should not create autoImportProvider or handle package jsons", session);
+        baselineTsserverLogs(
+            "partialSemanticServer",
+            "should not create autoImportProvider or handle package jsons",
+            session,
+        );
     });
 
     it("should support go-to-definition on module specifiers", () => {

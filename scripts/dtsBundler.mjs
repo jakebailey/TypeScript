@@ -56,8 +56,14 @@ function isInternalDeclaration(node) {
  */
 function getParentVariableStatement(node) {
     const declarationList = node.parent;
-    assert(ts.isVariableDeclarationList(declarationList), `expected VariableDeclarationList at ${nodeToLocation(node)}`);
-    assert(declarationList.declarations.length === 1, `expected VariableDeclarationList of length 1 at ${nodeToLocation(node)}`);
+    assert(
+        ts.isVariableDeclarationList(declarationList),
+        `expected VariableDeclarationList at ${nodeToLocation(node)}`,
+    );
+    assert(
+        declarationList.declarations.length === 1,
+        `expected VariableDeclarationList of length 1 at ${nodeToLocation(node)}`,
+    );
     const variableStatement = declarationList.parent;
     assert(ts.isVariableStatement(variableStatement), `expected VariableStatement at ${nodeToLocation(node)}`);
     return variableStatement;
@@ -235,7 +241,8 @@ function findInScope(name) {
 /** @type {(symbol: ts.Symbol | undefined, excludes?: ts.SymbolFlags) => boolean} */
 function isNonLocalAlias(symbol, excludes = ts.SymbolFlags.Value | ts.SymbolFlags.Type | ts.SymbolFlags.Namespace) {
     if (!symbol) return false;
-    return (symbol.flags & (ts.SymbolFlags.Alias | excludes)) === ts.SymbolFlags.Alias || !!(symbol.flags & ts.SymbolFlags.Alias && symbol.flags & ts.SymbolFlags.Assignment);
+    return (symbol.flags & (ts.SymbolFlags.Alias | excludes)) === ts.SymbolFlags.Alias
+        || !!(symbol.flags & ts.SymbolFlags.Alias && symbol.flags & ts.SymbolFlags.Assignment);
 }
 
 /**
@@ -319,7 +326,13 @@ function verifyMatchingSymbols(decl) {
             }
 
             if (symbolsConflict(symbolOfNode, symbolInScope)) {
-                fail(`Declaration at ${nodeToLocation(decl)}\n    references ${symbolOfNode.name} at ${symbolOfNode.declarations && nodeToLocation(symbolOfNode.declarations[0])},\n    but containing scope contains a symbol with the same name declared at ${symbolInScope.declarations && nodeToLocation(symbolInScope.declarations[0])}`);
+                fail(
+                    `Declaration at ${nodeToLocation(decl)}\n    references ${symbolOfNode.name} at ${
+                        symbolOfNode.declarations && nodeToLocation(symbolOfNode.declarations[0])
+                    },\n    but containing scope contains a symbol with the same name declared at ${
+                        symbolInScope.declarations && nodeToLocation(symbolInScope.declarations[0])
+                    }`,
+                );
             }
         }
 

@@ -26,7 +26,11 @@ export function getFsConentsForNode10ResultAtTypesPackageJson(packageName: strin
     );
 }
 
-export function getFsContentsForNode10ResultPackageJson(packageName: string, addTypes: boolean, addTypesCondition: boolean) {
+export function getFsContentsForNode10ResultPackageJson(
+    packageName: string,
+    addTypes: boolean,
+    addTypesCondition: boolean,
+) {
     return JSON.stringify(
         {
             name: packageName,
@@ -60,21 +64,39 @@ function mjs(packageName: string) {
 
 export function getFsContentsForNode10Result(): FsContents {
     return {
-        "/home/src/projects/project/node_modules/@types/bar/package.json": getFsConentsForNode10ResultAtTypesPackageJson("bar", /*addTypesCondition*/ false),
+        "/home/src/projects/project/node_modules/@types/bar/package.json":
+            getFsConentsForNode10ResultAtTypesPackageJson("bar", /*addTypesCondition*/ false),
         "/home/src/projects/project/node_modules/@types/bar/index.d.ts": getFsContentsForNode10ResultDts("bar"),
-        "/home/src/projects/project/node_modules/bar/package.json": getFsContentsForNode10ResultPackageJson("bar", /*addTypes*/ false, /*addTypesCondition*/ false),
+        "/home/src/projects/project/node_modules/bar/package.json": getFsContentsForNode10ResultPackageJson(
+            "bar",
+            /*addTypes*/ false,
+            /*addTypesCondition*/ false,
+        ),
         "/home/src/projects/project/node_modules/bar/index.js": js("bar"),
         "/home/src/projects/project/node_modules/bar/index.mjs": mjs("bar"),
-        "/home/src/projects/project/node_modules/foo/package.json": getFsContentsForNode10ResultPackageJson("foo", /*addTypes*/ true, /*addTypesCondition*/ false),
+        "/home/src/projects/project/node_modules/foo/package.json": getFsContentsForNode10ResultPackageJson(
+            "foo",
+            /*addTypes*/ true,
+            /*addTypesCondition*/ false,
+        ),
         "/home/src/projects/project/node_modules/foo/index.js": js("foo"),
         "/home/src/projects/project/node_modules/foo/index.mjs": mjs("foo"),
         "/home/src/projects/project/node_modules/foo/index.d.ts": getFsContentsForNode10ResultDts("foo"),
-        "/home/src/projects/project/node_modules/@types/bar2/package.json": getFsConentsForNode10ResultAtTypesPackageJson("bar2", /*addTypesCondition*/ true),
+        "/home/src/projects/project/node_modules/@types/bar2/package.json":
+            getFsConentsForNode10ResultAtTypesPackageJson("bar2", /*addTypesCondition*/ true),
         "/home/src/projects/project/node_modules/@types/bar2/index.d.ts": getFsContentsForNode10ResultDts("bar2"),
-        "/home/src/projects/project/node_modules/bar2/package.json": getFsContentsForNode10ResultPackageJson("bar2", /*addTypes*/ false, /*addTypesCondition*/ false),
+        "/home/src/projects/project/node_modules/bar2/package.json": getFsContentsForNode10ResultPackageJson(
+            "bar2",
+            /*addTypes*/ false,
+            /*addTypesCondition*/ false,
+        ),
         "/home/src/projects/project/node_modules/bar2/index.js": js("bar2"),
         "/home/src/projects/project/node_modules/bar2/index.mjs": mjs("bar2"),
-        "/home/src/projects/project/node_modules/foo2/package.json": getFsContentsForNode10ResultPackageJson("foo2", /*addTypes*/ true, /*addTypesCondition*/ true),
+        "/home/src/projects/project/node_modules/foo2/package.json": getFsContentsForNode10ResultPackageJson(
+            "foo2",
+            /*addTypes*/ true,
+            /*addTypesCondition*/ true,
+        ),
         "/home/src/projects/project/node_modules/foo2/index.js": js("foo2"),
         "/home/src/projects/project/node_modules/foo2/index.mjs": mjs("foo2"),
         "/home/src/projects/project/node_modules/foo2/index.d.ts": getFsContentsForNode10ResultDts("foo2"),

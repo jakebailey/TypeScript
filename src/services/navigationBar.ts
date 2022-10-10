@@ -163,7 +163,10 @@ interface NavigationBarNode {
 }
 
 /** @internal */
-export function getNavigationBarItems(sourceFile: SourceFile, cancellationToken: CancellationToken): NavigationBarItem[] {
+export function getNavigationBarItems(
+    sourceFile: SourceFile,
+    cancellationToken: CancellationToken,
+): NavigationBarItem[] {
     curCancellationToken = cancellationToken;
     curSourceFile = sourceFile;
     try {
@@ -213,7 +216,14 @@ function pushChild(parent: NavigationBarNode, child: NavigationBarNode): void {
 
 function rootNavigationBarNode(sourceFile: SourceFile): NavigationBarNode {
     Debug.assert(!parentsStack.length);
-    const root: NavigationBarNode = { node: sourceFile, name: undefined, additionalNodes: undefined, parent: undefined, children: undefined, indent: 0 };
+    const root: NavigationBarNode = {
+        node: sourceFile,
+        name: undefined,
+        additionalNodes: undefined,
+        parent: undefined,
+        children: undefined,
+        indent: 0,
+    };
     parent = root;
     for (const statement of sourceFile.statements) {
         addChildrenRecursively(statement);
@@ -295,7 +305,9 @@ function addNodeWithRecursiveChild(node: Node, child: Node | undefined, name?: D
     endNode();
 }
 
-function addNodeWithRecursiveInitializer(node: VariableDeclaration | PropertyAssignment | BindingElement | PropertyDeclaration): void {
+function addNodeWithRecursiveInitializer(
+    node: VariableDeclaration | PropertyAssignment | BindingElement | PropertyDeclaration,
+): void {
     if (node.initializer && isFunctionOrClassExpression(node.initializer)) {
         startNode(node);
         forEachChild(node.initializer, addChildrenRecursively);
@@ -312,12 +324,12 @@ function addNodeWithRecursiveInitializer(node: VariableDeclaration | PropertyAss
  * symbols from other unique symbols, we do the below to retain those members in the nav tree.
  */
 function hasNavigationBarName(node: Declaration) {
-    return !hasDynamicName(node) ||
-        (
-            node.kind !== SyntaxKind.BinaryExpression &&
-            isPropertyAccessExpression(node.name.expression) &&
-            isIdentifier(node.name.expression.expression) &&
-            idText(node.name.expression.expression) === "Symbol"
+    return !hasDynamicName(node)
+        || (
+            node.kind !== SyntaxKind.BinaryExpression
+            && isPropertyAccessExpression(node.name.expression)
+            && isIdentifier(node.name.expression.expression)
+            && idText(node.name.expression.expression) === "Symbol"
         );
 }
 
@@ -446,8 +458,8 @@ function addChildrenRecursively(node: Node | undefined): void {
 
         case SyntaxKind.ExportAssignment: {
             const expression = (node as ExportAssignment).expression;
-            const child = isObjectLiteralExpression(expression) || isCallExpression(expression) ? expression :
-                isArrowFunction(expression) || isFunctionExpression(expression) ? expression.body : undefined;
+            const child = isObjectLiteralExpression(expression) || isCallExpression(expression) ? expression
+                : isArrowFunction(expression) || isFunctionExpression(expression) ? expression.body : undefined;
             if (child) {
                 startNode(node);
                 addChildrenRecursively(child);
@@ -480,9 +492,9 @@ function addChildrenRecursively(node: Node | undefined): void {
                     const binaryExpression = node as BinaryExpression;
                     const assignmentTarget = binaryExpression.left as PropertyAccessExpression;
 
-                    const prototypeAccess = special === AssignmentDeclarationKind.PrototypeProperty ?
-                        assignmentTarget.expression as PropertyAccessExpression :
-                        assignmentTarget;
+                    const prototypeAccess = special === AssignmentDeclarationKind.PrototypeProperty
+                        ? assignmentTarget.expression as PropertyAccessExpression
+                        : assignmentTarget;
 
                     let depth = 0;
                     let className: PropertyNameLiteral;
@@ -493,7 +505,10 @@ function addChildrenRecursively(node: Node | undefined): void {
                         className = prototypeAccess.expression;
                     }
                     else {
-                        [depth, className] = startNestedNodes(binaryExpression, prototypeAccess.expression as EntityNameExpression);
+                        [depth, className] = startNestedNodes(
+                            binaryExpression,
+                            prototypeAccess.expression as EntityNameExpression,
+                        );
                     }
                     if (special === AssignmentDeclarationKind.Prototype) {
                         if (isObjectLiteralExpression(binaryExpression.right)) {
@@ -518,9 +533,9 @@ function addChildrenRecursively(node: Node | undefined): void {
                 case AssignmentDeclarationKind.ObjectDefinePropertyValue:
                 case AssignmentDeclarationKind.ObjectDefinePrototypeProperty: {
                     const defineCall = node as BindableObjectDefinePropertyCall;
-                    const className = special === AssignmentDeclarationKind.ObjectDefinePropertyValue ?
-                        defineCall.arguments[0] :
-                        (defineCall.arguments[0] as PropertyAccessExpression).expression as EntityNameExpression;
+                    const className = special === AssignmentDeclarationKind.ObjectDefinePropertyValue
+                        ? defineCall.arguments[0]
+                        : (defineCall.arguments[0] as PropertyAccessExpression).expression as EntityNameExpression;
 
                     const memberName = defineCall.arguments[1];
                     const [depth, classNameIdentifier] = startNestedNodes(node, className);
@@ -534,18 +549,24 @@ function addChildrenRecursively(node: Node | undefined): void {
                 }
                 case AssignmentDeclarationKind.Property: {
                     const binaryExpression = node as BinaryExpression;
-                    const assignmentTarget = binaryExpression.left as PropertyAccessExpression | BindableElementAccessExpression;
+                    const assignmentTarget = binaryExpression.left as
+                        | PropertyAccessExpression
+                        | BindableElementAccessExpression;
                     const targetFunction = assignmentTarget.expression;
                     if (
-                        isIdentifier(targetFunction) && getElementOrPropertyAccessName(assignmentTarget) !== "prototype" &&
-                        trackedEs5Classes && trackedEs5Classes.has(targetFunction.text)
+                        isIdentifier(targetFunction) && getElementOrPropertyAccessName(assignmentTarget) !== "prototype"
+                        && trackedEs5Classes && trackedEs5Classes.has(targetFunction.text)
                     ) {
                         if (isFunctionExpression(binaryExpression.right) || isArrowFunction(binaryExpression.right)) {
                             addNodeWithRecursiveChild(node, binaryExpression.right, targetFunction);
                         }
                         else if (isBindableStaticAccessExpression(assignmentTarget)) {
                             startNode(binaryExpression, targetFunction);
-                            addNodeWithRecursiveChild(binaryExpression.left, binaryExpression.right, getNameOrArgument(assignmentTarget));
+                            addNodeWithRecursiveChild(
+                                binaryExpression.left,
+                                binaryExpression.right,
+                                getNameOrArgument(assignmentTarget),
+                            );
                             endNode();
                         }
                         return;
@@ -625,17 +646,22 @@ const isEs5ClassMember: Record<AssignmentDeclarationKind, boolean> = {
     [AssignmentDeclarationKind.Prototype]: true,
     [AssignmentDeclarationKind.ThisProperty]: false,
 };
-function tryMergeEs5Class(a: NavigationBarNode, b: NavigationBarNode, bIndex: number, parent: NavigationBarNode): boolean | undefined {
+function tryMergeEs5Class(
+    a: NavigationBarNode,
+    b: NavigationBarNode,
+    bIndex: number,
+    parent: NavigationBarNode,
+): boolean | undefined {
     function isPossibleConstructor(node: Node) {
         return isFunctionExpression(node) || isFunctionDeclaration(node) || isVariableDeclaration(node);
     }
-    const bAssignmentDeclarationKind = isBinaryExpression(b.node) || isCallExpression(b.node) ?
-        getAssignmentDeclarationKind(b.node) :
-        AssignmentDeclarationKind.None;
+    const bAssignmentDeclarationKind = isBinaryExpression(b.node) || isCallExpression(b.node)
+        ? getAssignmentDeclarationKind(b.node)
+        : AssignmentDeclarationKind.None;
 
-    const aAssignmentDeclarationKind = isBinaryExpression(a.node) || isCallExpression(a.node) ?
-        getAssignmentDeclarationKind(a.node) :
-        AssignmentDeclarationKind.None;
+    const aAssignmentDeclarationKind = isBinaryExpression(a.node) || isCallExpression(a.node)
+        ? getAssignmentDeclarationKind(a.node)
+        : AssignmentDeclarationKind.None;
 
     // We treat this as an es5 class and merge the nodes in in one of several cases
     if (
@@ -653,9 +679,9 @@ function tryMergeEs5Class(a: NavigationBarNode, b: NavigationBarNode, bIndex: nu
             (!isClassDeclaration(a.node) && !isClassDeclaration(b.node)) // If neither outline node is a class
             || isPossibleConstructor(a.node) || isPossibleConstructor(b.node) // If either function is a constructor function
         ) {
-            const ctorFunction = isPossibleConstructor(a.node) ? a.node :
-                isPossibleConstructor(b.node) ? b.node :
-                undefined;
+            const ctorFunction = isPossibleConstructor(a.node) ? a.node
+                : isPossibleConstructor(b.node) ? b.node
+                : undefined;
 
             if (ctorFunction !== undefined) {
                 const ctorNode = setTextRange(
@@ -665,7 +691,8 @@ function tryMergeEs5Class(a: NavigationBarNode, b: NavigationBarNode, bIndex: nu
                 const ctor = emptyNavigationBarNode(ctorNode);
                 ctor.indent = a.indent + 1;
                 ctor.children = a.node === ctorFunction ? a.children : b.children;
-                a.children = a.node === ctorFunction ? concatenate([ctor], b.children || [b]) : concatenate(a.children || [{ ...a }], [ctor]);
+                a.children = a.node === ctorFunction ? concatenate([ctor], b.children || [b])
+                    : concatenate(a.children || [{ ...a }], [ctor]);
             }
             else {
                 if (a.children || b.children) {
@@ -748,7 +775,8 @@ function shouldReallyMerge(a: Node, b: Node, parent: NavigationBarNode): boolean
             return isStatic(a) === isStatic(b);
         case SyntaxKind.ModuleDeclaration:
             return areSameModule(a as ModuleDeclaration, b as ModuleDeclaration)
-                && getFullyQualifiedModuleName(a as ModuleDeclaration) === getFullyQualifiedModuleName(b as ModuleDeclaration);
+                && getFullyQualifiedModuleName(a as ModuleDeclaration)
+                    === getFullyQualifiedModuleName(b as ModuleDeclaration);
         default:
             return true;
     }
@@ -771,7 +799,9 @@ function areSameModule(a: ModuleDeclaration, b: ModuleDeclaration): boolean {
     if (!a.body || !b.body) {
         return a.body === b.body;
     }
-    return a.body.kind === b.body.kind && (a.body.kind !== SyntaxKind.ModuleDeclaration || areSameModule(a.body as ModuleDeclaration, b.body as ModuleDeclaration));
+    return a.body.kind === b.body.kind
+        && (a.body.kind !== SyntaxKind.ModuleDeclaration
+            || areSameModule(a.body as ModuleDeclaration, b.body as ModuleDeclaration));
 }
 
 /** Merge source into target. Source should be thrown away after this is called. */
@@ -845,7 +875,8 @@ function getItemName(node: Node, name: Node | undefined): string {
                 ? `"${escapeString(getBaseFileName(removeFileExtension(normalizePath(sourceFile.fileName))))}"`
                 : "<global>";
         case SyntaxKind.ExportAssignment:
-            return isExportAssignment(node) && node.isExportEquals ? InternalSymbolName.ExportEquals : InternalSymbolName.Default;
+            return isExportAssignment(node) && node.isExportEquals ? InternalSymbolName.ExportEquals
+                : InternalSymbolName.Default;
 
         case SyntaxKind.ArrowFunction:
         case SyntaxKind.FunctionDeclaration:
@@ -1016,7 +1047,8 @@ function isComputedProperty(member: EnumMember): boolean {
 }
 
 function getNodeSpan(node: Node): TextSpan {
-    return node.kind === SyntaxKind.SourceFile ? createTextSpanFromRange(node) : createTextSpanFromNode(node, curSourceFile);
+    return node.kind === SyntaxKind.SourceFile ? createTextSpanFromRange(node)
+        : createTextSpanFromNode(node, curSourceFile);
 }
 
 function getModifiers(node: Node): string {
@@ -1026,7 +1058,9 @@ function getModifiers(node: Node): string {
     return getNodeModifiers(node);
 }
 
-function getFunctionOrClassName(node: FunctionExpression | FunctionDeclaration | ArrowFunction | ClassLikeDeclaration): string {
+function getFunctionOrClassName(
+    node: FunctionExpression | FunctionDeclaration | ArrowFunction | ClassLikeDeclaration,
+): string {
     const { parent } = node;
     if (node.name && getFullWidth(node.name) > 0) {
         return cleanText(declarationNameToString(node.name));
@@ -1059,7 +1093,11 @@ function getFunctionOrClassName(node: FunctionExpression | FunctionDeclaration |
                 return `${name} callback`;
             }
 
-            const args = cleanText(mapDefined(parent.arguments, a => isStringLiteralLike(a) ? a.getText(curSourceFile) : undefined).join(", "));
+            const args = cleanText(
+                mapDefined(parent.arguments, a => isStringLiteralLike(a) ? a.getText(curSourceFile) : undefined).join(
+                    ", ",
+                ),
+            );
             return `${name}(${args}) callback`;
         }
     }

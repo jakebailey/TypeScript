@@ -56,8 +56,12 @@ const errorCodes = [
     Diagnostics.Cannot_find_name_0_Did_you_mean_the_instance_member_this_0.code,
     Diagnostics.Cannot_find_name_0_Did_you_mean_the_static_member_1_0.code,
     Diagnostics._0_has_no_exported_member_named_1_Did_you_mean_2.code,
-    Diagnostics.This_member_cannot_have_an_override_modifier_because_it_is_not_declared_in_the_base_class_0_Did_you_mean_1.code,
-    Diagnostics.This_member_cannot_have_a_JSDoc_comment_with_an_override_tag_because_it_is_not_declared_in_the_base_class_0_Did_you_mean_1.code,
+    Diagnostics
+        .This_member_cannot_have_an_override_modifier_because_it_is_not_declared_in_the_base_class_0_Did_you_mean_1
+        .code,
+    Diagnostics
+        .This_member_cannot_have_a_JSDoc_comment_with_an_override_tag_because_it_is_not_declared_in_the_base_class_0_Did_you_mean_1
+        .code,
     // for JSX class components
     Diagnostics.No_overload_matches_this_call.code,
     // for JSX FC
@@ -71,8 +75,19 @@ registerCodeFix({
         if (!info) return undefined;
         const { node, suggestedSymbol } = info;
         const target = getEmitScriptTarget(context.host.getCompilationSettings());
-        const changes = textChanges.ChangeTracker.with(context, t => doChange(t, sourceFile, node, suggestedSymbol, target));
-        return [createCodeFixAction("spelling", changes, [Diagnostics.Change_spelling_to_0, symbolName(suggestedSymbol)], fixId, Diagnostics.Fix_all_detected_spelling_errors)];
+        const changes = textChanges.ChangeTracker.with(
+            context,
+            t => doChange(t, sourceFile, node, suggestedSymbol, target),
+        );
+        return [
+            createCodeFixAction(
+                "spelling",
+                changes,
+                [Diagnostics.Change_spelling_to_0, symbolName(suggestedSymbol)],
+                fixId,
+                Diagnostics.Fix_all_detected_spelling_errors,
+            ),
+        ];
     },
     fixIds: [fixId],
     getAllCodeActions: context =>
@@ -83,7 +98,12 @@ registerCodeFix({
         }),
 });
 
-function getInfo(sourceFile: SourceFile, pos: number, context: CodeFixContextBase, errorCode: number): { node: Node; suggestedSymbol: Symbol; } | undefined {
+function getInfo(
+    sourceFile: SourceFile,
+    pos: number,
+    context: CodeFixContextBase,
+    errorCode: number,
+): { node: Node; suggestedSymbol: Symbol; } | undefined {
     // This is the identifier of the misspelled word. eg:
     // this.speling = 1;
     //      ^^^^^^^
@@ -92,10 +112,10 @@ function getInfo(sourceFile: SourceFile, pos: number, context: CodeFixContextBas
     // Only fix spelling for No_overload_matches_this_call emitted on the React class component
     if (
         (
-            errorCode === Diagnostics.No_overload_matches_this_call.code ||
-            errorCode === Diagnostics.Type_0_is_not_assignable_to_type_1.code
-        ) &&
-        !isJsxAttribute(parent)
+            errorCode === Diagnostics.No_overload_matches_this_call.code
+            || errorCode === Diagnostics.Type_0_is_not_assignable_to_type_1.code
+        )
+        && !isJsxAttribute(parent)
     ) return undefined;
     const checker = context.program.getTypeChecker();
 
@@ -108,7 +128,10 @@ function getInfo(sourceFile: SourceFile, pos: number, context: CodeFixContextBas
         }
         suggestedSymbol = checker.getSuggestedSymbolForNonexistentProperty(node, containingType);
     }
-    else if (isBinaryExpression(parent) && parent.operatorToken.kind === SyntaxKind.InKeyword && parent.left === node && isPrivateIdentifier(node)) {
+    else if (
+        isBinaryExpression(parent) && parent.operatorToken.kind === SyntaxKind.InKeyword && parent.left === node
+        && isPrivateIdentifier(node)
+    ) {
         const receiverType = checker.getTypeAtLocation(parent.right);
         suggestedSymbol = checker.getSuggestedSymbolForNonexistentProperty(node, receiverType);
     }
@@ -144,13 +167,23 @@ function getInfo(sourceFile: SourceFile, pos: number, context: CodeFixContextBas
         const meaning = getMeaningFromLocation(node);
         const name = getTextOfNode(node);
         Debug.assert(name !== undefined, "name should be defined");
-        suggestedSymbol = checker.getSuggestedSymbolForNonexistentSymbol(node, name, convertSemanticMeaningToSymbolFlags(meaning));
+        suggestedSymbol = checker.getSuggestedSymbolForNonexistentSymbol(
+            node,
+            name,
+            convertSemanticMeaningToSymbolFlags(meaning),
+        );
     }
 
     return suggestedSymbol === undefined ? undefined : { node, suggestedSymbol };
 }
 
-function doChange(changes: textChanges.ChangeTracker, sourceFile: SourceFile, node: Node, suggestedSymbol: Symbol, target: ScriptTarget) {
+function doChange(
+    changes: textChanges.ChangeTracker,
+    sourceFile: SourceFile,
+    node: Node,
+    suggestedSymbol: Symbol,
+    target: ScriptTarget,
+) {
     const suggestion = symbolName(suggestedSymbol);
     if (!isIdentifierText(suggestion, target) && isPropertyAccessExpression(node.parent)) {
         const valDecl = suggestedSymbol.valueDeclaration;
@@ -158,7 +191,11 @@ function doChange(changes: textChanges.ChangeTracker, sourceFile: SourceFile, no
             changes.replaceNode(sourceFile, node, factory.createIdentifier(suggestion));
         }
         else {
-            changes.replaceNode(sourceFile, node.parent, factory.createElementAccessExpression(node.parent.expression, factory.createStringLiteral(suggestion)));
+            changes.replaceNode(
+                sourceFile,
+                node.parent,
+                factory.createElementAccessExpression(node.parent.expression, factory.createStringLiteral(suggestion)),
+            );
         }
     }
     else {
@@ -180,10 +217,18 @@ function convertSemanticMeaningToSymbolFlags(meaning: SemanticMeaning): SymbolFl
     return flags;
 }
 
-function getResolvedSourceFileFromImportDeclaration(sourceFile: SourceFile, context: CodeFixContextBase, importDeclaration: ImportDeclaration): SourceFile | undefined {
+function getResolvedSourceFileFromImportDeclaration(
+    sourceFile: SourceFile,
+    context: CodeFixContextBase,
+    importDeclaration: ImportDeclaration,
+): SourceFile | undefined {
     if (!importDeclaration || !isStringLiteralLike(importDeclaration.moduleSpecifier)) return undefined;
 
-    const resolvedModule = getResolvedModule(sourceFile, importDeclaration.moduleSpecifier.text, getModeForUsageLocation(sourceFile, importDeclaration.moduleSpecifier));
+    const resolvedModule = getResolvedModule(
+        sourceFile,
+        importDeclaration.moduleSpecifier.text,
+        getModeForUsageLocation(sourceFile, importDeclaration.moduleSpecifier),
+    );
     if (!resolvedModule) return undefined;
 
     return context.program.getSourceFile(resolvedModule.resolvedFileName);

@@ -79,7 +79,10 @@ describe("unittests:: tsserver:: reloadProjects", () => {
 
     it("inferred project", () => {
         const host = createServerHost([libFile, file1, file2]);
-        const session = createSession(host, { useInferredProjectPerProjectRoot: true, logger: createLoggerWithInMemoryLogs(host) });
+        const session = createSession(host, {
+            useInferredProjectPerProjectRoot: true,
+            logger: createLoggerWithInMemoryLogs(host),
+        });
         session.executeCommandSeq<ts.server.protocol.ConfigureRequest>({
             command: ts.server.protocol.CommandTypes.Configure,
             arguments: { watchOptions: { excludeFiles: [file2.path] } },

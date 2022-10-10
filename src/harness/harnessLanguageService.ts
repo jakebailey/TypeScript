@@ -147,7 +147,10 @@ export abstract class LanguageServiceAdapterHost {
     public typesRegistry: Map<string, void> | undefined;
     private scriptInfos: collections.SortedMap<string, ScriptInfo>;
 
-    constructor(protected cancellationToken = DefaultHostCancellationToken.instance, protected settings = ts.getDefaultCompilerOptions()) {
+    constructor(
+        protected cancellationToken = DefaultHostCancellationToken.instance,
+        protected settings = ts.getDefaultCompilerOptions(),
+    ) {
         this.scriptInfos = new collections.SortedMap({ comparer: this.vfs.stringComparer, sort: "insertion" });
     }
 
@@ -216,7 +219,12 @@ export abstract class LanguageServiceAdapterHost {
         this.vfs.mkdirpSync(ts.getDirectoryPath(newPath));
         this.vfs.renameSync(oldPath, newPath);
 
-        const updater = ts.getPathUpdater(oldPath, newPath, ts.createGetCanonicalFileName(this.useCaseSensitiveFileNames()), /*sourceMapper*/ undefined);
+        const updater = ts.getPathUpdater(
+            oldPath,
+            newPath,
+            ts.createGetCanonicalFileName(this.useCaseSensitiveFileNames()),
+            /*sourceMapper*/ undefined,
+        );
         this.scriptInfos.forEach((scriptInfo, key) => {
             const newFileName = updater(key);
             if (newFileName !== undefined) {
@@ -254,7 +262,11 @@ export abstract class LanguageServiceAdapterHost {
     public lineAndCharacterToPosition(fileName: string, lineAndCharacter: ts.LineAndCharacter): number {
         const script: ScriptInfo = this.getScriptInfo(fileName)!;
         assert.isOk(script);
-        return ts.computePositionOfLineAndCharacter(script.getLineMap(), lineAndCharacter.line, lineAndCharacter.character);
+        return ts.computePositionOfLineAndCharacter(
+            script.getLineMap(),
+            lineAndCharacter.line,
+            lineAndCharacter.character,
+        );
     }
 
     useCaseSensitiveFileNames() {
@@ -263,7 +275,9 @@ export abstract class LanguageServiceAdapterHost {
 }
 
 /// Native adapter
-class NativeLanguageServiceHost extends LanguageServiceAdapterHost implements ts.LanguageServiceHost, LanguageServiceAdapterHost {
+class NativeLanguageServiceHost extends LanguageServiceAdapterHost
+    implements ts.LanguageServiceHost, LanguageServiceAdapterHost
+{
     isKnownTypesPackageName(name: string): boolean {
         return !!this.typesRegistry && this.typesRegistry.has(name);
     }
@@ -320,7 +334,13 @@ class NativeLanguageServiceHost extends LanguageServiceAdapterHost implements ts
         return this.sys.fileExists(fileName);
     }
 
-    readDirectory(path: string, extensions?: readonly string[], exclude?: readonly string[], include?: readonly string[], depth?: number): string[] {
+    readDirectory(
+        path: string,
+        extensions?: readonly string[],
+        exclude?: readonly string[],
+        include?: readonly string[],
+        depth?: number,
+    ): string[] {
         return this.sys.readDirectory(path, extensions, exclude, include, depth);
     }
 
@@ -361,13 +381,19 @@ export class NativeLanguageServiceAdapter implements LanguageServiceAdapter {
 }
 
 /// Shim adapter
-class ShimLanguageServiceHost extends LanguageServiceAdapterHost implements ts.LanguageServiceShimHost, ts.CoreServicesShimHost {
+class ShimLanguageServiceHost extends LanguageServiceAdapterHost
+    implements ts.LanguageServiceShimHost, ts.CoreServicesShimHost
+{
     private nativeHost: NativeLanguageServiceHost;
 
     public getModuleResolutionsForFile: ((fileName: string) => string) | undefined;
     public getTypeReferenceDirectiveResolutionsForFile: ((fileName: string) => string) | undefined;
 
-    constructor(preprocessToResolve: boolean, cancellationToken?: ts.HostCancellationToken, options?: ts.CompilerOptions) {
+    constructor(
+        preprocessToResolve: boolean,
+        cancellationToken?: ts.HostCancellationToken,
+        options?: ts.CompilerOptions,
+    ) {
         super(cancellationToken, options);
         this.nativeHost = new NativeLanguageServiceHost(cancellationToken, options);
 
@@ -386,7 +412,12 @@ class ShimLanguageServiceHost extends LanguageServiceAdapterHost implements ts.L
                 const preprocessInfo = ts.preProcessFile(scriptInfo.content, /*readImportFiles*/ true);
                 const imports: ts.MapLike<string> = {};
                 for (const module of preprocessInfo.importedFiles) {
-                    const resolutionInfo = ts.resolveModuleName(module.fileName, fileName, compilerOptions, moduleResolutionHost);
+                    const resolutionInfo = ts.resolveModuleName(
+                        module.fileName,
+                        fileName,
+                        compilerOptions,
+                        moduleResolutionHost,
+                    );
                     if (resolutionInfo.resolvedModule) {
                         imports[module.fileName] = resolutionInfo.resolvedModule.resolvedFileName;
                     }
@@ -400,9 +431,15 @@ class ShimLanguageServiceHost extends LanguageServiceAdapterHost implements ts.L
                     const resolutions: ts.MapLike<ts.ResolvedTypeReferenceDirective> = {};
                     const settings = this.nativeHost.getCompilationSettings();
                     for (const typeReferenceDirective of preprocessInfo.typeReferenceDirectives) {
-                        const resolutionInfo = ts.resolveTypeReferenceDirective(typeReferenceDirective.fileName, fileName, settings, moduleResolutionHost);
+                        const resolutionInfo = ts.resolveTypeReferenceDirective(
+                            typeReferenceDirective.fileName,
+                            fileName,
+                            settings,
+                            moduleResolutionHost,
+                        );
                         if (resolutionInfo.resolvedTypeReferenceDirective!.resolvedFileName) {
-                            resolutions[typeReferenceDirective.fileName] = resolutionInfo.resolvedTypeReferenceDirective!;
+                            resolutions[typeReferenceDirective.fileName] = resolutionInfo
+                                .resolvedTypeReferenceDirective!;
                         }
                     }
                     return JSON.stringify(resolutions);
@@ -490,10 +527,18 @@ class ShimLanguageServiceHost extends LanguageServiceAdapterHost implements ts.L
 class ClassifierShimProxy implements ts.Classifier {
     constructor(private shim: ts.ClassifierShim) {
     }
-    getEncodedLexicalClassifications(_text: string, _lexState: ts.EndOfLineState, _classifyKeywordsInGenerics?: boolean): ts.Classifications {
+    getEncodedLexicalClassifications(
+        _text: string,
+        _lexState: ts.EndOfLineState,
+        _classifyKeywordsInGenerics?: boolean,
+    ): ts.Classifications {
         return ts.notImplemented();
     }
-    getClassificationsForLine(text: string, lexState: ts.EndOfLineState, classifyKeywordsInGenerics?: boolean): ts.ClassificationResult {
+    getClassificationsForLine(
+        text: string,
+        lexState: ts.EndOfLineState,
+        classifyKeywordsInGenerics?: boolean,
+    ): ts.ClassificationResult {
         const result = this.shim.getClassificationsForLine(text, lexState, classifyKeywordsInGenerics).split("\n");
         const entries: ts.ClassificationInfo[] = [];
         let i = 0;
@@ -510,7 +555,12 @@ class ClassifierShimProxy implements ts.Classifier {
         }
         const finalLexState = parseInt(result[result.length - 1]);
 
-        assert.equal(position, text.length, "Expected cumulative length of all entries to match the length of the source. expected: " + text.length + ", but got: " + position);
+        assert.equal(
+            position,
+            text.length,
+            "Expected cumulative length of all entries to match the length of the source. expected: " + text.length
+                + ", but got: " + position,
+        );
 
         return {
             finalLexState,
@@ -551,21 +601,56 @@ class LanguageServiceShimProxy implements ts.LanguageService {
     getSyntacticClassifications(fileName: string, span: ts.TextSpan): ts.ClassifiedSpan[] {
         return unwrapJSONCallResult(this.shim.getSyntacticClassifications(fileName, span.start, span.length));
     }
-    getSemanticClassifications(fileName: string, span: ts.TextSpan, format?: ts.SemanticClassificationFormat): ts.ClassifiedSpan[] {
+    getSemanticClassifications(
+        fileName: string,
+        span: ts.TextSpan,
+        format?: ts.SemanticClassificationFormat,
+    ): ts.ClassifiedSpan[] {
         return unwrapJSONCallResult(this.shim.getSemanticClassifications(fileName, span.start, span.length, format));
     }
     getEncodedSyntacticClassifications(fileName: string, span: ts.TextSpan): ts.Classifications {
         return unwrapJSONCallResult(this.shim.getEncodedSyntacticClassifications(fileName, span.start, span.length));
     }
-    getEncodedSemanticClassifications(fileName: string, span: ts.TextSpan, format?: ts.SemanticClassificationFormat): ts.Classifications {
+    getEncodedSemanticClassifications(
+        fileName: string,
+        span: ts.TextSpan,
+        format?: ts.SemanticClassificationFormat,
+    ): ts.Classifications {
         const responseFormat = format || ts.SemanticClassificationFormat.Original;
-        return unwrapJSONCallResult(this.shim.getEncodedSemanticClassifications(fileName, span.start, span.length, responseFormat));
+        return unwrapJSONCallResult(
+            this.shim.getEncodedSemanticClassifications(fileName, span.start, span.length, responseFormat),
+        );
     }
-    getCompletionsAtPosition(fileName: string, position: number, preferences: ts.UserPreferences | undefined, formattingSettings: ts.FormatCodeSettings | undefined): ts.CompletionInfo {
-        return unwrapJSONCallResult(this.shim.getCompletionsAtPosition(fileName, position, preferences, formattingSettings));
+    getCompletionsAtPosition(
+        fileName: string,
+        position: number,
+        preferences: ts.UserPreferences | undefined,
+        formattingSettings: ts.FormatCodeSettings | undefined,
+    ): ts.CompletionInfo {
+        return unwrapJSONCallResult(
+            this.shim.getCompletionsAtPosition(fileName, position, preferences, formattingSettings),
+        );
     }
-    getCompletionEntryDetails(fileName: string, position: number, entryName: string, formatOptions: ts.FormatCodeOptions | undefined, source: string | undefined, preferences: ts.UserPreferences | undefined, data: ts.CompletionEntryData | undefined): ts.CompletionEntryDetails {
-        return unwrapJSONCallResult(this.shim.getCompletionEntryDetails(fileName, position, entryName, JSON.stringify(formatOptions), source, preferences, data));
+    getCompletionEntryDetails(
+        fileName: string,
+        position: number,
+        entryName: string,
+        formatOptions: ts.FormatCodeOptions | undefined,
+        source: string | undefined,
+        preferences: ts.UserPreferences | undefined,
+        data: ts.CompletionEntryData | undefined,
+    ): ts.CompletionEntryDetails {
+        return unwrapJSONCallResult(
+            this.shim.getCompletionEntryDetails(
+                fileName,
+                position,
+                entryName,
+                JSON.stringify(formatOptions),
+                source,
+                preferences,
+                data,
+            ),
+        );
     }
     getCompletionEntrySymbol(): ts.Symbol {
         throw new Error("getCompletionEntrySymbol not implemented across the shim layer.");
@@ -579,7 +664,11 @@ class LanguageServiceShimProxy implements ts.LanguageService {
     getBreakpointStatementAtPosition(fileName: string, position: number): ts.TextSpan {
         return unwrapJSONCallResult(this.shim.getBreakpointStatementAtPosition(fileName, position));
     }
-    getSignatureHelpItems(fileName: string, position: number, options: ts.SignatureHelpItemsOptions | undefined): ts.SignatureHelpItems {
+    getSignatureHelpItems(
+        fileName: string,
+        position: number,
+        options: ts.SignatureHelpItemsOptions | undefined,
+    ): ts.SignatureHelpItems {
         return unwrapJSONCallResult(this.shim.getSignatureHelpItems(fileName, position, options));
     }
     getRenameInfo(fileName: string, position: number, preferences: ts.UserPreferences): ts.RenameInfo {
@@ -588,8 +677,16 @@ class LanguageServiceShimProxy implements ts.LanguageService {
     getSmartSelectionRange(fileName: string, position: number): ts.SelectionRange {
         return unwrapJSONCallResult(this.shim.getSmartSelectionRange(fileName, position));
     }
-    findRenameLocations(fileName: string, position: number, findInStrings: boolean, findInComments: boolean, preferences?: ts.UserPreferences | boolean): ts.RenameLocation[] {
-        return unwrapJSONCallResult(this.shim.findRenameLocations(fileName, position, findInStrings, findInComments, preferences));
+    findRenameLocations(
+        fileName: string,
+        position: number,
+        findInStrings: boolean,
+        findInComments: boolean,
+        preferences?: ts.UserPreferences | boolean,
+    ): ts.RenameLocation[] {
+        return unwrapJSONCallResult(
+            this.shim.findRenameLocations(fileName, position, findInStrings, findInComments, preferences),
+        );
     }
     getDefinitionAtPosition(fileName: string, position: number): ts.DefinitionInfo[] {
         return unwrapJSONCallResult(this.shim.getDefinitionAtPosition(fileName, position));
@@ -636,17 +733,38 @@ class LanguageServiceShimProxy implements ts.LanguageService {
     getIndentationAtPosition(fileName: string, position: number, options: ts.EditorOptions): number {
         return unwrapJSONCallResult(this.shim.getIndentationAtPosition(fileName, position, JSON.stringify(options)));
     }
-    getFormattingEditsForRange(fileName: string, start: number, end: number, options: ts.FormatCodeOptions): ts.TextChange[] {
-        return unwrapJSONCallResult(this.shim.getFormattingEditsForRange(fileName, start, end, JSON.stringify(options)));
+    getFormattingEditsForRange(
+        fileName: string,
+        start: number,
+        end: number,
+        options: ts.FormatCodeOptions,
+    ): ts.TextChange[] {
+        return unwrapJSONCallResult(
+            this.shim.getFormattingEditsForRange(fileName, start, end, JSON.stringify(options)),
+        );
     }
     getFormattingEditsForDocument(fileName: string, options: ts.FormatCodeOptions): ts.TextChange[] {
         return unwrapJSONCallResult(this.shim.getFormattingEditsForDocument(fileName, JSON.stringify(options)));
     }
-    getFormattingEditsAfterKeystroke(fileName: string, position: number, key: string, options: ts.FormatCodeOptions): ts.TextChange[] {
-        return unwrapJSONCallResult(this.shim.getFormattingEditsAfterKeystroke(fileName, position, key, JSON.stringify(options)));
+    getFormattingEditsAfterKeystroke(
+        fileName: string,
+        position: number,
+        key: string,
+        options: ts.FormatCodeOptions,
+    ): ts.TextChange[] {
+        return unwrapJSONCallResult(
+            this.shim.getFormattingEditsAfterKeystroke(fileName, position, key, JSON.stringify(options)),
+        );
     }
-    getDocCommentTemplateAtPosition(fileName: string, position: number, options?: ts.DocCommentTemplateOptions, formatOptions?: ts.FormatCodeSettings): ts.TextInsertion {
-        return unwrapJSONCallResult(this.shim.getDocCommentTemplateAtPosition(fileName, position, options, formatOptions));
+    getDocCommentTemplateAtPosition(
+        fileName: string,
+        position: number,
+        options?: ts.DocCommentTemplateOptions,
+        formatOptions?: ts.FormatCodeSettings,
+    ): ts.TextInsertion {
+        return unwrapJSONCallResult(
+            this.shim.getDocCommentTemplateAtPosition(fileName, position, options, formatOptions),
+        );
     }
     isValidBraceCompletionAtPosition(fileName: string, position: number, openingBrace: number): boolean {
         return unwrapJSONCallResult(this.shim.isValidBraceCompletionAtPosition(fileName, position, openingBrace));
@@ -680,7 +798,10 @@ class LanguageServiceShimProxy implements ts.LanguageService {
     getMoveToRefactoringFileSuggestions(): { newFileName: string; files: string[]; } {
         throw new Error("Not supported on the shim.");
     }
-    organizeImports(_args: ts.OrganizeImportsArgs, _formatOptions: ts.FormatCodeSettings): readonly ts.FileTextChanges[] {
+    organizeImports(
+        _args: ts.OrganizeImportsArgs,
+        _formatOptions: ts.FormatCodeSettings,
+    ): readonly ts.FileTextChanges[] {
         throw new Error("Not supported on the shim.");
     }
     getEditsForFileRename(): readonly ts.FileTextChanges[] {
@@ -710,7 +831,10 @@ class LanguageServiceShimProxy implements ts.LanguageService {
     getAutoImportProvider(): ts.Program | undefined {
         throw new Error("Program can not be marshaled across the shim layer.");
     }
-    updateIsDefinitionOfReferencedSymbols(_referencedSymbols: readonly ts.ReferencedSymbol[], _knownSymbolSpans: Set<ts.DocumentSpan>): boolean {
+    updateIsDefinitionOfReferencedSymbols(
+        _referencedSymbols: readonly ts.ReferencedSymbol[],
+        _knownSymbolSpans: Set<ts.DocumentSpan>,
+    ): boolean {
         return ts.notImplemented();
     }
     getNonBoundSourceFile(): ts.SourceFile {
@@ -745,7 +869,11 @@ class LanguageServiceShimProxy implements ts.LanguageService {
 export class ShimLanguageServiceAdapter implements LanguageServiceAdapter {
     private host: ShimLanguageServiceHost;
     private factory: ts.TypeScriptServicesFactory;
-    constructor(preprocessToResolve: boolean, cancellationToken?: ts.HostCancellationToken, options?: ts.CompilerOptions) {
+    constructor(
+        preprocessToResolve: boolean,
+        cancellationToken?: ts.HostCancellationToken,
+        options?: ts.CompilerOptions,
+    ) {
         this.host = new ShimLanguageServiceHost(preprocessToResolve, cancellationToken, options);
         this.factory = new ts.TypeScriptServicesFactory();
     }
@@ -765,7 +893,9 @@ export class ShimLanguageServiceAdapter implements LanguageServiceAdapter {
             typeReferenceDirectives: ts.ShimsFileReference[];
             importedFiles: ts.ShimsFileReference[];
             isLibFile: boolean;
-        } = unwrapJSONCallResult(coreServicesShim.getPreProcessedFileInfo(fileName, ts.ScriptSnapshot.fromString(fileContents)));
+        } = unwrapJSONCallResult(
+            coreServicesShim.getPreProcessedFileInfo(fileName, ts.ScriptSnapshot.fromString(fileContents)),
+        );
 
         const convertResult: ts.PreProcessedFileInfo = {
             referencedFiles: [],
@@ -896,7 +1026,13 @@ class SessionServerHost implements ts.server.ServerHost, ts.server.Logger {
         return ts.sys.getEnvironmentVariable(name);
     }
 
-    readDirectory(path: string, extensions?: readonly string[], exclude?: readonly string[], include?: readonly string[], depth?: number): string[] {
+    readDirectory(
+        path: string,
+        extensions?: readonly string[],
+        exclude?: readonly string[],
+        include?: readonly string[],
+        depth?: number,
+    ): string[] {
         return this.host.readDirectory(path, extensions, exclude, include, depth);
     }
 
@@ -1007,7 +1143,13 @@ class SessionServerHost implements ts.server.ServerHost, ts.server.Logger {
                             const proxy = makeDefaultProxy(info);
                             proxy.getSemanticDiagnostics = filename => {
                                 const prev = info.languageService.getSemanticDiagnostics(filename);
-                                const sourceFile: ts.SourceFile = info.project.getSourceFile(ts.toPath(filename, /*basePath*/ undefined, ts.createGetCanonicalFileName(info.serverHost.useCaseSensitiveFileNames)))!;
+                                const sourceFile: ts.SourceFile = info.project.getSourceFile(
+                                    ts.toPath(
+                                        filename,
+                                        /*basePath*/ undefined,
+                                        ts.createGetCanonicalFileName(info.serverHost.useCaseSensitiveFileNames),
+                                    ),
+                                )!;
                                 prev.push({
                                     category: ts.DiagnosticCategory.Warning,
                                     file: sourceFile,
@@ -1034,7 +1176,13 @@ class SessionServerHost implements ts.server.ServerHost, ts.server.Logger {
                             const proxy = makeDefaultProxy(info);
                             proxy.getSemanticDiagnostics = filename => {
                                 const prev = info.languageService.getSemanticDiagnostics(filename);
-                                const sourceFile: ts.SourceFile = info.project.getSourceFile(ts.toPath(filename, /*basePath*/ undefined, ts.createGetCanonicalFileName(info.serverHost.useCaseSensitiveFileNames)))!;
+                                const sourceFile: ts.SourceFile = info.project.getSourceFile(
+                                    ts.toPath(
+                                        filename,
+                                        /*basePath*/ undefined,
+                                        ts.createGetCanonicalFileName(info.serverHost.useCaseSensitiveFileNames),
+                                    ),
+                                )!;
                                 prev.push({
                                     category: ts.DiagnosticCategory.Error,
                                     file: sourceFile,
@@ -1065,7 +1213,10 @@ class SessionServerHost implements ts.server.ServerHost, ts.server.Logger {
 
 class FourslashSession extends ts.server.Session {
     getText(fileName: string) {
-        return ts.getSnapshotText(this.projectService.getDefaultProjectForFile(ts.server.toNormalizedPath(fileName), /*ensureProject*/ true)!.getScriptSnapshot(fileName)!);
+        return ts.getSnapshotText(
+            this.projectService.getDefaultProjectForFile(ts.server.toNormalizedPath(fileName), /*ensureProject*/ true)!
+                .getScriptSnapshot(fileName)!,
+        );
     }
 }
 
@@ -1086,7 +1237,10 @@ export class ServerLanguageServiceAdapter implements LanguageServiceAdapter {
             cancellationToken: ts.server.nullCancellationToken,
             useSingleInferredProject: false,
             useInferredProjectPerProjectRoot: false,
-            typingsInstaller: { ...ts.server.nullTypingsInstaller, globalTypingsCacheLocation: "/Library/Caches/typescript" },
+            typingsInstaller: {
+                ...ts.server.nullTypingsInstaller,
+                globalTypingsCacheLocation: "/Library/Caches/typescript",
+            },
             byteLength: Buffer.byteLength,
             hrtime: process.hrtime,
             logger: serverHost,

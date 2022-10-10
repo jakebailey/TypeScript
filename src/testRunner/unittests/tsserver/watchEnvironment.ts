@@ -136,7 +136,9 @@ it(`unittests:: tsserver:: watchEnvironment:: tsserverProjectSystem recursive wa
     };
     const environmentVariables = new Map<string, string>();
     environmentVariables.set("TSC_WATCHDIRECTORY", Tsc_WatchDirectory.NonRecursiveWatchDirectory);
-    const host = createServerHost([index, file1, configFile, libFile, nodeModulesExistingUnusedFile], { environmentVariables });
+    const host = createServerHost([index, file1, configFile, libFile, nodeModulesExistingUnusedFile], {
+        environmentVariables,
+    });
     const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
     openFilesForSession([index], session);
 
@@ -175,7 +177,11 @@ it(`unittests:: tsserver:: watchEnvironment:: tsserverProjectSystem recursive wa
         session.testhost.logTimeoutQueueLength();
     });
 
-    baselineTsserverLogs("watchEnvironment", `recursive directory does not watch files starting with dot in node_modules`, session);
+    baselineTsserverLogs(
+        "watchEnvironment",
+        `recursive directory does not watch files starting with dot in node_modules`,
+        session,
+    );
 });
 
 it("unittests:: tsserver:: watchEnvironment:: tsserverProjectSystem watching files with network style paths", () => {
@@ -196,7 +202,9 @@ it("unittests:: tsserver:: watchEnvironment:: tsserverProjectSystem watching fil
         );
         logger.host = host;
         logger.info(`For files of style ${path}`);
-        logger.log(`currentDirectory:: ${host.getCurrentDirectory()} useCaseSensitiveFileNames: ${host.useCaseSensitiveFileNames}`);
+        logger.log(
+            `currentDirectory:: ${host.getCurrentDirectory()} useCaseSensitiveFileNames: ${host.useCaseSensitiveFileNames}`,
+        );
         const session = createSession(host, { logger });
         openFilesForSession([file], session);
     }
@@ -251,7 +259,10 @@ describe("unittests:: tsserver:: watchEnvironment:: handles watch compiler optio
             content: "{}",
         };
         const files = [libFile, commonFile2, configFile];
-        const host = createServerHost(files.concat(commonFile1), { runWithoutRecursiveWatches: true, runWithFallbackPolling: true });
+        const host = createServerHost(files.concat(commonFile1), {
+            runWithoutRecursiveWatches: true,
+            runWithFallbackPolling: true,
+        });
         const logger = createLoggerWithInMemoryLogs(host);
         const session = createSession(host, { logger });
         session.executeCommandSeq<ts.server.protocol.ConfigureRequest>({
@@ -310,7 +321,10 @@ describe("unittests:: tsserver:: watchEnvironment:: handles watch compiler optio
             }),
         };
         const files = [libFile, commonFile2, configFile];
-        const host = createServerHost(files.concat(commonFile1), { runWithoutRecursiveWatches: true, runWithFallbackPolling: true });
+        const host = createServerHost(files.concat(commonFile1), {
+            runWithoutRecursiveWatches: true,
+            runWithFallbackPolling: true,
+        });
         const logger = createLoggerWithInMemoryLogs(host);
         const session = createSession(host, { logger });
         session.executeCommandSeq<ts.server.protocol.ConfigureRequest>({
@@ -421,7 +435,10 @@ describe("unittests:: tsserver:: watchEnvironment:: handles watch compiler optio
             const { main, bar, foo } = setupFiles();
             const files = [libFile, main, bar, foo];
             const host = createServerHost(files, { currentDirectory: "/user/username/projects/myproject" });
-            const session = createSession(host, { useInferredProjectPerProjectRoot: true, logger: createLoggerWithInMemoryLogs(host) });
+            const session = createSession(host, {
+                useInferredProjectPerProjectRoot: true,
+                logger: createLoggerWithInMemoryLogs(host),
+            });
             setupConfigureHost(session, configureHost);
             setCompilerOptionsForInferredProjectsRequestForSession({
                 options: { excludeDirectories: ["node_modules"] },
@@ -445,8 +462,14 @@ describe("unittests:: tsserver:: watchEnvironment:: handles watch compiler optio
             const { main, bar, foo } = setupFiles();
             const files = [libFile, main, bar, foo];
             const host = createServerHost(files, { currentDirectory: "/user/username/projects/myproject" });
-            const service = createProjectService(host, { useInferredProjectPerProjectRoot: true, logger: createLoggerWithInMemoryLogs(host) });
-            service.setCompilerOptionsForInferredProjects({ excludeDirectories: ["**/../*"] }, "/user/username/projects/myproject");
+            const service = createProjectService(host, {
+                useInferredProjectPerProjectRoot: true,
+                logger: createLoggerWithInMemoryLogs(host),
+            });
+            service.setCompilerOptionsForInferredProjects(
+                { excludeDirectories: ["**/../*"] },
+                "/user/username/projects/myproject",
+            );
             service.openClientFile(main.path, main.content, ts.ScriptKind.TS, "/user/username/projects/myproject");
             const project = service.inferredProjects[0];
             service.logger.info(JSON.stringify(project.getAllProjectErrors(), undefined, 2));

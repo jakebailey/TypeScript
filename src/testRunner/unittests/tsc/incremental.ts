@@ -37,7 +37,14 @@ describe("unittests:: tsc:: incremental::", () => {
                         ]
                     }`,
             }),
-        commandLineArgs: ["--incremental", "--p", "src/project", "--tsBuildInfoFile", "src/project/.tsbuildinfo", "--explainFiles"],
+        commandLineArgs: [
+            "--incremental",
+            "--p",
+            "src/project",
+            "--tsBuildInfoFile",
+            "src/project/.tsbuildinfo",
+            "--explainFiles",
+        ],
         edits: noChangeOnlyRuns,
     });
 
@@ -122,7 +129,11 @@ describe("unittests:: tsc:: incremental::", () => {
             projFs = undefined!;
         });
 
-        function verifyNoEmitOnError(subScenario: string, fixModifyFs: TestTscEdit["edit"], modifyFs?: TestTscEdit["edit"]) {
+        function verifyNoEmitOnError(
+            subScenario: string,
+            fixModifyFs: TestTscEdit["edit"],
+            modifyFs?: TestTscEdit["edit"],
+        ) {
             verifyTsc({
                 scenario: "incremental",
                 subScenario,
@@ -186,9 +197,9 @@ const a: string = 10;`,
                 ...noChangeRun,
                 caption: "No Change run with noEmit",
                 commandLineArgs: ["--p", "src/project", "--noEmit"],
-                discrepancyExplanation: compilerOptions.composite ?
-                    discrepancyExplanation :
-                    undefined,
+                discrepancyExplanation: compilerOptions.composite
+                    ? discrepancyExplanation
+                    : undefined,
             };
             const noChangeRunWithEmit: TestTscEdit = {
                 ...noChangeRun,
@@ -214,9 +225,9 @@ const a: string = 10;`,
                         caption: "Introduce error but still noEmit",
                         commandLineArgs: ["--p", "src/project", "--noEmit"],
                         edit: fs => replaceText(fs, "/src/project/src/class.ts", "prop", "prop1"),
-                        discrepancyExplanation: compilerOptions.composite ?
-                            discrepancyExplanation :
-                            undefined,
+                        discrepancyExplanation: compilerOptions.composite
+                            ? discrepancyExplanation
+                            : undefined,
                     },
                     {
                         caption: "Fix error and emit",
@@ -238,9 +249,9 @@ const a: string = 10;`,
                         caption: "Fix error and no emit",
                         commandLineArgs: ["--p", "src/project", "--noEmit"],
                         edit: fs => replaceText(fs, "/src/project/src/class.ts", "prop1", "prop"),
-                        discrepancyExplanation: compilerOptions.composite ?
-                            discrepancyExplanation :
-                            undefined,
+                        discrepancyExplanation: compilerOptions.composite
+                            ? discrepancyExplanation
+                            : undefined,
                     },
                     noChangeRunWithEmit,
                     noChangeRunWithNoEmit,
@@ -264,9 +275,9 @@ const a: string = 10;`,
                     {
                         caption: "Fix error and no emit",
                         edit: fs => replaceText(fs, "/src/project/src/class.ts", "prop1", "prop"),
-                        discrepancyExplanation: compilerOptions.composite ?
-                            discrepancyExplanation :
-                            undefined,
+                        discrepancyExplanation: compilerOptions.composite
+                            ? discrepancyExplanation
+                            : undefined,
                     },
                     noChangeRunWithEmit,
                 ],
@@ -348,7 +359,8 @@ const a: string = 10;`,
             },
             {
                 caption: "Write file that could not be resolved",
-                edit: fs => fs.writeFileSync(`/src/project/src/fileNotFound.ts`, "function something2() { return 20; }"),
+                edit: fs =>
+                    fs.writeFileSync(`/src/project/src/fileNotFound.ts`, "function something2() { return 20; }"),
             },
             {
                 caption: "Modify main file",
@@ -382,7 +394,14 @@ declare global {
                     "/src/project/node_modules/react/jsx-runtime.js": "export {}", // js needs to be present so there's a resolution result
                     "/src/project/node_modules/@types/react/index.d.ts": getJsxLibraryContent(), // doesn't contain a jsx-runtime definition
                     "/src/project/src/index.tsx": `export const App = () => <div propA={true}></div>;`,
-                    "/src/project/tsconfig.json": JSON.stringify({ compilerOptions: { module: "commonjs", jsx: "react-jsx", incremental: true, jsxImportSource: "react" } }),
+                    "/src/project/tsconfig.json": JSON.stringify({
+                        compilerOptions: {
+                            module: "commonjs",
+                            jsx: "react-jsx",
+                            incremental: true,
+                            jsxImportSource: "react",
+                        },
+                    }),
                 }),
             commandLineArgs: ["--p", "src/project"],
         });
@@ -395,7 +414,14 @@ declare global {
                     "/src/project/node_modules/react/jsx-runtime.js": "export {}", // js needs to be present so there's a resolution result
                     "/src/project/node_modules/@types/react/index.d.ts": getJsxLibraryContent(), // doesn't contain a jsx-runtime definition
                     "/src/project/src/index.tsx": `export const App = () => <div propA={true}></div>;`,
-                    "/src/project/tsconfig.json": JSON.stringify({ compilerOptions: { module: "commonjs", jsx: "react-jsx", incremental: true, jsxImportSource: "react" } }),
+                    "/src/project/tsconfig.json": JSON.stringify({
+                        compilerOptions: {
+                            module: "commonjs",
+                            jsx: "react-jsx",
+                            incremental: true,
+                            jsxImportSource: "react",
+                        },
+                    }),
                 }),
             commandLineArgs: ["--p", "src/project", "--strict"],
         });
@@ -584,7 +610,9 @@ console.log(a);`,
     function verifyModifierChange(declaration: boolean) {
         verifyTsc({
             scenario: "incremental",
-            subScenario: `change to modifier of class expression field${declaration ? " with declaration emit enabled" : ""}`,
+            subScenario: `change to modifier of class expression field${
+                declaration ? " with declaration emit enabled" : ""
+            }`,
             commandLineArgs: ["-p", "src/project", "--incremental"],
             fs: () =>
                 loadProjectFromFiles({
@@ -779,7 +807,10 @@ console.log(a);`,
                 noChangeRun,
                 withOptionChange("with declaration and declarationMap", "--declaration", "--declarationMap"),
                 noChangeWithSubscenario("should re-emit only dts so they dont contain sourcemap"),
-                withOptionChangeAndDiscrepancyExplanation("with emitDeclarationOnly should not emit anything", "--emitDeclarationOnly"),
+                withOptionChangeAndDiscrepancyExplanation(
+                    "with emitDeclarationOnly should not emit anything",
+                    "--emitDeclarationOnly",
+                ),
                 noChangeRun,
                 localChange(),
                 withOptionChangeAndDiscrepancyExplanation("with declaration should not emit anything", "--declaration"),
@@ -802,7 +833,9 @@ console.log(a);`,
                 noChangeRun,
                 withOptionChange("with declaration and declarationMap", "--declaration", "--declarationMap"),
                 noChangeWithSubscenario("should re-emit only dts so they dont contain sourcemap"),
-                withEmitDeclarationOnlyChangeAndDiscrepancyExplanation("with emitDeclarationOnly should not emit anything"),
+                withEmitDeclarationOnlyChangeAndDiscrepancyExplanation(
+                    "with emitDeclarationOnly should not emit anything",
+                ),
                 noChangeRun,
                 localChange(),
                 withOptionChangeAndDiscrepancyExplanation("with declaration should not emit anything", "--declaration"),
@@ -831,7 +864,11 @@ console.log(a);`,
                 withOptionChange("with sourceMap", "--sourceMap"),
                 noChangeWithSubscenario("emit js files"),
                 withOptionChange("with declaration and declarationMap", "--declaration", "--declarationMap"),
-                withOptionChange("with declaration and declarationMap, should not re-emit", "--declaration", "--declarationMap"),
+                withOptionChange(
+                    "with declaration and declarationMap, should not re-emit",
+                    "--declaration",
+                    "--declarationMap",
+                ),
             ],
             baselinePrograms: true,
         });
@@ -853,7 +890,11 @@ console.log(a);`,
                 withOptionChange("with sourceMap", "--sourceMap"),
                 noChangeWithSubscenario("emit js files"),
                 withOptionChange("with declaration and declarationMap", "--declaration", "--declarationMap"),
-                withOptionChange("with declaration and declarationMap, should not re-emit", "--declaration", "--declarationMap"),
+                withOptionChange(
+                    "with declaration and declarationMap, should not re-emit",
+                    "--declaration",
+                    "--declarationMap",
+                ),
             ],
             baselinePrograms: true,
         });

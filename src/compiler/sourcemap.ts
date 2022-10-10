@@ -34,7 +34,13 @@ export interface SourceMapGeneratorOptions {
 }
 
 /** @internal */
-export function createSourceMapGenerator(host: EmitHost, file: string, sourceRoot: string, sourcesDirectoryPath: string, generatorOptions: SourceMapGeneratorOptions): SourceMapGenerator {
+export function createSourceMapGenerator(
+    host: EmitHost,
+    file: string,
+    sourceRoot: string,
+    sourcesDirectoryPath: string,
+    generatorOptions: SourceMapGeneratorOptions,
+): SourceMapGenerator {
     // Why var? It avoids TDZ checks in the runtime which can be costly.
     // See: https://github.com/microsoft/TypeScript/issues/52924
     /* eslint-disable no-var */
@@ -86,7 +92,13 @@ export function createSourceMapGenerator(host: EmitHost, file: string, sourceRoo
 
     function addSource(fileName: string) {
         enter();
-        const source = getRelativePathToDirectoryOrUrl(sourcesDirectoryPath, fileName, host.getCurrentDirectory(), host.getCanonicalFileName, /*isAbsolutePathAnUrl*/ true);
+        const source = getRelativePathToDirectoryOrUrl(
+            sourcesDirectoryPath,
+            fileName,
+            host.getCurrentDirectory(),
+            host.getCanonicalFileName,
+            /*isAbsolutePathAnUrl*/ true,
+        );
 
         let sourceIndex = sourceToSourceIndexMap.get(source);
         if (sourceIndex === undefined) {
@@ -132,7 +144,11 @@ export function createSourceMapGenerator(host: EmitHost, file: string, sourceRoo
             || pendingGeneratedCharacter !== generatedCharacter;
     }
 
-    function isBacktrackingSourcePosition(sourceIndex: number | undefined, sourceLine: number | undefined, sourceCharacter: number | undefined) {
+    function isBacktrackingSourcePosition(
+        sourceIndex: number | undefined,
+        sourceLine: number | undefined,
+        sourceCharacter: number | undefined,
+    ) {
         return sourceIndex !== undefined
             && sourceLine !== undefined
             && sourceCharacter !== undefined
@@ -141,7 +157,14 @@ export function createSourceMapGenerator(host: EmitHost, file: string, sourceRoo
                 || pendingSourceLine === sourceLine && pendingSourceCharacter > sourceCharacter);
     }
 
-    function addMapping(generatedLine: number, generatedCharacter: number, sourceIndex?: number, sourceLine?: number, sourceCharacter?: number, nameIndex?: number) {
+    function addMapping(
+        generatedLine: number,
+        generatedCharacter: number,
+        sourceIndex?: number,
+        sourceLine?: number,
+        sourceCharacter?: number,
+        nameIndex?: number,
+    ) {
         Debug.assert(generatedLine >= pendingGeneratedLine, "generatedLine cannot backtrack");
         Debug.assert(generatedCharacter >= 0, "generatedCharacter cannot be negative");
         Debug.assert(sourceIndex === undefined || sourceIndex >= 0, "sourceIndex cannot be negative");
@@ -150,8 +173,8 @@ export function createSourceMapGenerator(host: EmitHost, file: string, sourceRoo
         enter();
         // If this location wasn't recorded or the location in source is going backwards, record the mapping
         if (
-            isNewGeneratedPosition(generatedLine, generatedCharacter) ||
-            isBacktrackingSourcePosition(sourceIndex, sourceLine, sourceCharacter)
+            isNewGeneratedPosition(generatedLine, generatedCharacter)
+            || isBacktrackingSourcePosition(sourceIndex, sourceLine, sourceCharacter)
         ) {
             commitPendingMapping();
             pendingGeneratedLine = generatedLine;
@@ -174,7 +197,14 @@ export function createSourceMapGenerator(host: EmitHost, file: string, sourceRoo
         exit();
     }
 
-    function appendSourceMap(generatedLine: number, generatedCharacter: number, map: RawSourceMap, sourceMapPath: string, start?: LineAndCharacter, end?: LineAndCharacter) {
+    function appendSourceMap(
+        generatedLine: number,
+        generatedCharacter: number,
+        map: RawSourceMap,
+        sourceMapPath: string,
+        start?: LineAndCharacter,
+        end?: LineAndCharacter,
+    ) {
         Debug.assert(generatedLine >= pendingGeneratedLine, "generatedLine cannot backtrack");
         Debug.assert(generatedCharacter >= 0, "generatedCharacter cannot be negative");
         enter();
@@ -185,8 +215,8 @@ export function createSourceMapGenerator(host: EmitHost, file: string, sourceRoo
         for (const raw of mappingIterator) {
             if (
                 end && (
-                    raw.generatedLine > end.line ||
-                    (raw.generatedLine === end.line && raw.generatedCharacter > end.character)
+                    raw.generatedLine > end.line
+                    || (raw.generatedLine === end.line && raw.generatedCharacter > end.character)
                 )
             ) {
                 break;
@@ -194,8 +224,8 @@ export function createSourceMapGenerator(host: EmitHost, file: string, sourceRoo
 
             if (
                 start && (
-                    raw.generatedLine < start.line ||
-                    (start.line === raw.generatedLine && raw.generatedCharacter < start.character)
+                    raw.generatedLine < start.line
+                    || (start.line === raw.generatedLine && raw.generatedCharacter < start.character)
                 )
             ) {
                 continue;
@@ -231,9 +261,18 @@ export function createSourceMapGenerator(host: EmitHost, file: string, sourceRoo
 
             const rawGeneratedLine = raw.generatedLine - (start ? start.line : 0);
             const newGeneratedLine = rawGeneratedLine + generatedLine;
-            const rawGeneratedCharacter = start && start.line === raw.generatedLine ? raw.generatedCharacter - start.character : raw.generatedCharacter;
-            const newGeneratedCharacter = rawGeneratedLine === 0 ? rawGeneratedCharacter + generatedCharacter : rawGeneratedCharacter;
-            addMapping(newGeneratedLine, newGeneratedCharacter, newSourceIndex, newSourceLine, newSourceCharacter, newNameIndex);
+            const rawGeneratedCharacter = start && start.line === raw.generatedLine
+                ? raw.generatedCharacter - start.character : raw.generatedCharacter;
+            const newGeneratedCharacter = rawGeneratedLine === 0 ? rawGeneratedCharacter + generatedCharacter
+                : rawGeneratedCharacter;
+            addMapping(
+                newGeneratedLine,
+                newGeneratedCharacter,
+                newSourceIndex,
+                newSourceLine,
+                newSourceCharacter,
+                newNameIndex,
+            );
         }
         exit();
     }
@@ -415,7 +454,8 @@ export function isRawSourceMap(x: any): x is RawSourceMap {
         && typeof x.mappings === "string"
         && isArray(x.sources) && every(x.sources, isString)
         && (x.sourceRoot === undefined || x.sourceRoot === null || typeof x.sourceRoot === "string")
-        && (x.sourcesContent === undefined || x.sourcesContent === null || isArray(x.sourcesContent) && every(x.sourcesContent, isStringOrNull))
+        && (x.sourcesContent === undefined || x.sourcesContent === null
+            || isArray(x.sourcesContent) && every(x.sourcesContent, isStringOrNull))
         && (x.names === undefined || x.names === null || isArray(x.names) && every(x.names, isString));
 }
 /* eslint-enable no-null/no-null */
@@ -512,12 +552,16 @@ export function decodeMappings(mappings: string): MappingsDecoder {
                     sourceIndex += base64VLQFormatDecode();
                     if (hasReportedError()) return stopIterating();
                     if (sourceIndex < 0) return setErrorAndStopIterating("Invalid sourceIndex found");
-                    if (isSourceMappingSegmentEnd()) return setErrorAndStopIterating("Unsupported Format: No entries after sourceIndex");
+                    if (isSourceMappingSegmentEnd()) {
+                        return setErrorAndStopIterating("Unsupported Format: No entries after sourceIndex");
+                    }
 
                     sourceLine += base64VLQFormatDecode();
                     if (hasReportedError()) return stopIterating();
                     if (sourceLine < 0) return setErrorAndStopIterating("Invalid sourceLine found");
-                    if (isSourceMappingSegmentEnd()) return setErrorAndStopIterating("Unsupported Format: No entries after sourceLine");
+                    if (isSourceMappingSegmentEnd()) {
+                        return setErrorAndStopIterating("Unsupported Format: No entries after sourceLine");
+                    }
 
                     sourceCharacter += base64VLQFormatDecode();
                     if (hasReportedError()) return stopIterating();
@@ -529,7 +573,9 @@ export function decodeMappings(mappings: string): MappingsDecoder {
                         if (hasReportedError()) return stopIterating();
                         if (nameIndex < 0) return setErrorAndStopIterating("Invalid nameIndex found");
 
-                        if (!isSourceMappingSegmentEnd()) return setErrorAndStopIterating("Unsupported Error Format: Entries after nameIndex");
+                        if (!isSourceMappingSegmentEnd()) {
+                            return setErrorAndStopIterating("Unsupported Error Format: Entries after nameIndex");
+                        }
                     }
                 }
 
@@ -577,9 +623,9 @@ export function decodeMappings(mappings: string): MappingsDecoder {
     }
 
     function isSourceMappingSegmentEnd() {
-        return (pos === mappings.length ||
-            mappings.charCodeAt(pos) === CharacterCodes.comma ||
-            mappings.charCodeAt(pos) === CharacterCodes.semicolon);
+        return (pos === mappings.length
+            || mappings.charCodeAt(pos) === CharacterCodes.comma
+            || mappings.charCodeAt(pos) === CharacterCodes.semicolon);
     }
 
     function base64VLQFormatDecode(): number {
@@ -588,7 +634,9 @@ export function decodeMappings(mappings: string): MappingsDecoder {
         let value = 0;
 
         for (; moreDigits; pos++) {
-            if (pos >= mappings.length) return setError("Error in decoding base64VLQFormatDecode, past the mapping string"), -1;
+            if (pos >= mappings.length) {
+                return setError("Error in decoding base64VLQFormatDecode, past the mapping string"), -1;
+            }
 
             // 6 digit number
             const currentByte = base64FormatDecode(mappings.charCodeAt(pos));
@@ -636,21 +684,21 @@ export function isSourceMapping(mapping: Mapping): mapping is SourceMapping {
 }
 
 function base64FormatEncode(value: number) {
-    return value >= 0 && value < 26 ? CharacterCodes.A + value :
-        value >= 26 && value < 52 ? CharacterCodes.a + value - 26 :
-        value >= 52 && value < 62 ? CharacterCodes._0 + value - 52 :
-        value === 62 ? CharacterCodes.plus :
-        value === 63 ? CharacterCodes.slash :
-        Debug.fail(`${value}: not a base64 value`);
+    return value >= 0 && value < 26 ? CharacterCodes.A + value
+        : value >= 26 && value < 52 ? CharacterCodes.a + value - 26
+        : value >= 52 && value < 62 ? CharacterCodes._0 + value - 52
+        : value === 62 ? CharacterCodes.plus
+        : value === 63 ? CharacterCodes.slash
+        : Debug.fail(`${value}: not a base64 value`);
 }
 
 function base64FormatDecode(ch: number) {
-    return ch >= CharacterCodes.A && ch <= CharacterCodes.Z ? ch - CharacterCodes.A :
-        ch >= CharacterCodes.a && ch <= CharacterCodes.z ? ch - CharacterCodes.a + 26 :
-        ch >= CharacterCodes._0 && ch <= CharacterCodes._9 ? ch - CharacterCodes._0 + 52 :
-        ch === CharacterCodes.plus ? 62 :
-        ch === CharacterCodes.slash ? 63 :
-        -1;
+    return ch >= CharacterCodes.A && ch <= CharacterCodes.Z ? ch - CharacterCodes.A
+        : ch >= CharacterCodes.a && ch <= CharacterCodes.z ? ch - CharacterCodes.a + 26
+        : ch >= CharacterCodes._0 && ch <= CharacterCodes._9 ? ch - CharacterCodes._0 + 52
+        : ch === CharacterCodes.plus ? 62
+        : ch === CharacterCodes.slash ? 63
+        : -1;
 }
 
 interface MappedPosition {
@@ -698,13 +746,19 @@ function getGeneratedPositionOfMapping(value: MappedPosition) {
 }
 
 /** @internal */
-export function createDocumentPositionMapper(host: DocumentPositionMapperHost, map: RawSourceMap, mapPath: string): DocumentPositionMapper {
+export function createDocumentPositionMapper(
+    host: DocumentPositionMapperHost,
+    map: RawSourceMap,
+    mapPath: string,
+): DocumentPositionMapper {
     const mapDirectory = getDirectoryPath(mapPath);
     const sourceRoot = map.sourceRoot ? getNormalizedAbsolutePath(map.sourceRoot, mapDirectory) : mapDirectory;
     const generatedAbsoluteFilePath = getNormalizedAbsolutePath(map.file, mapDirectory);
     const generatedFile = host.getSourceFileLike(generatedAbsoluteFilePath);
     const sourceFileAbsolutePaths = map.sources.map(source => getNormalizedAbsolutePath(source, sourceRoot));
-    const sourceToSourceIndexMap = new Map(sourceFileAbsolutePaths.map((source, i) => [host.getCanonicalFileName(source), i]));
+    const sourceToSourceIndexMap = new Map(
+        sourceFileAbsolutePaths.map((source, i) => [host.getCanonicalFileName(source), i]),
+    );
     let decodedMappings: readonly MappedPosition[] | undefined;
     let generatedMappings: SortedReadonlyArray<MappedPosition> | undefined;
     let sourceMappings: readonly SortedReadonlyArray<SourceMappedPosition>[] | undefined;
@@ -716,7 +770,12 @@ export function createDocumentPositionMapper(host: DocumentPositionMapperHost, m
 
     function processMapping(mapping: Mapping): MappedPosition {
         const generatedPosition = generatedFile !== undefined
-            ? getPositionOfLineAndCharacter(generatedFile, mapping.generatedLine, mapping.generatedCharacter, /*allowEdits*/ true)
+            ? getPositionOfLineAndCharacter(
+                generatedFile,
+                mapping.generatedLine,
+                mapping.generatedCharacter,
+                /*allowEdits*/ true,
+            )
             : -1;
         let source: string | undefined;
         let sourcePosition: number | undefined;
@@ -724,7 +783,12 @@ export function createDocumentPositionMapper(host: DocumentPositionMapperHost, m
             const sourceFile = host.getSourceFileLike(sourceFileAbsolutePaths[mapping.sourceIndex]);
             source = map.sources[mapping.sourceIndex];
             sourcePosition = sourceFile !== undefined
-                ? getPositionOfLineAndCharacter(sourceFile, mapping.sourceLine, mapping.sourceCharacter, /*allowEdits*/ true)
+                ? getPositionOfLineAndCharacter(
+                    sourceFile,
+                    mapping.sourceLine,
+                    mapping.sourceCharacter,
+                    /*allowEdits*/ true,
+                )
                 : -1;
         }
         return {
@@ -762,7 +826,9 @@ export function createDocumentPositionMapper(host: DocumentPositionMapperHost, m
                 if (!list) lists[mapping.sourceIndex] = list = [];
                 list.push(mapping);
             }
-            sourceMappings = lists.map(list => sortAndDeduplicate<SourceMappedPosition>(list, compareSourcePositions, sameMappedPosition));
+            sourceMappings = lists.map(list =>
+                sortAndDeduplicate<SourceMappedPosition>(list, compareSourcePositions, sameMappedPosition)
+            );
         }
         return sourceMappings[sourceIndex];
     }

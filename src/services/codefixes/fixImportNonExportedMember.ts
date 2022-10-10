@@ -53,7 +53,15 @@ registerCodeFix({
         if (info === undefined) return undefined;
 
         const changes = textChanges.ChangeTracker.with(context, t => doChange(t, program, info));
-        return [createCodeFixAction(fixId, changes, [Diagnostics.Export_0_from_module_1, info.exportName.node.text, info.moduleSpecifier], fixId, Diagnostics.Export_all_referenced_locals)];
+        return [
+            createCodeFixAction(
+                fixId,
+                changes,
+                [Diagnostics.Export_0_from_module_1, info.exportName.node.text, info.moduleSpecifier],
+                fixId,
+                Diagnostics.Export_all_referenced_locals,
+            ),
+        ];
     },
     getAllCodeActions(context) {
         const { program } = context;
@@ -65,7 +73,10 @@ registerCodeFix({
                 if (info === undefined) return undefined;
 
                 const { exportName, node, moduleSourceFile } = info;
-                if (tryGetExportDeclaration(moduleSourceFile, exportName.isTypeOnly) === undefined && canHaveExportModifier(node)) {
+                if (
+                    tryGetExportDeclaration(moduleSourceFile, exportName.isTypeOnly) === undefined
+                    && canHaveExportModifier(node)
+                ) {
                     changes.insertExportModifier(moduleSourceFile, node);
                 }
                 else {
@@ -84,10 +95,19 @@ registerCodeFix({
                 const exportDeclaration = tryGetExportDeclaration(moduleSourceFile, /*isTypeOnly*/ true);
                 if (exportDeclaration && exportDeclaration.isTypeOnly) {
                     doChanges(changes, program, moduleSourceFile, moduleExports.typeOnlyExports, exportDeclaration);
-                    doChanges(changes, program, moduleSourceFile, moduleExports.exports, tryGetExportDeclaration(moduleSourceFile, /*isTypeOnly*/ false));
+                    doChanges(
+                        changes,
+                        program,
+                        moduleSourceFile,
+                        moduleExports.exports,
+                        tryGetExportDeclaration(moduleSourceFile, /*isTypeOnly*/ false),
+                    );
                 }
                 else {
-                    doChanges(changes, program, moduleSourceFile, [...moduleExports.exports, ...moduleExports.typeOnlyExports], exportDeclaration);
+                    doChanges(changes, program, moduleSourceFile, [
+                        ...moduleExports.exports,
+                        ...moduleExports.typeOnlyExports,
+                    ], exportDeclaration);
                 }
             });
         }));
@@ -117,7 +137,8 @@ function getInfo(sourceFile: SourceFile, pos: number, program: Program): Info | 
         const importDeclaration = findAncestor(token, isImportDeclaration);
         if (importDeclaration === undefined) return undefined;
 
-        const moduleSpecifier = isStringLiteral(importDeclaration.moduleSpecifier) ? importDeclaration.moduleSpecifier.text : undefined;
+        const moduleSpecifier = isStringLiteral(importDeclaration.moduleSpecifier)
+            ? importDeclaration.moduleSpecifier.text : undefined;
         if (moduleSpecifier === undefined) return undefined;
 
         const resolvedModule = getResolvedModule(sourceFile, moduleSpecifier, /*mode*/ undefined);
@@ -155,7 +176,13 @@ function doChange(changes: textChanges.ChangeTracker, program: Program, { export
     }
 }
 
-function doChanges(changes: textChanges.ChangeTracker, program: Program, sourceFile: SourceFile, moduleExports: ExportName[], node: ExportDeclaration | undefined) {
+function doChanges(
+    changes: textChanges.ChangeTracker,
+    program: Program,
+    sourceFile: SourceFile,
+    moduleExports: ExportName[],
+    node: ExportDeclaration | undefined,
+) {
     if (length(moduleExports)) {
         if (node) {
             updateExport(changes, program, sourceFile, node, moduleExports);
@@ -167,13 +194,22 @@ function doChanges(changes: textChanges.ChangeTracker, program: Program, sourceF
 }
 
 function tryGetExportDeclaration(sourceFile: SourceFile, isTypeOnly: boolean) {
-    const predicate = (node: Node): node is ExportDeclaration => isExportDeclaration(node) && (isTypeOnly && node.isTypeOnly || !node.isTypeOnly);
+    const predicate = (node: Node): node is ExportDeclaration =>
+        isExportDeclaration(node) && (isTypeOnly && node.isTypeOnly || !node.isTypeOnly);
     return findLast(sourceFile.statements, predicate);
 }
 
-function updateExport(changes: textChanges.ChangeTracker, program: Program, sourceFile: SourceFile, node: ExportDeclaration, names: ExportName[]) {
-    const namedExports = node.exportClause && isNamedExports(node.exportClause) ? node.exportClause.elements : factory.createNodeArray([]);
-    const allowTypeModifier = !node.isTypeOnly && !!(getIsolatedModules(program.getCompilerOptions()) || find(namedExports, e => e.isTypeOnly));
+function updateExport(
+    changes: textChanges.ChangeTracker,
+    program: Program,
+    sourceFile: SourceFile,
+    node: ExportDeclaration,
+    names: ExportName[],
+) {
+    const namedExports = node.exportClause && isNamedExports(node.exportClause) ? node.exportClause.elements
+        : factory.createNodeArray([]);
+    const allowTypeModifier = !node.isTypeOnly
+        && !!(getIsolatedModules(program.getCompilerOptions()) || find(namedExports, e => e.isTypeOnly));
     changes.replaceNode(
         sourceFile,
         node,
@@ -182,7 +218,10 @@ function updateExport(changes: textChanges.ChangeTracker, program: Program, sour
             node.modifiers,
             node.isTypeOnly,
             factory.createNamedExports(
-                factory.createNodeArray([...namedExports, ...createExportSpecifiers(names, allowTypeModifier)], /*hasTrailingComma*/ namedExports.hasTrailingComma),
+                factory.createNodeArray(
+                    [...namedExports, ...createExportSpecifiers(names, allowTypeModifier)],
+                    /*hasTrailingComma*/ namedExports.hasTrailingComma,
+                ),
             ),
             node.moduleSpecifier,
             node.assertClause,
@@ -190,12 +229,34 @@ function updateExport(changes: textChanges.ChangeTracker, program: Program, sour
     );
 }
 
-function createExport(changes: textChanges.ChangeTracker, program: Program, sourceFile: SourceFile, names: ExportName[]) {
-    changes.insertNodeAtEndOfScope(sourceFile, sourceFile, factory.createExportDeclaration(/*modifiers*/ undefined, /*isTypeOnly*/ false, factory.createNamedExports(createExportSpecifiers(names, /*allowTypeModifier*/ getIsolatedModules(program.getCompilerOptions()))), /*moduleSpecifier*/ undefined, /*assertClause*/ undefined));
+function createExport(
+    changes: textChanges.ChangeTracker,
+    program: Program,
+    sourceFile: SourceFile,
+    names: ExportName[],
+) {
+    changes.insertNodeAtEndOfScope(
+        sourceFile,
+        sourceFile,
+        factory.createExportDeclaration(
+            /*modifiers*/ undefined,
+            /*isTypeOnly*/ false,
+            factory.createNamedExports(
+                createExportSpecifiers(names, /*allowTypeModifier*/ getIsolatedModules(program.getCompilerOptions())),
+            ),
+            /*moduleSpecifier*/ undefined,
+            /*assertClause*/ undefined,
+        ),
+    );
 }
 
 function createExportSpecifiers(names: ExportName[], allowTypeModifier: boolean) {
-    return factory.createNodeArray(map(names, n => factory.createExportSpecifier(allowTypeModifier && n.isTypeOnly, /*propertyName*/ undefined, n.node)));
+    return factory.createNodeArray(
+        map(
+            names,
+            n => factory.createExportSpecifier(allowTypeModifier && n.isTypeOnly, /*propertyName*/ undefined, n.node),
+        ),
+    );
 }
 
 function getNodeOfSymbol(symbol: Symbol) {
@@ -203,6 +264,8 @@ function getNodeOfSymbol(symbol: Symbol) {
         return firstOrUndefined(symbol.declarations);
     }
     const declaration = symbol.valueDeclaration;
-    const variableStatement = isVariableDeclaration(declaration) ? tryCast(declaration.parent.parent, isVariableStatement) : undefined;
-    return variableStatement && length(variableStatement.declarationList.declarations) === 1 ? variableStatement : declaration;
+    const variableStatement = isVariableDeclaration(declaration)
+        ? tryCast(declaration.parent.parent, isVariableStatement) : undefined;
+    return variableStatement && length(variableStatement.declarationList.declarations) === 1 ? variableStatement
+        : declaration;
 }

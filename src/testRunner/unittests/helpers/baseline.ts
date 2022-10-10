@@ -14,7 +14,9 @@ export interface CommandLineCallbacks {
     getPrograms: () => readonly CommandLineProgram[];
 }
 
-function isAnyProgram(program: ts.Program | ts.BuilderProgram | ts.ParsedCommandLine): program is ts.Program | ts.BuilderProgram {
+function isAnyProgram(
+    program: ts.Program | ts.BuilderProgram | ts.ParsedCommandLine,
+): program is ts.Program | ts.BuilderProgram {
     return !!(program as ts.Program | ts.BuilderProgram).getCompilerOptions;
 }
 export function commandLineCallbacks(
@@ -28,9 +30,9 @@ export function commandLineCallbacks(
             if (isAnyProgram(program)) {
                 baselineBuildInfo(program.getCompilerOptions(), sys, originalReadCall);
                 (programs || (programs = [])).push(
-                    ts.isBuilderProgram(program) ?
-                        [program.getProgram(), program] :
-                        [program],
+                    ts.isBuilderProgram(program)
+                        ? [program.getProgram(), program]
+                        : [program],
                 );
             }
             else {
@@ -45,7 +47,12 @@ export function commandLineCallbacks(
     };
 }
 
-export function baselinePrograms(baseline: string[], getPrograms: () => readonly CommandLineProgram[], oldPrograms: readonly (CommandLineProgram | undefined)[], baselineDependencies: boolean | undefined) {
+export function baselinePrograms(
+    baseline: string[],
+    getPrograms: () => readonly CommandLineProgram[],
+    oldPrograms: readonly (CommandLineProgram | undefined)[],
+    baselineDependencies: boolean | undefined,
+) {
     const programs = getPrograms();
     for (let i = 0; i < programs.length; i++) {
         baselineProgram(baseline, programs[i], oldPrograms[i], baselineDependencies);
@@ -53,7 +60,12 @@ export function baselinePrograms(baseline: string[], getPrograms: () => readonly
     return programs;
 }
 
-function baselineProgram(baseline: string[], [program, builderProgram]: CommandLineProgram, oldProgram: CommandLineProgram | undefined, baselineDependencies: boolean | undefined) {
+function baselineProgram(
+    baseline: string[],
+    [program, builderProgram]: CommandLineProgram,
+    oldProgram: CommandLineProgram | undefined,
+    baselineDependencies: boolean | undefined,
+) {
     if (program !== oldProgram?.[0]) {
         const options = program.getCompilerOptions();
         baseline.push(`Program root files: ${JSON.stringify(program.getRootFileNames())}`);
@@ -76,7 +88,10 @@ function baselineProgram(baseline: string[], [program, builderProgram]: CommandL
         if (state.semanticDiagnosticsPerFile?.size) {
             baseline.push("Semantic diagnostics in builder refreshed for::");
             for (const file of program.getSourceFiles()) {
-                if (!internalState.semanticDiagnosticsFromOldState || !internalState.semanticDiagnosticsFromOldState.has(file.resolvedPath)) {
+                if (
+                    !internalState.semanticDiagnosticsFromOldState
+                    || !internalState.semanticDiagnosticsFromOldState.has(file.resolvedPath)
+                ) {
                     baseline.push(file.fileName);
                 }
             }
@@ -129,7 +144,13 @@ export function generateSourceMapBaselineFiles(sys: ts.System & { writtenFiles: 
     }
 }
 
-function generateBundleFileSectionInfo(sys: ts.System, originalReadCall: ts.System["readFile"], baselineRecorder: Harness.Compiler.WriterAggregator, bundleFileInfo: ts.BundleFileInfo | undefined, outFile: string | undefined) {
+function generateBundleFileSectionInfo(
+    sys: ts.System,
+    originalReadCall: ts.System["readFile"],
+    baselineRecorder: Harness.Compiler.WriterAggregator,
+    bundleFileInfo: ts.BundleFileInfo | undefined,
+    outFile: string | undefined,
+) {
     if (!ts.length(bundleFileInfo && bundleFileInfo.sections) && !outFile) return; // Nothing to baseline
 
     const content = outFile && sys.fileExists(outFile) ? originalReadCall.call(sys, outFile, "utf8")! : "";
@@ -164,13 +185,20 @@ function generateBundleFileSectionInfo(sys: ts.System, originalReadCall: ts.Syst
     }
 
     function writeSectionHeader(section: ts.BundleFileSection) {
-        baselineRecorder.WriteLine(`${section.kind}: (${section.pos}-${section.end})${section.data ? ":: " + section.data : ""}${section.kind === ts.BundleFileSectionKind.Prepend ? " texts:: " + section.texts.length : ""}`);
+        baselineRecorder.WriteLine(
+            `${section.kind}: (${section.pos}-${section.end})${section.data ? ":: " + section.data : ""}${
+                section.kind === ts.BundleFileSectionKind.Prepend ? " texts:: " + section.texts.length : ""
+            }`,
+        );
     }
 }
 
 export type ReadableProgramBuildInfoDiagnostic = string | [string, readonly ts.ReusableDiagnostic[]];
 export type ReadableBuilderFileEmit = string & { __readableBuilderFileEmit: any; };
-export type ReadableProgramBuilderInfoFilePendingEmit = [original: string | [string], emitKind: ReadableBuilderFileEmit];
+export type ReadableProgramBuilderInfoFilePendingEmit = [
+    original: string | [string],
+    emitKind: ReadableBuilderFileEmit,
+];
 export type ReadableProgramBuildInfoEmitSignature = string | [string, ts.EmitSignature | []];
 export type ReadableProgramBuildInfoFileInfo<T> = Omit<ts.BuilderState.FileInfo, "impliedFormat"> & {
     impliedFormat: string | undefined;
@@ -179,48 +207,71 @@ export type ReadableProgramBuildInfoFileInfo<T> = Omit<ts.BuilderState.FileInfo,
 export type ReadableProgramBuildInfoRoot =
     | [original: ts.ProgramBuildInfoFileId, readable: string]
     | [orginal: ts.ProgramBuildInfoRootStartEnd, readable: readonly string[]];
-export type ReadableProgramMultiFileEmitBuildInfo = Omit<ts.ProgramMultiFileEmitBuildInfo, "fileIdsList" | "fileInfos" | "root" | "referencedMap" | "exportedModulesMap" | "semanticDiagnosticsPerFile" | "affectedFilesPendingEmit" | "changeFileSet" | "emitSignatures"> & {
-    fileNamesList: readonly (readonly string[])[] | undefined;
-    fileInfos: ts.MapLike<ReadableProgramBuildInfoFileInfo<ts.ProgramMultiFileEmitBuildInfoFileInfo>>;
-    root: readonly ReadableProgramBuildInfoRoot[];
-    referencedMap: ts.MapLike<string[]> | undefined;
-    exportedModulesMap: ts.MapLike<string[]> | undefined;
-    semanticDiagnosticsPerFile: readonly ReadableProgramBuildInfoDiagnostic[] | undefined;
-    affectedFilesPendingEmit: readonly ReadableProgramBuilderInfoFilePendingEmit[] | undefined;
-    changeFileSet: readonly string[] | undefined;
-    emitSignatures: readonly ReadableProgramBuildInfoEmitSignature[] | undefined;
-};
-export type ReadableProgramBuildInfoBundlePendingEmit = [emitKind: ReadableBuilderFileEmit, original: ts.ProgramBuildInfoBundlePendingEmit];
-export type ReadableProgramBundleEmitBuildInfo = Omit<ts.ProgramBundleEmitBuildInfo, "fileInfos" | "root" | "pendingEmit"> & {
-    fileInfos: ts.MapLike<string | ReadableProgramBuildInfoFileInfo<ts.BuilderState.FileInfo>>;
-    root: readonly ReadableProgramBuildInfoRoot[];
-    pendingEmit: ReadableProgramBuildInfoBundlePendingEmit | undefined;
-};
+export type ReadableProgramMultiFileEmitBuildInfo =
+    & Omit<
+        ts.ProgramMultiFileEmitBuildInfo,
+        | "fileIdsList"
+        | "fileInfos"
+        | "root"
+        | "referencedMap"
+        | "exportedModulesMap"
+        | "semanticDiagnosticsPerFile"
+        | "affectedFilesPendingEmit"
+        | "changeFileSet"
+        | "emitSignatures"
+    >
+    & {
+        fileNamesList: readonly (readonly string[])[] | undefined;
+        fileInfos: ts.MapLike<ReadableProgramBuildInfoFileInfo<ts.ProgramMultiFileEmitBuildInfoFileInfo>>;
+        root: readonly ReadableProgramBuildInfoRoot[];
+        referencedMap: ts.MapLike<string[]> | undefined;
+        exportedModulesMap: ts.MapLike<string[]> | undefined;
+        semanticDiagnosticsPerFile: readonly ReadableProgramBuildInfoDiagnostic[] | undefined;
+        affectedFilesPendingEmit: readonly ReadableProgramBuilderInfoFilePendingEmit[] | undefined;
+        changeFileSet: readonly string[] | undefined;
+        emitSignatures: readonly ReadableProgramBuildInfoEmitSignature[] | undefined;
+    };
+export type ReadableProgramBuildInfoBundlePendingEmit = [
+    emitKind: ReadableBuilderFileEmit,
+    original: ts.ProgramBuildInfoBundlePendingEmit,
+];
+export type ReadableProgramBundleEmitBuildInfo =
+    & Omit<ts.ProgramBundleEmitBuildInfo, "fileInfos" | "root" | "pendingEmit">
+    & {
+        fileInfos: ts.MapLike<string | ReadableProgramBuildInfoFileInfo<ts.BuilderState.FileInfo>>;
+        root: readonly ReadableProgramBuildInfoRoot[];
+        pendingEmit: ReadableProgramBuildInfoBundlePendingEmit | undefined;
+    };
 
 export type ReadableProgramBuildInfo = ReadableProgramMultiFileEmitBuildInfo | ReadableProgramBundleEmitBuildInfo;
 
-export function isReadableProgramBundleEmitBuildInfo(info: ReadableProgramBuildInfo | undefined): info is ReadableProgramBundleEmitBuildInfo {
+export function isReadableProgramBundleEmitBuildInfo(
+    info: ReadableProgramBuildInfo | undefined,
+): info is ReadableProgramBundleEmitBuildInfo {
     return !!info && !!ts.outFile(info.options || {});
 }
-export type ReadableBuildInfo = Omit<ts.BuildInfo, "program"> & { program: ReadableProgramBuildInfo | undefined; size: number; };
+export type ReadableBuildInfo = Omit<ts.BuildInfo, "program"> & {
+    program: ReadableProgramBuildInfo | undefined;
+    size: number;
+};
 function generateBuildInfoProgramBaseline(sys: ts.System, buildInfoPath: string, buildInfo: ts.BuildInfo) {
     let program: ReadableProgramBuildInfo | undefined;
     let fileNamesList: string[][] | undefined;
     if (buildInfo.program && ts.isProgramBundleEmitBuildInfo(buildInfo.program)) {
         const fileInfos: ReadableProgramBundleEmitBuildInfo["fileInfos"] = {};
         buildInfo.program?.fileInfos?.forEach((fileInfo, index) =>
-            fileInfos[toFileName(index + 1 as ts.ProgramBuildInfoFileId)] = ts.isString(fileInfo) ?
-                fileInfo :
-                toReadableFileInfo(fileInfo, ts.identity)
+            fileInfos[toFileName(index + 1 as ts.ProgramBuildInfoFileId)] = ts.isString(fileInfo)
+                ? fileInfo
+                : toReadableFileInfo(fileInfo, ts.identity)
         );
         const pendingEmit = buildInfo.program.pendingEmit;
         program = {
             ...buildInfo.program,
             fileInfos,
             root: buildInfo.program.root.map(toReadableProgramBuildInfoRoot),
-            pendingEmit: pendingEmit === undefined ?
-                undefined :
-                [
+            pendingEmit: pendingEmit === undefined
+                ? undefined
+                : [
                     toReadableBuilderFileEmit(ts.toProgramEmitPending(pendingEmit, buildInfo.program.options)),
                     pendingEmit,
                 ],
@@ -228,9 +279,15 @@ function generateBuildInfoProgramBaseline(sys: ts.System, buildInfoPath: string,
     }
     else if (buildInfo.program) {
         const fileInfos: ReadableProgramMultiFileEmitBuildInfo["fileInfos"] = {};
-        buildInfo.program?.fileInfos?.forEach((fileInfo, index) => fileInfos[toFileName(index + 1 as ts.ProgramBuildInfoFileId)] = toReadableFileInfo(fileInfo, ts.toBuilderStateFileInfoForMultiEmit));
+        buildInfo.program?.fileInfos?.forEach((fileInfo, index) =>
+            fileInfos[toFileName(index + 1 as ts.ProgramBuildInfoFileId)] = toReadableFileInfo(
+                fileInfo,
+                ts.toBuilderStateFileInfoForMultiEmit,
+            )
+        );
         fileNamesList = buildInfo.program.fileIdsList?.map(fileIdsListId => fileIdsListId.map(toFileName));
-        const fullEmitForOptions = buildInfo.program.affectedFilesPendingEmit ? ts.getBuilderFileEmit(buildInfo.program.options || {}) : undefined;
+        const fullEmitForOptions = buildInfo.program.affectedFilesPendingEmit
+            ? ts.getBuilderFileEmit(buildInfo.program.options || {}) : undefined;
         program = buildInfo.program && {
             fileNames: buildInfo.program.fileNames,
             fileNamesList,
@@ -240,16 +297,18 @@ function generateBuildInfoProgramBaseline(sys: ts.System, buildInfoPath: string,
             referencedMap: toMapOfReferencedSet(buildInfo.program.referencedMap),
             exportedModulesMap: toMapOfReferencedSet(buildInfo.program.exportedModulesMap),
             semanticDiagnosticsPerFile: buildInfo.program.semanticDiagnosticsPerFile?.map(d =>
-                ts.isNumber(d) ?
-                    toFileName(d) :
-                    [toFileName(d[0]), d[1]]
+                ts.isNumber(d)
+                    ? toFileName(d)
+                    : [toFileName(d[0]), d[1]]
             ),
-            affectedFilesPendingEmit: buildInfo.program.affectedFilesPendingEmit?.map(value => toReadableProgramBuilderInfoFilePendingEmit(value, fullEmitForOptions!)),
+            affectedFilesPendingEmit: buildInfo.program.affectedFilesPendingEmit?.map(value =>
+                toReadableProgramBuilderInfoFilePendingEmit(value, fullEmitForOptions!)
+            ),
             changeFileSet: buildInfo.program.changeFileSet?.map(toFileName),
             emitSignatures: buildInfo.program.emitSignatures?.map(s =>
-                ts.isNumber(s) ?
-                    toFileName(s) :
-                    [toFileName(s[0]), s[1]]
+                ts.isNumber(s)
+                    ? toFileName(s)
+                    : [toFileName(s[0]), s[1]]
             ),
             latestChangedDtsFile: buildInfo.program.latestChangedDtsFile,
         };
@@ -287,12 +346,16 @@ function generateBuildInfoProgramBaseline(sys: ts.System, buildInfoPath: string,
         return fileNamesList![fileIdsListId - 1];
     }
 
-    function toReadableFileInfo<T>(original: T, toFileInfo: (fileInfo: T) => ts.BuilderState.FileInfo): ReadableProgramBuildInfoFileInfo<T> {
+    function toReadableFileInfo<T>(
+        original: T,
+        toFileInfo: (fileInfo: T) => ts.BuilderState.FileInfo,
+    ): ReadableProgramBuildInfoFileInfo<T> {
         const info = toFileInfo(original);
         return {
             original: ts.isString(original) ? undefined : original,
             ...info,
-            impliedFormat: info.impliedFormat && ts.getNameOfCompilerOptionValue(info.impliedFormat, ts.moduleOptionDeclaration.type),
+            impliedFormat: info.impliedFormat
+                && ts.getNameOfCompilerOptionValue(info.impliedFormat, ts.moduleOptionDeclaration.type),
         };
     }
 
@@ -303,7 +366,9 @@ function generateBuildInfoProgramBaseline(sys: ts.System, buildInfoPath: string,
         return [original, readable];
     }
 
-    function toMapOfReferencedSet(referenceMap: ts.ProgramBuildInfoReferencedMap | undefined): ts.MapLike<string[]> | undefined {
+    function toMapOfReferencedSet(
+        referenceMap: ts.ProgramBuildInfoReferencedMap | undefined,
+    ): ts.MapLike<string[]> | undefined {
         if (!referenceMap) return undefined;
         const result: ts.MapLike<string[]> = {};
         for (const [fileNamesKey, fileNamesListKey] of referenceMap) {
@@ -312,7 +377,10 @@ function generateBuildInfoProgramBaseline(sys: ts.System, buildInfoPath: string,
         return result;
     }
 
-    function toReadableProgramBuilderInfoFilePendingEmit(value: ts.ProgramBuilderInfoFilePendingEmit, fullEmitForOptions: ts.BuilderFileEmit): ReadableProgramBuilderInfoFilePendingEmit {
+    function toReadableProgramBuilderInfoFilePendingEmit(
+        value: ts.ProgramBuilderInfoFilePendingEmit,
+        fullEmitForOptions: ts.BuilderFileEmit,
+    ): ReadableProgramBuilderInfoFilePendingEmit {
         return [
             ts.isNumber(value) ? toFileName(value) : [toFileName(value[0])],
             toReadableBuilderFileEmit(ts.toBuilderFileEmit(value, fullEmitForOptions)),
@@ -348,24 +416,43 @@ export function baselineBuildInfo(
     if (!buildInfoPath || !sys.writtenFiles!.has(toPathWithSystem(sys, buildInfoPath))) return;
     if (!sys.fileExists(buildInfoPath)) return;
 
-    const buildInfo = ts.getBuildInfo(buildInfoPath, (originalReadCall || sys.readFile).call(sys, buildInfoPath, "utf8")!);
+    const buildInfo = ts.getBuildInfo(
+        buildInfoPath,
+        (originalReadCall || sys.readFile).call(sys, buildInfoPath, "utf8")!,
+    );
     if (!buildInfo) return sys.writeFile(`${buildInfoPath}.baseline.txt`, "Error reading valid buildinfo file");
     generateBuildInfoProgramBaseline(sys, buildInfoPath, buildInfo);
 
     if (!ts.outFile(options)) return;
     const { jsFilePath, declarationFilePath } = ts.getOutputPathsForBundle(options, /*forceDtsPaths*/ false);
     const bundle = buildInfo.bundle;
-    if (!bundle || (!ts.length(bundle.js && bundle.js.sections) && !ts.length(bundle.dts && bundle.dts.sections))) return;
+    if (!bundle || (!ts.length(bundle.js && bundle.js.sections) && !ts.length(bundle.dts && bundle.dts.sections))) {
+        return;
+    }
 
     // Write the baselines:
     const baselineRecorder = new Harness.Compiler.WriterAggregator();
     generateBundleFileSectionInfo(sys, originalReadCall || sys.readFile, baselineRecorder, bundle.js, jsFilePath);
-    generateBundleFileSectionInfo(sys, originalReadCall || sys.readFile, baselineRecorder, bundle.dts, declarationFilePath);
+    generateBundleFileSectionInfo(
+        sys,
+        originalReadCall || sys.readFile,
+        baselineRecorder,
+        bundle.dts,
+        declarationFilePath,
+    );
     baselineRecorder.Close();
     const text = baselineRecorder.lines.join("\r\n");
     sys.writeFile(`${buildInfoPath}.baseline.txt`, text);
 }
 
-export function tscBaselineName(scenario: string, subScenario: string, commandLineArgs: readonly string[], isWatch?: boolean, suffix?: string) {
-    return `${ts.isBuild(commandLineArgs) ? "tsbuild" : "tsc"}${isWatch ? "Watch" : ""}/${scenario}/${subScenario.split(" ").join("-")}${suffix ? suffix : ""}.js`;
+export function tscBaselineName(
+    scenario: string,
+    subScenario: string,
+    commandLineArgs: readonly string[],
+    isWatch?: boolean,
+    suffix?: string,
+) {
+    return `${ts.isBuild(commandLineArgs) ? "tsbuild" : "tsc"}${isWatch ? "Watch" : ""}/${scenario}/${
+        subScenario.split(" ").join("-")
+    }${suffix ? suffix : ""}.js`;
 }

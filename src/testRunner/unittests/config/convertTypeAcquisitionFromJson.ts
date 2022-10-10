@@ -29,7 +29,8 @@ describe("unittests:: config:: convertTypeAcquisitionFromJson", () => {
                     jsonText,
                     configFileName,
                     basePath: "/apath",
-                    baselineParsed: (baseline, parsed) => baseline.push("TypeAcquisition::", JSON.stringify(parsed.typeAcquisition, undefined, " ")),
+                    baselineParsed: (baseline, parsed) =>
+                        baseline.push("TypeAcquisition::", JSON.stringify(parsed.typeAcquisition, undefined, " ")),
                 }];
             },
         });

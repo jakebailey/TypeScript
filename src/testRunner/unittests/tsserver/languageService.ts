@@ -19,7 +19,10 @@ describe("unittests:: tsserver:: languageService", () => {
             path: "/a/b/app.ts",
             content: "let x = 1;",
         };
-        const host = createServerHost([lib, f], { executingFilePath: "/a/Lib/tsc.js", useCaseSensitiveFileNames: true });
+        const host = createServerHost([lib, f], {
+            executingFilePath: "/a/Lib/tsc.js",
+            useCaseSensitiveFileNames: true,
+        });
         const projectService = createProjectService(host, { logger: createLoggerWithInMemoryLogs(host) });
         projectService.openClientFile(f.path);
         projectService.inferredProjects[0].getLanguageService().getProgram();
@@ -36,7 +39,8 @@ describe("unittests:: tsserver:: languageService", () => {
             },
             {
                 path: `/project/a/tsconfig.json`,
-                content: `{ "compilerOptions": { "paths": { "foo": ["./foo.d.ts"] } }, "files": ["./index.ts", "./foo.d.ts"] }`,
+                content:
+                    `{ "compilerOptions": { "paths": { "foo": ["./foo.d.ts"] } }, "files": ["./index.ts", "./foo.d.ts"] }`,
             },
             {
                 path: `/project/a/foo.d.ts`,
@@ -50,7 +54,8 @@ describe("unittests:: tsserver:: languageService", () => {
             },
             {
                 path: `/project/b/tsconfig.json`,
-                content: `{ "compilerOptions": { "paths": { "foo": ["./foo.d.ts"] } }, "files": ["./index.ts", "./foo.d.ts"] }`,
+                content:
+                    `{ "compilerOptions": { "paths": { "foo": ["./foo.d.ts"] } }, "files": ["./index.ts", "./foo.d.ts"] }`,
             },
             {
                 path: `/project/b/foo.d.ts`,
@@ -72,14 +77,20 @@ describe("unittests:: tsserver:: languageService", () => {
             projectService,
             `getSemanticDiagnostics:: ${files[1].path}`,
             projectService.configuredProjects.get(files[1].path)!,
-            projectService.configuredProjects.get(files[1].path)!.getLanguageService().getProgram()!.getSemanticDiagnostics(),
+            projectService.configuredProjects.get(files[1].path)!.getLanguageService().getProgram()!
+                .getSemanticDiagnostics(),
         );
         logDiagnostics(
             projectService,
             `getSemanticDiagnostics:: ${files[4].path}`,
             projectService.configuredProjects.get(files[4].path)!,
-            projectService.configuredProjects.get(files[4].path)!.getLanguageService().getProgram()!.getSemanticDiagnostics(),
+            projectService.configuredProjects.get(files[4].path)!.getLanguageService().getProgram()!
+                .getSemanticDiagnostics(),
         );
-        baselineTsserverLogs("languageService", "should support multiple projects with the same file under differing paths settings", projectService);
+        baselineTsserverLogs(
+            "languageService",
+            "should support multiple projects with the same file under differing paths settings",
+            projectService,
+        );
     });
 });

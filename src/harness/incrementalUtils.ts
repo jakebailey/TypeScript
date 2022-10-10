@@ -6,17 +6,26 @@ export function reportDocumentRegistryStats(documentRegistry: ts.DocumentRegistr
         str.push(`  Key:: ${key}`);
         bucketEntries.forEach((entry, path) => {
             if (ts.isDocumentRegistryEntry(entry)) {
-                str.push(`    ${path}: ${ts.Debug.formatScriptKind(entry.sourceFile.scriptKind)} ${entry.languageServiceRefCount}`);
+                str.push(
+                    `    ${path}: ${
+                        ts.Debug.formatScriptKind(entry.sourceFile.scriptKind)
+                    } ${entry.languageServiceRefCount}`,
+                );
             }
             else {
-                entry.forEach((real, kind) => str.push(`    ${path}: ${ts.Debug.formatScriptKind(kind)} ${real.languageServiceRefCount}`));
+                entry.forEach((real, kind) =>
+                    str.push(`    ${path}: ${ts.Debug.formatScriptKind(kind)} ${real.languageServiceRefCount}`)
+                );
             }
         });
     });
     return str;
 }
 
-type DocumentRegistryExpectedStats = Map<ts.DocumentRegistryBucketKeyWithMode, Map<ts.Path, Map<ts.ScriptKind, number>>>;
+type DocumentRegistryExpectedStats = Map<
+    ts.DocumentRegistryBucketKeyWithMode,
+    Map<ts.Path, Map<ts.ScriptKind, number>>
+>;
 function verifyDocumentRegistryStats(
     documentRegistry: ts.DocumentRegistry,
     stats: DocumentRegistryExpectedStats,
@@ -27,8 +36,11 @@ function verifyDocumentRegistryStats(
             const expected = statsByPath?.get(path);
             if (ts.isDocumentRegistryEntry(entry)) {
                 ts.Debug.assert(
-                    expected?.size === 1 && expected.has(entry.sourceFile.scriptKind) && expected.get(entry.sourceFile.scriptKind) === entry.languageServiceRefCount,
-                    `Document registry has unexpected language service ref count for ${key} ${path} ${ts.Debug.formatScriptKind(entry.sourceFile.scriptKind)} ${entry.languageServiceRefCount}`,
+                    expected?.size === 1 && expected.has(entry.sourceFile.scriptKind)
+                        && expected.get(entry.sourceFile.scriptKind) === entry.languageServiceRefCount,
+                    `Document registry has unexpected language service ref count for ${key} ${path} ${
+                        ts.Debug.formatScriptKind(entry.sourceFile.scriptKind)
+                    } ${entry.languageServiceRefCount}`,
                     reportStats,
                 );
             }
@@ -36,14 +48,18 @@ function verifyDocumentRegistryStats(
                 entry.forEach((real, kind) =>
                     ts.Debug.assert(
                         real.languageServiceRefCount === expected?.get(kind),
-                        `Document registry has unexpected language service ref count for ${key} ${path} ${ts.Debug.formatScriptKind(kind)} ${real.languageServiceRefCount}`,
+                        `Document registry has unexpected language service ref count for ${key} ${path} ${
+                            ts.Debug.formatScriptKind(kind)
+                        } ${real.languageServiceRefCount}`,
                         reportStats,
                     )
                 );
                 expected?.forEach((value, kind) =>
                     ts.Debug.assert(
                         entry.has(kind),
-                        `Document registry expected language service ref count for ${key} ${path} ${ts.Debug.formatScriptKind(kind)} ${value}`,
+                        `Document registry expected language service ref count for ${key} ${path} ${
+                            ts.Debug.formatScriptKind(kind)
+                        } ${value}`,
                         reportStats,
                     )
                 );
@@ -70,7 +86,11 @@ function verifyDocumentRegistryStats(
         str.push("Expected::");
         stats?.forEach((statsByPath, key) => {
             str.push(`  Key:: ${key}`);
-            statsByPath.forEach((entry, path) => entry.forEach((refCount, kind) => str.push(`    ${path}: ${ts.Debug.formatScriptKind(kind)} ${refCount}`)));
+            statsByPath.forEach((entry, path) =>
+                entry.forEach((refCount, kind) =>
+                    str.push(`    ${path}: ${ts.Debug.formatScriptKind(kind)} ${refCount}`)
+                )
+            );
         });
         return str.join("\n");
     }

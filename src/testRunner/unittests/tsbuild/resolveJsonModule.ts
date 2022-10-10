@@ -68,7 +68,13 @@ export default hello.hello`,
         subScenario: "sourcemap",
         fs: () => projFs,
         commandLineArgs: ["--b", "src/tsconfig_withFiles.json", "--verbose", "--explainFiles"],
-        modifyFs: fs => replaceText(fs, "src/tsconfig_withFiles.json", `"composite": true,`, `"composite": true, "sourceMap": true,`),
+        modifyFs: fs =>
+            replaceText(
+                fs,
+                "src/tsconfig_withFiles.json",
+                `"composite": true,`,
+                `"composite": true, "sourceMap": true,`,
+            ),
         edits: noChangeOnlyRuns,
     });
 

@@ -25,7 +25,10 @@ describe("unittests:: tsbuildWatch:: watchMode:: with demo project", () => {
         zooFiles = subProjectFiles("zoo", ["tsconfig.json", "zoo.ts"]);
         solutionFile = projectFile("tsconfig.json");
         baseConfig = projectFile("tsconfig-base.json");
-        allFiles = [...coreFiles, ...animalFiles, ...zooFiles, solutionFile, baseConfig, { path: libFile.path, content: libContent }];
+        allFiles = [...coreFiles, ...animalFiles, ...zooFiles, solutionFile, baseConfig, {
+            path: libFile.path,
+            content: libContent,
+        }];
     });
 
     after(() => {

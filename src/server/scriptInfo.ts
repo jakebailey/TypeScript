@@ -175,9 +175,9 @@ export class TextStorage {
      * returns true if text changed
      */
     public reloadWithFileText(tempFileName?: string) {
-        const { text: newText, fileSize } = tempFileName || !this.info.isDynamicOrHasMixedContent() ?
-            this.getFileTextAndSize(tempFileName) :
-            { text: "", fileSize: undefined };
+        const { text: newText, fileSize } = tempFileName || !this.info.isDynamicOrHasMixedContent()
+            ? this.getFileTextAndSize(tempFileName)
+            : { text: "", fileSize: undefined };
         const reloaded = this.reload(newText);
         this.fileSize = fileSize; // NB: after reload since reload clears it
         this.ownFileText = !tempFileName || tempFileName === this.info.fileName;
@@ -189,9 +189,9 @@ export class TextStorage {
      * returns true when scheduling reload
      */
     public scheduleReloadIfNeeded() {
-        return !this.pendingReloadFromDisk && !this.ownFileText ?
-            this.pendingReloadFromDisk = true :
-            false;
+        return !this.pendingReloadFromDisk && !this.ownFileText
+            ? this.pendingReloadFromDisk = true
+            : false;
     }
 
     public delayReloadFromFileIntoText() {
@@ -216,20 +216,20 @@ export class TextStorage {
     }
 
     public getSnapshot(): IScriptSnapshot {
-        return this.tryUseScriptVersionCache()?.getSnapshot() ||
-            (this.textSnapshot ??= ScriptSnapshot.fromString(Debug.checkDefined(this.text)));
+        return this.tryUseScriptVersionCache()?.getSnapshot()
+            || (this.textSnapshot ??= ScriptSnapshot.fromString(Debug.checkDefined(this.text)));
     }
 
     public getAbsolutePositionAndLineText(oneBasedLine: number): AbsolutePositionAndLineText {
         const svc = this.tryUseScriptVersionCache();
         if (svc) return svc.getAbsolutePositionAndLineText(oneBasedLine);
         const lineMap = this.getLineMap();
-        return oneBasedLine <= lineMap.length ?
-            {
+        return oneBasedLine <= lineMap.length
+            ? {
                 absolutePosition: lineMap[oneBasedLine - 1],
                 lineText: this.text!.substring(lineMap[oneBasedLine - 1], lineMap[oneBasedLine]),
-            } :
-            {
+            }
+            : {
                 absolutePosition: this.text!.length,
                 lineText: undefined,
             };
@@ -252,9 +252,9 @@ export class TextStorage {
      */
     lineOffsetToPosition(line: number, offset: number, allowEdits?: true): number {
         const svc = this.tryUseScriptVersionCache();
-        return svc ?
-            svc.lineOffsetToPosition(line, offset) :
-            computePositionOfLineAndCharacter(this.getLineMap(), line - 1, offset - 1, this.text, allowEdits);
+        return svc
+            ? svc.lineOffsetToPosition(line, offset)
+            : computePositionOfLineAndCharacter(this.getLineMap(), line - 1, offset - 1, this.text, allowEdits);
     }
 
     positionToLineOffset(position: number): protocol.Location {
@@ -274,7 +274,9 @@ export class TextStorage {
             if (fileSize > maxFileSize) {
                 Debug.assert(!!this.info.containingProjects.length);
                 const service = this.info.containingProjects[0].projectService;
-                service.logger.info(`Skipped loading contents of large file ${fileName} for info ${this.info.fileName}: fileSize: ${fileSize}`);
+                service.logger.info(
+                    `Skipped loading contents of large file ${fileName} for info ${this.info.fileName}: fileSize: ${fileSize}`,
+                );
                 this.info.containingProjects[0].projectService.sendLargeFileReferencedEvent(fileName, fileSize);
                 return { text: "", fileSize };
             }
@@ -313,7 +315,10 @@ export class TextStorage {
 
     private getOrLoadText() {
         if (this.text === undefined || this.pendingReloadFromDisk) {
-            Debug.assert(!this.svc || this.pendingReloadFromDisk, "ScriptVersionCache should not be set when reloading from disk");
+            Debug.assert(
+                !this.svc || this.pendingReloadFromDisk,
+                "ScriptVersionCache should not be set when reloading from disk",
+            );
             this.reloadWithFileText();
         }
         return this.text!;
@@ -338,10 +343,10 @@ export class TextStorage {
 }
 
 export function isDynamicFileName(fileName: NormalizedPath) {
-    return fileName[0] === "^" ||
-        ((stringContains(fileName, "walkThroughSnippet:/") || stringContains(fileName, "untitled:/")) &&
-            getBaseFileName(fileName)[0] === "^") ||
-        (stringContains(fileName, ":^") && !stringContains(fileName, directorySeparator));
+    return fileName[0] === "^"
+        || ((stringContains(fileName, "walkThroughSnippet:/") || stringContains(fileName, "untitled:/"))
+            && getBaseFileName(fileName)[0] === "^")
+        || (stringContains(fileName, ":^") && !stringContains(fileName, directorySeparator));
 }
 
 /** @internal */
@@ -430,8 +435,8 @@ export class ScriptInfo {
     public open(newText: string | undefined) {
         this.textStorage.isOpen = true;
         if (
-            newText !== undefined &&
-            this.textStorage.reload(newText)
+            newText !== undefined
+            && this.textStorage.reload(newText)
         ) {
             // reload new contents only if the existing contents changed
             this.markContainingProjectsAsDirty();
@@ -547,7 +552,11 @@ export class ScriptInfo {
     detachAllProjects() {
         for (const p of this.containingProjects) {
             if (isConfiguredProject(p)) {
-                p.getCachedDirectoryStructureHost().addOrDeleteFile(this.fileName, this.path, FileWatcherEventKind.Deleted);
+                p.getCachedDirectoryStructureHost().addOrDeleteFile(
+                    this.fileName,
+                    this.path,
+                    FileWatcherEventKind.Deleted,
+                );
             }
             const existingRoot = p.getRootFilesMap().get(this.path);
             // detach is unnecessary since we'll clean the list of containing projects anyways
@@ -587,13 +596,16 @@ export class ScriptInfo {
                             // If we havent found default configuredProject and
                             // its not the last one, find it and use that one if there
                             if (
-                                defaultConfiguredProject === undefined &&
-                                index !== this.containingProjects.length - 1
+                                defaultConfiguredProject === undefined
+                                && index !== this.containingProjects.length - 1
                             ) {
-                                defaultConfiguredProject = project.projectService.findDefaultConfiguredProject(this) || false;
+                                defaultConfiguredProject = project.projectService.findDefaultConfiguredProject(this)
+                                    || false;
                             }
                             if (defaultConfiguredProject === project) return project;
-                            if (!firstNonSourceOfProjectReferenceRedirect) firstNonSourceOfProjectReferenceRedirect = project;
+                            if (!firstNonSourceOfProjectReferenceRedirect) {
+                                firstNonSourceOfProjectReferenceRedirect = project;
+                            }
                         }
                         if (!firstConfiguredProject) firstConfiguredProject = project;
                     }
@@ -605,11 +617,11 @@ export class ScriptInfo {
                     }
                 }
                 return ensurePrimaryProjectKind(
-                    defaultConfiguredProject ||
-                        firstNonSourceOfProjectReferenceRedirect ||
-                        firstConfiguredProject ||
-                        firstExternalProject ||
-                        firstInferredProject,
+                    defaultConfiguredProject
+                        || firstNonSourceOfProjectReferenceRedirect
+                        || firstConfiguredProject
+                        || firstExternalProject
+                        || firstInferredProject,
                 );
         }
     }
@@ -731,7 +743,10 @@ export class ScriptInfo {
  * reported as the default project for a ScriptInfo.
  */
 function ensurePrimaryProjectKind(project: Project | undefined) {
-    if (!project || project.projectKind === ProjectKind.AutoImportProvider || project.projectKind === ProjectKind.Auxiliary) {
+    if (
+        !project || project.projectKind === ProjectKind.AutoImportProvider
+        || project.projectKind === ProjectKind.Auxiliary
+    ) {
         return Errors.ThrowNoProject();
     }
     return project;

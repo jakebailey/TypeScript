@@ -51,7 +51,10 @@ const mobxDts: File = {
 describe("unittests:: tsserver:: moduleSpecifierCache", () => {
     it("caches importability within a file", () => {
         const { session, moduleSpecifierCache } = setup();
-        session.logger.info(`importability: ${moduleSpecifierCache.get(bTs.path as ts.Path, aTs.path as ts.Path, {}, {})?.isBlockedByPackageJsonDependencies}`);
+        session.logger.info(
+            `importability: ${moduleSpecifierCache.get(bTs.path as ts.Path, aTs.path as ts.Path, {}, {})
+                ?.isBlockedByPackageJsonDependencies}`,
+        );
         baselineTsserverLogs("moduleSpecifierCache", "caches importability within a file", session);
     });
 
@@ -59,7 +62,15 @@ describe("unittests:: tsserver:: moduleSpecifierCache", () => {
         const { session, moduleSpecifierCache, triggerCompletions } = setup();
         // Completion at an import statement will calculate and cache module specifiers
         triggerCompletions({ file: cTs.path, line: 1, offset: cTs.content.length + 1 });
-        session.logger.info(`mobxCache: ${JSON.stringify(moduleSpecifierCache.get(cTs.path as ts.Path, mobxDts.path as ts.Path, {}, {}), undefined, " ")}`);
+        session.logger.info(
+            `mobxCache: ${
+                JSON.stringify(
+                    moduleSpecifierCache.get(cTs.path as ts.Path, mobxDts.path as ts.Path, {}, {}),
+                    undefined,
+                    " ",
+                )
+            }`,
+        );
         baselineTsserverLogs("moduleSpecifierCache", "caches module specifiers within a file", session);
     });
 
@@ -70,14 +81,21 @@ describe("unittests:: tsserver:: moduleSpecifierCache", () => {
         host.writeFile("/node_modules/.staging/mobx-12345678/package.json", "{}");
         host.runQueuedTimeoutCallbacks();
         assert.equal(moduleSpecifierCache.count(), 0);
-        baselineTsserverLogs("moduleSpecifierCache", "invalidates module specifiers when changes happen in contained node_modules directories", session);
+        baselineTsserverLogs(
+            "moduleSpecifierCache",
+            "invalidates module specifiers when changes happen in contained node_modules directories",
+            session,
+        );
     });
 
     it("does not invalidate the cache when new files are added", () => {
         const { session, host, moduleSpecifierCache } = setup();
         host.writeFile("/src/a2.ts", aTs.content);
         host.runQueuedTimeoutCallbacks();
-        session.logger.info(`importability: ${moduleSpecifierCache.get(bTs.path as ts.Path, aTs.path as ts.Path, {}, {})?.isBlockedByPackageJsonDependencies}`);
+        session.logger.info(
+            `importability: ${moduleSpecifierCache.get(bTs.path as ts.Path, aTs.path as ts.Path, {}, {})
+                ?.isBlockedByPackageJsonDependencies}`,
+        );
         baselineTsserverLogs("moduleSpecifierCache", "does not invalidate the cache when new files are added", session);
     });
 
@@ -86,7 +104,11 @@ describe("unittests:: tsserver:: moduleSpecifierCache", () => {
         host.renameFile(bSymlink.path, "/src/b-link2.ts");
         host.runQueuedTimeoutCallbacks();
         session.logger.info(`moduleSpecifierCache count: ${moduleSpecifierCache.count()}`);
-        baselineTsserverLogs("moduleSpecifierCache", "invalidates the cache when symlinks are added or removed", session);
+        baselineTsserverLogs(
+            "moduleSpecifierCache",
+            "invalidates the cache when symlinks are added or removed",
+            session,
+        );
     });
 
     it("invalidates the cache when local package.json changes", () => {
@@ -102,7 +124,11 @@ describe("unittests:: tsserver:: moduleSpecifierCache", () => {
         host.writeFile(tsconfig.path, `{ "compilerOptions": { "moduleResolution": "classic" }, "include": ["src"] }`);
         host.runQueuedTimeoutCallbacks();
         session.logger.info(`moduleSpecifierCache count: ${moduleSpecifierCache.count()}`);
-        baselineTsserverLogs("moduleSpecifierCache", "invalidates the cache when module resolution settings change", session);
+        baselineTsserverLogs(
+            "moduleSpecifierCache",
+            "invalidates the cache when module resolution settings change",
+            session,
+        );
     });
 
     it("invalidates the cache when user preferences change", () => {
@@ -132,13 +158,31 @@ describe("unittests:: tsserver:: moduleSpecifierCache", () => {
         baselineTsserverLogs("moduleSpecifierCache", "invalidates the cache when user preferences change", session);
 
         function getWithPreferences(preferences: ts.UserPreferences) {
-            session.logger.info(`moduleSpecifierCache for ${JSON.stringify(preferences)} (${bTs.path} -> ${aTs.path}) ${JSON.stringify(moduleSpecifierCache.get(bTs.path as ts.Path, aTs.path as ts.Path, preferences, {}), undefined, " ")}`);
+            session.logger.info(
+                `moduleSpecifierCache for ${JSON.stringify(preferences)} (${bTs.path} -> ${aTs.path}) ${
+                    JSON.stringify(
+                        moduleSpecifierCache.get(bTs.path as ts.Path, aTs.path as ts.Path, preferences, {}),
+                        undefined,
+                        " ",
+                    )
+                }`,
+            );
         }
     });
 });
 
 function setup() {
-    const host = createServerHost([aTs, bTs, cTs, bSymlink, ambientDeclaration, tsconfig, packageJson, mobxPackageJson, mobxDts]);
+    const host = createServerHost([
+        aTs,
+        bTs,
+        cTs,
+        bSymlink,
+        ambientDeclaration,
+        tsconfig,
+        packageJson,
+        mobxPackageJson,
+        mobxDts,
+    ]);
     const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
     openFilesForSession([aTs, bTs, cTs], session);
     const projectService = session.getProjectService();
@@ -156,7 +200,14 @@ function setup() {
     });
     triggerCompletions({ file: bTs.path, line: 1, offset: 3 });
 
-    return { host, project, projectService, session, moduleSpecifierCache: project.getModuleSpecifierCache(), triggerCompletions };
+    return {
+        host,
+        project,
+        projectService,
+        session,
+        moduleSpecifierCache: project.getModuleSpecifierCache(),
+        triggerCompletions,
+    };
 
     function triggerCompletions(requestLocation: ts.server.protocol.FileLocationRequestArgs) {
         session.executeCommandSeq<ts.server.protocol.CompletionsRequest>({

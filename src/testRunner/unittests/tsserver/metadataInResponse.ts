@@ -59,7 +59,11 @@ describe("unittests:: tsserver:: with metadataInResponse::", () => {
                 command: ts.server.protocol.CommandTypes.Completions,
                 arguments: completionRequestArgs,
             });
-            baselineTsserverLogs("metadataInResponse", "can pass through metadata when the command returns array", session);
+            baselineTsserverLogs(
+                "metadataInResponse",
+                "can pass through metadata when the command returns array",
+                session,
+            );
         });
 
         it("can pass through metadata when the command returns object", () => {
@@ -70,7 +74,11 @@ describe("unittests:: tsserver:: with metadataInResponse::", () => {
                 command: ts.server.protocol.CommandTypes.CompletionInfo,
                 arguments: completionRequestArgs,
             });
-            baselineTsserverLogs("metadataInResponse", "can pass through metadata when the command returns object", session);
+            baselineTsserverLogs(
+                "metadataInResponse",
+                "can pass through metadata when the command returns object",
+                session,
+            );
         });
 
         it("returns undefined correctly", () => {

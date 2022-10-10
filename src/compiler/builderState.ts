@@ -45,7 +45,14 @@ export function getFileEmitOutput(
     forceDtsEmit?: boolean,
 ): EmitOutput {
     const outputFiles: OutputFile[] = [];
-    const { emitSkipped, diagnostics } = program.emit(sourceFile, writeFile, cancellationToken, emitOnlyDtsFiles, customTransformers, forceDtsEmit);
+    const { emitSkipped, diagnostics } = program.emit(
+        sourceFile,
+        writeFile,
+        cancellationToken,
+        emitOnlyDtsFiles,
+        customTransformers,
+        forceDtsEmit,
+    );
     return { outputFiles, emitSkipped, diagnostics };
 
     function writeFile(fileName: string, text: string, writeByteOrderMark: boolean) {
@@ -124,7 +131,11 @@ export namespace BuilderState {
     }
 
     export function createManyToManyPathMap(): ManyToManyPathMap {
-        function create(forward: Map<Path, ReadonlySet<Path>>, reverse: Map<Path, Set<Path>>, deleted: Set<Path> | undefined): ManyToManyPathMap {
+        function create(
+            forward: Map<Path, ReadonlySet<Path>>,
+            reverse: Map<Path, Set<Path>>,
+            deleted: Set<Path> | undefined,
+        ): ManyToManyPathMap {
             const map: ManyToManyPathMap = {
                 getKeys: v => reverse.get(v),
                 getValues: k => forward.get(k),
@@ -199,7 +210,10 @@ export namespace BuilderState {
     /**
      * Get the module source file and all augmenting files from the import name node from file
      */
-    function getReferencedFilesFromImportLiteral(checker: TypeChecker, importName: StringLiteralLike): Path[] | undefined {
+    function getReferencedFilesFromImportLiteral(
+        checker: TypeChecker,
+        importName: StringLiteralLike,
+    ): Path[] | undefined {
         const symbol = checker.getSymbolAtLocation(importName);
         return symbol && getReferencedFilesFromImportedModuleSymbol(symbol);
     }
@@ -207,14 +221,27 @@ export namespace BuilderState {
     /**
      * Gets the path to reference file from file name, it could be resolvedPath if present otherwise path
      */
-    function getReferencedFileFromFileName(program: Program, fileName: string, sourceFileDirectory: Path, getCanonicalFileName: GetCanonicalFileName): Path {
-        return toPath(program.getProjectReferenceRedirect(fileName) || fileName, sourceFileDirectory, getCanonicalFileName);
+    function getReferencedFileFromFileName(
+        program: Program,
+        fileName: string,
+        sourceFileDirectory: Path,
+        getCanonicalFileName: GetCanonicalFileName,
+    ): Path {
+        return toPath(
+            program.getProjectReferenceRedirect(fileName) || fileName,
+            sourceFileDirectory,
+            getCanonicalFileName,
+        );
     }
 
     /**
      * Gets the referenced files for a file from the program with values for the keys as referenced file's path to be true
      */
-    function getReferencedFiles(program: Program, sourceFile: SourceFile, getCanonicalFileName: GetCanonicalFileName): Set<Path> | undefined {
+    function getReferencedFiles(
+        program: Program,
+        sourceFile: SourceFile,
+        getCanonicalFileName: GetCanonicalFileName,
+    ): Set<Path> | undefined {
         let referencedFiles: Set<Path> | undefined;
 
         // We need to use a set here since the code can contain the same import twice,
@@ -232,7 +259,12 @@ export namespace BuilderState {
         // Handle triple slash references
         if (sourceFile.referencedFiles && sourceFile.referencedFiles.length > 0) {
             for (const referencedFile of sourceFile.referencedFiles) {
-                const referencedPath = getReferencedFileFromFileName(program, referencedFile.fileName, sourceFileDirectory, getCanonicalFileName);
+                const referencedPath = getReferencedFileFromFileName(
+                    program,
+                    referencedFile.fileName,
+                    sourceFileDirectory,
+                    getCanonicalFileName,
+                );
                 addReferencedFile(referencedPath);
             }
         }
@@ -245,7 +277,12 @@ export namespace BuilderState {
                 }
 
                 const fileName = resolvedTypeReferenceDirective.resolvedFileName!; // TODO: GH#18217
-                const typeFilePath = getReferencedFileFromFileName(program, fileName, sourceFileDirectory, getCanonicalFileName);
+                const typeFilePath = getReferencedFileFromFileName(
+                    program,
+                    fileName,
+                    sourceFileDirectory,
+                    getCanonicalFileName,
+                );
                 addReferencedFile(typeFilePath);
             });
         }
@@ -280,8 +317,8 @@ export namespace BuilderState {
             for (const declaration of symbol.declarations) {
                 const declarationSourceFile = getSourceFileOfNode(declaration);
                 if (
-                    declarationSourceFile &&
-                    declarationSourceFile !== sourceFile
+                    declarationSourceFile
+                    && declarationSourceFile !== sourceFile
                 ) {
                     addReferencedFile(declarationSourceFile.resolvedPath);
                 }
@@ -296,19 +333,26 @@ export namespace BuilderState {
     /**
      * Returns true if oldState is reusable, that is the emitKind = module/non module has not changed
      */
-    export function canReuseOldState(newReferencedMap: ReadonlyManyToManyPathMap | undefined, oldState: BuilderState | undefined) {
+    export function canReuseOldState(
+        newReferencedMap: ReadonlyManyToManyPathMap | undefined,
+        oldState: BuilderState | undefined,
+    ) {
         return oldState && !oldState.referencedMap === !newReferencedMap;
     }
 
     /**
      * Creates the state of file references and signature for the new program from oldState if it is safe
      */
-    export function create(newProgram: Program, oldState: Readonly<BuilderState> | undefined, disableUseFileVersionAsSignature: boolean): BuilderState {
+    export function create(
+        newProgram: Program,
+        oldState: Readonly<BuilderState> | undefined,
+        disableUseFileVersionAsSignature: boolean,
+    ): BuilderState {
         const fileInfos = new Map<Path, FileInfo>();
         const options = newProgram.getCompilerOptions();
         const isOutFile = outFile(options);
-        const referencedMap = options.module !== ModuleKind.None && !isOutFile ?
-            createManyToManyPathMap() : undefined;
+        const referencedMap = options.module !== ModuleKind.None && !isOutFile
+            ? createManyToManyPathMap() : undefined;
         const exportedModulesMap = referencedMap ? createManyToManyPathMap() : undefined;
         const useOldState = canReuseOldState(referencedMap, oldState);
 
@@ -317,11 +361,15 @@ export namespace BuilderState {
 
         // Create the reference map, and set the file infos
         for (const sourceFile of newProgram.getSourceFiles()) {
-            const version = Debug.checkDefined(sourceFile.version, "Program intended to be used with Builder should have source files with versions set");
-            const oldUncommittedSignature = useOldState ? oldState!.oldSignatures?.get(sourceFile.resolvedPath) : undefined;
-            const signature = oldUncommittedSignature === undefined ?
-                useOldState ? oldState!.fileInfos.get(sourceFile.resolvedPath)?.signature : undefined :
-                oldUncommittedSignature || undefined;
+            const version = Debug.checkDefined(
+                sourceFile.version,
+                "Program intended to be used with Builder should have source files with versions set",
+            );
+            const oldUncommittedSignature = useOldState ? oldState!.oldSignatures?.get(sourceFile.resolvedPath)
+                : undefined;
+            const signature = oldUncommittedSignature === undefined
+                ? useOldState ? oldState!.fileInfos.get(sourceFile.resolvedPath)?.signature : undefined
+                : oldUncommittedSignature || undefined;
             if (referencedMap) {
                 const newReferences = getReferencedFiles(newProgram, sourceFile, newProgram.getCanonicalFileName);
                 if (newReferences) {
@@ -330,9 +378,9 @@ export namespace BuilderState {
                 // Copy old visible to outside files map
                 if (useOldState) {
                     const oldUncommittedExportedModules = oldState!.oldExportedModulesMap?.get(sourceFile.resolvedPath);
-                    const exportedModules = oldUncommittedExportedModules === undefined ?
-                        oldState!.exportedModulesMap!.getValues(sourceFile.resolvedPath) :
-                        oldUncommittedExportedModules || undefined;
+                    const exportedModules = oldUncommittedExportedModules === undefined
+                        ? oldState!.exportedModulesMap!.getValues(sourceFile.resolvedPath)
+                        : oldUncommittedExportedModules || undefined;
                     if (exportedModules) {
                         exportedModulesMap!.set(sourceFile.resolvedPath, exportedModules);
                     }
@@ -401,7 +449,14 @@ export namespace BuilderState {
             return [sourceFile];
         }
 
-        return (state.referencedMap ? getFilesAffectedByUpdatedShapeWhenModuleEmit : getFilesAffectedByUpdatedShapeWhenNonModuleEmit)(state, programOfThisState, sourceFile, cancellationToken, host);
+        return (state.referencedMap ? getFilesAffectedByUpdatedShapeWhenModuleEmit
+            : getFilesAffectedByUpdatedShapeWhenNonModuleEmit)(
+                state,
+                programOfThisState,
+                sourceFile,
+                cancellationToken,
+                host,
+            );
     }
 
     export function updateSignatureOfFile(state: BuilderState, signature: string | undefined, path: Path) {
@@ -419,7 +474,10 @@ export namespace BuilderState {
         programOfThisState.emit(
             sourceFile,
             (fileName, text, _writeByteOrderMark, _onError, sourceFiles, data) => {
-                Debug.assert(isDeclarationFileName(fileName), `File extension for signature expected to be dts: Got:: ${fileName}`);
+                Debug.assert(
+                    isDeclarationFileName(fileName),
+                    `File extension for signature expected to be dts: Got:: ${fileName}`,
+                );
                 onNewSignature(
                     computeSignatureWithDiagnostics(
                         programOfThisState,
@@ -467,9 +525,13 @@ export namespace BuilderState {
         if (latestSignature === undefined) {
             latestSignature = sourceFile.version;
             if (state.exportedModulesMap && latestSignature !== prevSignature) {
-                (state.oldExportedModulesMap ||= new Map()).set(sourceFile.resolvedPath, state.exportedModulesMap.getValues(sourceFile.resolvedPath) || false);
+                (state.oldExportedModulesMap ||= new Map()).set(
+                    sourceFile.resolvedPath,
+                    state.exportedModulesMap.getValues(sourceFile.resolvedPath) || false,
+                );
                 // All the references in this file are exported
-                const references = state.referencedMap ? state.referencedMap.getValues(sourceFile.resolvedPath) : undefined;
+                const references = state.referencedMap ? state.referencedMap.getValues(sourceFile.resolvedPath)
+                    : undefined;
                 if (references) {
                     state.exportedModulesMap.set(sourceFile.resolvedPath, references);
                 }
@@ -487,9 +549,16 @@ export namespace BuilderState {
     /**
      * Coverts the declaration emit result into exported modules map
      */
-    export function updateExportedModules(state: BuilderState, sourceFile: SourceFile, exportedModulesFromDeclarationEmit: ExportedModulesFromDeclarationEmit | undefined) {
+    export function updateExportedModules(
+        state: BuilderState,
+        sourceFile: SourceFile,
+        exportedModulesFromDeclarationEmit: ExportedModulesFromDeclarationEmit | undefined,
+    ) {
         if (!state.exportedModulesMap) return;
-        (state.oldExportedModulesMap ||= new Map()).set(sourceFile.resolvedPath, state.exportedModulesMap.getValues(sourceFile.resolvedPath) || false);
+        (state.oldExportedModulesMap ||= new Map()).set(
+            sourceFile.resolvedPath,
+            state.exportedModulesMap.getValues(sourceFile.resolvedPath) || false,
+        );
         const exportedModules = getExportedModules(exportedModulesFromDeclarationEmit);
         if (exportedModules) {
             state.exportedModulesMap.set(sourceFile.resolvedPath, exportedModules);
@@ -499,7 +568,9 @@ export namespace BuilderState {
         }
     }
 
-    export function getExportedModules(exportedModulesFromDeclarationEmit: ExportedModulesFromDeclarationEmit | undefined) {
+    export function getExportedModules(
+        exportedModulesFromDeclarationEmit: ExportedModulesFromDeclarationEmit | undefined,
+    ) {
         let exportedModules: Set<Path> | undefined;
         exportedModulesFromDeclarationEmit?.forEach(
             symbol =>
@@ -513,7 +584,11 @@ export namespace BuilderState {
     /**
      * Get all the dependencies of the sourceFile
      */
-    export function getAllDependencies(state: BuilderState, programOfThisState: Program, sourceFile: SourceFile): readonly string[] {
+    export function getAllDependencies(
+        state: BuilderState,
+        programOfThisState: Program,
+        sourceFile: SourceFile,
+    ): readonly string[] {
         const compilerOptions = programOfThisState.getCompilerOptions();
         // With --out or --outFile all outputs go into single file, all files depend on each other
         if (outFile(compilerOptions)) {
@@ -541,7 +616,9 @@ export namespace BuilderState {
             }
         }
 
-        return arrayFrom(mapDefinedIterator(seenMap.keys(), path => programOfThisState.getSourceFileByPath(path)?.fileName ?? path));
+        return arrayFrom(
+            mapDefinedIterator(seenMap.keys(), path => programOfThisState.getSourceFileByPath(path)?.fileName ?? path),
+        );
     }
 
     /**
@@ -583,21 +660,29 @@ export namespace BuilderState {
      * they are global files as well as module
      */
     function containsGlobalScopeAugmentation(sourceFile: SourceFile) {
-        return some(sourceFile.moduleAugmentations, augmentation => isGlobalScopeAugmentation(augmentation.parent as ModuleDeclaration));
+        return some(
+            sourceFile.moduleAugmentations,
+            augmentation => isGlobalScopeAugmentation(augmentation.parent as ModuleDeclaration),
+        );
     }
 
     /**
      * Return true if the file will invalidate all files because it affectes global scope
      */
     function isFileAffectingGlobalScope(sourceFile: SourceFile) {
-        return containsGlobalScopeAugmentation(sourceFile) ||
-            !isExternalOrCommonJsModule(sourceFile) && !isJsonSourceFile(sourceFile) && !containsOnlyAmbientModules(sourceFile);
+        return containsGlobalScopeAugmentation(sourceFile)
+            || !isExternalOrCommonJsModule(sourceFile) && !isJsonSourceFile(sourceFile)
+                && !containsOnlyAmbientModules(sourceFile);
     }
 
     /**
      * Gets all files of the program excluding the default library file
      */
-    export function getAllFilesExcludingDefaultLibraryFile(state: BuilderState, programOfThisState: Program, firstSourceFile: SourceFile | undefined): readonly SourceFile[] {
+    export function getAllFilesExcludingDefaultLibraryFile(
+        state: BuilderState,
+        programOfThisState: Program,
+        firstSourceFile: SourceFile | undefined,
+    ): readonly SourceFile[] {
         // Use cached result
         if (state.allFilesExcludingDefaultLibraryFile) {
             return state.allFilesExcludingDefaultLibraryFile;
@@ -623,7 +708,11 @@ export namespace BuilderState {
     /**
      * When program emits non modular code, gets the files affected by the sourceFile whose shape has changed
      */
-    function getFilesAffectedByUpdatedShapeWhenNonModuleEmit(state: BuilderState, programOfThisState: Program, sourceFileWithUpdatedShape: SourceFile) {
+    function getFilesAffectedByUpdatedShapeWhenNonModuleEmit(
+        state: BuilderState,
+        programOfThisState: Program,
+        sourceFileWithUpdatedShape: SourceFile,
+    ) {
         const compilerOptions = programOfThisState.getCompilerOptions();
         // If `--out` or `--outFile` is specified, any new emit will result in re-emitting the entire project,
         // so returning the file itself is good enough.
@@ -665,7 +754,10 @@ export namespace BuilderState {
             if (!seenFileNamesMap.has(currentPath)) {
                 const currentSourceFile = programOfThisState.getSourceFileByPath(currentPath)!;
                 seenFileNamesMap.set(currentPath, currentSourceFile);
-                if (currentSourceFile && updateShapeSignature(state, programOfThisState, currentSourceFile, cancellationToken, host)) {
+                if (
+                    currentSourceFile
+                    && updateShapeSignature(state, programOfThisState, currentSourceFile, cancellationToken, host)
+                ) {
                     queue.push(...getReferencedByPaths(state, currentSourceFile.resolvedPath));
                 }
             }

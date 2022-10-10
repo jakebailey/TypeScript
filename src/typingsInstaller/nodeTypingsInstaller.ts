@@ -56,7 +56,11 @@ class FileLog implements Log {
 }
 
 /** Used if `--npmLocation` is not passed. */
-function getDefaultNPMLocation(processName: string, validateDefaultNpmLocation: boolean, host: InstallTypingHost): string {
+function getDefaultNPMLocation(
+    processName: string,
+    validateDefaultNpmLocation: boolean,
+    host: InstallTypingHost,
+): string {
     if (path.basename(processName).indexOf("node") === 0) {
         const npmPath = path.join(path.dirname(process.argv[0]), "npm");
         if (!validateDefaultNpmLocation) {
@@ -73,7 +77,11 @@ interface TypesRegistryFile {
     entries: MapLike<MapLike<string>>;
 }
 
-function loadTypesRegistryFile(typesRegistryFilePath: string, host: InstallTypingHost, log: Log): Map<string, MapLike<string>> {
+function loadTypesRegistryFile(
+    typesRegistryFilePath: string,
+    host: InstallTypingHost,
+    log: Log,
+): Map<string, MapLike<string>> {
     if (!host.fileExists(typesRegistryFilePath)) {
         if (log.isEnabled()) {
             log.writeLine(`Types registry file '${typesRegistryFilePath}' does not exist`);
@@ -86,7 +94,11 @@ function loadTypesRegistryFile(typesRegistryFilePath: string, host: InstallTypin
     }
     catch (e) {
         if (log.isEnabled()) {
-            log.writeLine(`Error when loading types registry file '${typesRegistryFilePath}': ${(e as Error).message}, ${(e as Error).stack}`);
+            log.writeLine(
+                `Error when loading types registry file '${typesRegistryFilePath}': ${(e as Error).message}, ${
+                    (e as Error).stack
+                }`,
+            );
         }
         return new Map<string, MapLike<string>>();
     }
@@ -94,7 +106,10 @@ function loadTypesRegistryFile(typesRegistryFilePath: string, host: InstallTypin
 
 const typesRegistryPackageName = "types-registry";
 function getTypesRegistryFileLocation(globalTypingsCacheLocation: string): string {
-    return combinePaths(normalizeSlashes(globalTypingsCacheLocation), `node_modules/${typesRegistryPackageName}/index.json`);
+    return combinePaths(
+        normalizeSlashes(globalTypingsCacheLocation),
+        `node_modules/${typesRegistryPackageName}/index.json`,
+    );
 }
 
 interface ExecSyncOptions {
@@ -110,17 +125,33 @@ export class NodeTypingsInstaller extends TypingsInstaller {
 
     private delayedInitializationError: InitializationFailedResponse | undefined;
 
-    constructor(globalTypingsCacheLocation: string, typingSafeListLocation: string, typesMapLocation: string, npmLocation: string | undefined, validateDefaultNpmLocation: boolean, throttleLimit: number, log: Log) {
+    constructor(
+        globalTypingsCacheLocation: string,
+        typingSafeListLocation: string,
+        typesMapLocation: string,
+        npmLocation: string | undefined,
+        validateDefaultNpmLocation: boolean,
+        throttleLimit: number,
+        log: Log,
+    ) {
         const libDirectory = getDirectoryPath(normalizePath(sys.getExecutingFilePath()));
         super(
             sys,
             globalTypingsCacheLocation,
-            typingSafeListLocation ? toPath(typingSafeListLocation, "", createGetCanonicalFileName(sys.useCaseSensitiveFileNames)) : toPath("typingSafeList.json", libDirectory, createGetCanonicalFileName(sys.useCaseSensitiveFileNames)),
-            typesMapLocation ? toPath(typesMapLocation, "", createGetCanonicalFileName(sys.useCaseSensitiveFileNames)) : toPath("typesMap.json", libDirectory, createGetCanonicalFileName(sys.useCaseSensitiveFileNames)),
+            typingSafeListLocation
+                ? toPath(typingSafeListLocation, "", createGetCanonicalFileName(sys.useCaseSensitiveFileNames))
+                : toPath(
+                    "typingSafeList.json",
+                    libDirectory,
+                    createGetCanonicalFileName(sys.useCaseSensitiveFileNames),
+                ),
+            typesMapLocation ? toPath(typesMapLocation, "", createGetCanonicalFileName(sys.useCaseSensitiveFileNames))
+                : toPath("typesMap.json", libDirectory, createGetCanonicalFileName(sys.useCaseSensitiveFileNames)),
             throttleLimit,
             log,
         );
-        this.npmPath = npmLocation !== undefined ? npmLocation : getDefaultNPMLocation(process.argv[0], validateDefaultNpmLocation, this.installTypingHost);
+        this.npmPath = npmLocation !== undefined ? npmLocation
+            : getDefaultNPMLocation(process.argv[0], validateDefaultNpmLocation, this.installTypingHost);
 
         // If the NPM path contains spaces and isn't wrapped in quotes, do so.
         if (stringContains(this.npmPath, " ") && this.npmPath[0] !== `"`) {
@@ -128,7 +159,11 @@ export class NodeTypingsInstaller extends TypingsInstaller {
         }
         if (this.log.isEnabled()) {
             this.log.writeLine(`Process id: ${process.pid}`);
-            this.log.writeLine(`NPM location: ${this.npmPath} (explicit '${Arguments.NpmLocation}' ${npmLocation === undefined ? "not " : ""} provided)`);
+            this.log.writeLine(
+                `NPM location: ${this.npmPath} (explicit '${Arguments.NpmLocation}' ${
+                    npmLocation === undefined ? "not " : ""
+                } provided)`,
+            );
             this.log.writeLine(`validateDefaultNpmLocation: ${validateDefaultNpmLocation}`);
         }
         ({ execSync: this.nodeExecSync } = require("child_process"));
@@ -139,7 +174,10 @@ export class NodeTypingsInstaller extends TypingsInstaller {
             if (this.log.isEnabled()) {
                 this.log.writeLine(`Updating ${typesRegistryPackageName} npm package...`);
             }
-            this.execSyncAndLog(`${this.npmPath} install --ignore-scripts ${typesRegistryPackageName}@${this.latestDistTag}`, { cwd: globalTypingsCacheLocation });
+            this.execSyncAndLog(
+                `${this.npmPath} install --ignore-scripts ${typesRegistryPackageName}@${this.latestDistTag}`,
+                { cwd: globalTypingsCacheLocation },
+            );
             if (this.log.isEnabled()) {
                 this.log.writeLine(`Updated ${typesRegistryPackageName} npm package`);
             }
@@ -156,7 +194,11 @@ export class NodeTypingsInstaller extends TypingsInstaller {
             };
         }
 
-        this.typesRegistry = loadTypesRegistryFile(getTypesRegistryFileLocation(globalTypingsCacheLocation), this.installTypingHost, this.log);
+        this.typesRegistry = loadTypesRegistryFile(
+            getTypesRegistryFileLocation(globalTypingsCacheLocation),
+            this.installTypingHost,
+            this.log,
+        );
     }
 
     handleRequest(req: TypingInstallerRequestUnion) {
@@ -186,13 +228,24 @@ export class NodeTypingsInstaller extends TypingsInstaller {
                 const cwd = getDirectoryOfPackageJson(fileName, this.installTypingHost) || projectRootPath;
                 if (cwd) {
                     this.installWorker(-1, [packageName], cwd, success => {
-                        const message = success ? `Package ${packageName} installed.` : `There was an error installing ${packageName}.`;
-                        const response: PackageInstalledResponse = { kind: ActionPackageInstalled, projectName, success, message };
+                        const message = success ? `Package ${packageName} installed.`
+                            : `There was an error installing ${packageName}.`;
+                        const response: PackageInstalledResponse = {
+                            kind: ActionPackageInstalled,
+                            projectName,
+                            success,
+                            message,
+                        };
                         this.sendResponse(response);
                     });
                 }
                 else {
-                    const response: PackageInstalledResponse = { kind: ActionPackageInstalled, projectName, success: false, message: "Could not determine a project root path." };
+                    const response: PackageInstalledResponse = {
+                        kind: ActionPackageInstalled,
+                        projectName,
+                        success: false,
+                        message: "Could not determine a project root path.",
+                    };
                     this.sendResponse(response);
                 }
                 break;
@@ -212,12 +265,22 @@ export class NodeTypingsInstaller extends TypingsInstaller {
         }
     }
 
-    protected installWorker(requestId: number, packageNames: string[], cwd: string, onRequestCompleted: RequestCompletedAction): void {
+    protected installWorker(
+        requestId: number,
+        packageNames: string[],
+        cwd: string,
+        onRequestCompleted: RequestCompletedAction,
+    ): void {
         if (this.log.isEnabled()) {
             this.log.writeLine(`#${requestId} with arguments'${JSON.stringify(packageNames)}'.`);
         }
         const start = Date.now();
-        const hasError = installNpmPackages(this.npmPath, version, packageNames, command => this.execSyncAndLog(command, { cwd }));
+        const hasError = installNpmPackages(
+            this.npmPath,
+            version,
+            packageNames,
+            command => this.execSyncAndLog(command, { cwd }),
+        );
         if (this.log.isEnabled()) {
             this.log.writeLine(`npm install #${requestId} took: ${Date.now() - start} ms`);
         }
@@ -238,7 +301,11 @@ export class NodeTypingsInstaller extends TypingsInstaller {
         }
         catch (error) {
             const { stdout, stderr } = error;
-            this.log.writeLine(`    Failed. stdout:${indent(sys.newLine, stdout)}${sys.newLine}    stderr:${indent(sys.newLine, stderr)}`);
+            this.log.writeLine(
+                `    Failed. stdout:${indent(sys.newLine, stdout)}${sys.newLine}    stderr:${
+                    indent(sys.newLine, stderr)
+                }`,
+            );
             return true;
         }
     }
@@ -273,7 +340,15 @@ process.on("disconnect", () => {
 });
 let installer: NodeTypingsInstaller | undefined;
 process.on("message", (req: TypingInstallerRequestUnion) => {
-    installer ??= new NodeTypingsInstaller(globalTypingsCacheLocation!, typingSafeListLocation!, typesMapLocation!, npmLocation, validateDefaultNpmLocation, /*throttleLimit*/ 5, log); // TODO: GH#18217
+    installer ??= new NodeTypingsInstaller(
+        globalTypingsCacheLocation!,
+        typingSafeListLocation!,
+        typesMapLocation!,
+        npmLocation,
+        validateDefaultNpmLocation,
+        /*throttleLimit*/ 5,
+        log,
+    ); // TODO: GH#18217
     installer.handleRequest(req);
 });
 

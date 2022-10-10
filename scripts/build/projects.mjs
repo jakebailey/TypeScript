@@ -39,14 +39,17 @@ class ProjectQueue {
 
 const tscPath = resolve(
     findUpRoot(),
-    cmdLineOptions.lkg ? "./lib/tsc.js" :
-        cmdLineOptions.built ? "./built/local/tsc.js" :
-        "./node_modules/typescript/lib/tsc.js",
+    cmdLineOptions.lkg ? "./lib/tsc.js"
+        : cmdLineOptions.built ? "./built/local/tsc.js"
+        : "./node_modules/typescript/lib/tsc.js",
 );
 
-const execTsc = (/** @type {string[]} */ ...args) => exec(process.execPath, [tscPath, "-b", ...args], { hidePrompt: true });
+const execTsc = (/** @type {string[]} */ ...args) =>
+    exec(process.execPath, [tscPath, "-b", ...args], { hidePrompt: true });
 
-const projectBuilder = new ProjectQueue(projects => execTsc(...(cmdLineOptions.bundle ? [] : ["--emitDeclarationOnly", "false"]), ...projects));
+const projectBuilder = new ProjectQueue(projects =>
+    execTsc(...(cmdLineOptions.bundle ? [] : ["--emitDeclarationOnly", "false"]), ...projects)
+);
 
 /**
  * @param {string} project

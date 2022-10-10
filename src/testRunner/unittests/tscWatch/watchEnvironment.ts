@@ -66,7 +66,8 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
                 timeouts: (sys, programs) => {
                     const initialProgram = programs[0][0];
                     const mediumPollingIntervalThreshold = ts.unchangedPollThresholds[ts.PollingInterval.Medium];
-                    const newThreshold = ts.unchangedPollThresholds[ts.PollingInterval.Low] + mediumPollingIntervalThreshold;
+                    const newThreshold = ts.unchangedPollThresholds[ts.PollingInterval.Low]
+                        + mediumPollingIntervalThreshold;
                     for (let fileUnchangeDetected = 1; fileUnchangeDetected < newThreshold; fileUnchangeDetected++) {
                         // For high + Medium/low polling interval
                         sys.runQueuedTimeoutCallbacks();
@@ -182,9 +183,15 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
 
         verifyRenamingFileInSubFolder("uses watchFile when renaming file in subfolder", Tsc_WatchDirectory.WatchFile);
 
-        verifyRenamingFileInSubFolder("uses non recursive watchDirectory when renaming file in subfolder", Tsc_WatchDirectory.NonRecursiveWatchDirectory);
+        verifyRenamingFileInSubFolder(
+            "uses non recursive watchDirectory when renaming file in subfolder",
+            Tsc_WatchDirectory.NonRecursiveWatchDirectory,
+        );
 
-        verifyRenamingFileInSubFolder("uses non recursive dynamic polling when renaming file in subfolder", Tsc_WatchDirectory.DynamicPolling);
+        verifyRenamingFileInSubFolder(
+            "uses non recursive dynamic polling when renaming file in subfolder",
+            Tsc_WatchDirectory.DynamicPolling,
+        );
 
         verifyTscWatch({
             scenario,
@@ -288,7 +295,11 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
                 },
                 {
                     caption: "npm install index file in file2",
-                    edit: sys => sys.writeFile(`/user/username/projects/myproject/node_modules/file2/index.d.ts`, `export const x = 10;`),
+                    edit: sys =>
+                        sys.writeFile(
+                            `/user/username/projects/myproject/node_modules/file2/index.d.ts`,
+                            `export const x = 10;`,
+                        ),
                     timeouts: sys => sys.logTimeoutQueueLength(), // To update folder structure
                 },
                 {
@@ -333,7 +344,8 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
                 noopChange,
                 {
                     caption: "Add new file, should schedule and run timeout to update directory watcher",
-                    edit: sys => sys.writeFile(`/user/username/projects/myproject/src/file3.ts`, `export const y = 10;`),
+                    edit: sys =>
+                        sys.writeFile(`/user/username/projects/myproject/src/file3.ts`, `export const y = 10;`),
                     timeouts: sys => sys.runQueuedTimeoutCallbacks(), // Update the child watch
                 },
                 {
@@ -342,7 +354,8 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
                     timeouts: sys => sys.runQueuedTimeoutCallbacks(), // Scheduling failed lookup update and program update
                 },
                 {
-                    caption: "After program emit with new file, should schedule and run timeout to update directory watcher",
+                    caption:
+                        "After program emit with new file, should schedule and run timeout to update directory watcher",
                     edit: ts.noop,
                     timeouts: sys => sys.runQueuedTimeoutCallbacks(), // Update the child watch
                 },
@@ -374,7 +387,11 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
                 noopChange,
                 {
                     caption: "rename the file",
-                    edit: sys => sys.renameFile(`/user/username/projects/myproject/src/file2.ts`, `/user/username/projects/myproject/src/renamed.ts`),
+                    edit: sys =>
+                        sys.renameFile(
+                            `/user/username/projects/myproject/src/file2.ts`,
+                            `/user/username/projects/myproject/src/renamed.ts`,
+                        ),
                     // 1. For updating program and 2. for updating child watches
                     timeouts: sys => sys.runQueuedTimeoutCallbacks(1), // Update program
                 },
@@ -487,7 +504,10 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
                     content: "export function temp(): string;",
                 };
                 const files = [libFile, main, bar, foo, fooBar, temp, configFile];
-                return createWatchedSystem(files, { currentDirectory: "/user/username/projects/myproject", runWithoutRecursiveWatches });
+                return createWatchedSystem(files, {
+                    currentDirectory: "/user/username/projects/myproject",
+                    runWithoutRecursiveWatches,
+                });
             }
 
             function verifyWorker(...additionalFlags: string[]) {
@@ -499,7 +519,12 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
                     edits: [
                         {
                             caption: "Change foo",
-                            edit: sys => sys.replaceFileText(`/user/username/projects/myproject/node_modules/bar/foo.d.ts`, "foo", "fooBar"),
+                            edit: sys =>
+                                sys.replaceFileText(
+                                    `/user/username/projects/myproject/node_modules/bar/foo.d.ts`,
+                                    "foo",
+                                    "fooBar",
+                                ),
                             timeouts: sys => sys.logTimeoutQueueLength(),
                         },
                     ],
@@ -513,7 +538,8 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
                     edits: [
                         {
                             caption: "delete fooBar",
-                            edit: sys => sys.deleteFile(`/user/username/projects/myproject/node_modules/bar/fooBar.d.ts`),
+                            edit: sys =>
+                                sys.deleteFile(`/user/username/projects/myproject/node_modules/bar/fooBar.d.ts`),
                             timeouts: sys => sys.logTimeoutQueueLength(),
                         },
                     ],
@@ -521,7 +547,9 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
 
                 verifyTscWatch({
                     scenario,
-                    subScenario: `watchOptions/with excludeDirectories option with recursive directory watching${additionalFlags.join("")}`,
+                    subScenario: `watchOptions/with excludeDirectories option with recursive directory watching${
+                        additionalFlags.join("")
+                    }`,
                     commandLineArgs: ["-w", ...additionalFlags],
                     sys: () => sys({ excludeDirectories: ["**/temp"] }, /*runWithoutRecursiveWatches*/ true),
                     edits: [
@@ -532,7 +560,11 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
                         },
                         {
                             caption: "add new folder to temp",
-                            edit: sys => sys.ensureFileOrFolder({ path: `/user/username/projects/myproject/node_modules/bar/temp/fooBar/index.d.ts`, content: "export function temp(): string;" }),
+                            edit: sys =>
+                                sys.ensureFileOrFolder({
+                                    path: `/user/username/projects/myproject/node_modules/bar/temp/fooBar/index.d.ts`,
+                                    content: "export function temp(): string;",
+                                }),
                             timeouts: sys => sys.logTimeoutQueueLength(),
                         },
                     ],
@@ -567,15 +599,24 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
                 // vm's wq generates this kind of event
                 // Skip delete event so inode changes but when the create's rename occurs file is on disk
                 edit: sys =>
-                    sys.modifyFile(`/user/username/projects/myproject/foo.ts`, `export declare function foo2(): string;`, {
-                        invokeFileDeleteCreateAsPartInsteadOfChange: true,
-                        ignoreDelete: true,
-                    }),
+                    sys.modifyFile(
+                        `/user/username/projects/myproject/foo.ts`,
+                        `export declare function foo2(): string;`,
+                        {
+                            invokeFileDeleteCreateAsPartInsteadOfChange: true,
+                            ignoreDelete: true,
+                        },
+                    ),
                 timeouts: sys => sys.runQueuedTimeoutCallbacks(),
             },
             {
                 caption: "Replace file with rename event that fixes error",
-                edit: sys => sys.modifyFile(`/user/username/projects/myproject/foo.ts`, `export declare function foo(): string;`, { invokeFileDeleteCreateAsPartInsteadOfChange: true }),
+                edit: sys =>
+                    sys.modifyFile(
+                        `/user/username/projects/myproject/foo.ts`,
+                        `export declare function foo(): string;`,
+                        { invokeFileDeleteCreateAsPartInsteadOfChange: true },
+                    ),
                 timeouts: sys => sys.runQueuedTimeoutCallbacks(),
             },
         ],
@@ -592,7 +633,10 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
                         [libFile.path]: libFile.content,
                         [`/user/username/projects/myproject/main.ts`]: `import { foo } from "./foo"; foo();`,
                         [`/user/username/projects/myproject/foo.d.ts`]: `export function foo(): string;`,
-                        [`/user/username/projects/myproject/tsconfig.json`]: JSON.stringify({ watchOptions: { watchFile: "useFsEvents" }, files: ["foo.d.ts", "main.ts"] }),
+                        [`/user/username/projects/myproject/tsconfig.json`]: JSON.stringify({
+                            watchOptions: { watchFile: "useFsEvents" },
+                            files: ["foo.d.ts", "main.ts"],
+                        }),
                     },
                     {
                         currentDirectory: "/user/username/projects/myproject",
@@ -602,12 +646,20 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
             edits: [
                 {
                     caption: "Replace file with rename event that introduces error",
-                    edit: sys => sys.modifyFile(`/user/username/projects/myproject/foo.d.ts`, `export function foo2(): string;`, { invokeFileDeleteCreateAsPartInsteadOfChange: true }),
+                    edit: sys =>
+                        sys.modifyFile(
+                            `/user/username/projects/myproject/foo.d.ts`,
+                            `export function foo2(): string;`,
+                            { invokeFileDeleteCreateAsPartInsteadOfChange: true },
+                        ),
                     timeouts: sys => sys.runQueuedTimeoutCallbacks(),
                 },
                 {
                     caption: "Replace file with rename event that fixes error",
-                    edit: sys => sys.modifyFile(`/user/username/projects/myproject/foo.d.ts`, `export function foo(): string;`, { invokeFileDeleteCreateAsPartInsteadOfChange: true }),
+                    edit: sys =>
+                        sys.modifyFile(`/user/username/projects/myproject/foo.d.ts`, `export function foo(): string;`, {
+                            invokeFileDeleteCreateAsPartInsteadOfChange: true,
+                        }),
                     timeouts: sys => sys.runQueuedTimeoutCallbacks(),
                 },
             ],
@@ -623,7 +675,10 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
                         [libFile.path]: libFile.content,
                         [`/user/username/projects/myproject/main.ts`]: `import { foo } from "./foo"; foo();`,
                         [`/user/username/projects/myproject/foo.d.ts`]: `export function foo(): string;`,
-                        [`/user/username/projects/myproject/tsconfig.json`]: JSON.stringify({ watchOptions: { watchFile: "useFsEvents" }, files: ["foo.d.ts", "main.ts"] }),
+                        [`/user/username/projects/myproject/tsconfig.json`]: JSON.stringify({
+                            watchOptions: { watchFile: "useFsEvents" },
+                            files: ["foo.d.ts", "main.ts"],
+                        }),
                     },
                     {
                         currentDirectory: "/user/username/projects/myproject",
@@ -633,12 +688,24 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
             edits: [
                 {
                     caption: "Replace file with rename event that introduces error",
-                    edit: sys => sys.modifyFile(`/user/username/projects/myproject/foo.d.ts`, `export function foo2(): string;`, { invokeFileDeleteCreateAsPartInsteadOfChange: true, useTildeAsSuffixInRenameEventFileName: true }),
+                    edit: sys =>
+                        sys.modifyFile(
+                            `/user/username/projects/myproject/foo.d.ts`,
+                            `export function foo2(): string;`,
+                            {
+                                invokeFileDeleteCreateAsPartInsteadOfChange: true,
+                                useTildeAsSuffixInRenameEventFileName: true,
+                            },
+                        ),
                     timeouts: sys => sys.runQueuedTimeoutCallbacks(),
                 },
                 {
                     caption: "Replace file with rename event that fixes error",
-                    edit: sys => sys.modifyFile(`/user/username/projects/myproject/foo.d.ts`, `export function foo(): string;`, { invokeFileDeleteCreateAsPartInsteadOfChange: true, useTildeAsSuffixInRenameEventFileName: true }),
+                    edit: sys =>
+                        sys.modifyFile(`/user/username/projects/myproject/foo.d.ts`, `export function foo(): string;`, {
+                            invokeFileDeleteCreateAsPartInsteadOfChange: true,
+                            useTildeAsSuffixInRenameEventFileName: true,
+                        }),
                     timeouts: sys => sys.runQueuedTimeoutCallbacks(),
                 },
             ],
@@ -646,7 +713,8 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
 
         verifyTscWatch({
             scenario,
-            subScenario: `fsWatch/when using file watching thats on inode when rename occurs when file is still on the disk`,
+            subScenario:
+                `fsWatch/when using file watching thats on inode when rename occurs when file is still on the disk`,
             commandLineArgs: ["-w", "--extendedDiagnostics"],
             sys: () =>
                 createWatchedSystem(
@@ -670,16 +738,25 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
                     // vm's wq generates this kind of event
                     // Skip delete event so inode changes but when the create's rename occurs file is on disk
                     edit: sys =>
-                        sys.modifyFile(`/user/username/projects/myproject/foo.ts`, `export declare function foo2(): string;`, {
-                            invokeFileDeleteCreateAsPartInsteadOfChange: true,
-                            ignoreDelete: true,
-                            skipInodeCheckOnCreate: true,
-                        }),
+                        sys.modifyFile(
+                            `/user/username/projects/myproject/foo.ts`,
+                            `export declare function foo2(): string;`,
+                            {
+                                invokeFileDeleteCreateAsPartInsteadOfChange: true,
+                                ignoreDelete: true,
+                                skipInodeCheckOnCreate: true,
+                            },
+                        ),
                     timeouts: sys => sys.runQueuedTimeoutCallbacks(),
                 },
                 {
                     caption: "Replace file with rename event that fixes error",
-                    edit: sys => sys.modifyFile(`/user/username/projects/myproject/foo.ts`, `export declare function foo(): string;`, { invokeFileDeleteCreateAsPartInsteadOfChange: true }),
+                    edit: sys =>
+                        sys.modifyFile(
+                            `/user/username/projects/myproject/foo.ts`,
+                            `export declare function foo(): string;`,
+                            { invokeFileDeleteCreateAsPartInsteadOfChange: true },
+                        ),
                     timeouts: sys => sys.runQueuedTimeoutCallbacks(),
                 },
             ],
@@ -703,7 +780,13 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
             },
             {
                 caption: "receive another change event without modifying the file",
-                edit: sys => sys.invokeFsWatches("/user/username/projects/project/main.ts", "change", /*modifiedTime*/ undefined, /*useTildeSuffix*/ undefined),
+                edit: sys =>
+                    sys.invokeFsWatches(
+                        "/user/username/projects/project/main.ts",
+                        "change",
+                        /*modifiedTime*/ undefined,
+                        /*useTildeSuffix*/ undefined,
+                    ),
                 timeouts: sys => sys.runQueuedTimeoutCallbacks(),
             },
             {
@@ -713,7 +796,13 @@ describe("unittests:: tsc-watch:: watchEnvironment:: tsc-watch with different po
             },
             {
                 caption: "receive another change event without modifying the file",
-                edit: sys => sys.invokeFsWatches("/user/username/projects/project/main.ts", "change", /*modifiedTime*/ undefined, /*useTildeSuffix*/ undefined),
+                edit: sys =>
+                    sys.invokeFsWatches(
+                        "/user/username/projects/project/main.ts",
+                        "change",
+                        /*modifiedTime*/ undefined,
+                        /*useTildeSuffix*/ undefined,
+                    ),
                 timeouts: sys => sys.runQueuedTimeoutCallbacks(),
             },
         ],

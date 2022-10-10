@@ -82,7 +82,11 @@ declare namespace Intl {
      *
      * [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl#locales_argument).
      */
-    type LocalesArgument = UnicodeBCP47LocaleIdentifier | Locale | readonly (UnicodeBCP47LocaleIdentifier | Locale)[] | undefined;
+    type LocalesArgument =
+        | UnicodeBCP47LocaleIdentifier
+        | Locale
+        | readonly (UnicodeBCP47LocaleIdentifier | Locale)[]
+        | undefined;
 
     /**
      * An object with some or all of properties of `options` parameter
@@ -406,6 +410,9 @@ declare namespace Intl {
          *
          * [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DisplayNames/supportedLocalesOf).
          */
-        supportedLocalesOf(locales?: LocalesArgument, options?: { localeMatcher?: RelativeTimeFormatLocaleMatcher; }): BCP47LanguageTag[];
+        supportedLocalesOf(
+            locales?: LocalesArgument,
+            options?: { localeMatcher?: RelativeTimeFormatLocaleMatcher; },
+        ): BCP47LanguageTag[];
     };
 }

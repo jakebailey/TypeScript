@@ -32,7 +32,10 @@ async function main() {
         let benchmarkText = "";
         if (includeArtifact === "--include-artifact") {
             // post a link to the benchmark file
-            const cli = new ado.WebApi("https://typescript.visualstudio.com/defaultcollection", ado.getHandlerFromToken("")); // Empty token, anon auth
+            const cli = new ado.WebApi(
+                "https://typescript.visualstudio.com/defaultcollection",
+                ado.getHandlerFromToken(""),
+            ); // Empty token, anon auth
             const build = await cli.getBuildApi();
             const artifact = await build.getArtifact("typescript", +buildId, "benchmark");
             assert(artifact.resource?.url);
@@ -43,7 +46,8 @@ async function main() {
                 if (/[\\/]linux\.benchmark$/.test(file.path)) {
                     const benchmarkUrl = new URL(artifact.resource.url);
                     benchmarkUrl.search = `artifactName=benchmark&fileId=${file.blob.id}&fileName=linux.benchmark`;
-                    benchmarkText = `\n<details><summary>Developer Information:</summary><p><a href="${benchmarkUrl.href}">Download Benchmark</a></p></details>\n`;
+                    benchmarkText =
+                        `\n<details><summary>Developer Information:</summary><p><a href="${benchmarkUrl.href}">Download Benchmark</a></p></details>\n`;
                     break;
                 }
             }
@@ -53,7 +57,8 @@ async function main() {
             issue_number: +source,
             owner: "Microsoft",
             repo: "TypeScript",
-            body: `@${requester}\nThe results of the perf run you requested are in!\n<details><summary> Here they are:</summary><p>\n${outputTableText}\n</p>${benchmarkText}</details>`,
+            body:
+                `@${requester}\nThe results of the perf run you requested are in!\n<details><summary> Here they are:</summary><p>\n${outputTableText}\n</p>${benchmarkText}</details>`,
         });
 
         console.log(`Results posted!`);
@@ -77,7 +82,8 @@ async function main() {
             issue_number: +source,
             owner: "Microsoft",
             repo: "TypeScript",
-            body: `Hey @${requester}, something went wrong when publishing results. ([You can check the log here](https://typescript.visualstudio.com/TypeScript/_build/index?buildId=${buildId}&_a=summary)).`,
+            body:
+                `Hey @${requester}, something went wrong when publishing results. ([You can check the log here](https://typescript.visualstudio.com/TypeScript/_build/index?buildId=${buildId}&_a=summary)).`,
         });
     }
 }

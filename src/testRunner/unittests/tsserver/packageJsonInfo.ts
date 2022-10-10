@@ -61,7 +61,11 @@ describe("unittests:: tsserver:: packageJsonInfo::", () => {
         packageJsonInfo = projectService.packageJsonCache.getInDirectory("/" as ts.Path)!;
         assert.isUndefined(packageJsonInfo.dependencies);
 
-        baselineTsserverLogs("packageJsonInfo", "detects new package.json files that are added, caches them, and watches them", session);
+        baselineTsserverLogs(
+            "packageJsonInfo",
+            "detects new package.json files that are added, caches them, and watches them",
+            session,
+        );
     });
 
     it("finds package.json on demand, watches for deletion, and removes them from cache", () => {
@@ -74,7 +78,11 @@ describe("unittests:: tsserver:: packageJsonInfo::", () => {
         host.deleteFile(packageJson.path);
         session.testhost.baselineHost("delete packageJson");
         assert.isUndefined(projectService.packageJsonCache.getInDirectory("/" as ts.Path));
-        baselineTsserverLogs("packageJsonInfo", "finds package.json on demand, watches for deletion, and removes them from cache", session);
+        baselineTsserverLogs(
+            "packageJsonInfo",
+            "finds package.json on demand, watches for deletion, and removes them from cache",
+            session,
+        );
     });
 
     it("finds multiple package.json files when present", () => {
@@ -90,7 +98,10 @@ describe("unittests:: tsserver:: packageJsonInfo::", () => {
 
     it("handles errors in json parsing of package.json", () => {
         const packageJsonContent = `{ "mod" }`;
-        const { session, projectService, host } = setup([tsConfig, { path: packageJson.path, content: packageJsonContent }]);
+        const { session, projectService, host } = setup([tsConfig, {
+            path: packageJson.path,
+            content: packageJsonContent,
+        }]);
         projectService.getPackageJsonsVisibleToFile("/src/whatever/blah.ts" as ts.Path);
         const packageJsonInfo = projectService.packageJsonCache.getInDirectory("/" as ts.Path)!;
         assert.isFalse(packageJsonInfo.parseable);
@@ -109,7 +120,10 @@ describe("unittests:: tsserver:: packageJsonInfo::", () => {
 
     it("handles empty package.json", () => {
         const packageJsonContent = "";
-        const { session, projectService, host } = setup([tsConfig, { path: packageJson.path, content: packageJsonContent }]);
+        const { session, projectService, host } = setup([tsConfig, {
+            path: packageJson.path,
+            content: packageJsonContent,
+        }]);
         projectService.getPackageJsonsVisibleToFile("/src/whatever/blah.ts" as ts.Path);
         const packageJsonInfo = projectService.packageJsonCache.getInDirectory("/" as ts.Path)!;
         assert.isFalse(packageJsonInfo.parseable);

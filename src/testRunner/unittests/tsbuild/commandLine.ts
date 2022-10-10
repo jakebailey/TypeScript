@@ -90,7 +90,10 @@ describe("unittests:: tsbuild:: commandLine::", () => {
                 noChangeRun,
                 withOptionChange("with declaration and declarationMap", "--declaration", "--declarationMap"),
                 noChangeWithSubscenario("should re-emit only dts so they dont contain sourcemap"),
-                withOptionChangeAndDiscrepancyExplanation("with emitDeclarationOnly should not emit anything", "--emitDeclarationOnly"),
+                withOptionChangeAndDiscrepancyExplanation(
+                    "with emitDeclarationOnly should not emit anything",
+                    "--emitDeclarationOnly",
+                ),
                 noChangeRun,
                 localChange(),
                 withOptionChangeAndDiscrepancyExplanation("with declaration should not emit anything", "--declaration"),
@@ -111,7 +114,9 @@ describe("unittests:: tsbuild:: commandLine::", () => {
                 noChangeRun,
                 withOptionChange("with declaration and declarationMap", "--declaration", "--declarationMap"),
                 noChangeWithSubscenario("should re-emit only dts so they dont contain sourcemap"),
-                withEmitDeclarationOnlyChangeAndDiscrepancyExplanation("with emitDeclarationOnly should not emit anything"),
+                withEmitDeclarationOnlyChangeAndDiscrepancyExplanation(
+                    "with emitDeclarationOnly should not emit anything",
+                ),
                 noChangeRun,
                 localChange(),
                 withOptionChangeAndDiscrepancyExplanation("with declaration should not emit anything", "--declaration"),
@@ -138,7 +143,11 @@ describe("unittests:: tsbuild:: commandLine::", () => {
                 withOptionChange("with sourceMap", "--sourceMap"),
                 noChangeWithSubscenario("emit js files"),
                 withOptionChange("with declaration and declarationMap", "--declaration", "--declarationMap"),
-                withOptionChange("with declaration and declarationMap, should not re-emit", "--declaration", "--declarationMap"),
+                withOptionChange(
+                    "with declaration and declarationMap, should not re-emit",
+                    "--declaration",
+                    "--declarationMap",
+                ),
             ],
             baselinePrograms: true,
         });
@@ -160,7 +169,11 @@ describe("unittests:: tsbuild:: commandLine::", () => {
                 withOptionChange("with sourceMap", "--sourceMap"),
                 noChangeWithSubscenario("emit js files"),
                 withOptionChange("with declaration and declarationMap", "--declaration", "--declarationMap"),
-                withOptionChange("with declaration and declarationMap, should not re-emit", "--declaration", "--declarationMap"),
+                withOptionChange(
+                    "with declaration and declarationMap, should not re-emit",
+                    "--declaration",
+                    "--declarationMap",
+                ),
             ],
             baselinePrograms: true,
         });
@@ -180,8 +193,12 @@ describe("unittests:: tsbuild:: commandLine::", () => {
                     references: [{ path: "../../project1/src" }],
                 }),
                 "/src/project2/src/e.ts": `export const e = 10;`,
-                "/src/project2/src/f.ts": `import { a } from "${options.outFile ? "a" : "../../project1/src/a"}"; export const f = a;`,
-                "/src/project2/src/g.ts": `import { b } from "${options.outFile ? "b" : "../../project1/src/b"}"; export const g = b;`,
+                "/src/project2/src/f.ts": `import { a } from "${
+                    options.outFile ? "a" : "../../project1/src/a"
+                }"; export const f = a;`,
+                "/src/project2/src/g.ts": `import { b } from "${
+                    options.outFile ? "b" : "../../project1/src/b"
+                }"; export const g = b;`,
             });
         }
         function verifyWithIncremental(options: ts.CompilerOptions) {
@@ -275,13 +292,20 @@ describe("unittests:: tsbuild:: commandLine::", () => {
                 baselinePrograms: true,
             });
             function subScenario(text: string) {
-                return `${text}${options.composite ? "" : " with declaration and incremental"}${options.outFile ? " with outFile" : ""}`;
+                return `${text}${options.composite ? "" : " with declaration and incremental"}${
+                    options.outFile ? " with outFile" : ""
+                }`;
             }
         }
         verifyWithIncremental({ composite: true });
         verifyWithIncremental({ incremental: true, declaration: true });
         verifyWithIncremental({ composite: true, outFile: "../outFile.js", module: ts.ModuleKind.AMD });
-        verifyWithIncremental({ incremental: true, declaration: true, outFile: "../outFile.js", module: ts.ModuleKind.AMD });
+        verifyWithIncremental({
+            incremental: true,
+            declaration: true,
+            outFile: "../outFile.js",
+            module: ts.ModuleKind.AMD,
+        });
 
         verifyTsc({
             scenario: "commandLine",
@@ -403,7 +427,13 @@ describe("unittests:: tsbuild:: commandLine::", () => {
         verifyTsc({
             scenario: "commandLine",
             subScenario: "emitDeclarationOnly false on commandline with declaration with outFile",
-            fs: () => fs({ declaration: true, emitDeclarationOnly: true, outFile: "../outFile.js", module: ts.ModuleKind.AMD }),
+            fs: () =>
+                fs({
+                    declaration: true,
+                    emitDeclarationOnly: true,
+                    outFile: "../outFile.js",
+                    module: ts.ModuleKind.AMD,
+                }),
             commandLineArgs: ["--b", "/src/project2/src", "--verbose"],
             edits: [
                 noChangeRun,

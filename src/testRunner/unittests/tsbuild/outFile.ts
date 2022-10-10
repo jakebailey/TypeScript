@@ -461,14 +461,16 @@ ${internal} enum internalEnum { a, b, c }`,
             verifyOutFileScenario({
                 subScenario: "stripInternal",
                 modifyFs: stripInternalScenario,
-                modifyAgainFs: fs => replaceText(fs, "/src/first/first_PART1.ts", `/*@internal*/ interface`, "interface"),
+                modifyAgainFs: fs =>
+                    replaceText(fs, "/src/first/first_PART1.ts", `/*@internal*/ interface`, "interface"),
             });
 
             // Verify ignore dtsChanged
             verifyOutFileScenario({
                 subScenario: "stripInternal with comments emit enabled",
                 modifyFs: fs => stripInternalScenario(fs, /*removeCommentsDisabled*/ true),
-                modifyAgainFs: fs => replaceText(fs, "/src/first/first_PART1.ts", `/*@internal*/ interface`, "interface"),
+                modifyAgainFs: fs =>
+                    replaceText(fs, "/src/first/first_PART1.ts", `/*@internal*/ interface`, "interface"),
                 ignoreDtsChanged: true,
                 baselineOnly: true,
             });
@@ -477,7 +479,8 @@ ${internal} enum internalEnum { a, b, c }`,
             verifyOutFileScenario({
                 subScenario: "stripInternal jsdoc style comment",
                 modifyFs: fs => stripInternalScenario(fs, /*removeCommentsDisabled*/ false, /*jsDocStyle*/ true),
-                modifyAgainFs: fs => replaceText(fs, "/src/first/first_PART1.ts", `/**@internal*/ interface`, "interface"),
+                modifyAgainFs: fs =>
+                    replaceText(fs, "/src/first/first_PART1.ts", `/**@internal*/ interface`, "interface"),
                 ignoreDtsChanged: true,
                 baselineOnly: true,
             });
@@ -502,7 +505,11 @@ ${internal} enum internalEnum { a, b, c }`,
                     replaceText(fs, "/src/third/tsconfig.json", `{ "path": "../first", "prepend": true },`, "");
                 }
 
-                function stripInternalWithDependentOrder(fs: vfs.FileSystem, removeCommentsDisabled?: boolean, jsDocStyle?: boolean) {
+                function stripInternalWithDependentOrder(
+                    fs: vfs.FileSystem,
+                    removeCommentsDisabled?: boolean,
+                    jsDocStyle?: boolean,
+                ) {
                     stripInternalScenario(fs, removeCommentsDisabled, jsDocStyle);
                     makeOneTwoThreeDependOrder(fs);
                 }
@@ -511,14 +518,16 @@ ${internal} enum internalEnum { a, b, c }`,
                 verifyOutFileScenario({
                     subScenario: "stripInternal when one-two-three are prepended in order",
                     modifyFs: stripInternalWithDependentOrder,
-                    modifyAgainFs: fs => replaceText(fs, "/src/first/first_PART1.ts", `/*@internal*/ interface`, "interface"),
+                    modifyAgainFs: fs =>
+                        replaceText(fs, "/src/first/first_PART1.ts", `/*@internal*/ interface`, "interface"),
                 });
 
                 // Verify ignore dtsChanged
                 verifyOutFileScenario({
                     subScenario: "stripInternal with comments emit enabled when one-two-three are prepended in order",
                     modifyFs: fs => stripInternalWithDependentOrder(fs, /*removeCommentsDisabled*/ true),
-                    modifyAgainFs: fs => replaceText(fs, "/src/first/first_PART1.ts", `/*@internal*/ interface`, "interface"),
+                    modifyAgainFs: fs =>
+                        replaceText(fs, "/src/first/first_PART1.ts", `/*@internal*/ interface`, "interface"),
                     ignoreDtsChanged: true,
                     baselineOnly: true,
                 });
@@ -526,16 +535,20 @@ ${internal} enum internalEnum { a, b, c }`,
                 // Verify ignore dtsChanged
                 verifyOutFileScenario({
                     subScenario: "stripInternal jsdoc style comment when one-two-three are prepended in order",
-                    modifyFs: fs => stripInternalWithDependentOrder(fs, /*removeCommentsDisabled*/ false, /*jsDocStyle*/ true),
-                    modifyAgainFs: fs => replaceText(fs, "/src/first/first_PART1.ts", `/**@internal*/ interface`, "interface"),
+                    modifyFs: fs =>
+                        stripInternalWithDependentOrder(fs, /*removeCommentsDisabled*/ false, /*jsDocStyle*/ true),
+                    modifyAgainFs: fs =>
+                        replaceText(fs, "/src/first/first_PART1.ts", `/**@internal*/ interface`, "interface"),
                     ignoreDtsChanged: true,
                     baselineOnly: true,
                 });
 
                 // Verify ignore dtsChanged
                 verifyOutFileScenario({
-                    subScenario: "stripInternal jsdoc style with comments emit enabled when one-two-three are prepended in order",
-                    modifyFs: fs => stripInternalWithDependentOrder(fs, /*removeCommentsDisabled*/ true, /*jsDocStyle*/ true),
+                    subScenario:
+                        "stripInternal jsdoc style with comments emit enabled when one-two-three are prepended in order",
+                    modifyFs: fs =>
+                        stripInternalWithDependentOrder(fs, /*removeCommentsDisabled*/ true, /*jsDocStyle*/ true),
                     ignoreDtsChanged: true,
                     baselineOnly: true,
                 });
@@ -700,8 +713,18 @@ ${internal} enum internalEnum { a, b, c }`,
         commandLineArgs: ["--b", "/src/third", "--verbose"],
         modifyFs: fs => {
             // No prepend
-            replaceText(fs, "/src/third/tsconfig.json", `{ "path": "../first", "prepend": true }`, `{ "path": "../first" }`);
-            replaceText(fs, "/src/third/tsconfig.json", `{ "path": "../second", "prepend": true }`, `{ "path": "../second" }`);
+            replaceText(
+                fs,
+                "/src/third/tsconfig.json",
+                `{ "path": "../first", "prepend": true }`,
+                `{ "path": "../first" }`,
+            );
+            replaceText(
+                fs,
+                "/src/third/tsconfig.json",
+                `{ "path": "../second", "prepend": true }`,
+                `{ "path": "../second" }`,
+            );
 
             // Non Modules
             replaceText(fs, "/src/first/tsconfig.json", `"composite": true,`, `"composite": true, "module": "none",`);

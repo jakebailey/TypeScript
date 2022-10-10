@@ -48,8 +48,15 @@ registerCodeFix({
     errorCodes,
     getCodeActions: function getCodeActionsToAddMissingAsync(context) {
         const { sourceFile, errorCode, cancellationToken, program, span } = context;
-        const diagnostic = find(program.getTypeChecker().getDiagnostics(sourceFile, cancellationToken), getIsMatchingAsyncError(span, errorCode));
-        const directSpan = diagnostic && diagnostic.relatedInformation && find(diagnostic.relatedInformation, r => r.code === Diagnostics.Did_you_mean_to_mark_this_function_as_async.code) as TextSpan | undefined;
+        const diagnostic = find(
+            program.getTypeChecker().getDiagnostics(sourceFile, cancellationToken),
+            getIsMatchingAsyncError(span, errorCode),
+        );
+        const directSpan = diagnostic && diagnostic.relatedInformation
+            && find(
+                diagnostic.relatedInformation,
+                r => r.code === Diagnostics.Did_you_mean_to_mark_this_function_as_async.code,
+            ) as TextSpan | undefined;
 
         const decl = getFixableErrorSpanDeclaration(sourceFile, directSpan);
         if (!decl) {
@@ -63,7 +70,11 @@ registerCodeFix({
         const { sourceFile } = context;
         const fixedDeclarations = new Set<number>();
         return codeFixAll(context, errorCodes, (t, diagnostic) => {
-            const span = diagnostic.relatedInformation && find(diagnostic.relatedInformation, r => r.code === Diagnostics.Did_you_mean_to_mark_this_function_as_async.code) as TextSpan | undefined;
+            const span = diagnostic.relatedInformation
+                && find(
+                    diagnostic.relatedInformation,
+                    r => r.code === Diagnostics.Did_you_mean_to_mark_this_function_as_async.code,
+                ) as TextSpan | undefined;
             const decl = getFixableErrorSpanDeclaration(sourceFile, span);
             if (!decl) {
                 return;
@@ -75,12 +86,28 @@ registerCodeFix({
 });
 
 type FixableDeclaration = ArrowFunction | FunctionDeclaration | FunctionExpression | MethodDeclaration;
-function getFix(context: CodeFixContext | CodeFixAllContext, decl: FixableDeclaration, trackChanges: ContextualTrackChangesFunction, fixedDeclarations?: Set<number>) {
+function getFix(
+    context: CodeFixContext | CodeFixAllContext,
+    decl: FixableDeclaration,
+    trackChanges: ContextualTrackChangesFunction,
+    fixedDeclarations?: Set<number>,
+) {
     const changes = trackChanges(t => makeChange(t, context.sourceFile, decl, fixedDeclarations));
-    return createCodeFixAction(fixId, changes, Diagnostics.Add_async_modifier_to_containing_function, fixId, Diagnostics.Add_all_missing_async_modifiers);
+    return createCodeFixAction(
+        fixId,
+        changes,
+        Diagnostics.Add_async_modifier_to_containing_function,
+        fixId,
+        Diagnostics.Add_all_missing_async_modifiers,
+    );
 }
 
-function makeChange(changeTracker: textChanges.ChangeTracker, sourceFile: SourceFile, insertionSite: FixableDeclaration, fixedDeclarations?: Set<number>) {
+function makeChange(
+    changeTracker: textChanges.ChangeTracker,
+    sourceFile: SourceFile,
+    insertionSite: FixableDeclaration,
+    fixedDeclarations?: Set<number>,
+) {
     if (fixedDeclarations) {
         if (fixedDeclarations.has(getNodeId(insertionSite))) {
             return;
@@ -89,7 +116,9 @@ function makeChange(changeTracker: textChanges.ChangeTracker, sourceFile: Source
     fixedDeclarations?.add(getNodeId(insertionSite));
     const cloneWithModifier = factory.updateModifiers(
         getSynthesizedDeepClone(insertionSite, /*includeTrivia*/ true),
-        factory.createNodeArray(factory.createModifiersFromModifierFlags(getSyntacticModifierFlags(insertionSite) | ModifierFlags.Async)),
+        factory.createNodeArray(
+            factory.createModifiersFromModifierFlags(getSyntacticModifierFlags(insertionSite) | ModifierFlags.Async),
+        ),
     );
     changeTracker.replaceNode(
         sourceFile,
@@ -98,7 +127,10 @@ function makeChange(changeTracker: textChanges.ChangeTracker, sourceFile: Source
     );
 }
 
-function getFixableErrorSpanDeclaration(sourceFile: SourceFile, span: TextSpan | undefined): FixableDeclaration | undefined {
+function getFixableErrorSpanDeclaration(
+    sourceFile: SourceFile,
+    span: TextSpan | undefined,
+): FixableDeclaration | undefined {
     if (!span) return undefined;
     const token = getTokenAtPosition(sourceFile, span.start);
     // Checker has already done work to determine that async might be possible, and has attached
@@ -108,7 +140,8 @@ function getFixableErrorSpanDeclaration(sourceFile: SourceFile, span: TextSpan |
         if (node.getStart(sourceFile) < span.start || node.getEnd() > textSpanEnd(span)) {
             return "quit";
         }
-        return (isArrowFunction(node) || isMethodDeclaration(node) || isFunctionExpression(node) || isFunctionDeclaration(node)) && textSpansEqual(span, createTextSpanFromNode(node, sourceFile));
+        return (isArrowFunction(node) || isMethodDeclaration(node) || isFunctionExpression(node)
+            || isFunctionDeclaration(node)) && textSpansEqual(span, createTextSpanFromNode(node, sourceFile));
     }) as FixableDeclaration | undefined;
 
     return decl;
@@ -116,8 +149,11 @@ function getFixableErrorSpanDeclaration(sourceFile: SourceFile, span: TextSpan |
 
 function getIsMatchingAsyncError(span: TextSpan, errorCode: number) {
     return ({ start, length, relatedInformation, code }: Diagnostic) =>
-        isNumber(start) && isNumber(length) && textSpansEqual({ start, length }, span) &&
-        code === errorCode &&
-        !!relatedInformation &&
-        some(relatedInformation, related => related.code === Diagnostics.Did_you_mean_to_mark_this_function_as_async.code);
+        isNumber(start) && isNumber(length) && textSpansEqual({ start, length }, span)
+        && code === errorCode
+        && !!relatedInformation
+        && some(
+            relatedInformation,
+            related => related.code === Diagnostics.Did_you_mean_to_mark_this_function_as_async.code,
+        );
 }

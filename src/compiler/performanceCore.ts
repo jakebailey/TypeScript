@@ -45,7 +45,9 @@ export interface PerformanceObserver {
 }
 
 /** @internal */
-export type PerformanceObserverConstructor = new (callback: (list: PerformanceObserverEntryList, observer: PerformanceObserver) => void) => PerformanceObserver;
+export type PerformanceObserverConstructor = new (
+    callback: (list: PerformanceObserverEntryList, observer: PerformanceObserver) => void,
+) => PerformanceObserver;
 /** @internal */
 export type PerformanceEntryList = PerformanceEntry[];
 
@@ -54,22 +56,25 @@ declare const performance: Performance | undefined;
 declare const PerformanceObserver: PerformanceObserverConstructor | undefined;
 
 // eslint-disable-next-line @typescript-eslint/naming-convention
-function hasRequiredAPI(performance: Performance | undefined, PerformanceObserver: PerformanceObserverConstructor | undefined) {
-    return typeof performance === "object" &&
-        typeof performance.timeOrigin === "number" &&
-        typeof performance.mark === "function" &&
-        typeof performance.measure === "function" &&
-        typeof performance.now === "function" &&
-        typeof performance.clearMarks === "function" &&
-        typeof performance.clearMeasures === "function" &&
-        typeof PerformanceObserver === "function";
+function hasRequiredAPI(
+    performance: Performance | undefined,
+    PerformanceObserver: PerformanceObserverConstructor | undefined,
+) {
+    return typeof performance === "object"
+        && typeof performance.timeOrigin === "number"
+        && typeof performance.mark === "function"
+        && typeof performance.measure === "function"
+        && typeof performance.now === "function"
+        && typeof performance.clearMarks === "function"
+        && typeof performance.clearMeasures === "function"
+        && typeof PerformanceObserver === "function";
 }
 
 function tryGetWebPerformanceHooks(): PerformanceHooks | undefined {
     if (
-        typeof performance === "object" &&
-        typeof PerformanceObserver === "function" &&
-        hasRequiredAPI(performance, PerformanceObserver)
+        typeof performance === "object"
+        && typeof PerformanceObserver === "function"
+        && hasRequiredAPI(performance, PerformanceObserver)
     ) {
         return {
             // For now we always write native performance events when running in the browser. We may
@@ -116,6 +121,6 @@ export function tryGetNativePerformanceHooks() {
  *
  * @internal
  */
-export const timestamp = nativePerformance ? () => nativePerformance.now() :
-    Date.now ? Date.now :
-    () => +(new Date());
+export const timestamp = nativePerformance ? () => nativePerformance.now()
+    : Date.now ? Date.now
+    : () => +(new Date());

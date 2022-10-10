@@ -122,7 +122,10 @@ describe("unittests:: tsc:: builder cancellationToken", () => {
             noChange("Clean build");
             baselineCleanBuild();
 
-            Harness.Baseline.runBaseline(`tsc/cancellationToken/${scenario.split(" ").join("-")}.js`, baseline.join("\r\n"));
+            Harness.Baseline.runBaseline(
+                `tsc/cancellationToken/${scenario.split(" ").join("-")}.js`,
+                baseline.join("\r\n"),
+            );
 
             function noChange(caption: string) {
                 oldSnap = applyEdit(sys, baseline, ts.noop, caption);
@@ -134,13 +137,13 @@ describe("unittests:: tsc:: builder cancellationToken", () => {
             }
 
             function createIncrementalProgram() {
-                builderProgram = useBuildInfo ?
-                    ts.createIncrementalProgram({
+                builderProgram = useBuildInfo
+                    ? ts.createIncrementalProgram({
                         rootNames: parsedConfig.fileNames,
                         options: parsedConfig.options,
                         host,
-                    }) :
-                    builderProgram = builderProgram = ts.createEmitAndSemanticDiagnosticsBuilderProgram(
+                    })
+                    : builderProgram = builderProgram = ts.createEmitAndSemanticDiagnosticsBuilderProgram(
                         parsedConfig.fileNames,
                         parsedConfig.options,
                         host,

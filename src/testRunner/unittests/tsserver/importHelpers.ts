@@ -21,7 +21,11 @@ describe("unittests:: tsserver:: importHelpers", () => {
         };
         const host = createServerHost([f1, tslib]);
         const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
-        openExternalProjectForSession({ projectFileName: "p", rootFiles: [toExternalFile(f1.path)], options: { importHelpers: true } }, session);
+        openExternalProjectForSession({
+            projectFileName: "p",
+            rootFiles: [toExternalFile(f1.path)],
+            options: { importHelpers: true },
+        }, session);
         baselineTsserverLogs("importHelpers", "should not crash in tsserver", session);
     });
 });

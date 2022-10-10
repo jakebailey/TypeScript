@@ -24,7 +24,11 @@ describe("unittests:: tsserver:: typeAquisition:: autoDiscovery", () => {
         const projectService = createProjectService(host, { logger: createLoggerWithInMemoryLogs(host) });
         projectService.openExternalProject({
             projectFileName: "/a/b/proj.csproj",
-            rootFiles: [toExternalFile(file2.path), { fileName: file1.path, hasMixedContent: true, scriptKind: ts.ScriptKind.JS }],
+            rootFiles: [toExternalFile(file2.path), {
+                fileName: file1.path,
+                hasMixedContent: true,
+                scriptKind: ts.ScriptKind.JS,
+            }],
             options: {},
         });
         const typeAcquisition = projectService.externalProjects[0].getTypeAcquisition();

@@ -131,7 +131,12 @@ const localize = task({
     dependencies: [generateDiagnostics],
     run: async () => {
         if (needsUpdate(diagnosticMessagesGeneratedJson, generatedLCGFile)) {
-            await exec(process.execPath, ["scripts/generateLocalizedDiagnosticMessages.mjs", "src/loc/lcl", "built/local", diagnosticMessagesGeneratedJson], { ignoreExitCode: true });
+            await exec(process.execPath, [
+                "scripts/generateLocalizedDiagnosticMessages.mjs",
+                "src/loc/lcl",
+                "built/local",
+                diagnosticMessagesGeneratedJson,
+            ], { ignoreExitCode: true });
         }
     },
 });
@@ -312,7 +317,10 @@ function entrypointBuildTask(options) {
             const outDir = path.dirname(options.output);
             await fs.promises.mkdir(outDir, { recursive: true });
             const moduleSpecifier = path.relative(outDir, options.builtEntrypoint);
-            await fs.promises.writeFile(options.output, `module.exports = require("./${moduleSpecifier.replace(/[\\/]/g, "/")}")`);
+            await fs.promises.writeFile(
+                options.output,
+                `module.exports = require("./${moduleSpecifier.replace(/[\\/]/g, "/")}")`,
+            );
         },
     });
 
@@ -336,13 +344,19 @@ function entrypointBuildTask(options) {
     const watch = task({
         name: `watch-${options.name}`,
         hiddenFromTaskList: true, // This is best effort.
-        dependencies: (options.buildDeps ?? []).concat(options.mainDeps ?? []).concat(cmdLineOptions.bundle ? [] : [shim]),
+        dependencies: (options.buildDeps ?? []).concat(options.mainDeps ?? []).concat(
+            cmdLineOptions.bundle ? [] : [shim],
+        ),
         run: () => {
             // These watch functions return promises that resolve once watch mode has started,
             // allowing them to operate as regular tasks, while creating unresolved promises
             // in the background that keep the process running after all tasks have exited.
             if (!printedWatchWarning) {
-                console.error(chalk.yellowBright("Warning: watch mode is incomplete and may not work as expected. Use at your own risk."));
+                console.error(
+                    chalk.yellowBright(
+                        "Warning: watch mode is incomplete and may not work as expected. Use at your own risk.",
+                    ),
+                );
                 printedWatchWarning = true;
             }
 
@@ -386,7 +400,12 @@ export const dtsServices = task({
     description: "Bundles typescript.d.ts",
     dependencies: [buildServices],
     run: async () => {
-        if (needsUpdate("./built/local/typescript/tsconfig.tsbuildinfo", ["./built/local/typescript.d.ts", "./built/local/typescript.internal.d.ts"])) {
+        if (
+            needsUpdate("./built/local/typescript/tsconfig.tsbuildinfo", [
+                "./built/local/typescript.d.ts",
+                "./built/local/typescript.internal.d.ts",
+            ])
+        ) {
             await runDtsBundler("./built/local/typescript/typescript.d.ts", "./built/local/typescript.d.ts");
         }
     },
@@ -460,7 +479,10 @@ export const dtsLssl = task({
     dependencies: [dtsServices],
     run: async () => {
         await fs.promises.writeFile("./built/local/tsserverlibrary.d.ts", await fileContentsWithCopyright(lsslDts));
-        await fs.promises.writeFile("./built/local/tsserverlibrary.internal.d.ts", await fileContentsWithCopyright(lsslDtsInternal));
+        await fs.promises.writeFile(
+            "./built/local/tsserverlibrary.internal.d.ts",
+            await fileContentsWithCopyright(lsslDtsInternal),
+        );
     },
 });
 
@@ -595,7 +617,13 @@ export const watchOtherOutputs = task({
     name: "watch-other-outputs",
     description: "Builds miscelaneous scripts and documents distributed with the LKG",
     hiddenFromTaskList: true,
-    dependencies: [watchCancellationToken, watchTypingsInstaller, watchWatchGuard, generateTypesMap, copyBuiltLocalDiagnosticMessages],
+    dependencies: [
+        watchCancellationToken,
+        watchTypingsInstaller,
+        watchWatchGuard,
+        generateTypesMap,
+        copyBuiltLocalDiagnosticMessages,
+    ],
 });
 
 export const local = task({
@@ -673,7 +701,10 @@ export const runTestsAndWatch = task({
             if (!token.signaled) {
                 running = true;
                 try {
-                    await runConsoleTests(testRunner, "mocha-fivemat-progress-reporter", /*runInParallel*/ false, { token, watching: true });
+                    await runConsoleTests(testRunner, "mocha-fivemat-progress-reporter", /*runInParallel*/ false, {
+                        token,
+                        watching: true,
+                    });
                 }
                 catch {
                     // ignore
@@ -828,7 +859,10 @@ export const updateSublime = task({
     dependencies: [tsserver],
     run: async () => {
         for (const file of ["built/local/tsserver.js", "built/local/tsserver.js.map"]) {
-            await fs.promises.copyFile(file, path.resolve("../TypeScript-Sublime-Plugin/tsserver/", path.basename(file)));
+            await fs.promises.copyFile(
+                file,
+                path.resolve("../TypeScript-Sublime-Plugin/tsserver/", path.basename(file)),
+            );
         }
     },
 });
@@ -857,7 +891,10 @@ export const produceLKG = task({
             .concat(localizationTargets)
             .filter(f => !fs.existsSync(f));
         if (missingFiles.length > 0) {
-            throw new Error("Cannot replace the LKG unless all built targets are present in directory 'built/local/'. The following files are missing:\n" + missingFiles.join("\n"));
+            throw new Error(
+                "Cannot replace the LKG unless all built targets are present in directory 'built/local/'. The following files are missing:\n"
+                    + missingFiles.join("\n"),
+            );
         }
 
         await exec(process.execPath, ["scripts/produceLKG.mjs"]);
@@ -885,19 +922,37 @@ export const clean = task({
 export const configureNightly = task({
     name: "configure-nightly",
     description: "Runs scripts/configurePrerelease.mjs to prepare a build for nightly publishing",
-    run: () => exec(process.execPath, ["scripts/configurePrerelease.mjs", "dev", "package.json", "src/compiler/corePublic.ts"]),
+    run: () =>
+        exec(process.execPath, [
+            "scripts/configurePrerelease.mjs",
+            "dev",
+            "package.json",
+            "src/compiler/corePublic.ts",
+        ]),
 });
 
 export const configureInsiders = task({
     name: "configure-insiders",
     description: "Runs scripts/configurePrerelease.mjs to prepare a build for insiders publishing",
-    run: () => exec(process.execPath, ["scripts/configurePrerelease.mjs", "insiders", "package.json", "src/compiler/corePublic.ts"]),
+    run: () =>
+        exec(process.execPath, [
+            "scripts/configurePrerelease.mjs",
+            "insiders",
+            "package.json",
+            "src/compiler/corePublic.ts",
+        ]),
 });
 
 export const configureExperimental = task({
     name: "configure-experimental",
     description: "Runs scripts/configurePrerelease.mjs to prepare a build for experimental publishing",
-    run: () => exec(process.execPath, ["scripts/configurePrerelease.mjs", "experimental", "package.json", "src/compiler/corePublic.ts"]),
+    run: () =>
+        exec(process.execPath, [
+            "scripts/configurePrerelease.mjs",
+            "experimental",
+            "package.json",
+            "src/compiler/corePublic.ts",
+        ]),
 });
 
 export const help = task({

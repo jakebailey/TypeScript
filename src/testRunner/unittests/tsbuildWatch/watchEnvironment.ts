@@ -26,7 +26,10 @@ describe("unittests:: tsbuildWatch:: watchEnvironment:: tsbuild:: watchMode:: wi
         writePkgReferences(system);
         const { sys, baseline, oldSnap, cb, getPrograms } = createBaseline(system);
         const host = createSolutionBuilderWithWatchHostForBaseline(sys, cb);
-        const solutionBuilder = ts.createSolutionBuilderWithWatch(host, ["tsconfig.json"], { watch: true, verbose: true });
+        const solutionBuilder = ts.createSolutionBuilderWithWatch(host, ["tsconfig.json"], {
+            watch: true,
+            verbose: true,
+        });
         solutionBuilder.build();
         runWatchBaseline({
             scenario: "watchEnvironment",

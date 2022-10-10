@@ -11,7 +11,11 @@ import {
 describe("unittests:: tsserver:: inconsistentErrorInEditor", () => {
     it("should not error", () => {
         const host = createServerHost([]);
-        const session = createSession(host, { canUseEvents: true, noGetErrOnBackgroundUpdate: true, logger: createLoggerWithInMemoryLogs(host) });
+        const session = createSession(host, {
+            canUseEvents: true,
+            noGetErrOnBackgroundUpdate: true,
+            logger: createLoggerWithInMemoryLogs(host),
+        });
         session.executeCommandSeq<ts.server.protocol.UpdateOpenRequest>({
             command: ts.server.protocol.CommandTypes.UpdateOpen,
             arguments: {
@@ -20,7 +24,8 @@ describe("unittests:: tsserver:: inconsistentErrorInEditor", () => {
                 openFiles: [
                     {
                         file: "^/untitled/ts-nul-authority/Untitled-1",
-                        fileContent: "export function foo<U>() {\r\n    /*$*/return bar<U>;\r\n}\r\n\r\nexport function bar<T>(x: T) {\r\n    return x;\r\n}\r\n\r\nlet x = foo()(42);",
+                        fileContent:
+                            "export function foo<U>() {\r\n    /*$*/return bar<U>;\r\n}\r\n\r\nexport function bar<T>(x: T) {\r\n    return x;\r\n}\r\n\r\nlet x = foo()(42);",
                         scriptKindName: "TS",
                     },
                 ],
@@ -43,7 +48,11 @@ describe("unittests:: tsserver:: inconsistentErrorInEditor", () => {
 describe("unittests:: tsserver:: inconsistentErrorInEditor2", () => {
     it("should not error", () => {
         const host = createServerHost([]);
-        const session = createSession(host, { canUseEvents: true, noGetErrOnBackgroundUpdate: true, logger: createLoggerWithInMemoryLogs(host) });
+        const session = createSession(host, {
+            canUseEvents: true,
+            noGetErrOnBackgroundUpdate: true,
+            logger: createLoggerWithInMemoryLogs(host),
+        });
         session.executeCommandSeq<ts.server.protocol.UpdateOpenRequest>({
             command: ts.server.protocol.CommandTypes.UpdateOpen,
             arguments: {
@@ -52,7 +61,8 @@ describe("unittests:: tsserver:: inconsistentErrorInEditor2", () => {
                 openFiles: [
                     {
                         file: "^/untitled/ts-nul-authority/Untitled-1",
-                        fileContent: "function fn(Foo: number) {\r\n     type Foo = typeof Foo;\r\n    return 0 as any as {x: Foo};\r\n}",
+                        fileContent:
+                            "function fn(Foo: number) {\r\n     type Foo = typeof Foo;\r\n    return 0 as any as {x: Foo};\r\n}",
                         scriptKindName: "TS",
                     },
                 ],

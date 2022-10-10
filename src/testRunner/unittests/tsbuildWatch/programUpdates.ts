@@ -26,7 +26,12 @@ describe("unittests:: tsbuildWatch:: watchMode:: program updates", () => {
     }
     type ReadonlyFile = Readonly<File>;
     /** [tsconfig, index] | [tsconfig, index, anotherModule, someDecl] */
-    type SubProjectFiles = [tsconfig: ReadonlyFile, index: ReadonlyFile] | [tsconfig: ReadonlyFile, index: ReadonlyFile, anotherModule: ReadonlyFile, someDecl: ReadonlyFile];
+    type SubProjectFiles = [tsconfig: ReadonlyFile, index: ReadonlyFile] | [
+        tsconfig: ReadonlyFile,
+        index: ReadonlyFile,
+        anotherModule: ReadonlyFile,
+        someDecl: ReadonlyFile,
+    ];
     function projectFilePath(subProject: SubProject, baseFileName: string) {
         return `${getTsBuildProjectFilePath("sample1", subProject)}/${baseFileName.toLowerCase()}`;
     }
@@ -46,10 +51,18 @@ describe("unittests:: tsbuildWatch:: watchMode:: program updates", () => {
         return [tsconfig, index, anotherModule, someDecl];
     }
 
-    function changeFile(fileName: string | (() => string), content: string | (() => string), caption: string): TscWatchCompileChange {
+    function changeFile(
+        fileName: string | (() => string),
+        content: string | (() => string),
+        caption: string,
+    ): TscWatchCompileChange {
         return {
             caption,
-            edit: sys => sys.writeFile(ts.isString(fileName) ? fileName : fileName(), ts.isString(content) ? content : content()),
+            edit: sys =>
+                sys.writeFile(
+                    ts.isString(fileName) ? fileName : fileName(),
+                    ts.isString(content) ? content : content(),
+                ),
             timeouts: sys => sys.runQueuedTimeoutCallbacks(), // Builds core
         };
     }
@@ -88,9 +101,13 @@ describe("unittests:: tsbuildWatch:: watchMode:: program updates", () => {
     });
 
     it("verify building references watches only those projects", () => {
-        const { sys, baseline, oldSnap, cb, getPrograms } = createBaseline(createWatchedSystem(allFiles, { currentDirectory: "/user/username/projects" }));
+        const { sys, baseline, oldSnap, cb, getPrograms } = createBaseline(
+            createWatchedSystem(allFiles, { currentDirectory: "/user/username/projects" }),
+        );
         const host = createSolutionBuilderWithWatchHostForBaseline(sys, cb);
-        const solutionBuilder = ts.createSolutionBuilderWithWatch(host, [`sample1/${SubProject.tests}`], { watch: true });
+        const solutionBuilder = ts.createSolutionBuilderWithWatch(host, [`sample1/${SubProject.tests}`], {
+            watch: true,
+        });
         solutionBuilder.buildReferences(`sample1/${SubProject.tests}`);
         runWatchBaseline({
             scenario: "programUpdates",
@@ -273,7 +290,12 @@ export class someClass2 { }`),
                 const logicTsConfig: File = {
                     path: logic[0].path,
                     content: JSON.stringify({
-                        compilerOptions: { ignoreDeprecations: "5.0", composite: true, declaration: true, outFile: "index.js" },
+                        compilerOptions: {
+                            ignoreDeprecations: "5.0",
+                            composite: true,
+                            declaration: true,
+                            outFile: "index.js",
+                        },
                         references: [{ path: "../core", prepend: true }],
                     }),
                 };
@@ -281,7 +303,9 @@ export class someClass2 { }`),
                     path: logic[1].path,
                     content: `function bar() { return foo() + 1 };`,
                 };
-                return createWatchedSystem([libFile, coreTsConfig, coreIndex, logicTsConfig, logicIndex], { currentDirectory: "/user/username/projects" });
+                return createWatchedSystem([libFile, coreTsConfig, coreIndex, logicTsConfig, logicIndex], {
+                    currentDirectory: "/user/username/projects",
+                });
             },
             edits: [
                 changeCore(() =>
@@ -428,7 +452,8 @@ let x: string = 10;`,
 
             const changeFileWithoutError: TscWatchCompileChange = {
                 caption: "Change fileWithoutError",
-                edit: sys => sys.writeFile(fileWithoutError.path, fileWithoutError.content.replace(/myClass/g, "myClass2")),
+                edit: sys =>
+                    sys.writeFile(fileWithoutError.path, fileWithoutError.content.replace(/myClass/g, "myClass2")),
                 timeouts: sys => sys.runQueuedTimeoutCallbacks(),
             };
 
@@ -469,7 +494,8 @@ let x: string = 10;`,
 
                 verifyTscWatch({
                     scenario: "programUpdates",
-                    subScenario: "reportErrors/declarationEmitErrors/introduceError/when fixing errors only changed file is emitted",
+                    subScenario:
+                        "reportErrors/declarationEmitErrors/introduceError/when fixing errors only changed file is emitted",
                     commandLineArgs: ["-b", "-w", subProject],
                     sys: () =>
                         createWatchedSystem(
@@ -549,7 +575,9 @@ export function someFn() { }`,
                     },
                 }),
             };
-            return createWatchedSystem([index, configFile, libFile], { currentDirectory: "/user/username/projects/myproject" });
+            return createWatchedSystem([index, configFile, libFile], {
+                currentDirectory: "/user/username/projects/myproject",
+            });
         },
         edits: [
             {
@@ -590,8 +618,13 @@ export function someFn() { }`,
         commandLineArgs: ["-b", "-w", `sample1/${SubProject.core}`, "-verbose"],
         sys: () => {
             const [coreConfig, ...rest] = core;
-            const newCoreConfig: File = { path: coreConfig.path, content: JSON.stringify({ compilerOptions: { composite: true, outDir: "outDir" } }) };
-            return createWatchedSystem([libFile, newCoreConfig, ...rest], { currentDirectory: "/user/username/projects" });
+            const newCoreConfig: File = {
+                path: coreConfig.path,
+                content: JSON.stringify({ compilerOptions: { composite: true, outDir: "outDir" } }),
+            };
+            return createWatchedSystem([libFile, newCoreConfig, ...rest], {
+                currentDirectory: "/user/username/projects",
+            });
         },
         edits: [
             noopChange,
@@ -607,7 +640,14 @@ export function someFn() { }`,
     verifyTscWatch({
         scenario: "programUpdates",
         subScenario: "works with extended source files",
-        commandLineArgs: ["-b", "-w", "-v", "project1.tsconfig.json", "project2.tsconfig.json", "project3.tsconfig.json"],
+        commandLineArgs: [
+            "-b",
+            "-w",
+            "-v",
+            "project1.tsconfig.json",
+            "project2.tsconfig.json",
+            "project3.tsconfig.json",
+        ],
         sys: () => {
             const alphaExtendedConfigFile: File = {
                 path: "/a/b/alpha.tsconfig.json",
@@ -674,7 +714,11 @@ export function someFn() { }`,
             const project3Config: File = {
                 path: "/a/b/project3.tsconfig.json",
                 content: JSON.stringify({
-                    extends: ["./extendsConfig1.tsconfig.json", "./extendsConfig2.tsconfig.json", "./extendsConfig3.tsconfig.json"],
+                    extends: [
+                        "./extendsConfig1.tsconfig.json",
+                        "./extendsConfig2.tsconfig.json",
+                        "./extendsConfig3.tsconfig.json",
+                    ],
                     compilerOptions: {
                         composite: false,
                     },

@@ -18,13 +18,19 @@ describe("unittests:: tsc:: declarationEmit::", () => {
         changeCaseFileTestPath: (path: string) => boolean;
     }
 
-    function changeCaseFile(file: FileOrFolderOrSymLink, testPath: (path: string) => boolean, replacePath: (path: string) => string): FileOrFolderOrSymLink {
-        return !isSymLink(file) || !testPath(file.symLink) ?
-            testPath(file.path) ? { ...file, path: replacePath(file.path) } : file :
-            { path: testPath(file.path) ? replacePath(file.path) : file.path, symLink: replacePath(file.symLink) };
+    function changeCaseFile(
+        file: FileOrFolderOrSymLink,
+        testPath: (path: string) => boolean,
+        replacePath: (path: string) => string,
+    ): FileOrFolderOrSymLink {
+        return !isSymLink(file) || !testPath(file.symLink)
+            ? testPath(file.path) ? { ...file, path: replacePath(file.path) } : file
+            : { path: testPath(file.path) ? replacePath(file.path) : file.path, symLink: replacePath(file.symLink) };
     }
 
-    function verifyDeclarationEmit({ subScenario, files, rootProject, changeCaseFileTestPath }: VerifyDeclarationEmitInput) {
+    function verifyDeclarationEmit(
+        { subScenario, files, rootProject, changeCaseFileTestPath }: VerifyDeclarationEmitInput,
+    ) {
         describe(subScenario, () => {
             verifyTscWatch({
                 scenario: "declarationEmit",
@@ -41,7 +47,9 @@ describe("unittests:: tsc:: declarationEmit::", () => {
                 subScenario: caseChangeScenario,
                 sys: () =>
                     createWatchedSystem(
-                        files.map(f => changeCaseFile(f, changeCaseFileTestPath, str => str.replace("myproject", "myProject"))),
+                        files.map(f =>
+                            changeCaseFile(f, changeCaseFileTestPath, str => str.replace("myproject", "myProject"))
+                        ),
                         { currentDirectory: "/user/username/projects/myproject" },
                     ),
                 commandLineArgs: ["-p", rootProject, "--explainFiles"],
@@ -121,21 +129,37 @@ describe("unittests:: tsc:: declarationEmit::", () => {
             rootProject: "plugin-one",
             files: [
                 { path: `/user/username/projects/myproject/plugin-two/index.d.ts`, content: pluginTwoDts() },
-                { path: `/user/username/projects/myproject/plugin-two/node_modules/typescript-fsa/package.json`, content: fsaPackageJson() },
-                { path: `/user/username/projects/myproject/plugin-two/node_modules/typescript-fsa/index.d.ts`, content: fsaIndex() },
+                {
+                    path: `/user/username/projects/myproject/plugin-two/node_modules/typescript-fsa/package.json`,
+                    content: fsaPackageJson(),
+                },
+                {
+                    path: `/user/username/projects/myproject/plugin-two/node_modules/typescript-fsa/index.d.ts`,
+                    content: fsaIndex(),
+                },
                 { path: `/user/username/projects/myproject/plugin-one/tsconfig.json`, content: pluginOneConfig() },
                 { path: `/user/username/projects/myproject/plugin-one/index.ts`, content: pluginOneIndex() },
                 { path: `/user/username/projects/myproject/plugin-one/action.ts`, content: pluginOneAction() },
-                { path: `/user/username/projects/myproject/plugin-one/node_modules/typescript-fsa/package.json`, content: fsaPackageJson() },
-                { path: `/user/username/projects/myproject/plugin-one/node_modules/typescript-fsa/index.d.ts`, content: fsaIndex() },
-                { path: `/user/username/projects/myproject/plugin-one/node_modules/plugin-two`, symLink: `/user/username/projects/myproject/plugin-two` },
+                {
+                    path: `/user/username/projects/myproject/plugin-one/node_modules/typescript-fsa/package.json`,
+                    content: fsaPackageJson(),
+                },
+                {
+                    path: `/user/username/projects/myproject/plugin-one/node_modules/typescript-fsa/index.d.ts`,
+                    content: fsaIndex(),
+                },
+                {
+                    path: `/user/username/projects/myproject/plugin-one/node_modules/plugin-two`,
+                    symLink: `/user/username/projects/myproject/plugin-two`,
+                },
                 libFile,
             ],
             changeCaseFileTestPath: str => ts.stringContains(str, "/plugin-two"),
         });
 
         verifyDeclarationEmit({
-            subScenario: "when same version is referenced through source and another symlinked package with indirect link",
+            subScenario:
+                "when same version is referenced through source and another symlinked package with indirect link",
             rootProject: "plugin-one",
             files: [
                 {
@@ -146,19 +170,37 @@ describe("unittests:: tsc:: declarationEmit::", () => {
                         main: "dist/commonjs/index.js",
                     }),
                 },
-                { path: `/user/username/projects/myproject/plugin-two/dist/commonjs/index.d.ts`, content: pluginTwoDts() },
-                { path: `/user/username/projects/myproject/plugin-two/node_modules/typescript-fsa/package.json`, content: fsaPackageJson() },
-                { path: `/user/username/projects/myproject/plugin-two/node_modules/typescript-fsa/index.d.ts`, content: fsaIndex() },
+                {
+                    path: `/user/username/projects/myproject/plugin-two/dist/commonjs/index.d.ts`,
+                    content: pluginTwoDts(),
+                },
+                {
+                    path: `/user/username/projects/myproject/plugin-two/node_modules/typescript-fsa/package.json`,
+                    content: fsaPackageJson(),
+                },
+                {
+                    path: `/user/username/projects/myproject/plugin-two/node_modules/typescript-fsa/index.d.ts`,
+                    content: fsaIndex(),
+                },
                 { path: `/user/username/projects/myproject/plugin-one/tsconfig.json`, content: pluginOneConfig() },
                 {
                     path: `/user/username/projects/myproject/plugin-one/index.ts`,
                     content: `${pluginOneIndex()}
 ${pluginOneAction()}`,
                 },
-                { path: `/user/username/projects/myproject/plugin-one/node_modules/typescript-fsa/package.json`, content: fsaPackageJson() },
-                { path: `/user/username/projects/myproject/plugin-one/node_modules/typescript-fsa/index.d.ts`, content: fsaIndex() },
+                {
+                    path: `/user/username/projects/myproject/plugin-one/node_modules/typescript-fsa/package.json`,
+                    content: fsaPackageJson(),
+                },
+                {
+                    path: `/user/username/projects/myproject/plugin-one/node_modules/typescript-fsa/index.d.ts`,
+                    content: fsaIndex(),
+                },
                 { path: `/temp/yarn/data/link/plugin-two`, symLink: `/user/username/projects/myproject/plugin-two` },
-                { path: `/user/username/projects/myproject/plugin-one/node_modules/plugin-two`, symLink: `/temp/yarn/data/link/plugin-two` },
+                {
+                    path: `/user/username/projects/myproject/plugin-one/node_modules/plugin-two`,
+                    symLink: `/temp/yarn/data/link/plugin-two`,
+                },
                 libFile,
             ],
             changeCaseFileTestPath: str => ts.stringContains(str, "/plugin-two"),

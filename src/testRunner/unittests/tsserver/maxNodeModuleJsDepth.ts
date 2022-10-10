@@ -28,11 +28,19 @@ describe("unittests:: tsserver:: maxNodeModuleJsDepth for inferred projects", ()
         const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
         openFilesForSession([file1], session);
 
-        session.logger.log(`maxNodeModuleJsDepth: ${session.getProjectService().inferredProjects[0].getCompilationSettings().maxNodeModuleJsDepth}`);
+        session.logger.log(
+            `maxNodeModuleJsDepth: ${
+                session.getProjectService().inferredProjects[0].getCompilationSettings().maxNodeModuleJsDepth
+            }`,
+        );
 
         // Assert the option sticks
         setCompilerOptionsForInferredProjectsRequestForSession({ target: ts.ScriptTarget.ES2016 }, session);
-        session.logger.log(`maxNodeModuleJsDepth: ${session.getProjectService().inferredProjects[0].getCompilationSettings().maxNodeModuleJsDepth}`);
+        session.logger.log(
+            `maxNodeModuleJsDepth: ${
+                session.getProjectService().inferredProjects[0].getCompilationSettings().maxNodeModuleJsDepth
+            }`,
+        );
         baselineTsserverLogs("maxNodeModuleJsDepth", "should be set to 2 if the project has js root files", session);
     });
 
@@ -47,16 +55,35 @@ describe("unittests:: tsserver:: maxNodeModuleJsDepth for inferred projects", ()
         };
 
         const host = createServerHost([file1, file2, libFile]);
-        const session = createSession(host, { useSingleInferredProject: true, logger: createLoggerWithInMemoryLogs(host) });
+        const session = createSession(host, {
+            useSingleInferredProject: true,
+            logger: createLoggerWithInMemoryLogs(host),
+        });
 
         openFilesForSession([file1], session);
-        session.logger.log(`maxNodeModuleJsDepth: ${session.getProjectService().inferredProjects[0].getCompilationSettings().maxNodeModuleJsDepth}`);
+        session.logger.log(
+            `maxNodeModuleJsDepth: ${
+                session.getProjectService().inferredProjects[0].getCompilationSettings().maxNodeModuleJsDepth
+            }`,
+        );
 
         openFilesForSession([file2], session);
-        session.logger.log(`maxNodeModuleJsDepth: ${session.getProjectService().inferredProjects[0].getCompilationSettings().maxNodeModuleJsDepth}`);
+        session.logger.log(
+            `maxNodeModuleJsDepth: ${
+                session.getProjectService().inferredProjects[0].getCompilationSettings().maxNodeModuleJsDepth
+            }`,
+        );
 
         closeFilesForSession([file2], session);
-        session.logger.log(`maxNodeModuleJsDepth: ${session.getProjectService().inferredProjects[0].getCompilationSettings().maxNodeModuleJsDepth}`);
-        baselineTsserverLogs("maxNodeModuleJsDepth", "should return to normal state when all js root files are removed from project", session);
+        session.logger.log(
+            `maxNodeModuleJsDepth: ${
+                session.getProjectService().inferredProjects[0].getCompilationSettings().maxNodeModuleJsDepth
+            }`,
+        );
+        baselineTsserverLogs(
+            "maxNodeModuleJsDepth",
+            "should return to normal state when all js root files are removed from project",
+            session,
+        );
     });
 });

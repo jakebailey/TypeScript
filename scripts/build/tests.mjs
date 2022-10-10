@@ -79,7 +79,18 @@ export async function runConsoleTests(runJs, defaultReporter, runInParallel, opt
     }
 
     if (tests || runners || light || testTimeout || taskConfigsFolder || keepFailed || shards || shardId) {
-        writeTestConfigFile(tests, runners, light, taskConfigsFolder, workerCount, stackTraceLimit, testTimeout, keepFailed, shards, shardId);
+        writeTestConfigFile(
+            tests,
+            runners,
+            light,
+            taskConfigsFolder,
+            workerCount,
+            stackTraceLimit,
+            testTimeout,
+            keepFailed,
+            shards,
+            shardId,
+        );
     }
 
     const colors = cmdLineOptions.colors;
@@ -198,7 +209,18 @@ async function cleanCoverageDir() {
  * @param {number | undefined} [shards]
  * @param {number | undefined} [shardId]
  */
-export function writeTestConfigFile(tests, runners, light, taskConfigsFolder, workerCount, stackTraceLimit, timeout, keepFailed, shards, shardId) {
+export function writeTestConfigFile(
+    tests,
+    runners,
+    light,
+    taskConfigsFolder,
+    workerCount,
+    stackTraceLimit,
+    timeout,
+    keepFailed,
+    shards,
+    shardId,
+) {
     const testConfigContents = JSON.stringify({
         test: tests ? [tests] : undefined,
         runners: runners ? runners.split(",") : undefined,

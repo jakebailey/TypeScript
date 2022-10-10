@@ -20,7 +20,17 @@ describe("unittests:: tsserver:: projects with references: invoking when referen
         const logicIndex = getTsBuildProjectFile("sample1", "logic/index.ts");
         const testsConfig = getTsBuildProjectFile("sample1", "tests/tsconfig.json");
         const testsIndex = getTsBuildProjectFile("sample1", "tests/index.ts");
-        const host = createServerHost([libFile, coreConfig, coreIndex, coreAnotherModule, coreSomeDecl, logicConfig, logicIndex, testsConfig, testsIndex]);
+        const host = createServerHost([
+            libFile,
+            coreConfig,
+            coreIndex,
+            coreAnotherModule,
+            coreSomeDecl,
+            logicConfig,
+            logicIndex,
+            testsConfig,
+            testsIndex,
+        ]);
         const logger = createLoggerWithInMemoryLogs(host);
         const service = createProjectService(host, { logger });
         service.openClientFile(testsIndex.path);
@@ -139,7 +149,11 @@ export class A {}`,
             // revert the edit on config file
             host.writeFile(bConfig.path, bConfig.content);
             host.runQueuedTimeoutCallbacks();
-            baselineTsserverLogs("projectsWithReferences", "transitive references with edit in referenced config file", service);
+            baselineTsserverLogs(
+                "projectsWithReferences",
+                "transitive references with edit in referenced config file",
+                service,
+            );
         });
 
         it("deleting referenced config file", () => {
@@ -150,7 +164,11 @@ export class A {}`,
             // revert
             host.writeFile(bConfig.path, bConfig.content);
             host.runQueuedTimeoutCallbacks(); // Schedules failed lookup invalidation
-            baselineTsserverLogs("projectsWithReferences", "transitive references with deleting referenced config file", service);
+            baselineTsserverLogs(
+                "projectsWithReferences",
+                "transitive references with deleting referenced config file",
+                service,
+            );
         });
 
         it("deleting transitively referenced config file", () => {
@@ -161,7 +179,11 @@ export class A {}`,
             // revert
             host.writeFile(aConfig.path, aConfig.content);
             host.runQueuedTimeoutCallbacks(); // Schedules failed lookup invalidation
-            baselineTsserverLogs("projectsWithReferences", "transitive references with deleting transitively referenced config file", service);
+            baselineTsserverLogs(
+                "projectsWithReferences",
+                "transitive references with deleting transitively referenced config file",
+                service,
+            );
         });
     });
 
@@ -218,7 +240,11 @@ export class A {}`,
             // non local edit
             host.appendFile(bTs.path, `export function gFoo() { }`);
             host.runQueuedTimeoutCallbacks();
-            baselineTsserverLogs("projectsWithReferences", "trasitive references without files with non local edit", service);
+            baselineTsserverLogs(
+                "projectsWithReferences",
+                "trasitive references without files with non local edit",
+                service,
+            );
         });
 
         it("edit on config file", () => {
@@ -236,7 +262,11 @@ export class A {}`,
             // revert the edit on config file
             host.writeFile(cConfig.path, cConfig.content);
             host.runQueuedTimeoutCallbacks();
-            baselineTsserverLogs("projectsWithReferences", "trasitive references without files with edit on config file", service);
+            baselineTsserverLogs(
+                "projectsWithReferences",
+                "trasitive references without files with edit on config file",
+                service,
+            );
         });
 
         it("edit in referenced config file", () => {
@@ -254,7 +284,11 @@ export class A {}`,
             // revert the edit on config file
             host.writeFile(bConfig.path, bConfig.content);
             host.runQueuedTimeoutCallbacks();
-            baselineTsserverLogs("projectsWithReferences", "trasitive references without files with edit in referenced config file", service);
+            baselineTsserverLogs(
+                "projectsWithReferences",
+                "trasitive references without files with edit in referenced config file",
+                service,
+            );
         });
 
         it("deleting referenced config file", () => {
@@ -265,7 +299,11 @@ export class A {}`,
             // revert
             host.writeFile(bConfig.path, bConfig.content);
             host.runQueuedTimeoutCallbacks(); // Schedules failed lookup invalidation
-            baselineTsserverLogs("projectsWithReferences", "trasitive references without files with deleting referenced config file", service);
+            baselineTsserverLogs(
+                "projectsWithReferences",
+                "trasitive references without files with deleting referenced config file",
+                service,
+            );
         });
 
         it("deleting transitively referenced config file", () => {
@@ -276,7 +314,11 @@ export class A {}`,
             // revert
             host.writeFile(aConfig.path, aConfig.content);
             host.runQueuedTimeoutCallbacks(); // Schedules failed lookup invalidation
-            baselineTsserverLogs("projectsWithReferences", "trasitive references without files with deleting transitively referenced config file", service);
+            baselineTsserverLogs(
+                "projectsWithReferences",
+                "trasitive references without files with deleting transitively referenced config file",
+                service,
+            );
         });
     });
 });

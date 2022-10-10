@@ -31,13 +31,15 @@ describe("unittests:: tsserver:: CachingFileSystemInformation:: tsserverProjectS
     type CalledMaps = CalledMapsWithSingleArg | CalledMapsWithFiveArgs;
     type CalledWithFiveArgs = [readonly string[], readonly string[], readonly string[], number];
     function createLoggerTrackingHostCalls(host: TestServerHost) {
-        const calledMaps: Record<CalledMapsWithSingleArg, ts.MultiMap<string, true>> & Record<CalledMapsWithFiveArgs, ts.MultiMap<string, CalledWithFiveArgs>> = {
-            fileExists: setCallsTrackingWithSingleArgFn(CalledMapsWithSingleArg.fileExists),
-            directoryExists: setCallsTrackingWithSingleArgFn(CalledMapsWithSingleArg.directoryExists),
-            getDirectories: setCallsTrackingWithSingleArgFn(CalledMapsWithSingleArg.getDirectories),
-            readFile: setCallsTrackingWithSingleArgFn(CalledMapsWithSingleArg.readFile),
-            readDirectory: setCallsTrackingWithFiveArgFn(CalledMapsWithFiveArgs.readDirectory),
-        };
+        const calledMaps:
+            & Record<CalledMapsWithSingleArg, ts.MultiMap<string, true>>
+            & Record<CalledMapsWithFiveArgs, ts.MultiMap<string, CalledWithFiveArgs>> = {
+                fileExists: setCallsTrackingWithSingleArgFn(CalledMapsWithSingleArg.fileExists),
+                directoryExists: setCallsTrackingWithSingleArgFn(CalledMapsWithSingleArg.directoryExists),
+                getDirectories: setCallsTrackingWithSingleArgFn(CalledMapsWithSingleArg.getDirectories),
+                readFile: setCallsTrackingWithSingleArgFn(CalledMapsWithSingleArg.readFile),
+                readDirectory: setCallsTrackingWithFiveArgFn(CalledMapsWithFiveArgs.readDirectory),
+            };
 
         return logCacheAndClear;
 
@@ -62,7 +64,10 @@ describe("unittests:: tsserver:: CachingFileSystemInformation:: tsserverProjectS
         }
 
         function logCacheEntry(logger: Logger, callback: CalledMaps) {
-            const result = Array.from<[string, (true | CalledWithFiveArgs)[]], { key: string; count: number; }>(calledMaps[callback].entries(), ([key, arr]) => ({ key, count: arr.length }));
+            const result = Array.from<[string, (true | CalledWithFiveArgs)[]], { key: string; count: number; }>(
+                calledMaps[callback].entries(),
+                ([key, arr]) => ({ key, count: arr.length }),
+            );
             logger.info(`${callback}:: ${JSON.stringify(result)}`);
             calledMaps[callback].clear();
         }
@@ -133,7 +138,11 @@ describe("unittests:: tsserver:: CachingFileSystemInformation:: tsserverProjectS
         logCacheAndClear(projectService.logger);
 
         // setting compiler options discards module resolution cache
-        projectService.setCompilerOptionsForInferredProjects({ module: ts.ModuleKind.AMD, noLib: true, target: ts.ScriptTarget.ES5 });
+        projectService.setCompilerOptionsForInferredProjects({
+            module: ts.ModuleKind.AMD,
+            noLib: true,
+            target: ts.ScriptTarget.ES5,
+        });
         logSemanticDiagnostics(projectService, project, imported);
         logCacheAndClear(projectService.logger);
         baselineTsserverLogs("cachingFileSystemInformation", "works using legacy resolution logic", projectService);
@@ -309,7 +318,13 @@ describe("unittests:: tsserver:: CachingFileSystemInformation:: tsserverProjectS
 
                 projectService.openClientFile(file3.path);
                 logCacheAndClear(projectService.logger);
-                baselineTsserverLogs("cachingFileSystemInformation", `watchDirectories for config file with case ${useCaseSensitiveFileNames ? "" : "in"}sensitive file system`, projectService);
+                baselineTsserverLogs(
+                    "cachingFileSystemInformation",
+                    `watchDirectories for config file with case ${
+                        useCaseSensitiveFileNames ? "" : "in"
+                    }sensitive file system`,
+                    projectService,
+                );
             });
         }
         verifyWatchDirectoriesCaseSensitivity(/*useCaseSensitiveFileNames*/ false);
@@ -354,7 +369,11 @@ describe("unittests:: tsserver:: CachingFileSystemInformation:: tsserverProjectS
 
             logSemanticDiagnostics(service, project, file1);
             logSemanticDiagnostics(service, project, file2);
-            baselineTsserverLogs("cachingFileSystemInformation", `includes the parent folder FLLs in ${resolution} module resolution mode`, service);
+            baselineTsserverLogs(
+                "cachingFileSystemInformation",
+                `includes the parent folder FLLs in ${resolution} module resolution mode`,
+                service,
+            );
         }
 
         it("Includes the parent folder FLLs in node module resolution mode", () => {
@@ -421,8 +440,16 @@ describe("unittests:: tsserver:: CachingFileSystemInformation:: tsserverProjectS
                 { path: "/a/b/node_modules/.staging/symbol-observable-24bcbbff" },
                 { path: "/a/b/node_modules/.staging/rxjs-22375c61" },
                 { path: "/a/b/node_modules/.staging/typescript-8493ea5d" },
-                { path: "/a/b/node_modules/.staging/symbol-observable-24bcbbff/package.json", content: '{\n  "name": "symbol-observable",\n  "version": "1.0.4",\n  "description": "Symbol.observable ponyfill",\n  "license": "MIT",\n  "repository": "blesh/symbol-observable",\n  "author": {\n    "name": "Ben Lesh",\n    "email": "ben@benlesh.com"\n  },\n  "engines": {\n    "node": ">=0.10.0"\n  },\n  "scripts": {\n    "test": "npm run build && mocha && tsc ./ts-test/test.ts && node ./ts-test/test.js && check-es3-syntax -p lib/ --kill",\n    "build": "babel es --out-dir lib",\n    "prepublish": "npm test"\n  },\n  "files": [\n    "' },
-                { path: "/a/b/node_modules/.staging/lodash-b0733faa/package.json", content: '{\n  "name": "lodash",\n  "version": "4.17.4",\n  "description": "Lodash modular utilities.",\n  "keywords": "modules, stdlib, util",\n  "homepage": "https://lodash.com/",\n  "repository": "lodash/lodash",\n  "icon": "https://lodash.com/icon.svg",\n  "license": "MIT",\n  "main": "lodash.js",\n  "author": "John-David Dalton <john.david.dalton@gmail.com> (http://allyoucanleet.com/)",\n  "contributors": [\n    "John-David Dalton <john.david.dalton@gmail.com> (http://allyoucanleet.com/)",\n    "Mathias Bynens <mathias@qiwi.' },
+                {
+                    path: "/a/b/node_modules/.staging/symbol-observable-24bcbbff/package.json",
+                    content:
+                        '{\n  "name": "symbol-observable",\n  "version": "1.0.4",\n  "description": "Symbol.observable ponyfill",\n  "license": "MIT",\n  "repository": "blesh/symbol-observable",\n  "author": {\n    "name": "Ben Lesh",\n    "email": "ben@benlesh.com"\n  },\n  "engines": {\n    "node": ">=0.10.0"\n  },\n  "scripts": {\n    "test": "npm run build && mocha && tsc ./ts-test/test.ts && node ./ts-test/test.js && check-es3-syntax -p lib/ --kill",\n    "build": "babel es --out-dir lib",\n    "prepublish": "npm test"\n  },\n  "files": [\n    "',
+                },
+                {
+                    path: "/a/b/node_modules/.staging/lodash-b0733faa/package.json",
+                    content:
+                        '{\n  "name": "lodash",\n  "version": "4.17.4",\n  "description": "Lodash modular utilities.",\n  "keywords": "modules, stdlib, util",\n  "homepage": "https://lodash.com/",\n  "repository": "lodash/lodash",\n  "icon": "https://lodash.com/icon.svg",\n  "license": "MIT",\n  "main": "lodash.js",\n  "author": "John-David Dalton <john.david.dalton@gmail.com> (http://allyoucanleet.com/)",\n  "contributors": [\n    "John-David Dalton <john.david.dalton@gmail.com> (http://allyoucanleet.com/)",\n    "Mathias Bynens <mathias@qiwi.',
+                },
                 {
                     path: "/a/b/node_modules/.staging/rxjs-22375c61/package.json",
                     content:
@@ -433,10 +460,20 @@ describe("unittests:: tsserver:: CachingFileSystemInformation:: tsserverProjectS
                     content:
                         '{\n    "name": "typescript",\n    "author": "Microsoft Corp.",\n    "homepage": "http://typescriptlang.org/",\n    "version": "2.4.2",\n    "license": "Apache-2.0",\n    "description": "TypeScript is a language for application scale JavaScript development",\n    "keywords": [\n        "TypeScript",\n        "Microsoft",\n        "compiler",\n        "language",\n        "javascript"\n    ],\n    "bugs": {\n        "url": "https://github.com/Microsoft/TypeScript/issues"\n    },\n    "repository": {\n        "type": "git",\n        "url": "https://github.com/Microsoft/TypeScript.git"\n    },\n    "main": "./lib/typescript.js",\n    "typings": "./lib/typescript.d.ts",\n    "bin": {\n        "tsc": "./bin/tsc",\n        "tsserver": "./bin/tsserver"\n    },\n    "engines": {\n        "node": ">=4.2.0"\n    },\n    "devDependencies": {\n        "@types/browserify": "latest",\n        "@types/chai": "latest",\n        "@types/convert-source-map": "latest",\n        "@types/del": "latest",\n        "@types/glob": "latest",\n        "@types/gulp": "latest",\n        "@types/gulp-concat": "latest",\n        "@types/gulp-help": "latest",\n        "@types/gulp-newer": "latest",\n        "@types/gulp-sourcemaps": "latest",\n        "@types/merge2": "latest",\n        "@types/minimatch": "latest",\n        "@types/minimist": "latest",\n        "@types/mkdirp": "latest",\n        "@types/mocha": "latest",\n        "@types/node": "latest",\n        "@types/q": "latest",\n        "@types/run-sequence": "latest",\n        "@types/through2": "latest",\n        "browserify": "latest",\n        "chai": "latest",\n        "convert-source-map": "latest",\n        "del": "latest",\n        "gulp": "latest",\n        "gulp-clone": "latest",\n        "gulp-concat": "latest",\n        "gulp-help": "latest",\n        "gulp-insert": "latest",\n        "gulp-newer": "latest",\n        "gulp-sourcemaps": "latest",\n        "gulp-typescript": "latest",\n        "into-stream": "latest",\n        "istanbul": "latest",\n        "jake": "latest",\n        "merge2": "latest",\n        "minimist": "latest",\n        "mkdirp": "latest",\n        "mocha": "latest",\n        "mocha-fivemat-progress-reporter": "latest",\n        "q": "latest",\n        "run-sequence": "latest",\n        "sorcery": "latest",\n        "through2": "latest",\n        "travis-fold": "latest",\n        "ts-node": "latest",\n        "eslint": "5.16.0",\n        "typescript": "^2.4"\n    },\n    "scripts": {\n        "pretest": "jake tests",\n        "test": "jake runtests-parallel",\n        "build": "npm run build:compiler && npm run build:tests",\n        "build:compiler": "jake local",\n        "build:tests": "jake tests",\n        "start": "node lib/tsc",\n        "clean": "jake clean",\n        "gulp": "gulp",\n        "jake": "jake",\n        "lint": "jake lint",\n        "setup-hooks": "node scripts/link-hooks.js"\n    },\n    "browser": {\n        "buffer": false,\n        "fs": false,\n        "os": false,\n        "path": false\n    }\n}',
                 },
-                { path: "/a/b/node_modules/.staging/symbol-observable-24bcbbff/index.js", content: "module.exports = require('./lib/index');\n" },
-                { path: "/a/b/node_modules/.staging/symbol-observable-24bcbbff/index.d.ts", content: "declare const observableSymbol: symbol;\nexport default observableSymbol;\n" },
+                {
+                    path: "/a/b/node_modules/.staging/symbol-observable-24bcbbff/index.js",
+                    content: "module.exports = require('./lib/index');\n",
+                },
+                {
+                    path: "/a/b/node_modules/.staging/symbol-observable-24bcbbff/index.d.ts",
+                    content: "declare const observableSymbol: symbol;\nexport default observableSymbol;\n",
+                },
                 { path: "/a/b/node_modules/.staging/symbol-observable-24bcbbff/lib" },
-                { path: "/a/b/node_modules/.staging/symbol-observable-24bcbbff/lib/index.js", content: "'use strict';\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\n\nvar _ponyfill = require('./ponyfill');\n\nvar _ponyfill2 = _interopRequireDefault(_ponyfill);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }\n\nvar root; /* global window */\n\n\nif (typeof self !== 'undefined') {\n  root = self;\n} else if (typeof window !== 'undefined') {\n  root = window;\n} else if (typeof global !== 'undefined') {\n  root = global;\n} else if (typeof module !== 'undefined') {\n  root = module;\n} else {\n  root = Function('return this')();\n}\n\nvar result = (0, _ponyfill2['default'])(root);\nexports['default'] = result;" },
+                {
+                    path: "/a/b/node_modules/.staging/symbol-observable-24bcbbff/lib/index.js",
+                    content:
+                        "'use strict';\n\nObject.defineProperty(exports, \"__esModule\", {\n  value: true\n});\n\nvar _ponyfill = require('./ponyfill');\n\nvar _ponyfill2 = _interopRequireDefault(_ponyfill);\n\nfunction _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }\n\nvar root; /* global window */\n\n\nif (typeof self !== 'undefined') {\n  root = self;\n} else if (typeof window !== 'undefined') {\n  root = window;\n} else if (typeof global !== 'undefined') {\n  root = global;\n} else if (typeof module !== 'undefined') {\n  root = module;\n} else {\n  root = Function('return this')();\n}\n\nvar result = (0, _ponyfill2['default'])(root);\nexports['default'] = result;",
+                },
             ].map(getRootedFileOrFolder);
             verifyAfterPartialOrCompleteNpmInstall();
 
@@ -448,7 +485,10 @@ describe("unittests:: tsserver:: CachingFileSystemInformation:: tsserverProjectS
                     content:
                         '{\n    "name": "@types/lodash",\n    "version": "4.14.74",\n    "description": "TypeScript definitions for Lo-Dash",\n    "license": "MIT",\n    "contributors": [\n        {\n            "name": "Brian Zengel",\n            "url": "https://github.com/bczengel"\n        },\n        {\n            "name": "Ilya Mochalov",\n            "url": "https://github.com/chrootsu"\n        },\n        {\n            "name": "Stepan Mikhaylyuk",\n            "url": "https://github.com/stepancar"\n        },\n        {\n            "name": "Eric L Anderson",\n            "url": "https://github.com/ericanderson"\n        },\n        {\n            "name": "AJ Richardson",\n            "url": "https://github.com/aj-r"\n        },\n        {\n            "name": "Junyoung Clare Jang",\n            "url": "https://github.com/ailrun"\n        }\n    ],\n    "main": "",\n    "repository": {\n        "type": "git",\n        "url": "https://www.github.com/DefinitelyTyped/DefinitelyTyped.git"\n    },\n    "scripts": {},\n    "dependencies": {},\n    "typesPublisherContentHash": "12af578ffaf8d86d2df37e591857906a86b983fa9258414326544a0fe6af0de8",\n    "typeScriptVersion": "2.2"\n}',
                 },
-                { path: "/a/b/node_modules/.staging/lodash-b0733faa/index.js", content: "module.exports = require('./lodash');" },
+                {
+                    path: "/a/b/node_modules/.staging/lodash-b0733faa/index.js",
+                    content: "module.exports = require('./lodash');",
+                },
                 { path: "/a/b/node_modules/.staging/typescript-8493ea5d/package.json.3017591594", content: "" },
             ].map(getRootedFileOrFolder));
             // Since we added/removed in .staging no timeout
@@ -463,7 +503,11 @@ describe("unittests:: tsserver:: CachingFileSystemInformation:: tsserverProjectS
                 { path: "/a/b/node_modules/.staging/rxjs-22375c61/bundles" },
                 { path: "/a/b/node_modules/.staging/rxjs-22375c61/operator" },
                 { path: "/a/b/node_modules/.staging/rxjs-22375c61/src/add/observable/dom" },
-                { path: "/a/b/node_modules/.staging/@types/lodash-e56c4fe7/index.d.ts", content: "\n// Stub for lodash\nexport = _;\nexport as namespace _;\ndeclare var _: _.LoDashStatic;\ndeclare namespace _ {\n    interface LoDashStatic {\n        someProp: string;\n    }\n    class SomeClass {\n        someMethod(): void;\n    }\n}" },
+                {
+                    path: "/a/b/node_modules/.staging/@types/lodash-e56c4fe7/index.d.ts",
+                    content:
+                        "\n// Stub for lodash\nexport = _;\nexport as namespace _;\ndeclare var _: _.LoDashStatic;\ndeclare namespace _ {\n    interface LoDashStatic {\n        someProp: string;\n    }\n    class SomeClass {\n        someMethod(): void;\n    }\n}",
+                },
             ].map(getRootedFileOrFolder));
             verifyAfterPartialOrCompleteNpmInstall();
 
@@ -509,7 +553,10 @@ describe("unittests:: tsserver:: CachingFileSystemInformation:: tsserverProjectS
 
             baselineTsserverLogs(
                 "cachingFileSystemInformation",
-                `npm install works when ${timeoutDuringPartialInstallation ? "timeout occurs inbetween installation" : "timeout occurs after installation"}`,
+                `npm install works when ${
+                    timeoutDuringPartialInstallation ? "timeout occurs inbetween installation"
+                        : "timeout occurs after installation"
+                }`,
                 projectService,
             );
 
@@ -566,7 +613,11 @@ describe("unittests:: tsserver:: CachingFileSystemInformation:: tsserverProjectS
         host.writeFile(debugTypesFile.path, debugTypesFile.content);
         host.runQueuedTimeoutCallbacks();
         logSemanticDiagnostics(service, project, app);
-        baselineTsserverLogs("cachingFileSystemInformation", "when node_modules dont receive event for the @types file addition", service);
+        baselineTsserverLogs(
+            "cachingFileSystemInformation",
+            "when node_modules dont receive event for the @types file addition",
+            service,
+        );
     });
 
     it("when creating new file in symlinked folder", () => {

@@ -18,13 +18,15 @@ describe("unittests:: tsbuild:: on project with emitDeclarationOnly set to true"
 
     function verifyEmitDeclarationOnly(disableMap?: true) {
         verifyTsc({
-            subScenario: `only dts output in circular import project with emitDeclarationOnly${disableMap ? "" : " and declarationMap"}`,
+            subScenario: `only dts output in circular import project with emitDeclarationOnly${
+                disableMap ? "" : " and declarationMap"
+            }`,
             fs: () => projFs,
             scenario: "emitDeclarationOnly",
             commandLineArgs: ["--b", "/src", "--verbose"],
-            modifyFs: disableMap ?
-                (fs => replaceText(fs, "/src/tsconfig.json", `"declarationMap": true,`, "")) :
-                undefined,
+            modifyFs: disableMap
+                ? (fs => replaceText(fs, "/src/tsconfig.json", `"declarationMap": true,`, ""))
+                : undefined,
             edits: [{
                 caption: "incremental-declaration-changes",
                 edit: fs => replaceText(fs, "/src/src/a.ts", "b: B;", "b: B; foo: any;"),

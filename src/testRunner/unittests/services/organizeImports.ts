@@ -46,9 +46,18 @@ describe("unittests:: services:: organizeImports", () => {
         });
 
         function assertSortsBefore(importString1: string, importString2: string) {
-            const [{ moduleSpecifier: moduleSpecifier1 }, { moduleSpecifier: moduleSpecifier2 }] = parseImports(importString1, importString2);
-            assert.equal(ts.OrganizeImports.compareModuleSpecifiers(moduleSpecifier1, moduleSpecifier2, /*ignoreCase*/ true), ts.Comparison.LessThan);
-            assert.equal(ts.OrganizeImports.compareModuleSpecifiers(moduleSpecifier2, moduleSpecifier1, /*ignoreCase*/ true), ts.Comparison.GreaterThan);
+            const [{ moduleSpecifier: moduleSpecifier1 }, { moduleSpecifier: moduleSpecifier2 }] = parseImports(
+                importString1,
+                importString2,
+            );
+            assert.equal(
+                ts.OrganizeImports.compareModuleSpecifiers(moduleSpecifier1, moduleSpecifier2, /*ignoreCase*/ true),
+                ts.Comparison.LessThan,
+            );
+            assert.equal(
+                ts.OrganizeImports.compareModuleSpecifiers(moduleSpecifier2, moduleSpecifier1, /*ignoreCase*/ true),
+                ts.Comparison.GreaterThan,
+            );
         }
     });
 
@@ -365,7 +374,11 @@ export const Other = 1;
                 content: "function F() { }",
             };
             const languageService = makeLanguageService(testFile);
-            const changes = languageService.organizeImports({ type: "file", fileName: testFile.path }, ts.testFormatSettings, ts.emptyOptions);
+            const changes = languageService.organizeImports(
+                { type: "file", fileName: testFile.path },
+                ts.testFormatSettings,
+                ts.emptyOptions,
+            );
             assert.isEmpty(changes);
         });
 
@@ -375,7 +388,11 @@ export const Other = 1;
                 content: "declare module '*';",
             };
             const languageService = makeLanguageService(testFile);
-            const changes = languageService.organizeImports({ type: "file", fileName: testFile.path }, ts.testFormatSettings, ts.emptyOptions);
+            const changes = languageService.organizeImports(
+                { type: "file", fileName: testFile.path },
+                ts.testFormatSettings,
+                ts.emptyOptions,
+            );
             assert.isEmpty(changes);
         });
 
@@ -385,7 +402,11 @@ export const Other = 1;
                 content: `import { f } from 'foo';\nf();`,
             };
             const languageService = makeLanguageService(testFile);
-            const changes = languageService.organizeImports({ type: "file", fileName: testFile.path }, ts.testFormatSettings, ts.emptyOptions);
+            const changes = languageService.organizeImports(
+                { type: "file", fileName: testFile.path },
+                ts.testFormatSettings,
+                ts.emptyOptions,
+            );
             assert.isEmpty(changes);
         });
 
@@ -480,7 +501,11 @@ D;
                 content: `import { f } from 'foo';\nf();`,
             };
             const languageService = makeLanguageService(testFile);
-            const changes = languageService.organizeImports({ type: "file", fileName: testFile.path }, ts.testFormatSettings, ts.emptyOptions);
+            const changes = languageService.organizeImports(
+                { type: "file", fileName: testFile.path },
+                ts.testFormatSettings,
+                ts.emptyOptions,
+            );
             assert.isEmpty(changes);
         });
 
@@ -501,7 +526,11 @@ import { } from "lib";
 `,
             };
             const languageService = makeLanguageService(testFile);
-            const changes = languageService.organizeImports({ type: "file", fileName: testFile.path }, ts.testFormatSettings, ts.emptyOptions);
+            const changes = languageService.organizeImports(
+                { type: "file", fileName: testFile.path },
+                ts.testFormatSettings,
+                ts.emptyOptions,
+            );
             assert.isEmpty(changes);
         });
 
@@ -519,9 +548,12 @@ declare module 'caseless' {
 }`,
         });
 
-        testOrganizeImports("Unused_preserve_imports_for_module_augmentation_in_non_declaration_file", /*skipDestructiveCodeActions*/ false, {
-            path: "/test.ts",
-            content: `
+        testOrganizeImports(
+            "Unused_preserve_imports_for_module_augmentation_in_non_declaration_file",
+            /*skipDestructiveCodeActions*/ false,
+            {
+                path: "/test.ts",
+                content: `
 import foo from 'foo';
 import { Caseless } from 'caseless';
 
@@ -531,7 +563,8 @@ declare module 'caseless' {
         test(name: KeyType): boolean;
     }
 }`,
-        });
+            },
+        );
 
         it("Unused_false_positive_shorthand_assignment", () => {
             const testFile = {
@@ -542,7 +575,11 @@ const o = { x };
 `,
             };
             const languageService = makeLanguageService(testFile);
-            const changes = languageService.organizeImports({ type: "file", fileName: testFile.path }, ts.testFormatSettings, ts.emptyOptions);
+            const changes = languageService.organizeImports(
+                { type: "file", fileName: testFile.path },
+                ts.testFormatSettings,
+                ts.emptyOptions,
+            );
             assert.isEmpty(changes);
         });
 
@@ -555,7 +592,11 @@ export { x };
 `,
             };
             const languageService = makeLanguageService(testFile);
-            const changes = languageService.organizeImports({ type: "file", fileName: testFile.path }, ts.testFormatSettings, ts.emptyOptions);
+            const changes = languageService.organizeImports(
+                { type: "file", fileName: testFile.path },
+                ts.testFormatSettings,
+                ts.emptyOptions,
+            );
             assert.isEmpty(changes);
         });
 
@@ -960,14 +1001,32 @@ export * from "lib";
             testOrganizeImports(`${testName}.exports`, /*skipDestructiveCodeActions*/ true, testFile, ...otherFiles);
         }
 
-        function testOrganizeImports(testName: string, skipDestructiveCodeActions: boolean, testFile: File, ...otherFiles: File[]) {
-            it(testName, () => runBaseline(`organizeImports/${testName}.ts`, skipDestructiveCodeActions, testFile, ...otherFiles));
+        function testOrganizeImports(
+            testName: string,
+            skipDestructiveCodeActions: boolean,
+            testFile: File,
+            ...otherFiles: File[]
+        ) {
+            it(
+                testName,
+                () =>
+                    runBaseline(`organizeImports/${testName}.ts`, skipDestructiveCodeActions, testFile, ...otherFiles),
+            );
         }
 
-        function runBaseline(baselinePath: string, skipDestructiveCodeActions: boolean, testFile: File, ...otherFiles: File[]) {
+        function runBaseline(
+            baselinePath: string,
+            skipDestructiveCodeActions: boolean,
+            testFile: File,
+            ...otherFiles: File[]
+        ) {
             const { path: testPath, content: testContent } = testFile;
             const languageService = makeLanguageService(testFile, ...otherFiles);
-            const changes = languageService.organizeImports({ skipDestructiveCodeActions, type: "file", fileName: testPath }, ts.testFormatSettings, ts.emptyOptions);
+            const changes = languageService.organizeImports(
+                { skipDestructiveCodeActions, type: "file", fileName: testPath },
+                ts.testFormatSettings,
+                ts.emptyOptions,
+            );
             assert.equal(changes.length, 1);
             assert.equal(changes[0].fileName, testPath);
 
@@ -985,22 +1044,39 @@ export * from "lib";
 
         function makeLanguageService(...files: File[]) {
             const host = createServerHost(files);
-            const projectService = createProjectService(host, { useSingleInferredProject: true, allowNonBaseliningLogger: true });
-            projectService.setCompilerOptionsForInferredProjects({ jsx: files.some(f => f.path.endsWith("x")) ? ts.JsxEmit.React : ts.JsxEmit.None });
+            const projectService = createProjectService(host, {
+                useSingleInferredProject: true,
+                allowNonBaseliningLogger: true,
+            });
+            projectService.setCompilerOptionsForInferredProjects({
+                jsx: files.some(f => f.path.endsWith("x")) ? ts.JsxEmit.React : ts.JsxEmit.None,
+            });
             files.forEach(f => projectService.openClientFile(f.path));
             return projectService.inferredProjects[0].getLanguageService();
         }
     });
 
     function parseImports(...importStrings: string[]): readonly ts.ImportDeclaration[] {
-        const sourceFile = ts.createSourceFile("a.ts", importStrings.join("\n"), ts.ScriptTarget.ES2015, /*setParentNodes*/ true, ts.ScriptKind.TS);
+        const sourceFile = ts.createSourceFile(
+            "a.ts",
+            importStrings.join("\n"),
+            ts.ScriptTarget.ES2015,
+            /*setParentNodes*/ true,
+            ts.ScriptKind.TS,
+        );
         const imports = ts.filter(sourceFile.statements, ts.isImportDeclaration);
         assert.equal(imports.length, importStrings.length);
         return imports;
     }
 
     function parseExports(...exportStrings: string[]): readonly ts.ExportDeclaration[] {
-        const sourceFile = ts.createSourceFile("a.ts", exportStrings.join("\n"), ts.ScriptTarget.ES2015, /*setParentNodes*/ true, ts.ScriptKind.TS);
+        const sourceFile = ts.createSourceFile(
+            "a.ts",
+            exportStrings.join("\n"),
+            ts.ScriptTarget.ES2015,
+            /*setParentNodes*/ true,
+            ts.ScriptKind.TS,
+        );
         const exports = ts.filter(sourceFile.statements, ts.isExportDeclaration);
         assert.equal(exports.length, exportStrings.length);
         return exports;

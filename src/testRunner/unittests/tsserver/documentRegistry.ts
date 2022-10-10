@@ -57,13 +57,19 @@ describe("unittests:: tsserver:: documentRegistry:: document registry in project
 
     function changeFileToNotImportModule(service: TestProjectService) {
         const info = service.getScriptInfo(file.path)!;
-        service.applyChangesToFile(info, ts.singleIterator({ span: { start: 0, length: importModuleContent.length }, newText: "" }));
+        service.applyChangesToFile(
+            info,
+            ts.singleIterator({ span: { start: 0, length: importModuleContent.length }, newText: "" }),
+        );
         checkProject(service, /*moduleIsOrphan*/ true);
     }
 
     function changeFileToImportModule(service: TestProjectService) {
         const info = service.getScriptInfo(file.path)!;
-        service.applyChangesToFile(info, ts.singleIterator({ span: { start: 0, length: 0 }, newText: importModuleContent }));
+        service.applyChangesToFile(
+            info,
+            ts.singleIterator({ span: { start: 0, length: 0 }, newText: importModuleContent }),
+        );
         checkProject(service, /*moduleIsOrphan*/ false);
     }
 
@@ -106,14 +112,21 @@ describe("unittests:: tsserver:: documentRegistry:: document registry in project
         assert.notEqual(moduleInfo.cacheSourceFile!.sourceFile, sourceFile);
         assert.equal(project.getSourceFile(moduleInfo.path), moduleInfo.cacheSourceFile!.sourceFile);
         assert.equal(moduleInfo.cacheSourceFile!.sourceFile.text, updatedModuleContent);
-        baselineTsserverLogs("documentRegistry", "Caches the source file if script info is orphan, and orphan script info changes", service);
+        baselineTsserverLogs(
+            "documentRegistry",
+            "Caches the source file if script info is orphan, and orphan script info changes",
+            service,
+        );
     });
 });
 
 describe("unittests:: tsserver:: documentRegistry:: works when reusing orphan script info with different scriptKind", () => {
     it("works when reusing orphan script info with different scriptKind", () => {
         const host = createServerHost({});
-        const session = createSession(host, { useInferredProjectPerProjectRoot: true, logger: createLoggerWithInMemoryLogs(host) });
+        const session = createSession(host, {
+            useInferredProjectPerProjectRoot: true,
+            logger: createLoggerWithInMemoryLogs(host),
+        });
         const newText = "exrpot const x = 10;";
         const content = `import x from 'react';\n${newText}`;
         openFilesForSession([
@@ -142,6 +155,10 @@ describe("unittests:: tsserver:: documentRegistry:: works when reusing orphan sc
                 ],
             },
         });
-        baselineTsserverLogs("documentRegistry", "works when reusing orphan script info with different scriptKind", session);
+        baselineTsserverLogs(
+            "documentRegistry",
+            "works when reusing orphan script info with different scriptKind",
+            session,
+        );
     });
 });

@@ -73,7 +73,16 @@ describe("unittests:: tsc-watch:: watchAPI:: with sourceOfProjectReferenceRedire
             const indexTs = getTsBuildProjectFile("demo", "animals/index.ts");
             const animalsConfig = getTsBuildProjectFile("demo", "animals/tsconfig.json");
             return {
-                files: [{ path: libFile.path, content: libContent }, baseConfig, coreTs, coreConfig, animalTs, dogTs, indexTs, animalsConfig],
+                files: [
+                    { path: libFile.path, content: libContent },
+                    baseConfig,
+                    coreTs,
+                    coreConfig,
+                    animalTs,
+                    dogTs,
+                    indexTs,
+                    animalsConfig,
+                ],
                 config: animalsConfig.path,
                 subScenario: "with simple project",
             };

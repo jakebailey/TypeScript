@@ -28,7 +28,9 @@ export async function exec(cmd, args, options = {}) {
         const { ignoreExitCode, waitForExit = true, ignoreStdout } = options;
 
         if (!options.hidePrompt) console.log(`> ${chalk.green(cmd)} ${args.join(" ")}`);
-        const proc = spawn(which.sync(cmd), args, { stdio: waitForExit ? ignoreStdout ? ["inherit", "ignore", "inherit"] : "inherit" : "ignore" });
+        const proc = spawn(which.sync(cmd), args, {
+            stdio: waitForExit ? ignoreStdout ? ["inherit", "ignore", "inherit"] : "inherit" : "ignore",
+        });
         if (waitForExit) {
             const onCanceled = () => {
                 proc.kill();
@@ -39,8 +41,8 @@ export async function exec(cmd, args, options = {}) {
                     resolve({ exitCode: exitCode ?? undefined });
                 }
                 else {
-                    const reason = options.token?.signaled ? options.token.reason ?? new CancelError() :
-                        new ExecError(exitCode);
+                    const reason = options.token?.signaled ? options.token.reason ?? new CancelError()
+                        : new ExecError(exitCode);
                     reject(reason);
                 }
                 subscription?.unsubscribe();

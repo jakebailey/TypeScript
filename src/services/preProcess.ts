@@ -13,7 +13,11 @@ import {
     SyntaxKind,
 } from "./_namespaces/ts";
 
-export function preProcessFile(sourceText: string, readImportFiles = true, detectJavaScriptImports = false): PreProcessedFileInfo {
+export function preProcessFile(
+    sourceText: string,
+    readImportFiles = true,
+    detectJavaScriptImports = false,
+): PreProcessedFileInfo {
     const pragmaContext: PragmaContext = {
         languageVersion: ScriptTarget.ES5, // controls whether the token scanner considers unicode identifiers or not - shouldn't matter, since we're only using it for trivia
         pragmas: undefined,
@@ -119,10 +123,10 @@ export function preProcessFile(sourceText: string, readImportFiles = true, detec
                     const skipTypeKeyword = scanner.lookAhead(() => {
                         const token = scanner.scan();
                         return token !== SyntaxKind.FromKeyword && (
-                            token === SyntaxKind.AsteriskToken ||
-                            token === SyntaxKind.OpenBraceToken ||
-                            token === SyntaxKind.Identifier ||
-                            isKeyword(token)
+                            token === SyntaxKind.AsteriskToken
+                            || token === SyntaxKind.OpenBraceToken
+                            || token === SyntaxKind.Identifier
+                            || isKeyword(token)
                         );
                     });
                     if (skipTypeKeyword) {
@@ -208,8 +212,8 @@ export function preProcessFile(sourceText: string, readImportFiles = true, detec
             if (token === SyntaxKind.TypeKeyword) {
                 const skipTypeKeyword = scanner.lookAhead(() => {
                     const token = scanner.scan();
-                    return token === SyntaxKind.AsteriskToken ||
-                        token === SyntaxKind.OpenBraceToken;
+                    return token === SyntaxKind.AsteriskToken
+                        || token === SyntaxKind.OpenBraceToken;
                 });
                 if (skipTypeKeyword) {
                     token = nextToken();
@@ -250,8 +254,8 @@ export function preProcessFile(sourceText: string, readImportFiles = true, detec
                 if (token === SyntaxKind.TypeKeyword) {
                     const skipTypeKeyword = scanner.lookAhead(() => {
                         const token = scanner.scan();
-                        return token === SyntaxKind.Identifier ||
-                            isKeyword(token);
+                        return token === SyntaxKind.Identifier
+                            || isKeyword(token);
                     });
                     if (skipTypeKeyword) {
                         token = nextToken();
@@ -280,8 +284,8 @@ export function preProcessFile(sourceText: string, readImportFiles = true, detec
             if (token === SyntaxKind.OpenParenToken) {
                 token = nextToken();
                 if (
-                    token === SyntaxKind.StringLiteral ||
-                    allowTemplateLiterals && token === SyntaxKind.NoSubstitutionTemplateLiteral
+                    token === SyntaxKind.StringLiteral
+                    || allowTemplateLiterals && token === SyntaxKind.NoSubstitutionTemplateLiteral
                 ) {
                     //  require("mod");
                     recordModuleName();
@@ -382,7 +386,10 @@ export function preProcessFile(sourceText: string, readImportFiles = true, detec
                         case SyntaxKind.CloseBraceToken:
                             if (length(stack)) {
                                 if (lastOrUndefined(stack) === SyntaxKind.TemplateHead) {
-                                    if (scanner.reScanTemplateToken(/*isTaggedTemplate*/ false) === SyntaxKind.TemplateTail) {
+                                    if (
+                                        scanner.reScanTemplateToken(/*isTaggedTemplate*/ false)
+                                            === SyntaxKind.TemplateTail
+                                    ) {
                                         stack.pop();
                                     }
                                 }
@@ -398,12 +405,12 @@ export function preProcessFile(sourceText: string, readImportFiles = true, detec
 
             // check if at least one of alternative have moved scanner forward
             if (
-                tryConsumeDeclare() ||
-                tryConsumeImport() ||
-                tryConsumeExport() ||
-                (detectJavaScriptImports && (
-                    tryConsumeRequireCall(/*skipCurrentToken*/ false, /*allowTemplateLiterals*/ true) ||
-                    tryConsumeDefine()
+                tryConsumeDeclare()
+                || tryConsumeImport()
+                || tryConsumeExport()
+                || (detectJavaScriptImports && (
+                    tryConsumeRequireCall(/*skipCurrentToken*/ false, /*allowTemplateLiterals*/ true)
+                    || tryConsumeDefine()
                 ))
             ) {
                 continue;
@@ -429,7 +436,14 @@ export function preProcessFile(sourceText: string, readImportFiles = true, detec
                 importedFiles.push(decl.ref);
             }
         }
-        return { referencedFiles: pragmaContext.referencedFiles, typeReferenceDirectives: pragmaContext.typeReferenceDirectives, libReferenceDirectives: pragmaContext.libReferenceDirectives, importedFiles, isLibFile: !!pragmaContext.hasNoDefaultLib, ambientExternalModules: undefined };
+        return {
+            referencedFiles: pragmaContext.referencedFiles,
+            typeReferenceDirectives: pragmaContext.typeReferenceDirectives,
+            libReferenceDirectives: pragmaContext.libReferenceDirectives,
+            importedFiles,
+            isLibFile: !!pragmaContext.hasNoDefaultLib,
+            ambientExternalModules: undefined,
+        };
     }
     else {
         // for global scripts ambient modules still can have augmentations - look for ambient modules with depth > 0
@@ -447,6 +461,13 @@ export function preProcessFile(sourceText: string, readImportFiles = true, detec
                 }
             }
         }
-        return { referencedFiles: pragmaContext.referencedFiles, typeReferenceDirectives: pragmaContext.typeReferenceDirectives, libReferenceDirectives: pragmaContext.libReferenceDirectives, importedFiles, isLibFile: !!pragmaContext.hasNoDefaultLib, ambientExternalModules: ambientModuleNames };
+        return {
+            referencedFiles: pragmaContext.referencedFiles,
+            typeReferenceDirectives: pragmaContext.typeReferenceDirectives,
+            libReferenceDirectives: pragmaContext.libReferenceDirectives,
+            importedFiles,
+            isLibFile: !!pragmaContext.hasNoDefaultLib,
+            ambientExternalModules: ambientModuleNames,
+        };
     }
 }

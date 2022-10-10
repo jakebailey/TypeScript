@@ -28,7 +28,9 @@ describe("unittests:: tsc-watch:: resolutionCache:: tsc-watch module resolution 
             content: `foo()`,
         };
 
-        const { sys, baseline, oldSnap, cb, getPrograms } = createBaseline(createWatchedSystem([root, imported, libFile]));
+        const { sys, baseline, oldSnap, cb, getPrograms } = createBaseline(
+            createWatchedSystem([root, imported, libFile]),
+        );
         const host = createWatchCompilerHostOfFilesAndCompilerOptionsForBaseline({
             rootFiles: [root.path],
             system: sys,
@@ -172,7 +174,9 @@ describe("unittests:: tsc-watch:: resolutionCache:: tsc-watch module resolution 
             content: `export const y = 1;export const x = 10;`,
         };
 
-        const { sys, baseline, oldSnap, cb, getPrograms } = createBaseline(createWatchedSystem([root, imported, libFile]));
+        const { sys, baseline, oldSnap, cb, getPrograms } = createBaseline(
+            createWatchedSystem([root, imported, libFile]),
+        );
         const host = createWatchCompilerHostOfFilesAndCompilerOptionsForBaseline({
             rootFiles: [root.path],
             system: sys,
@@ -269,7 +273,11 @@ declare module "fs" {
     verifyTscWatch({
         scenario,
         subScenario: "works when included file with ambient module changes",
-        commandLineArgs: ["--w", "/users/username/projects/project/foo.ts", "/users/username/projects/project/bar.d.ts"],
+        commandLineArgs: [
+            "--w",
+            "/users/username/projects/project/foo.ts",
+            "/users/username/projects/project/bar.d.ts",
+        ],
         sys: () => {
             const root = {
                 path: "/users/username/projects/project/foo.ts",
@@ -340,7 +348,9 @@ declare module "fs" {
                     },
                 }),
             };
-            return createWatchedSystem([file1, file2, module1, libFile, configFile], { currentDirectory: "/a/b/projects/myProject/" });
+            return createWatchedSystem([file1, file2, module1, libFile, configFile], {
+                currentDirectory: "/a/b/projects/myProject/",
+            });
         },
         edits: [
             {
@@ -364,12 +374,18 @@ declare module "fs" {
                 path: `/user/username/projects/myproject/node_modules2/@types/qqq/index.d.ts`,
                 content: "export {}",
             };
-            return createWatchedSystem([file, libFile, module], { currentDirectory: "/user/username/projects/myproject" });
+            return createWatchedSystem([file, libFile, module], {
+                currentDirectory: "/user/username/projects/myproject",
+            });
         },
         edits: [
             {
                 caption: "npm install",
-                edit: sys => sys.renameFolder(`/user/username/projects/myproject/node_modules2`, `/user/username/projects/myproject/node_modules`),
+                edit: sys =>
+                    sys.renameFolder(
+                        `/user/username/projects/myproject/node_modules2`,
+                        `/user/username/projects/myproject/node_modules`,
+                    ),
                 timeouts: sys => sys.runQueuedTimeoutCallbacks(),
             },
         ],
@@ -401,7 +417,8 @@ declare module "fs" {
                         caption: "npm install file and folder that start with '.'",
                         edit: sys =>
                             sys.ensureFileOrFolder({
-                                path: `/user/username/projects/myproject/node_modules/.cache/babel-loader/89c02171edab901b9926470ba6d5677e.ts`,
+                                path:
+                                    `/user/username/projects/myproject/node_modules/.cache/babel-loader/89c02171edab901b9926470ba6d5677e.ts`,
                                 content: JSON.stringify({ something: 10 }),
                             }),
                         timeouts: sys => sys.logTimeoutQueueLength(),
@@ -445,7 +462,8 @@ declare module "fs" {
                         }),
                     });
                     sys.ensureFileOrFolder({
-                        path: `/user/username/projects/myproject/node_modules/@myapp/ts-types/types/somefile.define.d.ts`,
+                        path:
+                            `/user/username/projects/myproject/node_modules/@myapp/ts-types/types/somefile.define.d.ts`,
                         content: `
 declare namespace myapp {
     function component(str: string): number;
@@ -462,7 +480,9 @@ declare namespace myapp {
                 edit: ts.noop,
                 timeouts: (sys, [[oldProgram, oldBuilderProgram]], watchorSolution) => {
                     sys.logTimeoutQueueLength();
-                    const newProgram = (watchorSolution as ts.WatchOfConfigFile<ts.EmitAndSemanticDiagnosticsBuilderProgram>).getProgram();
+                    const newProgram =
+                        (watchorSolution as ts.WatchOfConfigFile<ts.EmitAndSemanticDiagnosticsBuilderProgram>)
+                            .getProgram();
                     assert.strictEqual(newProgram, oldBuilderProgram, "No change so builder program should be same");
                     assert.strictEqual(newProgram.getProgram(), oldProgram, "No change so program should be same");
                 },
@@ -494,7 +514,12 @@ declare namespace myapp {
             };
             const linkedPackageJson: File = {
                 path: `${linkedPackageRoot}/package.json`,
-                content: JSON.stringify({ name: "@scoped/linked-package", version: "0.0.1", types: "dist/index.d.ts", main: "dist/index.js" }),
+                content: JSON.stringify({
+                    name: "@scoped/linked-package",
+                    version: "0.0.1",
+                    types: "dist/index.d.ts",
+                    main: "dist/index.js",
+                }),
             };
             const linkedPackageIndex: File = {
                 path: `${linkedPackageRoot}/dist/index.d.ts`,
@@ -504,7 +529,15 @@ declare namespace myapp {
                 path: `${linkedPackageRoot}/dist/other.d.ts`,
                 content: 'export declare const Foo = "BAR";',
             };
-            const files = [libFile, mainFile, config, linkedPackageInMain, linkedPackageJson, linkedPackageIndex, linkedPackageOther];
+            const files = [
+                libFile,
+                mainFile,
+                config,
+                linkedPackageInMain,
+                linkedPackageJson,
+                linkedPackageIndex,
+                linkedPackageOther,
+            ];
             return createWatchedSystem(files, { currentDirectory: mainPackageRoot });
         },
     });
@@ -537,7 +570,8 @@ declare namespace NodeJS {
         }
         verifyTscWatch({
             scenario,
-            subScenario: "works when installing something in node_modules or @types when there is no notification from fs for index file",
+            subScenario:
+                "works when installing something in node_modules or @types when there is no notification from fs for index file",
             commandLineArgs: ["--w", `--extendedDiagnostics`],
             sys: () => {
                 const file: File = {
@@ -549,12 +583,21 @@ declare namespace NodeJS {
                     content: "{}",
                 };
                 const { nodeAtTypesIndex, nodeAtTypesBase, nodeAtTypes36Base, nodeAtTypesGlobals } = getNodeAtTypes();
-                return createWatchedSystem([file, libFile, tsconfig, nodeAtTypesIndex, nodeAtTypesBase, nodeAtTypes36Base, nodeAtTypesGlobals], { currentDirectory: "/user/username/projects/myproject" });
+                return createWatchedSystem([
+                    file,
+                    libFile,
+                    tsconfig,
+                    nodeAtTypesIndex,
+                    nodeAtTypesBase,
+                    nodeAtTypes36Base,
+                    nodeAtTypesGlobals,
+                ], { currentDirectory: "/user/username/projects/myproject" });
             },
             edits: [
                 {
                     caption: "npm ci step one: remove all node_modules files",
-                    edit: sys => sys.deleteFolder(`/user/username/projects/myproject/node_modules/@types`, /*recursive*/ true),
+                    edit: sys =>
+                        sys.deleteFolder(`/user/username/projects/myproject/node_modules/@types`, /*recursive*/ true),
                     timeouts: sys => sys.runQueuedTimeoutCallbacks(),
                 },
                 {
@@ -568,13 +611,16 @@ declare namespace NodeJS {
                 },
                 {
                     caption: `npm ci step three: create atTypes node folder`,
-                    edit: sys => sys.ensureFileOrFolder({ path: `/user/username/projects/myproject/node_modules/@types/node` }),
+                    edit: sys =>
+                        sys.ensureFileOrFolder({ path: `/user/username/projects/myproject/node_modules/@types/node` }),
                     timeouts: sys => sys.runQueuedTimeoutCallbacks(),
                 },
                 {
-                    caption: `npm ci step four: create atTypes write all the files but dont invoke watcher for index.d.ts`,
+                    caption:
+                        `npm ci step four: create atTypes write all the files but dont invoke watcher for index.d.ts`,
                     edit: sys => {
-                        const { nodeAtTypesIndex, nodeAtTypesBase, nodeAtTypes36Base, nodeAtTypesGlobals } = getNodeAtTypes();
+                        const { nodeAtTypesIndex, nodeAtTypesBase, nodeAtTypes36Base, nodeAtTypesGlobals } =
+                            getNodeAtTypes();
                         sys.ensureFileOrFolder(nodeAtTypesBase);
                         sys.ensureFileOrFolder(nodeAtTypesIndex, /*ignoreWatchInvokedWithTriggerAsFileCreate*/ true);
                         sys.ensureFileOrFolder(nodeAtTypes36Base, /*ignoreWatchInvokedWithTriggerAsFileCreate*/ true);
@@ -619,7 +665,11 @@ declare namespace NodeJS {
         edits: [
             {
                 caption: "write file not resolved by import",
-                edit: sys => sys.ensureFileOrFolder({ path: "/users/username/projects/project/node_modules/pkg1/index.d.ts", content: `export interface Import1 {}` }),
+                edit: sys =>
+                    sys.ensureFileOrFolder({
+                        path: "/users/username/projects/project/node_modules/pkg1/index.d.ts",
+                        content: `export interface Import1 {}`,
+                    }),
                 timeouts: sys => {
                     sys.runQueuedTimeoutCallbacks(); // failed lookup
                     sys.runQueuedTimeoutCallbacks(); // actual update
@@ -627,7 +677,11 @@ declare namespace NodeJS {
             },
             {
                 caption: "write file not resolved by typeRef",
-                edit: sys => sys.ensureFileOrFolder({ path: "/users/username/projects/project/node_modules/pkg3/index.d.ts", content: `export interface Import3 {}` }),
+                edit: sys =>
+                    sys.ensureFileOrFolder({
+                        path: "/users/username/projects/project/node_modules/pkg3/index.d.ts",
+                        content: `export interface Import3 {}`,
+                    }),
                 timeouts: sys => {
                     sys.runQueuedTimeoutCallbacks(); // failed lookup
                     sys.runQueuedTimeoutCallbacks(); // actual update

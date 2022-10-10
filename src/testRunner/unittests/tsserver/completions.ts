@@ -50,7 +50,11 @@ describe("unittests:: tsserver:: completions", () => {
             command: ts.server.protocol.CommandTypes.CompletionDetails,
             arguments: {
                 ...requestLocation,
-                entryNames: [{ name: "foo", source: "/a", data: { exportName: "foo", fileName: "/a.ts", exportMapKey } }],
+                entryNames: [{
+                    name: "foo",
+                    source: "/a",
+                    data: { exportName: "foo", fileName: "/a.ts", exportMapKey },
+                }],
             },
         });
 
@@ -62,7 +66,11 @@ describe("unittests:: tsserver:: completions", () => {
             command: ts.server.protocol.CommandTypes.CompletionDetailsFull,
             arguments: {
                 ...requestLocation,
-                entryNames: [{ name: "foo", source: "/a", data: { exportName: "foo", fileName: "/a.ts", exportMapKey } }],
+                entryNames: [{
+                    name: "foo",
+                    source: "/a",
+                    data: { exportName: "foo", fileName: "/a.ts", exportMapKey },
+                }],
             },
         });
         baselineTsserverLogs("completions", "works", session);
@@ -194,6 +202,10 @@ export interface BrowserRouterProps {
                 includeInsertTextCompletions: true,
             },
         });
-        baselineTsserverLogs("completions", "works when files are included from two different drives of windows", session);
+        baselineTsserverLogs(
+            "completions",
+            "works when files are included from two different drives of windows",
+            session,
+        );
     });
 });

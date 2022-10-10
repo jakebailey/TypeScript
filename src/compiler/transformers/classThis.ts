@@ -31,7 +31,11 @@ import {
  * expression that has already had its `EmitFlags` set or may have been tracked to prevent substitution.
  * @internal
  */
-export function createClassThisAssignmentBlock(factory: NodeFactory, classThis: Identifier, thisExpression = factory.createThis()): ClassThisAssignmentBlock {
+export function createClassThisAssignmentBlock(
+    factory: NodeFactory,
+    classThis: Identifier,
+    thisExpression = factory.createThis(),
+): ClassThisAssignmentBlock {
     // produces:
     //
     //  static { _classThis = this; }
@@ -76,11 +80,11 @@ export function isClassThisAssignmentBlock(node: Node): node is ClassThisAssignm
     }
 
     const statement = node.body.statements[0];
-    return isExpressionStatement(statement) &&
-        isAssignmentExpression(statement.expression, /*excludeCompoundAssignment*/ true) &&
-        isIdentifier(statement.expression.left) &&
-        node.emitNode?.classThis === statement.expression.left &&
-        statement.expression.right.kind === SyntaxKind.ThisKeyword;
+    return isExpressionStatement(statement)
+        && isAssignmentExpression(statement.expression, /*excludeCompoundAssignment*/ true)
+        && isIdentifier(statement.expression.left)
+        && node.emitNode?.classThis === statement.expression.left
+        && statement.expression.right.kind === SyntaxKind.ThisKeyword;
 }
 
 /**
@@ -101,8 +105,18 @@ export function classHasClassThisAssignment(node: ClassLikeDeclaration) {
  * expression that has already had its `EmitFlags` set or may have been tracked to prevent substitution.
  * @internal
  */
-export function injectClassThisAssignmentIfMissing<T extends ClassLikeDeclaration>(factory: NodeFactory, node: T, classThis: Identifier, thisExpression?: ThisExpression): Extract<ClassLikeDeclaration, Pick<T, "kind">>;
-export function injectClassThisAssignmentIfMissing<T extends ClassLikeDeclaration>(factory: NodeFactory, node: T, classThis: Identifier, thisExpression?: ThisExpression) {
+export function injectClassThisAssignmentIfMissing<T extends ClassLikeDeclaration>(
+    factory: NodeFactory,
+    node: T,
+    classThis: Identifier,
+    thisExpression?: ThisExpression,
+): Extract<ClassLikeDeclaration, Pick<T, "kind">>;
+export function injectClassThisAssignmentIfMissing<T extends ClassLikeDeclaration>(
+    factory: NodeFactory,
+    node: T,
+    classThis: Identifier,
+    thisExpression?: ThisExpression,
+) {
     // given:
     //
     //  class C {
@@ -126,16 +140,16 @@ export function injectClassThisAssignmentIfMissing<T extends ClassLikeDeclaratio
     const members = factory.createNodeArray([staticBlock, ...node.members]);
     setTextRange(members, node.members);
 
-    const updatedNode = isClassDeclaration(node) ?
-        factory.updateClassDeclaration(
+    const updatedNode = isClassDeclaration(node)
+        ? factory.updateClassDeclaration(
             node,
             node.modifiers,
             node.name,
             node.typeParameters,
             node.heritageClauses,
             members,
-        ) :
-        factory.updateClassExpression(
+        )
+        : factory.updateClassExpression(
             node,
             node.modifiers,
             node.name,

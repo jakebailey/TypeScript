@@ -376,17 +376,17 @@ function lookupInUnicodeMap(code: number, map: readonly number[]): boolean {
 }
 
 /** @internal */ export function isUnicodeIdentifierStart(code: number, languageVersion: ScriptTarget | undefined) {
-    return languageVersion! >= ScriptTarget.ES2015 ?
-        lookupInUnicodeMap(code, unicodeESNextIdentifierStart) :
-        languageVersion === ScriptTarget.ES5 ? lookupInUnicodeMap(code, unicodeES5IdentifierStart) :
-        lookupInUnicodeMap(code, unicodeES3IdentifierStart);
+    return languageVersion! >= ScriptTarget.ES2015
+        ? lookupInUnicodeMap(code, unicodeESNextIdentifierStart)
+        : languageVersion === ScriptTarget.ES5 ? lookupInUnicodeMap(code, unicodeES5IdentifierStart)
+        : lookupInUnicodeMap(code, unicodeES3IdentifierStart);
 }
 
 function isUnicodeIdentifierPart(code: number, languageVersion: ScriptTarget | undefined) {
-    return languageVersion! >= ScriptTarget.ES2015 ?
-        lookupInUnicodeMap(code, unicodeESNextIdentifierPart) :
-        languageVersion === ScriptTarget.ES5 ? lookupInUnicodeMap(code, unicodeES5IdentifierPart) :
-        lookupInUnicodeMap(code, unicodeES3IdentifierPart);
+    return languageVersion! >= ScriptTarget.ES2015
+        ? lookupInUnicodeMap(code, unicodeESNextIdentifierPart)
+        : languageVersion === ScriptTarget.ES5 ? lookupInUnicodeMap(code, unicodeES5IdentifierPart)
+        : lookupInUnicodeMap(code, unicodeES3IdentifierPart);
 }
 
 function makeReverseMap(source: Map<string, number>): string[] {
@@ -443,22 +443,42 @@ export function computeLineStarts(text: string): number[] {
 
 export function getPositionOfLineAndCharacter(sourceFile: SourceFileLike, line: number, character: number): number;
 /** @internal */
-export function getPositionOfLineAndCharacter(sourceFile: SourceFileLike, line: number, character: number, allowEdits?: true): number; // eslint-disable-line @typescript-eslint/unified-signatures
-export function getPositionOfLineAndCharacter(sourceFile: SourceFileLike, line: number, character: number, allowEdits?: true): number {
-    return sourceFile.getPositionOfLineAndCharacter ?
-        sourceFile.getPositionOfLineAndCharacter(line, character, allowEdits) :
-        computePositionOfLineAndCharacter(getLineStarts(sourceFile), line, character, sourceFile.text, allowEdits);
+export function getPositionOfLineAndCharacter(
+    sourceFile: SourceFileLike,
+    line: number,
+    character: number,
+    allowEdits?: true,
+): number; // eslint-disable-line @typescript-eslint/unified-signatures
+export function getPositionOfLineAndCharacter(
+    sourceFile: SourceFileLike,
+    line: number,
+    character: number,
+    allowEdits?: true,
+): number {
+    return sourceFile.getPositionOfLineAndCharacter
+        ? sourceFile.getPositionOfLineAndCharacter(line, character, allowEdits)
+        : computePositionOfLineAndCharacter(getLineStarts(sourceFile), line, character, sourceFile.text, allowEdits);
 }
 
 /** @internal */
-export function computePositionOfLineAndCharacter(lineStarts: readonly number[], line: number, character: number, debugText?: string, allowEdits?: true): number {
+export function computePositionOfLineAndCharacter(
+    lineStarts: readonly number[],
+    line: number,
+    character: number,
+    debugText?: string,
+    allowEdits?: true,
+): number {
     if (line < 0 || line >= lineStarts.length) {
         if (allowEdits) {
             // Clamp line to nearest allowable value
             line = line < 0 ? 0 : line >= lineStarts.length ? lineStarts.length - 1 : line;
         }
         else {
-            Debug.fail(`Bad line number. Line: ${line}, lineStarts.length: ${lineStarts.length} , line map is correct? ${debugText !== undefined ? arraysEqual(lineStarts, computeLineStarts(debugText)) : "unknown"}`);
+            Debug.fail(
+                `Bad line number. Line: ${line}, lineStarts.length: ${lineStarts.length} , line map is correct? ${
+                    debugText !== undefined ? arraysEqual(lineStarts, computeLineStarts(debugText)) : "unknown"
+                }`,
+            );
         }
     }
 
@@ -467,7 +487,8 @@ export function computePositionOfLineAndCharacter(lineStarts: readonly number[],
         // Clamp to nearest allowable values to allow the underlying to be edited without crashing (accuracy is lost, instead)
         // TODO: Somehow track edits between file as it was during the creation of sourcemap we have and the current file and
         // apply them to the computed position to improve accuracy
-        return res > lineStarts[line + 1] ? lineStarts[line + 1] : typeof debugText === "string" && res > debugText.length ? debugText.length : res;
+        return res > lineStarts[line + 1] ? lineStarts[line + 1]
+            : typeof debugText === "string" && res > debugText.length ? debugText.length : res;
     }
     if (line < lineStarts.length - 1) {
         Debug.assert(res < lineStarts[line + 1]);
@@ -536,18 +557,18 @@ export function isWhiteSpaceLike(ch: number): boolean {
 export function isWhiteSpaceSingleLine(ch: number): boolean {
     // Note: nextLine is in the Zs space, and should be considered to be a whitespace.
     // It is explicitly not a line-break as it isn't in the exact set specified by EcmaScript.
-    return ch === CharacterCodes.space ||
-        ch === CharacterCodes.tab ||
-        ch === CharacterCodes.verticalTab ||
-        ch === CharacterCodes.formFeed ||
-        ch === CharacterCodes.nonBreakingSpace ||
-        ch === CharacterCodes.nextLine ||
-        ch === CharacterCodes.ogham ||
-        ch >= CharacterCodes.enQuad && ch <= CharacterCodes.zeroWidthSpace ||
-        ch === CharacterCodes.narrowNoBreakSpace ||
-        ch === CharacterCodes.mathematicalSpace ||
-        ch === CharacterCodes.ideographicSpace ||
-        ch === CharacterCodes.byteOrderMark;
+    return ch === CharacterCodes.space
+        || ch === CharacterCodes.tab
+        || ch === CharacterCodes.verticalTab
+        || ch === CharacterCodes.formFeed
+        || ch === CharacterCodes.nonBreakingSpace
+        || ch === CharacterCodes.nextLine
+        || ch === CharacterCodes.ogham
+        || ch >= CharacterCodes.enQuad && ch <= CharacterCodes.zeroWidthSpace
+        || ch === CharacterCodes.narrowNoBreakSpace
+        || ch === CharacterCodes.mathematicalSpace
+        || ch === CharacterCodes.ideographicSpace
+        || ch === CharacterCodes.byteOrderMark;
 }
 
 export function isLineBreak(ch: number): boolean {
@@ -562,10 +583,10 @@ export function isLineBreak(ch: number): boolean {
     // Only the characters in Table 3 are treated as line terminators. Other new line or line
     // breaking characters are treated as white space but not as line terminators.
 
-    return ch === CharacterCodes.lineFeed ||
-        ch === CharacterCodes.carriageReturn ||
-        ch === CharacterCodes.lineSeparator ||
-        ch === CharacterCodes.paragraphSeparator;
+    return ch === CharacterCodes.lineFeed
+        || ch === CharacterCodes.carriageReturn
+        || ch === CharacterCodes.lineSeparator
+        || ch === CharacterCodes.paragraphSeparator;
 }
 
 function isDigit(ch: number): boolean {
@@ -573,7 +594,8 @@ function isDigit(ch: number): boolean {
 }
 
 function isHexDigit(ch: number): boolean {
-    return isDigit(ch) || ch >= CharacterCodes.A && ch <= CharacterCodes.F || ch >= CharacterCodes.a && ch <= CharacterCodes.f;
+    return isDigit(ch) || ch >= CharacterCodes.A && ch <= CharacterCodes.F
+        || ch >= CharacterCodes.a && ch <= CharacterCodes.f;
 }
 
 function isCodePoint(code: number): boolean {
@@ -613,7 +635,13 @@ export function couldStartTrivia(text: string, pos: number): boolean {
 }
 
 /** @internal */
-export function skipTrivia(text: string, pos: number, stopAfterLineBreak?: boolean, stopAtComments?: boolean, inJSDoc?: boolean): number {
+export function skipTrivia(
+    text: string,
+    pos: number,
+    stopAfterLineBreak?: boolean,
+    stopAtComments?: boolean,
+    inJSDoc?: boolean,
+): number {
     if (positionIsSynthesized(pos)) {
         return pos;
     }
@@ -659,7 +687,10 @@ export function skipTrivia(text: string, pos: number, stopAfterLineBreak?: boole
                 if (text.charCodeAt(pos + 1) === CharacterCodes.asterisk) {
                     pos += 2;
                     while (pos < text.length) {
-                        if (text.charCodeAt(pos) === CharacterCodes.asterisk && text.charCodeAt(pos + 1) === CharacterCodes.slash) {
+                        if (
+                            text.charCodeAt(pos) === CharacterCodes.asterisk
+                            && text.charCodeAt(pos + 1) === CharacterCodes.slash
+                        ) {
                             pos += 2;
                             break;
                         }
@@ -726,15 +757,19 @@ function isConflictMarkerTrivia(text: string, pos: number) {
                 }
             }
 
-            return ch === CharacterCodes.equals ||
-                text.charCodeAt(pos + mergeConflictMarkerLength) === CharacterCodes.space;
+            return ch === CharacterCodes.equals
+                || text.charCodeAt(pos + mergeConflictMarkerLength) === CharacterCodes.space;
         }
     }
 
     return false;
 }
 
-function scanConflictMarkerTrivia(text: string, pos: number, error?: (diag: DiagnosticMessage, pos?: number, len?: number) => void) {
+function scanConflictMarkerTrivia(
+    text: string,
+    pos: number,
+    error?: (diag: DiagnosticMessage, pos?: number, len?: number) => void,
+) {
     if (error) {
         error(Diagnostics.Merge_conflict_marker_encountered, pos, mergeConflictMarkerLength);
     }
@@ -753,7 +788,10 @@ function scanConflictMarkerTrivia(text: string, pos: number, error?: (diag: Diag
         // of the next ======= or >>>>>>> marker.
         while (pos < len) {
             const currentChar = text.charCodeAt(pos);
-            if ((currentChar === CharacterCodes.equals || currentChar === CharacterCodes.greaterThan) && currentChar !== ch && isConflictMarkerTrivia(text, pos)) {
+            if (
+                (currentChar === CharacterCodes.equals || currentChar === CharacterCodes.greaterThan)
+                && currentChar !== ch && isConflictMarkerTrivia(text, pos)
+            ) {
                 break;
             }
 
@@ -800,7 +838,15 @@ export function scanShebangTrivia(text: string, pos: number) {
  * @returns If "reduce" is true, the accumulated value. If "reduce" is false, the first truthy
  *      return value of the callback.
  */
-function iterateCommentRanges<T, U>(reduce: boolean, text: string, pos: number, trailing: boolean, cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, state: T, memo: U | undefined) => U, state: T, initial?: U): U | undefined {
+function iterateCommentRanges<T, U>(
+    reduce: boolean,
+    text: string,
+    pos: number,
+    trailing: boolean,
+    cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, state: T, memo: U | undefined) => U,
+    state: T,
+    initial?: U,
+): U | undefined {
     let pendingPos!: number;
     let pendingEnd!: number;
     let pendingKind!: CommentKind;
@@ -846,7 +892,8 @@ function iterateCommentRanges<T, U>(reduce: boolean, text: string, pos: number, 
                 const nextChar = text.charCodeAt(pos + 1);
                 let hasTrailingNewLine = false;
                 if (nextChar === CharacterCodes.slash || nextChar === CharacterCodes.asterisk) {
-                    const kind = nextChar === CharacterCodes.slash ? SyntaxKind.SingleLineCommentTrivia : SyntaxKind.MultiLineCommentTrivia;
+                    const kind = nextChar === CharacterCodes.slash ? SyntaxKind.SingleLineCommentTrivia
+                        : SyntaxKind.MultiLineCommentTrivia;
                     const startPos = pos;
                     pos += 2;
                     if (nextChar === CharacterCodes.slash) {
@@ -860,7 +907,10 @@ function iterateCommentRanges<T, U>(reduce: boolean, text: string, pos: number, 
                     }
                     else {
                         while (pos < text.length) {
-                            if (text.charCodeAt(pos) === CharacterCodes.asterisk && text.charCodeAt(pos + 1) === CharacterCodes.slash) {
+                            if (
+                                text.charCodeAt(pos) === CharacterCodes.asterisk
+                                && text.charCodeAt(pos + 1) === CharacterCodes.slash
+                            ) {
                                 pos += 2;
                                 break;
                             }
@@ -870,7 +920,14 @@ function iterateCommentRanges<T, U>(reduce: boolean, text: string, pos: number, 
 
                     if (collecting) {
                         if (hasPendingCommentRange) {
-                            accumulator = cb(pendingPos, pendingEnd, pendingKind, pendingHasTrailingNewLine, state, accumulator);
+                            accumulator = cb(
+                                pendingPos,
+                                pendingEnd,
+                                pendingKind,
+                                pendingHasTrailingNewLine,
+                                state,
+                                accumulator,
+                            );
                             if (!reduce && accumulator) {
                                 // If we are not reducing and we have a truthy result, return it.
                                 return accumulator;
@@ -906,27 +963,74 @@ function iterateCommentRanges<T, U>(reduce: boolean, text: string, pos: number, 
     return accumulator;
 }
 
-export function forEachLeadingCommentRange<U>(text: string, pos: number, cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean) => U): U | undefined;
-export function forEachLeadingCommentRange<T, U>(text: string, pos: number, cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, state: T) => U, state: T): U | undefined;
-export function forEachLeadingCommentRange<T, U>(text: string, pos: number, cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, state: T) => U, state?: T): U | undefined {
+export function forEachLeadingCommentRange<U>(
+    text: string,
+    pos: number,
+    cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean) => U,
+): U | undefined;
+export function forEachLeadingCommentRange<T, U>(
+    text: string,
+    pos: number,
+    cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, state: T) => U,
+    state: T,
+): U | undefined;
+export function forEachLeadingCommentRange<T, U>(
+    text: string,
+    pos: number,
+    cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, state: T) => U,
+    state?: T,
+): U | undefined {
     return iterateCommentRanges(/*reduce*/ false, text, pos, /*trailing*/ false, cb, state!);
 }
 
-export function forEachTrailingCommentRange<U>(text: string, pos: number, cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean) => U): U | undefined;
-export function forEachTrailingCommentRange<T, U>(text: string, pos: number, cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, state: T) => U, state: T): U | undefined;
-export function forEachTrailingCommentRange<T, U>(text: string, pos: number, cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, state: T) => U, state?: T): U | undefined {
+export function forEachTrailingCommentRange<U>(
+    text: string,
+    pos: number,
+    cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean) => U,
+): U | undefined;
+export function forEachTrailingCommentRange<T, U>(
+    text: string,
+    pos: number,
+    cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, state: T) => U,
+    state: T,
+): U | undefined;
+export function forEachTrailingCommentRange<T, U>(
+    text: string,
+    pos: number,
+    cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, state: T) => U,
+    state?: T,
+): U | undefined {
     return iterateCommentRanges(/*reduce*/ false, text, pos, /*trailing*/ true, cb, state!);
 }
 
-export function reduceEachLeadingCommentRange<T, U>(text: string, pos: number, cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, state: T) => U, state: T, initial: U) {
+export function reduceEachLeadingCommentRange<T, U>(
+    text: string,
+    pos: number,
+    cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, state: T) => U,
+    state: T,
+    initial: U,
+) {
     return iterateCommentRanges(/*reduce*/ true, text, pos, /*trailing*/ false, cb, state, initial);
 }
 
-export function reduceEachTrailingCommentRange<T, U>(text: string, pos: number, cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, state: T) => U, state: T, initial: U) {
+export function reduceEachTrailingCommentRange<T, U>(
+    text: string,
+    pos: number,
+    cb: (pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, state: T) => U,
+    state: T,
+    initial: U,
+) {
     return iterateCommentRanges(/*reduce*/ true, text, pos, /*trailing*/ true, cb, state, initial);
 }
 
-function appendCommentRange(pos: number, end: number, kind: CommentKind, hasTrailingNewLine: boolean, _state: any, comments: CommentRange[] = []) {
+function appendCommentRange(
+    pos: number,
+    end: number,
+    kind: CommentKind,
+    hasTrailingNewLine: boolean,
+    _state: any,
+    comments: CommentRange[] = [],
+) {
     comments.push({ kind, pos, end, hasTrailingNewLine });
     return comments;
 }
@@ -948,21 +1052,30 @@ export function getShebang(text: string): string | undefined {
 }
 
 export function isIdentifierStart(ch: number, languageVersion: ScriptTarget | undefined): boolean {
-    return ch >= CharacterCodes.A && ch <= CharacterCodes.Z || ch >= CharacterCodes.a && ch <= CharacterCodes.z ||
-        ch === CharacterCodes.$ || ch === CharacterCodes._ ||
-        ch > CharacterCodes.maxAsciiCharacter && isUnicodeIdentifierStart(ch, languageVersion);
+    return ch >= CharacterCodes.A && ch <= CharacterCodes.Z || ch >= CharacterCodes.a && ch <= CharacterCodes.z
+        || ch === CharacterCodes.$ || ch === CharacterCodes._
+        || ch > CharacterCodes.maxAsciiCharacter && isUnicodeIdentifierStart(ch, languageVersion);
 }
 
-export function isIdentifierPart(ch: number, languageVersion: ScriptTarget | undefined, identifierVariant?: LanguageVariant): boolean {
-    return ch >= CharacterCodes.A && ch <= CharacterCodes.Z || ch >= CharacterCodes.a && ch <= CharacterCodes.z ||
-        ch >= CharacterCodes._0 && ch <= CharacterCodes._9 || ch === CharacterCodes.$ || ch === CharacterCodes._ ||
+export function isIdentifierPart(
+    ch: number,
+    languageVersion: ScriptTarget | undefined,
+    identifierVariant?: LanguageVariant,
+): boolean {
+    return ch >= CharacterCodes.A && ch <= CharacterCodes.Z || ch >= CharacterCodes.a && ch <= CharacterCodes.z
+        || ch >= CharacterCodes._0 && ch <= CharacterCodes._9 || ch === CharacterCodes.$ || ch === CharacterCodes._
         // "-" and ":" are valid in JSX Identifiers
-        (identifierVariant === LanguageVariant.JSX ? (ch === CharacterCodes.minus || ch === CharacterCodes.colon) : false) ||
-        ch > CharacterCodes.maxAsciiCharacter && isUnicodeIdentifierPart(ch, languageVersion);
+        || (identifierVariant === LanguageVariant.JSX ? (ch === CharacterCodes.minus || ch === CharacterCodes.colon)
+            : false)
+        || ch > CharacterCodes.maxAsciiCharacter && isUnicodeIdentifierPart(ch, languageVersion);
 }
 
 /** @internal */
-export function isIdentifierText(name: string, languageVersion: ScriptTarget | undefined, identifierVariant?: LanguageVariant): boolean {
+export function isIdentifierText(
+    name: string,
+    languageVersion: ScriptTarget | undefined,
+    identifierVariant?: LanguageVariant,
+): boolean {
     let ch = codePointAt(name, 0);
     if (!isIdentifierStart(ch, languageVersion)) {
         return false;
@@ -978,7 +1091,15 @@ export function isIdentifierText(name: string, languageVersion: ScriptTarget | u
 }
 
 // Creates a scanner over a (possibly unspecified) range of a piece of text.
-export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean, languageVariant = LanguageVariant.Standard, textInitial?: string, onError?: ErrorCallback, start?: number, length?: number): Scanner {
+export function createScanner(
+    languageVersion: ScriptTarget,
+    skipTrivia: boolean,
+    languageVariant = LanguageVariant.Standard,
+    textInitial?: string,
+    onError?: ErrorCallback,
+    start?: number,
+    length?: number,
+): Scanner {
     // Why var? It avoids TDZ checks in the runtime which can be costly.
     // See: https://github.com/microsoft/TypeScript/issues/52924
     /* eslint-disable no-var */
@@ -1221,7 +1342,10 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
         }
 
         if (decimalFragment !== undefined || tokenFlags & TokenFlags.Scientific) {
-            checkForIdentifierStartAfterNumericLiteral(start, decimalFragment === undefined && !!(tokenFlags & TokenFlags.Scientific));
+            checkForIdentifierStartAfterNumericLiteral(
+                start,
+                decimalFragment === undefined && !!(tokenFlags & TokenFlags.Scientific),
+            );
             // if value is not an integer, it can be safely coerced to a number
             tokenValue = "" + +result;
             return SyntaxKind.NumericLiteral;
@@ -1244,14 +1368,26 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
 
         if (length === 1 && text[identifierStart] === "n") {
             if (isScientific) {
-                error(Diagnostics.A_bigint_literal_cannot_use_exponential_notation, numericStart, identifierStart - numericStart + 1);
+                error(
+                    Diagnostics.A_bigint_literal_cannot_use_exponential_notation,
+                    numericStart,
+                    identifierStart - numericStart + 1,
+                );
             }
             else {
-                error(Diagnostics.A_bigint_literal_must_be_an_integer, numericStart, identifierStart - numericStart + 1);
+                error(
+                    Diagnostics.A_bigint_literal_must_be_an_integer,
+                    numericStart,
+                    identifierStart - numericStart + 1,
+                );
             }
         }
         else {
-            error(Diagnostics.An_identifier_or_keyword_cannot_immediately_follow_a_numeric_literal, identifierStart, length);
+            error(
+                Diagnostics.An_identifier_or_keyword_cannot_immediately_follow_a_numeric_literal,
+                identifierStart,
+                length,
+            );
             pos = identifierStart;
         }
     }
@@ -1312,8 +1448,8 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
                 ch += CharacterCodes.a - CharacterCodes.A; // standardize hex literals to lowercase
             }
             else if (
-                !((ch >= CharacterCodes._0 && ch <= CharacterCodes._9) ||
-                    (ch >= CharacterCodes.a && ch <= CharacterCodes.f))
+                !((ch >= CharacterCodes._0 && ch <= CharacterCodes._9)
+                    || (ch >= CharacterCodes.a && ch <= CharacterCodes.f))
             ) {
                 break;
             }
@@ -1382,7 +1518,8 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
                 contents += text.substring(start, pos);
                 tokenFlags |= TokenFlags.Unterminated;
                 error(Diagnostics.Unterminated_template_literal);
-                resultingToken = startedWithBacktick ? SyntaxKind.NoSubstitutionTemplateLiteral : SyntaxKind.TemplateTail;
+                resultingToken = startedWithBacktick ? SyntaxKind.NoSubstitutionTemplateLiteral
+                    : SyntaxKind.TemplateTail;
                 break;
             }
 
@@ -1392,12 +1529,15 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
             if (currChar === CharacterCodes.backtick) {
                 contents += text.substring(start, pos);
                 pos++;
-                resultingToken = startedWithBacktick ? SyntaxKind.NoSubstitutionTemplateLiteral : SyntaxKind.TemplateTail;
+                resultingToken = startedWithBacktick ? SyntaxKind.NoSubstitutionTemplateLiteral
+                    : SyntaxKind.TemplateTail;
                 break;
             }
 
             // '${'
-            if (currChar === CharacterCodes.$ && pos + 1 < end && text.charCodeAt(pos + 1) === CharacterCodes.openBrace) {
+            if (
+                currChar === CharacterCodes.$ && pos + 1 < end && text.charCodeAt(pos + 1) === CharacterCodes.openBrace
+            ) {
                 contents += text.substring(start, pos);
                 pos += 2;
                 resultingToken = startedWithBacktick ? SyntaxKind.TemplateHead : SyntaxKind.TemplateMiddle;
@@ -1490,7 +1630,12 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
                 tokenFlags |= TokenFlags.ContainsInvalidEscape;
                 if (shouldEmitInvalidEscapeError) {
                     const code = parseInt(text.substring(start + 1, pos), 8);
-                    error(Diagnostics.Octal_escape_sequences_are_not_allowed_Use_the_syntax_0, start, pos - start, "\\x" + padLeft(code.toString(16), 2, "0"));
+                    error(
+                        Diagnostics.Octal_escape_sequences_are_not_allowed_Use_the_syntax_0,
+                        start,
+                        pos - start,
+                        "\\x" + padLeft(code.toString(16), 2, "0"),
+                    );
                     return String.fromCharCode(code);
                 }
                 return text.substring(start, pos);
@@ -1536,7 +1681,9 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
                     if (!isCodePoint(escapedValue)) {
                         tokenFlags |= TokenFlags.ContainsInvalidEscape;
                         if (shouldEmitInvalidEscapeError) {
-                            error(Diagnostics.An_extended_Unicode_escape_value_must_be_between_0x0_and_0x10FFFF_inclusive);
+                            error(
+                                Diagnostics.An_extended_Unicode_escape_value_must_be_between_0x0_and_0x10FFFF_inclusive,
+                            );
                         }
                         return text.substring(start, pos);
                     }
@@ -1650,7 +1797,9 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
     }
 
     function peekExtendedUnicodeEscape(): number {
-        if (codePointAt(text, pos + 1) === CharacterCodes.u && codePointAt(text, pos + 2) === CharacterCodes.openBrace) {
+        if (
+            codePointAt(text, pos + 1) === CharacterCodes.u && codePointAt(text, pos + 2) === CharacterCodes.openBrace
+        ) {
             const start = pos;
             pos += 3;
             const escapedValueString = scanMinimumNumberOfHexDigits(1, /*canHaveSeparators*/ false);
@@ -1816,7 +1965,10 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
                         continue;
                     }
                     else {
-                        if (ch === CharacterCodes.carriageReturn && pos + 1 < end && text.charCodeAt(pos + 1) === CharacterCodes.lineFeed) {
+                        if (
+                            ch === CharacterCodes.carriageReturn && pos + 1 < end
+                            && text.charCodeAt(pos + 1) === CharacterCodes.lineFeed
+                        ) {
                             // consume both CR and LF
                             pos += 2;
                         }
@@ -1939,7 +2091,10 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
                         scanNumber();
                         return token = SyntaxKind.NumericLiteral;
                     }
-                    if (text.charCodeAt(pos + 1) === CharacterCodes.dot && text.charCodeAt(pos + 2) === CharacterCodes.dot) {
+                    if (
+                        text.charCodeAt(pos + 1) === CharacterCodes.dot
+                        && text.charCodeAt(pos + 2) === CharacterCodes.dot
+                    ) {
                         return pos += 3, token = SyntaxKind.DotDotDotToken;
                     }
                     pos++;
@@ -1973,7 +2128,10 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
                     // Multi-line comment
                     if (text.charCodeAt(pos + 1) === CharacterCodes.asterisk) {
                         pos += 2;
-                        if (text.charCodeAt(pos) === CharacterCodes.asterisk && text.charCodeAt(pos + 1) !== CharacterCodes.slash) {
+                        if (
+                            text.charCodeAt(pos) === CharacterCodes.asterisk
+                            && text.charCodeAt(pos + 1) !== CharacterCodes.slash
+                        ) {
                             tokenFlags |= TokenFlags.PrecedingJSDocComment;
                         }
 
@@ -1996,7 +2154,12 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
                             }
                         }
 
-                        commentDirectives = appendIfCommentDirective(commentDirectives, text.slice(lastLineStart, pos), commentDirectiveRegExMultiLine, lastLineStart);
+                        commentDirectives = appendIfCommentDirective(
+                            commentDirectives,
+                            text.slice(lastLineStart, pos),
+                            commentDirectiveRegExMultiLine,
+                            lastLineStart,
+                        );
 
                         if (!commentClosed) {
                             error(Diagnostics.Asterisk_Slash_expected);
@@ -2021,7 +2184,11 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
                     return token = SyntaxKind.SlashToken;
 
                 case CharacterCodes._0:
-                    if (pos + 2 < end && (text.charCodeAt(pos + 1) === CharacterCodes.X || text.charCodeAt(pos + 1) === CharacterCodes.x)) {
+                    if (
+                        pos + 2 < end
+                        && (text.charCodeAt(pos + 1) === CharacterCodes.X
+                            || text.charCodeAt(pos + 1) === CharacterCodes.x)
+                    ) {
                         pos += 2;
                         tokenValue = scanMinimumNumberOfHexDigits(1, /*canHaveSeparators*/ true);
                         if (!tokenValue) {
@@ -2032,7 +2199,11 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
                         tokenFlags |= TokenFlags.HexSpecifier;
                         return token = checkBigIntSuffix();
                     }
-                    else if (pos + 2 < end && (text.charCodeAt(pos + 1) === CharacterCodes.B || text.charCodeAt(pos + 1) === CharacterCodes.b)) {
+                    else if (
+                        pos + 2 < end
+                        && (text.charCodeAt(pos + 1) === CharacterCodes.B
+                            || text.charCodeAt(pos + 1) === CharacterCodes.b)
+                    ) {
                         pos += 2;
                         tokenValue = scanBinaryOrOctalDigits(/* base */ 2);
                         if (!tokenValue) {
@@ -2043,7 +2214,11 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
                         tokenFlags |= TokenFlags.BinarySpecifier;
                         return token = checkBigIntSuffix();
                     }
-                    else if (pos + 2 < end && (text.charCodeAt(pos + 1) === CharacterCodes.O || text.charCodeAt(pos + 1) === CharacterCodes.o)) {
+                    else if (
+                        pos + 2 < end
+                        && (text.charCodeAt(pos + 1) === CharacterCodes.O
+                            || text.charCodeAt(pos + 1) === CharacterCodes.o)
+                    ) {
                         pos += 2;
                         tokenValue = scanBinaryOrOctalDigits(/* base */ 8);
                         if (!tokenValue) {
@@ -2092,9 +2267,9 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
                         return pos += 2, token = SyntaxKind.LessThanEqualsToken;
                     }
                     if (
-                        languageVariant === LanguageVariant.JSX &&
-                        text.charCodeAt(pos + 1) === CharacterCodes.slash &&
-                        text.charCodeAt(pos + 2) !== CharacterCodes.asterisk
+                        languageVariant === LanguageVariant.JSX
+                        && text.charCodeAt(pos + 1) === CharacterCodes.slash
+                        && text.charCodeAt(pos + 2) !== CharacterCodes.asterisk
                     ) {
                         return pos += 2, token = SyntaxKind.LessThanSlashToken;
                     }
@@ -2278,7 +2453,10 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
     }
 
     function reScanInvalidIdentifier(): SyntaxKind {
-        Debug.assert(token === SyntaxKind.Unknown, "'reScanInvalidIdentifier' should only be called when the current token is 'SyntaxKind.Unknown'.");
+        Debug.assert(
+            token === SyntaxKind.Unknown,
+            "'reScanInvalidIdentifier' should only be called when the current token is 'SyntaxKind.Unknown'.",
+        );
         pos = tokenStart = fullStartPos;
         tokenFlags = 0;
         const ch = codePointAt(text, pos);
@@ -2327,7 +2505,10 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
     }
 
     function reScanAsteriskEqualsToken(): SyntaxKind {
-        Debug.assert(token === SyntaxKind.AsteriskEqualsToken, "'reScanAsteriskEqualsToken' should only be called on a '*='");
+        Debug.assert(
+            token === SyntaxKind.AsteriskEqualsToken,
+            "'reScanAsteriskEqualsToken' should only be called on a '*='",
+        );
         pos = tokenStart + 1;
         return token = SyntaxKind.EqualsToken;
     }
@@ -2458,7 +2639,10 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
     }
 
     function reScanQuestionToken(): SyntaxKind {
-        Debug.assert(token === SyntaxKind.QuestionQuestionToken, "'reScanQuestionToken' should only be called on a '??'");
+        Debug.assert(
+            token === SyntaxKind.QuestionQuestionToken,
+            "'reScanQuestionToken' should only be called on a '??'",
+        );
         pos = tokenStart + 1;
         return token = SyntaxKind.QuestionToken;
     }
@@ -2587,7 +2771,11 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
         if (pos >= end) {
             return token = SyntaxKind.EndOfFileToken;
         }
-        for (let ch = text.charCodeAt(pos); pos < end && (!isLineBreak(ch) && ch !== CharacterCodes.backtick); ch = codePointAt(text, ++pos)) {
+        for (
+            let ch = text.charCodeAt(pos);
+            pos < end && (!isLineBreak(ch) && ch !== CharacterCodes.backtick);
+            ch = codePointAt(text, ++pos)
+        ) {
             if (!inBackticks) {
                 if (ch === CharacterCodes.openBrace) {
                     break;
@@ -2684,7 +2872,10 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
 
         if (isIdentifierStart(ch, languageVersion)) {
             let char = ch;
-            while (pos < end && isIdentifierPart(char = codePointAt(text, pos), languageVersion) || text.charCodeAt(pos) === CharacterCodes.minus) pos += charSize(char);
+            while (
+                pos < end && isIdentifierPart(char = codePointAt(text, pos), languageVersion)
+                || text.charCodeAt(pos) === CharacterCodes.minus
+            ) pos += charSize(char);
             tokenValue = text.substring(tokenStart, pos);
             if (char === CharacterCodes.backslash) {
                 tokenValue += scanIdentifierParts();
@@ -2793,25 +2984,26 @@ export function createScanner(languageVersion: ScriptTarget, skipTrivia: boolean
 }
 
 /** @internal */
-const codePointAt: (s: string, i: number) => number = (String.prototype as any).codePointAt ? (s, i) => (s as any).codePointAt(i) : function codePointAt(str, i): number {
-    // from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/codePointAt
-    const size = str.length;
-    // Account for out-of-bounds indices:
-    if (i < 0 || i >= size) {
-        return undefined!; // String.codePointAt returns `undefined` for OOB indexes
-    }
-    // Get the first code unit
-    const first = str.charCodeAt(i);
-    // check if it's the start of a surrogate pair
-    if (first >= 0xD800 && first <= 0xDBFF && size > i + 1) { // high surrogate and there is a next code unit
-        const second = str.charCodeAt(i + 1);
-        if (second >= 0xDC00 && second <= 0xDFFF) { // low surrogate
-            // https://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
-            return (first - 0xD800) * 0x400 + second - 0xDC00 + 0x10000;
+const codePointAt: (s: string, i: number) => number = (String.prototype as any).codePointAt
+    ? (s, i) => (s as any).codePointAt(i) : function codePointAt(str, i): number {
+        // from https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/codePointAt
+        const size = str.length;
+        // Account for out-of-bounds indices:
+        if (i < 0 || i >= size) {
+            return undefined!; // String.codePointAt returns `undefined` for OOB indexes
         }
-    }
-    return first;
-};
+        // Get the first code unit
+        const first = str.charCodeAt(i);
+        // check if it's the start of a surrogate pair
+        if (first >= 0xD800 && first <= 0xDBFF && size > i + 1) { // high surrogate and there is a next code unit
+            const second = str.charCodeAt(i + 1);
+            if (second >= 0xDC00 && second <= 0xDFFF) { // low surrogate
+                // https://mathiasbynens.be/notes/javascript-encoding#surrogate-formulae
+                return (first - 0xD800) * 0x400 + second - 0xDC00 + 0x10000;
+            }
+        }
+        return first;
+    };
 
 /** @internal */
 function charSize(ch: number) {
@@ -2835,7 +3027,8 @@ function utf16EncodeAsStringFallback(codePoint: number) {
     return String.fromCharCode(codeUnit1, codeUnit2);
 }
 
-const utf16EncodeAsStringWorker: (codePoint: number) => string = (String as any).fromCodePoint ? codePoint => (String as any).fromCodePoint(codePoint) : utf16EncodeAsStringFallback;
+const utf16EncodeAsStringWorker: (codePoint: number) => string = (String as any).fromCodePoint
+    ? codePoint => (String as any).fromCodePoint(codePoint) : utf16EncodeAsStringFallback;
 
 /** @internal */
 export function utf16EncodeAsString(codePoint: number) {

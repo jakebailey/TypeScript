@@ -40,12 +40,19 @@ describe("unittests:: tsserver:: events:: LargeFileReferencedEvent with large fi
             };
             const tsconfig: File = {
                 path: `/user/username/projects/myproject/tsconfig.json`,
-                content: JSON.stringify({ files: ["src/file.ts", getLargeFile(useLargeTsFile)], compilerOptions: { target: 1, allowJs: true } }),
+                content: JSON.stringify({
+                    files: ["src/file.ts", getLargeFile(useLargeTsFile)],
+                    compilerOptions: { target: 1, allowJs: true },
+                }),
             };
             const files = [file, libFile, tsconfig];
             const session = createSessionWithEventHandler(files, useLargeTsFile);
             openFilesForSession([file], session);
-            baselineTsserverLogs("events/largeFileReferenced", `when large ${getFileType(useLargeTsFile)} file is included by tsconfig`, session);
+            baselineTsserverLogs(
+                "events/largeFileReferenced",
+                `when large ${getFileType(useLargeTsFile)} file is included by tsconfig`,
+                session,
+            );
         });
 
         it("when large file is included by module resolution", () => {
@@ -56,7 +63,11 @@ describe("unittests:: tsserver:: events:: LargeFileReferencedEvent with large fi
             const files = [file, libFile];
             const session = createSessionWithEventHandler(files, useLargeTsFile);
             openFilesForSession([file], session);
-            baselineTsserverLogs("events/largeFileReferenced", `when large ${getFileType(useLargeTsFile)} file is included by module resolution`, session);
+            baselineTsserverLogs(
+                "events/largeFileReferenced",
+                `when large ${getFileType(useLargeTsFile)} file is included by module resolution`,
+                session,
+            );
         });
     }
 

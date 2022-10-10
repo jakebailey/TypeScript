@@ -54,7 +54,8 @@ async function main() {
                         owner: "Microsoft",
                         repo: "TypeScript",
                         issue_number: num,
-                        body: `This PR is configured as an experiment, and currently has rebase conflicts with main - please rebase onto main and fix the conflicts.`,
+                        body:
+                            `This PR is configured as an experiment, and currently has rebase conflicts with main - please rebase onto main and fix the conflicts.`,
                     });
                 }
                 throw new Error(`Rebase conflict detected in PR ${num} with main`); // A PR is currently in conflict, give up

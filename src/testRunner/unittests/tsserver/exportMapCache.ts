@@ -80,7 +80,11 @@ describe("unittests:: tsserver:: exportMapCache", () => {
         project.getPackageJsonAutoImportProvider();
         assert.ok(exportMapCache.isUsableByFile(bTs.path as ts.Path));
         assert.ok(!exportMapCache.isEmpty());
-        baselineTsserverLogs("exportMapCache", "does not invalidate the cache when package.json is changed inconsequentially", session);
+        baselineTsserverLogs(
+            "exportMapCache",
+            "does not invalidate the cache when package.json is changed inconsequentially",
+            session,
+        );
     });
 
     it("invalidates the cache when package.json change results in AutoImportProvider change", () => {
@@ -90,7 +94,11 @@ describe("unittests:: tsserver:: exportMapCache", () => {
         project.getPackageJsonAutoImportProvider();
         assert.ok(!exportMapCache.isUsableByFile(bTs.path as ts.Path));
         assert.ok(exportMapCache.isEmpty());
-        baselineTsserverLogs("exportMapCache", "invalidates the cache when package.json change results in AutoImportProvider change", session);
+        baselineTsserverLogs(
+            "exportMapCache",
+            "invalidates the cache when package.json change results in AutoImportProvider change",
+            session,
+        );
     });
 
     it("does not store transient symbols through program updates", () => {
@@ -222,19 +230,40 @@ describe("unittests:: tsserver:: exportMapCache", () => {
             },
         });
 
-        baselineTsserverLogs("exportMapCache", "invalidates the cache when a file is opened with different contents", session);
+        baselineTsserverLogs(
+            "exportMapCache",
+            "invalidates the cache when a file is opened with different contents",
+            session,
+        );
     });
 });
 
 function setup() {
-    const host = createServerHost([aTs, bTs, ambientDeclaration, tsconfig, packageJson, mobxPackageJson, mobxDts, exportEqualsMappedType]);
+    const host = createServerHost([
+        aTs,
+        bTs,
+        ambientDeclaration,
+        tsconfig,
+        packageJson,
+        mobxPackageJson,
+        mobxDts,
+        exportEqualsMappedType,
+    ]);
     const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
     openFilesForSession([aTs, bTs], session);
     const projectService = session.getProjectService();
     const project = projectService.configuredProjects.get(tsconfig.path)!;
     triggerCompletions();
     const checker = project.getLanguageService().getProgram()!.getTypeChecker();
-    return { host, project, projectService, session, exportMapCache: project.getCachedExportInfoMap(), checker, triggerCompletions };
+    return {
+        host,
+        project,
+        projectService,
+        session,
+        exportMapCache: project.getCachedExportInfoMap(),
+        checker,
+        triggerCompletions,
+    };
 
     function triggerCompletions() {
         const requestLocation: ts.server.protocol.FileLocationRequestArgs = {

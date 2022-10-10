@@ -155,7 +155,9 @@ export class FileSystem {
      */
     public shadow(ignoreCase = this.ignoreCase) {
         if (!this.isReadonly) throw new Error("Cannot shadow a mutable file system.");
-        if (ignoreCase && !this.ignoreCase) throw new Error("Cannot create a case-insensitive file system from a case-sensitive one.");
+        if (ignoreCase && !this.ignoreCase) {
+            throw new Error("Cannot create a case-insensitive file system from a case-sensitive one.");
+        }
         const fs = new FileSystem(ignoreCase, { time: this._time });
         fs._shadowRoot = this;
         fs._cwd = this._cwd;
@@ -576,11 +578,17 @@ export class FileSystem {
     public renameSync(oldpath: string, newpath: string) {
         if (this.isReadonly) throw createIOError("EROFS");
 
-        const { parent: oldParent, links: oldParentLinks, node, basename: oldBasename } = this._walk(this._resolve(oldpath), /*noFollow*/ true);
+        const { parent: oldParent, links: oldParentLinks, node, basename: oldBasename } = this._walk(
+            this._resolve(oldpath),
+            /*noFollow*/ true,
+        );
         if (!oldParent) throw createIOError("EPERM");
         if (!node) throw createIOError("ENOENT");
 
-        const { parent: newParent, links: newParentLinks, node: existingNode, basename: newBasename } = this._walk(this._resolve(newpath), /*noFollow*/ true);
+        const { parent: newParent, links: newParentLinks, node: existingNode, basename: newBasename } = this._walk(
+            this._resolve(newpath),
+            /*noFollow*/ true,
+        );
         if (!newParent) throw createIOError("EPERM");
 
         const time = this.time();
@@ -589,7 +597,9 @@ export class FileSystem {
                 if (!isDirectory(existingNode)) throw createIOError("ENOTDIR");
                 // if both old and new arguments point to the same directory, just pass. So we could rename /src/a/1 to /src/A/1 in Win.
                 // if not and the directory pointed by the new path is not empty, throw an error.
-                if (this.stringComparer(oldpath, newpath) !== 0 && this._getLinks(existingNode).size > 0) throw createIOError("ENOTEMPTY");
+                if (this.stringComparer(oldpath, newpath) !== 0 && this._getLinks(existingNode).size > 0) {
+                    throw createIOError("ENOTEMPTY");
+                }
             }
             else {
                 if (isDirectory(existingNode)) throw createIOError("EISDIR");
@@ -681,7 +691,8 @@ export class FileSystem {
 
         if (isDirectory(node)) throw createIOError("EISDIR");
         if (!isFile(node)) throw createIOError("EBADF");
-        node.buffer = Buffer.isBuffer(data) ? data.slice() : ts.sys.bufferFrom!("" + data, encoding || "utf8") as Buffer;
+        node.buffer = Buffer.isBuffer(data) ? data.slice()
+            : ts.sys.bufferFrom!("" + data, encoding || "utf8") as Buffer;
         node.size = node.buffer.byteLength;
         node.mtimeMs = time;
         node.ctimeMs = time;
@@ -694,9 +705,9 @@ export class FileSystem {
     public diff(base?: FileSystem | undefined, options: DiffOptions = {}) {
         if (!base && !options.baseIsNotShadowRoot) base = this.shadowRoot;
         const differences: FileSet = {};
-        const hasDifferences = base ?
-            FileSystem.rootDiff(differences, this, base, options) :
-            FileSystem.trackCreatedInodes(differences, this, this._getRootLinks());
+        const hasDifferences = base
+            ? FileSystem.rootDiff(differences, this, base, options)
+            : FileSystem.trackCreatedInodes(differences, this, this._getRootLinks());
         return hasDifferences ? differences : undefined;
     }
 
@@ -705,12 +716,19 @@ export class FileSystem {
      */
     public static diff(changed: FileSystem, base: FileSystem, options: DiffOptions = {}) {
         const differences: FileSet = {};
-        return FileSystem.rootDiff(differences, changed, base, options) ?
-            differences :
-            undefined;
+        return FileSystem.rootDiff(differences, changed, base, options)
+            ? differences
+            : undefined;
     }
 
-    private static diffWorker(container: FileSet, changed: FileSystem, changedLinks: ReadonlyMap<string, Inode> | undefined, base: FileSystem, baseLinks: ReadonlyMap<string, Inode> | undefined, options: DiffOptions) {
+    private static diffWorker(
+        container: FileSet,
+        changed: FileSystem,
+        changedLinks: ReadonlyMap<string, Inode> | undefined,
+        base: FileSystem,
+        baseLinks: ReadonlyMap<string, Inode> | undefined,
+        options: DiffOptions,
+    ) {
         if (changedLinks && !baseLinks) return FileSystem.trackCreatedInodes(container, changed, changedLinks);
         if (baseLinks && !changedLinks) return FileSystem.trackDeletedInodes(container, baseLinks);
         if (changedLinks && baseLinks) {
@@ -727,16 +745,22 @@ export class FileSystem {
                 const baseNode = baseLinks.get(basename);
                 if (baseNode) {
                     if (isDirectory(changedNode) && isDirectory(baseNode)) {
-                        return hasChanges = FileSystem.directoryDiff(container, basename, changed, changedNode, base, baseNode, options) || hasChanges;
+                        return hasChanges =
+                            FileSystem.directoryDiff(container, basename, changed, changedNode, base, baseNode, options)
+                            || hasChanges;
                     }
                     if (isFile(changedNode) && isFile(baseNode)) {
-                        return hasChanges = FileSystem.fileDiff(container, basename, changed, changedNode, base, baseNode, options) || hasChanges;
+                        return hasChanges =
+                            FileSystem.fileDiff(container, basename, changed, changedNode, base, baseNode, options)
+                            || hasChanges;
                     }
                     if (isSymlink(changedNode) && isSymlink(baseNode)) {
-                        return hasChanges = FileSystem.symlinkDiff(container, basename, changedNode, baseNode) || hasChanges;
+                        return hasChanges = FileSystem.symlinkDiff(container, basename, changedNode, baseNode)
+                            || hasChanges;
                     }
                 }
-                return hasChanges = FileSystem.trackCreatedInode(container, basename, changed, changedNode) || hasChanges;
+                return hasChanges = FileSystem.trackCreatedInode(container, basename, changed, changedNode)
+                    || hasChanges;
             });
             return hasChanges;
         }
@@ -756,7 +780,15 @@ export class FileSystem {
         return FileSystem.diffWorker(container, changed, changed._getRootLinks(), base, base._getRootLinks(), options);
     }
 
-    private static directoryDiff(container: FileSet, basename: string, changed: FileSystem, changedNode: DirectoryInode, base: FileSystem, baseNode: DirectoryInode, options: DiffOptions) {
+    private static directoryDiff(
+        container: FileSet,
+        basename: string,
+        changed: FileSystem,
+        changedNode: DirectoryInode,
+        base: FileSystem,
+        baseNode: DirectoryInode,
+        options: DiffOptions,
+    ) {
         while (!changedNode.links && changedNode.shadowRoot) changedNode = changedNode.shadowRoot;
         while (!baseNode.links && baseNode.shadowRoot) baseNode = baseNode.shadowRoot;
 
@@ -768,14 +800,23 @@ export class FileSystem {
 
         // no difference if both nodes are unpopulated and point to the same mounted file system
         if (
-            !changedNode.links && !baseNode.links &&
-            changedNode.resolver && changedNode.source !== undefined &&
-            baseNode.resolver === changedNode.resolver && baseNode.source === changedNode.source
+            !changedNode.links && !baseNode.links
+            && changedNode.resolver && changedNode.source !== undefined
+            && baseNode.resolver === changedNode.resolver && baseNode.source === changedNode.source
         ) return false;
 
         // no difference if both nodes have identical children
         const children: FileSet = {};
-        if (!FileSystem.diffWorker(children, changed, changed._getLinks(changedNode), base, base._getLinks(baseNode), options)) {
+        if (
+            !FileSystem.diffWorker(
+                children,
+                changed,
+                changed._getLinks(changedNode),
+                base,
+                base._getLinks(baseNode),
+                options,
+            )
+        ) {
             return false;
         }
 
@@ -783,7 +824,15 @@ export class FileSystem {
         return true;
     }
 
-    private static fileDiff(container: FileSet, basename: string, changed: FileSystem, changedNode: FileInode, base: FileSystem, baseNode: FileInode, options: DiffOptions) {
+    private static fileDiff(
+        container: FileSet,
+        basename: string,
+        changed: FileSystem,
+        changedNode: FileInode,
+        base: FileSystem,
+        baseNode: FileInode,
+        options: DiffOptions,
+    ) {
         while (!changedNode.buffer && changedNode.shadowRoot) changedNode = changedNode.shadowRoot;
         while (!baseNode.buffer && baseNode.shadowRoot) baseNode = baseNode.shadowRoot;
 
@@ -795,9 +844,9 @@ export class FileSystem {
 
         // no difference if both nodes are unpopulated and point to the same mounted file system
         if (
-            !changedNode.buffer && !baseNode.buffer &&
-            changedNode.resolver && changedNode.source !== undefined &&
-            baseNode.resolver === changedNode.resolver && baseNode.source === changedNode.source
+            !changedNode.buffer && !baseNode.buffer
+            && changedNode.resolver && changedNode.source !== undefined
+            && baseNode.resolver === changedNode.resolver && baseNode.source === changedNode.source
         ) return false;
 
         const changedBuffer = changed._getBuffer(changedNode);
@@ -821,7 +870,12 @@ export class FileSystem {
         return true;
     }
 
-    private static symlinkDiff(container: FileSet, basename: string, changedNode: SymlinkInode, baseNode: SymlinkInode) {
+    private static symlinkDiff(
+        container: FileSet,
+        basename: string,
+        changedNode: SymlinkInode,
+        baseNode: SymlinkInode,
+    ) {
         // no difference if the nodes are the same reference
         if (changedNode.symlink === baseNode.symlink) return false;
         container[basename] = new Symlink(changedNode.symlink);
@@ -843,7 +897,11 @@ export class FileSystem {
         return true;
     }
 
-    private static trackCreatedInodes(container: FileSet, changed: FileSystem, changedLinks: ReadonlyMap<string, Inode>) {
+    private static trackCreatedInodes(
+        container: FileSet,
+        changed: FileSystem,
+        changedLinks: ReadonlyMap<string, Inode>,
+    ) {
         // no difference if links are empty
         if (!changedLinks.size) return false;
 
@@ -878,7 +936,13 @@ export class FileSystem {
         };
     }
 
-    private _addLink(parent: DirectoryInode | undefined, links: collections.SortedMap<string, Inode>, name: string, node: Inode, time = this.time()) {
+    private _addLink(
+        parent: DirectoryInode | undefined,
+        links: collections.SortedMap<string, Inode>,
+        name: string,
+        node: Inode,
+        time = this.time(),
+    ) {
         links.set(name, node);
         node.nlink++;
         node.ctimeMs = time;
@@ -886,14 +950,29 @@ export class FileSystem {
         if (!parent && !this._cwd) this._cwd = name;
     }
 
-    private _removeLink(parent: DirectoryInode | undefined, links: collections.SortedMap<string, Inode>, name: string, node: Inode, time = this.time()) {
+    private _removeLink(
+        parent: DirectoryInode | undefined,
+        links: collections.SortedMap<string, Inode>,
+        name: string,
+        node: Inode,
+        time = this.time(),
+    ) {
         links.delete(name);
         node.nlink--;
         node.ctimeMs = time;
         if (parent) parent.mtimeMs = time;
     }
 
-    private _replaceLink(oldParent: DirectoryInode, oldLinks: collections.SortedMap<string, Inode>, oldName: string, newParent: DirectoryInode, newLinks: collections.SortedMap<string, Inode>, newName: string, node: Inode, time: number) {
+    private _replaceLink(
+        oldParent: DirectoryInode,
+        oldLinks: collections.SortedMap<string, Inode>,
+        oldName: string,
+        newParent: DirectoryInode,
+        newLinks: collections.SortedMap<string, Inode>,
+        newName: string,
+        node: Inode,
+        time: number,
+    ) {
         if (oldParent !== newParent) {
             this._removeLink(oldParent, oldLinks, oldName, node, time);
             this._addLink(newParent, newLinks, newName, node, time);
@@ -1019,9 +1098,21 @@ export class FileSystem {
      *
      * @link http://man7.org/linux/man-pages/man7/path_resolution.7.html
      */
-    private _walk(path: string, noFollow?: boolean, onError?: (error: NodeJS.ErrnoException, fragment: WalkResult) => "retry" | "throw"): WalkResult;
-    private _walk(path: string, noFollow?: boolean, onError?: (error: NodeJS.ErrnoException, fragment: WalkResult) => "stop" | "retry" | "throw"): WalkResult | undefined;
-    private _walk(path: string, noFollow?: boolean, onError?: (error: NodeJS.ErrnoException, fragment: WalkResult) => "stop" | "retry" | "throw"): WalkResult | undefined {
+    private _walk(
+        path: string,
+        noFollow?: boolean,
+        onError?: (error: NodeJS.ErrnoException, fragment: WalkResult) => "retry" | "throw",
+    ): WalkResult;
+    private _walk(
+        path: string,
+        noFollow?: boolean,
+        onError?: (error: NodeJS.ErrnoException, fragment: WalkResult) => "stop" | "retry" | "throw",
+    ): WalkResult | undefined;
+    private _walk(
+        path: string,
+        noFollow?: boolean,
+        onError?: (error: NodeJS.ErrnoException, fragment: WalkResult) => "stop" | "retry" | "throw",
+    ): WalkResult | undefined {
         let links = this._getRootLinks();
         let parent: DirectoryInode | undefined;
         let components = vpath.parse(path);
@@ -1084,7 +1175,10 @@ export class FileSystem {
      */
     private _resolve(path: string) {
         return this._cwd
-            ? vpath.resolve(this._cwd, vpath.validate(path, vpath.ValidationFlags.RelativeOrAbsolute | vpath.ValidationFlags.AllowWildcard))
+            ? vpath.resolve(
+                this._cwd,
+                vpath.validate(path, vpath.ValidationFlags.RelativeOrAbsolute | vpath.ValidationFlags.AllowWildcard),
+            )
             : vpath.validate(path, vpath.ValidationFlags.Absolute | vpath.ValidationFlags.AllowWildcard);
     }
 
@@ -1234,7 +1328,11 @@ export function createResolver(host: FileSystemResolverHost): FileSystemResolver
  *
  * Unless overridden, `/.src` will be the current working directory for the virtual file system.
  */
-export function createFromFileSystem(host: FileSystemResolverHost, ignoreCase: boolean, { documents, files, cwd, time, meta }: FileSystemCreateOptions = {}) {
+export function createFromFileSystem(
+    host: FileSystemResolverHost,
+    ignoreCase: boolean,
+    { documents, files, cwd, time, meta }: FileSystemCreateOptions = {},
+) {
     const fs = getBuiltLocal(host, ignoreCase).shadow();
     if (meta) {
         for (const key of Object.keys(meta)) {
@@ -1290,8 +1388,34 @@ export class Stats {
     public birthtime: Date;
 
     constructor();
-    constructor(dev: number, ino: number, mode: number, nlink: number, rdev: number, size: number, blksize: number, blocks: number, atimeMs: number, mtimeMs: number, ctimeMs: number, birthtimeMs: number);
-    constructor(dev = 0, ino = 0, mode = 0, nlink = 0, rdev = 0, size = 0, blksize = 0, blocks = 0, atimeMs = 0, mtimeMs = 0, ctimeMs = 0, birthtimeMs = 0) {
+    constructor(
+        dev: number,
+        ino: number,
+        mode: number,
+        nlink: number,
+        rdev: number,
+        size: number,
+        blksize: number,
+        blocks: number,
+        atimeMs: number,
+        mtimeMs: number,
+        ctimeMs: number,
+        birthtimeMs: number,
+    );
+    constructor(
+        dev = 0,
+        ino = 0,
+        mode = 0,
+        nlink = 0,
+        rdev = 0,
+        size = 0,
+        blksize = 0,
+        blocks = 0,
+        atimeMs = 0,
+        mtimeMs = 0,
+        ctimeMs = 0,
+        birthtimeMs = 0,
+    ) {
         this.dev = dev;
         this.ino = ino;
         this.mode = mode;
@@ -1554,15 +1678,15 @@ function getBuiltLocal(host: FileSystemResolverHost, ignoreCase: boolean): FileS
 /* eslint-disable no-null/no-null */
 function normalizeFileSetEntry(value: FileSet[string]) {
     if (
-        value === undefined ||
-        value === null ||
-        value instanceof Directory ||
-        value instanceof File ||
-        value instanceof Link ||
-        value instanceof Symlink ||
-        value instanceof Mount ||
-        value instanceof Rmdir ||
-        value instanceof Unlink
+        value === undefined
+        || value === null
+        || value instanceof Directory
+        || value instanceof File
+        || value instanceof Link
+        || value instanceof Symlink
+        || value instanceof Mount
+        || value instanceof Rmdir
+        || value instanceof Unlink
     ) {
         return value;
     }

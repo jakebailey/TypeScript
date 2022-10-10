@@ -103,8 +103,24 @@ export class System implements ts.System {
         return result;
     }
 
-    public readDirectory(path: string, extensions?: readonly string[], exclude?: readonly string[], include?: readonly string[], depth?: number): string[] {
-        return ts.matchFiles(path, extensions, exclude, include, this.useCaseSensitiveFileNames, this.getCurrentDirectory(), depth, path => this.getAccessibleFileSystemEntries(path), path => this.realpath(path));
+    public readDirectory(
+        path: string,
+        extensions?: readonly string[],
+        exclude?: readonly string[],
+        include?: readonly string[],
+        depth?: number,
+    ): string[] {
+        return ts.matchFiles(
+            path,
+            extensions,
+            exclude,
+            include,
+            this.useCaseSensitiveFileNames,
+            this.getCurrentDirectory(),
+            depth,
+            path => this.getAccessibleFileSystemEntries(path),
+            path => this.realpath(path),
+        );
     }
 
     public getAccessibleFileSystemEntries(path: string): ts.FileSystemEntries {
@@ -218,7 +234,13 @@ export class ParseConfigHost implements ts.ParseConfigHost {
         return this.sys.readFile(path);
     }
 
-    public readDirectory(path: string, extensions: string[], excludes: string[], includes: string[], depth: number): string[] {
+    public readDirectory(
+        path: string,
+        extensions: string[],
+        excludes: string[],
+        includes: string[],
+        depth: number,
+    ): string[] {
         return this.sys.readDirectory(path, extensions, excludes, includes, depth);
     }
 
@@ -256,7 +278,10 @@ export class CompilerHost implements ts.CompilerHost {
         this.sys = sys;
         this.defaultLibLocation = sys.vfs.meta.get("defaultLibLocation") || "";
         this._newLine = ts.getNewLineCharacter(options);
-        this._sourceFiles = new collections.SortedMap<string, ts.SourceFile>({ comparer: sys.vfs.stringComparer, sort: "insertion" });
+        this._sourceFiles = new collections.SortedMap<string, ts.SourceFile>({
+            comparer: sys.vfs.stringComparer,
+            sort: "insertion",
+        });
         this._setParentNodes = setParentNodes;
         this._outputsMap = new collections.SortedMap(this.vfs.stringComparer);
     }
@@ -309,7 +334,13 @@ export class CompilerHost implements ts.CompilerHost {
         return this.sys.getDirectories(path);
     }
 
-    public readDirectory(path: string, extensions?: readonly string[], exclude?: readonly string[], include?: readonly string[], depth?: number): string[] {
+    public readDirectory(
+        path: string,
+        extensions?: readonly string[],
+        exclude?: readonly string[],
+        include?: readonly string[],
+        depth?: number,
+    ): string[] {
         return this.sys.readDirectory(path, extensions, exclude, include, depth);
     }
 
@@ -361,7 +392,8 @@ export class CompilerHost implements ts.CompilerHost {
         // reused across multiple tests. In that case, we cache the SourceFile we parse
         // so that it can be reused across multiple tests to avoid the cost of
         // repeatedly parsing the same file over and over (such as lib.d.ts).
-        const cacheKey = this.vfs.shadowRoot && `SourceFile[languageVersion=${languageVersion},setParentNodes=${this._setParentNodes}]`;
+        const cacheKey = this.vfs.shadowRoot
+            && `SourceFile[languageVersion=${languageVersion},setParentNodes=${this._setParentNodes}]`;
         if (cacheKey) {
             const meta = this.vfs.filemeta(canonicalFileName);
             const sourceFileFromMetadata = meta.get(cacheKey) as ts.SourceFile | undefined;
@@ -371,7 +403,12 @@ export class CompilerHost implements ts.CompilerHost {
             }
         }
 
-        const parsed = ts.createSourceFile(fileName, content, languageVersion, this._setParentNodes || this.shouldAssertInvariants);
+        const parsed = ts.createSourceFile(
+            fileName,
+            content,
+            languageVersion,
+            this._setParentNodes || this.shouldAssertInvariants,
+        );
         if (this.shouldAssertInvariants) {
             Utils.assertInvariants(parsed, /*parent*/ undefined);
         }
@@ -385,11 +422,12 @@ export class CompilerHost implements ts.CompilerHost {
             let fs = this.vfs;
             while (fs.shadowRoot) {
                 try {
-                    const shadowRootStats = fs.shadowRoot.existsSync(canonicalFileName) ? fs.shadowRoot.statSync(canonicalFileName) : undefined!; // TODO: GH#18217
+                    const shadowRootStats = fs.shadowRoot.existsSync(canonicalFileName)
+                        ? fs.shadowRoot.statSync(canonicalFileName) : undefined!; // TODO: GH#18217
                     if (
-                        shadowRootStats.dev !== stats.dev ||
-                        shadowRootStats.ino !== stats.ino ||
-                        shadowRootStats.mtimeMs !== stats.mtimeMs
+                        shadowRootStats.dev !== stats.dev
+                        || shadowRootStats.ino !== stats.ino
+                        || shadowRootStats.mtimeMs !== stats.mtimeMs
                     ) {
                         break;
                     }
@@ -467,7 +505,9 @@ function expectedDiagnosticMessageChainToText({ message, next }: ExpectedDiagnos
     return text;
 }
 
-function expectedDiagnosticRelatedInformationToText({ location, ...diagnosticMessage }: ExpectedDiagnosticRelatedInformation) {
+function expectedDiagnosticRelatedInformationToText(
+    { location, ...diagnosticMessage }: ExpectedDiagnosticRelatedInformation,
+) {
     const text = expectedDiagnosticMessageChainToText(diagnosticMessage);
     if (location) {
         const { file, start, length } = location;
@@ -476,7 +516,9 @@ function expectedDiagnosticRelatedInformationToText({ location, ...diagnosticMes
     return text;
 }
 
-function expectedErrorDiagnosticToText({ relatedInformation, ...diagnosticRelatedInformation }: ExpectedErrorDiagnostic) {
+function expectedErrorDiagnosticToText(
+    { relatedInformation, ...diagnosticRelatedInformation }: ExpectedErrorDiagnostic,
+) {
     let text = `${DiagnosticKind.Error}!: ${expectedDiagnosticRelatedInformationToText(diagnosticRelatedInformation)}`;
     if (relatedInformation) {
         for (const kid of relatedInformation) {
@@ -488,9 +530,9 @@ function expectedErrorDiagnosticToText({ relatedInformation, ...diagnosticRelate
 }
 
 function expectedDiagnosticToText(errorOrStatus: ExpectedDiagnostic) {
-    return ts.isArray(errorOrStatus) ?
-        `${DiagnosticKind.Status}!: ${expectedDiagnosticMessageToText(errorOrStatus)}` :
-        expectedErrorDiagnosticToText(errorOrStatus);
+    return ts.isArray(errorOrStatus)
+        ? `${DiagnosticKind.Status}!: ${expectedDiagnosticMessageToText(errorOrStatus)}`
+        : expectedErrorDiagnosticToText(errorOrStatus);
 }
 
 function diagnosticMessageChainToText({ messageText, next }: ts.DiagnosticMessageChain, indent = 0) {
@@ -503,15 +545,17 @@ function diagnosticMessageChainToText({ messageText, next }: ts.DiagnosticMessag
 }
 
 function diagnosticRelatedInformationToText({ file, start, length, messageText }: ts.DiagnosticRelatedInformation) {
-    const text = typeof messageText === "string" ?
-        messageText :
-        diagnosticMessageChainToText(messageText);
-    return file ?
-        `${file.fileName}(${start}:${length}):: ${text}` :
-        text;
+    const text = typeof messageText === "string"
+        ? messageText
+        : diagnosticMessageChainToText(messageText);
+    return file
+        ? `${file.fileName}(${start}:${length}):: ${text}`
+        : text;
 }
 
-function diagnosticToText({ kind, diagnostic: { relatedInformation, ...diagnosticRelatedInformation } }: SolutionBuilderDiagnostic) {
+function diagnosticToText(
+    { kind, diagnostic: { relatedInformation, ...diagnosticRelatedInformation } }: SolutionBuilderDiagnostic,
+) {
     let text = `${kind}!: ${diagnosticRelatedInformationToText(diagnosticRelatedInformation)}`;
     if (relatedInformation) {
         for (const kid of relatedInformation) {
@@ -558,12 +602,23 @@ export function patchHostForBuildInfoWrite<T extends ts.System>(sys: T, version:
 export class SolutionBuilderHost extends CompilerHost implements ts.SolutionBuilderHost<ts.BuilderProgram> {
     createProgram: ts.CreateProgram<ts.BuilderProgram>;
 
-    private constructor(sys: System | vfs.FileSystem, options?: ts.CompilerOptions, setParentNodes?: boolean, createProgram?: ts.CreateProgram<ts.BuilderProgram>) {
+    private constructor(
+        sys: System | vfs.FileSystem,
+        options?: ts.CompilerOptions,
+        setParentNodes?: boolean,
+        createProgram?: ts.CreateProgram<ts.BuilderProgram>,
+    ) {
         super(sys, options, setParentNodes);
-        this.createProgram = createProgram || ts.createEmitAndSemanticDiagnosticsBuilderProgram as unknown as ts.CreateProgram<ts.BuilderProgram>;
+        this.createProgram = createProgram
+            || ts.createEmitAndSemanticDiagnosticsBuilderProgram as unknown as ts.CreateProgram<ts.BuilderProgram>;
     }
 
-    static create(sys: System | vfs.FileSystem, options?: ts.CompilerOptions, setParentNodes?: boolean, createProgram?: ts.CreateProgram<ts.BuilderProgram>) {
+    static create(
+        sys: System | vfs.FileSystem,
+        options?: ts.CompilerOptions,
+        setParentNodes?: boolean,
+        createProgram?: ts.CreateProgram<ts.BuilderProgram>,
+    ) {
         const host = new SolutionBuilderHost(sys, options, setParentNodes, createProgram);
         patchHostForBuildInfoReadWrite(host.sys);
         return host;

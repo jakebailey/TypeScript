@@ -36,9 +36,13 @@ async function main() {
         auth: process.argv[2],
     });
 
-    const inputPR = (await gh.pulls.get({ pull_number: +process.env.SOURCE_ISSUE, owner: "microsoft", repo: "TypeScript" })).data;
+    const inputPR =
+        (await gh.pulls.get({ pull_number: +process.env.SOURCE_ISSUE, owner: "microsoft", repo: "TypeScript" })).data;
     let remoteName = "origin";
-    if (inputPR.base.repo.git_url !== `git:github.com/microsoft/TypeScript` && inputPR.base.repo.git_url !== `git://github.com/microsoft/TypeScript`) {
+    if (
+        inputPR.base.repo.git_url !== `git:github.com/microsoft/TypeScript`
+        && inputPR.base.repo.git_url !== `git://github.com/microsoft/TypeScript`
+    ) {
         runSequence([
             ["git", ["remote", "add", "nonlocal", inputPR.base.repo.git_url.replace(/^git:(?:\/\/)?/, "https://")]],
         ]);
@@ -90,11 +94,16 @@ ${logText.trim()}`;
         owner: "Microsoft",
         repo: "TypeScript",
         maintainer_can_modify: true,
-        title: `🤖 Pick PR #${process.env.SOURCE_ISSUE} (${inputPR.title.substring(0, 35)}${inputPR.title.length > 35 ? "..." : ""}) into ${process.env.TARGET_BRANCH}`,
+        title: `🤖 Pick PR #${process.env.SOURCE_ISSUE} (${inputPR.title.substring(0, 35)}${
+            inputPR.title.length > 35 ? "..." : ""
+        }) into ${process.env.TARGET_BRANCH}`,
         head: `${userName}:${branchName}`,
         base: process.env.TARGET_BRANCH,
-        body: `This cherry-pick was triggered by a request on https://github.com/Microsoft/TypeScript/pull/${process.env.SOURCE_ISSUE}
-Please review the diff and merge if no changes are unexpected.${produceLKG ? ` An LKG update commit is included separately from the base change.` : ""}
+        body:
+            `This cherry-pick was triggered by a request on https://github.com/Microsoft/TypeScript/pull/${process.env.SOURCE_ISSUE}
+Please review the diff and merge if no changes are unexpected.${
+                produceLKG ? ` An LKG update commit is included separately from the base change.` : ""
+            }
 You can view the cherry-pick log [here](https://typescript.visualstudio.com/TypeScript/_build/index?buildId=${process.env.BUILD_BUILDID}&_a=summary).
 
 cc ${reviewers.map(r => "@" + r).join(" ")}`,
@@ -121,7 +130,8 @@ main().catch(async e => {
             issue_number: +process.env.SOURCE_ISSUE,
             owner: "Microsoft",
             repo: "TypeScript",
-            body: `Hey @${process.env.REQUESTING_USER}, I couldn't open a PR with the cherry-pick. ([You can check the log here](https://typescript.visualstudio.com/TypeScript/_build/index?buildId=${process.env.BUILD_BUILDID}&_a=summary)). You may need to squash and pick this PR into ${process.env.TARGET_BRANCH} manually.`,
+            body:
+                `Hey @${process.env.REQUESTING_USER}, I couldn't open a PR with the cherry-pick. ([You can check the log here](https://typescript.visualstudio.com/TypeScript/_build/index?buildId=${process.env.BUILD_BUILDID}&_a=summary)). You may need to squash and pick this PR into ${process.env.TARGET_BRANCH} manually.`,
         });
     }
 });

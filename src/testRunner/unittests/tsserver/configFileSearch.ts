@@ -50,7 +50,11 @@ describe("unittests:: tsserver:: configFileSearch:: searching for config file", 
         // Delete config file - should create inferred project and not configured project
         host.deleteFile(configFile.path);
         host.runQueuedTimeoutCallbacks();
-        baselineTsserverLogs("configFileSearch", "should use projectRootPath when searching for inferred project again", service);
+        baselineTsserverLogs(
+            "configFileSearch",
+            "should use projectRootPath when searching for inferred project again",
+            service,
+        );
     });
 
     it("should use projectRootPath when searching for inferred project again 2", () => {
@@ -79,7 +83,11 @@ describe("unittests:: tsserver:: configFileSearch:: searching for config file", 
         // Delete config file - should create inferred project with project root path set
         host.deleteFile(configFile.path);
         host.runQueuedTimeoutCallbacks();
-        baselineTsserverLogs("configFileSearch", "should use projectRootPath when searching for inferred project again 2", service);
+        baselineTsserverLogs(
+            "configFileSearch",
+            "should use projectRootPath when searching for inferred project again 2",
+            service,
+        );
     });
 
     describe("when the opened file is not from project root", () => {
@@ -95,7 +103,12 @@ describe("unittests:: tsserver:: configFileSearch:: searching for config file", 
         function openClientFile(files: File[]) {
             const host = createServerHost(files);
             const projectService = createProjectService(host, { logger: createLoggerWithInMemoryLogs(host) });
-            projectService.openClientFile(file.path, /*fileContent*/ undefined, /*scriptKind*/ undefined, "/a/b/projects/proj");
+            projectService.openClientFile(
+                file.path,
+                /*fileContent*/ undefined,
+                /*scriptKind*/ undefined,
+                "/a/b/projects/proj",
+            );
             return { host, projectService };
         }
 
@@ -128,7 +141,9 @@ describe("unittests:: tsserver:: configFileSearch:: searching for config file", 
         function verifyConfigFileWatch(scenario: string, projectRootPath: string | undefined) {
             it(scenario, () => {
                 const path = `/root/teams/VSCode68/Shared Documents/General/jt-ts-test-workspace/x.js`;
-                const host = createServerHost([libFile, { path, content: "const x = 10" }], { useCaseSensitiveFileNames: true });
+                const host = createServerHost([libFile, { path, content: "const x = 10" }], {
+                    useCaseSensitiveFileNames: true,
+                });
                 const service = createProjectService(host, { logger: createLoggerWithInMemoryLogs(host) });
                 service.openClientFile(path, /*fileContent*/ undefined, /*scriptKind*/ undefined, projectRootPath);
                 baselineTsserverLogs("configFileSearch", scenario, service);

@@ -42,7 +42,10 @@ describe("unittests:: tsserver:: externalProjects", () => {
                     preferences: { lazyConfiguredProjectsFromExternalProject },
                 },
             });
-            const upperCaseConfigFilePath = ts.combinePaths(ts.getDirectoryPath(config.path).toUpperCase(), ts.getBaseFileName(config.path));
+            const upperCaseConfigFilePath = ts.combinePaths(
+                ts.getDirectoryPath(config.path).toUpperCase(),
+                ts.getBaseFileName(config.path),
+            );
             openExternalProjectForSession({
                 projectFileName: "/a/b/project.csproj",
                 rootFiles: toExternalFiles([f1.path, upperCaseConfigFilePath]),
@@ -50,7 +53,13 @@ describe("unittests:: tsserver:: externalProjects", () => {
             }, session);
 
             openFilesForSession([f1], session);
-            baselineTsserverLogs("externalProjects", `can handle tsconfig file name with difference casing${lazyConfiguredProjectsFromExternalProject ? " with lazyConfiguredProjectsFromExternalProject" : ""}`, session);
+            baselineTsserverLogs(
+                "externalProjects",
+                `can handle tsconfig file name with difference casing${
+                    lazyConfiguredProjectsFromExternalProject ? " with lazyConfiguredProjectsFromExternalProject" : ""
+                }`,
+                session,
+            );
         }
 
         it("when lazyConfiguredProjectsFromExternalProject not set", () => {
@@ -78,7 +87,13 @@ describe("unittests:: tsserver:: externalProjects", () => {
                         const proxy = Harness.LanguageService.makeDefaultProxy(info);
                         proxy.getSemanticDiagnostics = filename => {
                             const prev = info.languageService.getSemanticDiagnostics(filename);
-                            const sourceFile: ts.SourceFile = info.project.getSourceFile(ts.toPath(filename, /*basePath*/ undefined, ts.createGetCanonicalFileName(info.serverHost.useCaseSensitiveFileNames)))!;
+                            const sourceFile: ts.SourceFile = info.project.getSourceFile(
+                                ts.toPath(
+                                    filename,
+                                    /*basePath*/ undefined,
+                                    ts.createGetCanonicalFileName(info.serverHost.useCaseSensitiveFileNames),
+                                ),
+                            )!;
                             prev.push({
                                 category: ts.DiagnosticCategory.Warning,
                                 file: sourceFile,
@@ -95,7 +110,10 @@ describe("unittests:: tsserver:: externalProjects", () => {
                 error: undefined,
             };
         };
-        const session = createSession(host, { globalPlugins: ["myplugin"], logger: createLoggerWithInMemoryLogs(host) });
+        const session = createSession(host, {
+            globalPlugins: ["myplugin"],
+            logger: createLoggerWithInMemoryLogs(host),
+        });
 
         openExternalProjectsForSession([p1], session);
         session.executeCommandSeq<ts.server.protocol.SemanticDiagnosticsSyncRequest>({
@@ -121,7 +139,11 @@ describe("unittests:: tsserver:: externalProjects", () => {
             path: "/c/app.ts",
             content: "let x = 1",
         };
-        const makeProject = (f: File) => ({ projectFileName: f.path + ".csproj", rootFiles: [toExternalFile(f.path)], options: {} });
+        const makeProject = (f: File) => ({
+            projectFileName: f.path + ".csproj",
+            rootFiles: [toExternalFile(f.path)],
+            options: {},
+        });
         const p1 = makeProject(f1);
         const p2 = makeProject(f2);
         const p3 = makeProject(f3);
@@ -157,7 +179,11 @@ describe("unittests:: tsserver:: externalProjects", () => {
         // close client file - external project should still exists
         projectService.closeClientFile(file1.path);
         projectService.closeExternalProject(externalProjectName);
-        baselineTsserverLogs("externalProjects", "should not close external project with no open files", projectService);
+        baselineTsserverLogs(
+            "externalProjects",
+            "should not close external project with no open files",
+            projectService,
+        );
     });
 
     it("external project for dynamic file", () => {
@@ -286,7 +312,11 @@ describe("unittests:: tsserver:: externalProjects", () => {
         // configured project is alive since it is opened as part of external project
 
         projectService.closeExternalProject(externalProjectName);
-        baselineTsserverLogs("externalProjects", "external project with included config file opened after configured project", projectService);
+        baselineTsserverLogs(
+            "externalProjects",
+            "external project with included config file opened after configured project",
+            projectService,
+        );
     });
 
     it("external project with included config file opened after configured project and then closed", () => {
@@ -320,7 +350,11 @@ describe("unittests:: tsserver:: externalProjects", () => {
         projectService.closeClientFile(file1.path);
 
         projectService.openClientFile(file2.path);
-        baselineTsserverLogs("externalProjects", "external project with included config file opened after configured project and then closed", projectService);
+        baselineTsserverLogs(
+            "externalProjects",
+            "external project with included config file opened after configured project and then closed",
+            projectService,
+        );
     });
 
     it("can correctly update external project when set of root files has changed", () => {
@@ -335,10 +369,22 @@ describe("unittests:: tsserver:: externalProjects", () => {
         const host = createServerHost([file1, file2]);
         const projectService = createProjectService(host, { logger: createLoggerWithInMemoryLogs(host) });
 
-        projectService.openExternalProject({ projectFileName: "project", options: {}, rootFiles: toExternalFiles([file1.path]) });
+        projectService.openExternalProject({
+            projectFileName: "project",
+            options: {},
+            rootFiles: toExternalFiles([file1.path]),
+        });
 
-        projectService.openExternalProject({ projectFileName: "project", options: {}, rootFiles: toExternalFiles([file1.path, file2.path]) });
-        baselineTsserverLogs("externalProjects", "can correctly update external project when set of root files has changed", projectService);
+        projectService.openExternalProject({
+            projectFileName: "project",
+            options: {},
+            rootFiles: toExternalFiles([file1.path, file2.path]),
+        });
+        baselineTsserverLogs(
+            "externalProjects",
+            "can correctly update external project when set of root files has changed",
+            projectService,
+        );
     });
 
     it("can update external project when set of root files was not changed", () => {
@@ -358,10 +404,22 @@ describe("unittests:: tsserver:: externalProjects", () => {
         const host = createServerHost([file1, file2, file3]);
         const projectService = createProjectService(host, { logger: createLoggerWithInMemoryLogs(host) });
 
-        projectService.openExternalProject({ projectFileName: "project", options: { moduleResolution: ts.ModuleResolutionKind.Node10 }, rootFiles: toExternalFiles([file1.path, file2.path]) });
+        projectService.openExternalProject({
+            projectFileName: "project",
+            options: { moduleResolution: ts.ModuleResolutionKind.Node10 },
+            rootFiles: toExternalFiles([file1.path, file2.path]),
+        });
 
-        projectService.openExternalProject({ projectFileName: "project", options: { moduleResolution: ts.ModuleResolutionKind.Classic }, rootFiles: toExternalFiles([file1.path, file2.path]) });
-        baselineTsserverLogs("externalProjects", "can update external project when set of root files was not changed", projectService);
+        projectService.openExternalProject({
+            projectFileName: "project",
+            options: { moduleResolution: ts.ModuleResolutionKind.Classic },
+            rootFiles: toExternalFiles([file1.path, file2.path]),
+        });
+        baselineTsserverLogs(
+            "externalProjects",
+            "can update external project when set of root files was not changed",
+            projectService,
+        );
     });
 
     it("language service disabled state is updated in external projects", () => {
@@ -375,7 +433,8 @@ describe("unittests:: tsserver:: externalProjects", () => {
         };
         const host = createServerHost([f1, f2]);
         const originalGetFileSize = host.getFileSize;
-        host.getFileSize = (filePath: string) => filePath === f2.path ? ts.server.maxProgramSizeForNonTsFiles + 1 : originalGetFileSize.call(host, filePath);
+        host.getFileSize = (filePath: string) =>
+            filePath === f2.path ? ts.server.maxProgramSizeForNonTsFiles + 1 : originalGetFileSize.call(host, filePath);
 
         const service = createProjectService(host, { logger: createLoggerWithInMemoryLogs(host) });
         const projectFileName = "/a/proj.csproj";
@@ -400,7 +459,11 @@ describe("unittests:: tsserver:: externalProjects", () => {
             options: {},
         });
         assert.isFalse(service.externalProjects[0].languageServiceEnabled, "language service should be disabled - 2");
-        baselineTsserverLogs("externalProjects", "language service disabled state is updated in external projects", service);
+        baselineTsserverLogs(
+            "externalProjects",
+            "language service disabled state is updated in external projects",
+            service,
+        );
     });
 
     describe("deleting config file opened from the external project works", () => {
@@ -436,7 +499,13 @@ describe("unittests:: tsserver:: externalProjects", () => {
             externalProject.rootFiles.length = 1;
             projectService.openExternalProjects([externalProject]);
 
-            baselineTsserverLogs("externalProjects", `deleting config file opened from the external project works${lazyConfiguredProjectsFromExternalProject ? " with lazyConfiguredProjectsFromExternalProject" : ""}`, projectService);
+            baselineTsserverLogs(
+                "externalProjects",
+                `deleting config file opened from the external project works${
+                    lazyConfiguredProjectsFromExternalProject ? " with lazyConfiguredProjectsFromExternalProject" : ""
+                }`,
+                projectService,
+            );
         }
         it("when lazyConfiguredProjectsFromExternalProject not set", () => {
             verifyDeletingConfigFile(/*lazyConfiguredProjectsFromExternalProject*/ false);
@@ -491,7 +560,13 @@ describe("unittests:: tsserver:: externalProjects", () => {
                 rootFiles: toExternalFiles([f1.path, f2.path]),
                 options: {},
             });
-            baselineTsserverLogs("externalProjects", `correctly handling add or remove tsconfig - 1${lazyConfiguredProjectsFromExternalProject ? " with lazyConfiguredProjectsFromExternalProject" : ""}`, projectService);
+            baselineTsserverLogs(
+                "externalProjects",
+                `correctly handling add or remove tsconfig - 1${
+                    lazyConfiguredProjectsFromExternalProject ? " with lazyConfiguredProjectsFromExternalProject" : ""
+                }`,
+                projectService,
+            );
         }
         it("when lazyConfiguredProjectsFromExternalProject not set", () => {
             verifyAddRemoveConfig(/*lazyConfiguredProjectsFromExternalProject*/ false);
@@ -572,7 +647,13 @@ describe("unittests:: tsserver:: externalProjects", () => {
 
             // close all projects - no projects should be opened
             projectService.closeExternalProject(projectName);
-            baselineTsserverLogs("externalProjects", `correctly handling add or remove tsconfig - 2${lazyConfiguredProjectsFromExternalProject ? " with lazyConfiguredProjectsFromExternalProject" : ""}`, projectService);
+            baselineTsserverLogs(
+                "externalProjects",
+                `correctly handling add or remove tsconfig - 2${
+                    lazyConfiguredProjectsFromExternalProject ? " with lazyConfiguredProjectsFromExternalProject" : ""
+                }`,
+                projectService,
+            );
         }
 
         it("when lazyConfiguredProjectsFromExternalProject not set", () => {
@@ -629,14 +710,20 @@ describe("unittests:: tsserver:: externalProjects", () => {
                 },
             ),
         };
-        const host = createServerHost([libES5, libES2015Promise, app, config1], { executingFilePath: "/compiler/tsc.js" });
+        const host = createServerHost([libES5, libES2015Promise, app, config1], {
+            executingFilePath: "/compiler/tsc.js",
+        });
         const projectService = createProjectService(host, { logger: createLoggerWithInMemoryLogs(host) });
         projectService.openClientFile(app.path);
 
         host.writeFile(config2.path, config2.content);
         host.runQueuedTimeoutCallbacks();
 
-        baselineTsserverLogs("externalProjects", "correctly handles changes in lib section of config file", projectService);
+        baselineTsserverLogs(
+            "externalProjects",
+            "correctly handles changes in lib section of config file",
+            projectService,
+        );
     });
 
     it("should handle non-existing directories in config file", () => {
@@ -663,7 +750,11 @@ describe("unittests:: tsserver:: externalProjects", () => {
 
         projectService.openClientFile(f.path);
         logConfiguredProjectsHasOpenRefStatus(projectService);
-        baselineTsserverLogs("externalProjects", "should handle non-existing directories in config file", projectService);
+        baselineTsserverLogs(
+            "externalProjects",
+            "should handle non-existing directories in config file",
+            projectService,
+        );
     });
 
     it("handles loads existing configured projects of external projects when lazyConfiguredProjectsFromExternalProject is disabled", () => {
@@ -699,7 +790,11 @@ describe("unittests:: tsserver:: externalProjects", () => {
         } as ts.server.protocol.ExternalProject);
         const project2 = service.configuredProjects.get(config.path)!;
         assert.equal(project2.pendingReload, ts.ConfigFileProgramReloadLevel.None); // External project referenced configured project loaded
-        baselineTsserverLogs("externalProjects", "handles loads existing configured projects of external projects when lazyConfiguredProjectsFromExternalProject is disabled", service);
+        baselineTsserverLogs(
+            "externalProjects",
+            "handles loads existing configured projects of external projects when lazyConfiguredProjectsFromExternalProject is disabled",
+            service,
+        );
     });
 
     it("handles creation of external project with jsconfig before jsconfig creation watcher is invoked", () => {
@@ -727,7 +822,9 @@ describe("unittests:: tsserver:: externalProjects", () => {
             rootFiles: [{ fileName: tsconfig.path }, { fileName: jsFilePath }],
             options: { allowJs: false },
         }]);
-        service.applyChangesInOpenFiles(ts.singleIterator({ fileName: jsFilePath, scriptKind: ts.ScriptKind.JS, content: "" }));
+        service.applyChangesInOpenFiles(
+            ts.singleIterator({ fileName: jsFilePath, scriptKind: ts.ScriptKind.JS, content: "" }),
+        );
 
         // write jsconfig file
         const jsConfig: File = {
@@ -744,7 +841,11 @@ describe("unittests:: tsserver:: externalProjects", () => {
             options: { allowJs: false },
         }]);
         logInferredProjectsOrphanStatus(service);
-        baselineTsserverLogs("externalProjects", "handles creation of external project with jsconfig before jsconfig creation watcher is invoked", service);
+        baselineTsserverLogs(
+            "externalProjects",
+            "handles creation of external project with jsconfig before jsconfig creation watcher is invoked",
+            service,
+        );
     });
 
     it("does not crash if external file does not exist", () => {

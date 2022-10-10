@@ -152,7 +152,15 @@ export interface LanguageServiceShimHost extends Logger {
     useCaseSensitiveFileNames?(): boolean;
 
     getTypeRootsVersion?(): number;
-    readDirectory(rootDir: string, extension: string, basePaths?: string, excludeEx?: string, includeFileEx?: string, includeDirEx?: string, depth?: number): string;
+    readDirectory(
+        rootDir: string,
+        extension: string,
+        basePaths?: string,
+        excludeEx?: string,
+        includeFileEx?: string,
+        includeDirEx?: string,
+        depth?: number,
+    ): string;
     readFile(path: string, encoding?: string): string | undefined;
     fileExists(path: string): boolean;
 
@@ -178,7 +186,15 @@ export interface CoreServicesShimHost extends Logger {
      * @param exclude A JSON encoded string[] containing the paths to exclude
      *  when enumerating the directory.
      */
-    readDirectory(rootDir: string, extension: string, basePaths?: string, excludeEx?: string, includeFileEx?: string, includeDirEx?: string, depth?: number): string;
+    readDirectory(
+        rootDir: string,
+        extension: string,
+        basePaths?: string,
+        excludeEx?: string,
+        includeFileEx?: string,
+        includeDirEx?: string,
+        depth?: number,
+    ): string;
 
     /**
      * Read arbitrary text files on disk, i.e. when resolution procedure needs the content of 'package.json' to determine location of bundled typings for node modules
@@ -232,12 +248,35 @@ export interface LanguageServiceShim extends Shim {
     getCompilerOptionsDiagnostics(): string;
 
     getSyntacticClassifications(fileName: string, start: number, length: number): string;
-    getSemanticClassifications(fileName: string, start: number, length: number, format?: SemanticClassificationFormat): string;
+    getSemanticClassifications(
+        fileName: string,
+        start: number,
+        length: number,
+        format?: SemanticClassificationFormat,
+    ): string;
     getEncodedSyntacticClassifications(fileName: string, start: number, length: number): string;
-    getEncodedSemanticClassifications(fileName: string, start: number, length: number, format?: SemanticClassificationFormat): string;
+    getEncodedSemanticClassifications(
+        fileName: string,
+        start: number,
+        length: number,
+        format?: SemanticClassificationFormat,
+    ): string;
 
-    getCompletionsAtPosition(fileName: string, position: number, preferences: UserPreferences | undefined, formattingSettings: FormatCodeSettings | undefined): string;
-    getCompletionEntryDetails(fileName: string, position: number, entryName: string, formatOptions: string /*Services.FormatCodeOptions*/ | undefined, source: string | undefined, preferences: UserPreferences | undefined, data: CompletionEntryData | undefined): string;
+    getCompletionsAtPosition(
+        fileName: string,
+        position: number,
+        preferences: UserPreferences | undefined,
+        formattingSettings: FormatCodeSettings | undefined,
+    ): string;
+    getCompletionEntryDetails(
+        fileName: string,
+        position: number,
+        entryName: string,
+        formatOptions: string /*Services.FormatCodeOptions*/ | undefined,
+        source: string | undefined,
+        preferences: UserPreferences | undefined,
+        data: CompletionEntryData | undefined,
+    ): string;
 
     getQuickInfoAtPosition(fileName: string, position: number): string;
 
@@ -257,7 +296,13 @@ export interface LanguageServiceShim extends Shim {
      * Returns a JSON-encoded value of the type:
      * { fileName: string, textSpan: { start: number, length: number } }[]
      */
-    findRenameLocations(fileName: string, position: number, findInStrings: boolean, findInComments: boolean, preferences?: UserPreferences | boolean): string;
+    findRenameLocations(
+        fileName: string,
+        position: number,
+        findInStrings: boolean,
+        findInComments: boolean,
+        preferences?: UserPreferences | boolean,
+    ): string;
 
     /**
      * Returns a JSON-encoded value of the type:
@@ -336,14 +381,29 @@ export interface LanguageServiceShim extends Shim {
     getBraceMatchingAtPosition(fileName: string, position: number): string;
     getIndentationAtPosition(fileName: string, position: number, options: string /*Services.EditorOptions*/): string;
 
-    getFormattingEditsForRange(fileName: string, start: number, end: number, options: string /*Services.FormatCodeOptions*/): string;
+    getFormattingEditsForRange(
+        fileName: string,
+        start: number,
+        end: number,
+        options: string, /*Services.FormatCodeOptions*/
+    ): string;
     getFormattingEditsForDocument(fileName: string, options: string /*Services.FormatCodeOptions*/): string;
-    getFormattingEditsAfterKeystroke(fileName: string, position: number, key: string, options: string /*Services.FormatCodeOptions*/): string;
+    getFormattingEditsAfterKeystroke(
+        fileName: string,
+        position: number,
+        key: string,
+        options: string, /*Services.FormatCodeOptions*/
+    ): string;
 
     /**
      * Returns JSON-encoded value of the type TextInsertion.
      */
-    getDocCommentTemplateAtPosition(fileName: string, position: number, options?: DocCommentTemplateOptions, formatOptions?: FormatCodeSettings): string;
+    getDocCommentTemplateAtPosition(
+        fileName: string,
+        position: number,
+        options?: DocCommentTemplateOptions,
+        formatOptions?: FormatCodeSettings,
+    ): string;
 
     /**
      * Returns JSON-encoded boolean to indicate whether we should support brace location
@@ -372,7 +432,11 @@ export interface LanguageServiceShim extends Shim {
 
 /** @internal */
 export interface ClassifierShim extends Shim {
-    getEncodedLexicalClassifications(text: string, lexState: EndOfLineState, syntacticClassifierAbsent?: boolean): string;
+    getEncodedLexicalClassifications(
+        text: string,
+        lexState: EndOfLineState,
+        syntacticClassifierAbsent?: boolean,
+    ): string;
     getClassificationsForLine(text: string, lexState: EndOfLineState, syntacticClassifierAbsent?: boolean): string;
 }
 
@@ -433,8 +497,15 @@ export class LanguageServiceShimHostAdapter implements LanguageServiceHost {
     private loggingEnabled = false;
     private tracingEnabled = false;
 
-    public resolveModuleNames: ((moduleName: string[], containingFile: string) => (ResolvedModuleFull | undefined)[]) | undefined;
-    public resolveTypeReferenceDirectives: ((typeDirectiveNames: string[] | readonly FileReference[], containingFile: string) => (ResolvedTypeReferenceDirective | undefined)[]) | undefined;
+    public resolveModuleNames:
+        | ((moduleName: string[], containingFile: string) => (ResolvedModuleFull | undefined)[])
+        | undefined;
+    public resolveTypeReferenceDirectives:
+        | ((
+            typeDirectiveNames: string[] | readonly FileReference[],
+            containingFile: string,
+        ) => (ResolvedTypeReferenceDirective | undefined)[])
+        | undefined;
     public directoryExists: ((directoryName: string) => boolean) | undefined;
 
     constructor(private shimHost: LanguageServiceShimHost) {
@@ -442,10 +513,17 @@ export class LanguageServiceShimHostAdapter implements LanguageServiceHost {
         // 'in' does not have this effect.
         if ("getModuleResolutionsForFile" in this.shimHost) {
             this.resolveModuleNames = (moduleNames, containingFile) => {
-                const resolutionsInFile = JSON.parse(this.shimHost.getModuleResolutionsForFile!(containingFile)) as MapLike<string>; // TODO: GH#18217
+                const resolutionsInFile = JSON.parse(
+                    this.shimHost.getModuleResolutionsForFile!(containingFile),
+                ) as MapLike<string>; // TODO: GH#18217
                 return map(moduleNames, name => {
                     const result = getProperty(resolutionsInFile, name);
-                    return result ? { resolvedFileName: result, extension: extensionFromPath(result), isExternalLibraryImport: false } : undefined;
+                    return result
+                        ? {
+                            resolvedFileName: result,
+                            extension: extensionFromPath(result),
+                            isExternalLibraryImport: false,
+                        } : undefined;
                 });
             };
         }
@@ -454,8 +532,14 @@ export class LanguageServiceShimHostAdapter implements LanguageServiceHost {
         }
         if ("getTypeReferenceDirectiveResolutionsForFile" in this.shimHost) {
             this.resolveTypeReferenceDirectives = (typeDirectiveNames, containingFile) => {
-                const typeDirectivesForFile = JSON.parse(this.shimHost.getTypeReferenceDirectiveResolutionsForFile!(containingFile)) as MapLike<ResolvedTypeReferenceDirective>; // TODO: GH#18217
-                return map(typeDirectiveNames as (string | FileReference)[], name => getProperty(typeDirectivesForFile, isString(name) ? name : toFileNameLowerCase(name.fileName)));
+                const typeDirectivesForFile = JSON.parse(
+                    this.shimHost.getTypeReferenceDirectiveResolutionsForFile!(containingFile),
+                ) as MapLike<ResolvedTypeReferenceDirective>; // TODO: GH#18217
+                return map(
+                    typeDirectiveNames as (string | FileReference)[],
+                    name =>
+                        getProperty(typeDirectivesForFile, isString(name) ? name : toFileNameLowerCase(name.fileName)),
+                );
             };
         }
     }
@@ -565,8 +649,20 @@ export class LanguageServiceShimHostAdapter implements LanguageServiceHost {
         return this.shimHost.getDefaultLibFileName(JSON.stringify(options));
     }
 
-    public readDirectory(path: string, extensions?: readonly string[], exclude?: string[], include?: string[], depth?: number): string[] {
-        const pattern = getFileMatcherPatterns(path, exclude, include, this.shimHost.useCaseSensitiveFileNames!(), this.shimHost.getCurrentDirectory()); // TODO: GH#18217
+    public readDirectory(
+        path: string,
+        extensions?: readonly string[],
+        exclude?: string[],
+        include?: string[],
+        depth?: number,
+    ): string[] {
+        const pattern = getFileMatcherPatterns(
+            path,
+            exclude,
+            include,
+            this.shimHost.useCaseSensitiveFileNames!(),
+            this.shimHost.getCurrentDirectory(),
+        ); // TODO: GH#18217
         return JSON.parse(this.shimHost.readDirectory(
             path,
             JSON.stringify(extensions),
@@ -588,13 +684,16 @@ export class LanguageServiceShimHostAdapter implements LanguageServiceHost {
 }
 
 /** @internal */
-export class CoreServicesShimHostAdapter implements ParseConfigHost, ModuleResolutionHost, JsTyping.TypingResolutionHost {
+export class CoreServicesShimHostAdapter
+    implements ParseConfigHost, ModuleResolutionHost, JsTyping.TypingResolutionHost
+{
     public directoryExists: (directoryName: string) => boolean;
     public realpath: (path: string) => string;
     public useCaseSensitiveFileNames: boolean;
 
     constructor(private shimHost: CoreServicesShimHost) {
-        this.useCaseSensitiveFileNames = this.shimHost.useCaseSensitiveFileNames ? this.shimHost.useCaseSensitiveFileNames() : false;
+        this.useCaseSensitiveFileNames = this.shimHost.useCaseSensitiveFileNames
+            ? this.shimHost.useCaseSensitiveFileNames() : false;
         if ("directoryExists" in this.shimHost) {
             this.directoryExists = directoryName => this.shimHost.directoryExists(directoryName);
         }
@@ -609,8 +708,20 @@ export class CoreServicesShimHostAdapter implements ParseConfigHost, ModuleResol
         }
     }
 
-    public readDirectory(rootDir: string, extensions: readonly string[], exclude: readonly string[], include: readonly string[], depth?: number): string[] {
-        const pattern = getFileMatcherPatterns(rootDir, exclude, include, this.shimHost.useCaseSensitiveFileNames!(), this.shimHost.getCurrentDirectory()); // TODO: GH#18217
+    public readDirectory(
+        rootDir: string,
+        extensions: readonly string[],
+        exclude: readonly string[],
+        include: readonly string[],
+        depth?: number,
+    ): string[] {
+        const pattern = getFileMatcherPatterns(
+            rootDir,
+            exclude,
+            include,
+            this.shimHost.useCaseSensitiveFileNames!(),
+            this.shimHost.getCurrentDirectory(),
+        ); // TODO: GH#18217
         return JSON.parse(this.shimHost.readDirectory(
             rootDir,
             JSON.stringify(extensions),
@@ -635,7 +746,12 @@ export class CoreServicesShimHostAdapter implements ParseConfigHost, ModuleResol
     }
 }
 
-function simpleForwardCall(logger: Logger, actionDescription: string, action: () => unknown, logPerformance: boolean): unknown {
+function simpleForwardCall(
+    logger: Logger,
+    actionDescription: string,
+    action: () => unknown,
+    logPerformance: boolean,
+): unknown {
     let start: number | undefined;
     if (logPerformance) {
         logger.log(actionDescription);
@@ -659,11 +775,22 @@ function simpleForwardCall(logger: Logger, actionDescription: string, action: ()
     return result;
 }
 
-function forwardJSONCall(logger: Logger, actionDescription: string, action: () => {} | null | undefined, logPerformance: boolean): string {
+function forwardJSONCall(
+    logger: Logger,
+    actionDescription: string,
+    action: () => {} | null | undefined,
+    logPerformance: boolean,
+): string {
     return forwardCall(logger, actionDescription, /*returnJson*/ true, action, logPerformance) as string;
 }
 
-function forwardCall<T>(logger: Logger, actionDescription: string, returnJson: boolean, action: () => T, logPerformance: boolean): T | string {
+function forwardCall<T>(
+    logger: Logger,
+    actionDescription: string,
+    returnJson: boolean,
+    action: () => T,
+    logPerformance: boolean,
+): T | string {
     try {
         const result = simpleForwardCall(logger, actionDescription, action, logPerformance);
         return returnJson ? JSON.stringify({ result }) : result as T;
@@ -771,7 +898,9 @@ class LanguageServiceShimObject extends ShimBase implements LanguageServiceShim 
         );
     }
 
-    private realizeDiagnostics(diagnostics: readonly Diagnostic[]): { message: string; start: number; length: number; category: string; }[] {
+    private realizeDiagnostics(
+        diagnostics: readonly Diagnostic[],
+    ): { message: string; start: number; length: number; category: string; }[] {
         const newLine = getNewLineOrDefaultFromHost(this.host, /*formatSettings*/ undefined);
         return realizeDiagnostics(diagnostics, newLine);
     }
@@ -795,7 +924,10 @@ class LanguageServiceShimObject extends ShimBase implements LanguageServiceShim 
             `getEncodedSyntacticClassifications('${fileName}', ${start}, ${length})`,
             // directly serialize the spans out to a string.  This is much faster to decode
             // on the managed side versus a full JSON array.
-            () => convertClassifications(this.languageService.getEncodedSyntacticClassifications(fileName, createTextSpan(start, length))),
+            () =>
+                convertClassifications(
+                    this.languageService.getEncodedSyntacticClassifications(fileName, createTextSpan(start, length)),
+                ),
         );
     }
 
@@ -804,7 +936,10 @@ class LanguageServiceShimObject extends ShimBase implements LanguageServiceShim 
             `getEncodedSemanticClassifications('${fileName}', ${start}, ${length})`,
             // directly serialize the spans out to a string.  This is much faster to decode
             // on the managed side versus a full JSON array.
-            () => convertClassifications(this.languageService.getEncodedSemanticClassifications(fileName, createTextSpan(start, length))),
+            () =>
+                convertClassifications(
+                    this.languageService.getEncodedSemanticClassifications(fileName, createTextSpan(start, length)),
+                ),
         );
     }
 
@@ -829,7 +964,10 @@ class LanguageServiceShimObject extends ShimBase implements LanguageServiceShim 
     }
 
     public getSuggestionDiagnostics(fileName: string): string {
-        return this.forwardJSONCall(`getSuggestionDiagnostics('${fileName}')`, () => this.realizeDiagnostics(this.languageService.getSuggestionDiagnostics(fileName)));
+        return this.forwardJSONCall(
+            `getSuggestionDiagnostics('${fileName}')`,
+            () => this.realizeDiagnostics(this.languageService.getSuggestionDiagnostics(fileName)),
+        );
     }
 
     public getCompilerOptionsDiagnostics(): string {
@@ -881,7 +1019,11 @@ class LanguageServiceShimObject extends ShimBase implements LanguageServiceShim 
 
     /// SIGNATUREHELP
 
-    public getSignatureHelpItems(fileName: string, position: number, options: SignatureHelpItemsOptions | undefined): string {
+    public getSignatureHelpItems(
+        fileName: string,
+        position: number,
+        options: SignatureHelpItemsOptions | undefined,
+    ): string {
         return this.forwardJSONCall(
             `getSignatureHelpItems('${fileName}', ${position})`,
             () => this.languageService.getSignatureHelpItems(fileName, position, options),
@@ -952,10 +1094,23 @@ class LanguageServiceShimObject extends ShimBase implements LanguageServiceShim 
         );
     }
 
-    public findRenameLocations(fileName: string, position: number, findInStrings: boolean, findInComments: boolean, preferences: UserPreferences): string {
+    public findRenameLocations(
+        fileName: string,
+        position: number,
+        findInStrings: boolean,
+        findInComments: boolean,
+        preferences: UserPreferences,
+    ): string {
         return this.forwardJSONCall(
             `findRenameLocations('${fileName}', ${position}, ${findInStrings}, ${findInComments})`,
-            () => this.languageService.findRenameLocations(fileName, position, findInStrings, findInComments, preferences),
+            () =>
+                this.languageService.findRenameLocations(
+                    fileName,
+                    position,
+                    findInStrings,
+                    findInComments,
+                    preferences,
+                ),
         );
     }
 
@@ -982,7 +1137,11 @@ class LanguageServiceShimObject extends ShimBase implements LanguageServiceShim 
     }
 
     /// GET SMART INDENT
-    public getIndentationAtPosition(fileName: string, position: number, options: string /*Services.EditorOptions*/): string {
+    public getIndentationAtPosition(
+        fileName: string,
+        position: number,
+        options: string, /*Services.EditorOptions*/
+    ): string {
         return this.forwardJSONCall(
             `getIndentationAtPosition('${fileName}', ${position})`,
             () => {
@@ -1019,7 +1178,11 @@ class LanguageServiceShimObject extends ShimBase implements LanguageServiceShim 
         return this.forwardJSONCall(
             `getDocumentHighlights('${fileName}', ${position})`,
             () => {
-                const results = this.languageService.getDocumentHighlights(fileName, position, JSON.parse(filesToSearch));
+                const results = this.languageService.getDocumentHighlights(
+                    fileName,
+                    position,
+                    JSON.parse(filesToSearch),
+                );
                 // workaround for VS document highlighting issue - keep only items from the initial file
                 const normalizedName = toFileNameLowerCase(normalizeSlashes(fileName));
                 return filter(results, r => toFileNameLowerCase(normalizeSlashes(r.fileName)) === normalizedName);
@@ -1034,7 +1197,12 @@ class LanguageServiceShimObject extends ShimBase implements LanguageServiceShim 
      * to provide at the given source position and providing a member completion
      * list if requested.
      */
-    public getCompletionsAtPosition(fileName: string, position: number, preferences: GetCompletionsAtPositionOptions | undefined, formattingSettings: FormatCodeSettings | undefined) {
+    public getCompletionsAtPosition(
+        fileName: string,
+        position: number,
+        preferences: GetCompletionsAtPositionOptions | undefined,
+        formattingSettings: FormatCodeSettings | undefined,
+    ) {
         return this.forwardJSONCall(
             `getCompletionsAtPosition('${fileName}', ${position}, ${preferences}, ${formattingSettings})`,
             () => this.languageService.getCompletionsAtPosition(fileName, position, preferences, formattingSettings),
@@ -1042,17 +1210,39 @@ class LanguageServiceShimObject extends ShimBase implements LanguageServiceShim 
     }
 
     /** Get a string based representation of a completion list entry details */
-    public getCompletionEntryDetails(fileName: string, position: number, entryName: string, formatOptions: string /*Services.FormatCodeOptions*/ | undefined, source: string | undefined, preferences: UserPreferences | undefined, data: CompletionEntryData | undefined) {
+    public getCompletionEntryDetails(
+        fileName: string,
+        position: number,
+        entryName: string,
+        formatOptions: string /*Services.FormatCodeOptions*/ | undefined,
+        source: string | undefined,
+        preferences: UserPreferences | undefined,
+        data: CompletionEntryData | undefined,
+    ) {
         return this.forwardJSONCall(
             `getCompletionEntryDetails('${fileName}', ${position}, '${entryName}')`,
             () => {
-                const localOptions: FormatCodeOptions = formatOptions === undefined ? undefined : JSON.parse(formatOptions);
-                return this.languageService.getCompletionEntryDetails(fileName, position, entryName, localOptions, source, preferences, data);
+                const localOptions: FormatCodeOptions = formatOptions === undefined ? undefined
+                    : JSON.parse(formatOptions);
+                return this.languageService.getCompletionEntryDetails(
+                    fileName,
+                    position,
+                    entryName,
+                    localOptions,
+                    source,
+                    preferences,
+                    data,
+                );
             },
         );
     }
 
-    public getFormattingEditsForRange(fileName: string, start: number, end: number, options: string /*Services.FormatCodeOptions*/): string {
+    public getFormattingEditsForRange(
+        fileName: string,
+        start: number,
+        end: number,
+        options: string, /*Services.FormatCodeOptions*/
+    ): string {
         return this.forwardJSONCall(
             `getFormattingEditsForRange('${fileName}', ${start}, ${end})`,
             () => {
@@ -1072,7 +1262,12 @@ class LanguageServiceShimObject extends ShimBase implements LanguageServiceShim 
         );
     }
 
-    public getFormattingEditsAfterKeystroke(fileName: string, position: number, key: string, options: string /*Services.FormatCodeOptions*/): string {
+    public getFormattingEditsAfterKeystroke(
+        fileName: string,
+        position: number,
+        key: string,
+        options: string, /*Services.FormatCodeOptions*/
+    ): string {
         return this.forwardJSONCall(
             `getFormattingEditsAfterKeystroke('${fileName}', ${position}, '${key}')`,
             () => {
@@ -1082,7 +1277,12 @@ class LanguageServiceShimObject extends ShimBase implements LanguageServiceShim 
         );
     }
 
-    public getDocCommentTemplateAtPosition(fileName: string, position: number, options?: DocCommentTemplateOptions, formatOptions?: FormatCodeSettings): string {
+    public getDocCommentTemplateAtPosition(
+        fileName: string,
+        position: number,
+        options?: DocCommentTemplateOptions,
+        formatOptions?: FormatCodeSettings,
+    ): string {
         return this.forwardJSONCall(
             `getDocCommentTemplateAtPosition('${fileName}', ${position})`,
             () => this.languageService.getDocCommentTemplateAtPosition(fileName, position, options, formatOptions),
@@ -1220,12 +1420,28 @@ class ClassifierShimObject extends ShimBase implements ClassifierShim {
         this.classifier = createClassifier();
     }
 
-    public getEncodedLexicalClassifications(text: string, lexState: EndOfLineState, syntacticClassifierAbsent = false): string {
-        return forwardJSONCall(this.logger, "getEncodedLexicalClassifications", () => convertClassifications(this.classifier.getEncodedLexicalClassifications(text, lexState, syntacticClassifierAbsent)), this.logPerformance);
+    public getEncodedLexicalClassifications(
+        text: string,
+        lexState: EndOfLineState,
+        syntacticClassifierAbsent = false,
+    ): string {
+        return forwardJSONCall(
+            this.logger,
+            "getEncodedLexicalClassifications",
+            () =>
+                convertClassifications(
+                    this.classifier.getEncodedLexicalClassifications(text, lexState, syntacticClassifierAbsent),
+                ),
+            this.logPerformance,
+        );
     }
 
     /// COLORIZATION
-    public getClassificationsForLine(text: string, lexState: EndOfLineState, classifyKeywordsInGenerics = false): string {
+    public getClassificationsForLine(
+        text: string,
+        lexState: EndOfLineState,
+        classifyKeywordsInGenerics = false,
+    ): string {
         const classification = this.classifier.getClassificationsForLine(text, lexState, classifyKeywordsInGenerics);
         let result = "";
         for (const item of classification.entries) {
@@ -1241,7 +1457,11 @@ class CoreServicesShimObject extends ShimBase implements CoreServicesShim {
     private logPerformance = false;
     private safeList: JsTyping.SafeList | undefined;
 
-    constructor(factory: ShimFactory, public readonly logger: Logger, private readonly host: CoreServicesShimHostAdapter) {
+    constructor(
+        factory: ShimFactory,
+        public readonly logger: Logger,
+        private readonly host: CoreServicesShimHostAdapter,
+    ) {
         super(factory);
     }
 
@@ -1254,7 +1474,11 @@ class CoreServicesShimObject extends ShimBase implements CoreServicesShim {
             const compilerOptions = JSON.parse(compilerOptionsJson) as CompilerOptions;
             const result = resolveModuleName(moduleName, normalizeSlashes(fileName), compilerOptions, this.host);
             let resolvedFileName = result.resolvedModule ? result.resolvedModule.resolvedFileName : undefined;
-            if (result.resolvedModule && result.resolvedModule.extension !== Extension.Ts && result.resolvedModule.extension !== Extension.Tsx && result.resolvedModule.extension !== Extension.Dts) {
+            if (
+                result.resolvedModule && result.resolvedModule.extension !== Extension.Ts
+                && result.resolvedModule.extension !== Extension.Tsx
+                && result.resolvedModule.extension !== Extension.Dts
+            ) {
                 resolvedFileName = undefined;
             }
 
@@ -1266,12 +1490,22 @@ class CoreServicesShimObject extends ShimBase implements CoreServicesShim {
         });
     }
 
-    public resolveTypeReferenceDirective(fileName: string, typeReferenceDirective: string, compilerOptionsJson: string): string {
+    public resolveTypeReferenceDirective(
+        fileName: string,
+        typeReferenceDirective: string,
+        compilerOptionsJson: string,
+    ): string {
         return this.forwardJSONCall(`resolveTypeReferenceDirective(${fileName})`, () => {
             const compilerOptions = JSON.parse(compilerOptionsJson) as CompilerOptions;
-            const result = resolveTypeReferenceDirective(typeReferenceDirective, normalizeSlashes(fileName), compilerOptions, this.host);
+            const result = resolveTypeReferenceDirective(
+                typeReferenceDirective,
+                normalizeSlashes(fileName),
+                compilerOptions,
+                this.host,
+            );
             return {
-                resolvedFileName: result.resolvedTypeReferenceDirective ? result.resolvedTypeReferenceDirective.resolvedFileName : undefined,
+                resolvedFileName: result.resolvedTypeReferenceDirective
+                    ? result.resolvedTypeReferenceDirective.resolvedFileName : undefined,
                 primary: result.resolvedTypeReferenceDirective ? result.resolvedTypeReferenceDirective.primary : true,
                 failedLookupLocations: result.failedLookupLocations,
             };
@@ -1283,7 +1517,11 @@ class CoreServicesShimObject extends ShimBase implements CoreServicesShim {
             `getPreProcessedFileInfo('${fileName}')`,
             () => {
                 // for now treat files as JavaScript
-                const result = preProcessFile(getSnapshotText(sourceTextSnapshot), /*readImportFiles*/ true, /*detectJavaScriptImports*/ true);
+                const result = preProcessFile(
+                    getSnapshotText(sourceTextSnapshot),
+                    /*readImportFiles*/ true,
+                    /*detectJavaScriptImports*/ true,
+                );
                 return {
                     referencedFiles: this.convertFileReferences(result.referencedFiles),
                     importedFiles: this.convertFileReferences(result.importedFiles),
@@ -1327,7 +1565,13 @@ class CoreServicesShimObject extends ShimBase implements CoreServicesShim {
             () => {
                 const result = parseJsonText(fileName, getSnapshotText(sourceTextSnapshot));
                 const normalizedFileName = normalizeSlashes(fileName);
-                const configFile = parseJsonSourceFileConfigFileContent(result, this.host, getDirectoryPath(normalizedFileName), /*existingOptions*/ {}, normalizedFileName);
+                const configFile = parseJsonSourceFileConfigFileContent(
+                    result,
+                    this.host,
+                    getDirectoryPath(normalizedFileName),
+                    /*existingOptions*/ {},
+                    normalizedFileName,
+                );
 
                 return {
                     options: configFile.options,
@@ -1352,7 +1596,10 @@ class CoreServicesShimObject extends ShimBase implements CoreServicesShim {
         return this.forwardJSONCall("discoverTypings()", () => {
             const info = JSON.parse(discoverTypingsJson) as DiscoverTypingsInfo;
             if (this.safeList === undefined) {
-                this.safeList = JsTyping.loadSafeList(this.host, toPath(info.safeListPath, info.safeListPath, getCanonicalFileName));
+                this.safeList = JsTyping.loadSafeList(
+                    this.host,
+                    toPath(info.safeListPath, info.safeListPath, getCanonicalFileName),
+                );
             }
             return JsTyping.discoverTypings(
                 this.host,
@@ -1385,10 +1632,17 @@ export class TypeScriptServicesFactory implements ShimFactory {
     public createLanguageServiceShim(host: LanguageServiceShimHost): LanguageServiceShim {
         try {
             if (this.documentRegistry === undefined) {
-                this.documentRegistry = createDocumentRegistry(host.useCaseSensitiveFileNames && host.useCaseSensitiveFileNames(), host.getCurrentDirectory());
+                this.documentRegistry = createDocumentRegistry(
+                    host.useCaseSensitiveFileNames && host.useCaseSensitiveFileNames(),
+                    host.getCurrentDirectory(),
+                );
             }
             const hostAdapter = new LanguageServiceShimHostAdapter(host);
-            const languageService = createLanguageService(hostAdapter, this.documentRegistry, /*syntaxOnlyOrLanguageServiceMode*/ false);
+            const languageService = createLanguageService(
+                hostAdapter,
+                this.documentRegistry,
+                /*syntaxOnlyOrLanguageServiceMode*/ false,
+            );
             return new LanguageServiceShimObject(this, host, languageService);
         }
         catch (err) {

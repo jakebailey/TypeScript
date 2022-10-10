@@ -44,7 +44,10 @@ export const customTypesMap = {
 };
 
 function replaceAll(source: string, searchValue: string, replaceValue: string): string {
-    let result: string | undefined = (source as string & { replaceAll: typeof source.replace; }).replaceAll?.(searchValue, replaceValue);
+    let result: string | undefined = (source as string & { replaceAll: typeof source.replace; }).replaceAll?.(
+        searchValue,
+        replaceValue,
+    );
 
     if (result !== undefined) {
         return result;
@@ -147,15 +150,27 @@ export function createLoggerWritingToConsole(host: TestServerHost): Logger {
 function sanitizeLog(s: string): string {
     s = s.replace(/Elapsed::?\s*\d+(?:\.\d+)?ms/g, "Elapsed:: *ms");
     s = s.replace(/"updateGraphDurationMs":\s*\d+(?:\.\d+)?/g, `"updateGraphDurationMs": *`);
-    s = s.replace(/"createAutoImportProviderProgramDurationMs":\s*\d+(?:\.\d+)?/g, `"createAutoImportProviderProgramDurationMs": *`);
+    s = s.replace(
+        /"createAutoImportProviderProgramDurationMs":\s*\d+(?:\.\d+)?/g,
+        `"createAutoImportProviderProgramDurationMs": *`,
+    );
     s = replaceAll(s, ts.version, "FakeVersion");
     s = s.replace(/getCompletionData: Get current token: \d+(?:\.\d+)?/g, `getCompletionData: Get current token: *`);
     s = s.replace(/getCompletionData: Is inside comment: \d+(?:\.\d+)?/g, `getCompletionData: Is inside comment: *`);
     s = s.replace(/getCompletionData: Get previous token: \d+(?:\.\d+)?/g, `getCompletionData: Get previous token: *`);
-    s = s.replace(/getCompletionsAtPosition: isCompletionListBlocker: \d+(?:\.\d+)?/g, `getCompletionsAtPosition: isCompletionListBlocker: *`);
+    s = s.replace(
+        /getCompletionsAtPosition: isCompletionListBlocker: \d+(?:\.\d+)?/g,
+        `getCompletionsAtPosition: isCompletionListBlocker: *`,
+    );
     s = s.replace(/getCompletionData: Semantic work: \d+(?:\.\d+)?/g, `getCompletionData: Semantic work: *`);
-    s = s.replace(/getCompletionsAtPosition: getCompletionEntriesFromSymbols: \d+(?:\.\d+)?/g, `getCompletionsAtPosition: getCompletionEntriesFromSymbols: *`);
-    s = s.replace(/forEachExternalModuleToImportFrom autoImportProvider: \d+(?:\.\d+)?/g, `forEachExternalModuleToImportFrom autoImportProvider: *`);
+    s = s.replace(
+        /getCompletionsAtPosition: getCompletionEntriesFromSymbols: \d+(?:\.\d+)?/g,
+        `getCompletionsAtPosition: getCompletionEntriesFromSymbols: *`,
+    );
+    s = s.replace(
+        /forEachExternalModuleToImportFrom autoImportProvider: \d+(?:\.\d+)?/g,
+        `forEachExternalModuleToImportFrom autoImportProvider: *`,
+    );
     s = s.replace(/getExportInfoMap: done in \d+(?:\.\d+)?/g, `getExportInfoMap: done in *`);
     s = s.replace(/collectAutoImports: \d+(?:\.\d+)?/g, `collectAutoImports: *`);
     s = s.replace(/continuePreviousIncompleteResponse: \d+(?:\.\d+)?/g, `continuePreviousIncompleteResponse: *`);
@@ -167,7 +182,11 @@ function sanitizeLog(s: string): string {
 export function createLoggerWithInMemoryLogs(host: TestServerHost): Logger {
     const logger = createHasErrorMessageLogger();
     const logs: string[] = [];
-    if (host) logs.push(`currentDirectory:: ${host.getCurrentDirectory()} useCaseSensitiveFileNames: ${host.useCaseSensitiveFileNames}`);
+    if (host) {
+        logs.push(
+            `currentDirectory:: ${host.getCurrentDirectory()} useCaseSensitiveFileNames: ${host.useCaseSensitiveFileNames}`,
+        );
+    }
     return handleLoggerGroup({
         ...logger,
         logs,
@@ -179,13 +198,18 @@ export function createLoggerWithInMemoryLogs(host: TestServerHost): Logger {
 
 export function baselineTsserverLogs(scenario: string, subScenario: string, sessionOrService: { logger: Logger; }) {
     ts.Debug.assert(sessionOrService.logger.logs?.length); // Ensure caller used in memory logger
-    Harness.Baseline.runBaseline(`tsserver/${scenario}/${subScenario.split(" ").join("-")}.js`, sessionOrService.logger.logs.join("\r\n"));
+    Harness.Baseline.runBaseline(
+        `tsserver/${scenario}/${subScenario.split(" ").join("-")}.js`,
+        sessionOrService.logger.logs.join("\r\n"),
+    );
 }
 
 export function appendAllScriptInfos(session: TestSession) {
     session.logger.log("");
     session.logger.log(`ScriptInfos:`);
-    session.getProjectService().filenameToScriptInfo.forEach(info => session.logger.log(`path: ${info.path} fileName: ${info.fileName}`));
+    session.getProjectService().filenameToScriptInfo.forEach(info =>
+        session.logger.log(`path: ${info.path} fileName: ${info.fileName}`)
+    );
     session.logger.log("");
 }
 
@@ -212,7 +236,11 @@ interface TypesRegistryFile {
     entries: ts.MapLike<ts.MapLike<string>>;
 }
 
-function loadTypesRegistryFile(typesRegistryFilePath: string, host: TestServerHost, log: ts.server.typingsInstaller.Log): Map<string, ts.MapLike<string>> {
+function loadTypesRegistryFile(
+    typesRegistryFilePath: string,
+    host: TestServerHost,
+    log: ts.server.typingsInstaller.Log,
+): Map<string, ts.MapLike<string>> {
     if (!host.fileExists(typesRegistryFilePath)) {
         if (log.isEnabled()) {
             log.writeLine(`Types registry file '${typesRegistryFilePath}' does not exist`);
@@ -225,7 +253,11 @@ function loadTypesRegistryFile(typesRegistryFilePath: string, host: TestServerHo
     }
     catch (e) {
         if (log.isEnabled()) {
-            log.writeLine(`Error when loading types registry file '${typesRegistryFilePath}': ${(e as Error).message}, ${(e as Error).stack}`);
+            log.writeLine(
+                `Error when loading types registry file '${typesRegistryFilePath}': ${(e as Error).message}, ${
+                    (e as Error).stack
+                }`,
+            );
         }
         return new Map<string, ts.MapLike<string>>();
     }
@@ -233,7 +265,10 @@ function loadTypesRegistryFile(typesRegistryFilePath: string, host: TestServerHo
 
 const typesRegistryPackageName = "types-registry";
 function getTypesRegistryFileLocation(globalTypingsCacheLocation: string): string {
-    return ts.combinePaths(ts.normalizeSlashes(globalTypingsCacheLocation), `node_modules/${typesRegistryPackageName}/index.json`);
+    return ts.combinePaths(
+        ts.normalizeSlashes(globalTypingsCacheLocation),
+        `node_modules/${typesRegistryPackageName}/index.json`,
+    );
 }
 
 export class TestTypingsInstallerWorker extends ts.server.typingsInstaller.TypingsInstaller {
@@ -273,11 +308,11 @@ export class TestTypingsInstallerWorker extends ts.server.typingsInstaller.Typin
             path: getTypesRegistryFileLocation(globalTypingsCacheLocation),
             content: JSON.stringify(
                 createTypesRegistryFileContent(
-                    typesRegistry ?
-                        ts.isString(typesRegistry) ?
-                            [typesRegistry] :
-                            typesRegistry :
-                        ts.emptyArray,
+                    typesRegistry
+                        ? ts.isString(typesRegistry)
+                            ? [typesRegistry]
+                            : typesRegistry
+                        : ts.emptyArray,
                 ),
                 undefined,
                 " ",
@@ -286,7 +321,11 @@ export class TestTypingsInstallerWorker extends ts.server.typingsInstaller.Typin
         if (this.log.isEnabled()) {
             this.log.writeLine(`TI:: Updated ${typesRegistryPackageName} npm package`);
         }
-        this.typesRegistry = loadTypesRegistryFile(getTypesRegistryFileLocation(globalTypingsCacheLocation), installTypingHost, this.log);
+        this.typesRegistry = loadTypesRegistryFile(
+            getTypesRegistryFileLocation(globalTypingsCacheLocation),
+            installTypingHost,
+            this.log,
+        );
         if (this.log.isEnabled()) {
             (installTypingHost as TestSessionAndServiceHost).baselineHost("TI:: typing installer creation complete");
         }
@@ -299,7 +338,9 @@ export class TestTypingsInstallerWorker extends ts.server.typingsInstaller.Typin
         this.postExecActions = [];
         for (const action of actionsToRun) {
             if (this.log.isEnabled()) {
-                this.log.writeLine(`#${action.requestId} with arguments'${JSON.stringify(action.packageNames)}':: ${action.success}`);
+                this.log.writeLine(
+                    `#${action.requestId} with arguments'${JSON.stringify(action.packageNames)}':: ${action.success}`,
+                );
             }
             action.callback(action.success);
         }
@@ -313,7 +354,12 @@ export class TestTypingsInstallerWorker extends ts.server.typingsInstaller.Typin
         return this.installTypingHost;
     }
 
-    installWorker(requestId: number, packageNames: string[], _cwd: string, cb: ts.server.typingsInstaller.RequestCompletedAction): void {
+    installWorker(
+        requestId: number,
+        packageNames: string[],
+        _cwd: string,
+        cb: ts.server.typingsInstaller.RequestCompletedAction,
+    ): void {
         if (this.log.isEnabled()) {
             this.log.writeLine(`#${requestId} with arguments'${JSON.stringify(packageNames)}'.`);
         }
@@ -328,12 +374,26 @@ export class TestTypingsInstallerWorker extends ts.server.typingsInstaller.Typin
         else this.projectService.watchTypingLocations(response);
     }
 
-    enqueueInstallTypingsRequest(project: ts.server.Project, typeAcquisition: ts.TypeAcquisition, unresolvedImports: ts.SortedReadonlyArray<string>) {
-        const request = ts.server.createInstallTypingsRequest(project, typeAcquisition, unresolvedImports, this.globalTypingsCacheLocation);
+    enqueueInstallTypingsRequest(
+        project: ts.server.Project,
+        typeAcquisition: ts.TypeAcquisition,
+        unresolvedImports: ts.SortedReadonlyArray<string>,
+    ) {
+        const request = ts.server.createInstallTypingsRequest(
+            project,
+            typeAcquisition,
+            unresolvedImports,
+            this.globalTypingsCacheLocation,
+        );
         this.install(request);
     }
 
-    addPostExecAction(stdout: string | string[], requestId: number, packageNames: string[], cb: ts.server.typingsInstaller.RequestCompletedAction) {
+    addPostExecAction(
+        stdout: string | string[],
+        requestId: number,
+        packageNames: string[],
+        cb: ts.server.typingsInstaller.RequestCompletedAction,
+    ) {
         const out = ts.isString(stdout) ? stdout : createNpmPackageJsonString(stdout);
         const action: PostExecAction = {
             success: !!out,
@@ -345,7 +405,9 @@ export class TestTypingsInstallerWorker extends ts.server.typingsInstaller.Typin
     }
 }
 
-export class TestTypingsInstaller<T extends TestTypingsInstallerWorker = TestTypingsInstallerWorker> implements ts.server.ITypingsInstaller {
+export class TestTypingsInstaller<T extends TestTypingsInstallerWorker = TestTypingsInstallerWorker>
+    implements ts.server.ITypingsInstaller
+{
     protected projectService!: ts.server.ProjectService;
     public installer!: T;
     constructor(
@@ -369,13 +431,29 @@ export class TestTypingsInstaller<T extends TestTypingsInstallerWorker = TestTyp
         this.installer?.closeProject({ projectName: p.getProjectName(), kind: "closeProject" });
     }
 
-    enqueueInstallTypingsRequest(project: ts.server.Project, typeAcquisition: ts.TypeAcquisition, unresolvedImports: ts.SortedReadonlyArray<string>) {
+    enqueueInstallTypingsRequest(
+        project: ts.server.Project,
+        typeAcquisition: ts.TypeAcquisition,
+        unresolvedImports: ts.SortedReadonlyArray<string>,
+    ) {
         if (!this.installer) {
             if (this.workerConstructor) {
-                this.installer ??= new this.workerConstructor(this.globalTypingsCacheLocation, this.throttleLimit, this.installTypingHost, this.logger, this.typesRegistry);
+                this.installer ??= new this.workerConstructor(
+                    this.globalTypingsCacheLocation,
+                    this.throttleLimit,
+                    this.installTypingHost,
+                    this.logger,
+                    this.typesRegistry,
+                );
             }
             else {
-                this.installer = new TestTypingsInstallerWorker(this.globalTypingsCacheLocation, this.throttleLimit, this.installTypingHost, this.logger, this.typesRegistry) as T;
+                this.installer = new TestTypingsInstallerWorker(
+                    this.globalTypingsCacheLocation,
+                    this.throttleLimit,
+                    this.installTypingHost,
+                    this.logger,
+                    this.typesRegistry,
+                ) as T;
             }
             this.installer.attach(this.projectService);
         }
@@ -465,7 +543,13 @@ function patchHostTimeouts(
 
     function runQueuedTimeoutCallbacks(timeoutId?: number) {
         host.baselineHost(`Before running ${host.timeoutCallbacks.log()}`);
-        if (timeoutId !== undefined) logger.log(`Invoking ${host.timeoutCallbacks.callbackType} callback:: timeoutId:: ${timeoutId}:: ${host.timeoutCallbacks.map[timeoutId].args[0]}`);
+        if (timeoutId !== undefined) {
+            logger.log(
+                `Invoking ${host.timeoutCallbacks.callbackType} callback:: timeoutId:: ${timeoutId}:: ${
+                    host.timeoutCallbacks.map[timeoutId].args[0]
+                }`,
+            );
+        }
         originalRunQueuedTimeoutCallbacks.call(host, timeoutId);
         host.baselineHost(`After running ${host.timeoutCallbacks.log()}`);
     }
@@ -500,7 +584,10 @@ export class TestSession extends ts.server.Session {
     constructor(opts: TestSessionOptions) {
         super(opts);
         this.logger = opts.logger;
-        ts.Debug.assert(opts.allowNonBaseliningLogger || this.logger.hasLevel(ts.server.LogLevel.verbose), "Use Baselining logger and baseline tsserver log or create using allowNonBaseliningLogger");
+        ts.Debug.assert(
+            opts.allowNonBaseliningLogger || this.logger.hasLevel(ts.server.LogLevel.verbose),
+            "Use Baselining logger and baseline tsserver log or create using allowNonBaseliningLogger",
+        );
         this.testhost = patchHostTimeouts(
             changeToHostTrackingWrittenFiles(this.host as TestServerHost),
             this.logger,
@@ -526,7 +613,18 @@ export class TestSession extends ts.server.Session {
         }
         const response = super.executeCommand(request);
         if (this.logger.hasLevel(ts.server.LogLevel.verbose)) {
-            this.logger.info(`response:${ts.server.indent(JSON.stringify(response.response === ts.getSupportedCodeFixes() ? { ...response, response: "ts.getSupportedCodeFixes()" } : response, undefined, 2))}`);
+            this.logger.info(
+                `response:${
+                    ts.server.indent(
+                        JSON.stringify(
+                            response.response === ts.getSupportedCodeFixes()
+                                ? { ...response, response: "ts.getSupportedCodeFixes()" } : response,
+                            undefined,
+                            2,
+                        ),
+                    )
+                }`,
+            );
             this.testhost.baselineHost("After request");
         }
         return response;
@@ -544,7 +642,12 @@ export class TestSession extends ts.server.Session {
 export function createSession(host: TestServerHost, opts: Partial<TestSessionOptions> = {}) {
     const logger = opts.logger || createHasErrorMessageLogger();
     if (opts.typingsInstaller === undefined) {
-        opts.typingsInstaller = new TestTypingsInstaller(host.getHostSpecificPath("/a/data/"), /*throttleLimit*/ 5, host, logger);
+        opts.typingsInstaller = new TestTypingsInstaller(
+            host.getHostSpecificPath("/a/data/"),
+            /*throttleLimit*/ 5,
+            host,
+            logger,
+        );
     }
 
     if (opts.eventHandler !== undefined) {
@@ -587,7 +690,13 @@ export function createSessionWithCustomEventHandler(host: TestServerHost, opts?:
                 break;
             // Map diagnostics
             case ts.server.ConfigFileDiagEvent:
-                data = { ...data, diagnostics: ts.map(event.data.diagnostics, diagnostic => ts.server.formatDiagnosticToProtocol(diagnostic, /*includeFileName*/ true)) };
+                data = {
+                    ...data,
+                    diagnostics: ts.map(
+                        event.data.diagnostics,
+                        diagnostic => ts.server.formatDiagnosticToProtocol(diagnostic, /*includeFileName*/ true),
+                    ),
+                };
                 break;
             default:
                 ts.Debug.assertNever(event);
@@ -603,7 +712,14 @@ export interface TestProjectServiceOptions extends ts.server.ProjectServiceOptio
 
 export class TestProjectService extends ts.server.ProjectService {
     public testhost: TestSessionAndServiceHost;
-    constructor(host: TestServerHost, public override logger: Logger, cancellationToken: ts.HostCancellationToken, useSingleInferredProject: boolean, typingsInstaller: ts.server.ITypingsInstaller, opts: Partial<TestProjectServiceOptions> = {}) {
+    constructor(
+        host: TestServerHost,
+        public override logger: Logger,
+        cancellationToken: ts.HostCancellationToken,
+        useSingleInferredProject: boolean,
+        typingsInstaller: ts.server.ITypingsInstaller,
+        opts: Partial<TestProjectServiceOptions> = {},
+    ) {
         super({
             host,
             logger,
@@ -616,7 +732,10 @@ export class TestProjectService extends ts.server.ProjectService {
             incrementalVerifier,
             ...opts,
         });
-        ts.Debug.assert(opts.allowNonBaseliningLogger || this.logger.hasLevel(ts.server.LogLevel.verbose), "Use Baselining logger and baseline tsserver log or create using allowNonBaseliningLogger");
+        ts.Debug.assert(
+            opts.allowNonBaseliningLogger || this.logger.hasLevel(ts.server.LogLevel.verbose),
+            "Use Baselining logger and baseline tsserver log or create using allowNonBaseliningLogger",
+        );
         this.testhost = patchHostTimeouts(
             changeToHostTrackingWrittenFiles(this.host as TestServerHost),
             this.logger,
@@ -628,11 +747,23 @@ export class TestProjectService extends ts.server.ProjectService {
 export function createProjectService(host: TestServerHost, options?: Partial<TestProjectServiceOptions>) {
     const cancellationToken = options?.cancellationToken || ts.server.nullCancellationToken;
     const logger = options?.logger || createHasErrorMessageLogger();
-    const useSingleInferredProject = options?.useSingleInferredProject !== undefined ? options.useSingleInferredProject : false;
-    return new TestProjectService(host, logger, cancellationToken, useSingleInferredProject, options?.typingsInstaller || ts.server.nullTypingsInstaller, options);
+    const useSingleInferredProject = options?.useSingleInferredProject !== undefined ? options.useSingleInferredProject
+        : false;
+    return new TestProjectService(
+        host,
+        logger,
+        cancellationToken,
+        useSingleInferredProject,
+        options?.typingsInstaller || ts.server.nullTypingsInstaller,
+        options,
+    );
 }
 
-export function protocolLocationFromSubstring(str: string, substring: string, options?: SpanFromSubstringOptions): ts.server.protocol.Location {
+export function protocolLocationFromSubstring(
+    str: string,
+    substring: string,
+    options?: SpanFromSubstringOptions,
+): ts.server.protocol.Location {
     const start = nthIndexOf(str, substring, options ? options.index : 0);
     ts.Debug.assert(start !== -1);
     return protocolToLocation(str)(start);
@@ -646,7 +777,11 @@ export function protocolToLocation(text: string): (pos: number) => ts.server.pro
     };
 }
 
-export function protocolTextSpanFromSubstring(str: string, substring: string, options?: SpanFromSubstringOptions): ts.server.protocol.TextSpan {
+export function protocolTextSpanFromSubstring(
+    str: string,
+    substring: string,
+    options?: SpanFromSubstringOptions,
+): ts.server.protocol.TextSpan {
     const span = textSpanFromSubstring(str, substring, options);
     const toLocation = protocolToLocation(str);
     return { start: toLocation(span.start), end: toLocation(ts.textSpanEnd(span)) };
@@ -658,7 +793,11 @@ export function textSpanFromSubstring(str: string, substring: string, options?: 
     return ts.createTextSpan(start, substring.length);
 }
 
-export function protocolFileLocationFromSubstring(file: File, substring: string, options?: SpanFromSubstringOptions): ts.server.protocol.FileLocationRequestArgs {
+export function protocolFileLocationFromSubstring(
+    file: File,
+    substring: string,
+    options?: SpanFromSubstringOptions,
+): ts.server.protocol.FileLocationRequestArgs {
     return { file: file.path, ...protocolLocationFromSubstring(file.content, substring, options) };
 }
 
@@ -700,7 +839,11 @@ export class TestServerCancellationToken implements ts.server.ServerCancellation
     }
 
     resetRequest(requestId: number) {
-        this.logger.log(`TestServerCancellationToken:: resetRequest:: ${requestId} is ${requestId === this.currentId ? "as expected" : `expected to be ${this.currentId}`}`);
+        this.logger.log(
+            `TestServerCancellationToken:: resetRequest:: ${requestId} is ${
+                requestId === this.currentId ? "as expected" : `expected to be ${this.currentId}`
+            }`,
+        );
         assert.equal(requestId, this.currentId, "unexpected request id in cancellation");
         this.currentId = undefined;
     }
@@ -710,7 +853,8 @@ export class TestServerCancellationToken implements ts.server.ServerCancellation
         // If the request id is the request to cancel and isCancellationRequestedCount
         // has been met then cancel the request. Ex: cancel the request if it is a
         // nav bar request & isCancellationRequested() has already been called three times.
-        const result = this.requestToCancel === this.currentId && this.isCancellationRequestedCount >= this.cancelAfterRequest;
+        const result = this.requestToCancel === this.currentId
+            && this.isCancellationRequestedCount >= this.cancelAfterRequest;
         if (result) this.logger.log(`TestServerCancellationToken:: Cancellation is requested`);
         return result;
     }
@@ -734,16 +878,16 @@ export function openFilesForSession(
     for (const file of files) {
         session.executeCommandSeq<ts.server.protocol.OpenRequest>({
             command: ts.server.protocol.CommandTypes.Open,
-            arguments: ts.isString(file) ?
-                { file } :
-                "file" in file ? // eslint-disable-line local/no-in-operator
-                {
+            arguments: ts.isString(file)
+                ? { file }
+                : "file" in file // eslint-disable-line local/no-in-operator
+                ? {
                     file: typeof file.file === "string" ? file.file : file.file.path,
                     projectRootPath: file.projectRootPath,
                     fileContent: file.content,
                     scriptKindName: file.scriptKindName,
-                } :
-                { file: file.path },
+                }
+                : { file: file.path },
         });
     }
 }
@@ -772,18 +916,25 @@ export function openExternalProjectsForSession(projects: ts.server.protocol.Exte
 }
 
 export function setCompilerOptionsForInferredProjectsRequestForSession(
-    options: ts.server.protocol.InferredProjectCompilerOptions | ts.server.protocol.SetCompilerOptionsForInferredProjectsArgs,
+    options:
+        | ts.server.protocol.InferredProjectCompilerOptions
+        | ts.server.protocol.SetCompilerOptionsForInferredProjectsArgs,
     session: TestSession,
 ) {
     session.executeCommandSeq<ts.server.protocol.SetCompilerOptionsForInferredProjectsRequest>({
         command: ts.server.protocol.CommandTypes.CompilerOptionsForInferredProjects,
-        arguments: "options" in options ? // eslint-disable-line local/no-in-operator
-            options as ts.server.protocol.SetCompilerOptionsForInferredProjectsArgs :
-            { options },
+        arguments: "options" in options // eslint-disable-line local/no-in-operator
+            ? options as ts.server.protocol.SetCompilerOptionsForInferredProjectsArgs
+            : { options },
     });
 }
 
-export function logDiagnostics(sessionOrService: TestSession | TestProjectService, diagnosticsType: string, project: ts.server.Project, diagnostics: readonly ts.Diagnostic[]) {
+export function logDiagnostics(
+    sessionOrService: TestSession | TestProjectService,
+    diagnosticsType: string,
+    project: ts.server.Project,
+    diagnostics: readonly ts.Diagnostic[],
+) {
     sessionOrService.logger.info(`${diagnosticsType}:: ${diagnostics.length}`);
     diagnostics.forEach(d => sessionOrService.logger.info(ts.formatDiagnostic(d, project)));
 }
@@ -815,7 +966,9 @@ export interface CheckAllErrors extends VerifyGetErrRequestBase {
 function checkAllErrors({ session, existingTimeouts, files, skip }: CheckAllErrors) {
     ts.Debug.assert(session.logger.logs?.length);
     for (let i = 0; i < files.length; i++) {
-        session.testhost.runQueuedTimeoutCallbacks(existingTimeouts ? session.testhost.getNextTimeoutId() - 1 : undefined);
+        session.testhost.runQueuedTimeoutCallbacks(
+            existingTimeouts ? session.testhost.getNextTimeoutId() - 1 : undefined,
+        );
         if (!skip?.[i]?.semantic) session.testhost.runQueuedImmediateCallbacks();
         if (!skip?.[i]?.suggestion) session.testhost.runQueuedImmediateCallbacks();
     }
@@ -836,7 +989,9 @@ function verifyErrorsUsingGeterr({ scenario, subScenario, allFiles, openFiles, g
     });
 }
 
-function verifyErrorsUsingGeterrForProject({ scenario, subScenario, allFiles, openFiles, getErrForProjectRequest }: VerifyGetErrScenario) {
+function verifyErrorsUsingGeterrForProject(
+    { scenario, subScenario, allFiles, openFiles, getErrForProjectRequest }: VerifyGetErrScenario,
+) {
     it("verifies the errors in projects", () => {
         const host = createServerHost([...allFiles(), libFile]);
         const session = createSession(host, { canUseEvents: true, logger: createLoggerWithInMemoryLogs(host) });
@@ -853,7 +1008,9 @@ function verifyErrorsUsingGeterrForProject({ scenario, subScenario, allFiles, op
     });
 }
 
-function verifyErrorsUsingSyncMethods({ scenario, subScenario, allFiles, openFiles, syncDiagnostics }: VerifyGetErrScenario) {
+function verifyErrorsUsingSyncMethods(
+    { scenario, subScenario, allFiles, openFiles, syncDiagnostics }: VerifyGetErrScenario,
+) {
     it("verifies the errors using sync commands", () => {
         const host = createServerHost([...allFiles(), libFile]);
         const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
@@ -913,9 +1070,17 @@ export function createHostWithSolutionBuild(files: readonly FileOrFolderOrSymLin
 }
 
 export function logInferredProjectsOrphanStatus(projectService: ts.server.ProjectService) {
-    projectService.inferredProjects.forEach(inferredProject => (projectService.logger as Logger).log(`Inferred project: ${inferredProject.projectName} isOrphan:: ${inferredProject.isOrphan()} isClosed: ${inferredProject.isClosed()}`));
+    projectService.inferredProjects.forEach(inferredProject =>
+        (projectService.logger as Logger).log(
+            `Inferred project: ${inferredProject.projectName} isOrphan:: ${inferredProject.isOrphan()} isClosed: ${inferredProject.isClosed()}`,
+        )
+    );
 }
 
 export function logConfiguredProjectsHasOpenRefStatus(projectService: ts.server.ProjectService) {
-    projectService.configuredProjects.forEach(configuredProject => (projectService.logger as Logger).log(`Configured project: ${configuredProject.projectName} hasOpenRef:: ${configuredProject.hasOpenRef()} isClosed: ${configuredProject.isClosed()}`));
+    projectService.configuredProjects.forEach(configuredProject =>
+        (projectService.logger as Logger).log(
+            `Configured project: ${configuredProject.projectName} hasOpenRef:: ${configuredProject.hasOpenRef()} isClosed: ${configuredProject.isClosed()}`,
+        )
+    );
 }

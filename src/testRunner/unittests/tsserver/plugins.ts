@@ -69,7 +69,9 @@ describe("unittests:: tsserver:: plugins:: loading", () => {
             path: "/tsconfig.json",
             content: "{}",
         };
-        const { session } = createHostWithPlugin([aTs, tsconfig, libFile], { globalPlugins: [...expectedToLoad, ...notToLoad] });
+        const { session } = createHostWithPlugin([aTs, tsconfig, libFile], {
+            globalPlugins: [...expectedToLoad, ...notToLoad],
+        });
         openFilesForSession([aTs], session);
         baselineTsserverLogs("plugins", "With global plugins", session);
     });
@@ -132,7 +134,11 @@ describe("unittests:: tsserver:: plugins:: loading", () => {
         };
         const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
         openFilesForSession([aTs], session);
-        session.logger.log(`ExternalFiles:: ${JSON.stringify(session.getProjectService().configuredProjects.get(tsconfig.path)!.getExternalFiles())}`);
+        session.logger.log(
+            `ExternalFiles:: ${
+                JSON.stringify(session.getProjectService().configuredProjects.get(tsconfig.path)!.getExternalFiles())
+            }`,
+        );
 
         host.writeFile(
             tsconfig.path,
@@ -143,7 +149,11 @@ describe("unittests:: tsserver:: plugins:: loading", () => {
             }),
         );
         host.runQueuedTimeoutCallbacks();
-        session.logger.log(`ExternalFiles:: ${JSON.stringify(session.getProjectService().configuredProjects.get(tsconfig.path)!.getExternalFiles())}`);
+        session.logger.log(
+            `ExternalFiles:: ${
+                JSON.stringify(session.getProjectService().configuredProjects.get(tsconfig.path)!.getExternalFiles())
+            }`,
+        );
 
         baselineTsserverLogs("plugins", "gets external files with config file reload", session);
     });

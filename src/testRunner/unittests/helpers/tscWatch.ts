@@ -29,7 +29,11 @@ export const commonFile2: File = {
     content: "let y = 1",
 };
 
-export type WatchOrSolution<T extends ts.BuilderProgram> = void | ts.SolutionBuilder<T> | ts.WatchOfConfigFile<T> | ts.WatchOfFilesAndCompilerOptions<T>;
+export type WatchOrSolution<T extends ts.BuilderProgram> =
+    | void
+    | ts.SolutionBuilder<T>
+    | ts.WatchOfConfigFile<T>
+    | ts.WatchOfFilesAndCompilerOptions<T>;
 export interface TscWatchCompileChange<T extends ts.BuilderProgram = ts.EmitAndSemanticDiagnosticsBuilderProgram> {
     caption: string;
     edit: (sys: TscWatchSystem) => void;
@@ -43,7 +47,9 @@ export interface TscWatchCheckOptions {
     baselineSourceMap?: boolean;
     baselineDependencies?: boolean;
 }
-export interface TscWatchCompileBase<T extends ts.BuilderProgram = ts.EmitAndSemanticDiagnosticsBuilderProgram> extends TscWatchCheckOptions {
+export interface TscWatchCompileBase<T extends ts.BuilderProgram = ts.EmitAndSemanticDiagnosticsBuilderProgram>
+    extends TscWatchCheckOptions
+{
     scenario: string;
     subScenario: string;
     commandLineArgs: readonly string[];
@@ -101,7 +107,10 @@ export interface TestServerHostWithTimeoutLogging {
 
 export type TscWatchSystem = TestServerHostTrackingWrittenFiles & TestServerHostWithTimeoutLogging;
 
-function changeToTestServerHostWithTimeoutLogging(inputHost: TestServerHostTrackingWrittenFiles, baseline: string[]): TscWatchSystem {
+function changeToTestServerHostWithTimeoutLogging(
+    inputHost: TestServerHostTrackingWrittenFiles,
+    baseline: string[],
+): TscWatchSystem {
     const host = inputHost as TscWatchSystem;
     const originalRunQueuedTimeoutCallbacks = host.runQueuedTimeoutCallbacks;
     const originalRunQueuedImmediateCallbacks = host.runQueuedImmediateCallbacks;
@@ -117,7 +126,13 @@ function changeToTestServerHostWithTimeoutLogging(inputHost: TestServerHostTrack
 
     function runQueuedTimeoutCallbacks(timeoutId?: number) {
         baseline.push(`Before running ${host.timeoutCallbacks.log()}`);
-        if (timeoutId !== undefined) baseline.push(`Invoking ${host.timeoutCallbacks.callbackType} callback:: timeoutId:: ${timeoutId}:: ${host.timeoutCallbacks.map[timeoutId].args[0]}`);
+        if (timeoutId !== undefined) {
+            baseline.push(
+                `Invoking ${host.timeoutCallbacks.callbackType} callback:: timeoutId:: ${timeoutId}:: ${
+                    host.timeoutCallbacks.map[timeoutId].args[0]
+                }`,
+            );
+        }
         originalRunQueuedTimeoutCallbacks.call(host, timeoutId);
         baseline.push(`After running ${host.timeoutCallbacks.log()}`);
     }
@@ -138,13 +153,18 @@ export interface BaselineBase {
 export interface Baseline extends BaselineBase, CommandLineCallbacks {
 }
 
-export function createBaseline(system: TestServerHost, modifySystem?: (sys: TestServerHost, originalRead: TestServerHost["readFile"]) => void): Baseline {
+export function createBaseline(
+    system: TestServerHost,
+    modifySystem?: (sys: TestServerHost, originalRead: TestServerHost["readFile"]) => void,
+): Baseline {
     const originalRead = system.readFile;
     const initialSys = patchHostForBuildInfoReadWrite(system);
     modifySystem?.(initialSys, originalRead);
     const baseline: string[] = [];
     const sys = changeToTestServerHostWithTimeoutLogging(changeToHostTrackingWrittenFiles(initialSys), baseline);
-    baseline.push(`currentDirectory:: ${sys.getCurrentDirectory()} useCaseSensitiveFileNames: ${sys.useCaseSensitiveFileNames}`);
+    baseline.push(
+        `currentDirectory:: ${sys.getCurrentDirectory()} useCaseSensitiveFileNames: ${sys.useCaseSensitiveFileNames}`,
+    );
     baseline.push("Input::");
     sys.diff(baseline);
     const { cb, getPrograms } = commandLineCallbacks(sys);
@@ -152,18 +172,28 @@ export function createBaseline(system: TestServerHost, modifySystem?: (sys: Test
 }
 
 export function createSolutionBuilderWithWatchHostForBaseline(sys: TestServerHost, cb: ts.ExecuteCommandLineCallbacks) {
-    const host = ts.createSolutionBuilderWithWatchHost(sys, /*createProgram*/ undefined, ts.createDiagnosticReporter(sys, /*pretty*/ true), ts.createBuilderStatusReporter(sys, /*pretty*/ true), ts.createWatchStatusReporter(sys, /*pretty*/ true));
+    const host = ts.createSolutionBuilderWithWatchHost(
+        sys,
+        /*createProgram*/ undefined,
+        ts.createDiagnosticReporter(sys, /*pretty*/ true),
+        ts.createBuilderStatusReporter(sys, /*pretty*/ true),
+        ts.createWatchStatusReporter(sys, /*pretty*/ true),
+    );
     host.afterProgramEmitAndDiagnostics = cb;
     host.afterEmitBundle = cb;
     return host;
 }
 
-interface CreateWatchCompilerHostOfConfigFileForBaseline<T extends ts.BuilderProgram> extends ts.CreateWatchCompilerHostOfConfigFileInput<T> {
+interface CreateWatchCompilerHostOfConfigFileForBaseline<T extends ts.BuilderProgram>
+    extends ts.CreateWatchCompilerHostOfConfigFileInput<T>
+{
     system: TestServerHost;
     cb: ts.ExecuteCommandLineCallbacks;
 }
 
-export function createWatchCompilerHostOfConfigFileForBaseline<T extends ts.BuilderProgram = ts.EmitAndSemanticDiagnosticsBuilderProgram>(
+export function createWatchCompilerHostOfConfigFileForBaseline<
+    T extends ts.BuilderProgram = ts.EmitAndSemanticDiagnosticsBuilderProgram,
+>(
     input: CreateWatchCompilerHostOfConfigFileForBaseline<T>,
 ) {
     const host = ts.createWatchCompilerHostOfConfigFile({
@@ -175,11 +205,15 @@ export function createWatchCompilerHostOfConfigFileForBaseline<T extends ts.Buil
     return host;
 }
 
-interface CreateWatchCompilerHostOfFilesAndCompilerOptionsForBaseline<T extends ts.BuilderProgram> extends ts.CreateWatchCompilerHostOfFilesAndCompilerOptionsInput<T> {
+interface CreateWatchCompilerHostOfFilesAndCompilerOptionsForBaseline<T extends ts.BuilderProgram>
+    extends ts.CreateWatchCompilerHostOfFilesAndCompilerOptionsInput<T>
+{
     system: TestServerHost;
     cb: ts.ExecuteCommandLineCallbacks;
 }
-export function createWatchCompilerHostOfFilesAndCompilerOptionsForBaseline<T extends ts.BuilderProgram = ts.EmitAndSemanticDiagnosticsBuilderProgram>(
+export function createWatchCompilerHostOfFilesAndCompilerOptionsForBaseline<
+    T extends ts.BuilderProgram = ts.EmitAndSemanticDiagnosticsBuilderProgram,
+>(
     input: CreateWatchCompilerHostOfFilesAndCompilerOptionsForBaseline<T>,
 ) {
     const host = ts.createWatchCompilerHostOfFilesAndCompilerOptions({
@@ -191,7 +225,10 @@ export function createWatchCompilerHostOfFilesAndCompilerOptionsForBaseline<T ex
     return host;
 }
 
-function updateWatchHostForBaseline<T extends ts.BuilderProgram>(host: ts.WatchCompilerHost<T>, cb: ts.ExecuteCommandLineCallbacks) {
+function updateWatchHostForBaseline<T extends ts.BuilderProgram>(
+    host: ts.WatchCompilerHost<T>,
+    cb: ts.ExecuteCommandLineCallbacks,
+) {
     const emitFilesAndReportErrors = host.afterProgramCreate!;
     host.afterProgramCreate = builderProgram => {
         emitFilesAndReportErrors.call(host, builderProgram);
@@ -200,7 +237,12 @@ function updateWatchHostForBaseline<T extends ts.BuilderProgram>(host: ts.WatchC
     return host;
 }
 
-export function applyEdit(sys: BaselineBase["sys"], baseline: BaselineBase["baseline"], edit: TscWatchCompileChange["edit"], caption?: TscWatchCompileChange["caption"]) {
+export function applyEdit(
+    sys: BaselineBase["sys"],
+    baseline: BaselineBase["baseline"],
+    edit: TscWatchCompileChange["edit"],
+    caption?: TscWatchCompileChange["caption"],
+) {
     const oldSnap = sys.snap();
     baseline.push(`Change::${caption ? " " + caption : ""}`, "");
     edit(sys);
@@ -254,7 +296,10 @@ export function runWatchBaseline<T extends ts.BuilderProgram = ts.EmitAndSemanti
             });
         }
     }
-    Baseline.runBaseline(tscBaselineName(scenario, subScenario, commandLineArgs, isWatch(commandLineArgs)), baseline.join("\r\n"));
+    Baseline.runBaseline(
+        tscBaselineName(scenario, subScenario, commandLineArgs, isWatch(commandLineArgs)),
+        baseline.join("\r\n"),
+    );
 }
 
 export function isWatch(commandLineArgs: readonly string[]) {
@@ -269,7 +314,9 @@ export interface WatchBaseline extends BaselineBase, TscWatchCheckOptions {
     oldPrograms: readonly (CommandLineProgram | undefined)[];
     getPrograms: () => readonly CommandLineProgram[];
 }
-export function watchBaseline({ baseline, getPrograms, oldPrograms, sys, oldSnap, baselineSourceMap, baselineDependencies }: WatchBaseline) {
+export function watchBaseline(
+    { baseline, getPrograms, oldPrograms, sys, oldSnap, baselineSourceMap, baselineDependencies }: WatchBaseline,
+) {
     if (baselineSourceMap) generateSourceMapBaselineFiles(sys);
     sys.serializeOutput(baseline);
     const programs = baselinePrograms(baseline, getPrograms, oldPrograms, baselineDependencies);

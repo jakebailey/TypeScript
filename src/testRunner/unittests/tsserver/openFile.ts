@@ -77,7 +77,12 @@ describe("unittests:: tsserver:: Open-file", () => {
 
             baselineTsserverLogs("openfile", subScenario, service);
             function verifyConfigFileName(file: File, projectRoot: string) {
-                const { configFileName } = service.openClientFile(file.path, /*fileContent*/ undefined, /*scriptKind*/ undefined, projectRoot);
+                const { configFileName } = service.openClientFile(
+                    file.path,
+                    /*fileContent*/ undefined,
+                    /*scriptKind*/ undefined,
+                    projectRoot,
+                );
                 service.logger.log(`file: ${file.path} configFile: ${configFileName}`);
                 service.closeClientFile(file.path);
             }
@@ -129,7 +134,12 @@ describe("unittests:: tsserver:: Open-file", () => {
 
         function verifyProject(aFileContent: string) {
             service.openClientFile(aFile.path, aFileContent, ts.ScriptKind.TS, projectFolder);
-            service.logger.log(`aFileContent: ${service.configuredProjects.get(configFile.path)!.getCurrentProgram()?.getSourceFile(aFile.path)!.text}`);
+            service.logger.log(
+                `aFileContent: ${
+                    service.configuredProjects.get(configFile.path)!.getCurrentProgram()?.getSourceFile(aFile.path)!
+                        .text
+                }`,
+            );
         }
     });
 
@@ -185,7 +195,11 @@ bar();`,
             },
         });
         verifyGetErrRequest({ session, files: [file] });
-        baselineTsserverLogs("openfile", "when file makes edits to add/remove comment directives, they are handled correcrly", session);
+        baselineTsserverLogs(
+            "openfile",
+            "when file makes edits to add/remove comment directives, they are handled correcrly",
+            session,
+        );
     });
 
     describe("opening file and refreshing program", () => {
@@ -269,7 +283,11 @@ bar();`,
             session.getProjectService().configuredProjects.get("/project/tsconfig.json")!.updateGraph();
             host.appendFile("/project/b.ts", "export const x = 10;");
             host.runQueuedTimeoutCallbacks();
-            baselineTsserverLogs("openfile", "edits on file and then close does not refresh sourceFile if contents match", session);
+            baselineTsserverLogs(
+                "openfile",
+                "edits on file and then close does not refresh sourceFile if contents match",
+                session,
+            );
         });
     });
 });

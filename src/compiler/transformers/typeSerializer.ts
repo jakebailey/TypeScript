@@ -115,12 +115,24 @@ export interface RuntimeTypeSerializer {
      * Serializes the type of a node for use with decorator type metadata.
      * @param node The node that should have its type serialized.
      */
-    serializeTypeOfNode(serializerContext: RuntimeTypeSerializerContext, node: PropertyDeclaration | ParameterDeclaration | AccessorDeclaration | ClassLikeDeclaration | MethodDeclaration): Expression;
+    serializeTypeOfNode(
+        serializerContext: RuntimeTypeSerializerContext,
+        node:
+            | PropertyDeclaration
+            | ParameterDeclaration
+            | AccessorDeclaration
+            | ClassLikeDeclaration
+            | MethodDeclaration,
+    ): Expression;
     /**
      * Serializes the types of the parameters of a node for use with decorator type metadata.
      * @param node The node that should have its parameter types serialized.
      */
-    serializeParameterTypesOfNode(serializerContext: RuntimeTypeSerializerContext, node: Node, container: ClassLikeDeclaration): ArrayLiteralExpression;
+    serializeParameterTypesOfNode(
+        serializerContext: RuntimeTypeSerializerContext,
+        node: Node,
+        container: ClassLikeDeclaration,
+    ): ArrayLiteralExpression;
     /**
      * Serializes the return type of a node for use with decorator type metadata.
      * @param node The node that should have its return type serialized.
@@ -144,15 +156,33 @@ export function createRuntimeTypeSerializer(context: TransformationContext): Run
     let currentNameScope: ClassLikeDeclaration | undefined;
 
     return {
-        serializeTypeNode: (serializerContext, node) => setSerializerContextAnd(serializerContext, serializeTypeNode, node),
-        serializeTypeOfNode: (serializerContext, node) => setSerializerContextAnd(serializerContext, serializeTypeOfNode, node),
-        serializeParameterTypesOfNode: (serializerContext, node, container) => setSerializerContextAnd(serializerContext, serializeParameterTypesOfNode, node, container),
-        serializeReturnTypeOfNode: (serializerContext, node) => setSerializerContextAnd(serializerContext, serializeReturnTypeOfNode, node),
+        serializeTypeNode: (serializerContext, node) =>
+            setSerializerContextAnd(serializerContext, serializeTypeNode, node),
+        serializeTypeOfNode: (serializerContext, node) =>
+            setSerializerContextAnd(serializerContext, serializeTypeOfNode, node),
+        serializeParameterTypesOfNode: (serializerContext, node, container) =>
+            setSerializerContextAnd(serializerContext, serializeParameterTypesOfNode, node, container),
+        serializeReturnTypeOfNode: (serializerContext, node) =>
+            setSerializerContextAnd(serializerContext, serializeReturnTypeOfNode, node),
     };
 
-    function setSerializerContextAnd<TNode extends Node | undefined, R>(serializerContext: RuntimeTypeSerializerContext, cb: (node: TNode) => R, node: TNode): R;
-    function setSerializerContextAnd<TNode extends Node | undefined, T, R>(serializerContext: RuntimeTypeSerializerContext, cb: (node: TNode, arg: T) => R, node: TNode, arg: T): R;
-    function setSerializerContextAnd<TNode extends Node | undefined, T, R>(serializerContext: RuntimeTypeSerializerContext, cb: (node: TNode, arg?: T) => R, node: TNode, arg?: T) {
+    function setSerializerContextAnd<TNode extends Node | undefined, R>(
+        serializerContext: RuntimeTypeSerializerContext,
+        cb: (node: TNode) => R,
+        node: TNode,
+    ): R;
+    function setSerializerContextAnd<TNode extends Node | undefined, T, R>(
+        serializerContext: RuntimeTypeSerializerContext,
+        cb: (node: TNode, arg: T) => R,
+        node: TNode,
+        arg: T,
+    ): R;
+    function setSerializerContextAnd<TNode extends Node | undefined, T, R>(
+        serializerContext: RuntimeTypeSerializerContext,
+        cb: (node: TNode, arg?: T) => R,
+        node: TNode,
+        arg?: T,
+    ) {
         const savedCurrentLexicalScope = currentLexicalScope;
         const savedCurrentNameScope = currentNameScope;
 
@@ -176,7 +206,14 @@ export function createRuntimeTypeSerializer(context: TransformationContext): Run
      * Serializes the type of a node for use with decorator type metadata.
      * @param node The node that should have its type serialized.
      */
-    function serializeTypeOfNode(node: PropertyDeclaration | ParameterDeclaration | AccessorDeclaration | ClassLikeDeclaration | MethodDeclaration): SerializedTypeNode {
+    function serializeTypeOfNode(
+        node:
+            | PropertyDeclaration
+            | ParameterDeclaration
+            | AccessorDeclaration
+            | ClassLikeDeclaration
+            | MethodDeclaration,
+    ): SerializedTypeNode {
         switch (node.kind) {
             case SyntaxKind.PropertyDeclaration:
             case SyntaxKind.Parameter:
@@ -290,9 +327,9 @@ export function createRuntimeTypeSerializer(context: TransformationContext): Run
                 return factory.createIdentifier("Array");
 
             case SyntaxKind.TypePredicate:
-                return (node as TypePredicateNode).assertsModifier ?
-                    factory.createVoidZero() :
-                    factory.createIdentifier("Boolean");
+                return (node as TypePredicateNode).assertsModifier
+                    ? factory.createVoidZero()
+                    : factory.createIdentifier("Boolean");
 
             case SyntaxKind.BooleanKeyword:
                 return factory.createIdentifier("Boolean");
@@ -320,13 +357,22 @@ export function createRuntimeTypeSerializer(context: TransformationContext): Run
                 return serializeTypeReferenceNode(node as TypeReferenceNode);
 
             case SyntaxKind.IntersectionType:
-                return serializeUnionOrIntersectionConstituents((node as UnionOrIntersectionTypeNode).types, /*isIntersection*/ true);
+                return serializeUnionOrIntersectionConstituents(
+                    (node as UnionOrIntersectionTypeNode).types,
+                    /*isIntersection*/ true,
+                );
 
             case SyntaxKind.UnionType:
-                return serializeUnionOrIntersectionConstituents((node as UnionOrIntersectionTypeNode).types, /*isIntersection*/ false);
+                return serializeUnionOrIntersectionConstituents(
+                    (node as UnionOrIntersectionTypeNode).types,
+                    /*isIntersection*/ false,
+                );
 
             case SyntaxKind.ConditionalType:
-                return serializeUnionOrIntersectionConstituents([(node as ConditionalTypeNode).trueType, (node as ConditionalTypeNode).falseType], /*isIntersection*/ false);
+                return serializeUnionOrIntersectionConstituents([
+                    (node as ConditionalTypeNode).trueType,
+                    (node as ConditionalTypeNode).falseType,
+                ], /*isIntersection*/ false);
 
             case SyntaxKind.TypeOperator:
                 if ((node as TypeOperatorNode).operator === SyntaxKind.ReadonlyKeyword) {
@@ -399,7 +445,10 @@ export function createRuntimeTypeSerializer(context: TransformationContext): Run
         }
     }
 
-    function serializeUnionOrIntersectionConstituents(types: readonly TypeNode[], isIntersection: boolean): SerializedTypeNode {
+    function serializeUnionOrIntersectionConstituents(
+        types: readonly TypeNode[],
+        isIntersection: boolean,
+    ): SerializedTypeNode {
         // Note when updating logic here also update `getEntityNameForDecoratorMetadata` in checker.ts so that aliases can be marked as referenced
         let serializedType: SerializedTypeNode | undefined;
         for (let typeNode of types) {
@@ -418,7 +467,11 @@ export function createRuntimeTypeSerializer(context: TransformationContext): Run
                 return factory.createIdentifier("Object"); // Reduce to `any` in a union or intersection
             }
 
-            if (!strictNullChecks && ((isLiteralTypeNode(typeNode) && typeNode.literal.kind === SyntaxKind.NullKeyword) || typeNode.kind === SyntaxKind.UndefinedKeyword)) {
+            if (
+                !strictNullChecks
+                && ((isLiteralTypeNode(typeNode) && typeNode.literal.kind === SyntaxKind.NullKeyword)
+                    || typeNode.kind === SyntaxKind.UndefinedKeyword)
+            ) {
                 continue; // Elide null and undefined from unions for metadata, just like what we did prior to the implementation of strict null checks
             }
 
@@ -449,37 +502,37 @@ export function createRuntimeTypeSerializer(context: TransformationContext): Run
     function equateSerializedTypeNodes(left: Expression, right: Expression): boolean {
         return (
             // temp vars used in fallback
-            isGeneratedIdentifier(left) ? isGeneratedIdentifier(right) :
+            isGeneratedIdentifier(left) ? isGeneratedIdentifier(right)
                 // entity names
-                isIdentifier(left) ? isIdentifier(right)
-                    && left.escapedText === right.escapedText :
-                isPropertyAccessExpression(left) ? isPropertyAccessExpression(right)
+                : isIdentifier(left) ? isIdentifier(right)
+                    && left.escapedText === right.escapedText
+                : isPropertyAccessExpression(left) ? isPropertyAccessExpression(right)
                     && equateSerializedTypeNodes(left.expression, right.expression)
-                    && equateSerializedTypeNodes(left.name, right.name) :
+                    && equateSerializedTypeNodes(left.name, right.name)
                 // `void 0`
-                isVoidExpression(left) ? isVoidExpression(right)
+                : isVoidExpression(left) ? isVoidExpression(right)
                     && isNumericLiteral(left.expression) && left.expression.text === "0"
-                    && isNumericLiteral(right.expression) && right.expression.text === "0" :
+                    && isNumericLiteral(right.expression) && right.expression.text === "0"
                 // `"undefined"` or `"function"` in `typeof` checks
-                isStringLiteral(left) ? isStringLiteral(right)
-                    && left.text === right.text :
+                : isStringLiteral(left) ? isStringLiteral(right)
+                    && left.text === right.text
                 // used in `typeof` checks for fallback
-                isTypeOfExpression(left) ? isTypeOfExpression(right)
-                    && equateSerializedTypeNodes(left.expression, right.expression) :
+                : isTypeOfExpression(left) ? isTypeOfExpression(right)
+                    && equateSerializedTypeNodes(left.expression, right.expression)
                 // parens in `typeof` checks with temps
-                isParenthesizedExpression(left) ? isParenthesizedExpression(right)
-                    && equateSerializedTypeNodes(left.expression, right.expression) :
+                : isParenthesizedExpression(left) ? isParenthesizedExpression(right)
+                    && equateSerializedTypeNodes(left.expression, right.expression)
                 // conditionals used in fallback
-                isConditionalExpression(left) ? isConditionalExpression(right)
+                : isConditionalExpression(left) ? isConditionalExpression(right)
                     && equateSerializedTypeNodes(left.condition, right.condition)
                     && equateSerializedTypeNodes(left.whenTrue, right.whenTrue)
-                    && equateSerializedTypeNodes(left.whenFalse, right.whenFalse) :
+                    && equateSerializedTypeNodes(left.whenFalse, right.whenFalse)
                 // logical binary and assignments used in fallback
-                isBinaryExpression(left) ? isBinaryExpression(right)
+                : isBinaryExpression(left) ? isBinaryExpression(right)
                     && left.operatorToken.kind === right.operatorToken.kind
                     && equateSerializedTypeNodes(left.left, right.left)
-                    && equateSerializedTypeNodes(left.right, right.right) :
-                false
+                    && equateSerializedTypeNodes(left.right, right.right)
+                : false
         );
     }
 
@@ -492,7 +545,11 @@ export function createRuntimeTypeSerializer(context: TransformationContext): Run
         switch (kind) {
             case TypeReferenceSerializationKind.Unknown:
                 // From conditional type type reference that cannot be resolved is Similar to any or unknown
-                if (findAncestor(node, n => n.parent && isConditionalTypeNode(n.parent) && (n.parent.trueType === n || n.parent.falseType === n))) {
+                if (
+                    findAncestor(node, n =>
+                        n.parent && isConditionalTypeNode(n.parent)
+                        && (n.parent.trueType === n || n.parent.falseType === n))
+                ) {
                     return factory.createIdentifier("Object");
                 }
 
@@ -557,7 +614,10 @@ export function createRuntimeTypeSerializer(context: TransformationContext): Run
      */
     function createCheckedValue(left: Expression, right: Expression) {
         return factory.createLogicalAnd(
-            factory.createStrictInequality(factory.createTypeOfExpression(left), factory.createStringLiteral("undefined")),
+            factory.createStrictInequality(
+                factory.createTypeOfExpression(left),
+                factory.createStringLiteral("undefined"),
+            ),
             right,
         );
     }
@@ -574,7 +634,10 @@ export function createRuntimeTypeSerializer(context: TransformationContext): Run
         }
         if (node.left.kind === SyntaxKind.Identifier) {
             // A.B -> typeof A !== "undefined" && A.B
-            return createCheckedValue(serializeEntityNameAsExpression(node.left), serializeEntityNameAsExpression(node));
+            return createCheckedValue(
+                serializeEntityNameAsExpression(node.left),
+                serializeEntityNameAsExpression(node),
+            );
         }
         // A.B.C -> typeof A !== "undefined" && (_a = A.B) !== void 0 && _a.C
         const left = serializeEntityNameAsExpressionFallback(node.left);
@@ -612,7 +675,10 @@ export function createRuntimeTypeSerializer(context: TransformationContext): Run
      * @param node The qualified name to serialize.
      */
     function serializeQualifiedNameAsExpression(node: QualifiedName): SerializedEntityName {
-        return factory.createPropertyAccessExpression(serializeEntityNameAsExpression(node.left), node.right) as PropertyAccessEntityNameExpression;
+        return factory.createPropertyAccessExpression(
+            serializeEntityNameAsExpression(node.left),
+            node.right,
+        ) as PropertyAccessEntityNameExpression;
     }
 
     function getGlobalConstructorWithFallback(name: string) {
@@ -626,8 +692,8 @@ export function createRuntimeTypeSerializer(context: TransformationContext): Run
     }
 
     function getGlobalConstructor(name: string, minLanguageVersion: ScriptTarget): SerializedTypeNode {
-        return languageVersion < minLanguageVersion ?
-            getGlobalConstructorWithFallback(name) :
-            factory.createIdentifier(name);
+        return languageVersion < minLanguageVersion
+            ? getGlobalConstructorWithFallback(name)
+            : factory.createIdentifier(name);
     }
 }

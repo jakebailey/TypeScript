@@ -50,7 +50,10 @@ describe("unittests:: tsserver:: moduleResolution", () => {
                         }
                     `,
             };
-            const host = createServerHost([configFile, fileA, fileB, packageFile, { ...libFile, path: "/a/lib/lib.es2016.full.d.ts" }]);
+            const host = createServerHost([configFile, fileA, fileB, packageFile, {
+                ...libFile,
+                path: "/a/lib/lib.es2016.full.d.ts",
+            }]);
             const session = createSession(host, { canUseEvents: true, logger: createLoggerWithInMemoryLogs(host) });
             openFilesForSession([fileA], session);
             return {
@@ -147,7 +150,11 @@ describe("unittests:: tsserver:: moduleResolution", () => {
             host.runQueuedTimeoutCallbacks(); // Actual update
             verifyErr();
 
-            baselineTsserverLogs("moduleResolution", "package json file is edited when package json with type module exists", session);
+            baselineTsserverLogs(
+                "moduleResolution",
+                "package json file is edited when package json with type module exists",
+                session,
+            );
         });
     });
 
@@ -163,25 +170,49 @@ describe("unittests:: tsserver:: moduleResolution", () => {
         verifyErrors();
         host.deleteFile("/home/src/projects/project/node_modules/foo/index.d.ts");
         verifyErrors();
-        host.writeFile("/home/src/projects/project/node_modules/@types/bar/index.d.ts", getFsContentsForNode10ResultDts("bar"));
+        host.writeFile(
+            "/home/src/projects/project/node_modules/@types/bar/index.d.ts",
+            getFsContentsForNode10ResultDts("bar"),
+        );
         verifyErrors();
-        host.writeFile("/home/src/projects/project/node_modules/foo/index.d.ts", getFsContentsForNode10ResultDts("foo"));
+        host.writeFile(
+            "/home/src/projects/project/node_modules/foo/index.d.ts",
+            getFsContentsForNode10ResultDts("foo"),
+        );
         verifyErrors();
-        host.writeFile("/home/src/projects/project/node_modules/@types/bar/package.json", getFsConentsForNode10ResultAtTypesPackageJson("bar", /*addTypesCondition*/ true));
+        host.writeFile(
+            "/home/src/projects/project/node_modules/@types/bar/package.json",
+            getFsConentsForNode10ResultAtTypesPackageJson("bar", /*addTypesCondition*/ true),
+        );
         verifyErrors();
-        host.writeFile("/home/src/projects/project/node_modules/foo/package.json", getFsContentsForNode10ResultPackageJson("foo", /*addTypes*/ true, /*addTypesCondition*/ true));
+        host.writeFile(
+            "/home/src/projects/project/node_modules/foo/package.json",
+            getFsContentsForNode10ResultPackageJson("foo", /*addTypes*/ true, /*addTypesCondition*/ true),
+        );
         verifyErrors();
-        host.writeFile("/home/src/projects/project/node_modules/@types/bar2/package.json", getFsConentsForNode10ResultAtTypesPackageJson("bar2", /*addTypesCondition*/ false));
+        host.writeFile(
+            "/home/src/projects/project/node_modules/@types/bar2/package.json",
+            getFsConentsForNode10ResultAtTypesPackageJson("bar2", /*addTypesCondition*/ false),
+        );
         verifyErrors();
-        host.writeFile("/home/src/projects/project/node_modules/foo2/package.json", getFsContentsForNode10ResultPackageJson("foo2", /*addTypes*/ true, /*addTypesCondition*/ false));
+        host.writeFile(
+            "/home/src/projects/project/node_modules/foo2/package.json",
+            getFsContentsForNode10ResultPackageJson("foo2", /*addTypes*/ true, /*addTypesCondition*/ false),
+        );
         verifyErrors();
         host.deleteFile("/home/src/projects/project/node_modules/@types/bar2/index.d.ts");
         verifyErrors();
         host.deleteFile("/home/src/projects/project/node_modules/foo2/index.d.ts");
         verifyErrors();
-        host.writeFile("/home/src/projects/project/node_modules/@types/bar2/index.d.ts", getFsContentsForNode10ResultDts("bar2"));
+        host.writeFile(
+            "/home/src/projects/project/node_modules/@types/bar2/index.d.ts",
+            getFsContentsForNode10ResultDts("bar2"),
+        );
         verifyErrors();
-        host.writeFile("/home/src/projects/project/node_modules/foo2/index.d.ts", getFsContentsForNode10ResultDts("foo2"));
+        host.writeFile(
+            "/home/src/projects/project/node_modules/foo2/index.d.ts",
+            getFsContentsForNode10ResultDts("foo2"),
+        );
         verifyErrors();
 
         baselineTsserverLogs("moduleResolution", "node10Result", session);

@@ -343,14 +343,22 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
     }
 
     function exitClass() {
-        Debug.assert(top?.kind === "class", "Incorrect value for top.kind.", () => `Expected top.kind to be 'class' but got '${top?.kind}' instead.`);
+        Debug.assert(
+            top?.kind === "class",
+            "Incorrect value for top.kind.",
+            () => `Expected top.kind to be 'class' but got '${top?.kind}' instead.`,
+        );
         pendingExpressions = top.savedPendingExpressions;
         top = top.next;
         updateState();
     }
 
     function enterClassElement(node: ClassElement) {
-        Debug.assert(top?.kind === "class", "Incorrect value for top.kind.", () => `Expected top.kind to be 'class' but got '${top?.kind}' instead.`);
+        Debug.assert(
+            top?.kind === "class",
+            "Incorrect value for top.kind.",
+            () => `Expected top.kind to be 'class' but got '${top?.kind}' instead.`,
+        );
         top = { kind: "class-element", next: top };
         if (isClassStaticBlockDeclaration(node) || isPropertyDeclaration(node) && hasStaticModifier(node)) {
             top.classThis = top.next.classInfo?.classThis;
@@ -360,20 +368,36 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
     }
 
     function exitClassElement() {
-        Debug.assert(top?.kind === "class-element", "Incorrect value for top.kind.", () => `Expected top.kind to be 'class-element' but got '${top?.kind}' instead.`);
-        Debug.assert(top.next?.kind === "class", "Incorrect value for top.next.kind.", () => `Expected top.next.kind to be 'class' but got '${top!.next?.kind}' instead.`);
+        Debug.assert(
+            top?.kind === "class-element",
+            "Incorrect value for top.kind.",
+            () => `Expected top.kind to be 'class-element' but got '${top?.kind}' instead.`,
+        );
+        Debug.assert(
+            top.next?.kind === "class",
+            "Incorrect value for top.next.kind.",
+            () => `Expected top.next.kind to be 'class' but got '${top!.next?.kind}' instead.`,
+        );
         top = top.next;
         updateState();
     }
 
     function enterName() {
-        Debug.assert(top?.kind === "class-element", "Incorrect value for top.kind.", () => `Expected top.kind to be 'class-element' but got '${top?.kind}' instead.`);
+        Debug.assert(
+            top?.kind === "class-element",
+            "Incorrect value for top.kind.",
+            () => `Expected top.kind to be 'class-element' but got '${top?.kind}' instead.`,
+        );
         top = { kind: "name", next: top };
         updateState();
     }
 
     function exitName() {
-        Debug.assert(top?.kind === "name", "Incorrect value for top.kind.", () => `Expected top.kind to be 'name' but got '${top?.kind}' instead.`);
+        Debug.assert(
+            top?.kind === "name",
+            "Incorrect value for top.kind.",
+            () => `Expected top.kind to be 'name' but got '${top?.kind}' instead.`,
+        );
         top = top.next;
         updateState();
     }
@@ -391,7 +415,11 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
     }
 
     function exitOther() {
-        Debug.assert(top?.kind === "other", "Incorrect value for top.kind.", () => `Expected top.kind to be 'other' but got '${top?.kind}' instead.`);
+        Debug.assert(
+            top?.kind === "other",
+            "Incorrect value for top.kind.",
+            () => `Expected top.kind to be 'other' but got '${top?.kind}' instead.`,
+        );
         if (top.depth > 0) {
             Debug.assert(!pendingExpressions);
             top.depth--;
@@ -457,7 +485,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
                 return visitTaggedTemplateExpression(node as TaggedTemplateExpression);
             case SyntaxKind.PrefixUnaryExpression:
             case SyntaxKind.PostfixUnaryExpression:
-                return visitPreOrPostfixUnaryExpression(node as PrefixUnaryExpression | PostfixUnaryExpression, /*discarded*/ false);
+                return visitPreOrPostfixUnaryExpression(
+                    node as PrefixUnaryExpression | PostfixUnaryExpression,
+                    /*discarded*/ false,
+                );
             case SyntaxKind.PropertyAccessExpression:
                 return visitPropertyAccessExpression(node as PropertyAccessExpression);
             case SyntaxKind.ElementAccessExpression:
@@ -522,7 +553,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         switch (node.kind) {
             case SyntaxKind.PrefixUnaryExpression:
             case SyntaxKind.PostfixUnaryExpression:
-                return visitPreOrPostfixUnaryExpression(node as PrefixUnaryExpression | PostfixUnaryExpression, /*discarded*/ true);
+                return visitPreOrPostfixUnaryExpression(
+                    node as PrefixUnaryExpression | PostfixUnaryExpression,
+                    /*discarded*/ true,
+                );
             case SyntaxKind.BinaryExpression:
                 return visitBinaryExpression(node as BinaryExpression, /*discarded*/ true);
             case SyntaxKind.CommaListExpression:
@@ -535,10 +569,13 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
     }
 
     function getHelperVariableName(node: ClassLikeDeclaration | ClassElement) {
-        let declarationName = node.name && isIdentifier(node.name) && !isGeneratedIdentifier(node.name) ? idText(node.name) :
-            node.name && isPrivateIdentifier(node.name) && !isGeneratedIdentifier(node.name) ? idText(node.name).slice(1) :
-            node.name && isStringLiteral(node.name) && isIdentifierText(node.name.text, ScriptTarget.ESNext) ? node.name.text :
-            isClassLike(node) ? "class" : "member";
+        let declarationName = node.name && isIdentifier(node.name) && !isGeneratedIdentifier(node.name)
+            ? idText(node.name)
+            : node.name && isPrivateIdentifier(node.name) && !isGeneratedIdentifier(node.name)
+            ? idText(node.name).slice(1)
+            : node.name && isStringLiteral(node.name) && isIdentifierText(node.name.text, ScriptTarget.ESNext)
+            ? node.name.text
+            : isClassLike(node) ? "class" : "member";
         if (isGetAccessor(node)) declarationName = `get_${declarationName}`;
         if (isSetAccessor(node)) declarationName = `set_${declarationName}`;
         if (node.name && isPrivateIdentifier(node.name)) declarationName = `private_${declarationName}`;
@@ -547,7 +584,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
     }
 
     function createHelperVariable(node: ClassLikeDeclaration | ClassElement, suffix: string) {
-        return factory.createUniqueName(`${getHelperVariableName(node)}_${suffix}`, GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.ReservedInNestedScopes);
+        return factory.createUniqueName(
+            `${getHelperVariableName(node)}_${suffix}`,
+            GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.ReservedInNestedScopes,
+        );
     }
 
     function createLet(name: Identifier, initializer?: Expression) {
@@ -565,7 +605,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
     }
 
     function createClassInfo(node: ClassLikeDeclaration): ClassInfo {
-        const metadataReference = factory.createUniqueName("_metadata", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel);
+        const metadataReference = factory.createUniqueName(
+            "_metadata",
+            GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel,
+        );
         let instanceExtraInitializersName: Identifier | undefined;
         let staticExtraInitializersName: Identifier | undefined;
         let hasStaticInitializers = false;
@@ -578,10 +621,16 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         for (const member of node.members) {
             if (isNamedClassElement(member) && nodeOrChildIsDecorated(/*useLegacyDecorators*/ false, member, node)) {
                 if (hasStaticModifier(member)) {
-                    staticExtraInitializersName ??= factory.createUniqueName("_staticExtraInitializers", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel);
+                    staticExtraInitializersName ??= factory.createUniqueName(
+                        "_staticExtraInitializers",
+                        GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel,
+                    );
                 }
                 else {
-                    instanceExtraInitializersName ??= factory.createUniqueName("_instanceExtraInitializers", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel);
+                    instanceExtraInitializersName ??= factory.createUniqueName(
+                        "_instanceExtraInitializers",
+                        GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel,
+                    );
                 }
             }
             if (isClassStaticBlockDeclaration(member)) {
@@ -598,17 +647,20 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
                 }
             }
 
-            if ((isPrivateIdentifierClassElementDeclaration(member) || isAutoAccessorPropertyDeclaration(member)) && hasStaticModifier(member)) {
+            if (
+                (isPrivateIdentifierClassElementDeclaration(member) || isAutoAccessorPropertyDeclaration(member))
+                && hasStaticModifier(member)
+            ) {
                 hasStaticPrivateClassElements = true;
             }
 
             // exit early if possible
             if (
-                staticExtraInitializersName &&
-                instanceExtraInitializersName &&
-                hasStaticInitializers &&
-                hasNonAmbientInstanceFields &&
-                hasStaticPrivateClassElements
+                staticExtraInitializersName
+                && instanceExtraInitializersName
+                && hasStaticInitializers
+                && hasNonAmbientInstanceFields
+                && hasStaticPrivateClassElements
             ) {
                 break;
             }
@@ -630,11 +682,19 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
 
         // When a class has class decorators we end up transforming it into a statement that would otherwise give it an
         // assigned name. If the class doesn't have an assigned name, we'll give it an assigned name of `""`)
-        if (!classHasDeclaredOrExplicitlyAssignedName(node) && classOrConstructorParameterIsDecorated(/*useLegacyDecorators*/ false, node)) {
+        if (
+            !classHasDeclaredOrExplicitlyAssignedName(node)
+            && classOrConstructorParameterIsDecorated(/*useLegacyDecorators*/ false, node)
+        ) {
             node = injectClassNamedEvaluationHelperBlockIfMissing(context, node, factory.createStringLiteral(""));
         }
 
-        const classReference = factory.getLocalName(node, /*allowComments*/ false, /*allowSourceMaps*/ false, /*ignoreAssignedName*/ true);
+        const classReference = factory.getLocalName(
+            node,
+            /*allowComments*/ false,
+            /*allowSourceMaps*/ false,
+            /*ignoreAssignedName*/ true,
+        );
         const classInfo = createClassInfo(node);
         const classDefinitionStatements: Statement[] = [];
         let leadingBlockStatements: Statement[] | undefined;
@@ -652,17 +712,31 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
             //   of the mutated class.
             // - Since a class decorator can add extra initializers, we must define a variable to keep track of
             //   extra initializers.
-            classInfo.classDecoratorsName = factory.createUniqueName("_classDecorators", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel);
-            classInfo.classDescriptorName = factory.createUniqueName("_classDescriptor", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel);
-            classInfo.classExtraInitializersName = factory.createUniqueName("_classExtraInitializers", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel);
+            classInfo.classDecoratorsName = factory.createUniqueName(
+                "_classDecorators",
+                GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel,
+            );
+            classInfo.classDescriptorName = factory.createUniqueName(
+                "_classDescriptor",
+                GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel,
+            );
+            classInfo.classExtraInitializersName = factory.createUniqueName(
+                "_classExtraInitializers",
+                GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel,
+            );
             // We do not mark _classThis as FileLevel if it may be reused by class private fields, which requires the
             // ability access the captured `_classThis` of outer scopes.
-            const needsUniqueClassThis = some(node.members, member => (isPrivateIdentifierClassElementDeclaration(member) || isAutoAccessorPropertyDeclaration(member)) && hasStaticModifier(member));
+            const needsUniqueClassThis = some(
+                node.members,
+                member =>
+                    (isPrivateIdentifierClassElementDeclaration(member) || isAutoAccessorPropertyDeclaration(member))
+                    && hasStaticModifier(member),
+            );
             classInfo.classThis = factory.createUniqueName(
                 "_classThis",
-                needsUniqueClassThis ?
-                    GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.ReservedInNestedScopes :
-                    GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel,
+                needsUniqueClassThis
+                    ? GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.ReservedInNestedScopes
+                    : GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel,
             );
             classDefinitionStatements.push(
                 createLet(classInfo.classDecoratorsName, factory.createArrayLiteralExpression(classDecorators)),
@@ -682,18 +756,25 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         const extendsElement = extendsClause && firstOrUndefined(extendsClause.types);
         const extendsExpression = extendsElement && visitNode(extendsElement.expression, visitor, isExpression);
         if (extendsExpression) {
-            classInfo.classSuper = factory.createUniqueName("_classSuper", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel);
+            classInfo.classSuper = factory.createUniqueName(
+                "_classSuper",
+                GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel,
+            );
 
             // Ensure we do not give the class or function an assigned name due to the variable by prefixing it
             // with `0, `.
             const unwrapped = skipOuterExpressions(extendsExpression);
-            const safeExtendsExpression = isClassExpression(unwrapped) && !unwrapped.name ||
-                    isFunctionExpression(unwrapped) && !unwrapped.name ||
-                    isArrowFunction(unwrapped) ?
-                factory.createComma(factory.createNumericLiteral(0), extendsExpression) :
-                extendsExpression;
+            const safeExtendsExpression = isClassExpression(unwrapped) && !unwrapped.name
+                    || isFunctionExpression(unwrapped) && !unwrapped.name
+                    || isArrowFunction(unwrapped)
+                ? factory.createComma(factory.createNumericLiteral(0), extendsExpression)
+                : extendsExpression;
             classDefinitionStatements.push(createLet(classInfo.classSuper, safeExtendsExpression));
-            const updatedExtendsElement = factory.updateExpressionWithTypeArguments(extendsElement, classInfo.classSuper, /*typeArguments*/ undefined);
+            const updatedExtendsElement = factory.updateExpressionWithTypeArguments(
+                extendsElement,
+                classInfo.classSuper,
+                /*typeArguments*/ undefined,
+            );
             const updatedExtendsClause = factory.updateHeritageClause(extendsClause, [updatedExtendsElement]);
             heritageClauses = factory.createNodeArray([updatedExtendsClause]);
         }
@@ -716,7 +797,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         // NOTE: If there are no constructors, but there are instance initializers, a synthetic constructor is added.
         enterClass(classInfo);
 
-        leadingBlockStatements = append(leadingBlockStatements, createMetadata(classInfo.metadataReference, classInfo.classSuper));
+        leadingBlockStatements = append(
+            leadingBlockStatements,
+            createMetadata(classInfo.metadataReference, classInfo.classSuper),
+        );
 
         let members = visitNodes(node.members, classElementVisitor, isClassElement);
         if (pendingExpressions) {
@@ -755,18 +839,25 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
             const initializerStatements = prepareConstructor(node, classInfo);
             if (initializerStatements) {
                 const extendsClauseElement = getEffectiveBaseTypeNode(node);
-                const isDerivedClass = !!(extendsClauseElement && skipOuterExpressions(extendsClauseElement.expression).kind !== SyntaxKind.NullKeyword);
+                const isDerivedClass = !!(extendsClauseElement
+                    && skipOuterExpressions(extendsClauseElement.expression).kind !== SyntaxKind.NullKeyword);
                 const constructorStatements: Statement[] = [];
                 if (isDerivedClass) {
                     const spreadArguments = factory.createSpreadElement(factory.createIdentifier("arguments"));
-                    const superCall = factory.createCallExpression(factory.createSuper(), /*typeArguments*/ undefined, [spreadArguments]);
+                    const superCall = factory.createCallExpression(factory.createSuper(), /*typeArguments*/ undefined, [
+                        spreadArguments,
+                    ]);
                     constructorStatements.push(factory.createExpressionStatement(superCall));
                 }
 
                 addRange(constructorStatements, initializerStatements);
 
                 const constructorBody = factory.createBlock(constructorStatements, /*multiLine*/ true);
-                syntheticConstructor = factory.createConstructorDeclaration(/*modifiers*/ undefined, [], constructorBody);
+                syntheticConstructor = factory.createConstructorDeclaration(
+                    /*modifiers*/ undefined,
+                    [],
+                    constructorBody,
+                );
             }
         }
 
@@ -790,7 +881,9 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
                 if (isStatic(member)) {
                     classDefinitionStatements.push(createLet(memberInfo.memberDecoratorsName));
                     if (memberInfo.memberInitializersName) {
-                        classDefinitionStatements.push(createLet(memberInfo.memberInitializersName, factory.createArrayLiteralExpression()));
+                        classDefinitionStatements.push(
+                            createLet(memberInfo.memberInitializersName, factory.createArrayLiteralExpression()),
+                        );
                     }
                     if (memberInfo.memberDescriptorName) {
                         classDefinitionStatements.push(createLet(memberInfo.memberDescriptorName));
@@ -805,7 +898,9 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
                 if (!isStatic(member)) {
                     classDefinitionStatements.push(createLet(memberInfo.memberDecoratorsName));
                     if (memberInfo.memberInitializersName) {
-                        classDefinitionStatements.push(createLet(memberInfo.memberInitializersName, factory.createArrayLiteralExpression()));
+                        classDefinitionStatements.push(
+                            createLet(memberInfo.memberInitializersName, factory.createArrayLiteralExpression()),
+                        );
                     }
                     if (memberInfo.memberDescriptorName) {
                         classDefinitionStatements.push(createLet(memberInfo.memberDescriptorName));
@@ -828,7 +923,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
 
         // 9. Class decorators are applied
         // 10. Class binding is initialized
-        if (classInfo.classDescriptorName && classInfo.classDecoratorsName && classInfo.classExtraInitializersName && classInfo.classThis) {
+        if (
+            classInfo.classDescriptorName && classInfo.classDecoratorsName && classInfo.classExtraInitializersName
+            && classInfo.classThis
+        ) {
             leadingBlockStatements ??= [];
 
             // produces:
@@ -851,7 +949,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
 
             // produces:
             //  C = _classThis = _classDescriptor.value;
-            const classDescriptorValueReference = factory.createPropertyAccessExpression(classInfo.classDescriptorName, "value");
+            const classDescriptorValueReference = factory.createPropertyAccessExpression(
+                classInfo.classDescriptorName,
+                "value",
+            );
             const classThisAssignment = factory.createAssignment(classInfo.classThis, classDescriptorValueReference);
             const classReferenceAssignment = factory.createAssignment(classReference, classThisAssignment);
             leadingBlockStatements.push(factory.createExpressionStatement(classReferenceAssignment));
@@ -862,7 +963,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
 
         // 11. Static extra initializers are evaluated
         if (classInfo.staticExtraInitializersName) {
-            const runStaticInitializersHelper = emitHelpers().createRunInitializersHelper(renamedClassThis, classInfo.staticExtraInitializersName);
+            const runStaticInitializersHelper = emitHelpers().createRunInitializersHelper(
+                renamedClassThis,
+                classInfo.staticExtraInitializersName,
+            );
             const runStaticInitializersStatement = factory.createExpressionStatement(runStaticInitializersHelper);
             setSourceMapRange(runStaticInitializersStatement, node.name ?? moveRangePastDecorators(node));
             leadingBlockStatements = append(leadingBlockStatements, runStaticInitializersStatement);
@@ -872,7 +976,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
 
         // 13. Class extra initializers are evaluated
         if (classInfo.classExtraInitializersName) {
-            const runClassInitializersHelper = emitHelpers().createRunInitializersHelper(renamedClassThis, classInfo.classExtraInitializersName);
+            const runClassInitializersHelper = emitHelpers().createRunInitializersHelper(
+                renamedClassThis,
+                classInfo.classExtraInitializersName,
+            );
             const runClassInitializersStatement = factory.createExpressionStatement(runClassInitializersHelper);
             setSourceMapRange(runClassInitializersStatement, node.name ?? moveRangePastDecorators(node));
             trailingBlockStatements = append(trailingBlockStatements, runClassInitializersStatement);
@@ -891,8 +998,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         //      static { ... }
         //      ...
         //  }
-        const leadingStaticBlock = leadingBlockStatements &&
-            factory.createClassStaticBlockDeclaration(factory.createBlock(leadingBlockStatements, /*multiLine*/ true));
+        const leadingStaticBlock = leadingBlockStatements
+            && factory.createClassStaticBlockDeclaration(
+                factory.createBlock(leadingBlockStatements, /*multiLine*/ true),
+            );
 
         if (leadingStaticBlock && shouldTransformPrivateStaticElementsInClass) {
             // We use `InternalEmitFlags.TransformPrivateStaticElements` as a marker on a class static block
@@ -908,8 +1017,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         //      ...
         //      static { ... }
         //  }
-        const trailingStaticBlock = trailingBlockStatements &&
-            factory.createClassStaticBlockDeclaration(factory.createBlock(trailingBlockStatements, /*multiLine*/ true));
+        const trailingStaticBlock = trailingBlockStatements
+            && factory.createClassStaticBlockDeclaration(
+                factory.createBlock(trailingBlockStatements, /*multiLine*/ true),
+            );
 
         if (leadingStaticBlock || syntheticConstructor || trailingStaticBlock) {
             const newMembers: ClassElement[] = [];
@@ -967,14 +1078,26 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
             //      return C;
             //  })();
 
-            classExpression = factory.createClassExpression(/*modifiers*/ undefined, /*name*/ undefined, /*typeParameters*/ undefined, heritageClauses, members);
+            classExpression = factory.createClassExpression(
+                /*modifiers*/ undefined,
+                /*name*/ undefined,
+                /*typeParameters*/ undefined,
+                heritageClauses,
+                members,
+            );
             if (classInfo.classThis) {
                 classExpression = injectClassThisAssignmentIfMissing(factory, classExpression, classInfo.classThis);
             }
 
-            const classReferenceDeclaration = factory.createVariableDeclaration(classReference, /*exclamationToken*/ undefined, /*type*/ undefined, classExpression);
+            const classReferenceDeclaration = factory.createVariableDeclaration(
+                classReference,
+                /*exclamationToken*/ undefined,
+                /*type*/ undefined,
+                classExpression,
+            );
             const classReferenceVarDeclList = factory.createVariableDeclarationList([classReferenceDeclaration]);
-            const returnExpr = classInfo.classThis ? factory.createAssignment(classReference, classInfo.classThis) : classReference;
+            const returnExpr = classInfo.classThis ? factory.createAssignment(classReference, classInfo.classThis)
+                : classReference;
             classDefinitionStatements.push(
                 factory.createVariableStatement(/*modifiers*/ undefined, classReferenceVarDeclList),
                 factory.createReturnStatement(returnExpr),
@@ -983,33 +1106,45 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         else {
             // produces:
             //  return <classExpression>;
-            classExpression = factory.createClassExpression(/*modifiers*/ undefined, node.name, /*typeParameters*/ undefined, heritageClauses, members);
+            classExpression = factory.createClassExpression(
+                /*modifiers*/ undefined,
+                node.name,
+                /*typeParameters*/ undefined,
+                heritageClauses,
+                members,
+            );
             classDefinitionStatements.push(factory.createReturnStatement(classExpression));
         }
 
         if (shouldTransformPrivateStaticElementsInClass) {
             addInternalEmitFlags(classExpression, InternalEmitFlags.TransformPrivateStaticElements);
             for (const member of classExpression.members) {
-                if ((isPrivateIdentifierClassElementDeclaration(member) || isAutoAccessorPropertyDeclaration(member)) && hasStaticModifier(member)) {
+                if (
+                    (isPrivateIdentifierClassElementDeclaration(member) || isAutoAccessorPropertyDeclaration(member))
+                    && hasStaticModifier(member)
+                ) {
                     addInternalEmitFlags(member, InternalEmitFlags.TransformPrivateStaticElements);
                 }
             }
         }
 
         setOriginalNode(classExpression, node);
-        return factory.createImmediatelyInvokedArrowFunction(factory.mergeLexicalEnvironment(classDefinitionStatements, lexicalEnvironment));
+        return factory.createImmediatelyInvokedArrowFunction(
+            factory.mergeLexicalEnvironment(classDefinitionStatements, lexicalEnvironment),
+        );
     }
 
     function isDecoratedClassLike(node: ClassLikeDeclaration) {
-        return classOrConstructorParameterIsDecorated(/*useLegacyDecorators*/ false, node) ||
-            childIsDecorated(/*useLegacyDecorators*/ false, node);
+        return classOrConstructorParameterIsDecorated(/*useLegacyDecorators*/ false, node)
+            || childIsDecorated(/*useLegacyDecorators*/ false, node);
     }
 
     function visitClassDeclaration(node: ClassDeclaration): VisitResult<Statement> {
         if (isDecoratedClassLike(node)) {
             const statements: Statement[] = [];
             const originalClass = getOriginalNode(node, isClassLike) ?? node;
-            const className = originalClass.name ? factory.createStringLiteralFromNode(originalClass.name) : factory.createStringLiteral("default");
+            const className = originalClass.name ? factory.createStringLiteralFromNode(originalClass.name)
+                : factory.createStringLiteral("default");
             const isExport = hasSyntacticModifier(node, ModifierFlags.Export);
             const isDefault = hasSyntacticModifier(node, ModifierFlags.Default);
             if (!node.name) {
@@ -1020,7 +1155,12 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
                 if (node.name) {
                     //  let C = (() => { ... })();
                     //  export default C;
-                    const varDecl = factory.createVariableDeclaration(factory.getLocalName(node), /*exclamationToken*/ undefined, /*type*/ undefined, iife);
+                    const varDecl = factory.createVariableDeclaration(
+                        factory.getLocalName(node),
+                        /*exclamationToken*/ undefined,
+                        /*type*/ undefined,
+                        iife,
+                    );
                     setOriginalNode(varDecl, node);
 
                     const varDecls = factory.createVariableDeclarationList([varDecl], NodeFlags.Let);
@@ -1046,10 +1186,16 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
                 //  let C = (() => { ... })();
                 Debug.assertIsDefined(node.name, "A class declaration that is not a default export must have a name.");
                 const iife = transformClassLike(node);
-                const modifierVisitorNoExport = isExport ? ((node: ModifierLike) => isExportModifier(node) ? undefined : modifierVisitor(node)) : modifierVisitor;
+                const modifierVisitorNoExport = isExport ? ((node: ModifierLike) =>
+                    isExportModifier(node) ? undefined : modifierVisitor(node)) : modifierVisitor;
                 const modifiers = visitNodes(node.modifiers, modifierVisitorNoExport, isModifier);
                 const declName = factory.getLocalName(node, /*allowComments*/ false, /*allowSourceMaps*/ true);
-                const varDecl = factory.createVariableDeclaration(declName, /*exclamationToken*/ undefined, /*type*/ undefined, iife);
+                const varDecl = factory.createVariableDeclaration(
+                    declName,
+                    /*exclamationToken*/ undefined,
+                    /*type*/ undefined,
+                    iife,
+                );
                 setOriginalNode(varDecl, node);
 
                 const varDecls = factory.createVariableDeclarationList([varDecl], NodeFlags.Let);
@@ -1072,7 +1218,14 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
             enterClass(/*classInfo*/ undefined);
             const members = visitNodes(node.members, classElementVisitor, isClassElement);
             exitClass();
-            return factory.updateClassDeclaration(node, modifiers, node.name, /*typeParameters*/ undefined, heritageClauses, members);
+            return factory.updateClassDeclaration(
+                node,
+                modifiers,
+                node.name,
+                /*typeParameters*/ undefined,
+                heritageClauses,
+                members,
+            );
         }
     }
 
@@ -1088,7 +1241,14 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
             enterClass(/*classInfo*/ undefined);
             const members = visitNodes(node.members, classElementVisitor, isClassElement);
             exitClass();
-            return factory.updateClassExpression(node, modifiers, node.name, /*typeParameters*/ undefined, heritageClauses, members);
+            return factory.updateClassExpression(
+                node,
+                modifiers,
+                node.name,
+                /*typeParameters*/ undefined,
+                heritageClauses,
+                members,
+            );
         }
     }
 
@@ -1115,10 +1275,20 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         }
     }
 
-    function transformConstructorBodyWorker(statementsOut: Statement[], statementsIn: NodeArray<Statement>, statementOffset: number, superPath: readonly number[], superPathDepth: number, initializerStatements: readonly Statement[]) {
+    function transformConstructorBodyWorker(
+        statementsOut: Statement[],
+        statementsIn: NodeArray<Statement>,
+        statementOffset: number,
+        superPath: readonly number[],
+        superPathDepth: number,
+        initializerStatements: readonly Statement[],
+    ) {
         const superStatementIndex = superPath[superPathDepth];
         const superStatement = statementsIn[superStatementIndex];
-        addRange(statementsOut, visitNodes(statementsIn, visitor, isStatement, statementOffset, superStatementIndex - statementOffset));
+        addRange(
+            statementsOut,
+            visitNodes(statementsIn, visitor, isStatement, statementOffset, superStatementIndex - statementOffset),
+        );
         if (isTryStatement(superStatement)) {
             const tryBlockStatements: Statement[] = [];
 
@@ -1159,10 +1329,22 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
             const initializerStatements = prepareConstructor(classInfo.class, classInfo);
             if (initializerStatements) {
                 const statements: Statement[] = [];
-                const nonPrologueStart = factory.copyPrologue(node.body.statements, statements, /*ensureUseStrict*/ false, visitor);
+                const nonPrologueStart = factory.copyPrologue(
+                    node.body.statements,
+                    statements,
+                    /*ensureUseStrict*/ false,
+                    visitor,
+                );
                 const superStatementIndices = findSuperStatementIndexPath(node.body.statements, nonPrologueStart);
                 if (superStatementIndices.length > 0) {
-                    transformConstructorBodyWorker(statements, node.body.statements, nonPrologueStart, superStatementIndices, 0, initializerStatements);
+                    transformConstructorBodyWorker(
+                        statements,
+                        node.body.statements,
+                        nonPrologueStart,
+                        superStatementIndices,
+                        0,
+                        initializerStatements,
+                    );
                 }
                 else {
                     addRange(statements, initializerStatements);
@@ -1194,7 +1376,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
     >(
         member: TNode,
         classInfo: ClassInfo | undefined,
-        createDescriptor?: (node: TNode & { readonly name: PrivateIdentifier; }, modifiers: ModifiersArray | undefined) => Expression,
+        createDescriptor?: (
+            node: TNode & { readonly name: PrivateIdentifier; },
+            modifiers: ModifiersArray | undefined,
+        ) => Expression,
     ) {
         let referencedName: Expression | undefined;
         let name: PropertyName | undefined;
@@ -1212,7 +1397,9 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         // Member decorators require privileged access to private names. However, computed property
         // evaluation occurs interspersed with decorator evaluation. This means that if we encounter
         // a computed property name we must inline decorator evaluation.
-        const memberDecorators = transformAllDecoratorsOfDeclaration(getAllDecoratorsOfClassElement(member, classInfo.class, /*useLegacyDecorators*/ false));
+        const memberDecorators = transformAllDecoratorsOfDeclaration(
+            getAllDecoratorsOfClassElement(member, classInfo.class, /*useLegacyDecorators*/ false),
+        );
         const modifiers = visitNodes(member.modifiers, modifierVisitor, isModifier);
 
         if (memberDecorators) {
@@ -1229,22 +1416,22 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
             // 6. Non-static non-field (method/getter/setter/auto-accessor) element decorators are applied
             // 7. Static field (excl. auto-accessor) element decorators are applied
             // 8. Non-static field (excl. auto-accessor) element decorators are applied
-            const statements = isMethodOrAccessor(member) || isAutoAccessorPropertyDeclaration(member) ?
-                isStatic(member) ?
-                    classInfo.staticNonFieldDecorationStatements ??= [] :
-                    classInfo.nonStaticNonFieldDecorationStatements ??= [] :
-                isPropertyDeclaration(member) && !isAutoAccessorPropertyDeclaration(member) ?
-                isStatic(member) ?
-                    classInfo.staticFieldDecorationStatements ??= [] :
-                    classInfo.nonStaticFieldDecorationStatements ??= [] :
-                Debug.fail();
+            const statements = isMethodOrAccessor(member) || isAutoAccessorPropertyDeclaration(member)
+                ? isStatic(member)
+                    ? classInfo.staticNonFieldDecorationStatements ??= []
+                    : classInfo.nonStaticNonFieldDecorationStatements ??= []
+                : isPropertyDeclaration(member) && !isAutoAccessorPropertyDeclaration(member)
+                ? isStatic(member)
+                    ? classInfo.staticFieldDecorationStatements ??= []
+                    : classInfo.nonStaticFieldDecorationStatements ??= []
+                : Debug.fail();
 
-            const kind = isGetAccessorDeclaration(member) ? "getter" :
-                isSetAccessorDeclaration(member) ? "setter" :
-                isMethodDeclaration(member) ? "method" :
-                isAutoAccessorPropertyDeclaration(member) ? "accessor" :
-                isPropertyDeclaration(member) ? "field" :
-                Debug.fail();
+            const kind = isGetAccessorDeclaration(member) ? "getter"
+                : isSetAccessorDeclaration(member) ? "setter"
+                : isMethodDeclaration(member) ? "method"
+                : isAutoAccessorPropertyDeclaration(member) ? "accessor"
+                : isPropertyDeclaration(member) ? "field"
+                : Debug.fail();
 
             let propertyName: ESDecorateName;
             if (isIdentifier(member.name) || isPrivateIdentifier(member.name)) {
@@ -1274,16 +1461,23 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
                 access: {
                     // 15.7.3 CreateDecoratorAccessObject (kind, name)
                     // 2. If _kind_ is ~field~, ~method~, ~accessor~, or ~getter~, then ...
-                    get: isPropertyDeclaration(member) || isGetAccessorDeclaration(member) || isMethodDeclaration(member),
+                    get: isPropertyDeclaration(member) || isGetAccessorDeclaration(member)
+                        || isMethodDeclaration(member),
                     // 3. If _kind_ is ~field~, ~accessor~, or ~setter~, then ...
                     set: isPropertyDeclaration(member) || isSetAccessorDeclaration(member),
                 },
                 metadata: classInfo.metadataReference,
             };
 
-            const extraInitializers = isStatic(member) ?
-                classInfo.staticExtraInitializersName ??= factory.createUniqueName("_staticExtraInitializers", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel) :
-                classInfo.instanceExtraInitializersName ??= factory.createUniqueName("_instanceExtraInitializers", GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel);
+            const extraInitializers = isStatic(member)
+                ? classInfo.staticExtraInitializersName ??= factory.createUniqueName(
+                    "_staticExtraInitializers",
+                    GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel,
+                )
+                : classInfo.instanceExtraInitializersName ??= factory.createUniqueName(
+                    "_instanceExtraInitializers",
+                    GeneratedIdentifierFlags.Optimistic | GeneratedIdentifierFlags.FileLevel,
+                );
 
             if (isMethodOrAccessor(member)) {
                 // __esDecorate(this, null, _static_member_decorators, { kind: "method", name: "...", static: true, private: false, access: { ... } }, _staticExtraInitializers);
@@ -1302,12 +1496,22 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
 
                 let descriptor: Expression | undefined;
                 if (isPrivateIdentifierClassElementDeclaration(member) && createDescriptor) {
-                    descriptor = createDescriptor(member, visitNodes(modifiers, node => tryCast(node, isAsyncModifier), isModifier));
+                    descriptor = createDescriptor(
+                        member,
+                        visitNodes(modifiers, node => tryCast(node, isAsyncModifier), isModifier),
+                    );
                     memberInfo.memberDescriptorName = descriptorName = createHelperVariable(member, "descriptor");
                     descriptor = factory.createAssignment(descriptorName, descriptor);
                 }
 
-                const esDecorateExpression = emitHelpers().createESDecorateHelper(factory.createThis(), descriptor ?? factory.createNull(), memberDecoratorsName, context, factory.createNull(), extraInitializers);
+                const esDecorateExpression = emitHelpers().createESDecorateHelper(
+                    factory.createThis(),
+                    descriptor ?? factory.createNull(),
+                    memberDecoratorsName,
+                    context,
+                    factory.createNull(),
+                    extraInitializers,
+                );
                 const esDecorateStatement = factory.createExpressionStatement(esDecorateExpression);
                 setSourceMapRange(esDecorateStatement, moveRangePastDecorators(member));
                 statements.push(esDecorateStatement);
@@ -1320,7 +1524,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
                 }
 
                 let descriptor: Expression | undefined;
-                if (isPrivateIdentifierClassElementDeclaration(member) && hasAccessorModifier(member) && createDescriptor) {
+                if (
+                    isPrivateIdentifierClassElementDeclaration(member) && hasAccessorModifier(member)
+                    && createDescriptor
+                ) {
                     descriptor = createDescriptor(member, /*modifiers*/ undefined);
                     memberInfo.memberDescriptorName = descriptorName = createHelperVariable(member, "descriptor");
                     descriptor = factory.createAssignment(descriptorName, descriptor);
@@ -1329,9 +1536,9 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
                 // _static_field_initializers = __esDecorate(null, null, _static_member_decorators, { kind: "field", name: "...", static: true, private: ..., access: { ... } }, _staticExtraInitializers);
                 // _field_initializers = __esDecorate(null, null, _member_decorators, { kind: "field", name: "...", static: false, private: ..., access: { ... } }, _instanceExtraInitializers);
                 const esDecorateExpression = emitHelpers().createESDecorateHelper(
-                    isAutoAccessorPropertyDeclaration(member) ?
-                        factory.createThis() :
-                        factory.createNull(),
+                    isAutoAccessorPropertyDeclaration(member)
+                        ? factory.createThis()
+                        : factory.createNull(),
                     descriptor ?? factory.createNull(),
                     memberDecoratorsName,
                     context,
@@ -1361,7 +1568,11 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
 
     function visitMethodDeclaration(node: MethodDeclaration) {
         enterClassElement(node);
-        const { modifiers, name, descriptorName } = partialTransformClassElement(node, classInfo, createMethodDescriptorObject);
+        const { modifiers, name, descriptorName } = partialTransformClassElement(
+            node,
+            classInfo,
+            createMethodDescriptorObject,
+        );
         if (descriptorName) {
             exitClassElement();
             return finishClassElement(createMethodDescriptorForwarder(modifiers, name, descriptorName), node);
@@ -1370,13 +1581,30 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
             const parameters = visitNodes(node.parameters, visitor, isParameter);
             const body = visitNode(node.body, visitor, isBlock);
             exitClassElement();
-            return finishClassElement(factory.updateMethodDeclaration(node, modifiers, node.asteriskToken, name, /*questionToken*/ undefined, /*typeParameters*/ undefined, parameters, /*type*/ undefined, body), node);
+            return finishClassElement(
+                factory.updateMethodDeclaration(
+                    node,
+                    modifiers,
+                    node.asteriskToken,
+                    name,
+                    /*questionToken*/ undefined,
+                    /*typeParameters*/ undefined,
+                    parameters,
+                    /*type*/ undefined,
+                    body,
+                ),
+                node,
+            );
         }
     }
 
     function visitGetAccessorDeclaration(node: GetAccessorDeclaration) {
         enterClassElement(node);
-        const { modifiers, name, descriptorName } = partialTransformClassElement(node, classInfo, createGetAccessorDescriptorObject);
+        const { modifiers, name, descriptorName } = partialTransformClassElement(
+            node,
+            classInfo,
+            createGetAccessorDescriptorObject,
+        );
         if (descriptorName) {
             exitClassElement();
             return finishClassElement(createGetAccessorDescriptorForwarder(modifiers, name, descriptorName), node);
@@ -1385,13 +1613,20 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
             const parameters = visitNodes(node.parameters, visitor, isParameter);
             const body = visitNode(node.body, visitor, isBlock);
             exitClassElement();
-            return finishClassElement(factory.updateGetAccessorDeclaration(node, modifiers, name, parameters, /*type*/ undefined, body), node);
+            return finishClassElement(
+                factory.updateGetAccessorDeclaration(node, modifiers, name, parameters, /*type*/ undefined, body),
+                node,
+            );
         }
     }
 
     function visitSetAccessorDeclaration(node: SetAccessorDeclaration) {
         enterClassElement(node);
-        const { modifiers, name, descriptorName } = partialTransformClassElement(node, classInfo, createSetAccessorDescriptorObject);
+        const { modifiers, name, descriptorName } = partialTransformClassElement(
+            node,
+            classInfo,
+            createSetAccessorDescriptorObject,
+        );
         if (descriptorName) {
             exitClassElement();
             return finishClassElement(createSetAccessorDescriptorForwarder(modifiers, name, descriptorName), node);
@@ -1400,7 +1635,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
             const parameters = visitNodes(node.parameters, visitor, isParameter);
             const body = visitNode(node.body, visitor, isBlock);
             exitClassElement();
-            return finishClassElement(factory.updateSetAccessorDeclaration(node, modifiers, name, parameters, body), node);
+            return finishClassElement(
+                factory.updateSetAccessorDeclaration(node, modifiers, name, parameters, body),
+                node,
+            );
         }
     }
 
@@ -1445,7 +1683,11 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         //        a. Let _value_ be ? NamedEvaluation of |Initializer| with argument _functionObject_.[[ClassFieldInitializerName]].
         //     ...
 
-        const { modifiers, name, initializersName, descriptorName, thisArg } = partialTransformClassElement(node, classInfo, hasAccessorModifier(node) ? createAccessorPropertyDescriptorObject : undefined);
+        const { modifiers, name, initializersName, descriptorName, thisArg } = partialTransformClassElement(
+            node,
+            classInfo,
+            hasAccessorModifier(node) ? createAccessorPropertyDescriptorObject : undefined,
+        );
 
         startLexicalEnvironment();
 
@@ -1458,7 +1700,9 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
             );
         }
 
-        if (!isStatic(node) && classInfo?.instanceExtraInitializersName && !classInfo?.hasInjectedInstanceInitializers) {
+        if (
+            !isStatic(node) && classInfo?.instanceExtraInitializersName && !classInfo?.hasInjectedInstanceInitializers
+        ) {
             // for the first non-static field initializer, inject a call to `__runInitializers`.
             classInfo.hasInjectedInstanceInitializers = true;
             initializer ??= factory.createVoidZero();
@@ -1509,7 +1753,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
             if (isComputedPropertyName(name) && !isSimpleInlineableExpression(name.expression)) {
                 const cacheAssignment = findComputedPropertyNameCacheAssignment(name);
                 if (cacheAssignment) {
-                    getterName = factory.updateComputedPropertyName(name, visitNode(name.expression, visitor, isExpression));
+                    getterName = factory.updateComputedPropertyName(
+                        name,
+                        visitNode(name.expression, visitor, isExpression),
+                    );
                     setterName = factory.updateComputedPropertyName(name, cacheAssignment.left);
                 }
                 else {
@@ -1523,9 +1770,18 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
                 }
             }
 
-            const modifiersWithoutAccessor = visitNodes(modifiers, node => node.kind !== SyntaxKind.AccessorKeyword ? node : undefined, isModifier);
+            const modifiersWithoutAccessor = visitNodes(
+                modifiers,
+                node => node.kind !== SyntaxKind.AccessorKeyword ? node : undefined,
+                isModifier,
+            );
 
-            const backingField = createAccessorPropertyBackingField(factory, node, modifiersWithoutAccessor, initializer);
+            const backingField = createAccessorPropertyBackingField(
+                factory,
+                node,
+                modifiersWithoutAccessor,
+                initializer,
+            );
             setOriginalNode(backingField, node);
             setEmitFlags(backingField, EmitFlags.NoComments);
             setSourceMapRange(backingField, sourceMapRange);
@@ -1544,7 +1800,17 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
             return [backingField, getter, setter];
         }
 
-        return finishClassElement(factory.updatePropertyDeclaration(node, modifiers, name, /*questionOrExclamationToken*/ undefined, /*type*/ undefined, initializer), node);
+        return finishClassElement(
+            factory.updatePropertyDeclaration(
+                node,
+                modifiers,
+                name,
+                /*questionOrExclamationToken*/ undefined,
+                /*type*/ undefined,
+                initializer,
+            ),
+            node,
+        );
     }
 
     function visitThisExpression(node: ThisExpression) {
@@ -1654,7 +1920,8 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         // transforms to `return class { };`, and thus the empty string *can* be ignored.
 
         const innerExpression = skipOuterExpressions(node);
-        return isClassExpression(innerExpression) && !innerExpression.name && !classOrConstructorParameterIsDecorated(/*useLegacyDecorators*/ false, innerExpression);
+        return isClassExpression(innerExpression) && !innerExpression.name
+            && !classOrConstructorParameterIsDecorated(/*useLegacyDecorators*/ false, innerExpression);
     }
 
     function visitForStatement(node: ForStatement) {
@@ -1711,9 +1978,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
             }
 
             if (isSuperProperty(node.left) && classThis && classSuper) {
-                let setterName = isElementAccessExpression(node.left) ? visitNode(node.left.argumentExpression, visitor, isExpression) :
-                    isIdentifier(node.left.name) ? factory.createStringLiteralFromNode(node.left.name) :
-                    undefined;
+                let setterName = isElementAccessExpression(node.left)
+                    ? visitNode(node.left.argumentExpression, visitor, isExpression)
+                    : isIdentifier(node.left.name) ? factory.createStringLiteralFromNode(node.left.name)
+                    : undefined;
                 if (setterName) {
                     // super.x = ...
                     // super.x += ...
@@ -1777,16 +2045,20 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         return visitEachChild(node, visitor, context);
     }
 
-    function visitPreOrPostfixUnaryExpression(node: PrefixUnaryExpression | PostfixUnaryExpression, discarded: boolean) {
+    function visitPreOrPostfixUnaryExpression(
+        node: PrefixUnaryExpression | PostfixUnaryExpression,
+        discarded: boolean,
+    ) {
         if (
-            node.operator === SyntaxKind.PlusPlusToken ||
-            node.operator === SyntaxKind.MinusMinusToken
+            node.operator === SyntaxKind.PlusPlusToken
+            || node.operator === SyntaxKind.MinusMinusToken
         ) {
             const operand = skipParentheses(node.operand);
             if (isSuperProperty(operand) && classThis && classSuper) {
-                let setterName = isElementAccessExpression(operand) ? visitNode(operand.argumentExpression, visitor, isExpression) :
-                    isIdentifier(operand.name) ? factory.createStringLiteralFromNode(operand.name) :
-                    undefined;
+                let setterName = isElementAccessExpression(operand)
+                    ? visitNode(operand.argumentExpression, visitor, isExpression)
+                    : isIdentifier(operand.name) ? factory.createStringLiteralFromNode(operand.name)
+                    : undefined;
                 if (setterName) {
                     let getterName = setterName;
                     if (!isSimpleInlineableExpression(setterName)) {
@@ -1820,7 +2092,13 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
                     // result of the operation so that we can provide it to `y` when the assignment is complete.
 
                     const temp = discarded ? undefined : factory.createTempVariable(hoistVariableDeclaration);
-                    expression = expandPreOrPostfixIncrementOrDecrementExpression(factory, node, expression, hoistVariableDeclaration, temp);
+                    expression = expandPreOrPostfixIncrementOrDecrementExpression(
+                        factory,
+                        node,
+                        expression,
+                        hoistVariableDeclaration,
+                        temp,
+                    );
                     expression = factory.createReflectSetCall(classSuper, setterName, expression, classThis);
                     setOriginalNode(expression, node);
                     setTextRange(expression, node);
@@ -1839,9 +2117,9 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
     }
 
     function visitCommaListExpression(node: CommaListExpression, discarded: boolean) {
-        const elements = discarded ?
-            visitCommaListElements(node.elements, discardedValueVisitor) :
-            visitCommaListElements(node.elements, visitor, discardedValueVisitor);
+        const elements = discarded
+            ? visitCommaListElements(node.elements, discardedValueVisitor)
+            : visitCommaListElements(node.elements, visitor, discardedValueVisitor);
         return factory.updateCommaListExpression(node, elements);
     }
 
@@ -1949,9 +2227,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         }
 
         if (isSuperProperty(node) && classThis && classSuper) {
-            const propertyName = isElementAccessExpression(node) ? visitNode(node.argumentExpression, visitor, isExpression) :
-                isIdentifier(node.name) ? factory.createStringLiteralFromNode(node.name) :
-                undefined;
+            const propertyName = isElementAccessExpression(node)
+                ? visitNode(node.argumentExpression, visitor, isExpression)
+                : isIdentifier(node.name) ? factory.createStringLiteralFromNode(node.name)
+                : undefined;
             if (propertyName) {
                 const paramName = factory.createTempVariable(/*recordTempVariable*/ undefined);
                 const expression = factory.createAssignmentTargetWrapper(
@@ -1972,7 +2251,9 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         return visitEachChild(node, visitor, context);
     }
 
-    function visitAssignmentElement(node: Exclude<ArrayAssignmentElement, SpreadElement | OmittedExpression>): ArrayAssignmentElement {
+    function visitAssignmentElement(
+        node: Exclude<ArrayAssignmentElement, SpreadElement | OmittedExpression>,
+    ): ArrayAssignmentElement {
         // 13.15.5.5 RS: IteratorDestructuringAssignmentEvaluation
         //   AssignmentElement : DestructuringAssignmentTarget Initializer?
         //     ...
@@ -1988,7 +2269,12 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
 
             const assignmentTarget = visitDestructuringAssignmentTarget(node.left);
             const initializer = visitNode(node.right, visitor, isExpression);
-            return factory.updateBinaryExpression(node, assignmentTarget, node.operatorToken, initializer) as ArrayAssignmentElement;
+            return factory.updateBinaryExpression(
+                node,
+                assignmentTarget,
+                node.operatorToken,
+                initializer,
+            ) as ArrayAssignmentElement;
         }
         else {
             return visitDestructuringAssignmentTarget(node) as ArrayAssignmentElement;
@@ -2049,7 +2335,11 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         //     ...
 
         if (isNamedEvaluation(node, isAnonymousClassNeedingAssignedName)) {
-            node = transformNamedEvaluation(context, node, canIgnoreEmptyStringLiteralInAssignedName(node.objectAssignmentInitializer));
+            node = transformNamedEvaluation(
+                context,
+                node,
+                canIgnoreEmptyStringLiteralInAssignedName(node.objectAssignmentInitializer),
+            );
         }
 
         return visitEachChild(node, visitor, context);
@@ -2120,7 +2410,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         if (some(pendingExpressions)) {
             if (isParenthesizedExpression(expression)) {
                 pendingExpressions.push(expression.expression);
-                expression = factory.updateParenthesizedExpression(expression, factory.inlineExpressions(pendingExpressions));
+                expression = factory.updateParenthesizedExpression(
+                    expression,
+                    factory.inlineExpressions(pendingExpressions),
+                );
             }
             else {
                 pendingExpressions.push(expression);
@@ -2158,7 +2451,12 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         // preserve the 'this' binding for an access expression
         const innerExpression = skipOuterExpressions(expression);
         if (isAccessExpression(innerExpression)) {
-            const { target, thisArg } = factory.createCallBinding(expression, hoistVariableDeclaration, languageVersion, /*cacheIdentifiers*/ true);
+            const { target, thisArg } = factory.createCallBinding(
+                expression,
+                hoistVariableDeclaration,
+                languageVersion,
+                /*cacheIdentifiers*/ true,
+            );
             return factory.restoreOuterExpressions(expression, factory.createFunctionBindCall(target, thisArg, []));
         }
         return expression;
@@ -2167,7 +2465,15 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
     /**
      * Creates a `value`, `get`, or `set` method for a pseudo-{@link PropertyDescriptor} object created for a private element.
      */
-    function createDescriptorMethod(original: Node, name: PrivateIdentifier, modifiers: ModifiersArray | undefined, asteriskToken: AsteriskToken | undefined, kind: "value" | "get" | "set", parameters: readonly ParameterDeclaration[], body: Block | undefined) {
+    function createDescriptorMethod(
+        original: Node,
+        name: PrivateIdentifier,
+        modifiers: ModifiersArray | undefined,
+        asteriskToken: AsteriskToken | undefined,
+        kind: "value" | "get" | "set",
+        parameters: readonly ParameterDeclaration[],
+        body: Block | undefined,
+    ) {
         const func = factory.createFunctionExpression(
             modifiers,
             asteriskToken,
@@ -2194,7 +2500,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
     /**
      * Creates a pseudo-{@link PropertyDescriptor} object used when decorating a private {@link MethodDeclaration}.
      */
-    function createMethodDescriptorObject(node: PrivateIdentifierMethodDeclaration, modifiers: ModifiersArray | undefined) {
+    function createMethodDescriptorObject(
+        node: PrivateIdentifierMethodDeclaration,
+        modifiers: ModifiersArray | undefined,
+    ) {
         return factory.createObjectLiteralExpression([
             createDescriptorMethod(
                 node,
@@ -2211,7 +2520,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
     /**
      * Creates a pseudo-{@link PropertyDescriptor} object used when decorating a private {@link GetAccessorDeclaration}.
      */
-    function createGetAccessorDescriptorObject(node: PrivateIdentifierGetAccessorDeclaration, modifiers: ModifiersArray | undefined) {
+    function createGetAccessorDescriptorObject(
+        node: PrivateIdentifierGetAccessorDeclaration,
+        modifiers: ModifiersArray | undefined,
+    ) {
         return factory.createObjectLiteralExpression([
             createDescriptorMethod(
                 node,
@@ -2228,7 +2540,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
     /**
      * Creates a pseudo-{@link PropertyDescriptor} object used when decorating a private {@link SetAccessorDeclaration}.
      */
-    function createSetAccessorDescriptorObject(node: PrivateIdentifierSetAccessorDeclaration, modifiers: ModifiersArray | undefined) {
+    function createSetAccessorDescriptorObject(
+        node: PrivateIdentifierSetAccessorDeclaration,
+        modifiers: ModifiersArray | undefined,
+    ) {
         return factory.createObjectLiteralExpression([
             createDescriptorMethod(
                 node,
@@ -2245,7 +2560,10 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
     /**
      * Creates a pseudo-{@link PropertyDescriptor} object used when decorating an `accessor` {@link PropertyDeclaration} with a private name.
      */
-    function createAccessorPropertyDescriptorObject(node: PrivateIdentifierPropertyDeclaration, modifiers: ModifiersArray | undefined) {
+    function createAccessorPropertyDescriptorObject(
+        node: PrivateIdentifierPropertyDeclaration,
+        modifiers: ModifiersArray | undefined,
+    ) {
         //  {
         //      get() { return this.${privateName}; },
         //      set(value) { this.${privateName} = value; },
@@ -2300,7 +2618,11 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
      * @param name The name for the resulting declaration.
      * @param descriptorName The name of the descriptor variable.
      */
-    function createMethodDescriptorForwarder(modifiers: ModifiersArray | undefined, name: PropertyName, descriptorName: Identifier) {
+    function createMethodDescriptorForwarder(
+        modifiers: ModifiersArray | undefined,
+        name: PropertyName,
+        descriptorName: Identifier,
+    ) {
         // strip off all but the `static` modifier
         modifiers = visitNodes(modifiers, node => isStaticModifier(node) ? node : undefined, isModifier);
         return factory.createGetAccessorDeclaration(
@@ -2325,7 +2647,11 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
      * @param name The name for the resulting declaration.
      * @param descriptorName The name of the descriptor variable.
      */
-    function createGetAccessorDescriptorForwarder(modifiers: ModifiersArray | undefined, name: PropertyName, descriptorName: Identifier) {
+    function createGetAccessorDescriptorForwarder(
+        modifiers: ModifiersArray | undefined,
+        name: PropertyName,
+        descriptorName: Identifier,
+    ) {
         // strip off all but the `static` modifier
         modifiers = visitNodes(modifiers, node => isStaticModifier(node) ? node : undefined, isModifier);
         return factory.createGetAccessorDeclaration(
@@ -2354,7 +2680,11 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
      * @param name The name for the resulting declaration.
      * @param descriptorName The name of the descriptor variable.
      */
-    function createSetAccessorDescriptorForwarder(modifiers: ModifiersArray | undefined, name: PropertyName, descriptorName: Identifier) {
+    function createSetAccessorDescriptorForwarder(
+        modifiers: ModifiersArray | undefined,
+        name: PropertyName,
+        descriptorName: Identifier,
+    ) {
         // strip off all but the `static` modifier
         modifiers = visitNodes(modifiers, node => isStaticModifier(node) ? node : undefined, isModifier);
         return factory.createSetAccessorDeclaration(
@@ -2399,14 +2729,20 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
                 factory.createVoidZero(),
             ),
         );
-        return factory.createVariableStatement(/*modifiers*/ undefined, factory.createVariableDeclarationList([varDecl], NodeFlags.Const));
+        return factory.createVariableStatement(
+            /*modifiers*/ undefined,
+            factory.createVariableDeclarationList([varDecl], NodeFlags.Const),
+        );
     }
 
     function createSymbolMetadata(target: Identifier | ThisExpression, value: Identifier) {
         const defineProperty = factory.createObjectDefinePropertyCall(
             target,
             factory.createPropertyAccessExpression(factory.createIdentifier("Symbol"), "metadata"),
-            factory.createPropertyDescriptor({ configurable: true, writable: true, enumerable: true, value }, /*singleLine*/ true),
+            factory.createPropertyDescriptor(
+                { configurable: true, writable: true, enumerable: true, value },
+                /*singleLine*/ true,
+            ),
         );
         return setEmitFlags(
             factory.createIfStatement(value, factory.createExpressionStatement(defineProperty)),

@@ -55,7 +55,15 @@ describe("unittests:: tsserver:: compileOnSave:: affected list", () => {
 
         it("should contains only itself if a module file's shape didn't change, and all files referencing it if its shape changed", () => {
             const { moduleFile1, file1Consumer1, file1Consumer2, moduleFile2, globalFile3, configFile } = files();
-            const host = createServerHost([moduleFile1, file1Consumer1, file1Consumer2, globalFile3, moduleFile2, configFile, libFile]);
+            const host = createServerHost([
+                moduleFile1,
+                file1Consumer1,
+                file1Consumer2,
+                globalFile3,
+                moduleFile2,
+                configFile,
+                libFile,
+            ]);
             const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
 
             openFilesForSession([moduleFile1, file1Consumer1], session);
@@ -102,7 +110,15 @@ describe("unittests:: tsserver:: compileOnSave:: affected list", () => {
 
         it("should be up-to-date with the reference map changes", () => {
             const { moduleFile1, file1Consumer1, file1Consumer2, moduleFile2, globalFile3, configFile } = files();
-            const host = createServerHost([moduleFile1, file1Consumer1, file1Consumer2, globalFile3, moduleFile2, configFile, libFile]);
+            const host = createServerHost([
+                moduleFile1,
+                file1Consumer1,
+                file1Consumer2,
+                globalFile3,
+                moduleFile2,
+                configFile,
+                libFile,
+            ]);
             const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
 
             openFilesForSession([moduleFile1, file1Consumer1], session);
@@ -175,7 +191,15 @@ describe("unittests:: tsserver:: compileOnSave:: affected list", () => {
 
         it("should be up-to-date with changes made in non-open files", () => {
             const { moduleFile1, file1Consumer1, file1Consumer2, moduleFile2, globalFile3, configFile } = files();
-            const host = createServerHost([moduleFile1, file1Consumer1, file1Consumer2, globalFile3, moduleFile2, configFile, libFile]);
+            const host = createServerHost([
+                moduleFile1,
+                file1Consumer1,
+                file1Consumer2,
+                globalFile3,
+                moduleFile2,
+                configFile,
+                libFile,
+            ]);
             const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
 
             openFilesForSession([moduleFile1], session);
@@ -208,7 +232,15 @@ describe("unittests:: tsserver:: compileOnSave:: affected list", () => {
 
         it("should be up-to-date with deleted files", () => {
             const { moduleFile1, file1Consumer1, file1Consumer2, moduleFile2, globalFile3, configFile } = files();
-            const host = createServerHost([moduleFile1, file1Consumer1, file1Consumer2, globalFile3, moduleFile2, configFile, libFile]);
+            const host = createServerHost([
+                moduleFile1,
+                file1Consumer1,
+                file1Consumer2,
+                globalFile3,
+                moduleFile2,
+                configFile,
+                libFile,
+            ]);
             const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
 
             openFilesForSession([moduleFile1], session);
@@ -239,7 +271,15 @@ describe("unittests:: tsserver:: compileOnSave:: affected list", () => {
 
         it("should be up-to-date with newly created files", () => {
             const { moduleFile1, file1Consumer1, file1Consumer2, moduleFile2, globalFile3, configFile } = files();
-            const host = createServerHost([moduleFile1, file1Consumer1, file1Consumer2, globalFile3, moduleFile2, configFile, libFile]);
+            const host = createServerHost([
+                moduleFile1,
+                file1Consumer1,
+                file1Consumer2,
+                globalFile3,
+                moduleFile2,
+                configFile,
+                libFile,
+            ]);
             const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
 
             openFilesForSession([moduleFile1], session);
@@ -338,7 +378,15 @@ describe("unittests:: tsserver:: compileOnSave:: affected list", () => {
 
         it("should return all files if a global file changed shape", () => {
             const { moduleFile1, file1Consumer1, file1Consumer2, moduleFile2, globalFile3, configFile } = files();
-            const host = createServerHost([moduleFile1, file1Consumer1, file1Consumer2, globalFile3, moduleFile2, configFile, libFile]);
+            const host = createServerHost([
+                moduleFile1,
+                file1Consumer1,
+                file1Consumer2,
+                globalFile3,
+                moduleFile2,
+                configFile,
+                libFile,
+            ]);
             const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
 
             openFilesForSession([globalFile3], session);
@@ -417,7 +465,14 @@ describe("unittests:: tsserver:: compileOnSave:: affected list", () => {
                     }`,
             };
 
-            const host = createServerHost([moduleFile1, file1Consumer1, file1Consumer2, configFile2, configFile, libFile]);
+            const host = createServerHost([
+                moduleFile1,
+                file1Consumer1,
+                file1Consumer2,
+                configFile2,
+                configFile,
+                libFile,
+            ]);
             const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
 
             openFilesForSession([moduleFile1, file1Consumer1], session);
@@ -503,7 +558,14 @@ describe("unittests:: tsserver:: compileOnSave:: affected list", () => {
                 path: "/a/b/file1Consumer1Consumer1.ts",
                 content: `import {y} from "./file1Consumer1";`,
             };
-            const host = createServerHost([moduleFile1, file1Consumer1, file1Consumer1Consumer1, globalFile3, configFile, libFile]);
+            const host = createServerHost([
+                moduleFile1,
+                file1Consumer1,
+                file1Consumer1Consumer1,
+                globalFile3,
+                configFile,
+                libFile,
+            ]);
             const session = createSession(host, { logger: createLoggerWithInMemoryLogs(host) });
 
             openFilesForSession([moduleFile1, file1Consumer1], session);
@@ -630,7 +692,12 @@ describe("unittests:: tsserver:: compileOnSave:: affected list", () => {
     });
 
     describe("for changes in declaration files", () => {
-        function testDTS(subScenario: string, dtsFileContents: string, tsFileContents: string, opts: ts.CompilerOptions) {
+        function testDTS(
+            subScenario: string,
+            dtsFileContents: string,
+            tsFileContents: string,
+            opts: ts.CompilerOptions,
+        ) {
             it(subScenario, () => {
                 const dtsFile = {
                     path: "/a/runtime/a.d.ts",
@@ -728,7 +795,9 @@ describe("unittests:: tsserver:: compileOnSave:: affected list", () => {
             });
         }
         test("compileOnSaveAffectedFileList projectUsesOutFile should not be returned if not set", {});
-        test("compileOnSaveAffectedFileList projectUsesOutFile should be true if outFile is set", { outFile: "/a/out.js" });
+        test("compileOnSaveAffectedFileList projectUsesOutFile should be true if outFile is set", {
+            outFile: "/a/out.js",
+        });
         test("compileOnSaveAffectedFileList projectUsesOutFile should be true if out is set", { out: "/a/out.js" });
     });
 });
@@ -749,7 +818,9 @@ describe("unittests:: tsserver:: compileOnSave:: EmitFile test", () => {
             };
             const host = createServerHost([f], { newLine });
             logger.host = host;
-            logger.log(`currentDirectory:: ${host.getCurrentDirectory()} useCaseSensitiveFileNames: ${host.useCaseSensitiveFileNames} newLine: ${host.newLine}`);
+            logger.log(
+                `currentDirectory:: ${host.getCurrentDirectory()} useCaseSensitiveFileNames: ${host.useCaseSensitiveFileNames} newLine: ${host.newLine}`,
+            );
             const session = createSession(host, { logger });
             openFilesForSession([f], session);
             session.executeCommandSeq<ts.server.protocol.CompileOnSaveEmitFileRequest>({
@@ -969,7 +1040,11 @@ function bar() {
 
             // Change file2 get affected file list = will return only file2 if --declaration otherwise all files
             verifyLocalEdit(file2, "world", "hello");
-            baselineTsserverLogs("compileOnSave", `emit in project${hasModule ? " with module" : ""}${declaration ? " with dts emit" : ""}`, session);
+            baselineTsserverLogs(
+                "compileOnSave",
+                `emit in project${hasModule ? " with module" : ""}${declaration ? " with dts emit" : ""}`,
+                session,
+            );
 
             function verifyFileSave(file: File) {
                 session.executeCommandSeq<ts.server.protocol.CompileOnSaveEmitFileRequest>({
@@ -1019,8 +1094,20 @@ describe("unittests:: tsserver:: compileOnSave:: CompileOnSaveAffectedFileListRe
     }
 
     function logDirtyOfProjects(session: TestSession) {
-        session.logger.log(`Project1 is dirty: ${session.getProjectService().configuredProjects.get(`/user/username/projects/myproject/app1/tsconfig.json`)!.dirty}`);
-        session.logger.log(`Project2 is dirty: ${session.getProjectService().configuredProjects.get(`/user/username/projects/myproject/app2/tsconfig.json`)!.dirty}`);
+        session.logger.log(
+            `Project1 is dirty: ${
+                session.getProjectService().configuredProjects.get(
+                    `/user/username/projects/myproject/app1/tsconfig.json`,
+                )!.dirty
+            }`,
+        );
+        session.logger.log(
+            `Project2 is dirty: ${
+                session.getProjectService().configuredProjects.get(
+                    `/user/username/projects/myproject/app2/tsconfig.json`,
+                )!.dirty
+            }`,
+        );
     }
 
     function verify(subScenario: string, commandArgs: ts.server.protocol.FileRequestArgs) {
