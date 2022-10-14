@@ -27,10 +27,6 @@ function getCopyrightHeader() {
 }
 
 
-/** @type {ReturnType<typeof task>[]} */
-const cleanTasks = [];
-
-
 // TODO(jakebailey): This is really gross. If the build is cancelled (i.e. Ctrl+C), the modification will persist.
 // Waiting on: https://github.com/microsoft/TypeScript/issues/51164
 let currentlyBuilding = 0;
@@ -101,13 +97,6 @@ export const generateLibs = task({
     },
 });
 
-const cleanLib = task({
-    name: "clean-lib",
-    hiddenFromTaskList: true,
-    run: () => del(libs.map(lib => lib.target)),
-});
-cleanTasks.push(cleanLib);
-
 
 const diagnosticInformationMapTs = "src/compiler/diagnosticInformationMap.generated.ts";
 const diagnosticMessagesJson = "src/compiler/diagnosticMessages.json";
@@ -127,7 +116,6 @@ const cleanDiagnostics = task({
     hiddenFromTaskList: true,
     run: () => del([diagnosticInformationMapTs, diagnosticMessagesGeneratedJson]),
 });
-cleanTasks.push(cleanDiagnostics);
 
 
 // Localize diagnostics
@@ -162,6 +150,7 @@ export const buildSrc = task({
 
 export const cleanSrc = task({
     name: "clean-src",
+    hiddenFromTaskList: true,
     run: () => cleanProject("src"),
 });
 
@@ -273,7 +262,6 @@ async function runDtsBundler(entrypoint, output) {
 
             await esbuild.build(options);
         },
-        clean: () => del([outfile, `${outfile}.map`]),
     };
 }
 
@@ -297,13 +285,6 @@ const buildDebugTools = task({
     run: () => cmdLineOptions.bundle ? esbuildDebugTools.build() : buildProject("src/debug"),
 });
 
-const cleanDebugTools = task({
-    name: "clean-debug-tools",
-    hiddenFromTaskList: true,
-    run: () => cmdLineOptions.bundle ? esbuildDebugTools.build() : cleanProject("src/debug")
-});
-cleanTasks.push(cleanDebugTools);
-
 
 const esbuildTsc = esbuildTask("./src/tsc/tsc.ts", "./built/local/tsc.js");
 
@@ -318,13 +299,6 @@ export const buildTsc = task({
     }
 });
 
-export const cleanTsc = task({
-    name: "clean-tsc",
-    description: "Cleans outputs for the command-line compiler",
-    hiddenFromTaskList: true,
-    run: () => cmdLineOptions.bundle ? esbuildTsc.clean() : cleanProject("src/tsc"),
-});
-cleanTasks.push(cleanTsc);
 
 const buildServicesWithTsc = task({
     name: "services-src",
@@ -345,14 +319,6 @@ export const buildServices = task({
         await writeCJSReexport("./built/local/typescript/typescript.js", "./built/local/typescript.js");
     }
 });
-
-export const cleanServices = task({
-    name: "clean-services",
-    description: "Cleans outputs for the language service",
-    hiddenFromTaskList: true,
-    run: () => cmdLineOptions.bundle ? esbuildServices.clean() : cleanProject("src/typescript"),
-});
-cleanTasks.push(cleanServices);
 
 
 export const dtsServices = task({
@@ -375,14 +341,6 @@ export const buildServer = task({
     }
 });
 
-export const cleanServer = task({
-    name: "clean-tsserver",
-    description: "Cleans outputs for the language server",
-    hiddenFromTaskList: true,
-    run: () => cmdLineOptions.bundle ? esbuildServer.clean() : cleanProject("src/tsserver"),
-});
-cleanTasks.push(cleanServer);
-
 
 export const min = task({
     name: "min",
@@ -390,12 +348,6 @@ export const min = task({
     dependencies: [buildTsc, buildServer],
 });
 
-export const cleanMin = task({
-    name: "clean-min",
-    description: "Cleans outputs for tsc and tsserver",
-    hiddenFromTaskList: true,
-    dependencies: [cleanTsc, cleanServer],
-});
 
 const buildLsslWithTsc = task({
     name: "lssl-src",
@@ -415,13 +367,6 @@ export const buildLssl = task({
     },
 });
 
-export const cleanLssl = task({
-    name: "clean-lssl",
-    description: "Clean outputs for the language service server library",
-    hiddenFromTaskList: true,
-    run: () => cmdLineOptions.bundle ? esbuildLssl.clean() : cleanProject("src/tsserverlibrary"),
-});
-cleanTasks.push(cleanLssl);
 
 export const dtsLssl = task({
     name: "dts-lssl",
@@ -457,15 +402,6 @@ export const buildTests = task({
         await buildProject("src/testRunner");
     },
 });
-
-export const cleanTests = task({
-    name: "clean-tests",
-    description: "Cleans the outputs for the test infrastructure",
-    hiddenFromTaskList: true,
-    run: () => cmdLineOptions.bundle ? esbuildTests.clean() : cleanProject("src/testRunner"),
-});
-cleanTasks.push(cleanTests);
-
 
 
 export const runEslintRulesTests = task({
@@ -510,12 +446,6 @@ const buildCancellationToken = task({
         await buildProject("src/cancellationToken");
     },
 });
-const cleanCancellationToken = task({
-    name: "clean-cancellation-token",
-    hiddenFromTaskList: true,
-    run: () => cmdLineOptions.bundle ? esbuildCancellationToken.clean() : cleanProject("src/cancellationToken"),
-});
-cleanTasks.push(cleanCancellationToken);
 
 const esbuildTypingsInstaller = esbuildTask("./src/typingsInstaller/nodeTypingsInstaller.ts", "./built/local/typingsInstaller.js");
 
@@ -528,12 +458,7 @@ const buildTypingsInstaller = task({
         await buildProject("src/typingsInstaller");
     },
 });
-const cleanTypingsInstaller = task({
-    name: "clean-typings-installer",
-    hiddenFromTaskList: true,
-    run: () => cmdLineOptions.bundle ? esbuildTypingsInstaller.clean() : cleanProject("src/typingsInstaller"),
-});
-cleanTasks.push(cleanTypingsInstaller);
+
 
 const esbuildWatchGuard = esbuildTask("./src/watchGuard/watchGuard.ts", "./built/local/watchGuard.js");
 
@@ -546,12 +471,7 @@ const buildWatchGuard = task({
         await buildProject("src/watchGuard");
     },
 });
-const cleanWatchGuard = task({
-    name: "clean-watch-guard",
-    hiddenFromTaskList: true,
-    run: () => cmdLineOptions.bundle ? esbuildWatchGuard.clean() : cleanProject("src/watchGuard"),
-});
-cleanTasks.push(cleanWatchGuard);
+
 
 export const generateTypesMap = task({
     name: "generate-types-map",
@@ -564,12 +484,6 @@ export const generateTypesMap = task({
     }
 });
 
-const cleanTypesMap = task({
-    name: "clean-types-map",
-    hiddenFromTaskList: true,
-    run: () => del("built/local/typesMap.json"),
-});
-cleanTasks.push(cleanTypesMap);
 
 // Drop a copy of diagnosticMessages.generated.json into the built/local folder. This allows
 // it to be synced to the Azure DevOps repo, so that it can get picked up by the build
@@ -585,12 +499,6 @@ const copyBuiltLocalDiagnosticMessages = task({
     }
 });
 
-const cleanBuiltLocalDiagnosticMessages = task({
-    name: "clean-built-local-diagnostic-messages",
-    hiddenFromTaskList: true,
-    run: () => del(builtLocalDiagnosticMessagesGeneratedJson),
-});
-cleanTasks.push(cleanBuiltLocalDiagnosticMessages);
 
 export const buildOtherOutputs = task({
     name: "other-outputs",
@@ -773,14 +681,16 @@ export const generateSpec = task({
     run: () => exec("cscript", ["//nologo", "scripts/word2md.mjs", path.resolve("doc/TypeScript Language Specification - ARCHIVED.docx"), path.resolve("doc/spec-ARCHIVED.md")]),
 });
 
-// TODO(jakebailey): this seems silly; most tasks in cleanTasks just remove
-// things in built, only to just remove built anyway. Instead just depend on
-// cleaning built and the diagnostics in src?
+export const cleanBuilt = task({
+    name: "clean-built",
+    hiddenFromTaskList: true,
+    run: () => del("built"),
+});
+
 export const clean = task({
     name: "clean",
     description: "Cleans build outputs",
-    dependencies: cleanTasks,
-    run: () => del("built"),
+    dependencies: [cleanBuilt, cleanDiagnostics],
 });
 
 export const configureNightly = task({
