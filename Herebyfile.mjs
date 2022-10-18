@@ -14,6 +14,9 @@ import esbuild from "esbuild";
 
 const glob = util.promisify(_glob);
 
+/** @typedef {ReturnType<typeof task>} Task */
+void 0;
+
 const copyright = "CopyrightNotice.txt";
 
 /** @type {string | undefined} */
@@ -168,15 +171,16 @@ async function runDtsBundler(entrypoint, output) {
     ]);
 }
 
+
 /**
- * @typedef {{
-    external?: string[];
-    exportIsTsObject?: boolean;
-    setDynamicImport?: boolean;
-}} ESBuildTaskOptions
  * @param {string} entrypoint
  * @param {string} outfile
- * @param {ESBuildTaskOptions | undefined} [taskOptions]
+ * @param {ESBuildTaskOptions} [taskOptions]
+ *
+ * @typedef ESBuildTaskOptions
+ * @property {string[]} [external]
+ * @property {boolean} [exportIsTsObject]
+ * @property {boolean} [setDynamicImport]
  */
 async function runEsbuild(entrypoint, outfile, taskOptions = {}) {
     /** @type {esbuild.BuildOptions} */
@@ -265,88 +269,98 @@ async function runEsbuild(entrypoint, outfile, taskOptions = {}) {
     await esbuild.build(options);
 }
 
+
 /**
- * Writes a CJS module that reexports another CJS file via
- * `module.exports = require("...")`.
- *
- * @param {string} infile Relative path from the repo root to the file to be required.
- * @param {string} outfile Relative path from the repo root to the output file.
+ * @param {object} options
+ * @param {string} options.name
+ * @param {string} [options.description]
+ * @param {Task[]} [options.buildDeps]
+ * @param {string} options.project
+ * @param {string} options.srcEntrypoint
+ * @param {string} options.builtEntrypoint
+ * @param {string} options.output
+ * @param {Task[]} [options.mainDeps]
+ * @param {ESBuildTaskOptions} [options.esbuildOptions]
  */
-async function writeCJSReexport(infile, outfile) {
-    const inRelativeToOut = infile = path.relative(path.dirname(outfile), infile);
-    await fs.promises.writeFile(outfile, `module.exports = require("./${inRelativeToOut}")`);
+function entrypointBuildTask(options) {
+    const build = task({
+        name: `build-${options.name}`,
+        dependencies: options.buildDeps,
+        run: () => buildProject(options.project),
+    });
+
+    // If we ever need to bundle our own output, change this to depend on build
+    // and run esbuild on builtEntrypoint.
+    const bundle = task({
+        name: `bundle-${options.name}`,
+        dependencies: options.buildDeps,
+        run: () => runEsbuild(options.srcEntrypoint, options.output, options.esbuildOptions),
+    });
+
+    /**
+     * Writes a CJS module that reexports another CJS file. E.g. given
+     * `options.builtEntrypoint = "./built/local/tsc/tsc.js"` and
+     * `options.output = "./built/local/tsc.js"`, this will create a file
+     * named "./built/local/tsc.js" containing:
+     *
+     * ```
+     * module.exports = require("./tsc/tsc.js")
+     * ```
+     */
+    const shim = task({
+        name: `shim-${options.name}`,
+        run: async () => {
+            const outDir = path.dirname(options.output);
+            await fs.promises.mkdir(outDir, { recursive: true });
+            const moduleSpecifier = path.relative(outDir, options.builtEntrypoint);
+            await fs.promises.writeFile(options.output, `module.exports = require("./${moduleSpecifier}")`);
+        },
+    });
+
+    const main = task({
+        name: options.name,
+        description: options.description,
+        dependencies: (options.mainDeps ?? []).concat(cmdLineOptions.bundle ? [bundle] : [build, shim]),
+    });
+
+    return { build, bundle, shim, main };
 }
 
-
-const buildCompilerDebug = task({
-    name: "build-compiler-debug",
-    dependencies: [generateDiagnostics],
-    run: () => buildProject("src/debug"),
-});
-
-const bundleCompilerDebug = task({
-    name: "bundle-compiler-debug",
-    dependencies: [generateDiagnostics],
-    run: () => runEsbuild("./src/debug/compilerDebug.ts", "./built/local/compilerDebug.js"),
-});
-
-const shimCompilerDebug = task({
-    name: "shim-compiler-debug",
-    run: () => writeCJSReexport("./built/local/debug/compilerDebug.js", "./built/local/compilerDebug.js"),
-});
-
-const compilerDebug = task({
+const { main: compilerDebug } = entrypointBuildTask({
     name: "compiler-debug",
-    dependencies: cmdLineOptions.bundle ? [bundleCompilerDebug] : [buildCompilerDebug, shimCompilerDebug],
+    buildDeps: [generateDiagnostics],
+    project: "src/debug",
+    srcEntrypoint: "./src/debug/compilerDebug.ts",
+    builtEntrypoint: "./built/local/debug/compilerDebug.js",
+    output: "./built/local/compilerDebug.js",
 });
 
 
-const buildTsc = task({
-    name: "build-tsc",
-    dependencies: [generateDiagnostics],
-    run: () => buildProject("src/tsc"),
-});
-
-const bundleTsc = task({
-    name: "bundle-tsc",
-    dependencies: [generateDiagnostics],
-    run: () => runEsbuild("./src/tsc/tsc.ts", "./built/local/tsc.js"),
-});
-
-const shimTsc = task({
-    name: "shim-tsc",
-    run: () => writeCJSReexport("./built/local/tsc/tsc.js", "./built/local/tsc.js"),
-});
-
-export const tsc = task({
+const { main: tsc } = entrypointBuildTask({
     name: "tsc",
     description: "Builds the command-line compiler",
-    dependencies: [compilerDebug, generateLibs].concat(cmdLineOptions.bundle ? [bundleTsc] : [buildTsc, shimTsc]),
+    buildDeps: [generateDiagnostics],
+    project: "src/tsc",
+    srcEntrypoint: "./src/tsc/tsc.ts",
+    builtEntrypoint: "./built/local/tsc/tsc.js",
+    output: "./built/local/tsc.js",
+    mainDeps: [generateLibs, compilerDebug],
 });
+export { tsc };
 
 
-const buildServices = task({
-    name: "build-services",
-    dependencies: [generateDiagnostics],
-    run: () => buildProject("src/typescript"),
-});
-
-const bundleServices = task({
-    name: "bundle-services",
-    dependencies: [generateDiagnostics],
-    run: () => runEsbuild("./src/typescript/typescript.ts", "./built/local/typescript.js", { exportIsTsObject: true }),
-});
-
-const shimServices = task({
-    name: "shim-services",
-    run: () => writeCJSReexport("./built/local/typescript/typescript.js", "./built/local/typescript.js"),
-});
-
-export const services = task({
+const { main: services, build: buildServices } = entrypointBuildTask({
     name: "services",
-    description: "Builds the language service",
-    dependencies: [generateLibs].concat(cmdLineOptions.bundle ? [bundleServices] : [buildServices, shimServices]),
+    description: "Builds the typescript.js library",
+    buildDeps: [generateDiagnostics],
+    project: "src/typescript",
+    srcEntrypoint: "./src/typescript/typescript.ts",
+    builtEntrypoint: "./built/local/typescript/typescript.js",
+    output: "./built/local/typescript.js",
+    mainDeps: [generateLibs, compilerDebug],
+    esbuildOptions: { exportIsTsObject: true },
 });
+export { services };
 
 export const dtsServices = task({
     name: "dts-services",
@@ -355,28 +369,19 @@ export const dtsServices = task({
     run: () => runDtsBundler("./built/local/typescript/typescript.d.ts", "./built/local/typescript.d.ts"),
 });
 
-const buildServer = task({
-    name: "build-server",
-    dependencies: [generateDiagnostics],
-    run: () => buildProject("src/tsserver"),
-});
 
-const bundleServer = task({
-    name: "bundle-server",
-    dependencies: [generateDiagnostics],
-    run: () => runEsbuild("./src/tsserver/server.ts", "./built/local/tsserver.js", { exportIsTsObject: true }),
-});
-
-const shimServer = task({
-    name: "shim-server",
-    run: () => writeCJSReexport("./built/local/tsserver/server.js", "./built/local/tsserver.js"),
-});
-
-export const server = task({
-    name: "tsserver",
+const { main: server } = entrypointBuildTask({
+    name: "server",
     description: "Builds the language server",
-    dependencies: [generateLibs].concat(cmdLineOptions.bundle ? [bundleServer] : [buildServer, shimServer]),
+    buildDeps: [generateDiagnostics],
+    project: "src/tsserver",
+    srcEntrypoint: "./src/tsserver/server.ts",
+    builtEntrypoint: "./built/local/tsserver/server.js",
+    output: "./built/local/tsserver.js",
+    mainDeps: [generateLibs, compilerDebug],
+    esbuildOptions: { exportIsTsObject: true },
 });
+export { server };
 
 
 export const min = task({
@@ -386,28 +391,18 @@ export const min = task({
 });
 
 
-const buildLssl = task({
-    name: "build-lssl",
-    dependencies: [generateDiagnostics],
-    run: () => buildProject("src/tsserverlibrary"),
-});
-
-const bundleLssl = task({
-    name: "bundle-lssl",
-    dependencies: [generateDiagnostics],
-    run: () => runEsbuild("./src/tsserverlibrary/tsserverlibrary.ts", "./built/local/tsserverlibrary.js", { exportIsTsObject: true }),
-});
-
-const shimLssl = task({
-    name: "shim-lssl",
-    run: () => writeCJSReexport("./built/local/tsserverlibrary/tsserverlibrary.js", "./built/local/tsserverlibrary.js"),
-});
-
-export const lssl = task({
+const { main: lssl, build: buildLssl } = entrypointBuildTask({
     name: "lssl",
     description: "Builds language service server library",
-    dependencies: [generateLibs].concat(cmdLineOptions.bundle ? [bundleLssl] : [buildLssl, shimLssl]),
+    buildDeps: [generateDiagnostics],
+    project: "src/tsserverlibrary",
+    srcEntrypoint: "./src/tsserverlibrary/tsserverlibrary.ts",
+    builtEntrypoint: "./built/local/tsserverlibrary/tsserverlibrary.js",
+    output: "./built/local/tsserverlibrary.js",
+    mainDeps: [generateLibs, compilerDebug],
+    esbuildOptions: { exportIsTsObject: true },
 });
+export { lssl };
 
 export const dtsLssl = task({
     name: "dts-lssl",
@@ -424,16 +419,16 @@ export const dts = task({
 
 const testRunner = "./built/local/run.js";
 
-const buildTests = task({
-    name: "build-tests",
-    dependencies: [generateDiagnostics],
-    run: () => buildProject("src/testRunner"),
-});
-
-const bundleTests = task({
-    name: "bundle-tests",
-    dependencies: [generateDiagnostics],
-    run: () => runEsbuild("./src/testRunner/_namespaces/Harness.ts", testRunner, {
+const { main: tests } = entrypointBuildTask({
+    name: "tests",
+    description: "Builds the test infrastructure",
+    buildDeps: [generateDiagnostics],
+    project: "src/testRunner",
+    srcEntrypoint: "./src/testRunner/_namespaces/Harness.ts",
+    builtEntrypoint: "./built/local/testRunner/runner.js",
+    output: testRunner,
+    mainDeps: [generateLibs, compilerDebug],
+    esbuildOptions: {
         external: [
             "chai",
             "del",
@@ -441,20 +436,9 @@ const bundleTests = task({
             "mocha",
             "ms",
         ],
-    }),
+    },
 });
-
-const shimTests = task({
-    name: "shim-tests",
-    // TODO(jakebailey): can we modify the test loading to have a consistent entrypoint?
-    run: () => writeCJSReexport("./built/local/testRunner/runner.js", testRunner),
-});
-
-export const tests = task({
-    name: "tests",
-    description: "Builds the test infrastructure",
-    dependencies: [generateLibs].concat(cmdLineOptions.bundle ? [bundleTests] : [buildTests, shimTests]),
-});
+export { tests };
 
 
 export const runEslintRulesTests = task({
@@ -487,71 +471,30 @@ export const lint = task({
     }
 });
 
-
-const buildCancellationToken = task({
-    name: "build-cancellation-token",
-    run: () => buildProject("src/cancellationToken"),
-});
-
-const bundleCancellationToken = task({
-    name: "bundle-cancellation-token",
-    run: () => runEsbuild("./src/cancellationToken/cancellationToken.ts", "./built/local/cancellationToken.js"),
-});
-
-const shimCancellationToken = task({
-    name: "shim-cancellation-token",
-    run: () => writeCJSReexport("./built/local/tsserverlibrary/tsserverlibrary.js", "./built/local/tsserverlibrary.js"),
-});
-
-const cancellationToken = task({
+const { main: cancellationToken } = entrypointBuildTask({
     name: "cancellation-token",
-    dependencies: cmdLineOptions.bundle ? [bundleCancellationToken] : [buildCancellationToken, shimCancellationToken],
+    project: "src/cancellationToken",
+    srcEntrypoint: "./src/cancellationToken/cancellationToken.ts",
+    builtEntrypoint: "./built/local/cancellationToken/cancellationToken.js",
+    output: "./built/local/cancellationToken.js",
 });
 
-
-const buildTypingsInstaller = task({
-    name: "build-typings-installer",
-    dependencies: [generateDiagnostics],
-    run: () => buildProject("src/typingsInstaller"),
-});
-
-const bundleTypingsInstaller = task({
-    name: "bundle-typings-installer",
-    dependencies: [generateDiagnostics],
-    run: () => runEsbuild("./src/typingsInstaller/nodeTypingsInstaller.ts", "./built/local/typingsInstaller.js"),
-});
-
-const shimTypingsInstaller = task({
-    name: "shim-typings-installer",
-    run: () => writeCJSReexport("./built/local/typingsInstaller/nodeTypingsInstaller.js", "./built/local/typingsInstaller.js"),
-});
-
-const typingsInstaller = task({
+const { main: typingsInstaller } = entrypointBuildTask({
     name: "typings-installer",
-    dependencies: cmdLineOptions.bundle ? [bundleTypingsInstaller] : [buildTypingsInstaller, shimTypingsInstaller],
+    buildDeps: [generateDiagnostics],
+    project: "src/typingsInstaller",
+    srcEntrypoint: "./src/typingsInstaller/nodeTypingsInstaller.ts",
+    builtEntrypoint: "./built/local/typingsInstaller/nodeTypingsInstaller.js",
+    output: "./built/local/typingsInstaller.js",
 });
 
-
-const buildWatchGuard = task({
-    name: "build-watch-guard",
-    run: () => buildProject("src/watchGuard"),
-});
-
-const bundleWatchGuard = task({
-    name: "bundle-watch-guard",
-    run: () => runEsbuild("./src/watchGuard/watchGuard.ts", "./built/local/watchGuard.js"),
-});
-
-const shimWatchGuard = task({
-    name: "shim-watch-guard",
-    run: () => writeCJSReexport("./built/local/watchGuard/watchGuard.js", "./built/local/watchGuard.js"),
-});
-
-const watchGuard = task({
+const { main: watchGuard } = entrypointBuildTask({
     name: "watch-guard",
-    dependencies: cmdLineOptions.bundle ? [bundleWatchGuard] : [buildWatchGuard, shimWatchGuard],
+    project: "src/watchGuard",
+    srcEntrypoint: "./src/watchGuard/watchGuard.ts",
+    builtEntrypoint: "./built/local/watchGuard/watchGuard.js",
+    output: "./built/local/watchGuard.js",
 });
-
 
 export const generateTypesMap = task({
     name: "generate-types-map",
