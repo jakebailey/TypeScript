@@ -935,7 +935,7 @@ export function forEachChild<T>(node: Node, cbNode: (node: Node) => T | undefine
  */
 export function forEachChildRecursively<T>(rootNode: Node, cbNode: (node: Node, parent: Node) => T | "skip" | undefined, cbNodes?: (nodes: NodeArray<Node>, parent: Node) => T | "skip" | undefined): T | undefined {
     const queue: (Node | NodeArray<Node>)[] = gatherPossibleChildren(rootNode);
-    const parents: Node[] = []; // tracks parent references for elements in queue
+    const parents: Node[] = arrayWithCapacity(queue.length); // tracks parent references for elements in queue
     while (parents.length < queue.length) {
         parents.push(rootNode);
     }

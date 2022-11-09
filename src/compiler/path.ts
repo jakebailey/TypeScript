@@ -515,6 +515,7 @@ export function normalizeSlashes(path: string): string {
  */
 export function reducePathComponents(components: readonly string[]) {
     if (!some(components)) return [];
+    // TODO(jakebailey): pre-allocate?
     const reduced = [components[0]];
     for (let i = 1; i < components.length; i++) {
         const component = components[i];

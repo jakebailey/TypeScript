@@ -1512,8 +1512,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         result.parent = symbol.parent;
         if (symbol.valueDeclaration) result.valueDeclaration = symbol.valueDeclaration;
         if (symbol.constEnumOnlyModule) result.constEnumOnlyModule = true;
-        if (symbol.members) result.members = new Map(symbol.members);
-        if (symbol.exports) result.exports = new Map(symbol.exports);
+        if (symbol.members) result.members = new Map(symbol.members, symbol.members.size);
+        if (symbol.exports) result.exports = new Map(symbol.exports, symbol.exports.size);
         recordMergedSymbol(result, symbol);
         return result;
     }
@@ -3152,8 +3152,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         result.declarations = deduplicate(concatenate(valueSymbol.declarations, typeSymbol.declarations), equateValues);
         result.parent = valueSymbol.parent || typeSymbol.parent;
         if (valueSymbol.valueDeclaration) result.valueDeclaration = valueSymbol.valueDeclaration;
-        if (typeSymbol.members) result.members = new Map(typeSymbol.members);
-        if (valueSymbol.exports) result.exports = new Map(valueSymbol.exports);
+        if (typeSymbol.members) result.members = new Map(typeSymbol.members, typeSymbol.members.size);
+        if (valueSymbol.exports) result.exports = new Map(valueSymbol.exports, valueSymbol.exports.size);
         return result;
     }
 
@@ -4159,8 +4159,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         result.originatingImport = referenceParent;
         if (symbol.valueDeclaration) result.valueDeclaration = symbol.valueDeclaration;
         if (symbol.constEnumOnlyModule) result.constEnumOnlyModule = true;
-        if (symbol.members) result.members = new Map(symbol.members);
-        if (symbol.exports) result.exports = new Map(symbol.exports);
+        if (symbol.members) result.members = new Map(symbol.members, symbol.members.size);
+        if (symbol.exports) result.exports = new Map(symbol.exports, symbol.exports.size);
         const resolvedModuleType = resolveStructuredTypeMembers(moduleType as StructuredType); // Should already be resolved from the signature checks above
         result.type = createAnonymousType(result, resolvedModuleType.members, emptyArray, emptyArray, resolvedModuleType.indexInfos);
         return result;
@@ -4296,7 +4296,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             if (!(symbol && symbol.exports && pushIfUnique(visitedSymbols, symbol))) {
                 return;
             }
-            const symbols = new Map(symbol.exports);
+            const symbols = new Map(symbol.exports, symbol.exports.size);
             // All export * declarations are collected in an __export symbol by the binder
             const exportStars = symbol.exports.get(InternalSymbolName.ExportStar);
             if (exportStars) {
@@ -6169,7 +6169,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 const mayHaveNameCollisions = !(context.flags & NodeBuilderFlags.UseFullyQualifiedType);
                 /** Map from type reference identifier text to [type, index in `result` where the type node is] */
                 const seenNames = mayHaveNameCollisions ? createUnderscoreEscapedMultiMap<[Type, number]>() : undefined;
-                const result: TypeNode[] = [];
+                const result: TypeNode[] = []; // TODO(jakebailey): pre-allocate?
                 let i = 0;
                 for (const type of types) {
                     i++;
@@ -6965,13 +6965,13 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             // export const x: <T>(x: T) => T
             // export const y: <T_1>(x: T_1) => T_1
             if (initial.typeParameterNames) {
-                initial.typeParameterNames = new Map(initial.typeParameterNames);
+                initial.typeParameterNames = new Map(initial.typeParameterNames, initial.typeParameterNames.size);
             }
             if (initial.typeParameterNamesByText) {
-                initial.typeParameterNamesByText = new Set(initial.typeParameterNamesByText);
+                initial.typeParameterNamesByText = new Set(initial.typeParameterNamesByText); // TODO(jakebailey): set preallocation
             }
             if (initial.typeParameterSymbolList) {
-                initial.typeParameterSymbolList = new Set(initial.typeParameterSymbolList);
+                initial.typeParameterSymbolList = new Set(initial.typeParameterSymbolList); // TODO(jakebailey): set preallocation
             }
             initial.tracker = wrapSymbolTrackerToReportForContext(initial, initial.tracker);
             return initial;
@@ -8454,7 +8454,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                             ), p.declarations?.find(isFunctionLikeDeclaration) || signatures[0] && signatures[0].declaration || p.declarations && p.declarations[0]);
                         }
 
-                        const results = [];
+                        const results = arrayWithCapacity(signatures.length);
                         for (const sig of signatures) {
                             // Each overload becomes a separate method declaration, in order
                             const decl = signatureToSignatureDeclarationHelper(
@@ -8521,7 +8521,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     }
                 }
 
-                const results = [];
+                const results = arrayWithCapacity(signatures.length);
                 for (const sig of signatures) {
                     // Each overload becomes a separate constructor declaration, in order
                     const decl = signatureToSignatureDeclarationHelper(sig, outputKind, context);
@@ -8658,7 +8658,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function formatUnionTypes(types: readonly Type[]): Type[] {
-        const result: Type[] = [];
+        const result: Type[] = arrayWithCapacity(types.length);
         let flags: TypeFlags = 0;
         for (let i = 0; i < types.length; i++) {
             const t = types[i];
@@ -10002,8 +10002,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             result.parent = symbol;
             result.target = fileSymbol;
             if (fileSymbol.valueDeclaration) result.valueDeclaration = fileSymbol.valueDeclaration;
-            if (fileSymbol.members) result.members = new Map(fileSymbol.members);
-            if (fileSymbol.exports) result.exports = new Map(fileSymbol.exports);
+            if (fileSymbol.members) result.members = new Map(fileSymbol.members, fileSymbol.members.size);
+            if (fileSymbol.exports) result.exports = new Map(fileSymbol.exports, fileSymbol.exports.size);
             const members = createSymbolTable();
             members.set("exports" as __String, result);
             return createAnonymousType(symbol, members, emptyArray, emptyArray, emptyArray);
@@ -12845,7 +12845,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         let declarations: Declaration[] | undefined;
         let firstType: Type | undefined;
         let nameType: Type | undefined;
-        const propTypes: Type[] = [];
+        const propTypes: Type[] = arrayWithCapacity(props.length);
         let writeTypes: Type[] | undefined;
         let firstValueDeclaration: Declaration | undefined;
         let hasNonUniformValueDeclaration = false;
@@ -13160,7 +13160,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function symbolsToArray(symbols: SymbolTable): Symbol[] {
-        const result: Symbol[] = [];
+        const result: Symbol[] = arrayWithCapacity(symbols.size);
         symbols.forEach((symbol, id) => {
             if (!isReservedMemberName(id)) {
                 result.push(symbol);
@@ -14749,12 +14749,13 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         const arity = elementFlags.length;
         const minLength = countWhere(elementFlags, f => !!(f & (ElementFlags.Required | ElementFlags.Variadic)));
         let typeParameters: TypeParameter[] | undefined;
-        const properties: Symbol[] = [];
+        const properties: Symbol[] = arrayWithCapacity(arity + 1);
         let combinedFlags: ElementFlags = 0;
         if (arity) {
-            typeParameters = new Array(arity);
+            typeParameters = arrayWithCapacity(arity);
             for (let i = 0; i < arity; i++) {
-                const typeParameter = typeParameters[i] = createTypeParameter();
+                const typeParameter = createTypeParameter();
+                    typeParameters.push(typeParameter);
                 const flags = elementFlags[i];
                 combinedFlags |= flags;
                 if (!(combinedFlags & ElementFlags.Variable)) {
@@ -15174,7 +15175,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
 
     function getUnionOrIntersectionTypePredicate(signatures: readonly Signature[], kind: TypeFlags | undefined): TypePredicate | undefined {
         let first: TypePredicate | undefined;
-        const types: Type[] = [];
+        const types: Type[] = arrayWithCapacity(signatures.length);
         for (const sig of signatures) {
             const pred = getTypePredicateOfSignature(sig);
             if (!pred || pred.kind === TypePredicateKind.AssertsThis || pred.kind === TypePredicateKind.AssertsIdentifier) {
@@ -23692,7 +23693,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function getInferredTypes(context: InferenceContext): Type[] {
-        const result: Type[] = [];
+        const result: Type[] = arrayWithCapacity(context.inferences.length);
         for (let i = 0; i < context.inferences.length; i++) {
             result.push(getInferredType(context, i));
         }
@@ -24402,7 +24403,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     function getSwitchClauseTypes(switchStatement: SwitchStatement): Type[] {
         const links = getNodeLinks(switchStatement);
         if (!links.switchTypes) {
-            links.switchTypes = [];
+            links.switchTypes = arrayWithCapacity(switchStatement.caseBlock.clauses.length);
             for (const clause of switchStatement.caseBlock.clauses) {
                 links.switchTypes.push(getTypeOfSwitchClause(clause));
             }

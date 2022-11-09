@@ -123,8 +123,8 @@ export function reduceLeftIterator<T, U>(iterator: Iterator<T> | undefined, f: (
 
 /** @internal */
 export function zipWith<T, U, V>(arrayA: readonly T[], arrayB: readonly U[], callback: (a: T, b: U, index: number) => V): V[] {
-    const result: V[] = [];
     Debug.assertEqual(arrayA.length, arrayB.length);
+    const result: V[] = arrayWithCapacity(arrayA.length);
     for (let i = 0; i < arrayA.length; i++) {
         result.push(callback(arrayA[i], arrayB[i], i));
     }
@@ -149,7 +149,7 @@ export function zipToIterator<T, U>(arrayA: readonly T[], arrayB: readonly U[]):
 /** @internal */
 export function zipToMap<K, V>(keys: readonly K[], values: readonly V[]): ESMap<K, V> {
     Debug.assert(keys.length === values.length);
-    const map = new Map<K, V>();
+    const map = new Map<K, V>(undefined, keys.length);
     for (let i = 0; i < keys.length; ++i) {
         map.set(keys[i], values[i]);
     }
@@ -166,7 +166,7 @@ export function intersperse<T>(input: T[], element: T): T[] {
     if (input.length <= 1) {
         return input;
     }
-    const result: T[] = [];
+    const result: T[] = arrayWithCapacity(input.length * 2 + 1);
     for (let i = 0, n = input.length; i < n; i++) {
         if (i) result.push(element);
         result.push(input[i]);
@@ -380,7 +380,7 @@ export function map<T, U>(array: readonly T[] | undefined, f: (x: T, i: number) 
 export function map<T, U>(array: readonly T[] | undefined, f: (x: T, i: number) => U): U[] | undefined {
     let result: U[] | undefined;
     if (array) {
-        result = [];
+        result = arrayWithCapacity(array.length);
         for (let i = 0; i < array.length; i++) {
             result.push(f(array[i], i));
         }
@@ -564,7 +564,7 @@ export function sameFlatMap<T>(array: T[], mapfn: (x: T, i: number) => T | T[]):
 
 /** @internal */
 export function mapAllOrFail<T, U>(array: readonly T[], mapFn: (x: T, i: number) => U | undefined): U[] | undefined {
-    const result: U[] = [];
+    const result: U[] = arrayWithCapacity(array.length);
     for (let i = 0; i < array.length; i++) {
         const mapped = mapFn(array[i], i);
         if (mapped === undefined) {
@@ -577,8 +577,8 @@ export function mapAllOrFail<T, U>(array: readonly T[], mapFn: (x: T, i: number)
 
 /** @internal */
 export function mapDefined<T, U>(array: readonly T[] | undefined, mapFn: (x: T, i: number) => U | undefined): U[] {
-    const result: U[] = [];
     if (array) {
+        const result: U[] = arrayWithCapacity(array.length);
         for (let i = 0; i < array.length; i++) {
             const mapped = mapFn(array[i], i);
             if (mapped !== undefined) {
@@ -586,7 +586,7 @@ export function mapDefined<T, U>(array: readonly T[] | undefined, mapFn: (x: T, 
             }
         }
     }
-    return result;
+    return [];
 }
 
 /** @internal */
@@ -617,7 +617,7 @@ export function mapDefinedEntries<K1, V1, K2, V2>(map: ReadonlyESMap<K1, V1> | u
         return undefined;
     }
 
-    const result = new Map<K2, V2>();
+    const result = new Map<K2, V2>(undefined, map.size);
     map.forEach((value, key) => {
         const entry = f(key, value);
         if (entry !== undefined) {
@@ -746,7 +746,7 @@ export function mapEntries<K1, V1, K2, V2>(map: ReadonlyESMap<K1, V1> | undefine
         return undefined;
     }
 
-    const result = new Map<K2, V2>();
+    const result = new Map<K2, V2>(undefined, map.size);
     map.forEach((value, key) => {
         const [newKey, newValue] = f(key, value);
         result.set(newKey, newValue);
@@ -843,7 +843,7 @@ function deduplicateRelational<T>(array: readonly T[], equalityComparer: Equalit
 }
 
 function deduplicateEquality<T>(array: readonly T[], equalityComparer: EqualityComparer<T>) {
-    const result: T[] = [];
+    const result: T[] = arrayWithCapacity(array.length);
     for (const item of array) {
         pushIfUnique(result, item, equalityComparer);
     }
@@ -1490,11 +1490,13 @@ export function getEntries<T>(obj: MapLike<T>): [string, T][] {
     return obj ? _entries(obj) : [];
 }
 
+    export const arrayWithCapacity: <T>(capacity: number) => T[] = (Array as any).withCapacity || (() => []);
+
 /** @internal */
 export function arrayOf<T>(count: number, f: (index: number) => T): T[] {
-    const result = new Array(count);
+    const result: T[] = arrayWithCapacity(count);
     for (let i = 0; i < count; i++) {
-        result[i] = f(i);
+        result.push(f(i));
     }
     return result;
 }
@@ -1509,7 +1511,7 @@ export function arrayFrom<T, U>(iterator: Iterator<T> | IterableIterator<T>, map
 export function arrayFrom<T>(iterator: Iterator<T> | IterableIterator<T>): T[];
 /** @internal */
 export function arrayFrom<T, U>(iterator: Iterator<T> | IterableIterator<T>, map?: (t: T) => U): (T | U)[] {
-    const result: (T | U)[] = [];
+    const result: (T | U)[] = []; // TODO(jakebailey): preallocate via parameter
     for (let iterResult = iterator.next(); !iterResult.done; iterResult = iterator.next()) {
         result.push(map ? map(iterResult.value) : iterResult.value);
     }
@@ -1578,7 +1580,7 @@ export function arrayToMap<T>(array: readonly T[], makeKey: (value: T) => string
 export function arrayToMap<T, U>(array: readonly T[], makeKey: (value: T) => string | undefined, makeValue: (value: T) => U): ESMap<string, U>;
 /** @internal */
 export function arrayToMap<K, V1, V2>(array: readonly V1[], makeKey: (value: V1) => K | undefined, makeValue: (value: V1) => V1 | V2 = identity): ESMap<K, V1 | V2> {
-    const result = new Map<K, V1 | V2>();
+    const result = new Map<K, V1 | V2>(undefined, array.length);
     for (const value of array) {
         const key = makeKey(value);
         if (key !== undefined) result.set(key, makeValue(value));
