@@ -86,7 +86,7 @@ export function createSyntacticTypeNodeBuilder(options: CompilerOptions, resolve
         switch (node.kind) {
             case SyntaxKind.PropertySignature:
                 return serializeExistingTypeAnnotation(getEffectiveTypeAnnotationNode(node));
-            case SyntaxKind.Parameter:
+            case SyntaxKind.ParameterDeclaration:
                 return typeFromParameter(node, context);
             case SyntaxKind.VariableDeclaration:
                 return typeFromVariable(node, context);
