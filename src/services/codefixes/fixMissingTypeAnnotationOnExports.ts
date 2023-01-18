@@ -58,7 +58,7 @@ import {
     isObjectBindingPattern,
     isObjectLiteralExpression,
     isOmittedExpression,
-    isParameter,
+    isParameterDeclaration,
     isPropertyAssignment,
     isPropertyDeclaration,
     isShorthandPropertyAssignment,
@@ -892,7 +892,7 @@ function withContext<T>(
             type = widenedType;
         }
 
-        if (isParameter(node) && typeChecker.requiresAddingImplicitUndefined(node)) {
+        if (isParameterDeclaration(node) && typeChecker.requiresAddingImplicitUndefined(node)) {
             type = typeChecker.getUnionType([typeChecker.getUndefinedType(), type], UnionReduction.None);
         }
         const flags = (
@@ -1025,7 +1025,7 @@ function withContext<T>(
     }
 
     function relativeType(node: Node): InferenceResult {
-        if (isParameter(node)) {
+        if (isParameterDeclaration(node)) {
             return emptyInferenceResult;
         }
         if (isShorthandPropertyAssignment(node)) {

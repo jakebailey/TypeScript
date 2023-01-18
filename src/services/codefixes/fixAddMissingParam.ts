@@ -29,7 +29,7 @@ import {
     isAccessExpression,
     isCallExpression,
     isIdentifier,
-    isParameter,
+    isParameterDeclaration,
     isPropertyDeclaration,
     isSourceFileFromLibrary,
     isVariableDeclaration,
@@ -214,7 +214,7 @@ function tryGetName(node: FunctionLikeDeclaration) {
     if (
         isVariableDeclaration(node.parent) && isIdentifier(node.parent.name) ||
         isPropertyDeclaration(node.parent) ||
-        isParameter(node.parent)
+        isParameterDeclaration(node.parent)
     ) {
         return node.parent.name;
     }
