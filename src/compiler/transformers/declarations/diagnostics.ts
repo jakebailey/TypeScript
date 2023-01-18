@@ -50,7 +50,7 @@ import {
     isJSDocTypeAlias,
     isMethodDeclaration,
     isMethodSignature,
-    isParameter,
+    isParameterDeclaration,
     isParameterPropertyDeclaration,
     isParenthesizedExpression,
     isPropertyAccessExpression,
@@ -139,7 +139,7 @@ export function canProduceDiagnostics(node: Node): node is DeclarationDiagnostic
         isMethodDeclaration(node) ||
         isMethodSignature(node) ||
         isFunctionDeclaration(node) ||
-        isParameter(node) ||
+        isParameterDeclaration(node) ||
         isTypeParameterDeclaration(node) ||
         isExpressionWithTypeArguments(node) ||
         isImportEqualsDeclaration(node) ||
@@ -237,7 +237,7 @@ export function createGetSymbolAccessibilityDiagnosticForNode(node: DeclarationD
     else if (isConstructSignatureDeclaration(node) || isCallSignatureDeclaration(node) || isMethodDeclaration(node) || isMethodSignature(node) || isFunctionDeclaration(node) || isIndexSignatureDeclaration(node)) {
         return getReturnTypeVisibilityError;
     }
-    else if (isParameter(node)) {
+    else if (isParameterDeclaration(node)) {
         if (isParameterPropertyDeclaration(node, node.parent) && hasSyntacticModifier(node.parent, ModifierFlags.Private)) {
             return getVariableDeclarationTypeVisibilityError;
         }
@@ -694,7 +694,7 @@ export function createGetIsolatedDeclarationErrors(resolver: EmitResolver) {
     }
 
     function findNearestDeclaration(node: Node) {
-        const result = findAncestor(node, n => isExportAssignment(n) || (isStatement(n) ? "quit" : isVariableDeclaration(n) || isPropertyDeclaration(n) || isParameter(n)));
+        const result = findAncestor(node, n => isExportAssignment(n) || (isStatement(n) ? "quit" : isVariableDeclaration(n) || isPropertyDeclaration(n) || isParameterDeclaration(n)));
         return result as VariableDeclaration | PropertyDeclaration | ParameterDeclaration | ExportAssignment | undefined;
     }
 

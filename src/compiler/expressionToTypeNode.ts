@@ -31,7 +31,7 @@ import {
     isIdentifier,
     isJSDocTypeAssertion,
     isKeyword,
-    isParameter,
+    isParameterDeclaration,
     isPrimitiveLiteralValue,
     isShorthandPropertyAssignment,
     isSpreadAssignment,
@@ -77,7 +77,7 @@ export function createSyntacticTypeNodeBuilder(options: CompilerOptions, resolve
         serializeTypeOfExpression,
     };
     function serializeExistingTypeAnnotation(type: TypeNode | undefined) {
-        return type === undefined ? undefined : !type.parent || !isParameter(type.parent) || !resolver.requiresAddingImplicitUndefined(type.parent) || canAddUndefined(type);
+        return type === undefined ? undefined : !type.parent || !isParameterDeclaration(type.parent) || !resolver.requiresAddingImplicitUndefined(type.parent) || canAddUndefined(type);
     }
     function serializeTypeOfExpression(expr: Expression, context: SyntacticTypeNodeBuilderContext, addUndefined?: boolean, preserveLiterals?: boolean) {
         return typeFromExpression(expr, context, /*isConstContext*/ false, addUndefined, preserveLiterals) ?? inferExpressionType(expr, context);
