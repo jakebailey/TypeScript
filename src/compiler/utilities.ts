@@ -2558,7 +2558,7 @@ export function getLeadingCommentRangesOfNode(node: Node, sourceFileOfNode: Sour
 
 /** @internal */
 export function getJSDocCommentRanges(node: Node, text: string) {
-    const commentRanges = (node.kind === SyntaxKind.Parameter ||
+    const commentRanges = (node.kind === SyntaxKind.ParameterDeclaration ||
             node.kind === SyntaxKind.TypeParameter ||
             node.kind === SyntaxKind.FunctionExpression ||
             node.kind === SyntaxKind.ArrowFunction ||
@@ -2649,7 +2649,7 @@ export function isPartOfTypeNode(node: Node): boolean {
                     return node === (parent as JSDocTemplateTag).constraint;
                 case SyntaxKind.PropertyDeclaration:
                 case SyntaxKind.PropertySignature:
-                case SyntaxKind.Parameter:
+                case SyntaxKind.ParameterDeclaration:
                 case SyntaxKind.VariableDeclaration:
                     return node === (parent as HasType).type;
                 case SyntaxKind.FunctionDeclaration:
@@ -2791,7 +2791,7 @@ export function isVariableLike(node: Node): node is VariableLikeDeclaration {
         switch (node.kind) {
             case SyntaxKind.BindingElement:
             case SyntaxKind.EnumMember:
-            case SyntaxKind.Parameter:
+            case SyntaxKind.ParameterDeclaration:
             case SyntaxKind.PropertyAssignment:
             case SyntaxKind.PropertyDeclaration:
             case SyntaxKind.PropertySignature:
@@ -3017,7 +3017,7 @@ export function getThisContainer(node: Node, includeArrowFunctions: boolean, inc
                 break;
             case SyntaxKind.Decorator:
                 // Decorators are always applied outside of the body of a class or method.
-                if (node.parent.kind === SyntaxKind.Parameter && isClassElement(node.parent.parent)) {
+                if (node.parent.kind === SyntaxKind.ParameterDeclaration && isClassElement(node.parent.parent)) {
                     // If the decorator's parent is a Parameter, we resolve the this container from
                     // the grandparent class declaration.
                     node = node.parent.parent;
@@ -3170,7 +3170,7 @@ export function getSuperContainer(node: Node, stopOnFunctions: boolean) {
                 return node as SuperContainerOrFunctions;
             case SyntaxKind.Decorator:
                 // Decorators are always applied outside of the body of a class or method.
-                if (node.parent.kind === SyntaxKind.Parameter && isClassElement(node.parent.parent)) {
+                if (node.parent.kind === SyntaxKind.ParameterDeclaration && isClassElement(node.parent.parent)) {
                     // If the decorator's parent is a Parameter, we resolve the this container from
                     // the grandparent class declaration.
                     node = node.parent.parent;
@@ -3308,7 +3308,7 @@ export function nodeCanBeDecorated(useLegacyDecorators: boolean, node: Node, par
                 && parent !== undefined
                 && (useLegacyDecorators ? isClassDeclaration(parent) : isClassLike(parent));
 
-        case SyntaxKind.Parameter:
+        case SyntaxKind.ParameterDeclaration:
             // TODO(rbuckton): Parameter decorator support for ES decorators must wait until it is standardized
             if (!useLegacyDecorators) return false;
             // if the parameter's parent has a body and its grandparent is a class declaration, this is a valid target.
@@ -3507,7 +3507,7 @@ export function isInExpressionContext(node: Node): boolean {
     const { parent } = node;
     switch (parent.kind) {
         case SyntaxKind.VariableDeclaration:
-        case SyntaxKind.Parameter:
+        case SyntaxKind.ParameterDeclaration:
         case SyntaxKind.PropertyDeclaration:
         case SyntaxKind.PropertySignature:
         case SyntaxKind.EnumMember:
@@ -4221,7 +4221,7 @@ export function forEachImportClauseDeclaration<T>(node: ImportClause, action: (d
 export function hasQuestionToken(node: Node) {
     if (node) {
         switch (node.kind) {
-            case SyntaxKind.Parameter:
+            case SyntaxKind.ParameterDeclaration:
             case SyntaxKind.MethodDeclaration:
             case SyntaxKind.MethodSignature:
             case SyntaxKind.ShorthandPropertyAssignment:
@@ -4370,7 +4370,7 @@ export function canHaveJSDoc(node: Node): node is HasJSDoc {
         case SyntaxKind.NamedTupleMember:
         case SyntaxKind.NamespaceExportDeclaration:
         case SyntaxKind.ObjectLiteralExpression:
-        case SyntaxKind.Parameter:
+        case SyntaxKind.ParameterDeclaration:
         case SyntaxKind.ParenthesizedExpression:
         case SyntaxKind.PropertyAccessExpression:
         case SyntaxKind.PropertyAssignment:
@@ -4432,7 +4432,7 @@ export function getJSDocCommentsAndTags(hostNode: Node, noCache?: boolean): read
             result = addRange(result, filterOwnedJSDocTags(hostNode, node.jsDoc!));
         }
 
-        if (node.kind === SyntaxKind.Parameter) {
+        if (node.kind === SyntaxKind.ParameterDeclaration) {
             result = addRange(result, (noCache ? getJSDocParameterTagsNoCache : getJSDocParameterTags)(node as ParameterDeclaration));
             break;
         }
@@ -5290,7 +5290,7 @@ export function isNamedEvaluationSource(node: Node): node is NamedEvaluationSour
             return !!(node as ShorthandPropertyAssignment).objectAssignmentInitializer;
         case SyntaxKind.VariableDeclaration:
             return isIdentifier((node as VariableDeclaration).name) && !!(node as VariableDeclaration).initializer;
-        case SyntaxKind.Parameter:
+        case SyntaxKind.ParameterDeclaration:
             return isIdentifier((node as ParameterDeclaration).name) && !!(node as VariableDeclaration).initializer && !(node as BindingElement).dotDotDotToken;
         case SyntaxKind.BindingElement:
             return isIdentifier((node as BindingElement).name) && !!(node as VariableDeclaration).initializer && !(node as BindingElement).dotDotDotToken;
@@ -5332,7 +5332,7 @@ export function isNamedEvaluation(node: Node, cb?: (node: AnonymousFunctionDefin
         case SyntaxKind.ShorthandPropertyAssignment:
             return isAnonymousFunctionDefinition(node.objectAssignmentInitializer, cb);
         case SyntaxKind.VariableDeclaration:
-        case SyntaxKind.Parameter:
+        case SyntaxKind.ParameterDeclaration:
         case SyntaxKind.BindingElement:
         case SyntaxKind.PropertyDeclaration:
             return isAnonymousFunctionDefinition(node.initializer, cb);
@@ -5359,7 +5359,7 @@ export function isPushOrUnshiftIdentifier(node: Identifier) {
  */
 export function isPartOfParameterDeclaration(node: Declaration): boolean {
     const root = getRootDeclaration(node);
-    return root.kind === SyntaxKind.Parameter;
+    return root.kind === SyntaxKind.ParameterDeclaration;
 }
 
 /** @internal */
@@ -10422,7 +10422,7 @@ export function getContainingNodeArray(node: Node): NodeArray<Node> | undefined 
         case SyntaxKind.TypeParameter:
             const { parent } = node as TypeParameterDeclaration;
             return parent.kind === SyntaxKind.InferType ? undefined : parent.typeParameters;
-        case SyntaxKind.Parameter:
+        case SyntaxKind.ParameterDeclaration:
             return (node as ParameterDeclaration).parent.parameters;
         case SyntaxKind.TemplateLiteralTypeSpan:
             return (node as TemplateLiteralTypeSpan).parent.templateSpans;
@@ -10699,7 +10699,7 @@ export function isOptionalDeclaration(declaration: Declaration): boolean {
         case SyntaxKind.PropertyDeclaration:
         case SyntaxKind.PropertySignature:
             return !!(declaration as PropertyDeclaration | PropertySignature).questionToken;
-        case SyntaxKind.Parameter:
+        case SyntaxKind.ParameterDeclaration:
             return !!(declaration as ParameterDeclaration).questionToken || isJSDocOptionalParameter(declaration as ParameterDeclaration);
         case SyntaxKind.JSDocPropertyTag:
         case SyntaxKind.JSDocParameterTag:
@@ -10819,7 +10819,7 @@ export function getNameFromImportAttribute(node: ImportAttribute) {
 export function isSourceElement(node: Node): boolean {
     switch (node.kind) {
         case SyntaxKind.TypeParameter:
-        case SyntaxKind.Parameter:
+        case SyntaxKind.ParameterDeclaration:
         case SyntaxKind.PropertyDeclaration:
         case SyntaxKind.PropertySignature:
         case SyntaxKind.ConstructorType:
@@ -11159,7 +11159,7 @@ export function createNameResolver({
                                 // type parameters are visible in parameter list, return type and type parameter list
                                 ? !!(lastLocation.flags & NodeFlags.Synthesized) || // Synthetic fake scopes are added for signatures so type parameters are accessible from them
                                     lastLocation === (location as FunctionLikeDeclaration).type ||
-                                    lastLocation.kind === SyntaxKind.Parameter ||
+                                    lastLocation.kind === SyntaxKind.ParameterDeclaration ||
                                     lastLocation.kind === SyntaxKind.JSDocParameterTag ||
                                     lastLocation.kind === SyntaxKind.JSDocReturnTag ||
                                     lastLocation.kind === SyntaxKind.TypeParameter
@@ -11176,7 +11176,7 @@ export function createNameResolver({
                                 // technically for parameter list case here we might mix parameters and variables declared in function,
                                 // however it is detected separately when checking initializers of parameters
                                 // to make sure that they reference no variables declared after them.
-                                useResult = lastLocation.kind === SyntaxKind.Parameter ||
+                                useResult = lastLocation.kind === SyntaxKind.ParameterDeclaration ||
                                     !!(lastLocation.flags & NodeFlags.Synthesized) || // Synthetic fake scopes are added for signatures so parameters are accessible from them
                                     (
                                         lastLocation === (location as FunctionLikeDeclaration).type &&
@@ -11383,7 +11383,7 @@ export function createNameResolver({
                     //       method(@y x, y) {} // <-- decorator y should be resolved at the class declaration, not the parameter.
                     //   }
                     //
-                    if (location.parent && location.parent.kind === SyntaxKind.Parameter) {
+                    if (location.parent && location.parent.kind === SyntaxKind.ParameterDeclaration) {
                         location = location.parent;
                     }
                     //
@@ -11413,7 +11413,7 @@ export function createNameResolver({
                         location = root.parent;
                     }
                     break;
-                case SyntaxKind.Parameter:
+                case SyntaxKind.ParameterDeclaration:
                     if (
                         lastLocation && (
                             lastLocation === (location as ParameterDeclaration).initializer ||
@@ -11601,7 +11601,7 @@ export function createNameResolver({
 
     function isSelfReferenceLocation(node: Node, lastLocation: Node | undefined): node is SelfReferenceLocation {
         switch (node.kind) {
-            case SyntaxKind.Parameter:
+            case SyntaxKind.ParameterDeclaration:
                 return !!lastLocation && lastLocation === (node as ParameterDeclaration).name;
             case SyntaxKind.FunctionDeclaration:
             case SyntaxKind.ClassDeclaration:
@@ -11669,7 +11669,7 @@ export function unwrapParenthesizedExpression(o: Expression) {
 export function hasInferredType(node: Node): node is HasInferredType {
     Debug.type<HasInferredType>(node);
     switch (node.kind) {
-        case SyntaxKind.Parameter:
+        case SyntaxKind.ParameterDeclaration:
         case SyntaxKind.PropertySignature:
         case SyntaxKind.PropertyDeclaration:
         case SyntaxKind.BindingElement:
