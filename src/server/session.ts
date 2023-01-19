@@ -179,6 +179,7 @@ import {
     toNormalizedPath,
     updateProjectIfDirty,
 } from "./_namespaces/ts.server";
+import { CommandToRequest, CommandTypes } from "./protocol";
 
 interface StackTraceError extends Error {
     stack?: string;
@@ -3092,35 +3093,34 @@ export class Session<TMessage = string> implements EventSender {
 
     exit() { /*overridden*/ }
 
-    private notRequired(): HandlerResponse {
+    private notRequired(): HandlerResponse<void> {
         return { responseRequired: false };
     }
 
-    private requiredResponse(response: {} | undefined): HandlerResponse {
+    private requiredResponse<T extends {}>(response: T | undefined): HandlerResponse<T> {
         return { response, responseRequired: true };
     }
 
-    private handlers = new Map(Object.entries<(request: any) => HandlerResponse>({ // TODO(jakebailey): correctly type the handlers
-        [CommandNames.Status]: () => {
-            const response: protocol.StatusResponseBody = { version };
-            return this.requiredResponse(response);
+    private handlers2: { [K in keyof CommandToRequest]?: WrappedHandlerResponse<CommandToRequest[K]>; } = {
+        [CommandTypes.Status]: () => {
+            return this.requiredResponse({ version });
         },
-        [CommandNames.OpenExternalProject]: (request: protocol.OpenExternalProjectRequest) => {
+        [CommandTypes.OpenExternalProject]: (request) => {
             this.projectService.openExternalProject(request.arguments);
             // TODO: GH#20447 report errors
             return this.requiredResponse(/*response*/ true);
         },
-        [CommandNames.OpenExternalProjects]: (request: protocol.OpenExternalProjectsRequest) => {
+        [CommandTypes.OpenExternalProjects]: (request) => {
             this.projectService.openExternalProjects(request.arguments.projects);
             // TODO: GH#20447 report errors
             return this.requiredResponse(/*response*/ true);
         },
-        [CommandNames.CloseExternalProject]: (request: protocol.CloseExternalProjectRequest) => {
+        [CommandTypes.CloseExternalProject]: (request) => {
             this.projectService.closeExternalProject(request.arguments.projectFileName);
             // TODO: GH#20447 report errors
             return this.requiredResponse(/*response*/ true);
         },
-        [CommandNames.SynchronizeProjectList]: (request: protocol.SynchronizeProjectListRequest) => {
+        [CommandTypes.SynchronizeProjectList]: (request) => {
             const result = this.projectService.synchronizeProjectList(request.arguments.knownProjects, request.arguments.includeProjectReferenceRedirectInfo);
             if (!result.some(p => p.projectErrors && p.projectErrors.length !== 0)) {
                 return this.requiredResponse(result);
@@ -3138,7 +3138,7 @@ export class Session<TMessage = string> implements EventSender {
             });
             return this.requiredResponse(converted);
         },
-        [CommandNames.UpdateOpen]: (request: protocol.UpdateOpenRequest) => {
+        [CommandTypes.UpdateOpen]: (request) => {
             this.changeSeq++;
             this.projectService.applyChangesInOpenFiles(
                 request.arguments.openFiles && mapIterator(request.arguments.openFiles, file => ({
@@ -3160,7 +3160,7 @@ export class Session<TMessage = string> implements EventSender {
             );
             return this.requiredResponse(/*response*/ true);
         },
-        [CommandNames.ApplyChangedToOpenFiles]: (request: protocol.ApplyChangedToOpenFilesRequest) => {
+        [CommandTypes.ApplyChangedToOpenFiles]: (request: protocol.ApplyChangedToOpenFilesRequest) => {
             this.changeSeq++;
             this.projectService.applyChangesInOpenFiles(
                 request.arguments.openFiles,
@@ -3174,13 +3174,17 @@ export class Session<TMessage = string> implements EventSender {
             // TODO: report errors
             return this.requiredResponse(/*response*/ true);
         },
-        [CommandNames.Exit]: () => {
+        [CommandTypes.Exit]: () => {
             this.exit();
             return this.notRequired();
         },
-        [CommandNames.Definition]: (request: protocol.DefinitionRequest) => {
+        [CommandTypes.Definition]: (request: protocol.DefinitionRequest) => {
             return this.requiredResponse(this.getDefinition(request.arguments, /*simplifiedResult*/ true));
         },
+    };
+
+    private handlers = new Map(Object.entries<(request: any) => HandlerResponse<any>>({ // TODO(jakebailey): correctly type the handlers
+        
         [CommandNames.DefinitionFull]: (request: protocol.DefinitionRequest) => {
             return this.requiredResponse(this.getDefinition(request.arguments, /*simplifiedResult*/ false));
         },
@@ -3497,7 +3501,7 @@ export class Session<TMessage = string> implements EventSender {
         }
     }));
 
-    public addProtocolHandler(command: string, handler: (request: protocol.Request) => HandlerResponse) {
+    public addProtocolHandler(command: string, handler: (request: protocol.Request) => HandlerResponse<{}>) {
         if (this.handlers.has(command)) {
             throw new Error(`Protocol handler already exists for command "${command}"`);
         }
@@ -3526,7 +3530,7 @@ export class Session<TMessage = string> implements EventSender {
         }
     }
 
-    public executeCommand(request: protocol.Request): HandlerResponse {
+    public executeCommand(request: protocol.Request): HandlerResponse<any> {
         const handler = this.handlers.get(request.command);
         if (handler) {
             const response = this.executeWithRequestId(request.seq, () => handler(request));
@@ -3675,10 +3679,12 @@ function convertNewFileTextChangeToCodeEdit(textChanges: FileTextChanges): proto
     return { fileName: textChanges.fileName, textChanges: [{ start: { line: 0, offset: 0 }, end: { line: 0, offset: 0 }, newText: change.newText }] };
 }
 
-export interface HandlerResponse {
-    response?: {};
+export interface HandlerResponse<T> {
+    response?: T;
     responseRequired?: boolean;
 }
+
+type WrappedHandlerResponse<T> = T extends (...args: infer P) => infer R ? (...args: P) => HandlerResponse<R> : never;
 
 /** @internal */ // Exported only for tests
 export function getLocationInNewDocument(oldText: string, renameFilename: string, renameLocation: number, edits: readonly FileTextChanges[]): protocol.Location {
