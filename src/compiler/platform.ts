@@ -11,5 +11,5 @@ export function isNodeLikeSystem(): boolean {
     return typeof process !== "undefined"
         && process.nextTick
         && !process.browser
-        && typeof module === "object";
+        && process.release?.name === "node"; // TODO(jakebailey): this function is out of date.
 }

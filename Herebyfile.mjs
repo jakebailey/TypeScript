@@ -316,6 +316,51 @@ function entrypointBuildTask(options) {
 }
 
 
+export const bundleEsm = task({
+    name: "bundle-esm",
+    dependencies: [generateLibs, generateDiagnostics],
+    run: async () => {
+        const banner = [
+            await copyright(),
+            `import __module__ from "module";`,
+            `import __url__ from "url";`,
+            `import __path__ from "path";`,
+            `var require = __module__.createRequire(import.meta.url);`,
+            `var __filename = __url__.fileURLToPath(new URL(import.meta.url));`,
+            `var __dirname = __path__.dirname(__filename);`,
+        ].join("\n");
+
+        await esbuild.build({
+            entryPoints: {
+                // cancellationToken: "./src/cancellationToken/cancellationToken.ts",
+                tsc: "./src/tsc/tsc.ts",
+                tsserver: "./src/tsserver/server.ts",
+                // tsserverlibrary: "./src/tsserverlibrary/tsserverlibrary.ts",
+                // typescript: "./src/typescript/typescript.ts",
+                typingsInstaller: "./src/typingsInstaller/nodeTypingsInstaller.ts",
+                // watchGuard: "./src/watchGuard/watchGuard.ts",
+            },
+            outdir: "./built/local/esm",
+            outExtension: { ".js": ".mjs" },
+            banner: { js: banner },
+            bundle: true,
+            splitting: true,
+            platform: "node",
+            target: "es2018", // Covers Node 10.
+            format: "esm",
+            sourcemap: "linked",
+            external: ["./node_modules/*"],
+        });
+
+        // TODO(jakebailey): needs plugins, etc; merge with entrypointBuildTask.
+
+        for (const entrypoint of ["tsc", "tsserver", "typingsInstaller"]) {
+            await fs.promises.writeFile(`./built/local/${entrypoint}.js`, `(() => import("./esm/${entrypoint}.mjs"))().catch((e) => { console.error(e); process.exit(1); })\n`);
+        }
+    }
+});
+
+
 const { main: tsc, watch: watchTsc } = entrypointBuildTask({
     name: "tsc",
     description: "Builds the command-line compiler",
