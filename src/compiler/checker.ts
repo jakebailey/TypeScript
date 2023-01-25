@@ -1122,7 +1122,7 @@ const enum WideningKind {
 }
 
 /** @internal */
-export const enum TypeFacts {
+export enum TypeFacts {
     None = 0,
     TypeofEQString = 1 << 0,      // typeof x === "string"
     TypeofEQNumber = 1 << 1,      // typeof x === "number"
@@ -1231,7 +1231,7 @@ const enum TypeSystemPropertyName {
 }
 
 /** @internal */
-export const enum CheckMode {
+export enum CheckMode {
     Normal = 0,                                     // Normal type checking
     Contextual = 1 << 0,                            // Explicitly assigned contextual type, therefore not cacheable
     Inferential = 1 << 1,                           // Inferential typing
@@ -1245,7 +1245,7 @@ export const enum CheckMode {
 }
 
 /** @internal */
-export const enum SignatureCheckMode {
+export enum SignatureCheckMode {
     None              = 0,
     BivariantCallback = 1 << 0,
     StrictCallback    = 1 << 1,

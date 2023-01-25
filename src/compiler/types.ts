@@ -38,7 +38,7 @@ export interface ReadonlyTextRange {
 
 // token > SyntaxKind.Identifier => token is a keyword
 // Also, If you add a new SyntaxKind be sure to keep the `Markers` section at the bottom in sync
-export const enum SyntaxKind {
+export enum SyntaxKind {
     Unknown,
     EndOfFileToken,
     SingleLineCommentTrivia,
@@ -777,7 +777,7 @@ export type JSDocSyntaxKind =
     | KeywordSyntaxKind
     ;
 
-export const enum NodeFlags {
+export enum NodeFlags {
     None               = 0,
     Let                = 1 << 0,  // Variable declaration
     Const              = 1 << 1,  // Variable declaration
@@ -841,7 +841,7 @@ export const enum NodeFlags {
     /** @internal */ IdentifierIsInJSDocNamespace = HasAsyncFunctions, // Indicates whether the identifier is part of a JSDoc namespace
 }
 
-export const enum ModifierFlags {
+export enum ModifierFlags {
     None =               0,
     Export =             1 << 0,  // Declarations
     Ambient =            1 << 1,  // Declarations
@@ -886,7 +886,7 @@ export const enum JsxFlags {
 }
 
 /** @internal */
-export const enum RelationComparisonResult {
+export enum RelationComparisonResult {
     Succeeded           = 1 << 0, // Should be truthy
     Failed              = 1 << 1,
     Reported            = 1 << 2,
@@ -1656,7 +1656,7 @@ export type ClassMemberModifier =
 
 export type ModifiersArray = NodeArray<Modifier>;
 
-export const enum GeneratedIdentifierFlags {
+export enum GeneratedIdentifierFlags {
     // Kinds
     None = 0,                           // Not automatically generated.
     /** @internal */ Auto = 1,             // Automatically generated identifier.
@@ -4091,7 +4091,7 @@ export interface JSDocSatisfiesExpression extends ParenthesizedExpression {
 }
 
 // NOTE: Ensure this is up-to-date with src/debug/debug.ts
-export const enum FlowFlags {
+export enum FlowFlags {
     Unreachable    = 1 << 0,  // Unreachable code
     Start          = 1 << 1,  // Start of flow graph
     BranchLabel    = 1 << 2,  // Non-looping junction
@@ -4835,7 +4835,7 @@ export interface ResolvedProjectReference {
 }
 
 /** @internal */
-export const enum StructureIsReused {
+export enum StructureIsReused {
     Not,
     SafeModules,
     Completely,
@@ -5638,7 +5638,7 @@ export interface EmitResolver {
     isImportRequiredByAugmentation(decl: ImportDeclaration): boolean;
 }
 
-export const enum SymbolFlags {
+export enum SymbolFlags {
     None                    = 0,
     FunctionScopedVariable  = 1 << 0,   // Variable (var) or parameter
     BlockScopedVariable     = 1 << 1,   // A block-scoped variable (let or const)
@@ -5992,7 +5992,7 @@ export interface SerializedTypeEntry {
     addedLength: number;
 }
 
-export const enum TypeFlags {
+export enum TypeFlags {
     Any             = 1 << 0,
     Unknown         = 1 << 1,
     String          = 1 << 2,
@@ -6165,7 +6165,7 @@ export interface EnumType extends Type {
 // Types included in TypeFlags.ObjectFlagsType have an objectFlags property. Some ObjectFlags
 // are specific to certain types and reuse the same bit position. Those ObjectFlags require a check
 // for a certain TypeFlags value to determine their meaning.
-export const enum ObjectFlags {
+export enum ObjectFlags {
     None             = 0,
     Class            = 1 << 0,  // Class
     Interface        = 1 << 1,  // Interface
@@ -6615,7 +6615,7 @@ export const enum SignatureKind {
 }
 
 /** @internal */
-export const enum SignatureFlags {
+export enum SignatureFlags {
     None = 0,
 
     // Propagating flags
@@ -7196,7 +7196,7 @@ export const enum ScriptKind {
     Deferred = 7
 }
 
-export const enum ScriptTarget {
+export enum ScriptTarget {
     ES3 = 0,
     ES5 = 1,
     ES2015 = 2,
@@ -7712,7 +7712,7 @@ export interface ResolvedProjectReferenceCallbacks {
 }
 
 /** @internal */
-export const enum TransformFlags {
+export enum TransformFlags {
     None = 0,
 
     // Facts
@@ -7850,14 +7850,14 @@ export interface Placeholder {
 
 // Reference: https://code.visualstudio.com/docs/editor/userdefinedsnippets#_snippet-syntax
 /** @internal */
-export const enum SnippetKind {
+export enum SnippetKind {
     TabStop,                                // `$1`, `$2`
     Placeholder,                            // `${1:foo}`
     Choice,                                 // `${1|one,two,three|}`
     Variable,                               // `$name`, `${name:default}`
 }
 
-export const enum EmitFlags {
+export enum EmitFlags {
     None = 0,
     SingleLine = 1 << 0,                    // The contents of this node should be emitted on a single line.
     MultiLine = 1 << 1,

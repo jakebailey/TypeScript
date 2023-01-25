@@ -1037,7 +1037,7 @@ describe("unittests:: moduleResolution:: Type reference directive resolution: ",
         baselines.push(ts.formatDiagnostics(program1.getOptionsDiagnostics(), compilerHost), "");
 
         const program2 = ts.createProgram(names, {}, compilerHost, program1);
-        baselines.push(`Program Reused:: ${(ts as any).StructureIsReused[program2.structureIsReused]}`);
+        baselines.push(`Program Reused:: ${ts.StructureIsReused[program2.structureIsReused]}`);
         baselines.push("", "Program2 Options Diagnostics::");
         baselines.push(ts.formatDiagnostics(program2.getOptionsDiagnostics(), compilerHost), "");
         runBaseline("reused program keeps errors", baselines);

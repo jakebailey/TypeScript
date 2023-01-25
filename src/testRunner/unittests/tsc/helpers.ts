@@ -262,7 +262,7 @@ function baselineProgram(baseline: string[], [program, builderProgram]: CommandL
         const options = program.getCompilerOptions();
         baseline.push(`Program root files: ${JSON.stringify(program.getRootFileNames())}`);
         baseline.push(`Program options: ${JSON.stringify(options)}`);
-        baseline.push(`Program structureReused: ${(ts as any).StructureIsReused[program.structureIsReused]}`);
+        baseline.push(`Program structureReused: ${ts.StructureIsReused[program.structureIsReused]}`);
         baseline.push("Program files::");
         for (const file of program.getSourceFiles()) {
             baseline.push(file.fileName);

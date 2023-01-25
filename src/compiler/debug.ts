@@ -1,4 +1,3 @@
-import * as ts from "./_namespaces/ts";
 import {
     AnyFunction,
     AssertionLevel,
@@ -432,63 +431,63 @@ export namespace Debug {
     }
 
     export function formatSyntaxKind(kind: SyntaxKind | undefined): string {
-        return formatEnum(kind, (ts as any).SyntaxKind, /*isFlags*/ false);
+        return formatEnum(kind, SyntaxKind, /*isFlags*/ false);
     }
 
     export function formatSnippetKind(kind: SnippetKind | undefined): string {
-        return formatEnum(kind, (ts as any).SnippetKind, /*isFlags*/ false);
+        return formatEnum(kind, SnippetKind, /*isFlags*/ false);
     }
 
     export function formatNodeFlags(flags: NodeFlags | undefined): string {
-        return formatEnum(flags, (ts as any).NodeFlags, /*isFlags*/ true);
+        return formatEnum(flags, NodeFlags, /*isFlags*/ true);
     }
 
     export function formatModifierFlags(flags: ModifierFlags | undefined): string {
-        return formatEnum(flags, (ts as any).ModifierFlags, /*isFlags*/ true);
+        return formatEnum(flags, ModifierFlags, /*isFlags*/ true);
     }
 
     export function formatTransformFlags(flags: TransformFlags | undefined): string {
-        return formatEnum(flags, (ts as any).TransformFlags, /*isFlags*/ true);
+        return formatEnum(flags, TransformFlags, /*isFlags*/ true);
     }
 
     export function formatEmitFlags(flags: EmitFlags | undefined): string {
-        return formatEnum(flags, (ts as any).EmitFlags, /*isFlags*/ true);
+        return formatEnum(flags, EmitFlags, /*isFlags*/ true);
     }
 
     export function formatSymbolFlags(flags: SymbolFlags | undefined): string {
-        return formatEnum(flags, (ts as any).SymbolFlags, /*isFlags*/ true);
+        return formatEnum(flags, SymbolFlags, /*isFlags*/ true);
     }
 
     export function formatTypeFlags(flags: TypeFlags | undefined): string {
-        return formatEnum(flags, (ts as any).TypeFlags, /*isFlags*/ true);
+        return formatEnum(flags, TypeFlags, /*isFlags*/ true);
     }
 
     export function formatSignatureFlags(flags: SignatureFlags | undefined): string {
-        return formatEnum(flags, (ts as any).SignatureFlags, /*isFlags*/ true);
+        return formatEnum(flags, SignatureFlags, /*isFlags*/ true);
     }
 
     export function formatObjectFlags(flags: ObjectFlags | undefined): string {
-        return formatEnum(flags, (ts as any).ObjectFlags, /*isFlags*/ true);
+        return formatEnum(flags, ObjectFlags, /*isFlags*/ true);
     }
 
     export function formatFlowFlags(flags: FlowFlags | undefined): string {
-        return formatEnum(flags, (ts as any).FlowFlags, /*isFlags*/ true);
+        return formatEnum(flags, FlowFlags, /*isFlags*/ true);
     }
 
     export function formatRelationComparisonResult(result: RelationComparisonResult | undefined): string {
-        return formatEnum(result, (ts as any).RelationComparisonResult, /*isFlags*/ true);
+        return formatEnum(result, RelationComparisonResult, /*isFlags*/ true);
     }
 
     export function formatCheckMode(mode: CheckMode | undefined): string {
-        return formatEnum(mode, (ts as any).CheckMode, /*isFlags*/ true);
+        return formatEnum(mode, CheckMode, /*isFlags*/ true);
     }
 
     export function formatSignatureCheckMode(mode: SignatureCheckMode | undefined): string {
-        return formatEnum(mode, (ts as any).SignatureCheckMode, /*isFlags*/ true);
+        return formatEnum(mode, SignatureCheckMode, /*isFlags*/ true);
     }
 
     export function formatTypeFacts(facts: TypeFacts | undefined): string {
-        return formatEnum(facts, (ts as any).TypeFacts, /*isFlags*/ true);
+        return formatEnum(facts, TypeFacts, /*isFlags*/ true);
     }
 
     let isDebugInfoEnabled = false;
@@ -518,7 +517,7 @@ export namespace Debug {
                         return `${flowHeader}${remainingFlags ? ` (${formatFlowFlags(remainingFlags)})`: ""}`;
                     }
                 },
-                __debugFlowFlags: { get(this: FlowNodeBase) { return formatEnum(this.flags, (ts as any).FlowFlags, /*isFlags*/ true); } },
+                __debugFlowFlags: { get(this: FlowNodeBase) { return formatEnum(this.flags, FlowFlags, /*isFlags*/ true); } },
                 __debugToString: { value(this: FlowNodeBase) { return formatControlFlowGraph(this); } }
             });
         }

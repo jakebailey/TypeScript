@@ -24,7 +24,7 @@ describe("unittests:: Reuse program structure:: General", () => {
         cache?.forEach((resolved, key, mode) => baselines.push(`${key}: ${mode ? ts.getNameOfCompilerOptionValue(mode, ts.moduleOptionDeclaration.type) + ": " : ""}${JSON.stringify(resolved, /*replacer*/ undefined, 2)}`));
     }
     function baselineProgram(baselines: string[], program: ts.Program, host?: TestCompilerHost) {
-        baselines.push(`Program Reused:: ${(ts as any).StructureIsReused[program.structureIsReused]}`);
+        baselines.push(`Program Reused:: ${ts.StructureIsReused[program.structureIsReused]}`);
         program.getSourceFiles().forEach(f => {
             baselines.push(`File: ${f.fileName}`, f.text);
             baselineCache(baselines, "resolvedModules", f.resolvedModules);

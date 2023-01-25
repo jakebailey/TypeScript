@@ -1718,7 +1718,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
     ];
 
     for (const target of targets) {
-        const targetName = ts.Debug.formatEnum(target, (ts as any).ScriptTarget);
+        const targetName = ts.Debug.formatEnum(target, ts.ScriptTarget);
         const options: ts.CompilerOptions = { target };
         const exec = (array: TemplateStringsArray) => evaluator.evaluateTypeScript(array[0], options);
 

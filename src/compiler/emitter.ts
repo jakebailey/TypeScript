@@ -6023,7 +6023,7 @@ export function createPrinter(printerOptions: PrinterOptions = {}, handlers: Pri
                 );
         }
 
-        return Debug.fail(`Unsupported GeneratedIdentifierKind: ${Debug.formatEnum(autoGenerate.flags & GeneratedIdentifierFlags.KindMask, (ts as any).GeneratedIdentifierFlags, /*isFlags*/ true)}.`);
+        return Debug.fail(`Unsupported GeneratedIdentifierKind: ${Debug.formatEnum(autoGenerate.flags & GeneratedIdentifierFlags.KindMask, GeneratedIdentifierFlags, /*isFlags*/ true)}.`);
     }
 
     // Comments
