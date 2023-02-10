@@ -2976,7 +2976,7 @@ namespace Parser {
     // Parses a list of elements
     function parseList<T extends Node>(kind: ParsingContext, parseElement: () => T): NodeArray<T> {
         const saveParsingContext = parsingContext;
-        parsingContext |= 1 << kind;
+        parsingContext |= kind;
         const list = [];
         const listPos = getNodePos();
 
@@ -3067,99 +3067,67 @@ namespace Parser {
     }
 
     function isReusableParsingContext(parsingContext: ParsingContext): boolean {
-        switch (parsingContext) {
-            case ParsingContext.ClassMembers:
-            case ParsingContext.SwitchClauses:
-            case ParsingContext.SourceElements:
-            case ParsingContext.BlockStatements:
-            case ParsingContext.SwitchClauseStatements:
-            case ParsingContext.EnumMembers:
-            case ParsingContext.TypeMembers:
-            case ParsingContext.VariableDeclarations:
-            case ParsingContext.JSDocParameters:
-            case ParsingContext.Parameters:
-                return true;
-        }
-        return false;
+        return !!(parsingContext & ParsingContext.Reusable);
     }
 
     function canReuseNode(node: Node, parsingContext: ParsingContext): boolean {
-        switch (parsingContext) {
-            case ParsingContext.ClassMembers:
-                return isReusableClassMember(node);
+        return parsingContext & ParsingContext.ClassMembers ? isReusableClassMember(node) :
+            parsingContext & ParsingContext.SwitchClauses ? isReusableSwitchClause(node) :
+            parsingContext & (ParsingContext.SourceElements | ParsingContext.BlockStatements | ParsingContext.SwitchClauseStatements) ? isReusableStatement(node) :
+            parsingContext & ParsingContext.EnumMembers ? isReusableEnumMember(node) :
+            parsingContext & ParsingContext.TypeMembers ? isReusableTypeMember(node) :
+            parsingContext & ParsingContext.VariableDeclarations ? isReusableVariableDeclaration(node) :
+            parsingContext & (ParsingContext.JSDocParameters | ParsingContext.Parameters) ? isReusableParameter(node) :
+            false;
 
-            case ParsingContext.SwitchClauses:
-                return isReusableSwitchClause(node);
 
-            case ParsingContext.SourceElements:
-            case ParsingContext.BlockStatements:
-            case ParsingContext.SwitchClauseStatements:
-                return isReusableStatement(node);
+        // Any other lists we do not care about reusing nodes in.  But feel free to add if
+        // you can do so safely.  Danger areas involve nodes that may involve speculative
+        // parsing.  If speculative parsing is involved with the node, then the range the
+        // parser reached while looking ahead might be in the edited range (see the example
+        // in canReuseVariableDeclaratorNode for a good case of this).
 
-            case ParsingContext.EnumMembers:
-                return isReusableEnumMember(node);
+        // case ParsingContext.HeritageClauses:
+        // This would probably be safe to reuse.  There is no speculative parsing with
+        // heritage clauses.
 
-            case ParsingContext.TypeMembers:
-                return isReusableTypeMember(node);
+        // case ParsingContext.TypeParameters:
+        // This would probably be safe to reuse.  There is no speculative parsing with
+        // type parameters.  Note that that's because type *parameters* only occur in
+        // unambiguous *type* contexts.  While type *arguments* occur in very ambiguous
+        // *expression* contexts.
 
-            case ParsingContext.VariableDeclarations:
-                return isReusableVariableDeclaration(node);
+        // case ParsingContext.TupleElementTypes:
+        // This would probably be safe to reuse.  There is no speculative parsing with
+        // tuple types.
 
-            case ParsingContext.JSDocParameters:
-            case ParsingContext.Parameters:
-                return isReusableParameter(node);
+        // Technically, type argument list types are probably safe to reuse.  While
+        // speculative parsing is involved with them (since type argument lists are only
+        // produced from speculative parsing a < as a type argument list), we only have
+        // the types because speculative parsing succeeded.  Thus, the lookahead never
+        // went past the end of the list and rewound.
+        // case ParsingContext.TypeArguments:
 
-            // Any other lists we do not care about reusing nodes in.  But feel free to add if
-            // you can do so safely.  Danger areas involve nodes that may involve speculative
-            // parsing.  If speculative parsing is involved with the node, then the range the
-            // parser reached while looking ahead might be in the edited range (see the example
-            // in canReuseVariableDeclaratorNode for a good case of this).
+        // Note: these are almost certainly not safe to ever reuse.  Expressions commonly
+        // need a large amount of lookahead, and we should not reuse them as they may
+        // have actually intersected the edit.
+        // case ParsingContext.ArgumentExpressions:
 
-            // case ParsingContext.HeritageClauses:
-            // This would probably be safe to reuse.  There is no speculative parsing with
-            // heritage clauses.
+        // This is not safe to reuse for the same reason as the 'AssignmentExpression'
+        // cases.  i.e. a property assignment may end with an expression, and thus might
+        // have lookahead far beyond it's old node.
+        // case ParsingContext.ObjectLiteralMembers:
 
-            // case ParsingContext.TypeParameters:
-            // This would probably be safe to reuse.  There is no speculative parsing with
-            // type parameters.  Note that that's because type *parameters* only occur in
-            // unambiguous *type* contexts.  While type *arguments* occur in very ambiguous
-            // *expression* contexts.
+        // This is probably not safe to reuse.  There can be speculative parsing with
+        // type names in a heritage clause.  There can be generic names in the type
+        // name list, and there can be left hand side expressions (which can have type
+        // arguments.)
+        // case ParsingContext.HeritageClauseElement:
 
-            // case ParsingContext.TupleElementTypes:
-            // This would probably be safe to reuse.  There is no speculative parsing with
-            // tuple types.
-
-            // Technically, type argument list types are probably safe to reuse.  While
-            // speculative parsing is involved with them (since type argument lists are only
-            // produced from speculative parsing a < as a type argument list), we only have
-            // the types because speculative parsing succeeded.  Thus, the lookahead never
-            // went past the end of the list and rewound.
-            // case ParsingContext.TypeArguments:
-
-            // Note: these are almost certainly not safe to ever reuse.  Expressions commonly
-            // need a large amount of lookahead, and we should not reuse them as they may
-            // have actually intersected the edit.
-            // case ParsingContext.ArgumentExpressions:
-
-            // This is not safe to reuse for the same reason as the 'AssignmentExpression'
-            // cases.  i.e. a property assignment may end with an expression, and thus might
-            // have lookahead far beyond it's old node.
-            // case ParsingContext.ObjectLiteralMembers:
-
-            // This is probably not safe to reuse.  There can be speculative parsing with
-            // type names in a heritage clause.  There can be generic names in the type
-            // name list, and there can be left hand side expressions (which can have type
-            // arguments.)
-            // case ParsingContext.HeritageClauseElement:
-
-            // Perhaps safe to reuse, but it's unlikely we'd see more than a dozen attributes
-            // on any given element. Same for children.
-            // case ParsingContext.JsxAttributes:
-            // case ParsingContext.JsxChildren:
-
-        }
-
-        return false;
+        // Perhaps safe to reuse, but it's unlikely we'd see more than a dozen attributes
+        // on any given element. Same for children.
+        // case ParsingContext.JsxAttributes:
+        // case ParsingContext.JsxChildren:
     }
 
     function isReusableClassMember(node: Node) {
@@ -3302,6 +3270,9 @@ namespace Parser {
     }
 
     function parsingContextErrors(context: ParsingContext) {
+        
+
+
         switch (context) {
             case ParsingContext.SourceElements:
                 return token() === SyntaxKind.DefaultKeyword
@@ -3347,7 +3318,7 @@ namespace Parser {
     function parseDelimitedList<T extends Node | undefined>(kind: ParsingContext, parseElement: () => T, considerSemicolonAsDelimiter?: boolean): NodeArray<NonNullable<T>> | undefined;
     function parseDelimitedList<T extends Node | undefined>(kind: ParsingContext, parseElement: () => T, considerSemicolonAsDelimiter?: boolean): NodeArray<NonNullable<T>> | undefined {
         const saveParsingContext = parsingContext;
-        parsingContext |= 1 << kind;
+        parsingContext |= kind;
         const list: NonNullable<T>[] = [];
         const listPos = getNodePos();
 
@@ -5986,7 +5957,7 @@ namespace Parser {
         const list = [];
         const listPos = getNodePos();
         const saveParsingContext = parsingContext;
-        parsingContext |= 1 << ParsingContext.JsxChildren;
+        parsingContext |= ParsingContext.JsxChildren;
 
         while (true) {
             const child = parseJsxChild(openingTag, currentToken = scanner.reScanJsxToken());
@@ -8373,32 +8344,36 @@ namespace Parser {
     }
 
     const enum ParsingContext {
-        SourceElements,            // Elements in source file
-        BlockStatements,           // Statements in block
-        SwitchClauses,             // Clauses in switch statement
-        SwitchClauseStatements,    // Statements in switch clause
-        TypeMembers,               // Members in interface or type literal
-        ClassMembers,              // Members in class declaration
-        EnumMembers,               // Members in enum declaration
-        HeritageClauseElement,     // Elements in a heritage clause
-        VariableDeclarations,      // Variable declarations in variable statement
-        ObjectBindingElements,     // Binding elements in object binding list
-        ArrayBindingElements,      // Binding elements in array binding list
-        ArgumentExpressions,       // Expressions in argument list
-        ObjectLiteralMembers,      // Members in object literal
-        JsxAttributes,             // Attributes in jsx element
-        JsxChildren,               // Things between opening and closing JSX tags
-        ArrayLiteralMembers,       // Members in array literal
-        Parameters,                // Parameters in parameter list
-        JSDocParameters,           // JSDoc parameters in parameter list of JSDoc function type
-        RestProperties,            // Property names in a rest type list
-        TypeParameters,            // Type parameters in type parameter list
-        TypeArguments,             // Type arguments in type argument list
-        TupleElementTypes,         // Element types in tuple element type list
-        HeritageClauses,           // Heritage clauses for a class or interface declaration.
-        ImportOrExportSpecifiers,  // Named import clause's import specifier list,
-        AssertEntries,               // Import entries list.
-        Count                      // Number of parsing contexts
+        None = 0,
+        SourceElements = 1 << 0,             // Elements in source file
+        BlockStatements = 1 << 1,            // Statements in block
+        SwitchClauses = 1 << 2,              // Clauses in switch statement
+        SwitchClauseStatements = 1 << 3,     // Statements in switch clause
+        TypeMembers = 1 << 4,                // Members in interface or type literal
+        ClassMembers = 1 << 5,               // Members in class declaration
+        EnumMembers = 1 << 6,                // Members in enum declaration
+        HeritageClauseElement = 1 << 7,      // Elements in a heritage clause
+        VariableDeclarations = 1 << 8,       // Variable declarations in variable statement
+        ObjectBindingElements = 1 << 9,      // Binding elements in object binding list
+        ArrayBindingElements = 1 << 10,      // Binding elements in array binding list
+        ArgumentExpressions = 1 << 11,       // Expressions in argument list
+        ObjectLiteralMembers = 1 << 12,      // Members in object literal
+        JsxAttributes = 1 << 13,             // Attributes in jsx element
+        JsxChildren = 1 << 14,               // Things between opening and closing JSX tags
+        ArrayLiteralMembers = 1 << 15,       // Members in array literal
+        Parameters = 1 << 16,                // Parameters in parameter list
+        JSDocParameters = 1 << 17,           // JSDoc parameters in parameter list of JSDoc function type
+        RestProperties = 1 << 18,            // Property names in a rest type list
+        TypeParameters = 1 << 19,            // Type parameters in type parameter list
+        TypeArguments = 1 << 20,             // Type arguments in type argument list
+        TupleElementTypes = 1 << 21,         // Element types in tuple element type list
+        HeritageClauses = 1 << 22,           // Heritage clauses for a class or interface declaration.
+        ImportOrExportSpecifiers = 1 << 23,  // Named import clause's import specifier list,
+        AssertEntries = 1 << 24,             // Import entries list.
+
+        Reusable = ClassMembers | SwitchClauses | SourceElements | BlockStatements
+            | SwitchClauseStatements | EnumMembers | TypeMembers | VariableDeclarations
+            | JSDocParameters | Parameters,
     }
 
     const enum Tristate {
