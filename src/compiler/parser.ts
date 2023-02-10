@@ -1379,6 +1379,7 @@ export function updateSourceFile(sourceFile: SourceFile, newText: string, textCh
     return newSourceFile;
 }
 
+// TODO(jakebailey): remove or mark as test-only; unused.
 /** @internal */
 export function parseIsolatedJSDocComment(content: string, start?: number, length?: number) {
     const result = Parser.JSDocParser.parseIsolatedJSDocComment(content, start, length);
@@ -8480,6 +8481,7 @@ namespace Parser {
             return finishNode(result, pos);
         }
 
+        // TODO(jakebailey): remove or mark as test-only; unused.
         export function parseIsolatedJSDocComment(content: string, start: number | undefined, length: number | undefined): { jsDoc: JSDoc, diagnostics: Diagnostic[] } | undefined {
             initializeState("", content, ScriptTarget.Latest, /*_syntaxCursor:*/ undefined, ScriptKind.JS);
             const jsDoc = doInsideOfContext(NodeFlags.JSDoc, () => parseJSDocCommentWorker(start, length));

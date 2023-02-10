@@ -22,7 +22,6 @@ import {
     getMeaningFromLocation,
     getModuleInstanceState,
     getTypeArgumentOrTypeParameterList,
-    HasJSDoc,
     InterfaceDeclaration,
     isAccessibilityModifier,
     isConstTypeReference,
@@ -60,12 +59,10 @@ import {
     Node,
     nodeIsMissing,
     ParameterDeclaration,
-    parseIsolatedJSDocComment,
     Push,
     Scanner,
     ScriptTarget,
     SemanticMeaning,
-    setParent,
     some,
     SourceFile,
     Symbol,
@@ -727,7 +724,7 @@ export function getEncodedSyntacticClassifications(cancellationToken: Cancellati
                 case SyntaxKind.SingleLineCommentTrivia:
                 case SyntaxKind.MultiLineCommentTrivia:
                     // Only bother with the trivia if it at least intersects the span of interest.
-                    classifyComment(token, kind, start, width);
+                    classifyComment(kind, start, width);
 
                     // Classifying a comment might cause us to reuse the trivia scanner
                     // (because of jsdoc comments).  So after we classify the comment make
@@ -762,15 +759,11 @@ export function getEncodedSyntacticClassifications(cancellationToken: Cancellati
         }
     }
 
-    function classifyComment(token: Node, kind: SyntaxKind, start: number, width: number) {
+    function classifyComment(kind: SyntaxKind, start: number, width: number) {
         if (kind === SyntaxKind.MultiLineCommentTrivia) {
-            // See if this is a doc comment.  If so, we'll classify certain portions of it
-            // specially.
-            const docCommentAndDiagnostics = parseIsolatedJSDocComment(sourceFile.text, start, width);
-            if (docCommentAndDiagnostics && docCommentAndDiagnostics.jsDoc) {
-                // TODO: This should be predicated on `token["kind"]` being compatible with `HasJSDoc["kind"]`
-                setParent(docCommentAndDiagnostics.jsDoc, token as HasJSDoc);
-                classifyJSDocComment(docCommentAndDiagnostics.jsDoc);
+            // If it's JSDoc, we will have handled its node explicitly as another Node's child; skip.
+            const text = sourceFile.text.substr(start, 3);
+            if (text === "/**") {
                 return;
             }
         }
@@ -1013,7 +1006,14 @@ export function getEncodedSyntacticClassifications(cancellationToken: Cancellati
      * False will mean that node is not classified and traverse routine should recurse into node contents.
      */
     function tryClassifyNode(node: Node): boolean {
+        if (node.kind === SyntaxKind.EndOfFileToken) {
+            // There's no token for the end of the file, but return
+            // false so that a potential JSDoc child node is visited.
+            return false;
+        }
+
         if (isJSDoc(node)) {
+            classifyJSDocComment(node);
             return true;
         }
 
