@@ -5610,7 +5610,7 @@ export function createDiagnosticCollection(): DiagnosticCollection {
             if (!diagnostics) {
                 diagnostics = [] as Diagnostic[] as SortedArray<DiagnosticWithLocation>; // See GH#19873
                 fileDiagnostics.set(diagnostic.file.fileName, diagnostics as SortedArray<DiagnosticWithLocation>);
-                insertSorted(filesWithDiagnostics, diagnostic.file.fileName, compareStringsCaseSensitive);
+                insertSorted(filesWithDiagnostics, diagnostic.file.fileName, identity, compareStringsCaseSensitive);
             }
         }
         else {
@@ -5623,7 +5623,7 @@ export function createDiagnosticCollection(): DiagnosticCollection {
             diagnostics = nonFileDiagnostics;
         }
 
-        insertSorted(diagnostics, diagnostic, compareDiagnosticsSkipRelatedInformation);
+        insertSorted(diagnostics, diagnostic, identity, compareDiagnosticsSkipRelatedInformation);
     }
 
     function getGlobalDiagnostics(): Diagnostic[] {

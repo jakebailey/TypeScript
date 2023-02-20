@@ -2621,9 +2621,9 @@ export function createLanguageService(
         // We want to insert comment in this scenario.
         if (isCommenting || !hasComment) {
             if (isInComment(sourceFile, textRange.pos)?.kind !== SyntaxKind.SingleLineCommentTrivia) {
-                insertSorted(positions, textRange.pos, compareValues);
+                insertSorted(positions, textRange.pos, identity, compareValues);
             }
-            insertSorted(positions, textRange.end, compareValues);
+            insertSorted(positions, textRange.end, identity, compareValues);
 
             // Insert open comment if the first position is not a comment already.
             const firstPos = positions[0];

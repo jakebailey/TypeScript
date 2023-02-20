@@ -57,6 +57,8 @@ export interface Push<T> {
 /** @internal */
 export type EqualityComparer<T> = (a: T, b: T) => boolean;
 
+// TODO(jakebailey) number is assignable to comparison; how many bugs do we have re: this?
+// binarySearch definitely doesn't know that you can pass anything to it.
 /** @internal */
 export type Comparer<T> = (a: T, b: T) => Comparison;
 

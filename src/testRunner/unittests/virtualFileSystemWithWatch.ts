@@ -25,6 +25,7 @@ import {
     hasProperty,
     HostWatchDirectory,
     HostWatchFile,
+    identity,
     insertSorted,
     isArray,
     isString,
@@ -562,7 +563,7 @@ export class TestServerHost implements server.ServerHost, FormatDiagnosticsHost,
 
     private addFileOrFolderInFolder(folder: FsFolder, fileOrDirectory: FsFile | FsFolder | FsSymLink, ignoreWatch?: boolean, options?: Partial<WatchInvokeOptions>) {
         if (!this.fs.has(fileOrDirectory.path)) {
-            insertSorted(folder.entries, fileOrDirectory, (a, b) => compareStringsCaseSensitive(getBaseFileName(a.path), getBaseFileName(b.path)));
+            insertSorted(folder.entries, fileOrDirectory, identity, (a, b) => compareStringsCaseSensitive(getBaseFileName(a.path), getBaseFileName(b.path)));
         }
         folder.modifiedTime = this.now();
         this.fs.set(fileOrDirectory.path, fileOrDirectory);

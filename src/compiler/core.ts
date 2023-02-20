@@ -816,13 +816,17 @@ export function createSortedArray<T>(): SortedArray<T> {
 }
 
 /** @internal */
-export function insertSorted<T>(array: SortedArray<T>, insert: T, compare: Comparer<T>, allowDuplicates?: boolean): boolean {
-    if (array.length === 0) {
+export function insertSorted<T, U>(array: SortedArray<T>, insert: T, keySelector: (v: T) => U, keyComparer: Comparer<U>, allowDuplicates?: boolean): boolean {
+    const len = array.length;
+    if (len === 0 || keyComparer(keySelector(insert), keySelector(array[len - 1])) === Comparison.GreaterThan) {
+        // Fast path for inserting a new value at the end.
+        // TODO(jakebailey): This can't be in binarySearch itself because a lot of code
+        // appears to abuse the binary search API.
         array.push(insert);
         return true;
     }
 
-    const insertIndex = binarySearch(array, insert, identity, compare);
+    const insertIndex = binarySearch(array, insert, keySelector, keyComparer);
     if (insertIndex < 0) {
         array.splice(~insertIndex, 0, insert);
         return true;

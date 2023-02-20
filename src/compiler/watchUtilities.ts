@@ -236,7 +236,7 @@ export function createCachedDirectoryStructureHost(host: DirectoryStructureHost,
             const canonicalizedBaseName = getCanonicalFileName(baseName);
             const canonicalizedDirectories = result.sortedAndCanonicalizedDirectories;
             // Case-sensitive comparison since already canonicalized
-            if (insertSorted(canonicalizedDirectories, canonicalizedBaseName, compareStringsCaseSensitive)) {
+            if (insertSorted(canonicalizedDirectories, canonicalizedBaseName, identity, compareStringsCaseSensitive)) {
                 result.directories.push(baseName);
             }
         }
@@ -343,7 +343,7 @@ export function createCachedDirectoryStructureHost(host: DirectoryStructureHost,
         const canonicalizedBaseName = getCanonicalFileName(baseName);
         if (fileExists) {
             // Case-sensitive comparison since already canonicalized
-            if (insertSorted(canonicalizedFiles, canonicalizedBaseName, compareStringsCaseSensitive)) {
+            if (insertSorted(canonicalizedFiles, canonicalizedBaseName, identity, compareStringsCaseSensitive)) {
                 parentResult.files.push(baseName);
             }
         }
