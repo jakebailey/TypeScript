@@ -1,0 +1,48 @@
+//// [tests/cases/compiler/issue52892.ts] ////
+
+=== issue52892.ts ===
+class A<T = number> {
+>A : Symbol(A, Decl(issue52892.ts, 0, 0))
+>T : Symbol(T, Decl(issue52892.ts, 0, 8))
+
+    //static { type _<T extends A = A> = 0 }
+
+    value!: T;
+>value : Symbol(A.value, Decl(issue52892.ts, 0, 21))
+>T : Symbol(T, Decl(issue52892.ts, 0, 8))
+
+    child!: InstanceType<typeof A.B<A<T>>>
+>child : Symbol(A.child, Decl(issue52892.ts, 3, 14))
+>InstanceType : Symbol(InstanceType, Decl(lib.es5.d.ts, --, --))
+>A.B : Symbol(A.B, Decl(issue52892.ts, 4, 42))
+>A : Symbol(A, Decl(issue52892.ts, 0, 0))
+>B : Symbol(A.B, Decl(issue52892.ts, 4, 42))
+>A : Symbol(A, Decl(issue52892.ts, 0, 0))
+>T : Symbol(T, Decl(issue52892.ts, 0, 8))
+
+    static B = class B<T extends A = A> {
+>B : Symbol(A.B, Decl(issue52892.ts, 4, 42))
+>B : Symbol(B, Decl(issue52892.ts, 6, 14))
+>T : Symbol(T, Decl(issue52892.ts, 6, 23))
+>A : Symbol(A, Decl(issue52892.ts, 0, 0))
+>A : Symbol(A, Decl(issue52892.ts, 0, 0))
+
+        parent!: T;
+>parent : Symbol(B.parent, Decl(issue52892.ts, 6, 41))
+>T : Symbol(T, Decl(issue52892.ts, 6, 23))
+    } 
+}
+
+var a = new A
+>a : Symbol(a, Decl(issue52892.ts, 11, 3))
+>A : Symbol(A, Decl(issue52892.ts, 0, 0))
+
+a.child.parent.value
+>a.child.parent.value : Symbol(A.value, Decl(issue52892.ts, 0, 21))
+>a.child.parent : Symbol(B.parent, Decl(issue52892.ts, 6, 41))
+>a.child : Symbol(A.child, Decl(issue52892.ts, 3, 14))
+>a : Symbol(a, Decl(issue52892.ts, 11, 3))
+>child : Symbol(A.child, Decl(issue52892.ts, 3, 14))
+>parent : Symbol(B.parent, Decl(issue52892.ts, 6, 41))
+>value : Symbol(A.value, Decl(issue52892.ts, 0, 21))
+

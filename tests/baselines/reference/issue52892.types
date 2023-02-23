@@ -1,0 +1,61 @@
+//// [tests/cases/compiler/issue52892.ts] ////
+
+=== issue52892.ts ===
+class A<T = number> {
+>A : A<T>
+>  : ^^^^
+
+    //static { type _<T extends A = A> = 0 }
+
+    value!: T;
+>value : T
+>      : ^
+
+    child!: InstanceType<typeof A.B<A<T>>>
+>child : B<A<T>>
+>      : ^^^^^^^
+>A.B : typeof B
+>    : ^^^^^^^^
+>A : typeof A
+>  : ^^^^^^^^
+>B : typeof B
+>  : ^^^^^^^^
+
+    static B = class B<T extends A = A> {
+>B : typeof B
+>  : ^^^^^^^^
+>class B<T extends A = A> {        parent!: T;    } : typeof B
+>                                                   : ^^^^^^^^
+>B : typeof B
+>  : ^^^^^^^^
+
+        parent!: T;
+>parent : T
+>       : ^
+    } 
+}
+
+var a = new A
+>a : A<number>
+>  : ^^^^^^^^^
+>new A : A<number>
+>      : ^^^^^^^^^
+>A : typeof A
+>  : ^^^^^^^^
+
+a.child.parent.value
+>a.child.parent.value : number
+>                     : ^^^^^^
+>a.child.parent : A<number>
+>               : ^^^^^^^^^
+>a.child : A<number>.B<A<number>>
+>        : ^^^^^^^^^^^^^^^^^^^^^^
+>a : A<number>
+>  : ^^^^^^^^^
+>child : A<number>.B<A<number>>
+>      : ^^^^^^^^^^^^^^^^^^^^^^
+>parent : A<number>
+>       : ^^^^^^^^^
+>value : number
+>      : ^^^^^^
+

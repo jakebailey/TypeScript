@@ -1,0 +1,23 @@
+issue52892.ts(5,37): error TS2344: Type 'A<T>' does not satisfy the constraint 'A<number>'.
+  Type 'T' is not assignable to type 'number'.
+
+
+==== issue52892.ts (1 errors) ====
+    class A<T = number> {
+        //static { type _<T extends A = A> = 0 }
+    
+        value!: T;
+        child!: InstanceType<typeof A.B<A<T>>>
+                                        ~~~~
+!!! error TS2344: Type 'A<T>' does not satisfy the constraint 'A<number>'.
+!!! error TS2344:   Type 'T' is not assignable to type 'number'.
+!!! related TS2208 issue52892.ts:1:9: This type parameter might need an `extends number` constraint.
+    
+        static B = class B<T extends A = A> {
+            parent!: T;
+        } 
+    }
+    
+    var a = new A
+    a.child.parent.value
+    
