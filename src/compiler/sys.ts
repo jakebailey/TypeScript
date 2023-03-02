@@ -1443,11 +1443,8 @@ interface DirectoryWatcher extends FileWatcher {
     referenceCount: number;
 }
 
-declare const require: any;
 declare const process: any;
 declare const global: any;
-declare const __filename: string;
-declare const __dirname: string;
 
 export function getNodeMajorVersion(): number | undefined {
     if (typeof process === "undefined") {
@@ -1464,6 +1461,23 @@ export function getNodeMajorVersion(): number | undefined {
     return parseInt(version.substring(1, dot));
 }
 
+let __filename: string | undefined;
+let __dirname: string | undefined;
+try {
+    const url = await import("url");
+    const path = await import("path");
+    __filename = url.fileURLToPath(new URL(import.meta.url));
+    __dirname = path.dirname(__filename);
+}
+catch {}
+
+let require: NodeRequire | undefined;
+try {
+    const module = await import("module");
+    require = module.default.createRequire(import.meta.url)
+}
+catch {}
+
 // TODO: GH#18217 this is used as if it's certainly defined in many places.
 export let sys: System = (() => {
     // NodeJS detects "\uFEFF" at the start of the string and *replaces* it with the actual
@@ -1472,6 +1486,10 @@ export let sys: System = (() => {
     const byteOrderMarkIndicator = "\uFEFF";
 
     function getNodeSystem(): System {
+        Debug.assert(require);
+        Debug.assert(__dirname);
+        Debug.assert(__filename);
+
         const nativePattern = /^native |^\([^)]+\)$|^(internal[\\/]|[a-zA-Z0-9_\s]+(\.js)?$)/;
         const _fs: typeof import("fs") = require("fs");
         const _path: typeof import("path") = require("path");
@@ -1604,7 +1622,7 @@ export let sys: System = (() => {
             debugMode: !!process.env.NODE_INSPECTOR_IPC || !!process.env.VSCODE_INSPECTOR_OPTIONS || some(process.execArgv as string[], arg => /^--(inspect|debug)(-brk)?(=\d+)?$/i.test(arg)),
             tryEnableSourceMapsForHost() {
                 try {
-                    (require("source-map-support") as typeof import("source-map-support")).install();
+                    (require!("source-map-support") as typeof import("source-map-support")).install();
                 }
                 catch {
                     // Could not enable source maps.
@@ -1626,7 +1644,7 @@ export let sys: System = (() => {
             require: (baseDir, moduleName) => {
                 try {
                     const modulePath = resolveJSModule(moduleName, baseDir, nodeSystem);
-                    return { module: require(modulePath), modulePath, error: undefined };
+                    return { module: require!(modulePath), modulePath, error: undefined };
                 }
                 catch (error) {
                     return { module: undefined, modulePath: undefined, error };
@@ -1654,7 +1672,7 @@ export let sys: System = (() => {
                 cb();
                 return false;
             }
-            const inspector: typeof import("inspector") = require("inspector");
+            const inspector: typeof import("inspector") = require!("inspector");
             if (!inspector || !inspector.Session) {
                 cb();
                 return false;
@@ -1744,7 +1762,7 @@ export let sys: System = (() => {
                 return false;
             }
             // If this file exists under a different case, we must be case-insensitve.
-            return !fileExists(swapCase(__filename));
+            return !fileExists(swapCase(__filename!));
         }
 
         /** Convert all lowercase chars to uppercase, and vice-versa */

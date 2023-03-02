@@ -173,12 +173,16 @@ function createBundler(entrypoint, outfile, taskOptions = {}) {
             outfile,
             platform: "node",
             target: "es2018",
-            format: "cjs",
+            format: "esm",
             sourcemap: "linked",
             sourcesContent: false,
             treeShaking: taskOptions.treeShaking,
             packages: "external",
             logLevel: "warning",
+            supported: {
+                "top-level-await": true,
+                "import-meta": true,
+            },
             // legalComments: "none", // If we add copyright headers to the source files, uncomment.
         };
 

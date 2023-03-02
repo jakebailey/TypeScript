@@ -47,6 +47,13 @@ const nullLogger: PerfLogger = {
     logStopScheduledOperation: noop,
 };
 
+let require: NodeRequire | undefined;
+try {
+    const module = await import("module");
+    require = module.default.createRequire(import.meta.url)
+}
+catch {}
+
 // Load optional module to enable Event Tracing for Windows
 // See https://github.com/microsoft/typescript-etw for more information
 let etwModule: typeof import("@microsoft/typescript-etw") | undefined;
@@ -55,7 +62,7 @@ try {
 
     // require() will throw an exception if the module is not found
     // It may also return undefined if not installed properly
-    etwModule = require(etwModulePath);
+    etwModule = require!(etwModulePath);
 }
 catch (e) {
     etwModule = undefined;

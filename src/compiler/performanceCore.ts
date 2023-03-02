@@ -83,11 +83,18 @@ function tryGetWebPerformanceHooks(): PerformanceHooks | undefined {
     }
 }
 
+let require: NodeRequire | undefined;
+try {
+    const module = await import("module");
+    require = module.default.createRequire(import.meta.url)
+}
+catch {}
+
 function tryGetNodePerformanceHooks(): PerformanceHooks | undefined {
     if (isNodeLikeSystem()) {
         try {
             let performance: Performance;
-            const { performance: nodePerformance, PerformanceObserver } = require("perf_hooks") as typeof import("perf_hooks");
+            const { performance: nodePerformance, PerformanceObserver } = require!("perf_hooks") as typeof import("perf_hooks");
             if (hasRequiredAPI(nodePerformance as unknown as Performance, PerformanceObserver)) {
                 performance = nodePerformance as unknown as Performance;
                 // There is a bug in Node's performance.measure prior to 12.16.3/13.13.0 that does not

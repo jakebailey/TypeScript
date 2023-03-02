@@ -30,6 +30,13 @@ import * as performance from "./_namespaces/ts.performance.js";
 export let tracing: typeof tracingEnabled | undefined;
 // enable the above using startTracing()
 
+let require: NodeRequire | undefined;
+try {
+    const module = await import("module");
+    require = module.default.createRequire(import.meta.url)
+}
+catch {}
+
 /**
  * Do not use this directly; instead @see {tracing}.
  * @internal
@@ -60,7 +67,7 @@ export namespace tracingEnabled {
 
         if (fs === undefined) {
             try {
-                fs = require("fs");
+                fs = require!("fs");
             }
             catch (e) {
                 throw new Error(`tracing requires having fs\n(original error: ${e.message || e})`);
