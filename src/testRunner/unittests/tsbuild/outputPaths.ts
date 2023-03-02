@@ -1,5 +1,5 @@
-import * as fakes from "../../_namespaces/fakes";
-import * as ts from "../../_namespaces/ts";
+import * as fakes from "../../_namespaces/fakes.js";
+import * as ts from "../../_namespaces/ts.js";
 import {
     loadProjectFromFiles,
     noChangeRun,
@@ -7,7 +7,7 @@ import {
     TscCompileSystem,
     verifyTsc,
     VerifyTscWithEditsInput,
-} from "../tsc/helpers";
+} from "../tsc/helpers.js";
 
 describe("unittests:: tsbuild - output file paths", () => {
     const noChangeProject: TestTscEdit = {

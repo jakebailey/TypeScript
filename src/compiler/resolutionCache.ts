@@ -1,4 +1,4 @@
-import * as ts from "./_namespaces/ts";
+import * as ts from "./_namespaces/ts.js";
 import {
     arrayToMap,
     CachedDirectoryStructureHost,
@@ -72,7 +72,7 @@ import {
     trace,
     updateResolutionField,
     WatchDirectoryFlags,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 /**
  * This is the cache of module/typedirectives resolution that can be retained across program

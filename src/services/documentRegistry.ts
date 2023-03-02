@@ -26,7 +26,7 @@ import {
     toPath,
     tracing,
     updateLanguageServiceSourceFile,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 /**
  * The document registry represents a store of SourceFile objects that can be shared between

@@ -102,8 +102,8 @@ import {
     visitEachChild,
     visitNode,
     visitNodes,
-} from "../_namespaces/ts";
-import { ImportAdder } from "../_namespaces/ts.codefix";
+} from "../_namespaces/ts.js";
+import { ImportAdder } from "../_namespaces/ts.codefix.js";
 
 /**
  * Finds members of the resolved type that are missing in the class pointed to by class decl

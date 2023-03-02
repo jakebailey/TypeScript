@@ -1,4 +1,4 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     commonFile1,
     commonFile2,
@@ -8,7 +8,7 @@ import {
     runWatchBaseline,
     TscWatchCompileChange,
     verifyTscWatch,
-} from "../tscWatch/helpers";
+} from "../tscWatch/helpers.js";
 import {
     createWatchedSystem,
     File,
@@ -16,7 +16,7 @@ import {
     getTsBuildProjectFilePath,
     libFile,
     TestServerHost,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 
 describe("unittests:: tsbuildWatch:: watchMode:: program updates", () => {
     const enum SubProject {

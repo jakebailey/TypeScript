@@ -1,14 +1,14 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     commonFile1,
     commonFile2,
-} from "../tscWatch/helpers";
+} from "../tscWatch/helpers.js";
 import {
     createServerHost,
     File,
     libFile,
     Tsc_WatchDirectory,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     createLoggerWithInMemoryLogs,
@@ -19,7 +19,7 @@ import {
     protocolFileLocationFromSubstring,
     TestSession,
     toExternalFiles,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: watchEnvironment:: tsserverProjectSystem watchDirectories implementation", () => {
     function verifyCompletionListWithNewFileInSubFolder(scenario: string, tscWatchDirectory: Tsc_WatchDirectory) {

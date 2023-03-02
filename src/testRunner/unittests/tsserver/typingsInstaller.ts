@@ -1,10 +1,10 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
     libFile,
     TestServerHost,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     checkNumberOfProjects,
@@ -19,7 +19,7 @@ import {
     TestTypingsInstaller,
     TestTypingsInstallerWorker,
     toExternalFile,
-} from "./helpers";
+} from "./helpers.js";
 
 import validatePackageName = ts.JsTyping.validatePackageName;
 import NameValidationResult = ts.JsTyping.NameValidationResult;

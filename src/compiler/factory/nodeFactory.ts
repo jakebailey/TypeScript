@@ -469,7 +469,7 @@ import {
     WhileStatement,
     WithStatement,
     YieldExpression,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 
 let nextAutoGenerateId = 0;
 

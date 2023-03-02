@@ -2,7 +2,7 @@ import {
     isNodeLikeSystem,
     Version,
     VersionRange,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 // The following definitions provide the minimum compatible support for the Web Performance User Timings API
 // between browsers and NodeJS:

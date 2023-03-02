@@ -1,4 +1,4 @@
-import * as ts from "./_namespaces/ts";
+import * as ts from "./_namespaces/ts.js";
 import {
     addRange,
     append,
@@ -124,7 +124,7 @@ import {
     WatchDirectoryFlags,
     WatchOptions,
     WatchType,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 import {
     asNormalizedPath,
     createModuleSpecifierCache,
@@ -146,8 +146,8 @@ import {
     toNormalizedPath,
     TypingsCache,
     updateProjectIfDirty,
-} from "./_namespaces/ts.server";
-import * as protocol from "./protocol";
+} from "./_namespaces/ts.server.js";
+import * as protocol from "./protocol.js";
 
 export enum ProjectKind {
     Inferred,

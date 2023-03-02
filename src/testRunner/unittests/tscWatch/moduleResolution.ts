@@ -1,10 +1,10 @@
-import * as Utils from "../../_namespaces/Utils";
+import * as Utils from "../../_namespaces/Utils.js";
 import {
     createWatchedSystem,
     File,
     libFile,
-} from "../virtualFileSystemWithWatch";
-import { verifyTscWatch } from "./helpers";
+} from "../virtualFileSystemWithWatch.js";
+import { verifyTscWatch } from "./helpers.js";
 
 describe("unittests:: tsc-watch:: moduleResolution", () => {
     verifyTscWatch({

@@ -3,13 +3,13 @@ import {
     File,
     getTsBuildProjectFile,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     checkNumberOfProjects,
     createLoggerWithInMemoryLogs,
     createProjectService,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: projects with references: invoking when references are already built", () => {
     it("on sample project", () => {

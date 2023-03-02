@@ -110,7 +110,7 @@ import {
     TypeNode,
     TypeReference,
     UnionType,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     createCodeFixAction,
     createCodeFixActionWithoutFixAll,
@@ -123,7 +123,7 @@ import {
     getAllSupers,
     ImportAdder,
     registerCodeFix,
-} from "../_namespaces/ts.codefix";
+} from "../_namespaces/ts.codefix.js";
 
 const fixMissingMember = "fixMissingMember";
 const fixMissingProperties = "fixMissingProperties";

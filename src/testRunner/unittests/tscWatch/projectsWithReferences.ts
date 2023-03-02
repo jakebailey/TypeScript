@@ -3,12 +3,12 @@ import {
     getTsBuildProjectFilePath,
     libFile,
     TestServerHost,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     createSolutionBuilder,
     createSystemWithSolutionBuild,
     verifyTscWatch,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsc-watch:: projects with references: invoking when references are already built", () => {
     verifyTscWatch({

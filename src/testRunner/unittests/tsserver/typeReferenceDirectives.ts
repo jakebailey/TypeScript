@@ -2,12 +2,12 @@ import {
     createServerHost,
     File,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     checkNumberOfProjects,
     checkProjectActualFiles,
     createProjectService,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: typeReferenceDirectives", () => {
     it("when typeReferenceDirective contains UpperCasePackage", () => {

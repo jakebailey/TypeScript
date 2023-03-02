@@ -1,11 +1,11 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
     libFile,
     SymLink,
     TestServerHost,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     createLoggerWithInMemoryLogs,
@@ -13,7 +13,7 @@ import {
     openFilesForSession,
     protocolLocationFromSubstring,
     verifyGetErrRequest,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: symLinks", () => {
     it("rename in common file renames all project", () => {

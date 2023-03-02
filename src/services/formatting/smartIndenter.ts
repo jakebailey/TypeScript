@@ -52,11 +52,11 @@ import {
     TypeLiteralNode,
     TypeReferenceNode,
     VariableDeclarationList,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     getRangeOfEnclosingComment,
     TextRangeWithKind,
-} from "../_namespaces/ts.formatting";
+} from "../_namespaces/ts.formatting.js";
 
 /** @internal */
 export namespace SmartIndenter {

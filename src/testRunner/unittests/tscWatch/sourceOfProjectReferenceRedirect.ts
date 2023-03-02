@@ -1,5 +1,5 @@
-import * as ts from "../../_namespaces/ts";
-import { libContent } from "../tsc/helpers";
+import * as ts from "../../_namespaces/ts.js";
+import { libContent } from "../tsc/helpers.js";
 import {
     createWatchedSystem,
     File,
@@ -7,13 +7,13 @@ import {
     getTsBuildProjectFile,
     libFile,
     SymLink,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     createBaseline,
     createWatchCompilerHostOfConfigFileForBaseline,
     runWatchBaseline,
     solutionBuildWithBaseline,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsc-watch:: watchAPI:: with sourceOfProjectReferenceRedirect", () => {
     interface VerifyWatchInput {

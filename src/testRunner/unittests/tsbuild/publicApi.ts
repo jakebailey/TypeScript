@@ -1,6 +1,6 @@
-import * as fakes from "../../_namespaces/fakes";
-import * as ts from "../../_namespaces/ts";
-import * as vfs from "../../_namespaces/vfs";
+import * as fakes from "../../_namespaces/fakes.js";
+import * as ts from "../../_namespaces/ts.js";
+import * as vfs from "../../_namespaces/vfs.js";
 import {
     baselinePrograms,
     commandLineCallbacks,
@@ -8,7 +8,7 @@ import {
     toPathWithSystem,
     TscCompileSystem,
     verifyTscBaseline,
-} from "../tsc/helpers";
+} from "../tsc/helpers.js";
 
 describe("unittests:: tsbuild:: Public API with custom transformers when passed to build", () => {
     let sys: TscCompileSystem;

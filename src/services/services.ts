@@ -1,4 +1,4 @@
-import * as ts from "./_namespaces/ts";
+import * as ts from "./_namespaces/ts.js";
 import {
     __String,
     ApplicableRefactorInfo,
@@ -312,9 +312,9 @@ import {
     updateSourceFile,
     UserPreferences,
     VariableDeclaration,
-} from "./_namespaces/ts";
-import * as NavigateTo from "./_namespaces/ts.NavigateTo";
-import * as NavigationBar from "./_namespaces/ts.NavigationBar";
+} from "./_namespaces/ts.js";
+import * as NavigateTo from "./_namespaces/ts.NavigateTo.js";
+import * as NavigationBar from "./_namespaces/ts.NavigationBar.js";
 
 /** The version of the language service API */
 export const servicesVersion = "0.8";

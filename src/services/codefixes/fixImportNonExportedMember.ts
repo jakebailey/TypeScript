@@ -31,13 +31,13 @@ import {
     textChanges,
     tryCast,
     VariableStatement,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     createCodeFixAction,
     createCombinedCodeActions,
     eachDiagnostic,
     registerCodeFix,
-} from "../_namespaces/ts.codefix";
+} from "../_namespaces/ts.codefix.js";
 
 const fixId = "fixImportNonExportedMember";
 const errorCodes = [

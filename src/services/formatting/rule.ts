@@ -1,8 +1,8 @@
 import {
     emptyArray,
     SyntaxKind,
-} from "../_namespaces/ts";
-import { FormattingContext } from "../_namespaces/ts.formatting";
+} from "../_namespaces/ts.js";
+import { FormattingContext } from "../_namespaces/ts.formatting.js";
 
 /** @internal */
 export interface Rule {

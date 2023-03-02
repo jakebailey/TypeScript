@@ -44,13 +44,13 @@ import {
     tryCast,
     TypeChecker,
     TypeFlags,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     codeFixAll,
     createCodeFixAction,
     createCodeFixActionWithoutFixAll,
     registerCodeFix,
-} from "../_namespaces/ts.codefix";
+} from "../_namespaces/ts.codefix.js";
 
 type ContextualTrackChangesFunction = (cb: (changeTracker: textChanges.ChangeTracker) => void) => FileTextChanges[];
 const fixId = "addMissingAwait";

@@ -1,14 +1,14 @@
-import * as ts from "../../_namespaces/ts";
-import * as Utils from "../../_namespaces/Utils";
+import * as ts from "../../_namespaces/ts.js";
+import * as Utils from "../../_namespaces/Utils.js";
 import {
     compilerOptionsToConfigJson,
-} from "../tsc/helpers";
+} from "../tsc/helpers.js";
 import {
     createServerHost,
     File,
     libFile,
     TestServerHost,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     checkNumberOfProjects,
@@ -21,7 +21,7 @@ import {
     TestTypingsInstaller,
     toExternalFiles,
     verifyGetErrRequest,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: resolutionCache:: tsserverProjectSystem extra resolution pass in server host", () => {
     it("can load typings that are proper modules", () => {

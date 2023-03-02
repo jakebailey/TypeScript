@@ -27,7 +27,7 @@ import {
     textChanges,
     TypeChecker,
     UserPreferences,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     codeFixAll,
     createCodeFixAction,
@@ -36,7 +36,7 @@ import {
     getNoopSymbolTrackerWithResolver,
     registerCodeFix,
     TypeConstructionContext,
-} from "../_namespaces/ts.codefix";
+} from "../_namespaces/ts.codefix.js";
 
 const errorCodes = [
     Diagnostics.Class_0_incorrectly_implements_interface_1.code,

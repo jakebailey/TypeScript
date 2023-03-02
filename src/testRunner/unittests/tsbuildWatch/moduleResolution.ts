@@ -1,9 +1,9 @@
-import { dedent } from "../../_namespaces/Utils";
-import { verifyTscWatch } from "../tscWatch/helpers";
+import { dedent } from "../../_namespaces/Utils.js";
+import { verifyTscWatch } from "../tscWatch/helpers.js";
 import {
     createWatchedSystem,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 
 describe("unittests:: tsbuildWatch:: watchMode:: moduleResolution", () => {
     verifyTscWatch({

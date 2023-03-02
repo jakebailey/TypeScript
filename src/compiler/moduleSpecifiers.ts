@@ -108,7 +108,7 @@ import {
     tryParsePatterns,
     TypeChecker,
     UserPreferences,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 // Used by importFixes, getEditsForFileRename, and declaration emit to synthesize import module specifiers.
 

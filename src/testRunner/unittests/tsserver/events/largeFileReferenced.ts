@@ -1,15 +1,15 @@
-import * as ts from "../../../_namespaces/ts";
+import * as ts from "../../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
     libFile,
-} from "../../virtualFileSystemWithWatch";
+} from "../../virtualFileSystemWithWatch.js";
 import {
     checkNumberOfProjects,
     checkProjectActualFiles,
     createSessionWithEventTracking,
     openFilesForSession,
-} from "../helpers";
+} from "../helpers.js";
 
 describe("unittests:: tsserver:: events:: LargeFileReferencedEvent with large file", () => {
 

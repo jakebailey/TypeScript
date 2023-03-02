@@ -25,7 +25,7 @@ import {
     SyntaxKind,
     TokenFlags,
     trimStringStart,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 export type ErrorCallback = (message: DiagnosticMessage, length: number) => void;
 

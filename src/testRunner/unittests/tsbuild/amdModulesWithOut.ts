@@ -1,5 +1,5 @@
-import * as ts from "../../_namespaces/ts";
-import * as vfs from "../../_namespaces/vfs";
+import * as ts from "../../_namespaces/ts.js";
+import * as vfs from "../../_namespaces/vfs.js";
 import {
     addRest,
     addShebang,
@@ -12,7 +12,7 @@ import {
     removeRest,
     replaceText,
     verifyTsc,
-} from "../tsc/helpers";
+} from "../tsc/helpers.js";
 
 describe("unittests:: tsbuild:: outFile:: on amd modules with --out", () => {
     let outFileFs: vfs.FileSystem;

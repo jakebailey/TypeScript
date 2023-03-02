@@ -8,12 +8,12 @@ import {
     SourceFile,
     SyntaxKind,
     textChanges,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     codeFixAll,
     createCodeFixAction,
     registerCodeFix,
-} from "../_namespaces/ts.codefix";
+} from "../_namespaces/ts.codefix.js";
 
 const fixId = "fixExpectedComma";
 const expectedErrorCode = Diagnostics._0_expected.code;

@@ -21,14 +21,14 @@ import {
     SignatureDeclaration,
     SourceFile,
     textChanges,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     createCodeFixAction,
     createCodeFixActionWithoutFixAll,
     createCombinedCodeActions,
     eachDiagnostic,
     registerCodeFix,
-} from "../_namespaces/ts.codefix";
+} from "../_namespaces/ts.codefix.js";
 
 const deleteUnmatchedParameter = "deleteUnmatchedParameter";
 const renameUnmatchedParameter = "renameUnmatchedParameter";

@@ -1,11 +1,11 @@
 import { expect } from "chai";
 
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 
 describe("unittests:: services:: languageService", () => {
     const files: {[index: string]: string} = {

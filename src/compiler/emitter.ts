@@ -1,4 +1,4 @@
-import * as ts from "./_namespaces/ts";
+import * as ts from "./_namespaces/ts.js";
 import {
     AccessorDeclaration,
     ArrayBindingPattern,
@@ -453,8 +453,8 @@ import {
     writeFile,
     WriteFileCallbackData,
     YieldExpression,
-} from "./_namespaces/ts";
-import * as performance from "./_namespaces/ts.performance";
+} from "./_namespaces/ts.js";
+import * as performance from "./_namespaces/ts.performance.js";
 
 const brackets = createBracketsMap();
 

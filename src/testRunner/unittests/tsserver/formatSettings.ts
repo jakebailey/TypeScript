@@ -1,6 +1,6 @@
-import * as ts from "../../_namespaces/ts";
-import { createServerHost } from "../virtualFileSystemWithWatch";
-import { createProjectService } from "./helpers";
+import * as ts from "../../_namespaces/ts.js";
+import { createServerHost } from "../virtualFileSystemWithWatch.js";
+import { createProjectService } from "./helpers.js";
 
 describe("unittests:: tsserver:: format settings", () => {
     it("can be set globally", () => {

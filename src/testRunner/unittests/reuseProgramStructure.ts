@@ -1,6 +1,6 @@
-import * as Harness from "../_namespaces/Harness";
-import * as ts from "../_namespaces/ts";
-import * as Utils from "../_namespaces/Utils";
+import * as Harness from "../_namespaces/Harness.js";
+import * as ts from "../_namespaces/ts.js";
+import * as Utils from "../_namespaces/Utils.js";
 import {
     createTestCompilerHost,
     NamedSourceText,
@@ -11,12 +11,12 @@ import {
     TestCompilerHost,
     updateProgram,
     updateProgramText,
-} from "./helpers";
+} from "./helpers.js";
 import {
     createWatchedSystem,
     File,
     libFile,
-} from "./virtualFileSystemWithWatch";
+} from "./virtualFileSystemWithWatch.js";
 
 describe("unittests:: Reuse program structure:: General", () => {
     function baselineCache<T>(baselines: string[], cacheType: string, cache: ts.ModeAwareCache<T> | undefined) {

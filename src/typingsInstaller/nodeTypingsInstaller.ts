@@ -14,7 +14,7 @@ import {
     sys,
     toPath,
     version,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 import {
     ActionPackageInstalled,
     Arguments,
@@ -28,13 +28,13 @@ import {
     TypesRegistryResponse,
     TypingInstallerRequestUnion,
     TypingInstallerResponseUnion,
-} from "./_namespaces/ts.server";
+} from "./_namespaces/ts.server.js";
 import {
     installNpmPackages,
     Log,
     RequestCompletedAction,
     TypingsInstaller,
-} from "./_namespaces/ts.server.typingsInstaller";
+} from "./_namespaces/ts.server.typingsInstaller.js";
 
 class FileLog implements Log {
     constructor(private logFile: string | undefined) {

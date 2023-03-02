@@ -175,7 +175,7 @@ import {
     visitNodes,
     Visitor,
     VisitResult,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 
 // Class/Decorator evaluation order, as it pertains to this transformer:
 //

@@ -1,3 +1,4 @@
+import { StringCompletions } from "./_namespaces/ts.Completions.js";
 import {
     __String,
     addToSeen,
@@ -358,8 +359,7 @@ import {
     UserPreferences,
     VariableDeclaration,
     walkUpParenthesizedExpressions,
-} from "./_namespaces/ts";
-import { StringCompletions } from "./_namespaces/ts.Completions";
+} from "./_namespaces/ts.js";
 
 // Exported only for tests
 /** @internal */

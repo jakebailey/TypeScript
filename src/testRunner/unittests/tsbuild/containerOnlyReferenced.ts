@@ -4,7 +4,7 @@ import {
     noChangeOnlyRuns,
     replaceText,
     verifyTsc,
-} from "../tsc/helpers";
+} from "../tsc/helpers.js";
 
 describe("unittests:: tsbuild:: when containerOnly project is referenced", () => {
     verifyTsc({

@@ -15,7 +15,7 @@ import {
     Symbol,
     textChanges,
     UserPreferences,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     codeFixAll,
     createCodeFixAction,
@@ -23,7 +23,7 @@ import {
     createMissingMemberNodes,
     registerCodeFix,
     TypeConstructionContext,
-} from "../_namespaces/ts.codefix";
+} from "../_namespaces/ts.codefix.js";
 
 const errorCodes = [
     Diagnostics.Non_abstract_class_0_does_not_implement_inherited_abstract_member_1_from_class_2.code,

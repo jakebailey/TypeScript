@@ -1,10 +1,10 @@
-import * as Harness from "../../../_namespaces/Harness";
-import * as ts from "../../../_namespaces/ts";
-import { createProjectService } from "../../tsserver/helpers";
+import * as Harness from "../../../_namespaces/Harness.js";
+import * as ts from "../../../_namespaces/ts.js";
+import { createProjectService } from "../../tsserver/helpers.js";
 import {
     createServerHost,
     libFile,
-} from "../../virtualFileSystemWithWatch";
+} from "../../virtualFileSystemWithWatch.js";
 
 interface Range {
     pos: number;

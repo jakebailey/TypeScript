@@ -25,7 +25,7 @@ import {
     TypeChecker,
     TypeParameterDeclaration,
     UserPreferences,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     createCodeFixAction,
     createCombinedCodeActions,
@@ -35,7 +35,7 @@ import {
     getNoopSymbolTrackerWithResolver,
     registerCodeFix,
     typeToAutoImportableTypeNode,
-} from "../_namespaces/ts.codefix";
+} from "../_namespaces/ts.codefix.js";
 
 const fixId = "addMissingConstraint";
 const errorCodes = [

@@ -1,4 +1,4 @@
-import * as ts from "./_namespaces/ts";
+import * as ts from "./_namespaces/ts.js";
 import {
     arrayToMap,
     binarySearch,
@@ -53,7 +53,7 @@ import {
     WatchDirectoryFlags,
     WatchFileKind,
     WatchOptions,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 /**
  * Partial interface of the System thats needed to support the caching of directory structure

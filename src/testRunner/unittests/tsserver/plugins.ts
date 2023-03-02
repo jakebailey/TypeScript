@@ -1,17 +1,17 @@
-import * as Harness from "../../_namespaces/Harness";
-import * as ts from "../../_namespaces/ts";
+import * as Harness from "../../_namespaces/Harness.js";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     createLoggerWithInMemoryLogs,
     createProjectService,
     createSession,
     openFilesForSession,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: plugins loading", () => {
     const testProtocolCommand = "testProtocolCommand";

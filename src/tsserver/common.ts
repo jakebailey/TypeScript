@@ -1,10 +1,10 @@
-import { LanguageServiceMode } from "./_namespaces/ts";
+import { LanguageServiceMode } from "./_namespaces/ts.js";
 import {
     Logger,
     LogLevel,
     ServerCancellationToken,
     SessionOptions,
-} from "./_namespaces/ts.server";
+} from "./_namespaces/ts.server.js";
 
 /** @internal */
 export function getLogLevel(level: string | undefined) {

@@ -1,17 +1,17 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     commonFile1,
     commonFile2,
-} from "../tscWatch/helpers";
+} from "../tscWatch/helpers.js";
 import {
     createServerHost,
     File,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     createSession,
     TestSession,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: inlayHints", () => {
     const configFile: File = {

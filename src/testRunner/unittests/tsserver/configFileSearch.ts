@@ -2,7 +2,7 @@ import {
     createServerHost,
     File,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     checkNumberOfConfiguredProjects,
@@ -10,7 +10,7 @@ import {
     checkNumberOfProjects,
     createLoggerWithInMemoryLogs,
     createProjectService,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: searching for config file", () => {
     it("should stop at projectRootPath if given", () => {

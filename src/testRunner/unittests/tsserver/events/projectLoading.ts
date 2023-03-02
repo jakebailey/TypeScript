@@ -1,10 +1,10 @@
-import * as ts from "../../../_namespaces/ts";
+import * as ts from "../../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
     libFile,
     TestServerHost,
-} from "../../virtualFileSystemWithWatch";
+} from "../../virtualFileSystemWithWatch.js";
 import {
     checkNumberOfProjects,
     createSessionWithDefaultEventHandler,
@@ -13,7 +13,7 @@ import {
     protocolLocationFromSubstring,
     TestSession,
     toExternalFiles,
-} from "../helpers";
+} from "../helpers.js";
 
 describe("unittests:: tsserver:: events:: ProjectLoadingStart and ProjectLoadingFinish events", () => {
     const aTs: File = {

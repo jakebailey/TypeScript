@@ -1,5 +1,5 @@
-import * as ts from "../../_namespaces/ts";
-import { solutionBuildWithBaseline } from "../tscWatch/helpers";
+import * as ts from "../../_namespaces/ts.js";
+import { solutionBuildWithBaseline } from "../tscWatch/helpers.js";
 import {
     createServerHost,
     File,
@@ -7,7 +7,7 @@ import {
     getTsBuildProjectFilePath,
     libFile,
     SymLink,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     checkProjectActualFiles,
@@ -19,7 +19,7 @@ import {
     protocolFileLocationFromSubstring,
     protocolLocationFromSubstring,
     verifyGetErrRequest,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: with project references and tsbuild", () => {
     describe("with container project", () => {

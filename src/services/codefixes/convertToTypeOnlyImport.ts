@@ -11,12 +11,12 @@ import {
     isImportSpecifier,
     SourceFile,
     textChanges,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     codeFixAll,
     createCodeFixAction,
     registerCodeFix,
-} from "../_namespaces/ts.codefix";
+} from "../_namespaces/ts.codefix.js";
 
 const errorCodes = [
     Diagnostics.This_import_is_never_used_as_a_value_and_must_use_import_type_because_importsNotUsedAsValues_is_set_to_error.code,

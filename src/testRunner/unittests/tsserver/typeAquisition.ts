@@ -1,5 +1,5 @@
-import * as ts from "../../_namespaces/ts";
-import { createServerHost } from "../virtualFileSystemWithWatch";
+import * as ts from "../../_namespaces/ts.js";
+import { createServerHost } from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     checkProjectActualFiles,
@@ -8,7 +8,7 @@ import {
     createProjectService,
     TestTypingsInstaller,
     toExternalFile,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: autoDiscovery", () => {
     it("does not depend on extension", () => {

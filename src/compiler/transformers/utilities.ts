@@ -84,7 +84,7 @@ import {
     TransformationContext,
     VariableDeclaration,
     VariableStatement,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 
 /** @internal */
 export function getOriginalNodeId(node: Node) {

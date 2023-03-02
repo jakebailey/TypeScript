@@ -6,15 +6,14 @@
         "pretty": true,
         "lib": ["es2018"],
         "target": "es2018",
-        "module": "CommonJS",
-        "moduleResolution": "node",
+        "module": "node16",
+        "moduleResolution": "node16",
 
         "declaration": true,
         "declarationMap": true,
         "sourceMap": true,
         "composite": true,
         "noEmitOnError": true,
-        "emitDeclarationOnly": true,
 
         "strict": true,
         "strictBindCallApply": false,

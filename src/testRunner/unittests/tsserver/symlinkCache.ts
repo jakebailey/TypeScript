@@ -1,13 +1,13 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
     SymLink,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     createSession,
     openFilesForSession,
-} from "./helpers";
+} from "./helpers.js";
 
 const appTsconfigJson: File = {
     path: "/packages/app/tsconfig.json",

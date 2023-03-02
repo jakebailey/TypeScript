@@ -1,12 +1,12 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     dedent
-} from "../../_namespaces/Utils";
+} from "../../_namespaces/Utils.js";
 import {
     compilerOptionsToConfigJson,
     loadProjectFromFiles,
     verifyTsc,
-} from "../tsc/helpers";
+} from "../tsc/helpers.js";
 
 describe("unittests:: tsbuild:: fileDelete::", () => {
     function fs(childOptions: ts.CompilerOptions, mainOptions?: ts.CompilerOptions) {

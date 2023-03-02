@@ -34,7 +34,7 @@ import {
     WatchFactoryHost,
     WatchLogLevel,
     WatchOptions,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 import {
     ActionInvalidate,
     ActionSet,
@@ -47,7 +47,7 @@ import {
     InstallTypingHost,
     InvalidateCachedTypings,
     SetTypings,
-} from "./_namespaces/ts.server";
+} from "./_namespaces/ts.server.js";
 
 interface NpmConfig {
     devDependencies: MapLike<any>;

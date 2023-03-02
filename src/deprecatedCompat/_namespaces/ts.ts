@@ -1,5 +1,5 @@
 /* Generated file to emulate the ts namespace. */
 
-export * from "../../compiler/_namespaces/ts";
-export * from "../deprecations";
-export * from "../5.0/identifierProperties";
+export * from "../../compiler/_namespaces/ts.js";
+export * from "../deprecations.js";
+export * from "../5.0/identifierProperties.js";

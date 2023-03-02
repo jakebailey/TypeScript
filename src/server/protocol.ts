@@ -1,4 +1,4 @@
-import * as ts from "./_namespaces/ts";
+import * as ts from "./_namespaces/ts.js";
 import {
     CompilerOptionsValue,
     EndOfLineState,
@@ -17,7 +17,7 @@ import {
     TodoComment,
     TodoCommentDescriptor,
     TypeAcquisition,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 // Declaration module describing the TypeScript Server protocol
 

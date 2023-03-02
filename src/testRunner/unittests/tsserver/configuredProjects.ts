@@ -1,15 +1,15 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     commonFile1,
     commonFile2,
     ensureErrorFreeBuild,
-} from "../tscWatch/helpers";
+} from "../tscWatch/helpers.js";
 import {
     createServerHost,
     File,
     libFile,
     SymLink,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     checkNumberOfConfiguredProjects,
@@ -24,7 +24,7 @@ import {
     createSessionWithEventTracking,
     openFilesForSession,
     verifyGetErrRequest,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: ConfiguredProjects", () => {
     it("create configured project without file list", () => {

@@ -65,7 +65,7 @@ import {
     TextRange,
     TriviaSyntaxKind,
     TypeReferenceNode,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     FormattingContext,
     FormattingRequestKind,
@@ -76,7 +76,7 @@ import {
     RuleFlags,
     RulesMap,
     SmartIndenter,
-} from "../_namespaces/ts.formatting";
+} from "../_namespaces/ts.formatting.js";
 
 /** @internal */
 export interface FormatContext {

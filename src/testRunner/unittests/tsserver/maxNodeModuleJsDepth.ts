@@ -1,13 +1,13 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     checkNumberOfInferredProjects,
     createProjectService,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: maxNodeModuleJsDepth for inferred projects", () => {
     it("should be set to 2 if the project has js root files", () => {

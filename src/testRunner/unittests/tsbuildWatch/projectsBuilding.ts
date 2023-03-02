@@ -1,14 +1,14 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     noopChange,
     TscWatchCompileChange,
     verifyTscWatch,
-} from "../tscWatch/helpers";
+} from "../tscWatch/helpers.js";
 import {
     createWatchedSystem,
     File,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 
 describe("unittests:: tsbuildWatch:: watchMode:: projectsBuilding", () => {
     function pkgs<T>(cb: (index: number) => T, count: number, startIndex?: number): T[] {

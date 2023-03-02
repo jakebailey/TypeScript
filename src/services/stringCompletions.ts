@@ -147,7 +147,7 @@ import {
     UserPreferences,
     walkUpParenthesizedExpressions,
     walkUpParenthesizedTypes,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 import {
     CompletionKind,
     createCompletionDetails,
@@ -156,7 +156,7 @@ import {
     getPropertiesForObjectExpression,
     Log,
     SortText,
-} from "./_namespaces/ts.Completions";
+} from "./_namespaces/ts.Completions.js";
 
 interface NameAndKindSet {
     add(value: NameAndKind): void;

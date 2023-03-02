@@ -101,7 +101,7 @@ import {
     UnionReduction,
     UserPreferences,
     VariableDeclaration,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     codeFixAll,
     createCodeFixAction,
@@ -109,7 +109,7 @@ import {
     ImportAdder,
     registerCodeFix,
     tryGetAutoImportableReferenceFromTypeNode,
-} from "../_namespaces/ts.codefix";
+} from "../_namespaces/ts.codefix.js";
 
 const fixId = "inferFromUsage";
 const errorCodes = [

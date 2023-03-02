@@ -1,10 +1,10 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
     Folder,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     appendAllScriptInfos,
     baselineTsserverLogs,
@@ -19,7 +19,7 @@ import {
     toExternalFiles,
     verifyGetErrRequest,
     verifyGetErrScenario,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: Project Errors", () => {
     function checkProjectErrors(projectFiles: ts.server.ProjectFilesWithTSDiagnostics, expectedErrors: readonly string[]): void {

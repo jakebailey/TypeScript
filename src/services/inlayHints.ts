@@ -67,7 +67,7 @@ import {
     UserPreferences,
     usingSingleLineStringWriter,
     VariableDeclaration,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 const maxHintsLength = 30;
 

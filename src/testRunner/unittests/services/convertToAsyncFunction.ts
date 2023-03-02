@@ -1,15 +1,15 @@
-import * as Harness from "../../_namespaces/Harness";
-import * as ts from "../../_namespaces/ts";
-import { createProjectService } from "../tsserver/helpers";
+import * as Harness from "../../_namespaces/Harness.js";
+import * as ts from "../../_namespaces/ts.js";
+import { createProjectService } from "../tsserver/helpers.js";
 import {
     createServerHost,
     File,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     extractTest,
     newLineCharacter,
     notImplementedHost,
-} from "./extract/helpers";
+} from "./extract/helpers.js";
 
 const libFile: File = {
     path: "/a/lib/lib.d.ts",

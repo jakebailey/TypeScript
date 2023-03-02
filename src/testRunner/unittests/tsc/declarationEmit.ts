@@ -1,12 +1,12 @@
-import * as ts from "../../_namespaces/ts";
-import * as Utils from "../../_namespaces/Utils";
-import { verifyTscWatch } from "../tscWatch/helpers";
+import * as ts from "../../_namespaces/ts.js";
+import * as Utils from "../../_namespaces/Utils.js";
+import { verifyTscWatch } from "../tscWatch/helpers.js";
 import {
     createWatchedSystem,
     FileOrFolderOrSymLink,
     isSymLink,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 
 describe("unittests:: tsc:: declarationEmit::", () => {
     interface VerifyDeclarationEmitInput {

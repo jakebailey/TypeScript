@@ -1,11 +1,11 @@
 import { expect } from "chai";
 
-import * as Harness from "../../_namespaces/Harness";
-import * as ts from "../../_namespaces/ts";
+import * as Harness from "../../_namespaces/Harness.js";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createHasErrorMessageLogger,
     nullLogger,
-} from "./helpers";
+} from "./helpers.js";
 
 let lastWrittenToHost: string;
 const noopFileWatcher: ts.FileWatcher = { close: ts.noop };

@@ -1,16 +1,16 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     createLoggerWithInMemoryLogs,
     createSession,
     openFilesForSession,
     TestTypingsInstaller,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: completions", () => {
     it("works", () => {

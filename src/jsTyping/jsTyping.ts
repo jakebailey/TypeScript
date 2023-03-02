@@ -29,7 +29,7 @@ import {
     TypeAcquisition,
     Version,
     versionMajorMinor,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 /** @internal */
 export interface TypingResolutionHost {

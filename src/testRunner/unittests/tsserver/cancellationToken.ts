@@ -1,10 +1,10 @@
-import * as ts from "../../_namespaces/ts";
-import { createServerHost } from "../virtualFileSystemWithWatch";
+import * as ts from "../../_namespaces/ts.js";
+import { createServerHost } from "../virtualFileSystemWithWatch.js";
 import {
     createSession,
     TestServerCancellationToken,
     TestSessionRequest,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: cancellationToken", () => {
     // Disable sourcemap support for the duration of the test, as sourcemapping the errors generated during this test is slow and not something we care to test

@@ -1,10 +1,10 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
     libFile,
     TestServerHost,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     closeFilesForSession,
@@ -14,7 +14,7 @@ import {
     openFilesForSession,
     TestSession,
     TestSessionRequest,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: with project references and tsbuild source map", () => {
     const dependecyLocation = `/user/username/projects/myproject/dependency`;

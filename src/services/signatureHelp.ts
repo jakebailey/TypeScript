@@ -82,7 +82,7 @@ import {
     Type,
     TypeChecker,
     TypeParameter,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 const enum InvocationKind { Call, TypeArgs, Contextual }
 interface CallInvocation { readonly kind: InvocationKind.Call; readonly node: CallLikeExpression; }

@@ -1,14 +1,14 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createBaseline,
     createSolutionBuilderWithWatchHostForBaseline,
     runWatchBaseline,
-} from "../tscWatch/helpers";
+} from "../tscWatch/helpers.js";
 import {
     createWatchedSystem,
     File,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 
 it("unittests:: tsbuildWatch:: watchMode:: Public API with custom transformers", () => {
     const solution: File = {

@@ -1,9 +1,9 @@
-import * as Utils from "../../_namespaces/Utils";
+import * as Utils from "../../_namespaces/Utils.js";
 import {
     loadProjectFromFiles,
     replaceText,
     verifyTsc,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsc:: composite::", () => {
     verifyTsc({

@@ -4,7 +4,7 @@ import {
     FormatCodeSettings,
     FormattingHost,
     SyntaxKind,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     anyContext,
     FormatContext,
@@ -13,7 +13,7 @@ import {
     Rule,
     RuleAction,
     RuleSpec,
-} from "../_namespaces/ts.formatting";
+} from "../_namespaces/ts.formatting.js";
 
 /** @internal */
 export function getFormatContext(options: FormatCodeSettings, host: FormattingHost): FormatContext {

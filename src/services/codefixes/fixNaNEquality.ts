@@ -14,13 +14,13 @@ import {
     SyntaxKind,
     textChanges,
     TextSpan,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     codeFixAll,
     createCodeFixAction,
     findAncestorMatchingSpan,
     registerCodeFix,
-} from "../_namespaces/ts.codefix";
+} from "../_namespaces/ts.codefix.js";
 
 const fixId = "fixNaNEquality";
 const errorCodes = [

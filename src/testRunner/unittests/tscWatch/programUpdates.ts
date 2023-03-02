@@ -1,16 +1,16 @@
-import * as Harness from "../../_namespaces/Harness";
-import * as ts from "../../_namespaces/ts";
+import * as Harness from "../../_namespaces/Harness.js";
+import * as ts from "../../_namespaces/ts.js";
 import {
     commandLineCallbacks,
     compilerOptionsToConfigJson,
-} from "../tsc/helpers";
+} from "../tsc/helpers.js";
 import {
     createWatchedSystem,
     File,
     libFile,
     SymLink,
     TestServerHost,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     commonFile1,
     commonFile2,
@@ -21,7 +21,7 @@ import {
     TscWatchCompileChange,
     verifyTscWatch,
     watchBaseline,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsc-watch:: program updates", () => {
     const scenario = "programUpdates";

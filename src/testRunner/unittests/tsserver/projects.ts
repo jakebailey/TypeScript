@@ -1,13 +1,13 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     commonFile1,
     commonFile2,
-} from "../tscWatch/helpers";
+} from "../tscWatch/helpers.js";
 import {
     createServerHost,
     File,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     checkNumberOfConfiguredProjects,
@@ -27,7 +27,7 @@ import {
     toExternalFile,
     toExternalFiles,
     verifyGetErrRequest,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: Projects", () => {
     it("handles the missing files - that were added to program because they were added with ///<ref", () => {

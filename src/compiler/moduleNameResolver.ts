@@ -107,7 +107,7 @@ import {
     version,
     versionMajorMinor,
     VersionRange,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 /** @internal */
 export function trace(host: ModuleResolutionHost, message: DiagnosticMessage, ...args: any[]): void;

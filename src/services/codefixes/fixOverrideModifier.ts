@@ -31,12 +31,12 @@ import {
     SourceFile,
     SyntaxKind,
     textChanges,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     codeFixAll,
     createCodeFixActionMaybeFixAll,
     registerCodeFix,
-} from "../_namespaces/ts.codefix";
+} from "../_namespaces/ts.codefix.js";
 
 const fixName = "fixOverrideModifier";
 const fixAddOverrideId = "fixAddOverrideModifier";

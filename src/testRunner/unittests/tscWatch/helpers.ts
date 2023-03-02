@@ -1,6 +1,6 @@
-import { patchHostForBuildInfoReadWrite } from "../../_namespaces/fakes";
-import { Baseline } from "../../_namespaces/Harness";
-import * as ts from "../../_namespaces/ts";
+import { patchHostForBuildInfoReadWrite } from "../../_namespaces/fakes.js";
+import { Baseline } from "../../_namespaces/Harness.js";
+import * as ts from "../../_namespaces/ts.js";
 import {
     baselinePrograms,
     CommandLineCallbacks,
@@ -8,7 +8,7 @@ import {
     CommandLineProgram,
     createSolutionBuilderHostForBaseline,
     generateSourceMapBaselineFiles,
-} from "../tsc/helpers";
+} from "../tsc/helpers.js";
 import {
     changeToHostTrackingWrittenFiles,
     createWatchedSystem,
@@ -18,7 +18,7 @@ import {
     TestServerHost,
     TestServerHostCreationParameters,
     TestServerHostTrackingWrittenFiles,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 
 export const commonFile1: File = {
     path: "/a/b/commonFile1.ts",

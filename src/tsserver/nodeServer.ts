@@ -1,5 +1,5 @@
-import * as protocol from "../server/protocol";
-import * as ts from "./_namespaces/ts";
+import * as protocol from "../server/protocol.js";
+import * as ts from "./_namespaces/ts.js";
 import {
     ApplyCodeActionCommandResult,
     assertType,
@@ -32,8 +32,8 @@ import {
     validateLocaleAndSetLanguage,
     versionMajorMinor,
     WatchOptions,
-} from "./_namespaces/ts";
-import * as server from "./_namespaces/ts.server";
+} from "./_namespaces/ts.js";
+import * as server from "./_namespaces/ts.server.js";
 import {
     ActionInvalidate,
     ActionPackageInstalled,
@@ -76,7 +76,7 @@ import {
     toEvent,
     TypesRegistryResponse,
     TypingInstallerRequestUnion,
-} from "./_namespaces/ts.server";
+} from "./_namespaces/ts.server.js";
 
 interface LogOptions {
     file?: string;

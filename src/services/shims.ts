@@ -65,7 +65,7 @@ import {
     toPath,
     TypeAcquisition,
     UserPreferences,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 //
 // Copyright (c) Microsoft Corporation.  All rights reserved.

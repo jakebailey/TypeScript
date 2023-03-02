@@ -129,7 +129,7 @@ import {
     WatchOptions,
     WatchType,
     WildcardDirectoryWatcher,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 import {
     ActionInvalidate,
     ActionSet,
@@ -175,8 +175,8 @@ import {
     ThrottledOperations,
     toNormalizedPath,
     TypingsCache,
-} from "./_namespaces/ts.server";
-import * as protocol from "./protocol";
+} from "./_namespaces/ts.server.js";
+import * as protocol from "./protocol.js";
 
 export const maxProgramSizeForNonTsFiles = 20 * 1024 * 1024;
 /** @internal */

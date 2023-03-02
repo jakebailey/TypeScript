@@ -1,8 +1,8 @@
-import { File } from "../virtualFileSystemWithWatch";
+import { File } from "../virtualFileSystemWithWatch.js";
 import {
     GetErrForProjectDiagnostics,
     verifyGetErrScenario,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: with project references and error reporting", () => {
     const dependecyLocation = `/user/username/projects/myproject/dependency`;

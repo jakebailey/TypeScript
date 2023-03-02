@@ -195,7 +195,7 @@ import {
     visitNodes,
     visitParameterList,
     VisitResult,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 
 /**
  * Indicates whether to emit type metadata in the new format.

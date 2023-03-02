@@ -1,4 +1,4 @@
-import { getModuleSpecifier } from "../../compiler/moduleSpecifiers";
+import { getModuleSpecifier } from "../../compiler/moduleSpecifiers.js";
 import {
     AnyImportOrRequireStatement,
     append,
@@ -127,8 +127,8 @@ import {
     VariableDeclaration,
     VariableDeclarationList,
     VariableStatement,
-} from "../_namespaces/ts";
-import { registerRefactor } from "../_namespaces/ts.refactor";
+} from "../_namespaces/ts.js";
+import { registerRefactor } from "../_namespaces/ts.refactor.js";
 
 const refactorName = "Move to a new file";
 const description = getLocaleSpecificMessage(Diagnostics.Move_to_a_new_file);

@@ -16,7 +16,7 @@ import {
     some,
     startsWith,
     stringContains,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 /**
  * Internally, we represent paths as strings with '/' as the directory separator.

@@ -1,12 +1,12 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     configuredProjectAt,
     createSession,
-} from "./helpers";
+} from "./helpers.js";
 
 const tsConfig: File = {
     path: "/tsconfig.json",

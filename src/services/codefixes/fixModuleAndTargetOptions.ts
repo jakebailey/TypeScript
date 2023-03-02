@@ -9,13 +9,13 @@ import {
     ModuleKind,
     ScriptTarget,
     textChanges,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     createCodeFixActionWithoutFixAll,
     registerCodeFix,
     setJsonCompilerOptionValue,
     setJsonCompilerOptionValues,
-} from "../_namespaces/ts.codefix";
+} from "../_namespaces/ts.codefix.js";
 
 registerCodeFix({
     errorCodes: [

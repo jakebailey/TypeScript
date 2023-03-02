@@ -4,7 +4,7 @@ import {
     setStackTraceLimit,
     sys,
     version,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 import {
     emptyArray,
     findArgument,
@@ -12,9 +12,9 @@ import {
     initializeNodeSystem,
     Msg,
     StartInput,
-} from "./_namespaces/ts.server";
+} from "./_namespaces/ts.server.js";
 
-export * from "./_namespaces/ts";
+export * from "./_namespaces/ts.js";
 
 function findArgumentStringArray(argName: string): readonly string[] {
     const arg = findArgument(argName);

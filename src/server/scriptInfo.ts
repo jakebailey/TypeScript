@@ -34,7 +34,7 @@ import {
     stringContains,
     TextSpan,
     unorderedRemoveItem,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 import {
     AbsolutePositionAndLineText,
     ConfiguredProject,
@@ -50,8 +50,8 @@ import {
     ProjectKind,
     ScriptVersionCache,
     ServerHost,
-} from "./_namespaces/ts.server";
-import * as protocol from "./protocol";
+} from "./_namespaces/ts.server.js";
+import * as protocol from "./protocol.js";
 
 /** @internal */
 export class TextStorage {

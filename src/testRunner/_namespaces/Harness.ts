@@ -1,16 +1,16 @@
 /* Generated file to emulate the Harness namespace. */
 
-export * from "../../harness/_namespaces/Harness";
-export * from "../../loggedIO/_namespaces/Harness";
+export * from "../../harness/_namespaces/Harness.js";
+export * from "../../loggedIO/_namespaces/Harness.js";
 
-import * as Parallel from "./Harness.Parallel";
+import * as Parallel from "./Harness.Parallel.js";
 export { Parallel };
 
-export * from "../fourslashRunner";
-export * from "../compilerRunner";
-export * from "../externalCompileRunner";
-export * from "../test262Runner";
-export * from "../runner";
+export * from "../fourslashRunner.js";
+export * from "../compilerRunner.js";
+export * from "../externalCompileRunner.js";
+export * from "../test262Runner.js";
+export * from "../runner.js";
 
 // If running as emitted CJS, don't start executing the tests here; instead start in runner.ts.
 // If running bundled, we want this to be here so that esbuild places the tests after runner.ts.

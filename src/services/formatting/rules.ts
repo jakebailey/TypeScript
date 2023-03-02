@@ -20,7 +20,7 @@ import {
     SyntaxKind,
     typeKeywords,
     YieldExpression,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 import {
     anyContext,
     ContextPredicate,
@@ -31,7 +31,7 @@ import {
     RuleFlags,
     TextRangeWithKind,
     TokenRange,
-} from "../_namespaces/ts.formatting";
+} from "../_namespaces/ts.formatting.js";
 
 /** @internal */
 export interface RuleSpec {

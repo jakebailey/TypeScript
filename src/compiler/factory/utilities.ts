@@ -178,7 +178,7 @@ import {
     Token,
     TransformFlags,
     TypeNode,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 
 // Compound nodes
 

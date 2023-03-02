@@ -4,10 +4,10 @@ import {
     Identifier,
     identifierToKeywordKind,
     NodeFlags,
-} from "../_namespaces/ts";
-import { deprecate } from "../deprecate";
+} from "../_namespaces/ts.js";
+import { deprecate } from "../deprecate.js";
 
-declare module "../../compiler/types" {
+declare module "../../compiler/types.js" {
     export interface Identifier {
         /** @deprecated Use `idKeyword(identifier)` instead. */
         readonly originalKeywordKind?: SyntaxKind;

@@ -1,9 +1,9 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
     libFile,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     checkNumberOfProjects,
@@ -14,7 +14,7 @@ import {
     createSession,
     openFilesForSession,
     verifyDynamic,
-} from "./helpers";
+} from "./helpers.js";
 
 function verifyPathRecognizedAsDynamic(path: string) {
     const file: File = {

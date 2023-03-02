@@ -238,7 +238,7 @@ import {
     TypeChecker,
     TypeLiteralNode,
     VariableDeclaration,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 import {
     createImportTracker,
     ExportInfo,
@@ -250,7 +250,7 @@ import {
     ImportsResult,
     ImportTracker,
     ModuleReference,
-} from "./_namespaces/ts.FindAllReferences";
+} from "./_namespaces/ts.FindAllReferences.js";
 
 /** @internal */
 export interface SymbolAndEntries {

@@ -1,8 +1,8 @@
-import * as Utils from "../../_namespaces/Utils";
+import * as Utils from "../../_namespaces/Utils.js";
 import {
     loadProjectFromFiles,
     verifyTsc,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsc:: forceConsistentCasingInFileNames::", () => {
     verifyTsc({

@@ -1,4 +1,4 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     appendText,
     compilerOptionsToConfigJson,
@@ -7,7 +7,7 @@ import {
     replaceText,
     TestTscEdit,
     verifyTsc,
-} from "../tsc/helpers";
+} from "../tsc/helpers.js";
 
 describe("unittests:: tsbuild:: commandLine::", () => {
     describe("different options::", () => {

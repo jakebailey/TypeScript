@@ -1,15 +1,15 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     createLoggerWithInMemoryLogs,
     createSession,
     openFilesForSession,
     protocolFileLocationFromSubstring,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: rename", () => {
     it("works with fileToRename", () => {

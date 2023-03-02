@@ -76,7 +76,7 @@ import {
     visitEachChild,
     visitNode,
     VisitResult,
-} from "../_namespaces/ts";
+} from "../_namespaces/ts.js";
 
 /** @internal */
 export function transformJsx(context: TransformationContext): (x: SourceFile | Bundle) => SourceFile | Bundle {

@@ -9,7 +9,7 @@ import {
     map,
     some,
     trimString,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 // https://semver.org/#spec-item-2
 // > A normal version number MUST take the form X.Y.Z where X, Y, and Z are non-negative

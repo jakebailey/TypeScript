@@ -1,9 +1,9 @@
-import * as vfs from "../../_namespaces/vfs";
+import * as vfs from "../../_namespaces/vfs.js";
 import {
     loadProjectFromDisk,
     noChangeRun,
     verifyTsc,
-} from "../tsc/helpers";
+} from "../tsc/helpers.js";
 
 describe("unittests:: tsbuild - with noEmitOnError", () => {
     let projFs: vfs.FileSystem;

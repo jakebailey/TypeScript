@@ -1,13 +1,13 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     checkNumberOfInferredProjects,
     createSession,
     openFilesForSession,
-} from "./helpers";
+} from "./helpers.js";
 
 const aTs: File = {
     path: "/a.ts",

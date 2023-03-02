@@ -1,14 +1,14 @@
-import * as ts from "../../_namespaces/ts";
+import * as ts from "../../_namespaces/ts.js";
 import {
     createWatchedSystem,
     File,
     libFile,
     TestServerHost,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     TscWatchCompileChange,
     verifyTscWatch,
-} from "./helpers";
+} from "./helpers.js";
 
 const scenario = "emit";
 describe("unittests:: tsc-watch:: emit with outFile or out setting", () => {

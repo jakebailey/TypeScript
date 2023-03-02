@@ -1,19 +1,19 @@
-import * as Harness from "../../_namespaces/Harness";
-import * as ts from "../../_namespaces/ts";
-import { commandLineCallbacks } from "../tsc/helpers";
+import * as Harness from "../../_namespaces/Harness.js";
+import * as ts from "../../_namespaces/ts.js";
+import { commandLineCallbacks } from "../tsc/helpers.js";
 import {
     createWatchedSystem,
     File,
     libFile,
     TestServerHostTrackingWrittenFiles,
-} from "../virtualFileSystemWithWatch";
+} from "../virtualFileSystemWithWatch.js";
 import {
     applyEdit,
     createBaseline,
     createWatchCompilerHostOfConfigFileForBaseline,
     runWatchBaseline,
     watchBaseline,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsc-watch:: watchAPI:: tsc-watch with custom module resolution", () => {
     it("verify that module resolution with json extension works when returned without extension", () => {

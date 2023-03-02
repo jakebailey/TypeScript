@@ -1,4 +1,4 @@
-import * as compiler from "./_namespaces/compiler";
+import * as compiler from "./_namespaces/compiler.js";
 import {
     Baseline,
     Compiler,
@@ -10,10 +10,10 @@ import {
     RunnerBase,
     TestCaseParser,
     TestRunnerKind,
-} from "./_namespaces/Harness";
-import * as ts from "./_namespaces/ts";
-import * as Utils from "./_namespaces/Utils";
-import * as vpath from "./_namespaces/vpath";
+} from "./_namespaces/Harness.js";
+import * as ts from "./_namespaces/ts.js";
+import * as Utils from "./_namespaces/Utils.js";
+import * as vpath from "./_namespaces/vpath.js";
 
 export const enum CompilerTestType {
     Conformance,

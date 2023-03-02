@@ -1,4 +1,4 @@
-import * as ts from "./_namespaces/ts";
+import * as ts from "./_namespaces/ts.js";
 import {
     BuilderProgram,
     BuildInfo,
@@ -91,7 +91,7 @@ import {
     WatchType,
     WatchTypeRegistry,
     WildcardDirectoryWatcher,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 export interface ReadBuildProgramHost {
     useCaseSensitiveFileNames(): boolean;

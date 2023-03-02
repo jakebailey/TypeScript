@@ -1,11 +1,11 @@
-import * as ts from "../../_namespaces/ts";
-import { File } from "../virtualFileSystemWithWatch";
+import * as ts from "../../_namespaces/ts.js";
+import { File } from "../virtualFileSystemWithWatch.js";
 import {
     checkNumberOfProjects,
     fileStats,
     TestServerEventManager,
     toExternalFiles,
-} from "./helpers";
+} from "./helpers.js";
 
 describe("unittests:: tsserver:: project telemetry", () => {
     it("does nothing for inferred project", () => {

@@ -1,7 +1,7 @@
-import * as fakes from "../../_namespaces/fakes";
-import * as ts from "../../_namespaces/ts";
-import * as vfs from "../../_namespaces/vfs";
-import { libFile } from "../virtualFileSystemWithWatch";
+import * as fakes from "../../_namespaces/fakes.js";
+import * as ts from "../../_namespaces/ts.js";
+import * as vfs from "../../_namespaces/vfs.js";
+import { libFile } from "../virtualFileSystemWithWatch.js";
 
 interface TestProjectSpecification {
     configFileName?: string;

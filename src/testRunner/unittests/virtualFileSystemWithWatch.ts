@@ -1,4 +1,4 @@
-import * as Harness from "../_namespaces/Harness";
+import * as Harness from "../_namespaces/Harness.js";
 import {
     clear,
     clone,
@@ -42,8 +42,8 @@ import {
     SortedArray,
     sys,
     toPath,
-} from "../_namespaces/ts";
-import { timeIncrements } from "../_namespaces/vfs";
+} from "../_namespaces/ts.js";
+import { timeIncrements } from "../_namespaces/vfs.js";
 
 export const libFile: File = {
     path: "/a/lib/lib.d.ts",

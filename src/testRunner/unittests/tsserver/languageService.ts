@@ -1,7 +1,7 @@
-import * as ts from "../../_namespaces/ts";
-import * as Utils from "../../_namespaces/Utils";
-import { createServerHost } from "../virtualFileSystemWithWatch";
-import { createProjectService } from "./helpers";
+import * as ts from "../../_namespaces/ts.js";
+import * as Utils from "../../_namespaces/Utils.js";
+import { createServerHost } from "../virtualFileSystemWithWatch.js";
+import { createProjectService } from "./helpers.js";
 
 describe("unittests:: tsserver:: languageService", () => {
     it("should work correctly on case-sensitive file systems", () => {

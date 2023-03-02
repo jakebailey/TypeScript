@@ -1,5 +1,5 @@
-import * as performance from "../compiler/_namespaces/ts.performance";
-import * as ts from "./_namespaces/ts";
+import * as performance from "../compiler/_namespaces/ts.performance.js";
+import * as ts from "./_namespaces/ts.js";
 import {
     arrayFrom,
     BuilderProgram,
@@ -87,7 +87,7 @@ import {
     version,
     WatchCompilerHost,
     WatchOptions,
-} from "./_namespaces/ts";
+} from "./_namespaces/ts.js";
 
 interface Statistic {
     name: string;

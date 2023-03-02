@@ -1,10 +1,10 @@
-import * as ts from "../../../_namespaces/ts";
+import * as ts from "../../../_namespaces/ts.js";
 import {
     createServerHost,
     File,
     libFile,
     TestServerHost,
-} from "../../virtualFileSystemWithWatch";
+} from "../../virtualFileSystemWithWatch.js";
 import {
     baselineTsserverLogs,
     createHasErrorMessageLogger,
@@ -13,7 +13,7 @@ import {
     createSessionWithEventTracking,
     Logger,
     TestSession,
-} from "../helpers";
+} from "../helpers.js";
 
 describe("unittests:: tsserver:: events:: ProjectsUpdatedInBackground", () => {
     function verifyFiles(caption: string, actual: readonly string[], expected: readonly string[]) {
