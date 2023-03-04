@@ -8,6 +8,7 @@ import { EventEmitter } from "events";
 import fs from "fs";
 import fsExtra from "fs-extra";
 import _glob from "glob";
+import gcc from "google-closure-compiler";
 import { task } from "hereby";
 import path from "path";
 import util from "util";
@@ -208,12 +209,43 @@ function createBundler(entrypoint, outfile, taskOptions = {}) {
                         build.onEnd(async () => {
                             let contents = await fs.promises.readFile(outfile, "utf-8");
                             contents = contents.replace(/\$\$require/g, "  require");
+                            contents = contents.replace(/var hasOwnProperty =/g, "const hasOwnProperty =");
                             await fs.promises.writeFile(outfile, contents);
                         });
                     },
                 }
             ];
         }
+
+        options.plugins = (options.plugins ?? []).concat({
+            name: "google-closure-compiler",
+            setup: (build) => {
+                build.onEnd(async () => {
+                    let contents = await fs.promises.readFile(outfile, "utf-8");
+                    const tmp = `${outfile}.tmp.js`;
+                    await fs.promises.writeFile(tmp, contents);
+
+                    const compiler = new gcc.compiler({
+                        js: tmp,
+                        formatting: "PRETTY_PRINT",
+                        compilation_level: "ADVANCED",
+                        js_output_file: outfile,
+                        language_out: "ECMASCRIPT_2018",
+                    })
+
+                    return new Promise((resolve, reject) => {
+                        compiler.run((exitCode, _stdout, stderr) => {
+                            if (exitCode === 0) {
+                                resolve();
+                            }
+                            else {
+                                reject(stderr)
+                            }
+                        })
+                    })
+                })
+            }
+        })
 
         return options;
     });
