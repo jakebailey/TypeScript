@@ -11849,6 +11849,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         ) {
             // Symbol is property of some kind that is merged with something - should use `getTypeOfFuncClassEnumModule` and not `getTypeOfVariableOrParameterOrProperty`
             if (symbol.flags & (SymbolFlags.Function | SymbolFlags.Method | SymbolFlags.Class | SymbolFlags.Enum | SymbolFlags.ValueModule)) {
+                // TODO(jakebailey): This is very suspicious; this should not return
+                // as that won't pop the stack.
                 return getTypeOfFuncClassEnumModule(symbol);
             }
             type = isBinaryExpression(declaration.parent) ?
