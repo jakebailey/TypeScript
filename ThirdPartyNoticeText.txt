@@ -85,12 +85,12 @@ DOM
 W3C License
 This work is being provided by the copyright holders under the following license.
 By obtaining and/or copying this work, you (the licensee) agree that you have read, understood, and will comply with the following terms and conditions.
-Permission to copy, modify, and distribute this work, with or without modification,Â for any purpose and without fee or royalty is hereby granted, provided that you include the following 
+Permission to copy, modify, and distribute this work, with or without modification, for any purpose and without fee or royalty is hereby granted, provided that you include the following 
 on ALL copies of the work or portions thereof, including modifications:
 * The full text of this NOTICE in a location viewable to users of the redistributed or derivative work.
 * Any pre-existing intellectual property disclaimers, notices, or terms and conditions. If none exist, the W3C Software and Document Short Notice should be included.
 * Notice of any changes or modifications, through a copyright statement on the new code or document such as "This software or document includes material copied from or derived 
-from [title and URI of the W3C document]. Copyright Â© [YEAR] W3CÂ® (MIT, ERCIM, Keio, Beihang)." 
+from [title and URI of the W3C document]. Copyright © [YEAR] W3C® (MIT, ERCIM, Keio, Beihang)." 
 Disclaimers
 THIS WORK IS PROVIDED "AS IS," AND COPYRIGHT HOLDERS MAKE NO REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO, WARRANTIES OF MERCHANTABILITY OR 
 FITNESS FOR ANY PARTICULAR PURPOSE OR THAT THE USE OF THE SOFTWARE OR DOCUMENT WILL NOT INFRINGE ANY THIRD PARTY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
@@ -101,7 +101,7 @@ Title to copyright in this work will at all times remain with copyright holders.
 ---------
 
 DOM
-Copyright Â© 2018 WHATWG (Apple, Google, Mozilla, Microsoft). This work is licensed under a Creative Commons Attribution 4.0 International License: Attribution 4.0 International 
+Copyright © 2018 WHATWG (Apple, Google, Mozilla, Microsoft). This work is licensed under a Creative Commons Attribution 4.0 International License: Attribution 4.0 International 
 ======================================================================= 
 Creative Commons Corporation ("Creative Commons") is not a law firm and does not provide legal services or legal advice. Distribution of Creative Commons public licenses does not create a lawyer-client or other relationship. Creative Commons makes its licenses and related information available on an "as-is" basis. Creative Commons gives no warranties regarding its licenses, any material licensed under their terms and conditions, or any related information. Creative Commons disclaims all liability for damages resulting from their use to the fullest extent possible. Using Creative Commons Public Licenses Creative Commons public licenses provide a standard set of terms and conditions that creators and other rights holders may use to share original works of authorship and other material subject to copyright and certain other rights specified in the public license below. The following considerations are for informational purposes only, are not exhaustive, and do not form part of our licenses. Considerations for licensors: Our public licenses are intended for use by those authorized to give the public permission to use material in ways otherwise restricted by copyright and certain other rights. Our licenses are irrevocable. Licensors should read and understand the terms and conditions of the license they choose before applying it. Licensors should also secure all rights necessary before applying our licenses so that the public can reuse the material as expected. Licensors should clearly mark any material not subject to the license. This includes other CC- licensed material, or material used under an exception or limitation to copyright. More considerations for licensors:
 
@@ -113,7 +113,7 @@ Creative Commons Attribution 4.0 International Public License By exercising the 
 ----------------------Web Background Synchronization------------------------------
 
 Web Background Synchronization Specification
-Portions of spec Â© by W3C
+Portions of spec © by W3C
 
 W3C Community Final Specification Agreement 
 To secure commitments from participants for the full text of a Community or Business Group Report, the group may call for voluntary commitments to the following terms; a "summary" is 
