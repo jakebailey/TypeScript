@@ -406,9 +406,9 @@ export const enum SyntaxKind {
     JSDocFunctionType,
     JSDocVariadicType,
     JSDocNamepathType, // https://jsdoc.app/about-namepaths.html
-    JSDoc,
     /** @deprecated Use SyntaxKind.JSDoc */
-    JSDocComment = JSDoc,
+    JSDocComment,
+    JSDoc = JSDocComment,
     JSDocText,
     JSDocTypeLiteral,
     JSDocSignature,

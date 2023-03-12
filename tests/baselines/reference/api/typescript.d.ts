@@ -368,9 +368,9 @@ declare namespace ts {
         JSDocFunctionType = 321,
         JSDocVariadicType = 322,
         JSDocNamepathType = 323,
-        JSDoc = 324,
         /** @deprecated Use SyntaxKind.JSDoc */
         JSDocComment = 324,
+        JSDoc = 324,
         JSDocText = 325,
         JSDocTypeLiteral = 326,
         JSDocSignature = 327,

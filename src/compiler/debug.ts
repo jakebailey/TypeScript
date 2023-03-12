@@ -422,6 +422,20 @@ export namespace Debug {
         for (const name in enumObject) {
             const value = enumObject[name];
             if (typeof value === "number") {
+                // If we see two identical values in a row, assume the first is a deprecated
+                // value and the second is just referencing the first but is the intended name.
+                // This will make sure that we match reverse mapping in a good way, but avoid
+                // the "bad" reverse mapping if (like in SyntaxKind) we later use the value again
+                // for marking the start/end of regions, or the case where a later union of flags
+                // happens to contain a single bit.
+                if (result.length > 0) {
+                    const idx = result.length - 1;
+                    const last = result[idx];
+                    if (last[0] === value) {
+                        last[1] = name;
+                        continue;
+                    }
+                }
                 result.push([value, name]);
             }
         }
