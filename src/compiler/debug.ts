@@ -4,7 +4,6 @@ import {
     AssertionLevel,
     BigIntLiteralType,
     CheckMode,
-    compareValues,
     EmitFlags,
     every,
     FlowFlags,
@@ -76,8 +75,6 @@ import {
     SignatureCheckMode,
     SignatureFlags,
     SnippetKind,
-    SortedReadonlyArray,
-    stableSort,
     Symbol,
     SymbolFlags,
     symbolName,
@@ -379,7 +376,13 @@ export namespace Debug {
     export function formatEnum(value = 0, enumObject: any, isFlags?: boolean) {
         const members = getEnumMembers(enumObject);
         if (value === 0) {
-            return members.length > 0 && members[0][0] === 0 ? members[0][1] : "0";
+            for (const [k, v] of members) {
+                if (k === 0) {
+                    return v;
+                }
+                break;
+            }
+            return "0";
         }
         if (isFlags) {
             const result: string[] = [];
@@ -398,16 +401,15 @@ export namespace Debug {
             }
         }
         else {
-            for (const [enumValue, enumName] of members) {
-                if (enumValue === value) {
-                    return enumName;
-                }
+            const found = members.get(value);
+            if (found !== undefined) {
+                return found;
             }
         }
         return value.toString();
     }
 
-    const enumMemberCache = new Map<any, SortedReadonlyArray<[number, string]>>();
+    const enumMemberCache = new Map<any, ReadonlyMap<number, string>>();
 
     function getEnumMembers(enumObject: any) {
         // Assuming enum objects do not change at runtime, we can cache the enum members list
@@ -418,17 +420,16 @@ export namespace Debug {
             return existing;
         }
 
-        const result: [number, string][] = [];
+        const result = new Map<number, string>();
         for (const name in enumObject) {
             const value = enumObject[name];
-            if (typeof value === "number") {
-                result.push([value, name]);
+            if (typeof value === "number" && !result.has(value)) {
+                result.set(value, name);
             }
         }
 
-        const sorted = stableSort<[number, string]>(result, (x, y) => compareValues(x[0], y[0]));
-        enumMemberCache.set(enumObject, sorted);
-        return sorted;
+        enumMemberCache.set(enumObject, result);
+        return result;
     }
 
     export function formatSyntaxKind(kind: SyntaxKind | undefined): string {
