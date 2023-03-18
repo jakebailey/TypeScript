@@ -441,7 +441,7 @@ export function createWatchProgram<T extends BuilderProgram>(host: WatchCompiler
     }
     reportWatchDiagnostic(Diagnostics.Starting_compilation_in_watch_mode);
     if (configFileName && !host.configFileParsingResult) {
-        newLine = getNewLineCharacter(optionsToExtendForConfigFile, () => host.getNewLine());
+        newLine = getNewLineCharacter(optionsToExtendForConfigFile);
         Debug.assert(!rootFileNames);
         parseConfigFile();
         newLine = updateNewLine();
@@ -668,7 +668,7 @@ export function createWatchProgram<T extends BuilderProgram>(host: WatchCompiler
     }
 
     function updateNewLine() {
-        return getNewLineCharacter(compilerOptions || optionsToExtendForConfigFile, () => host.getNewLine());
+        return getNewLineCharacter(compilerOptions || optionsToExtendForConfigFile);
     }
 
     function toPath(fileName: string) {
@@ -843,19 +843,19 @@ export function createWatchProgram<T extends BuilderProgram>(host: WatchCompiler
     function updateProgram() {
         switch (reloadLevel) {
             case ConfigFileProgramReloadLevel.Partial:
-                perfLogger.logStartUpdateProgram("PartialConfigReload");
+                perfLogger?.logStartUpdateProgram("PartialConfigReload");
                 reloadFileNamesFromConfigFile();
                 break;
             case ConfigFileProgramReloadLevel.Full:
-                perfLogger.logStartUpdateProgram("FullConfigReload");
+                perfLogger?.logStartUpdateProgram("FullConfigReload");
                 reloadConfigFile();
                 break;
             default:
-                perfLogger.logStartUpdateProgram("SynchronizeProgram");
+                perfLogger?.logStartUpdateProgram("SynchronizeProgram");
                 synchronizeProgram();
                 break;
         }
-        perfLogger.logStopUpdateProgram("Done");
+        perfLogger?.logStopUpdateProgram("Done");
         return getCurrentBuilderProgram();
     }
 
