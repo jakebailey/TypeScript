@@ -10,13 +10,12 @@ describe("unittests:: fuzz", () => {
     it("createSourceFile", () => {
         fc.assert(
             fc.property(
-                fc.constantFrom(...ts.supportedTSExtensionsFlat),
+                fc.constantFrom(...ts.supportedTSExtensionsFlat, ...ts.supportedJSExtensionsFlat, ts.Extension.Json),
                 fc.string(),
                 fc.integer({ min: ts.ScriptTarget.ES3, max: ts.ScriptTarget.Latest }),
                 fc.boolean(),
-                fc.integer({ min: ts.ScriptKind.Unknown, max: ts.ScriptKind.Deferred }),
-                (ext, sourceText, scriptTarget, setParentNodes, scriptKind) => {
-                    ts.createSourceFile(`index${ext}`, sourceText, scriptTarget, setParentNodes, scriptKind);
+                (ext, sourceText, scriptTarget, setParentNodes) => {
+                    ts.createSourceFile(`index${ext}`, sourceText, scriptTarget, setParentNodes);
                 },
             ),
             { numRuns: 1_000_000 },
