@@ -4,18 +4,12 @@ const { FuzzedDataProvider } = require("@jazzer.js/core");
 /** @type {import("../../built/local/typescript.internal")} */
 const ts = /** @type {any} */ (require("../../built/local/typescript"));
 
-const extensions = [...ts.supportedTSExtensionsFlat, ...ts.supportedJSExtensionsFlat, ts.Extension.Json];
-
 /**
  * @param { Buffer } fuzzerInputData
  */
 module.exports.fuzz = function fuzz(fuzzerInputData) {
     const data = new FuzzedDataProvider(fuzzerInputData);
-
-    const ext = data.pickValue(extensions);
     const sourceText = data.consumeString(4 * 1024 * 1024, "utf-8", /*printable*/ true); // see editorServices.ts
-    const scriptTarget = data.consumeFloatInRange(ts.ScriptTarget.ES3, ts.ScriptTarget.Latest);
-    const setParentNodes = data.consumeBoolean();
 
-    ts.createSourceFile(`index${ext}`, sourceText, scriptTarget, setParentNodes);
+    ts.transpileModule(sourceText, {});
 };
