@@ -13,9 +13,18 @@ module.exports.fuzz = function fuzz(fuzzerInputData) {
     const data = new FuzzedDataProvider(fuzzerInputData);
 
     const ext = data.pickValue(extensions);
-    const sourceText = data.consumeString(4 * 1024 * 1024, "utf-8", /*printable*/ true); // see editorServices.ts
     const scriptTarget = data.consumeFloatInRange(ts.ScriptTarget.ES3, ts.ScriptTarget.Latest);
     const setParentNodes = data.consumeBoolean();
+    const sourceText = data.consumeString(4 * 1024 * 1024, "utf-8", /*printable*/ true); // see editorServices.ts
+
+    if (process.env.PRINT_CASE) {
+        console.log(JSON.stringify({
+            ext,
+            sourceText,
+            scriptTarget: ts.ScriptTarget[scriptTarget],
+            setParentNodes,
+        }, undefined, 4));
+    }
 
     ts.createSourceFile(`index${ext}`, sourceText, scriptTarget, setParentNodes);
 };
