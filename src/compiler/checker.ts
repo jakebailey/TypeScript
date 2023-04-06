@@ -40469,9 +40469,12 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 const diagnostic = createDiagnosticForNode(node.name, Diagnostics._0_is_an_unused_renaming_of_1_Did_you_intend_to_use_it_as_a_type_annotation, declarationNameToString(node.name), declarationNameToString(node.propertyName));
                 if (!wrappingDeclaration.type) {
                     // entire parameter does not have type annotation, suggest adding an annotation
+                    const sourceFile = getSourceFileOfNode(wrappingDeclaration);
+                    const start = wrappingDeclaration.end;
+                    const length = start !== sourceFile.text.length ? 1 : 0;
                     addRelatedInfo(
                         diagnostic,
-                        createFileDiagnostic(getSourceFileOfNode(wrappingDeclaration), wrappingDeclaration.end, 1, Diagnostics.We_can_only_write_a_type_for_0_by_adding_a_type_for_the_entire_parameter_here, declarationNameToString(node.propertyName))
+                        createFileDiagnostic(sourceFile, start, length, Diagnostics.We_can_only_write_a_type_for_0_by_adding_a_type_for_the_entire_parameter_here, declarationNameToString(node.propertyName))
                     );
                 }
                 diagnostics.add(diagnostic);
