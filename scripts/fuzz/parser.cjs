@@ -17,7 +17,8 @@ module.exports.fuzz = function fuzz(fuzzerInputData) {
     const setParentNodes = data.consumeBoolean();
     const sourceText = data.consumeString(4 * 1024 * 1024, "utf-8", /*printable*/ true); // see editorServices.ts
 
-    if (process.env.PRINT_CASE) {
+    const printCaseFirst = !!process.env.PRINT_CASE;
+    function printCase() {
         console.log(JSON.stringify({
             ext,
             sourceText,
@@ -26,5 +27,18 @@ module.exports.fuzz = function fuzz(fuzzerInputData) {
         }, undefined, 4));
     }
 
-    ts.createSourceFile(`index${ext}`, sourceText, scriptTarget, setParentNodes);
+    if (printCaseFirst) {
+        printCase();
+    }
+
+    let crashed = true;
+    try {
+        ts.createSourceFile(`index${ext}`, sourceText, scriptTarget, setParentNodes);
+        crashed = false;
+    }
+    finally {
+        if (crashed && !printCaseFirst) {
+            printCase();
+        }
+    }
 };
