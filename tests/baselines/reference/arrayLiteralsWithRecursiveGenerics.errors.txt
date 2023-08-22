@@ -1,0 +1,49 @@
+arrayLiteralsWithRecursiveGenerics.ts(20,11): error TS2454: Variable 'list' is used before being assigned.
+arrayLiteralsWithRecursiveGenerics.ts(20,17): error TS2454: Variable 'myList' is used before being assigned.
+arrayLiteralsWithRecursiveGenerics.ts(21,11): error TS2454: Variable 'list' is used before being assigned.
+arrayLiteralsWithRecursiveGenerics.ts(21,17): error TS2454: Variable 'list2' is used before being assigned.
+arrayLiteralsWithRecursiveGenerics.ts(22,11): error TS2454: Variable 'list' is used before being assigned.
+arrayLiteralsWithRecursiveGenerics.ts(25,11): error TS2454: Variable 'list' is used before being assigned.
+arrayLiteralsWithRecursiveGenerics.ts(25,17): error TS2454: Variable 'myDerivedList' is used before being assigned.
+
+
+==== arrayLiteralsWithRecursiveGenerics.ts (7 errors) ====
+    class List<T> {
+        data: T;
+        next: List<List<T>>;
+    }
+    
+    class DerivedList<U> extends List<U> {
+        foo: U;
+        // next: List<List<U>>
+    }
+    
+    class MyList<T> {
+        data: T;
+        next: MyList<MyList<T>>;
+    }
+    
+    var list: List<number>;
+    var list2: List<string>;
+    var myList: MyList<number>;
+    
+    var xs = [list, myList]; // {}[]
+              ~~~~
+!!! error TS2454: Variable 'list' is used before being assigned.
+                    ~~~~~~
+!!! error TS2454: Variable 'myList' is used before being assigned.
+    var ys = [list, list2]; // {}[]
+              ~~~~
+!!! error TS2454: Variable 'list' is used before being assigned.
+                    ~~~~~
+!!! error TS2454: Variable 'list2' is used before being assigned.
+    var zs = [list, null]; // List<number>[]
+              ~~~~
+!!! error TS2454: Variable 'list' is used before being assigned.
+    
+    var myDerivedList: DerivedList<number>;
+    var as = [list, myDerivedList]; // List<number>[]
+              ~~~~
+!!! error TS2454: Variable 'list' is used before being assigned.
+                    ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'myDerivedList' is used before being assigned.

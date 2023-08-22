@@ -3,61 +3,61 @@
 === a.js ===
 /** @type {number | undefined} */
 var n;
->n : number
+>n : number | undefined
 
 // should get any on parameter initialisers
 function f(a = null, b = n, l = []) {
->f : (a?: any, b?: number, l?: any[]) => void
->a : any
->b : number
->n : number
+>f : (a?: null, b?: number | undefined, l?: any[]) => void
+>a : null
+>b : number | undefined
+>n : number | undefined
 >l : any[]
->[] : undefined[]
+>[] : never[]
 
     // a should be any
     a = undefined
 >a = undefined : undefined
->a : any
+>a : null
 >undefined : undefined
 
     a = null
 >a = null : null
->a : any
+>a : null
 
     a = 1
 >a = 1 : 1
->a : any
+>a : null
 >1 : 1
 
     a = true
 >a = true : true
->a : any
+>a : null
 >true : true
 
     a = {}
 >a = {} : {}
->a : any
+>a : null
 >{} : {}
 
     a = 'ok'
 >a = 'ok' : "ok"
->a : any
+>a : null
 >'ok' : "ok"
 
     // b should be number | undefined, not any
     b = 1
 >b = 1 : 1
->b : number
+>b : number | undefined
 >1 : 1
 
     b = undefined
 >b = undefined : undefined
->b : number
+>b : number | undefined
 >undefined : undefined
 
     b = 'error'
 >b = 'error' : "error"
->b : number
+>b : number | undefined
 >'error' : "error"
 
     // l should be any[]

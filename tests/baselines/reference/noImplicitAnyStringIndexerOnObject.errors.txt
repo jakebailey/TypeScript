@@ -31,13 +31,15 @@ noImplicitAnyStringIndexerOnObject.ts(72,1): error TS7053: Element implicitly ha
   Property '[sym]' does not exist on type '{ a: number; }'.
 noImplicitAnyStringIndexerOnObject.ts(76,1): error TS7053: Element implicitly has an 'any' type because expression of type 'NumEnum' can't be used to index type '{ a: number; }'.
   Property '[NumEnum.a]' does not exist on type '{ a: number; }'.
+noImplicitAnyStringIndexerOnObject.ts(76,3): error TS2454: Variable 'numEnumKey' is used before being assigned.
 noImplicitAnyStringIndexerOnObject.ts(81,1): error TS7053: Element implicitly has an 'any' type because expression of type 'StrEnum' can't be used to index type '{ a: number; }'.
   Property '[StrEnum.b]' does not exist on type '{ a: number; }'.
+noImplicitAnyStringIndexerOnObject.ts(81,3): error TS2454: Variable 'strEnumKey' is used before being assigned.
 noImplicitAnyStringIndexerOnObject.ts(93,5): error TS2538: Type 'Dog' cannot be used as an index type.
 noImplicitAnyStringIndexerOnObject.ts(99,1): error TS7052: Element implicitly has an 'any' type because type 'MyMap<string, string>' has no index signature. Did you mean to call 'm.prop.get'?
 
 
-==== noImplicitAnyStringIndexerOnObject.ts (31 errors) ====
+==== noImplicitAnyStringIndexerOnObject.ts (33 errors) ====
     var a = {}["hello"];
             ~~~~~~~~~~~
 !!! error TS2339: Property 'hello' does not exist on type '{}'.
@@ -175,6 +177,8 @@ noImplicitAnyStringIndexerOnObject.ts(99,1): error TS7052: Element implicitly ha
     ~~~~~~~~~~~~~
 !!! error TS7053: Element implicitly has an 'any' type because expression of type 'NumEnum' can't be used to index type '{ a: number; }'.
 !!! error TS7053:   Property '[NumEnum.a]' does not exist on type '{ a: number; }'.
+      ~~~~~~~~~~
+!!! error TS2454: Variable 'numEnumKey' is used before being assigned.
     
     
     enum StrEnum { a = "a", b = "b" }
@@ -183,6 +187,8 @@ noImplicitAnyStringIndexerOnObject.ts(99,1): error TS7052: Element implicitly ha
     ~~~~~~~~~~~~~
 !!! error TS7053: Element implicitly has an 'any' type because expression of type 'StrEnum' can't be used to index type '{ a: number; }'.
 !!! error TS7053:   Property '[StrEnum.b]' does not exist on type '{ a: number; }'.
+      ~~~~~~~~~~
+!!! error TS2454: Variable 'strEnumKey' is used before being assigned.
     
     
     interface MyMap<K, T> {

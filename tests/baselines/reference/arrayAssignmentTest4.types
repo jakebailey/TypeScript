@@ -34,12 +34,12 @@ var o1 = {one : 1};
 
 var arr_any: any[] = [];
 >arr_any : any[]
->[] : undefined[]
+>[] : never[]
 
 arr_any = function () { return null;} // should be an error - is
->arr_any = function () { return null;} : () => any
+>arr_any = function () { return null;} : () => null
 >arr_any : any[]
->function () { return null;} : () => any
+>function () { return null;} : () => null
 
 arr_any = c3; // should be an error - is
 >arr_any = c3 : C3

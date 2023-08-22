@@ -1,10 +1,18 @@
+literalsInComputedProperties1.ts(20,1): error TS2454: Variable 'y' is used before being assigned.
+literalsInComputedProperties1.ts(21,1): error TS2454: Variable 'y' is used before being assigned.
+literalsInComputedProperties1.ts(22,1): error TS2454: Variable 'y' is used before being assigned.
+literalsInComputedProperties1.ts(23,1): error TS2454: Variable 'y' is used before being assigned.
+literalsInComputedProperties1.ts(33,1): error TS2454: Variable 'z' is used before being assigned.
+literalsInComputedProperties1.ts(34,1): error TS2454: Variable 'z' is used before being assigned.
+literalsInComputedProperties1.ts(35,1): error TS2454: Variable 'z' is used before being assigned.
+literalsInComputedProperties1.ts(36,1): error TS2454: Variable 'z' is used before being assigned.
 literalsInComputedProperties1.ts(39,5): error TS2452: An enum member cannot have a numeric name.
 literalsInComputedProperties1.ts(40,5): error TS2452: An enum member cannot have a numeric name.
 literalsInComputedProperties1.ts(41,5): error TS2452: An enum member cannot have a numeric name.
 literalsInComputedProperties1.ts(42,5): error TS2452: An enum member cannot have a numeric name.
 
 
-==== literalsInComputedProperties1.ts (4 errors) ====
+==== literalsInComputedProperties1.ts (12 errors) ====
     let x = {
         1:1,
         [2]:1,
@@ -25,9 +33,17 @@ literalsInComputedProperties1.ts(42,5): error TS2452: An enum member cannot have
     
     let y:A;
     y[1].toExponential();
+    ~
+!!! error TS2454: Variable 'y' is used before being assigned.
     y[2].toExponential();
+    ~
+!!! error TS2454: Variable 'y' is used before being assigned.
     y[3].toExponential();
+    ~
+!!! error TS2454: Variable 'y' is used before being assigned.
     y[4].toExponential();
+    ~
+!!! error TS2454: Variable 'y' is used before being assigned.
     
     class C {
         1:number;
@@ -38,9 +54,17 @@ literalsInComputedProperties1.ts(42,5): error TS2452: An enum member cannot have
     
     let z:C;
     z[1].toExponential();
+    ~
+!!! error TS2454: Variable 'z' is used before being assigned.
     z[2].toExponential();
+    ~
+!!! error TS2454: Variable 'z' is used before being assigned.
     z[3].toExponential();
+    ~
+!!! error TS2454: Variable 'z' is used before being assigned.
     z[4].toExponential();
+    ~
+!!! error TS2454: Variable 'z' is used before being assigned.
     
     enum X {
         1 = 1,

@@ -1,15 +1,18 @@
 interfaceInheritance.ts(22,7): error TS2420: Class 'C1' incorrectly implements interface 'I2'.
   Type 'C1' is missing the following properties from type 'I2': i1P1, i1P2
+interfaceInheritance.ts(29,6): error TS2454: Variable 'i2' is used before being assigned.
 interfaceInheritance.ts(30,1): error TS2739: Type 'I3' is missing the following properties from type 'I2': i1P1, i1P2
+interfaceInheritance.ts(30,6): error TS2454: Variable 'i3' is used before being assigned.
 interfaceInheritance.ts(37,1): error TS2322: Type 'I5' is not assignable to type 'I4'.
   Types of property 'one' are incompatible.
     Type 'string' is not assignable to type 'number'.
+interfaceInheritance.ts(37,6): error TS2454: Variable 'i5' is used before being assigned.
 interfaceInheritance.ts(38,1): error TS2322: Type 'I4' is not assignable to type 'I5'.
   Types of property 'one' are incompatible.
     Type 'number' is not assignable to type 'string'.
 
 
-==== interfaceInheritance.ts (4 errors) ====
+==== interfaceInheritance.ts (7 errors) ====
     interface I1 {
         i1P1: number;
         i1P2(): void;
@@ -42,9 +45,13 @@ interfaceInheritance.ts(38,1): error TS2322: Type 'I4' is not assignable to type
     var i1: I1;
     var i3: I3;
     i1 = i2;
+         ~~
+!!! error TS2454: Variable 'i2' is used before being assigned.
     i2 = i3; // should be an error - i3 does not implement the members of i1
     ~~
 !!! error TS2739: Type 'I3' is missing the following properties from type 'I2': i1P1, i1P2
+         ~~
+!!! error TS2454: Variable 'i3' is used before being assigned.
     
     var c1: C1;
     
@@ -56,6 +63,8 @@ interfaceInheritance.ts(38,1): error TS2322: Type 'I4' is not assignable to type
 !!! error TS2322: Type 'I5' is not assignable to type 'I4'.
 !!! error TS2322:   Types of property 'one' are incompatible.
 !!! error TS2322:     Type 'string' is not assignable to type 'number'.
+         ~~
+!!! error TS2454: Variable 'i5' is used before being assigned.
     i5 = i4; // should be an error
     ~~
 !!! error TS2322: Type 'I4' is not assignable to type 'I5'.

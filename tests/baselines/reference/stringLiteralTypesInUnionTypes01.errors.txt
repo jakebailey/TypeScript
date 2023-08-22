@@ -1,0 +1,28 @@
+stringLiteralTypesInUnionTypes01.ts(3,5): error TS2322: Type 'undefined' is not assignable to type '"foo" | "bar" | "baz"'.
+stringLiteralTypesInUnionTypes01.ts(4,5): error TS2322: Type 'undefined' is not assignable to type 'T'.
+
+
+==== stringLiteralTypesInUnionTypes01.ts (2 errors) ====
+    type T = "foo" | "bar" | "baz";
+    
+    var x: "foo" | "bar" | "baz" = undefined;
+        ~
+!!! error TS2322: Type 'undefined' is not assignable to type '"foo" | "bar" | "baz"'.
+    var y: T = undefined;
+        ~
+!!! error TS2322: Type 'undefined' is not assignable to type 'T'.
+    
+    if (x === "foo") {
+        let a = x;
+    }
+    else if (x !== "bar") {
+        let b = x || y;
+    }
+    else {
+        let c = x;
+        let d = y;
+        let e: (typeof x) | (typeof y) = c || d;
+    }
+    
+    x = y;
+    y = x;

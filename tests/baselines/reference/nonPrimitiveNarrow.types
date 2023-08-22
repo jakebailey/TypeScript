@@ -41,25 +41,25 @@ if (typeof a === 'number') {
 }
 
 var b: object | null
->b : object
+>b : object | null
 
 if (typeof b === 'object') {
 >typeof b === 'object' : boolean
 >typeof b : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
->b : object
+>b : object | null
 >'object' : "object"
 
    b.toString(); // ok, object | null
 >b.toString() : string
 >b.toString : () => string
->b : object
+>b : object | null
 >toString : () => string
 
 } else {
    b.toString(); // error, never
->b.toString() : any
->b.toString : any
->b : never
->toString : any
+>b.toString() : string
+>b.toString : () => string
+>b : object | null
+>toString : () => string
 }
 

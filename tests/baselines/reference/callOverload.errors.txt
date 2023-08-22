@@ -1,10 +1,12 @@
 callOverload.ts(7,7): error TS2554: Expected 1 arguments, but got 4.
 callOverload.ts(8,15): error TS2554: Expected 2 arguments, but got 4.
+callOverload.ts(9,18): error TS2454: Variable 'n' is used before being assigned.
 callOverload.ts(10,1): error TS2555: Expected at least 1 arguments, but got 0.
 callOverload.ts(11,10): error TS2556: A spread argument must either have a tuple type or be passed to a rest parameter.
+callOverload.ts(11,13): error TS2454: Variable 'n' is used before being assigned.
 
 
-==== callOverload.ts (4 errors) ====
+==== callOverload.ts (6 errors) ====
     declare function fn(x: any): void;
     declare function takeTwo(x: any, y: any): void;
     declare function withRest(a: any, ...args: Array<any>): void;
@@ -18,6 +20,8 @@ callOverload.ts(11,10): error TS2556: A spread argument must either have a tuple
                   ~~~~
 !!! error TS2554: Expected 2 arguments, but got 4.
     withRest('a', ...n); // no error
+                     ~
+!!! error TS2454: Variable 'n' is used before being assigned.
     withRest();
     ~~~~~~~~~~
 !!! error TS2555: Expected at least 1 arguments, but got 0.
@@ -25,3 +29,5 @@ callOverload.ts(11,10): error TS2556: A spread argument must either have a tuple
     withRest(...n); 
              ~~~~
 !!! error TS2556: A spread argument must either have a tuple type or be passed to a rest parameter.
+                ~
+!!! error TS2454: Variable 'n' is used before being assigned.

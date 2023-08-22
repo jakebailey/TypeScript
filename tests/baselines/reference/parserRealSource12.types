@@ -217,7 +217,7 @@ module TypeScript {
 
         private childrenWalkers: IAstWalkChildren[] = [];
 >childrenWalkers : IAstWalkChildren[]
->[] : undefined[]
+>[] : never[]
 
         constructor () {
             this.initChildrenWalkers();
@@ -231,20 +231,20 @@ module TypeScript {
 >walk : (ast: AST, pre: IAstWalkCallback, post?: IAstWalkCallback, options?: AstWalkOptions, state?: any) => AST
 >ast : AST
 >pre : IAstWalkCallback
->post : IAstWalkCallback
->options : AstWalkOptions
+>post : IAstWalkCallback | undefined
+>options : AstWalkOptions | undefined
 >state : any
 
             return this.getWalker(pre, post, options, state).walk(ast, null)
 >this.getWalker(pre, post, options, state).walk(ast, null) : AST
 >this.getWalker(pre, post, options, state).walk : (ast: AST, parent: AST) => AST
 >this.getWalker(pre, post, options, state) : IAstWalker
->this.getWalker : (pre: IAstWalkCallback, post?: IAstWalkCallback, options?: AstWalkOptions, state?: any) => IAstWalker
+>this.getWalker : (pre: IAstWalkCallback, post?: IAstWalkCallback | undefined, options?: AstWalkOptions | undefined, state?: any) => IAstWalker
 >this : this
->getWalker : (pre: IAstWalkCallback, post?: IAstWalkCallback, options?: AstWalkOptions, state?: any) => IAstWalker
+>getWalker : (pre: IAstWalkCallback, post?: IAstWalkCallback | undefined, options?: AstWalkOptions | undefined, state?: any) => IAstWalker
 >pre : IAstWalkCallback
->post : IAstWalkCallback
->options : AstWalkOptions
+>post : IAstWalkCallback | undefined
+>options : AstWalkOptions | undefined
 >state : any
 >walk : (ast: AST, parent: AST) => AST
 >ast : AST
@@ -253,35 +253,35 @@ module TypeScript {
         public getWalker(pre: IAstWalkCallback, post?: IAstWalkCallback, options?: AstWalkOptions, state?: any): IAstWalker {
 >getWalker : (pre: IAstWalkCallback, post?: IAstWalkCallback, options?: AstWalkOptions, state?: any) => IAstWalker
 >pre : IAstWalkCallback
->post : IAstWalkCallback
->options : AstWalkOptions
+>post : IAstWalkCallback | undefined
+>options : AstWalkOptions | undefined
 >state : any
 
             return this.getSlowWalker(pre, post, options, state);
 >this.getSlowWalker(pre, post, options, state) : IAstWalker
->this.getSlowWalker : (pre: IAstWalkCallback, post?: IAstWalkCallback, options?: AstWalkOptions, state?: any) => IAstWalker
+>this.getSlowWalker : (pre: IAstWalkCallback, post?: IAstWalkCallback | undefined, options?: AstWalkOptions | undefined, state?: any) => IAstWalker
 >this : this
->getSlowWalker : (pre: IAstWalkCallback, post?: IAstWalkCallback, options?: AstWalkOptions, state?: any) => IAstWalker
+>getSlowWalker : (pre: IAstWalkCallback, post?: IAstWalkCallback | undefined, options?: AstWalkOptions | undefined, state?: any) => IAstWalker
 >pre : IAstWalkCallback
->post : IAstWalkCallback
->options : AstWalkOptions
+>post : IAstWalkCallback | undefined
+>options : AstWalkOptions | undefined
 >state : any
         }
 
         private getSlowWalker(pre: IAstWalkCallback, post?: IAstWalkCallback, options?: AstWalkOptions, state?: any): IAstWalker {
 >getSlowWalker : (pre: IAstWalkCallback, post?: IAstWalkCallback, options?: AstWalkOptions, state?: any) => IAstWalker
 >pre : IAstWalkCallback
->post : IAstWalkCallback
->options : AstWalkOptions
+>post : IAstWalkCallback | undefined
+>options : AstWalkOptions | undefined
 >state : any
 
             if (!options) {
 >!options : boolean
->options : AstWalkOptions
+>options : AstWalkOptions | undefined
 
                 options = new AstWalkOptions();
 >options = new AstWalkOptions() : AstWalkOptions
->options : AstWalkOptions
+>options : AstWalkOptions | undefined
 >new AstWalkOptions() : AstWalkOptions
 >AstWalkOptions : typeof AstWalkOptions
             }
@@ -293,7 +293,7 @@ module TypeScript {
 >this : this
 >childrenWalkers : IAstWalkChildren[]
 >pre : IAstWalkCallback
->post : IAstWalkCallback
+>post : IAstWalkCallback | undefined
 >options : AstWalkOptions
 >state : any
         }
@@ -1728,7 +1728,7 @@ module TypeScript {
 >getAstWalkerFactory : () => AstWalkerFactory
 
         if (!globalAstWalkerFactory) {
->!globalAstWalkerFactory : boolean
+>!globalAstWalkerFactory : false
 >globalAstWalkerFactory : AstWalkerFactory
 
             globalAstWalkerFactory = new AstWalkerFactory();
@@ -1930,7 +1930,7 @@ module TypeScript {
 >preAst : BinaryExpression
                 }
                 if ((preAst.operand1) && (walker.options.goNextSibling)) {
->(preAst.operand1) && (walker.options.goNextSibling) : boolean
+>(preAst.operand1) && (walker.options.goNextSibling) : any
 >(preAst.operand1) : any
 >preAst.operand1 : any
 >preAst : BinaryExpression
@@ -1977,7 +1977,7 @@ module TypeScript {
 >preAst : BinaryExpression
                 }
                 if ((preAst.operand2) && (walker.options.goNextSibling)) {
->(preAst.operand2) && (walker.options.goNextSibling) : boolean
+>(preAst.operand2) && (walker.options.goNextSibling) : any
 >(preAst.operand2) : any
 >preAst.operand2 : any
 >preAst : BinaryExpression
@@ -2062,7 +2062,7 @@ module TypeScript {
 >preAst : CallExpression
             }
             if (preAst.arguments && (walker.options.goNextSibling)) {
->preAst.arguments && (walker.options.goNextSibling) : boolean
+>preAst.arguments && (walker.options.goNextSibling) : any
 >preAst.arguments : any
 >preAst : CallExpression
 >arguments : any
@@ -2145,7 +2145,7 @@ module TypeScript {
 >preAst : ConditionalExpression
             }
             if (preAst.operand2 && (walker.options.goNextSibling)) {
->preAst.operand2 && (walker.options.goNextSibling) : boolean
+>preAst.operand2 && (walker.options.goNextSibling) : any
 >preAst.operand2 : any
 >preAst : ConditionalExpression
 >operand2 : any
@@ -2171,7 +2171,7 @@ module TypeScript {
 >preAst : ConditionalExpression
             }
             if (preAst.operand3 && (walker.options.goNextSibling)) {
->preAst.operand3 && (walker.options.goNextSibling) : boolean
+>preAst.operand3 && (walker.options.goNextSibling) : any
 >preAst.operand3 : any
 >preAst : ConditionalExpression
 >operand3 : any
@@ -2225,8 +2225,8 @@ module TypeScript {
 >preAst : FuncDecl
             }
             if (preAst.arguments && (preAst.arguments.members.length > 0) && (walker.options.goNextSibling)) {
->preAst.arguments && (preAst.arguments.members.length > 0) && (walker.options.goNextSibling) : boolean
->preAst.arguments && (preAst.arguments.members.length > 0) : boolean
+>preAst.arguments && (preAst.arguments.members.length > 0) && (walker.options.goNextSibling) : any
+>preAst.arguments && (preAst.arguments.members.length > 0) : any
 >preAst.arguments : any
 >preAst : FuncDecl
 >arguments : any
@@ -2263,7 +2263,7 @@ module TypeScript {
 >preAst : FuncDecl
             }
             if (preAst.returnTypeAnnotation && (walker.options.goNextSibling)) {
->preAst.returnTypeAnnotation && (walker.options.goNextSibling) : boolean
+>preAst.returnTypeAnnotation && (walker.options.goNextSibling) : any
 >preAst.returnTypeAnnotation : any
 >preAst : FuncDecl
 >returnTypeAnnotation : any
@@ -2289,8 +2289,8 @@ module TypeScript {
 >preAst : FuncDecl
             }
             if (preAst.bod && (preAst.bod.members.length > 0) && (walker.options.goNextSibling)) {
->preAst.bod && (preAst.bod.members.length > 0) && (walker.options.goNextSibling) : boolean
->preAst.bod && (preAst.bod.members.length > 0) : boolean
+>preAst.bod && (preAst.bod.members.length > 0) && (walker.options.goNextSibling) : any
+>preAst.bod && (preAst.bod.members.length > 0) : any
 >preAst.bod : any
 >preAst : FuncDecl
 >bod : any
@@ -2374,7 +2374,7 @@ module TypeScript {
 >preAst : BoundDecl
             }
             if ((preAst.typeExpr) && (walker.options.goNextSibling)) {
->(preAst.typeExpr) && (walker.options.goNextSibling) : boolean
+>(preAst.typeExpr) && (walker.options.goNextSibling) : any
 >(preAst.typeExpr) : any
 >preAst.typeExpr : any
 >preAst : BoundDecl
@@ -2456,7 +2456,7 @@ module TypeScript {
             }
 
             if (preAst.cond && walker.options.goNextSibling) {
->preAst.cond && walker.options.goNextSibling : boolean
+>preAst.cond && walker.options.goNextSibling : any
 >preAst.cond : any
 >preAst : ForStatement
 >cond : any
@@ -2482,7 +2482,7 @@ module TypeScript {
             }
 
             if (preAst.incr && walker.options.goNextSibling) {
->preAst.incr && walker.options.goNextSibling : boolean
+>preAst.incr && walker.options.goNextSibling : any
 >preAst.incr : any
 >preAst : ForStatement
 >incr : any
@@ -2508,7 +2508,7 @@ module TypeScript {
             }
 
             if (preAst.body && walker.options.goNextSibling) {
->preAst.body && walker.options.goNextSibling : boolean
+>preAst.body && walker.options.goNextSibling : any
 >preAst.body : any
 >preAst : ForStatement
 >body : any
@@ -2576,7 +2576,7 @@ module TypeScript {
 >preAst : ForInStatement
             }
             if (preAst.body && (walker.options.goNextSibling)) {
->preAst.body && (walker.options.goNextSibling) : boolean
+>preAst.body && (walker.options.goNextSibling) : any
 >preAst.body : any
 >preAst : ForInStatement
 >body : any
@@ -2624,7 +2624,7 @@ module TypeScript {
 >preAst : IfStatement
 
             if (preAst.thenBod && (walker.options.goNextSibling)) {
->preAst.thenBod && (walker.options.goNextSibling) : boolean
+>preAst.thenBod && (walker.options.goNextSibling) : any
 >preAst.thenBod : any
 >preAst : IfStatement
 >thenBod : any
@@ -2650,7 +2650,7 @@ module TypeScript {
 >preAst : IfStatement
             }
             if (preAst.elseBod && (walker.options.goNextSibling)) {
->preAst.elseBod && (walker.options.goNextSibling) : boolean
+>preAst.elseBod && (walker.options.goNextSibling) : any
 >preAst.elseBod : any
 >preAst : IfStatement
 >elseBod : any
@@ -2698,7 +2698,7 @@ module TypeScript {
 >preAst : WhileStatement
 
             if (preAst.body && (walker.options.goNextSibling)) {
->preAst.body && (walker.options.goNextSibling) : boolean
+>preAst.body && (walker.options.goNextSibling) : any
 >preAst.body : any
 >preAst : WhileStatement
 >body : any
@@ -2746,7 +2746,7 @@ module TypeScript {
 >preAst : DoWhileStatement
 
             if (preAst.body && (walker.options.goNextSibling)) {
->preAst.body && (walker.options.goNextSibling) : boolean
+>preAst.body && (walker.options.goNextSibling) : any
 >preAst.body : any
 >preAst : DoWhileStatement
 >body : any
@@ -2828,7 +2828,7 @@ module TypeScript {
             }
 
             if (preAst.body && walker.options.goNextSibling) {
->preAst.body && walker.options.goNextSibling : boolean
+>preAst.body && walker.options.goNextSibling : any
 >preAst.body : any
 >preAst : CaseStatement
 >body : any
@@ -2882,7 +2882,7 @@ module TypeScript {
             }
 
             if ((preAst.caseList) && walker.options.goNextSibling) {
->(preAst.caseList) && walker.options.goNextSibling : boolean
+>(preAst.caseList) && walker.options.goNextSibling : any
 >(preAst.caseList) : any
 >preAst.caseList : any
 >preAst : SwitchStatement
@@ -2965,7 +2965,7 @@ module TypeScript {
             }
 
             if ((preAst.catchNode) && walker.options.goNextSibling) {
->(preAst.catchNode) && walker.options.goNextSibling : boolean
+>(preAst.catchNode) && walker.options.goNextSibling : any
 >(preAst.catchNode) : any
 >preAst.catchNode : any
 >preAst : TryCatch
@@ -3020,7 +3020,7 @@ module TypeScript {
             }
 
             if (preAst.finallyNode && walker.options.goNextSibling) {
->preAst.finallyNode && walker.options.goNextSibling : boolean
+>preAst.finallyNode && walker.options.goNextSibling : any
 >preAst.finallyNode : any
 >preAst : TryFinally
 >finallyNode : any
@@ -3102,7 +3102,7 @@ module TypeScript {
             }
 
             if ((preAst.body) && walker.options.goNextSibling) {
->(preAst.body) && walker.options.goNextSibling : boolean
+>(preAst.body) && walker.options.goNextSibling : any
 >(preAst.body) : any
 >preAst.body : any
 >preAst : Catch
@@ -3446,7 +3446,7 @@ module TypeScript {
             }
 
             if (preAst.body && walker.options.goNextSibling) {
->preAst.body && walker.options.goNextSibling : boolean
+>preAst.body && walker.options.goNextSibling : any
 >preAst.body : any
 >preAst : WithStatement
 >body : any

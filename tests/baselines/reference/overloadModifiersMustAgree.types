@@ -21,14 +21,14 @@ export function bar(s: string);
 
 function bar(s?: string) { }
 >bar : { (): any; (s: string): any; }
->s : string
+>s : string | undefined
 
 interface I {
     foo? ();
->foo : { (): any; (s: string): any; }
+>foo : { (): any; (s: string): any; } | undefined
 
     foo(s: string);
->foo : { (): any; (s: string): any; }
+>foo : { (): any; (s: string): any; } | undefined
 >s : string
 }
 

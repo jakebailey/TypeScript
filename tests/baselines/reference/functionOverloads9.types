@@ -7,7 +7,7 @@ function foo(foo:string);
 
 function foo(foo?:string){ return '' };
 >foo : (foo: string) => any
->foo : string
+>foo : string | undefined
 >'' : ""
 
 var x = foo('foo');

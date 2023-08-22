@@ -2,13 +2,13 @@
 
 === null.ts ===
 var x=null; 
->x : any
+>x : null
 
 var y=3+x;  
 >y : any
 >3+x : any
 >3 : 3
->x : any
+>x : null
 
 var z=3+null; 
 >z : any
@@ -19,7 +19,7 @@ class C {
 >C : C
 }
 function f() {
->f : () => C
+>f : () => C | null
 
     return null;
     return new C();
@@ -27,7 +27,7 @@ function f() {
 >C : typeof C
 }
 function g() {
->g : () => number
+>g : () => 3 | null
 
     return null;
     return 3;

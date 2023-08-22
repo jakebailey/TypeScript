@@ -1,3 +1,8 @@
+assignmentCompatWithCallSignatures2.ts(9,5): error TS2454: Variable 'a' is used before being assigned.
+assignmentCompatWithCallSignatures2.ts(17,5): error TS2454: Variable 's' is used before being assigned.
+assignmentCompatWithCallSignatures2.ts(18,5): error TS2454: Variable 'a2' is used before being assigned.
+assignmentCompatWithCallSignatures2.ts(19,5): error TS2454: Variable 's' is used before being assigned.
+assignmentCompatWithCallSignatures2.ts(20,5): error TS2454: Variable 'a2' is used before being assigned.
 assignmentCompatWithCallSignatures2.ts(31,1): error TS2322: Type '() => number' is not assignable to type 'T'.
 assignmentCompatWithCallSignatures2.ts(32,1): error TS2322: Type '(x: number) => string' is not assignable to type 'T'.
 assignmentCompatWithCallSignatures2.ts(33,1): error TS2322: Type '() => number' is not assignable to type '{ f(x: number): void; }'.
@@ -7,11 +12,13 @@ assignmentCompatWithCallSignatures2.ts(42,1): error TS2322: Type 'S2' is not ass
     Type '(x: string) => void' is not assignable to type '(x: number) => void'.
       Types of parameters 'x' and 'x' are incompatible.
         Type 'number' is not assignable to type 'string'.
+assignmentCompatWithCallSignatures2.ts(42,5): error TS2454: Variable 's2' is used before being assigned.
 assignmentCompatWithCallSignatures2.ts(43,1): error TS2322: Type '{ f(x: string): void; }' is not assignable to type 'T'.
   Types of property 'f' are incompatible.
     Type '(x: string) => void' is not assignable to type '(x: number) => void'.
       Types of parameters 'x' and 'x' are incompatible.
         Type 'number' is not assignable to type 'string'.
+assignmentCompatWithCallSignatures2.ts(43,5): error TS2454: Variable 'a3' is used before being assigned.
 assignmentCompatWithCallSignatures2.ts(44,1): error TS2322: Type '(x: string) => number' is not assignable to type 'T'.
 assignmentCompatWithCallSignatures2.ts(45,1): error TS2322: Type '(x: string) => string' is not assignable to type 'T'.
 assignmentCompatWithCallSignatures2.ts(46,1): error TS2322: Type 'S2' is not assignable to type '{ f(x: number): void; }'.
@@ -19,16 +26,18 @@ assignmentCompatWithCallSignatures2.ts(46,1): error TS2322: Type 'S2' is not ass
     Type '(x: string) => void' is not assignable to type '(x: number) => void'.
       Types of parameters 'x' and 'x' are incompatible.
         Type 'number' is not assignable to type 'string'.
+assignmentCompatWithCallSignatures2.ts(46,5): error TS2454: Variable 's2' is used before being assigned.
 assignmentCompatWithCallSignatures2.ts(47,1): error TS2322: Type '{ f(x: string): void; }' is not assignable to type '{ f(x: number): void; }'.
   Types of property 'f' are incompatible.
     Type '(x: string) => void' is not assignable to type '(x: number) => void'.
       Types of parameters 'x' and 'x' are incompatible.
         Type 'number' is not assignable to type 'string'.
+assignmentCompatWithCallSignatures2.ts(47,5): error TS2454: Variable 'a3' is used before being assigned.
 assignmentCompatWithCallSignatures2.ts(48,1): error TS2322: Type '(x: string) => number' is not assignable to type '{ f(x: number): void; }'.
 assignmentCompatWithCallSignatures2.ts(49,1): error TS2322: Type '(x: string) => string' is not assignable to type '{ f(x: number): void; }'.
 
 
-==== assignmentCompatWithCallSignatures2.ts (12 errors) ====
+==== assignmentCompatWithCallSignatures2.ts (21 errors) ====
     // void returning call signatures can be assigned a non-void returning call signature that otherwise matches
     
     interface T {
@@ -38,6 +47,8 @@ assignmentCompatWithCallSignatures2.ts(49,1): error TS2322: Type '(x: string) =>
     var a: { f(x: number): void };
     
     t = a;
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     a = t;
     
     interface S {
@@ -46,9 +57,17 @@ assignmentCompatWithCallSignatures2.ts(49,1): error TS2322: Type '(x: string) =>
     var s: S;
     var a2: { f(x: number): string };
     t = s;
+        ~
+!!! error TS2454: Variable 's' is used before being assigned.
     t = a2;
+        ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     a = s;
+        ~
+!!! error TS2454: Variable 's' is used before being assigned.
     a = a2;
+        ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     
     t = { f: () => 1 };
     t = { f: <T>(x:T) => 1 };
@@ -85,6 +104,8 @@ assignmentCompatWithCallSignatures2.ts(49,1): error TS2322: Type '(x: string) =>
 !!! error TS2322:     Type '(x: string) => void' is not assignable to type '(x: number) => void'.
 !!! error TS2322:       Types of parameters 'x' and 'x' are incompatible.
 !!! error TS2322:         Type 'number' is not assignable to type 'string'.
+        ~~
+!!! error TS2454: Variable 's2' is used before being assigned.
     t = a3;
     ~
 !!! error TS2322: Type '{ f(x: string): void; }' is not assignable to type 'T'.
@@ -92,6 +113,8 @@ assignmentCompatWithCallSignatures2.ts(49,1): error TS2322: Type '(x: string) =>
 !!! error TS2322:     Type '(x: string) => void' is not assignable to type '(x: number) => void'.
 !!! error TS2322:       Types of parameters 'x' and 'x' are incompatible.
 !!! error TS2322:         Type 'number' is not assignable to type 'string'.
+        ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     t = (x: string) => 1;
     ~
 !!! error TS2322: Type '(x: string) => number' is not assignable to type 'T'.
@@ -105,6 +128,8 @@ assignmentCompatWithCallSignatures2.ts(49,1): error TS2322: Type '(x: string) =>
 !!! error TS2322:     Type '(x: string) => void' is not assignable to type '(x: number) => void'.
 !!! error TS2322:       Types of parameters 'x' and 'x' are incompatible.
 !!! error TS2322:         Type 'number' is not assignable to type 'string'.
+        ~~
+!!! error TS2454: Variable 's2' is used before being assigned.
     a = a3;
     ~
 !!! error TS2322: Type '{ f(x: string): void; }' is not assignable to type '{ f(x: number): void; }'.
@@ -112,6 +137,8 @@ assignmentCompatWithCallSignatures2.ts(49,1): error TS2322: Type '(x: string) =>
 !!! error TS2322:     Type '(x: string) => void' is not assignable to type '(x: number) => void'.
 !!! error TS2322:       Types of parameters 'x' and 'x' are incompatible.
 !!! error TS2322:         Type 'number' is not assignable to type 'string'.
+        ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     a = (x: string) => 1;
     ~
 !!! error TS2322: Type '(x: string) => number' is not assignable to type '{ f(x: number): void; }'.

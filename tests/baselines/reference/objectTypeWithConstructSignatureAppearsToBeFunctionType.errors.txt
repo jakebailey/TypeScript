@@ -1,8 +1,14 @@
+objectTypeWithConstructSignatureAppearsToBeFunctionType.ts(8,18): error TS2454: Variable 'i' is used before being assigned.
 objectTypeWithConstructSignatureAppearsToBeFunctionType.ts(8,18): error TS2348: Value of type 'I' is not callable. Did you mean to include 'new'?
+objectTypeWithConstructSignatureAppearsToBeFunctionType.ts(9,23): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithConstructSignatureAppearsToBeFunctionType.ts(10,37): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithConstructSignatureAppearsToBeFunctionType.ts(16,18): error TS2454: Variable 'b' is used before being assigned.
 objectTypeWithConstructSignatureAppearsToBeFunctionType.ts(16,18): error TS2348: Value of type 'new () => number' is not callable. Did you mean to include 'new'?
+objectTypeWithConstructSignatureAppearsToBeFunctionType.ts(17,23): error TS2454: Variable 'b' is used before being assigned.
+objectTypeWithConstructSignatureAppearsToBeFunctionType.ts(18,37): error TS2454: Variable 'b' is used before being assigned.
 
 
-==== objectTypeWithConstructSignatureAppearsToBeFunctionType.ts (2 errors) ====
+==== objectTypeWithConstructSignatureAppearsToBeFunctionType.ts (8 errors) ====
     // no errors expected below 
     
     interface I {
@@ -11,17 +17,29 @@ objectTypeWithConstructSignatureAppearsToBeFunctionType.ts(16,18): error TS2348:
     
     var i: I;
     var r2: number = i();
+                     ~
+!!! error TS2454: Variable 'i' is used before being assigned.
                      ~~~
 !!! error TS2348: Value of type 'I' is not callable. Did you mean to include 'new'?
     var r2b: number = new i();
+                          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r2c: (x: any, y?: any) => any = i.apply;
+                                        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     
     var b: {
         new(): number;
     }
     
     var r4: number = b();
+                     ~
+!!! error TS2454: Variable 'b' is used before being assigned.
                      ~~~
 !!! error TS2348: Value of type 'new () => number' is not callable. Did you mean to include 'new'?
     var r4b: number = new b();
+                          ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     var r4c: (x: any, y?: any) => any = b.apply;
+                                        ~
+!!! error TS2454: Variable 'b' is used before being assigned.

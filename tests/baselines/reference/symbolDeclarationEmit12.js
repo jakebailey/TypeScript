@@ -37,7 +37,7 @@ declare namespace M {
         [Symbol.iterator]: I;
         [Symbol.toPrimitive](x: I): void;
         [Symbol.isConcatSpreadable](): I;
-        get [Symbol.toPrimitive](): any;
+        get [Symbol.toPrimitive](): undefined;
         set [Symbol.toPrimitive](x: I);
     }
     export {};

@@ -1,14 +1,21 @@
+classPropertyAsProtected.ts(15,1): error TS2454: Variable 'c' is used before being assigned.
 classPropertyAsProtected.ts(15,3): error TS2445: Property 'x' is protected and only accessible within class 'C' and its subclasses.
+classPropertyAsProtected.ts(16,1): error TS2454: Variable 'c' is used before being assigned.
 classPropertyAsProtected.ts(16,3): error TS2445: Property 'y' is protected and only accessible within class 'C' and its subclasses.
+classPropertyAsProtected.ts(17,1): error TS2454: Variable 'c' is used before being assigned.
+classPropertyAsProtected.ts(17,1): error TS2322: Type '1' is not assignable to type 'null'.
 classPropertyAsProtected.ts(17,3): error TS2445: Property 'y' is protected and only accessible within class 'C' and its subclasses.
+classPropertyAsProtected.ts(18,1): error TS2454: Variable 'c' is used before being assigned.
 classPropertyAsProtected.ts(18,3): error TS2445: Property 'foo' is protected and only accessible within class 'C' and its subclasses.
 classPropertyAsProtected.ts(20,3): error TS2445: Property 'a' is protected and only accessible within class 'C' and its subclasses.
+classPropertyAsProtected.ts(21,1): error TS2721: Cannot invoke an object which is possibly 'null'.
 classPropertyAsProtected.ts(21,3): error TS2445: Property 'b' is protected and only accessible within class 'C' and its subclasses.
+classPropertyAsProtected.ts(22,1): error TS2322: Type '1' is not assignable to type 'null'.
 classPropertyAsProtected.ts(22,3): error TS2445: Property 'b' is protected and only accessible within class 'C' and its subclasses.
 classPropertyAsProtected.ts(23,3): error TS2445: Property 'foo' is protected and only accessible within class 'C' and its subclasses.
 
 
-==== classPropertyAsProtected.ts (8 errors) ====
+==== classPropertyAsProtected.ts (15 errors) ====
     class C {
         protected x: string;
         protected get y() { return null; }
@@ -24,15 +31,25 @@ classPropertyAsProtected.ts(23,3): error TS2445: Property 'foo' is protected and
     var c: C;
     // all errors
     c.x;
+    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
       ~
 !!! error TS2445: Property 'x' is protected and only accessible within class 'C' and its subclasses.
     c.y;
+    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
       ~
 !!! error TS2445: Property 'y' is protected and only accessible within class 'C' and its subclasses.
     c.y = 1;
+    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    ~~~
+!!! error TS2322: Type '1' is not assignable to type 'null'.
       ~
 !!! error TS2445: Property 'y' is protected and only accessible within class 'C' and its subclasses.
     c.foo();
+    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
       ~~~
 !!! error TS2445: Property 'foo' is protected and only accessible within class 'C' and its subclasses.
     
@@ -40,9 +57,13 @@ classPropertyAsProtected.ts(23,3): error TS2445: Property 'foo' is protected and
       ~
 !!! error TS2445: Property 'a' is protected and only accessible within class 'C' and its subclasses.
     C.b();
+    ~~~
+!!! error TS2721: Cannot invoke an object which is possibly 'null'.
       ~
 !!! error TS2445: Property 'b' is protected and only accessible within class 'C' and its subclasses.
     C.b = 1;
+    ~~~
+!!! error TS2322: Type '1' is not assignable to type 'null'.
       ~
 !!! error TS2445: Property 'b' is protected and only accessible within class 'C' and its subclasses.
     C.foo();

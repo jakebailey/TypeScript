@@ -1,8 +1,9 @@
+classAbstractClinterfaceAssignability.ts(20,6): error TS2454: Variable 'I' is used before being assigned.
 classAbstractClinterfaceAssignability.ts(23,1): error TS2322: Type 'typeof A' is not assignable to type 'IConstructor'.
   Cannot assign an abstract constructor type to a non-abstract constructor type.
 
 
-==== classAbstractClinterfaceAssignability.ts (1 errors) ====
+==== classAbstractClinterfaceAssignability.ts (2 errors) ====
     interface I {
         x: number;
     }
@@ -23,6 +24,8 @@ classAbstractClinterfaceAssignability.ts(23,1): error TS2322: Type 'typeof A' is
     
     var AA: typeof A;
     AA = I;
+         ~
+!!! error TS2454: Variable 'I' is used before being assigned.
     
     var AAA: typeof I;
     AAA = A;

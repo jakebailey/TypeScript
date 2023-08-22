@@ -13,7 +13,7 @@ class C2 {
 >C2 : C2
 
     async * f() {
->f : () => AsyncGenerator<any, void, unknown>
+>f : () => AsyncGenerator<undefined, void, unknown>
 
         const x = yield;
 >x : any

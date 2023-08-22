@@ -130,105 +130,105 @@ for (stuff.x in []) {}
 >stuff.x : any
 >stuff : typeof stuff
 >x : any
->[] : undefined[]
+>[] : never[]
 
 for (stuff.x of []) {}
 >stuff.x : any
 >stuff : typeof stuff
 >x : any
->[] : undefined[]
+>[] : never[]
 
 for (stuff['x'] in []) {}
 >stuff['x'] : any
 >stuff : typeof stuff
 >'x' : "x"
->[] : undefined[]
+>[] : never[]
 
 for (stuff['x'] of []) {}
 >stuff['x'] : any
 >stuff : typeof stuff
 >'x' : "x"
->[] : undefined[]
+>[] : never[]
 
 for (stuff.blah in []) {}
 >stuff.blah : any
 >stuff : typeof stuff
 >blah : any
->[] : undefined[]
+>[] : never[]
 
 for (stuff.blah of []) {}
 >stuff.blah : any
 >stuff : typeof stuff
 >blah : any
->[] : undefined[]
+>[] : never[]
 
 for (stuff[n] in []) {}
 >stuff[n] : any
 >stuff : typeof stuff
 >n : string
->[] : undefined[]
+>[] : never[]
 
 for (stuff[n] of []) {}
 >stuff[n] : any
 >stuff : typeof stuff
 >n : string
->[] : undefined[]
+>[] : never[]
 
 for ((stuff.x) in []) {}
 >(stuff.x) : any
 >stuff.x : any
 >stuff : typeof stuff
 >x : any
->[] : undefined[]
+>[] : never[]
 
 for ((stuff.x) of []) {}
 >(stuff.x) : any
 >stuff.x : any
 >stuff : typeof stuff
 >x : any
->[] : undefined[]
+>[] : never[]
 
 for ((stuff['x']) in []) {}
 >(stuff['x']) : any
 >stuff['x'] : any
 >stuff : typeof stuff
 >'x' : "x"
->[] : undefined[]
+>[] : never[]
 
 for ((stuff['x']) of []) {}
 >(stuff['x']) : any
 >stuff['x'] : any
 >stuff : typeof stuff
 >'x' : "x"
->[] : undefined[]
+>[] : never[]
 
 for ((stuff.blah) in []) {}
 >(stuff.blah) : any
 >stuff.blah : any
 >stuff : typeof stuff
 >blah : any
->[] : undefined[]
+>[] : never[]
 
 for ((stuff.blah) of []) {}
 >(stuff.blah) : any
 >stuff.blah : any
 >stuff : typeof stuff
 >blah : any
->[] : undefined[]
+>[] : never[]
 
 for ((stuff[n]) in []) {}
 >(stuff[n]) : any
 >stuff[n] : any
 >stuff : typeof stuff
 >n : string
->[] : undefined[]
+>[] : never[]
 
 for ((stuff[n]) of []) {}
 >(stuff[n]) : any
 >stuff[n] : any
 >stuff : typeof stuff
 >n : string
->[] : undefined[]
+>[] : never[]
 
 
 

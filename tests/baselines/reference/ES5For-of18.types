@@ -2,17 +2,17 @@
 
 === ES5For-of18.ts ===
 for (let v of []) {
->v : any
->[] : undefined[]
+>v : never
+>[] : never[]
 
     v;
->v : any
+>v : never
 }
 for (let v of []) {
->v : any
->[] : undefined[]
+>v : never
+>[] : never[]
 
     v;
->v : any
+>v : never
 }
 

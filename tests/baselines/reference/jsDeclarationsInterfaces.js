@@ -142,14 +142,13 @@ export interface C<T_1, U_1> {
     (x: T_1): U_1;
     <Q_3>(x: Q_3): T_1 & Q_3;
     field: T_1 & U_1;
-    optionalField?: T_1;
+    optionalField?: T_1 | undefined;
     readonly readonlyField: T_1 & U_1;
-    readonly readonlyOptionalField?: U_1;
+    readonly readonlyOptionalField?: U_1 | undefined;
     method<Q_1 = number>(): number;
     method<Q_2>(a: T_1 & Q_2): Q_2 & number;
     method(a?: number): number;
     method(...args: any[]): number;
-    optMethod?(): number;
 }
 export interface I {
 }

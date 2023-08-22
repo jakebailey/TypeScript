@@ -22,7 +22,7 @@ class Test2 {
 >Test2 : Test2
 
     get Property() {
->Property : any
+>Property : null
 
         var x = 1;
 >x : number

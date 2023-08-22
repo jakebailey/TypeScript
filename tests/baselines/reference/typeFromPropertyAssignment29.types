@@ -7,9 +7,9 @@ function ExpandoDecl(n: number) {
 
     return n.toString();
 >n.toString() : string
->n.toString : (radix?: number) => string
+>n.toString : (radix?: number | undefined) => string
 >n : number
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
 }
 ExpandoDecl.prop = 2
 >ExpandoDecl.prop = 2 : 2
@@ -56,9 +56,9 @@ const ExpandoExpr = function (n: number) {
 
     return n.toString();
 >n.toString() : string
->n.toString : (radix?: number) => string
+>n.toString : (radix?: number | undefined) => string
 >n : number
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
 }
 ExpandoExpr.prop = { x: 2 }
 >ExpandoExpr.prop = { x: 2 } : { x: number; }
@@ -119,9 +119,9 @@ const ExpandoArrow = (n: number) => n.toString();
 >(n: number) => n.toString() : { (n: number): string; prop: number; m(n: number): number; }
 >n : number
 >n.toString() : string
->n.toString : (radix?: number) => string
+>n.toString : (radix?: number | undefined) => string
 >n : number
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
 
 ExpandoArrow.prop = 2
 >ExpandoArrow.prop = 2 : 2
@@ -257,9 +257,9 @@ var ExpandoExpr2 = function (n: number) {
 
     return n.toString();
 >n.toString() : string
->n.toString : (radix?: number) => string
+>n.toString : (radix?: number | undefined) => string
 >n : number
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
 }
 ExpandoExpr2.prop = 2
 >ExpandoExpr2.prop = 2 : 2

@@ -1,0 +1,117 @@
+commentsInterface.ts(30,14): error TS2454: Variable 'i2_i' is used before being assigned.
+commentsInterface.ts(31,16): error TS2454: Variable 'i2_i' is used before being assigned.
+commentsInterface.ts(32,18): error TS2454: Variable 'i2_i' is used before being assigned.
+commentsInterface.ts(33,18): error TS2454: Variable 'i2_i' is used before being assigned.
+commentsInterface.ts(34,18): error TS2454: Variable 'i2_i' is used before being assigned.
+commentsInterface.ts(35,18): error TS2454: Variable 'i2_i' is used before being assigned.
+commentsInterface.ts(35,23): error TS2454: Variable 'i1_i' is used before being assigned.
+commentsInterface.ts(36,17): error TS2454: Variable 'i2_i' is used before being assigned.
+commentsInterface.ts(37,19): error TS2454: Variable 'i2_i' is used before being assigned.
+commentsInterface.ts(38,21): error TS2454: Variable 'i2_i' is used before being assigned.
+commentsInterface.ts(39,14): error TS2454: Variable 'i2_i' is used before being assigned.
+commentsInterface.ts(40,18): error TS2454: Variable 'i2_i' is used before being assigned.
+commentsInterface.ts(41,20): error TS2454: Variable 'i2_i' is used before being assigned.
+commentsInterface.ts(42,21): error TS2454: Variable 'i2_i' is used before being assigned.
+commentsInterface.ts(43,23): error TS2454: Variable 'i2_i' is used before being assigned.
+
+
+==== commentsInterface.ts (15 errors) ====
+    /** this is interface 1*/
+    interface i1 {
+    }
+    var i1_i: i1;
+    interface nc_i1 {
+    }
+    var nc_i1_i: nc_i1;
+    /** this is interface 2 with memebers*/
+    interface i2 {
+        /** this is x*/
+        x: number;
+        /** this is foo*/
+        foo: (/**param help*/b: number) => string;
+        /** this is indexer*/
+        [/**string param*/i: string]: any;
+        /**new method*/
+        new (/** param*/i: i1);
+        nc_x: number;
+        nc_foo: (b: number) => string;
+        [i: number]: number;
+        /** this is call signature*/
+        (/**paramhelp a*/a: number,/**paramhelp b*/ b: number) : number;
+        /** this is fnfoo*/
+        fnfoo(/**param help*/b: number): string;
+        nc_fnfoo(b: number): string;
+        // nc_y
+        nc_y: number;
+    }
+    var i2_i: i2;
+    var i2_i_x = i2_i.x;
+                 ~~~~
+!!! error TS2454: Variable 'i2_i' is used before being assigned.
+    var i2_i_foo = i2_i.foo;
+                   ~~~~
+!!! error TS2454: Variable 'i2_i' is used before being assigned.
+    var i2_i_foo_r = i2_i.foo(30);
+                     ~~~~
+!!! error TS2454: Variable 'i2_i' is used before being assigned.
+    var i2_i_i2_si = i2_i["hello"];
+                     ~~~~
+!!! error TS2454: Variable 'i2_i' is used before being assigned.
+    var i2_i_i2_ii = i2_i[30];
+                     ~~~~
+!!! error TS2454: Variable 'i2_i' is used before being assigned.
+    var i2_i_n = new i2_i(i1_i);
+                     ~~~~
+!!! error TS2454: Variable 'i2_i' is used before being assigned.
+                          ~~~~
+!!! error TS2454: Variable 'i1_i' is used before being assigned.
+    var i2_i_nc_x = i2_i.nc_x;
+                    ~~~~
+!!! error TS2454: Variable 'i2_i' is used before being assigned.
+    var i2_i_nc_foo = i2_i.nc_foo;
+                      ~~~~
+!!! error TS2454: Variable 'i2_i' is used before being assigned.
+    var i2_i_nc_foo_r = i2_i.nc_foo(30);
+                        ~~~~
+!!! error TS2454: Variable 'i2_i' is used before being assigned.
+    var i2_i_r = i2_i(10, 20);
+                 ~~~~
+!!! error TS2454: Variable 'i2_i' is used before being assigned.
+    var i2_i_fnfoo = i2_i.fnfoo;
+                     ~~~~
+!!! error TS2454: Variable 'i2_i' is used before being assigned.
+    var i2_i_fnfoo_r = i2_i.fnfoo(10);
+                       ~~~~
+!!! error TS2454: Variable 'i2_i' is used before being assigned.
+    var i2_i_nc_fnfoo = i2_i.nc_fnfoo;
+                        ~~~~
+!!! error TS2454: Variable 'i2_i' is used before being assigned.
+    var i2_i_nc_fnfoo_r = i2_i.nc_fnfoo(10);
+                          ~~~~
+!!! error TS2454: Variable 'i2_i' is used before being assigned.
+    interface i3 {
+        /** Comment i3 x*/
+        x: number;
+        /** Function i3 f*/
+        f(/**number parameter*/a: number): string;
+        /** i3 l*/
+        l: (/**comment i3 l b*/b: number) => string;
+        nc_x: number;
+        nc_f(a: number): string;
+        nc_l: (b: number) => string;
+    }
+    var i3_i: i3;
+    i3_i = {
+        f: /**own f*/ (/**i3_i a*/a: number) => "Hello" + a,
+        l: this.f,
+        /** own x*/
+        x: this.f(10),
+        nc_x: this.l(this.x),
+        nc_f: this.f,
+        nc_l: this.l
+    };
+    i3_i.f(10);
+    i3_i.l(10);
+    i3_i.nc_f(10);
+    i3_i.nc_l(10);
+    

@@ -1,0 +1,16 @@
+typeParameterFixingWithContextSensitiveArguments4.ts(7,11): error TS2454: Variable 'a' is used before being assigned.
+typeParameterFixingWithContextSensitiveArguments4.ts(7,14): error TS2454: Variable 'b' is used before being assigned.
+
+
+==== typeParameterFixingWithContextSensitiveArguments4.ts (2 errors) ====
+    function f<T, U>(y: T, y1: U, p: (z: U) => T, p1: (x: T) => U): [T, U] { return [y, p1(y)]; }
+    interface A { a: A; }
+    interface B extends A { b; }
+    
+    var a: A, b: B;
+    
+    var d = f(a, b, x => x, x => <any>x); // Type [A, B]
+              ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+                 ~
+!!! error TS2454: Variable 'b' is used before being assigned.

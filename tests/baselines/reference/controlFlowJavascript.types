@@ -29,8 +29,8 @@ function f1() {
 >"hello" : "hello"
     }
     const y = x;  // string | number | undefined
->y : string | number
->x : string | number
+>y : string | number | undefined
+>x : string | number | undefined
 }
 
 // CFA for 'let' and 'undefined' initializer
@@ -58,8 +58,8 @@ function f2() {
 >"hello" : "hello"
     }
     const y = x;  // string | number | undefined
->y : string | number
->x : string | number
+>y : string | number | undefined
+>x : string | number | undefined
 }
 
 // CFA for 'let' and 'null' initializer
@@ -86,8 +86,8 @@ function f3() {
 >"hello" : "hello"
     }
     const y = x;  // string | number | null
->y : string | number
->x : string | number
+>y : string | number | null
+>x : string | number | null
 }
 
 // CFA for 'var' with no initializer
@@ -114,8 +114,8 @@ function f5() {
 >"hello" : "hello"
     }
     const y = x;  // string | number | undefined
->y : string | number
->x : string | number
+>y : string | number | undefined
+>x : string | number | undefined
 }
 
 // CFA for 'var' with 'undefined' initializer
@@ -143,8 +143,8 @@ function f6() {
 >"hello" : "hello"
     }
     const y = x;  // string | number | undefined
->y : string | number
->x : string | number
+>y : string | number | undefined
+>x : string | number | undefined
 }
 
 // CFA for 'var' with 'null' initializer
@@ -171,8 +171,8 @@ function f7() {
 >"hello" : "hello"
     }
     const y = x;  // string | number | null
->y : string | number
->x : string | number
+>y : string | number | null
+>x : string | number | null
 }
 
 // No CFA for captured outer variables
@@ -199,8 +199,8 @@ function f9() {
 >"hello" : "hello"
     }
     const y = x;  // string | number | undefined
->y : string | number
->x : string | number
+>y : string | number | undefined
+>x : string | number | undefined
 
     function f() {
 >f : () => void
@@ -235,8 +235,8 @@ function f10() {
 >"hello" : "hello"
     }
     const y = x;  // string | number | undefined
->y : string | number
->x : string | number
+>y : string | number | undefined
+>x : string | number | undefined
 
     const f = () => {
 >f : () => void

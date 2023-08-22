@@ -27,8 +27,8 @@ else if (x !== "bar") {
 >"bar" : "bar"
 
     let b = x || y;
->b : T
->x || y : T
+>b : "baz"
+>x || y : "baz"
 >x : "baz"
 >y : T
 }
@@ -45,7 +45,7 @@ else {
 >e : T
 >x : "bar"
 >y : T
->c || d : T
+>c || d : "bar"
 >c : "bar"
 >d : T
 }

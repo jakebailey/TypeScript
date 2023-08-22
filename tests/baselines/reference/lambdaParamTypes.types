@@ -4,7 +4,7 @@
 interface MyArrayWrapper<T> {
     constructor(initialItems?: T[]);
 >constructor : (initialItems?: T[]) => any
->initialItems : T[]
+>initialItems : T[] | undefined
 
     doSomething(predicate: (x: T, y: T) => string): void;
 >doSomething : (predicate: (x: T, y: T) => string) => void
@@ -15,12 +15,12 @@ interface MyArrayWrapper<T> {
 
 declare function create<T>(initialValues?: T[]): MyArrayWrapper<T>;
 >create : <T>(initialValues?: T[]) => MyArrayWrapper<T>
->initialValues : T[]
+>initialValues : T[] | undefined
 
 var thing = create([{ name: "bob", id: 24 }, { name: "doug", id: 32 }]);
 >thing : MyArrayWrapper<{ name: string; id: number; }>
 >create([{ name: "bob", id: 24 }, { name: "doug", id: 32 }]) : MyArrayWrapper<{ name: string; id: number; }>
->create : <T>(initialValues?: T[]) => MyArrayWrapper<T>
+>create : <T>(initialValues?: T[] | undefined) => MyArrayWrapper<T>
 >[{ name: "bob", id: 24 }, { name: "doug", id: 32 }] : { name: string; id: number; }[]
 >{ name: "bob", id: 24 } : { name: string; id: number; }
 >name : string
@@ -59,11 +59,11 @@ thing.doSomething((x, y) => x.id.toExponential(0)); // x.id should be string, so
 >x : { name: string; id: number; }
 >y : { name: string; id: number; }
 >x.id.toExponential(0) : string
->x.id.toExponential : (fractionDigits?: number) => string
+>x.id.toExponential : (fractionDigits?: number | undefined) => string
 >x.id : number
 >x : { name: string; id: number; }
 >id : number
->toExponential : (fractionDigits?: number) => string
+>toExponential : (fractionDigits?: number | undefined) => string
 >0 : 0
 
 thing.doSomething((x, y) => y.name.charAt(0));      // x.name should be string, so should be OK
@@ -91,11 +91,11 @@ thing.doSomething((x, y) => y.id.toExponential(0)); // x.id should be string, so
 >x : { name: string; id: number; }
 >y : { name: string; id: number; }
 >y.id.toExponential(0) : string
->y.id.toExponential : (fractionDigits?: number) => string
+>y.id.toExponential : (fractionDigits?: number | undefined) => string
 >y.id : number
 >y : { name: string; id: number; }
 >id : number
->toExponential : (fractionDigits?: number) => string
+>toExponential : (fractionDigits?: number | undefined) => string
 >0 : 0
 
 // Below should all be in error

@@ -25,10 +25,10 @@ class Test {
 >0 : 0
 
     p5?: number;
->p5 : number
+>p5 : number | undefined
 
     p6?: string;
->p6 : string
+>p6 : string | undefined
 
     p7 = {
 >p7 : { hello: string; }
@@ -38,9 +38,9 @@ class Test {
 >hello : string
 >(this.p6 = "string") : "string"
 >this.p6 = "string" : "string"
->this.p6 : string
+>this.p6 : string | undefined
 >this : this
->p6 : string
+>p6 : string | undefined
 >"string" : "string"
 
     };
@@ -119,10 +119,10 @@ class Test {
 >withinClassDeclarationExtension : any
 
     fromOptional = this.p5;
->fromOptional : number
->this.p5 : number
+>fromOptional : number | undefined
+>this.p5 : number | undefined
 >this : this
->p5 : number
+>p5 : number | undefined
 
     // These error cases are ignored (not checked by control flow analysis)
 

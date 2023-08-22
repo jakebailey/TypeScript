@@ -7,11 +7,11 @@
  * @param {string} [s]
  */
 var x = function foo(n, s) {}
->x : (n?: number | undefined, s?: string) => void
->function foo(n, s) {} : (n?: number | undefined, s?: string) => void
->foo : (n?: number | undefined, s?: string) => void
->n : number
->s : string
+>x : (n?: number | undefined, s?: string | undefined) => void
+>function foo(n, s) {} : (n?: number | undefined, s?: string | undefined) => void
+>foo : (n?: number | undefined, s?: string | undefined) => void
+>n : number | undefined
+>s : string | undefined
 
 var y;
 >y : any

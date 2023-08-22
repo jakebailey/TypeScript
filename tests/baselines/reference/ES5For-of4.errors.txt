@@ -1,0 +1,9 @@
+ES5For-of4.ts(3,9): error TS2454: Variable 'v' is used before being assigned.
+
+
+==== ES5For-of4.ts (1 errors) ====
+    for (var v of [])
+        var x = v;
+    var y = v;
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.

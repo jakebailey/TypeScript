@@ -2,27 +2,27 @@
 
 === fatarrowfunctionsOptionalArgsErrors4.ts ===
     false ? (arg?: number = 0) => 47 : null;
->false ? (arg?: number = 0) => 47 : null : (arg?: number) => number
+>false ? (arg?: number = 0) => 47 : null : ((arg?: number) => number) | null
 >false : false
 >(arg?: number = 0) => 47 : (arg?: number) => number
->arg : number
+>arg : number | undefined
 >0 : 0
 >47 : 47
 
     false ? ((arg?: number = 0) => 57) : null;
->false ? ((arg?: number = 0) => 57) : null : (arg?: number) => number
+>false ? ((arg?: number = 0) => 57) : null : ((arg?: number) => number) | null
 >false : false
 >((arg?: number = 0) => 57) : (arg?: number) => number
 >(arg?: number = 0) => 57 : (arg?: number) => number
->arg : number
+>arg : number | undefined
 >0 : 0
 >57 : 57
 
     false ? null : (arg?: number = 0) => 67;
->false ? null : (arg?: number = 0) => 67 : (arg?: number) => number
+>false ? null : (arg?: number = 0) => 67 : ((arg?: number) => number) | null
 >false : false
 >(arg?: number = 0) => 67 : (arg?: number) => number
->arg : number
+>arg : number | undefined
 >0 : 0
 >67 : 67
 
@@ -31,13 +31,13 @@
 >((arg?:number = 1) => 0) + '' : string
 >((arg?:number = 1) => 0) : (arg?: number) => number
 >(arg?:number = 1) => 0 : (arg?: number) => number
->arg : number
+>arg : number | undefined
 >1 : 1
 >0 : 0
 >'' : ""
 >((arg?:number = 2) => 106) : (arg?: number) => number
 >(arg?:number = 2) => 106 : (arg?: number) => number
->arg : number
+>arg : number | undefined
 >2 : 2
 >106 : 106
 
@@ -94,7 +94,7 @@
 
         (a?: number = 0) => 118, 
 >(a?: number = 0) => 118 : (a?: number) => number
->a : number
+>a : number | undefined
 >0 : 0
 >118 : 118
 
@@ -104,9 +104,9 @@
 >119 : 119
 
         (a, b? = 0, ...c: number[]) => 120,
->(a, b? = 0, ...c: number[]) => 120 : (a: any, b?: number, ...c: number[]) => number
+>(a, b? = 0, ...c: number[]) => 120 : (a: any, b?: number | undefined, ...c: number[]) => number
 >a : any
->b : number
+>b : number | undefined
 >0 : 0
 >c : number[]
 >120 : 120

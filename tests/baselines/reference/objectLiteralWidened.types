@@ -4,7 +4,7 @@
 // object literal properties are widened to any
 
 var x1 = {
->x1 : { foo: any; bar: any; }
+>x1 : { foo: null; bar: undefined; }
 >{    foo: null,    bar: undefined} : { foo: null; bar: undefined; }
 
     foo: null,
@@ -16,7 +16,7 @@ var x1 = {
 }
 
 var y1 = {
->y1 : { foo: any; bar: { baz: any; boo: any; }; }
+>y1 : { foo: null; bar: { baz: null; boo: undefined; }; }
 >{    foo: null,    bar: {        baz: null,        boo: undefined    }} : { foo: null; bar: { baz: null; boo: undefined; }; }
 
     foo: null,

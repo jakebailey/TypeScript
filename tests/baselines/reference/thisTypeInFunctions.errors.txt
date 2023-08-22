@@ -1,9 +1,12 @@
+thisTypeInFunctions.ts(105,15): error TS2454: Variable 'explicitCFunction' is used before being assigned.
+thisTypeInFunctions.ts(107,22): error TS2454: Variable 'explicitPropertyFunction' is used before being assigned.
 thisTypeInFunctions.ts(118,29): error TS2339: Property 'n' does not exist on type 'typeof globalThis'.
 thisTypeInFunctions.ts(119,32): error TS2339: Property 'n' does not exist on type 'typeof globalThis'.
 thisTypeInFunctions.ts(120,36): error TS2339: Property 'n' does not exist on type 'typeof globalThis'.
+thisTypeInFunctions.ts(123,18): error TS2454: Variable 'explicitCFunction' is used before being assigned.
 
 
-==== thisTypeInFunctions.ts (3 errors) ====
+==== thisTypeInFunctions.ts (6 errors) ====
     // body checking
     class B {
         n: number;
@@ -109,8 +112,12 @@ thisTypeInFunctions.ts(120,36): error TS2339: Property 'n' does not exist on typ
     let explicitCFunction: (this: C, m: number) => number;
     let explicitPropertyFunction: (this: {n: number}, m: number) => number;
     c.explicitC = explicitCFunction;
+                  ~~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'explicitCFunction' is used before being assigned.
     c.explicitC = function(this: C, m: number) { return this.n + m };
     c.explicitProperty = explicitPropertyFunction;
+                         ~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'explicitPropertyFunction' is used before being assigned.
     c.explicitProperty = function(this: {n: number}, m: number) { return this.n + m };
     c.explicitProperty = reconstructed.explicitProperty;
     
@@ -133,6 +140,8 @@ thisTypeInFunctions.ts(120,36): error TS2339: Property 'n' does not exist on typ
     
     //NOTE: this=C here, I guess?
     c.explicitThis = explicitCFunction;
+                     ~~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'explicitCFunction' is used before being assigned.
     c.explicitThis = function(this: C, m: number) { return this.n + m };
     
     // this:any compatibility

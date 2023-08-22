@@ -1,10 +1,17 @@
+file.tsx(11,2): error TS2454: Variable 'Obj1' is used before being assigned.
+file.tsx(17,2): error TS2454: Variable 'Obj2' is used before being assigned.
 file.tsx(23,1): error TS2607: JSX element class does not support attributes because it does not have a 'pr' property.
+file.tsx(23,2): error TS2454: Variable 'Obj3' is used before being assigned.
 file.tsx(25,1): error TS2607: JSX element class does not support attributes because it does not have a 'pr' property.
+file.tsx(25,2): error TS2454: Variable 'Obj3' is used before being assigned.
 file.tsx(26,1): error TS2607: JSX element class does not support attributes because it does not have a 'pr' property.
+file.tsx(26,2): error TS2454: Variable 'Obj3' is used before being assigned.
+file.tsx(32,2): error TS2454: Variable 'Obj4' is used before being assigned.
+file.tsx(33,2): error TS2454: Variable 'Obj4' is used before being assigned.
 file.tsx(33,7): error TS2322: Type 'string' is not assignable to type 'number'.
 
 
-==== file.tsx (4 errors) ====
+==== file.tsx (11 errors) ====
     declare module JSX {
     	interface Element { }
     	interface ElementAttributesProperty { pr: any; }
@@ -16,12 +23,16 @@ file.tsx(33,7): error TS2322: Type 'string' is not assignable to type 'number'.
     }
     var Obj1: Obj1type;
     <Obj1 x={10} />; // OK
+     ~~~~
+!!! error TS2454: Variable 'Obj1' is used before being assigned.
     
     interface Obj2type {
     	new(n: string): { q?: number; pr: any };
     }
     var Obj2: Obj2type;
     <Obj2 x={10} />; // OK
+     ~~~~
+!!! error TS2454: Variable 'Obj2' is used before being assigned.
     
     interface Obj3type {
     	new(n: string): { x: number; };
@@ -30,20 +41,30 @@ file.tsx(33,7): error TS2322: Type 'string' is not assignable to type 'number'.
     <Obj3 x={10} />; // Error
     ~~~~~~~~~~~~~~~
 !!! error TS2607: JSX element class does not support attributes because it does not have a 'pr' property.
+     ~~~~
+!!! error TS2454: Variable 'Obj3' is used before being assigned.
     var attributes: any;
     <Obj3 {...attributes} />; // Error
     ~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2607: JSX element class does not support attributes because it does not have a 'pr' property.
+     ~~~~
+!!! error TS2454: Variable 'Obj3' is used before being assigned.
     <Obj3 {...{}} />; // OK
     ~~~~~~~~~~~~~~~~
 !!! error TS2607: JSX element class does not support attributes because it does not have a 'pr' property.
+     ~~~~
+!!! error TS2454: Variable 'Obj3' is used before being assigned.
     
     interface Obj4type {
     	new(n: string): { x: number; pr: { x: number; } };
     }
     var Obj4: Obj4type;
     <Obj4 x={10} />; // OK
+     ~~~~
+!!! error TS2454: Variable 'Obj4' is used before being assigned.
     <Obj4 x={'10'} />; // Error
+     ~~~~
+!!! error TS2454: Variable 'Obj4' is used before being assigned.
           ~
 !!! error TS2322: Type 'string' is not assignable to type 'number'.
 !!! related TS6500 file.tsx:29:37: The expected type comes from property 'x' which is declared here on type '{ x: number; }'

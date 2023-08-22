@@ -1,6 +1,8 @@
+assignmentCompatWithCallSignatures4.ts(44,14): error TS2454: Variable 'b2' is used before being assigned.
 assignmentCompatWithCallSignatures4.ts(45,9): error TS2322: Type '(x: number) => string[]' is not assignable to type '<T, U>(x: T) => U[]'.
   Types of parameters 'x' and 'x' are incompatible.
     Type 'T' is not assignable to type 'number'.
+assignmentCompatWithCallSignatures4.ts(48,14): error TS2454: Variable 'b7' is used before being assigned.
 assignmentCompatWithCallSignatures4.ts(49,9): error TS2322: Type '(x: (arg: Base) => Derived) => (r: Base) => Derived2' is not assignable to type '<T extends Base, U extends Derived, V extends Derived2>(x: (arg: T) => U) => (r: T) => V'.
   Types of parameters 'x' and 'x' are incompatible.
     Types of parameters 'arg' and 'arg' are incompatible.
@@ -12,17 +14,21 @@ assignmentCompatWithCallSignatures4.ts(52,9): error TS2322: Type '<T extends Bas
       Type '{ foo: number; }' is not assignable to type 'Base'.
         Types of property 'foo' are incompatible.
           Type 'number' is not assignable to type 'string'.
+assignmentCompatWithCallSignatures4.ts(52,14): error TS2454: Variable 'b8' is used before being assigned.
 assignmentCompatWithCallSignatures4.ts(53,9): error TS2322: Type '(x: (arg: Base) => Derived, y: (arg2: Base) => Derived) => (r: Base) => Derived' is not assignable to type '<T extends Base, U extends Derived>(x: (arg: T) => U, y: (arg2: { foo: number; }) => U) => (r: T) => U'.
   Types of parameters 'x' and 'x' are incompatible.
     Types of parameters 'arg' and 'arg' are incompatible.
       Type 'Base' is not assignable to type 'T'.
         'Base' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Base'.
+assignmentCompatWithCallSignatures4.ts(57,15): error TS2454: Variable 'b10' is used before being assigned.
 assignmentCompatWithCallSignatures4.ts(58,9): error TS2322: Type '(...x: Base[]) => Base' is not assignable to type '<T extends Derived>(...x: T[]) => T'.
   Type 'Base' is not assignable to type 'T'.
     'T' could be instantiated with an arbitrary type which could be unrelated to 'Base'.
+assignmentCompatWithCallSignatures4.ts(61,15): error TS2454: Variable 'b11' is used before being assigned.
 assignmentCompatWithCallSignatures4.ts(62,9): error TS2322: Type '(x: { foo: string; }, y: { foo: string; bar: string; }) => Base' is not assignable to type '<T extends Derived>(x: T, y: T) => T'.
   Type 'Base' is not assignable to type 'T'.
     'T' could be instantiated with an arbitrary type which could be unrelated to 'Base'.
+assignmentCompatWithCallSignatures4.ts(65,15): error TS2454: Variable 'b12' is used before being assigned.
 assignmentCompatWithCallSignatures4.ts(66,9): error TS2322: Type '(x: Base[], y: Derived2[]) => Derived[]' is not assignable to type '<T extends Derived2[]>(x: Base[], y: Base[]) => T'.
   Type 'Derived[]' is not assignable to type 'T'.
     'T' could be instantiated with an arbitrary type which could be unrelated to 'Derived[]'.
@@ -31,6 +37,7 @@ assignmentCompatWithCallSignatures4.ts(69,9): error TS2322: Type '<T>(x: { a: T;
     Type '{ a: string; b: number; }' is not assignable to type '{ a: string; b: string; }'.
       Types of property 'b' are incompatible.
         Type 'number' is not assignable to type 'string'.
+assignmentCompatWithCallSignatures4.ts(69,15): error TS2454: Variable 'b15' is used before being assigned.
 assignmentCompatWithCallSignatures4.ts(70,9): error TS2322: Type '(x: { a: string; b: number; }) => number' is not assignable to type '<T>(x: { a: T; b: T; }) => T'.
   Types of parameters 'x' and 'x' are incompatible.
     Type '{ a: T; b: T; }' is not assignable to type '{ a: string; b: number; }'.
@@ -41,29 +48,34 @@ assignmentCompatWithCallSignatures4.ts(73,9): error TS2322: Type '<T extends Bas
     Type '{ a: string; b: number; }' is not assignable to type '{ a: Base; b: Base; }'.
       Types of property 'a' are incompatible.
         Type 'string' is not assignable to type 'Base'.
+assignmentCompatWithCallSignatures4.ts(73,15): error TS2454: Variable 'b15a' is used before being assigned.
 assignmentCompatWithCallSignatures4.ts(74,9): error TS2322: Type '(x: { a: string; b: number; }) => number' is not assignable to type '<T extends Base>(x: { a: T; b: T; }) => number'.
   Types of parameters 'x' and 'x' are incompatible.
     Type '{ a: T; b: T; }' is not assignable to type '{ a: string; b: number; }'.
       Types of property 'a' are incompatible.
         Type 'T' is not assignable to type 'string'.
           Type 'Base' is not assignable to type 'string'.
+assignmentCompatWithCallSignatures4.ts(77,15): error TS2454: Variable 'b16' is used before being assigned.
+assignmentCompatWithCallSignatures4.ts(81,15): error TS2454: Variable 'b17' is used before being assigned.
 assignmentCompatWithCallSignatures4.ts(89,9): error TS2322: Type '<T>(x: T) => string[]' is not assignable to type '<T>(x: T) => T[]'.
   Type 'string[]' is not assignable to type 'T[]'.
     Type 'string' is not assignable to type 'T'.
       'T' could be instantiated with an arbitrary type which could be unrelated to 'string'.
+assignmentCompatWithCallSignatures4.ts(89,14): error TS2454: Variable 'b2' is used before being assigned.
 assignmentCompatWithCallSignatures4.ts(90,9): error TS2322: Type '<T>(x: T) => T[]' is not assignable to type '<T>(x: T) => string[]'.
   Type 'T[]' is not assignable to type 'string[]'.
     Type 'T' is not assignable to type 'string'.
 assignmentCompatWithCallSignatures4.ts(95,9): error TS2322: Type '<T>(x: T) => T[]' is not assignable to type '<T>(x: T) => string[]'.
   Type 'T[]' is not assignable to type 'string[]'.
     Type 'T' is not assignable to type 'string'.
+assignmentCompatWithCallSignatures4.ts(95,14): error TS2454: Variable 'b3' is used before being assigned.
 assignmentCompatWithCallSignatures4.ts(96,9): error TS2322: Type '<T>(x: T) => string[]' is not assignable to type '<T>(x: T) => T[]'.
   Type 'string[]' is not assignable to type 'T[]'.
     Type 'string' is not assignable to type 'T'.
       'T' could be instantiated with an arbitrary type which could be unrelated to 'string'.
 
 
-==== assignmentCompatWithCallSignatures4.ts (15 errors) ====
+==== assignmentCompatWithCallSignatures4.ts (27 errors) ====
     // These are mostly permitted with the current loose rules. All ok unless otherwise noted.
     
     module Errors {
@@ -108,6 +120,8 @@ assignmentCompatWithCallSignatures4.ts(96,9): error TS2322: Type '<T>(x: T) => s
     
             var b2: <T, U>(x: T) => U[]; 
             a2 = b2;
+                 ~~
+!!! error TS2454: Variable 'b2' is used before being assigned.
             b2 = a2;
             ~~
 !!! error TS2322: Type '(x: number) => string[]' is not assignable to type '<T, U>(x: T) => U[]'.
@@ -117,6 +131,8 @@ assignmentCompatWithCallSignatures4.ts(96,9): error TS2322: Type '<T>(x: T) => s
     
             var b7: <T extends Base, U extends Derived, V extends Derived2>(x: (arg: T) => U) => (r: T) => V;
             a7 = b7;
+                 ~~
+!!! error TS2454: Variable 'b7' is used before being assigned.
             b7 = a7;
             ~~
 !!! error TS2322: Type '(x: (arg: Base) => Derived) => (r: Base) => Derived2' is not assignable to type '<T extends Base, U extends Derived, V extends Derived2>(x: (arg: T) => U) => (r: T) => V'.
@@ -134,6 +150,8 @@ assignmentCompatWithCallSignatures4.ts(96,9): error TS2322: Type '<T>(x: T) => s
 !!! error TS2322:       Type '{ foo: number; }' is not assignable to type 'Base'.
 !!! error TS2322:         Types of property 'foo' are incompatible.
 !!! error TS2322:           Type 'number' is not assignable to type 'string'.
+                 ~~
+!!! error TS2454: Variable 'b8' is used before being assigned.
             b8 = a8; // error, { foo: number } and Base are incompatible
             ~~
 !!! error TS2322: Type '(x: (arg: Base) => Derived, y: (arg2: Base) => Derived) => (r: Base) => Derived' is not assignable to type '<T extends Base, U extends Derived>(x: (arg: T) => U, y: (arg2: { foo: number; }) => U) => (r: T) => U'.
@@ -145,6 +163,8 @@ assignmentCompatWithCallSignatures4.ts(96,9): error TS2322: Type '<T>(x: T) => s
             
             var b10: <T extends Derived>(...x: T[]) => T; 
             a10 = b10;
+                  ~~~
+!!! error TS2454: Variable 'b10' is used before being assigned.
             b10 = a10;
             ~~~
 !!! error TS2322: Type '(...x: Base[]) => Base' is not assignable to type '<T extends Derived>(...x: T[]) => T'.
@@ -153,6 +173,8 @@ assignmentCompatWithCallSignatures4.ts(96,9): error TS2322: Type '<T>(x: T) => s
     
             var b11: <T extends Derived>(x: T, y: T) => T; 
             a11 = b11;
+                  ~~~
+!!! error TS2454: Variable 'b11' is used before being assigned.
             b11 = a11;
             ~~~
 !!! error TS2322: Type '(x: { foo: string; }, y: { foo: string; bar: string; }) => Base' is not assignable to type '<T extends Derived>(x: T, y: T) => T'.
@@ -161,6 +183,8 @@ assignmentCompatWithCallSignatures4.ts(96,9): error TS2322: Type '<T>(x: T) => s
     
             var b12: <T extends Array<Derived2>>(x: Array<Base>, y: Array<Base>) => T; 
             a12 = b12;
+                  ~~~
+!!! error TS2454: Variable 'b12' is used before being assigned.
             b12 = a12;
             ~~~
 !!! error TS2322: Type '(x: Base[], y: Derived2[]) => Derived[]' is not assignable to type '<T extends Derived2[]>(x: Base[], y: Base[]) => T'.
@@ -175,6 +199,8 @@ assignmentCompatWithCallSignatures4.ts(96,9): error TS2322: Type '<T>(x: T) => s
 !!! error TS2322:     Type '{ a: string; b: number; }' is not assignable to type '{ a: string; b: string; }'.
 !!! error TS2322:       Types of property 'b' are incompatible.
 !!! error TS2322:         Type 'number' is not assignable to type 'string'.
+                  ~~~
+!!! error TS2454: Variable 'b15' is used before being assigned.
             b15 = a15;
             ~~~
 !!! error TS2322: Type '(x: { a: string; b: number; }) => number' is not assignable to type '<T>(x: { a: T; b: T; }) => T'.
@@ -192,6 +218,8 @@ assignmentCompatWithCallSignatures4.ts(96,9): error TS2322: Type '<T>(x: T) => s
 !!! error TS2322:     Type '{ a: string; b: number; }' is not assignable to type '{ a: Base; b: Base; }'.
 !!! error TS2322:       Types of property 'a' are incompatible.
 !!! error TS2322:         Type 'string' is not assignable to type 'Base'.
+                  ~~~~
+!!! error TS2454: Variable 'b15a' is used before being assigned.
             b15a = a15;
             ~~~~
 !!! error TS2322: Type '(x: { a: string; b: number; }) => number' is not assignable to type '<T extends Base>(x: { a: T; b: T; }) => number'.
@@ -203,10 +231,14 @@ assignmentCompatWithCallSignatures4.ts(96,9): error TS2322: Type '<T>(x: T) => s
     
             var b16: <T>(x: (a: T) => T) => T[];
             a16 = b16;
+                  ~~~
+!!! error TS2454: Variable 'b16' is used before being assigned.
             b16 = a16;
     
             var b17: <T>(x: (a: T) => T) => any[];
             a17 = b17;
+                  ~~~
+!!! error TS2454: Variable 'b17' is used before being assigned.
             b17 = a17;
         }
     
@@ -220,6 +252,8 @@ assignmentCompatWithCallSignatures4.ts(96,9): error TS2322: Type '<T>(x: T) => s
 !!! error TS2322:   Type 'string[]' is not assignable to type 'T[]'.
 !!! error TS2322:     Type 'string' is not assignable to type 'T'.
 !!! error TS2322:       'T' could be instantiated with an arbitrary type which could be unrelated to 'string'.
+                 ~~
+!!! error TS2454: Variable 'b2' is used before being assigned.
             b2 = a2;
             ~~
 !!! error TS2322: Type '<T>(x: T) => T[]' is not assignable to type '<T>(x: T) => string[]'.
@@ -236,6 +270,8 @@ assignmentCompatWithCallSignatures4.ts(96,9): error TS2322: Type '<T>(x: T) => s
 !!! error TS2322:   Type 'T[]' is not assignable to type 'string[]'.
 !!! error TS2322:     Type 'T' is not assignable to type 'string'.
 !!! related TS2208 assignmentCompatWithCallSignatures4.ts:93:18: This type parameter might need an `extends string` constraint.
+                 ~~
+!!! error TS2454: Variable 'b3' is used before being assigned.
             b3 = a3;
             ~~
 !!! error TS2322: Type '<T>(x: T) => string[]' is not assignable to type '<T>(x: T) => T[]'.

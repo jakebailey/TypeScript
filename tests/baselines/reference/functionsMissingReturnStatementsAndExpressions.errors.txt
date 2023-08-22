@@ -1,16 +1,20 @@
 functionsMissingReturnStatementsAndExpressions.ts(1,16): error TS2355: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.
+functionsMissingReturnStatementsAndExpressions.ts(7,5): error TS2322: Type 'undefined' is not assignable to type 'string'.
+functionsMissingReturnStatementsAndExpressions.ts(30,5): error TS2322: Type 'null' is not assignable to type 'void'.
+functionsMissingReturnStatementsAndExpressions.ts(45,5): error TS2322: Type 'null' is not assignable to type 'void'.
+functionsMissingReturnStatementsAndExpressions.ts(74,5): error TS2322: Type 'undefined' is not assignable to type 'number'.
 functionsMissingReturnStatementsAndExpressions.ts(99,17): error TS2355: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.
 functionsMissingReturnStatementsAndExpressions.ts(107,17): error TS2355: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.
-functionsMissingReturnStatementsAndExpressions.ts(120,7): error TS2322: Type '() => void' is not assignable to type '() => number'.
-  Type 'void' is not assignable to type 'number'.
-functionsMissingReturnStatementsAndExpressions.ts(124,7): error TS2322: Type '() => void' is not assignable to type '() => number'.
-  Type 'void' is not assignable to type 'number'.
+functionsMissingReturnStatementsAndExpressions.ts(120,7): error TS2322: Type '() => void' is not assignable to type '() => number | undefined'.
+  Type 'void' is not assignable to type 'number | undefined'.
+functionsMissingReturnStatementsAndExpressions.ts(124,7): error TS2322: Type '() => void' is not assignable to type '() => number | undefined'.
+  Type 'void' is not assignable to type 'number | undefined'.
 functionsMissingReturnStatementsAndExpressions.ts(130,16): error TS2378: A 'get' accessor must return a value.
 functionsMissingReturnStatementsAndExpressions.ts(152,15): error TS18050: The value 'undefined' cannot be used here.
 functionsMissingReturnStatementsAndExpressions.ts(153,5): error TS1003: Identifier expected.
 
 
-==== functionsMissingReturnStatementsAndExpressions.ts (8 errors) ====
+==== functionsMissingReturnStatementsAndExpressions.ts (12 errors) ====
     function f1(): string {
                    ~~~~~~
 !!! error TS2355: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.
@@ -20,6 +24,8 @@ functionsMissingReturnStatementsAndExpressions.ts(153,5): error TS1003: Identifi
     function f2(): string {
         // Permissible; returns undefined.
         return;
+        ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'string'.
     }
     
     function f3(): string {
@@ -43,6 +49,8 @@ functionsMissingReturnStatementsAndExpressions.ts(153,5): error TS1003: Identifi
     function f7(): void {
         // Fine since we are typed void and return null
         return null;
+        ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'void'.
     }
     
     function f8(): any {
@@ -58,6 +66,8 @@ functionsMissingReturnStatementsAndExpressions.ts(153,5): error TS1003: Identifi
     function f10(): void {
         // Fine since we are typed any and return null
         return null;
+        ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'void'.
     }
     
     function f11(): string {
@@ -87,6 +97,8 @@ functionsMissingReturnStatementsAndExpressions.ts(153,5): error TS1003: Identifi
         throw undefined;
         throw null;
         return;
+        ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'number'.
     }
     
     
@@ -138,15 +150,15 @@ functionsMissingReturnStatementsAndExpressions.ts(153,5): error TS1003: Identifi
     
     const f32: () => undefined | number = () => {
           ~~~
-!!! error TS2322: Type '() => void' is not assignable to type '() => number'.
-!!! error TS2322:   Type 'void' is not assignable to type 'number'.
+!!! error TS2322: Type '() => void' is not assignable to type '() => number | undefined'.
+!!! error TS2322:   Type 'void' is not assignable to type 'number | undefined'.
         // Error, contextual type for implicit return isn't just `undefined`
     }
     
     const f33: () => undefined | number = () => {
           ~~~
-!!! error TS2322: Type '() => void' is not assignable to type '() => number'.
-!!! error TS2322:   Type 'void' is not assignable to type 'number'.
+!!! error TS2322: Type '() => void' is not assignable to type '() => number | undefined'.
+!!! error TS2322:   Type 'void' is not assignable to type 'number | undefined'.
         // Error, contextual type for expression-less return isn't just `undefined`
         return;
     }

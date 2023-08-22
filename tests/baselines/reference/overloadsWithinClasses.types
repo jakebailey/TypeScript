@@ -21,7 +21,7 @@ class bar {
  
     static fnOverload(foo?: string){ } // no error
 >fnOverload : () => any
->foo : string
+>foo : string | undefined
  
 }
 

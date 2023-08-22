@@ -39,23 +39,23 @@ var objA = new A();
 
 // string type var
 var ResultIsAny1 = void STRING;
->ResultIsAny1 : any
+>ResultIsAny1 : undefined
 >void STRING : undefined
 >STRING : string
 
 var ResultIsAny2 = void STRING1;
->ResultIsAny2 : any
+>ResultIsAny2 : undefined
 >void STRING1 : undefined
 >STRING1 : string[]
 
 // string type literal
 var ResultIsAny3 = void "";
->ResultIsAny3 : any
+>ResultIsAny3 : undefined
 >void "" : undefined
 >"" : ""
 
 var ResultIsAny4 = void { x: "", y: "" };
->ResultIsAny4 : any
+>ResultIsAny4 : undefined
 >void { x: "", y: "" } : undefined
 >{ x: "", y: "" } : { x: string; y: string; }
 >x : string
@@ -64,7 +64,7 @@ var ResultIsAny4 = void { x: "", y: "" };
 >"" : ""
 
 var ResultIsAny5 = void { x: "", y: (s: string) => { return s; } };
->ResultIsAny5 : any
+>ResultIsAny5 : undefined
 >void { x: "", y: (s: string) => { return s; } } : undefined
 >{ x: "", y: (s: string) => { return s; } } : { x: string; y: (s: string) => string; }
 >x : string
@@ -76,34 +76,34 @@ var ResultIsAny5 = void { x: "", y: (s: string) => { return s; } };
 
 // string type expressions
 var ResultIsAny6 = void objA.a;
->ResultIsAny6 : any
+>ResultIsAny6 : undefined
 >void objA.a : undefined
 >objA.a : string
 >objA : A
 >a : string
 
 var ResultIsAny7 = void M.n;
->ResultIsAny7 : any
+>ResultIsAny7 : undefined
 >void M.n : undefined
 >M.n : string
 >M : typeof M
 >n : string
 
 var ResultIsAny8 = void STRING1[0];
->ResultIsAny8 : any
+>ResultIsAny8 : undefined
 >void STRING1[0] : undefined
 >STRING1[0] : string
 >STRING1 : string[]
 >0 : 0
 
 var ResultIsAny9 = void foo();
->ResultIsAny9 : any
+>ResultIsAny9 : undefined
 >void foo() : undefined
 >foo() : string
 >foo : () => string
 
 var ResultIsAny10 = void A.foo();
->ResultIsAny10 : any
+>ResultIsAny10 : undefined
 >void A.foo() : undefined
 >A.foo() : string
 >A.foo : () => string
@@ -111,7 +111,7 @@ var ResultIsAny10 = void A.foo();
 >foo : () => string
 
 var ResultIsAny11 = void (STRING + STRING);
->ResultIsAny11 : any
+>ResultIsAny11 : undefined
 >void (STRING + STRING) : undefined
 >(STRING + STRING) : string
 >STRING + STRING : string
@@ -119,7 +119,7 @@ var ResultIsAny11 = void (STRING + STRING);
 >STRING : string
 
 var ResultIsAny12 = void STRING.charAt(0);
->ResultIsAny12 : any
+>ResultIsAny12 : undefined
 >void STRING.charAt(0) : undefined
 >STRING.charAt(0) : string
 >STRING.charAt : (pos: number) => string
@@ -129,13 +129,13 @@ var ResultIsAny12 = void STRING.charAt(0);
 
 // multiple void  operators
 var ResultIsAny13 = void void STRING;
->ResultIsAny13 : any
+>ResultIsAny13 : undefined
 >void void STRING : undefined
 >void STRING : undefined
 >STRING : string
 
 var ResultIsAny14 = void void void (STRING + STRING);
->ResultIsAny14 : any
+>ResultIsAny14 : undefined
 >void void void (STRING + STRING) : undefined
 >void void (STRING + STRING) : undefined
 >void (STRING + STRING) : undefined

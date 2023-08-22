@@ -7,16 +7,16 @@ var s="hello";
 
 s.substring(0);
 >s.substring(0) : string
->s.substring : (start: number, end?: number) => string
+>s.substring : (start: number, end?: number | undefined) => string
 >s : string
->substring : (start: number, end?: number) => string
+>substring : (start: number, end?: number | undefined) => string
 >0 : 0
 
 s.substring(3,4);
 >s.substring(3,4) : string
->s.substring : (start: number, end?: number) => string
+>s.substring : (start: number, end?: number | undefined) => string
 >s : string
->substring : (start: number, end?: number) => string
+>substring : (start: number, end?: number | undefined) => string
 >3 : 3
 >4 : 4
 

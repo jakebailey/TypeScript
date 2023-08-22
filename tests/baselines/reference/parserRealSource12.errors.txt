@@ -12,6 +12,8 @@ parserRealSource12.ts(41,39): error TS2304: Cannot find name 'AST'.
 parserRealSource12.ts(41,45): error TS2304: Cannot find name 'AST'.
 parserRealSource12.ts(77,26): error TS2304: Cannot find name 'AST'.
 parserRealSource12.ts(77,119): error TS2304: Cannot find name 'AST'.
+parserRealSource12.ts(90,61): error TS2345: Argument of type 'IAstWalkCallback | undefined' is not assignable to parameter of type 'IAstWalkCallback'.
+  Type 'undefined' is not assignable to type 'IAstWalkCallback'.
 parserRealSource12.ts(94,34): error TS2304: Cannot find name 'NodeType'.
 parserRealSource12.ts(95,34): error TS2304: Cannot find name 'NodeType'.
 parserRealSource12.ts(96,34): error TS2304: Cannot find name 'NodeType'.
@@ -209,7 +211,7 @@ parserRealSource12.ts(523,88): error TS2304: Cannot find name 'AST'.
 parserRealSource12.ts(524,30): error TS2304: Cannot find name 'ASTList'.
 
 
-==== parserRealSource12.ts (209 errors) ====
+==== parserRealSource12.ts (210 errors) ====
     // Copyright (c) Microsoft. All rights reserved. Licensed under the Apache License, Version 2.0. 
     // See LICENSE.txt in the project root for complete license information.
     
@@ -328,6 +330,9 @@ parserRealSource12.ts(524,30): error TS2304: Cannot find name 'ASTList'.
                 }
     
                 return new AstWalker(this.childrenWalkers, pre, post, options, state);
+                                                                ~~~~
+!!! error TS2345: Argument of type 'IAstWalkCallback | undefined' is not assignable to parameter of type 'IAstWalkCallback'.
+!!! error TS2345:   Type 'undefined' is not assignable to type 'IAstWalkCallback'.
             }
     
             private initChildrenWalkers(): void {

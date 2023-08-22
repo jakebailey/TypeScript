@@ -3,7 +3,7 @@
 === module.js ===
 var Outer = Outer ?? {};
 >Outer : typeof Outer
->Outer ?? {} : typeof Outer | {}
+>Outer ?? {} : typeof Outer
 >Outer : typeof Outer
 >{} : {}
 

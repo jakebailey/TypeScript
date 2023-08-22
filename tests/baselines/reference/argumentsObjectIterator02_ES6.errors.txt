@@ -1,0 +1,22 @@
+argumentsObjectIterator02_ES6.ts(6,21): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+argumentsObjectIterator02_ES6.ts(8,12): error TS2352: Conversion of type 'never[]' to type '[any, any, any]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Target requires 3 element(s) but source may have fewer.
+
+
+==== argumentsObjectIterator02_ES6.ts (2 errors) ====
+    function doubleAndReturnAsArray(x: number, y: number, z: number): [number, number, number] {
+        let blah = arguments[Symbol.iterator];
+    
+        let result = [];
+        for (let arg of blah()) {
+            result.push(arg + arg);
+                        ~~~~~~~~~
+!!! error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+        }
+        return <[any, any, any]>result;
+               ~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2352: Conversion of type 'never[]' to type '[any, any, any]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+!!! error TS2352:   Target requires 3 element(s) but source may have fewer.
+    }
+    
+    

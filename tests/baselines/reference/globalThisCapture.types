@@ -10,12 +10,12 @@
 >window : Window & typeof globalThis
 
 var parts = [];
->parts : any[]
->[] : undefined[]
+>parts : never[]
+>[] : never[]
 
 // Ensure that the generated code is correct
 parts[0];
->parts[0] : any
->parts : any[]
+>parts[0] : never
+>parts : never[]
 >0 : 0
 

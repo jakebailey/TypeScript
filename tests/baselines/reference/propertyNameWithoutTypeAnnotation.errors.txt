@@ -1,0 +1,30 @@
+propertyNameWithoutTypeAnnotation.ts(19,11): error TS2352: Conversion of type 'null' to type 'I' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+propertyNameWithoutTypeAnnotation.ts(20,10): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== propertyNameWithoutTypeAnnotation.ts (2 errors) ====
+    class C {
+        foo;
+    }
+    
+    interface I {
+        foo;
+    }
+    
+    var a: {
+        foo;
+    }
+    
+    var b = {
+        foo: null
+    }
+    
+    // These should all be of type 'any'
+    var r1 = (new C()).foo;
+    var r2 = (<I>null).foo;
+              ~~~~~~~
+!!! error TS2352: Conversion of type 'null' to type 'I' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+    var r3 = a.foo;
+             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    var r4 = b.foo;

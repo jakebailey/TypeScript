@@ -1,0 +1,16 @@
+typeParameterConstrainedToOuterTypeParameter2.ts(10,20): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== typeParameterConstrainedToOuterTypeParameter2.ts (1 errors) ====
+    interface A<T> {
+        foo<U extends T>(x: A<A<U>>)
+    }
+    
+    interface B<T> {
+        foo<U extends T>(x: B<B<U>>)
+    }
+    
+    var a: A<string>
+    var b: B<string> = a;
+                       ~
+!!! error TS2454: Variable 'a' is used before being assigned.

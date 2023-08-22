@@ -25,7 +25,7 @@ class E extends D {
 
     public foo(x?: string) { } // ok to add optional parameters
 >foo : (x?: string) => void
->x : string
+>x : string | undefined
 }
 
 var c: C;
@@ -53,8 +53,8 @@ var r = c.foo(1);
 var r2 = e.foo('');
 >r2 : void
 >e.foo('') : void
->e.foo : (x?: string) => void
+>e.foo : (x?: string | undefined) => void
 >e : E
->foo : (x?: string) => void
+>foo : (x?: string | undefined) => void
 >'' : ""
 

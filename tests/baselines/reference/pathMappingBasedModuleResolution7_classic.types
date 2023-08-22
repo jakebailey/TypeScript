@@ -15,17 +15,17 @@ use(x.toFixed());
 >use(x.toFixed()) : any
 >use : (x: string) => any
 >x.toFixed() : string
->x.toFixed : (fractionDigits?: number) => string
+>x.toFixed : (fractionDigits?: number | undefined) => string
 >x : number
->toFixed : (fractionDigits?: number) => string
+>toFixed : (fractionDigits?: number | undefined) => string
 
 use(y.toFixed());
 >use(y.toFixed()) : any
 >use : (x: string) => any
 >y.toFixed() : string
->y.toFixed : (fractionDigits?: number) => string
+>y.toFixed : (fractionDigits?: number | undefined) => string
 >y : number
->toFixed : (fractionDigits?: number) => string
+>toFixed : (fractionDigits?: number | undefined) => string
 
 === c:/root/src/file3.d.ts ===
 export let x: number;

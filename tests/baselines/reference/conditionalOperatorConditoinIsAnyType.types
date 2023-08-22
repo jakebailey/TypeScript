@@ -94,14 +94,14 @@ undefined ? exprNumber1 : exprNumber2;
 
 [null, undefined] ? exprString1 : exprString2;
 >[null, undefined] ? exprString1 : exprString2 : string
->[null, undefined] : null[]
+>[null, undefined] : (null | undefined)[]
 >undefined : undefined
 >exprString1 : string
 >exprString2 : string
 
 [null, undefined] ? exprIsObject1 : exprIsObject2;
 >[null, undefined] ? exprIsObject1 : exprIsObject2 : Object
->[null, undefined] : null[]
+>[null, undefined] : (null | undefined)[]
 >undefined : undefined
 >exprIsObject1 : Object
 >exprIsObject2 : Object
@@ -229,7 +229,7 @@ var resultIsNumber2 = undefined ? exprNumber1 : exprNumber2;
 var resultIsString2 = [null, undefined] ? exprString1 : exprString2;
 >resultIsString2 : string
 >[null, undefined] ? exprString1 : exprString2 : string
->[null, undefined] : null[]
+>[null, undefined] : (null | undefined)[]
 >undefined : undefined
 >exprString1 : string
 >exprString2 : string
@@ -237,7 +237,7 @@ var resultIsString2 = [null, undefined] ? exprString1 : exprString2;
 var resultIsObject2 = [null, undefined] ? exprIsObject1 : exprIsObject2;
 >resultIsObject2 : Object
 >[null, undefined] ? exprIsObject1 : exprIsObject2 : Object
->[null, undefined] : null[]
+>[null, undefined] : (null | undefined)[]
 >undefined : undefined
 >exprIsObject1 : Object
 >exprIsObject2 : Object
@@ -258,7 +258,7 @@ var resultIsStringOrBoolean3 = undefined ? exprString1 : exprBoolean1; // union
 var resultIsStringOrBoolean4 = [null, undefined] ? exprString1 : exprBoolean1; // union
 >resultIsStringOrBoolean4 : string | boolean
 >[null, undefined] ? exprString1 : exprBoolean1 : string | boolean
->[null, undefined] : null[]
+>[null, undefined] : (null | undefined)[]
 >undefined : undefined
 >exprString1 : string
 >exprBoolean1 : boolean

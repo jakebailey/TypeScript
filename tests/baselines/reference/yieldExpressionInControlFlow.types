@@ -25,7 +25,7 @@ function* g() {
 
     var o = []
 >o : any[]
->[] : undefined[]
+>[] : never[]
 
     while (true) {
 >true : true

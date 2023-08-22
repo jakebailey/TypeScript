@@ -2,19 +2,25 @@ deleteOperatorWithAnyOtherType.ts(25,31): error TS2703: The operand of a 'delete
 deleteOperatorWithAnyOtherType.ts(26,31): error TS2703: The operand of a 'delete' operator must be a property reference.
 deleteOperatorWithAnyOtherType.ts(27,31): error TS2703: The operand of a 'delete' operator must be a property reference.
 deleteOperatorWithAnyOtherType.ts(28,31): error TS2703: The operand of a 'delete' operator must be a property reference.
+deleteOperatorWithAnyOtherType.ts(29,31): error TS2454: Variable 'obj' is used before being assigned.
 deleteOperatorWithAnyOtherType.ts(29,31): error TS2703: The operand of a 'delete' operator must be a property reference.
 deleteOperatorWithAnyOtherType.ts(30,31): error TS2703: The operand of a 'delete' operator must be a property reference.
 deleteOperatorWithAnyOtherType.ts(33,31): error TS2703: The operand of a 'delete' operator must be a property reference.
 deleteOperatorWithAnyOtherType.ts(34,31): error TS2703: The operand of a 'delete' operator must be a property reference.
+deleteOperatorWithAnyOtherType.ts(38,32): error TS2790: The operand of a 'delete' operator must be optional.
+deleteOperatorWithAnyOtherType.ts(39,32): error TS2790: The operand of a 'delete' operator must be optional.
 deleteOperatorWithAnyOtherType.ts(42,32): error TS2703: The operand of a 'delete' operator must be a property reference.
 deleteOperatorWithAnyOtherType.ts(43,32): error TS2703: The operand of a 'delete' operator must be a property reference.
 deleteOperatorWithAnyOtherType.ts(44,33): error TS2703: The operand of a 'delete' operator must be a property reference.
-deleteOperatorWithAnyOtherType.ts(45,33): error TS2365: Operator '+' cannot be applied to types 'null' and 'undefined'.
+deleteOperatorWithAnyOtherType.ts(45,33): error TS18050: The value 'null' cannot be used here.
 deleteOperatorWithAnyOtherType.ts(45,33): error TS2703: The operand of a 'delete' operator must be a property reference.
-deleteOperatorWithAnyOtherType.ts(46,33): error TS2365: Operator '+' cannot be applied to types 'null' and 'null'.
+deleteOperatorWithAnyOtherType.ts(45,40): error TS18050: The value 'undefined' cannot be used here.
+deleteOperatorWithAnyOtherType.ts(46,33): error TS18050: The value 'null' cannot be used here.
 deleteOperatorWithAnyOtherType.ts(46,33): error TS2703: The operand of a 'delete' operator must be a property reference.
-deleteOperatorWithAnyOtherType.ts(47,33): error TS2365: Operator '+' cannot be applied to types 'undefined' and 'undefined'.
+deleteOperatorWithAnyOtherType.ts(46,40): error TS18050: The value 'null' cannot be used here.
+deleteOperatorWithAnyOtherType.ts(47,33): error TS18050: The value 'undefined' cannot be used here.
 deleteOperatorWithAnyOtherType.ts(47,33): error TS2703: The operand of a 'delete' operator must be a property reference.
+deleteOperatorWithAnyOtherType.ts(47,45): error TS18050: The value 'undefined' cannot be used here.
 deleteOperatorWithAnyOtherType.ts(50,32): error TS2703: The operand of a 'delete' operator must be a property reference.
 deleteOperatorWithAnyOtherType.ts(50,39): error TS2703: The operand of a 'delete' operator must be a property reference.
 deleteOperatorWithAnyOtherType.ts(51,32): error TS2703: The operand of a 'delete' operator must be a property reference.
@@ -23,9 +29,11 @@ deleteOperatorWithAnyOtherType.ts(51,47): error TS2703: The operand of a 'delete
 deleteOperatorWithAnyOtherType.ts(54,8): error TS2703: The operand of a 'delete' operator must be a property reference.
 deleteOperatorWithAnyOtherType.ts(55,8): error TS2703: The operand of a 'delete' operator must be a property reference.
 deleteOperatorWithAnyOtherType.ts(57,8): error TS2703: The operand of a 'delete' operator must be a property reference.
+deleteOperatorWithAnyOtherType.ts(58,8): error TS2790: The operand of a 'delete' operator must be optional.
+deleteOperatorWithAnyOtherType.ts(59,8): error TS2790: The operand of a 'delete' operator must be optional.
 
 
-==== deleteOperatorWithAnyOtherType.ts (25 errors) ====
+==== deleteOperatorWithAnyOtherType.ts (33 errors) ====
     // delete  operator on any type
     
     var ANY: any;
@@ -64,6 +72,8 @@ deleteOperatorWithAnyOtherType.ts(57,8): error TS2703: The operand of a 'delete'
 !!! error TS2703: The operand of a 'delete' operator must be a property reference.
     var ResultIsBoolean5 = delete obj;
                                   ~~~
+!!! error TS2454: Variable 'obj' is used before being assigned.
+                                  ~~~
 !!! error TS2703: The operand of a 'delete' operator must be a property reference.
     var ResultIsBoolean6 = delete obj1;
                                   ~~~~
@@ -80,7 +90,11 @@ deleteOperatorWithAnyOtherType.ts(57,8): error TS2703: The operand of a 'delete'
     // any type expressions
     var ResultIsBoolean9 = delete ANY2[0];
     var ResultIsBoolean10 = delete obj1.x;
+                                   ~~~~~~
+!!! error TS2790: The operand of a 'delete' operator must be optional.
     var ResultIsBoolean11 = delete obj1.y;
+                                   ~~~~~~
+!!! error TS2790: The operand of a 'delete' operator must be optional.
     var ResultIsBoolean12 = delete objA.a;
     var ResultIsBoolean13 = delete M.n;
     var ResultIsBoolean14 = delete foo();
@@ -93,20 +107,26 @@ deleteOperatorWithAnyOtherType.ts(57,8): error TS2703: The operand of a 'delete'
                                     ~~~~~~~~~~
 !!! error TS2703: The operand of a 'delete' operator must be a property reference.
     var ResultIsBoolean17 = delete (null + undefined);
-                                    ~~~~~~~~~~~~~~~~
-!!! error TS2365: Operator '+' cannot be applied to types 'null' and 'undefined'.
+                                    ~~~~
+!!! error TS18050: The value 'null' cannot be used here.
                                     ~~~~~~~~~~~~~~~~
 !!! error TS2703: The operand of a 'delete' operator must be a property reference.
+                                           ~~~~~~~~~
+!!! error TS18050: The value 'undefined' cannot be used here.
     var ResultIsBoolean18 = delete (null + null);
-                                    ~~~~~~~~~~~
-!!! error TS2365: Operator '+' cannot be applied to types 'null' and 'null'.
+                                    ~~~~
+!!! error TS18050: The value 'null' cannot be used here.
                                     ~~~~~~~~~~~
 !!! error TS2703: The operand of a 'delete' operator must be a property reference.
+                                           ~~~~
+!!! error TS18050: The value 'null' cannot be used here.
     var ResultIsBoolean19 = delete (undefined + undefined);
-                                    ~~~~~~~~~~~~~~~~~~~~~
-!!! error TS2365: Operator '+' cannot be applied to types 'undefined' and 'undefined'.
+                                    ~~~~~~~~~
+!!! error TS18050: The value 'undefined' cannot be used here.
                                     ~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2703: The operand of a 'delete' operator must be a property reference.
+                                                ~~~~~~~~~
+!!! error TS18050: The value 'undefined' cannot be used here.
     
     // multiple delete  operators
     var ResultIsBoolean20 = delete delete ANY;
@@ -134,6 +154,10 @@ deleteOperatorWithAnyOtherType.ts(57,8): error TS2703: The operand of a 'delete'
            ~~~
 !!! error TS2703: The operand of a 'delete' operator must be a property reference.
     delete obj1.x;
+           ~~~~~~
+!!! error TS2790: The operand of a 'delete' operator must be optional.
     delete obj1.y;
+           ~~~~~~
+!!! error TS2790: The operand of a 'delete' operator must be optional.
     delete objA.a;
     delete M.n;

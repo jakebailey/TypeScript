@@ -2,35 +2,35 @@
 
 === widenedTypes1.ts ===
 var a = null;
->a : any
+>a : null
 
 var b = undefined;
->b : any
+>b : undefined
 >undefined : undefined
 
 var c = {x: null};
->c : { x: any; }
+>c : { x: null; }
 >{x: null} : { x: null; }
 >x : null
 
 var d = [{x: null}];
->d : { x: any; }[]
+>d : { x: null; }[]
 >[{x: null}] : { x: null; }[]
 >{x: null} : { x: null; }
 >x : null
 
 var f = [null, null];
->f : any[]
+>f : null[]
 >[null, null] : null[]
 
 var g = [undefined, undefined];
->g : any[]
+>g : undefined[]
 >[undefined, undefined] : undefined[]
 >undefined : undefined
 >undefined : undefined
 
 var h = [{x: undefined}];
->h : { x: any; }[]
+>h : { x: undefined; }[]
 >[{x: undefined}] : { x: undefined; }[]
 >{x: undefined} : { x: undefined; }
 >x : undefined

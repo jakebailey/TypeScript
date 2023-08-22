@@ -1,11 +1,14 @@
 typeofTypeParameter.ts(3,19): error TS2693: 'T' only refers to a type, but is being used as a value here.
+typeofTypeParameter.ts(4,12): error TS2454: Variable 'a' is used before being assigned.
 
 
-==== typeofTypeParameter.ts (1 errors) ====
+==== typeofTypeParameter.ts (2 errors) ====
     function f<T>(x: T): T {
         var a: typeof x;
         var y: typeof T;
                       ~
 !!! error TS2693: 'T' only refers to a type, but is being used as a value here.
         return a;
+               ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     }

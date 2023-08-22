@@ -2,8 +2,8 @@
 
 === classDeclarationLoop.ts ===
 const arr = [];
->arr : any[]
->[] : undefined[]
+>arr : never[]
+>[] : never[]
 
 for (let i = 0; i < 10; ++i) {
 >i : number
@@ -23,9 +23,9 @@ for (let i = 0; i < 10; ++i) {
     }
     arr.push(C);
 >arr.push(C) : number
->arr.push : (...items: any[]) => number
->arr : any[]
->push : (...items: any[]) => number
+>arr.push : (...items: never[]) => number
+>arr : never[]
+>push : (...items: never[]) => number
 >C : typeof C
 }
 

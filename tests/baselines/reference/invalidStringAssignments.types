@@ -18,7 +18,7 @@ var c: void = x;
 >x : string
 
 var d: typeof undefined = x;
->d : any
+>d : undefined
 >undefined : undefined
 >x : string
 

@@ -1,0 +1,16 @@
+declInput3.ts(7,27): error TS2352: Conversion of type 'null' to type 'bar' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+
+
+==== declInput3.ts (1 errors) ====
+    interface bar2 {
+    
+    }
+    
+    class bar {
+      public f() { return ''; }
+      public g() { return {a: <bar>null, b: undefined, c: void 4 }; }
+                              ~~~~~~~~~
+!!! error TS2352: Conversion of type 'null' to type 'bar' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+      public h(x = 4, y = null, z = '') { x++; }
+    }
+    

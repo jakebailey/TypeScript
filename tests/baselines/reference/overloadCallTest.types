@@ -14,7 +14,7 @@ class foo {
 
         function bar(foo?: string) { return "foo" };
 >bar : { (): string; (s: string): any; }
->foo : string
+>foo : string | undefined
 >"foo" : "foo"
 
         var test = bar("test");

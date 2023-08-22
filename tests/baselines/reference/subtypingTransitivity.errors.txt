@@ -1,0 +1,28 @@
+subtypingTransitivity.ts(16,1): error TS2454: Variable 'd' is used before being assigned.
+subtypingTransitivity.ts(17,5): error TS2454: Variable 'd' is used before being assigned.
+
+
+==== subtypingTransitivity.ts (2 errors) ====
+    class B {
+        x: Object;
+    }
+    
+    class D extends B {
+        public x: string;
+    }
+    class D2 extends B {
+        public x: number;
+    }
+    
+    var b: B;
+    var d: D;
+    var d2: D2;
+    
+    d.x = '';
+    ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+    b = d;
+        ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+    b.x = 1; // assigned number to string
+    

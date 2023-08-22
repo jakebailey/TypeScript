@@ -134,7 +134,7 @@ class C13 {
 >C13 : C13
 
     async * f() {
->f : () => AsyncGenerator<any, void, unknown>
+>f : () => AsyncGenerator<undefined, void, unknown>
 
         yield;
 >yield : any
@@ -169,11 +169,11 @@ class C16 {
 >C16 : C16
 
     async * f() {
->f : () => AsyncGenerator<any, void, undefined>
+>f : () => AsyncGenerator<never, void, undefined>
 
         yield * [];
 >yield * [] : any
->[] : undefined[]
+>[] : never[]
     }
 }
 === awaitWithValueIsOk.ts ===
@@ -238,7 +238,7 @@ class C22 {
 >C22 : C22
 
     async * f() {
->f : () => AsyncGenerator<any, void, unknown>
+>f : () => AsyncGenerator<undefined, void, unknown>
 
         const x = { [yield]: 1 };
 >x : { [x: number]: number; }

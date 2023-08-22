@@ -1,16 +1,79 @@
 error TS5107: Option 'target=ES3' is deprecated and will stop functioning in TypeScript 5.5. Specify compilerOption '"ignoreDeprecations": "5.0"' to silence this error.
+objectTypeWithStringNamedNumericProperty.ts(17,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(18,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(19,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(20,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(21,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(22,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(23,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(24,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(25,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(27,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(28,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(29,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(30,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(31,11): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(32,11): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(33,11): error TS2454: Variable 'i' is used before being assigned.
 objectTypeWithStringNamedNumericProperty.ts(33,13): error TS1121: Octal literals are not allowed. Use the syntax '0o1'.
+objectTypeWithStringNamedNumericProperty.ts(34,11): error TS2454: Variable 'i' is used before being assigned.
 objectTypeWithStringNamedNumericProperty.ts(34,13): error TS1121: Octal literals are not allowed. Use the syntax '-0o1'.
+objectTypeWithStringNamedNumericProperty.ts(48,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(49,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(50,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(51,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(52,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(53,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(54,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(55,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(56,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(58,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(59,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(60,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(61,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(62,11): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(63,11): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(64,11): error TS2454: Variable 'i' is used before being assigned.
 objectTypeWithStringNamedNumericProperty.ts(64,13): error TS1121: Octal literals are not allowed. Use the syntax '0o1'.
+objectTypeWithStringNamedNumericProperty.ts(65,11): error TS2454: Variable 'i' is used before being assigned.
 objectTypeWithStringNamedNumericProperty.ts(65,13): error TS1121: Octal literals are not allowed. Use the syntax '-0o1'.
+objectTypeWithStringNamedNumericProperty.ts(78,10): error TS2454: Variable 'a' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(79,10): error TS2454: Variable 'a' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(80,10): error TS2454: Variable 'a' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(81,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(82,10): error TS2454: Variable 'a' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(83,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(84,10): error TS2454: Variable 'a' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(85,10): error TS2454: Variable 'a' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(86,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(88,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(89,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(90,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(91,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(92,11): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(93,11): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(94,11): error TS2454: Variable 'i' is used before being assigned.
 objectTypeWithStringNamedNumericProperty.ts(94,13): error TS1121: Octal literals are not allowed. Use the syntax '0o1'.
+objectTypeWithStringNamedNumericProperty.ts(95,11): error TS2454: Variable 'i' is used before being assigned.
 objectTypeWithStringNamedNumericProperty.ts(95,13): error TS1121: Octal literals are not allowed. Use the syntax '-0o1'.
+objectTypeWithStringNamedNumericProperty.ts(98,12): error TS2352: Conversion of type 'null' to type 'void' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+objectTypeWithStringNamedNumericProperty.ts(111,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(113,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(116,10): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(118,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(119,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(120,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(121,10): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(122,11): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(123,11): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringNamedNumericProperty.ts(124,11): error TS2454: Variable 'i' is used before being assigned.
 objectTypeWithStringNamedNumericProperty.ts(124,13): error TS1121: Octal literals are not allowed. Use the syntax '0o1'.
+objectTypeWithStringNamedNumericProperty.ts(125,11): error TS2454: Variable 'i' is used before being assigned.
 objectTypeWithStringNamedNumericProperty.ts(125,13): error TS1121: Octal literals are not allowed. Use the syntax '-0o1'.
 
 
 !!! error TS5107: Option 'target=ES3' is deprecated and will stop functioning in TypeScript 5.5. Specify compilerOption '"ignoreDeprecations": "5.0"' to silence this error.
-==== objectTypeWithStringNamedNumericProperty.ts (8 errors) ====
+==== objectTypeWithStringNamedNumericProperty.ts (71 errors) ====
     // string named numeric properties are legal and distinct when indexed by string values
     // indexed numerically the value is converted to a number
     // no errors expected below
@@ -28,25 +91,59 @@ objectTypeWithStringNamedNumericProperty.ts(125,13): error TS1121: Octal literal
     
     var c: C;
     var r1 = c['0.1'];
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r2 = c['.1'];
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r3 = c['1'];
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r3 = c[1];
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r4 = c['1.'];
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r3 = c[1.]; // same as indexing by 1 when done numerically
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r5 = c['1..'];
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r6 = c['1.0'];
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r3 = c[1.0]; // same as indexing by 1 when done numerically
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     // BUG 823822
     var r7 = i[-1];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r7 = i[-1.0];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r8 = i["-1.0"];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r9 = i["-1"];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r10 = i[0x1]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r11 = i[-0x1]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r12 = i[01]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
                 ~~
 !!! error TS1121: Octal literals are not allowed. Use the syntax '0o1'.
     var r13 = i[-01]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
                 ~~~
 !!! error TS1121: Octal literals are not allowed. Use the syntax '-0o1'.
     
@@ -63,25 +160,59 @@ objectTypeWithStringNamedNumericProperty.ts(125,13): error TS1121: Octal literal
     
     var i: I;
     var r1 = i['0.1'];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r2 = i['.1'];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r3 = i['1'];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r3 = c[1];
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r4 = i['1.'];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r3 = c[1.]; // same as indexing by 1 when done numerically
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r5 = i['1..'];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r6 = i['1.0'];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r3 = c[1.0]; // same as indexing by 1 when done numerically
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     // BUG 823822
     var r7 = i[-1]; 
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r7 = i[-1.0]; 
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r8 = i["-1.0"];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r9 = i["-1"];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r10 = i[0x1]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r11 = i[-0x1]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r12 = i[01]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
                 ~~
 !!! error TS1121: Octal literals are not allowed. Use the syntax '0o1'.
     var r13 = i[-01]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
                 ~~~
 !!! error TS1121: Octal literals are not allowed. Use the syntax '-0o1'.
     
@@ -97,30 +228,66 @@ objectTypeWithStringNamedNumericProperty.ts(125,13): error TS1121: Octal literal
     }
     
     var r1 = a['0.1'];
+             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     var r2 = a['.1'];
+             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     var r3 = a['1'];
+             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     var r3 = c[1];
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r4 = a['1.'];
+             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     var r3 = c[1.]; // same as indexing by 1 when done numerically
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r5 = a['1..'];
+             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     var r6 = a['1.0'];
+             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     var r3 = c[1.0]; // same as indexing by 1 when done numerically
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     // BUG 823822
     var r7 = i[-1];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r7 = i[-1.0];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r8 = i["-1.0"];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r9 = i["-1"];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r10 = i[0x1]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r11 = i[-0x1]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r12 = i[01]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
                 ~~
 !!! error TS1121: Octal literals are not allowed. Use the syntax '0o1'.
     var r13 = i[-01]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
                 ~~~
 !!! error TS1121: Octal literals are not allowed. Use the syntax '-0o1'.
     
     var b = {
         "0.1": <void>null,
+               ~~~~~~~~~~
+!!! error TS2352: Conversion of type 'null' to type 'void' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
         ".1": new Object(),
         "1": 1,
         "1.": "",
@@ -134,22 +301,44 @@ objectTypeWithStringNamedNumericProperty.ts(125,13): error TS1121: Octal literal
     var r2 = b['.1'];
     var r3 = b['1'];
     var r3 = c[1];
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r4 = b['1.'];
     var r3 = c[1.]; // same as indexing by 1 when done numerically
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r5 = b['1..'];
     var r6 = b['1.0'];
     var r3 = c[1.0]; // same as indexing by 1 when done numerically
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     // BUG 823822
     var r7 = i[-1];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r7 = i[-1.0];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r8 = i["-1.0"];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r9 = i["-1"];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r10 = i[0x1]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r11 = i[-0x1]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r12 = i[01]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
                 ~~
 !!! error TS1121: Octal literals are not allowed. Use the syntax '0o1'.
     var r13 = i[-01]
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
                 ~~~
 !!! error TS1121: Octal literals are not allowed. Use the syntax '-0o1'.
     

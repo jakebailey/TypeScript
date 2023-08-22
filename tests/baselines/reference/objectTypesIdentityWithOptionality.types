@@ -26,12 +26,12 @@ class C<T> {
 
 interface I {
     foo?: string;
->foo : string
+>foo : string | undefined
 }
 
 var a: { foo?: string; }
->a : { foo?: string; }
->foo : string
+>a : { foo?: string | undefined; }
+>foo : string | undefined
 
 var b = { foo: '' };
 >b : { foo: string; }
@@ -52,17 +52,17 @@ function foo2(x: any) { }
 >x : any
 
 function foo3(x: typeof a);
->foo3 : { (x: typeof a): any; (x: { foo?: string; }): any; }
->x : { foo?: string; }
->a : { foo?: string; }
+>foo3 : { (x: typeof a): any; (x: { foo?: string | undefined; }): any; }
+>x : { foo?: string | undefined; }
+>a : { foo?: string | undefined; }
 
 function foo3(x: typeof a); // error
->foo3 : { (x: { foo?: string; }): any; (x: typeof a): any; }
->x : { foo?: string; }
->a : { foo?: string; }
+>foo3 : { (x: { foo?: string | undefined; }): any; (x: typeof a): any; }
+>x : { foo?: string | undefined; }
+>a : { foo?: string | undefined; }
 
 function foo3(x: any) { }
->foo3 : { (x: { foo?: string; }): any; (x: { foo?: string; }): any; }
+>foo3 : { (x: { foo?: string | undefined; }): any; (x: { foo?: string | undefined; }): any; }
 >x : any
 
 function foo6(x: A);
@@ -78,16 +78,16 @@ function foo6(x: any) { }
 >x : any
 
 function foo7(x: A);
->foo7 : { (x: A): any; (x: { foo?: string; }): any; }
+>foo7 : { (x: A): any; (x: { foo?: string | undefined; }): any; }
 >x : A
 
 function foo7(x: typeof a); // ok
 >foo7 : { (x: A): any; (x: typeof a): any; }
->x : { foo?: string; }
->a : { foo?: string; }
+>x : { foo?: string | undefined; }
+>a : { foo?: string | undefined; }
 
 function foo7(x: any) { }
->foo7 : { (x: A): any; (x: { foo?: string; }): any; }
+>foo7 : { (x: A): any; (x: { foo?: string | undefined; }): any; }
 >x : any
 
 function foo8(x: B);
@@ -103,16 +103,16 @@ function foo8(x: any) { }
 >x : any
 
 function foo10(x: B);
->foo10 : { (x: B): any; (x: { foo?: string; }): any; }
+>foo10 : { (x: B): any; (x: { foo?: string | undefined; }): any; }
 >x : B
 
 function foo10(x: typeof a); // ok
 >foo10 : { (x: B): any; (x: typeof a): any; }
->x : { foo?: string; }
->a : { foo?: string; }
+>x : { foo?: string | undefined; }
+>a : { foo?: string | undefined; }
 
 function foo10(x: any) { }
->foo10 : { (x: B): any; (x: { foo?: string; }): any; }
+>foo10 : { (x: B): any; (x: { foo?: string | undefined; }): any; }
 >x : any
 
 function foo12(x: I);
@@ -128,16 +128,16 @@ function foo12(x: any) { }
 >x : any
 
 function foo13(x: I);
->foo13 : { (x: I): any; (x: { foo?: string; }): any; }
+>foo13 : { (x: I): any; (x: { foo?: string | undefined; }): any; }
 >x : I
 
 function foo13(x: typeof a); // error
 >foo13 : { (x: I): any; (x: typeof a): any; }
->x : { foo?: string; }
->a : { foo?: string; }
+>x : { foo?: string | undefined; }
+>a : { foo?: string | undefined; }
 
 function foo13(x: any) { }
->foo13 : { (x: I): any; (x: { foo?: string; }): any; }
+>foo13 : { (x: I): any; (x: { foo?: string | undefined; }): any; }
 >x : any
 
 function foo14(x: I);

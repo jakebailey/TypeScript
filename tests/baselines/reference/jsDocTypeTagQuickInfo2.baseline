@@ -59,7 +59,7 @@
 // var nullable;
 //     ^^^^^^^^
 // | ----------------------------------------------------------------------
-// | var nullable: number
+// | var nullable: number | null
 // | @type {?number}
 // | ----------------------------------------------------------------------
 // /** @type {function} */
@@ -565,6 +565,22 @@
         },
         {
           "text": "number",
+          "kind": "keyword"
+        },
+        {
+          "text": " ",
+          "kind": "space"
+        },
+        {
+          "text": "|",
+          "kind": "punctuation"
+        },
+        {
+          "text": " ",
+          "kind": "space"
+        },
+        {
+          "text": "null",
           "kind": "keyword"
         }
       ],

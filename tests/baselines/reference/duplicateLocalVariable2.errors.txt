@@ -1,9 +1,10 @@
 duplicateLocalVariable2.ts(27,22): error TS2403: Subsequent variable declarations must have the same type.  Variable 'i' must be of type 'string', but here has type 'number'.
 duplicateLocalVariable2.ts(27,29): error TS2365: Operator '<' cannot be applied to types 'string' and 'number'.
 duplicateLocalVariable2.ts(27,37): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+duplicateLocalVariable2.ts(28,28): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
 
 
-==== duplicateLocalVariable2.ts (3 errors) ====
+==== duplicateLocalVariable2.ts (4 errors) ====
     export class TestCase {
         constructor (public name: string, public test: ()=>boolean, public errorMessageRegEx?: string) {
         }
@@ -39,6 +40,8 @@ duplicateLocalVariable2.ts(27,37): error TS2356: An arithmetic operand must be o
                                         ~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
                     bytes.push(fb.readByte());
+                               ~~~~~~~~~~~~~
+!!! error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
                 }
                 var expected = [0xEF];
                 return TestRunner.arrayCompare(bytes, expected);

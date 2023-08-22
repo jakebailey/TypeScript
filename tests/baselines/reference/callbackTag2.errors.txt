@@ -1,7 +1,8 @@
 cb.js(18,29): error TS2304: Cannot find name 'S'.
+cb.js(19,14): error TS2565: Property 'id' is used before being assigned.
 
 
-==== cb.js (1 errors) ====
+==== cb.js (2 errors) ====
     /** @template T
      * @callback Id
      * @param {T} t
@@ -23,6 +24,8 @@ cb.js(18,29): error TS2304: Cannot find name 'S'.
                                 ~
 !!! error TS2304: Cannot find name 'S'.
             this.id;
+                 ~~
+!!! error TS2565: Property 'id' is used before being assigned.
         }
     }
     /** @type {SharedId<number>} */

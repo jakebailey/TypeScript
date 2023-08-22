@@ -2,9 +2,9 @@
 
 === wideningTuples7.ts ===
 var foo = function bar() {
->foo : () => [any]
->function bar() {    let intermediate: [string];    return intermediate = [undefined];} : () => [any]
->bar : () => [any]
+>foo : () => [undefined]
+>function bar() {    let intermediate: [string];    return intermediate = [undefined];} : () => [undefined]
+>bar : () => [undefined]
 
     let intermediate: [string];
 >intermediate : [string]

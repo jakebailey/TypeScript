@@ -6,7 +6,7 @@ declare module linq {
     interface Enumerable<T> {
         OrderByDescending(keySelector?: string): OrderedEnumerable<T>;
 >OrderByDescending : (keySelector?: string) => OrderedEnumerable<T>
->keySelector : string
+>keySelector : string | undefined
 
         GroupBy<TKey>(keySelector: (element: T) => TKey): Enumerable<Grouping<TKey, T>>;
 >GroupBy : { <TKey>(keySelector: (element: T) => TKey): Enumerable<Grouping<TKey, T>>; <TKey, TElement>(keySelector: (element: T) => TKey, elementSelector: (element: T) => TElement): Enumerable<Grouping<TKey, TElement>>; }

@@ -179,7 +179,7 @@ export class Vec {
  * @param {number} x
  * @param {number} y
  */
-export function Point2D(x: number, y: number): Point2D;
+export function Point2D(x: number, y: number): Point2D | undefined;
 export class Point2D {
     /**
      * @param {number} x

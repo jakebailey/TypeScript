@@ -68,7 +68,7 @@ ElementsArray.isArray(new ElementsArray());
 declare class Thing {
 }
 declare class ElementsArray extends Array<any> {
-    constructor(arrayLength?: number);
+    constructor(arrayLength?: number | undefined);
     constructor(arrayLength: number);
     constructor(...items: any[]);
 }

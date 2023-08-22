@@ -23,20 +23,20 @@ var d: void = x;
 >x : any
 
 var e = null;
->e : any
+>e : null
 
 e = x;
 >e = x : any
->e : any
+>e : null
 >x : any
 
 var f = undefined;
->f : any
+>f : undefined
 >undefined : undefined
 
 f = x;
 >f = x : any
->f : any
+>f : undefined
 >x : any
 
 enum E {

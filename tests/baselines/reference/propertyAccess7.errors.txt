@@ -1,0 +1,8 @@
+propertyAccess7.ts(2,1): error TS2454: Variable 'foo' is used before being assigned.
+
+
+==== propertyAccess7.ts (1 errors) ====
+    var foo: string;
+    foo.toUpperCase();
+    ~~~
+!!! error TS2454: Variable 'foo' is used before being assigned.

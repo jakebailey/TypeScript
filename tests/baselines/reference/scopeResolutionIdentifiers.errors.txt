@@ -1,25 +1,34 @@
+scopeResolutionIdentifiers.ts(6,13): error TS2454: Variable 's' is used before being assigned.
+scopeResolutionIdentifiers.ts(12,13): error TS2454: Variable 's' is used before being assigned.
+scopeResolutionIdentifiers.ts(18,13): error TS2454: Variable 's' is used before being assigned.
 scopeResolutionIdentifiers.ts(24,14): error TS2729: Property 's' is used before its initialization.
 
 
-==== scopeResolutionIdentifiers.ts (1 errors) ====
+==== scopeResolutionIdentifiers.ts (4 errors) ====
     // EveryType used in a nested scope of a different EveryType with the same name, type of the identifier is the one defined in the inner scope
     
     var s: string;
     module M1 {
         export var s: number;
         var n = s;
+                ~
+!!! error TS2454: Variable 's' is used before being assigned.
         var n: number;
     }
     
     module M2 {
         var s: number;
         var n = s;
+                ~
+!!! error TS2454: Variable 's' is used before being assigned.
         var n: number;
     }
     
     function fn() {
         var s: boolean;
         var n = s;
+                ~
+!!! error TS2454: Variable 's' is used before being assigned.
         var n: boolean;
     }
     

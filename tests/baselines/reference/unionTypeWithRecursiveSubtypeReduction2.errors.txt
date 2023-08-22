@@ -2,6 +2,7 @@ unionTypeWithRecursiveSubtypeReduction2.ts(19,1): error TS2322: Type 'Property' 
   Types of property 'parent' are incompatible.
     Type 'Module | Class' is not assignable to type 'Namespace'.
       Property 'members' is missing in type 'Class' but required in type 'Namespace'.
+unionTypeWithRecursiveSubtypeReduction2.ts(19,5): error TS2454: Variable 'p' is used before being assigned.
 unionTypeWithRecursiveSubtypeReduction2.ts(20,1): error TS2322: Type 'Class' is not assignable to type 'Property'.
   Types of property 'parent' are incompatible.
     Type 'Namespace' is not assignable to type 'Module | Class'.
@@ -12,7 +13,7 @@ unionTypeWithRecursiveSubtypeReduction2.ts(20,1): error TS2322: Type 'Class' is 
               Type 'Property' is not assignable to type 'Class'.
 
 
-==== unionTypeWithRecursiveSubtypeReduction2.ts (2 errors) ====
+==== unionTypeWithRecursiveSubtypeReduction2.ts (3 errors) ====
     class Module {
         public members: Class[];
     }
@@ -38,6 +39,8 @@ unionTypeWithRecursiveSubtypeReduction2.ts(20,1): error TS2322: Type 'Class' is 
 !!! error TS2322:     Type 'Module | Class' is not assignable to type 'Namespace'.
 !!! error TS2322:       Property 'members' is missing in type 'Class' but required in type 'Namespace'.
 !!! related TS2728 unionTypeWithRecursiveSubtypeReduction2.ts:6:12: 'members' is declared here.
+        ~
+!!! error TS2454: Variable 'p' is used before being assigned.
     p = c;
     ~
 !!! error TS2322: Type 'Class' is not assignable to type 'Property'.

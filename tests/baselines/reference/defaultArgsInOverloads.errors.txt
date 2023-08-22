@@ -1,12 +1,18 @@
+defaultArgsInOverloads.ts(1,10): error TS2394: This overload signature is not compatible with its implementation signature.
 defaultArgsInOverloads.ts(2,14): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+defaultArgsInOverloads.ts(6,2): error TS2394: This overload signature is not compatible with its implementation signature.
 defaultArgsInOverloads.ts(7,6): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+defaultArgsInOverloads.ts(9,9): error TS2394: This overload signature is not compatible with its implementation signature.
 defaultArgsInOverloads.ts(10,13): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
 defaultArgsInOverloads.ts(16,9): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
 defaultArgsInOverloads.ts(19,9): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
 
 
-==== defaultArgsInOverloads.ts (5 errors) ====
+==== defaultArgsInOverloads.ts (8 errors) ====
     function fun(a: string);
+             ~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 defaultArgsInOverloads.ts:3:10: The implementation signature is declared here.
     function fun(a = 3);
                  ~~~~~
 !!! error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
@@ -14,11 +20,17 @@ defaultArgsInOverloads.ts(19,9): error TS2371: A parameter initializer is only a
     
     class C {
     	fun(a: string);
+    	~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 defaultArgsInOverloads.ts:8:2: The implementation signature is declared here.
     	fun(a = 3);
     	    ~~~~~
 !!! error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
     	fun(a = null) { }
     	static fun(a: string);
+    	       ~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 defaultArgsInOverloads.ts:11:9: The implementation signature is declared here.
     	static fun(a = 3);
     	           ~~~~~
 !!! error TS2371: A parameter initializer is only allowed in a function or constructor implementation.

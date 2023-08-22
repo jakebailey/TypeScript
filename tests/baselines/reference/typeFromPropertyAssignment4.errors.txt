@@ -1,0 +1,32 @@
+a.js(10,1): error TS2454: Variable 'local' is used before being assigned.
+b.js(3,1): error TS2454: Variable 'x' is used before being assigned.
+
+
+==== def.js (0 errors) ====
+    var Outer = {};
+    
+==== a.js (1 errors) ====
+    Outer.Inner = class {
+        constructor() {
+            /** @type {number} */
+            this.y = 12
+        }
+    }
+    
+    /** @type {Outer.Inner} */
+    var local
+    local.y
+    ~~~~~
+!!! error TS2454: Variable 'local' is used before being assigned.
+    var inner = new Outer.Inner()
+    inner.y
+    
+==== b.js (1 errors) ====
+    /** @type {Outer.Inner} */
+    var x
+    x.y
+    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    var z = new Outer.Inner()
+    z.y
+    

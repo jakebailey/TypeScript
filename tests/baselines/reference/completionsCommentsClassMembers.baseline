@@ -124,7 +124,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -337,7 +337,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -503,7 +503,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -716,7 +716,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -870,7 +870,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -1032,7 +1032,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -1180,7 +1180,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -1341,7 +1341,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -1507,7 +1507,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -1669,7 +1669,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -1831,7 +1831,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -1980,7 +1980,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -2131,7 +2131,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -2280,7 +2280,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -2431,7 +2431,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -2580,7 +2580,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -2731,7 +2731,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -2909,7 +2909,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | readonly
@@ -3098,7 +3098,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | readonly
@@ -3288,7 +3288,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -7162,6 +7162,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -14250,6 +14266,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -19085,6 +19117,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -26173,6 +26221,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -30259,6 +30323,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -35507,6 +35587,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -39547,6 +39643,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -44746,6 +44858,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -49994,6 +50122,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -55236,6 +55380,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -60484,6 +60644,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -64565,6 +64741,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -68652,6 +68844,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -72733,6 +72941,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -76820,6 +77044,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -80904,6 +81144,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -84985,6 +85241,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -89494,6 +89766,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -94867,6 +95155,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -99406,6 +99710,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {

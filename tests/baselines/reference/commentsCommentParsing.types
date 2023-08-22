@@ -166,7 +166,7 @@ function multiply(a: number, b: number, c?: number, d?, e?) {
 >multiply : (a: number, b: number, c?: number, d?: any, e?: any) => void
 >a : number
 >b : number
->c : number
+>c : number | undefined
 >d : any
 >e : any
 }
@@ -202,10 +202,10 @@ function subtract(a: number, b: number, c?: () => string, d?: () => string, e?: 
 >subtract : (a: number, b: number, c?: () => string, d?: () => string, e?: () => string, f?: () => string) => void
 >a : number
 >b : number
->c : () => string
->d : () => string
->e : () => string
->f : () => string
+>c : (() => string) | undefined
+>d : (() => string) | undefined
+>e : (() => string) | undefined
+>f : (() => string) | undefined
 }
 /** this is square function
 @paramTag { number } a this is input number of paramTag

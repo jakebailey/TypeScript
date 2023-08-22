@@ -9,8 +9,8 @@ declare function use(a: any);
 >"use strict" : "use strict"
 
 var data = [];
->data : any[]
->[] : undefined[]
+>data : never[]
+>[] : never[]
 
 for (let x = 0; x < 2; ++x) {
 >x : number
@@ -26,9 +26,9 @@ for (let x = 0; x < 2; ++x) {
 
     data.push(() => C);
 >data.push(() => C) : number
->data.push : (...items: any[]) => number
->data : any[]
->push : (...items: any[]) => number
+>data.push : (...items: never[]) => number
+>data : never[]
+>push : (...items: never[]) => number
 >() => C : () => typeof C
 >C : typeof C
 }
@@ -38,11 +38,11 @@ use(data[0]() === data[1]());
 >use : (a: any) => any
 >data[0]() === data[1]() : boolean
 >data[0]() : any
->data[0] : any
->data : any[]
+>data[0] : never
+>data : never[]
 >0 : 0
 >data[1]() : any
->data[1] : any
->data : any[]
+>data[1] : never
+>data : never[]
 >1 : 1
 

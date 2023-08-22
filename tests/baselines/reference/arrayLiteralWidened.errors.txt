@@ -1,0 +1,34 @@
+arrayLiteralWidened.ts(11,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 'b' must be of type 'null[][]', but here has type 'undefined[][]'.
+arrayLiteralWidened.ts(14,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 'c' must be of type 'never[][][]', but here has type '(undefined[] | null[][])[]'.
+
+
+==== arrayLiteralWidened.ts (2 errors) ====
+    // array literals are widened upon assignment according to their element type
+    
+    var a = []; // any[]
+    var a = [,,];
+    
+    var a = [null, null];
+    var a = [undefined, undefined];
+    
+    var b = [[], [null, null]]; // any[][]
+    var b = [[], []];
+    var b = [[undefined, undefined]];
+        ~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 'b' must be of type 'null[][]', but here has type 'undefined[][]'.
+!!! related TS6203 arrayLiteralWidened.ts:9:5: 'b' was also declared here.
+    
+    var c = [[[]]]; // any[][][]
+    var c = [[[null]],[undefined]]
+        ~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 'c' must be of type 'never[][][]', but here has type '(undefined[] | null[][])[]'.
+!!! related TS6203 arrayLiteralWidened.ts:13:5: 'c' was also declared here.
+    
+    // no widening when one or more elements are non-widening
+    
+    var x: undefined = undefined;
+    
+    var d = [x];
+    var d = [, x];
+    var d = [undefined, x];
+    

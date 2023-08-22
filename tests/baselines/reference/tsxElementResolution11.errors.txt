@@ -1,8 +1,11 @@
-file.tsx(17,7): error TS2322: Type '{ x: number; }' is not assignable to type '{ q?: number; }'.
-  Property 'x' does not exist on type '{ q?: number; }'.
+file.tsx(11,2): error TS2454: Variable 'Obj1' is used before being assigned.
+file.tsx(17,2): error TS2454: Variable 'Obj2' is used before being assigned.
+file.tsx(17,7): error TS2322: Type '{ x: number; }' is not assignable to type '{ q?: number | undefined; }'.
+  Property 'x' does not exist on type '{ q?: number | undefined; }'.
+file.tsx(23,2): error TS2454: Variable 'Obj3' is used before being assigned.
 
 
-==== file.tsx (1 errors) ====
+==== file.tsx (4 errors) ====
     declare module JSX {
     	interface Element { }
     	interface ElementAttributesProperty { }
@@ -14,19 +17,25 @@ file.tsx(17,7): error TS2322: Type '{ x: number; }' is not assignable to type '{
     }
     var Obj1: Obj1type;
     <Obj1 x={10} />; // OK
+     ~~~~
+!!! error TS2454: Variable 'Obj1' is used before being assigned.
     
     interface Obj2type {
     	new(n: string): { q?: number };
     }
     var Obj2: Obj2type;
     <Obj2 x={10} />; // Error
+     ~~~~
+!!! error TS2454: Variable 'Obj2' is used before being assigned.
           ~
-!!! error TS2322: Type '{ x: number; }' is not assignable to type '{ q?: number; }'.
-!!! error TS2322:   Property 'x' does not exist on type '{ q?: number; }'.
+!!! error TS2322: Type '{ x: number; }' is not assignable to type '{ q?: number | undefined; }'.
+!!! error TS2322:   Property 'x' does not exist on type '{ q?: number | undefined; }'.
     
     interface Obj3type {
     	new(n: string): { x: number; };
     }
     var Obj3: Obj3type;
     <Obj3 x={10} />; // OK
+     ~~~~
+!!! error TS2454: Variable 'Obj3' is used before being assigned.
     

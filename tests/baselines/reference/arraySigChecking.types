@@ -67,7 +67,7 @@ function isEmpty(l: { length: number }) {
 isEmpty([]);
 >isEmpty([]) : boolean
 >isEmpty : (l: { length: number; }) => boolean
->[] : undefined[]
+>[] : never[]
 
 isEmpty(new Array(3));
 >isEmpty(new Array(3)) : boolean

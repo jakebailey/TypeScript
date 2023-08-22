@@ -18,7 +18,7 @@ async function f2(): Promise<void> {
 }
 
 async function f3(x) {
->f3 : (x: any) => Promise<number>
+>f3 : (x: any) => Promise<10 | undefined>
 >x : any
 
     if (x) return 10;

@@ -1,28 +1,40 @@
 typeParameterWithInvalidConstraintType.ts(1,19): error TS2313: Type parameter 'T' has a circular constraint.
+typeParameterWithInvalidConstraintType.ts(4,17): error TS2454: Variable 'x' is used before being assigned.
 typeParameterWithInvalidConstraintType.ts(4,19): error TS2339: Property 'foo' does not exist on type 'T'.
 typeParameterWithInvalidConstraintType.ts(5,21): error TS2351: This expression is not constructable.
-  Type '{}' has no construct signatures.
+  Type 'unknown' has no construct signatures.
+typeParameterWithInvalidConstraintType.ts(5,21): error TS2454: Variable 'x' is used before being assigned.
+typeParameterWithInvalidConstraintType.ts(6,17): error TS2454: Variable 'x' is used before being assigned.
 typeParameterWithInvalidConstraintType.ts(7,17): error TS2349: This expression is not callable.
-  Type '{}' has no call signatures.
+  Type 'unknown' has no call signatures.
+typeParameterWithInvalidConstraintType.ts(7,17): error TS2454: Variable 'x' is used before being assigned.
 
 
-==== typeParameterWithInvalidConstraintType.ts (4 errors) ====
+==== typeParameterWithInvalidConstraintType.ts (8 errors) ====
     class A<T extends T> {
                       ~
 !!! error TS2313: Type parameter 'T' has a circular constraint.
         foo() {
             var x: T;
             var a = x.foo();
+                    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
                       ~~~
 !!! error TS2339: Property 'foo' does not exist on type 'T'.
             var b = new x(123);
                         ~
 !!! error TS2351: This expression is not constructable.
-!!! error TS2351:   Type '{}' has no construct signatures.
+!!! error TS2351:   Type 'unknown' has no construct signatures.
+                        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
             var c = x[1];
+                    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
             var d = x();
                     ~
 !!! error TS2349: This expression is not callable.
-!!! error TS2349:   Type '{}' has no call signatures.
+!!! error TS2349:   Type 'unknown' has no call signatures.
+                    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
         }
     }

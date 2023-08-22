@@ -14,19 +14,19 @@ module TypeScript {
         }
 
         export var diagnosticWriter = null;
->diagnosticWriter : any
+>diagnosticWriter : null
 
         export function Alert(output: string) {
 >Alert : (output: string) => void
 >output : string
 
             if (diagnosticWriter) {
->diagnosticWriter : any
+>diagnosticWriter : null
 
                 diagnosticWriter.Alert(output);
 >diagnosticWriter.Alert(output) : any
 >diagnosticWriter.Alert : any
->diagnosticWriter : any
+>diagnosticWriter : never
 >Alert : any
 >output : string
             }

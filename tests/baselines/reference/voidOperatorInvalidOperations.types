@@ -12,7 +12,7 @@ var ANY = ANY void ;    //expect error
 
 // miss an operand
 var ANY1 = void ;
->ANY1 : any
+>ANY1 : undefined
 >void : undefined
 > : any
 

@@ -22,7 +22,7 @@ class NoBase {
 
     //super call in class accessor (get and set) with no base type
     get foo() {
->foo : any
+>foo : null
 
         super();
 >super() : void
@@ -31,8 +31,8 @@ class NoBase {
         return null;
     }
     set foo(v) {
->foo : any
->v : any
+>foo : null
+>v : null
 
         super();
 >super() : void
@@ -62,7 +62,7 @@ class NoBase {
 
     //super call in static class accessor (get and set) with no base type
     static get q() {
->q : any
+>q : null
 
         super();
 >super() : void
@@ -71,8 +71,8 @@ class NoBase {
         return null;
     }
     static set q(n) {
->q : any
->n : any
+>q : null
+>n : null
 
         super();
 >super() : void
@@ -129,7 +129,7 @@ class OtherDerived extends OtherBase {
 
     //super call in class accessor (get and set) of derived type
     get foo() {
->foo : any
+>foo : null
 
         super();
 >super() : void
@@ -138,8 +138,8 @@ class OtherDerived extends OtherBase {
         return null;
     }
     set foo(n) {
->foo : any
->n : any
+>foo : null
+>n : null
 
         super();
 >super() : void

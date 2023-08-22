@@ -11,11 +11,11 @@ const o1 = {
 }
 === O2.ts ===
 const o2 = {
->o2 : { f(): AsyncGenerator<any, void, unknown>; }
->{    async * f() {        const x = yield;    }} : { f(): AsyncGenerator<any, void, unknown>; }
+>o2 : { f(): AsyncGenerator<undefined, void, unknown>; }
+>{    async * f() {        const x = yield;    }} : { f(): AsyncGenerator<undefined, void, unknown>; }
 
     async * f() {
->f : () => AsyncGenerator<any, void, unknown>
+>f : () => AsyncGenerator<undefined, void, unknown>
 
         const x = yield;
 >x : any

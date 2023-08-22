@@ -1,7 +1,15 @@
+typeofOperatorWithNumberType.ts(18,30): error TS2454: Variable 'NUMBER' is used before being assigned.
+typeofOperatorWithNumberType.ts(32,32): error TS2454: Variable 'NUMBER' is used before being assigned.
+typeofOperatorWithNumberType.ts(32,41): error TS2454: Variable 'NUMBER' is used before being assigned.
+typeofOperatorWithNumberType.ts(35,38): error TS2454: Variable 'NUMBER' is used before being assigned.
+typeofOperatorWithNumberType.ts(36,46): error TS2454: Variable 'NUMBER' is used before being assigned.
+typeofOperatorWithNumberType.ts(36,55): error TS2454: Variable 'NUMBER' is used before being assigned.
+typeofOperatorWithNumberType.ts(40,8): error TS2454: Variable 'NUMBER' is used before being assigned.
 typeofOperatorWithNumberType.ts(45,1): error TS2695: Left side of comma operator is unused and has no side effects.
+typeofOperatorWithNumberType.ts(50,11): error TS2454: Variable 'NUMBER' is used before being assigned.
 
 
-==== typeofOperatorWithNumberType.ts (1 errors) ====
+==== typeofOperatorWithNumberType.ts (9 errors) ====
     // typeof  operator on number type
     var NUMBER: number;
     var NUMBER1: number[] = [1, 2];
@@ -20,6 +28,8 @@ typeofOperatorWithNumberType.ts(45,1): error TS2695: Left side of comma operator
     
     // number type var
     var ResultIsString1 = typeof NUMBER;
+                                 ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     var ResultIsString2 = typeof NUMBER1;
     
     // number type literal
@@ -34,14 +44,26 @@ typeofOperatorWithNumberType.ts(45,1): error TS2695: Left side of comma operator
     var ResultIsString9 = typeof foo();
     var ResultIsString10 = typeof A.foo();
     var ResultIsString11 = typeof (NUMBER + NUMBER);
+                                   ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
+                                            ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     
     // multiple typeof  operators
     var ResultIsString12 = typeof typeof NUMBER;
+                                         ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     var ResultIsString13 = typeof typeof typeof (NUMBER + NUMBER);
+                                                 ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
+                                                          ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     
     // miss assignment operators
     typeof 1;
     typeof NUMBER;
+           ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     typeof NUMBER1;
     typeof foo();
     typeof objA.a;
@@ -54,6 +76,8 @@ typeofOperatorWithNumberType.ts(45,1): error TS2695: Left side of comma operator
     var z: number;
     var x: number[];
     z: typeof NUMBER;
+              ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     x: typeof NUMBER1;
     r: typeof foo;
     var y = { a: 1, b: 2 };

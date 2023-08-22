@@ -39,7 +39,6 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.Class2 = void 0;
-var Class1_1 = require("./Class1");
 function decorate(target, propertyKey) {
 }
 var Class2 = /** @class */ (function () {

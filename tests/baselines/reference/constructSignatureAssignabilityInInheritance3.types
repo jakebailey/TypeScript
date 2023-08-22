@@ -91,7 +91,7 @@ module Errors {
 >a : number
 
                     new (a?: number): number;
->a : number
+>a : number | undefined
 
                 }): number[];
                 new (x: {
@@ -101,7 +101,7 @@ module Errors {
 >a : boolean
 
                     new (a?: boolean): boolean;
->a : boolean
+>a : boolean | undefined
 
                 }): boolean[];
             };

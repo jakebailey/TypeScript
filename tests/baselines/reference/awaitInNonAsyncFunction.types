@@ -8,8 +8,8 @@ function normalFunc(p: Promise<number>) {
 >p : Promise<number>
 
   for await (const _ of []);
->_ : any
->[] : undefined[]
+>_ : never
+>[] : never[]
 
   return await p;
 >await p : number
@@ -21,8 +21,8 @@ export function exportedFunc(p: Promise<number>) {
 >p : Promise<number>
 
   for await (const _ of []);
->_ : any
->[] : undefined[]
+>_ : never
+>[] : never[]
 
   return await p;
 >await p : number
@@ -35,8 +35,8 @@ const functionExpression = function(p: Promise<number>) {
 >p : Promise<number>
 
   for await (const _ of []);
->_ : any
->[] : undefined[]
+>_ : never
+>[] : never[]
 
   await p;
 >await p : number
@@ -49,8 +49,8 @@ const arrowFunc = (p: Promise<number>) => {
 >p : Promise<number>
 
   for await (const _ of []);
->_ : any
->[] : undefined[]
+>_ : never
+>[] : never[]
 
   return await p;
 >await p : number
@@ -63,8 +63,8 @@ function* generatorFunc(p: Promise<number>) {
 >p : Promise<number>
 
   for await (const _ of []);
->_ : any
->[] : undefined[]
+>_ : never
+>[] : never[]
 
   yield await p;
 >yield await p : any
@@ -79,8 +79,8 @@ class clazz {
 >p : Promise<number>
 
     for await (const _ of []);
->_ : any
->[] : undefined[]
+>_ : never
+>[] : never[]
 
     await p;
 >await p : number
@@ -91,8 +91,8 @@ class clazz {
 >p : Promise<number>
 
   for await (const _ of []);
->_ : any
->[] : undefined[]
+>_ : never
+>[] : never[]
 
     await p;
 >await p : number
@@ -101,8 +101,8 @@ class clazz {
 }
 
 for await (const _ of []);
->_ : any
->[] : undefined[]
+>_ : never
+>[] : never[]
 
 await null;
 >await null : null

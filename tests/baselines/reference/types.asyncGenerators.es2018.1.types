@@ -5,7 +5,7 @@ async function * inferReturnType1() {
 >inferReturnType1 : () => AsyncGenerator<never, void, unknown>
 }
 async function * inferReturnType2() {
->inferReturnType2 : () => AsyncGenerator<any, void, unknown>
+>inferReturnType2 : () => AsyncGenerator<undefined, void, unknown>
 
     yield;
 >yield : any
@@ -438,7 +438,7 @@ async function * nextType1(): { next(...args: [] | [number | PromiseLike<number>
 >args : [] | [number | PromiseLike<number>]
 
     const x = yield; // `number | PromiseLike<number>` (should not await TNext)
->x : number | PromiseLike<number>
->yield : number | PromiseLike<number>
+>x : number | PromiseLike<number> | undefined
+>yield : number | PromiseLike<number> | undefined
 }
 

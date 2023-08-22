@@ -1,8 +1,10 @@
+genericCallWithOverloadedFunctionTypedArguments2.ts(14,54): error TS2454: Variable 'r' is used before being assigned.
 genericCallWithOverloadedFunctionTypedArguments2.ts(28,20): error TS2345: Argument of type '<T>(x: T, y: T) => string' is not assignable to parameter of type '{ (x: unknown): string; (x: unknown, y?: unknown): string; }'.
   Target signature provides too few arguments. Expected 2 or more, but got 1.
+genericCallWithOverloadedFunctionTypedArguments2.ts(36,23): error TS2454: Variable 'a' is used before being assigned.
 
 
-==== genericCallWithOverloadedFunctionTypedArguments2.ts (1 errors) ====
+==== genericCallWithOverloadedFunctionTypedArguments2.ts (3 errors) ====
     // Function typed arguments with multiple signatures must be passed an implementation that matches all of them
     // Inferences are made quadratic-pairwise to and from these overload sets
     
@@ -17,6 +19,8 @@ genericCallWithOverloadedFunctionTypedArguments2.ts(28,20): error TS2345: Argume
         }
     
         var r3 = foo4(<T, U>(x: T) => { var r: U; return r }); // ok
+                                                         ~
+!!! error TS2454: Variable 'r' is used before being assigned.
     }
     
     module GenericParameter {
@@ -42,4 +46,6 @@ genericCallWithOverloadedFunctionTypedArguments2.ts(28,20): error TS2345: Argume
         var r13 = foo7(1, <T>(x: T) => x); // ok
         var a: { <T>(x: T): number; <T>(x: number): T; }
         var r14 = foo7(1, a); // ok
+                          ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     }

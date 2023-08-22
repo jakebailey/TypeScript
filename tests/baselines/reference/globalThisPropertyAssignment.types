@@ -3,9 +3,9 @@
 === globalThisPropertyAssignment.js ===
 this.x = 1
 >this.x = 1 : 1
->this.x : number
+>this.x : number | undefined
 >this : typeof globalThis
->x : number
+>x : number | undefined
 >1 : 1
 
 var y = 2

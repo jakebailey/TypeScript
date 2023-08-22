@@ -21,8 +21,8 @@ var r = foo(1); // ok
 >1 : 1
 
 var r2 = foo(null); // {}
->r2 : any
->foo(null) : any
+>r2 : null
+>foo(null) : null
 >foo : <T, U extends T>(t: T) => U
 
 var r3 = foo(new Object()); // {}

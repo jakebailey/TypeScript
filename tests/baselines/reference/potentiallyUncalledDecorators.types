@@ -4,13 +4,13 @@
 // Angular-style Input/Output API:
 declare function Input(bindingPropertyName?: string): any;
 >Input : (bindingPropertyName?: string) => any
->bindingPropertyName : string
+>bindingPropertyName : string | undefined
 
 class FooComponent {
 >FooComponent : FooComponent
 
     @Input foo: string;
->Input : (bindingPropertyName?: string) => any
+>Input : (bindingPropertyName?: string | undefined) => any
 >foo : string
 }
 

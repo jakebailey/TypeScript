@@ -5,13 +5,13 @@ declare let doSomething;
 >doSomething : any
 
 for (let a1 of [])
->a1 : any
->[] : undefined[]
+>a1 : never
+>[] : never[]
 
     for (let a2 of a1.someArray)
 >a2 : any
 >a1.someArray : any
->a1 : any
+>a1 : never
 >someArray : any
 
         doSomething(() => a2);

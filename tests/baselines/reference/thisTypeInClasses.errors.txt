@@ -1,0 +1,68 @@
+thisTypeInClasses.ts(3,24): error TS2322: Type 'undefined' is not assignable to type 'this'.
+  'this' could be instantiated with an arbitrary type which could be unrelated to 'undefined'.
+thisTypeInClasses.ts(46,18): error TS2352: Conversion of type 'undefined' to type 'this' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  'this' could be instantiated with an arbitrary type which could be unrelated to 'undefined'.
+thisTypeInClasses.ts(47,18): error TS2352: Conversion of type 'undefined' to type 'this' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  'this' could be instantiated with an arbitrary type which could be unrelated to 'undefined'.
+
+
+==== thisTypeInClasses.ts (3 errors) ====
+    class C1 {
+        x: this;
+        f(x: this): this { return undefined; }
+                           ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'this'.
+!!! error TS2322:   'this' could be instantiated with an arbitrary type which could be unrelated to 'undefined'.
+    }
+    
+    class C2 {
+        [x: string]: this;
+    }
+    
+    interface Foo<T> {
+        x: T;
+        y: this;
+    }
+    
+    class C3 {
+        a: this[];
+        b: [this, this];
+        c: this | Date;
+        d: this & Date;
+        e: (((this)));
+        f: (x: this) => this;
+        g: new (x: this) => this;
+        h: Foo<this>;
+        i: Foo<this | (() => this)>;
+        j: (x: any) => x is this;
+    }
+    
+    declare class C4 {
+        x: this;
+        f(x: this): this;
+    }
+    
+    class C5 {
+        foo() {
+            let f1 = (x: this): this => this;
+            let f2 = (x: this) => this;
+            let f3 = (x: this) => (y: this) => this;
+            let f4 = (x: this) => {
+                let g = (y: this) => {
+                    return () => this;
+                }
+                return g(this);
+            }
+        }
+        bar() {
+            let x1 = <this>undefined;
+                     ~~~~~~~~~~~~~~~
+!!! error TS2352: Conversion of type 'undefined' to type 'this' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+!!! error TS2352:   'this' could be instantiated with an arbitrary type which could be unrelated to 'undefined'.
+            let x2 = undefined as this;
+                     ~~~~~~~~~~~~~~~~~
+!!! error TS2352: Conversion of type 'undefined' to type 'this' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+!!! error TS2352:   'this' could be instantiated with an arbitrary type which could be unrelated to 'undefined'.
+        }
+    }
+    

@@ -46,13 +46,13 @@ if (typeof strOrNumOrBool !== "string" && typeof strOrNumOrBool !== "number") {
 >"string" : "string"
 >typeof strOrNumOrBool !== "number" : boolean
 >typeof strOrNumOrBool : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
->strOrNumOrBool : number | boolean
+>strOrNumOrBool : string | number | boolean
 >"number" : "number"
 
     bool = strOrNumOrBool; // boolean
->bool = strOrNumOrBool : boolean
+>bool = strOrNumOrBool : string | number | boolean
 >bool : boolean
->strOrNumOrBool : boolean
+>strOrNumOrBool : string | number | boolean
 }
 else {
     strOrNum = strOrNumOrBool; // string | number
@@ -70,17 +70,17 @@ if (typeof strOrNumOrBoolOrC !== "string" && typeof strOrNumOrBoolOrC !== "numbe
 >"string" : "string"
 >typeof strOrNumOrBoolOrC !== "number" : boolean
 >typeof strOrNumOrBoolOrC : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
->strOrNumOrBoolOrC : number | boolean | C
+>strOrNumOrBoolOrC : string | number | boolean | C
 >"number" : "number"
 >typeof strOrNumOrBoolOrC !== "boolean" : boolean
 >typeof strOrNumOrBoolOrC : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
->strOrNumOrBoolOrC : boolean | C
+>strOrNumOrBoolOrC : string | number | boolean | C
 >"boolean" : "boolean"
 
     c = strOrNumOrBoolOrC; // C
->c = strOrNumOrBoolOrC : C
+>c = strOrNumOrBoolOrC : string | number | boolean | C
 >c : C
->strOrNumOrBoolOrC : C
+>strOrNumOrBoolOrC : string | number | boolean | C
 }
 else {
     strOrNumOrBool = strOrNumOrBoolOrC; // string | number | boolean
@@ -98,7 +98,7 @@ if (typeof strOrNumOrBoolOrC !== "string" && typeof strOrNumOrBoolOrC !== "numbe
 >"string" : "string"
 >typeof strOrNumOrBoolOrC !== "number" : boolean
 >typeof strOrNumOrBoolOrC : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
->strOrNumOrBoolOrC : number | boolean | C
+>strOrNumOrBoolOrC : string | number | boolean | C
 >"number" : "number"
 >typeof strOrNumOrBool === "boolean" : boolean
 >typeof strOrNumOrBool : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
@@ -106,9 +106,9 @@ if (typeof strOrNumOrBoolOrC !== "string" && typeof strOrNumOrBoolOrC !== "numbe
 >"boolean" : "boolean"
 
     cOrBool = strOrNumOrBoolOrC; // C | boolean
->cOrBool = strOrNumOrBoolOrC : boolean | C
+>cOrBool = strOrNumOrBoolOrC : string | number | boolean | C
 >cOrBool : boolean | C
->strOrNumOrBoolOrC : boolean | C
+>strOrNumOrBoolOrC : string | number | boolean | C
 
     bool = strOrNumOrBool; // boolean
 >bool = strOrNumOrBool : boolean
@@ -133,12 +133,12 @@ if (typeof strOrNumOrBool !== "string" && numOrBool !== strOrNumOrBool) {
 >"string" : "string"
 >numOrBool !== strOrNumOrBool : boolean
 >numOrBool : number | boolean
->strOrNumOrBool : number | boolean
+>strOrNumOrBool : string | number | boolean
 
     numOrBool = strOrNumOrBool; // number | boolean
->numOrBool = strOrNumOrBool : number | boolean
+>numOrBool = strOrNumOrBool : string | number | boolean
 >numOrBool : number | boolean
->strOrNumOrBool : number | boolean
+>strOrNumOrBool : string | number | boolean
 }
 else {
     var r3: string | number | boolean = strOrNumOrBool; // string | number | boolean

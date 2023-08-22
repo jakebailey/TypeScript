@@ -383,13 +383,13 @@ module TypeScript {
 >instanceType : Type
 
                     signature.returnType.type = instanceType;
->signature.returnType.type = instanceType : Type
+>signature.returnType.type = instanceType : any
 >signature.returnType.type : any
 >signature.returnType : any
 >signature : any
 >returnType : any
 >type : any
->instanceType : Type
+>instanceType : any
                 }
                 else {
                     this.checker.resolveTypeLink(scope, signature.returnType, supplyVar);
@@ -526,7 +526,7 @@ module TypeScript {
 >this : this
 >bindType : (scope: SymbolScope, type: Type, instanceType: Type) => void
 >scope : SymbolScope
->instanceType : Type
+>instanceType : any
             }
             if (type.hasMembers()) {
 >type.hasMembers() : any
@@ -807,8 +807,8 @@ module TypeScript {
 >locationInfo : any
 
                 if ((this.checker.units) && (symbol.unitIndex >= 0) && (symbol.unitIndex < this.checker.units.length)) {
->(this.checker.units) && (symbol.unitIndex >= 0) && (symbol.unitIndex < this.checker.units.length) : boolean
->(this.checker.units) && (symbol.unitIndex >= 0) : boolean
+>(this.checker.units) && (symbol.unitIndex >= 0) && (symbol.unitIndex < this.checker.units.length) : any
+>(this.checker.units) && (symbol.unitIndex >= 0) : any
 >(this.checker.units) : any
 >this.checker.units : any
 >this.checker : TypeChecker
@@ -894,8 +894,8 @@ module TypeScript {
                         // Note that we'll also want to do this in resolveTypeMembers, in case the symbol is set outside the
                         // context of a given module  (E.g., an outer import statement)
                         if (typeSymbol.aliasLink && !typeSymbol.type && typeSymbol.aliasLink.alias.nodeType == NodeType.Name) {
->typeSymbol.aliasLink && !typeSymbol.type && typeSymbol.aliasLink.alias.nodeType == NodeType.Name : boolean
->typeSymbol.aliasLink && !typeSymbol.type : boolean
+>typeSymbol.aliasLink && !typeSymbol.type && typeSymbol.aliasLink.alias.nodeType == NodeType.Name : any
+>typeSymbol.aliasLink && !typeSymbol.type : any
 >typeSymbol.aliasLink : any
 >typeSymbol : TypeSymbol
 >aliasLink : any
@@ -969,7 +969,7 @@ module TypeScript {
                         }
 
                         if (typeSymbol.type && typeSymbol.type != this.checker.gloModType) {
->typeSymbol.type && typeSymbol.type != this.checker.gloModType : boolean
+>typeSymbol.type && typeSymbol.type != this.checker.gloModType : any
 >typeSymbol.type : any
 >typeSymbol : TypeSymbol
 >type : any

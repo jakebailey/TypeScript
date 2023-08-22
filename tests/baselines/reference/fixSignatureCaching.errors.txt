@@ -7,6 +7,7 @@ fixSignatureCaching.ts(301,17): error TS2339: Property 'isArray' does not exist 
 fixSignatureCaching.ts(330,74): error TS2339: Property 'mobileDetectRules' does not exist on type '{}'.
 fixSignatureCaching.ts(369,10): error TS2339: Property 'findMatch' does not exist on type '{}'.
 fixSignatureCaching.ts(387,10): error TS2339: Property 'findMatches' does not exist on type '{}'.
+fixSignatureCaching.ts(392,33): error TS2345: Argument of type 'string' is not assignable to parameter of type 'never'.
 fixSignatureCaching.ts(407,10): error TS2339: Property 'getVersionStr' does not exist on type '{}'.
 fixSignatureCaching.ts(408,26): error TS2339: Property 'mobileDetectRules' does not exist on type '{}'.
 fixSignatureCaching.ts(431,10): error TS2339: Property 'getVersion' does not exist on type '{}'.
@@ -50,6 +51,8 @@ fixSignatureCaching.ts(915,36): error TS2339: Property 'findMatches' does not ex
 fixSignatureCaching.ts(915,53): error TS2339: Property 'mobileDetectRules' does not exist on type '{}'.
 fixSignatureCaching.ts(955,42): error TS2339: Property 'mobileGrade' does not exist on type '{}'.
 fixSignatureCaching.ts(964,57): error TS2339: Property 'getDeviceSmallerSide' does not exist on type '{}'.
+fixSignatureCaching.ts(967,9): error TS2322: Type '() => void' is not assignable to type '(maxPhoneWidth: any) => boolean | undefined'.
+  Type 'void' is not assignable to type 'boolean | undefined'.
 fixSignatureCaching.ts(978,16): error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
 fixSignatureCaching.ts(978,42): error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
 fixSignatureCaching.ts(979,37): error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
@@ -59,7 +62,7 @@ fixSignatureCaching.ts(981,16): error TS2304: Cannot find name 'define'.
 fixSignatureCaching.ts(983,44): error TS2339: Property 'MobileDetect' does not exist on type 'Window & typeof globalThis'.
 
 
-==== fixSignatureCaching.ts (59 errors) ====
+==== fixSignatureCaching.ts (61 errors) ====
     // Repro from #10697
     
     (function (define, undefined) {
@@ -470,6 +473,8 @@ fixSignatureCaching.ts(983,44): error TS2339: Property 'MobileDetect' does not e
                 if (hasOwnProp.call(rules, key)) {
                     if (rules[key].test(userAgent)) {
                         result.push(key);
+                                    ~~~
+!!! error TS2345: Argument of type 'string' is not assignable to parameter of type 'never'.
                     }
                 }
             }
@@ -1131,6 +1136,9 @@ fixSignatureCaching.ts(983,44): error TS2339: Property 'MobileDetect' does not e
             };
         } else {
             MobileDetect.isPhoneSized = function () {};
+            ~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type '() => void' is not assignable to type '(maxPhoneWidth: any) => boolean | undefined'.
+!!! error TS2322:   Type 'void' is not assignable to type 'boolean | undefined'.
         }
     
         // should not be replaced by a completely new object - just overwrite existing methods

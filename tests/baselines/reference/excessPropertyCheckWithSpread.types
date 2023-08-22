@@ -23,7 +23,7 @@ f({ a: 1, ...i });
 
 interface R {
     opt?: number
->opt : number
+>opt : number | undefined
 }
 interface L {
     opt: string

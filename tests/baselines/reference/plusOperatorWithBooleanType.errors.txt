@@ -1,7 +1,9 @@
+plusOperatorWithBooleanType.ts(17,24): error TS2454: Variable 'BOOLEAN' is used before being assigned.
+plusOperatorWithBooleanType.ts(31,2): error TS2454: Variable 'BOOLEAN' is used before being assigned.
 plusOperatorWithBooleanType.ts(33,1): error TS2695: Left side of comma operator is unused and has no side effects.
 
 
-==== plusOperatorWithBooleanType.ts (1 errors) ====
+==== plusOperatorWithBooleanType.ts (3 errors) ====
     // + operator on boolean type
     var BOOLEAN: boolean;
     
@@ -19,6 +21,8 @@ plusOperatorWithBooleanType.ts(33,1): error TS2695: Left side of comma operator 
     
     // boolean type var
     var ResultIsNumber1 = +BOOLEAN;
+                           ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
     
     // boolean type literal
     var ResultIsNumber2 = +true;
@@ -33,6 +37,8 @@ plusOperatorWithBooleanType.ts(33,1): error TS2695: Left side of comma operator 
     // miss assignment operators
     +true;
     +BOOLEAN;
+     ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
     +foo();
     +true, false;
     ~~~~~

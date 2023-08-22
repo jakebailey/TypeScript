@@ -13,7 +13,7 @@ import { Foo } from "./a";
 
 const Decorator: ClassDecorator = () => undefined;
 >Decorator : ClassDecorator
->() => undefined : () => any
+>() => undefined : () => undefined
 >undefined : undefined
 
 @Decorator

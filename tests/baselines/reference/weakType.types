@@ -3,10 +3,10 @@
 === weakType.ts ===
 interface Settings {
     timeout?: number;
->timeout : number
+>timeout : number | undefined
 
     onError?(): void;
->onError : () => void
+>onError : (() => void) | undefined
 }
 
 function getDefaultSettings() {
@@ -65,22 +65,22 @@ doSomething(false);
 // this is an oddly popular way of defining settings
 // this example is from services/textChanges.ts
 type ConfigurableStart = { useStart?: boolean }
->ConfigurableStart : { useStart?: boolean; }
->useStart : boolean
+>ConfigurableStart : { useStart?: boolean | undefined; }
+>useStart : boolean | undefined
 
 type ConfigurableEnd = { useEnd?: boolean }
->ConfigurableEnd : { useEnd?: boolean; }
->useEnd : boolean
+>ConfigurableEnd : { useEnd?: boolean | undefined; }
+>useEnd : boolean | undefined
 
 type ConfigurableStartEnd = ConfigurableStart & ConfigurableEnd
 >ConfigurableStartEnd : ConfigurableStart & ConfigurableEnd
 
 interface InsertOptions {
     prefix?: string
->prefix : string
+>prefix : string | undefined
 
     suffix?: string
->suffix : string
+>suffix : string | undefined
 }
 type ChangeOptions = ConfigurableStartEnd & InsertOptions;
 >ChangeOptions : ConfigurableStart & ConfigurableEnd & InsertOptions
@@ -91,8 +91,8 @@ function del(options: ConfigurableStartEnd = {},
 >{} : {}
 
              error: { error?: number } = {}) {
->error : { error?: number; }
->error : number
+>error : { error?: number | undefined; }
+>error : number | undefined
 >{} : {}
 
     let changes: ChangeOptions[];
@@ -110,7 +110,7 @@ function del(options: ConfigurableStartEnd = {},
 >changes.push : (...items: ChangeOptions[]) => number
 >changes : ChangeOptions[]
 >push : (...items: ChangeOptions[]) => number
->error : { error?: number; }
+>error : { error?: number | undefined; }
 }
 
 class K {
@@ -125,27 +125,27 @@ interface Ctor {
 >s : string
 
     n?: number
->n : number
+>n : number | undefined
 }
 let ctor: Ctor = K
 >ctor : Ctor
 >K : typeof K
 
 type Spoiler = { nope?: string }
->Spoiler : { nope?: string; }
->nope : string
+>Spoiler : { nope?: string | undefined; }
+>nope : string | undefined
 
 type Weak = {
->Weak : { a?: number; properties?: {    b?: number;}; }
+>Weak : { a?: number | undefined; properties?: { b?: number | undefined; } | undefined; }
 
     a?: number
->a : number
+>a : number | undefined
 
     properties?: {
->properties : { b?: number; }
+>properties : { b?: number | undefined; } | undefined
 
         b?: number
->b : number
+>b : number | undefined
     }
 }
 declare let propertiesWrong: {

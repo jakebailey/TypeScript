@@ -14,11 +14,13 @@ extendedEscapesForAstralsInVarsAndClasses.ts(9,8): error TS1128: Declaration or 
 extendedEscapesForAstralsInVarsAndClasses.ts(12,5): error TS1127: Invalid character.
 extendedEscapesForAstralsInVarsAndClasses.ts(12,6): error TS1434: Unexpected keyword or identifier.
 extendedEscapesForAstralsInVarsAndClasses.ts(12,11): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+extendedEscapesForAstralsInVarsAndClasses.ts(12,11): error TS2454: Variable 'A7' is used before being assigned.
 extendedEscapesForAstralsInVarsAndClasses.ts(12,15): error TS2809: Declaration or statement expected. This '=' follows a block of statements, so if you intended to write a destructuring assignment, you might need to wrap the whole assignment in parentheses.
 extendedEscapesForAstralsInVarsAndClasses.ts(16,5): error TS1127: Invalid character.
 extendedEscapesForAstralsInVarsAndClasses.ts(16,6): error TS1434: Unexpected keyword or identifier.
 extendedEscapesForAstralsInVarsAndClasses.ts(16,7): error TS1068: Unexpected token. A constructor, method, accessor, or property was expected.
 extendedEscapesForAstralsInVarsAndClasses.ts(16,11): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+extendedEscapesForAstralsInVarsAndClasses.ts(16,11): error TS2454: Variable 'A7' is used before being assigned.
 extendedEscapesForAstralsInVarsAndClasses.ts(16,14): error TS1128: Declaration or statement expected.
 extendedEscapesForAstralsInVarsAndClasses.ts(17,5): error TS2304: Cannot find name 'constructor'.
 extendedEscapesForAstralsInVarsAndClasses.ts(17,19): error TS1005: ';' expected.
@@ -26,6 +28,7 @@ extendedEscapesForAstralsInVarsAndClasses.ts(18,9): error TS2532: Object is poss
 extendedEscapesForAstralsInVarsAndClasses.ts(18,14): error TS1127: Invalid character.
 extendedEscapesForAstralsInVarsAndClasses.ts(18,15): error TS1434: Unexpected keyword or identifier.
 extendedEscapesForAstralsInVarsAndClasses.ts(18,20): error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+extendedEscapesForAstralsInVarsAndClasses.ts(18,20): error TS2454: Variable 'A7' is used before being assigned.
 extendedEscapesForAstralsInVarsAndClasses.ts(18,24): error TS2809: Declaration or statement expected. This '=' follows a block of statements, so if you intended to write a destructuring assignment, you might need to wrap the whole assignment in parentheses.
 extendedEscapesForAstralsInVarsAndClasses.ts(20,5): error TS2304: Cannot find name 'methodA'.
 extendedEscapesForAstralsInVarsAndClasses.ts(20,15): error TS1005: ';' expected.
@@ -44,7 +47,7 @@ extendedEscapesForAstralsInVarsAndClasses.ts(27,8): error TS1351: An identifier 
 extendedEscapesForAstralsInVarsAndClasses.ts(27,12): error TS1128: Declaration or statement expected.
 
 
-==== extendedEscapesForAstralsInVarsAndClasses.ts (38 errors) ====
+==== extendedEscapesForAstralsInVarsAndClasses.ts (41 errors) ====
     // Example from https://mathiasbynens.be/notes/javascript-identifiers-es6
     // Astral characters should be accepted in ES2015
     
@@ -77,6 +80,8 @@ extendedEscapesForAstralsInVarsAndClasses.ts(27,12): error TS1128: Declaration o
 !!! error TS1434: Unexpected keyword or identifier.
               ~~
 !!! error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+              ~~
+!!! error TS2454: Variable 'A7' is used before being assigned.
                   ~
 !!! error TS2809: Declaration or statement expected. This '=' follows a block of statements, so if you intended to write a destructuring assignment, you might need to wrap the whole assignment in parentheses.
     }
@@ -91,6 +96,8 @@ extendedEscapesForAstralsInVarsAndClasses.ts(27,12): error TS1128: Declaration o
 !!! error TS1068: Unexpected token. A constructor, method, accessor, or property was expected.
               ~~
 !!! error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+              ~~
+!!! error TS2454: Variable 'A7' is used before being assigned.
                  ~
 !!! error TS1128: Declaration or statement expected.
         constructor() {
@@ -107,6 +114,8 @@ extendedEscapesForAstralsInVarsAndClasses.ts(27,12): error TS1128: Declaration o
 !!! error TS1434: Unexpected keyword or identifier.
                        ~~
 !!! error TS1351: An identifier or keyword cannot immediately follow a numeric literal.
+                       ~~
+!!! error TS2454: Variable 'A7' is used before being assigned.
                            ~
 !!! error TS2809: Declaration or statement expected. This '=' follows a block of statements, so if you intended to write a destructuring assignment, you might need to wrap the whole assignment in parentheses.
         }

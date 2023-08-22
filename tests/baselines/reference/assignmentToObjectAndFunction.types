@@ -48,7 +48,7 @@ module bar {
     export function apply(thisArg: string, argArray?: string) { }
 >apply : (thisArg: string, argArray?: string) => void
 >thisArg : string
->argArray : string
+>argArray : string | undefined
 }
 
 var goodFundule2: Function = bar; // ok

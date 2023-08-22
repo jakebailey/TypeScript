@@ -1,7 +1,8 @@
+templateTagOnConstructorFunctions.js(11,10): error TS2565: Property 'u' is used before being assigned.
 templateTagOnConstructorFunctions.js(24,1): error TS2322: Type 'boolean' is not assignable to type 'number'.
 
 
-==== templateTagOnConstructorFunctions.js (1 errors) ====
+==== templateTagOnConstructorFunctions.js (2 errors) ====
     /**
      * @template U
      * @typedef {(u: U) => U} Id
@@ -13,6 +14,8 @@ templateTagOnConstructorFunctions.js(24,1): error TS2322: Type 'boolean' is not 
     function Zet(t) {
         /** @type {T} */
         this.u
+             ~
+!!! error TS2565: Property 'u' is used before being assigned.
         this.t = t
     }
     /**

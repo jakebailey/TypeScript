@@ -25,14 +25,14 @@ var objStrOrNum1: { prop: string } | { prop: number } = objStr || objNum;
 >objStrOrNum1 : { prop: string; } | { prop: number; }
 >prop : string
 >prop : number
->objStr || objNum : { prop: string; } | { prop: number; }
+>objStr || objNum : { prop: string; }
 >objStr : { prop: string; }
 >objNum : { prop: number; }
 
 var objStrOrNum2: { prop: string | number } = objStr || objNum;
 >objStrOrNum2 : { prop: string | number; }
 >prop : string | number
->objStr || objNum : { prop: string; } | { prop: number; }
+>objStr || objNum : { prop: string; }
 >objStr : { prop: string; }
 >objNum : { prop: number; }
 

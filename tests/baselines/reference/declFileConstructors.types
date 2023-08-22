@@ -36,9 +36,9 @@ export class ConstructorWithRestParamters {
 >a + rests.join("") : string
 >a : string
 >rests.join("") : string
->rests.join : (separator?: string) => string
+>rests.join : (separator?: string | undefined) => string
 >rests : string[]
->join : (separator?: string) => string
+>join : (separator?: string | undefined) => string
 >"" : ""
     }
 }
@@ -77,7 +77,7 @@ export class ConstructorWithOptionalParameterProperty {
 >ConstructorWithOptionalParameterProperty : ConstructorWithOptionalParameterProperty
 
     constructor(public x?: string) {
->x : string
+>x : string | undefined
     }
 }
 
@@ -126,9 +126,9 @@ class GlobalConstructorWithRestParamters {
 >a + rests.join("") : string
 >a : string
 >rests.join("") : string
->rests.join : (separator?: string) => string
+>rests.join : (separator?: string | undefined) => string
 >rests : string[]
->join : (separator?: string) => string
+>join : (separator?: string | undefined) => string
 >"" : ""
     }
 }
@@ -167,7 +167,7 @@ class GlobalConstructorWithOptionalParameterProperty {
 >GlobalConstructorWithOptionalParameterProperty : GlobalConstructorWithOptionalParameterProperty
 
     constructor(public x?: string) {
->x : string
+>x : string | undefined
     }
 }
 

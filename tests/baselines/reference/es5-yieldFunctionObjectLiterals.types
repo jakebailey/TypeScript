@@ -134,7 +134,7 @@ function* objectLiteral5() {
 }
 
 function* objectLiteral6() {
->objectLiteral6 : () => Generator<any, void, unknown>
+>objectLiteral6 : () => Generator<undefined, void, unknown>
 
     const x = {
 >x : { [x: number]: number; a: number; c: number; }
@@ -156,7 +156,7 @@ function* objectLiteral6() {
 }
 
 function* objectLiteral7() {
->objectLiteral7 : () => Generator<number, void, unknown>
+>objectLiteral7 : () => Generator<2 | undefined, void, unknown>
 
     const x = {
 >x : { [x: number]: any; a: number; c: number; }

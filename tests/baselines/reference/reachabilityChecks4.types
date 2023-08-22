@@ -2,7 +2,7 @@
 
 === reachabilityChecks4.ts ===
 function foo(x, y) {
->foo : (x: any, y: any) => 1 | 2 | 3
+>foo : (x: any, y: any) => 1 | 2 | 3 | undefined
 >x : any
 >y : any
 
@@ -106,25 +106,25 @@ function f2(transition: Transition): any {
 >'LEFT' : "LEFT"
 
                     return []
->[] : undefined[]
+>[] : never[]
 
                 case 'RIGHT':
 >'RIGHT' : "RIGHT"
 
                     return []
->[] : undefined[]
+>[] : never[]
 
                 case 'TOP':
 >'TOP' : "TOP"
 
                     return []
->[] : undefined[]
+>[] : never[]
 
                 case 'BOTTOM':
 >'BOTTOM' : "BOTTOM"
 
                     return []
->[] : undefined[]
+>[] : never[]
             }
         case 'SLIDE_OUT':
 >'SLIDE_OUT' : "SLIDE_OUT"
@@ -138,25 +138,25 @@ function f2(transition: Transition): any {
 >'LEFT' : "LEFT"
 
                     return []
->[] : undefined[]
+>[] : never[]
 
                 case 'RIGHT':
 >'RIGHT' : "RIGHT"
 
                     return []
->[] : undefined[]
+>[] : never[]
 
                 case 'TOP':
 >'TOP' : "TOP"
 
                     return []
->[] : undefined[]
+>[] : never[]
 
                 case 'BOTTOM':
 >'BOTTOM' : "BOTTOM"
 
                     return []
->[] : undefined[]
+>[] : never[]
             }
     }
 }

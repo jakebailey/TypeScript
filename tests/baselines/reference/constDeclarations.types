@@ -15,7 +15,7 @@ const c3 = 0, c4 :string = "", c5 = null;
 >0 : 0
 >c4 : string
 >"" : ""
->c5 : any
+>c5 : null
 
 
 for(const c4 = 0; c4 < 9; ) { break; }

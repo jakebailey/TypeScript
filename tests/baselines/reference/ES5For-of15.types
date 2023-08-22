@@ -2,18 +2,18 @@
 
 === ES5For-of15.ts ===
 for (let v of []) {
->v : any
->[] : undefined[]
+>v : never
+>[] : never[]
 
     v;
->v : any
+>v : never
 
     for (const v of []) {
->v : any
->[] : undefined[]
+>v : never
+>[] : never[]
 
         var x = v;
->x : any
->v : any
+>x : never
+>v : never
     }
 }

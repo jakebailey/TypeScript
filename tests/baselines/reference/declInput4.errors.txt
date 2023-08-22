@@ -1,0 +1,24 @@
+declInput4.ts(11,28): error TS2322: Type 'null' is not assignable to type 'E'.
+declInput4.ts(12,29): error TS2322: Type 'null' is not assignable to type 'I1'.
+
+
+==== declInput4.ts (2 errors) ====
+    module M {
+        class C { }
+        export class E {}
+        export interface I1 {}
+        interface I2 {}
+        export class D {
+            public m1: number;
+            public m2: string;
+            public m23: E;
+            public m24: I1;
+            public m232(): E { return null;}
+                               ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'E'.
+            public m242(): I1 { return null; }
+                                ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'I1'.
+            public m26(i:I1) {}
+        }
+    }

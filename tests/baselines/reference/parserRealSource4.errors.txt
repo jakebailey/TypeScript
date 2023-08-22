@@ -1,8 +1,12 @@
 parserRealSource4.ts(4,21): error TS6053: File 'typescript.ts' not found.
+parserRealSource4.ts(19,13): error TS2322: Type 'undefined' is not assignable to type 'Function'.
 parserRealSource4.ts(195,38): error TS1011: An element access expression should take an argument.
+parserRealSource4.ts(226,17): error TS2322: Type 'null' is not assignable to type 'HashEntry'.
+parserRealSource4.ts(288,13): error TS2322: Type 'any' is not assignable to type 'never'.
+parserRealSource4.ts(289,13): error TS2322: Type 'any' is not assignable to type 'never'.
 
 
-==== parserRealSource4.ts (2 errors) ====
+==== parserRealSource4.ts (6 errors) ====
     // Copyright (c) Microsoft. All rights reserved. Licensed under the Apache License, Version 2.0. 
     // See LICENSE.txt in the project root for complete license information.
     
@@ -24,6 +28,8 @@ parserRealSource4.ts(195,38): error TS1011: An element access expression should 
             constructor () {
                 // initialize the 'constructor' field
                 this["constructor"] = undefined;
+                ~~~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'Function'.
             }
         }
     
@@ -233,6 +239,8 @@ parserRealSource4.ts(195,38): error TS1011: An element access expression should 
                 val = val % this.size;
                 var result = null;
                 var prevEntry: HashEntry = null;
+                    ~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'HashEntry'.
     
                 for (current = this.table[val]; current != null ; current = current.next) {
                     if (this.equalsFn(key, current.key)) {
@@ -295,7 +303,11 @@ parserRealSource4.ts(195,38): error TS1011: An element access expression should 
                 }
     
                 this.keys[this.keys.length] = key;
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type 'any' is not assignable to type 'never'.
                 this.values[this.values.length] = data;
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type 'any' is not assignable to type 'never'.
     
                 return true;
             }

@@ -21,10 +21,10 @@ class B extends A {
 >simple : () => Promise<void>
 
         const _super = null;
->_super : any
+>_super : null
 
         const _superIndex = null;
->_superIndex : any
+>_superIndex : null
 
         // call with property access
         super.x();
@@ -67,10 +67,10 @@ class B extends A {
 >advanced : () => Promise<void>
 
         const _super = null;
->_super : any
+>_super : null
 
         const _superIndex = null;
->_superIndex : any
+>_superIndex : null
 
         const f = () => {};
 >f : () => void

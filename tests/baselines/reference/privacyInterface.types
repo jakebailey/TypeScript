@@ -51,10 +51,10 @@ export module m1 {
 >y : C2_private
 
         a?: C1_public;
->a : C1_public
+>a : C1_public | undefined
 
         b?: C2_private;
->b : C2_private
+>b : C2_private | undefined
 
         f1(a1: C1_public);
 >f1 : (a1: C1_public) => any
@@ -106,10 +106,10 @@ export module m1 {
 >y : C2_private
 
         a?: C1_public;
->a : C1_public
+>a : C1_public | undefined
 
         b?: C2_private;
->b : C2_private
+>b : C2_private | undefined
 
         f1(a1: C1_public);
 >f1 : (a1: C1_public) => any
@@ -179,10 +179,10 @@ module m2 {
 >y : C2_private
 
         a?: C1_public;
->a : C1_public
+>a : C1_public | undefined
 
         b?: C2_private;
->b : C2_private
+>b : C2_private | undefined
 
         f1(a1: C1_public);
 >f1 : (a1: C1_public) => any
@@ -234,10 +234,10 @@ module m2 {
 >y : C2_private
 
         a?: C1_public;
->a : C1_public
+>a : C1_public | undefined
 
         b?: C2_private;
->b : C2_private
+>b : C2_private | undefined
 
         f1(a1: C1_public);
 >f1 : (a1: C1_public) => any
@@ -303,10 +303,10 @@ export interface C7_public {
 >y : C6_private
 
     a?: C5_public;
->a : C5_public
+>a : C5_public | undefined
 
     b?: C6_private;
->b : C6_private
+>b : C6_private | undefined
 
     f1(a1: C5_public);
 >f1 : (a1: C5_public) => any
@@ -358,10 +358,10 @@ interface C8_private {
 >y : C6_private
 
     a?: C5_public;
->a : C5_public
+>a : C5_public | undefined
 
     b?: C6_private;
->b : C6_private
+>b : C6_private | undefined
 
     f1(a1: C5_public);
 >f1 : (a1: C5_public) => any

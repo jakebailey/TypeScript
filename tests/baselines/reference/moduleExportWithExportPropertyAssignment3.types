@@ -10,11 +10,11 @@ var mod1 = require('./mod1')
 
 mod1.justExport.toFixed()
 >mod1.justExport.toFixed() : string
->mod1.justExport.toFixed : (fractionDigits?: number) => string
+>mod1.justExport.toFixed : (fractionDigits?: number | undefined) => string
 >mod1.justExport : number
 >mod1 : { justExport: number; bothBefore: number | "string"; bothAfter: number | "string"; justProperty: "string"; }
 >justExport : number
->toFixed : (fractionDigits?: number) => string
+>toFixed : (fractionDigits?: number | undefined) => string
 
 mod1.bothBefore.toFixed() // error, 'toFixed' not on 'string | number'
 >mod1.bothBefore.toFixed() : any

@@ -1,7 +1,11 @@
+plusOperatorWithNumberType.ts(18,24): error TS2454: Variable 'NUMBER' is used before being assigned.
+plusOperatorWithNumberType.ts(32,26): error TS2454: Variable 'NUMBER' is used before being assigned.
+plusOperatorWithNumberType.ts(32,35): error TS2454: Variable 'NUMBER' is used before being assigned.
+plusOperatorWithNumberType.ts(36,2): error TS2454: Variable 'NUMBER' is used before being assigned.
 plusOperatorWithNumberType.ts(41,1): error TS2695: Left side of comma operator is unused and has no side effects.
 
 
-==== plusOperatorWithNumberType.ts (1 errors) ====
+==== plusOperatorWithNumberType.ts (5 errors) ====
     // + operator on number type
     var NUMBER: number;
     var NUMBER1: number[] = [1, 2];
@@ -20,6 +24,8 @@ plusOperatorWithNumberType.ts(41,1): error TS2695: Left side of comma operator i
     
     // number type var
     var ResultIsNumber1 = +NUMBER;
+                           ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     var ResultIsNumber2 = +NUMBER1;
     
     // number type literal
@@ -34,10 +40,16 @@ plusOperatorWithNumberType.ts(41,1): error TS2695: Left side of comma operator i
     var ResultIsNumber9 = +foo();
     var ResultIsNumber10 = +A.foo();
     var ResultIsNumber11 = +(NUMBER + NUMBER);
+                             ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
+                                      ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     
     // miss assignment operators
     +1;
     +NUMBER;
+     ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     +NUMBER1;
     +foo();
     +objA.a;

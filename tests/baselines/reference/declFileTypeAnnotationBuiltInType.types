@@ -63,7 +63,7 @@ function foo9(): any {
 >undefined : undefined
 }
 function foo10() {
->foo10 : () => any
+>foo10 : () => undefined
 
     return undefined;
 >undefined : undefined

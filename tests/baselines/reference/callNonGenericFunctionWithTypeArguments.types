@@ -5,24 +5,24 @@
 // all invocations here are illegal
 
 function f(x: number) { return null; }
->f : (x: number) => any
+>f : (x: number) => null
 >x : number
 
 var r = f<string>(1);
->r : any
->f<string>(1) : any
->f : (x: number) => any
+>r : null
+>f<string>(1) : null
+>f : (x: number) => null
 >1 : 1
 
 var f2 = (x: number) => { return null; }
->f2 : (x: number) => any
->(x: number) => { return null; } : (x: number) => any
+>f2 : (x: number) => null
+>(x: number) => { return null; } : (x: number) => null
 >x : number
 
 var r2 = f2<string>(1);
->r2 : any
->f2<string>(1) : any
->f2 : (x: number) => any
+>r2 : null
+>f2<string>(1) : null
+>f2 : (x: number) => null
 >1 : 1
 
 var f3: { (x: number): any; }
@@ -39,20 +39,20 @@ class C {
 >C : C
 
     f(x: number) {
->f : (x: number) => any
+>f : (x: number) => null
 >x : number
 
         return null;
     }
 }
 var r4 = (new C()).f<string>(1);
->r4 : any
->(new C()).f<string>(1) : any
->(new C()).f : (x: number) => any
+>r4 : null
+>(new C()).f<string>(1) : null
+>(new C()).f : (x: number) => null
 >(new C()) : C
 >new C() : C
 >C : typeof C
->f : (x: number) => any
+>f : (x: number) => null
 >1 : 1
 
 interface I {
@@ -75,20 +75,20 @@ class C2 {
 >C2 : C2
 
     f(x: number) {
->f : (x: number) => any
+>f : (x: number) => null
 >x : number
 
         return null;
     }
 }
 var r6 = (new C2()).f<string>(1);
->r6 : any
->(new C2()).f<string>(1) : any
->(new C2()).f : (x: number) => any
+>r6 : null
+>(new C2()).f<string>(1) : null
+>(new C2()).f : (x: number) => null
 >(new C2()) : C2
 >new C2() : C2
 >C2 : typeof C2
->f : (x: number) => any
+>f : (x: number) => null
 >1 : 1
 
 interface I2 {

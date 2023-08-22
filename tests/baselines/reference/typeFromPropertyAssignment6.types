@@ -14,8 +14,8 @@ Outer.Inner = class I {
 >I : typeof I
 
     messages() { return [] }
->messages : () => any[]
->[] : undefined[]
+>messages : () => never[]
+>[] : never[]
 }
 /** @type {!Outer.Inner} */
 Outer.i
@@ -26,12 +26,12 @@ Outer.i
 === b.js ===
 var msgs = Outer.i.messages()
 >msgs : any[]
->Outer.i.messages() : any[]
->Outer.i.messages : () => any[]
+>Outer.i.messages() : never[]
+>Outer.i.messages : () => never[]
 >Outer.i : I
 >Outer : typeof Outer
 >i : I
->messages : () => any[]
+>messages : () => never[]
 
 /** @param {Outer.Inner} inner */
 function x(inner) {

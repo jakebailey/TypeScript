@@ -3,15 +3,15 @@
 === mixedPropertyElementAccessAssignmentDeclaration.ts ===
 // Should not crash: #34642
 var arr = [];
->arr : any[]
->[] : undefined[]
+>arr : never[]
+>[] : never[]
 
 arr[0].prop[2] = {};
 >arr[0].prop[2] = {} : {}
 >arr[0].prop[2] : any
 >arr[0].prop : any
->arr[0] : any
->arr : any[]
+>arr[0] : never
+>arr : never[]
 >0 : 0
 >prop : any
 >2 : 2

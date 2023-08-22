@@ -32,14 +32,14 @@ for (;0;)
 
 for (let _ in [])
 >_ : string
->[] : undefined[]
+>[] : never[]
 
     const enum F {}
 >F : F
 
 for (let _ of [])
->_ : any
->[] : undefined[]
+>_ : never
+>[] : never[]
 
     const enum G {}
 >G : G

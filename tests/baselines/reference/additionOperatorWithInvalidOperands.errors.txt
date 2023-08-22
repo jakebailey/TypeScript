@@ -1,25 +1,49 @@
+additionOperatorWithInvalidOperands.ts(15,10): error TS2454: Variable 'a' is used before being assigned.
 additionOperatorWithInvalidOperands.ts(15,10): error TS2365: Operator '+' cannot be applied to types 'boolean' and 'boolean'.
+additionOperatorWithInvalidOperands.ts(15,14): error TS2454: Variable 'a' is used before being assigned.
+additionOperatorWithInvalidOperands.ts(16,10): error TS2454: Variable 'a' is used before being assigned.
 additionOperatorWithInvalidOperands.ts(16,10): error TS2365: Operator '+' cannot be applied to types 'boolean' and 'number'.
+additionOperatorWithInvalidOperands.ts(16,14): error TS2454: Variable 'b' is used before being assigned.
+additionOperatorWithInvalidOperands.ts(17,10): error TS2454: Variable 'a' is used before being assigned.
 additionOperatorWithInvalidOperands.ts(17,10): error TS2365: Operator '+' cannot be applied to types 'boolean' and 'Object'.
+additionOperatorWithInvalidOperands.ts(17,14): error TS2454: Variable 'c' is used before being assigned.
+additionOperatorWithInvalidOperands.ts(20,10): error TS2454: Variable 'b' is used before being assigned.
 additionOperatorWithInvalidOperands.ts(20,10): error TS2365: Operator '+' cannot be applied to types 'number' and 'boolean'.
+additionOperatorWithInvalidOperands.ts(20,14): error TS2454: Variable 'a' is used before being assigned.
+additionOperatorWithInvalidOperands.ts(21,10): error TS2454: Variable 'b' is used before being assigned.
+additionOperatorWithInvalidOperands.ts(21,14): error TS2454: Variable 'b' is used before being assigned.
+additionOperatorWithInvalidOperands.ts(22,10): error TS2454: Variable 'b' is used before being assigned.
 additionOperatorWithInvalidOperands.ts(22,10): error TS2365: Operator '+' cannot be applied to types 'number' and 'Object'.
+additionOperatorWithInvalidOperands.ts(22,14): error TS2454: Variable 'c' is used before being assigned.
+additionOperatorWithInvalidOperands.ts(25,10): error TS2454: Variable 'c' is used before being assigned.
 additionOperatorWithInvalidOperands.ts(25,10): error TS2365: Operator '+' cannot be applied to types 'Object' and 'boolean'.
+additionOperatorWithInvalidOperands.ts(25,14): error TS2454: Variable 'a' is used before being assigned.
+additionOperatorWithInvalidOperands.ts(26,10): error TS2454: Variable 'c' is used before being assigned.
 additionOperatorWithInvalidOperands.ts(26,10): error TS2365: Operator '+' cannot be applied to types 'Object' and 'number'.
+additionOperatorWithInvalidOperands.ts(26,14): error TS2454: Variable 'b' is used before being assigned.
+additionOperatorWithInvalidOperands.ts(27,10): error TS2454: Variable 'c' is used before being assigned.
 additionOperatorWithInvalidOperands.ts(27,10): error TS2365: Operator '+' cannot be applied to types 'Object' and 'Object'.
+additionOperatorWithInvalidOperands.ts(27,14): error TS2454: Variable 'c' is used before being assigned.
+additionOperatorWithInvalidOperands.ts(30,11): error TS2454: Variable 'a' is used before being assigned.
 additionOperatorWithInvalidOperands.ts(30,11): error TS2365: Operator '+' cannot be applied to types 'boolean' and 'boolean'.
 additionOperatorWithInvalidOperands.ts(31,11): error TS2365: Operator '+' cannot be applied to types 'boolean' and 'boolean'.
 additionOperatorWithInvalidOperands.ts(32,11): error TS2365: Operator '+' cannot be applied to types 'boolean' and 'number'.
 additionOperatorWithInvalidOperands.ts(33,11): error TS2365: Operator '+' cannot be applied to types '{}' and '{}'.
+additionOperatorWithInvalidOperands.ts(34,11): error TS2454: Variable 'b' is used before being assigned.
 additionOperatorWithInvalidOperands.ts(34,11): error TS2365: Operator '+' cannot be applied to types 'number' and 'Number'.
+additionOperatorWithInvalidOperands.ts(34,15): error TS2454: Variable 'd' is used before being assigned.
+additionOperatorWithInvalidOperands.ts(35,11): error TS2454: Variable 'b' is used before being assigned.
 additionOperatorWithInvalidOperands.ts(35,11): error TS2365: Operator '+' cannot be applied to types 'number' and '() => void'.
+additionOperatorWithInvalidOperands.ts(36,11): error TS2454: Variable 'b' is used before being assigned.
 additionOperatorWithInvalidOperands.ts(36,11): error TS2365: Operator '+' cannot be applied to types 'number' and 'void'.
+additionOperatorWithInvalidOperands.ts(37,11): error TS2454: Variable 'b' is used before being assigned.
 additionOperatorWithInvalidOperands.ts(37,11): error TS2365: Operator '+' cannot be applied to types 'number' and 'typeof C'.
 additionOperatorWithInvalidOperands.ts(38,11): error TS2365: Operator '+' cannot be applied to types 'E' and 'C'.
 additionOperatorWithInvalidOperands.ts(39,11): error TS2365: Operator '+' cannot be applied to types 'E' and 'void'.
 additionOperatorWithInvalidOperands.ts(40,11): error TS2365: Operator '+' cannot be applied to types 'E' and 'typeof M'.
 
 
-==== additionOperatorWithInvalidOperands.ts (19 errors) ====
+==== additionOperatorWithInvalidOperands.ts (43 errors) ====
     function foo() { }
     class C {
         public a: string;
@@ -35,37 +59,75 @@ additionOperatorWithInvalidOperands.ts(40,11): error TS2365: Operator '+' cannot
     
     // boolean + every type except any and string
     var r1 = a + a;
+             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
              ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'boolean' and 'boolean'.
+                 ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     var r2 = a + b;
+             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
              ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'boolean' and 'number'.
+                 ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     var r3 = a + c;
+             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
              ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'boolean' and 'Object'.
+                 ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     
     // number + every type except any and string
     var r4 = b + a;
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
              ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'number' and 'boolean'.
+                 ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     var r5 = b + b; // number + number is valid
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                 ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     var r6 = b + c;
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
              ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'number' and 'Object'.
+                 ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     
     // object + every type except any and string
     var r7 = c + a;
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
              ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'Object' and 'boolean'.
+                 ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     var r8 = c + b;
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
              ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'Object' and 'number'.
+                 ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     var r9 = c + c;
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
              ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'Object' and 'Object'.
+                 ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     
     // other cases
     var r10 = a + true;
+              ~
+!!! error TS2454: Variable 'a' is used before being assigned.
               ~~~~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'boolean' and 'boolean'.
     var r11 = true + false;
@@ -78,15 +140,25 @@ additionOperatorWithInvalidOperands.ts(40,11): error TS2365: Operator '+' cannot
               ~~~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types '{}' and '{}'.
     var r14 = b + d;
+              ~
+!!! error TS2454: Variable 'b' is used before being assigned.
               ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'number' and 'Number'.
+                  ~
+!!! error TS2454: Variable 'd' is used before being assigned.
     var r15 = b + foo;
+              ~
+!!! error TS2454: Variable 'b' is used before being assigned.
               ~~~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'number' and '() => void'.
     var r16 = b + foo();
+              ~
+!!! error TS2454: Variable 'b' is used before being assigned.
               ~~~~~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'number' and 'void'.
     var r17 = b + C;
+              ~
+!!! error TS2454: Variable 'b' is used before being assigned.
               ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'number' and 'typeof C'.
     var r18 = E.a + new C();

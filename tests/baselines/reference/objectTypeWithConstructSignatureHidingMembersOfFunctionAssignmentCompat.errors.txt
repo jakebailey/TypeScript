@@ -1,12 +1,14 @@
+objectTypeWithConstructSignatureHidingMembersOfFunctionAssignmentCompat.ts(7,5): error TS2454: Variable 'i' is used before being assigned.
 objectTypeWithConstructSignatureHidingMembersOfFunctionAssignmentCompat.ts(8,1): error TS2322: Type 'Object' is not assignable to type 'I'.
   The 'Object' type is assignable to very few other types. Did you mean to use the 'any' type instead?
     Type 'Object' provides no match for the signature 'new (): any'.
+objectTypeWithConstructSignatureHidingMembersOfFunctionAssignmentCompat.ts(13,5): error TS2454: Variable 'a' is used before being assigned.
 objectTypeWithConstructSignatureHidingMembersOfFunctionAssignmentCompat.ts(14,1): error TS2322: Type 'Object' is not assignable to type 'new () => any'.
   The 'Object' type is assignable to very few other types. Did you mean to use the 'any' type instead?
     Type 'Object' provides no match for the signature 'new (): any'.
 
 
-==== objectTypeWithConstructSignatureHidingMembersOfFunctionAssignmentCompat.ts (2 errors) ====
+==== objectTypeWithConstructSignatureHidingMembersOfFunctionAssignmentCompat.ts (4 errors) ====
     interface I {
         new(): any;
     }
@@ -14,6 +16,8 @@ objectTypeWithConstructSignatureHidingMembersOfFunctionAssignmentCompat.ts(14,1)
     var i: I;
     var f: Object;
     f = i;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     i = f;
     ~
 !!! error TS2322: Type 'Object' is not assignable to type 'I'.
@@ -24,6 +28,8 @@ objectTypeWithConstructSignatureHidingMembersOfFunctionAssignmentCompat.ts(14,1)
         new(): any
     }
     f = a;
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     a = f;
     ~
 !!! error TS2322: Type 'Object' is not assignable to type 'new () => any'.

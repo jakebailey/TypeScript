@@ -11,30 +11,30 @@ function foo0(x) {
 >x : any
 
     for (let x of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
         var v = x;
->v : any
->x : any
+>v : never
+>x : never
 
         (function() { return x + v });
->(function() { return x + v }) : () => any
->function() { return x + v } : () => any
->x + v : any
->x : any
->v : any
+>(function() { return x + v }) : () => number
+>function() { return x + v } : () => number
+>x + v : number
+>x : never
+>v : never
 
         (() => x + v);
->(() => x + v) : () => any
->() => x + v : () => any
->x + v : any
->x : any
->v : any
+>(() => x + v) : () => number
+>() => x + v : () => number
+>x + v : number
+>x : never
+>v : never
 
         if (x == 1) {
 >x == 1 : boolean
->x : any
+>x : never
 >1 : 1
 
             return;
@@ -44,7 +44,7 @@ function foo0(x) {
     use(v);
 >use(v) : any
 >use : (a: any) => any
->v : any
+>v : never
 }
 
 function foo00(x) {
@@ -53,7 +53,7 @@ function foo00(x) {
 
     for (let x in []) {
 >x : string
->[] : undefined[]
+>[] : never[]
 
         var v = x;
 >v : string
@@ -486,30 +486,30 @@ function foo0_c(x) {
 >x : any
 
     for (const x of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
         var v = x;
->v : any
->x : any
+>v : never
+>x : never
 
         (function() { return x + v });
->(function() { return x + v }) : () => any
->function() { return x + v } : () => any
->x + v : any
->x : any
->v : any
+>(function() { return x + v }) : () => number
+>function() { return x + v } : () => number
+>x + v : number
+>x : never
+>v : never
 
         (() => x + v);
->(() => x + v) : () => any
->() => x + v : () => any
->x + v : any
->x : any
->v : any
+>(() => x + v) : () => number
+>() => x + v : () => number
+>x + v : number
+>x : never
+>v : never
 
         if (x == 1) {
 >x == 1 : boolean
->x : any
+>x : never
 >1 : 1
 
             return;
@@ -519,7 +519,7 @@ function foo0_c(x) {
     use(v);
 >use(v) : any
 >use : (a: any) => any
->v : any
+>v : never
 }
 
 function foo00_c(x) {
@@ -528,7 +528,7 @@ function foo00_c(x) {
 
     for (const x in []) {
 >x : string
->[] : undefined[]
+>[] : never[]
 
         var v = x;
 >v : string

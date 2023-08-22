@@ -32,8 +32,8 @@ var arr4Tuple: [number, string] = [3, "three", "hello"]; // [number, string, str
 >"hello" : "hello"
 
 var arrEmpty = [];
->arrEmpty : any[]
->[] : undefined[]
+>arrEmpty : never[]
+>[] : never[]
 
 var arr5Tuple: {
 >arr5Tuple : { 0: string; 5: number; }

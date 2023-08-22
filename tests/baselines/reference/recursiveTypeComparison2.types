@@ -21,7 +21,7 @@ declare module Bacon {
         slidingWindow(max: number, min?: number): Property<T[]>;
 >slidingWindow : (max: number, min?: number) => Property<T[]>
 >max : number
->min : number
+>min : number | undefined
 
         log(): Observable<T>;
 >log : () => Observable<T>
@@ -49,8 +49,8 @@ declare module Bacon {
 >other : Observable<U>
 
         endOnError(f?: (value: T) => boolean): Observable<T>;
->endOnError : (f?: (value: T) => boolean) => Observable<T>
->f : (value: T) => boolean
+>endOnError : (f?: ((value: T) => boolean) | undefined) => Observable<T>
+>f : ((value: T) => boolean) | undefined
 >value : T
 
         withHandler(f: (event: Event<T>) => any): Observable<T>;

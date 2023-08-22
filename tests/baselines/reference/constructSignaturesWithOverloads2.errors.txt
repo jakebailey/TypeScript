@@ -1,8 +1,10 @@
 constructSignaturesWithOverloads2.ts(27,11): error TS2428: All declarations of 'I' must have identical type parameters.
 constructSignaturesWithOverloads2.ts(32,11): error TS2428: All declarations of 'I' must have identical type parameters.
+constructSignaturesWithOverloads2.ts(38,14): error TS2454: Variable 'i2' is used before being assigned.
+constructSignaturesWithOverloads2.ts(39,14): error TS2454: Variable 'i2' is used before being assigned.
 
 
-==== constructSignaturesWithOverloads2.ts (2 errors) ====
+==== constructSignaturesWithOverloads2.ts (4 errors) ====
     // No errors expected for basic overloads of construct signatures with merged declarations
     
     // clodules
@@ -45,4 +47,8 @@ constructSignaturesWithOverloads2.ts(32,11): error TS2428: All declarations of '
     
     var i2: I<number>;
     var r4 = new i2(1, '');
+                 ~~
+!!! error TS2454: Variable 'i2' is used before being assigned.
     var r5 = new i2(1, 1);
+                 ~~
+!!! error TS2454: Variable 'i2' is used before being assigned.

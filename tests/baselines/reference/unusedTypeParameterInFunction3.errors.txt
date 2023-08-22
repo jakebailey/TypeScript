@@ -1,12 +1,18 @@
 unusedTypeParameterInFunction3.ts(1,16): error TS6133: 'Y' is declared but its value is never read.
+unusedTypeParameterInFunction3.ts(4,5): error TS2454: Variable 'a' is used before being assigned.
+unusedTypeParameterInFunction3.ts(5,5): error TS2454: Variable 'b' is used before being assigned.
 
 
-==== unusedTypeParameterInFunction3.ts (1 errors) ====
+==== unusedTypeParameterInFunction3.ts (3 errors) ====
     function f1<X, Y, Z>() {
                    ~
 !!! error TS6133: 'Y' is declared but its value is never read.
         var a: X;
         var b: Z;
         a;
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
         b;
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     }

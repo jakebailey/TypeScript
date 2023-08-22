@@ -4,8 +4,8 @@
 // GH#37454, GH#41044
 
 type O = { a?: string; b: number; c: number; };
->O : { a?: string; b: number; c: number; }
->a : string
+>O : { a?: string | undefined; b: number; c: number; }
+>a : string | undefined
 >b : number
 >c : number
 
@@ -16,24 +16,24 @@ type F1 = (arg: number) => any; // OK
 type F2 = ({ a: string }: O) => any; // Error
 >F2 : ({ a: string }: O) => any
 >a : any
->string : string
+>string : string | undefined
 
 type F3 = ({ a: string, b, c }: O) => any; // Error
 >F3 : ({ a: string, b, c }: O) => any
 >a : any
->string : string
+>string : string | undefined
 >b : number
 >c : number
 
 type F4 = ({ a: string }: O) => any; // Error
 >F4 : ({ a: string }: O) => any
 >a : any
->string : string
+>string : string | undefined
 
 type F5 = ({ a: string, b, c }: O) => any; // Error
 >F5 : ({ a: string, b, c }: O) => any
 >a : any
->string : string
+>string : string | undefined
 >b : number
 >c : number
 
@@ -71,24 +71,24 @@ type G1 = new (arg: number) => any; // OK
 type G2 = new ({ a: string }: O) => any; // Error
 >G2 : new ({ a: string }: O) => any
 >a : any
->string : string
+>string : string | undefined
 
 type G3 = new ({ a: string, b, c }: O) => any; // Error
 >G3 : new ({ a: string, b, c }: O) => any
 >a : any
->string : string
+>string : string | undefined
 >b : number
 >c : number
 
 type G4 = new ({ a: string }: O) => any; // Error
 >G4 : new ({ a: string }: O) => any
 >a : any
->string : string
+>string : string | undefined
 
 type G5 = new ({ a: string, b, c }: O) => any; // Error
 >G5 : new ({ a: string, b, c }: O) => any
 >a : any
->string : string
+>string : string | undefined
 >b : number
 >c : number
 
@@ -132,7 +132,7 @@ type F11 = ({ 2: string }) => void; // Error
 type F12 = ({ ["a"]: string }: O) => void; // Error
 >F12 : ({ ["a"]: string }: O) => void
 >"a" : "a"
->string : string
+>string : string | undefined
 
 type F13 = ({ [2]: string }) => void; // Error
 >F13 : ({ [2]: string }: { 2: any; }) => void
@@ -150,7 +150,7 @@ type G11 = new ({ 2: string }) => void; // Error
 type G12 = new ({ ["a"]: string }: O) => void; // Error
 >G12 : new ({ ["a"]: string }: O) => void
 >"a" : "a"
->string : string
+>string : string | undefined
 
 type G13 = new ({ [2]: string }) => void; // Error
 >G13 : new ({ [2]: string }: { 2: any; }) => void
@@ -186,38 +186,38 @@ interface I {
 function f1({ a: string }: O) { }
 >f1 : ({ a: string }: O) => void
 >a : any
->string : string
+>string : string | undefined
 
 const f2 = function({ a: string }: O) { };
 >f2 : ({ a: string }: O) => void
 >function({ a: string }: O) { } : ({ a: string }: O) => void
 >a : any
->string : string
+>string : string | undefined
 
 const f3 = ({ a: string, b, c }: O) => { };
 >f3 : ({ a: string, b, c }: O) => void
 >({ a: string, b, c }: O) => { } : ({ a: string, b, c }: O) => void
 >a : any
->string : string
+>string : string | undefined
 >b : number
 >c : number
 
 const f4 = function({ a: string }: O): typeof string { return string; };
->f4 : ({ a: string }: O) => string
->function({ a: string }: O): typeof string { return string; } : ({ a: string }: O) => string
+>f4 : ({ a: string }: O) => string | undefined
+>function({ a: string }: O): typeof string { return string; } : ({ a: string }: O) => string | undefined
 >a : any
->string : string
->string : string
->string : string
+>string : string | undefined
+>string : string | undefined
+>string : string | undefined
 
 const f5 = ({ a: string, b, c }: O): typeof string => '';
->f5 : ({ a: string, b, c }: O) => string
->({ a: string, b, c }: O): typeof string => '' : ({ a: string, b, c }: O) => string
+>f5 : ({ a: string, b, c }: O) => string | undefined
+>({ a: string, b, c }: O): typeof string => '' : ({ a: string, b, c }: O) => string | undefined
 >a : any
->string : string
+>string : string | undefined
 >b : number
 >c : number
->string : string
+>string : string | undefined
 >'' : ""
 
 const obj1 = {
@@ -227,19 +227,19 @@ const obj1 = {
   method({ a: string }: O) { }
 >method : ({ a: string }: O) => void
 >a : any
->string : string
+>string : string | undefined
 
 };
 const obj2 = {
->obj2 : { method({ a: string }: O): string; }
->{  method({ a: string }: O): typeof string { return string; }} : { method({ a: string }: O): string; }
+>obj2 : { method({ a: string }: O): string | undefined; }
+>{  method({ a: string }: O): typeof string { return string; }} : { method({ a: string }: O): string | undefined; }
 
   method({ a: string }: O): typeof string { return string; }
->method : ({ a: string }: O) => string
+>method : ({ a: string }: O) => string | undefined
 >a : any
->string : string
->string : string
->string : string
+>string : string | undefined
+>string : string | undefined
+>string : string | undefined
 
 };
 function f6({ a: string = "" }: O) { }
@@ -260,7 +260,7 @@ const f7 = ({ a: string = "", b, c }: O) => { };
 const f8 = ({ "a": string }: O) => { };
 >f8 : ({ "a": string }: O) => void
 >({ "a": string }: O) => { } : ({ "a": string }: O) => void
->string : string
+>string : string | undefined
 
 function f9 ({ 2: string }) { };
 >f9 : ({ 2: string }: { 2: any; }) => void
@@ -269,7 +269,7 @@ function f9 ({ 2: string }) { };
 function f10 ({ ["a"]: string }: O) { };
 >f10 : ({ ["a"]: string }: O) => void
 >"a" : "a"
->string : string
+>string : string | undefined
 
 const f11 =  ({ [2]: string }) => { };
 >f11 : ({ [2]: string }: { 2: any; }) => void

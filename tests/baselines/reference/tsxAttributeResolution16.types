@@ -32,7 +32,7 @@ export class AddressComp extends React.Component<Properties, void> {
 >Component : typeof React.Component
 
   public render() {
->render : () => any
+>render : () => null
 
     return null;
   }

@@ -32,7 +32,7 @@ declare namespace React {
 >children : ReactNode
   }
   type ReactNode = ReactChild | ReactFragment | boolean | null | undefined;
->ReactNode : boolean | ReactText | ReactFragment
+>ReactNode : boolean | ReactText | ReactFragment | null | undefined
 
   type ReactText = string | number;
 >ReactText : string | number

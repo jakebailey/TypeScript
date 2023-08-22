@@ -4,13 +4,15 @@ invalidAssignmentsToVoid.ts(4,1): error TS2322: Type 'string' is not assignable 
 invalidAssignmentsToVoid.ts(5,1): error TS2322: Type '{}' is not assignable to type 'void'.
 invalidAssignmentsToVoid.ts(9,1): error TS2322: Type 'typeof C' is not assignable to type 'void'.
 invalidAssignmentsToVoid.ts(10,1): error TS2322: Type 'C' is not assignable to type 'void'.
+invalidAssignmentsToVoid.ts(10,5): error TS2454: Variable 'c' is used before being assigned.
 invalidAssignmentsToVoid.ts(14,1): error TS2322: Type 'I' is not assignable to type 'void'.
+invalidAssignmentsToVoid.ts(14,5): error TS2454: Variable 'i' is used before being assigned.
 invalidAssignmentsToVoid.ts(17,1): error TS2322: Type 'typeof M' is not assignable to type 'void'.
 invalidAssignmentsToVoid.ts(20,5): error TS2322: Type 'T' is not assignable to type 'void'.
 invalidAssignmentsToVoid.ts(22,5): error TS2322: Type '<T>(a: T) => void' is not assignable to type 'void'.
 
 
-==== invalidAssignmentsToVoid.ts (10 errors) ====
+==== invalidAssignmentsToVoid.ts (12 errors) ====
     var x: void;
     x = 1;
     ~
@@ -33,12 +35,16 @@ invalidAssignmentsToVoid.ts(22,5): error TS2322: Type '<T>(a: T) => void' is not
     x = c;
     ~
 !!! error TS2322: Type 'C' is not assignable to type 'void'.
+        ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     
     interface I { foo: string; }
     var i: I;
     x = i;
     ~
 !!! error TS2322: Type 'I' is not assignable to type 'void'.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     
     module M { export var x = 1; }
     x = M;

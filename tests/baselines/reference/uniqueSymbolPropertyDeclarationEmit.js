@@ -55,6 +55,6 @@ export default Op;
 import Op from './op';
 import { Po } from './po';
 export default function foo(): {
-    [Op.or]: any[];
+    [Op.or]: never[];
     [Po.ro]: {};
 };

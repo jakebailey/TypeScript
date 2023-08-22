@@ -1,16 +1,130 @@
+logicalAndOperatorWithEveryType.ts(16,11): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(17,11): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(18,11): error TS2454: Variable 'a4' is used before being assigned.
 logicalAndOperatorWithEveryType.ts(19,11): error TS1345: An expression of type 'void' cannot be tested for truthiness.
+logicalAndOperatorWithEveryType.ts(20,11): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(21,11): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(22,11): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(26,17): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(27,11): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(28,11): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(28,17): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(29,11): error TS2454: Variable 'a4' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(29,17): error TS2454: Variable 'a2' is used before being assigned.
 logicalAndOperatorWithEveryType.ts(30,11): error TS1345: An expression of type 'void' cannot be tested for truthiness.
+logicalAndOperatorWithEveryType.ts(30,17): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(31,11): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(31,17): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(32,11): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(32,17): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(33,11): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(33,17): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(34,19): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(35,25): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(37,17): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(38,11): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(38,17): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(39,11): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(40,11): error TS2454: Variable 'a4' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(40,17): error TS2454: Variable 'a3' is used before being assigned.
 logicalAndOperatorWithEveryType.ts(41,11): error TS1345: An expression of type 'void' cannot be tested for truthiness.
+logicalAndOperatorWithEveryType.ts(41,17): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(42,11): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(42,17): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(43,11): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(43,17): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(44,11): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(44,17): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(45,19): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(46,25): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(48,17): error TS2454: Variable 'a4' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(49,11): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(49,17): error TS2454: Variable 'a4' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(50,11): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(50,17): error TS2454: Variable 'a4' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(51,11): error TS2454: Variable 'a4' is used before being assigned.
 logicalAndOperatorWithEveryType.ts(52,11): error TS1345: An expression of type 'void' cannot be tested for truthiness.
+logicalAndOperatorWithEveryType.ts(52,17): error TS2454: Variable 'a4' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(53,11): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(53,17): error TS2454: Variable 'a4' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(54,11): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(54,17): error TS2454: Variable 'a4' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(55,11): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(55,17): error TS2454: Variable 'a4' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(56,19): error TS2454: Variable 'a4' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(57,25): error TS2454: Variable 'a4' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(60,11): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(61,11): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(62,11): error TS2454: Variable 'a4' is used before being assigned.
 logicalAndOperatorWithEveryType.ts(63,11): error TS1345: An expression of type 'void' cannot be tested for truthiness.
+logicalAndOperatorWithEveryType.ts(64,11): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(65,11): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(66,11): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(70,17): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(71,11): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(71,17): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(72,11): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(72,17): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(73,11): error TS2454: Variable 'a4' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(73,17): error TS2454: Variable 'a6' is used before being assigned.
 logicalAndOperatorWithEveryType.ts(74,11): error TS1345: An expression of type 'void' cannot be tested for truthiness.
+logicalAndOperatorWithEveryType.ts(74,17): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(75,11): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(76,11): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(76,17): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(77,11): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(77,17): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(78,19): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(79,25): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(81,17): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(82,11): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(82,17): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(83,11): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(83,17): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(84,11): error TS2454: Variable 'a4' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(84,17): error TS2454: Variable 'a7' is used before being assigned.
 logicalAndOperatorWithEveryType.ts(85,11): error TS1345: An expression of type 'void' cannot be tested for truthiness.
+logicalAndOperatorWithEveryType.ts(85,17): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(86,11): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(86,17): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(87,11): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(88,11): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(88,17): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(89,19): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(90,25): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(92,17): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(93,11): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(93,17): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(94,11): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(94,17): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(95,11): error TS2454: Variable 'a4' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(95,17): error TS2454: Variable 'a8' is used before being assigned.
 logicalAndOperatorWithEveryType.ts(96,11): error TS1345: An expression of type 'void' cannot be tested for truthiness.
+logicalAndOperatorWithEveryType.ts(96,17): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(97,11): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(97,17): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(98,11): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(98,17): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(99,11): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(100,19): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(101,25): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(104,11): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(105,11): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(106,11): error TS2454: Variable 'a4' is used before being assigned.
 logicalAndOperatorWithEveryType.ts(107,11): error TS1345: An expression of type 'void' cannot be tested for truthiness.
+logicalAndOperatorWithEveryType.ts(108,11): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(109,11): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(110,11): error TS2454: Variable 'a8' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(115,11): error TS2454: Variable 'a2' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(116,11): error TS2454: Variable 'a3' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(117,11): error TS2454: Variable 'a4' is used before being assigned.
 logicalAndOperatorWithEveryType.ts(118,11): error TS1345: An expression of type 'void' cannot be tested for truthiness.
+logicalAndOperatorWithEveryType.ts(119,11): error TS2454: Variable 'a6' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(120,11): error TS2454: Variable 'a7' is used before being assigned.
+logicalAndOperatorWithEveryType.ts(121,11): error TS2454: Variable 'a8' is used before being assigned.
 
 
-==== logicalAndOperatorWithEveryType.ts (10 errors) ====
+==== logicalAndOperatorWithEveryType.ts (124 errors) ====
     // The && operator permits the operands to be of any type and produces a result of the same
     // type as the second operand.
     
@@ -27,130 +141,358 @@ logicalAndOperatorWithEveryType.ts(118,11): error TS1345: An expression of type 
     
     var ra1 = a1 && a1;
     var ra2 = a2 && a1;
+              ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var ra3 = a3 && a1;
+              ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var ra4 = a4 && a1;
+              ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
     var ra5 = a5 && a1;
               ~~
 !!! error TS1345: An expression of type 'void' cannot be tested for truthiness.
     var ra6 = a6 && a1;
+              ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
     var ra7 = a7 && a1;
+              ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
     var ra8 = a8 && a1;
+              ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
     var ra9 = null && a1;
     var ra10 = undefined && a1;
     
     var rb1 = a1 && a2;
+                    ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var rb2 = a2 && a2;
+              ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var rb3 = a3 && a2;
+              ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var rb4 = a4 && a2;
+              ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var rb5 = a5 && a2;
               ~~
 !!! error TS1345: An expression of type 'void' cannot be tested for truthiness.
+                    ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var rb6 = a6 && a2;
+              ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var rb7 = a7 && a2;
+              ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var rb8 = a8 && a2;
+              ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var rb9 = null && a2;
+                      ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var rb10 = undefined && a2;
+                            ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     
     var rc1 = a1 && a3;
+                    ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var rc2 = a2 && a3;
+              ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var rc3 = a3 && a3;
+              ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var rc4 = a4 && a3;
+              ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var rc5 = a5 && a3;
               ~~
 !!! error TS1345: An expression of type 'void' cannot be tested for truthiness.
+                    ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var rc6 = a6 && a3;
+              ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var rc7 = a7 && a3;
+              ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var rc8 = a8 && a3;
+              ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var rc9 = null && a3;
+                      ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var rc10 = undefined && a3;
+                            ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     
     var rd1 = a1 && a4;
+                    ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
     var rd2 = a2 && a4;
+              ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
     var rd3 = a3 && a4;
+              ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
     var rd4 = a4 && a4;
+              ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
     var rd5 = a5 && a4;
               ~~
 !!! error TS1345: An expression of type 'void' cannot be tested for truthiness.
+                    ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
     var rd6 = a6 && a4;
+              ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
     var rd7 = a7 && a4;
+              ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
     var rd8 = a8 && a4;
+              ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
     var rd9 = null && a4;
+                      ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
     var rd10 = undefined && a4;
+                            ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
     
     var re1 = a1 && a5;
     var re2 = a2 && a5;
+              ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var re3 = a3 && a5;
+              ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var re4 = a4 && a5;
+              ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
     var re5 = a5 && a5;
               ~~
 !!! error TS1345: An expression of type 'void' cannot be tested for truthiness.
     var re6 = a6 && a5;
+              ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
     var re7 = a7 && a5;
+              ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
     var re8 = a8 && a5;
+              ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
     var re9 = null && a5;
     var re10 = undefined && a5;
     
     var rf1 = a1 && a6;
+                    ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
     var rf2 = a2 && a6;
+              ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
     var rf3 = a3 && a6;
+              ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
     var rf4 = a4 && a6;
+              ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
     var rf5 = a5 && a6;
               ~~
 !!! error TS1345: An expression of type 'void' cannot be tested for truthiness.
+                    ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
     var rf6 = a6 && a6;
+              ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
     var rf7 = a7 && a6;
+              ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
     var rf8 = a8 && a6;
+              ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
     var rf9 = null && a6;
+                      ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
     var rf10 = undefined && a6;
+                            ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
     
     var rg1 = a1 && a7;
+                    ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
     var rg2 = a2 && a7;
+              ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
     var rg3 = a3 && a7;
+              ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
     var rg4 = a4 && a7;
+              ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
     var rg5 = a5 && a7;
               ~~
 !!! error TS1345: An expression of type 'void' cannot be tested for truthiness.
+                    ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
     var rg6 = a6 && a7;
+              ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
     var rg7 = a7 && a7;
+              ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
     var rg8 = a8 && a7;
+              ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
     var rg9 = null && a7;
+                      ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
     var rg10 = undefined && a7;
+                            ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
     
     var rh1 = a1 && a8;
+                    ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
     var rh2 = a2 && a8;
+              ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
     var rh3 = a3 && a8;
+              ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
     var rh4 = a4 && a8;
+              ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
     var rh5 = a5 && a8;
               ~~
 !!! error TS1345: An expression of type 'void' cannot be tested for truthiness.
+                    ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
     var rh6 = a6 && a8;
+              ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
     var rh7 = a7 && a8;
+              ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
     var rh8 = a8 && a8;
+              ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
     var rh9 = null && a8;
+                      ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
     var rh10 = undefined && a8;
+                            ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
     
     var ri1 = a1 && null;
     var ri2 = a2 && null;
+              ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var ri3 = a3 && null;
+              ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var ri4 = a4 && null;
+              ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
     var ri5 = a5 && null;
               ~~
 !!! error TS1345: An expression of type 'void' cannot be tested for truthiness.
     var ri6 = a6 && null;
+              ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
     var ri7 = a7 && null;
+              ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
     var ri8 = a8 && null;
+              ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
     var ri9 = null && null;
     var ri10 = undefined && null;
     
     var rj1 = a1 && undefined;
     var rj2 = a2 && undefined;
+              ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var rj3 = a3 && undefined;
+              ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var rj4 = a4 && undefined;
+              ~~
+!!! error TS2454: Variable 'a4' is used before being assigned.
     var rj5 = a5 && undefined;
               ~~
 !!! error TS1345: An expression of type 'void' cannot be tested for truthiness.
     var rj6 = a6 && undefined;
+              ~~
+!!! error TS2454: Variable 'a6' is used before being assigned.
     var rj7 = a7 && undefined;
+              ~~
+!!! error TS2454: Variable 'a7' is used before being assigned.
     var rj8 = a8 && undefined;
+              ~~
+!!! error TS2454: Variable 'a8' is used before being assigned.
     var rj9 = null && undefined;
     var rj10 = undefined && undefined;

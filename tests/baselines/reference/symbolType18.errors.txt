@@ -1,0 +1,22 @@
+symbolType18.ts(4,1): error TS2454: Variable 'x' is used before being assigned.
+symbolType18.ts(5,12): error TS2454: Variable 'x' is used before being assigned.
+symbolType18.ts(9,5): error TS2454: Variable 'x' is used before being assigned.
+
+
+==== symbolType18.ts (3 errors) ====
+    interface Foo { prop }
+    var x: symbol | Foo;
+    
+    x;
+    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    if (typeof x === "object") {
+               ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+        x;
+    }
+    else {
+        x;
+        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    }

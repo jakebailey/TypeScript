@@ -14,8 +14,8 @@ function foo(bar:{a:number; b:string;}[]);
 
 function foo(bar:{a:any; b?:string;}[]) { return 0 }
 >foo : { (bar: { a: number; }[]): any; (bar: { a: number; b: string; }[]): any; }
->bar : { a: any; b?: string; }[]
+>bar : { a: any; b?: string | undefined; }[]
 >a : any
->b : string
+>b : string | undefined
 >0 : 0
 

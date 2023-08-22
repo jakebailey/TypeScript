@@ -1,12 +1,14 @@
+parserAutomaticSemicolonInsertion1.ts(7,5): error TS2454: Variable 'i' is used before being assigned.
 parserAutomaticSemicolonInsertion1.ts(8,1): error TS2322: Type 'Object' is not assignable to type 'I'.
   The 'Object' type is assignable to very few other types. Did you mean to use the 'any' type instead?
     Type 'Object' provides no match for the signature '(): void'.
+parserAutomaticSemicolonInsertion1.ts(13,5): error TS2454: Variable 'a' is used before being assigned.
 parserAutomaticSemicolonInsertion1.ts(14,1): error TS2322: Type 'Object' is not assignable to type '() => void'.
   The 'Object' type is assignable to very few other types. Did you mean to use the 'any' type instead?
     Type 'Object' provides no match for the signature '(): void'.
 
 
-==== parserAutomaticSemicolonInsertion1.ts (2 errors) ====
+==== parserAutomaticSemicolonInsertion1.ts (4 errors) ====
     interface I {
         (): void;
     }
@@ -14,6 +16,8 @@ parserAutomaticSemicolonInsertion1.ts(14,1): error TS2322: Type 'Object' is not 
     var i: I;
     var o: Object;
     o = i;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     i = o;
     ~
 !!! error TS2322: Type 'Object' is not assignable to type 'I'.
@@ -24,6 +28,8 @@ parserAutomaticSemicolonInsertion1.ts(14,1): error TS2322: Type 'Object' is not 
         (): void
     }
     o = a;
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     a = o;
     ~
 !!! error TS2322: Type 'Object' is not assignable to type '() => void'.

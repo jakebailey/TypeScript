@@ -1,11 +1,14 @@
 defaultValueInFunctionTypes.ts(1,9): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+defaultValueInFunctionTypes.ts(2,9): error TS2352: Conversion of type 'undefined' to type '(a?: string) => any' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
 defaultValueInFunctionTypes.ts(2,11): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
 
 
-==== defaultValueInFunctionTypes.ts (2 errors) ====
+==== defaultValueInFunctionTypes.ts (3 errors) ====
     var x: (a: number = 1) => number;
             ~~~~~~~~~~~~~
 !!! error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
     var y = <(a : string = "") => any>(undefined)
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2352: Conversion of type 'undefined' to type '(a?: string) => any' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
               ~~~~~~~~~~~~~~~
 !!! error TS2371: A parameter initializer is only allowed in a function or constructor implementation.

@@ -72,6 +72,6 @@ declare class g<T> {
     private s;
 }
 declare var k: c | m.c;
-declare var l: c | m.c;
+declare var l: c;
 declare var x: g<string> | m.g<number> | (() => c);
-declare var y: g<string> | m.g<number> | (() => c);
+declare var y: g<string>;

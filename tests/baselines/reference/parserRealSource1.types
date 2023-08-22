@@ -263,8 +263,8 @@ module TypeScript {
 >BufferedLogger : BufferedLogger
 
         public logContents = [];
->logContents : any[]
->[] : undefined[]
+>logContents : never[]
+>[] : never[]
 
         public information(): boolean { return false; }
 >information : () => boolean
@@ -292,11 +292,11 @@ module TypeScript {
 
             this.logContents.push(s);
 >this.logContents.push(s) : number
->this.logContents.push : (...items: any[]) => number
->this.logContents : any[]
+>this.logContents.push : (...items: never[]) => number
+>this.logContents : never[]
 >this : this
->logContents : any[]
->push : (...items: any[]) => number
+>logContents : never[]
+>push : (...items: never[]) => number
 >s : string
         }
     }

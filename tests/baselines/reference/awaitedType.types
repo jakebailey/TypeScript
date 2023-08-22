@@ -44,13 +44,13 @@ type T12 = Awaited<Promise<Promise<number>>>;
 >T12 : number
 
 type T13 = _Expect<Awaited<Promise<Promise<number>> | string | null>, /*expected*/ string | number | null>; // otherwise just prints T13 in types tests, which isn't very helpful
->T13 : string | number
+>T13 : string | number | null
 
 type T14 = _Expect<Awaited<Promise<Promise<number>> | string | undefined>, /*expected*/ string | number | undefined>; // otherwise just prints T14 in types tests, which isn't very helpful
->T14 : string | number
+>T14 : string | number | undefined
 
 type T15 = _Expect<Awaited<Promise<Promise<number>> | string | null | undefined>, /*expected*/ string | number | null | undefined>; // otherwise just prints T15 in types tests, which isn't very helpful
->T15 : string | number
+>T15 : string | number | null | undefined
 
 type TUndefined = Awaited<undefined>;
 >TUndefined : undefined
@@ -59,7 +59,7 @@ type TNull = Awaited<null>;
 >TNull : null
 
 type TNullOrUndefined = Awaited<null | undefined>;
->TNullOrUndefined : null
+>TNullOrUndefined : null | undefined
 
 interface BadPromise { then(cb: (value: BadPromise) => void): void; }
 >then : (cb: (value: BadPromise) => void) => void
@@ -463,9 +463,9 @@ type CheckSelect<T, S, U> = T extends SelectAndInclude
   : S;
 
 declare function findMany<T extends { select?: string; include?: string }>(
->findMany : <T extends { select?: string; include?: string; }>(args: T) => CheckSelect<T, Promise<1>, Promise<2>>
->select : string
->include : string
+>findMany : <T extends { select?: string | undefined; include?: string | undefined; }>(args: T) => CheckSelect<T, Promise<1>, Promise<2>>
+>select : string | undefined
+>include : string | undefined
 
   args: T
 >args : T
@@ -473,11 +473,11 @@ declare function findMany<T extends { select?: string; include?: string }>(
 ): CheckSelect<T, Promise<1>, Promise<2>>;
 
 async function findManyWrapper<
->findManyWrapper : <T extends { select?: string; include?: string; }>(args: T) => Promise<CheckSelect<T, Promise<1>, Promise<2>>>
+>findManyWrapper : <T extends { select?: string | undefined; include?: string | undefined; }>(args: T) => Promise<CheckSelect<T, Promise<1>, Promise<2>>>
 
   T extends { select?: string; include?: string }
->select : string
->include : string
+>select : string | undefined
+>include : string | undefined
 
 >(args: T) {
 >args : T
@@ -486,7 +486,7 @@ async function findManyWrapper<
 >result : Awaited<CheckSelect<T, Promise<1>, Promise<2>>>
 >await findMany(args) : Awaited<CheckSelect<T, Promise<1>, Promise<2>>>
 >findMany(args) : CheckSelect<T, Promise<1>, Promise<2>>
->findMany : <T extends { select?: string; include?: string; }>(args: T) => CheckSelect<T, Promise<1>, Promise<2>>
+>findMany : <T extends { select?: string | undefined; include?: string | undefined; }>(args: T) => CheckSelect<T, Promise<1>, Promise<2>>
 >args : T
 
   return result;
@@ -500,7 +500,7 @@ async function mainFindMany() {
 >shouldBeErrorText : "Please either choose `select` or `include`"
 >await findManyWrapper({    select: "foo",    include: "bar",  }) : "Please either choose `select` or `include`"
 >findManyWrapper({    select: "foo",    include: "bar",  }) : Promise<"Please either choose `select` or `include`">
->findManyWrapper : <T extends { select?: string; include?: string; }>(args: T) => Promise<CheckSelect<T, Promise<1>, Promise<2>>>
+>findManyWrapper : <T extends { select?: string | undefined; include?: string | undefined; }>(args: T) => Promise<CheckSelect<T, Promise<1>, Promise<2>>>
 >{    select: "foo",    include: "bar",  } : { select: string; include: string; }
 
     select: "foo",
@@ -516,14 +516,14 @@ async function mainFindMany() {
 >itsOne : 1
 >await findManyWrapper({}) : 1
 >findManyWrapper({}) : Promise<Promise<1>>
->findManyWrapper : <T extends { select?: string; include?: string; }>(args: T) => Promise<CheckSelect<T, Promise<1>, Promise<2>>>
+>findManyWrapper : <T extends { select?: string | undefined; include?: string | undefined; }>(args: T) => Promise<CheckSelect<T, Promise<1>, Promise<2>>>
 >{} : {}
 
   const itsTwo1 = await findManyWrapper({ select: "foo" });
 >itsTwo1 : 2
 >await findManyWrapper({ select: "foo" }) : 2
 >findManyWrapper({ select: "foo" }) : Promise<Promise<2>>
->findManyWrapper : <T extends { select?: string; include?: string; }>(args: T) => Promise<CheckSelect<T, Promise<1>, Promise<2>>>
+>findManyWrapper : <T extends { select?: string | undefined; include?: string | undefined; }>(args: T) => Promise<CheckSelect<T, Promise<1>, Promise<2>>>
 >{ select: "foo" } : { select: string; }
 >select : string
 >"foo" : "foo"
@@ -532,7 +532,7 @@ async function mainFindMany() {
 >itsTwo2 : 2
 >await findManyWrapper({ include: "bar" }) : 2
 >findManyWrapper({ include: "bar" }) : Promise<Promise<2>>
->findManyWrapper : <T extends { select?: string; include?: string; }>(args: T) => Promise<CheckSelect<T, Promise<1>, Promise<2>>>
+>findManyWrapper : <T extends { select?: string | undefined; include?: string | undefined; }>(args: T) => Promise<CheckSelect<T, Promise<1>, Promise<2>>>
 >{ include: "bar" } : { include: string; }
 >include : string
 >"bar" : "bar"
@@ -553,13 +553,13 @@ async function mainFindMany() {
 
   Promise.all(promises).then((results) => {
 >Promise.all(promises).then((results) => {    const first = results[0]    const second = results[1] // error  }) : Promise<void>
->Promise.all(promises).then : <TResult1 = [number], TResult2 = never>(onfulfilled?: (value: [number]) => TResult1 | PromiseLike<TResult1>, onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>) => Promise<TResult1 | TResult2>
+>Promise.all(promises).then : <TResult1 = [number], TResult2 = never>(onfulfilled?: ((value: [number]) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined) => Promise<TResult1 | TResult2>
 >Promise.all(promises) : Promise<[number]>
 >Promise.all : { <T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>[]>; <T extends [] | readonly unknown[]>(values: T): Promise<{ -readonly [P in keyof T]: Awaited<T[P]>; }>; }
 >Promise : PromiseConstructor
 >all : { <T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>[]>; <T extends [] | readonly unknown[]>(values: T): Promise<{ -readonly [P in keyof T]: Awaited<T[P]>; }>; }
 >promises : readonly [Promise<number>]
->then : <TResult1 = [number], TResult2 = never>(onfulfilled?: (value: [number]) => TResult1 | PromiseLike<TResult1>, onrejected?: (reason: any) => TResult2 | PromiseLike<TResult2>) => Promise<TResult1 | TResult2>
+>then : <TResult1 = [number], TResult2 = never>(onfulfilled?: ((value: [number]) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | null | undefined) => Promise<TResult1 | TResult2>
 >(results) => {    const first = results[0]    const second = results[1] // error  } : (results: [number]) => void
 >results : [number]
 

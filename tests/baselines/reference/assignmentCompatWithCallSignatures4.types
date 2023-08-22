@@ -90,7 +90,7 @@ module Errors {
 >a : number
 
                     (a?: number): number;
->a : number
+>a : number | undefined
 
                 }): number[];
                 (x: {
@@ -100,7 +100,7 @@ module Errors {
 >a : boolean
 
                     (a?: boolean): boolean;
->a : boolean
+>a : boolean | undefined
 
                 }): boolean[];
             };
@@ -262,13 +262,13 @@ module Errors {
 
         a16 = b16;
 >a16 = b16 : <T>(x: (a: T) => T) => T[]
->a16 : { (x: { (a: number): number; (a?: number): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean): boolean; }): boolean[]; }
+>a16 : { (x: { (a: number): number; (a?: number | undefined): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean | undefined): boolean; }): boolean[]; }
 >b16 : <T>(x: (a: T) => T) => T[]
 
         b16 = a16;
->b16 = a16 : { (x: { (a: number): number; (a?: number): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean): boolean; }): boolean[]; }
+>b16 = a16 : { (x: { (a: number): number; (a?: number | undefined): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean | undefined): boolean; }): boolean[]; }
 >b16 : <T>(x: (a: T) => T) => T[]
->a16 : { (x: { (a: number): number; (a?: number): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean): boolean; }): boolean[]; }
+>a16 : { (x: { (a: number): number; (a?: number | undefined): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean | undefined): boolean; }): boolean[]; }
 
         var b17: <T>(x: (a: T) => T) => any[];
 >b17 : <T>(x: (a: T) => T) => any[]

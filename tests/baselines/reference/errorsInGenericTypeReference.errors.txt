@@ -1,10 +1,13 @@
 errorsInGenericTypeReference.ts(11,17): error TS2304: Cannot find name 'V'.
 errorsInGenericTypeReference.ts(17,31): error TS2304: Cannot find name 'V'.
 errorsInGenericTypeReference.ts(22,29): error TS2304: Cannot find name 'V'.
+errorsInGenericTypeReference.ts(22,36): error TS2322: Type 'null' is not assignable to type 'Foo<{ x: V; }>'.
 errorsInGenericTypeReference.ts(23,36): error TS2304: Cannot find name 'V'.
+errorsInGenericTypeReference.ts(23,43): error TS2322: Type 'null' is not assignable to type 'Foo<{ x: V; }>'.
 errorsInGenericTypeReference.ts(24,27): error TS2304: Cannot find name 'V'.
 errorsInGenericTypeReference.ts(25,24): error TS2304: Cannot find name 'V'.
 errorsInGenericTypeReference.ts(30,36): error TS2304: Cannot find name 'V'.
+errorsInGenericTypeReference.ts(30,43): error TS2322: Type 'null' is not assignable to type 'Foo<{ x: V; }>'.
 errorsInGenericTypeReference.ts(34,36): error TS2304: Cannot find name 'V'.
 errorsInGenericTypeReference.ts(38,17): error TS2304: Cannot find name 'V'.
 errorsInGenericTypeReference.ts(42,33): error TS2304: Cannot find name 'V'.
@@ -21,7 +24,7 @@ errorsInGenericTypeReference.ts(67,40): error TS2304: Cannot find name 'V'.
 errorsInGenericTypeReference.ts(68,24): error TS2304: Cannot find name 'V'.
 
 
-==== errorsInGenericTypeReference.ts (21 errors) ====
+==== errorsInGenericTypeReference.ts (24 errors) ====
     interface IFoo<T> { }
     
     class Foo<T> { }
@@ -50,9 +53,13 @@ errorsInGenericTypeReference.ts(68,24): error TS2304: Cannot find name 'V'.
         testMethod1(): Foo<{ x: V }> { return null; } // error: could not find symbol V
                                 ~
 !!! error TS2304: Cannot find name 'V'.
+                                       ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Foo<{ x: V; }>'.
         static testMethod2(): Foo<{ x: V }> { return null } // error: could not find symbol V
                                        ~
 !!! error TS2304: Cannot find name 'V'.
+                                              ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Foo<{ x: V; }>'.
         set a(value: Foo<{ x: V }>) { } // error: could not find symbol V
                               ~
 !!! error TS2304: Cannot find name 'V'.
@@ -66,6 +73,8 @@ errorsInGenericTypeReference.ts(68,24): error TS2304: Cannot find name 'V'.
     function testFunction1(): Foo<{ x: V }> { return null; } // error: could not find symbol V
                                        ~
 !!! error TS2304: Cannot find name 'V'.
+                                              ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Foo<{ x: V; }>'.
     
     
     // in paramter types

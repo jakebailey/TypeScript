@@ -1,0 +1,17 @@
+inheritanceStaticFuncOverridingAccessorOfFuncType.ts(3,9): error TS2322: Type 'null' is not assignable to type '() => string'.
+
+
+==== inheritanceStaticFuncOverridingAccessorOfFuncType.ts (1 errors) ====
+    class a {
+        static get x(): () => string {
+            return null;
+            ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type '() => string'.
+        }
+    }
+    
+    class b extends a {
+        static x() {
+            return "20";
+        }
+    }

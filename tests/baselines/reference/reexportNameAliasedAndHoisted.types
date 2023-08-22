@@ -5,13 +5,13 @@ export type Sizing = any;
 >Sizing : any
 
 export const Sizing = null;
->Sizing : any
+>Sizing : null
 
 === index.ts ===
 // https://github.com/microsoft/TypeScript/issues/39195
 export { Sizing as GridViewSizing } from './gridview';
->Sizing : any
->GridViewSizing : any
+>Sizing : null
+>GridViewSizing : null
 
 export namespace Sizing {
 >Sizing : typeof Sizing

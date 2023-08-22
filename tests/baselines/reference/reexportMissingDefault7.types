@@ -2,11 +2,11 @@
 
 === b.ts ===
 export const b = null;
->b : any
+>b : null
 
 === a.ts ===
 export { b } from "./b";
->b : any
+>b : null
 
 export { default } from "./b";
 >default : any

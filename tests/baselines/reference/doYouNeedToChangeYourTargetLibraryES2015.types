@@ -14,7 +14,7 @@ const testReflectApply = Reflect.apply(noOp, this, []);
 >apply : any
 >noOp : () => void
 >this : typeof globalThis
->[] : undefined[]
+>[] : never[]
 
 const testReflectConstruct = Reflect.construct(noOp, []);
 >testReflectConstruct : any
@@ -23,7 +23,7 @@ const testReflectConstruct = Reflect.construct(noOp, []);
 >Reflect : any
 >construct : any
 >noOp : () => void
->[] : undefined[]
+>[] : never[]
 
 const testReflectDefineProperty = Reflect.defineProperty({}, "", {});
 >testReflectDefineProperty : any
@@ -194,7 +194,7 @@ const testArrayConstructorFrom = Array.from([]);
 >Array.from : any
 >Array : ArrayConstructor
 >from : any
->[] : undefined[]
+>[] : never[]
 
 const testArrayConstructorOf = Array.of([]);
 >testArrayConstructorOf : any
@@ -202,7 +202,7 @@ const testArrayConstructorOf = Array.of([]);
 >Array.of : any
 >Array : ArrayConstructor
 >of : any
->[] : undefined[]
+>[] : never[]
 
 const testObjectConstructorAssign = Object.assign({}, {});
 >testObjectConstructorAssign : any
@@ -447,7 +447,7 @@ const testPromiseAll = Promise.all([]);
 >Promise.all : any
 >Promise : any
 >all : any
->[] : undefined[]
+>[] : never[]
 
 const testPromiseRace = Promise.race([]);
 >testPromiseRace : any
@@ -455,7 +455,7 @@ const testPromiseRace = Promise.race([]);
 >Promise.race : any
 >Promise : any
 >race : any
->[] : undefined[]
+>[] : never[]
 
 const testPromiseResolve = Promise.resolve();
 >testPromiseResolve : any

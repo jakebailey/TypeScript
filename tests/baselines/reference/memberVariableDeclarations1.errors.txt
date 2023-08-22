@@ -1,0 +1,39 @@
+memberVariableDeclarations1.ts(7,12): error TS2322: Type 'null' is not assignable to type 'Employee'.
+memberVariableDeclarations1.ts(19,9): error TS2322: Type 'null' is not assignable to type 'Employee'.
+memberVariableDeclarations1.ts(26,6): error TS2454: Variable 'e2' is used before being assigned.
+
+
+==== memberVariableDeclarations1.ts (3 errors) ====
+    // from spec
+    
+    class Employee {
+        public name: string;
+        public address: string;
+        public retired = false;
+        public manager: Employee = null;
+               ~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Employee'.
+        public reports: Employee[] = [];
+    }
+    
+    class Employee2 {
+        public name: string;
+        public address: string;
+        public retired: boolean;
+        public manager: Employee;
+        public reports: Employee[];
+        constructor() {
+            this.retired = false;
+            this.manager = null;
+            ~~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Employee'.
+            this.reports = [];
+        }
+    }
+    
+    var e1: Employee;
+    var e2: Employee2;
+    e1 = e2;
+         ~~
+!!! error TS2454: Variable 'e2' is used before being assigned.
+    e2 = e1;

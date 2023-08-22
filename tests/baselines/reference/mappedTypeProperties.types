@@ -26,14 +26,14 @@ type After = {
 }
 
 type AfterQuestion = {
->AfterQuestion : { openSky?: void; roofed?: void; garage?: void; }
+>AfterQuestion : { openSky?: void | undefined; roofed?: void | undefined; garage?: void | undefined; }
 
     [placeType in PlaceType]?: void;
     model: 'hour' | 'day';
 >model : "hour" | "day"
 }
 type AfterMethod = {
->AfterMethod : { openSky?: void; roofed?: void; garage?: void; }
+>AfterMethod : { openSky?: void | undefined; roofed?: void | undefined; garage?: void | undefined; }
 
     [placeType in PlaceType]?: void;
     model(duration: number): 'hour' | 'day';

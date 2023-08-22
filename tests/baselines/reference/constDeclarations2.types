@@ -18,6 +18,6 @@ module M {
 >0 : 0
 >c4 : string
 >"" : ""
->c5 : any
+>c5 : null
 }
 

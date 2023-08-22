@@ -1,9 +1,11 @@
 contextualSignatureInstatiationContravariance.ts(8,1): error TS2322: Type '<T extends Animal>(x: T, y: T) => void' is not assignable to type '(g: Giraffe, e: Elephant) => void'.
   Types of parameters 'y' and 'e' are incompatible.
     Property 'y' is missing in type 'Elephant' but required in type 'Giraffe'.
+contextualSignatureInstatiationContravariance.ts(8,6): error TS2454: Variable 'f2' is used before being assigned.
+contextualSignatureInstatiationContravariance.ts(11,6): error TS2454: Variable 'f2' is used before being assigned.
 
 
-==== contextualSignatureInstatiationContravariance.ts (1 errors) ====
+==== contextualSignatureInstatiationContravariance.ts (3 errors) ====
     interface Animal { x }
     interface Giraffe extends Animal { y }
     interface Elephant extends Animal { y2 }
@@ -17,6 +19,10 @@ contextualSignatureInstatiationContravariance.ts(8,1): error TS2322: Type '<T ex
 !!! error TS2322:   Types of parameters 'y' and 'e' are incompatible.
 !!! error TS2322:     Property 'y' is missing in type 'Elephant' but required in type 'Giraffe'.
 !!! related TS2728 contextualSignatureInstatiationContravariance.ts:2:36: 'y' is declared here.
+         ~~
+!!! error TS2454: Variable 'f2' is used before being assigned.
     
     var h2: (g1: Giraffe, g2: Giraffe) => void;
     h2 = f2; // valid because Giraffe satisfies the constraint. It is safe in the traditional contravariant fashion.
+         ~~
+!!! error TS2454: Variable 'f2' is used before being assigned.

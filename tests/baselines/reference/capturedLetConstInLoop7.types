@@ -6,29 +6,29 @@ l0:
 >l0 : any
 
 for (let x of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
     (function() { return x});
->(function() { return x}) : () => any
->function() { return x} : () => any
->x : any
+>(function() { return x}) : () => never
+>function() { return x} : () => never
+>x : never
 
     (() => x);
->(() => x) : () => any
->() => x : () => any
->x : any
+>(() => x) : () => never
+>() => x : () => never
+>x : never
 
     if (x == 1) {
 >x == 1 : boolean
->x : any
+>x : never
 >1 : 1
 
         break;
     }
     if (x == 1) {
 >x == 1 : boolean
->x : any
+>x : never
 >1 : 1
 
         break l0;
@@ -36,14 +36,14 @@ for (let x of []) {
     }
     if (x == 2) {
 >x == 2 : boolean
->x : any
+>x : never
 >2 : 2
 
         continue;
     }
     if (x == 2) {
 >x == 2 : boolean
->x : any
+>x : never
 >2 : 2
 
         continue l0;
@@ -56,7 +56,7 @@ l00:
 
 for (let x in []) {
 >x : string
->[] : undefined[]
+>[] : never[]
 
     (function() { return x});
 >(function() { return x}) : () => string
@@ -560,29 +560,29 @@ l0_c:
 >l0_c : any
 
 for (const x of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
     (function() { return x});
->(function() { return x}) : () => any
->function() { return x} : () => any
->x : any
+>(function() { return x}) : () => never
+>function() { return x} : () => never
+>x : never
 
     (() => x);
->(() => x) : () => any
->() => x : () => any
->x : any
+>(() => x) : () => never
+>() => x : () => never
+>x : never
 
     if (x == 1) {
 >x == 1 : boolean
->x : any
+>x : never
 >1 : 1
 
         break;
     }
     if (x == 1) {
 >x == 1 : boolean
->x : any
+>x : never
 >1 : 1
 
         break l0_c;
@@ -590,14 +590,14 @@ for (const x of []) {
     }
     if (x == 2) {
 >x == 2 : boolean
->x : any
+>x : never
 >2 : 2
 
         continue;
     }
     if (x == 2) {
 >x == 2 : boolean
->x : any
+>x : never
 >2 : 2
 
         continue l0_c;
@@ -610,7 +610,7 @@ l00_c:
 
 for (const x in []) {
 >x : string
->[] : undefined[]
+>[] : never[]
 
     (function() { return x});
 >(function() { return x}) : () => string

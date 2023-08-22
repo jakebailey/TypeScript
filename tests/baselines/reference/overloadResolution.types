@@ -46,13 +46,13 @@ function fn1() { return null; }
 >fn1 : { (s: string): string; (s: number): number; }
 
 var s = fn1(undefined);
->s : string
->fn1(undefined) : string
+>s : never
+>fn1(undefined) : never
 >fn1 : { (s: string): string; (s: number): number; }
 >undefined : undefined
 
 var s: string;
->s : string
+>s : never
 
 
 // No candidate overloads found
@@ -77,18 +77,18 @@ function fn2() { return undefined; }
 >undefined : undefined
 
 var d = fn2<Date>(0, undefined);
->d : Date
->fn2<Date>(0, undefined) : Date
+>d : number
+>fn2<Date>(0, undefined) : number
 >fn2 : { (s: string, n: number): number; <T>(n: number, t: T): T; }
 >0 : 0
 >undefined : undefined
 
 var d: Date;
->d : Date
+>d : number
 
 // Generic and non - generic overload where generic overload is the only candidate when called without type arguments
 var s = fn2(0, '');
->s : string
+>s : never
 >fn2(0, '') : ""
 >fn2 : { (s: string, n: number): number; <T>(n: number, t: T): T; }
 >0 : 0
@@ -129,13 +129,13 @@ function fn3() { return null; }
 >fn3 : { <T>(n: T): string; <T, U>(s: string, t: T, u: U): U; <T, U, V>(v: V, u: U, t: T): number; }
 
 var s = fn3(3);
->s : string
+>s : never
 >fn3(3) : string
 >fn3 : { <T>(n: T): string; <T, U>(s: string, t: T, u: U): U; <T, U, V>(v: V, u: U, t: T): number; }
 >3 : 3
 
 var s = fn3('', 3, '');
->s : string
+>s : never
 >fn3('', 3, '') : ""
 >fn3 : { <T>(n: T): string; <T, U>(s: string, t: T, u: U): U; <T, U, V>(v: V, u: U, t: T): number; }
 >'' : ""
@@ -155,13 +155,13 @@ var n: number;
 
 // Generic overloads with differing arity called with type arguments matching each overload type parameter count
 var s = fn3<number>(4);
->s : string
+>s : never
 >fn3<number>(4) : string
 >fn3 : { <T>(n: T): string; <T, U>(s: string, t: T, u: U): U; <T, U, V>(v: V, u: U, t: T): number; }
 >4 : 4
 
 var s = fn3<string, string>('', '', '');
->s : string
+>s : never
 >fn3<string, string>('', '', '') : string
 >fn3 : { <T>(n: T): string; <T, U>(s: string, t: T, u: U): U; <T, U, V>(v: V, u: U, t: T): number; }
 >'' : ""
@@ -286,15 +286,15 @@ var n = fn5((n) => n.toFixed());
 >toFixed : any
 
 var s = fn5((n) => n.substr(0));
->s : string
+>s : never
 >fn5((n) => n.substr(0)) : string
 >fn5 : { (f: (n: string) => void): string; (f: (n: number) => void): number; }
 >(n) => n.substr(0) : (n: string) => string
 >n : string
 >n.substr(0) : string
->n.substr : (from: number, length?: number) => string
+>n.substr : (from: number, length?: number | undefined) => string
 >n : string
->substr : (from: number, length?: number) => string
+>substr : (from: number, length?: number | undefined) => string
 >0 : 0
 
 

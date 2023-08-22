@@ -20,11 +20,11 @@ var t: T;
 
 interface S2 { foo: string; bar?: string }
 >foo : string
->bar : string
+>bar : string | undefined
 
 interface T2 { foo: string; baz?: string }
 >foo : string
->baz : string
+>baz : string | undefined
 
 var s2: S2;
 >s2 : S2
@@ -33,14 +33,14 @@ var t2: T2;
 >t2 : T2
 
 var a: { foo: string; bar?: string }
->a : { foo: string; bar?: string; }
+>a : { foo: string; bar?: string | undefined; }
 >foo : string
->bar : string
+>bar : string | undefined
 
 var b: { foo: string; baz?: string }
->b : { foo: string; baz?: string; }
+>b : { foo: string; baz?: string | undefined; }
 >foo : string
->baz : string
+>baz : string | undefined
 
 var a2 = { foo: '' };
 >a2 : { foo: string; }
@@ -90,9 +90,9 @@ s2 = t;
 >t : T
 
 s2 = b;
->s2 = b : { foo: string; baz?: string; }
+>s2 = b : { foo: string; baz?: string | undefined; }
 >s2 : S2
->b : { foo: string; baz?: string; }
+>b : { foo: string; baz?: string | undefined; }
 
 s2 = a2;
 >s2 = a2 : { foo: string; }
@@ -100,28 +100,28 @@ s2 = a2;
 >a2 : { foo: string; }
 
 a = b;
->a = b : { foo: string; baz?: string; }
->a : { foo: string; bar?: string; }
->b : { foo: string; baz?: string; }
+>a = b : { foo: string; baz?: string | undefined; }
+>a : { foo: string; bar?: string | undefined; }
+>b : { foo: string; baz?: string | undefined; }
 
 b = a;
->b = a : { foo: string; bar?: string; }
->b : { foo: string; baz?: string; }
->a : { foo: string; bar?: string; }
+>b = a : { foo: string; bar?: string | undefined; }
+>b : { foo: string; baz?: string | undefined; }
+>a : { foo: string; bar?: string | undefined; }
 
 a = s;
 >a = s : S
->a : { foo: string; bar?: string; }
+>a : { foo: string; bar?: string | undefined; }
 >s : S
 
 a = s2;
 >a = s2 : S2
->a : { foo: string; bar?: string; }
+>a : { foo: string; bar?: string | undefined; }
 >s2 : S2
 
 a = a2;
 >a = a2 : { foo: string; }
->a : { foo: string; bar?: string; }
+>a : { foo: string; bar?: string | undefined; }
 >a2 : { foo: string; }
 
 a2 = b2;
@@ -135,9 +135,9 @@ b2 = a2;
 >a2 : { foo: string; }
 
 a2 = b;
->a2 = b : { foo: string; baz?: string; }
+>a2 = b : { foo: string; baz?: string | undefined; }
 >a2 : { foo: string; }
->b : { foo: string; baz?: string; }
+>b : { foo: string; baz?: string | undefined; }
 
 a2 = t2;
 >a2 = t2 : T2

@@ -18,9 +18,9 @@
 //     '': ''
 //      
 // | ----------------------------------------------------------------------
-// | (property) alignContent?: string
-// | (property) alignItems?: string
-// | (property) alignmentBaseline?: string
+// | (property) alignContent?: string | null | undefined
+// | (property) alignItems?: string | null | undefined
+// | (property) alignmentBaseline?: string | null | undefined
 // | ----------------------------------------------------------------------
 //   }
 // });
@@ -86,6 +86,38 @@
             {
               "text": "string",
               "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "null",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
             }
           ],
           "documentation": []
@@ -135,6 +167,38 @@
             {
               "text": "string",
               "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "null",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
             }
           ],
           "documentation": []
@@ -183,6 +247,38 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "null",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             }
           ],

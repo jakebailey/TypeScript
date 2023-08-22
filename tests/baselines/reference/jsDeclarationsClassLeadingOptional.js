@@ -25,5 +25,5 @@ exports.Z = Z;
 
 //// [bar.d.ts]
 export class Z {
-    f(x: number, y: any): any[];
+    f(x: number | undefined, y: any): any[];
 }

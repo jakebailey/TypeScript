@@ -294,7 +294,7 @@ namespace GH30170 {
     }
     interface Yellow {
         color?: 'yellow',
->color : "yellow"
+>color : "yellow" | undefined
     }
     function draw(val: Blue | Yellow) { }
 >draw : (val: Blue | Yellow) => void
@@ -302,14 +302,14 @@ namespace GH30170 {
 
     function drawWithColor(currentColor: 'blue' | 'yellow' | undefined) {
 >drawWithColor : (currentColor: 'blue' | 'yellow' | undefined) => void
->currentColor : "blue" | "yellow"
+>currentColor : "blue" | "yellow" | undefined
 
         return draw({ color: currentColor });
 >draw({ color: currentColor }) : void
 >draw : (val: Blue | Yellow) => void
->{ color: currentColor } : { color: "blue" | "yellow"; }
->color : "blue" | "yellow"
->currentColor : "blue" | "yellow"
+>{ color: currentColor } : { color: "blue" | "yellow" | undefined; }
+>color : "blue" | "yellow" | undefined
+>currentColor : "blue" | "yellow" | undefined
     }
 }
 

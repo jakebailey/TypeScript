@@ -3,13 +3,14 @@ errorElaboration.ts(12,5): error TS2345: Argument of type '() => Container<Ref<s
   Type 'Container<Ref<string>>' is not assignable to type 'Container<Ref<number>>'.
     Type 'Ref<string>' is not assignable to type 'Ref<number>'.
       Type 'string' is not assignable to type 'number'.
+errorElaboration.ts(12,5): error TS2454: Variable 'a' is used before being assigned.
 errorElaboration.ts(17,11): error TS2322: Type '"bar"' is not assignable to type '"foo"'.
 errorElaboration.ts(22,7): error TS2300: Duplicate identifier 'foo'.
 errorElaboration.ts(23,15): error TS2538: Type 'any' cannot be used as an index type.
 errorElaboration.ts(23,19): error TS2339: Property 'bar' does not exist on type '(x: () => Container<Ref<number>>) => void'.
 
 
-==== errorElaboration.ts (6 errors) ====
+==== errorElaboration.ts (7 errors) ====
     // Repro for #5712
     
     interface Ref<T> {
@@ -29,6 +30,8 @@ errorElaboration.ts(23,19): error TS2339: Property 'bar' does not exist on type 
 !!! error TS2345:   Type 'Container<Ref<string>>' is not assignable to type 'Container<Ref<number>>'.
 !!! error TS2345:     Type 'Ref<string>' is not assignable to type 'Ref<number>'.
 !!! error TS2345:       Type 'string' is not assignable to type 'number'.
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     
     // Repro for #25498
     

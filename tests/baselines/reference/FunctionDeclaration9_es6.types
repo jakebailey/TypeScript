@@ -2,12 +2,12 @@
 
 === FunctionDeclaration9_es6.ts ===
 function * foo() {
->foo : () => Generator<any, void, unknown>
+>foo : () => Generator<undefined, void, unknown>
 
   var v = { [yield]: foo }
->v : { [x: number]: () => Generator<any, void, unknown>; }
->{ [yield]: foo } : { [x: number]: () => Generator<any, void, unknown>; }
->[yield] : () => Generator<any, void, unknown>
+>v : { [x: number]: () => Generator<undefined, void, unknown>; }
+>{ [yield]: foo } : { [x: number]: () => Generator<undefined, void, unknown>; }
+>[yield] : () => Generator<undefined, void, unknown>
 >yield : any
->foo : () => Generator<any, void, unknown>
+>foo : () => Generator<undefined, void, unknown>
 }

@@ -12,9 +12,9 @@ use(x.toFixed());
 >use(x.toFixed()) : any
 >use : (x: string) => any
 >x.toFixed() : string
->x.toFixed : (fractionDigits?: number) => string
+>x.toFixed : (fractionDigits?: number | undefined) => string
 >x : number
->toFixed : (fractionDigits?: number) => string
+>toFixed : (fractionDigits?: number | undefined) => string
 
 === c:/root/src/file2/index.d.ts ===
 export let x: number;

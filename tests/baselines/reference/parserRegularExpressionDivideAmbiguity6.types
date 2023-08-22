@@ -2,7 +2,7 @@
 
 === parserRegularExpressionDivideAmbiguity6.ts ===
 function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
->c255lsqr8h : (a7: any, a6: any, a5: any, a4: any, a3: any, a2: any, a1: any, a0: any) => any[]
+>c255lsqr8h : (a7: any, a6: any, a5: any, a4: any, a3: any, a2: any, a1: any, a0: any) => never[]
 >a7 : any
 >a6 : any
 >a5 : any
@@ -13,16 +13,16 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 >a0 : any
 
     let r = [];
->r : any[]
->[] : undefined[]
+>r : never[]
+>[] : never[]
 
     let v;
 >v : any
 
     r[0] = (v = a0*a0) & 0xFFFF;
 >r[0] = (v = a0*a0) & 0xFFFF : number
->r[0] : any
->r : any[]
+>r[0] : never
+>r : never[]
 >0 : 0
 >(v = a0*a0) & 0xFFFF : number
 >(v = a0*a0) : number
@@ -35,8 +35,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[1] = (v = ((v / 0x10000) | 0) + 2*a0*a1) & 0xFFFF;
 >r[1] = (v = ((v / 0x10000) | 0) + 2*a0*a1) & 0xFFFF : number
->r[1] : any
->r : any[]
+>r[1] : never
+>r : never[]
 >1 : 1
 >(v = ((v / 0x10000) | 0) + 2*a0*a1) & 0xFFFF : number
 >(v = ((v / 0x10000) | 0) + 2*a0*a1) : number
@@ -59,8 +59,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[2] = (v = ((v / 0x10000) | 0) + 2*a0*a2 + a1*a1) & 0xFFFF;
 >r[2] = (v = ((v / 0x10000) | 0) + 2*a0*a2 + a1*a1) & 0xFFFF : number
->r[2] : any
->r : any[]
+>r[2] : never
+>r : never[]
 >2 : 2
 >(v = ((v / 0x10000) | 0) + 2*a0*a2 + a1*a1) & 0xFFFF : number
 >(v = ((v / 0x10000) | 0) + 2*a0*a2 + a1*a1) : number
@@ -87,8 +87,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[3] = (v = ((v / 0x10000) | 0) + 2*a0*a3 + 2*a1*a2) & 0xFFFF;
 >r[3] = (v = ((v / 0x10000) | 0) + 2*a0*a3 + 2*a1*a2) & 0xFFFF : number
->r[3] : any
->r : any[]
+>r[3] : never
+>r : never[]
 >3 : 3
 >(v = ((v / 0x10000) | 0) + 2*a0*a3 + 2*a1*a2) & 0xFFFF : number
 >(v = ((v / 0x10000) | 0) + 2*a0*a3 + 2*a1*a2) : number
@@ -117,8 +117,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[4] = (v = ((v / 0x10000) | 0) + 2*a0*a4 + 2*a1*a3 + a2*a2) & 0xFFFF;
 >r[4] = (v = ((v / 0x10000) | 0) + 2*a0*a4 + 2*a1*a3 + a2*a2) & 0xFFFF : number
->r[4] : any
->r : any[]
+>r[4] : never
+>r : never[]
 >4 : 4
 >(v = ((v / 0x10000) | 0) + 2*a0*a4 + 2*a1*a3 + a2*a2) & 0xFFFF : number
 >(v = ((v / 0x10000) | 0) + 2*a0*a4 + 2*a1*a3 + a2*a2) : number
@@ -151,8 +151,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[5] = (v = ((v / 0x10000) | 0) + 2*a0*a5 + 2*a1*a4 + 2*a2*a3) & 0xFFFF;
 >r[5] = (v = ((v / 0x10000) | 0) + 2*a0*a5 + 2*a1*a4 + 2*a2*a3) & 0xFFFF : number
->r[5] : any
->r : any[]
+>r[5] : never
+>r : never[]
 >5 : 5
 >(v = ((v / 0x10000) | 0) + 2*a0*a5 + 2*a1*a4 + 2*a2*a3) & 0xFFFF : number
 >(v = ((v / 0x10000) | 0) + 2*a0*a5 + 2*a1*a4 + 2*a2*a3) : number
@@ -187,8 +187,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[6] = (v = ((v / 0x10000) | 0) + 2*a0*a6 + 2*a1*a5 + 2*a2*a4 + a3*a3) & 0xFFFF;
 >r[6] = (v = ((v / 0x10000) | 0) + 2*a0*a6 + 2*a1*a5 + 2*a2*a4 + a3*a3) & 0xFFFF : number
->r[6] : any
->r : any[]
+>r[6] : never
+>r : never[]
 >6 : 6
 >(v = ((v / 0x10000) | 0) + 2*a0*a6 + 2*a1*a5 + 2*a2*a4 + a3*a3) & 0xFFFF : number
 >(v = ((v / 0x10000) | 0) + 2*a0*a6 + 2*a1*a5 + 2*a2*a4 + a3*a3) : number
@@ -227,8 +227,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[7] = (v = ((v / 0x10000) | 0) + 2*a0*a7 + 2*a1*a6 + 2*a2*a5 + 2*a3*a4) & 0xFFFF;
 >r[7] = (v = ((v / 0x10000) | 0) + 2*a0*a7 + 2*a1*a6 + 2*a2*a5 + 2*a3*a4) & 0xFFFF : number
->r[7] : any
->r : any[]
+>r[7] : never
+>r : never[]
 >7 : 7
 >(v = ((v / 0x10000) | 0) + 2*a0*a7 + 2*a1*a6 + 2*a2*a5 + 2*a3*a4) & 0xFFFF : number
 >(v = ((v / 0x10000) | 0) + 2*a0*a7 + 2*a1*a6 + 2*a2*a5 + 2*a3*a4) : number
@@ -269,8 +269,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[8] = (v = ((v / 0x10000) | 0) + 2*a1*a7 + 2*a2*a6 + 2*a3*a5 + a4*a4) & 0xFFFF;
 >r[8] = (v = ((v / 0x10000) | 0) + 2*a1*a7 + 2*a2*a6 + 2*a3*a5 + a4*a4) & 0xFFFF : number
->r[8] : any
->r : any[]
+>r[8] : never
+>r : never[]
 >8 : 8
 >(v = ((v / 0x10000) | 0) + 2*a1*a7 + 2*a2*a6 + 2*a3*a5 + a4*a4) & 0xFFFF : number
 >(v = ((v / 0x10000) | 0) + 2*a1*a7 + 2*a2*a6 + 2*a3*a5 + a4*a4) : number
@@ -309,8 +309,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[9] = (v = ((v / 0x10000) | 0) + 2*a2*a7 + 2*a3*a6 + 2*a4*a5) & 0xFFFF;
 >r[9] = (v = ((v / 0x10000) | 0) + 2*a2*a7 + 2*a3*a6 + 2*a4*a5) & 0xFFFF : number
->r[9] : any
->r : any[]
+>r[9] : never
+>r : never[]
 >9 : 9
 >(v = ((v / 0x10000) | 0) + 2*a2*a7 + 2*a3*a6 + 2*a4*a5) & 0xFFFF : number
 >(v = ((v / 0x10000) | 0) + 2*a2*a7 + 2*a3*a6 + 2*a4*a5) : number
@@ -345,8 +345,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[10] = (v = ((v / 0x10000) | 0) + 2*a3*a7 + 2*a4*a6 + a5*a5) & 0xFFFF;
 >r[10] = (v = ((v / 0x10000) | 0) + 2*a3*a7 + 2*a4*a6 + a5*a5) & 0xFFFF : number
->r[10] : any
->r : any[]
+>r[10] : never
+>r : never[]
 >10 : 10
 >(v = ((v / 0x10000) | 0) + 2*a3*a7 + 2*a4*a6 + a5*a5) & 0xFFFF : number
 >(v = ((v / 0x10000) | 0) + 2*a3*a7 + 2*a4*a6 + a5*a5) : number
@@ -379,8 +379,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[11] = (v = ((v / 0x10000) | 0) + 2*a4*a7 + 2*a5*a6) & 0xFFFF;
 >r[11] = (v = ((v / 0x10000) | 0) + 2*a4*a7 + 2*a5*a6) & 0xFFFF : number
->r[11] : any
->r : any[]
+>r[11] : never
+>r : never[]
 >11 : 11
 >(v = ((v / 0x10000) | 0) + 2*a4*a7 + 2*a5*a6) & 0xFFFF : number
 >(v = ((v / 0x10000) | 0) + 2*a4*a7 + 2*a5*a6) : number
@@ -409,8 +409,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[12] = (v = ((v / 0x10000) | 0) + 2*a5*a7 + a6*a6) & 0xFFFF;
 >r[12] = (v = ((v / 0x10000) | 0) + 2*a5*a7 + a6*a6) & 0xFFFF : number
->r[12] : any
->r : any[]
+>r[12] : never
+>r : never[]
 >12 : 12
 >(v = ((v / 0x10000) | 0) + 2*a5*a7 + a6*a6) & 0xFFFF : number
 >(v = ((v / 0x10000) | 0) + 2*a5*a7 + a6*a6) : number
@@ -437,8 +437,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[13] = (v = ((v / 0x10000) | 0) + 2*a6*a7) & 0xFFFF;
 >r[13] = (v = ((v / 0x10000) | 0) + 2*a6*a7) & 0xFFFF : number
->r[13] : any
->r : any[]
+>r[13] : never
+>r : never[]
 >13 : 13
 >(v = ((v / 0x10000) | 0) + 2*a6*a7) & 0xFFFF : number
 >(v = ((v / 0x10000) | 0) + 2*a6*a7) : number
@@ -461,8 +461,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[14] = (v = ((v / 0x10000) | 0) + a7*a7) & 0xFFFF;
 >r[14] = (v = ((v / 0x10000) | 0) + a7*a7) & 0xFFFF : number
->r[14] : any
->r : any[]
+>r[14] : never
+>r : never[]
 >14 : 14
 >(v = ((v / 0x10000) | 0) + a7*a7) & 0xFFFF : number
 >(v = ((v / 0x10000) | 0) + a7*a7) : number
@@ -483,8 +483,8 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 
     r[15] = ((v / 0x10000) | 0);
 >r[15] = ((v / 0x10000) | 0) : number
->r[15] : any
->r : any[]
+>r[15] : never
+>r : never[]
 >15 : 15
 >((v / 0x10000) | 0) : number
 >(v / 0x10000) | 0 : number
@@ -495,6 +495,6 @@ function c255lsqr8h(a7, a6, a5, a4, a3, a2, a1, a0) {
 >0 : 0
 
     return r;
->r : any[]
+>r : never[]
 }
 

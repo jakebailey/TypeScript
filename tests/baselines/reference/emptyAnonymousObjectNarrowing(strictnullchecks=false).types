@@ -71,13 +71,13 @@ function f2<T extends object>(x: T) {
 }
 
 declare let union: "xyz" | { a: string } | undefined;
->union : { a: string; } | "xyz"
+>union : { a: string; } | "xyz" | undefined
 >a : string
 
 if (nonNull === union) {
 >nonNull === union : boolean
 >nonNull : {}
->union : { a: string; } | "xyz"
+>union : { a: string; } | "xyz" | undefined
 
   nonNull;
 >nonNull : {}
@@ -93,7 +93,7 @@ if (nonNull === undefined) {
 >undefined : undefined
 
   nonNull;
->nonNull : {}
+>nonNull : never
 }
 else {
   nonNull;
@@ -105,7 +105,7 @@ if (nonNull === null) {
 >nonNull : {}
 
   nonNull;
->nonNull : {}
+>nonNull : never
 }
 else {
   nonNull;
@@ -118,7 +118,7 @@ if (nonNull == undefined) {
 >undefined : undefined
 
   nonNull;
->nonNull : {}
+>nonNull : never
 }
 else {
   nonNull;
@@ -140,7 +140,7 @@ const foo = (value: unknown): string => {
   }
   if (value === 'xyz') {
 >value === 'xyz' : boolean
->value : unknown
+>value : {}
 >'xyz' : "xyz"
 
       return value; // Type '{}' is not assignable to type 'string'.

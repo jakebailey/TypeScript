@@ -1,0 +1,33 @@
+recursiveComplicatedClasses.ts(2,12): error TS2322: Type 'null' is not assignable to type 'ParameterSymbol[]'.
+recursiveComplicatedClasses.ts(13,27): error TS2454: Variable 'b' is used before being assigned.
+
+
+==== recursiveComplicatedClasses.ts (2 errors) ====
+    class Signature {
+        public parameters: ParameterSymbol[] = null;
+               ~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'ParameterSymbol[]'.
+    }
+    
+    function aEnclosesB(a: Symbol) {
+        return true;
+    }
+    
+    class Symbol {
+        public bound: boolean;
+        public visible() {
+            var b: TypeSymbol;
+            return aEnclosesB(b);
+                              ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+        }
+    
+    }
+    class InferenceSymbol extends Symbol {
+    }
+    
+    class ParameterSymbol extends InferenceSymbol {
+    }
+    
+    class TypeSymbol extends InferenceSymbol {
+    }

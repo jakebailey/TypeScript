@@ -4,13 +4,13 @@
 interface fnSigs {
     //functions signatures can be optional
     fn(): void;
->fn : { (): void; (): void; }
+>fn : { (): void; (): void; } | undefined
 
     fn?(): void; //err
->fn : { (): void; (): void; }
+>fn : { (): void; (): void; } | undefined
 
     fn2?(): void;
->fn2 : () => void
+>fn2 : (() => void) | undefined
 }
 
 interface callSig {
@@ -29,7 +29,7 @@ interface constructSig {
 >any : any
 
     new ?(): any; //err
->new : () => any
+>new : (() => any) | undefined
 }
 
 interface propertySig {
@@ -57,5 +57,5 @@ interface indexSig {
 >idx : number
 
     [idx?: number]: any; //err
->idx : number
+>idx : number | undefined
 }

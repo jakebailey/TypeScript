@@ -77,7 +77,7 @@ class SomeDerivedClass extends SomeBaseClass {
     }
 
     get a() {
->a : any
+>a : null
 
         var x = super.func();
 >x : string
@@ -93,8 +93,8 @@ class SomeDerivedClass extends SomeBaseClass {
     }
 
     set a(n) {
->a : any
->n : any
+>a : null
+>n : null
 
         var x = super.func();
 >x : string
@@ -122,7 +122,7 @@ class SomeDerivedClass extends SomeBaseClass {
     }
 
     static get a() {
->a : any
+>a : null
 
         var x = super.func();
 >x : number
@@ -138,8 +138,8 @@ class SomeDerivedClass extends SomeBaseClass {
     }
 
     static set a(n) {
->a : any
->n : any
+>a : null
+>n : null
 
         var x = super.func();
 >x : number

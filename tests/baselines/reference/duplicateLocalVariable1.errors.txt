@@ -1,9 +1,14 @@
+duplicateLocalVariable1.ts(158,28): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+duplicateLocalVariable1.ts(169,28): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
 duplicateLocalVariable1.ts(184,22): error TS2403: Subsequent variable declarations must have the same type.  Variable 'i' must be of type 'string', but here has type 'number'.
 duplicateLocalVariable1.ts(184,29): error TS2365: Operator '<' cannot be applied to types 'string' and 'number'.
 duplicateLocalVariable1.ts(184,37): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+duplicateLocalVariable1.ts(185,28): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+duplicateLocalVariable1.ts(239,33): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+duplicateLocalVariable1.ts(254,33): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
 
 
-==== duplicateLocalVariable1.ts (3 errors) ====
+==== duplicateLocalVariable1.ts (8 errors) ====
     //import FileManager = require('filemanager');
     //import App = require('app');
     
@@ -162,6 +167,8 @@ duplicateLocalVariable1.ts(184,37): error TS2356: An arithmetic operand must be 
                 var chars = [];
                 for (var i = 0; i < 11; i++) {
                     chars.push(fb.readByte());
+                               ~~~~~~~~~~~~~
+!!! error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
                 }
                 return TestRunner.arrayCompare(chars, [0x54, 0xC3, 0xA8, 0xE1, 0xB4, 0xA3, 0xE2, 0x80, 0xA0, 0x0D, 0x0A]);
             }));
@@ -173,6 +180,8 @@ duplicateLocalVariable1.ts(184,37): error TS2356: An arithmetic operand must be 
                 var chars = [];
                 for (var i = 0; i < 6; i++) {
                     chars.push(fb.readUtf8CodePoint());
+                               ~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
                 }
                 return TestRunner.arrayCompare(chars, [0x0054, 0x00E8, 0x1D23, 0x2020, 0x000D, 0x000A]);
             }));
@@ -196,6 +205,8 @@ duplicateLocalVariable1.ts(184,37): error TS2356: An arithmetic operand must be 
                                         ~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
                     bytes.push(fb.readByte());
+                               ~~~~~~~~~~~~~
+!!! error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
                 }
                 var expected = [0xEF, 0xBB, 0xBF, 0x54, 0xC3, 0xA8, 0xE1, 0xB4, 0xA3, 0xE2, 0x80, 0xA0, 0x0D, 0x0A];
                 return TestRunner.arrayCompare(bytes, expected);
@@ -250,6 +261,8 @@ duplicateLocalVariable1.ts(184,37): error TS2356: An arithmetic operand must be 
                 var codePoints = [];
                 for (var i = 0; i < 6; i++) {
                     codePoints.push(savedFile.readUtf16CodePoint(false));
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
                 }
                 var expectedCodePoints = [0x10480, 0x10481, 0x10482, 0x54, 0x68, 0x69];
                 return TestRunner.arrayCompare(codePoints, expectedCodePoints);
@@ -265,6 +278,8 @@ duplicateLocalVariable1.ts(184,37): error TS2356: An arithmetic operand must be 
                 var codePoints = [];
                 for (var i = 0; i < 6; i++) {
                     codePoints.push(savedFile.readUtf8CodePoint());
+                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
                 }
                 var expectedCodePoints = [0x10480, 0x10481, 0x10482, 0x54, 0x68, 0x69];
                 return TestRunner.arrayCompare(codePoints, expectedCodePoints);

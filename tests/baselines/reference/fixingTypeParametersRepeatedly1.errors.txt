@@ -1,0 +1,14 @@
+fixingTypeParametersRepeatedly1.ts(2,12): error TS2322: Type 'null' is not assignable to type 'string'.
+
+
+==== fixingTypeParametersRepeatedly1.ts (1 errors) ====
+    declare function f<T>(x: T, y: (p: T) => T, z: (p: T) => T): T;
+    f("", x => null, x => x.toLowerCase());
+               ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'string'.
+!!! related TS6502 fixingTypeParametersRepeatedly1.ts:1:32: The expected type comes from the return type of this signature.
+    
+    // First overload of g should type check just like f
+    declare function g<T>(x: T, y: (p: T) => T, z: (p: T) => T): T;
+    declare function g();
+    g("", x => null, x => x.toLowerCase());

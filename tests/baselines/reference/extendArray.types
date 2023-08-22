@@ -37,16 +37,16 @@ var arr = (<any>Array).prototype;
 >prototype : any
 
 arr.collect = function (fn) {
->arr.collect = function (fn) {    var res = [];    for (var i = 0; i < this.length; ++i) {        var tmp = fn(this[i]);        for (var j = 0; j < tmp.length; ++j) {            res.push(tmp[j]);        }    }    return res;} : (fn: any) => any[]
+>arr.collect = function (fn) {    var res = [];    for (var i = 0; i < this.length; ++i) {        var tmp = fn(this[i]);        for (var j = 0; j < tmp.length; ++j) {            res.push(tmp[j]);        }    }    return res;} : (fn: any) => never[]
 >arr.collect : any
 >arr : any
 >collect : any
->function (fn) {    var res = [];    for (var i = 0; i < this.length; ++i) {        var tmp = fn(this[i]);        for (var j = 0; j < tmp.length; ++j) {            res.push(tmp[j]);        }    }    return res;} : (fn: any) => any[]
+>function (fn) {    var res = [];    for (var i = 0; i < this.length; ++i) {        var tmp = fn(this[i]);        for (var j = 0; j < tmp.length; ++j) {            res.push(tmp[j]);        }    }    return res;} : (fn: any) => never[]
 >fn : any
 
     var res = [];
->res : any[]
->[] : undefined[]
+>res : never[]
+>[] : never[]
 
     for (var i = 0; i < this.length; ++i) {
 >i : number
@@ -80,16 +80,16 @@ arr.collect = function (fn) {
 
             res.push(tmp[j]);
 >res.push(tmp[j]) : number
->res.push : (...items: any[]) => number
->res : any[]
->push : (...items: any[]) => number
+>res.push : (...items: never[]) => number
+>res : never[]
+>push : (...items: never[]) => number
 >tmp[j] : any
 >tmp : any
 >j : number
         }
     }
     return res;
->res : any[]
+>res : never[]
 
 };
 

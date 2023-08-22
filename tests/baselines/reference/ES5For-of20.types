@@ -2,8 +2,8 @@
 
 === ES5For-of20.ts ===
 for (let v of []) {
->v : any
->[] : undefined[]
+>v : never
+>[] : never[]
 
     let v;
 >v : any

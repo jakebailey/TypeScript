@@ -1,9 +1,10 @@
 asiPreventsParsingAsInterface05.ts(3,5): error TS1212: Identifier expected. 'interface' is a reserved word in strict mode.
 asiPreventsParsingAsInterface05.ts(10,1): error TS1212: Identifier expected. 'interface' is a reserved word in strict mode.
+asiPreventsParsingAsInterface05.ts(10,1): error TS2454: Variable 'interface' is used before being assigned.
 asiPreventsParsingAsInterface05.ts(11,1): error TS2304: Cannot find name 'I'.
 
 
-==== asiPreventsParsingAsInterface05.ts (3 errors) ====
+==== asiPreventsParsingAsInterface05.ts (4 errors) ====
     "use strict"
     
     var interface: number;
@@ -18,6 +19,8 @@ asiPreventsParsingAsInterface05.ts(11,1): error TS2304: Cannot find name 'I'.
     interface   // This should be the identifier 'interface'
     ~~~~~~~~~
 !!! error TS1212: Identifier expected. 'interface' is a reserved word in strict mode.
+    ~~~~~~~~~
+!!! error TS2454: Variable 'interface' is used before being assigned.
     I           // This should be the identifier 'I'
     ~
 !!! error TS2304: Cannot find name 'I'.

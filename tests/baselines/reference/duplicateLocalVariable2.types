@@ -7,7 +7,7 @@ export class TestCase {
     constructor (public name: string, public test: ()=>boolean, public errorMessageRegEx?: string) {
 >name : string
 >test : () => boolean
->errorMessageRegEx : string
+>errorMessageRegEx : string | undefined
     }
 }
 export class TestRunner { 
@@ -86,8 +86,8 @@ export var tests: TestRunner = (function () {
 >0 : 0
 
             var bytes = [];
->bytes : any[]
->[] : undefined[]
+>bytes : never[]
+>[] : never[]
 
             for (var i = 0; i < 14; i++) {
 >i : string
@@ -100,9 +100,9 @@ export var tests: TestRunner = (function () {
 
                 bytes.push(fb.readByte());
 >bytes.push(fb.readByte()) : number
->bytes.push : (...items: any[]) => number
->bytes : any[]
->push : (...items: any[]) => number
+>bytes.push : (...items: never[]) => number
+>bytes : never[]
+>push : (...items: never[]) => number
 >fb.readByte() : any
 >fb.readByte : any
 >fb : any
@@ -118,7 +118,7 @@ export var tests: TestRunner = (function () {
 >TestRunner.arrayCompare : (arg1: any[], arg2: any[]) => boolean
 >TestRunner : typeof TestRunner
 >arrayCompare : (arg1: any[], arg2: any[]) => boolean
->bytes : any[]
+>bytes : never[]
 >expected : number[]
 
         }));

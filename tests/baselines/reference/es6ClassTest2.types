@@ -164,7 +164,7 @@ class OverloadedMonster {
 
     constructor(public name: string, public health?: number) {
 >name : string
->health : number
+>health : number | undefined
 
     }
 
@@ -208,9 +208,9 @@ m5.attack(m6);
 
 m5.health = 0;
 >m5.health = 0 : 0
->m5.health : number
+>m5.health : number | undefined
 >m5 : OverloadedMonster
->health : number
+>health : number | undefined
 >0 : 0
 
 var y = (<any>m5.isAlive).toString()

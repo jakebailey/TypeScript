@@ -6,7 +6,7 @@ interface a0 {
     (a, b, c?: string): number;
 >a : any
 >b : any
->c : string
+>c : string | undefined
     
     new (): string;
     new (s: string);
@@ -28,7 +28,7 @@ interface a0 {
 >p3 : any
 
     p4?: number;
->p4 : number
+>p4 : number | undefined
 
     p5: (s: number) =>string;
 >p5 : (s: number) => string
@@ -38,14 +38,14 @@ interface a0 {
 >f1 : () => any
 
     f2? ();
->f2 : () => any
+>f2 : (() => any) | undefined
 
     f3(a: string): number;
 >f3 : (a: string) => number
 >a : string
 
     f4? (s: number): string;
->f4 : (s: number) => string
+>f4 : ((s: number) => string) | undefined
 >s : number
 }
 

@@ -21,13 +21,13 @@ Wagon.circle = function (wagons) {
 >Wagon.circle = function (wagons) {    return wagons ? wagons.length : 3.14;} : (wagons?: Wagon[] | undefined) => number
 >Wagon.circle : (wagons?: Wagon[] | undefined) => number
 >Wagon : typeof Wagon
->circle : (wagons?: Wagon[]) => number
+>circle : (wagons?: Wagon[] | undefined) => number
 >function (wagons) {    return wagons ? wagons.length : 3.14;} : (wagons?: Wagon[] | undefined) => number
->wagons : Wagon[]
+>wagons : Wagon[] | undefined
 
     return wagons ? wagons.length : 3.14;
 >wagons ? wagons.length : 3.14 : number
->wagons : Wagon[]
+>wagons : Wagon[] | undefined
 >wagons.length : number
 >wagons : Wagon[]
 >length : number
@@ -42,7 +42,7 @@ Wagon.prototype.load = function (supplies) {
 >prototype : any
 >load : any
 >function (supplies) {} : (supplies?: any[] | undefined) => void
->supplies : any[]
+>supplies : any[] | undefined
 }
 /** @param {*[]=} supplies - Yep, still a great type */
 Wagon.prototype.weight = supplies => supplies ? supplies.length : -1
@@ -53,9 +53,9 @@ Wagon.prototype.weight = supplies => supplies ? supplies.length : -1
 >prototype : any
 >weight : any
 >supplies => supplies ? supplies.length : -1 : (supplies?: any[] | undefined) => number
->supplies : any[]
+>supplies : any[] | undefined
 >supplies ? supplies.length : -1 : number
->supplies : any[]
+>supplies : any[] | undefined
 >supplies.length : number
 >supplies : any[]
 >length : number
@@ -77,9 +77,9 @@ Wagon.prototype.speed = function () {
 >this : this
 >numberOxen : number
 >this.weight() : number
->this.weight : (supplies?: any[]) => number
+>this.weight : (supplies?: any[] | undefined) => number
 >this : this
->weight : (supplies?: any[]) => number
+>weight : (supplies?: any[] | undefined) => number
 }
 // ok
 class Sql extends Wagon {
@@ -128,9 +128,9 @@ class Sql extends Wagon {
             if (super.weight() < 0) {
 >super.weight() < 0 : boolean
 >super.weight() : number
->super.weight : (supplies?: any[]) => number
+>super.weight : (supplies?: any[] | undefined) => number
 >super : Wagon
->weight : (supplies?: any[]) => number
+>weight : (supplies?: any[] | undefined) => number
 >0 : 0
 
                 // ????????????????????????

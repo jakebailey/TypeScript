@@ -1,0 +1,24 @@
+/foo.ts(13,1): error TS2531: Object is possibly 'null'.
+/foo.ts(14,1): error TS2531: Object is possibly 'null'.
+
+
+==== /foo.ts (2 errors) ====
+    function meta(key: string, value: string) {
+        return (_, context) => {
+            context.metadata[key] = value;
+        };
+    }
+    
+    @meta('a', 'x')
+    class C {
+        @meta('b', 'y')
+        m() { }
+    }
+    
+    C[Symbol.metadata].a; // 'x'
+    ~~~~~~~~~~~~~~~~~~
+!!! error TS2531: Object is possibly 'null'.
+    C[Symbol.metadata].b; // 'y'
+    ~~~~~~~~~~~~~~~~~~
+!!! error TS2531: Object is possibly 'null'.
+    

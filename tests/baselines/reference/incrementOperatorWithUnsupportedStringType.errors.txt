@@ -1,6 +1,8 @@
 incrementOperatorWithUnsupportedStringType.ts(18,25): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+incrementOperatorWithUnsupportedStringType.ts(18,25): error TS2454: Variable 'STRING' is used before being assigned.
 incrementOperatorWithUnsupportedStringType.ts(19,25): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(21,23): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+incrementOperatorWithUnsupportedStringType.ts(21,23): error TS2454: Variable 'STRING' is used before being assigned.
 incrementOperatorWithUnsupportedStringType.ts(22,23): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(25,25): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(26,25): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
@@ -14,14 +16,19 @@ incrementOperatorWithUnsupportedStringType.ts(36,26): error TS2356: An arithmeti
 incrementOperatorWithUnsupportedStringType.ts(37,26): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(38,26): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(39,26): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+incrementOperatorWithUnsupportedStringType.ts(39,27): error TS2454: Variable 'STRING' is used before being assigned.
+incrementOperatorWithUnsupportedStringType.ts(39,36): error TS2454: Variable 'STRING' is used before being assigned.
 incrementOperatorWithUnsupportedStringType.ts(41,24): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(42,24): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(43,24): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(44,24): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(45,24): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(46,24): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+incrementOperatorWithUnsupportedStringType.ts(46,25): error TS2454: Variable 'STRING' is used before being assigned.
+incrementOperatorWithUnsupportedStringType.ts(46,34): error TS2454: Variable 'STRING' is used before being assigned.
 incrementOperatorWithUnsupportedStringType.ts(49,3): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(50,3): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+incrementOperatorWithUnsupportedStringType.ts(50,3): error TS2454: Variable 'STRING' is used before being assigned.
 incrementOperatorWithUnsupportedStringType.ts(51,3): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(52,3): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(53,3): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
@@ -30,6 +37,7 @@ incrementOperatorWithUnsupportedStringType.ts(55,3): error TS2356: An arithmetic
 incrementOperatorWithUnsupportedStringType.ts(56,3): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(58,1): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(59,1): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+incrementOperatorWithUnsupportedStringType.ts(59,1): error TS2454: Variable 'STRING' is used before being assigned.
 incrementOperatorWithUnsupportedStringType.ts(60,1): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(61,1): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 incrementOperatorWithUnsupportedStringType.ts(62,1): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
@@ -39,7 +47,7 @@ incrementOperatorWithUnsupportedStringType.ts(65,1): error TS2356: An arithmetic
 incrementOperatorWithUnsupportedStringType.ts(65,11): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 
 
-==== incrementOperatorWithUnsupportedStringType.ts (39 errors) ====
+==== incrementOperatorWithUnsupportedStringType.ts (47 errors) ====
     // ++ operator on string type
     var STRING: string;
     var STRING1: string[] = ["", ""];
@@ -60,6 +68,8 @@ incrementOperatorWithUnsupportedStringType.ts(65,11): error TS2356: An arithmeti
     var ResultIsNumber1 = ++STRING;
                             ~~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+                            ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     var ResultIsNumber2 = ++STRING1;
                             ~~~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
@@ -67,6 +77,8 @@ incrementOperatorWithUnsupportedStringType.ts(65,11): error TS2356: An arithmeti
     var ResultIsNumber3 = STRING++;
                           ~~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+                          ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     var ResultIsNumber4 = STRING1++;
                           ~~~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
@@ -111,6 +123,10 @@ incrementOperatorWithUnsupportedStringType.ts(65,11): error TS2356: An arithmeti
     var ResultIsNumber16 = ++(STRING + STRING);
                              ~~~~~~~~~~~~~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+                              ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+                                       ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     
     var ResultIsNumber17 = objA.a++;
                            ~~~~~~
@@ -130,6 +146,10 @@ incrementOperatorWithUnsupportedStringType.ts(65,11): error TS2356: An arithmeti
     var ResultIsNumber22 = (STRING + STRING)++;
                            ~~~~~~~~~~~~~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+                            ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+                                     ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     
     // miss assignment operators
     ++"";
@@ -138,6 +158,8 @@ incrementOperatorWithUnsupportedStringType.ts(65,11): error TS2356: An arithmeti
     ++STRING;
       ~~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+      ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     ++STRING1;
       ~~~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
@@ -163,6 +185,8 @@ incrementOperatorWithUnsupportedStringType.ts(65,11): error TS2356: An arithmeti
     STRING++;
     ~~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+    ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     STRING1++;
     ~~~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.

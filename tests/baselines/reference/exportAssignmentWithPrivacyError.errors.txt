@@ -1,0 +1,23 @@
+exportAssignmentWithPrivacyError.ts(15,10): error TS2454: Variable 'server' is used before being assigned.
+
+
+==== exportAssignmentWithPrivacyError.ts (1 errors) ====
+    interface connectmodule {
+        (res, req, next): void;
+    }
+    interface connectexport {
+        use: (mod: connectmodule) => connectexport;
+        listen: (port: number) => void;
+    }
+    
+    var server: {
+        (): connectexport;
+        test1: connectmodule;
+        test2(): connectmodule;
+    };
+    
+    export = server;
+             ~~~~~~
+!!! error TS2454: Variable 'server' is used before being assigned.
+    
+    

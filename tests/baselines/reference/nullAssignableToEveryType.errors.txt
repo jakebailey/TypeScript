@@ -1,0 +1,115 @@
+nullAssignableToEveryType.ts(13,5): error TS2322: Type 'null' is not assignable to type 'number'.
+nullAssignableToEveryType.ts(14,5): error TS2322: Type 'null' is not assignable to type 'string'.
+nullAssignableToEveryType.ts(15,5): error TS2322: Type 'null' is not assignable to type 'boolean'.
+nullAssignableToEveryType.ts(16,5): error TS2322: Type 'null' is not assignable to type 'Date'.
+nullAssignableToEveryType.ts(18,5): error TS2322: Type 'null' is not assignable to type 'void'.
+nullAssignableToEveryType.ts(19,5): error TS2322: Type 'null' is not assignable to type 'Object'.
+nullAssignableToEveryType.ts(20,5): error TS2322: Type 'null' is not assignable to type '{}'.
+nullAssignableToEveryType.ts(21,5): error TS2322: Type 'null' is not assignable to type '() => {}'.
+nullAssignableToEveryType.ts(22,5): error TS2322: Type 'null' is not assignable to type 'Function'.
+nullAssignableToEveryType.ts(23,5): error TS2322: Type 'null' is not assignable to type '(x: number) => string'.
+nullAssignableToEveryType.ts(24,1): error TS2322: Type 'null' is not assignable to type 'C'.
+nullAssignableToEveryType.ts(25,1): error TS2322: Type 'null' is not assignable to type 'I'.
+nullAssignableToEveryType.ts(26,1): error TS2322: Type 'null' is not assignable to type 'E'.
+nullAssignableToEveryType.ts(27,5): error TS2322: Type 'null' is not assignable to type 'number[]'.
+nullAssignableToEveryType.ts(28,5): error TS2322: Type 'null' is not assignable to type '{ foo: string; }'.
+nullAssignableToEveryType.ts(29,5): error TS2322: Type 'null' is not assignable to type '<T>(x: T) => T'.
+nullAssignableToEveryType.ts(30,5): error TS2322: Type 'null' is not assignable to type 'Number'.
+nullAssignableToEveryType.ts(31,5): error TS2322: Type 'null' is not assignable to type 'String'.
+nullAssignableToEveryType.ts(34,5): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+nullAssignableToEveryType.ts(35,5): error TS2322: Type 'null' is not assignable to type 'U'.
+  'U' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+nullAssignableToEveryType.ts(36,5): error TS2322: Type 'null' is not assignable to type 'V'.
+  'V' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+
+
+==== nullAssignableToEveryType.ts (21 errors) ====
+    class C {
+        foo: string;
+    }
+    var ac: C;
+    interface I {
+        foo: string;
+    }
+    var ai: I;
+    
+    enum E { A }
+    var ae: E;
+    
+    var b: number = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type 'number'.
+    var c: string = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type 'string'.
+    var d: boolean = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type 'boolean'.
+    var e: Date = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type 'Date'.
+    var f: any = null;
+    var g: void = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type 'void'.
+    var h: Object = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type 'Object'.
+    var i: {} = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type '{}'.
+    var j: () => {} = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type '() => {}'.
+    var k: Function = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type 'Function'.
+    var l: (x: number) => string = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type '(x: number) => string'.
+    ac = null;
+    ~~
+!!! error TS2322: Type 'null' is not assignable to type 'C'.
+    ai = null;
+    ~~
+!!! error TS2322: Type 'null' is not assignable to type 'I'.
+    ae = null;
+    ~~
+!!! error TS2322: Type 'null' is not assignable to type 'E'.
+    var m: number[] = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type 'number[]'.
+    var n: { foo: string } = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type '{ foo: string; }'.
+    var o: <T>(x: T) => T = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type '<T>(x: T) => T'.
+    var p: Number = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type 'Number'.
+    var q: String = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type 'String'.
+    
+    function foo<T, U, V extends Date>(x: T, y: U, z: V) {
+        x = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+        y = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type 'U'.
+!!! error TS2322:   'U' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+        z = null;
+        ~
+!!! error TS2322: Type 'null' is not assignable to type 'V'.
+!!! error TS2322:   'V' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+    }
+    
+    //function foo<T, U extends T, V extends Date>(x: T, y: U, z: V) {
+    //    x = null;
+    //    y = null;
+    //    z = null;
+    //}

@@ -58,7 +58,7 @@ class SubE2 extends Base2 {
 >Base2 : Base2
 
     public bar() {
->bar : () => any
+>bar : () => null
 
         return super.prototype.foo = null;
 >super.prototype.foo = null : null

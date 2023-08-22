@@ -24,7 +24,7 @@
 // a.subscribe(() => {
 //   ^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | (method) ThingWithDeprecations<void>.subscribe(observer?: PartialObserver<void>): Subscription (+2 overloads)
+// | (method) ThingWithDeprecations<void>.subscribe(observer?: PartialObserver<void> | undefined): Subscription (+2 overloads)
 // | ----------------------------------------------------------------------
 //   console.log('something happened');
 // });
@@ -119,6 +119,22 @@
         {
           "text": ">",
           "kind": "punctuation"
+        },
+        {
+          "text": " ",
+          "kind": "space"
+        },
+        {
+          "text": "|",
+          "kind": "punctuation"
+        },
+        {
+          "text": " ",
+          "kind": "space"
+        },
+        {
+          "text": "undefined",
+          "kind": "keyword"
         },
         {
           "text": ")",

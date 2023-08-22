@@ -1,7 +1,8 @@
 errorWithTruncatedType.ts(10,5): error TS2322: Type '{ propertyWithAnExceedinglyLongName1: string; propertyWithAnExceedinglyLongName2: string; propertyWithAnExceedinglyLongName3: string; propertyWithAnExceedinglyLongName4: string; propertyWithAnExceedinglyLongName5: string; }' is not assignable to type 'string'.
+errorWithTruncatedType.ts(10,17): error TS2454: Variable 'x' is used before being assigned.
 
 
-==== errorWithTruncatedType.ts (1 errors) ====
+==== errorWithTruncatedType.ts (2 errors) ====
     var x: {
         propertyWithAnExceedinglyLongName1: string;
         propertyWithAnExceedinglyLongName2: string;
@@ -14,4 +15,6 @@ errorWithTruncatedType.ts(10,5): error TS2322: Type '{ propertyWithAnExceedingly
     var s: string = x;
         ~
 !!! error TS2322: Type '{ propertyWithAnExceedinglyLongName1: string; propertyWithAnExceedinglyLongName2: string; propertyWithAnExceedinglyLongName3: string; propertyWithAnExceedinglyLongName4: string; propertyWithAnExceedinglyLongName5: string; }' is not assignable to type 'string'.
+                    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
     

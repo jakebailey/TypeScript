@@ -1,0 +1,282 @@
+conditionalOperatorConditionIsNumberType.ts(17,1): error TS2454: Variable 'condNumber' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(18,1): error TS2454: Variable 'condNumber' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(18,14): error TS2454: Variable 'exprBoolean1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(18,29): error TS2454: Variable 'exprBoolean2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(19,1): error TS2454: Variable 'condNumber' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(19,14): error TS2454: Variable 'exprNumber1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(19,28): error TS2454: Variable 'exprNumber2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(20,1): error TS2454: Variable 'condNumber' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(20,14): error TS2454: Variable 'exprString1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(20,28): error TS2454: Variable 'exprString2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(21,1): error TS2454: Variable 'condNumber' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(21,14): error TS2454: Variable 'exprIsObject1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(21,30): error TS2454: Variable 'exprIsObject2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(22,1): error TS2454: Variable 'condNumber' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(22,14): error TS2454: Variable 'exprString1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(22,28): error TS2454: Variable 'exprBoolean1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(26,5): error TS2454: Variable 'exprBoolean1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(26,20): error TS2454: Variable 'exprBoolean2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(27,15): error TS2454: Variable 'exprNumber1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(27,29): error TS2454: Variable 'exprNumber2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(28,20): error TS2454: Variable 'exprString1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(28,34): error TS2454: Variable 'exprString2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(29,17): error TS2454: Variable 'exprIsObject1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(29,33): error TS2454: Variable 'exprIsObject2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(30,9): error TS2454: Variable 'exprString1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(30,23): error TS2454: Variable 'exprBoolean1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(37,9): error TS2454: Variable 'exprBoolean1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(37,24): error TS2454: Variable 'exprBoolean2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(38,19): error TS2454: Variable 'exprNumber1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(38,33): error TS2454: Variable 'exprNumber2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(39,9): error TS2454: Variable 'exprString1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(39,23): error TS2454: Variable 'exprString2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(40,20): error TS2454: Variable 'exprIsObject1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(40,36): error TS2454: Variable 'exprIsObject2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(41,9): error TS2454: Variable 'exprString1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(41,23): error TS2454: Variable 'exprBoolean1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(44,20): error TS2454: Variable 'condNumber' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(45,24): error TS2454: Variable 'condNumber' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(45,37): error TS2454: Variable 'exprBoolean1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(45,52): error TS2454: Variable 'exprBoolean2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(46,23): error TS2454: Variable 'condNumber' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(46,36): error TS2454: Variable 'exprNumber1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(46,50): error TS2454: Variable 'exprNumber2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(47,23): error TS2454: Variable 'condNumber' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(47,36): error TS2454: Variable 'exprString1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(47,50): error TS2454: Variable 'exprString2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(48,23): error TS2454: Variable 'condNumber' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(48,36): error TS2454: Variable 'exprIsObject1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(48,52): error TS2454: Variable 'exprIsObject2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(49,32): error TS2454: Variable 'condNumber' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(49,45): error TS2454: Variable 'exprString1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(49,59): error TS2454: Variable 'exprBoolean1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(52,28): error TS2454: Variable 'exprBoolean1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(52,43): error TS2454: Variable 'exprBoolean2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(53,37): error TS2454: Variable 'exprNumber1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(53,51): error TS2454: Variable 'exprNumber2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(54,42): error TS2454: Variable 'exprString1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(54,56): error TS2454: Variable 'exprString2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(55,39): error TS2454: Variable 'exprIsObject1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(55,55): error TS2454: Variable 'exprIsObject2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(56,40): error TS2454: Variable 'exprString1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(56,54): error TS2454: Variable 'exprBoolean1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(59,32): error TS2454: Variable 'exprBoolean1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(59,47): error TS2454: Variable 'exprBoolean2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(60,41): error TS2454: Variable 'exprNumber1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(60,55): error TS2454: Variable 'exprNumber2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(61,31): error TS2454: Variable 'exprString1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(61,45): error TS2454: Variable 'exprString2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(62,42): error TS2454: Variable 'exprIsObject1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(62,58): error TS2454: Variable 'exprIsObject2' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(63,51): error TS2454: Variable 'exprString1' is used before being assigned.
+conditionalOperatorConditionIsNumberType.ts(63,65): error TS2454: Variable 'exprBoolean1' is used before being assigned.
+
+
+==== conditionalOperatorConditionIsNumberType.ts (72 errors) ====
+    //Cond ? Expr1 : Expr2,  Cond is of number type, Expr1 and Expr2 have the same type
+    var condNumber: number;
+    
+    var exprAny1: any;
+    var exprBoolean1: boolean;
+    var exprNumber1: number;
+    var exprString1: string;
+    var exprIsObject1: Object;
+    
+    var exprAny2: any;
+    var exprBoolean2: boolean;
+    var exprNumber2: number;
+    var exprString2: string;
+    var exprIsObject2: Object;
+    
+    //Cond is a number type variable
+    condNumber ? exprAny1 : exprAny2;
+    ~~~~~~~~~~
+!!! error TS2454: Variable 'condNumber' is used before being assigned.
+    condNumber ? exprBoolean1 : exprBoolean2;
+    ~~~~~~~~~~
+!!! error TS2454: Variable 'condNumber' is used before being assigned.
+                 ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean1' is used before being assigned.
+                                ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean2' is used before being assigned.
+    condNumber ? exprNumber1 : exprNumber2;
+    ~~~~~~~~~~
+!!! error TS2454: Variable 'condNumber' is used before being assigned.
+                 ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprNumber1' is used before being assigned.
+                               ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprNumber2' is used before being assigned.
+    condNumber ? exprString1 : exprString2;
+    ~~~~~~~~~~
+!!! error TS2454: Variable 'condNumber' is used before being assigned.
+                 ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString1' is used before being assigned.
+                               ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString2' is used before being assigned.
+    condNumber ? exprIsObject1 : exprIsObject2;
+    ~~~~~~~~~~
+!!! error TS2454: Variable 'condNumber' is used before being assigned.
+                 ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprIsObject1' is used before being assigned.
+                                 ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprIsObject2' is used before being assigned.
+    condNumber ? exprString1 : exprBoolean1; // Union
+    ~~~~~~~~~~
+!!! error TS2454: Variable 'condNumber' is used before being assigned.
+                 ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString1' is used before being assigned.
+                               ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean1' is used before being assigned.
+    
+    //Cond is a number type literal
+    1 ? exprAny1 : exprAny2;
+    0 ? exprBoolean1 : exprBoolean2;
+        ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean1' is used before being assigned.
+                       ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean2' is used before being assigned.
+    0.123456789 ? exprNumber1 : exprNumber2;
+                  ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprNumber1' is used before being assigned.
+                                ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprNumber2' is used before being assigned.
+    - 10000000000000 ? exprString1 : exprString2;
+                       ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString1' is used before being assigned.
+                                     ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString2' is used before being assigned.
+    1000000000000 ? exprIsObject1 : exprIsObject2;
+                    ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprIsObject1' is used before being assigned.
+                                    ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprIsObject2' is used before being assigned.
+    10000 ? exprString1 : exprBoolean1; // Union
+            ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString1' is used before being assigned.
+                          ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean1' is used before being assigned.
+    
+    //Cond is a number type expression
+    function foo() { return 1 };
+    var array = [1, 2, 3];
+    
+    1 * 0 ? exprAny1 : exprAny2;
+    1 + 1 ? exprBoolean1 : exprBoolean2;
+            ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean1' is used before being assigned.
+                           ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean2' is used before being assigned.
+    "string".length ? exprNumber1 : exprNumber2;
+                      ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprNumber1' is used before being assigned.
+                                    ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprNumber2' is used before being assigned.
+    foo() ? exprString1 : exprString2;
+            ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString1' is used before being assigned.
+                          ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString2' is used before being assigned.
+    foo() / array[1] ? exprIsObject1 : exprIsObject2;
+                       ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprIsObject1' is used before being assigned.
+                                       ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprIsObject2' is used before being assigned.
+    foo() ? exprString1 : exprBoolean1; // Union
+            ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString1' is used before being assigned.
+                          ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean1' is used before being assigned.
+    
+    //Results shoud be same as Expr1 and Expr2
+    var resultIsAny1 = condNumber ? exprAny1 : exprAny2;
+                       ~~~~~~~~~~
+!!! error TS2454: Variable 'condNumber' is used before being assigned.
+    var resultIsBoolean1 = condNumber ? exprBoolean1 : exprBoolean2;
+                           ~~~~~~~~~~
+!!! error TS2454: Variable 'condNumber' is used before being assigned.
+                                        ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean1' is used before being assigned.
+                                                       ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean2' is used before being assigned.
+    var resultIsNumber1 = condNumber ? exprNumber1 : exprNumber2;
+                          ~~~~~~~~~~
+!!! error TS2454: Variable 'condNumber' is used before being assigned.
+                                       ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprNumber1' is used before being assigned.
+                                                     ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprNumber2' is used before being assigned.
+    var resultIsString1 = condNumber ? exprString1 : exprString2;
+                          ~~~~~~~~~~
+!!! error TS2454: Variable 'condNumber' is used before being assigned.
+                                       ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString1' is used before being assigned.
+                                                     ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString2' is used before being assigned.
+    var resultIsObject1 = condNumber ? exprIsObject1 : exprIsObject2;
+                          ~~~~~~~~~~
+!!! error TS2454: Variable 'condNumber' is used before being assigned.
+                                       ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprIsObject1' is used before being assigned.
+                                                       ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprIsObject2' is used before being assigned.
+    var resultIsStringOrBoolean1 = condNumber ? exprString1 : exprBoolean1; // Union
+                                   ~~~~~~~~~~
+!!! error TS2454: Variable 'condNumber' is used before being assigned.
+                                                ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString1' is used before being assigned.
+                                                              ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean1' is used before being assigned.
+    
+    var resultIsAny2 = 1 ? exprAny1 : exprAny2;
+    var resultIsBoolean2 = 0 ? exprBoolean1 : exprBoolean2;
+                               ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean1' is used before being assigned.
+                                              ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean2' is used before being assigned.
+    var resultIsNumber2 = 0.123456789 ? exprNumber1 : exprNumber2;
+                                        ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprNumber1' is used before being assigned.
+                                                      ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprNumber2' is used before being assigned.
+    var resultIsString2 = - 10000000000000 ? exprString1 : exprString2;
+                                             ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString1' is used before being assigned.
+                                                           ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString2' is used before being assigned.
+    var resultIsObject2 = 1000000000000 ? exprIsObject1 : exprIsObject2;
+                                          ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprIsObject1' is used before being assigned.
+                                                          ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprIsObject2' is used before being assigned.
+    var resultIsStringOrBoolean2 = 10000 ? exprString1 : exprBoolean1; // Union
+                                           ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString1' is used before being assigned.
+                                                         ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean1' is used before being assigned.
+    
+    var resultIsAny3 = 1 * 0 ? exprAny1 : exprAny2;
+    var resultIsBoolean3 = 1 + 1 ? exprBoolean1 : exprBoolean2;
+                                   ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean1' is used before being assigned.
+                                                  ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean2' is used before being assigned.
+    var resultIsNumber3 = "string".length ? exprNumber1 : exprNumber2;
+                                            ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprNumber1' is used before being assigned.
+                                                          ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprNumber2' is used before being assigned.
+    var resultIsString3 = foo() ? exprString1 : exprString2;
+                                  ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString1' is used before being assigned.
+                                                ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString2' is used before being assigned.
+    var resultIsObject3 = foo() / array[1] ? exprIsObject1 : exprIsObject2;
+                                             ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprIsObject1' is used before being assigned.
+                                                             ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprIsObject2' is used before being assigned.
+    var resultIsStringOrBoolean3 = foo() / array[1] ? exprString1 : exprBoolean1; // Union
+                                                      ~~~~~~~~~~~
+!!! error TS2454: Variable 'exprString1' is used before being assigned.
+                                                                    ~~~~~~~~~~~~
+!!! error TS2454: Variable 'exprBoolean1' is used before being assigned.

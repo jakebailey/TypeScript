@@ -1,7 +1,8 @@
 unusedTypeParameterInLambda2.ts(3,17): error TS6133: 'T' is declared but its value is never read.
+unusedTypeParameterInLambda2.ts(5,13): error TS2454: Variable 'a' is used before being assigned.
 
 
-==== unusedTypeParameterInLambda2.ts (1 errors) ====
+==== unusedTypeParameterInLambda2.ts (2 errors) ====
     class A {
         public f1() {
             return <T, X>() => {
@@ -9,6 +10,8 @@ unusedTypeParameterInLambda2.ts(3,17): error TS6133: 'T' is declared but its val
 !!! error TS6133: 'T' is declared but its value is never read.
                 var a: X;
                 a;
+                ~
+!!! error TS2454: Variable 'a' is used before being assigned.
             }
         }
     }

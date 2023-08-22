@@ -6,11 +6,11 @@ var K = 'k'
 >'k' : "k"
 
 var a = { p  : (true ? { [K] : 'v'}        : null) }
->a : { p: { [x: string]: string; }; }
->{ p  : (true ? { [K] : 'v'}        : null) } : { p: { [x: string]: string; }; }
->p : { [x: string]: string; }
->(true ? { [K] : 'v'}        : null) : { [x: string]: string; }
->true ? { [K] : 'v'}        : null : { [x: string]: string; }
+>a : { p: { [x: string]: string; } | null; }
+>{ p  : (true ? { [K] : 'v'}        : null) } : { p: { [x: string]: string; } | null; }
+>p : { [x: string]: string; } | null
+>(true ? { [K] : 'v'}        : null) : { [x: string]: string; } | null
+>true ? { [K] : 'v'}        : null : { [x: string]: string; } | null
 >true : true
 >{ [K] : 'v'} : { [x: string]: string; }
 >[K] : string

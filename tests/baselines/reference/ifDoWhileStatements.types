@@ -63,9 +63,9 @@ module M {
 >F2 : (x: number) => string
 >x : number
 >x.toString() : string
->x.toString : (radix?: number) => string
+>x.toString : (radix?: number | undefined) => string
 >x : number
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
 }
 
 module N {
@@ -82,9 +82,9 @@ module N {
 >F2 : (x: number) => string
 >x : number
 >x.toString() : string
->x.toString : (radix?: number) => string
+>x.toString : (radix?: number | undefined) => string
 >x : number
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
 }
 
 // literals
@@ -147,13 +147,13 @@ do { }while(/[a-z]/)
 >/[a-z]/ : RegExp
 
 if ([]) { }
->[] : undefined[]
+>[] : never[]
 
 while ([]) { }
->[] : undefined[]
+>[] : never[]
 
 do { }while([])
->[] : undefined[]
+>[] : never[]
 
 if ([1, 2]) { }
 >[1, 2] : number[]
@@ -251,29 +251,29 @@ do { }while(a)
 >a : boolean
 
 var b = null;
->b : any
+>b : null
 
 if (b) { }
->b : any
+>b : null
 
 while (b) { }
->b : any
+>b : null
 
 do { }while(b)
->b : any
+>b : null
 
 var c = undefined;
->c : any
+>c : undefined
 >undefined : undefined
 
 if (c) { }
->c : any
+>c : undefined
 
 while (c) { }
->c : any
+>c : undefined
 
 do { }while(c)
->c : any
+>c : undefined
 
 var d = 0.0;
 >d : number
@@ -328,17 +328,17 @@ do { }while(g)
 >g : RegExp
 
 var h = [];
->h : any[]
->[] : undefined[]
+>h : never[]
+>[] : never[]
 
 if (h) { }
->h : any[]
+>h : never[]
 
 while (h) { }
->h : any[]
+>h : never[]
 
 do { }while(h)
->h : any[]
+>h : never[]
 
 var i = [1, 2];
 >i : number[]
@@ -387,28 +387,28 @@ do { }while(k)
 
 function fn(x?: string): I { return null; }
 >fn : (x?: string) => I
->x : string
+>x : string | undefined
 
 if (fn()) { }
 >fn() : I
->fn : (x?: string) => I
+>fn : (x?: string | undefined) => I
 
 while (fn()) { }
 >fn() : I
->fn : (x?: string) => I
+>fn : (x?: string | undefined) => I
 
 do { }while(fn())
 >fn() : I
->fn : (x?: string) => I
+>fn : (x?: string | undefined) => I
 
 if (fn) { }
->fn : (x?: string) => I
+>fn : (x?: string | undefined) => I
 
 while (fn) { }
->fn : (x?: string) => I
+>fn : (x?: string | undefined) => I
 
 do { }while(fn)
->fn : (x?: string) => I
+>fn : (x?: string | undefined) => I
 
 
 

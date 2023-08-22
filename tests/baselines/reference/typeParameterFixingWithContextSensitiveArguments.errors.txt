@@ -1,0 +1,30 @@
+typeParameterFixingWithContextSensitiveArguments.ts(7,11): error TS2454: Variable 'b' is used before being assigned.
+typeParameterFixingWithContextSensitiveArguments.ts(7,24): error TS2454: Variable 'a' is used before being assigned.
+typeParameterFixingWithContextSensitiveArguments.ts(8,12): error TS2454: Variable 'b' is used before being assigned.
+typeParameterFixingWithContextSensitiveArguments.ts(8,20): error TS18047: 'x' is possibly 'null'.
+typeParameterFixingWithContextSensitiveArguments.ts(9,12): error TS2454: Variable 'b' is used before being assigned.
+typeParameterFixingWithContextSensitiveArguments.ts(9,20): error TS18047: 'x' is possibly 'null'.
+
+
+==== typeParameterFixingWithContextSensitiveArguments.ts (6 errors) ====
+    function f<T, U>(y: T, f: (x: T) => U, x: T): [T, U] { return [y, f(x)]; }
+    interface A { a: A; }
+    interface B extends A { b; }
+    
+    var a: A, b: B;
+    
+    var d = f(b, x => x.a, a); // type [A, A]
+              ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                           ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    var d2 = f(b, x => x.a, null); // type [B, A]
+               ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                       ~
+!!! error TS18047: 'x' is possibly 'null'.
+    var d3 = f(b, x => x.b, null); // type [B, any]
+               ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                       ~
+!!! error TS18047: 'x' is possibly 'null'.

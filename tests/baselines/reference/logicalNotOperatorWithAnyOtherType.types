@@ -70,27 +70,27 @@ var ResultIsBoolean1 = !ANY1;
 
 var ResultIsBoolean2 = !ANY2;
 >ResultIsBoolean2 : boolean
->!ANY2 : boolean
+>!ANY2 : false
 >ANY2 : any[]
 
 var ResultIsBoolean3 = !A;
 >ResultIsBoolean3 : boolean
->!A : boolean
+>!A : false
 >A : typeof A
 
 var ResultIsBoolean4 = !M;
 >ResultIsBoolean4 : boolean
->!M : boolean
+>!M : false
 >M : typeof M
 
 var ResultIsBoolean5 = !obj;
 >ResultIsBoolean5 : boolean
->!obj : boolean
+>!obj : false
 >obj : () => {}
 
 var ResultIsBoolean6 = !obj1;
 >ResultIsBoolean6 : boolean
->!obj1 : boolean
+>!obj1 : false
 >obj1 : { x: string; y: () => void; }
 
 // any type literal
@@ -120,7 +120,7 @@ var ResultIsBoolean10 = !obj1.x;
 
 var ResultIsBoolean11 = !obj1.y;
 >ResultIsBoolean11 : boolean
->!obj1.y : boolean
+>!obj1.y : false
 >obj1.y : () => void
 >obj1 : { x: string; y: () => void; }
 >y : () => void

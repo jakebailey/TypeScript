@@ -1,17 +1,32 @@
+restInvalidArgumentType.ts(29,19): error TS2454: Variable 't' is used before being assigned.
 restInvalidArgumentType.ts(30,13): error TS2700: Rest types may only be created from object types.
+restInvalidArgumentType.ts(30,19): error TS2454: Variable 'i' is used before being assigned.
 restInvalidArgumentType.ts(31,13): error TS2700: Rest types may only be created from object types.
+restInvalidArgumentType.ts(31,19): error TS2454: Variable 'k' is used before being assigned.
+restInvalidArgumentType.ts(33,19): error TS2454: Variable 'mapped_generic' is used before being assigned.
+restInvalidArgumentType.ts(34,19): error TS2454: Variable 'mapped' is used before being assigned.
+restInvalidArgumentType.ts(36,19): error TS2454: Variable 'union_generic' is used before being assigned.
 restInvalidArgumentType.ts(37,13): error TS2700: Rest types may only be created from object types.
+restInvalidArgumentType.ts(37,19): error TS2454: Variable 'union_primitive' is used before being assigned.
+restInvalidArgumentType.ts(39,20): error TS2454: Variable 'intersection_generic' is used before being assigned.
 restInvalidArgumentType.ts(40,13): error TS2700: Rest types may only be created from object types.
+restInvalidArgumentType.ts(40,20): error TS2454: Variable 'intersection_primitive' is used before being assigned.
 restInvalidArgumentType.ts(42,13): error TS2700: Rest types may only be created from object types.
+restInvalidArgumentType.ts(42,20): error TS2454: Variable 'num' is used before being assigned.
 restInvalidArgumentType.ts(43,13): error TS2700: Rest types may only be created from object types.
+restInvalidArgumentType.ts(43,20): error TS2454: Variable 'str' is used before being assigned.
 restInvalidArgumentType.ts(45,13): error TS2700: Rest types may only be created from object types.
 restInvalidArgumentType.ts(46,13): error TS2700: Rest types may only be created from object types.
+restInvalidArgumentType.ts(46,20): error TS2454: Variable 'n' is used before being assigned.
 restInvalidArgumentType.ts(50,13): error TS2700: Rest types may only be created from object types.
+restInvalidArgumentType.ts(50,20): error TS2454: Variable 'literal_string' is used before being assigned.
 restInvalidArgumentType.ts(51,13): error TS2700: Rest types may only be created from object types.
+restInvalidArgumentType.ts(51,20): error TS2454: Variable 'literal_number' is used before being assigned.
 restInvalidArgumentType.ts(53,13): error TS2700: Rest types may only be created from object types.
+restInvalidArgumentType.ts(53,20): error TS2454: Variable 'e' is used before being assigned.
 
 
-==== restInvalidArgumentType.ts (11 errors) ====
+==== restInvalidArgumentType.ts (26 errors) ====
     enum E { v1, v2 };
     
     function f<T extends { b: string }>(p1: T, p2: T[]) {
@@ -41,32 +56,54 @@ restInvalidArgumentType.ts(53,13): error TS2700: Rest types may only be created 
         var {...r1} = p1;   // Error, generic type paramterre
         var {...r2} = p2;   // OK
         var {...r3} = t;   // Error, generic type paramter
+                      ~
+!!! error TS2454: Variable 't' is used before being assigned.
         var {...r4} = i;   // Error, index access
                 ~~
 !!! error TS2700: Rest types may only be created from object types.
+                      ~
+!!! error TS2454: Variable 'i' is used before being assigned.
         var {...r5} = k;   // Error, index
                 ~~
 !!! error TS2700: Rest types may only be created from object types.
+                      ~
+!!! error TS2454: Variable 'k' is used before being assigned.
     
         var {...r6} = mapped_generic; // Error, generic mapped object type
+                      ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'mapped_generic' is used before being assigned.
         var {...r7} = mapped;  // OK, non-generic mapped type
+                      ~~~~~~
+!!! error TS2454: Variable 'mapped' is used before being assigned.
     
         var {...r8} = union_generic;  // Error, union with generic type parameter
+                      ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'union_generic' is used before being assigned.
         var {...r9} = union_primitive;  // Error, union with generic type parameter
                 ~~
 !!! error TS2700: Rest types may only be created from object types.
+                      ~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'union_primitive' is used before being assigned.
     
         var {...r10} = intersection_generic;  // Error, intersection with generic type parameter
+                       ~~~~~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'intersection_generic' is used before being assigned.
         var {...r11} = intersection_primitive;  // Error, intersection with generic type parameter
                 ~~~
 !!! error TS2700: Rest types may only be created from object types.
+                       ~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'intersection_primitive' is used before being assigned.
     
         var {...r12} = num;  // Error
                 ~~~
 !!! error TS2700: Rest types may only be created from object types.
+                       ~~~
+!!! error TS2454: Variable 'num' is used before being assigned.
         var {...r13} = str;  // Error
                 ~~~
 !!! error TS2700: Rest types may only be created from object types.
+                       ~~~
+!!! error TS2454: Variable 'str' is used before being assigned.
     
         var {...r14} = u;  // error, undefined-only not allowed
                 ~~~
@@ -74,18 +111,26 @@ restInvalidArgumentType.ts(53,13): error TS2700: Rest types may only be created 
         var {...r15} = n;  // error, null-only not allowed
                 ~~~
 !!! error TS2700: Rest types may only be created from object types.
+                       ~
+!!! error TS2454: Variable 'n' is used before being assigned.
     
         var {...r16} = a;  // OK
     
         var {...r17} = literal_string;  // Error
                 ~~~
 !!! error TS2700: Rest types may only be created from object types.
+                       ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'literal_string' is used before being assigned.
         var {...r18} = literal_number;  // Error
                 ~~~
 !!! error TS2700: Rest types may only be created from object types.
+                       ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'literal_number' is used before being assigned.
     
         var {...r19} = e;  // Error, enum
                 ~~~
 !!! error TS2700: Rest types may only be created from object types.
+                       ~
+!!! error TS2454: Variable 'e' is used before being assigned.
     }
     

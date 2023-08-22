@@ -5,7 +5,7 @@ class C<T extends C<T>> {
 >C : C<T>
 
     foo<U extends C<C<T>>(x: U) {
->foo : <U extends C<C<T>>>(x: U) => any
+>foo : <U extends C<C<T>>>(x: U) => null
 >x : U
 
         return null;

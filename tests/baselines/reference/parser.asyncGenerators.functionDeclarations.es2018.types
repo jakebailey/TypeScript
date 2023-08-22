@@ -83,7 +83,7 @@ async function * f12() {
 }
 === yieldIsOk.ts ===
 async function * f13() {
->f13 : () => AsyncGenerator<any, void, unknown>
+>f13 : () => AsyncGenerator<undefined, void, unknown>
 
     yield;
 >yield : any
@@ -106,11 +106,11 @@ async function * f15() {
 }
 === yieldStarWithValueIsOk.ts ===
 async function * f16() {
->f16 : () => AsyncGenerator<any, void, undefined>
+>f16 : () => AsyncGenerator<never, void, undefined>
 
     yield * [];
 >yield * [] : any
->[] : undefined[]
+>[] : never[]
 }
 === awaitWithValueIsOk.ts ===
 async function * f17() {
@@ -146,7 +146,7 @@ async function * f20() {
 }
 === yieldInNestedComputedPropertyIsOk.ts ===
 async function * f21() {
->f21 : () => AsyncGenerator<any, void, unknown>
+>f21 : () => AsyncGenerator<undefined, void, unknown>
 
     const x = { [yield]: 1 };
 >x : { [x: number]: number; }

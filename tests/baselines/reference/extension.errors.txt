@@ -4,9 +4,11 @@ extension.ts(16,12): error TS1434: Unexpected keyword or identifier.
 extension.ts(16,12): error TS2304: Cannot find name 'extension'.
 extension.ts(16,28): error TS2300: Duplicate identifier 'C'.
 extension.ts(22,3): error TS2339: Property 'pe' does not exist on type 'C'.
+extension.ts(25,1): error TS2454: Variable 'i' is used before being assigned.
+extension.ts(26,1): error TS2454: Variable 'i' is used before being assigned.
 
 
-==== extension.ts (6 errors) ====
+==== extension.ts (8 errors) ====
     interface I {
         x;
     }
@@ -44,6 +46,10 @@ extension.ts(22,3): error TS2339: Property 'pe' does not exist on type 'C'.
     c.p;
     var i:I;
     i.x;
+    ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     i.y;
+    ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     
     

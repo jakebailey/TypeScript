@@ -3,9 +3,9 @@
 === a.js ===
 this.a = 10;
 >this.a = 10 : 10
->this.a : number
+>this.a : number | undefined
 >this : typeof globalThis
->a : number
+>a : number | undefined
 >10 : 10
 
 this.a;
@@ -14,14 +14,14 @@ this.a;
 >a : number
 
 a;
->a : number
+>a : number | undefined
 
 === b.js ===
 this.a;
->this.a : number
+>this.a : number | undefined
 >this : typeof globalThis
->a : number
+>a : number | undefined
 
 a;
->a : number
+>a : number | undefined
 

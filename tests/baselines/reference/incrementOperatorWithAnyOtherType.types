@@ -16,7 +16,7 @@ var ANY2: any[] = ["", ""];
 >"" : ""
 
 var obj = {x:1,y:null};
->obj : { x: number; y: any; }
+>obj : { x: number; y: null; }
 >{x:1,y:null} : { x: number; y: null; }
 >x : number
 >1 : 1
@@ -72,15 +72,15 @@ var ResultIsNumber6 = ++obj.x;
 >ResultIsNumber6 : number
 >++obj.x : number
 >obj.x : number
->obj : { x: number; y: any; }
+>obj : { x: number; y: null; }
 >x : number
 
 var ResultIsNumber7 = ++obj.y;
 >ResultIsNumber7 : number
 >++obj.y : number
->obj.y : any
->obj : { x: number; y: any; }
->y : any
+>obj.y : null
+>obj : { x: number; y: null; }
+>y : null
 
 var ResultIsNumber8 = ++objA.a;
 >ResultIsNumber8 : number
@@ -107,15 +107,15 @@ var ResultIsNumber10 = obj.x++;
 >ResultIsNumber10 : number
 >obj.x++ : number
 >obj.x : number
->obj : { x: number; y: any; }
+>obj : { x: number; y: null; }
 >x : number
 
 var ResultIsNumber11 = obj.y++;
 >ResultIsNumber11 : number
 >obj.y++ : number
->obj.y : any
->obj : { x: number; y: any; }
->y : any
+>obj.y : null
+>obj : { x: number; y: null; }
+>y : null
 
 var ResultIsNumber12 = objA.a++;
 >ResultIsNumber12 : number

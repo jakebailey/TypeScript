@@ -1,8 +1,9 @@
+objectLitArrayDeclNoNew.ts(20,11): error TS2322: Type 'null' is not assignable to type 'IState'.
 objectLitArrayDeclNoNew.ts(22,20): error TS1011: An element access expression should take an argument.
 objectLitArrayDeclNoNew.ts(27,1): error TS1128: Declaration or statement expected.
 
 
-==== objectLitArrayDeclNoNew.ts (2 errors) ====
+==== objectLitArrayDeclNoNew.ts (3 errors) ====
     declare var console;
     "use strict";
     module Test {
@@ -23,6 +24,8 @@ objectLitArrayDeclNoNew.ts(27,1): error TS1128: Declaration or statement expecte
     
         export function bug(): ILineTokens {
           var state:IState= null;
+              ~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'IState'.
           return {
            tokens: Gar[],//IToken[],  // Missing new. Correct syntax is: tokens: new IToken[]
                        

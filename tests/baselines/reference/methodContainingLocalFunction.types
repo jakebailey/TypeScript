@@ -25,7 +25,7 @@ class BugExhibition2<T> {
 >BugExhibition2 : BugExhibition2<T>
 
     private static get exhibitBug() {
->exhibitBug : any
+>exhibitBug : null
 
         function localFunction() { }
 >localFunction : () => void
@@ -50,15 +50,15 @@ class BugExhibition3<T> {
 
         function localGenericFunction<U>(u?: U) { }
 >localGenericFunction : <U>(u?: U) => void
->u : U
+>u : U | undefined
 
         var x: { (): void; };
 >x : () => void
 
         x = localGenericFunction;
->x = localGenericFunction : <U>(u?: U) => void
+>x = localGenericFunction : <U>(u?: U | undefined) => void
 >x : () => void
->localGenericFunction : <U>(u?: U) => void
+>localGenericFunction : <U>(u?: U | undefined) => void
     }
 }
 
@@ -69,17 +69,17 @@ class C {
 >exhibit : () => void
 
         var funcExpr = <U>(u?: U) => { };
->funcExpr : <U>(u?: U) => void
-><U>(u?: U) => { } : <U>(u?: U) => void
->u : U
+>funcExpr : <U>(u?: U | undefined) => void
+><U>(u?: U) => { } : <U>(u?: U | undefined) => void
+>u : U | undefined
 
         var x: { (): void; };
 >x : () => void
 
         x = funcExpr;
->x = funcExpr : <U>(u?: U) => void
+>x = funcExpr : <U>(u?: U | undefined) => void
 >x : () => void
->funcExpr : <U>(u?: U) => void
+>funcExpr : <U>(u?: U | undefined) => void
     }
 }
 

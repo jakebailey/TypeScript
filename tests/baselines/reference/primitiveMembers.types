@@ -22,9 +22,9 @@ x.toBAZ();
 
 x.toString();
 >x.toString() : string
->x.toString : (radix?: number) => string
+>x.toString : (radix?: number | undefined) => string
 >x : number
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
 
 var n = 0;
 >n : number
@@ -72,8 +72,8 @@ var b: Boolean = true;
 >true : true
 
 var n3 = 5 || {};
->n3 : {}
->5 || {} : 5 | {}
+>n3 : number
+>5 || {} : 5
 >5 : 5
 >{} : {}
 
@@ -85,7 +85,7 @@ class baz { public bar(): void { }; }
 class foo extends baz { public bar(){ return undefined}; }
 >foo : foo
 >baz : baz
->bar : () => any
+>bar : () => undefined
 >undefined : undefined
 
 

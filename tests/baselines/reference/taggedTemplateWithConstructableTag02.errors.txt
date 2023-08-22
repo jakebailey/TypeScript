@@ -1,8 +1,9 @@
 taggedTemplateWithConstructableTag02.ts(6,1): error TS2349: This expression is not callable.
   Type 'I' has no call signatures.
+taggedTemplateWithConstructableTag02.ts(6,1): error TS2454: Variable 'tag' is used before being assigned.
 
 
-==== taggedTemplateWithConstructableTag02.ts (1 errors) ====
+==== taggedTemplateWithConstructableTag02.ts (2 errors) ====
     interface I {
         new (...args: any[]): string;
         new (): number;
@@ -12,3 +13,5 @@ taggedTemplateWithConstructableTag02.ts(6,1): error TS2349: This expression is n
     ~~~
 !!! error TS2349: This expression is not callable.
 !!! error TS2349:   Type 'I' has no call signatures.
+    ~~~
+!!! error TS2454: Variable 'tag' is used before being assigned.

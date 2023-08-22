@@ -3713,7 +3713,7 @@ module TypeScript {
 
         constructor (public value: number, public hasEmptyFraction?: boolean) {
 >value : number
->hasEmptyFraction : boolean
+>hasEmptyFraction : boolean | undefined
 
             super(TokenID.NumberLiteral);
 >super(TokenID.NumberLiteral) : void
@@ -3728,23 +3728,23 @@ module TypeScript {
 
             return this.hasEmptyFraction ? this.value.toString() + ".0" : this.value.toString();
 >this.hasEmptyFraction ? this.value.toString() + ".0" : this.value.toString() : string
->this.hasEmptyFraction : boolean
+>this.hasEmptyFraction : boolean | undefined
 >this : this
->hasEmptyFraction : boolean
+>hasEmptyFraction : boolean | undefined
 >this.value.toString() + ".0" : string
 >this.value.toString() : string
->this.value.toString : (radix?: number) => string
+>this.value.toString : (radix?: number | undefined) => string
 >this.value : number
 >this : this
 >value : number
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
 >".0" : ".0"
 >this.value.toString() : string
->this.value.toString : (radix?: number) => string
+>this.value.toString : (radix?: number | undefined) => string
 >this.value : number
 >this : this
 >value : number
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
         }
 
         public classification(): TokenClass {

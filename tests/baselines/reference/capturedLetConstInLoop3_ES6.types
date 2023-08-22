@@ -11,32 +11,32 @@ function foo0(x) {
 >x : any
 
     for (let x of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
         var v = x;
->v : any
->x : any
+>v : never
+>x : never
 
         (function() { return x + v });
->(function() { return x + v }) : () => any
->function() { return x + v } : () => any
->x + v : any
->x : any
->v : any
+>(function() { return x + v }) : () => number
+>function() { return x + v } : () => number
+>x + v : number
+>x : never
+>v : never
 
         (() => x + v);
->(() => x + v) : () => any
->() => x + v : () => any
->x + v : any
->x : any
->v : any
+>(() => x + v) : () => number
+>() => x + v : () => number
+>x + v : number
+>x : never
+>v : never
     }
 
     use(v);
 >use(v) : any
 >use : (a: any) => any
->v : any
+>v : never
 }
 
 function foo0_1(x) {
@@ -45,7 +45,7 @@ function foo0_1(x) {
 
     for (let x in []) {
 >x : string
->[] : undefined[]
+>[] : never[]
 
         var v = x;
 >v : string
@@ -407,32 +407,32 @@ function foo0_c(x) {
 >x : any
 
     for (const x of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
         var v = x;
->v : any
->x : any
+>v : never
+>x : never
 
         (function() { return x + v });
->(function() { return x + v }) : () => any
->function() { return x + v } : () => any
->x + v : any
->x : any
->v : any
+>(function() { return x + v }) : () => number
+>function() { return x + v } : () => number
+>x + v : number
+>x : never
+>v : never
 
         (() => x + v);
->(() => x + v) : () => any
->() => x + v : () => any
->x + v : any
->x : any
->v : any
+>(() => x + v) : () => number
+>() => x + v : () => number
+>x + v : number
+>x : never
+>v : never
     }
 
     use(v);
 >use(v) : any
 >use : (a: any) => any
->v : any
+>v : never
 }
 
 function foo0_1_c(x) {
@@ -441,7 +441,7 @@ function foo0_1_c(x) {
 
     for (const x in []) {
 >x : string
->[] : undefined[]
+>[] : never[]
 
         var v = x;
 >v : string

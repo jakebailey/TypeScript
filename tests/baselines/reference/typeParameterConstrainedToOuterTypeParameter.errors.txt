@@ -2,9 +2,10 @@ typeParameterConstrainedToOuterTypeParameter.ts(10,5): error TS2322: Type 'A<str
   Types of parameters 'x' and 'x' are incompatible.
     Type 'U' is not assignable to type 'string[]'.
       Type 'string' is not assignable to type 'string[]'.
+typeParameterConstrainedToOuterTypeParameter.ts(10,20): error TS2454: Variable 'a' is used before being assigned.
 
 
-==== typeParameterConstrainedToOuterTypeParameter.ts (1 errors) ====
+==== typeParameterConstrainedToOuterTypeParameter.ts (2 errors) ====
     interface A<T> {
         <U extends T>(x: U[])
     }
@@ -20,3 +21,5 @@ typeParameterConstrainedToOuterTypeParameter.ts(10,5): error TS2322: Type 'A<str
 !!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
 !!! error TS2322:     Type 'U' is not assignable to type 'string[]'.
 !!! error TS2322:       Type 'string' is not assignable to type 'string[]'.
+                       ~
+!!! error TS2454: Variable 'a' is used before being assigned.

@@ -20,13 +20,13 @@ export type Pair2 = [any, last?: any];
 >Pair2 : [any, last?: any]
 
 export type Opt = [element: string?]; // question mark on element disallowed
->Opt : [element: string]
+>Opt : [element: string | undefined]
 
 export type Trailing = [first: string, rest: ...string[]]; // dots on element disallowed
 >Trailing : [first: string, rest: string]
 
 export type OptTrailing = [first: string, rest: ...string[]?]; // dots+question on element disallowed
->OptTrailing : [first: string, rest: string[]]
+>OptTrailing : [first: string, rest: string[] | null]
 
 export type OptRest = [first: string, ...rest?: string[]]; // rest+optional disallowed
 >OptRest : [first: string, rest?: string]

@@ -6,19 +6,19 @@ interface Foo {
 >a : number
 
     b: number | undefined
->b : number
+>b : number | undefined
 
     c: number | null
->c : number
+>c : number | null
 
     d?: number
->d : number
+>d : number | undefined
 
     e: number | undefined | null
->e : number
+>e : number | null | undefined
 
     f?: number | undefined | null
->f : number
+>f : number | null | undefined
 
     g: unknown
 >g : unknown
@@ -58,33 +58,33 @@ delete f.a
 
 delete f.b
 >delete f.b : boolean
->f.b : number
+>f.b : number | undefined
 >f : Foo
->b : number
+>b : number | undefined
 
 delete f.c
 >delete f.c : boolean
->f.c : number
+>f.c : number | null
 >f : Foo
->c : number
+>c : number | null
 
 delete f.d
 >delete f.d : boolean
->f.d : number
+>f.d : number | undefined
 >f : Foo
->d : number
+>d : number | undefined
 
 delete f.e
 >delete f.e : boolean
->f.e : number
+>f.e : number | null | undefined
 >f : Foo
->e : number
+>e : number | null | undefined
 
 delete f.f
 >delete f.f : boolean
->f.f : number
+>f.f : number | null | undefined
 >f : Foo
->f : number
+>f : number | null | undefined
 
 delete f.g
 >delete f.g : boolean

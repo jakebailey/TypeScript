@@ -1,5 +1,9 @@
 error TS5101: Option 'out' is deprecated and will stop functioning in TypeScript 5.5. Specify compilerOption '"ignoreDeprecations": "5.0"' to silence this error.
   Use 'outFile' instead.
+test.ts(5,1): error TS2454: Variable 'c' is used before being assigned.
+test.ts(6,1): error TS2454: Variable 'c' is used before being assigned.
+test.ts(7,1): error TS2454: Variable 'c' is used before being assigned.
+test.ts(8,1): error TS2454: Variable 'c' is used before being assigned.
 
 
 !!! error TS5101: Option 'out' is deprecated and will stop functioning in TypeScript 5.5. Specify compilerOption '"ignoreDeprecations": "5.0"' to silence this error.
@@ -47,13 +51,21 @@ error TS5101: Option 'out' is deprecated and will stop functioning in TypeScript
         }
     }
     
-==== test.ts (0 errors) ====
+==== test.ts (4 errors) ====
     import { Cls } from "./m1";
     import "m2";
     import "m4";
     let c: Cls;
     c.foo().toExponential();
+    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     c.bar().toLowerCase();
+    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     c.baz1().x.toExponential();
+    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     c.baz2().x.toLowerCase();
+    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     

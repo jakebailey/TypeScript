@@ -1,22 +1,32 @@
 additionOperatorWithTypeParameter.ts(15,14): error TS2365: Operator '+' cannot be applied to types 'T' and 'boolean'.
+additionOperatorWithTypeParameter.ts(15,18): error TS2454: Variable 'b' is used before being assigned.
 additionOperatorWithTypeParameter.ts(16,14): error TS2365: Operator '+' cannot be applied to types 'T' and 'number'.
+additionOperatorWithTypeParameter.ts(16,18): error TS2454: Variable 'c' is used before being assigned.
+additionOperatorWithTypeParameter.ts(17,18): error TS2454: Variable 'd' is used before being assigned.
 additionOperatorWithTypeParameter.ts(18,14): error TS2365: Operator '+' cannot be applied to types 'T' and 'Object'.
+additionOperatorWithTypeParameter.ts(18,18): error TS2454: Variable 'e' is used before being assigned.
 additionOperatorWithTypeParameter.ts(19,14): error TS2365: Operator '+' cannot be applied to types 'T' and 'E'.
+additionOperatorWithTypeParameter.ts(19,18): error TS2454: Variable 'g' is used before being assigned.
 additionOperatorWithTypeParameter.ts(20,14): error TS2365: Operator '+' cannot be applied to types 'T' and 'void'.
+additionOperatorWithTypeParameter.ts(24,14): error TS2454: Variable 'b' is used before being assigned.
 additionOperatorWithTypeParameter.ts(24,14): error TS2365: Operator '+' cannot be applied to types 'boolean' and 'T'.
+additionOperatorWithTypeParameter.ts(25,15): error TS2454: Variable 'c' is used before being assigned.
 additionOperatorWithTypeParameter.ts(25,15): error TS2365: Operator '+' cannot be applied to types 'number' and 'T'.
+additionOperatorWithTypeParameter.ts(26,15): error TS2454: Variable 'd' is used before being assigned.
+additionOperatorWithTypeParameter.ts(27,15): error TS2454: Variable 'e' is used before being assigned.
 additionOperatorWithTypeParameter.ts(27,15): error TS2365: Operator '+' cannot be applied to types 'Object' and 'T'.
+additionOperatorWithTypeParameter.ts(28,15): error TS2454: Variable 'g' is used before being assigned.
 additionOperatorWithTypeParameter.ts(28,15): error TS2365: Operator '+' cannot be applied to types 'E' and 'T'.
 additionOperatorWithTypeParameter.ts(29,15): error TS2365: Operator '+' cannot be applied to types 'void' and 'T'.
-additionOperatorWithTypeParameter.ts(32,15): error TS2365: Operator '+' cannot be applied to types 'T' and 'null'.
-additionOperatorWithTypeParameter.ts(33,15): error TS2365: Operator '+' cannot be applied to types 'T' and 'undefined'.
+additionOperatorWithTypeParameter.ts(32,19): error TS18050: The value 'null' cannot be used here.
+additionOperatorWithTypeParameter.ts(33,19): error TS18050: The value 'undefined' cannot be used here.
 additionOperatorWithTypeParameter.ts(34,15): error TS2365: Operator '+' cannot be applied to types 'T' and 'T'.
 additionOperatorWithTypeParameter.ts(35,15): error TS2365: Operator '+' cannot be applied to types 'T' and 'U'.
 additionOperatorWithTypeParameter.ts(36,15): error TS2365: Operator '+' cannot be applied to types 'T' and '() => void'.
-additionOperatorWithTypeParameter.ts(37,15): error TS2365: Operator '+' cannot be applied to types 'T' and 'undefined[]'.
+additionOperatorWithTypeParameter.ts(37,15): error TS2365: Operator '+' cannot be applied to types 'T' and 'never[]'.
 
 
-==== additionOperatorWithTypeParameter.ts (16 errors) ====
+==== additionOperatorWithTypeParameter.ts (26 errors) ====
     // type parameter type is not a valid operand of addition operator
     enum E { a, b }
     
@@ -34,16 +44,26 @@ additionOperatorWithTypeParameter.ts(37,15): error TS2365: Operator '+' cannot b
         var r2 = t + b;
                  ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'T' and 'boolean'.
+                     ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         var r3 = t + c;
                  ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'T' and 'number'.
+                     ~
+!!! error TS2454: Variable 'c' is used before being assigned.
         var r4 = t + d; // ok, one operand is string
+                     ~
+!!! error TS2454: Variable 'd' is used before being assigned.
         var r5 = t + e;
                  ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'T' and 'Object'.
+                     ~
+!!! error TS2454: Variable 'e' is used before being assigned.
         var r6 = t + g;
                  ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'T' and 'E'.
+                     ~
+!!! error TS2454: Variable 'g' is used before being assigned.
         var r7 = t + f;
                  ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'T' and 'void'.
@@ -51,16 +71,26 @@ additionOperatorWithTypeParameter.ts(37,15): error TS2365: Operator '+' cannot b
         // type parameter as right operand
         var r8 = a + t; // ok, one operand is any
         var r9 = b + t;
+                 ~
+!!! error TS2454: Variable 'b' is used before being assigned.
                  ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'boolean' and 'T'.
         var r10 = c + t;
+                  ~
+!!! error TS2454: Variable 'c' is used before being assigned.
                   ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'number' and 'T'.
         var r11 = d + t; // ok, one operand is string
+                  ~
+!!! error TS2454: Variable 'd' is used before being assigned.
         var r12 = e + t;
+                  ~
+!!! error TS2454: Variable 'e' is used before being assigned.
                   ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'Object' and 'T'.
         var r13 = g + t;
+                  ~
+!!! error TS2454: Variable 'g' is used before being assigned.
                   ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'E' and 'T'.
         var r14 = f + t;
@@ -69,11 +99,11 @@ additionOperatorWithTypeParameter.ts(37,15): error TS2365: Operator '+' cannot b
     
         // other cases
         var r15 = t + null;
-                  ~~~~~~~~
-!!! error TS2365: Operator '+' cannot be applied to types 'T' and 'null'.
+                      ~~~~
+!!! error TS18050: The value 'null' cannot be used here.
         var r16 = t + undefined;
-                  ~~~~~~~~~~~~~
-!!! error TS2365: Operator '+' cannot be applied to types 'T' and 'undefined'.
+                      ~~~~~~~~~
+!!! error TS18050: The value 'undefined' cannot be used here.
         var r17 = t + t;
                   ~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'T' and 'T'.
@@ -85,5 +115,5 @@ additionOperatorWithTypeParameter.ts(37,15): error TS2365: Operator '+' cannot b
 !!! error TS2365: Operator '+' cannot be applied to types 'T' and '() => void'.
         var r20 = t + [];
                   ~~~~~~
-!!! error TS2365: Operator '+' cannot be applied to types 'T' and 'undefined[]'.
+!!! error TS2365: Operator '+' cannot be applied to types 'T' and 'never[]'.
     }

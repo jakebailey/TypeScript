@@ -27,17 +27,17 @@ interface KnockoutObservableArray<T> extends KnockoutObservable<T[]> {
     indexOf(searchElement: T, fromIndex?: number): number;
 >indexOf : (searchElement: T, fromIndex?: number) => number
 >searchElement : T
->fromIndex : number
+>fromIndex : number | undefined
 
     slice(start: number, end?: number): T[];
 >slice : (start: number, end?: number) => T[]
 >start : number
->end : number
+>end : number | undefined
 
     splice(start: number, deleteCount?: number, ...items: T[]): T[];
 >splice : (start: number, deleteCount?: number, ...items: T[]) => T[]
 >start : number
->deleteCount : number
+>deleteCount : number | undefined
 >items : T[]
 
     pop(): T;
@@ -58,8 +58,8 @@ interface KnockoutObservableArray<T> extends KnockoutObservable<T[]> {
 >reverse : () => T[]
 
     sort(compareFunction?: (a: T, b: T) => number): void;
->sort : (compareFunction?: (a: T, b: T) => number) => void
->compareFunction : (a: T, b: T) => number
+>sort : (compareFunction?: ((a: T, b: T) => number) | undefined) => void
+>compareFunction : ((a: T, b: T) => number) | undefined
 >a : T
 >b : T
 
@@ -74,7 +74,7 @@ interface KnockoutObservableArray<T> extends KnockoutObservable<T[]> {
 
     removeAll(items?: T[]): T[];
 >removeAll : (items?: T[]) => T[]
->items : T[]
+>items : T[] | undefined
 
     destroy(item: T): void;
 >destroy : (item: T) => void
@@ -82,7 +82,7 @@ interface KnockoutObservableArray<T> extends KnockoutObservable<T[]> {
 
     destroyAll(items?: T[]): void;
 >destroyAll : (items?: T[]) => void
->items : T[]
+>items : T[] | undefined
 }
 
 interface KnockoutObservableArrayStatic {
@@ -90,7 +90,7 @@ interface KnockoutObservableArrayStatic {
 >fn : KnockoutObservableArray<any>
 
     <T>(value?: T[]): KnockoutObservableArray<T>;
->value : T[]
+>value : T[] | undefined
 }
 
 declare module ko {
@@ -121,7 +121,7 @@ module Portal.Controls.Validators {
 >validate : KnockoutObservable<TValue>
 
         constructor(message?: string) { }
->message : string
+>message : string | undefined
 
         public destroy(): void { }
 >destroy : () => void
@@ -150,12 +150,12 @@ module PortalFx.ViewModels.Controls.Validators {
 >Validator : typeof Portal.Controls.Validators.Validator
 
         constructor(message?: string) {
->message : string
+>message : string | undefined
 
             super(message);
 >super(message) : void
 >super : typeof Portal.Controls.Validators.Validator
->message : string
+>message : string | undefined
         }
     }
 

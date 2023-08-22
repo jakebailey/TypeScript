@@ -60,7 +60,7 @@ if (typeof strOrC === "Object") {
 else {
     var r2: string = strOrC; // string
 >r2 : string
->strOrC : string
+>strOrC : string | C
 }
 if (typeof numOrC === "Object") {
 >typeof numOrC === "Object" : boolean
@@ -76,7 +76,7 @@ if (typeof numOrC === "Object") {
 else {
     var r3: number  = numOrC; // number
 >r3 : number
->numOrC : number
+>numOrC : number | C
 }
 if (typeof boolOrC === "Object") {
 >typeof boolOrC === "Object" : boolean
@@ -92,7 +92,7 @@ if (typeof boolOrC === "Object") {
 else {
     var r4: boolean = boolOrC; // boolean
 >r4 : boolean
->boolOrC : boolean
+>boolOrC : boolean | C
 }
 if (typeof strOrC === "Object" as string) { // comparison is OK with cast
 >typeof strOrC === "Object" as string : boolean
@@ -139,7 +139,7 @@ if (typeof strOrC !== "Object") {
 
     var r2: string = strOrC; // string
 >r2 : string
->strOrC : string
+>strOrC : string | C
 }
 else {
     c = strOrC; // C
@@ -155,7 +155,7 @@ if (typeof numOrC !== "Object") {
 
     var r3: number = numOrC; // number
 >r3 : number
->numOrC : number
+>numOrC : number | C
 }
 else {
     c = numOrC; // C
@@ -171,7 +171,7 @@ if (typeof boolOrC !== "Object") {
 
     var r4: boolean = boolOrC; // boolean
 >r4 : boolean
->boolOrC : boolean
+>boolOrC : boolean | C
 }
 else {
     c = boolOrC; // C

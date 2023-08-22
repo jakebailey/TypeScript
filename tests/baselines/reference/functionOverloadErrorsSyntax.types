@@ -4,20 +4,20 @@
 //Function overload signature with optional parameter followed by non-optional parameter
 function fn4a(x?: number, y: string);
 >fn4a : (x?: number, y: string) => any
->x : number
+>x : number | undefined
 >y : string
 
 function fn4a() { }
->fn4a : (x?: number, y: string) => any
+>fn4a : (x?: number | undefined, y: string) => any
 
 function fn4b(n: string, x?: number, y: string);
 >fn4b : (n: string, x?: number, y: string) => any
 >n : string
->x : number
+>x : number | undefined
 >y : string
 
 function fn4b() { }
->fn4b : (n: string, x?: number, y: string) => any
+>fn4b : (n: string, x?: number | undefined, y: string) => any
 
 //Function overload signature with rest param followed by non-optional parameter
 function fn5(x: string, ...y: any[], z: string);

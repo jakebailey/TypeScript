@@ -13,9 +13,7 @@ function fee<T>() {
 >t : Symbol(t, Decl(typeParameterExplicitlyExtendsAny.ts, 1, 7))
 
     t.toString; // ok
->t.toString : Symbol(Object.toString, Decl(lib.es5.d.ts, --, --))
 >t : Symbol(t, Decl(typeParameterExplicitlyExtendsAny.ts, 1, 7))
->toString : Symbol(Object.toString, Decl(lib.es5.d.ts, --, --))
 }
 
 function fee2<T extends any>() {
@@ -30,9 +28,7 @@ function fee2<T extends any>() {
 >t : Symbol(t, Decl(typeParameterExplicitlyExtendsAny.ts, 7, 7))
 
     t.toString; // ok
->t.toString : Symbol(Object.toString, Decl(lib.es5.d.ts, --, --))
 >t : Symbol(t, Decl(typeParameterExplicitlyExtendsAny.ts, 7, 7))
->toString : Symbol(Object.toString, Decl(lib.es5.d.ts, --, --))
 }
 
 function f<T extends any>(x: T) {

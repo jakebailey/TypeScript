@@ -318,9 +318,9 @@ export class HTMLtoJSX {
 >'{' + JSON.stringify(whitespace) : string
 >'{' : "{"
 >JSON.stringify(whitespace) : string
->JSON.stringify : { (value: any, replacer?: (this: any, key: string, value: any) => any, space?: string | number): string; (value: any, replacer?: (string | number)[], space?: string | number): string; }
+>JSON.stringify : { (value: any, replacer?: ((this: any, key: string, value: any) => any) | undefined, space?: string | number | undefined): string; (value: any, replacer?: (string | number)[] | null | undefined, space?: string | number | undefined): string; }
 >JSON : JSON
->stringify : { (value: any, replacer?: (this: any, key: string, value: any) => any, space?: string | number): string; (value: any, replacer?: (string | number)[], space?: string | number): string; }
+>stringify : { (value: any, replacer?: ((this: any, key: string, value: any) => any) | undefined, space?: string | number | undefined): string; (value: any, replacer?: (string | number)[] | null | undefined, space?: string | number | undefined): string; }
 >whitespace : string
 >'}' : "}"
 
@@ -330,9 +330,9 @@ export class HTMLtoJSX {
       if (text.indexOf('\n') > -1) {
 >text.indexOf('\n') > -1 : boolean
 >text.indexOf('\n') : number
->text.indexOf : (searchString: string, position?: number) => number
+>text.indexOf : (searchString: string, position?: number | undefined) => number
 >text : string
->indexOf : (searchString: string, position?: number) => number
+>indexOf : (searchString: string, position?: number | undefined) => number
 >'\n' : "\n"
 >-1 : -1
 >1 : 1

@@ -20,7 +20,7 @@ function foo2(): any[] {
 >foo2 : typeof foo2
 
     return [];
->[] : undefined[]
+>[] : never[]
 }
 foo2.join = "";
 >foo2.join = "" : ""

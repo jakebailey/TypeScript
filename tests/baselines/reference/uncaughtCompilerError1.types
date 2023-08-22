@@ -8,7 +8,7 @@ declare var index, lineTokens, token, tokens;
 >tokens : any
 
 function f() {
->f : () => { appendText: string; advanceCount: number; }
+>f : () => { appendText: string; advanceCount: number; } | null | undefined
 
     if (lineTokens[index].trim() === '=' && index > 0 && token.type === '' && tokens[index - 1].type === 'attribute.name.html') {
 >lineTokens[index].trim() === '=' && index > 0 && token.type === '' && tokens[index - 1].type === 'attribute.name.html' : boolean

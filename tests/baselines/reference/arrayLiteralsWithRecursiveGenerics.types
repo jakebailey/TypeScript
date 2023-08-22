@@ -53,8 +53,8 @@ var ys = [list, list2]; // {}[]
 >list2 : List<string>
 
 var zs = [list, null]; // List<number>[]
->zs : List<number>[]
->[list, null] : List<number>[]
+>zs : (List<number> | null)[]
+>[list, null] : (List<number> | null)[]
 >list : List<number>
 
 var myDerivedList: DerivedList<number>;

@@ -95,14 +95,14 @@ interface I {
 >p1 : string
 
     (p2?: string);
->p2 : string
+>p2 : string | undefined
 
     (...p3: any[]);
 >p3 : any[]
 
     (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
     (p6: string, ...p7: any[]);
 >p6 : string
@@ -118,14 +118,14 @@ interface I {
 >p : string
 
     new (p2?: string);
->p2 : string
+>p2 : string | undefined
 
     new (...p3: any[]);
 >p3 : any[]
 
     new (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
     new (p6: string, ...p7: any[]);
 >p6 : string
@@ -151,29 +151,29 @@ interface I {
 >p1 : any
 
     p2?: string;
->p2 : string
+>p2 : string | undefined
     
     //Function Signature
     p3();
 >p3 : () => any
 
     p4? ();
->p4 : () => any
+>p4 : (() => any) | undefined
 
     p5? (): void;
->p5 : () => void
+>p5 : (() => void) | undefined
 
     p6(pa1): void;
 >p6 : (pa1: any) => void
 >pa1 : any
 
     p7(pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
 
     p7? (pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
 }
@@ -261,14 +261,14 @@ module M {
 >p1 : string
 
         (p2?: string);
->p2 : string
+>p2 : string | undefined
 
         (...p3: any[]);
 >p3 : any[]
 
         (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
         (p6: string, ...p7: any[]);
 >p6 : string
@@ -284,14 +284,14 @@ module M {
 >p : string
 
         new (p2?: string);
->p2 : string
+>p2 : string | undefined
 
         new (...p3: any[]);
 >p3 : any[]
 
         new (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
         new (p6: string, ...p7: any[]);
 >p6 : string
@@ -317,29 +317,29 @@ module M {
 >p1 : any
 
         p2?: string;
->p2 : string
+>p2 : string | undefined
     
         //Function Signature
         p3();
 >p3 : () => any
 
         p4? ();
->p4 : () => any
+>p4 : (() => any) | undefined
 
         p5? (): void;
->p5 : () => void
+>p5 : (() => void) | undefined
 
         p6(pa1): void;
 >p6 : (pa1: any) => void
 >pa1 : any
 
         p7(pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
 
         p7? (pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
     }
@@ -460,14 +460,14 @@ module M {
 >p1 : string
 
         (p2?: string);
->p2 : string
+>p2 : string | undefined
 
         (...p3: any[]);
 >p3 : any[]
 
         (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
         (p6: string, ...p7: any[]);
 >p6 : string
@@ -483,14 +483,14 @@ module M {
 >p : string
 
         new (p2?: string);
->p2 : string
+>p2 : string | undefined
 
         new (...p3: any[]);
 >p3 : any[]
 
         new (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
         new (p6: string, ...p7: any[]);
 >p6 : string
@@ -516,29 +516,29 @@ module M {
 >p1 : any
 
         p2?: string;
->p2 : string
+>p2 : string | undefined
     
         //Function Signature
         p3();
 >p3 : () => any
 
         p4? ();
->p4 : () => any
+>p4 : (() => any) | undefined
 
         p5? (): void;
->p5 : () => void
+>p5 : (() => void) | undefined
 
         p6(pa1): void;
 >p6 : (pa1: any) => void
 >pa1 : any
 
         p7(pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
 
         p7? (pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
     }
@@ -756,14 +756,14 @@ export interface eI {
 >p1 : string
 
     (p2?: string);
->p2 : string
+>p2 : string | undefined
 
     (...p3: any[]);
 >p3 : any[]
 
     (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
     (p6: string, ...p7: any[]);
 >p6 : string
@@ -779,14 +779,14 @@ export interface eI {
 >p : string
 
     new (p2?: string);
->p2 : string
+>p2 : string | undefined
 
     new (...p3: any[]);
 >p3 : any[]
 
     new (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
     new (p6: string, ...p7: any[]);
 >p6 : string
@@ -812,29 +812,29 @@ export interface eI {
 >p1 : any
 
     p2?: string;
->p2 : string
+>p2 : string | undefined
     
     //Function Signature
     p3();
 >p3 : () => any
 
     p4? ();
->p4 : () => any
+>p4 : (() => any) | undefined
 
     p5? (): void;
->p5 : () => void
+>p5 : (() => void) | undefined
 
     p6(pa1): void;
 >p6 : (pa1: any) => void
 >pa1 : any
 
     p7(pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
 
     p7? (pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
 }
@@ -922,14 +922,14 @@ export module eM {
 >p1 : string
 
         (p2?: string);
->p2 : string
+>p2 : string | undefined
 
         (...p3: any[]);
 >p3 : any[]
 
         (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
         (p6: string, ...p7: any[]);
 >p6 : string
@@ -945,14 +945,14 @@ export module eM {
 >p : string
 
         new (p2?: string);
->p2 : string
+>p2 : string | undefined
 
         new (...p3: any[]);
 >p3 : any[]
 
         new (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
         new (p6: string, ...p7: any[]);
 >p6 : string
@@ -978,29 +978,29 @@ export module eM {
 >p1 : any
 
         p2?: string;
->p2 : string
+>p2 : string | undefined
     
         //Function Signature
         p3();
 >p3 : () => any
 
         p4? ();
->p4 : () => any
+>p4 : (() => any) | undefined
 
         p5? (): void;
->p5 : () => void
+>p5 : (() => void) | undefined
 
         p6(pa1): void;
 >p6 : (pa1: any) => void
 >pa1 : any
 
         p7(pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
 
         p7? (pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
     }
@@ -1121,14 +1121,14 @@ export module eM {
 >p1 : string
 
         (p2?: string);
->p2 : string
+>p2 : string | undefined
 
         (...p3: any[]);
 >p3 : any[]
 
         (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
         (p6: string, ...p7: any[]);
 >p6 : string
@@ -1144,14 +1144,14 @@ export module eM {
 >p : string
 
         new (p2?: string);
->p2 : string
+>p2 : string | undefined
 
         new (...p3: any[]);
 >p3 : any[]
 
         new (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
         new (p6: string, ...p7: any[]);
 >p6 : string
@@ -1177,29 +1177,29 @@ export module eM {
 >p1 : any
 
         p2?: string;
->p2 : string
+>p2 : string | undefined
     
         //Function Signature
         p3();
 >p3 : () => any
 
         p4? ();
->p4 : () => any
+>p4 : (() => any) | undefined
 
         p5? (): void;
->p5 : () => void
+>p5 : (() => void) | undefined
 
         p6(pa1): void;
 >p6 : (pa1: any) => void
 >pa1 : any
 
         p7(pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
 
         p7? (pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
     }
@@ -1442,14 +1442,14 @@ export declare module eaM {
 >p : string
 
         (p2?: string);
->p2 : string
+>p2 : string | undefined
 
         (...p3: any[]);
 >p3 : any[]
 
         (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
         (p6: string, ...p7: any[]);
 >p6 : string
@@ -1465,14 +1465,14 @@ export declare module eaM {
 >p : string
 
         new (p2?: string);
->p2 : string
+>p2 : string | undefined
 
         new (...p3: any[]);
 >p3 : any[]
 
         new (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
         new (p6: string, ...p7: any[]);
 >p6 : string
@@ -1498,29 +1498,29 @@ export declare module eaM {
 >p1 : any
 
         p2?: string;
->p2 : string
+>p2 : string | undefined
     
         //Function Signature
         p3();
 >p3 : () => any
 
         p4? ();
->p4 : () => any
+>p4 : (() => any) | undefined
 
         p5? (): void;
->p5 : () => void
+>p5 : (() => void) | undefined
 
         p6(pa1): void;
 >p6 : (pa1: any) => void
 >pa1 : any
 
         p7(pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
 
         p7? (pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
     }
@@ -1596,14 +1596,14 @@ export declare module eaM {
 >p1 : string
 
         (p2?: string);
->p2 : string
+>p2 : string | undefined
 
         (...p3: any[]);
 >p3 : any[]
 
         (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
         (p6: string, ...p7: any[]);
 >p6 : string
@@ -1619,14 +1619,14 @@ export declare module eaM {
 >p : string
 
         new (p2?: string);
->p2 : string
+>p2 : string | undefined
 
         new (...p3: any[]);
 >p3 : any[]
 
         new (p4: string, p5?: string);
 >p4 : string
->p5 : string
+>p5 : string | undefined
 
         new (p6: string, ...p7: any[]);
 >p6 : string
@@ -1652,29 +1652,29 @@ export declare module eaM {
 >p1 : any
 
         p2?: string;
->p2 : string
+>p2 : string | undefined
     
         //Function Signature
         p3();
 >p3 : () => any
 
         p4? ();
->p4 : () => any
+>p4 : (() => any) | undefined
 
         p5? (): void;
->p5 : () => void
+>p5 : (() => void) | undefined
 
         p6(pa1): void;
 >p6 : (pa1: any) => void
 >pa1 : any
 
         p7(pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
 
         p7? (pa1, pa2): void;
->p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; }
+>p7 : { (pa1: any, pa2: any): void; (pa1: any, pa2: any): void; } | undefined
 >pa1 : any
 >pa2 : any
     }

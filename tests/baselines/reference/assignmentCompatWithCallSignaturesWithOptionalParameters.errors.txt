@@ -1,20 +1,50 @@
 assignmentCompatWithCallSignaturesWithOptionalParameters.ts(16,5): error TS2322: Type '(x: number) => number' is not assignable to type '() => number'.
   Target signature provides too few arguments. Expected 1 or more, but got 0.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(17,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(18,9): error TS2454: Variable 'b' is used before being assigned.
 assignmentCompatWithCallSignaturesWithOptionalParameters.ts(19,5): error TS2322: Type '(x: number) => number' is not assignable to type '() => number'.
   Target signature provides too few arguments. Expected 1 or more, but got 0.
-assignmentCompatWithCallSignaturesWithOptionalParameters.ts(20,5): error TS2322: Type '(x: number, y?: number) => number' is not assignable to type '() => number'.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(19,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(20,5): error TS2322: Type '(x: number, y?: number | undefined) => number' is not assignable to type '() => number'.
   Target signature provides too few arguments. Expected 1 or more, but got 0.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(20,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(21,9): error TS2454: Variable 'b' is used before being assigned.
 assignmentCompatWithCallSignaturesWithOptionalParameters.ts(22,5): error TS2322: Type '(x: number, y: number) => number' is not assignable to type '() => number'.
   Target signature provides too few arguments. Expected 2 or more, but got 0.
-assignmentCompatWithCallSignaturesWithOptionalParameters.ts(33,5): error TS2322: Type '(x: number, y: number) => number' is not assignable to type '(x?: number) => number'.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(22,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(28,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(29,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(30,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(31,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(32,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(33,5): error TS2322: Type '(x: number, y: number) => number' is not assignable to type '(x?: number | undefined) => number'.
   Target signature provides too few arguments. Expected 2 or more, but got 1.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(33,10): error TS2454: Variable 'b' is used before being assigned.
 assignmentCompatWithCallSignaturesWithOptionalParameters.ts(39,5): error TS2322: Type '(x: number, y: number) => number' is not assignable to type '(x: number) => number'.
   Target signature provides too few arguments. Expected 2 or more, but got 1.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(40,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(41,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(42,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(43,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(44,10): error TS2454: Variable 'b' is used before being assigned.
 assignmentCompatWithCallSignaturesWithOptionalParameters.ts(45,5): error TS2322: Type '(x: number, y: number) => number' is not assignable to type '(x: number) => number'.
   Target signature provides too few arguments. Expected 2 or more, but got 1.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(45,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(52,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(53,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(54,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(55,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(56,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(57,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(64,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(65,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(66,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(67,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(68,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithCallSignaturesWithOptionalParameters.ts(69,10): error TS2454: Variable 'b' is used before being assigned.
 
 
-==== assignmentCompatWithCallSignaturesWithOptionalParameters.ts (7 errors) ====
+==== assignmentCompatWithCallSignaturesWithOptionalParameters.ts (37 errors) ====
     // call signatures in derived types must have the same or fewer optional parameters as the base type
     
     interface Base { 
@@ -35,34 +65,58 @@ assignmentCompatWithCallSignaturesWithOptionalParameters.ts(45,5): error TS2322:
 !!! error TS2322: Type '(x: number) => number' is not assignable to type '() => number'.
 !!! error TS2322:   Target signature provides too few arguments. Expected 1 or more, but got 0.
         a = b.a; // ok
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a = b.a2; // ok
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a = b.a3; // error
         ~
 !!! error TS2322: Type '(x: number) => number' is not assignable to type '() => number'.
 !!! error TS2322:   Target signature provides too few arguments. Expected 1 or more, but got 0.
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a = b.a4; // error
         ~
-!!! error TS2322: Type '(x: number, y?: number) => number' is not assignable to type '() => number'.
+!!! error TS2322: Type '(x: number, y?: number | undefined) => number' is not assignable to type '() => number'.
 !!! error TS2322:   Target signature provides too few arguments. Expected 1 or more, but got 0.
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a = b.a5; // ok
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a = b.a6; // error
         ~
 !!! error TS2322: Type '(x: number, y: number) => number' is not assignable to type '() => number'.
 !!! error TS2322:   Target signature provides too few arguments. Expected 2 or more, but got 0.
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     
     var a2: (x?: number) => number; 
         a2 = () => 1; // ok, same number of required params
         a2 = (x?: number) => 1; // ok, same number of required params
         a2 = (x: number) => 1; // ok, same number of params
         a2 = b.a; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a2 = b.a2; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a2 = b.a3; // ok, same number of params
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a2 = b.a4; // ok, excess params are optional in b.a3
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a2 = b.a5; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a2 = b.a6; // error
         ~~
-!!! error TS2322: Type '(x: number, y: number) => number' is not assignable to type '(x?: number) => number'.
+!!! error TS2322: Type '(x: number, y: number) => number' is not assignable to type '(x?: number | undefined) => number'.
 !!! error TS2322:   Target signature provides too few arguments. Expected 2 or more, but got 1.
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     
     var a3: (x: number) => number; 
         a3 = () => 1; // ok, fewer required params
@@ -73,14 +127,26 @@ assignmentCompatWithCallSignaturesWithOptionalParameters.ts(45,5): error TS2322:
 !!! error TS2322: Type '(x: number, y: number) => number' is not assignable to type '(x: number) => number'.
 !!! error TS2322:   Target signature provides too few arguments. Expected 2 or more, but got 1.
         a3 = b.a; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a3 = b.a2; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a3 = b.a3; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a3 = b.a4; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a3 = b.a5; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a3 = b.a6; // error
         ~~
 !!! error TS2322: Type '(x: number, y: number) => number' is not assignable to type '(x: number) => number'.
 !!! error TS2322:   Target signature provides too few arguments. Expected 2 or more, but got 1.
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     
     var a4: (x: number, y?: number) => number;
         a4 = () => 1; // ok, fewer required params
@@ -88,11 +154,23 @@ assignmentCompatWithCallSignaturesWithOptionalParameters.ts(45,5): error TS2322:
         a4 = (x: number) => 1; // ok, same number of required params
         a4 = (x: number, y: number) => 1; // ok, same number of params
         a4 = b.a; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a4 = b.a2; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a4 = b.a3; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a4 = b.a4; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a4 = b.a5; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a4 = b.a6; // ok, same number of params
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     
     var a5: (x?: number, y?: number) => number;
         a5 = () => 1; // ok, fewer required params
@@ -100,8 +178,20 @@ assignmentCompatWithCallSignaturesWithOptionalParameters.ts(45,5): error TS2322:
         a5 = (x: number) => 1; // ok, fewer params in lambda
         a5 = (x: number, y: number) => 1;  // ok, same number of params
         a5 = b.a; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a5 = b.a2; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a5 = b.a3; // ok, fewer params in b.a3
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a5 = b.a4; // ok, same number of params
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a5 = b.a5; // ok
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a5 = b.a6; // ok, same number of params
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.

@@ -12,7 +12,7 @@
 // | ----------------------------------------------------------------------
 //                             ^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | (parameter) optionalParam: string
+// | (parameter) optionalParam: string | undefined
 // | ----------------------------------------------------------------------
 //                                                     ^^^^^^^^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
@@ -30,7 +30,7 @@
 //     optionalParam = "World";
 //     ^^^^^^^^^^^^^
 // | ----------------------------------------------------------------------
-// | (parameter) optionalParam: string
+// | (parameter) optionalParam: string | undefined
 // | ----------------------------------------------------------------------
 //     paramWithInitializer = "Hello";
 //     ^^^^^^^^^^^^^^^^^^^^
@@ -309,6 +309,22 @@
         {
           "text": "string",
           "kind": "keyword"
+        },
+        {
+          "text": " ",
+          "kind": "space"
+        },
+        {
+          "text": "|",
+          "kind": "punctuation"
+        },
+        {
+          "text": " ",
+          "kind": "space"
+        },
+        {
+          "text": "undefined",
+          "kind": "keyword"
         }
       ],
       "documentation": []
@@ -516,6 +532,22 @@
         },
         {
           "text": "string",
+          "kind": "keyword"
+        },
+        {
+          "text": " ",
+          "kind": "space"
+        },
+        {
+          "text": "|",
+          "kind": "punctuation"
+        },
+        {
+          "text": " ",
+          "kind": "space"
+        },
+        {
+          "text": "undefined",
           "kind": "keyword"
         }
       ],

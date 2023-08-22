@@ -1,0 +1,22 @@
+declarationEmitExpressionInExtends.ts(9,17): error TS2454: Variable 'x' is used before being assigned.
+declarationEmitExpressionInExtends.ts(13,1): error TS2454: Variable 'q' is used before being assigned.
+
+
+==== declarationEmitExpressionInExtends.ts (2 errors) ====
+    var x: {
+        new<T>(s: any): Q;
+    }
+    
+    class Q {
+        s: string;    
+    }
+    
+    class B extends x<string> {    
+                    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    }
+    
+    var q: B;
+    q.s;
+    ~
+!!! error TS2454: Variable 'q' is used before being assigned.

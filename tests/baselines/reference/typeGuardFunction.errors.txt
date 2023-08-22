@@ -1,0 +1,111 @@
+typeGuardFunction.ts(23,9): error TS2454: Variable 'a' is used before being assigned.
+typeGuardFunction.ts(29,8): error TS2454: Variable 'subType' is used before being assigned.
+typeGuardFunction.ts(35,8): error TS2454: Variable 'union' is used before being assigned.
+typeGuardFunction.ts(47,24): error TS2454: Variable 'a' is used before being assigned.
+typeGuardFunction.ts(74,22): error TS2454: Variable 'a' is used before being assigned.
+typeGuardFunction.ts(82,5): error TS2322: Type 'true | B | C' is not assignable to type 'boolean | B'.
+  Type 'C' is not assignable to type 'boolean | B'.
+typeGuardFunction.ts(82,31): error TS2454: Variable 'union2' is used before being assigned.
+typeGuardFunction.ts(82,42): error TS2454: Variable 'union2' is used before being assigned.
+
+
+==== typeGuardFunction.ts (8 errors) ====
+    class A {
+        propA: number;
+    }
+    
+    class B {
+        propB: number;
+    }
+    
+    class C extends A {
+        propC: number;
+    }
+    
+    declare function isA(p1: any): p1 is A;
+    declare function isB(p1: any): p1 is B;
+    declare function isC(p1: any): p1 is C;
+    
+    declare function retC(): C;
+    
+    var a: A;
+    var b: B;
+    
+    // Basic
+    if (isC(a)) {
+            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        a.propC;
+    }
+    
+    // Sub type
+    var subType: C;
+    if(isA(subType)) {
+           ~~~~~~~
+!!! error TS2454: Variable 'subType' is used before being assigned.
+        subType.propC;
+    }
+    
+    // Union type
+    var union: A | B;
+    if(isA(union)) {
+           ~~~~~
+!!! error TS2454: Variable 'union' is used before being assigned.
+        union.propA;
+    }
+    
+    // Call signature
+    interface I1 {
+        (p1: A): p1 is C;
+    }
+    
+    // The parameter index and argument index for the type guard target is matching.
+    // The type predicate type is assignable to the parameter type.
+    declare function isC_multipleParams(p1, p2): p1 is C;
+    if (isC_multipleParams(a, 0)) {
+                           ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        a.propC;
+    }
+    
+    // Methods
+    var obj: {
+        func1(p1: A): p1 is C;
+    }
+    class D {
+        method1(p1: A): p1 is C {
+            return true;
+        }
+    }
+    
+    // Arrow function
+    let f1 = (p1: A): p1 is C => false;
+    
+    // Function type
+    declare function f2(p1: (p1: A) => p1 is C);
+    
+    // Function expressions
+    f2(function(p1: A): p1 is C {
+        return true;
+    });
+    
+    // Evaluations are asssignable to boolean.
+    declare function acceptingBoolean(a: boolean);
+    acceptingBoolean(isA(a));
+                         ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Type predicates with different parameter name.
+    declare function acceptingTypeGuardFunction(p1: (item) => item is A);
+    acceptingTypeGuardFunction(isA);
+    
+    // Binary expressions
+    let union2: C | B;
+    let union3: boolean | B = isA(union2) || union2;
+        ~~~~~~
+!!! error TS2322: Type 'true | B | C' is not assignable to type 'boolean | B'.
+!!! error TS2322:   Type 'C' is not assignable to type 'boolean | B'.
+                                  ~~~~~~
+!!! error TS2454: Variable 'union2' is used before being assigned.
+                                             ~~~~~~
+!!! error TS2454: Variable 'union2' is used before being assigned.

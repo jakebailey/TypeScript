@@ -1,7 +1,9 @@
 arrayLiteralAndArrayConstructorEquivalence1.ts(3,14): error TS2314: Generic type 'Array<T>' requires 1 type argument(s).
+arrayLiteralAndArrayConstructorEquivalence1.ts(8,10): error TS2454: Variable 'myCars5' is used before being assigned.
+arrayLiteralAndArrayConstructorEquivalence1.ts(12,11): error TS2454: Variable 'myCars5' is used before being assigned.
 
 
-==== arrayLiteralAndArrayConstructorEquivalence1.ts (1 errors) ====
+==== arrayLiteralAndArrayConstructorEquivalence1.ts (3 errors) ====
     var myCars=new Array(); 
     var myCars3 = new Array({});
     var myCars4: Array; // error
@@ -12,8 +14,12 @@ arrayLiteralAndArrayConstructorEquivalence1.ts(3,14): error TS2314: Generic type
     myCars = myCars3;
     myCars = myCars4;
     myCars = myCars5;
+             ~~~~~~~
+!!! error TS2454: Variable 'myCars5' is used before being assigned.
      
     myCars3 = myCars;
     myCars3 = myCars4;
     myCars3 = myCars5;   
+              ~~~~~~~
+!!! error TS2454: Variable 'myCars5' is used before being assigned.
     

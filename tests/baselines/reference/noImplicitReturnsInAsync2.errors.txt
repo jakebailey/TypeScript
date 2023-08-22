@@ -1,8 +1,9 @@
 noImplicitReturnsInAsync2.ts(2,16): error TS7030: Not all code paths return a value.
-noImplicitReturnsInAsync2.ts(24,48): error TS7030: Not all code paths return a value.
+noImplicitReturnsInAsync2.ts(24,48): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
+noImplicitReturnsInAsync2.ts(26,9): error TS2322: Type 'undefined' is not assignable to type 'number'.
 
 
-==== noImplicitReturnsInAsync2.ts (2 errors) ====
+==== noImplicitReturnsInAsync2.ts (3 errors) ====
     // Should be an error, Promise<number>, currently retorted correctly 
     async function test3(isError: boolean = true) {
                    ~~~~~
@@ -30,9 +31,11 @@ noImplicitReturnsInAsync2.ts(24,48): error TS7030: Not all code paths return a v
     // should be error, currently reported correctly 
     async function test6(isError: boolean = true): Promise<number> { 
                                                    ~~~~~~~~~~~~~~~
-!!! error TS7030: Not all code paths return a value.
+!!! error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
         if (isError === true) {
             return undefined;
+            ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'number'.
         }
     }
     

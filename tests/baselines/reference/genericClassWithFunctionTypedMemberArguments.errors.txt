@@ -1,3 +1,12 @@
+genericClassWithFunctionTypedMemberArguments.ts(7,22): error TS2345: Argument of type 'null' is not assignable to parameter of type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+genericClassWithFunctionTypedMemberArguments.ts(18,22): error TS2345: Argument of type 'null' is not assignable to parameter of type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+genericClassWithFunctionTypedMemberArguments.ts(35,14): error TS2454: Variable 'c' is used before being assigned.
+genericClassWithFunctionTypedMemberArguments.ts(36,14): error TS2454: Variable 'c' is used before being assigned.
+genericClassWithFunctionTypedMemberArguments.ts(37,14): error TS2454: Variable 'c' is used before being assigned.
+genericClassWithFunctionTypedMemberArguments.ts(46,14): error TS2454: Variable 'c2' is used before being assigned.
+genericClassWithFunctionTypedMemberArguments.ts(47,14): error TS2454: Variable 'c2' is used before being assigned.
 genericClassWithFunctionTypedMemberArguments.ts(57,29): error TS2345: Argument of type '(x: T) => string' is not assignable to parameter of type '(a: 1) => string'.
   Types of parameters 'x' and 'a' are incompatible.
     Type 'number' is not assignable to type 'T'.
@@ -14,7 +23,7 @@ genericClassWithFunctionTypedMemberArguments.ts(62,30): error TS2345: Argument o
   Type 'string' is not assignable to type '1'.
 
 
-==== genericClassWithFunctionTypedMemberArguments.ts (4 errors) ====
+==== genericClassWithFunctionTypedMemberArguments.ts (11 errors) ====
     // Generic functions used as arguments for function typed parameters are not used to make inferences from
     // Using function arguments, no errors expected
     
@@ -22,6 +31,9 @@ genericClassWithFunctionTypedMemberArguments.ts(62,30): error TS2345: Argument o
         class C<T> {
             foo<T>(x: (a: T) => T) {
                 return x(null);
+                         ~~~~
+!!! error TS2345: Argument of type 'null' is not assignable to parameter of type 'T'.
+!!! error TS2345:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
             }
         }
     
@@ -33,6 +45,9 @@ genericClassWithFunctionTypedMemberArguments.ts(62,30): error TS2345: Argument o
         class C2<T> {
             foo(x: (a: T) => T) {
                 return x(null);
+                         ~~~~
+!!! error TS2345: Argument of type 'null' is not assignable to parameter of type 'T'.
+!!! error TS2345:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
             }
         }
     
@@ -50,8 +65,14 @@ genericClassWithFunctionTypedMemberArguments.ts(62,30): error TS2345: Argument o
     
         var c: C<number>;
         var r4 = c.foo2(1, function <Z>(a: Z) { return '' }); // string, contextual signature instantiation is applied to generic functions
+                 ~
+!!! error TS2454: Variable 'c' is used before being assigned.
         var r5 = c.foo2(1, (a) => ''); // string
+                 ~
+!!! error TS2454: Variable 'c' is used before being assigned.
         var r6 = c.foo2<string, number>('', <Z>(a: Z) => 1); // number
+                 ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     
         class C2<T, U> {
             foo3(x: T, cb: (a: T) => U, y: U) {
@@ -61,7 +82,11 @@ genericClassWithFunctionTypedMemberArguments.ts(62,30): error TS2345: Argument o
     
         var c2: C2<number, string>;
         var r7 = c2.foo3(1, <Z>(a: Z) => '', ''); // string
+                 ~~
+!!! error TS2454: Variable 'c2' is used before being assigned.
         var r8 = c2.foo3(1, function (a) { return '' }, ''); // string
+                 ~~
+!!! error TS2454: Variable 'c2' is used before being assigned.
     
         class C3<T, U> {
             foo3<T,U>(x: T, cb: (a: T) => U, y: U) {

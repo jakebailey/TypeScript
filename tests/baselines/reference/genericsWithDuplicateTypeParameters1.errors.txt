@@ -1,22 +1,31 @@
 genericsWithDuplicateTypeParameters1.ts(1,15): error TS2300: Duplicate identifier 'x'.
 genericsWithDuplicateTypeParameters1.ts(2,16): error TS2300: Duplicate identifier 'X'.
+genericsWithDuplicateTypeParameters1.ts(2,36): error TS2322: Type 'null' is not assignable to type 'X'.
+  'X' could be instantiated with an arbitrary type which could be unrelated to 'null'.
 genericsWithDuplicateTypeParameters1.ts(3,12): error TS2300: Duplicate identifier 'X'.
 genericsWithDuplicateTypeParameters1.ts(4,17): error TS2300: Duplicate identifier 'x'.
 genericsWithDuplicateTypeParameters1.ts(5,18): error TS2300: Duplicate identifier 'X'.
+genericsWithDuplicateTypeParameters1.ts(5,38): error TS2322: Type 'null' is not assignable to type 'X'.
+  'X' could be instantiated with an arbitrary type which could be unrelated to 'null'.
 genericsWithDuplicateTypeParameters1.ts(8,16): error TS2300: Duplicate identifier 'X'.
 genericsWithDuplicateTypeParameters1.ts(9,10): error TS2300: Duplicate identifier 'X'.
 genericsWithDuplicateTypeParameters1.ts(10,11): error TS2300: Duplicate identifier 'X'.
 genericsWithDuplicateTypeParameters1.ts(14,22): error TS2300: Duplicate identifier 'X'.
 genericsWithDuplicateTypeParameters1.ts(15,23): error TS2300: Duplicate identifier 'X'.
+genericsWithDuplicateTypeParameters1.ts(15,43): error TS2322: Type 'null' is not assignable to type 'X'.
+  'X' could be instantiated with an arbitrary type which could be unrelated to 'null'.
 
 
-==== genericsWithDuplicateTypeParameters1.ts (10 errors) ====
+==== genericsWithDuplicateTypeParameters1.ts (13 errors) ====
     function f<x, x>() { }
                   ~
 !!! error TS2300: Duplicate identifier 'x'.
     function f2<X, X>(a: X, b: X): X { return null; }
                    ~
 !!! error TS2300: Duplicate identifier 'X'.
+                                       ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'X'.
+!!! error TS2322:   'X' could be instantiated with an arbitrary type which could be unrelated to 'null'.
     class C<X, X> {
                ~
 !!! error TS2300: Duplicate identifier 'X'.
@@ -26,6 +35,9 @@ genericsWithDuplicateTypeParameters1.ts(15,23): error TS2300: Duplicate identifi
         public f2<X, X>(a: X, b: X): X { return null; }
                      ~
 !!! error TS2300: Duplicate identifier 'X'.
+                                         ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'X'.
+!!! error TS2322:   'X' could be instantiated with an arbitrary type which could be unrelated to 'null'.
     }
     
     interface I<X, X> {
@@ -46,4 +58,7 @@ genericsWithDuplicateTypeParameters1.ts(15,23): error TS2300: Duplicate identifi
         b: function f2<X, X>(a: X, b: X): X { return null; }
                           ~
 !!! error TS2300: Duplicate identifier 'X'.
+                                              ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'X'.
+!!! error TS2322:   'X' could be instantiated with an arbitrary type which could be unrelated to 'null'.
     }

@@ -5,12 +5,12 @@ import * as _ from "./a";
 >_ : typeof _
 
 for (const _ of []) { }
->_ : any
->[] : undefined[]
+>_ : never
+>[] : never[]
 
 for (const _ in []) { }
 >_ : string
->[] : undefined[]
+>[] : never[]
 
 namespace _ns {
 >_ns : typeof _ns
@@ -19,11 +19,11 @@ namespace _ns {
 >_ : any
 
     for (const _ of []) { }
->_ : any
->[] : undefined[]
+>_ : never
+>[] : never[]
 
     for (const _ in []) { }
 >_ : string
->[] : undefined[]
+>[] : never[]
 }
 

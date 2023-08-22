@@ -6,7 +6,7 @@
   */
 function x(y) { }
 >x : (y?: any[] | undefined) => void
->y : any[]
+>y : any[] | undefined
 
 // @ts-ignore
 /** @param {function (Array)} func Invoked

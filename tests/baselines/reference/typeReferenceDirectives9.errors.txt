@@ -1,0 +1,37 @@
+/mod1.ts(4,1): error TS2322: Type '() => undefined' is not assignable to type '() => Lib'.
+  Type 'undefined' is not assignable to type 'Lib'.
+
+
+==== /mod2.ts (0 errors) ====
+    import { Cls } from "./main";
+    import "./mod1";
+    
+    export const cls = Cls;
+    export const foo = new Cls().foo();
+    export const bar = Cls.bar();
+==== /types/lib/index.d.ts (0 errors) ====
+    interface Lib { x }
+    
+==== /main.ts (0 errors) ====
+    export class Cls {
+        x
+    }
+    
+==== /mod1.ts (1 errors) ====
+    /// <reference types="lib" />
+    
+    import {Cls} from "./main";
+    Cls.prototype.foo = function() { return undefined; }
+    ~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type '() => undefined' is not assignable to type '() => Lib'.
+!!! error TS2322:   Type 'undefined' is not assignable to type 'Lib'.
+    
+    declare module "./main" {
+        interface Cls {
+            foo(): Lib;
+        }
+        namespace Cls {
+            function bar(): Lib;
+        }
+    }
+    

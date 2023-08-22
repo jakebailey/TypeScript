@@ -1,0 +1,45 @@
+aliasUsageInOrExpression_main.ts(7,10): error TS2454: Variable 'i' is used before being assigned.
+aliasUsageInOrExpression_main.ts(8,34): error TS2454: Variable 'i' is used before being assigned.
+aliasUsageInOrExpression_main.ts(9,45): error TS2454: Variable 'i' is used before being assigned.
+aliasUsageInOrExpression_main.ts(10,40): error TS2352: Conversion of type 'null' to type '{ x: IHasVisualizationModel; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+aliasUsageInOrExpression_main.ts(11,5): error TS2322: Type '{ x: typeof import("aliasUsageInOrExpression_moduleA"); } | null' is not assignable to type '{ x: IHasVisualizationModel; }'.
+  Type 'null' is not assignable to type '{ x: IHasVisualizationModel; }'.
+aliasUsageInOrExpression_main.ts(11,40): error TS2352: Conversion of type 'null' to type '{ x: IHasVisualizationModel; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+
+
+==== aliasUsageInOrExpression_main.ts (6 errors) ====
+    import Backbone = require("./aliasUsageInOrExpression_backbone");
+    import moduleA = require("./aliasUsageInOrExpression_moduleA");
+    interface IHasVisualizationModel {
+        VisualizationModel: typeof Backbone.Model;
+    }
+    var i: IHasVisualizationModel;
+    var d1 = i || moduleA;
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    var d2: IHasVisualizationModel = i || moduleA;
+                                     ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    var d2: IHasVisualizationModel = moduleA || i;
+                                                ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    var e: { x: IHasVisualizationModel } = <{ x: IHasVisualizationModel }>null || { x: moduleA };
+                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2352: Conversion of type 'null' to type '{ x: IHasVisualizationModel; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+    var f: { x: IHasVisualizationModel } = <{ x: IHasVisualizationModel }>null ? { x: moduleA } : null;
+        ~
+!!! error TS2322: Type '{ x: typeof import("aliasUsageInOrExpression_moduleA"); } | null' is not assignable to type '{ x: IHasVisualizationModel; }'.
+!!! error TS2322:   Type 'null' is not assignable to type '{ x: IHasVisualizationModel; }'.
+                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2352: Conversion of type 'null' to type '{ x: IHasVisualizationModel; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+==== aliasUsageInOrExpression_backbone.ts (0 errors) ====
+    export class Model {
+        public someData: string;
+    }
+    
+==== aliasUsageInOrExpression_moduleA.ts (0 errors) ====
+    import Backbone = require("./aliasUsageInOrExpression_backbone");
+    export class VisualizationModel extends Backbone.Model {
+        // interesting stuff here
+    }
+    

@@ -1,0 +1,264 @@
+newWithSpreadES6.ts(36,16): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(37,16): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(40,11): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(40,17): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(41,16): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(41,22): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(45,16): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(46,16): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(49,5): error TS2454: Variable 'b' is used before being assigned.
+newWithSpreadES6.ts(50,5): error TS2454: Variable 'b' is used before being assigned.
+newWithSpreadES6.ts(50,18): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(51,5): error TS2454: Variable 'b' is used before being assigned.
+newWithSpreadES6.ts(51,18): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(54,6): error TS2454: Variable 'b' is used before being assigned.
+newWithSpreadES6.ts(55,6): error TS2454: Variable 'b' is used before being assigned.
+newWithSpreadES6.ts(55,20): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(56,6): error TS2454: Variable 'b' is used before being assigned.
+newWithSpreadES6.ts(56,20): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(59,5): error TS2454: Variable 'd' is used before being assigned.
+newWithSpreadES6.ts(60,5): error TS2454: Variable 'd' is used before being assigned.
+newWithSpreadES6.ts(60,21): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(61,5): error TS2454: Variable 'd' is used before being assigned.
+newWithSpreadES6.ts(61,21): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(64,5): error TS2454: Variable 'e' is used before being assigned.
+newWithSpreadES6.ts(65,5): error TS2454: Variable 'e' is used before being assigned.
+newWithSpreadES6.ts(65,25): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(66,5): error TS2454: Variable 'e' is used before being assigned.
+newWithSpreadES6.ts(66,25): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(70,16): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(71,16): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(74,5): error TS2454: Variable 'c' is used before being assigned.
+newWithSpreadES6.ts(75,5): error TS2454: Variable 'c' is used before being assigned.
+newWithSpreadES6.ts(75,23): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(76,5): error TS2454: Variable 'c' is used before being assigned.
+newWithSpreadES6.ts(76,23): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(79,6): error TS2454: Variable 'c' is used before being assigned.
+newWithSpreadES6.ts(80,6): error TS2454: Variable 'c' is used before being assigned.
+newWithSpreadES6.ts(80,25): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(81,6): error TS2454: Variable 'c' is used before being assigned.
+newWithSpreadES6.ts(81,25): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(84,5): error TS2454: Variable 'g' is used before being assigned.
+newWithSpreadES6.ts(85,5): error TS2454: Variable 'g' is used before being assigned.
+newWithSpreadES6.ts(85,26): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(86,5): error TS2454: Variable 'g' is used before being assigned.
+newWithSpreadES6.ts(86,26): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(89,5): error TS2454: Variable 'h' is used before being assigned.
+newWithSpreadES6.ts(90,5): error TS2454: Variable 'h' is used before being assigned.
+newWithSpreadES6.ts(90,30): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(91,5): error TS2454: Variable 'h' is used before being assigned.
+newWithSpreadES6.ts(91,30): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(94,5): error TS2454: Variable 'i' is used before being assigned.
+newWithSpreadES6.ts(95,5): error TS2454: Variable 'i' is used before being assigned.
+newWithSpreadES6.ts(95,26): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES6.ts(96,5): error TS2454: Variable 'i' is used before being assigned.
+newWithSpreadES6.ts(96,26): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== newWithSpreadES6.ts (55 errors) ====
+    function f(x: number, y: number, ...z: string[]) {
+    }
+    
+    function f2(...x: string[]) {
+    }
+    
+    interface A {
+        f: {
+            new (x: number, y: number, ...z: string[]);
+        }
+    }
+    
+    class B {
+        constructor(x: number, y: number, ...z: string[]) {}
+    }
+    
+    interface C {
+        "a-b": typeof B;
+    }
+    
+    interface D {
+        1: typeof B;
+    }
+    
+    var a: string[];
+    var b: A;
+    var c: C;
+    var d: A[];
+    var e: { [key: string]: A };
+    var g: C[];
+    var h: { [key: string]: C };
+    var i: C[][];
+    
+    // Basic expression
+    new f(1, 2, "string");
+    new f(1, 2, ...a);
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new f(1, 2, ...a, "string");
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Multiple spreads arguments
+    new f2(...a, ...a);
+              ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+                    ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new f(1 ,2, ...a, ...a);
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+                         ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Call expression
+    new f(1, 2, "string")();
+    new f(1, 2, ...a)();
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new f(1, 2, ...a, "string")();
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Property access expression
+    new b.f(1, 2, "string");
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    new b.f(1, 2, ...a);
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                     ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new b.f(1, 2, ...a, "string"); 
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                     ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Parenthesised expression
+    new (b.f)(1, 2, "string");
+         ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    new (b.f)(1, 2, ...a);
+         ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                       ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new (b.f)(1, 2, ...a, "string"); 
+         ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                       ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Element access expression
+    new d[1].f(1, 2, "string");
+        ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+    new d[1].f(1, 2, ...a);
+        ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+                        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new d[1].f(1, 2, ...a, "string");
+        ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+                        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Element access expression with a punctuated key
+    new e["a-b"].f(1, 2, "string");
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    new e["a-b"].f(1, 2, ...a);
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+                            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new e["a-b"].f(1, 2, ...a, "string");
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+                            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Basic expression
+    new B(1, 2, "string");
+    new B(1, 2, ...a);
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new B(1, 2, ...a, "string");
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Property access expression
+    new c["a-b"](1, 2, "string");
+        ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    new c["a-b"](1, 2, ...a);
+        ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                          ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new c["a-b"](1, 2, ...a, "string");
+        ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                          ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Parenthesised expression
+    new (c["a-b"])(1, 2, "string");
+         ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    new (c["a-b"])(1, 2, ...a);
+         ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new (c["a-b"])(1, 2, ...a, "string");
+         ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Element access expression
+    new g[1]["a-b"](1, 2, "string");
+        ~
+!!! error TS2454: Variable 'g' is used before being assigned.
+    new g[1]["a-b"](1, 2, ...a);
+        ~
+!!! error TS2454: Variable 'g' is used before being assigned.
+                             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new g[1]["a-b"](1, 2, ...a, "string");
+        ~
+!!! error TS2454: Variable 'g' is used before being assigned.
+                             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Element access expression with a punctuated key
+    new h["a-b"]["a-b"](1, 2, "string");
+        ~
+!!! error TS2454: Variable 'h' is used before being assigned.
+    new h["a-b"]["a-b"](1, 2, ...a);
+        ~
+!!! error TS2454: Variable 'h' is used before being assigned.
+                                 ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new h["a-b"]["a-b"](1, 2, ...a, "string");
+        ~
+!!! error TS2454: Variable 'h' is used before being assigned.
+                                 ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Element access expression with a number
+    new i["a-b"][1](1, 2, "string");
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    new i["a-b"][1](1, 2, ...a);
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+                             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new i["a-b"][1](1, 2, ...a, "string");
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+                             ~
+!!! error TS2454: Variable 'a' is used before being assigned.

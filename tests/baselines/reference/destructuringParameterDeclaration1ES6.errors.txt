@@ -1,5 +1,10 @@
 destructuringParameterDeclaration1ES6.ts(14,4): error TS2345: Argument of type '[number, number, string[][], number]' is not assignable to parameter of type '[number, number, string[][]]'.
   Source has 4 element(s) but target allows only 3.
+destructuringParameterDeclaration1ES6.ts(32,5): error TS2322: Type 'number' is not assignable to type 'null | undefined'.
+destructuringParameterDeclaration1ES6.ts(32,8): error TS2322: Type 'number' is not assignable to type 'null | undefined'.
+destructuringParameterDeclaration1ES6.ts(32,11): error TS2322: Type 'number' is not assignable to type 'null | undefined'.
+destructuringParameterDeclaration1ES6.ts(33,4): error TS2345: Argument of type '"string"' is not assignable to parameter of type 'null | undefined'.
+destructuringParameterDeclaration1ES6.ts(34,4): error TS2345: Argument of type '"string"' is not assignable to parameter of type 'null | undefined'.
 destructuringParameterDeclaration1ES6.ts(58,4): error TS2345: Argument of type '[number, number, [[string]], boolean, boolean]' is not assignable to parameter of type '[any, any, [[any]]]'.
   Source has 5 element(s) but target allows only 3.
 destructuringParameterDeclaration1ES6.ts(96,18): error TS2300: Duplicate identifier 'number'.
@@ -7,7 +12,7 @@ destructuringParameterDeclaration1ES6.ts(96,26): error TS2300: Duplicate identif
 destructuringParameterDeclaration1ES6.ts(96,34): error TS2300: Duplicate identifier 'number'.
 
 
-==== destructuringParameterDeclaration1ES6.ts (5 errors) ====
+==== destructuringParameterDeclaration1ES6.ts (10 errors) ====
     // Conformance for emitting ES6
     
     // A parameter declaration may specify either an identifier or a binding pattern.
@@ -43,8 +48,18 @@ destructuringParameterDeclaration1ES6.ts(96,34): error TS2300: Duplicate identif
     function b7([[a], b, [[c, d]]] = [[undefined], undefined, [[undefined, undefined]]]) { }
     
     b1([1, 2, 3]);  // z is widen to the type any[]
+        ~
+!!! error TS2322: Type 'number' is not assignable to type 'null | undefined'.
+           ~
+!!! error TS2322: Type 'number' is not assignable to type 'null | undefined'.
+              ~
+!!! error TS2322: Type 'number' is not assignable to type 'null | undefined'.
     b2("string", { x: 200, y: "string" });
+       ~~~~~~~~
+!!! error TS2345: Argument of type '"string"' is not assignable to parameter of type 'null | undefined'.
     b2("string", { x: 200, y: true });
+       ~~~~~~~~
+!!! error TS2345: Argument of type '"string"' is not assignable to parameter of type 'null | undefined'.
     
     
     // If the declaration specifies a binding pattern, the parameter type is the implied type of that binding pattern (section 5.1.3)

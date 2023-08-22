@@ -1,17 +1,24 @@
+arrayTypeOfFunctionTypes.ts(4,9): error TS2454: Variable 'x' is used before being assigned.
+arrayTypeOfFunctionTypes.ts(9,10): error TS2454: Variable 'x2' is used before being assigned.
 arrayTypeOfFunctionTypes.ts(11,11): error TS2350: Only a void function can be called with the 'new' keyword.
+arrayTypeOfFunctionTypes.ts(14,10): error TS2454: Variable 'x2' is used before being assigned.
 arrayTypeOfFunctionTypes.ts(16,11): error TS2350: Only a void function can be called with the 'new' keyword.
 
 
-==== arrayTypeOfFunctionTypes.ts (2 errors) ====
+==== arrayTypeOfFunctionTypes.ts (5 errors) ====
     // valid uses of arrays of function types
     
     var x: () => string[];
     var r = x[1];
+            ~
+!!! error TS2454: Variable 'x' is used before being assigned.
     var r2 = r();
     var r2b = new r();
     
     var x2: { (): string }[];
     var r3 = x2[1];
+             ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
     var r4 = r3();
     var r4b = new r3(); // error
               ~~~~~~~~
@@ -19,6 +26,8 @@ arrayTypeOfFunctionTypes.ts(16,11): error TS2350: Only a void function can be ca
     
     var x3: Array<() => string>;
     var r5 = x2[1];
+             ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
     var r6 = r5();
     var r6b = new r5(); // error
               ~~~~~~~~

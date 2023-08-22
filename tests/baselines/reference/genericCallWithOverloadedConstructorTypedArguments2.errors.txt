@@ -1,8 +1,13 @@
+genericCallWithOverloadedConstructorTypedArguments2.ts(15,19): error TS2454: Variable 'b' is used before being assigned.
+genericCallWithOverloadedConstructorTypedArguments2.ts(24,19): error TS2454: Variable 'a' is used before being assigned.
 genericCallWithOverloadedConstructorTypedArguments2.ts(31,20): error TS2345: Argument of type 'new <T>(x: T, y: T) => string' is not assignable to parameter of type '{ new (x: unknown): string; new (x: unknown, y?: unknown): string; }'.
   Target signature provides too few arguments. Expected 2 or more, but got 1.
+genericCallWithOverloadedConstructorTypedArguments2.ts(31,20): error TS2454: Variable 'b' is used before being assigned.
+genericCallWithOverloadedConstructorTypedArguments2.ts(37,23): error TS2454: Variable 'a' is used before being assigned.
+genericCallWithOverloadedConstructorTypedArguments2.ts(39,23): error TS2454: Variable 'c' is used before being assigned.
 
 
-==== genericCallWithOverloadedConstructorTypedArguments2.ts (1 errors) ====
+==== genericCallWithOverloadedConstructorTypedArguments2.ts (6 errors) ====
     // Function typed arguments with multiple signatures must be passed an implementation that matches all of them
     // Inferences are made quadratic-pairwise to and from these overload sets
     
@@ -18,6 +23,8 @@ genericCallWithOverloadedConstructorTypedArguments2.ts(31,20): error TS2345: Arg
     
         var b: { new <T, U>(x: T): U }
         var r3 = foo4(b); // ok
+                      ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     }
     
     module GenericParameter {
@@ -27,6 +34,8 @@ genericCallWithOverloadedConstructorTypedArguments2.ts(31,20): error TS2345: Arg
     
         var a: { new <T>(x: T): T };
         var r6 = foo5(a); // ok
+                      ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     
         function foo6<T>(cb: { new(x: T): string; new(x: T, y?: T): string }) {
             return cb;
@@ -37,12 +46,18 @@ genericCallWithOverloadedConstructorTypedArguments2.ts(31,20): error TS2345: Arg
                        ~
 !!! error TS2345: Argument of type 'new <T>(x: T, y: T) => string' is not assignable to parameter of type '{ new (x: unknown): string; new (x: unknown, y?: unknown): string; }'.
 !!! error TS2345:   Target signature provides too few arguments. Expected 2 or more, but got 1.
+                       ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     
         function foo7<T>(x:T, cb: { new(x: T): string; new(x: T, y?: T): string }) {
             return cb;
         }
     
         var r13 = foo7(1, a); // ok
+                          ~
+!!! error TS2454: Variable 'a' is used before being assigned.
         var c: { new<T>(x: T): number; new<T>(x: number): T; }
         var r14 = foo7(1, c); // ok
+                          ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     }

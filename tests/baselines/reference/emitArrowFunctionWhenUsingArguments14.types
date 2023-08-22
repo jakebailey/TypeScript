@@ -2,7 +2,7 @@
 
 === emitArrowFunctionWhenUsingArguments14.ts ===
 function f() {
->f : () => () => IArguments
+>f : () => (() => IArguments) | undefined
 
     if (Math.random()) {
 >Math.random() : number

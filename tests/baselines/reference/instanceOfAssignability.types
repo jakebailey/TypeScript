@@ -6,7 +6,7 @@ interface Base {
 >foo : string | number
 
 	optional?: number;
->optional : number
+>optional : number | undefined
 }
 
 // Derived1 is assignable to, but not a subtype of, Base

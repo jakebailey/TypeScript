@@ -8,12 +8,12 @@ declare module WinJS {
 >Promise : Promise<T>
 
         then<U>(success?: (value: T) => Promise<U>, error?: (error: any) => Promise<U>, progress?: (progress: any) => void): Promise<U>;
->then : <U>(success?: (value: T) => Promise<U>, error?: (error: any) => Promise<U>, progress?: (progress: any) => void) => Promise<U>
->success : (value: T) => Promise<U>
+>then : <U>(success?: ((value: T) => Promise<U>) | undefined, error?: ((error: any) => Promise<U>) | undefined, progress?: ((progress: any) => void) | undefined) => Promise<U>
+>success : ((value: T) => Promise<U>) | undefined
 >value : T
->error : (error: any) => Promise<U>
+>error : ((error: any) => Promise<U>) | undefined
 >error : any
->progress : (progress: any) => void
+>progress : ((progress: any) => void) | undefined
 >progress : any
     }
 }

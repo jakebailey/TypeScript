@@ -2,8 +2,8 @@
 
 === trailingCommasInBindingPatterns.ts ===
 const [...a,] = [];
->a : any[]
->[] : undefined[]
+>a : never[]
+>[] : never[]
 
 const {...b,} = {};
 >b : {}
@@ -14,12 +14,12 @@ let c, d;
 >d : any
 
 ([...c,] = []);
->([...c,] = []) : undefined[]
->[...c,] = [] : undefined[]
+>([...c,] = []) : never[]
+>[...c,] = [] : never[]
 >[...c,] : any[]
 >...c : any
 >c : any
->[] : undefined[]
+>[] : never[]
 
 ({...d,} = {});
 >({...d,} = {}) : {}
@@ -32,7 +32,7 @@ let c, d;
 const [e,] = <any>[];
 >e : any
 ><any>[] : any
->[] : undefined[]
+>[] : never[]
 
 const {f,} = <any>{};
 >f : any
@@ -49,7 +49,7 @@ let g, h;
 >[g,] : [any]
 >g : any
 ><any>[] : any
->[] : undefined[]
+>[] : never[]
 
 ({h,} = <any>{});
 >({h,} = <any>{}) : any

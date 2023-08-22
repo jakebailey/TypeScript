@@ -1,0 +1,11 @@
+nestedLoopWithOnlyInnerLetCaptured.ts(4,23): error TS2339: Property 'someArray' does not exist on type 'never'.
+
+
+==== nestedLoopWithOnlyInnerLetCaptured.ts (1 errors) ====
+    declare let doSomething;
+    
+    for (let a1 of [])
+        for (let a2 of a1.someArray)
+                          ~~~~~~~~~
+!!! error TS2339: Property 'someArray' does not exist on type 'never'.
+            doSomething(() => a2);

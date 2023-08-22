@@ -1,9 +1,16 @@
+for-inStatements.ts(23,22): error TS2454: Variable 'x' is used before being assigned.
+for-inStatements.ts(23,29): error TS2454: Variable 'x' is used before being assigned.
+for-inStatements.ts(31,23): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
 for-inStatements.ts(33,18): error TS2403: Subsequent variable declarations must have the same type.  Variable 'x' must be of type 'string', but here has type 'Extract<keyof this, string>'.
+for-inStatements.ts(40,23): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
+for-inStatements.ts(48,23): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
 for-inStatements.ts(50,18): error TS2403: Subsequent variable declarations must have the same type.  Variable 'x' must be of type 'string', but here has type 'Extract<keyof this, string>'.
+for-inStatements.ts(53,23): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
+for-inStatements.ts(64,15): error TS2454: Variable 'i' is used before being assigned.
 for-inStatements.ts(79,15): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'Color.Blue'.
 
 
-==== for-inStatements.ts (3 errors) ====
+==== for-inStatements.ts (10 errors) ====
     var aString: string;
     for (aString in {}) { }
     
@@ -27,6 +34,10 @@ for-inStatements.ts(79,15): error TS2407: The right-hand side of a 'for...in' st
     for (var x in 42 ? c : d) { }
     for (var x in '' ? c : d) { }
     for (var x in 42 ? d[x] : c[x]) { }
+                         ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+                                ~
+!!! error TS2454: Variable 'x' is used before being assigned.
     for (var x in c[d]) { }
     
     for (var x in (<T>(x: T) => x)) { }
@@ -35,6 +46,8 @@ for-inStatements.ts(79,15): error TS2407: The right-hand side of a 'for...in' st
     class A {
         biz() {
             for (var x in this.biz()) { }
+                          ~~~~~~~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
             for (var x in this.biz) { }
             for (var x in this) { }
                      ~
@@ -47,6 +60,8 @@ for-inStatements.ts(79,15): error TS2407: The right-hand side of a 'for...in' st
             for (var x in this) { }
             for (var x in this.baz) { }
             for (var x in this.baz()) { }
+                          ~~~~~~~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
     
             return null;
         }
@@ -55,6 +70,8 @@ for-inStatements.ts(79,15): error TS2407: The right-hand side of a 'for...in' st
     class B extends A {
         boz() {
             for (var x in this.biz()) { }
+                          ~~~~~~~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
             for (var x in this.biz) { }
             for (var x in this) { }
                      ~
@@ -63,6 +80,8 @@ for-inStatements.ts(79,15): error TS2407: The right-hand side of a 'for...in' st
     
             for (var x in super.biz) { }
             for (var x in super.biz()) { }
+                          ~~~~~~~~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
             return null;
         }
     }
@@ -74,6 +93,8 @@ for-inStatements.ts(79,15): error TS2407: The right-hand side of a 'for...in' st
     var i: I;
     
     for (var x in i[42]) { } 
+                  ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     
     
     module M {

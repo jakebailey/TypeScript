@@ -1,4 +1,12 @@
 objectTypeHidingMembersOfExtendedObject.ts(10,5): error TS2411: Property 'data' of type 'A' is not assignable to 'string' index type 'Object'.
+objectTypeHidingMembersOfExtendedObject.ts(21,16): error TS2454: Variable 'c' is used before being assigned.
+objectTypeHidingMembersOfExtendedObject.ts(22,14): error TS2454: Variable 'c' is used before being assigned.
+objectTypeHidingMembersOfExtendedObject.ts(24,11): error TS2454: Variable 'c' is used before being assigned.
+objectTypeHidingMembersOfExtendedObject.ts(33,16): error TS2454: Variable 'i' is used before being assigned.
+objectTypeHidingMembersOfExtendedObject.ts(34,14): error TS2454: Variable 'i' is used before being assigned.
+objectTypeHidingMembersOfExtendedObject.ts(36,11): error TS2454: Variable 'i' is used before being assigned.
+objectTypeHidingMembersOfExtendedObject.ts(46,11): error TS2454: Variable 'i' is used before being assigned.
+objectTypeHidingMembersOfExtendedObject.ts(54,16): error TS2454: Variable 'b' is used before being assigned.
 lib.es5.d.ts(--,--): error TS2411: Property 'constructor' of type 'Function' is not assignable to 'string' index type 'Object'.
 lib.es5.d.ts(--,--): error TS2411: Property 'toString' of type '() => string' is not assignable to 'string' index type 'Object'.
 lib.es5.d.ts(--,--): error TS2411: Property 'toLocaleString' of type '() => string' is not assignable to 'string' index type 'Object'.
@@ -8,7 +16,7 @@ lib.es5.d.ts(--,--): error TS2411: Property 'isPrototypeOf' of type '(v: Object)
 lib.es5.d.ts(--,--): error TS2411: Property 'propertyIsEnumerable' of type '(v: PropertyKey) => boolean' is not assignable to 'string' index type 'Object'.
 
 
-==== objectTypeHidingMembersOfExtendedObject.ts (1 errors) ====
+==== objectTypeHidingMembersOfExtendedObject.ts (9 errors) ====
     class A {
         foo: string;
     }
@@ -32,9 +40,15 @@ lib.es5.d.ts(--,--): error TS2411: Property 'propertyIsEnumerable' of type '(v: 
     
     var c: C;
     var r1: void = c.valueOf();
+                   ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r1b: B = c.data;
+                 ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r1c = r1b['hm']; // should be 'Object'
     var r1d = c['hm']; // should be 'any'
+              ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     
     interface I {
         valueOf(): void;
@@ -44,9 +58,15 @@ lib.es5.d.ts(--,--): error TS2411: Property 'propertyIsEnumerable' of type '(v: 
     
     var i: I;
     var r2: void = i.valueOf();
+                   ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r2b: B = i.data;
+                 ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     var r2c = r2b['hm']; // should be 'Object'
     var r2d = i['hm']; // should be 'any'
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     
     var a = {
         valueOf: () => { },
@@ -57,6 +77,8 @@ lib.es5.d.ts(--,--): error TS2411: Property 'propertyIsEnumerable' of type '(v: 
     var r3b: B = a.data;
     var r3c = r3b['hm']; // should be 'Object'
     var r3d = i['hm'];
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     
     var b: {
         valueOf(): void;
@@ -65,3 +87,5 @@ lib.es5.d.ts(--,--): error TS2411: Property 'propertyIsEnumerable' of type '(v: 
     }
     
     var r4: void = b.valueOf();
+                   ~
+!!! error TS2454: Variable 'b' is used before being assigned.

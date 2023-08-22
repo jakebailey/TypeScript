@@ -27,11 +27,11 @@ function f1(foo: Foo1) {
 }
 
 type Foo2 = { kind?: 'a', a: number } | { kind?: 'b' } | { kind?: never };
->Foo2 : { kind?: 'a'; a: number; } | { kind?: 'b'; } | { kind?: never; }
->kind : "a"
+>Foo2 : { kind?: "a" | undefined; a: number; } | { kind?: "b" | undefined; } | { kind?: undefined; }
+>kind : "a" | undefined
 >a : number
->kind : "b"
->kind : never
+>kind : "b" | undefined
+>kind : undefined
 
 function f2(foo: Foo2) {
 >f2 : (foo: Foo2) => void
@@ -39,14 +39,14 @@ function f2(foo: Foo2) {
 
     if (foo.kind === 'a') {
 >foo.kind === 'a' : boolean
->foo.kind : "a" | "b"
+>foo.kind : "a" | "b" | undefined
 >foo : Foo2
->kind : "a" | "b"
+>kind : "a" | "b" | undefined
 >'a' : "a"
 
         foo.a;
 >foo.a : number
->foo : { kind?: "a"; a: number; }
+>foo : { kind?: "a" | undefined; a: number; }
 >a : number
     }
 }
@@ -61,10 +61,10 @@ export interface GatewayPayloadStructure<O extends GatewayOpcode, T extends keyo
 >d : D
 
     t?: T
->t : T
+>t : T | undefined
 
     s?: number
->s : number
+>s : number | undefined
 }
 
 export type GatewayPayload = {
@@ -163,9 +163,9 @@ export async function adaptSession(input: GatewayPayload) {
 
     if (input.t === 'MESSAGE_CREATE') {
 >input.t === 'MESSAGE_CREATE' : boolean
->input.t : "MESSAGE_CREATE" | "MESSAGE_UPDATE" | "MESSAGE_DELETE"
+>input.t : "MESSAGE_CREATE" | "MESSAGE_UPDATE" | "MESSAGE_DELETE" | undefined
 >input : GatewayPayload
->t : "MESSAGE_CREATE" | "MESSAGE_UPDATE" | "MESSAGE_DELETE"
+>t : "MESSAGE_CREATE" | "MESSAGE_UPDATE" | "MESSAGE_DELETE" | undefined
 >'MESSAGE_CREATE' : "MESSAGE_CREATE"
 
         assertMessage(input.d)

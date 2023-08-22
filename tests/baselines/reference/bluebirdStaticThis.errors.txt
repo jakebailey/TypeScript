@@ -5,9 +5,11 @@ bluebirdStaticThis.ts(57,109): error TS2694: Namespace '"bluebirdStaticThis".Pro
 bluebirdStaticThis.ts(58,91): error TS2694: Namespace '"bluebirdStaticThis".Promise' has no exported member 'Inspection'.
 bluebirdStaticThis.ts(59,91): error TS2694: Namespace '"bluebirdStaticThis".Promise' has no exported member 'Inspection'.
 bluebirdStaticThis.ts(60,73): error TS2694: Namespace '"bluebirdStaticThis".Promise' has no exported member 'Inspection'.
+bluebirdStaticThis.ts(135,4): error TS2454: Variable 'arr' is used before being assigned.
+bluebirdStaticThis.ts(138,4): error TS2454: Variable 'arr' is used before being assigned.
 
 
-==== bluebirdStaticThis.ts (6 errors) ====
+==== bluebirdStaticThis.ts (8 errors) ====
     // This version is reduced from the full d.ts by removing almost all the tests
     // and all the comments.
     // Then it adds explicit `this` arguments to the static members.
@@ -157,6 +159,10 @@ bluebirdStaticThis.ts(60,73): error TS2694: Namespace '"bluebirdStaticThis".Prom
     fooProm = Promise.try(Promise, () => {
     	return foo;
     }, arr);
+       ~~~
+!!! error TS2454: Variable 'arr' is used before being assigned.
     fooProm = Promise.try(Promise, () => {
     	return foo;
     }, arr, x);
+       ~~~
+!!! error TS2454: Variable 'arr' is used before being assigned.

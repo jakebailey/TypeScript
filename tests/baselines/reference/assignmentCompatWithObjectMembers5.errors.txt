@@ -1,8 +1,9 @@
 assignmentCompatWithObjectMembers5.ts(13,1): error TS2741: Property 'foo' is missing in type 'I' but required in type 'C'.
+assignmentCompatWithObjectMembers5.ts(13,5): error TS2454: Variable 'i' is used before being assigned.
 assignmentCompatWithObjectMembers5.ts(14,1): error TS2741: Property 'fooo' is missing in type 'C' but required in type 'I'.
 
 
-==== assignmentCompatWithObjectMembers5.ts (2 errors) ====
+==== assignmentCompatWithObjectMembers5.ts (3 errors) ====
     class C {
         foo: string;
     }
@@ -19,6 +20,8 @@ assignmentCompatWithObjectMembers5.ts(14,1): error TS2741: Property 'fooo' is mi
     ~
 !!! error TS2741: Property 'foo' is missing in type 'I' but required in type 'C'.
 !!! related TS2728 assignmentCompatWithObjectMembers5.ts:2:5: 'foo' is declared here.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     i = c; // error
     ~
 !!! error TS2741: Property 'fooo' is missing in type 'C' but required in type 'I'.

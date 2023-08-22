@@ -1,0 +1,26 @@
+objectRestForOf.ts(2,30): error TS2454: Variable 'array' is used before being assigned.
+objectRestForOf.ts(7,32): error TS2454: Variable 'array' is used before being assigned.
+objectRestForOf.ts(10,22): error TS2454: Variable 'array' is used before being assigned.
+
+
+==== objectRestForOf.ts (3 errors) ====
+    let array: { x: number, y: string }[];
+    for (let { x, ...restOf } of array) {
+                                 ~~~~~
+!!! error TS2454: Variable 'array' is used before being assigned.
+        [x, restOf];
+    }
+    let xx: number;
+    let rrestOff: { y: string };
+    for ({ x: xx, ...rrestOff } of array ) {
+                                   ~~~~~
+!!! error TS2454: Variable 'array' is used before being assigned.
+        [xx, rrestOff];
+    }
+    for (const norest of array.map(a => ({ ...a, x: 'a string' }))) {
+                         ~~~~~
+!!! error TS2454: Variable 'array' is used before being assigned.
+        [norest.x, norest.y];
+        // x is now a string. who knows why.
+    }
+    

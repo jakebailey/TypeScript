@@ -16,7 +16,10 @@ implementingAnInterfaceExtendingClassWithPrivates2.ts(47,11): error TS2420: Clas
   Property 'z' is missing in type 'Bar3' but required in type 'I'.
 implementingAnInterfaceExtendingClassWithPrivates2.ts(67,11): error TS2420: Class 'Bar' incorrectly implements interface 'I'.
   Property 'y' is missing in type 'Bar' but required in type 'I'.
+implementingAnInterfaceExtendingClassWithPrivates2.ts(72,14): error TS2454: Variable 'b' is used before being assigned.
+implementingAnInterfaceExtendingClassWithPrivates2.ts(73,14): error TS2454: Variable 'b' is used before being assigned.
 implementingAnInterfaceExtendingClassWithPrivates2.ts(73,16): error TS2341: Property 'x' is private and only accessible within class 'Foo'.
+implementingAnInterfaceExtendingClassWithPrivates2.ts(74,14): error TS2454: Variable 'b' is used before being assigned.
 implementingAnInterfaceExtendingClassWithPrivates2.ts(74,16): error TS2339: Property 'y' does not exist on type 'Bar'.
 implementingAnInterfaceExtendingClassWithPrivates2.ts(76,11): error TS2415: Class 'Bar2' incorrectly extends base class 'Foo'.
   Property 'x' is private in type 'Foo' but not in type 'Bar2'.
@@ -28,7 +31,7 @@ implementingAnInterfaceExtendingClassWithPrivates2.ts(81,11): error TS2420: Clas
   Property 'y' is missing in type 'Bar3' but required in type 'I'.
 
 
-==== implementingAnInterfaceExtendingClassWithPrivates2.ts (15 errors) ====
+==== implementingAnInterfaceExtendingClassWithPrivates2.ts (18 errors) ====
     class Foo {
         private x: string;
     }
@@ -131,10 +134,16 @@ implementingAnInterfaceExtendingClassWithPrivates2.ts(81,11): error TS2420: Clas
     
         var b: Bar;
         var r1 = b.z;
+                 ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         var r2 = b.x; // error
+                 ~
+!!! error TS2454: Variable 'b' is used before being assigned.
                    ~
 !!! error TS2341: Property 'x' is private and only accessible within class 'Foo'.
         var r3 = b.y; // error
+                 ~
+!!! error TS2454: Variable 'b' is used before being assigned.
                    ~
 !!! error TS2339: Property 'y' does not exist on type 'Bar'.
     

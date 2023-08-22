@@ -5,7 +5,7 @@ class C {
 >C : C
 
     [Symbol.iterator](x: string): string;
->[Symbol.iterator] : { (x: string): string; (x: any): any; }
+>[Symbol.iterator] : { (x: string): string; (x: any): undefined; }
 >Symbol.iterator : unique symbol
 >Symbol : SymbolConstructor
 >iterator : unique symbol
@@ -19,7 +19,7 @@ class C {
 >x : number
 
     [Symbol.iterator](x: any) {
->[Symbol.iterator] : { (x: string): string; (x: any): any; }
+>[Symbol.iterator] : { (x: string): string; (x: any): undefined; }
 >Symbol.iterator : unique symbol
 >Symbol : SymbolConstructor
 >iterator : unique symbol

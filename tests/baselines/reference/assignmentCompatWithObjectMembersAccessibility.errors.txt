@@ -1,11 +1,21 @@
+assignmentCompatWithObjectMembersAccessibility.ts(28,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(29,9): error TS2454: Variable 'i' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(30,9): error TS2454: Variable 'd' is used before being assigned.
 assignmentCompatWithObjectMembersAccessibility.ts(31,5): error TS2322: Type 'E' is not assignable to type '{ foo: string; }'.
   Property 'foo' is private in type 'E' but not in type '{ foo: string; }'.
+assignmentCompatWithObjectMembersAccessibility.ts(31,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(34,9): error TS2454: Variable 'i' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(35,9): error TS2454: Variable 'd' is used before being assigned.
 assignmentCompatWithObjectMembersAccessibility.ts(36,5): error TS2322: Type 'E' is not assignable to type 'Base'.
   Property 'foo' is private in type 'E' but not in type 'Base'.
+assignmentCompatWithObjectMembersAccessibility.ts(36,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(40,9): error TS2454: Variable 'd' is used before being assigned.
 assignmentCompatWithObjectMembersAccessibility.ts(41,5): error TS2322: Type 'E' is not assignable to type 'I'.
   Property 'foo' is private in type 'E' but not in type 'I'.
+assignmentCompatWithObjectMembersAccessibility.ts(41,9): error TS2454: Variable 'e' is used before being assigned.
 assignmentCompatWithObjectMembersAccessibility.ts(46,5): error TS2322: Type 'E' is not assignable to type 'D'.
   Property 'foo' is private in type 'E' but not in type 'D'.
+assignmentCompatWithObjectMembersAccessibility.ts(46,9): error TS2454: Variable 'e' is used before being assigned.
 assignmentCompatWithObjectMembersAccessibility.ts(48,5): error TS2322: Type '{ foo: string; }' is not assignable to type 'E'.
   Property 'foo' is private in type 'E' but not in type '{ foo: string; }'.
 assignmentCompatWithObjectMembersAccessibility.ts(49,5): error TS2322: Type 'Base' is not assignable to type 'E'.
@@ -16,23 +26,33 @@ assignmentCompatWithObjectMembersAccessibility.ts(51,5): error TS2322: Type 'D' 
   Property 'foo' is private in type 'E' but not in type 'D'.
 assignmentCompatWithObjectMembersAccessibility.ts(81,5): error TS2322: Type 'Base' is not assignable to type '{ foo: string; }'.
   Property 'foo' is private in type 'Base' but not in type '{ foo: string; }'.
+assignmentCompatWithObjectMembersAccessibility.ts(81,9): error TS2454: Variable 'b' is used before being assigned.
 assignmentCompatWithObjectMembersAccessibility.ts(82,5): error TS2322: Type 'I' is not assignable to type '{ foo: string; }'.
+assignmentCompatWithObjectMembersAccessibility.ts(82,9): error TS2454: Variable 'i' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(83,9): error TS2454: Variable 'd' is used before being assigned.
 assignmentCompatWithObjectMembersAccessibility.ts(84,5): error TS2322: Type 'E' is not assignable to type '{ foo: string; }'.
   Property 'foo' is private in type 'E' but not in type '{ foo: string; }'.
+assignmentCompatWithObjectMembersAccessibility.ts(84,9): error TS2454: Variable 'e' is used before being assigned.
 assignmentCompatWithObjectMembersAccessibility.ts(86,5): error TS2322: Type '{ foo: string; }' is not assignable to type 'Base'.
   Property 'foo' is private in type 'Base' but not in type '{ foo: string; }'.
+assignmentCompatWithObjectMembersAccessibility.ts(87,9): error TS2454: Variable 'i' is used before being assigned.
 assignmentCompatWithObjectMembersAccessibility.ts(88,5): error TS2322: Type 'D' is not assignable to type 'Base'.
   Property 'foo' is private in type 'Base' but not in type 'D'.
+assignmentCompatWithObjectMembersAccessibility.ts(88,9): error TS2454: Variable 'd' is used before being assigned.
 assignmentCompatWithObjectMembersAccessibility.ts(89,5): error TS2322: Type 'E' is not assignable to type 'Base'.
   Types have separate declarations of a private property 'foo'.
+assignmentCompatWithObjectMembersAccessibility.ts(89,9): error TS2454: Variable 'e' is used before being assigned.
 assignmentCompatWithObjectMembersAccessibility.ts(92,5): error TS2322: Type '{ foo: string; }' is not assignable to type 'I'.
 assignmentCompatWithObjectMembersAccessibility.ts(94,5): error TS2322: Type 'D' is not assignable to type 'I'.
+assignmentCompatWithObjectMembersAccessibility.ts(94,9): error TS2454: Variable 'd' is used before being assigned.
 assignmentCompatWithObjectMembersAccessibility.ts(95,5): error TS2322: Type 'E' is not assignable to type 'I'.
+assignmentCompatWithObjectMembersAccessibility.ts(95,9): error TS2454: Variable 'e' is used before being assigned.
 assignmentCompatWithObjectMembersAccessibility.ts(99,5): error TS2322: Type 'Base' is not assignable to type 'D'.
   Property 'foo' is private in type 'Base' but not in type 'D'.
 assignmentCompatWithObjectMembersAccessibility.ts(100,5): error TS2322: Type 'I' is not assignable to type 'D'.
 assignmentCompatWithObjectMembersAccessibility.ts(101,5): error TS2322: Type 'E' is not assignable to type 'D'.
   Property 'foo' is private in type 'E' but not in type 'D'.
+assignmentCompatWithObjectMembersAccessibility.ts(101,9): error TS2454: Variable 'e' is used before being assigned.
 assignmentCompatWithObjectMembersAccessibility.ts(103,5): error TS2322: Type '{ foo: string; }' is not assignable to type 'E'.
   Property 'foo' is private in type 'E' but not in type '{ foo: string; }'.
 assignmentCompatWithObjectMembersAccessibility.ts(104,5): error TS2322: Type 'Base' is not assignable to type 'E'.
@@ -42,7 +62,7 @@ assignmentCompatWithObjectMembersAccessibility.ts(106,5): error TS2322: Type 'D'
   Property 'foo' is private in type 'E' but not in type 'D'.
 
 
-==== assignmentCompatWithObjectMembersAccessibility.ts (24 errors) ====
+==== assignmentCompatWithObjectMembersAccessibility.ts (44 errors) ====
     // members N and M of types S and T have the same name, same accessibility, same optionality, and N is assignable M
     
     module TargetIsPublic {
@@ -71,28 +91,46 @@ assignmentCompatWithObjectMembersAccessibility.ts(106,5): error TS2322: Type 'D'
         var e: E;
     
         a = b;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a = i;
+            ~
+!!! error TS2454: Variable 'i' is used before being assigned.
         a = d;
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
         a = e; // error
         ~
 !!! error TS2322: Type 'E' is not assignable to type '{ foo: string; }'.
 !!! error TS2322:   Property 'foo' is private in type 'E' but not in type '{ foo: string; }'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
     
         b = a;
         b = i;
+            ~
+!!! error TS2454: Variable 'i' is used before being assigned.
         b = d;
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
         b = e; // error
         ~
 !!! error TS2322: Type 'E' is not assignable to type 'Base'.
 !!! error TS2322:   Property 'foo' is private in type 'E' but not in type 'Base'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
     
         i = a;
         i = b;
         i = d;
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
         i = e; // error
         ~
 !!! error TS2322: Type 'E' is not assignable to type 'I'.
 !!! error TS2322:   Property 'foo' is private in type 'E' but not in type 'I'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
     
         d = a;
         d = b;
@@ -101,6 +139,8 @@ assignmentCompatWithObjectMembersAccessibility.ts(106,5): error TS2322: Type 'D'
         ~
 !!! error TS2322: Type 'E' is not assignable to type 'D'.
 !!! error TS2322:   Property 'foo' is private in type 'E' but not in type 'D'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
     
         e = a; // errror
         ~
@@ -151,28 +191,42 @@ assignmentCompatWithObjectMembersAccessibility.ts(106,5): error TS2322: Type 'D'
         ~
 !!! error TS2322: Type 'Base' is not assignable to type '{ foo: string; }'.
 !!! error TS2322:   Property 'foo' is private in type 'Base' but not in type '{ foo: string; }'.
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         a = i; // error
         ~
 !!! error TS2322: Type 'I' is not assignable to type '{ foo: string; }'.
+            ~
+!!! error TS2454: Variable 'i' is used before being assigned.
         a = d;
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
         a = e; // error
         ~
 !!! error TS2322: Type 'E' is not assignable to type '{ foo: string; }'.
 !!! error TS2322:   Property 'foo' is private in type 'E' but not in type '{ foo: string; }'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
     
         b = a; // error
         ~
 !!! error TS2322: Type '{ foo: string; }' is not assignable to type 'Base'.
 !!! error TS2322:   Property 'foo' is private in type 'Base' but not in type '{ foo: string; }'.
         b = i;
+            ~
+!!! error TS2454: Variable 'i' is used before being assigned.
         b = d; // error
         ~
 !!! error TS2322: Type 'D' is not assignable to type 'Base'.
 !!! error TS2322:   Property 'foo' is private in type 'Base' but not in type 'D'.
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
         b = e; // error
         ~
 !!! error TS2322: Type 'E' is not assignable to type 'Base'.
 !!! error TS2322:   Types have separate declarations of a private property 'foo'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
         b = b;
         
         i = a; // error
@@ -182,9 +236,13 @@ assignmentCompatWithObjectMembersAccessibility.ts(106,5): error TS2322: Type 'D'
         i = d; // error
         ~
 !!! error TS2322: Type 'D' is not assignable to type 'I'.
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
         i = e; // error
         ~
 !!! error TS2322: Type 'E' is not assignable to type 'I'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
         i = i;
     
         d = a;
@@ -199,6 +257,8 @@ assignmentCompatWithObjectMembersAccessibility.ts(106,5): error TS2322: Type 'D'
         ~
 !!! error TS2322: Type 'E' is not assignable to type 'D'.
 !!! error TS2322:   Property 'foo' is private in type 'E' but not in type 'D'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
     
         e = a; // errror
         ~

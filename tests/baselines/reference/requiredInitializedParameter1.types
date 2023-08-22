@@ -2,7 +2,7 @@
 
 === requiredInitializedParameter1.ts ===
 function f1(a, b = 0, c) { }
->f1 : (a: any, b: number, c: any) => void
+>f1 : (a: any, b: number | undefined, c: any) => void
 >a : any
 >b : number
 >0 : 0
@@ -32,7 +32,7 @@ function f4(a, b = 0, ...c) { }
 
 f1(0, 1, 2);
 >f1(0, 1, 2) : void
->f1 : (a: any, b: number, c: any) => void
+>f1 : (a: any, b: number | undefined, c: any) => void
 >0 : 0
 >1 : 1
 >2 : 2
@@ -60,7 +60,7 @@ f4(0, 1, 2);
 
 f1(0, 1);
 >f1(0, 1) : void
->f1 : (a: any, b: number, c: any) => void
+>f1 : (a: any, b: number | undefined, c: any) => void
 >0 : 0
 >1 : 1
 
@@ -84,7 +84,7 @@ f4(0, 1);
 
 f1(0);
 >f1(0) : void
->f1 : (a: any, b: number, c: any) => void
+>f1 : (a: any, b: number | undefined, c: any) => void
 >0 : 0
 
 f2(0);

@@ -1,3 +1,5 @@
+intersectionTypeAssignment.ts(6,5): error TS2454: Variable 'x' is used before being assigned.
+intersectionTypeAssignment.ts(7,5): error TS2454: Variable 'y' is used before being assigned.
 intersectionTypeAssignment.ts(8,1): error TS2741: Property 'b' is missing in type '{ a: string; }' but required in type '{ a: string; b: string; }'.
 intersectionTypeAssignment.ts(9,1): error TS2322: Type '{ a: string; }' is not assignable to type '{ a: string; } & { b: string; }'.
   Property 'b' is missing in type '{ a: string; }' but required in type '{ b: string; }'.
@@ -6,14 +8,18 @@ intersectionTypeAssignment.ts(14,1): error TS2322: Type '{ b: string; }' is not 
   Property 'a' is missing in type '{ b: string; }' but required in type '{ a: string; }'.
 
 
-==== intersectionTypeAssignment.ts (4 errors) ====
+==== intersectionTypeAssignment.ts (6 errors) ====
     var a: { a: string };
     var b: { b: string };
     var x: { a: string, b: string };
     var y: { a: string } & { b: string };
     
     a = x;
+        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
     a = y;
+        ~
+!!! error TS2454: Variable 'y' is used before being assigned.
     x = a;  // Error
     ~
 !!! error TS2741: Property 'b' is missing in type '{ a: string; }' but required in type '{ a: string; b: string; }'.

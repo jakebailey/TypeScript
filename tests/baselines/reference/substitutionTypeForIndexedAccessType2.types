@@ -3,7 +3,7 @@
 === substitutionTypeForIndexedAccessType2.ts ===
 interface Foo {
   foo: string|undefined
->foo : string
+>foo : string | undefined
 }
 
 type Str<T extends string> = T

@@ -1,0 +1,13 @@
+generics3.ts(7,5): error TS2454: Variable 'b' is used before being assigned.
+
+
+==== generics3.ts (1 errors) ====
+    class C<T> { private x: T; }
+    interface X { f(): string; }
+    interface Y { f(): string; }
+    var a: C<X>;
+    var b: C<Y>;
+    
+    a = b; // Ok - should be identical
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.

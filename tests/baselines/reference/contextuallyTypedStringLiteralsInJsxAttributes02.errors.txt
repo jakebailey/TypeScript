@@ -26,13 +26,15 @@ file.tsx(30,12): error TS2769: No overload matches this call.
   Overload 2 of 2, '(linkProps: LinkProps): Element', gave the following error.
     Type '{ goTo: "home"; extra: true; }' is not assignable to type 'IntrinsicAttributes & LinkProps'.
       Property 'extra' does not exist on type 'IntrinsicAttributes & LinkProps'.
+file.tsx(32,69): error TS2322: Type 'undefined' is not assignable to type 'Element'.
 file.tsx(33,65): error TS2322: Type '{ extra: true; onClick: (k: "left" | "right") => void; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
   Property 'extra' does not exist on type 'IntrinsicAttributes & ButtonProps'.
+file.tsx(35,66): error TS2322: Type 'undefined' is not assignable to type 'Element'.
 file.tsx(36,44): error TS2322: Type '{ extra: true; goTo: "home"; }' is not assignable to type 'IntrinsicAttributes & LinkProps'.
   Property 'extra' does not exist on type 'IntrinsicAttributes & LinkProps'.
 
 
-==== file.tsx (6 errors) ====
+==== file.tsx (8 errors) ====
     import React = require('react')
     
     export interface ClickableProps {
@@ -97,12 +99,16 @@ file.tsx(36,44): error TS2322: Type '{ extra: true; goTo: "home"; }' is not assi
 !!! error TS2769:       Property 'extra' does not exist on type 'IntrinsicAttributes & LinkProps'.
     
     export function NoOverload(buttonProps: ButtonProps): JSX.Element { return undefined }
+                                                                        ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'Element'.
     const c1 = <NoOverload  {...{onClick: (k) => {console.log(k)}}} extra />;  // k has type any
                                                                     ~~~~~
 !!! error TS2322: Type '{ extra: true; onClick: (k: "left" | "right") => void; }' is not assignable to type 'IntrinsicAttributes & ButtonProps'.
 !!! error TS2322:   Property 'extra' does not exist on type 'IntrinsicAttributes & ButtonProps'.
     
     export function NoOverload1(linkProps: LinkProps): JSX.Element { return undefined }
+                                                                     ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'Element'.
     const d1 = <NoOverload1 {...{goTo:"home"}} extra  />;  // goTo has type "home" | "contact"
                                                ~~~~~
 !!! error TS2322: Type '{ extra: true; goTo: "home"; }' is not assignable to type 'IntrinsicAttributes & LinkProps'.

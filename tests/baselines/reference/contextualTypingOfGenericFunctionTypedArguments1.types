@@ -34,9 +34,9 @@ var f = (x: number) => { return x.toFixed() };
 >(x: number) => { return x.toFixed() } : (x: number) => string
 >x : number
 >x.toFixed() : string
->x.toFixed : (fractionDigits?: number) => string
+>x.toFixed : (fractionDigits?: number | undefined) => string
 >x : number
->toFixed : (fractionDigits?: number) => string
+>toFixed : (fractionDigits?: number | undefined) => string
 
 var r5 = _.forEach<number>(c2, f); 
 >r5 : void
@@ -57,7 +57,7 @@ var r6 = _.forEach<number>(c2, (x) => { return x.toFixed() });
 >(x) => { return x.toFixed() } : (x: number) => string
 >x : number
 >x.toFixed() : string
->x.toFixed : (fractionDigits?: number) => string
+>x.toFixed : (fractionDigits?: number | undefined) => string
 >x : number
->toFixed : (fractionDigits?: number) => string
+>toFixed : (fractionDigits?: number | undefined) => string
 

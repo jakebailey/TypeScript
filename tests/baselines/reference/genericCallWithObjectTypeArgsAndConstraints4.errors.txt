@@ -1,10 +1,18 @@
+genericCallWithObjectTypeArgsAndConstraints4.ts(18,13): error TS2454: Variable 'c' is used before being assigned.
+genericCallWithObjectTypeArgsAndConstraints4.ts(18,16): error TS2454: Variable 'd' is used before being assigned.
+genericCallWithObjectTypeArgsAndConstraints4.ts(19,14): error TS2454: Variable 'd' is used before being assigned.
 genericCallWithObjectTypeArgsAndConstraints4.ts(19,17): error TS2345: Argument of type 'C' is not assignable to parameter of type 'D'.
   Property 'y' is missing in type 'C' but required in type 'D'.
+genericCallWithObjectTypeArgsAndConstraints4.ts(19,17): error TS2454: Variable 'c' is used before being assigned.
+genericCallWithObjectTypeArgsAndConstraints4.ts(20,14): error TS2454: Variable 'c' is used before being assigned.
+genericCallWithObjectTypeArgsAndConstraints4.ts(20,31): error TS2454: Variable 'c' is used before being assigned.
+genericCallWithObjectTypeArgsAndConstraints4.ts(22,18): error TS2345: Argument of type 'null' is not assignable to parameter of type '{}'.
+genericCallWithObjectTypeArgsAndConstraints4.ts(23,20): error TS2345: Argument of type '{}' is not assignable to parameter of type 'null'.
 genericCallWithObjectTypeArgsAndConstraints4.ts(30,24): error TS2345: Argument of type 'C' is not assignable to parameter of type 'T'.
   'T' could be instantiated with an arbitrary type which could be unrelated to 'C'.
 
 
-==== genericCallWithObjectTypeArgsAndConstraints4.ts (2 errors) ====
+==== genericCallWithObjectTypeArgsAndConstraints4.ts (10 errors) ====
     // Generic call with constraints infering type parameter from object member properties
     
     class C {
@@ -23,15 +31,31 @@ genericCallWithObjectTypeArgsAndConstraints4.ts(30,24): error TS2345: Argument o
     var c: C;
     var d: D;
     var r = foo(c, d);
+                ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                   ~
+!!! error TS2454: Variable 'd' is used before being assigned.
     var r2 = foo(d, c); // error because C does not extend D
+                 ~
+!!! error TS2454: Variable 'd' is used before being assigned.
                     ~
 !!! error TS2345: Argument of type 'C' is not assignable to parameter of type 'D'.
 !!! error TS2345:   Property 'y' is missing in type 'C' but required in type 'D'.
 !!! related TS2728 genericCallWithObjectTypeArgsAndConstraints4.ts:9:5: 'y' is declared here.
+                    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r3 = foo(c, { x: '', foo: c });
+                 ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                                  ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     var r4 = foo(null, null);
     var r5 = foo({}, null);
+                     ~~~~
+!!! error TS2345: Argument of type 'null' is not assignable to parameter of type '{}'.
     var r6 = foo(null, {});
+                       ~~
+!!! error TS2345: Argument of type '{}' is not assignable to parameter of type 'null'.
     var r7 = foo({}, {});
     var r8 = foo(() => { }, () => { });
     var r9 = foo(() => { }, () => 1);

@@ -4,7 +4,7 @@
 interface Combo {
     (): number;
     p?: { [s: string]: number };
->p : { [s: string]: number; }
+>p : { [s: string]: number; } | undefined
 >s : string
 }
 const c: Combo = () => 1
@@ -15,9 +15,9 @@ const c: Combo = () => 1
 // should not be an expando object, but contextually typed by Combo.p
 c.p = {}
 >c.p = {} : {}
->c.p : { [s: string]: number; }
+>c.p : { [s: string]: number; } | undefined
 >c : Combo
->p : { [s: string]: number; }
+>p : { [s: string]: number; } | undefined
 >{} : {}
 
 

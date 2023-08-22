@@ -5,8 +5,8 @@ describe("unittests:: evaluation:: forOfEvaluation", () => {
     it("es5 over a array with no Symbol", () => {
         const result = evaluator.evaluateTypeScript(
             `
-            Symbol = undefined;
-            export var output = [];
+            Symbol = undefined as any;
+            export var output: unknown[] = [];
             export function main() {
                 let x = [1,2,3];
 
@@ -28,8 +28,8 @@ describe("unittests:: evaluation:: forOfEvaluation", () => {
     it("es5 over a string with no Symbol", () => {
         const result = evaluator.evaluateTypeScript(
             `
-            Symbol = undefined;
-            export var output = [];
+            Symbol = undefined as any;
+            export var output: unknown[] = [];
             export function main() {
                 let x = "hello";
 
@@ -53,9 +53,9 @@ describe("unittests:: evaluation:: forOfEvaluation", () => {
     it("es5 over undefined with no Symbol", () => {
         const result = evaluator.evaluateTypeScript(
             `
-        Symbol = undefined;
+        Symbol = undefined as any;
         export function main() {
-            let x = undefined;
+            let x: any = undefined;
 
             for (let value of x) {
             }
@@ -71,7 +71,7 @@ describe("unittests:: evaluation:: forOfEvaluation", () => {
         const result = evaluator.evaluateTypeScript(
             `
         export function main() {
-            let x = undefined;
+            let x: any = undefined;
 
             for (let value of x) {
             }
@@ -86,7 +86,7 @@ describe("unittests:: evaluation:: forOfEvaluation", () => {
     it("es5 over object with no Symbol.iterator with no Symbol", () => {
         const result = evaluator.evaluateTypeScript(
             `
-        Symbol = undefined;
+        Symbol = undefined as any;
         export function main() {
             let x = {} as any;
 
@@ -119,7 +119,7 @@ describe("unittests:: evaluation:: forOfEvaluation", () => {
     it("es5 over object with Symbol.iterator", () => {
         const result = evaluator.evaluateTypeScript(
             `
-            export var output = [];
+            export var output: unknown[] = [];
             export function main() {
                 let thing : any = {};
                 thing[Symbol.iterator] = () => {

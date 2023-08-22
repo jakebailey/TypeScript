@@ -6,14 +6,14 @@ interface Foo<T> {
 >x : T
 }
 function foo(a) {
->foo : (a: any) => any
+>foo : (a: any) => null
 >a : any
 
    return null;
 }
 foo((arg: Foo) => { return arg.x; });
->foo((arg: Foo) => { return arg.x; }) : any
->foo : (a: any) => any
+>foo((arg: Foo) => { return arg.x; }) : null
+>foo : (a: any) => null
 >(arg: Foo) => { return arg.x; } : (arg: any) => any
 >arg : any
 >arg.x : any

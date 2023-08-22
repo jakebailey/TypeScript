@@ -4,9 +4,10 @@ genericTypeAssertions6.ts(9,13): error TS2352: Conversion of type 'T' to type 'U
   'U' could be instantiated with an arbitrary type which could be unrelated to 'T'.
 genericTypeAssertions6.ts(19,17): error TS2352: Conversion of type 'U' to type 'T' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
   'U' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Date'.
+genericTypeAssertions6.ts(24,39): error TS2454: Variable 'b' is used before being assigned.
 
 
-==== genericTypeAssertions6.ts (3 errors) ====
+==== genericTypeAssertions6.ts (4 errors) ====
     class A<T,U> {
         constructor(x) {
             var y = <T>x;
@@ -42,3 +43,5 @@ genericTypeAssertions6.ts(19,17): error TS2352: Conversion of type 'U' to type '
     
     var b: B<Date, Date>;
     var c: A<Date, Date> = <A<Date, Date>>b;
+                                          ~
+!!! error TS2454: Variable 'b' is used before being assigned.

@@ -17,7 +17,7 @@ class B {
 >PropDeco : (target: Object, propKey: string | symbol) => void
 
     x: "foo" | null;
->x : "foo"
+>x : "foo" | null
 
     @PropDeco
 >PropDeco : (target: Object, propKey: string | symbol) => void
@@ -30,7 +30,7 @@ class B {
 >PropDeco : (target: Object, propKey: string | symbol) => void
 
     z: "foo" | undefined;
->z : "foo"
+>z : "foo" | undefined
 
     @PropDeco
 >PropDeco : (target: Object, propKey: string | symbol) => void
@@ -54,13 +54,13 @@ class B {
 >PropDeco : (target: Object, propKey: string | symbol) => void
 
     d: undefined | null;
->d : null
+>d : null | undefined
 
     @PropDeco
 >PropDeco : (target: Object, propKey: string | symbol) => void
 
     e: symbol | null;
->e : symbol
+>e : symbol | null
 
     @PropDeco
 >PropDeco : (target: Object, propKey: string | symbol) => void
@@ -72,17 +72,17 @@ class B {
 >PropDeco : (target: Object, propKey: string | symbol) => void
 
     g: A | null;
->g : A
+>g : A | null
 
     @PropDeco
 >PropDeco : (target: Object, propKey: string | symbol) => void
 
     h: null | B;
->h : B
+>h : B | null
 
     @PropDeco
 >PropDeco : (target: Object, propKey: string | symbol) => void
 
     j: null | symbol;
->j : symbol
+>j : symbol | null
 }

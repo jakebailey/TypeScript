@@ -183,9 +183,9 @@ M.x;
 
 M.x.toString();
 >M.x.toString() : string
->M.x.toString : (radix?: number) => string
+>M.x.toString : (radix?: number | undefined) => string
 >M.x : 0
 >M : typeof M
 >x : 0
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
 

@@ -1,11 +1,18 @@
+inOperatorWithValidOperands.ts(11,11): error TS2454: Variable 'a1' is used before being assigned.
+inOperatorWithValidOperands.ts(12,11): error TS2454: Variable 'a2' is used before being assigned.
+inOperatorWithValidOperands.ts(15,11): error TS2454: Variable 'a3' is used before being assigned.
+inOperatorWithValidOperands.ts(22,16): error TS2454: Variable 'b1' is used before being assigned.
 inOperatorWithValidOperands.ts(26,20): error TS2322: Type 'T' is not assignable to type 'object'.
 inOperatorWithValidOperands.ts(30,20): error TS2322: Type 'T | U' is not assignable to type 'object'.
   Type 'T' is not assignable to type 'object'.
 inOperatorWithValidOperands.ts(34,20): error TS2322: Type 'object | T' is not assignable to type 'object'.
   Type 'T' is not assignable to type 'object'.
+inOperatorWithValidOperands.ts(44,16): error TS2454: Variable 'c1' is used before being assigned.
+inOperatorWithValidOperands.ts(45,17): error TS2454: Variable 'c2' is used before being assigned.
+inOperatorWithValidOperands.ts(45,23): error TS2454: Variable 'c3' is used before being assigned.
 
 
-==== inOperatorWithValidOperands.ts (3 errors) ====
+==== inOperatorWithValidOperands.ts (10 errors) ====
     var x: any;
     
     // valid left operands
@@ -17,10 +24,16 @@ inOperatorWithValidOperands.ts(34,20): error TS2322: Type 'object | T' is not as
     
     var ra1 = x in x;
     var ra2 = a1 in x;
+              ~~
+!!! error TS2454: Variable 'a1' is used before being assigned.
     var ra3 = a2 in x;
+              ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var ra4 = '' in x;
     var ra5 = 0 in x;
     var ra6 = a3 in x;
+              ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var ra7 = a4 in x;
     
     // valid right operands
@@ -28,6 +41,8 @@ inOperatorWithValidOperands.ts(34,20): error TS2322: Type 'object | T' is not as
     var b1: {};
     
     var rb1 = x in b1;
+                   ~~
+!!! error TS2454: Variable 'b1' is used before being assigned.
     var rb2 = x in {};
     
     function foo<T>(t: T) {
@@ -61,5 +76,11 @@ inOperatorWithValidOperands.ts(34,20): error TS2322: Type 'object | T' is not as
     var c3: Y;
     
     var rc1 = x in c1;
+                   ~~
+!!! error TS2454: Variable 'c1' is used before being assigned.
     var rc2 = x in (c2 || c3);
+                    ~~
+!!! error TS2454: Variable 'c2' is used before being assigned.
+                          ~~
+!!! error TS2454: Variable 'c3' is used before being assigned.
     

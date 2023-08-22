@@ -1,0 +1,23 @@
+nonContextuallyTypedLogicalOr.ts(14,2): error TS2454: Variable 'c' is used before being assigned.
+nonContextuallyTypedLogicalOr.ts(14,7): error TS2454: Variable 'e' is used before being assigned.
+
+
+==== nonContextuallyTypedLogicalOr.ts (2 errors) ====
+    interface Contextual {
+        dummy;
+        p?: number;
+    }
+    
+    interface Ellement {
+        dummy;
+        p: any;
+    }
+    
+    var c: Contextual;
+    var e: Ellement;
+    
+    (c || e).dummy;
+     ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.

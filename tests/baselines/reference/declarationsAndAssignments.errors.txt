@@ -13,14 +13,17 @@ declarationsAndAssignments.ts(67,9): error TS2461: Type '{}' is not an array typ
 declarationsAndAssignments.ts(68,9): error TS2461: Type '{ 0: number; 1: number; }' is not an array type.
 declarationsAndAssignments.ts(73,11): error TS2525: Initializer provides no value for this binding element and the binding element has no default value.
 declarationsAndAssignments.ts(73,14): error TS2525: Initializer provides no value for this binding element and the binding element has no default value.
-declarationsAndAssignments.ts(74,11): error TS2339: Property 'a' does not exist on type 'undefined[]'.
-declarationsAndAssignments.ts(74,14): error TS2339: Property 'b' does not exist on type 'undefined[]'.
-declarationsAndAssignments.ts(106,17): error TS2741: Property 'x' is missing in type '{ y: false; }' but required in type '{ x: any; y?: boolean; }'.
+declarationsAndAssignments.ts(74,11): error TS2339: Property 'a' does not exist on type 'never[]'.
+declarationsAndAssignments.ts(74,14): error TS2339: Property 'b' does not exist on type 'never[]'.
+declarationsAndAssignments.ts(106,17): error TS2741: Property 'x' is missing in type '{ y: false; }' but required in type '{ x: any; y?: boolean | undefined; }'.
+declarationsAndAssignments.ts(135,19): error TS2454: Variable 'a' is used before being assigned.
+declarationsAndAssignments.ts(135,22): error TS2454: Variable 'b' is used before being assigned.
+declarationsAndAssignments.ts(137,6): error TS2454: Variable 'aa' is used before being assigned.
 declarationsAndAssignments.ts(138,6): error TS2322: Type 'string' is not assignable to type 'number'.
 declarationsAndAssignments.ts(138,9): error TS2322: Type 'number' is not assignable to type 'string'.
 
 
-==== declarationsAndAssignments.ts (20 errors) ====
+==== declarationsAndAssignments.ts (23 errors) ====
     function f0() {
         var [] = [1, "hello"];
         var [x] = [1, "hello"];
@@ -127,9 +130,9 @@ declarationsAndAssignments.ts(138,9): error TS2322: Type 'number' is not assigna
 !!! error TS2525: Initializer provides no value for this binding element and the binding element has no default value.
         var { a, b } = [];  // Error
               ~
-!!! error TS2339: Property 'a' does not exist on type 'undefined[]'.
+!!! error TS2339: Property 'a' does not exist on type 'never[]'.
                  ~
-!!! error TS2339: Property 'b' does not exist on type 'undefined[]'.
+!!! error TS2339: Property 'b' does not exist on type 'never[]'.
     }
     
     function f11() {
@@ -163,7 +166,7 @@ declarationsAndAssignments.ts(138,9): error TS2322: Type 'number' is not assigna
     f14([2, ["abc", { x: 0 }]]);
     f14([2, ["abc", { y: false }]]);  // Error, no x
                     ~~~~~~~~~~~~
-!!! error TS2741: Property 'x' is missing in type '{ y: false; }' but required in type '{ x: any; y?: boolean; }'.
+!!! error TS2741: Property 'x' is missing in type '{ y: false; }' but required in type '{ x: any; y?: boolean | undefined; }'.
     
     module M {
         export var [a, b] = [1, 2];
@@ -193,8 +196,14 @@ declarationsAndAssignments.ts(138,9): error TS2322: Type 'number' is not assigna
         var b: string;
         var aa: number[];
         ({ a, b } = { a, b });
+                      ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+                         ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         ({ a, b } = { b, a });
         [aa[0], b] = [a, b];
+         ~~
+!!! error TS2454: Variable 'aa' is used before being assigned.
         [a, b] = [b, a];  // Error
          ~
 !!! error TS2322: Type 'string' is not assignable to type 'number'.

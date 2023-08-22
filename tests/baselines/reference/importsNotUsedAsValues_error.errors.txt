@@ -1,9 +1,16 @@
 error TS5101: Option 'importsNotUsedAsValues' is deprecated and will stop functioning in TypeScript 5.5. Specify compilerOption '"ignoreDeprecations": "5.0"' to silence this error.
   Use 'verbatimModuleSyntax' instead.
 /b.ts(1,1): error TS1371: This import is never used as a value and must use 'import type' because 'importsNotUsedAsValues' is set to 'error'.
+/b.ts(4,13): error TS2454: Variable 'a' is used before being assigned.
+/b.ts(4,16): error TS2454: Variable 'b' is used before being assigned.
 /c.ts(1,1): error TS1371: This import is never used as a value and must use 'import type' because 'importsNotUsedAsValues' is set to 'error'.
+/c.ts(4,13): error TS2454: Variable 'a' is used before being assigned.
+/c.ts(4,16): error TS2454: Variable 'b' is used before being assigned.
+/d.ts(4,16): error TS2454: Variable 'b' is used before being assigned.
 /e.ts(1,1): error TS6192: All imports in import declaration are unused.
 /g.ts(1,1): error TS1371: This import is never used as a value and must use 'import type' because 'importsNotUsedAsValues' is set to 'error'.
+/g.ts(4,13): error TS2454: Variable 'c' is used before being assigned.
+/g.ts(4,16): error TS2454: Variable 'd' is used before being assigned.
 /i.ts(1,1): error TS1371: This import is never used as a value and must use 'import type' because 'importsNotUsedAsValues' is set to 'error'.
 
 
@@ -15,27 +22,37 @@ error TS5101: Option 'importsNotUsedAsValues' is deprecated and will stop functi
     export type B = {};
     export const enum C { One, Two }
     
-==== /b.ts (1 errors) ====
+==== /b.ts (3 errors) ====
     import { A, B } from './a'; // Error
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS1371: This import is never used as a value and must use 'import type' because 'importsNotUsedAsValues' is set to 'error'.
     let a: A;
     let b: B;
     console.log(a, b);
+                ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+                   ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     
-==== /c.ts (1 errors) ====
+==== /c.ts (3 errors) ====
     import Default, * as named from './a'; // Error
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS1371: This import is never used as a value and must use 'import type' because 'importsNotUsedAsValues' is set to 'error'.
     let a: Default;
     let b: named.B;
     console.log(a, b);
+                ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+                   ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     
-==== /d.ts (0 errors) ====
+==== /d.ts (1 errors) ====
     import Default, { A } from './a';
     const a = A;
     let b: Default;
     console.log(a, b);
+                   ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     
 ==== /e.ts (1 errors) ====
     import { A, B } from './a'; // noUnusedLocals error only
@@ -50,13 +67,17 @@ error TS5101: Option 'importsNotUsedAsValues' is deprecated and will stop functi
     let d: D.Two = C.Two;
     console.log(c, d);
     
-==== /g.ts (1 errors) ====
+==== /g.ts (3 errors) ====
     import { C } from './a';
     ~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS1371: This import is never used as a value and must use 'import type' because 'importsNotUsedAsValues' is set to 'error'.
     let c: C;
     let d: C.Two;
     console.log(c, d);
+                ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                   ~
+!!! error TS2454: Variable 'd' is used before being assigned.
     
 ==== /h.ts (0 errors) ====
     class H {}

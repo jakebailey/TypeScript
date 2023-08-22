@@ -90,7 +90,7 @@ d = c;
 >c : [number, number]
 
 export type WithOptAndRest = [first: number, second?: number, ...rest: string[]];
->WithOptAndRest : [first: number, second?: number, ...rest: string[]]
+>WithOptAndRest : [first: number, second?: number | undefined, ...rest: string[]]
 
 export type Func<T extends any[]> = (...x: T) => void;
 >Func : Func<T>

@@ -37,7 +37,7 @@
     "containerKind": "",
     "containerName": "",
     "kind": "method",
-    "name": "(method) ButtonProps.onClick(event?: React.MouseEvent<HTMLButtonElement>): void",
+    "name": "(method) ButtonProps.onClick(event?: any): void",
     "displayParts": [
      {
       "text": "(",
@@ -88,28 +88,8 @@
       "kind": "space"
      },
      {
-      "text": "React",
-      "kind": "text"
-     },
-     {
-      "text": ".",
-      "kind": "punctuation"
-     },
-     {
-      "text": "MouseEvent",
-      "kind": "text"
-     },
-     {
-      "text": "<",
-      "kind": "punctuation"
-     },
-     {
-      "text": "HTMLButtonElement",
-      "kind": "text"
-     },
-     {
-      "text": ">",
-      "kind": "punctuation"
+      "text": "any",
+      "kind": "keyword"
      },
      {
       "text": ")",

@@ -9,15 +9,15 @@ var x: (a: number) => void = true ? (a) => a.toExponential() : (b) => b.toFixed(
 >(a) => a.toExponential() : (a: number) => string
 >a : number
 >a.toExponential() : string
->a.toExponential : (fractionDigits?: number) => string
+>a.toExponential : (fractionDigits?: number | undefined) => string
 >a : number
->toExponential : (fractionDigits?: number) => string
+>toExponential : (fractionDigits?: number | undefined) => string
 >(b) => b.toFixed() : (b: number) => string
 >b : number
 >b.toFixed() : string
->b.toFixed : (fractionDigits?: number) => string
+>b.toFixed : (fractionDigits?: number | undefined) => string
 >b : number
->toFixed : (fractionDigits?: number) => string
+>toFixed : (fractionDigits?: number | undefined) => string
 
 class A {
 >A : A

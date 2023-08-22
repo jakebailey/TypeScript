@@ -1,12 +1,28 @@
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(9,7): error TS2454: Variable 'b' is used before being assigned.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(10,7): error TS2454: Variable 'c' is used before being assigned.
 compoundArithmeticAssignmentLHSCanBeAssigned.ts(11,7): error TS18050: The value 'null' cannot be used here.
 compoundArithmeticAssignmentLHSCanBeAssigned.ts(12,7): error TS18050: The value 'undefined' cannot be used here.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(15,1): error TS2454: Variable 'x2' is used before being assigned.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(16,1): error TS2454: Variable 'x2' is used before being assigned.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(16,7): error TS2454: Variable 'b' is used before being assigned.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(17,1): error TS2454: Variable 'x2' is used before being assigned.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(17,7): error TS2454: Variable 'c' is used before being assigned.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(18,1): error TS2454: Variable 'x2' is used before being assigned.
 compoundArithmeticAssignmentLHSCanBeAssigned.ts(18,7): error TS18050: The value 'null' cannot be used here.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(19,1): error TS2454: Variable 'x2' is used before being assigned.
 compoundArithmeticAssignmentLHSCanBeAssigned.ts(19,7): error TS18050: The value 'undefined' cannot be used here.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(22,1): error TS2454: Variable 'x3' is used before being assigned.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(23,1): error TS2454: Variable 'x3' is used before being assigned.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(23,7): error TS2454: Variable 'b' is used before being assigned.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(24,1): error TS2454: Variable 'x3' is used before being assigned.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(24,7): error TS2454: Variable 'c' is used before being assigned.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(25,1): error TS2454: Variable 'x3' is used before being assigned.
 compoundArithmeticAssignmentLHSCanBeAssigned.ts(25,7): error TS18050: The value 'null' cannot be used here.
+compoundArithmeticAssignmentLHSCanBeAssigned.ts(26,1): error TS2454: Variable 'x3' is used before being assigned.
 compoundArithmeticAssignmentLHSCanBeAssigned.ts(26,7): error TS18050: The value 'undefined' cannot be used here.
 
 
-==== compoundArithmeticAssignmentLHSCanBeAssigned.ts (6 errors) ====
+==== compoundArithmeticAssignmentLHSCanBeAssigned.ts (22 errors) ====
     enum E { a, b, c }
     
     var a: any;
@@ -16,7 +32,11 @@ compoundArithmeticAssignmentLHSCanBeAssigned.ts(26,7): error TS18050: The value 
     var x1: any;
     x1 *= a;
     x1 *= b;
+          ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     x1 *= c;
+          ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     x1 *= null;
           ~~~~
 !!! error TS18050: The value 'null' cannot be used here.
@@ -26,22 +46,50 @@ compoundArithmeticAssignmentLHSCanBeAssigned.ts(26,7): error TS18050: The value 
     
     var x2: number;
     x2 *= a;
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
     x2 *= b;
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
+          ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     x2 *= c;
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
+          ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     x2 *= null;
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
           ~~~~
 !!! error TS18050: The value 'null' cannot be used here.
     x2 *= undefined;
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
           ~~~~~~~~~
 !!! error TS18050: The value 'undefined' cannot be used here.
     
     var x3: E;
     x3 *= a;
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
     x3 *= b;
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
+          ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     x3 *= c;
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
+          ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     x3 *= null;
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
           ~~~~
 !!! error TS18050: The value 'null' cannot be used here.
     x3 *= undefined;
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
           ~~~~~~~~~
 !!! error TS18050: The value 'undefined' cannot be used here.

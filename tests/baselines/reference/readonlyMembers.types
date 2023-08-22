@@ -6,7 +6,7 @@ interface X {
 >a : number
 
     readonly b?: number;
->b : number
+>b : number | undefined
 }
 var x: X = { a: 0 };
 >x : X

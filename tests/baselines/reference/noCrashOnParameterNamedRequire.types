@@ -3,16 +3,16 @@
 === index.js ===
 (function(require, module, exports){
 >(function(require, module, exports){    const mod = require("./mod");    mod.foo;})(null, null, null) : void
->(function(require, module, exports){    const mod = require("./mod");    mod.foo;}) : (require: any, module: any, exports: any) => void
->function(require, module, exports){    const mod = require("./mod");    mod.foo;} : (require: any, module: any, exports: any) => void
->require : any
->module : any
->exports : any
+>(function(require, module, exports){    const mod = require("./mod");    mod.foo;}) : (require: null, module: null, exports: null) => void
+>function(require, module, exports){    const mod = require("./mod");    mod.foo;} : (require: null, module: null, exports: null) => void
+>require : null
+>module : null
+>exports : null
 
     const mod = require("./mod");
 >mod : any
 >require("./mod") : any
->require : any
+>require : null
 >"./mod" : "./mod"
 
     mod.foo;

@@ -57,16 +57,32 @@ numberVsBigIntOperations.ts(57,1): error TS2362: The left-hand side of an arithm
 numberVsBigIntOperations.ts(57,1): error TS2365: Operator '&' cannot be applied to types 'string' and 'bigint'.
 numberVsBigIntOperations.ts(57,11): error TS2365: Operator '**' cannot be applied to types 'bigint' and 'boolean'.
 numberVsBigIntOperations.ts(57,17): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+numberVsBigIntOperations.ts(60,1): error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
 numberVsBigIntOperations.ts(60,1): error TS2365: Operator '+' cannot be applied to types 'number | bigint' and 'number | bigint'.
+numberVsBigIntOperations.ts(60,18): error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
+numberVsBigIntOperations.ts(61,1): error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
 numberVsBigIntOperations.ts(61,1): error TS2365: Operator '<<' cannot be applied to types 'number | bigint' and 'number | bigint'.
+numberVsBigIntOperations.ts(61,19): error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
+numberVsBigIntOperations.ts(62,12): error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
+numberVsBigIntOperations.ts(66,12): error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
+numberVsBigIntOperations.ts(70,2): error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
 numberVsBigIntOperations.ts(70,2): error TS2736: Operator '+' cannot be applied to type 'number | bigint'.
+numberVsBigIntOperations.ts(71,2): error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
+numberVsBigIntOperations.ts(72,1): error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
+numberVsBigIntOperations.ts(73,3): error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
 numberVsBigIntOperations.ts(86,7): error TS1155: 'const' declarations must be initialized.
+numberVsBigIntOperations.ts(87,12): error TS2454: Variable 'zeroOrBigOne' is used before being assigned.
+numberVsBigIntOperations.ts(88,15): error TS2345: Argument of type '0 | 1n' is not assignable to parameter of type '0 | 1'.
+  Type '1n' is not assignable to type '0 | 1'.
+numberVsBigIntOperations.ts(88,15): error TS2454: Variable 'zeroOrBigOne' is used before being assigned.
+numberVsBigIntOperations.ts(92,5): error TS2454: Variable 'zeroOrBigOne' is used before being assigned.
 numberVsBigIntOperations.ts(93,7): error TS1155: 'const' declarations must be initialized.
+numberVsBigIntOperations.ts(94,5): error TS2454: Variable 'bigZeroOrOne' is used before being assigned.
 numberVsBigIntOperations.ts(98,6): error TS2736: Operator '+' cannot be applied to type 'S'.
 numberVsBigIntOperations.ts(99,5): error TS2365: Operator '+' cannot be applied to types 'number' and 'S'.
 
 
-==== numberVsBigIntOperations.ts (66 errors) ====
+==== numberVsBigIntOperations.ts (81 errors) ====
     // Cannot mix bigints and numbers
     let bigInt = 1n, num = 2;
     bigInt = 1n; bigInt = 2; num = 1n; num = 2;
@@ -245,25 +261,45 @@ numberVsBigIntOperations.ts(99,5): error TS2365: Operator '+' cannot be applied 
     num = ~"3"; num = -false; // should infer number
     let bigIntOrNumber: bigint | number;
     bigIntOrNumber + bigIntOrNumber; // should error, result in any
+    ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'number | bigint' and 'number | bigint'.
+                     ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
     bigIntOrNumber << bigIntOrNumber; // should error, result in any
+    ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2365: Operator '<<' cannot be applied to types 'number | bigint' and 'number | bigint'.
+                      ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
     if (typeof bigIntOrNumber === "bigint") {
+               ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
         // Allowed, as type is narrowed to bigint
         bigIntOrNumber = bigIntOrNumber << bigIntOrNumber;
     }
     if (typeof bigIntOrNumber === "number") {
+               ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
         // Allowed, as type is narrowed to number
         bigIntOrNumber = bigIntOrNumber << bigIntOrNumber;
     }
     +bigIntOrNumber; // should error, result in number
      ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
+     ~~~~~~~~~~~~~~
 !!! error TS2736: Operator '+' cannot be applied to type 'number | bigint'.
     ~bigIntOrNumber; // should infer number | bigint
+     ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
     bigIntOrNumber++; // should infer number | bigint
+    ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
     ++bigIntOrNumber; // should infer number | bigint
+      ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'bigIntOrNumber' is used before being assigned.
     let anyValue: any;
     anyValue + anyValue; // should infer any
     anyValue >>> anyValue; // should infer number
@@ -280,15 +316,26 @@ numberVsBigIntOperations.ts(99,5): error TS2365: Operator '+' cannot be applied 
           ~~~~~~~~~~~~
 !!! error TS1155: 'const' declarations must be initialized.
     if (typeof zeroOrBigOne === "bigint") isBigInt(zeroOrBigOne);
+               ~~~~~~~~~~~~
+!!! error TS2454: Variable 'zeroOrBigOne' is used before being assigned.
     else isNumber(zeroOrBigOne);
+                  ~~~~~~~~~~~~
+!!! error TS2345: Argument of type '0 | 1n' is not assignable to parameter of type '0 | 1'.
+!!! error TS2345:   Type '1n' is not assignable to type '0 | 1'.
+                  ~~~~~~~~~~~~
+!!! error TS2454: Variable 'zeroOrBigOne' is used before being assigned.
     
     // Distinguishing truthy from falsy
     const isOne = (x: 1 | 1n) => x;
     if (zeroOrBigOne) isOne(zeroOrBigOne);
+        ~~~~~~~~~~~~
+!!! error TS2454: Variable 'zeroOrBigOne' is used before being assigned.
     const bigZeroOrOne: 0n | 1;
           ~~~~~~~~~~~~
 !!! error TS1155: 'const' declarations must be initialized.
     if (bigZeroOrOne) isOne(bigZeroOrOne);
+        ~~~~~~~~~~~~
+!!! error TS2454: Variable 'bigZeroOrOne' is used before being assigned.
     
     type NumberOrBigint = number | bigint;
     function getKey<S extends NumberOrBigint>(key: S) {

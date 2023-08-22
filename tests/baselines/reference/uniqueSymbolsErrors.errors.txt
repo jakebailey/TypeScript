@@ -15,21 +15,27 @@ uniqueSymbolsErrors.ts(21,5): error TS1331: A property of a class whose type is 
 uniqueSymbolsErrors.ts(22,25): error TS1335: 'unique symbol' types are not allowed here.
 uniqueSymbolsErrors.ts(23,34): error TS1335: 'unique symbol' types are not allowed here.
 uniqueSymbolsErrors.ts(24,26): error TS1335: 'unique symbol' types are not allowed here.
+uniqueSymbolsErrors.ts(24,42): error TS2322: Type 'undefined' is not assignable to type 'symbol'.
 uniqueSymbolsErrors.ts(25,27): error TS1335: 'unique symbol' types are not allowed here.
 uniqueSymbolsErrors.ts(26,40): error TS1335: 'unique symbol' types are not allowed here.
+uniqueSymbolsErrors.ts(26,56): error TS2322: Type 'undefined' is not assignable to type 'boolean'.
 uniqueSymbolsErrors.ts(27,46): error TS1335: 'unique symbol' types are not allowed here.
 uniqueSymbolsErrors.ts(28,37): error TS1335: 'unique symbol' types are not allowed here.
 uniqueSymbolsErrors.ts(29,26): error TS1335: 'unique symbol' types are not allowed here.
+uniqueSymbolsErrors.ts(29,42): error TS2322: Type 'undefined' is not assignable to type 'symbol'.
 uniqueSymbolsErrors.ts(30,28): error TS1335: 'unique symbol' types are not allowed here.
 uniqueSymbolsErrors.ts(32,12): error TS1331: A property of a class whose type is a 'unique symbol' type must be both 'static' and 'readonly'.
 uniqueSymbolsErrors.ts(33,38): error TS1335: 'unique symbol' types are not allowed here.
 uniqueSymbolsErrors.ts(34,47): error TS1335: 'unique symbol' types are not allowed here.
 uniqueSymbolsErrors.ts(35,39): error TS1335: 'unique symbol' types are not allowed here.
+uniqueSymbolsErrors.ts(35,55): error TS2322: Type 'undefined' is not assignable to type 'symbol'.
 uniqueSymbolsErrors.ts(36,40): error TS1335: 'unique symbol' types are not allowed here.
 uniqueSymbolsErrors.ts(37,53): error TS1335: 'unique symbol' types are not allowed here.
+uniqueSymbolsErrors.ts(37,69): error TS2322: Type 'undefined' is not assignable to type 'boolean'.
 uniqueSymbolsErrors.ts(38,59): error TS1335: 'unique symbol' types are not allowed here.
 uniqueSymbolsErrors.ts(39,50): error TS1335: 'unique symbol' types are not allowed here.
 uniqueSymbolsErrors.ts(40,39): error TS1335: 'unique symbol' types are not allowed here.
+uniqueSymbolsErrors.ts(40,55): error TS2322: Type 'undefined' is not assignable to type 'symbol'.
 uniqueSymbolsErrors.ts(41,41): error TS1335: 'unique symbol' types are not allowed here.
 uniqueSymbolsErrors.ts(46,5): error TS1330: A property of an interface or type literal whose type is a 'unique symbol' type must be 'readonly'.
 uniqueSymbolsErrors.ts(47,25): error TS1335: 'unique symbol' types are not allowed here.
@@ -61,7 +67,7 @@ uniqueSymbolsErrors.ts(83,52): error TS1335: 'unique symbol' types are not allow
 uniqueSymbolsErrors.ts(87,7): error TS2322: Type 'typeof shouldNotBeAssignable' is not assignable to type 'string'.
 
 
-==== uniqueSymbolsErrors.ts (61 errors) ====
+==== uniqueSymbolsErrors.ts (67 errors) ====
     // declarations
     declare const invalidUniqueType: unique number;
                                             ~~~~~~
@@ -120,12 +126,16 @@ uniqueSymbolsErrors.ts(87,7): error TS2322: Type 'typeof shouldNotBeAssignable' 
         invalidReturnType(): unique symbol { return; }
                              ~~~~~~~~~~~~~
 !!! error TS1335: 'unique symbol' types are not allowed here.
+                                             ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'symbol'.
         invalidThisType(this: unique symbol): void { return; }
                               ~~~~~~~~~~~~~
 !!! error TS1335: 'unique symbol' types are not allowed here.
         invalidTypePredicate(n: any): n is unique symbol { return; }
                                            ~~~~~~~~~~~~~
 !!! error TS1335: 'unique symbol' types are not allowed here.
+                                                           ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'boolean'.
         invalidTypeParameterConstraint<T extends unique symbol>(): void { return; }
                                                  ~~~~~~~~~~~~~
 !!! error TS1335: 'unique symbol' types are not allowed here.
@@ -135,6 +145,8 @@ uniqueSymbolsErrors.ts(87,7): error TS2322: Type 'typeof shouldNotBeAssignable' 
         get invalidGetter(): unique symbol { return; }
                              ~~~~~~~~~~~~~
 !!! error TS1335: 'unique symbol' types are not allowed here.
+                                             ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'symbol'.
         set invalidSetter(arg: unique symbol) { return; }
                                ~~~~~~~~~~~~~
 !!! error TS1335: 'unique symbol' types are not allowed here.
@@ -151,12 +163,16 @@ uniqueSymbolsErrors.ts(87,7): error TS2322: Type 'typeof shouldNotBeAssignable' 
         static invalidStaticReturnType(): unique symbol { return; }
                                           ~~~~~~~~~~~~~
 !!! error TS1335: 'unique symbol' types are not allowed here.
+                                                          ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'symbol'.
         static invalidStaticThisType(this: unique symbol): void { return; }
                                            ~~~~~~~~~~~~~
 !!! error TS1335: 'unique symbol' types are not allowed here.
         static invalidStaticTypePredicate(n: any): n is unique symbol { return; }
                                                         ~~~~~~~~~~~~~
 !!! error TS1335: 'unique symbol' types are not allowed here.
+                                                                        ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'boolean'.
         static invalidStaticTypeParameterConstraint<T extends unique symbol>(): void { return; }
                                                               ~~~~~~~~~~~~~
 !!! error TS1335: 'unique symbol' types are not allowed here.
@@ -166,6 +182,8 @@ uniqueSymbolsErrors.ts(87,7): error TS2322: Type 'typeof shouldNotBeAssignable' 
         static get invalidStaticGetter(): unique symbol { return; }
                                           ~~~~~~~~~~~~~
 !!! error TS1335: 'unique symbol' types are not allowed here.
+                                                          ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'symbol'.
         static set invalidStaticSetter(arg: unique symbol) { return; }
                                             ~~~~~~~~~~~~~
 !!! error TS1335: 'unique symbol' types are not allowed here.

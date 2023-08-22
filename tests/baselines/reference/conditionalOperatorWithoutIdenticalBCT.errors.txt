@@ -1,7 +1,12 @@
+conditionalOperatorWithoutIdenticalBCT.ts(11,8): error TS2454: Variable 'a' is used before being assigned.
+conditionalOperatorWithoutIdenticalBCT.ts(12,22): error TS2454: Variable 'a' is used before being assigned.
 conditionalOperatorWithoutIdenticalBCT.ts(15,5): error TS2322: Type 'A | B' is not assignable to type 'A'.
   Property 'propertyA' is missing in type 'B' but required in type 'A'.
+conditionalOperatorWithoutIdenticalBCT.ts(15,25): error TS2454: Variable 'a' is used before being assigned.
 conditionalOperatorWithoutIdenticalBCT.ts(16,5): error TS2322: Type 'A | B' is not assignable to type 'B'.
   Property 'propertyB' is missing in type 'A' but required in type 'B'.
+conditionalOperatorWithoutIdenticalBCT.ts(16,25): error TS2454: Variable 'a' is used before being assigned.
+conditionalOperatorWithoutIdenticalBCT.ts(17,30): error TS2454: Variable 'a' is used before being assigned.
 conditionalOperatorWithoutIdenticalBCT.ts(19,5): error TS2322: Type '((m: X) => number) | ((n: X) => string)' is not assignable to type '(t: X) => number'.
   Type '(n: X) => string' is not assignable to type '(t: X) => number'.
     Type 'string' is not assignable to type 'number'.
@@ -13,7 +18,7 @@ conditionalOperatorWithoutIdenticalBCT.ts(21,5): error TS2322: Type '((m: X) => 
     Type 'number' is not assignable to type 'boolean'.
 
 
-==== conditionalOperatorWithoutIdenticalBCT.ts (5 errors) ====
+==== conditionalOperatorWithoutIdenticalBCT.ts (10 errors) ====
     //Cond ? Expr1 : Expr2,  Expr1 and Expr2 have no identical best common type
     class X { propertyX: any; propertyX1: number; propertyX2: string };
     class A extends X { propertyA: number };
@@ -25,7 +30,11 @@ conditionalOperatorWithoutIdenticalBCT.ts(21,5): error TS2322: Type '((m: X) => 
     
     // No errors anymore, uses union types
     true ? a : b;
+           ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     var result1 = true ? a : b;
+                         ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     
     //Be contextually typed and and bct is not identical, results in errors that union type is not assignable to target
     var result2: A = true ? a : b;
@@ -33,12 +42,18 @@ conditionalOperatorWithoutIdenticalBCT.ts(21,5): error TS2322: Type '((m: X) => 
 !!! error TS2322: Type 'A | B' is not assignable to type 'A'.
 !!! error TS2322:   Property 'propertyA' is missing in type 'B' but required in type 'A'.
 !!! related TS2728 conditionalOperatorWithoutIdenticalBCT.ts:3:21: 'propertyA' is declared here.
+                            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     var result3: B = true ? a : b;
         ~~~~~~~
 !!! error TS2322: Type 'A | B' is not assignable to type 'B'.
 !!! error TS2322:   Property 'propertyB' is missing in type 'A' but required in type 'B'.
 !!! related TS2728 conditionalOperatorWithoutIdenticalBCT.ts:4:21: 'propertyB' is declared here.
+                            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     var result31: A | B = true ? a : b;
+                                 ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     
     var result4: (t: X) => number = true ? (m) => m.propertyX1 : (n) => n.propertyX2;
         ~~~~~~~

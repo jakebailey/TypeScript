@@ -8,7 +8,7 @@ export class Game {
 >position : any
 >new DisplayPosition([) : any
 >DisplayPosition : any
->[ : undefined[]
+>[ : never[]
 >3 : any
 >3 : any
 >3 : any

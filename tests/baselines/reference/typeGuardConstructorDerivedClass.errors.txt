@@ -1,7 +1,15 @@
+typeGuardConstructorDerivedClass.ts(11,5): error TS2454: Variable 'var1' is used before being assigned.
 typeGuardConstructorDerivedClass.ts(13,10): error TS2339: Property 'property1' does not exist on type 'never'.
+typeGuardConstructorDerivedClass.ts(15,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorDerivedClass.ts(26,5): error TS2454: Variable 'var2' is used before being assigned.
+typeGuardConstructorDerivedClass.ts(29,5): error TS2454: Variable 'var2' is used before being assigned.
+typeGuardConstructorDerivedClass.ts(43,5): error TS2454: Variable 'let3' is used before being assigned.
+typeGuardConstructorDerivedClass.ts(46,5): error TS2454: Variable 'let3' is used before being assigned.
+typeGuardConstructorDerivedClass.ts(60,5): error TS2454: Variable 'let4' is used before being assigned.
+typeGuardConstructorDerivedClass.ts(63,5): error TS2454: Variable 'let4' is used before being assigned.
 
 
-==== typeGuardConstructorDerivedClass.ts (1 errors) ====
+==== typeGuardConstructorDerivedClass.ts (9 errors) ====
     // Derived class with different structures
     class C1 {
         property1: number;
@@ -13,12 +21,16 @@ typeGuardConstructorDerivedClass.ts(13,10): error TS2339: Property 'property1' d
     
     let var1: C2 | string;
     if (var1.constructor === C1) {
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
         var1; // never
         var1.property1; // error
              ~~~~~~~~~
 !!! error TS2339: Property 'property1' does not exist on type 'never'.
     }
     if (var1.constructor === C2) {
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
         var1; // C2
         var1.property1; // number
     }
@@ -30,9 +42,13 @@ typeGuardConstructorDerivedClass.ts(13,10): error TS2339: Property 'property1' d
     
     let var2: C4 | string;
     if (var2.constructor === C3) {
+        ~~~~
+!!! error TS2454: Variable 'var2' is used before being assigned.
         var2; // never
     }
     if (var2.constructor === C4) {
+        ~~~~
+!!! error TS2454: Variable 'var2' is used before being assigned.
         var2; // C4
     }
     
@@ -47,9 +63,13 @@ typeGuardConstructorDerivedClass.ts(13,10): error TS2339: Property 'property1' d
     
     let let3: C6 | string;
     if (let3.constructor === C5) {
+        ~~~~
+!!! error TS2454: Variable 'let3' is used before being assigned.
         let3; // never
     }
     if (let3.constructor === C6) {
+        ~~~~
+!!! error TS2454: Variable 'let3' is used before being assigned.
         let3; // C6
     }
     
@@ -64,9 +84,13 @@ typeGuardConstructorDerivedClass.ts(13,10): error TS2339: Property 'property1' d
     
     let let4: C8 | string;
     if (let4.constructor === C7) {
+        ~~~~
+!!! error TS2454: Variable 'let4' is used before being assigned.
         let4; // never
     }
     if (let4.constructor === C8) {
+        ~~~~
+!!! error TS2454: Variable 'let4' is used before being assigned.
         let4; // C8
     }
     

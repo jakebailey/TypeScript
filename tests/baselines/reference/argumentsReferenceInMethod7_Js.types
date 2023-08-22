@@ -12,9 +12,9 @@ class A {
 		 */
 		this.callee = arguments.callee;
 >this.callee = arguments.callee : Function
->this.callee : Function
+>this.callee : Function | undefined
 >this : this
->callee : Function
+>callee : Function | undefined
 >arguments.callee : Function
 >arguments : IArguments
 >callee : Function

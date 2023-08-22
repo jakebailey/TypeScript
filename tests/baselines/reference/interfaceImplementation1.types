@@ -30,8 +30,8 @@ class C1 implements I1,I2 {
 
 	private iFn(n?:number, s?:string) { }
 >iFn : () => any
->n : number
->s : string
+>n : number | undefined
+>s : string | undefined
 
     private iAny:any;
 >iAny : any

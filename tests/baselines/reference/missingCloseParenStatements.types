@@ -8,7 +8,7 @@ var a1, a2, a3 = 0;
 >0 : 0
 
 if ( a1 && (a2 + a3 > 0) {
->a1 && (a2 + a3 > 0) : boolean
+>a1 && (a2 + a3 > 0) : any
 >a1 : any
 >(a2 + a3 > 0) : boolean
 >a2 + a3 > 0 : boolean

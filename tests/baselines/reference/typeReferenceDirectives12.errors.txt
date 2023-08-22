@@ -1,6 +1,8 @@
 error TS5101: Option 'out' is deprecated and will stop functioning in TypeScript 5.5. Specify compilerOption '"ignoreDeprecations": "5.0"' to silence this error.
   Use 'outFile' instead.
 /main.ts(1,14): error TS6131: Cannot compile modules using option 'out' unless the '--module' flag is 'amd' or 'system'.
+/mod1.ts(4,1): error TS2322: Type '() => undefined' is not assignable to type '() => Lib'.
+  Type 'undefined' is not assignable to type 'Lib'.
 
 
 !!! error TS5101: Option 'out' is deprecated and will stop functioning in TypeScript 5.5. Specify compilerOption '"ignoreDeprecations": "5.0"' to silence this error.
@@ -22,11 +24,14 @@ error TS5101: Option 'out' is deprecated and will stop functioning in TypeScript
         x
     }
     
-==== /mod1.ts (0 errors) ====
+==== /mod1.ts (1 errors) ====
     /// <reference types="lib" />
     
     import {Cls} from "./main";
     Cls.prototype.foo = function() { return undefined; }
+    ~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type '() => undefined' is not assignable to type '() => Lib'.
+!!! error TS2322:   Type 'undefined' is not assignable to type 'Lib'.
     
     declare module "./main" {
         interface Cls {

@@ -1,0 +1,26 @@
+localClassesInLoop_ES6.ts(7,15): error TS2345: Argument of type '() => typeof C' is not assignable to parameter of type 'never'.
+localClassesInLoop_ES6.ts(10,5): error TS2349: This expression is not callable.
+  Type 'never' has no call signatures.
+localClassesInLoop_ES6.ts(10,19): error TS2349: This expression is not callable.
+  Type 'never' has no call signatures.
+
+
+==== localClassesInLoop_ES6.ts (3 errors) ====
+    declare function use(a: any);
+    
+    "use strict"
+    var data = [];
+    for (let x = 0; x < 2; ++x) {
+        class C { }
+        data.push(() => C);
+                  ~~~~~~~
+!!! error TS2345: Argument of type '() => typeof C' is not assignable to parameter of type 'never'.
+    }
+    
+    use(data[0]() === data[1]());
+        ~~~~~~~
+!!! error TS2349: This expression is not callable.
+!!! error TS2349:   Type 'never' has no call signatures.
+                      ~~~~~~~
+!!! error TS2349: This expression is not callable.
+!!! error TS2349:   Type 'never' has no call signatures.

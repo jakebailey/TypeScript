@@ -4,10 +4,11 @@ looseThisTypeInFunctions.ts(21,1): error TS2322: Type '(this: C, m: number) => n
 looseThisTypeInFunctions.ts(25,27): error TS2339: Property 'length' does not exist on type 'number'.
 looseThisTypeInFunctions.ts(33,28): error TS2339: Property 'length' does not exist on type 'number'.
 looseThisTypeInFunctions.ts(37,9): error TS2684: The 'this' context of type 'void' is not assignable to method's 'this' of type 'I'.
+looseThisTypeInFunctions.ts(39,9): error TS2454: Variable 'u' is used before being assigned.
 looseThisTypeInFunctions.ts(46,20): error TS2339: Property 'length' does not exist on type 'number'.
 
 
-==== looseThisTypeInFunctions.ts (5 errors) ====
+==== looseThisTypeInFunctions.ts (6 errors) ====
     interface I {
         n: number;
         explicitThis(this: this, m: number): number;
@@ -57,6 +58,8 @@ looseThisTypeInFunctions.ts(46,20): error TS2339: Property 'length' does not exi
 !!! error TS2684: The 'this' context of type 'void' is not assignable to method's 'this' of type 'I'.
     let u: Unused;
     let y = u.implicitNoThis;
+            ~
+!!! error TS2454: Variable 'u' is used before being assigned.
     n = y(12); // ok, callee:void matches this:any
     c.explicitVoid = c.implicitThis // ok, implicitThis(this:any)
     o.implicitThis = c.implicitThis; // ok, implicitThis(this:any)

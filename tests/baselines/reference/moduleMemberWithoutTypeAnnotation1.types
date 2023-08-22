@@ -61,18 +61,18 @@ module TypeScript {
 >false : false
 
             var positionedToken = this.findTokenInternal(null, position, 0);
->positionedToken : any
->this.findTokenInternal(null, position, 0) : any
->this.findTokenInternal : (x: any, y: any, z: any) => any
+>positionedToken : null
+>this.findTokenInternal(null, position, 0) : null
+>this.findTokenInternal : (x: any, y: any, z: any) => null
 >this : this
->findTokenInternal : (x: any, y: any, z: any) => any
+>findTokenInternal : (x: any, y: any, z: any) => null
 >position : number
 >0 : 0
 
             return null;
         }
         findTokenInternal(x, y, z) {
->findTokenInternal : (x: any, y: any, z: any) => any
+>findTokenInternal : (x: any, y: any, z: any) => null
 >x : any
 >y : any
 >z : any

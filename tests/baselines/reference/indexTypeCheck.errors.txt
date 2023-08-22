@@ -5,10 +5,16 @@ indexTypeCheck.ts(22,2): error TS2413: 'number' index type 'Orange' is not assig
 indexTypeCheck.ts(27,2): error TS2413: 'number' index type 'number' is not assignable to 'string' index type 'string'.
 indexTypeCheck.ts(32,3): error TS1096: An index signature must have exactly one parameter.
 indexTypeCheck.ts(36,3): error TS1268: An index signature parameter type must be 'string', 'number', 'symbol', or a template literal type.
+indexTypeCheck.ts(43,1): error TS2454: Variable 'yellow' is used before being assigned.
+indexTypeCheck.ts(44,1): error TS2454: Variable 'yellow' is used before being assigned.
+indexTypeCheck.ts(45,1): error TS2454: Variable 'yellow' is used before being assigned.
+indexTypeCheck.ts(51,1): error TS2454: Variable 'yellow' is used before being assigned.
+indexTypeCheck.ts(51,8): error TS2454: Variable 'blue' is used before being assigned.
 indexTypeCheck.ts(51,8): error TS2538: Type 'Blue' cannot be used as an index type.
+indexTypeCheck.ts(54,1): error TS2454: Variable 'x' is used before being assigned.
 
 
-==== indexTypeCheck.ts (8 errors) ====
+==== indexTypeCheck.ts (14 errors) ====
     interface Red {
     	[n:number]; // ok
     	~~~~~~~~~~~
@@ -66,19 +72,31 @@ indexTypeCheck.ts(51,8): error TS2538: Type 'Blue' cannot be used as an index ty
     var s = "some string";
     
     yellow[5]; // ok
+    ~~~~~~
+!!! error TS2454: Variable 'yellow' is used before being assigned.
     yellow["hue"]; // ok
+    ~~~~~~
+!!! error TS2454: Variable 'yellow' is used before being assigned.
     yellow[<any>{}]; // ok
+    ~~~~~~
+!!! error TS2454: Variable 'yellow' is used before being assigned.
     
     s[0]; // error
     s["s"]; // ok
     s[<any>{}]; // ok
     
     yellow[blue]; // error
+    ~~~~~~
+!!! error TS2454: Variable 'yellow' is used before being assigned.
+           ~~~~
+!!! error TS2454: Variable 'blue' is used before being assigned.
            ~~~~
 !!! error TS2538: Type 'Blue' cannot be used as an index type.
     
     var x:number[];
     x[0];
+    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
     
     class Benchmark {
     

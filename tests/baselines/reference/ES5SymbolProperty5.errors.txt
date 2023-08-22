@@ -1,0 +1,13 @@
+ES5SymbolProperty5.ts(7,9): error TS2454: Variable 'Symbol' is used before being assigned.
+
+
+==== ES5SymbolProperty5.ts (1 errors) ====
+    var Symbol: { iterator: symbol };
+    
+    class C {
+        [Symbol.iterator]() { }
+    }
+    
+    (new C)[Symbol.iterator](0) // Should error
+            ~~~~~~
+!!! error TS2454: Variable 'Symbol' is used before being assigned.

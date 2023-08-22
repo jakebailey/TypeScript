@@ -2,8 +2,8 @@
 
 === classExpressionLoop.ts ===
 let arr = [];
->arr : any[]
->[] : undefined[]
+>arr : never[]
+>[] : never[]
 
 for (let i = 0; i < 10; ++i) {
 >i : number
@@ -16,9 +16,9 @@ for (let i = 0; i < 10; ++i) {
 
     arr.push(class C {
 >arr.push(class C {        prop = i;    }) : number
->arr.push : (...items: any[]) => number
->arr : any[]
->push : (...items: any[]) => number
+>arr.push : (...items: never[]) => number
+>arr : never[]
+>push : (...items: never[]) => number
 >class C {        prop = i;    } : typeof C
 >C : typeof C
 

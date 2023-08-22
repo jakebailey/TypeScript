@@ -2,37 +2,37 @@
 
 === optionalArgsWithDefaultValues.ts ===
 function foo(x: number, y?:boolean=false, z?=0) {}
->foo : (x: number, y?: boolean, z?: number) => void
+>foo : (x: number, y?: boolean, z?: number | undefined) => void
 >x : number
->y : boolean
+>y : boolean | undefined
 >false : false
->z : number
+>z : number | undefined
 >0 : 0
 
 class CCC {
 >CCC : CCC
 
     public foo(x: number, y?:boolean=false, z?=0) {}
->foo : (x: number, y?: boolean, z?: number) => void
+>foo : (x: number, y?: boolean, z?: number | undefined) => void
 >x : number
->y : boolean
+>y : boolean | undefined
 >false : false
->z : number
+>z : number | undefined
 >0 : 0
 
     static foo2(x: number, y?:boolean=false, z?=0) {}
->foo2 : (x: number, y?: boolean, z?: number) => void
+>foo2 : (x: number, y?: boolean, z?: number | undefined) => void
 >x : number
->y : boolean
+>y : boolean | undefined
 >false : false
->z : number
+>z : number | undefined
 >0 : 0
 }
 
 var a = (x?=0) => { return 1; };
->a : (x?: number) => number
->(x?=0) => { return 1; } : (x?: number) => number
->x : number
+>a : (x?: number | undefined) => number
+>(x?=0) => { return 1; } : (x?: number | undefined) => number
+>x : number | undefined
 >0 : 0
 >1 : 1
 
@@ -40,7 +40,7 @@ var b = (x, y?:number = 2) => { x; };
 >b : (x: any, y?: number) => void
 >(x, y?:number = 2) => { x; } : (x: any, y?: number) => void
 >x : any
->y : number
+>y : number | undefined
 >2 : 2
 >x : any
 

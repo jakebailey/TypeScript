@@ -23,13 +23,13 @@ interface Options<
     PropsDef = {}
     > {
     data?: Data
->data : Data
+>data : Data | undefined
 
     props?: PropsDef
->props : PropsDef
+>props : PropsDef | undefined
 
     watch?: Record<string, WatchHandler<any>>
->watch : Record<string, WatchHandler<any>>
+>watch : Record<string, WatchHandler<any>> | undefined
 }
 
 type WatchHandler<T> = (val: T, oldVal: T) => void;

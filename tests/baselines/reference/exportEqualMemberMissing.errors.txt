@@ -1,3 +1,4 @@
+exportEqualMemberMissing_0.ts(13,10): error TS2454: Variable 'server' is used before being assigned.
 exportEqualMemberMissing_1.ts(3,23): error TS2339: Property 'static' does not exist on type '{ (): connectExport; foo: Date; }'.
 
 
@@ -8,7 +9,7 @@ exportEqualMemberMissing_1.ts(3,23): error TS2339: Property 'static' does not ex
                           ~~~~~~
 !!! error TS2339: Property 'static' does not exist on type '{ (): connectExport; foo: Date; }'.
     
-==== exportEqualMemberMissing_0.ts (0 errors) ====
+==== exportEqualMemberMissing_0.ts (1 errors) ====
     module server {
         export interface connectModule {
             (res, req, next): void;
@@ -22,4 +23,6 @@ exportEqualMemberMissing_1.ts(3,23): error TS2339: Property 'static' does not ex
         foo: Date;
     };
     export = server;
+             ~~~~~~
+!!! error TS2454: Variable 'server' is used before being assigned.
     

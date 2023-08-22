@@ -6,15 +6,15 @@ declare function foo<T extends [any]>(x: T): T;
 >x : T
 
 var y = foo([undefined]);
->y : [any]
->foo([undefined]) : [any]
+>y : [undefined]
+>foo([undefined]) : [undefined]
 >foo : <T extends [any]>(x: T) => T
 >[undefined] : [undefined]
 >undefined : undefined
 
 y = [""];
 >y = [""] : [string]
->y : [any]
+>y : [undefined]
 >[""] : [string]
 >"" : ""
 

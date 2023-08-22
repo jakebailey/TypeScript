@@ -14,20 +14,20 @@ function f1() {
 >x : any
 >1 : 1
 >y : any
->{} : { x?: number; y: any; }
+>{} : { x?: number | undefined; y: any; }
 
     var { x, y = 1 } = {};
 >x : any
 >y : any
 >1 : 1
->{} : { x: any; y?: number; }
+>{} : { x: any; y?: number | undefined; }
 
     var { x = 1, y = 1 } = {};
 >x : any
 >1 : 1
 >y : any
 >1 : 1
->{} : { x?: number; y?: number; }
+>{} : { x?: number | undefined; y?: number | undefined; }
 }
 
 // Missing properties

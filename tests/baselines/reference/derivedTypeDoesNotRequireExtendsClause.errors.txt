@@ -1,0 +1,35 @@
+derivedTypeDoesNotRequireExtendsClause.ts(17,5): error TS2454: Variable 'd1' is used before being assigned.
+derivedTypeDoesNotRequireExtendsClause.ts(18,5): error TS2454: Variable 'd2' is used before being assigned.
+derivedTypeDoesNotRequireExtendsClause.ts(20,18): error TS2454: Variable 'd1' is used before being assigned.
+derivedTypeDoesNotRequireExtendsClause.ts(20,22): error TS2454: Variable 'd2' is used before being assigned.
+
+
+==== derivedTypeDoesNotRequireExtendsClause.ts (4 errors) ====
+    class Base {
+        foo: string;
+    }
+    
+    class Derived {
+        foo: string;
+        bar: number;
+    }
+    
+    class Derived2 extends Base {
+        bar: string;
+    }
+    
+    var b: Base;
+    var d1: Derived;
+    var d2: Derived2;
+    b = d1;
+        ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+    b = d2;
+        ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+    
+    var r: Base[] = [d1, d2];
+                     ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+                         ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.

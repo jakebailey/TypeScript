@@ -5,7 +5,7 @@ export class Z {
 >Z : Z
 
     f(x = 1, y) {
->f : (x: number, y: any) => any[]
+>f : (x: number | undefined, y: any) => any[]
 >x : number
 >1 : 1
 >y : any

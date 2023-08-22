@@ -41,9 +41,9 @@ B.prototype.m = function() { this.x = 2; }
 >m : any
 >function() { this.x = 2; } : () => void
 >this.x = 2 : 2
->this.x : number
+>this.x : number | undefined
 >this : this
->x : number
+>x : number | undefined
 >2 : 2
 
 const b = new B();
@@ -57,9 +57,9 @@ b.id;
 >id : number
 
 b.x;
->b.x : number
+>b.x : number | undefined
 >b : B
->x : number
+>x : number | undefined
 
 === other.js ===
 function A() { this.id = 1; }

@@ -52,8 +52,8 @@ module.exports = {testFn, testFnTypes};
 >module.exports : typeof module.exports
 >module : { exports: typeof module.exports; }
 >exports : typeof module.exports
->{testFn, testFnTypes} : { testFn: (input: testFnTypes.input) => number; testFnTypes: { [x: string]: any; }; }
->testFn : (input: testFnTypes.input) => number
+>{testFn, testFnTypes} : { testFn: (input: testFnTypes.input) => number | null; testFnTypes: { [x: string]: any; }; }
+>testFn : (input: testFnTypes.input) => number | null
 >testFnTypes : { [x: string]: any; }
 
 === file.js ===

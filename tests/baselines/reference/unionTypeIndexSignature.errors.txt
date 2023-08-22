@@ -1,0 +1,50 @@
+unionTypeIndexSignature.ts(8,13): error TS2454: Variable 'unionOfDifferentReturnType' is used before being assigned.
+unionTypeIndexSignature.ts(9,13): error TS2454: Variable 'unionOfDifferentReturnType' is used before being assigned.
+unionTypeIndexSignature.ts(12,10): error TS2454: Variable 'unionOfTypesWithAndWithoutStringSignature' is used before being assigned.
+unionTypeIndexSignature.ts(13,10): error TS2454: Variable 'unionOfTypesWithAndWithoutStringSignature' is used before being assigned.
+unionTypeIndexSignature.ts(18,13): error TS2454: Variable 'unionOfDifferentReturnType1' is used before being assigned.
+unionTypeIndexSignature.ts(19,13): error TS2454: Variable 'unionOfDifferentReturnType1' is used before being assigned.
+unionTypeIndexSignature.ts(22,10): error TS2454: Variable 'unionOfTypesWithAndWithoutStringSignature1' is used before being assigned.
+unionTypeIndexSignature.ts(23,10): error TS2454: Variable 'unionOfTypesWithAndWithoutStringSignature1' is used before being assigned.
+
+
+==== unionTypeIndexSignature.ts (8 errors) ====
+    var numOrDate: number | Date;
+    var anyVar: number;
+    
+    // If each type in U has a string index signature, 
+    // U has a string index signature of a union type of the types of the string index signatures from each type in U.
+    
+    var unionOfDifferentReturnType: { [a: string]: number; } | { [a: string]: Date; };
+    numOrDate = unionOfDifferentReturnType["hello"]; // number | Date
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'unionOfDifferentReturnType' is used before being assigned.
+    numOrDate = unionOfDifferentReturnType[10]; // number | Date
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'unionOfDifferentReturnType' is used before being assigned.
+    
+    var unionOfTypesWithAndWithoutStringSignature: { [a: string]: number; } | boolean;
+    anyVar = unionOfTypesWithAndWithoutStringSignature["hello"]; // any
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'unionOfTypesWithAndWithoutStringSignature' is used before being assigned.
+    anyVar = unionOfTypesWithAndWithoutStringSignature[10]; // any
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'unionOfTypesWithAndWithoutStringSignature' is used before being assigned.
+    
+    // If each type in U has a numeric index signature, 
+    // U has a numeric index signature of a union type of the types of the numeric index signatures from each type in U.
+    var unionOfDifferentReturnType1: { [a: number]: number; } | { [a: number]: Date; };
+    numOrDate = unionOfDifferentReturnType1["hello"]; // any
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'unionOfDifferentReturnType1' is used before being assigned.
+    numOrDate = unionOfDifferentReturnType1[10]; // number | Date
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'unionOfDifferentReturnType1' is used before being assigned.
+    
+    var unionOfTypesWithAndWithoutStringSignature1: { [a: number]: number; } | boolean;
+    anyVar = unionOfTypesWithAndWithoutStringSignature1["hello"]; // any
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'unionOfTypesWithAndWithoutStringSignature1' is used before being assigned.
+    anyVar = unionOfTypesWithAndWithoutStringSignature1[10]; // any
+             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'unionOfTypesWithAndWithoutStringSignature1' is used before being assigned.

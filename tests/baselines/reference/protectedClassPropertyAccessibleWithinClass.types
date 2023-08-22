@@ -74,20 +74,20 @@ class C2 {
 >x : string
 
     protected get y() { () => this.x; return null; }
->y : any
+>y : null
 >() => this.x : () => string
 >this.x : string
 >this : this
 >x : string
 
     protected set y(x) { () => { this.y = this.x; } }
->y : any
->x : any
+>y : null
+>x : null
 >() => { this.y = this.x; } : () => void
 >this.y = this.x : string
->this.y : any
+>this.y : null
 >this : this
->y : any
+>y : null
 >this.x : string
 >this : this
 >x : string
@@ -103,22 +103,22 @@ class C2 {
 >x : string
 
     protected static get y() { () => this.x; return null; }
->y : any
+>y : null
 >() => this.x : () => string
 >this.x : string
 >this : typeof C2
 >x : string
 
     protected static set y(x) {
->y : any
->x : any
+>y : null
+>x : null
 
         () => { this.y = this.x; }
 >() => { this.y = this.x; } : () => void
 >this.y = this.x : string
->this.y : any
+>this.y : null
 >this : typeof C2
->y : any
+>y : null
 >this.x : string
 >this : typeof C2
 >x : string

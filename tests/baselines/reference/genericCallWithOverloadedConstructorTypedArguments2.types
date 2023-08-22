@@ -65,10 +65,10 @@ module GenericParameter {
 >cb : { new (x: T): string; new (x: T, y?: T): string; }
 >x : T
 >x : T
->y : T
+>y : T | undefined
 
         return cb;
->cb : { new (x: T): string; new (x: T, y?: T): string; }
+>cb : { new (x: T): string; new (x: T, y?: T | undefined): string; }
     }
 
     var b: { new <T>(x: T, y: T): string };
@@ -79,7 +79,7 @@ module GenericParameter {
     var r10 = foo6(b); // error
 >r10 : { new (x: unknown): string; new (x: unknown, y?: unknown): string; }
 >foo6(b) : { new (x: unknown): string; new (x: unknown, y?: unknown): string; }
->foo6 : <T>(cb: { new (x: T): string; new (x: T, y?: T): string; }) => { new (x: T): string; new (x: T, y?: T): string; }
+>foo6 : <T>(cb: { new (x: T): string; new (x: T, y?: T | undefined): string; }) => { new (x: T): string; new (x: T, y?: T | undefined): string; }
 >b : new <T>(x: T, y: T) => string
 
     function foo7<T>(x:T, cb: { new(x: T): string; new(x: T, y?: T): string }) {
@@ -88,16 +88,16 @@ module GenericParameter {
 >cb : { new (x: T): string; new (x: T, y?: T): string; }
 >x : T
 >x : T
->y : T
+>y : T | undefined
 
         return cb;
->cb : { new (x: T): string; new (x: T, y?: T): string; }
+>cb : { new (x: T): string; new (x: T, y?: T | undefined): string; }
     }
 
     var r13 = foo7(1, a); // ok
 >r13 : { new (x: unknown): string; new (x: unknown, y?: unknown): string; }
 >foo7(1, a) : { new (x: unknown): string; new (x: unknown, y?: unknown): string; }
->foo7 : <T>(x: T, cb: { new (x: T): string; new (x: T, y?: T): string; }) => { new (x: T): string; new (x: T, y?: T): string; }
+>foo7 : <T>(x: T, cb: { new (x: T): string; new (x: T, y?: T | undefined): string; }) => { new (x: T): string; new (x: T, y?: T | undefined): string; }
 >1 : 1
 >a : new <T>(x: T) => T
 
@@ -109,7 +109,7 @@ module GenericParameter {
     var r14 = foo7(1, c); // ok
 >r14 : { new (x: unknown): string; new (x: unknown, y?: unknown): string; }
 >foo7(1, c) : { new (x: unknown): string; new (x: unknown, y?: unknown): string; }
->foo7 : <T>(x: T, cb: { new (x: T): string; new (x: T, y?: T): string; }) => { new (x: T): string; new (x: T, y?: T): string; }
+>foo7 : <T>(x: T, cb: { new (x: T): string; new (x: T, y?: T | undefined): string; }) => { new (x: T): string; new (x: T, y?: T | undefined): string; }
 >1 : 1
 >c : { new <T>(x: T): number; new <T>(x: number): T; }
 }

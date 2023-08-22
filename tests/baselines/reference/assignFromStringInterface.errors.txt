@@ -1,12 +1,15 @@
 assignFromStringInterface.ts(3,1): error TS2322: Type 'String' is not assignable to type 'string'.
   'string' is a primitive, but 'String' is a wrapper object. Prefer using 'string' when possible.
+assignFromStringInterface.ts(3,5): error TS2454: Variable 'a' is used before being assigned.
 
 
-==== assignFromStringInterface.ts (1 errors) ====
+==== assignFromStringInterface.ts (2 errors) ====
     var x = '';
     var a: String;
     x = a;
     ~
 !!! error TS2322: Type 'String' is not assignable to type 'string'.
 !!! error TS2322:   'string' is a primitive, but 'String' is a wrapper object. Prefer using 'string' when possible.
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     a = x;

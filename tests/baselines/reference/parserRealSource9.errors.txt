@@ -2,6 +2,7 @@ parserRealSource9.ts(4,21): error TS6053: File 'typescript.ts' not found.
 parserRealSource9.ts(8,38): error TS2304: Cannot find name 'TypeChecker'.
 parserRealSource9.ts(9,48): error TS2304: Cannot find name 'TypeLink'.
 parserRealSource9.ts(9,67): error TS2304: Cannot find name 'SymbolScope'.
+parserRealSource9.ts(10,17): error TS2322: Type 'null' is not assignable to type 'Type[]'.
 parserRealSource9.ts(10,30): error TS2304: Cannot find name 'Type'.
 parserRealSource9.ts(12,35): error TS2304: Cannot find name 'Type'.
 parserRealSource9.ts(12,40): error TS1011: An element access expression should take an argument.
@@ -39,7 +40,7 @@ parserRealSource9.ts(200,28): error TS2304: Cannot find name 'SymbolScope'.
 parserRealSource9.ts(200,48): error TS2304: Cannot find name 'IHashTable'.
 
 
-==== parserRealSource9.ts (39 errors) ====
+==== parserRealSource9.ts (40 errors) ====
     // Copyright (c) Microsoft. All rights reserved. Licensed under the Apache License, Version 2.0. 
     // See LICENSE.txt in the project root for complete license information.
     
@@ -58,6 +59,8 @@ parserRealSource9.ts(200,48): error TS2304: Cannot find name 'IHashTable'.
                                                                       ~~~~~~~~~~~
 !!! error TS2304: Cannot find name 'SymbolScope'.
                 var extendsList: Type[] = null;
+                    ~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Type[]'.
                                  ~~~~
 !!! error TS2304: Cannot find name 'Type'.
                 if (typeLinks) {

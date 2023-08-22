@@ -6,7 +6,7 @@ function f(...x?) { }
 >x : any[]
 
 function f2(...x = []) { }
->f2 : (...x?: any[]) => void
->x : any[]
->[] : undefined[]
+>f2 : (...x?: never[]) => void
+>x : never[]
+>[] : never[]
 

@@ -21,7 +21,7 @@ export class Class2 {
 >decorate : (target: any, propertyKey: string) => void
 
     get prop(): Class1 | undefined {
->prop : Class1
+>prop : Class1 | undefined
 
         return undefined;
 >undefined : undefined

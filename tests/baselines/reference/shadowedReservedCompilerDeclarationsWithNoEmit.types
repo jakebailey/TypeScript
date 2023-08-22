@@ -75,7 +75,7 @@ class C2 extends Base {
 
 // Shadowed Promise
 var Promise = null;
->Promise : any
+>Promise : null
 
 async function f4() {
 >f4 : () => Promise<number>

@@ -26,7 +26,7 @@
 // x.language
 //   ^^^^^^^^
 // | ----------------------------------------------------------------------
-// | (property) language?: string
+// | (property) language?: string | undefined
 // | A language id, like `typescript`.
 // | ----------------------------------------------------------------------
 
@@ -79,6 +79,22 @@
         },
         {
           "text": "string",
+          "kind": "keyword"
+        },
+        {
+          "text": " ",
+          "kind": "space"
+        },
+        {
+          "text": "|",
+          "kind": "punctuation"
+        },
+        {
+          "text": " ",
+          "kind": "space"
+        },
+        {
+          "text": "undefined",
           "kind": "keyword"
         }
       ],

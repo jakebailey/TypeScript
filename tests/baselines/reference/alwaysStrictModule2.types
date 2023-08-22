@@ -8,8 +8,8 @@ module M {
 >f : () => void
 
         var arguments = [];
->arguments : any[]
->[] : undefined[]
+>arguments : never[]
+>[] : never[]
     }
 }
 
@@ -21,7 +21,7 @@ module M {
 >f2 : () => void
 
         var arguments = [];
->arguments : any[]
->[] : undefined[]
+>arguments : never[]
+>[] : never[]
     }
 }

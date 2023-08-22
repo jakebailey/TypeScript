@@ -1,0 +1,12 @@
+genericConstructSignatureInInterface.ts(6,13): error TS2454: Variable 'v' is used before being assigned.
+
+
+==== genericConstructSignatureInInterface.ts (1 errors) ====
+    interface C {
+        new <T>(x: T);
+    }
+    
+    var v: C;
+    var r = new v<number>(1);
+                ~
+!!! error TS2454: Variable 'v' is used before being assigned.

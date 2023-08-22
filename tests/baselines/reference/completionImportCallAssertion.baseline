@@ -2,12 +2,12 @@
 // import("./other.json", {});
 //                         ^
 // | ----------------------------------------------------------------------
-// | (property) ImportCallOptions.assert?: ImportAssertions
+// | (property) ImportCallOptions.assert?: ImportAssertions | undefined
 // | ----------------------------------------------------------------------
 // import("./other.json", { asse});
 //                          ^^^^
 // | ----------------------------------------------------------------------
-// | (property) ImportCallOptions.assert?: ImportAssertions
+// | (property) ImportCallOptions.assert?: ImportAssertions | undefined
 // | ----------------------------------------------------------------------
 
 [
@@ -72,6 +72,22 @@
             {
               "text": "ImportAssertions",
               "kind": "interfaceName"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
             }
           ],
           "documentation": []
@@ -144,6 +160,22 @@
             {
               "text": "ImportAssertions",
               "kind": "interfaceName"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
             }
           ],
           "documentation": []

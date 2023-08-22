@@ -20,9 +20,9 @@ for (const zoneName of timezoneNames) {
   var formatter = new Intl.DateTimeFormat('en-US', {
 >formatter : Intl.DateTimeFormat
 >new Intl.DateTimeFormat('en-US', {    timeZone: 'America/Los_Angeles',    timeZoneName: zoneName,  }) : Intl.DateTimeFormat
->Intl.DateTimeFormat : { (locales?: string | string[], options?: Intl.DateTimeFormatOptions): Intl.DateTimeFormat; new (locales?: string | string[], options?: Intl.DateTimeFormatOptions): Intl.DateTimeFormat; supportedLocalesOf(locales: string | string[], options?: Intl.DateTimeFormatOptions): string[]; readonly prototype: Intl.DateTimeFormat; }
+>Intl.DateTimeFormat : { (locales?: string | string[] | undefined, options?: Intl.DateTimeFormatOptions | undefined): Intl.DateTimeFormat; new (locales?: string | string[] | undefined, options?: Intl.DateTimeFormatOptions | undefined): Intl.DateTimeFormat; supportedLocalesOf(locales: string | string[], options?: Intl.DateTimeFormatOptions | undefined): string[]; readonly prototype: Intl.DateTimeFormat; }
 >Intl : typeof Intl
->DateTimeFormat : { (locales?: string | string[], options?: Intl.DateTimeFormatOptions): Intl.DateTimeFormat; new (locales?: string | string[], options?: Intl.DateTimeFormatOptions): Intl.DateTimeFormat; supportedLocalesOf(locales: string | string[], options?: Intl.DateTimeFormatOptions): string[]; readonly prototype: Intl.DateTimeFormat; }
+>DateTimeFormat : { (locales?: string | string[] | undefined, options?: Intl.DateTimeFormatOptions | undefined): Intl.DateTimeFormat; new (locales?: string | string[] | undefined, options?: Intl.DateTimeFormatOptions | undefined): Intl.DateTimeFormat; supportedLocalesOf(locales: string | string[], options?: Intl.DateTimeFormatOptions | undefined): string[]; readonly prototype: Intl.DateTimeFormat; }
 >'en-US' : "en-US"
 >{    timeZone: 'America/Los_Angeles',    timeZoneName: zoneName,  } : { timeZone: string; timeZoneName: "short" | "long" | "shortOffset" | "longOffset" | "shortGeneric" | "longGeneric"; }
 
@@ -49,15 +49,15 @@ const enumerationKeys = ['calendar', 'collation', 'currency', 'numberingSystem',
 >'unit' : "unit"
 
 for (const key of enumerationKeys) {
->key : "calendar" | "collation" | "currency" | "numberingSystem" | "timeZone" | "unit"
+>key : "timeZone" | "calendar" | "collation" | "currency" | "numberingSystem" | "unit"
 >enumerationKeys : readonly ["calendar", "collation", "currency", "numberingSystem", "timeZone", "unit"]
 
   var supported = Intl.supportedValuesOf(key);
 >supported : string[]
 >Intl.supportedValuesOf(key) : string[]
->Intl.supportedValuesOf : (key: "calendar" | "collation" | "currency" | "numberingSystem" | "timeZone" | "unit") => string[]
+>Intl.supportedValuesOf : (key: "timeZone" | "calendar" | "collation" | "currency" | "numberingSystem" | "unit") => string[]
 >Intl : typeof Intl
->supportedValuesOf : (key: "calendar" | "collation" | "currency" | "numberingSystem" | "timeZone" | "unit") => string[]
->key : "calendar" | "collation" | "currency" | "numberingSystem" | "timeZone" | "unit"
+>supportedValuesOf : (key: "timeZone" | "calendar" | "collation" | "currency" | "numberingSystem" | "unit") => string[]
+>key : "timeZone" | "calendar" | "collation" | "currency" | "numberingSystem" | "unit"
 }
 

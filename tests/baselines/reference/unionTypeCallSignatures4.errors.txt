@@ -1,8 +1,20 @@
+unionTypeCallSignatures4.ts(8,1): error TS2454: Variable 'f12' is used before being assigned.
+unionTypeCallSignatures4.ts(9,1): error TS2454: Variable 'f12' is used before being assigned.
+unionTypeCallSignatures4.ts(10,1): error TS2454: Variable 'f12' is used before being assigned.
+unionTypeCallSignatures4.ts(13,1): error TS2454: Variable 'f34' is used before being assigned.
+unionTypeCallSignatures4.ts(14,1): error TS2454: Variable 'f34' is used before being assigned.
+unionTypeCallSignatures4.ts(15,1): error TS2454: Variable 'f34' is used before being assigned.
+unionTypeCallSignatures4.ts(18,1): error TS2454: Variable 'f1234' is used before being assigned.
+unionTypeCallSignatures4.ts(19,1): error TS2454: Variable 'f1234' is used before being assigned.
+unionTypeCallSignatures4.ts(20,1): error TS2454: Variable 'f1234' is used before being assigned.
+unionTypeCallSignatures4.ts(23,1): error TS2454: Variable 'f12345' is used before being assigned.
 unionTypeCallSignatures4.ts(23,1): error TS2554: Expected 2 arguments, but got 1.
+unionTypeCallSignatures4.ts(24,1): error TS2454: Variable 'f12345' is used before being assigned.
+unionTypeCallSignatures4.ts(25,1): error TS2454: Variable 'f12345' is used before being assigned.
 unionTypeCallSignatures4.ts(25,18): error TS2554: Expected 2 arguments, but got 3.
 
 
-==== unionTypeCallSignatures4.ts (2 errors) ====
+==== unionTypeCallSignatures4.ts (14 errors) ====
     type F1 = (a: string, b?: string) => void;
     type F2 = (a: string, b?: string, c?: string) => void;
     type F3 = (a: string, ...rest: string[]) => void;
@@ -11,26 +23,50 @@ unionTypeCallSignatures4.ts(25,18): error TS2554: Expected 2 arguments, but got 
     
     var f12: F1 | F2;
     f12("a");
+    ~~~
+!!! error TS2454: Variable 'f12' is used before being assigned.
     f12("a", "b");
+    ~~~
+!!! error TS2454: Variable 'f12' is used before being assigned.
     f12("a", "b", "c");  // ok
+    ~~~
+!!! error TS2454: Variable 'f12' is used before being assigned.
     
     var f34: F3 | F4;
     f34("a");
+    ~~~
+!!! error TS2454: Variable 'f34' is used before being assigned.
     f34("a", "b");
+    ~~~
+!!! error TS2454: Variable 'f34' is used before being assigned.
     f34("a", "b", "c");
+    ~~~
+!!! error TS2454: Variable 'f34' is used before being assigned.
     
     var f1234: F1 | F2 | F3 | F4;
     f1234("a");
+    ~~~~~
+!!! error TS2454: Variable 'f1234' is used before being assigned.
     f1234("a", "b");
+    ~~~~~
+!!! error TS2454: Variable 'f1234' is used before being assigned.
     f1234("a", "b", "c");  // ok
+    ~~~~~
+!!! error TS2454: Variable 'f1234' is used before being assigned.
     
     var f12345: F1 | F2 | F3 | F4 | F5;
     f12345("a");  // error
+    ~~~~~~
+!!! error TS2454: Variable 'f12345' is used before being assigned.
     ~~~~~~~~~~~
 !!! error TS2554: Expected 2 arguments, but got 1.
 !!! related TS6210 unionTypeCallSignatures4.ts:5:23: An argument for 'b' was not provided.
     f12345("a", "b");
+    ~~~~~~
+!!! error TS2454: Variable 'f12345' is used before being assigned.
     f12345("a", "b", "c");  // error
+    ~~~~~~
+!!! error TS2454: Variable 'f12345' is used before being assigned.
                      ~~~
 !!! error TS2554: Expected 2 arguments, but got 3.
     

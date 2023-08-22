@@ -11,7 +11,7 @@
 // a(() => {
 //    ^
 // | ----------------------------------------------------------------------
-// | a(**fn?: ((x: string) => string) | ((y: number) => number)**): void
+// | a(**fn?: ((x: string) => string) | ((y: number) => number) | undefined**): void
 // | ----------------------------------------------------------------------
 //     return undefined;
 // });
@@ -205,6 +205,22 @@
                 {
                   "text": ")",
                   "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
+                  "kind": "keyword"
                 }
               ],
               "isOptional": true,

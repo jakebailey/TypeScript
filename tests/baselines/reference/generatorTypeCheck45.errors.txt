@@ -1,0 +1,10 @@
+generatorTypeCheck45.ts(3,52): error TS2322: Type 'undefined' is not assignable to type 'string'.
+
+
+==== generatorTypeCheck45.ts (1 errors) ====
+    declare function foo<T, U>(x: T, fun: () => Iterator<(x: T) => U>, fun2: (y: U) => T): T;
+    
+    foo("", function* () { yield x => x.length }, p => undefined); // T is fixed, should be string
+                                                       ~~~~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'string'.
+!!! related TS6502 generatorTypeCheck45.ts:1:74: The expected type comes from the return type of this signature.

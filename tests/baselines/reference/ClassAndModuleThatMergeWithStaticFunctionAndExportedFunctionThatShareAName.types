@@ -21,7 +21,7 @@ module Point {
 >Point : typeof Point
 
     export function Origin() { return null; } //expected duplicate identifier error
->Origin : () => any
+>Origin : () => null
 }
 
 

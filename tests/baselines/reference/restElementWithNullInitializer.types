@@ -2,12 +2,12 @@
 
 === restElementWithNullInitializer.ts ===
 function foo1([...r] = null) {
->foo1 : ([...r]?: any) => void
+>foo1 : ([...r]?: null) => void
 >r : any[]
 }
 
 function foo2([...r] = undefined) {
->foo2 : ([...r]?: any) => void
+>foo2 : ([...r]?: undefined) => void
 >r : any[]
 >undefined : undefined
 }
@@ -19,8 +19,8 @@ function foo3([...r] = {}) {
 }
 
 function foo4([...r] = []) {
->foo4 : ([...r]?: any[]) => void
->r : any[]
->[] : undefined[]
+>foo4 : ([...r]?: never[]) => void
+>r : never[]
+>[] : never[]
 }
 

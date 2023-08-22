@@ -143,11 +143,11 @@ const o12 = {
 };
 === yieldIsOk.ts ===
 const o13 = {
->o13 : { f(): AsyncGenerator<any, void, unknown>; }
->{    async * f() {        yield;    }} : { f(): AsyncGenerator<any, void, unknown>; }
+>o13 : { f(): AsyncGenerator<undefined, void, unknown>; }
+>{    async * f() {        yield;    }} : { f(): AsyncGenerator<undefined, void, unknown>; }
 
     async * f() {
->f : () => AsyncGenerator<any, void, unknown>
+>f : () => AsyncGenerator<undefined, void, unknown>
 
         yield;
 >yield : any
@@ -181,15 +181,15 @@ const o15 = {
 };
 === yieldStarWithValueIsOk.ts ===
 const o16 = {
->o16 : { f(): AsyncGenerator<any, void, undefined>; }
->{    async * f() {        yield * [];    }} : { f(): AsyncGenerator<any, void, undefined>; }
+>o16 : { f(): AsyncGenerator<never, void, undefined>; }
+>{    async * f() {        yield * [];    }} : { f(): AsyncGenerator<never, void, undefined>; }
 
     async * f() {
->f : () => AsyncGenerator<any, void, undefined>
+>f : () => AsyncGenerator<never, void, undefined>
 
         yield * [];
 >yield * [] : any
->[] : undefined[]
+>[] : never[]
     }
 };
 === awaitWithValueIsOk.ts ===
@@ -246,11 +246,11 @@ const o20 = {
 };
 === yieldInNestedComputedPropertyIsOk.ts ===
 const o21 = {
->o21 : { f(): AsyncGenerator<any, void, unknown>; }
->{    async * f() {        const x = { [yield]: 1 };    }} : { f(): AsyncGenerator<any, void, unknown>; }
+>o21 : { f(): AsyncGenerator<undefined, void, unknown>; }
+>{    async * f() {        const x = { [yield]: 1 };    }} : { f(): AsyncGenerator<undefined, void, unknown>; }
 
     async * f() {
->f : () => AsyncGenerator<any, void, unknown>
+>f : () => AsyncGenerator<undefined, void, unknown>
 
         const x = { [yield]: 1 };
 >x : { [x: number]: number; }

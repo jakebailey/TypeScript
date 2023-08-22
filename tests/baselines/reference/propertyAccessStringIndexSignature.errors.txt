@@ -1,18 +1,36 @@
+propertyAccessStringIndexSignature.ts(3,1): error TS2454: Variable 'flags' is used before being assigned.
+propertyAccessStringIndexSignature.ts(4,1): error TS2454: Variable 'flags' is used before being assigned.
+propertyAccessStringIndexSignature.ts(5,1): error TS2454: Variable 'flags' is used before being assigned.
+propertyAccessStringIndexSignature.ts(6,1): error TS2454: Variable 'flags' is used before being assigned.
+propertyAccessStringIndexSignature.ts(10,1): error TS2454: Variable 'empty' is used before being assigned.
 propertyAccessStringIndexSignature.ts(10,7): error TS2339: Property 'nope' does not exist on type 'Empty'.
+propertyAccessStringIndexSignature.ts(11,1): error TS2454: Variable 'empty' is used before being assigned.
 
 
-==== propertyAccessStringIndexSignature.ts (1 errors) ====
+==== propertyAccessStringIndexSignature.ts (7 errors) ====
     interface Flags { [name: string]: boolean };
     let flags: Flags;
     flags.b;
+    ~~~~~
+!!! error TS2454: Variable 'flags' is used before being assigned.
     flags.f;
+    ~~~~~
+!!! error TS2454: Variable 'flags' is used before being assigned.
     flags.isNotNecessarilyNeverFalse;
+    ~~~~~
+!!! error TS2454: Variable 'flags' is used before being assigned.
     flags['this is fine'];
+    ~~~~~
+!!! error TS2454: Variable 'flags' is used before being assigned.
     
     interface Empty { }
     let empty: Empty;
     empty.nope;
+    ~~~~~
+!!! error TS2454: Variable 'empty' is used before being assigned.
           ~~~~
 !!! error TS2339: Property 'nope' does not exist on type 'Empty'.
     empty["that's ok"];
+    ~~~~~
+!!! error TS2454: Variable 'empty' is used before being assigned.
     

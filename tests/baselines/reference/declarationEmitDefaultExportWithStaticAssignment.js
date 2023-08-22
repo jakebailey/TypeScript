@@ -111,7 +111,7 @@ declare namespace Example {
 }
 export default Example;
 //// [index4.d.ts]
-export declare function C(): any;
+export declare function C(): null;
 export declare namespace C {
     var A: () => void;
     var B: () => void;

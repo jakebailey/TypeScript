@@ -1,10 +1,32 @@
-compoundAdditionAssignmentLHSCanBeAssigned.ts(32,1): error TS2365: Operator '+=' cannot be applied to types 'number' and 'null'.
-compoundAdditionAssignmentLHSCanBeAssigned.ts(33,1): error TS2365: Operator '+=' cannot be applied to types 'number' and 'undefined'.
-compoundAdditionAssignmentLHSCanBeAssigned.ts(39,1): error TS2365: Operator '+=' cannot be applied to types 'E' and 'null'.
-compoundAdditionAssignmentLHSCanBeAssigned.ts(40,1): error TS2365: Operator '+=' cannot be applied to types 'E' and 'undefined'.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(18,1): error TS2454: Variable 'x2' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(19,1): error TS2454: Variable 'x2' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(20,1): error TS2454: Variable 'x2' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(21,1): error TS2454: Variable 'x2' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(22,1): error TS2454: Variable 'x2' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(23,1): error TS2454: Variable 'x2' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(24,1): error TS2454: Variable 'x2' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(25,1): error TS2454: Variable 'x2' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(26,1): error TS2454: Variable 'x2' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(29,1): error TS2454: Variable 'x3' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(30,1): error TS2454: Variable 'x3' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(31,1): error TS2454: Variable 'x3' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(32,1): error TS2454: Variable 'x3' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(32,7): error TS18050: The value 'null' cannot be used here.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(33,1): error TS2454: Variable 'x3' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(33,7): error TS18050: The value 'undefined' cannot be used here.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(36,1): error TS2454: Variable 'x4' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(37,1): error TS2454: Variable 'x4' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(38,1): error TS2454: Variable 'x4' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(39,1): error TS2454: Variable 'x4' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(39,7): error TS18050: The value 'null' cannot be used here.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(40,1): error TS2454: Variable 'x4' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(40,7): error TS18050: The value 'undefined' cannot be used here.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(43,1): error TS2454: Variable 'x5' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(46,1): error TS2454: Variable 'x6' is used before being assigned.
+compoundAdditionAssignmentLHSCanBeAssigned.ts(47,1): error TS2454: Variable 'x6' is used before being assigned.
 
 
-==== compoundAdditionAssignmentLHSCanBeAssigned.ts (4 errors) ====
+==== compoundAdditionAssignmentLHSCanBeAssigned.ts (26 errors) ====
     enum E { a, b }
     
     var a: any;
@@ -23,43 +45,87 @@ compoundAdditionAssignmentLHSCanBeAssigned.ts(40,1): error TS2365: Operator '+='
     
     var x2: string;
     x2 += a;
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
     x2 += b;
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
     x2 += true;
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
     x2 += 0;
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
     x2 += '';
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
     x2 += E.a;
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
     x2 += {};
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
     x2 += null;
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
     x2 += undefined;
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
     
     var x3: number;
     x3 += a;
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
     x3 += 0;
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
     x3 += E.a;
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
     x3 += null;
-    ~~~~~~~~~~
-!!! error TS2365: Operator '+=' cannot be applied to types 'number' and 'null'.
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
+          ~~~~
+!!! error TS18050: The value 'null' cannot be used here.
     x3 += undefined;
-    ~~~~~~~~~~~~~~~
-!!! error TS2365: Operator '+=' cannot be applied to types 'number' and 'undefined'.
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
+          ~~~~~~~~~
+!!! error TS18050: The value 'undefined' cannot be used here.
     
     var x4: E;
     x4 += a;
+    ~~
+!!! error TS2454: Variable 'x4' is used before being assigned.
     x4 += 0;
+    ~~
+!!! error TS2454: Variable 'x4' is used before being assigned.
     x4 += E.a;
+    ~~
+!!! error TS2454: Variable 'x4' is used before being assigned.
     x4 += null;
-    ~~~~~~~~~~
-!!! error TS2365: Operator '+=' cannot be applied to types 'E' and 'null'.
+    ~~
+!!! error TS2454: Variable 'x4' is used before being assigned.
+          ~~~~
+!!! error TS18050: The value 'null' cannot be used here.
     x4 += undefined;
-    ~~~~~~~~~~~~~~~
-!!! error TS2365: Operator '+=' cannot be applied to types 'E' and 'undefined'.
+    ~~
+!!! error TS2454: Variable 'x4' is used before being assigned.
+          ~~~~~~~~~
+!!! error TS18050: The value 'undefined' cannot be used here.
     
     var x5: boolean;
     x5 += a;
+    ~~
+!!! error TS2454: Variable 'x5' is used before being assigned.
     
     var x6: {};
     x6 += a;
+    ~~
+!!! error TS2454: Variable 'x6' is used before being assigned.
     x6 += '';
+    ~~
+!!! error TS2454: Variable 'x6' is used before being assigned.
     
     var x7: void;
     x7 += a;

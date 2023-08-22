@@ -45,10 +45,10 @@ var obj = { x: 3, y: null }; // assignable because null is widened, and therefor
 
 
 //// [widenedTypes.d.ts]
-declare var t: number[];
+declare var t: (number | null)[];
 declare var x: typeof undefined;
 declare var y: any;
-declare var u: number[];
+declare var u: (number | null)[];
 declare var ob: {
     x: typeof undefined;
 };

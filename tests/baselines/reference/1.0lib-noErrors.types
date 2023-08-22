@@ -46,7 +46,7 @@ declare function eval(x: string): any;
 declare function parseInt(s: string, radix?: number): number;
 >parseInt : (s: string, radix?: number) => number
 >s : string
->radix : number
+>radix : number | undefined
 
 /**
   * Converts a string to a floating-point number. 
@@ -106,22 +106,22 @@ declare function encodeURIComponent(uriComponent: string | number | boolean): st
 
 interface PropertyDescriptor {
     configurable?: boolean;
->configurable : boolean
+>configurable : boolean | undefined
 
     enumerable?: boolean;
->enumerable : boolean
+>enumerable : boolean | undefined
 
     value?: any;
 >value : any
 
     writable?: boolean;
->writable : boolean
+>writable : boolean | undefined
 
     get?(): any;
->get : () => any
+>get : (() => any) | undefined
 
     set?(v: any): void;
->set : (v: any) => void
+>set : ((v: any) => void) | undefined
 >v : any
 }
 
@@ -225,7 +225,7 @@ declare var Object: {
     create(o: any, properties?: PropertyDescriptorMap): any;
 >create : (o: any, properties?: PropertyDescriptorMap) => any
 >o : any
->properties : PropertyDescriptorMap
+>properties : PropertyDescriptorMap | undefined
 
     /**
       * Adds a property to an object, or modifies attributes of an existing property. 
@@ -420,7 +420,7 @@ interface String {
     indexOf(searchString: string, position?: number): number;
 >indexOf : (searchString: string, position?: number) => number
 >searchString : string
->position : number
+>position : number | undefined
 
     /**
       * Returns the last occurrence of a substring in the string.
@@ -430,7 +430,7 @@ interface String {
     lastIndexOf(searchString: string, position?: number): number;
 >lastIndexOf : (searchString: string, position?: number) => number
 >searchString : string
->position : number
+>position : number | undefined
 
     /**
       * Determines whether two strings are equivalent in the current locale.
@@ -524,8 +524,8 @@ interface String {
       */
     slice(start?: number, end?: number): string;
 >slice : (start?: number, end?: number) => string
->start : number
->end : number
+>start : number | undefined
+>end : number | undefined
 
     /**
       * Split a string into substrings using the specified separator and return them as an array.
@@ -533,9 +533,9 @@ interface String {
       * @param limit A value used to limit the number of elements returned in the array.
       */
     split(separator: string, limit?: number): string[];
->split : { (separator: string, limit?: number): string[]; (separator: RegExp, limit?: number): string[]; }
+>split : { (separator: string, limit?: number): string[]; (separator: RegExp, limit?: number | undefined): string[]; }
 >separator : string
->limit : number
+>limit : number | undefined
 
     /**
       * Split a string into substrings using the specified separator and return them as an array.
@@ -543,9 +543,9 @@ interface String {
       * @param limit A value used to limit the number of elements returned in the array.
       */
     split(separator: RegExp, limit?: number): string[];
->split : { (separator: string, limit?: number): string[]; (separator: RegExp, limit?: number): string[]; }
+>split : { (separator: string, limit?: number | undefined): string[]; (separator: RegExp, limit?: number): string[]; }
 >separator : RegExp
->limit : number
+>limit : number | undefined
 
     /**
       * Returns the substring at the specified location within a String object. 
@@ -556,7 +556,7 @@ interface String {
     substring(start: number, end?: number): string;
 >substring : (start: number, end?: number) => string
 >start : number
->end : number
+>end : number | undefined
 
     /** Converts all the alphabetic characters in a string to lowercase. */
     toLowerCase(): string;
@@ -591,7 +591,7 @@ interface String {
     substr(from: number, length?: number): string;
 >substr : (from: number, length?: number) => string
 >from : number
->length : number
+>length : number | undefined
 
     [index: number]: string;
 >index : number
@@ -639,7 +639,7 @@ interface Number {
       */
     toString(radix?: number): string;
 >toString : (radix?: number) => string
->radix : number
+>radix : number | undefined
 
     /** 
       * Returns a string representing a number in fixed-point notation.
@@ -647,7 +647,7 @@ interface Number {
       */
     toFixed(fractionDigits?: number): string;
 >toFixed : (fractionDigits?: number) => string
->fractionDigits : number
+>fractionDigits : number | undefined
 
     /**
       * Returns a string containing a number represented in exponential notation.
@@ -655,7 +655,7 @@ interface Number {
       */
     toExponential(fractionDigits?: number): string;
 >toExponential : (fractionDigits?: number) => string
->fractionDigits : number
+>fractionDigits : number | undefined
 
     /**
       * Returns a string containing a number represented either in exponential or fixed-point notation with a specified number of digits.
@@ -663,7 +663,7 @@ interface Number {
       */
     toPrecision(precision?: number): string;
 >toPrecision : (precision?: number) => string
->precision : number
+>precision : number | undefined
 }
 
 /** An object that represents a number of any kind. All JavaScript numbers are 64-bit floating-point numbers. */
@@ -1025,7 +1025,7 @@ interface Date {
     setSeconds(sec: number, ms?: number): number;
 >setSeconds : (sec: number, ms?: number) => number
 >sec : number
->ms : number
+>ms : number | undefined
 
     /**
       * Sets the seconds value in the Date object using Universal Coordinated Time (UTC).
@@ -1035,7 +1035,7 @@ interface Date {
     setUTCSeconds(sec: number, ms?: number): number;
 >setUTCSeconds : (sec: number, ms?: number) => number
 >sec : number
->ms : number
+>ms : number | undefined
 
     /**
       * Sets the minutes value in the Date object using local time. 
@@ -1046,8 +1046,8 @@ interface Date {
     setMinutes(min: number, sec?: number, ms?: number): number;
 >setMinutes : (min: number, sec?: number, ms?: number) => number
 >min : number
->sec : number
->ms : number
+>sec : number | undefined
+>ms : number | undefined
 
     /**
       * Sets the minutes value in the Date object using Universal Coordinated Time (UTC).
@@ -1058,8 +1058,8 @@ interface Date {
     setUTCMinutes(min: number, sec?: number, ms?: number): number;
 >setUTCMinutes : (min: number, sec?: number, ms?: number) => number
 >min : number
->sec : number
->ms : number
+>sec : number | undefined
+>ms : number | undefined
 
     /**
       * Sets the hour value in the Date object using local time.
@@ -1071,9 +1071,9 @@ interface Date {
     setHours(hours: number, min?: number, sec?: number, ms?: number): number;
 >setHours : (hours: number, min?: number, sec?: number, ms?: number) => number
 >hours : number
->min : number
->sec : number
->ms : number
+>min : number | undefined
+>sec : number | undefined
+>ms : number | undefined
 
     /**
       * Sets the hours value in the Date object using Universal Coordinated Time (UTC).
@@ -1085,9 +1085,9 @@ interface Date {
     setUTCHours(hours: number, min?: number, sec?: number, ms?: number): number;
 >setUTCHours : (hours: number, min?: number, sec?: number, ms?: number) => number
 >hours : number
->min : number
->sec : number
->ms : number
+>min : number | undefined
+>sec : number | undefined
+>ms : number | undefined
 
     /**
       * Sets the numeric day-of-the-month value of the Date object using local time. 
@@ -1113,7 +1113,7 @@ interface Date {
     setMonth(month: number, date?: number): number;
 >setMonth : (month: number, date?: number) => number
 >month : number
->date : number
+>date : number | undefined
 
     /**
       * Sets the month value in the Date object using Universal Coordinated Time (UTC).
@@ -1123,7 +1123,7 @@ interface Date {
     setUTCMonth(month: number, date?: number): number;
 >setUTCMonth : (month: number, date?: number) => number
 >month : number
->date : number
+>date : number | undefined
 
     /**
       * Sets the year of the Date object using local time.
@@ -1134,8 +1134,8 @@ interface Date {
     setFullYear(year: number, month?: number, date?: number): number;
 >setFullYear : (year: number, month?: number, date?: number) => number
 >year : number
->month : number
->date : number
+>month : number | undefined
+>date : number | undefined
 
     /**
       * Sets the year value in the Date object using Universal Coordinated Time (UTC).
@@ -1146,8 +1146,8 @@ interface Date {
     setUTCFullYear(year: number, month?: number, date?: number): number;
 >setUTCFullYear : (year: number, month?: number, date?: number) => number
 >year : number
->month : number
->date : number
+>month : number | undefined
+>date : number | undefined
 
     /** Returns a date converted to a string using Universal Coordinated Time (UTC). */
     toUTCString(): string;
@@ -1176,11 +1176,11 @@ declare var Date: {
     new (year: number, month: number, date?: number, hours?: number, minutes?: number, seconds?: number, ms?: number): Date;
 >year : number
 >month : number
->date : number
->hours : number
->minutes : number
->seconds : number
->ms : number
+>date : number | undefined
+>hours : number | undefined
+>minutes : number | undefined
+>seconds : number | undefined
+>ms : number | undefined
 
     (): string;
     prototype: Date;
@@ -1208,11 +1208,11 @@ declare var Date: {
 >UTC : (year: number, month: number, date?: number, hours?: number, minutes?: number, seconds?: number, ms?: number) => number
 >year : number
 >month : number
->date : number
->hours : number
->minutes : number
->seconds : number
->ms : number
+>date : number | undefined
+>hours : number | undefined
+>minutes : number | undefined
+>seconds : number | undefined
+>ms : number | undefined
 
     now(): number;
 >now : () => number
@@ -1243,7 +1243,7 @@ interface RegExpExecArray {
 
     join(separator?: string): string;
 >join : (separator?: string) => string
->separator : string
+>separator : string | undefined
 
     pop(): string;
 >pop : () => string
@@ -1260,12 +1260,12 @@ interface RegExpExecArray {
 
     slice(start?: number, end?: number): string[];
 >slice : (start?: number, end?: number) => string[]
->start : number
->end : number
+>start : number | undefined
+>end : number | undefined
 
     sort(compareFn?: (a: string, b: string) => number): string[];
->sort : (compareFn?: (a: string, b: string) => number) => string[]
->compareFn : (a: string, b: string) => number
+>sort : (compareFn?: ((a: string, b: string) => number) | undefined) => string[]
+>compareFn : ((a: string, b: string) => number) | undefined
 >a : string
 >b : string
 
@@ -1286,12 +1286,12 @@ interface RegExpExecArray {
     indexOf(searchElement: string, fromIndex?: number): number;
 >indexOf : (searchElement: string, fromIndex?: number) => number
 >searchElement : string
->fromIndex : number
+>fromIndex : number | undefined
 
     lastIndexOf(searchElement: string, fromIndex?: number): number;
 >lastIndexOf : (searchElement: string, fromIndex?: number) => number
 >searchElement : string
->fromIndex : number
+>fromIndex : number | undefined
 
     every(callbackfn: (value: string, index: number, array: string[]) => boolean, thisArg?: any): boolean;
 >every : (callbackfn: (value: string, index: number, array: string[]) => boolean, thisArg?: any) => boolean
@@ -1398,11 +1398,11 @@ declare var RegExp: {
 
     new (pattern: string, flags?: string): RegExp;
 >pattern : string
->flags : string
+>flags : string | undefined
 
     (pattern: string, flags?: string): RegExp;
 >pattern : string
->flags : string
+>flags : string | undefined
 
     // Non-standard extensions
     $1: string;
@@ -1447,10 +1447,10 @@ declare var Error: {
 >Error : { (message?: string): Error; new (message?: string): Error; prototype: Error; }
 
     new (message?: string): Error;
->message : string
+>message : string | undefined
 
     (message?: string): Error;
->message : string
+>message : string | undefined
 
     prototype: Error;
 >prototype : Error
@@ -1462,10 +1462,10 @@ declare var EvalError: {
 >EvalError : { (message?: string): EvalError; new (message?: string): EvalError; prototype: EvalError; }
 
     new (message?: string): EvalError;
->message : string
+>message : string | undefined
 
     (message?: string): EvalError;
->message : string
+>message : string | undefined
 
     prototype: EvalError;
 >prototype : EvalError
@@ -1477,10 +1477,10 @@ declare var RangeError: {
 >RangeError : { (message?: string): RangeError; new (message?: string): RangeError; prototype: RangeError; }
 
     new (message?: string): RangeError;
->message : string
+>message : string | undefined
 
     (message?: string): RangeError;
->message : string
+>message : string | undefined
 
     prototype: RangeError;
 >prototype : RangeError
@@ -1492,10 +1492,10 @@ declare var ReferenceError: {
 >ReferenceError : { (message?: string): ReferenceError; new (message?: string): ReferenceError; prototype: ReferenceError; }
 
     new (message?: string): ReferenceError;
->message : string
+>message : string | undefined
 
     (message?: string): ReferenceError;
->message : string
+>message : string | undefined
 
     prototype: ReferenceError;
 >prototype : ReferenceError
@@ -1507,10 +1507,10 @@ declare var SyntaxError: {
 >SyntaxError : { (message?: string): SyntaxError; new (message?: string): SyntaxError; prototype: SyntaxError; }
 
     new (message?: string): SyntaxError;
->message : string
+>message : string | undefined
 
     (message?: string): SyntaxError;
->message : string
+>message : string | undefined
 
     prototype: SyntaxError;
 >prototype : SyntaxError
@@ -1522,10 +1522,10 @@ declare var TypeError: {
 >TypeError : { (message?: string): TypeError; new (message?: string): TypeError; prototype: TypeError; }
 
     new (message?: string): TypeError;
->message : string
+>message : string | undefined
 
     (message?: string): TypeError;
->message : string
+>message : string | undefined
 
     prototype: TypeError;
 >prototype : TypeError
@@ -1537,10 +1537,10 @@ declare var URIError: {
 >URIError : { (message?: string): URIError; new (message?: string): URIError; prototype: URIError; }
 
     new (message?: string): URIError;
->message : string
+>message : string | undefined
 
     (message?: string): URIError;
->message : string
+>message : string | undefined
 
     prototype: URIError;
 >prototype : URIError
@@ -1554,9 +1554,9 @@ interface JSON {
       * If a member contains nested objects, the nested objects are transformed before the parent object is. 
       */
     parse(text: string, reviver?: (key: any, value: any) => any): any;
->parse : (text: string, reviver?: (key: any, value: any) => any) => any
+>parse : (text: string, reviver?: ((key: any, value: any) => any) | undefined) => any
 >text : string
->reviver : (key: any, value: any) => any
+>reviver : ((key: any, value: any) => any) | undefined
 >key : any
 >value : any
 
@@ -1659,7 +1659,7 @@ interface Array<T> {
       */
     join(separator?: string): string;
 >join : (separator?: string) => string
->separator : string
+>separator : string | undefined
 
     /**
       * Removes the last element from an array and returns it.
@@ -1694,16 +1694,16 @@ interface Array<T> {
       */
     slice(start?: number, end?: number): T[];
 >slice : (start?: number, end?: number) => T[]
->start : number
->end : number
+>start : number | undefined
+>end : number | undefined
 
     /**
       * Sorts an array.
       * @param compareFn The name of the function used to determine the order of the elements. If omitted, the elements are sorted in ascending, ASCII character order.
       */
     sort(compareFn?: (a: T, b: T) => number): T[];
->sort : (compareFn?: (a: T, b: T) => number) => T[]
->compareFn : (a: T, b: T) => number
+>sort : (compareFn?: ((a: T, b: T) => number) | undefined) => T[]
+>compareFn : ((a: T, b: T) => number) | undefined
 >a : T
 >b : T
 
@@ -1743,7 +1743,7 @@ interface Array<T> {
     indexOf(searchElement: T, fromIndex?: number): number;
 >indexOf : (searchElement: T, fromIndex?: number) => number
 >searchElement : T
->fromIndex : number
+>fromIndex : number | undefined
 
     /**
       * Returns the index of the last occurrence of a specified value in an array.
@@ -1753,7 +1753,7 @@ interface Array<T> {
     lastIndexOf(searchElement: T, fromIndex?: number): number;
 >lastIndexOf : (searchElement: T, fromIndex?: number) => number
 >searchElement : T
->fromIndex : number
+>fromIndex : number | undefined
 
     /**
       * Determines whether all the members of an array satisfy the specified test.
@@ -1832,7 +1832,7 @@ interface Array<T> {
 >currentValue : T
 >currentIndex : number
 >array : T[]
->initialValue : T
+>initialValue : T | undefined
 
     /**
       * Calls the specified callback function for all the elements in an array. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
@@ -1840,7 +1840,7 @@ interface Array<T> {
       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
       */
     reduce<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
->reduce : { (callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue?: T): T; <U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U; }
+>reduce : { (callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue?: T | undefined): T; <U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U; }
 >callbackfn : (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U
 >previousValue : U
 >currentValue : T
@@ -1860,7 +1860,7 @@ interface Array<T> {
 >currentValue : T
 >currentIndex : number
 >array : T[]
->initialValue : T
+>initialValue : T | undefined
 
     /** 
       * Calls the specified callback function for all the elements in an array, in descending order. The return value of the callback function is the accumulated result, and is provided as an argument in the next call to the callback function.
@@ -1868,7 +1868,7 @@ interface Array<T> {
       * @param initialValue If initialValue is specified, it is used as the initial value to start the accumulation. The first call to the callbackfn function provides this value as an argument instead of an array value.
       */
     reduceRight<U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U;
->reduceRight : { (callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue?: T): T; <U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U; }
+>reduceRight : { (callbackfn: (previousValue: T, currentValue: T, currentIndex: number, array: T[]) => T, initialValue?: T | undefined): T; <U>(callbackfn: (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U, initialValue: U): U; }
 >callbackfn : (previousValue: U, currentValue: T, currentIndex: number, array: T[]) => U
 >previousValue : U
 >currentValue : T
@@ -1889,7 +1889,7 @@ declare var Array: {
 >Array : { (arrayLength?: number): any[]; <T>(arrayLength: number): T[]; <T>(...items: T[]): T[]; new (arrayLength?: number): any[]; new <T>(arrayLength: number): T[]; new <T>(...items: T[]): T[]; isArray(arg: any): boolean; prototype: Array<any>; }
 
     new (arrayLength?: number): any[];
->arrayLength : number
+>arrayLength : number | undefined
 
     new <T>(arrayLength: number): T[];
 >arrayLength : number
@@ -1898,7 +1898,7 @@ declare var Array: {
 >items : T[]
 
     (arrayLength?: number): any[];
->arrayLength : number
+>arrayLength : number | undefined
 
     <T>(arrayLength: number): T[];
 >arrayLength : number

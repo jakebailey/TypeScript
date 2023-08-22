@@ -1,20 +1,41 @@
+assignmentCompatWithConstructSignatures6.ts(23,1): error TS2454: Variable 'x' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(23,7): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(24,5): error TS2454: Variable 'x' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(26,1): error TS2454: Variable 'x' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(26,8): error TS2454: Variable 'b2' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(27,6): error TS2454: Variable 'x' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(29,1): error TS2454: Variable 'x' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(29,8): error TS2454: Variable 'b3' is used before being assigned.
 assignmentCompatWithConstructSignatures6.ts(30,1): error TS2322: Type 'new <T>(x: T) => void' is not assignable to type 'new <T>(x: T) => T'.
   Type 'void' is not assignable to type 'T'.
     'T' could be instantiated with an arbitrary type which could be unrelated to 'void'.
+assignmentCompatWithConstructSignatures6.ts(30,6): error TS2454: Variable 'x' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(32,1): error TS2454: Variable 'x' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(32,8): error TS2454: Variable 'b4' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(33,6): error TS2454: Variable 'x' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(35,1): error TS2454: Variable 'x' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(35,8): error TS2454: Variable 'b5' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(36,6): error TS2454: Variable 'x' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(38,1): error TS2454: Variable 'x' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(38,9): error TS2454: Variable 'b11' is used before being assigned.
 assignmentCompatWithConstructSignatures6.ts(39,1): error TS2322: Type 'new <T>(x: { foo: T; }, y: { foo: T; bar: T; }) => Base' is not assignable to type 'new <T, U>(x: { foo: T; }, y: { foo: U; bar: U; }) => Base'.
   Types of parameters 'y' and 'y' are incompatible.
     Type '{ foo: U; bar: U; }' is not assignable to type '{ foo: T; bar: T; }'.
       Types of property 'foo' are incompatible.
         Type 'U' is not assignable to type 'T'.
           'T' could be instantiated with an arbitrary type which could be unrelated to 'U'.
+assignmentCompatWithConstructSignatures6.ts(39,7): error TS2454: Variable 'x' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(41,1): error TS2454: Variable 'x' is used before being assigned.
+assignmentCompatWithConstructSignatures6.ts(41,9): error TS2454: Variable 'b16' is used before being assigned.
 assignmentCompatWithConstructSignatures6.ts(42,1): error TS2322: Type 'new <T extends Base>(x: { a: T; b: T; }) => T[]' is not assignable to type 'new <T>(x: { a: T; b: T; }) => T[]'.
   Types of parameters 'x' and 'x' are incompatible.
     Type '{ a: T; b: T; }' is not assignable to type '{ a: Base; b: Base; }'.
       Types of property 'a' are incompatible.
         Type 'T' is not assignable to type 'Base'.
+assignmentCompatWithConstructSignatures6.ts(42,7): error TS2454: Variable 'x' is used before being assigned.
 
 
-==== assignmentCompatWithConstructSignatures6.ts (3 errors) ====
+==== assignmentCompatWithConstructSignatures6.ts (24 errors) ====
     // checking assignment compatibility relations for function types. All valid.
     
     class Base { foo: string; }
@@ -38,25 +59,59 @@ assignmentCompatWithConstructSignatures6.ts(42,1): error TS2322: Type 'new <T ex
     
     var b: new <T>(x: T) => T[]; 
     x.a = b;
+    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+          ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     b = x.a;
+        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
     var b2: new <T>(x: T) => string[]; 
     x.a2 = b2;
+    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+           ~~
+!!! error TS2454: Variable 'b2' is used before being assigned.
     b2 = x.a2;
+         ~
+!!! error TS2454: Variable 'x' is used before being assigned.
     var b3: new <T>(x: T) => T;
     x.a3 = b3;
+    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+           ~~
+!!! error TS2454: Variable 'b3' is used before being assigned.
     b3 = x.a3;
     ~~
 !!! error TS2322: Type 'new <T>(x: T) => void' is not assignable to type 'new <T>(x: T) => T'.
 !!! error TS2322:   Type 'void' is not assignable to type 'T'.
 !!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'void'.
+         ~
+!!! error TS2454: Variable 'x' is used before being assigned.
     var b4: new <T, U>(x: T, y: U) => string; 
     x.a4 = b4;
+    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+           ~~
+!!! error TS2454: Variable 'b4' is used before being assigned.
     b4 = x.a4;
+         ~
+!!! error TS2454: Variable 'x' is used before being assigned.
     var b5: new <T, U>(x: (arg: T) => U) => T; 
     x.a5 = b5;
+    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+           ~~
+!!! error TS2454: Variable 'b5' is used before being assigned.
     b5 = x.a5;
+         ~
+!!! error TS2454: Variable 'x' is used before being assigned.
     var b11: new <T, U>(x: { foo: T }, y: { foo: U; bar: U }) => Base; 
     x.a11 = b11;
+    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+            ~~~
+!!! error TS2454: Variable 'b11' is used before being assigned.
     b11 = x.a11;
     ~~~
 !!! error TS2322: Type 'new <T>(x: { foo: T; }, y: { foo: T; bar: T; }) => Base' is not assignable to type 'new <T, U>(x: { foo: T; }, y: { foo: U; bar: U; }) => Base'.
@@ -66,8 +121,14 @@ assignmentCompatWithConstructSignatures6.ts(42,1): error TS2322: Type 'new <T ex
 !!! error TS2322:         Type 'U' is not assignable to type 'T'.
 !!! error TS2322:           'T' could be instantiated with an arbitrary type which could be unrelated to 'U'.
 !!! related TS2208 assignmentCompatWithConstructSignatures6.ts:37:18: This type parameter might need an `extends T` constraint.
+          ~
+!!! error TS2454: Variable 'x' is used before being assigned.
     var b16: new <T>(x: { a: T; b: T }) => T[]; 
     x.a16 = b16;
+    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+            ~~~
+!!! error TS2454: Variable 'b16' is used before being assigned.
     b16 = x.a16;
     ~~~
 !!! error TS2322: Type 'new <T extends Base>(x: { a: T; b: T; }) => T[]' is not assignable to type 'new <T>(x: { a: T; b: T; }) => T[]'.
@@ -76,3 +137,5 @@ assignmentCompatWithConstructSignatures6.ts(42,1): error TS2322: Type 'new <T ex
 !!! error TS2322:       Types of property 'a' are incompatible.
 !!! error TS2322:         Type 'T' is not assignable to type 'Base'.
 !!! related TS2208 assignmentCompatWithConstructSignatures6.ts:40:15: This type parameter might need an `extends Base` constraint.
+          ~
+!!! error TS2454: Variable 'x' is used before being assigned.

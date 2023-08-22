@@ -13,12 +13,12 @@ type U3 = | new () => number
 
 type U4 = | new (foo?: number) => void;
 >U4 : new (foo?: number) => void
->foo : number
+>foo : number | undefined
 
 type U5 = string | new (number: number, foo?: string) => void | number;
 >U5 : string | (new (number: number, foo?: string) => void | number)
 >number : number
->foo : string
+>foo : string | undefined
 
 type U6 =
 >U6 : string | (new (...args: any[]) => void | number)

@@ -9,9 +9,13 @@ decrementOperatorWithNumberTypeInvalidOperations.ts(28,23): error TS2356: An ari
 decrementOperatorWithNumberTypeInvalidOperations.ts(31,25): error TS2357: The operand of an increment or decrement operator must be a variable or a property access.
 decrementOperatorWithNumberTypeInvalidOperations.ts(32,26): error TS2357: The operand of an increment or decrement operator must be a variable or a property access.
 decrementOperatorWithNumberTypeInvalidOperations.ts(33,26): error TS2357: The operand of an increment or decrement operator must be a variable or a property access.
+decrementOperatorWithNumberTypeInvalidOperations.ts(33,27): error TS2454: Variable 'NUMBER' is used before being assigned.
+decrementOperatorWithNumberTypeInvalidOperations.ts(33,36): error TS2454: Variable 'NUMBER' is used before being assigned.
 decrementOperatorWithNumberTypeInvalidOperations.ts(35,24): error TS2357: The operand of an increment or decrement operator must be a variable or a property access.
 decrementOperatorWithNumberTypeInvalidOperations.ts(36,24): error TS2357: The operand of an increment or decrement operator must be a variable or a property access.
 decrementOperatorWithNumberTypeInvalidOperations.ts(37,24): error TS2357: The operand of an increment or decrement operator must be a variable or a property access.
+decrementOperatorWithNumberTypeInvalidOperations.ts(37,25): error TS2454: Variable 'NUMBER' is used before being assigned.
+decrementOperatorWithNumberTypeInvalidOperations.ts(37,34): error TS2454: Variable 'NUMBER' is used before being assigned.
 decrementOperatorWithNumberTypeInvalidOperations.ts(40,3): error TS2357: The operand of an increment or decrement operator must be a variable or a property access.
 decrementOperatorWithNumberTypeInvalidOperations.ts(41,3): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 decrementOperatorWithNumberTypeInvalidOperations.ts(42,3): error TS2357: The operand of an increment or decrement operator must be a variable or a property access.
@@ -20,7 +24,7 @@ decrementOperatorWithNumberTypeInvalidOperations.ts(45,1): error TS2356: An arit
 decrementOperatorWithNumberTypeInvalidOperations.ts(46,1): error TS2357: The operand of an increment or decrement operator must be a variable or a property access.
 
 
-==== decrementOperatorWithNumberTypeInvalidOperations.ts (20 errors) ====
+==== decrementOperatorWithNumberTypeInvalidOperations.ts (24 errors) ====
     // -- operator on number type
     var NUMBER: number;
     var NUMBER1: number[] = [1, 2];
@@ -76,6 +80,10 @@ decrementOperatorWithNumberTypeInvalidOperations.ts(46,1): error TS2357: The ope
     var ResultIsNumber11 = --(NUMBER + NUMBER);
                              ~~~~~~~~~~~~~~~~~
 !!! error TS2357: The operand of an increment or decrement operator must be a variable or a property access.
+                              ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
+                                       ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     
     var ResultIsNumber12 = foo()--;
                            ~~~~~
@@ -86,6 +94,10 @@ decrementOperatorWithNumberTypeInvalidOperations.ts(46,1): error TS2357: The ope
     var ResultIsNumber14 = (NUMBER + NUMBER)--;
                            ~~~~~~~~~~~~~~~~~
 !!! error TS2357: The operand of an increment or decrement operator must be a variable or a property access.
+                            ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
+                                     ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     
     // miss assignment operator
     --1;

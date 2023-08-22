@@ -63,11 +63,11 @@ function positiveClassesTest(x: A | B) {
 
 class AWithOptionalProp { a?: string; }
 >AWithOptionalProp : AWithOptionalProp
->a : string
+>a : string | undefined
 
 class BWithOptionalProp { b?: string; }
 >BWithOptionalProp : BWithOptionalProp
->b : string
+>b : string | undefined
 
 function positiveTestClassesWithOptionalProperties(x: AWithOptionalProp | BWithOptionalProp) {
 >positiveTestClassesWithOptionalProperties : (x: AWithOptionalProp | BWithOptionalProp) => void
@@ -80,9 +80,9 @@ function positiveTestClassesWithOptionalProperties(x: AWithOptionalProp | BWithO
 
         x.a = "1";
 >x.a = "1" : "1"
->x.a : string
+>x.a : string | undefined
 >x : AWithOptionalProp
->a : string
+>a : string | undefined
 >"1" : "1"
 
     } else {
@@ -442,15 +442,15 @@ function negativeIntersectionTest() {
 >window : Window & typeof globalThis
 
         window.ontouchstart
->window.ontouchstart : ((this: GlobalEventHandlers, ev: TouchEvent) => any) & ((this: Window, ev: TouchEvent) => any)
+>window.ontouchstart : (((this: GlobalEventHandlers, ev: TouchEvent) => any) & ((this: Window, ev: TouchEvent) => any)) | null | undefined
 >window : Window & typeof globalThis
->ontouchstart : ((this: GlobalEventHandlers, ev: TouchEvent) => any) & ((this: Window, ev: TouchEvent) => any)
+>ontouchstart : (((this: GlobalEventHandlers, ev: TouchEvent) => any) & ((this: Window, ev: TouchEvent) => any)) | null | undefined
 
     } else {
         window.ontouchstart
->window.ontouchstart : ((this: GlobalEventHandlers, ev: TouchEvent) => any) & ((this: Window, ev: TouchEvent) => any)
+>window.ontouchstart : (((this: GlobalEventHandlers, ev: TouchEvent) => any) & ((this: Window, ev: TouchEvent) => any)) | null | undefined
 >window : Window & typeof globalThis
->ontouchstart : ((this: GlobalEventHandlers, ev: TouchEvent) => any) & ((this: Window, ev: TouchEvent) => any)
+>ontouchstart : (((this: GlobalEventHandlers, ev: TouchEvent) => any) & ((this: Window, ev: TouchEvent) => any)) | null | undefined
     }
 }
 
@@ -469,11 +469,11 @@ function f1(x: unknown) {
 >a : unknown
     }
     if (x && "a" in x) {
->x && "a" in x : boolean
+>x && "a" in x : unknown
 >x : unknown
 >"a" in x : boolean
 >"a" : "a"
->x : unknown
+>x : {}
 
         x.a;
 >x.a : unknown
@@ -481,12 +481,12 @@ function f1(x: unknown) {
 >a : unknown
     }
     if (x && typeof x === "object" && "a" in x) {
->x && typeof x === "object" && "a" in x : boolean
->x && typeof x === "object" : boolean
+>x && typeof x === "object" && "a" in x : unknown
+>x && typeof x === "object" : unknown
 >x : unknown
 >typeof x === "object" : boolean
 >typeof x : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
->x : unknown
+>x : {}
 >"object" : "object"
 >"a" in x : boolean
 >"a" : "a"
@@ -498,14 +498,14 @@ function f1(x: unknown) {
 >a : unknown
     }
     if (x && typeof x === "object" && "a" in x && "b" in x && "c" in x) {
->x && typeof x === "object" && "a" in x && "b" in x && "c" in x : boolean
->x && typeof x === "object" && "a" in x && "b" in x : boolean
->x && typeof x === "object" && "a" in x : boolean
->x && typeof x === "object" : boolean
+>x && typeof x === "object" && "a" in x && "b" in x && "c" in x : unknown
+>x && typeof x === "object" && "a" in x && "b" in x : unknown
+>x && typeof x === "object" && "a" in x : unknown
+>x && typeof x === "object" : unknown
 >x : unknown
 >typeof x === "object" : boolean
 >typeof x : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
->x : unknown
+>x : {}
 >"object" : "object"
 >"a" in x : boolean
 >"a" : "a"
@@ -597,7 +597,7 @@ function f3<T>(x: T) {
 >x : T
 >"a" in x : boolean
 >"a" : "a"
->x : T
+>x : NonNullable<T>
 
         x.a;
 >x.a : unknown
@@ -610,7 +610,7 @@ function f3<T>(x: T) {
 >x : T
 >typeof x === "object" : boolean
 >typeof x : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
->x : T
+>x : NonNullable<T>
 >"object" : "object"
 >"a" in x : boolean
 >"a" : "a"
@@ -629,7 +629,7 @@ function f3<T>(x: T) {
 >x : T
 >typeof x === "object" : boolean
 >typeof x : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
->x : T
+>x : NonNullable<T>
 >"object" : "object"
 >"a" in x : boolean
 >"a" : "a"
@@ -948,35 +948,35 @@ function f12(x: { a: string }) {
 
 function f13(x: { a?: string }) {
 >f13 : (x: {    a?: string;}) => void
->x : { a?: string; }
->a : string
+>x : { a?: string | undefined; }
+>a : string | undefined
 
     if ("a" in x) {
 >"a" in x : boolean
 >"a" : "a"
->x : { a?: string; }
+>x : { a?: string | undefined; }
 
         x;
->x : { a?: string; }
+>x : { a?: string | undefined; }
     }
     else {
         x;
->x : { a?: string; }
+>x : { a?: string | undefined; }
     }
 }
 
 function f14(x: { a: string | undefined }) {
 >f14 : (x: {    a: string | undefined;}) => void
 >x : { a: string | undefined; }
->a : string
+>a : string | undefined
 
     if ("a" in x) {
 >"a" in x : boolean
 >"a" : "a"
->x : { a: string; }
+>x : { a: string | undefined; }
 
         x;
->x : { a: string; }
+>x : { a: string | undefined; }
     }
     else {
         x;
@@ -987,19 +987,19 @@ function f14(x: { a: string | undefined }) {
 function f15(x: { a?: string | undefined }) {
 >f15 : (x: {    a?: string | undefined;}) => void
 >x : { a?: string | undefined; }
->a : string
+>a : string | undefined
 
     if ("a" in x) {
 >"a" in x : boolean
 >"a" : "a"
->x : { a?: string; }
+>x : { a?: string | undefined; }
 
         x;
->x : { a?: string; }
+>x : { a?: string | undefined; }
     }
     else {
         x;
->x : { a?: string; }
+>x : { a?: string | undefined; }
     }
 }
 
@@ -1030,7 +1030,7 @@ function foo<A>(value: A) {
 >value : A
 >"object" : "object"
 >value !== null : boolean
->value : A & object
+>value : (A & object) | (A & null)
 >"prop" in value : boolean
 >"prop" : "prop"
 >value : A & object
@@ -1060,7 +1060,7 @@ const checkIsTouchDevice = () =>
 // Repro from #51501
 
 function isHTMLTable<T extends object | null>(table: T): boolean {
->isHTMLTable : <T extends object>(table: T) => boolean
+>isHTMLTable : <T extends object | null>(table: T) => boolean
 >table : T
 
     return !!table && 'html' in table;
@@ -1070,7 +1070,7 @@ function isHTMLTable<T extends object | null>(table: T): boolean {
 >table : T
 >'html' in table : boolean
 >'html' : "html"
->table : T
+>table : NonNullable<T>
 }
 
 // Repro from #51549

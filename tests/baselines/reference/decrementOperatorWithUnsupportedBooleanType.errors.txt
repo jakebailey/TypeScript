@@ -1,5 +1,7 @@
 decrementOperatorWithUnsupportedBooleanType.ts(17,25): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+decrementOperatorWithUnsupportedBooleanType.ts(17,25): error TS2454: Variable 'BOOLEAN' is used before being assigned.
 decrementOperatorWithUnsupportedBooleanType.ts(19,23): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+decrementOperatorWithUnsupportedBooleanType.ts(19,23): error TS2454: Variable 'BOOLEAN' is used before being assigned.
 decrementOperatorWithUnsupportedBooleanType.ts(22,25): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 decrementOperatorWithUnsupportedBooleanType.ts(23,25): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 decrementOperatorWithUnsupportedBooleanType.ts(24,25): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
@@ -16,12 +18,14 @@ decrementOperatorWithUnsupportedBooleanType.ts(38,24): error TS2356: An arithmet
 decrementOperatorWithUnsupportedBooleanType.ts(39,24): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 decrementOperatorWithUnsupportedBooleanType.ts(42,3): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 decrementOperatorWithUnsupportedBooleanType.ts(43,3): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+decrementOperatorWithUnsupportedBooleanType.ts(43,3): error TS2454: Variable 'BOOLEAN' is used before being assigned.
 decrementOperatorWithUnsupportedBooleanType.ts(44,3): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 decrementOperatorWithUnsupportedBooleanType.ts(45,3): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 decrementOperatorWithUnsupportedBooleanType.ts(46,3): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 decrementOperatorWithUnsupportedBooleanType.ts(47,3): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 decrementOperatorWithUnsupportedBooleanType.ts(49,1): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 decrementOperatorWithUnsupportedBooleanType.ts(50,1): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+decrementOperatorWithUnsupportedBooleanType.ts(50,1): error TS2454: Variable 'BOOLEAN' is used before being assigned.
 decrementOperatorWithUnsupportedBooleanType.ts(51,1): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 decrementOperatorWithUnsupportedBooleanType.ts(52,1): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 decrementOperatorWithUnsupportedBooleanType.ts(53,1): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
@@ -29,7 +33,7 @@ decrementOperatorWithUnsupportedBooleanType.ts(54,1): error TS2356: An arithmeti
 decrementOperatorWithUnsupportedBooleanType.ts(54,11): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
 
 
-==== decrementOperatorWithUnsupportedBooleanType.ts (29 errors) ====
+==== decrementOperatorWithUnsupportedBooleanType.ts (33 errors) ====
     // -- operator on boolean type
     var BOOLEAN: boolean;
     
@@ -49,10 +53,14 @@ decrementOperatorWithUnsupportedBooleanType.ts(54,11): error TS2356: An arithmet
     var ResultIsNumber1 = --BOOLEAN;
                             ~~~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+                            ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
     
     var ResultIsNumber2 = BOOLEAN--;
                           ~~~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+                          ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
     
     // boolean type literal
     var ResultIsNumber3 = --true;
@@ -109,6 +117,8 @@ decrementOperatorWithUnsupportedBooleanType.ts(54,11): error TS2356: An arithmet
     --BOOLEAN;
       ~~~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+      ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
     --foo();
       ~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
@@ -128,6 +138,8 @@ decrementOperatorWithUnsupportedBooleanType.ts(54,11): error TS2356: An arithmet
     BOOLEAN--;
     ~~~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+    ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
     foo()--;
     ~~~~~
 !!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.

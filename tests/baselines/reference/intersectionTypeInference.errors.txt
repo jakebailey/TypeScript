@@ -1,16 +1,23 @@
+intersectionTypeInference.ts(3,12): error TS2454: Variable 'result' is used before being assigned.
+intersectionTypeInference.ts(4,12): error TS2454: Variable 'result' is used before being assigned.
 intersectionTypeInference.ts(5,5): error TS2322: Type 'T' is not assignable to type 'T & U'.
   Type 'T' is not assignable to type 'U'.
     'U' could be instantiated with an arbitrary type which could be unrelated to 'T'.
 intersectionTypeInference.ts(6,5): error TS2322: Type 'U' is not assignable to type 'T & U'.
   Type 'U' is not assignable to type 'T'.
     'T' could be instantiated with an arbitrary type which could be unrelated to 'U'.
+intersectionTypeInference.ts(23,5): error TS2322: Type 'undefined' is not assignable to type 'T | U'.
 
 
-==== intersectionTypeInference.ts (2 errors) ====
+==== intersectionTypeInference.ts (5 errors) ====
     function extend<T, U>(obj1: T, obj2: U): T & U {
         var result: T & U;
         obj1 = result;
+               ~~~~~~
+!!! error TS2454: Variable 'result' is used before being assigned.
         obj2 = result;
+               ~~~~~~
+!!! error TS2454: Variable 'result' is used before being assigned.
         result = obj1;  // Error
         ~~~~~~
 !!! error TS2322: Type 'T' is not assignable to type 'T & U'.
@@ -40,6 +47,8 @@ intersectionTypeInference.ts(6,5): error TS2322: Type 'U' is not assignable to t
     
     function foo<T, U>(obj: A<T> & B<U>): T | U {
         return undefined;
+        ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'T | U'.
     }
     
     var z = foo({ a: "hello", b: 42 });

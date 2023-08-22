@@ -57,9 +57,9 @@ const testIntlFormatToParts = new Intl.DateTimeFormat("en-US").formatToParts();
 >new Intl.DateTimeFormat("en-US").formatToParts() : any
 >new Intl.DateTimeFormat("en-US").formatToParts : any
 >new Intl.DateTimeFormat("en-US") : Intl.DateTimeFormat
->Intl.DateTimeFormat : { (locales?: string | string[], options?: Intl.DateTimeFormatOptions): Intl.DateTimeFormat; new (locales?: string | string[], options?: Intl.DateTimeFormatOptions): Intl.DateTimeFormat; supportedLocalesOf(locales: string | string[], options?: Intl.DateTimeFormatOptions): string[]; readonly prototype: Intl.DateTimeFormat; }
+>Intl.DateTimeFormat : { (locales?: string | string[] | undefined, options?: Intl.DateTimeFormatOptions | undefined): Intl.DateTimeFormat; new (locales?: string | string[] | undefined, options?: Intl.DateTimeFormatOptions | undefined): Intl.DateTimeFormat; supportedLocalesOf(locales: string | string[], options?: Intl.DateTimeFormatOptions | undefined): string[]; readonly prototype: Intl.DateTimeFormat; }
 >Intl : typeof Intl
->DateTimeFormat : { (locales?: string | string[], options?: Intl.DateTimeFormatOptions): Intl.DateTimeFormat; new (locales?: string | string[], options?: Intl.DateTimeFormatOptions): Intl.DateTimeFormat; supportedLocalesOf(locales: string | string[], options?: Intl.DateTimeFormatOptions): string[]; readonly prototype: Intl.DateTimeFormat; }
+>DateTimeFormat : { (locales?: string | string[] | undefined, options?: Intl.DateTimeFormatOptions | undefined): Intl.DateTimeFormat; new (locales?: string | string[] | undefined, options?: Intl.DateTimeFormatOptions | undefined): Intl.DateTimeFormat; supportedLocalesOf(locales: string | string[], options?: Intl.DateTimeFormatOptions | undefined): string[]; readonly prototype: Intl.DateTimeFormat; }
 >"en-US" : "en-US"
 >formatToParts : any
 
@@ -94,20 +94,20 @@ const testPromiseFinally = new Promise(() => {}).finally();
 const testRegExpMatchArrayGroups = "2019-04-30".match(/(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/g).groups;
 >testRegExpMatchArrayGroups : any
 >"2019-04-30".match(/(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/g).groups : any
->"2019-04-30".match(/(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/g) : RegExpMatchArray
->"2019-04-30".match : { (regexp: string | RegExp): RegExpMatchArray; (matcher: { [Symbol.match](string: string): RegExpMatchArray; }): RegExpMatchArray; }
+>"2019-04-30".match(/(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/g) : RegExpMatchArray | null
+>"2019-04-30".match : { (regexp: string | RegExp): RegExpMatchArray | null; (matcher: { [Symbol.match](string: string): RegExpMatchArray | null; }): RegExpMatchArray | null; }
 >"2019-04-30" : "2019-04-30"
->match : { (regexp: string | RegExp): RegExpMatchArray; (matcher: { [Symbol.match](string: string): RegExpMatchArray; }): RegExpMatchArray; }
+>match : { (regexp: string | RegExp): RegExpMatchArray | null; (matcher: { [Symbol.match](string: string): RegExpMatchArray | null; }): RegExpMatchArray | null; }
 >/(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/g : RegExp
 >groups : any
 
 const testRegExpExecArrayGroups = /(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/g.exec("2019-04-30").groups;
 >testRegExpExecArrayGroups : any
 >/(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/g.exec("2019-04-30").groups : any
->/(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/g.exec("2019-04-30") : RegExpExecArray
->/(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/g.exec : (string: string) => RegExpExecArray
+>/(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/g.exec("2019-04-30") : RegExpExecArray | null
+>/(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/g.exec : (string: string) => RegExpExecArray | null
 >/(?<year>[0-9]{4})-(?<month>[0-9]{2})-(?<day>[0-9]{2})/g : RegExp
->exec : (string: string) => RegExpExecArray
+>exec : (string: string) => RegExpExecArray | null
 >"2019-04-30" : "2019-04-30"
 >groups : any
 
@@ -150,9 +150,9 @@ const testNumberFormatFormatToParts = new Intl.NumberFormat("en-US").formatToPar
 >new Intl.NumberFormat("en-US").formatToParts() : any
 >new Intl.NumberFormat("en-US").formatToParts : any
 >new Intl.NumberFormat("en-US") : Intl.NumberFormat
->Intl.NumberFormat : { (locales?: string | string[], options?: Intl.NumberFormatOptions): Intl.NumberFormat; new (locales?: string | string[], options?: Intl.NumberFormatOptions): Intl.NumberFormat; supportedLocalesOf(locales: string | string[], options?: Intl.NumberFormatOptions): string[]; readonly prototype: Intl.NumberFormat; }
+>Intl.NumberFormat : { (locales?: string | string[] | undefined, options?: Intl.NumberFormatOptions | undefined): Intl.NumberFormat; new (locales?: string | string[] | undefined, options?: Intl.NumberFormatOptions | undefined): Intl.NumberFormat; supportedLocalesOf(locales: string | string[], options?: Intl.NumberFormatOptions | undefined): string[]; readonly prototype: Intl.NumberFormat; }
 >Intl : typeof Intl
->NumberFormat : { (locales?: string | string[], options?: Intl.NumberFormatOptions): Intl.NumberFormat; new (locales?: string | string[], options?: Intl.NumberFormatOptions): Intl.NumberFormat; supportedLocalesOf(locales: string | string[], options?: Intl.NumberFormatOptions): string[]; readonly prototype: Intl.NumberFormat; }
+>NumberFormat : { (locales?: string | string[] | undefined, options?: Intl.NumberFormatOptions | undefined): Intl.NumberFormat; new (locales?: string | string[] | undefined, options?: Intl.NumberFormatOptions | undefined): Intl.NumberFormat; supportedLocalesOf(locales: string | string[], options?: Intl.NumberFormatOptions | undefined): string[]; readonly prototype: Intl.NumberFormat; }
 >"en-US" : "en-US"
 >formatToParts : any
 
@@ -161,14 +161,14 @@ const testArrayFlat = [].flat();
 >testArrayFlat : any
 >[].flat() : any
 >[].flat : any
->[] : undefined[]
+>[] : never[]
 >flat : any
 
 const testArrayFlatMap = [].flatMap();
 >testArrayFlatMap : any
 >[].flatMap() : any
 >[].flatMap : any
->[] : undefined[]
+>[] : never[]
 >flatMap : any
 
 const testObjectConstructorFromEntries = Object.fromEntries({});
@@ -222,7 +222,7 @@ const testPromiseAllSettled = Promise.allSettled([]);
 >Promise.allSettled : any
 >Promise : PromiseConstructor
 >allSettled : any
->[] : undefined[]
+>[] : never[]
 
 const testStringMatchAll = "".matchAll();
 >testStringMatchAll : any
@@ -254,7 +254,7 @@ const testPromiseAny = Promise.any([]);
 >Promise.any : any
 >Promise : PromiseConstructor
 >any : any
->[] : undefined[]
+>[] : never[]
 
 const testStringReplaceAll = "".replaceAll();
 >testStringReplaceAll : any

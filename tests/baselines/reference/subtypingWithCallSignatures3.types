@@ -121,7 +121,7 @@ module Errors {
 >a : number
 
             (a?: number): number;
->a : number
+>a : number | undefined
 
         }): number[];
         (x: {
@@ -131,14 +131,14 @@ module Errors {
 >a : boolean
 
             (a?: boolean): boolean;
->a : boolean
+>a : boolean | undefined
 
         }): boolean[];
     }): typeof a2;
->a2 : { (x: { (a: number): number; (a?: number): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean): boolean; }): boolean[]; }
+>a2 : { (x: { (a: number): number; (a?: number | undefined): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean | undefined): boolean; }): boolean[]; }
 
     declare function foo16(a2: any): any;
->foo16 : { (a2: { (x: { (a: number): number; (a?: number): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean): boolean; }): boolean[]; }): { (x: { (a: number): number; (a?: number): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean): boolean; }): boolean[]; }; (a2: any): any; }
+>foo16 : { (a2: { (x: { (a: number): number; (a?: number | undefined): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean | undefined): boolean; }): boolean[]; }): { (x: { (a: number): number; (a?: number | undefined): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean | undefined): boolean; }): boolean[]; }; (a2: any): any; }
 >a2 : any
 
     declare function foo17(a2: {
@@ -446,7 +446,7 @@ module Errors {
     var r8 = foo16(r8arg); // any
 >r8 : any
 >foo16(r8arg) : any
->foo16 : { (a2: { (x: { (a: number): number; (a?: number): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean): boolean; }): boolean[]; }): { (x: { (a: number): number; (a?: number): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean): boolean; }): boolean[]; }; (a2: any): any; }
+>foo16 : { (a2: { (x: { (a: number): number; (a?: number | undefined): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean | undefined): boolean; }): boolean[]; }): { (x: { (a: number): number; (a?: number | undefined): number; }): number[]; (x: { (a: boolean): boolean; (a?: boolean | undefined): boolean; }): boolean[]; }; (a2: any): any; }
 >r8arg : <T>(x: (a: T) => T) => T[]
 
     var r9arg = <T>(x: (a: T) => T) => <any[]>null;

@@ -3,29 +3,29 @@
 === capturedLetConstInLoop6.ts ===
 // ====let
 for (let x of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
     (function() { return x});
->(function() { return x}) : () => any
->function() { return x} : () => any
->x : any
+>(function() { return x}) : () => never
+>function() { return x} : () => never
+>x : never
 
     (() => x);
->(() => x) : () => any
->() => x : () => any
->x : any
+>(() => x) : () => never
+>() => x : () => never
+>x : never
 
     if (x == 1) {
 >x == 1 : boolean
->x : any
+>x : never
 >1 : 1
 
         break;
     }
     if (x == 2) {
 >x == 2 : boolean
->x : any
+>x : never
 >2 : 2
 
         continue;
@@ -34,7 +34,7 @@ for (let x of []) {
 
 for (let x in []) {
 >x : string
->[] : undefined[]
+>[] : never[]
 
     (function() { return x});
 >(function() { return x}) : () => string
@@ -368,29 +368,29 @@ for (let y = 0; y < 1; ++y) {
 // ====const
 
 for (const x of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
     (function() { return x});
->(function() { return x}) : () => any
->function() { return x} : () => any
->x : any
+>(function() { return x}) : () => never
+>function() { return x} : () => never
+>x : never
 
     (() => x);
->(() => x) : () => any
->() => x : () => any
->x : any
+>(() => x) : () => never
+>() => x : () => never
+>x : never
 
     if (x == 1) {
 >x == 1 : boolean
->x : any
+>x : never
 >1 : 1
 
         break;
     }
     if (x == 2) {
 >x == 2 : boolean
->x : any
+>x : never
 >2 : 2
 
         continue;
@@ -399,7 +399,7 @@ for (const x of []) {
 
 for (const x in []) {
 >x : string
->[] : undefined[]
+>[] : never[]
 
     (function() { return x});
 >(function() { return x}) : () => string

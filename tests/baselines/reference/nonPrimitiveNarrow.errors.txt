@@ -1,9 +1,14 @@
+nonPrimitiveNarrow.ts(7,5): error TS2454: Variable 'a' is used before being assigned.
 nonPrimitiveNarrow.ts(9,5): error TS2322: Type 'number' is not assignable to type 'object'.
+nonPrimitiveNarrow.ts(12,12): error TS2454: Variable 'a' is used before being assigned.
 nonPrimitiveNarrow.ts(13,7): error TS2339: Property 'toFixed' does not exist on type 'never'.
-nonPrimitiveNarrow.ts(21,6): error TS2339: Property 'toString' does not exist on type 'never'.
+nonPrimitiveNarrow.ts(18,12): error TS2454: Variable 'b' is used before being assigned.
+nonPrimitiveNarrow.ts(19,4): error TS18047: 'b' is possibly 'null'.
+nonPrimitiveNarrow.ts(21,4): error TS2454: Variable 'b' is used before being assigned.
+nonPrimitiveNarrow.ts(21,4): error TS18047: 'b' is possibly 'null'.
 
 
-==== nonPrimitiveNarrow.ts (3 errors) ====
+==== nonPrimitiveNarrow.ts (8 errors) ====
     class Narrow {
         narrowed: boolean
     }
@@ -11,6 +16,8 @@ nonPrimitiveNarrow.ts(21,6): error TS2339: Property 'toString' does not exist on
     var a: object
     
     if (a instanceof Narrow) {
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
         a.narrowed; // ok
         a = 123; // error
         ~
@@ -18,6 +25,8 @@ nonPrimitiveNarrow.ts(21,6): error TS2339: Property 'toString' does not exist on
     }
     
     if (typeof a === 'number') {
+               ~
+!!! error TS2454: Variable 'a' is used before being assigned.
         a.toFixed(); // error, never
           ~~~~~~~
 !!! error TS2339: Property 'toFixed' does not exist on type 'never'.
@@ -26,10 +35,16 @@ nonPrimitiveNarrow.ts(21,6): error TS2339: Property 'toString' does not exist on
     var b: object | null
     
     if (typeof b === 'object') {
+               ~
+!!! error TS2454: Variable 'b' is used before being assigned.
        b.toString(); // ok, object | null
+       ~
+!!! error TS18047: 'b' is possibly 'null'.
     } else {
        b.toString(); // error, never
-         ~~~~~~~~
-!!! error TS2339: Property 'toString' does not exist on type 'never'.
+       ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+       ~
+!!! error TS18047: 'b' is possibly 'null'.
     }
     

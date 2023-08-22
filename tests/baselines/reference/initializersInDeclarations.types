@@ -23,8 +23,8 @@ declare class Foo {
 }
 
 declare var x = [];
->x : any[]
->[] : undefined[]
+>x : never[]
+>[] : never[]
 
 declare var y = {};
 >y : {}

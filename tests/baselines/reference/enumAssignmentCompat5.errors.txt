@@ -1,9 +1,13 @@
+enumAssignmentCompat5.ts(10,12): error TS2454: Variable 'n' is used before being assigned.
 enumAssignmentCompat5.ts(12,1): error TS2322: Type '4' is not assignable to type 'E'.
 enumAssignmentCompat5.ts(14,1): error TS2322: Type '2' is not assignable to type 'E.A'.
+enumAssignmentCompat5.ts(15,5): error TS2454: Variable 'n' is used before being assigned.
+enumAssignmentCompat5.ts(17,19): error TS2454: Variable 'n' is used before being assigned.
+enumAssignmentCompat5.ts(18,5): error TS2454: Variable 'n' is used before being assigned.
 enumAssignmentCompat5.ts(20,5): error TS2322: Type '1' is not assignable to type 'Computed.A'.
 
 
-==== enumAssignmentCompat5.ts (3 errors) ====
+==== enumAssignmentCompat5.ts (7 errors) ====
     enum E {
         A, B, C
     }
@@ -14,6 +18,8 @@ enumAssignmentCompat5.ts(20,5): error TS2322: Type '1' is not assignable to type
     }
     let n: number;
     let e: E = n; // ok because it's too inconvenient otherwise
+               ~
+!!! error TS2454: Variable 'n' is used before being assigned.
     e = 0; // ok, in range
     e = 4; // ok, out of range, but allowed computed enums don't have all members
     ~
@@ -23,9 +29,15 @@ enumAssignmentCompat5.ts(20,5): error TS2322: Type '1' is not assignable to type
     ~
 !!! error TS2322: Type '2' is not assignable to type 'E.A'.
     a = n; // ok
+        ~
+!!! error TS2454: Variable 'n' is used before being assigned.
     
     let c: Computed = n; // ok
+                      ~
+!!! error TS2454: Variable 'n' is used before being assigned.
     c = n; // ok
+        ~
+!!! error TS2454: Variable 'n' is used before being assigned.
     c = 4; // ok
     let ca: Computed.A = 1; // error, Computed.A isn't a literal type because Computed has no enum literals
         ~~

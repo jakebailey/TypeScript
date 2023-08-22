@@ -2,13 +2,14 @@ typeParameterArgumentEquivalence5.ts(4,5): error TS2322: Type '() => (item: any)
   Call signature return types '(item: any) => T' and '(item: any) => U' are incompatible.
     Type 'T' is not assignable to type 'U'.
       'U' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+typeParameterArgumentEquivalence5.ts(4,9): error TS2454: Variable 'y' is used before being assigned.
 typeParameterArgumentEquivalence5.ts(5,5): error TS2322: Type '() => (item: any) => U' is not assignable to type '() => (item: any) => T'.
   Call signature return types '(item: any) => U' and '(item: any) => T' are incompatible.
     Type 'U' is not assignable to type 'T'.
       'T' could be instantiated with an arbitrary type which could be unrelated to 'U'.
 
 
-==== typeParameterArgumentEquivalence5.ts (2 errors) ====
+==== typeParameterArgumentEquivalence5.ts (3 errors) ====
     function foo<T,U>() {
         var x: () => (item) => U;
         var y: () => (item) => T;
@@ -19,6 +20,8 @@ typeParameterArgumentEquivalence5.ts(5,5): error TS2322: Type '() => (item: any)
 !!! error TS2322:     Type 'T' is not assignable to type 'U'.
 !!! error TS2322:       'U' could be instantiated with an arbitrary type which could be unrelated to 'T'.
 !!! related TS2208 typeParameterArgumentEquivalence5.ts:1:14: This type parameter might need an `extends U` constraint.
+            ~
+!!! error TS2454: Variable 'y' is used before being assigned.
         y = x;  // Shound be an error
         ~
 !!! error TS2322: Type '() => (item: any) => U' is not assignable to type '() => (item: any) => T'.

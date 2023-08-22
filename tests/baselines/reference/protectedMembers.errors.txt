@@ -1,22 +1,29 @@
+protectedMembers.ts(40,1): error TS2454: Variable 'c1' is used before being assigned.
 protectedMembers.ts(40,4): error TS2445: Property 'x' is protected and only accessible within class 'C1' and its subclasses.
+protectedMembers.ts(41,1): error TS2454: Variable 'c1' is used before being assigned.
 protectedMembers.ts(41,4): error TS2445: Property 'f' is protected and only accessible within class 'C1' and its subclasses.
 protectedMembers.ts(42,4): error TS2445: Property 'sx' is protected and only accessible within class 'C1' and its subclasses.
 protectedMembers.ts(43,4): error TS2445: Property 'sf' is protected and only accessible within class 'C1' and its subclasses.
+protectedMembers.ts(46,1): error TS2454: Variable 'c2' is used before being assigned.
 protectedMembers.ts(46,4): error TS2445: Property 'x' is protected and only accessible within class 'C1' and its subclasses.
+protectedMembers.ts(47,1): error TS2454: Variable 'c2' is used before being assigned.
 protectedMembers.ts(47,4): error TS2445: Property 'f' is protected and only accessible within class 'C2' and its subclasses.
 protectedMembers.ts(48,4): error TS2445: Property 'sx' is protected and only accessible within class 'C1' and its subclasses.
 protectedMembers.ts(49,4): error TS2445: Property 'sf' is protected and only accessible within class 'C2' and its subclasses.
+protectedMembers.ts(52,1): error TS2454: Variable 'c3' is used before being assigned.
+protectedMembers.ts(53,1): error TS2454: Variable 'c3' is used before being assigned.
 protectedMembers.ts(68,11): error TS2446: Property 'x' is protected and only accessible through an instance of class 'C'. This is an instance of class 'A'.
 protectedMembers.ts(69,11): error TS2446: Property 'x' is protected and only accessible through an instance of class 'C'. This is an instance of class 'B'.
 protectedMembers.ts(97,1): error TS2322: Type 'B1' is not assignable to type 'A1'.
   Property 'x' is protected but type 'B1' is not a class derived from 'A1'.
+protectedMembers.ts(97,6): error TS2454: Variable 'b1' is used before being assigned.
 protectedMembers.ts(98,1): error TS2322: Type 'A1' is not assignable to type 'B1'.
   Property 'x' is protected in type 'A1' but public in type 'B1'.
 protectedMembers.ts(111,7): error TS2415: Class 'B3' incorrectly extends base class 'A3'.
   Property 'x' is protected in type 'B3' but public in type 'A3'.
 
 
-==== protectedMembers.ts (13 errors) ====
+==== protectedMembers.ts (20 errors) ====
     // Class with protected members
     class C1 {
         protected x: number;
@@ -57,9 +64,13 @@ protectedMembers.ts(111,7): error TS2415: Class 'B3' incorrectly extends base cl
     
     // All of these should be errors
     c1.x;
+    ~~
+!!! error TS2454: Variable 'c1' is used before being assigned.
        ~
 !!! error TS2445: Property 'x' is protected and only accessible within class 'C1' and its subclasses.
     c1.f();
+    ~~
+!!! error TS2454: Variable 'c1' is used before being assigned.
        ~
 !!! error TS2445: Property 'f' is protected and only accessible within class 'C1' and its subclasses.
     C1.sx;
@@ -71,9 +82,13 @@ protectedMembers.ts(111,7): error TS2415: Class 'B3' incorrectly extends base cl
     
     // All of these should be errors
     c2.x;
+    ~~
+!!! error TS2454: Variable 'c2' is used before being assigned.
        ~
 !!! error TS2445: Property 'x' is protected and only accessible within class 'C1' and its subclasses.
     c2.f();
+    ~~
+!!! error TS2454: Variable 'c2' is used before being assigned.
        ~
 !!! error TS2445: Property 'f' is protected and only accessible within class 'C2' and its subclasses.
     C2.sx;
@@ -85,7 +100,11 @@ protectedMembers.ts(111,7): error TS2415: Class 'B3' incorrectly extends base cl
     
     // All of these should be ok
     c3.x;
+    ~~
+!!! error TS2454: Variable 'c3' is used before being assigned.
     c3.f();
+    ~~
+!!! error TS2454: Variable 'c3' is used before being assigned.
     C3.sx;
     C3.sf();
     
@@ -137,6 +156,8 @@ protectedMembers.ts(111,7): error TS2415: Class 'B3' incorrectly extends base cl
     ~~
 !!! error TS2322: Type 'B1' is not assignable to type 'A1'.
 !!! error TS2322:   Property 'x' is protected but type 'B1' is not a class derived from 'A1'.
+         ~~
+!!! error TS2454: Variable 'b1' is used before being assigned.
     b1 = a1;  // Error, x is protected in A1 but public in B1
     ~~
 !!! error TS2322: Type 'A1' is not assignable to type 'B1'.

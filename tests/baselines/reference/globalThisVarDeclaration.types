@@ -48,12 +48,12 @@ window.b;
 
 top.a;
 >top.a : any
->top : Window
+>top : Window | null
 >a : any
 
 top.b;
 >top.b : any
->top : Window
+>top : Window | null
 >b : any
 
 === actual.ts ===
@@ -104,12 +104,12 @@ window.b;
 
 top.a;
 >top.a : any
->top : Window
+>top : Window | null
 >a : any
 
 top.b;
 >top.b : any
->top : Window
+>top : Window | null
 >b : any
 
 

@@ -45,9 +45,9 @@ module M {
 >F2 : (x: number) => string
 >x : number
 >x.toString() : string
->x.toString : (radix?: number) => string
+>x.toString : (radix?: number | undefined) => string
 >x : number
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
 }
 
 var aNumber = 9.9;
@@ -70,7 +70,7 @@ var anObject = new Object();
 >Object : ObjectConstructor
 
 var anAny = null;
->anAny : any
+>anAny : null
 
 var anOtherAny = <any> new C();
 >anOtherAny : any
@@ -79,7 +79,7 @@ var anOtherAny = <any> new C();
 >C : typeof C
 
 var anUndefined = undefined;
->anUndefined : any
+>anUndefined : undefined
 >undefined : undefined
 
 

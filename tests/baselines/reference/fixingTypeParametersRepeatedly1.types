@@ -10,10 +10,10 @@ declare function f<T>(x: T, y: (p: T) => T, z: (p: T) => T): T;
 >p : T
 
 f("", x => null, x => x.toLowerCase());
->f("", x => null, x => x.toLowerCase()) : string
+>f("", x => null, x => x.toLowerCase()) : ""
 >f : <T>(x: T, y: (p: T) => T, z: (p: T) => T) => T
 >"" : ""
->x => null : (x: string) => any
+>x => null : (x: string) => null
 >x : string
 >x => x.toLowerCase() : (x: string) => string
 >x : string
@@ -35,10 +35,10 @@ declare function g();
 >g : { <T>(x: T, y: (p: T) => T, z: (p: T) => T): T; (): any; }
 
 g("", x => null, x => x.toLowerCase());
->g("", x => null, x => x.toLowerCase()) : any
+>g("", x => null, x => x.toLowerCase()) : string | null
 >g : { <T>(x: T, y: (p: T) => T, z: (p: T) => T): T; (): any; }
 >"" : ""
->x => null : (x: string) => any
+>x => null : (x: string) => null
 >x : string
 >x => x.toLowerCase() : (x: string) => string
 >x : string

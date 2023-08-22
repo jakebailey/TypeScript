@@ -1,0 +1,25 @@
+unionTypeWithRecursiveSubtypeReduction1.ts(18,1): error TS2454: Variable 't' is used before being assigned.
+
+
+==== unionTypeWithRecursiveSubtypeReduction1.ts (1 errors) ====
+    class Module {
+        public members: Class[];
+    }
+    
+    class Namespace {
+        public members: (Class | Property)[];
+    }
+    
+    class Class {
+        public parent: Namespace;
+    }
+    
+    class Property {
+        public parent: Module | Class;
+    }
+    
+    var t: Class | Property;
+    t.parent;
+    ~
+!!! error TS2454: Variable 't' is used before being assigned.
+    

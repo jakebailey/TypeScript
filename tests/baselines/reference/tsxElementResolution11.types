@@ -23,7 +23,7 @@ var Obj1: Obj1type;
 interface Obj2type {
 	new(n: string): { q?: number };
 >n : string
->q : number
+>q : number | undefined
 }
 var Obj2: Obj2type;
 >Obj2 : Obj2type

@@ -1,14 +1,17 @@
 genericArrayAssignmentCompatErrors.ts(2,19): error TS2351: This expression is not constructable.
-  Type 'undefined[]' has no construct signatures.
+  Type 'never[]' has no construct signatures.
 genericArrayAssignmentCompatErrors.ts(4,14): error TS2314: Generic type 'Array<T>' requires 1 type argument(s).
+genericArrayAssignmentCompatErrors.ts(10,10): error TS2454: Variable 'myCars5' is used before being assigned.
+genericArrayAssignmentCompatErrors.ts(15,11): error TS2454: Variable 'myCars5' is used before being assigned.
+genericArrayAssignmentCompatErrors.ts(20,11): error TS2454: Variable 'myCars5' is used before being assigned.
 
 
-==== genericArrayAssignmentCompatErrors.ts (2 errors) ====
+==== genericArrayAssignmentCompatErrors.ts (5 errors) ====
     var myCars=new Array(); 
     var myCars2 = new [];
                       ~~
 !!! error TS2351: This expression is not constructable.
-!!! error TS2351:   Type 'undefined[]' has no construct signatures.
+!!! error TS2351:   Type 'never[]' has no construct signatures.
     var myCars3 = new Array({});
     var myCars4: Array; // error
                  ~~~~~
@@ -19,14 +22,20 @@ genericArrayAssignmentCompatErrors.ts(4,14): error TS2314: Generic type 'Array<T
     myCars = myCars3;
     myCars = myCars4;
     myCars = myCars5;
+             ~~~~~~~
+!!! error TS2454: Variable 'myCars5' is used before being assigned.
      
     myCars2 = myCars;
     myCars2 = myCars3;
     myCars2 = myCars4;
     myCars2 = myCars5;
+              ~~~~~~~
+!!! error TS2454: Variable 'myCars5' is used before being assigned.
      
     myCars3 = myCars;
     myCars3 = myCars2;
     myCars3 = myCars4;
     myCars3 = myCars5;   
+              ~~~~~~~
+!!! error TS2454: Variable 'myCars5' is used before being assigned.
     

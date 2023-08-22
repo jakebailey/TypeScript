@@ -46,10 +46,10 @@ var v3 = (s: string) => s.length || function (s: number) { return 1 };
 >1 : 1
 
 var v4 = (s: number) => 1 || function (s: string) { return s.length };
->v4 : (s: number) => 1 | ((s: string) => number)
->(s: number) => 1 || function (s: string) { return s.length } : (s: number) => 1 | ((s: string) => number)
+>v4 : (s: number) => number
+>(s: number) => 1 || function (s: string) { return s.length } : (s: number) => number
 >s : number
->1 || function (s: string) { return s.length } : 1 | ((s: string) => number)
+>1 || function (s: string) { return s.length } : 1
 >1 : 1
 >function (s: string) { return s.length } : (s: string) => number
 >s : string

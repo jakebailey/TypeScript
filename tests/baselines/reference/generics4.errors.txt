@@ -2,9 +2,10 @@ generics4.ts(7,1): error TS2322: Type 'C<Y>' is not assignable to type 'C<X>'.
   Type 'Y' is not assignable to type 'X'.
     The types returned by 'f()' are incompatible between these types.
       Type 'boolean' is not assignable to type 'string'.
+generics4.ts(7,5): error TS2454: Variable 'b' is used before being assigned.
 
 
-==== generics4.ts (1 errors) ====
+==== generics4.ts (2 errors) ====
     class C<T> { private x: T; }
     interface X { f(): string; }
     interface Y { f(): boolean; }
@@ -17,3 +18,5 @@ generics4.ts(7,1): error TS2322: Type 'C<Y>' is not assignable to type 'C<X>'.
 !!! error TS2322:   Type 'Y' is not assignable to type 'X'.
 !!! error TS2322:     The types returned by 'f()' are incompatible between these types.
 !!! error TS2322:       Type 'boolean' is not assignable to type 'string'.
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.

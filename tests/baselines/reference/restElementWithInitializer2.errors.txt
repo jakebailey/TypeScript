@@ -1,10 +1,13 @@
 restElementWithInitializer2.ts(3,7): error TS1186: A rest element cannot have an initializer.
+restElementWithInitializer2.ts(3,14): error TS2454: Variable 'a' is used before being assigned.
 
 
-==== restElementWithInitializer2.ts (1 errors) ====
+==== restElementWithInitializer2.ts (2 errors) ====
     var a: number[];
     var x: number[];
     [...x = a] = a;  // Error, rest element cannot have initializer
           ~
 !!! error TS1186: A rest element cannot have an initializer.
+                 ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     

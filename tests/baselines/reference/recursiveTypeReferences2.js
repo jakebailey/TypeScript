@@ -89,11 +89,11 @@ type Json = boolean | number | string | null | JsonRecord | readonly Json[] | re
  * <T>
  */
 type XMLObject<T> = {
-    $A: { [K in keyof T]?: XMLObject<T[K]>[]; };
-    $O: { [K_1 in keyof T]?: {
-        $$?: Record<string, string>;
+    $A: { [K in keyof T]?: XMLObject<T[K]>[] | undefined; };
+    $O: { [K_1 in keyof T]?: ({
+        $$?: Record<string, string> | undefined;
     } & (T[K_1] extends string ? {
         $: string;
-    } : XMLObject<T[K_1]>); };
-    $$?: Record<string, string>;
-} & { [K_2 in keyof T]?: T[K_2] extends string ? string : XMLObject<T[K_2]>; };
+    } : XMLObject<T[K_1]>)) | undefined; };
+    $$?: Record<string, string> | undefined;
+} & { [K_2 in keyof T]?: (T[K_2] extends string ? string : XMLObject<T[K_2]>) | undefined; };

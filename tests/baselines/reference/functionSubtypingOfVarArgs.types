@@ -5,8 +5,8 @@ class EventBase {
 >EventBase : EventBase
 
     private _listeners = [];
->_listeners : any[]
->[] : undefined[]
+>_listeners : never[]
+>[] : never[]
 
     add(listener: (...args: any[]) => void): void {
 >add : (listener: (...args: any[]) => void) => void
@@ -15,11 +15,11 @@ class EventBase {
 
         this._listeners.push(listener);
 >this._listeners.push(listener) : number
->this._listeners.push : (...items: any[]) => number
->this._listeners : any[]
+>this._listeners.push : (...items: never[]) => number
+>this._listeners : never[]
 >this : this
->_listeners : any[]
->push : (...items: any[]) => number
+>_listeners : never[]
+>push : (...items: never[]) => number
 >listener : (...args: any[]) => void
     }
 }

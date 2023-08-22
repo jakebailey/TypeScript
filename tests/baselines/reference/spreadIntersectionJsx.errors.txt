@@ -1,0 +1,12 @@
+spreadIntersectionJsx.tsx(5,25): error TS2454: Variable 'intersected' is used before being assigned.
+
+
+==== spreadIntersectionJsx.tsx (1 errors) ====
+    const React: any = null;
+    class A { a; }
+    class C { c; }
+    let intersected: A & C;
+    let element = <div { ...intersected } />;
+                            ~~~~~~~~~~~
+!!! error TS2454: Variable 'intersected' is used before being assigned.
+    

@@ -9,7 +9,7 @@ var myCars=new Array();
 var myCars2 = new [];
 >myCars2 : any
 >new [] : any
->[] : undefined[]
+>[] : never[]
 
 var myCars3 = new Array({});
 >myCars3 : {}[]

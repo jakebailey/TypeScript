@@ -1,11 +1,14 @@
+generatorTypeCheck20.ts(4,5): error TS2322: Type 'undefined' is not assignable to type 'Foo'.
 generatorTypeCheck20.ts(5,13): error TS2741: Property 'x' is missing in type 'Baz' but required in type 'Foo'.
 
 
-==== generatorTypeCheck20.ts (1 errors) ====
+==== generatorTypeCheck20.ts (2 errors) ====
     class Foo { x: number }
     class Baz { z: number }
     function* g(): IterableIterator<Foo> {
         yield;
+        ~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'Foo'.
         yield * [new Baz];
                 ~~~~~~~~~
 !!! error TS2741: Property 'x' is missing in type 'Baz' but required in type 'Foo'.

@@ -2,66 +2,66 @@
 
 === forIn.ts ===
 var arr = null;
->arr : any
+>arr : null
 
 for (var i:number in arr) { // error
 >i : string
->arr : any
+>arr : null
 
     var x1 = arr[i];
->x1 : any
->arr[i] : any
->arr : any
+>x1 : never
+>arr[i] : never
+>arr : never
 >i : string
 
     var y1 = arr[i];
->y1 : any
->arr[i] : any
->arr : any
+>y1 : never
+>arr[i] : never
+>arr : never
 >i : string
 }
 
 for (var j in arr) { // ok
 >j : string
->arr : any
+>arr : null
 
     var x2 = arr[j];
->x2 : any
->arr[j] : any
->arr : any
+>x2 : never
+>arr[j] : never
+>arr : never
 >j : string
 
     var y2 = arr[j];
->y2 : any
->arr[j] : any
->arr : any
+>y2 : never
+>arr[j] : never
+>arr : never
 >j : string
 }
 
 var arr2 = [];
->arr2 : any[]
->[] : undefined[]
+>arr2 : never[]
+>[] : never[]
 
 for (j in arr2) { // ok
 >j : string
->arr2 : any[]
+>arr2 : never[]
 
     var x3 = arr2[j];
->x3 : any
->arr2[j] : any
->arr2 : any[]
+>x3 : never
+>arr2[j] : never
+>arr2 : never[]
 >j : string
 
     var y3 = arr2[j];
->y3 : any
->arr2[j] : any
->arr2 : any[]
+>y3 : never
+>arr2[j] : never
+>arr2 : never[]
 >j : string
 }
 
 for (var l in arr) { 
 >l : string
->arr : any
+>arr : null
 
    // error in the body
    k[l] = 1;

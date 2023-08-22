@@ -1,10 +1,12 @@
 /a.js(3,4): error TS6133: 'V' is declared but its value is never read.
+/a.js(8,14): error TS2565: Property 'p' is used before being assigned.
 /a.js(13,4): error TS6205: All type parameters are unused.
 /a.js(20,16): error TS6133: 'V' is declared but its value is never read.
 /a.js(20,18): error TS6133: 'X' is declared but its value is never read.
+/a.js(25,14): error TS2565: Property 'p' is used before being assigned.
 
 
-==== /a.js (4 errors) ====
+==== /a.js (6 errors) ====
     /**
      * @template T
      * @template V
@@ -16,6 +18,8 @@
         constructor() {
             /** @type {T} */
             this.p;
+                 ~
+!!! error TS2565: Property 'p' is used before being assigned.
         }
     }
     
@@ -40,5 +44,7 @@
         constructor() {
             /** @type {T} */
             this.p;
+                 ~
+!!! error TS2565: Property 'p' is used before being assigned.
         }
     }

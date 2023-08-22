@@ -39,9 +39,9 @@ foo((y: string) => {
         var z = y2.toFixed(); // Should be string
 >z : string
 >y2.toFixed() : string
->y2.toFixed : (fractionDigits?: number) => string
+>y2.toFixed : (fractionDigits?: number | undefined) => string
 >y2 : number
->toFixed : (fractionDigits?: number) => string
+>toFixed : (fractionDigits?: number | undefined) => string
 
         return 0;
 >0 : 0

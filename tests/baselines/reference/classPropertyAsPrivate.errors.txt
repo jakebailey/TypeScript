@@ -1,14 +1,21 @@
+classPropertyAsPrivate.ts(15,1): error TS2454: Variable 'c' is used before being assigned.
 classPropertyAsPrivate.ts(15,3): error TS2341: Property 'x' is private and only accessible within class 'C'.
+classPropertyAsPrivate.ts(16,1): error TS2454: Variable 'c' is used before being assigned.
 classPropertyAsPrivate.ts(16,3): error TS2341: Property 'y' is private and only accessible within class 'C'.
+classPropertyAsPrivate.ts(17,1): error TS2454: Variable 'c' is used before being assigned.
+classPropertyAsPrivate.ts(17,1): error TS2322: Type '1' is not assignable to type 'null'.
 classPropertyAsPrivate.ts(17,3): error TS2341: Property 'y' is private and only accessible within class 'C'.
+classPropertyAsPrivate.ts(18,1): error TS2454: Variable 'c' is used before being assigned.
 classPropertyAsPrivate.ts(18,3): error TS2341: Property 'foo' is private and only accessible within class 'C'.
 classPropertyAsPrivate.ts(20,3): error TS2341: Property 'a' is private and only accessible within class 'C'.
+classPropertyAsPrivate.ts(21,1): error TS2721: Cannot invoke an object which is possibly 'null'.
 classPropertyAsPrivate.ts(21,3): error TS2341: Property 'b' is private and only accessible within class 'C'.
+classPropertyAsPrivate.ts(22,1): error TS2322: Type '1' is not assignable to type 'null'.
 classPropertyAsPrivate.ts(22,3): error TS2341: Property 'b' is private and only accessible within class 'C'.
 classPropertyAsPrivate.ts(23,3): error TS2341: Property 'foo' is private and only accessible within class 'C'.
 
 
-==== classPropertyAsPrivate.ts (8 errors) ====
+==== classPropertyAsPrivate.ts (15 errors) ====
     class C {
         private x: string;
         private get y() { return null; }
@@ -24,15 +31,25 @@ classPropertyAsPrivate.ts(23,3): error TS2341: Property 'foo' is private and onl
     var c: C;
     // all errors
     c.x;
+    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
       ~
 !!! error TS2341: Property 'x' is private and only accessible within class 'C'.
     c.y;
+    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
       ~
 !!! error TS2341: Property 'y' is private and only accessible within class 'C'.
     c.y = 1;
+    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    ~~~
+!!! error TS2322: Type '1' is not assignable to type 'null'.
       ~
 !!! error TS2341: Property 'y' is private and only accessible within class 'C'.
     c.foo();
+    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
       ~~~
 !!! error TS2341: Property 'foo' is private and only accessible within class 'C'.
     
@@ -40,9 +57,13 @@ classPropertyAsPrivate.ts(23,3): error TS2341: Property 'foo' is private and onl
       ~
 !!! error TS2341: Property 'a' is private and only accessible within class 'C'.
     C.b();
+    ~~~
+!!! error TS2721: Cannot invoke an object which is possibly 'null'.
       ~
 !!! error TS2341: Property 'b' is private and only accessible within class 'C'.
     C.b = 1;
+    ~~~
+!!! error TS2322: Type '1' is not assignable to type 'null'.
       ~
 !!! error TS2341: Property 'b' is private and only accessible within class 'C'.
     C.foo();

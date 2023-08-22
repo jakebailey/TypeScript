@@ -39,23 +39,23 @@ var objA = new A();
 
 // number type var
 var ResultIsAny1 = void NUMBER;
->ResultIsAny1 : any
+>ResultIsAny1 : undefined
 >void NUMBER : undefined
 >NUMBER : number
 
 var ResultIsAny2 = void NUMBER1;
->ResultIsAny2 : any
+>ResultIsAny2 : undefined
 >void NUMBER1 : undefined
 >NUMBER1 : number[]
 
 // number type literal
 var ResultIsAny3 = void 1;
->ResultIsAny3 : any
+>ResultIsAny3 : undefined
 >void 1 : undefined
 >1 : 1
 
 var ResultIsAny4 = void { x: 1, y: 2};
->ResultIsAny4 : any
+>ResultIsAny4 : undefined
 >void { x: 1, y: 2} : undefined
 >{ x: 1, y: 2} : { x: number; y: number; }
 >x : number
@@ -64,7 +64,7 @@ var ResultIsAny4 = void { x: 1, y: 2};
 >2 : 2
 
 var ResultIsAny5 = void { x: 1, y: (n: number) => { return n; } };
->ResultIsAny5 : any
+>ResultIsAny5 : undefined
 >void { x: 1, y: (n: number) => { return n; } } : undefined
 >{ x: 1, y: (n: number) => { return n; } } : { x: number; y: (n: number) => number; }
 >x : number
@@ -76,34 +76,34 @@ var ResultIsAny5 = void { x: 1, y: (n: number) => { return n; } };
 
 // number type expressions
 var ResultIsAny6 = void objA.a;
->ResultIsAny6 : any
+>ResultIsAny6 : undefined
 >void objA.a : undefined
 >objA.a : number
 >objA : A
 >a : number
 
 var ResultIsAny7 = void M.n;
->ResultIsAny7 : any
+>ResultIsAny7 : undefined
 >void M.n : undefined
 >M.n : number
 >M : typeof M
 >n : number
 
 var ResultIsAny8 = void NUMBER1[0];
->ResultIsAny8 : any
+>ResultIsAny8 : undefined
 >void NUMBER1[0] : undefined
 >NUMBER1[0] : number
 >NUMBER1 : number[]
 >0 : 0
 
 var ResultIsAny9 = void foo();
->ResultIsAny9 : any
+>ResultIsAny9 : undefined
 >void foo() : undefined
 >foo() : number
 >foo : () => number
 
 var ResultIsAny10 = void A.foo();
->ResultIsAny10 : any
+>ResultIsAny10 : undefined
 >void A.foo() : undefined
 >A.foo() : number
 >A.foo : () => number
@@ -111,7 +111,7 @@ var ResultIsAny10 = void A.foo();
 >foo : () => number
 
 var ResultIsAny11 = void (NUMBER + NUMBER);
->ResultIsAny11 : any
+>ResultIsAny11 : undefined
 >void (NUMBER + NUMBER) : undefined
 >(NUMBER + NUMBER) : number
 >NUMBER + NUMBER : number
@@ -120,13 +120,13 @@ var ResultIsAny11 = void (NUMBER + NUMBER);
 
 // multiple void  operators
 var ResultIsAny12 = void void NUMBER;
->ResultIsAny12 : any
+>ResultIsAny12 : undefined
 >void void NUMBER : undefined
 >void NUMBER : undefined
 >NUMBER : number
 
 var ResultIsAny13 = void void void (NUMBER + NUMBER);
->ResultIsAny13 : any
+>ResultIsAny13 : undefined
 >void void void (NUMBER + NUMBER) : undefined
 >void void (NUMBER + NUMBER) : undefined
 >void (NUMBER + NUMBER) : undefined

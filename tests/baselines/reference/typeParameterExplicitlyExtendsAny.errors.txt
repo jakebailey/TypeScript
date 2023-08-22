@@ -1,28 +1,46 @@
+typeParameterExplicitlyExtendsAny.ts(3,5): error TS2454: Variable 't' is used before being assigned.
 typeParameterExplicitlyExtendsAny.ts(3,7): error TS2339: Property 'blah' does not exist on type 'T'.
+typeParameterExplicitlyExtendsAny.ts(4,5): error TS2454: Variable 't' is used before being assigned.
+typeParameterExplicitlyExtendsAny.ts(4,7): error TS2339: Property 'toString' does not exist on type 'T'.
+typeParameterExplicitlyExtendsAny.ts(9,5): error TS2454: Variable 't' is used before being assigned.
 typeParameterExplicitlyExtendsAny.ts(9,7): error TS2339: Property 'blah' does not exist on type 'T'.
+typeParameterExplicitlyExtendsAny.ts(10,5): error TS2454: Variable 't' is used before being assigned.
+typeParameterExplicitlyExtendsAny.ts(10,7): error TS2339: Property 'toString' does not exist on type 'T'.
 typeParameterExplicitlyExtendsAny.ts(14,7): error TS2339: Property 'children' does not exist on type 'T'.
 typeParameterExplicitlyExtendsAny.ts(15,5): error TS2349: This expression is not callable.
-  Type '{}' has no call signatures.
+  Type 'unknown' has no call signatures.
 typeParameterExplicitlyExtendsAny.ts(16,9): error TS2351: This expression is not constructable.
-  Type '{}' has no construct signatures.
+  Type 'unknown' has no construct signatures.
 typeParameterExplicitlyExtendsAny.ts(30,14): error TS2339: Property 'children' does not exist on type 'T'.
 
 
-==== typeParameterExplicitlyExtendsAny.ts (6 errors) ====
+==== typeParameterExplicitlyExtendsAny.ts (12 errors) ====
     function fee<T>() {
         var t: T;
         t.blah; // Error
+        ~
+!!! error TS2454: Variable 't' is used before being assigned.
           ~~~~
 !!! error TS2339: Property 'blah' does not exist on type 'T'.
         t.toString; // ok
+        ~
+!!! error TS2454: Variable 't' is used before being assigned.
+          ~~~~~~~~
+!!! error TS2339: Property 'toString' does not exist on type 'T'.
     }
     
     function fee2<T extends any>() {
         var t: T;
         t.blah; // ok
+        ~
+!!! error TS2454: Variable 't' is used before being assigned.
           ~~~~
 !!! error TS2339: Property 'blah' does not exist on type 'T'.
         t.toString; // ok
+        ~
+!!! error TS2454: Variable 't' is used before being assigned.
+          ~~~~~~~~
+!!! error TS2339: Property 'toString' does not exist on type 'T'.
     }
     
     function f<T extends any>(x: T) {
@@ -32,11 +50,11 @@ typeParameterExplicitlyExtendsAny.ts(30,14): error TS2339: Property 'children' d
         x();
         ~
 !!! error TS2349: This expression is not callable.
-!!! error TS2349:   Type '{}' has no call signatures.
+!!! error TS2349:   Type 'unknown' has no call signatures.
         new x();
             ~
 !!! error TS2351: This expression is not constructable.
-!!! error TS2351:   Type '{}' has no construct signatures.
+!!! error TS2351:   Type 'unknown' has no construct signatures.
         x[100];
         x['hello'];
     }

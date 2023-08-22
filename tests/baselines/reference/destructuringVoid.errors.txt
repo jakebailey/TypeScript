@@ -1,0 +1,9 @@
+destructuringVoid.ts(2,7): error TS2532: Object is possibly 'undefined'.
+
+
+==== destructuringVoid.ts (1 errors) ====
+    declare const v: void;
+    const {} = v;
+          ~~
+!!! error TS2532: Object is possibly 'undefined'.
+    

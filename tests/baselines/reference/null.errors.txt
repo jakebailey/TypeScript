@@ -1,12 +1,15 @@
-null.ts(3,7): error TS2365: Operator '+' cannot be applied to types '3' and 'null'.
+null.ts(2,9): error TS18047: 'x' is possibly 'null'.
+null.ts(3,9): error TS18050: The value 'null' cannot be used here.
 
 
-==== null.ts (1 errors) ====
+==== null.ts (2 errors) ====
     var x=null; 
     var y=3+x;  
+            ~
+!!! error TS18047: 'x' is possibly 'null'.
     var z=3+null; 
-          ~~~~~~
-!!! error TS2365: Operator '+' cannot be applied to types '3' and 'null'.
+            ~~~~
+!!! error TS18050: The value 'null' cannot be used here.
     class C {
     }
     function f() {

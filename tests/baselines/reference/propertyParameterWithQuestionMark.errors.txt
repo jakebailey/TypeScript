@@ -1,8 +1,9 @@
+propertyParameterWithQuestionMark.ts(8,5): error TS2454: Variable 'v2' is used before being assigned.
 propertyParameterWithQuestionMark.ts(9,5): error TS2322: Type 'C' is not assignable to type '{ x: any; }'.
   Property 'x' is optional in type 'C' but required in type '{ x: any; }'.
 
 
-==== propertyParameterWithQuestionMark.ts (1 errors) ====
+==== propertyParameterWithQuestionMark.ts (2 errors) ====
     class C {
         constructor(public x?) { }
     }
@@ -11,6 +12,8 @@ propertyParameterWithQuestionMark.ts(9,5): error TS2322: Type 'C' is not assigna
     var v: C = {}; // Should succeed
     var v2: { x? }
     v = v2; // Should succeed
+        ~~
+!!! error TS2454: Variable 'v2' is used before being assigned.
     var v3: { x } = new C; // Should fail
         ~~
 !!! error TS2322: Type 'C' is not assignable to type '{ x: any; }'.

@@ -6,10 +6,10 @@ while (true)
 >true : true
 {
     let local = null;
->local : any
+>local : null
 
     var a = () => local; // <-- Lambda should be converted to function()
->a : () => any
->() => local : () => any
->local : any
+>a : () => null
+>() => local : () => null
+>local : null
 }

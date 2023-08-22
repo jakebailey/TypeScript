@@ -1,9 +1,10 @@
 primitiveMembers.ts(5,3): error TS2339: Property 'toBAZ' does not exist on type 'number'.
 primitiveMembers.ts(11,1): error TS2322: Type 'Number' is not assignable to type 'number'.
   'number' is a primitive, but 'Number' is a wrapper object. Prefer using 'number' when possible.
+primitiveMembers.ts(11,5): error TS2454: Variable 'N' is used before being assigned.
 
 
-==== primitiveMembers.ts (2 errors) ====
+==== primitiveMembers.ts (3 errors) ====
     var x = 5;
     var r = /yo/;
     r.source;
@@ -20,6 +21,8 @@ primitiveMembers.ts(11,1): error TS2322: Type 'Number' is not assignable to type
     ~
 !!! error TS2322: Type 'Number' is not assignable to type 'number'.
 !!! error TS2322:   'number' is a primitive, but 'Number' is a wrapper object. Prefer using 'number' when possible.
+        ~
+!!! error TS2454: Variable 'N' is used before being assigned.
     N = n; // should work
     
     var o: Object = {}

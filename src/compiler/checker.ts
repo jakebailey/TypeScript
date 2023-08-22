@@ -1441,7 +1441,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     var useDefineForClassFields = getUseDefineForClassFields(compilerOptions);
     var emitStandardClassFields = getEmitStandardClassFields(compilerOptions);
     var allowSyntheticDefaultImports = getAllowSyntheticDefaultImports(compilerOptions);
-    var strictNullChecks = getStrictOptionValue(compilerOptions, "strictNullChecks");
+    var strictNullChecks = true;
     var strictFunctionTypes = getStrictOptionValue(compilerOptions, "strictFunctionTypes");
     var strictBindCallApply = getStrictOptionValue(compilerOptions, "strictBindCallApply");
     var strictPropertyInitialization = getStrictOptionValue(compilerOptions, "strictPropertyInitialization");

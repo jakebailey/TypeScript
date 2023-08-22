@@ -2,13 +2,14 @@ classExtendsEveryObjectType.ts(4,17): error TS2689: Cannot extend an interface '
 classExtendsEveryObjectType.ts(6,18): error TS2507: Type '{ foo: any; }' is not a constructor function type.
 classExtendsEveryObjectType.ts(6,25): error TS2693: 'string' only refers to a type, but is being used as a value here.
 classExtendsEveryObjectType.ts(6,31): error TS1005: ',' expected.
+classExtendsEveryObjectType.ts(8,18): error TS2454: Variable 'x' is used before being assigned.
 classExtendsEveryObjectType.ts(8,18): error TS2507: Type '{ foo: string; }' is not a constructor function type.
 classExtendsEveryObjectType.ts(11,18): error TS2507: Type 'typeof M' is not a constructor function type.
 classExtendsEveryObjectType.ts(14,18): error TS2507: Type '() => void' is not a constructor function type.
-classExtendsEveryObjectType.ts(16,18): error TS2507: Type 'undefined[]' is not a constructor function type.
+classExtendsEveryObjectType.ts(16,18): error TS2507: Type 'never[]' is not a constructor function type.
 
 
-==== classExtendsEveryObjectType.ts (8 errors) ====
+==== classExtendsEveryObjectType.ts (9 errors) ====
     interface I {
         foo: string;
     }
@@ -26,6 +27,8 @@ classExtendsEveryObjectType.ts(16,18): error TS2507: Type 'undefined[]' is not a
     var x: { foo: string; }
     class C3 extends x { } // error
                      ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+                     ~
 !!! error TS2507: Type '{ foo: string; }' is not a constructor function type.
     
     module M { export var x = 1; }
@@ -40,4 +43,4 @@ classExtendsEveryObjectType.ts(16,18): error TS2507: Type 'undefined[]' is not a
     
     class C6 extends []{ } // error
                      ~~
-!!! error TS2507: Type 'undefined[]' is not a constructor function type.
+!!! error TS2507: Type 'never[]' is not a constructor function type.

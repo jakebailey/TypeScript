@@ -2,22 +2,22 @@
 
 === ES5For-of16.ts ===
 for (let v of []) {
->v : any
->[] : undefined[]
+>v : never
+>[] : never[]
 
     v;
->v : any
+>v : never
 
     for (let v of []) {
->v : any
->[] : undefined[]
+>v : never
+>[] : never[]
 
         var x = v;
->x : any
->v : any
+>x : never
+>v : never
 
         v++;
 >v++ : number
->v : any
+>v : never
     }
 }

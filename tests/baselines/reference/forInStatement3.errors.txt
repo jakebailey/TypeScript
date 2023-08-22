@@ -1,0 +1,11 @@
+forInStatement3.ts(3,17): error TS2454: Variable 'expr' is used before being assigned.
+
+
+==== forInStatement3.ts (1 errors) ====
+    function F<T>() {
+      var expr: T;
+      for (var a in expr) {
+                    ~~~~
+!!! error TS2454: Variable 'expr' is used before being assigned.
+      }
+    }

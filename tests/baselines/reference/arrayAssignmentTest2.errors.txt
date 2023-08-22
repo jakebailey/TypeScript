@@ -1,3 +1,6 @@
+arrayAssignmentTest2.ts(6,16): error TS2322: Type 'null' is not assignable to type 'void[]'.
+arrayAssignmentTest2.ts(7,15): error TS2322: Type 'null' is not assignable to type 'C1[]'.
+arrayAssignmentTest2.ts(10,16): error TS2322: Type 'null' is not assignable to type 'C2[]'.
 arrayAssignmentTest2.ts(47,1): error TS2322: Type 'C2[]' is not assignable to type 'C3[]'.
   Property 'CM3M1' is missing in type 'C2' but required in type 'C3'.
 arrayAssignmentTest2.ts(48,1): error TS2322: Type 'C1[]' is not assignable to type 'C3[]'.
@@ -5,7 +8,7 @@ arrayAssignmentTest2.ts(48,1): error TS2322: Type 'C1[]' is not assignable to ty
 arrayAssignmentTest2.ts(49,1): error TS2322: Type 'I1[]' is not assignable to type 'C3[]'.
   Property 'CM3M1' is missing in type 'I1' but required in type 'C3'.
 arrayAssignmentTest2.ts(51,1): error TS2322: Type '() => C1' is not assignable to type 'any[]'.
-arrayAssignmentTest2.ts(52,1): error TS2322: Type '() => any' is not assignable to type 'any[]'.
+arrayAssignmentTest2.ts(52,1): error TS2322: Type '() => null' is not assignable to type 'any[]'.
 arrayAssignmentTest2.ts(53,1): error TS2740: Type '{ one: number; }' is missing the following properties from type 'any[]': length, pop, push, concat, and 16 more.
 arrayAssignmentTest2.ts(55,1): error TS2740: Type 'C1' is missing the following properties from type 'any[]': length, pop, push, concat, and 16 more.
 arrayAssignmentTest2.ts(56,1): error TS2740: Type 'C2' is missing the following properties from type 'any[]': length, pop, push, concat, and 16 more.
@@ -13,17 +16,23 @@ arrayAssignmentTest2.ts(57,1): error TS2740: Type 'C3' is missing the following 
 arrayAssignmentTest2.ts(58,1): error TS2740: Type 'I1' is missing the following properties from type 'any[]': length, pop, push, concat, and 16 more.
 
 
-==== arrayAssignmentTest2.ts (10 errors) ====
+==== arrayAssignmentTest2.ts (13 errors) ====
     interface I1 {
     	IM1():void[];
     }
     
     class C1 implements I1 { 
     	IM1():void[] {return null;}
+    	              ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'void[]'.
     	C1M1():C1[] {return null;}
+    	             ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'C1[]'.
      }
     class C2 extends C1 {
     	C2M1():C2[] { return null;}
+    	              ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'C2[]'.
     }
     
     class C3 {
@@ -81,7 +90,7 @@ arrayAssignmentTest2.ts(58,1): error TS2740: Type 'I1' is missing the following 
 !!! error TS2322: Type '() => C1' is not assignable to type 'any[]'.
     arr_any = function () { return null;} // should be an error - is
     ~~~~~~~
-!!! error TS2322: Type '() => any' is not assignable to type 'any[]'.
+!!! error TS2322: Type '() => null' is not assignable to type 'any[]'.
     arr_any = o1; // should be an error - is
     ~~~~~~~
 !!! error TS2740: Type '{ one: number; }' is missing the following properties from type 'any[]': length, pop, push, concat, and 16 more.

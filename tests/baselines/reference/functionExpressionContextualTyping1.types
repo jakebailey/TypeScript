@@ -22,9 +22,9 @@ var a0: (n: number, s: string) => number = (num, str) => {
 
     num.toExponential();
 >num.toExponential() : string
->num.toExponential : (fractionDigits?: number) => string
+>num.toExponential : (fractionDigits?: number | undefined) => string
 >num : number
->toExponential : (fractionDigits?: number) => string
+>toExponential : (fractionDigits?: number | undefined) => string
 
     return 0;
 >0 : 0

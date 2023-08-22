@@ -69,14 +69,14 @@ var c : {
 >c : { new?(): any; }
 
         new? (): any;
->new : () => any
+>new : (() => any) | undefined
     }
 
 var d: {
 >d : { foo?(): {    x: number;}; }
 
     foo? (): {
->foo : () => {    x: number;}
+>foo : (() => {    x: number;}) | undefined
 
         x: number;
 >x : number

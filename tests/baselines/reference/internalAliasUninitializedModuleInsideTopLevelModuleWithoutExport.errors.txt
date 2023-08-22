@@ -1,0 +1,18 @@
+internalAliasUninitializedModuleInsideTopLevelModuleWithoutExport.ts(11,1): error TS2454: Variable 'x' is used before being assigned.
+
+
+==== internalAliasUninitializedModuleInsideTopLevelModuleWithoutExport.ts (1 errors) ====
+    export module a {
+        export module b {
+            export interface I {
+                foo();
+            }
+        }
+    }
+    
+    import b = a.b;
+    export var x: b.I;
+    x.foo();
+    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    

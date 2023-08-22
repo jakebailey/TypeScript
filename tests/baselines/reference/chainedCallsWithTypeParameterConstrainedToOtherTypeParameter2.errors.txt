@@ -1,13 +1,22 @@
+chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(7,20): error TS2454: Variable 't' is used before being assigned.
 chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(7,49): error TS2322: Type 'T' is not assignable to type 'S'.
   'S' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(10,20): error TS2454: Variable 's' is used before being assigned.
 chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(10,35): error TS2322: Type 'T' is not assignable to type 'S'.
   'S' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(13,20): error TS2454: Variable 't' is used before being assigned.
+chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(14,20): error TS2454: Variable 's' is used before being assigned.
+chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(16,9): error TS2322: Type 'null' is not assignable to type 'Chain<S>'.
 chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(32,9): error TS2322: Type 'string' is not assignable to type 'number'.
+chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(32,21): error TS2454: Variable 'i' is used before being assigned.
 chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(36,9): error TS2322: Type 'string' is not assignable to type 'number'.
+chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(36,21): error TS2454: Variable 'i' is used before being assigned.
 chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(37,9): error TS2322: Type 'string' is not assignable to type 'number'.
+chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(37,21): error TS2454: Variable 'i' is used before being assigned.
+chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(39,9): error TS2322: Type 'null' is not assignable to type 'Chain2<S>'.
 
 
-==== chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts (5 errors) ====
+==== chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts (14 errors) ====
     class Chain<T> {
         constructor(public value: T) { }
         then<S extends T>(cb: (x: T) => S): Chain<S> {
@@ -15,6 +24,8 @@ chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(37,9): error TS
             var s: S;
             // Ok to go down the chain, but error to climb up the chain
             (new Chain(t)).then(tt => s).then(ss => t);
+                       ~
+!!! error TS2454: Variable 't' is used before being assigned.
                                                     ~
 !!! error TS2322: Type 'T' is not assignable to type 'S'.
 !!! error TS2322:   'S' could be instantiated with an arbitrary type which could be unrelated to 'T'.
@@ -23,6 +34,8 @@ chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(37,9): error TS
     
             // But error to try to climb up the chain
             (new Chain(s)).then(ss => t);
+                       ~
+!!! error TS2454: Variable 's' is used before being assigned.
                                       ~
 !!! error TS2322: Type 'T' is not assignable to type 'S'.
 !!! error TS2322:   'S' could be instantiated with an arbitrary type which could be unrelated to 'T'.
@@ -31,9 +44,15 @@ chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(37,9): error TS
     
             // Staying at T or S should be fine
             (new Chain(t)).then(tt => t).then(tt => t).then(tt => t);
+                       ~
+!!! error TS2454: Variable 't' is used before being assigned.
             (new Chain(s)).then(ss => s).then(ss => s).then(ss => s);
+                       ~
+!!! error TS2454: Variable 's' is used before being assigned.
     
             return null;
+            ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Chain<S>'.
         }
     }
     
@@ -52,16 +71,24 @@ chainedCallsWithTypeParameterConstrainedToOtherTypeParameter2.ts(37,9): error TS
             (new Chain2(i)).then(ii => t).then(tt => s).value.x = "";
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2322: Type 'string' is not assignable to type 'number'.
+                        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     
             // Staying at T or S should keep the constraint.
             // Get an error when we assign a string to a number in both cases
             (new Chain2(i)).then(ii => t).then(tt => t).then(tt => t).then(tt => t).value.x = "";
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2322: Type 'string' is not assignable to type 'number'.
+                        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
             (new Chain2(i)).then(ii => s).then(ss => s).then(ss => s).then(ss => s).value.x = "";
             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2322: Type 'string' is not assignable to type 'number'.
+                        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
     
             return null;
+            ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Chain2<S>'.
         }
     }

@@ -1,9 +1,13 @@
 errorMessagesIntersectionTypes04.ts(17,5): error TS2322: Type 'A & B' is not assignable to type 'number'.
+errorMessagesIntersectionTypes04.ts(17,11): error TS2454: Variable 'a_and_b' is used before being assigned.
 errorMessagesIntersectionTypes04.ts(18,5): error TS2322: Type 'A & B' is not assignable to type 'boolean'.
+errorMessagesIntersectionTypes04.ts(18,12): error TS2454: Variable 'a_and_b' is used before being assigned.
 errorMessagesIntersectionTypes04.ts(19,5): error TS2322: Type 'A & B' is not assignable to type 'string'.
+errorMessagesIntersectionTypes04.ts(19,11): error TS2454: Variable 'a_and_b' is used before being assigned.
+errorMessagesIntersectionTypes04.ts(21,11): error TS2454: Variable 'num_and_bool' is used before being assigned.
 
 
-==== errorMessagesIntersectionTypes04.ts (3 errors) ====
+==== errorMessagesIntersectionTypes04.ts (7 errors) ====
     interface A {
         a;
     }
@@ -23,12 +27,20 @@ errorMessagesIntersectionTypes04.ts(19,5): error TS2322: Type 'A & B' is not ass
         num = a_and_b;
         ~~~
 !!! error TS2322: Type 'A & B' is not assignable to type 'number'.
+              ~~~~~~~
+!!! error TS2454: Variable 'a_and_b' is used before being assigned.
         bool = a_and_b;
         ~~~~
 !!! error TS2322: Type 'A & B' is not assignable to type 'boolean'.
+               ~~~~~~~
+!!! error TS2454: Variable 'a_and_b' is used before being assigned.
         str = a_and_b;
         ~~~
 !!! error TS2322: Type 'A & B' is not assignable to type 'string'.
+              ~~~~~~~
+!!! error TS2454: Variable 'a_and_b' is used before being assigned.
     
         str = num_and_bool;
+              ~~~~~~~~~~~~
+!!! error TS2454: Variable 'num_and_bool' is used before being assigned.
     }

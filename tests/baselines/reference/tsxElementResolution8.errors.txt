@@ -1,8 +1,11 @@
 file.tsx(8,2): error TS2604: JSX element type 'Div' does not have any construct or call signatures.
+file.tsx(23,2): error TS2454: Variable 'Obj1' is used before being assigned.
+file.tsx(29,2): error TS2454: Variable 'Obj2' is used before being assigned.
+file.tsx(34,2): error TS2454: Variable 'Obj3' is used before being assigned.
 file.tsx(34,2): error TS2604: JSX element type 'Obj3' does not have any construct or call signatures.
 
 
-==== file.tsx (2 errors) ====
+==== file.tsx (5 errors) ====
     declare module JSX {
     	interface Element { }
     	interface IntrinsicElements { }
@@ -28,17 +31,23 @@ file.tsx(34,2): error TS2604: JSX element type 'Obj3' does not have any construc
     }
     var Obj1: Obj1;
     <Obj1 />; // OK, prefer construct signatures
+     ~~~~
+!!! error TS2454: Variable 'Obj1' is used before being assigned.
     
     interface Obj2 {
     	(): number;
     }
     var Obj2: Obj2;
     <Obj2 />; // Error
+     ~~~~
+!!! error TS2454: Variable 'Obj2' is used before being assigned.
     
     interface Obj3 {
     }
     var Obj3: Obj3;
     <Obj3 />; // Error
+     ~~~~
+!!! error TS2454: Variable 'Obj3' is used before being assigned.
      ~~~~
 !!! error TS2604: JSX element type 'Obj3' does not have any construct or call signatures.
     

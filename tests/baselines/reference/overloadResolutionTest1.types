@@ -45,8 +45,8 @@ var x111 = foo([{a:"s"}]); // error - does not match any signature
 >"s" : "s"
 
 var x1111 = foo([{a:null}]); // works - ambiguous call is resolved to be the first in the overload set so this returns a string
->x1111 : string
->foo([{a:null}]) : string
+>x1111 : never
+>foo([{a:null}]) : never
 >foo : { (bar: { a: number; }[]): string; (bar: { a: boolean; }[]): number; }
 >[{a:null}] : { a: null; }[]
 >{a:null} : { a: null; }

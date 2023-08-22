@@ -11,8 +11,8 @@
 //      ...   AssignmentExpression
 
 var a0 = [,, 2, 3, 4]
->a0 : number[]
->[,, 2, 3, 4] : number[]
+>a0 : (number | undefined)[]
+>[,, 2, 3, 4] : (number | undefined)[]
 > : undefined
 > : undefined
 >2 : 2
@@ -26,22 +26,22 @@ var a1 = ["hello", "world"]
 >"world" : "world"
 
 var a2 = [, , , ...a0, "hello"];
->a2 : (string | number)[]
->[, , , ...a0, "hello"] : (string | number)[]
+>a2 : (string | number | undefined)[]
+>[, , , ...a0, "hello"] : (string | number | undefined)[]
 > : undefined
 > : undefined
 > : undefined
->...a0 : number
->a0 : number[]
+>...a0 : number | undefined
+>a0 : (number | undefined)[]
 >"hello" : "hello"
 
 var a3 = [,, ...a0]
->a3 : number[]
->[,, ...a0] : number[]
+>a3 : (number | undefined)[]
+>[,, ...a0] : (number | undefined)[]
 > : undefined
 > : undefined
->...a0 : number
->a0 : number[]
+>...a0 : number | undefined
+>a0 : (number | undefined)[]
 
 var a4 = [() => 1, ];
 >a4 : (() => number)[]
@@ -50,10 +50,10 @@ var a4 = [() => 1, ];
 >1 : 1
 
 var a5 = [...a0, , ]
->a5 : number[]
->[...a0, , ] : number[]
->...a0 : number
->a0 : number[]
+>a5 : (number | undefined)[]
+>[...a0, , ] : (number | undefined)[]
+>...a0 : number | undefined
+>a0 : (number | undefined)[]
 > : undefined
 
 // Each element expression in a non-empty array literal is processed as follows:
@@ -130,14 +130,14 @@ var temp2: [number[], string[]] = [[1, 2, 3], ["hello", "string"]];
 >"string" : "string"
 
 var temp3 = [undefined, null, undefined];
->temp3 : any[]
->[undefined, null, undefined] : null[]
+>temp3 : (null | undefined)[]
+>[undefined, null, undefined] : (null | undefined)[]
 >undefined : undefined
 >undefined : undefined
 
 var temp4 = [];
->temp4 : any[]
->[] : undefined[]
+>temp4 : never[]
+>[] : never[]
 
 interface myArray extends Array<Number> { }
 interface myArray2 extends Array<Number|String> { }
@@ -176,16 +176,16 @@ var d4: myArray2 = [...temp, ...temp1];
 >temp1 : number[]
 
 var d5 = [...temp3];
->d5 : any[]
->[...temp3] : any[]
->...temp3 : any
->temp3 : any[]
+>d5 : (null | undefined)[]
+>[...temp3] : (null | undefined)[]
+>...temp3 : null | undefined
+>temp3 : (null | undefined)[]
 
 var d6 = [...temp4];
->d6 : any[]
->[...temp4] : any[]
->...temp4 : any
->temp4 : any[]
+>d6 : never[]
+>[...temp4] : never[]
+>...temp4 : never
+>temp4 : never[]
 
 var d7 = [...[...temp1]];
 >d7 : number[]

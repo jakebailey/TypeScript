@@ -7,8 +7,8 @@ const f1 = async function * () {
 }
 === F2.ts ===
 const f2 = async function * () {
->f2 : () => AsyncGenerator<any, void, unknown>
->async function * () {    const x = yield;} : () => AsyncGenerator<any, void, unknown>
+>f2 : () => AsyncGenerator<undefined, void, unknown>
+>async function * () {    const x = yield;} : () => AsyncGenerator<undefined, void, unknown>
 
     const x = yield;
 >x : any

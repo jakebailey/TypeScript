@@ -11,11 +11,15 @@ readonlyMembers.ts(35,3): error TS2540: Cannot assign to 'a' because it is a rea
 readonlyMembers.ts(39,3): error TS2540: Cannot assign to 'a' because it is a read-only property.
 readonlyMembers.ts(48,3): error TS2540: Cannot assign to 'A' because it is a read-only property.
 readonlyMembers.ts(55,3): error TS2540: Cannot assign to 'a' because it is a read-only property.
+readonlyMembers.ts(60,9): error TS2454: Variable 'xx' is used before being assigned.
+readonlyMembers.ts(61,1): error TS2454: Variable 'xx' is used before being assigned.
 readonlyMembers.ts(61,1): error TS2542: Index signature in type '{ readonly [x: string]: string; }' only permits reading.
+readonlyMembers.ts(64,1): error TS2454: Variable 'yy' is used before being assigned.
 readonlyMembers.ts(64,1): error TS2542: Index signature in type '{ readonly [x: number]: string; [x: string]: string; }' only permits reading.
+readonlyMembers.ts(65,1): error TS2454: Variable 'yy' is used before being assigned.
 
 
-==== readonlyMembers.ts (15 errors) ====
+==== readonlyMembers.ts (19 errors) ====
     interface X {
         readonly a: number;
         readonly b?: number;
@@ -102,12 +106,20 @@ readonlyMembers.ts(64,1): error TS2542: Index signature in type '{ readonly [x: 
     
     let xx: { readonly [x: string]: string };
     let s = xx["foo"];
+            ~~
+!!! error TS2454: Variable 'xx' is used before being assigned.
     xx["foo"] = "abc";  // Error
+    ~~
+!!! error TS2454: Variable 'xx' is used before being assigned.
     ~~~~~~~~~
 !!! error TS2542: Index signature in type '{ readonly [x: string]: string; }' only permits reading.
     
     let yy: { readonly [x: number]: string, [x: string]: string };
     yy[1] = "abc";  // Error
+    ~~
+!!! error TS2454: Variable 'yy' is used before being assigned.
     ~~~~~
 !!! error TS2542: Index signature in type '{ readonly [x: number]: string; [x: string]: string; }' only permits reading.
     yy["foo"] = "abc";
+    ~~
+!!! error TS2454: Variable 'yy' is used before being assigned.

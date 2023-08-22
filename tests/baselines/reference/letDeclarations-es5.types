@@ -26,7 +26,7 @@ let l9 = 0, l10 :string = "", l11 = null;
 >0 : 0
 >l10 : string
 >"" : ""
->l11 : any
+>l11 : null
 
 for(let l11 in {}) { }
 >l11 : string

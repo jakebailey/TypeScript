@@ -171,13 +171,13 @@ interface I {
 declare function f1({ a }: O): void;
 declare const f2: ({ a: string }: O) => void;
 declare const f3: ({ a: string, b, c }: O) => void;
-declare const f4: ({ a: string }: O) => string;
-declare const f5: ({ a: string, b, c }: O) => string;
+declare const f4: ({ a: string }: O) => string | undefined;
+declare const f5: ({ a: string, b, c }: O) => string | undefined;
 declare const obj1: {
     method({ a: string }: O): void;
 };
 declare const obj2: {
-    method({ a: string }: O): string;
+    method({ a: string }: O): string | undefined;
 };
 declare function f6({ a }: O): void;
 declare const f7: ({ a: string, b, c }: O) => void;

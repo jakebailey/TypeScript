@@ -1,8 +1,9 @@
 unionTypeWithRecursiveSubtypeReduction3.ts(5,5): error TS2322: Type '{ prop: number; } | { prop: { prop: number; } | any; }' is not assignable to type 'string'.
   Type '{ prop: number; }' is not assignable to type 'string'.
+unionTypeWithRecursiveSubtypeReduction3.ts(5,17): error TS2454: Variable 'b' is used before being assigned.
 
 
-==== unionTypeWithRecursiveSubtypeReduction3.ts (1 errors) ====
+==== unionTypeWithRecursiveSubtypeReduction3.ts (2 errors) ====
     var a27: { prop: number } | { prop: T27 };
     type T27 = typeof a27;
     
@@ -11,4 +12,6 @@ unionTypeWithRecursiveSubtypeReduction3.ts(5,5): error TS2322: Type '{ prop: num
         ~
 !!! error TS2322: Type '{ prop: number; } | { prop: { prop: number; } | any; }' is not assignable to type 'string'.
 !!! error TS2322:   Type '{ prop: number; }' is not assignable to type 'string'.
+                    ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     

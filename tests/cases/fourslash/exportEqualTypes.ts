@@ -10,7 +10,7 @@
 // @Filename: exportEqualTypes_file1.ts
 ///////<reference path='exportEqualTypes_file0.ts'/>
 ////import test = require('./exportEqualTypes_file0');
-////var t: /*1*/test;  // var 't' should be of type 'test'
+////var t: /*1*/test = null as any;  // var 't' should be of type 'test'
 ////var /*2*/r1 = t(); // Should return a Date
 ////var /*3*/r2 = t./*4*/foo; // t should have 'foo' in dropdown list and be of type 'string'
 

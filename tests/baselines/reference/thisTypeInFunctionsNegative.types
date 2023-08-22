@@ -728,7 +728,7 @@ function restParam(...this: C): number { return this.n; }
 function optional(this?: C): number { return this.n; }
 >optional : (this: any, ?: C) => number
 >this : any
-> : C
+> : C | undefined
 >this.n : any
 >this : any
 >n : any

@@ -1,6 +1,9 @@
 instanceofOperatorWithInvalidOperands.ts(14,11): error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
+instanceofOperatorWithInvalidOperands.ts(14,11): error TS2454: Variable 'a1' is used before being assigned.
 instanceofOperatorWithInvalidOperands.ts(15,11): error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
+instanceofOperatorWithInvalidOperands.ts(15,11): error TS2454: Variable 'a2' is used before being assigned.
 instanceofOperatorWithInvalidOperands.ts(16,11): error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
+instanceofOperatorWithInvalidOperands.ts(16,11): error TS2454: Variable 'a3' is used before being assigned.
 instanceofOperatorWithInvalidOperands.ts(17,11): error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
 instanceofOperatorWithInvalidOperands.ts(18,11): error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
 instanceofOperatorWithInvalidOperands.ts(19,11): error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
@@ -8,20 +11,26 @@ instanceofOperatorWithInvalidOperands.ts(20,11): error TS2358: The left-hand sid
 instanceofOperatorWithInvalidOperands.ts(21,11): error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
 instanceofOperatorWithInvalidOperands.ts(22,11): error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
 instanceofOperatorWithInvalidOperands.ts(34,24): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+instanceofOperatorWithInvalidOperands.ts(34,24): error TS2454: Variable 'b1' is used before being assigned.
 instanceofOperatorWithInvalidOperands.ts(35,24): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+instanceofOperatorWithInvalidOperands.ts(35,24): error TS2454: Variable 'b2' is used before being assigned.
 instanceofOperatorWithInvalidOperands.ts(36,24): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+instanceofOperatorWithInvalidOperands.ts(36,24): error TS2454: Variable 'b3' is used before being assigned.
 instanceofOperatorWithInvalidOperands.ts(37,24): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
 instanceofOperatorWithInvalidOperands.ts(38,24): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
 instanceofOperatorWithInvalidOperands.ts(39,24): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
 instanceofOperatorWithInvalidOperands.ts(40,24): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
 instanceofOperatorWithInvalidOperands.ts(41,24): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+instanceofOperatorWithInvalidOperands.ts(41,24): error TS2454: Variable 'o1' is used before being assigned.
 instanceofOperatorWithInvalidOperands.ts(42,24): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+instanceofOperatorWithInvalidOperands.ts(42,24): error TS2454: Variable 'o2' is used before being assigned.
 instanceofOperatorWithInvalidOperands.ts(43,25): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+instanceofOperatorWithInvalidOperands.ts(43,25): error TS2454: Variable 'o3' is used before being assigned.
 instanceofOperatorWithInvalidOperands.ts(46,11): error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
 instanceofOperatorWithInvalidOperands.ts(46,25): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
 
 
-==== instanceofOperatorWithInvalidOperands.ts (21 errors) ====
+==== instanceofOperatorWithInvalidOperands.ts (30 errors) ====
     class C {
         foo() { }
     }
@@ -38,12 +47,18 @@ instanceofOperatorWithInvalidOperands.ts(46,25): error TS2359: The right-hand si
     var ra1 = a1 instanceof x;
               ~~
 !!! error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
+              ~~
+!!! error TS2454: Variable 'a1' is used before being assigned.
     var ra2 = a2 instanceof x;
               ~~
 !!! error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
+              ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
     var ra3 = a3 instanceof x;
               ~~
 !!! error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
+              ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
     var ra4 = a4 instanceof x;
               ~~
 !!! error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
@@ -76,12 +91,18 @@ instanceofOperatorWithInvalidOperands.ts(46,25): error TS2359: The right-hand si
     var rb1 = x instanceof b1;
                            ~~
 !!! error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+                           ~~
+!!! error TS2454: Variable 'b1' is used before being assigned.
     var rb2 = x instanceof b2;
                            ~~
 !!! error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+                           ~~
+!!! error TS2454: Variable 'b2' is used before being assigned.
     var rb3 = x instanceof b3;
                            ~~
 !!! error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+                           ~~
+!!! error TS2454: Variable 'b3' is used before being assigned.
     var rb4 = x instanceof b4;
                            ~~
 !!! error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
@@ -97,12 +118,18 @@ instanceofOperatorWithInvalidOperands.ts(46,25): error TS2359: The right-hand si
     var rb8 = x instanceof o1;
                            ~~
 !!! error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+                           ~~
+!!! error TS2454: Variable 'o1' is used before being assigned.
     var rb9 = x instanceof o2;
                            ~~
 !!! error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+                           ~~
+!!! error TS2454: Variable 'o2' is used before being assigned.
     var rb10 = x instanceof o3;
                             ~~
 !!! error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+                            ~~
+!!! error TS2454: Variable 'o3' is used before being assigned.
     
     // both operands are invalid
     var rc1 = '' instanceof {};

@@ -15,14 +15,14 @@ let a: A;
 let b = a.getB().x.toFixed();
 >b : string
 >a.getB().x.toFixed() : string
->a.getB().x.toFixed : (fractionDigits?: number) => string
+>a.getB().x.toFixed : (fractionDigits?: number | undefined) => string
 >a.getB().x : number
 >a.getB() : import("b").B
 >a.getB : () => import("b").B
 >a : A
 >getB : () => import("b").B
 >x : number
->toFixed : (fractionDigits?: number) => string
+>toFixed : (fractionDigits?: number | undefined) => string
 
 let c = a.getCls().y.toLowerCase();
 >c : string

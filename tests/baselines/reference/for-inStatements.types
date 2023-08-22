@@ -21,7 +21,7 @@ for (var x in {}) { }
 
 for (var x in []) { }
 >x : string
->[] : undefined[]
+>[] : never[]
 
 for (var x in [1, 2, 3, 4, 5]) { }
 >x : string
@@ -118,20 +118,20 @@ class A {
 >A : A
 
     biz() {
->biz : () => any
+>biz : () => null
 
         for (var x in this.biz()) { }
 >x : string
->this.biz() : any
->this.biz : () => any
+>this.biz() : null
+>this.biz : () => null
 >this : this
->biz : () => any
+>biz : () => null
 
         for (var x in this.biz) { }
 >x : string
->this.biz : () => any
+>this.biz : () => null
 >this : this
->biz : () => any
+>biz : () => null
 
         for (var x in this) { }
 >x : string
@@ -141,7 +141,7 @@ class A {
     }
 
     static baz() {
->baz : () => any
+>baz : () => null
 
         for (var x in this) { }
 >x : string
@@ -149,16 +149,16 @@ class A {
 
         for (var x in this.baz) { }
 >x : string
->this.baz : () => any
+>this.baz : () => null
 >this : typeof A
->baz : () => any
+>baz : () => null
 
         for (var x in this.baz()) { }
 >x : string
->this.baz() : any
->this.baz : () => any
+>this.baz() : null
+>this.baz : () => null
 >this : typeof A
->baz : () => any
+>baz : () => null
 
         return null;
     }
@@ -169,20 +169,20 @@ class B extends A {
 >A : A
 
     boz() {
->boz : () => any
+>boz : () => null
 
         for (var x in this.biz()) { }
 >x : string
->this.biz() : any
->this.biz : () => any
+>this.biz() : null
+>this.biz : () => null
 >this : this
->biz : () => any
+>biz : () => null
 
         for (var x in this.biz) { }
 >x : string
->this.biz : () => any
+>this.biz : () => null
 >this : this
->biz : () => any
+>biz : () => null
 
         for (var x in this) { }
 >x : string
@@ -190,16 +190,16 @@ class B extends A {
 
         for (var x in super.biz) { }
 >x : string
->super.biz : () => any
+>super.biz : () => null
 >super : A
->biz : () => any
+>biz : () => null
 
         for (var x in super.biz()) { }
 >x : string
->super.biz() : any
->super.biz : () => any
+>super.biz() : null
+>super.biz : () => null
 >super : A
->biz : () => any
+>biz : () => null
 
         return null;
     }

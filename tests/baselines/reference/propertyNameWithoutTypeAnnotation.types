@@ -21,7 +21,7 @@ var a: {
 }
 
 var b = {
->b : { foo: any; }
+>b : { foo: null; }
 >{    foo: null} : { foo: null; }
 
     foo: null
@@ -51,8 +51,8 @@ var r3 = a.foo;
 >foo : any
 
 var r4 = b.foo;
->r4 : any
->b.foo : any
->b : { foo: any; }
->foo : any
+>r4 : null
+>b.foo : null
+>b : { foo: null; }
+>foo : null
 

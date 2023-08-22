@@ -13,31 +13,31 @@ module TypeScript {
 >BlockIntrinsics : BlockIntrinsics
 
         public prototype = undefined;
->prototype : any
+>prototype : undefined
 >undefined : undefined
 
         public toString = undefined;
->toString : any
+>toString : undefined
 >undefined : undefined
 
         public toLocaleString = undefined;
->toLocaleString : any
+>toLocaleString : undefined
 >undefined : undefined
 
         public valueOf = undefined;
->valueOf : any
+>valueOf : undefined
 >undefined : undefined
 
         public hasOwnProperty = undefined;
->hasOwnProperty : any
+>hasOwnProperty : undefined
 >undefined : undefined
 
         public propertyIsEnumerable = undefined;
->propertyIsEnumerable : any
+>propertyIsEnumerable : undefined
 >undefined : undefined
 
         public isPrototypeOf = undefined;
->isPrototypeOf : any
+>isPrototypeOf : undefined
 >undefined : undefined
 
         constructor () {
@@ -117,7 +117,7 @@ module TypeScript {
 
             var result: string[] = [];
 >result : string[]
->[] : undefined[]
+>[] : never[]
 
             for (var k in this.table) {
 >k : string
@@ -868,7 +868,7 @@ module TypeScript {
         }
 
         public remove(key) {
->remove : (key: any) => any
+>remove : (key: any) => null
 >key : any
 
             var current: HashEntry;
@@ -892,7 +892,7 @@ module TypeScript {
 >size : number
 
             var result = null;
->result : any
+>result : null
 
             var prevEntry: HashEntry = null;
 >prevEntry : HashEntry
@@ -925,7 +925,7 @@ module TypeScript {
 
                     result = current.data;
 >result = current.data : any
->result : any
+>result : null
 >current.data : any
 >current : HashEntry
 >data : any
@@ -968,7 +968,7 @@ module TypeScript {
 >current : HashEntry
             }
             return result;
->result : any
+>result : null
         }
 
         public count(): number { return this.itemCount; }
@@ -1044,33 +1044,33 @@ module TypeScript {
 >SimpleHashTable : SimpleHashTable
 
         private keys = [];
->keys : any[]
->[] : undefined[]
+>keys : never[]
+>[] : never[]
 
         private values = [];
->values : any[]
->[] : undefined[]
+>values : never[]
+>[] : never[]
 
         public lookup(key, findValue?: boolean) {
->lookup : (key: any, findValue?: boolean) => { key: any; data: any; }
+>lookup : (key: any, findValue?: boolean) => { key: never; data: never; } | null
 >key : any
->findValue : boolean
+>findValue : boolean | undefined
 
             var searchArray = this.keys;
->searchArray : any[]
->this.keys : any[]
+>searchArray : never[]
+>this.keys : never[]
 >this : this
->keys : any[]
+>keys : never[]
 
             if (findValue) {
->findValue : boolean
+>findValue : boolean | undefined
 
                 searchArray = this.values;
->searchArray = this.values : any[]
->searchArray : any[]
->this.values : any[]
+>searchArray = this.values : never[]
+>searchArray : never[]
+>this.values : never[]
 >this : this
->values : any[]
+>values : never[]
             }
 
             for (var i = 0; i < searchArray.length; i++) {
@@ -1079,35 +1079,35 @@ module TypeScript {
 >i < searchArray.length : boolean
 >i : number
 >searchArray.length : number
->searchArray : any[]
+>searchArray : never[]
 >length : number
 >i++ : number
 >i : number
 
                 if (searchArray[i] == key) {
 >searchArray[i] == key : boolean
->searchArray[i] : any
->searchArray : any[]
+>searchArray[i] : never
+>searchArray : never[]
 >i : number
 >key : any
 
                     return {
->{                        key: this.keys[i],                        data: this.values[i],                    } : { key: any; data: any; }
+>{                        key: this.keys[i],                        data: this.values[i],                    } : { key: never; data: never; }
 
                         key: this.keys[i],
->key : any
->this.keys[i] : any
->this.keys : any[]
+>key : never
+>this.keys[i] : never
+>this.keys : never[]
 >this : this
->keys : any[]
+>keys : never[]
 >i : number
 
                         data: this.values[i],
->data : any
->this.values[i] : any
->this.values : any[]
+>data : never
+>this.values[i] : never
+>this.values : never[]
 >this : this
->values : any[]
+>values : never[]
 >i : number
 
                     };
@@ -1122,15 +1122,15 @@ module TypeScript {
 >data : any
 
             var lookupData = this.lookup(key);
->lookupData : { key: any; data: any; }
->this.lookup(key) : { key: any; data: any; }
->this.lookup : (key: any, findValue?: boolean) => { key: any; data: any; }
+>lookupData : { key: never; data: never; } | null
+>this.lookup(key) : { key: never; data: never; } | null
+>this.lookup : (key: any, findValue?: boolean | undefined) => { key: never; data: never; } | null
 >this : this
->lookup : (key: any, findValue?: boolean) => { key: any; data: any; }
+>lookup : (key: any, findValue?: boolean | undefined) => { key: never; data: never; } | null
 >key : any
 
             if (lookupData) {
->lookupData : { key: any; data: any; }
+>lookupData : { key: never; data: never; } | null
 
                 return false;
 >false : false
@@ -1138,27 +1138,27 @@ module TypeScript {
 
             this.keys[this.keys.length] = key;
 >this.keys[this.keys.length] = key : any
->this.keys[this.keys.length] : any
->this.keys : any[]
+>this.keys[this.keys.length] : never
+>this.keys : never[]
 >this : this
->keys : any[]
+>keys : never[]
 >this.keys.length : number
->this.keys : any[]
+>this.keys : never[]
 >this : this
->keys : any[]
+>keys : never[]
 >length : number
 >key : any
 
             this.values[this.values.length] = data;
 >this.values[this.values.length] = data : any
->this.values[this.values.length] : any
->this.values : any[]
+>this.values[this.values.length] : never
+>this.values : never[]
 >this : this
->values : any[]
+>values : never[]
 >this.values.length : number
->this.values : any[]
+>this.values : never[]
 >this : this
->values : any[]
+>values : never[]
 >length : number
 >data : any
 

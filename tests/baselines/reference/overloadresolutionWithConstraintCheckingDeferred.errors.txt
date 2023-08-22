@@ -36,9 +36,10 @@ overloadresolutionWithConstraintCheckingDeferred.ts(18,27): error TS2769: No ove
       Types of parameters 'x' and 'x' are incompatible.
         Type 'B' is not assignable to type 'D'.
 overloadresolutionWithConstraintCheckingDeferred.ts(19,14): error TS2344: Type 'D' does not satisfy the constraint 'A'.
+overloadresolutionWithConstraintCheckingDeferred.ts(20,12): error TS2454: Variable 'y' is used before being assigned.
 
 
-==== overloadresolutionWithConstraintCheckingDeferred.ts (6 errors) ====
+==== overloadresolutionWithConstraintCheckingDeferred.ts (7 errors) ====
     interface A { x }
     interface B { x; y }
     interface C { z }
@@ -108,5 +109,7 @@ overloadresolutionWithConstraintCheckingDeferred.ts(19,14): error TS2344: Type '
                  ~~~~~~~~
 !!! error TS2344: Type 'D' does not satisfy the constraint 'A'.
         return y;
+               ~
+!!! error TS2454: Variable 'y' is used before being assigned.
     });
     

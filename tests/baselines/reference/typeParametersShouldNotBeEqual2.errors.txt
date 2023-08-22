@@ -10,9 +10,10 @@ typeParametersShouldNotBeEqual2.ts(8,5): error TS2322: Type 'U' is not assignabl
   'V' could be instantiated with an arbitrary type which could be unrelated to 'U'.
 typeParametersShouldNotBeEqual2.ts(9,5): error TS2322: Type 'Object' is not assignable to type 'T'.
   'T' could be instantiated with an arbitrary type which could be unrelated to 'Object'.
+typeParametersShouldNotBeEqual2.ts(9,9): error TS2454: Variable 'zz' is used before being assigned.
 
 
-==== typeParametersShouldNotBeEqual2.ts (6 errors) ====
+==== typeParametersShouldNotBeEqual2.ts (7 errors) ====
     function ff<T extends Date, U extends Date, V>(x: T, y: U, z: V) {
         var zz: Object;
         x = x;  // Ok
@@ -42,6 +43,8 @@ typeParametersShouldNotBeEqual2.ts(9,5): error TS2322: Type 'Object' is not assi
         ~
 !!! error TS2322: Type 'Object' is not assignable to type 'T'.
 !!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'Object'.
+            ~~
+!!! error TS2454: Variable 'zz' is used before being assigned.
         zz = x;  // Ok
     }
     

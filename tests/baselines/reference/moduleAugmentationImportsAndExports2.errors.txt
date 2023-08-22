@@ -5,6 +5,7 @@ f3.ts(12,5): error TS2666: Exports and export assignments are not permitted in m
 f3.ts(12,21): error TS2307: Cannot find module './f2' or its corresponding type declarations.
 f3.ts(13,5): error TS2667: Imports are not permitted in module augmentations. Consider moving them to the enclosing external module.
 f3.ts(14,5): error TS2667: Imports are not permitted in module augmentations. Consider moving them to the enclosing external module.
+f4.ts(5,9): error TS2454: Variable 'a' is used before being assigned.
 f4.ts(5,11): error TS2339: Property 'foo' does not exist on type 'A'.
 
 
@@ -53,11 +54,13 @@ f4.ts(5,11): error TS2339: Property 'foo' does not exist on type 'A'.
         }
     }
     
-==== f4.ts (1 errors) ====
+==== f4.ts (2 errors) ====
     import {A} from "./f1";
     import "./f3";
     
     let a: A;
     let b = a.foo().n;
+            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
               ~~~
 !!! error TS2339: Property 'foo' does not exist on type 'A'.

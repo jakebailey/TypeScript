@@ -1,8 +1,9 @@
 file.tsx(3,12): error TS2608: The global type 'JSX.ElementAttributesProperty' may not have more than one property.
 file.tsx(11,2): error TS2322: Type '{ x: number; }' is not assignable to type 'string'.
+file.tsx(11,2): error TS2454: Variable 'Obj1' is used before being assigned.
 
 
-==== file.tsx (2 errors) ====
+==== file.tsx (3 errors) ====
     declare module JSX {
     	interface Element { }
     	interface ElementAttributesProperty { pr1: any; pr2: any; }
@@ -18,4 +19,6 @@ file.tsx(11,2): error TS2322: Type '{ x: number; }' is not assignable to type 's
     <Obj1 x={10} />; // Error
      ~~~~
 !!! error TS2322: Type '{ x: number; }' is not assignable to type 'string'.
+     ~~~~
+!!! error TS2454: Variable 'Obj1' is used before being assigned.
     

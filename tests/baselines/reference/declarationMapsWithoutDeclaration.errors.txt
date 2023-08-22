@@ -1,8 +1,9 @@
 error TS5069: Option 'declarationMap' cannot be specified without specifying option 'declaration' or option 'composite'.
+declarationMapsWithoutDeclaration.ts(18,10): error TS2454: Variable 'm2' is used before being assigned.
 
 
 !!! error TS5069: Option 'declarationMap' cannot be specified without specifying option 'declaration' or option 'composite'.
-==== declarationMapsWithoutDeclaration.ts (0 errors) ====
+==== declarationMapsWithoutDeclaration.ts (1 errors) ====
     module m2 {
         export interface connectModule {
             (res, req, next): void;
@@ -21,3 +22,5 @@ error TS5069: Option 'declarationMap' cannot be specified without specifying opt
     };
     
     export = m2;
+             ~~
+!!! error TS2454: Variable 'm2' is used before being assigned.

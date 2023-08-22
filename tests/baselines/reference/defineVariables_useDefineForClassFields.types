@@ -2,16 +2,16 @@
 
 === defineVariables_useDefineForClassFields.ts ===
 const a = () => b()
->a : () => any
->() => b() : () => any
->b() : any
->b : () => any
+>a : () => null
+>() => b() : () => null
+>b() : null
+>b : () => null
 
 const b = () => null
->b : () => any
->() => null : () => any
+>b : () => null
+>() => null : () => null
 
 a()
->a() : any
->a : () => any
+>a() : null
+>a : () => null
 

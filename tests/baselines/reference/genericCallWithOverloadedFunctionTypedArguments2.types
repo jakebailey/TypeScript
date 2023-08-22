@@ -62,16 +62,16 @@ module GenericParameter {
 >cb : { (x: T): string; (x: T, y?: T): string; }
 >x : T
 >x : T
->y : T
+>y : T | undefined
 
         return cb;
->cb : { (x: T): string; (x: T, y?: T): string; }
+>cb : { (x: T): string; (x: T, y?: T | undefined): string; }
     }
 
     var r10 = foo6(<T>(x: T, y: T) => ''); // error
 >r10 : { (x: unknown): string; (x: unknown, y?: unknown): string; }
 >foo6(<T>(x: T, y: T) => '') : { (x: unknown): string; (x: unknown, y?: unknown): string; }
->foo6 : <T>(cb: { (x: T): string; (x: T, y?: T): string; }) => { (x: T): string; (x: T, y?: T): string; }
+>foo6 : <T>(cb: { (x: T): string; (x: T, y?: T | undefined): string; }) => { (x: T): string; (x: T, y?: T | undefined): string; }
 ><T>(x: T, y: T) => '' : <T>(x: T, y: T) => string
 >x : T
 >y : T
@@ -83,16 +83,16 @@ module GenericParameter {
 >cb : { (x: T): string; (x: T, y?: T): string; }
 >x : T
 >x : T
->y : T
+>y : T | undefined
 
         return cb;
->cb : { (x: T): string; (x: T, y?: T): string; }
+>cb : { (x: T): string; (x: T, y?: T | undefined): string; }
     }
 
     var r13 = foo7(1, <T>(x: T) => x); // ok
 >r13 : { (x: unknown): string; (x: unknown, y?: unknown): string; }
 >foo7(1, <T>(x: T) => x) : { (x: unknown): string; (x: unknown, y?: unknown): string; }
->foo7 : <T>(x: T, cb: { (x: T): string; (x: T, y?: T): string; }) => { (x: T): string; (x: T, y?: T): string; }
+>foo7 : <T>(x: T, cb: { (x: T): string; (x: T, y?: T | undefined): string; }) => { (x: T): string; (x: T, y?: T | undefined): string; }
 >1 : 1
 ><T>(x: T) => x : <T>(x: T) => T
 >x : T
@@ -106,7 +106,7 @@ module GenericParameter {
     var r14 = foo7(1, a); // ok
 >r14 : { (x: unknown): string; (x: unknown, y?: unknown): string; }
 >foo7(1, a) : { (x: unknown): string; (x: unknown, y?: unknown): string; }
->foo7 : <T>(x: T, cb: { (x: T): string; (x: T, y?: T): string; }) => { (x: T): string; (x: T, y?: T): string; }
+>foo7 : <T>(x: T, cb: { (x: T): string; (x: T, y?: T | undefined): string; }) => { (x: T): string; (x: T, y?: T | undefined): string; }
 >1 : 1
 >a : { <T>(x: T): number; <T>(x: number): T; }
 }

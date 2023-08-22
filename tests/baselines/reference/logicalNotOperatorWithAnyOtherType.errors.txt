@@ -1,10 +1,14 @@
-logicalNotOperatorWithAnyOtherType.ts(45,27): error TS2365: Operator '+' cannot be applied to types 'null' and 'undefined'.
-logicalNotOperatorWithAnyOtherType.ts(46,27): error TS2365: Operator '+' cannot be applied to types 'null' and 'null'.
-logicalNotOperatorWithAnyOtherType.ts(47,27): error TS2365: Operator '+' cannot be applied to types 'undefined' and 'undefined'.
+logicalNotOperatorWithAnyOtherType.ts(29,25): error TS2454: Variable 'obj' is used before being assigned.
+logicalNotOperatorWithAnyOtherType.ts(45,27): error TS18050: The value 'null' cannot be used here.
+logicalNotOperatorWithAnyOtherType.ts(45,34): error TS18050: The value 'undefined' cannot be used here.
+logicalNotOperatorWithAnyOtherType.ts(46,27): error TS18050: The value 'null' cannot be used here.
+logicalNotOperatorWithAnyOtherType.ts(46,34): error TS18050: The value 'null' cannot be used here.
+logicalNotOperatorWithAnyOtherType.ts(47,27): error TS18050: The value 'undefined' cannot be used here.
+logicalNotOperatorWithAnyOtherType.ts(47,39): error TS18050: The value 'undefined' cannot be used here.
 logicalNotOperatorWithAnyOtherType.ts(57,1): error TS2695: Left side of comma operator is unused and has no side effects.
 
 
-==== logicalNotOperatorWithAnyOtherType.ts (4 errors) ====
+==== logicalNotOperatorWithAnyOtherType.ts (8 errors) ====
     // ! operator on any type
     
     var ANY: any;
@@ -34,6 +38,8 @@ logicalNotOperatorWithAnyOtherType.ts(57,1): error TS2695: Left side of comma op
     var ResultIsBoolean3 = !A;
     var ResultIsBoolean4 = !M;
     var ResultIsBoolean5 = !obj;
+                            ~~~
+!!! error TS2454: Variable 'obj' is used before being assigned.
     var ResultIsBoolean6 = !obj1;
     
     // any type literal
@@ -50,14 +56,20 @@ logicalNotOperatorWithAnyOtherType.ts(57,1): error TS2695: Left side of comma op
     var ResultIsBoolean15 = !A.foo();
     var ResultIsBoolean16 = !(ANY + ANY1);
     var ResultIsBoolean17 = !(null + undefined);
-                              ~~~~~~~~~~~~~~~~
-!!! error TS2365: Operator '+' cannot be applied to types 'null' and 'undefined'.
+                              ~~~~
+!!! error TS18050: The value 'null' cannot be used here.
+                                     ~~~~~~~~~
+!!! error TS18050: The value 'undefined' cannot be used here.
     var ResultIsBoolean18 = !(null + null);
-                              ~~~~~~~~~~~
-!!! error TS2365: Operator '+' cannot be applied to types 'null' and 'null'.
+                              ~~~~
+!!! error TS18050: The value 'null' cannot be used here.
+                                     ~~~~
+!!! error TS18050: The value 'null' cannot be used here.
     var ResultIsBoolean19 = !(undefined + undefined);
-                              ~~~~~~~~~~~~~~~~~~~~~
-!!! error TS2365: Operator '+' cannot be applied to types 'undefined' and 'undefined'.
+                              ~~~~~~~~~
+!!! error TS18050: The value 'undefined' cannot be used here.
+                                          ~~~~~~~~~
+!!! error TS18050: The value 'undefined' cannot be used here.
     
     // multiple ! operators
     var ResultIsBoolean20 = !!ANY;

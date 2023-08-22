@@ -33,18 +33,18 @@ var objA = new A();
 
 // boolean type var
 var ResultIsAny1 = void BOOLEAN;
->ResultIsAny1 : any
+>ResultIsAny1 : undefined
 >void BOOLEAN : undefined
 >BOOLEAN : boolean
 
 // boolean type literal
 var ResultIsAny2 = void true;
->ResultIsAny2 : any
+>ResultIsAny2 : undefined
 >void true : undefined
 >true : true
 
 var ResultIsAny3 = void { x: true, y: false };
->ResultIsAny3 : any
+>ResultIsAny3 : undefined
 >void { x: true, y: false } : undefined
 >{ x: true, y: false } : { x: boolean; y: boolean; }
 >x : boolean
@@ -54,27 +54,27 @@ var ResultIsAny3 = void { x: true, y: false };
 
 // boolean type expressions
 var ResultIsAny4 = void objA.a;
->ResultIsAny4 : any
+>ResultIsAny4 : undefined
 >void objA.a : undefined
 >objA.a : boolean
 >objA : A
 >a : boolean
 
 var ResultIsAny5 = void M.n;
->ResultIsAny5 : any
+>ResultIsAny5 : undefined
 >void M.n : undefined
 >M.n : boolean
 >M : typeof M
 >n : boolean
 
 var ResultIsAny6 = void foo();
->ResultIsAny6 : any
+>ResultIsAny6 : undefined
 >void foo() : undefined
 >foo() : boolean
 >foo : () => boolean
 
 var ResultIsAny7 = void A.foo();
->ResultIsAny7 : any
+>ResultIsAny7 : undefined
 >void A.foo() : undefined
 >A.foo() : boolean
 >A.foo : () => boolean
@@ -83,7 +83,7 @@ var ResultIsAny7 = void A.foo();
 
 // multiple void  operator
 var ResultIsAny8 = void void BOOLEAN;
->ResultIsAny8 : any
+>ResultIsAny8 : undefined
 >void void BOOLEAN : undefined
 >void BOOLEAN : undefined
 >BOOLEAN : boolean

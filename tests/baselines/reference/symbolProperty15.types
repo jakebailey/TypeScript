@@ -6,7 +6,7 @@ class C { }
 
 interface I {
     [Symbol.iterator]?: { x };
->[Symbol.iterator] : { x: any; }
+>[Symbol.iterator] : { x: any; } | undefined
 >Symbol.iterator : unique symbol
 >Symbol : SymbolConstructor
 >iterator : unique symbol

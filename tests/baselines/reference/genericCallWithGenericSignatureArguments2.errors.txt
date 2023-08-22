@@ -1,3 +1,4 @@
+genericCallWithGenericSignatureArguments2.ts(7,16): error TS2454: Variable 'r' is used before being assigned.
 genericCallWithGenericSignatureArguments2.ts(10,51): error TS2345: Argument of type '(x: string) => string' is not assignable to parameter of type '(x: number) => number'.
   Types of parameters 'x' and 'x' are incompatible.
     Type 'number' is not assignable to type 'string'.
@@ -5,24 +6,29 @@ genericCallWithGenericSignatureArguments2.ts(15,21): error TS2345: Argument of t
   'Date' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Date'.
 genericCallWithGenericSignatureArguments2.ts(16,22): error TS2345: Argument of type 'number' is not assignable to parameter of type 'T'.
   'T' could be instantiated with an arbitrary type which could be unrelated to 'number'.
+genericCallWithGenericSignatureArguments2.ts(21,16): error TS2454: Variable 'r' is used before being assigned.
 genericCallWithGenericSignatureArguments2.ts(25,23): error TS2345: Argument of type '(a: T) => T' is not assignable to parameter of type '(x: Date) => Date'.
   Types of parameters 'a' and 'x' are incompatible.
     Type 'Date' is not assignable to type 'T'.
       'T' could be instantiated with an arbitrary type which could be unrelated to 'Date'.
+genericCallWithGenericSignatureArguments2.ts(34,16): error TS2454: Variable 'r' is used before being assigned.
 genericCallWithGenericSignatureArguments2.ts(37,43): error TS2322: Type 'F' is not assignable to type 'E'.
+genericCallWithGenericSignatureArguments2.ts(43,16): error TS2454: Variable 'r' is used before being assigned.
 genericCallWithGenericSignatureArguments2.ts(50,21): error TS2345: Argument of type 'Date' is not assignable to parameter of type 'T'.
   'Date' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Date'.
 genericCallWithGenericSignatureArguments2.ts(51,22): error TS2345: Argument of type 'number' is not assignable to parameter of type 'T'.
   'T' could be instantiated with an arbitrary type which could be unrelated to 'number'.
+genericCallWithGenericSignatureArguments2.ts(56,16): error TS2454: Variable 'r' is used before being assigned.
 genericCallWithGenericSignatureArguments2.ts(60,23): error TS2345: Argument of type '(a: T) => T' is not assignable to parameter of type '(x: Date) => Date'.
   Types of parameters 'a' and 'x' are incompatible.
     Type 'Date' is not assignable to type 'T'.
       'T' could be instantiated with an arbitrary type which could be unrelated to 'Date'.
 genericCallWithGenericSignatureArguments2.ts(67,51): error TS2304: Cannot find name 'U'.
 genericCallWithGenericSignatureArguments2.ts(67,57): error TS2304: Cannot find name 'U'.
+genericCallWithGenericSignatureArguments2.ts(69,16): error TS2454: Variable 'r' is used before being assigned.
 
 
-==== genericCallWithGenericSignatureArguments2.ts (10 errors) ====
+==== genericCallWithGenericSignatureArguments2.ts (16 errors) ====
     // When a function expression is inferentially typed (section 4.9.3) and a type assigned to a parameter in that expression references type parameters for which inferences are being made, 
     // the corresponding inferred type arguments to become fixed and no further candidate inferences are made for them.
     
@@ -30,6 +36,8 @@ genericCallWithGenericSignatureArguments2.ts(67,57): error TS2304: Cannot find n
         function foo<T>(a: (x: T) => T, b: (x: T) => T) {
             var r: (x: T) => T;
             return r;
+                   ~
+!!! error TS2454: Variable 'r' is used before being assigned.
         }
     
         var r1: (x: {}) => {} = foo((x: number) => 1, (x: string) => '');
@@ -54,6 +62,8 @@ genericCallWithGenericSignatureArguments2.ts(67,57): error TS2304: Cannot find n
         function foo2<T extends Date>(a: (x: T) => T, b: (x: T) => T) {
             var r: (x: T) => T;
             return r;
+                   ~
+!!! error TS2454: Variable 'r' is used before being assigned.
         }
     
         function other3<T extends RegExp>(x: T) {
@@ -72,6 +82,8 @@ genericCallWithGenericSignatureArguments2.ts(67,57): error TS2304: Cannot find n
         function foo3<T>(x: T, a: (x: T) => T, b: (x: T) => T) {
             var r: (x: T) => T;
             return r;
+                   ~
+!!! error TS2454: Variable 'r' is used before being assigned.
         }
     
         var r7 = foo3(E.A, (x) => E.A, (x) => F.A); // error
@@ -84,6 +96,8 @@ genericCallWithGenericSignatureArguments2.ts(67,57): error TS2304: Cannot find n
         function foo<T, U>(a: (x: T) => T, b: (x: U) => U) {
             var r: (x: T) => T;
             return r;
+                   ~
+!!! error TS2454: Variable 'r' is used before being assigned.
         }
     
         var r1: (x: {}) => {} = foo((x: number) => 1, (x: string) => '');
@@ -103,6 +117,8 @@ genericCallWithGenericSignatureArguments2.ts(67,57): error TS2304: Cannot find n
         function foo2<T extends Date, U extends Date>(a: (x: T) => T, b: (x: U) => U) {
             var r: (x: T) => T;
             return r;
+                   ~
+!!! error TS2454: Variable 'r' is used before being assigned.
         }
     
         function other3<T extends RegExp>(x: T) {
@@ -125,6 +141,8 @@ genericCallWithGenericSignatureArguments2.ts(67,57): error TS2304: Cannot find n
 !!! error TS2304: Cannot find name 'U'.
             var r: (x: T) => T;
             return r;
+                   ~
+!!! error TS2454: Variable 'r' is used before being assigned.
         }
     
         var r7 = foo3(E.A, (x) => E.A, (x) => F.A);

@@ -89,4 +89,4 @@ declare function foo6(): boolean;
 declare function foo7(): void;
 declare function foo8(): void;
 declare function foo9(): any;
-declare function foo10(): any;
+declare function foo10(): undefined;

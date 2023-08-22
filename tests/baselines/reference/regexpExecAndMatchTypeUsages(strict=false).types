@@ -15,31 +15,31 @@ export function foo(matchResult: RegExpMatchArray, execResult: RegExpExecArray) 
 
     matchResult[999].length;
 >matchResult[999].length : number
->matchResult[999] : string
+>matchResult[999] : string | undefined
 >matchResult : RegExpMatchArray
 >999 : 999
 >length : number
 
     matchResult.index + 0;
 >matchResult.index + 0 : number
->matchResult.index : number
+>matchResult.index : number | undefined
 >matchResult : RegExpMatchArray
->index : number
+>index : number | undefined
 >0 : 0
 
     matchResult.input.length;
 >matchResult.input.length : number
->matchResult.input : string
+>matchResult.input : string | undefined
 >matchResult : RegExpMatchArray
->input : string
+>input : string | undefined
 >length : number
 
     matchResult.groups["someVariable"].length;
 >matchResult.groups["someVariable"].length : number
->matchResult.groups["someVariable"] : string
->matchResult.groups : { [key: string]: string; }
+>matchResult.groups["someVariable"] : string | undefined
+>matchResult.groups : { [key: string]: string; } | undefined
 >matchResult : RegExpMatchArray
->groups : { [key: string]: string; }
+>groups : { [key: string]: string; } | undefined
 >"someVariable" : "someVariable"
 >length : number
 
@@ -59,7 +59,7 @@ export function foo(matchResult: RegExpMatchArray, execResult: RegExpExecArray) 
 
     execResult[999].length;
 >execResult[999].length : number
->execResult[999] : string
+>execResult[999] : string | undefined
 >execResult : RegExpExecArray
 >999 : 999
 >length : number
@@ -80,10 +80,10 @@ export function foo(matchResult: RegExpMatchArray, execResult: RegExpExecArray) 
 
     execResult.groups["someVariable"].length;
 >execResult.groups["someVariable"].length : number
->execResult.groups["someVariable"] : string
->execResult.groups : { [key: string]: string; }
+>execResult.groups["someVariable"] : string | undefined
+>execResult.groups : { [key: string]: string; } | undefined
 >execResult : RegExpExecArray
->groups : { [key: string]: string; }
+>groups : { [key: string]: string; } | undefined
 >"someVariable" : "someVariable"
 >length : number
 

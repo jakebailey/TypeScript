@@ -15,11 +15,11 @@ export function foo() {
 >foo : () => any
 
 var classes = undefined;
->classes : any
+>classes : undefined
 >undefined : undefined
 
     return new classes(null);
 >new classes(null) : any
->classes : any
+>classes : undefined
 }
 

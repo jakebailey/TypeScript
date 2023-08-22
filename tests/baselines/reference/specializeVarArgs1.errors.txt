@@ -1,0 +1,28 @@
+specializeVarArgs1.ts(15,53): error TS2322: Type 'null' is not assignable to type 'ObservableArray<T>'.
+
+
+==== specializeVarArgs1.ts (1 errors) ====
+    interface Observable<T>{ }
+    
+     
+    
+    interface ObservableArray<T> extends Observable<T[]>
+    
+    {
+    
+        push(...values: T[]);
+    
+    }
+    
+     
+    
+    function observableArray<T>(): ObservableArray<T> { return null;}
+                                                        ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'ObservableArray<T>'.
+    
+     
+    
+    var a =  observableArray<string>();
+    
+    a.push('Some Value');
+    

@@ -2,6 +2,8 @@ parserRealSource11.ts(4,21): error TS6053: File 'typescript.ts' not found.
 parserRealSource11.ts(13,22): error TS2304: Cannot find name 'Type'.
 parserRealSource11.ts(14,24): error TS2304: Cannot find name 'ASTFlags'.
 parserRealSource11.ts(17,38): error TS2304: Cannot find name 'CompilerDiagnostics'.
+parserRealSource11.ts(19,16): error TS2322: Type 'null' is not assignable to type 'Comment[]'.
+parserRealSource11.ts(20,16): error TS2322: Type 'null' is not assignable to type 'Comment[]'.
 parserRealSource11.ts(24,39): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(36,36): error TS2304: Cannot find name 'TypeFlow'.
 parserRealSource11.ts(38,22): error TS2304: Cannot find name 'NodeType'.
@@ -47,6 +49,7 @@ parserRealSource11.ts(231,30): error TS2304: Cannot find name 'Emitter'.
 parserRealSource11.ts(231,48): error TS2304: Cannot find name 'TokenID'.
 parserRealSource11.ts(233,52): error TS2304: Cannot find name 'TokenID'.
 parserRealSource11.ts(237,36): error TS2304: Cannot find name 'TypeFlow'.
+parserRealSource11.ts(251,16): error TS2322: Type 'null' is not assignable to type 'Symbol'.
 parserRealSource11.ts(268,19): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(298,36): error TS2304: Cannot find name 'TypeFlow'.
 parserRealSource11.ts(302,30): error TS2304: Cannot find name 'Emitter'.
@@ -61,6 +64,7 @@ parserRealSource11.ts(337,30): error TS2304: Cannot find name 'Emitter'.
 parserRealSource11.ts(337,48): error TS2304: Cannot find name 'TokenID'.
 parserRealSource11.ts(350,32): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(360,28): error TS2304: Cannot find name 'Type'.
+parserRealSource11.ts(361,16): error TS2322: Type 'null' is not assignable to type 'AST'.
 parserRealSource11.ts(363,32): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(367,42): error TS2304: Cannot find name 'ControlFlowContext'.
 parserRealSource11.ts(370,34): error TS2304: Cannot find name 'NodeType'.
@@ -215,7 +219,10 @@ parserRealSource11.ts(850,52): error TS2304: Cannot find name 'TokenID'.
 parserRealSource11.ts(863,36): error TS2304: Cannot find name 'TypeFlow'.
 parserRealSource11.ts(868,38): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(877,40): error TS2304: Cannot find name 'NodeType'.
+parserRealSource11.ts(889,16): error TS2322: Type 'null' is not assignable to type 'AST'.
+parserRealSource11.ts(890,16): error TS2322: Type 'null' is not assignable to type 'AST'.
 parserRealSource11.ts(891,27): error TS2304: Cannot find name 'VarFlags'.
+parserRealSource11.ts(892,16): error TS2322: Type 'null' is not assignable to type 'Symbol'.
 parserRealSource11.ts(894,55): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(900,37): error TS2304: Cannot find name 'hasFlag'.
 parserRealSource11.ts(900,60): error TS2304: Cannot find name 'VarFlags'.
@@ -237,10 +244,19 @@ parserRealSource11.ts(933,23): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(944,38): error TS2304: Cannot find name 'FieldSymbol'.
 parserRealSource11.ts(946,30): error TS2304: Cannot find name 'Emitter'.
 parserRealSource11.ts(946,48): error TS2304: Cannot find name 'TokenID'.
+parserRealSource11.ts(958,16): error TS2322: Type 'null' is not assignable to type 'string'.
 parserRealSource11.ts(959,27): error TS2304: Cannot find name 'FncFlags'.
+parserRealSource11.ts(960,16): error TS2322: Type 'null' is not assignable to type 'AST'.
 parserRealSource11.ts(961,25): error TS2304: Cannot find name 'IHashTable'.
 parserRealSource11.ts(963,27): error TS2304: Cannot find name 'Signature'.
+parserRealSource11.ts(965,16): error TS2322: Type 'null' is not assignable to type 'Identifier[]'.
+parserRealSource11.ts(966,16): error TS2322: Type 'null' is not assignable to type 'string'.
+parserRealSource11.ts(968,16): error TS2322: Type 'null' is not assignable to type 'FuncDecl'.
+parserRealSource11.ts(971,16): error TS2322: Type 'null' is not assignable to type 'NamedDeclaration'.
+parserRealSource11.ts(972,16): error TS2322: Type 'null' is not assignable to type 'VarDecl'.
+parserRealSource11.ts(977,16): error TS2322: Type 'null' is not assignable to type 'Symbol'.
 parserRealSource11.ts(981,27): error TS2304: Cannot find name 'Type'.
+parserRealSource11.ts(982,16): error TS2322: Type 'null' is not assignable to type 'ASTSpan'.
 parserRealSource11.ts(985,29): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
 parserRealSource11.ts(1004,44): error TS2304: Cannot find name 'hasFlag'.
 parserRealSource11.ts(1004,67): error TS2304: Cannot find name 'FncFlags'.
@@ -249,6 +265,7 @@ parserRealSource11.ts(1009,46): error TS1011: An element access expression shoul
 parserRealSource11.ts(1014,65): error TS2339: Property 'container' does not exist on type 'Symbol'.
 parserRealSource11.ts(1024,48): error TS1011: An element access expression should take an argument.
 parserRealSource11.ts(1026,41): error TS2339: Property 'name' does not exist on type 'Symbol'.
+parserRealSource11.ts(1029,43): error TS2345: Argument of type 'null' is not assignable to parameter of type 'Symbol'.
 parserRealSource11.ts(1032,36): error TS2304: Cannot find name 'ControlFlowContext'.
 parserRealSource11.ts(1033,29): error TS2304: Cannot find name 'BasicBlock'.
 parserRealSource11.ts(1034,28): error TS2304: Cannot find name 'BasicBlock'.
@@ -287,7 +304,11 @@ parserRealSource11.ts(1083,59): error TS2304: Cannot find name 'FncFlags'.
 parserRealSource11.ts(1095,29): error TS2304: Cannot find name 'FncFlags'.
 parserRealSource11.ts(1098,56): error TS2304: Cannot find name 'FncFlags'.
 parserRealSource11.ts(1098,79): error TS2304: Cannot find name 'FncFlags'.
+parserRealSource11.ts(1107,66): error TS2345: Argument of type 'null' is not assignable to parameter of type 'number[]'.
+parserRealSource11.ts(1110,16): error TS2322: Type 'null' is not assignable to type 'LocationInfo'.
 parserRealSource11.ts(1111,33): error TS2304: Cannot find name 'IFileReference'.
+parserRealSource11.ts(1117,16): error TS2322: Type 'null' is not assignable to type 'ModuleDeclaration'.
+parserRealSource11.ts(1127,45): error TS2345: Argument of type 'null' is not assignable to parameter of type 'ASTList'.
 parserRealSource11.ts(1127,84): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(1132,36): error TS2304: Cannot find name 'TypeFlow'.
 parserRealSource11.ts(1144,42): error TS2304: Cannot find name 'NodeType'.
@@ -328,6 +349,8 @@ parserRealSource11.ts(1248,20): error TS2304: Cannot find name 'hasFlag'.
 parserRealSource11.ts(1248,43): error TS2304: Cannot find name 'VarFlags'.
 parserRealSource11.ts(1252,20): error TS2304: Cannot find name 'hasFlag'.
 parserRealSource11.ts(1252,43): error TS2304: Cannot find name 'VarFlags'.
+parserRealSource11.ts(1258,16): error TS2322: Type 'null' is not assignable to type 'FuncDecl'.
+parserRealSource11.ts(1260,16): error TS2322: Type 'null' is not assignable to type 'ASTSpan'.
 parserRealSource11.ts(1266,19): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(1269,36): error TS2304: Cannot find name 'TypeFlow'.
 parserRealSource11.ts(1273,30): error TS2304: Cannot find name 'Emitter'.
@@ -352,6 +375,8 @@ parserRealSource11.ts(1362,67): error TS2304: Cannot find name 'TokenID'.
 parserRealSource11.ts(1374,42): error TS2304: Cannot find name 'ControlFlowContext'.
 parserRealSource11.ts(1375,37): error TS2304: Cannot find name 'BasicBlock'.
 parserRealSource11.ts(1388,36): error TS2304: Cannot find name 'TypeFlow'.
+parserRealSource11.ts(1401,16): error TS2322: Type 'null' is not assignable to type 'string'.
+parserRealSource11.ts(1403,16): error TS2322: Type 'null' is not assignable to type 'Statement'.
 parserRealSource11.ts(1405,32): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(1409,42): error TS2304: Cannot find name 'Parser'.
 parserRealSource11.ts(1414,35): error TS2304: Cannot find name 'NodeType'.
@@ -361,6 +386,7 @@ parserRealSource11.ts(1432,80): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(1435,30): error TS2304: Cannot find name 'Emitter'.
 parserRealSource11.ts(1435,48): error TS2304: Cannot find name 'TokenID'.
 parserRealSource11.ts(1438,34): error TS2304: Cannot find name 'NodeType'.
+parserRealSource11.ts(1454,16): error TS2322: Type 'null' is not assignable to type 'AST'.
 parserRealSource11.ts(1457,19): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(1462,30): error TS2304: Cannot find name 'Emitter'.
 parserRealSource11.ts(1462,48): error TS2304: Cannot find name 'TokenID'.
@@ -371,6 +397,9 @@ parserRealSource11.ts(1481,33): error TS2304: Cannot find name 'BasicBlock'.
 parserRealSource11.ts(1482,33): error TS2304: Cannot find name 'BasicBlock'.
 parserRealSource11.ts(1488,29): error TS2304: Cannot find name 'ITargetInfo'.
 parserRealSource11.ts(1490,39): error TS2304: Cannot find name 'BasicBlock'.
+parserRealSource11.ts(1509,16): error TS2322: Type 'null' is not assignable to type 'AST'.
+parserRealSource11.ts(1510,16): error TS2322: Type 'null' is not assignable to type 'AST'.
+parserRealSource11.ts(1511,16): error TS2322: Type 'null' is not assignable to type 'AST'.
 parserRealSource11.ts(1515,19): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(1518,30): error TS2304: Cannot find name 'Emitter'.
 parserRealSource11.ts(1518,48): error TS2304: Cannot find name 'TokenID'.
@@ -380,6 +409,7 @@ parserRealSource11.ts(1539,42): error TS2304: Cannot find name 'ControlFlowConte
 parserRealSource11.ts(1541,33): error TS2304: Cannot find name 'BasicBlock'.
 parserRealSource11.ts(1542,33): error TS2304: Cannot find name 'BasicBlock'.
 parserRealSource11.ts(1545,29): error TS2304: Cannot find name 'ITargetInfo'.
+parserRealSource11.ts(1568,16): error TS2322: Type 'null' is not assignable to type 'AST'.
 parserRealSource11.ts(1572,19): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(1577,30): error TS2304: Cannot find name 'Emitter'.
 parserRealSource11.ts(1577,48): error TS2304: Cannot find name 'TokenID'.
@@ -389,6 +419,7 @@ parserRealSource11.ts(1600,42): error TS2304: Cannot find name 'ControlFlowConte
 parserRealSource11.ts(1602,31): error TS2304: Cannot find name 'BasicBlock'.
 parserRealSource11.ts(1606,35): error TS2304: Cannot find name 'BasicBlock'.
 parserRealSource11.ts(1615,39): error TS2304: Cannot find name 'BasicBlock'.
+parserRealSource11.ts(1648,16): error TS2322: Type 'null' is not assignable to type 'AST'.
 parserRealSource11.ts(1651,19): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(1654,30): error TS2304: Cannot find name 'Emitter'.
 parserRealSource11.ts(1654,48): error TS2304: Cannot find name 'TokenID'.
@@ -399,6 +430,7 @@ parserRealSource11.ts(1682,19): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(1688,19): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(1689,53): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(1690,52): error TS2304: Cannot find name 'VarFlags'.
+parserRealSource11.ts(1700,21): error TS2322: Type 'null' is not assignable to type 'AST'.
 parserRealSource11.ts(1701,43): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(1712,48): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(1718,48): error TS2304: Cannot find name 'NodeType'.
@@ -439,6 +471,7 @@ parserRealSource11.ts(1914,30): error TS2304: Cannot find name 'Emitter'.
 parserRealSource11.ts(1914,48): error TS2304: Cannot find name 'TokenID'.
 parserRealSource11.ts(1919,51): error TS2304: Cannot find name 'TokenID'.
 parserRealSource11.ts(1928,36): error TS2304: Cannot find name 'TypeFlow'.
+parserRealSource11.ts(1935,16): error TS2322: Type 'null' is not assignable to type 'CaseStatement'.
 parserRealSource11.ts(1939,19): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(1944,30): error TS2304: Cannot find name 'Emitter'.
 parserRealSource11.ts(1944,48): error TS2304: Cannot find name 'TokenID'.
@@ -448,6 +481,7 @@ parserRealSource11.ts(1969,36): error TS2304: Cannot find name 'TypeFlow'.
 parserRealSource11.ts(1981,42): error TS2304: Cannot find name 'ControlFlowContext'.
 parserRealSource11.ts(1984,33): error TS2304: Cannot find name 'BasicBlock'.
 parserRealSource11.ts(1985,35): error TS2304: Cannot find name 'BasicBlock'.
+parserRealSource11.ts(2010,16): error TS2322: Type 'null' is not assignable to type 'AST'.
 parserRealSource11.ts(2014,19): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(2017,30): error TS2304: Cannot find name 'Emitter'.
 parserRealSource11.ts(2017,48): error TS2304: Cannot find name 'TokenID'.
@@ -505,13 +539,14 @@ parserRealSource11.ts(2303,48): error TS2304: Cannot find name 'TokenID'.
 parserRealSource11.ts(2307,47): error TS2304: Cannot find name 'TokenID'.
 parserRealSource11.ts(2312,42): error TS2304: Cannot find name 'ControlFlowContext'.
 parserRealSource11.ts(2320,36): error TS2304: Cannot find name 'TypeFlow'.
+parserRealSource11.ts(2328,16): error TS2322: Type 'null' is not assignable to type 'string[]'.
 parserRealSource11.ts(2331,19): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(2353,19): error TS2304: Cannot find name 'NodeType'.
 parserRealSource11.ts(2356,30): error TS2304: Cannot find name 'Emitter'.
 parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
 
 
-==== parserRealSource11.ts (511 errors) ====
+==== parserRealSource11.ts (546 errors) ====
     // Copyright (c) Microsoft. All rights reserved. Licensed under the Apache License, Version 2.0. 
     // See LICENSE.txt in the project root for complete license information.
     
@@ -539,7 +574,11 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
 !!! error TS2304: Cannot find name 'CompilerDiagnostics'.
     
             public preComments: Comment[] = null;
+                   ~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Comment[]'.
             public postComments: Comment[] = null;
+                   ~~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Comment[]'.
     
             public isParenthesized = false;
     
@@ -861,6 +900,8 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
     
         export class Identifier extends AST {
             public sym: Symbol = null;
+                   ~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Symbol'.
             public cloId = -1;
             public text: string;
     
@@ -999,6 +1040,8 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
                                ~~~~
 !!! error TS2304: Cannot find name 'Type'.
             public castTerm: AST = null;
+                   ~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'AST'.
     
             constructor (nodeType: NodeType, public operand: AST) {
                                    ~~~~~~~~
@@ -1835,11 +1878,17 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
     
         export class BoundDecl extends AST {
             public init: AST = null;
+                   ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'AST'.
             public typeExpr: AST = null;
+                   ~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'AST'.
             public varFlags = VarFlags.None;
                               ~~~~~~~~
 !!! error TS2304: Cannot find name 'VarFlags'.
             public sym: Symbol = null;
+                   ~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Symbol'.
     
             constructor (public id: Identifier, nodeType: NodeType, public nestingLevel: number) {
                                                           ~~~~~~~~
@@ -1948,10 +1997,14 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
     
         export class FuncDecl extends AST {
             public hint: string = null;
+                   ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'string'.
             public fncFlags = FncFlags.None;
                               ~~~~~~~~
 !!! error TS2304: Cannot find name 'FncFlags'.
             public returnTypeAnnotation: AST = null;
+                   ~~~~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'AST'.
             public symbols: IHashTable;
                             ~~~~~~~~~~
 !!! error TS2304: Cannot find name 'IHashTable'.
@@ -1961,18 +2014,30 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
 !!! error TS2304: Cannot find name 'Signature'.
             public envids: Identifier[];
             public jumpRefs: Identifier[] = null;
+                   ~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Identifier[]'.
             public internalNameCache: string = null;
+                   ~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'string'.
             public tmp1Declared = false;
             public enclosingFnc: FuncDecl = null;
+                   ~~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'FuncDecl'.
             public freeVariables: Symbol[] = [];
             public unitIndex = -1;
             public classDecl: NamedDeclaration = null;
+                   ~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'NamedDeclaration'.
             public boundToProperty: VarDecl = null;
+                   ~~~~~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'VarDecl'.
             public isOverload = false;
             public innerStaticFuncs: FuncDecl[] = [];
             public isTargetTypedAsMethod = false;
             public isInlineCallLiteral = false;
             public accessorSymbol: Symbol = null;
+                   ~~~~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Symbol'.
             public leftCurlyCount = 0;
             public rightCurlyCount = 0;
             public returnStatementsWithExpressions: ReturnStatement[] = [];
@@ -1980,6 +2045,8 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
                               ~~~~
 !!! error TS2304: Cannot find name 'Type'.
             public endingToken: ASTSpan = null;
+                   ~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'ASTSpan'.
     
             constructor (public name: Identifier, public bod: ASTList, public isConstructor: boolean,
                          public arguments: ASTList, public vars: ASTList, public scopes: ASTList, public statics: ASTList,
@@ -2043,6 +2110,8 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
                 this.jumpRefs[this.jumpRefs.length] = id;
                 id.sym = sym;
                 id.cloId = this.addCloRef(id, null);
+                                              ~~~~
+!!! error TS2345: Argument of type 'null' is not assignable to parameter of type 'Symbol'.
             }
     
             public buildControlFlow(): ControlFlowContext {
@@ -2197,9 +2266,13 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
         }
     
         export var unknownLocationInfo = new LocationInfo("unknown", null, -1);
+                                                                     ~~~~
+!!! error TS2345: Argument of type 'null' is not assignable to parameter of type 'number[]'.
     
         export class Script extends FuncDecl {
             public locationInfo: LocationInfo = null;
+                   ~~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'LocationInfo'.
             public referencedFiles: IFileReference[] = [];
                                     ~~~~~~~~~~~~~~
 !!! error TS2304: Cannot find name 'IFileReference'.
@@ -2209,6 +2282,8 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
             public isDeclareFile = false;
             public hasBeenTypeChecked = false;
             public topLevelMod: ModuleDeclaration = null;
+                   ~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'ModuleDeclaration'.
             public leftCurlyCount = 0;
             public rightCurlyCount = 0;
             public vars: ASTList;
@@ -2219,6 +2294,8 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
     
             constructor (vars: ASTList, scopes: ASTList) {
                 super(new Identifier("script"), null, false, null, vars, scopes, null, NodeType.Script);
+                                                ~~~~
+!!! error TS2345: Argument of type 'null' is not assignable to parameter of type 'ASTList'.
                                                                                        ~~~~~~~~
 !!! error TS2304: Cannot find name 'NodeType'.
                 this.vars = vars;
@@ -2430,8 +2507,12 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
         export class ClassDeclaration extends TypeDeclaration {
             public knownMemberNames: any = {};
             public constructorDecl: FuncDecl = null;
+                   ~~~~~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'FuncDecl'.
             public constructorNestingLevel = 0;
             public endingToken: ASTSpan = null;
+                   ~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'ASTSpan'.
     
             constructor (name: Identifier,
                          members: ASTList,
@@ -2621,8 +2702,12 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
     
         export class Jump extends Statement {
             public target: string = null;
+                   ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'string'.
             public hasExplicitTarget() { return (this.target); }
             public resolvedTarget: Statement = null;
+                   ~~~~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Statement'.
     
             constructor (nodeType: NodeType) {
                                    ~~~~~~~~
@@ -2692,6 +2777,8 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
     
         export class WhileStatement extends Statement {
             public body: AST = null;
+                   ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'AST'.
     
             constructor (public cond: AST) {
                 super(NodeType.While);
@@ -2767,8 +2854,14 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
     
         export class DoWhileStatement extends Statement {
             public body: AST = null;
+                   ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'AST'.
             public whileAST: AST = null;
+                   ~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'AST'.
             public cond: AST = null;
+                   ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'AST'.
             public isLoop() { return true; }
     
             constructor () {
@@ -2844,6 +2937,8 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
         export class IfStatement extends Statement {
             public thenBod: AST;
             public elseBod: AST = null;
+                   ~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'AST'.
             public statement: ASTSpan = new ASTSpan();
     
             constructor (public cond: AST) {
@@ -2942,6 +3037,8 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
     
         export class ReturnStatement extends Statement {
             public returnExpression: AST = null;
+                   ~~~~~~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'AST'.
     
             constructor () {
                 super(NodeType.Return);
@@ -3014,6 +3111,8 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
             public isFiltered() {
                 if (this.body) {
                     var singleItem: AST = null;
+                        ~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'AST'.
                     if (this.body.nodeType == NodeType.List) {
                                               ~~~~~~~~
 !!! error TS2304: Cannot find name 'NodeType'.
@@ -3329,6 +3428,8 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
         export class SwitchStatement extends Statement {
             public caseList: ASTList;
             public defaultCase: CaseStatement = null;
+                   ~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'CaseStatement'.
             public statement: ASTSpan = new ASTSpan();
     
             constructor (public val: AST) {
@@ -3422,6 +3523,8 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
     
         export class CaseStatement extends Statement {
             public expr: AST = null;
+                   ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'AST'.
             public body: ASTList;
     
             constructor () {
@@ -3854,6 +3957,8 @@ parserRealSource11.ts(2356,48): error TS2304: Cannot find name 'TokenID'.
         export class Comment extends AST {
     
             public text: string[] = null;
+                   ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'string[]'.
     
             constructor (public content: string, public isBlockComment: boolean, public endsLine) {
                 super(NodeType.Comment);

@@ -105,8 +105,8 @@ const f12 = async function * () {
 };
 === yieldIsOk.ts ===
 const f13 = async function * () {
->f13 : () => AsyncGenerator<any, void, unknown>
->async function * () {    yield;} : () => AsyncGenerator<any, void, unknown>
+>f13 : () => AsyncGenerator<undefined, void, unknown>
+>async function * () {    yield;} : () => AsyncGenerator<undefined, void, unknown>
 
     yield;
 >yield : any
@@ -134,12 +134,12 @@ const f15 = async function * () {
 };
 === yieldStarWithValueIsOk.ts ===
 const f16 = async function * () {
->f16 : () => AsyncGenerator<any, void, undefined>
->async function * () {    yield * [];} : () => AsyncGenerator<any, void, undefined>
+>f16 : () => AsyncGenerator<never, void, undefined>
+>async function * () {    yield * [];} : () => AsyncGenerator<never, void, undefined>
 
     yield * [];
 >yield * [] : any
->[] : undefined[]
+>[] : never[]
 
 };
 === awaitWithValueIsOk.ts ===
@@ -184,8 +184,8 @@ const f20 = async function * () {
 };
 === yieldInNestedComputedPropertyIsOk.ts ===
 const f21 = async function *() {
->f21 : () => AsyncGenerator<any, void, unknown>
->async function *() {    const x = { [yield]: 1 };} : () => AsyncGenerator<any, void, unknown>
+>f21 : () => AsyncGenerator<undefined, void, unknown>
+>async function *() {    const x = { [yield]: 1 };} : () => AsyncGenerator<undefined, void, unknown>
 
     const x = { [yield]: 1 };
 >x : { [x: number]: number; }

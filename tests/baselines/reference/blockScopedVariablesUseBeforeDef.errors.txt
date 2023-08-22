@@ -3,11 +3,17 @@ blockScopedVariablesUseBeforeDef.ts(58,20): error TS2448: Block-scoped variable 
 blockScopedVariablesUseBeforeDef.ts(65,20): error TS2448: Block-scoped variable 'x' used before its declaration.
 blockScopedVariablesUseBeforeDef.ts(100,12): error TS2448: Block-scoped variable 'x' used before its declaration.
 blockScopedVariablesUseBeforeDef.ts(111,28): error TS2448: Block-scoped variable 'a' used before its declaration.
+blockScopedVariablesUseBeforeDef.ts(111,28): error TS2454: Variable 'a' is used before being assigned.
 blockScopedVariablesUseBeforeDef.ts(112,21): error TS2448: Block-scoped variable 'a' used before its declaration.
+blockScopedVariablesUseBeforeDef.ts(112,21): error TS2454: Variable 'a' is used before being assigned.
 blockScopedVariablesUseBeforeDef.ts(122,22): error TS2448: Block-scoped variable 'a' used before its declaration.
+blockScopedVariablesUseBeforeDef.ts(127,9): error TS2454: Variable 'promise' is used before being assigned.
+blockScopedVariablesUseBeforeDef.ts(128,9): error TS2454: Variable 'foo' is used before being assigned.
+blockScopedVariablesUseBeforeDef.ts(130,9): error TS2454: Variable 'promise' is used before being assigned.
+blockScopedVariablesUseBeforeDef.ts(131,9): error TS2454: Variable 'foo' is used before being assigned.
 
 
-==== blockScopedVariablesUseBeforeDef.ts (7 errors) ====
+==== blockScopedVariablesUseBeforeDef.ts (13 errors) ====
     function foo0() {
         let a = x;
                 ~
@@ -134,10 +140,14 @@ blockScopedVariablesUseBeforeDef.ts(122,22): error TS2448: Block-scoped variable
                                ~
 !!! error TS2448: Block-scoped variable 'a' used before its declaration.
 !!! related TS2728 blockScopedVariablesUseBeforeDef.ts:108:9: 'a' is declared here.
+                               ~
+!!! error TS2454: Variable 'a' is used before being assigned.
             console.log(a);            // should error
                         ~
 !!! error TS2448: Block-scoped variable 'a' used before its declaration.
 !!! related TS2728 blockScopedVariablesUseBeforeDef.ts:108:9: 'a' is declared here.
+                        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
             const b = () => a;         // should be ok
             return [
                 0,
@@ -156,10 +166,18 @@ blockScopedVariablesUseBeforeDef.ts(122,22): error TS2448: Block-scoped variable
     function foo17() {
         const promise = (async () => {
             promise
+            ~~~~~~~
+!!! error TS2454: Variable 'promise' is used before being assigned.
             foo
+            ~~~
+!!! error TS2454: Variable 'foo' is used before being assigned.
             await null
             promise
+            ~~~~~~~
+!!! error TS2454: Variable 'promise' is used before being assigned.
             foo
+            ~~~
+!!! error TS2454: Variable 'foo' is used before being assigned.
         })()
     
         const foo = 1;

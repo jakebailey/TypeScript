@@ -16,8 +16,8 @@ function doubleAndReturnAsArray(x: number, y: number, z: number): [number, numbe
 >iterator : any
 
     let result = [];
->result : any[]
->[] : undefined[]
+>result : never[]
+>[] : never[]
 
     for (let arg of blah()) {
 >arg : any
@@ -26,16 +26,16 @@ function doubleAndReturnAsArray(x: number, y: number, z: number): [number, numbe
 
         result.push(arg + arg);
 >result.push(arg + arg) : number
->result.push : (...items: any[]) => number
->result : any[]
->push : (...items: any[]) => number
+>result.push : (...items: never[]) => number
+>result : never[]
+>push : (...items: never[]) => number
 >arg + arg : any
 >arg : any
 >arg : any
     }
     return <[any, any, any]>result;
 ><[any, any, any]>result : [any, any, any]
->result : any[]
+>result : never[]
 }
 
 

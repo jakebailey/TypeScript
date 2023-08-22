@@ -15,15 +15,15 @@ function test2() {
 
     for (let v in []) { var v; }
 >v : string
->[] : undefined[]
+>[] : never[]
 >v : any
 }
 function test3() {
 >test3 : () => void
 
     for (let v of []) { var v; }
->v : any
->[] : undefined[]
+>v : never
+>[] : never[]
 >v : any
 }
 function test4() {

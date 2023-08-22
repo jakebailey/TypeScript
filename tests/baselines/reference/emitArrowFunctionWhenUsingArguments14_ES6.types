@@ -2,7 +2,7 @@
 
 === emitArrowFunctionWhenUsingArguments14_ES6.ts ===
 function f() {
->f : () => () => number
+>f : () => (() => number) | undefined
 
     if (Math.random()) {
 >Math.random() : number

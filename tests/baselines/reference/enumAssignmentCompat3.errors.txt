@@ -1,20 +1,29 @@
+enumAssignmentCompat3.ts(67,7): error TS2454: Variable 'secondAbc' is used before being assigned.
 enumAssignmentCompat3.ts(68,1): error TS2322: Type 'Abcd.E' is not assignable to type 'First.E'.
   Property 'd' is missing in type 'First.E'.
+enumAssignmentCompat3.ts(68,7): error TS2454: Variable 'secondAbcd' is used before being assigned.
+enumAssignmentCompat3.ts(69,7): error TS2454: Variable 'secondAb' is used before being assigned.
 enumAssignmentCompat3.ts(70,1): error TS2322: Type 'Cd.E' is not assignable to type 'First.E'.
   Property 'd' is missing in type 'First.E'.
+enumAssignmentCompat3.ts(70,7): error TS2454: Variable 'secondCd' is used before being assigned.
 enumAssignmentCompat3.ts(71,1): error TS2322: Type 'Nope' is not assignable to type 'E'.
+enumAssignmentCompat3.ts(71,7): error TS2454: Variable 'nope' is used before being assigned.
+enumAssignmentCompat3.ts(72,7): error TS2454: Variable 'decl' is used before being assigned.
 enumAssignmentCompat3.ts(75,1): error TS2322: Type 'First.E' is not assignable to type 'Ab.E'.
   Property 'c' is missing in type 'Ab.E'.
 enumAssignmentCompat3.ts(76,1): error TS2322: Type 'First.E' is not assignable to type 'Cd.E'.
   Property 'a' is missing in type 'Cd.E'.
 enumAssignmentCompat3.ts(77,1): error TS2322: Type 'E' is not assignable to type 'Nope'.
+enumAssignmentCompat3.ts(81,5): error TS2454: Variable 'k' is used before being assigned.
 enumAssignmentCompat3.ts(82,1): error TS2322: Type 'Const.E' is not assignable to type 'First.E'.
 enumAssignmentCompat3.ts(83,1): error TS2322: Type 'First.E' is not assignable to type 'Const.E'.
 enumAssignmentCompat3.ts(86,1): error TS2322: Type 'Merged.E' is not assignable to type 'First.E'.
   Property 'd' is missing in type 'First.E'.
+enumAssignmentCompat3.ts(86,7): error TS2454: Variable 'merged' is used before being assigned.
+enumAssignmentCompat3.ts(88,7): error TS2454: Variable 'merged2' is used before being assigned.
 
 
-==== enumAssignmentCompat3.ts (9 errors) ====
+==== enumAssignmentCompat3.ts (18 errors) ====
     namespace First {
         export enum E {
             a, b, c,
@@ -82,19 +91,31 @@ enumAssignmentCompat3.ts(86,1): error TS2322: Type 'Merged.E' is not assignable 
     var merged: Merged.E;
     var merged2: Merged2.E;
     abc = secondAbc; // ok
+          ~~~~~~~~~
+!!! error TS2454: Variable 'secondAbc' is used before being assigned.
     abc = secondAbcd; // missing 'd'
     ~~~
 !!! error TS2322: Type 'Abcd.E' is not assignable to type 'First.E'.
 !!! error TS2322:   Property 'd' is missing in type 'First.E'.
+          ~~~~~~~~~~
+!!! error TS2454: Variable 'secondAbcd' is used before being assigned.
     abc = secondAb; // ok
+          ~~~~~~~~
+!!! error TS2454: Variable 'secondAb' is used before being assigned.
     abc = secondCd; // missing 'd'
     ~~~
 !!! error TS2322: Type 'Cd.E' is not assignable to type 'First.E'.
 !!! error TS2322:   Property 'd' is missing in type 'First.E'.
+          ~~~~~~~~
+!!! error TS2454: Variable 'secondCd' is used before being assigned.
     abc = nope; // nope!
     ~~~
 !!! error TS2322: Type 'Nope' is not assignable to type 'E'.
+          ~~~~
+!!! error TS2454: Variable 'nope' is used before being assigned.
     abc = decl; // ok
+          ~~~~
+!!! error TS2454: Variable 'decl' is used before being assigned.
     secondAbc = abc; // ok
     secondAbcd = abc; // ok
     secondAb = abc; // missing 'c'
@@ -112,6 +133,8 @@ enumAssignmentCompat3.ts(86,1): error TS2322: Type 'Merged.E' is not assignable 
     
     // const is only assignable to itself
     k = k;
+        ~
+!!! error TS2454: Variable 'k' is used before being assigned.
     abc = k; // error
     ~~~
 !!! error TS2322: Type 'Const.E' is not assignable to type 'First.E'.
@@ -124,6 +147,10 @@ enumAssignmentCompat3.ts(86,1): error TS2322: Type 'Merged.E' is not assignable 
     ~~~
 !!! error TS2322: Type 'Merged.E' is not assignable to type 'First.E'.
 !!! error TS2322:   Property 'd' is missing in type 'First.E'.
+          ~~~~~~
+!!! error TS2454: Variable 'merged' is used before being assigned.
     merged = abc; // ok
     abc = merged2; // ok
+          ~~~~~~~
+!!! error TS2454: Variable 'merged2' is used before being assigned.
     merged2 = abc; // ok

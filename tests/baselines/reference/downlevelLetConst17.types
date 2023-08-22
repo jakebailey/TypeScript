@@ -142,7 +142,7 @@ do {
 
 for (let x in []) {
 >x : string
->[] : undefined[]
+>[] : never[]
 
     use(x);
 >use(x) : any
@@ -152,7 +152,7 @@ for (let x in []) {
 
 for (const x in []) {
 >x : string
->[] : undefined[]
+>[] : never[]
 
     use(x);
 >use(x) : any
@@ -161,11 +161,11 @@ for (const x in []) {
 }
 
 for (const x of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
     use(x);
 >use(x) : any
 >use : (a: any) => any
->x : any
+>x : never
 }

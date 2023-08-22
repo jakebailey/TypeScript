@@ -10,14 +10,17 @@ functionConstraintSatisfaction2.ts(25,15): error TS2345: Argument of type 'typeo
   Type 'typeof C' provides no match for the signature '(x: string): string'.
 functionConstraintSatisfaction2.ts(26,15): error TS2345: Argument of type 'new (x: string) => string' is not assignable to parameter of type '(x: string) => string'.
   Type 'new (x: string) => string' provides no match for the signature '(x: string): string'.
+functionConstraintSatisfaction2.ts(26,15): error TS2454: Variable 'b' is used before being assigned.
 functionConstraintSatisfaction2.ts(28,16): error TS2345: Argument of type '<U, V>(x: U, y: V) => U' is not assignable to parameter of type '(x: string) => string'.
   Target signature provides too few arguments. Expected 2 or more, but got 1.
 functionConstraintSatisfaction2.ts(29,16): error TS2345: Argument of type 'typeof C2' is not assignable to parameter of type '(x: string) => string'.
   Type 'typeof C2' provides no match for the signature '(x: string): string'.
 functionConstraintSatisfaction2.ts(30,16): error TS2345: Argument of type 'new <T>(x: T) => T' is not assignable to parameter of type '(x: string) => string'.
   Type 'new <T>(x: T) => T' provides no match for the signature '(x: string): string'.
+functionConstraintSatisfaction2.ts(30,16): error TS2454: Variable 'b2' is used before being assigned.
 functionConstraintSatisfaction2.ts(34,16): error TS2345: Argument of type 'F2' is not assignable to parameter of type '(x: string) => string'.
   Type 'F2' provides no match for the signature '(x: string): string'.
+functionConstraintSatisfaction2.ts(34,16): error TS2454: Variable 'f2' is used before being assigned.
 functionConstraintSatisfaction2.ts(37,10): error TS2345: Argument of type 'T' is not assignable to parameter of type '(x: string) => string'.
   Type '() => void' is not assignable to type '(x: string) => string'.
     Type 'void' is not assignable to type 'string'.
@@ -25,7 +28,7 @@ functionConstraintSatisfaction2.ts(38,10): error TS2345: Argument of type 'U' is
   Type 'T' is not assignable to type '(x: string) => string'.
 
 
-==== functionConstraintSatisfaction2.ts (13 errors) ====
+==== functionConstraintSatisfaction2.ts (16 errors) ====
     // satisfaction of a constraint to Function, all of these invocations are errors unless otherwise noted
     
     function foo<T extends Function>(x: T): T { return x; }
@@ -71,6 +74,8 @@ functionConstraintSatisfaction2.ts(38,10): error TS2345: Argument of type 'U' is
                   ~
 !!! error TS2345: Argument of type 'new (x: string) => string' is not assignable to parameter of type '(x: string) => string'.
 !!! error TS2345:   Type 'new (x: string) => string' provides no match for the signature '(x: string): string'.
+                  ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     var r8 = foo2(<U>(x: U) => x); // no error expected
     var r11 = foo2(<U, V>(x: U, y: V) => x);
                    ~~~~~~~~~~~~~~~~~~~~~~~
@@ -84,6 +89,8 @@ functionConstraintSatisfaction2.ts(38,10): error TS2345: Argument of type 'U' is
                    ~~
 !!! error TS2345: Argument of type 'new <T>(x: T) => T' is not assignable to parameter of type '(x: string) => string'.
 !!! error TS2345:   Type 'new <T>(x: T) => T' provides no match for the signature '(x: string): string'.
+                   ~~
+!!! error TS2454: Variable 'b2' is used before being assigned.
     
     interface F2 extends Function { foo: string; }
     var f2: F2;
@@ -91,6 +98,8 @@ functionConstraintSatisfaction2.ts(38,10): error TS2345: Argument of type 'U' is
                    ~~
 !!! error TS2345: Argument of type 'F2' is not assignable to parameter of type '(x: string) => string'.
 !!! error TS2345:   Type 'F2' provides no match for the signature '(x: string): string'.
+                   ~~
+!!! error TS2454: Variable 'f2' is used before being assigned.
     
     function fff<T extends { (): void }, U extends T>(x: T, y: U) {
         foo2(x);

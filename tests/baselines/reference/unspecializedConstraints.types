@@ -158,7 +158,7 @@ module ts {
 >getProperties : () => Property[]
 
             return [];
->[] : undefined[]
+>[] : never[]
         }
         getProperty(index: number): Property {
 >getProperty : (index: number) => Property
@@ -197,7 +197,7 @@ module ts {
 >getSignatures : () => Signature[]
 
             return [];
->[] : undefined[]
+>[] : never[]
         }
         isPrimitive(): boolean {
 >isPrimitive : () => boolean

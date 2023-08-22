@@ -5,8 +5,8 @@ var a;
 >a : any
 
 var b = [];
->b : any[]
->[] : undefined[]
+>b : never[]
+>[] : never[]
 
 var c;
 >c : any
@@ -14,15 +14,15 @@ var c;
 for (a in b[c] = b[c] || [], d) {
 >a : any
 >b[c] = b[c] || [], d : any
->b[c] = b[c] || [] : any
->b[c] : any
->b : any[]
+>b[c] = b[c] || [] : never
+>b[c] : never
+>b : never[]
 >c : any
->b[c] || [] : any
->b[c] : any
->b : any[]
+>b[c] || [] : never
+>b[c] : never
+>b : never[]
 >c : any
->[] : undefined[]
+>[] : never[]
 >d : any
 
 }

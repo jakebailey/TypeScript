@@ -3,7 +3,7 @@
 === a.js ===
 var my = my ?? {};
 >my : typeof my
->my ?? {} : typeof my | {}
+>my ?? {} : typeof my
 >my : typeof my
 >{} : {}
 
@@ -147,7 +147,7 @@ my.predicate.type = class {
 // global-ish prefixes
 var min = window.min ?? {};
 >min : typeof min
->window.min ?? {} : typeof min | {}
+>window.min ?? {} : typeof min
 >window.min : typeof min
 >window : Window & typeof globalThis
 >min : typeof min

@@ -1,0 +1,24 @@
+a.js(11,1): error TS2454: Variable 'ok' is used before being assigned.
+a.js(14,1): error TS2454: Variable 'oc' is used before being assigned.
+
+
+==== a.js (2 errors) ====
+    function Outer() {
+        this.y = 2
+    }
+    Outer.Inner = class I {
+        constructor() {
+            this.x = 1
+        }
+    }
+    /** @type {Outer} */
+    var ok
+    ok.y
+    ~~
+!!! error TS2454: Variable 'ok' is used before being assigned.
+    /** @type {Outer.Inner} */
+    var oc
+    oc.x
+    ~~
+!!! error TS2454: Variable 'oc' is used before being assigned.
+    

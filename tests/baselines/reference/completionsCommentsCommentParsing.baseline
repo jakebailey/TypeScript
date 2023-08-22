@@ -118,14 +118,14 @@
 // | function jsDocParamTest(a: number, b: number, c: number, d: number): number
 // | function jsDocSingleLine(): void
 // | function multiLine(): void
-// | function multiply(a: number, b: number, c?: number, d?: any, e?: any): void
+// | function multiply(a: number, b: number, c?: number | undefined, d?: any, e?: any): void
 // | function noHelpComment1(): void
 // | function noHelpComment2(): void
 // | function noHelpComment3(): void
 // | class NoQuickInfoClass
 // | function simple(): void
 // | function square(a: number): number
-// | function subtract(a: number, b: number, c?: () => string, d?: () => string, e?: () => string, f?: () => string): void
+// | function subtract(a: number, b: number, c?: (() => string) | undefined, d?: (() => string) | undefined, e?: (() => string) | undefined, f?: (() => string) | undefined): void
 // | function sum(a: number, b: number): number
 // | var x: any
 // | var y: any
@@ -206,7 +206,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -269,19 +269,19 @@
 // | function jsDocParamTest(a: number, b: number, c: number, d: number): number
 // | function jsDocSingleLine(): void
 // | function multiLine(): void
-// | function multiply(a: number, b: number, c?: number, d?: any, e?: any): void
+// | function multiply(a: number, b: number, c?: number | undefined, d?: any, e?: any): void
 // | function noHelpComment1(): void
 // | function noHelpComment2(): void
 // | function noHelpComment3(): void
 // | class NoQuickInfoClass
 // | function simple(): void
 // | function square(a: number): number
-// | function subtract(a: number, b: number, c?: () => string, d?: () => string, e?: () => string, f?: () => string): void
+// | function subtract(a: number, b: number, c?: (() => string) | undefined, d?: (() => string) | undefined, e?: (() => string) | undefined, f?: (() => string) | undefined): void
 // | function sum(a: number, b: number): number
 // | var x: any
 // | var y: any
 // | var Array: ArrayConstructor
-// | (arrayLength?: number) => any[] (+2 overloads)
+// | (arrayLength?: number | undefined) => any[] (+2 overloads)
 // | interface Array<T>
 // | interface ArrayBuffer
 // | var ArrayBuffer: ArrayBufferConstructor
@@ -289,7 +289,7 @@
 // | async
 // | await
 // | var Boolean: BooleanConstructor
-// | <T>(value?: T) => boolean
+// | <T>(value?: T | undefined) => boolean
 // | interface Boolean
 // | break
 // | case
@@ -313,11 +313,11 @@
 // | function encodeURIComponent(uriComponent: string | number | boolean): string
 // | enum
 // | var Error: ErrorConstructor
-// | (message?: string) => Error
+// | (message?: string | undefined) => Error
 // | interface Error
 // | function eval(x: string): any
 // | var EvalError: EvalErrorConstructor
-// | (message?: string) => EvalError (+1 overload)
+// | (message?: string | undefined) => EvalError (+1 overload)
 // | interface EvalError
 // | export
 // | extends
@@ -365,12 +365,12 @@
 // | interface Object
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | var RangeError: RangeErrorConstructor
-// | (message?: string) => RangeError (+1 overload)
+// | (message?: string | undefined) => RangeError (+1 overload)
 // | interface RangeError
 // | var ReferenceError: ReferenceErrorConstructor
-// | (message?: string) => ReferenceError (+1 overload)
+// | (message?: string | undefined) => ReferenceError (+1 overload)
 // | interface ReferenceError
 // | var RegExp: RegExpConstructor
 // | (pattern: string | RegExp) => RegExp (+1 overload)
@@ -383,7 +383,7 @@
 // | super
 // | switch
 // | var SyntaxError: SyntaxErrorConstructor
-// | (message?: string) => SyntaxError (+1 overload)
+// | (message?: string | undefined) => SyntaxError (+1 overload)
 // | interface SyntaxError
 // | this
 // | throw
@@ -391,7 +391,7 @@
 // | try
 // | type
 // | var TypeError: TypeErrorConstructor
-// | (message?: string) => TypeError (+1 overload)
+// | (message?: string | undefined) => TypeError (+1 overload)
 // | interface TypeError
 // | typeof
 // | interface Uint16Array
@@ -404,7 +404,7 @@
 // | var Uint8ClampedArray: Uint8ClampedArrayConstructor
 // | var undefined
 // | var URIError: URIErrorConstructor
-// | (message?: string) => URIError (+1 overload)
+// | (message?: string | undefined) => URIError (+1 overload)
 // | interface URIError
 // | var
 // | void
@@ -453,7 +453,7 @@
 // | function jsDocParamTest(a: number, b: number, c: number, d: number): number
 // | function jsDocSingleLine(): void
 // | function multiLine(): void
-// | function multiply(a: number, b: number, c?: number, d?: any, e?: any): void
+// | function multiply(a: number, b: number, c?: number | undefined, d?: any, e?: any): void
 // | function noHelpComment1(): void
 // | function noHelpComment2(): void
 // | function noHelpComment3(): void
@@ -461,7 +461,7 @@
 // | (parameter) opt: any
 // | function simple(): void
 // | function square(a: number): number
-// | function subtract(a: number, b: number, c?: () => string, d?: () => string, e?: () => string, f?: () => string): void
+// | function subtract(a: number, b: number, c?: (() => string) | undefined, d?: (() => string) | undefined, e?: (() => string) | undefined, f?: (() => string) | undefined): void
 // | function sum(a: number, b: number): number
 // | var x: any
 // | var y: any
@@ -542,7 +542,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -607,14 +607,14 @@
 // | function jsDocParamTest(a: number, b: number, c: number, d: number): number
 // | function jsDocSingleLine(): void
 // | function multiLine(): void
-// | function multiply(a: number, b: number, c?: number, d?: any, e?: any): void
+// | function multiply(a: number, b: number, c?: number | undefined, d?: any, e?: any): void
 // | function noHelpComment1(): void
 // | function noHelpComment2(): void
 // | function noHelpComment3(): void
 // | class NoQuickInfoClass
 // | function simple(): void
 // | function square(a: number): number
-// | function subtract(a: number, b: number, c?: () => string, d?: () => string, e?: () => string, f?: () => string): void
+// | function subtract(a: number, b: number, c?: (() => string) | undefined, d?: (() => string) | undefined, e?: (() => string) | undefined, f?: (() => string) | undefined): void
 // | function sum(a: number, b: number): number
 // | var x: any
 // | var y: any
@@ -708,7 +708,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | readonly
@@ -828,14 +828,14 @@
 // | function jsDocParamTest(a: number, b: number, c: number, d: number): number
 // | function jsDocSingleLine(): void
 // | function multiLine(): void
-// | function multiply(a: number, b: number, c?: number, d?: any, e?: any): void
+// | function multiply(a: number, b: number, c?: number | undefined, d?: any, e?: any): void
 // | function noHelpComment1(): void
 // | function noHelpComment2(): void
 // | function noHelpComment3(): void
 // | class NoQuickInfoClass
 // | function simple(): void
 // | function square(a: number): number
-// | function subtract(a: number, b: number, c?: () => string, d?: () => string, e?: () => string, f?: () => string): void
+// | function subtract(a: number, b: number, c?: (() => string) | undefined, d?: (() => string) | undefined, e?: (() => string) | undefined, f?: (() => string) | undefined): void
 // | function sum(a: number, b: number): number
 // | var x: any
 // | var y: any
@@ -916,7 +916,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | interface ReferenceError
@@ -979,19 +979,19 @@
 // | function jsDocParamTest(a: number, b: number, c: number, d: number): number
 // | function jsDocSingleLine(): void
 // | function multiLine(): void
-// | function multiply(a: number, b: number, c?: number, d?: any, e?: any): void
+// | function multiply(a: number, b: number, c?: number | undefined, d?: any, e?: any): void
 // | function noHelpComment1(): void
 // | function noHelpComment2(): void
 // | function noHelpComment3(): void
 // | class NoQuickInfoClass
 // | function simple(): void
 // | function square(a: number): number
-// | function subtract(a: number, b: number, c?: () => string, d?: () => string, e?: () => string, f?: () => string): void
+// | function subtract(a: number, b: number, c?: (() => string) | undefined, d?: (() => string) | undefined, e?: (() => string) | undefined, f?: (() => string) | undefined): void
 // | function sum(a: number, b: number): number
 // | var x: any
 // | var y: any
 // | var Array: ArrayConstructor
-// | (arrayLength?: number) => any[] (+2 overloads)
+// | (arrayLength?: number | undefined) => any[] (+2 overloads)
 // | interface Array<T>
 // | interface ArrayBuffer
 // | var ArrayBuffer: ArrayBufferConstructor
@@ -999,7 +999,7 @@
 // | async
 // | await
 // | var Boolean: BooleanConstructor
-// | <T>(value?: T) => boolean
+// | <T>(value?: T | undefined) => boolean
 // | interface Boolean
 // | break
 // | case
@@ -1023,11 +1023,11 @@
 // | function encodeURIComponent(uriComponent: string | number | boolean): string
 // | enum
 // | var Error: ErrorConstructor
-// | (message?: string) => Error
+// | (message?: string | undefined) => Error
 // | interface Error
 // | function eval(x: string): any
 // | var EvalError: EvalErrorConstructor
-// | (message?: string) => EvalError (+1 overload)
+// | (message?: string | undefined) => EvalError (+1 overload)
 // | interface EvalError
 // | export
 // | extends
@@ -1075,12 +1075,12 @@
 // | interface Object
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | var RangeError: RangeErrorConstructor
-// | (message?: string) => RangeError (+1 overload)
+// | (message?: string | undefined) => RangeError (+1 overload)
 // | interface RangeError
 // | var ReferenceError: ReferenceErrorConstructor
-// | (message?: string) => ReferenceError (+1 overload)
+// | (message?: string | undefined) => ReferenceError (+1 overload)
 // | interface ReferenceError
 // | var RegExp: RegExpConstructor
 // | (pattern: string | RegExp) => RegExp (+1 overload)
@@ -1093,7 +1093,7 @@
 // | super
 // | switch
 // | var SyntaxError: SyntaxErrorConstructor
-// | (message?: string) => SyntaxError (+1 overload)
+// | (message?: string | undefined) => SyntaxError (+1 overload)
 // | interface SyntaxError
 // | this
 // | throw
@@ -1101,7 +1101,7 @@
 // | try
 // | type
 // | var TypeError: TypeErrorConstructor
-// | (message?: string) => TypeError (+1 overload)
+// | (message?: string | undefined) => TypeError (+1 overload)
 // | interface TypeError
 // | typeof
 // | interface Uint16Array
@@ -1114,7 +1114,7 @@
 // | var Uint8ClampedArray: Uint8ClampedArrayConstructor
 // | var undefined
 // | var URIError: URIErrorConstructor
-// | (message?: string) => URIError (+1 overload)
+// | (message?: string | undefined) => URIError (+1 overload)
 // | interface URIError
 // | var
 // | void
@@ -1170,14 +1170,14 @@
 // | function jsDocParamTest(a: number, b: number, c: number, d: number): number
 // | function jsDocSingleLine(): void
 // | function multiLine(): void
-// | function multiply(a: number, b: number, c?: number, d?: any, e?: any): void
+// | function multiply(a: number, b: number, c?: number | undefined, d?: any, e?: any): void
 // | function noHelpComment1(): void
 // | function noHelpComment2(): void
 // | function noHelpComment3(): void
 // | class NoQuickInfoClass
 // | function simple(): void
 // | function square(a: number): number
-// | function subtract(a: number, b: number, c?: () => string, d?: () => string, e?: () => string, f?: () => string): void
+// | function subtract(a: number, b: number, c?: (() => string) | undefined, d?: (() => string) | undefined, e?: (() => string) | undefined, f?: (() => string) | undefined): void
 // | function sum(a: number, b: number): number
 // | var x: any
 // | var y: any
@@ -1271,7 +1271,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | readonly
@@ -2842,6 +2842,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ",",
               "kind": "punctuation"
             },
@@ -3374,6 +3390,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -3391,6 +3411,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -3422,6 +3462,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -3439,6 +3483,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -3470,6 +3534,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -3487,6 +3555,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -3518,6 +3606,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -3535,6 +3627,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -5984,6 +6096,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -8343,6 +8471,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ",",
               "kind": "punctuation"
             },
@@ -8875,6 +9019,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -8892,6 +9040,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -8923,6 +9091,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -8940,6 +9112,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -8971,6 +9163,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -8988,6 +9184,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -9019,6 +9235,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -9036,6 +9256,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -9415,6 +9655,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -9660,6 +9916,22 @@
             {
               "text": "T",
               "kind": "typeParameterName"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
             },
             {
               "text": ")",
@@ -10390,6 +10662,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -10565,6 +10853,22 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -11939,6 +12243,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -12054,6 +12374,22 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -12179,6 +12515,22 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -12594,6 +12946,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -12776,6 +13144,22 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -13150,6 +13534,22 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -14893,6 +15293,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ",",
               "kind": "punctuation"
             },
@@ -15490,6 +15906,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -15507,6 +15927,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -15538,6 +15978,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -15555,6 +15999,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -15586,6 +16050,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -15603,6 +16071,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -15634,6 +16122,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -15651,6 +16143,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -18103,6 +18615,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -20455,6 +20983,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ",",
               "kind": "punctuation"
             },
@@ -20987,6 +21531,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -21004,6 +21552,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -21035,6 +21603,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -21052,6 +21624,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -21083,6 +21675,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -21100,6 +21696,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -21131,6 +21747,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -21148,6 +21768,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -23753,6 +24393,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -26438,6 +27094,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ",",
               "kind": "punctuation"
             },
@@ -26970,6 +27642,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -26987,6 +27663,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -27018,6 +27714,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -27035,6 +27735,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -27066,6 +27786,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -27083,6 +27807,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -27114,6 +27858,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -27131,6 +27879,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -29583,6 +30351,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -31939,6 +32723,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ",",
               "kind": "punctuation"
             },
@@ -32471,6 +33271,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -32488,6 +33292,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -32519,6 +33343,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -32536,6 +33364,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -32567,6 +33415,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -32584,6 +33436,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -32615,6 +33487,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -32632,6 +33508,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -33011,6 +33907,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -33256,6 +34168,22 @@
             {
               "text": "T",
               "kind": "typeParameterName"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
             },
             {
               "text": ")",
@@ -33986,6 +34914,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -34161,6 +35105,22 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -35535,6 +36495,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -35650,6 +36626,22 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -35775,6 +36767,22 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -36190,6 +37198,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -36372,6 +37396,22 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -36746,6 +37786,22 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -38403,6 +39459,22 @@
               "kind": "keyword"
             },
             {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
+              "kind": "keyword"
+            },
+            {
               "text": ",",
               "kind": "punctuation"
             },
@@ -38935,6 +40007,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -38952,6 +40028,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -38983,6 +40079,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -39000,6 +40100,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -39031,6 +40151,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -39048,6 +40172,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -39079,6 +40223,10 @@
               "kind": "punctuation"
             },
             {
+              "text": "(",
+              "kind": "punctuation"
+            },
+            {
               "text": ")",
               "kind": "punctuation"
             },
@@ -39096,6 +40244,26 @@
             },
             {
               "text": "string",
+              "kind": "keyword"
+            },
+            {
+              "text": ")",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {
@@ -41701,6 +42869,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {

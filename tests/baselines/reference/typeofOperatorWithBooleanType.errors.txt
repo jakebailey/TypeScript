@@ -1,7 +1,11 @@
+typeofOperatorWithBooleanType.ts(17,30): error TS2454: Variable 'BOOLEAN' is used before being assigned.
+typeofOperatorWithBooleanType.ts(30,37): error TS2454: Variable 'BOOLEAN' is used before being assigned.
+typeofOperatorWithBooleanType.ts(34,8): error TS2454: Variable 'BOOLEAN' is used before being assigned.
 typeofOperatorWithBooleanType.ts(36,1): error TS2695: Left side of comma operator is unused and has no side effects.
+typeofOperatorWithBooleanType.ts(44,11): error TS2454: Variable 'BOOLEAN' is used before being assigned.
 
 
-==== typeofOperatorWithBooleanType.ts (1 errors) ====
+==== typeofOperatorWithBooleanType.ts (5 errors) ====
     // typeof  operator on boolean type
     var BOOLEAN: boolean;
     
@@ -19,6 +23,8 @@ typeofOperatorWithBooleanType.ts(36,1): error TS2695: Left side of comma operato
     
     // boolean type var
     var ResultIsString1 = typeof BOOLEAN;
+                                 ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
     
     // boolean type literal
     var ResultIsString2 = typeof true;
@@ -32,10 +38,14 @@ typeofOperatorWithBooleanType.ts(36,1): error TS2695: Left side of comma operato
     
     // multiple typeof  operator
     var ResultIsString8 = typeof typeof BOOLEAN;
+                                        ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
     
     // miss assignment operators
     typeof true;
     typeof BOOLEAN;
+           ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
     typeof foo();
     typeof true, false;
     ~~~~~~~~~~~
@@ -48,6 +58,8 @@ typeofOperatorWithBooleanType.ts(36,1): error TS2695: Left side of comma operato
     var x: boolean[];
     var r: () => boolean;
     z: typeof BOOLEAN;
+              ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
     r: typeof foo;
     var y = { a: true, b: false};
     z: typeof y.a;

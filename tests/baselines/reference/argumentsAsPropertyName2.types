@@ -20,9 +20,9 @@ function foo() {
 
         [].forEach(function () { i });
 >[].forEach(function () { i }) : void
->[].forEach : (callbackfn: (value: any, index: number, array: any[]) => void, thisArg?: any) => void
->[] : undefined[]
->forEach : (callbackfn: (value: any, index: number, array: any[]) => void, thisArg?: any) => void
+>[].forEach : (callbackfn: (value: never, index: number, array: never[]) => void, thisArg?: any) => void
+>[] : never[]
+>forEach : (callbackfn: (value: never, index: number, array: never[]) => void, thisArg?: any) => void
 >function () { i } : () => void
 >i : number
 

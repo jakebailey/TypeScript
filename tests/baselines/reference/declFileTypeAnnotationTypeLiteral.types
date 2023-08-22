@@ -55,7 +55,7 @@ var x: {
     m2(a: string, b?: number, ...c: c[]): string;
 >m2 : (a: string, b?: number, ...c: c[]) => string
 >a : string
->b : number
+>b : number | undefined
 >c : c[]
 
 };

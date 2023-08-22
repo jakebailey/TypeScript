@@ -2,7 +2,7 @@
 
 === generatorTypeCheck55.ts ===
 function* g() {
->g : () => Generator<any, void, unknown>
+>g : () => Generator<undefined, void, unknown>
 
     var x = class C extends (yield) {};
 >x : typeof C

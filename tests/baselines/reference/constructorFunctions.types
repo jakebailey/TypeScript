@@ -54,8 +54,8 @@ var C2 = function () {
 };
 
 const c2_v1 = C2();
->c2_v1 : C2
->C2() : C2
+>c2_v1 : C2 | undefined
+>C2() : C2 | undefined
 >C2 : typeof C2
 
 const c2_v2 = new C2();

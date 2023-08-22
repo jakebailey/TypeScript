@@ -2,9 +2,9 @@
 
 === YieldStarExpression4_es6.ts ===
 function *g() {
->g : () => Generator<any, void, undefined>
+>g : () => Generator<never, void, undefined>
 
     yield * [];
 >yield * [] : any
->[] : undefined[]
+>[] : never[]
 }

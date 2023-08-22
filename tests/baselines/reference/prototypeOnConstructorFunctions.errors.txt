@@ -1,0 +1,16 @@
+prototypeOnConstructorFunctions.ts(9,1): error TS2454: Variable 'i' is used before being assigned.
+
+
+==== prototypeOnConstructorFunctions.ts (1 errors) ====
+    interface I1 {
+        const: new (options?, element?) => any;
+    }
+    
+    
+    var i: I1;
+    
+    
+    i.const.prototype.prop = "yo";
+    ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    

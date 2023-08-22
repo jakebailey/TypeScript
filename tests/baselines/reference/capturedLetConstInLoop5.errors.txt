@@ -1,8 +1,23 @@
+capturedLetConstInLoop5.ts(14,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop5.ts(27,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop5.ts(40,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop5.ts(54,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop5.ts(82,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop5.ts(95,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop5.ts(139,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop5.ts(153,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop5.ts(166,9): error TS2454: Variable 'v' is used before being assigned.
 capturedLetConstInLoop5.ts(174,13): error TS2367: This comparison appears to be unintentional because the types '0' and '1' have no overlap.
+capturedLetConstInLoop5.ts(179,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop5.ts(193,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop5.ts(221,9): error TS2454: Variable 'v' is used before being assigned.
 capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be unintentional because the types '0' and '1' have no overlap.
+capturedLetConstInLoop5.ts(234,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop5.ts(249,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop5.ts(278,9): error TS2454: Variable 'v' is used before being assigned.
 
 
-==== capturedLetConstInLoop5.ts (2 errors) ====
+==== capturedLetConstInLoop5.ts (17 errors) ====
     declare function use(a: any);
     
     //====let
@@ -17,6 +32,8 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
     
         use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }
     
     function foo00(x) {
@@ -30,6 +47,8 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
     
         use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }
     
     function foo1(x) {
@@ -43,6 +62,8 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
     
         use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }
     
     function foo2(x) {
@@ -57,6 +78,8 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
         
         use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }
     
     function foo3(x) {
@@ -85,6 +108,8 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
         
         use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }
     
     function foo5(x) {
@@ -98,6 +123,8 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
         
         use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }
     
     
@@ -142,6 +169,8 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
         
         use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }
     
     //====const
@@ -156,6 +185,8 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
     
         use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }
     
     function foo00_c(x) {
@@ -169,6 +200,8 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
     
         use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }
     
     function foo1_c(x) {
@@ -184,6 +217,8 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
     
         use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }
     
     function foo2_c(x) {
@@ -198,6 +233,8 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
         
         use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }
     
     function foo3_c(x) {
@@ -226,6 +263,8 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
         
         use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }
     
     function foo5_c(x) {
@@ -241,6 +280,8 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
         
         use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }
     
     
@@ -256,6 +297,8 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
         
         use(v)
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }
     
     function foo7_c(x) {
@@ -285,4 +328,6 @@ capturedLetConstInLoop5.ts(229,13): error TS2367: This comparison appears to be 
         }
         
         use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
     }

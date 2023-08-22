@@ -731,11 +731,11 @@ module TypeScript {
                     var charCode = parseInt(name.substr(i + 2, 4), 16);
 >charCode : number
 >parseInt(name.substr(i + 2, 4), 16) : number
->parseInt : (string: string, radix?: number) => number
+>parseInt : (string: string, radix?: number | undefined) => number
 >name.substr(i + 2, 4) : string
->name.substr : (from: number, length?: number) => string
+>name.substr : (from: number, length?: number | undefined) => string
 >name : string
->substr : (from: number, length?: number) => string
+>substr : (from: number, length?: number | undefined) => string
 >i + 2 : number
 >i : number
 >2 : 2
@@ -746,9 +746,9 @@ module TypeScript {
 >resolved += name.substr(start, i - start) : string
 >resolved : string
 >name.substr(start, i - start) : string
->name.substr : (from: number, length?: number) => string
+>name.substr : (from: number, length?: number | undefined) => string
 >name : string
->substr : (from: number, length?: number) => string
+>substr : (from: number, length?: number | undefined) => string
 >start : number
 >i - start : number
 >i : number
@@ -784,9 +784,9 @@ module TypeScript {
 >resolved += name.substring(start) : string
 >resolved : string
 >name.substring(start) : string
->name.substring : (start: number, end?: number) => string
+>name.substring : (start: number, end?: number | undefined) => string
 >name : string
->substring : (start: number, end?: number) => string
+>substring : (start: number, end?: number | undefined) => string
 >start : number
 
             return resolved;
@@ -1123,7 +1123,7 @@ module TypeScript {
         //    match 'text', always use setText.
         constructor (public actualText: string, public hasEscapeSequence?: boolean) {
 >actualText : string
->hasEscapeSequence : boolean
+>hasEscapeSequence : boolean | undefined
 
             super(NodeType.Name);
 >super(NodeType.Name) : void
@@ -1134,17 +1134,17 @@ module TypeScript {
 
             this.setText(actualText, hasEscapeSequence);
 >this.setText(actualText, hasEscapeSequence) : void
->this.setText : (actualText: string, hasEscapeSequence?: boolean) => void
+>this.setText : (actualText: string, hasEscapeSequence?: boolean | undefined) => void
 >this : this
->setText : (actualText: string, hasEscapeSequence?: boolean) => void
+>setText : (actualText: string, hasEscapeSequence?: boolean | undefined) => void
 >actualText : string
->hasEscapeSequence : boolean
+>hasEscapeSequence : boolean | undefined
         }
 
         public setText(actualText: string, hasEscapeSequence?: boolean) {
 >setText : (actualText: string, hasEscapeSequence?: boolean) => void
 >actualText : string
->hasEscapeSequence : boolean
+>hasEscapeSequence : boolean | undefined
 
             this.actualText = actualText;
 >this.actualText = actualText : string
@@ -1154,7 +1154,7 @@ module TypeScript {
 >actualText : string
 
             if (hasEscapeSequence) {
->hasEscapeSequence : boolean
+>hasEscapeSequence : boolean | undefined
 
                 this.text = AST.getResolvedIdentifierName(actualText);
 >this.text = AST.getResolvedIdentifierName(actualText) : string
@@ -3356,7 +3356,7 @@ module TypeScript {
 
         constructor (public value: number, public hasEmptyFraction?: boolean) {
 >value : number
->hasEmptyFraction : boolean
+>hasEmptyFraction : boolean | undefined
 
             super(NodeType.NumberLit);
 >super(NodeType.NumberLit) : void
@@ -3439,16 +3439,16 @@ module TypeScript {
 >emitter : Emitter
 >writeToOutput : any
 >this.value.toString() : string
->this.value.toString : (radix?: number) => string
+>this.value.toString : (radix?: number | undefined) => string
 >this.value : number
 >this : this
 >value : number
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
 
             if (this.hasEmptyFraction)
->this.hasEmptyFraction : boolean
+>this.hasEmptyFraction : boolean | undefined
 >this : this
->hasEmptyFraction : boolean
+>hasEmptyFraction : boolean | undefined
 
                 emitter.writeToOutput(".0");
 >emitter.writeToOutput(".0") : any
@@ -3493,37 +3493,37 @@ module TypeScript {
 >this.value.toFixed(2).toString() : string
 >this.value.toFixed(2).toString : () => string
 >this.value.toFixed(2) : string
->this.value.toFixed : (fractionDigits?: number) => string
+>this.value.toFixed : (fractionDigits?: number | undefined) => string
 >this.value : number
 >this : this
 >value : number
->toFixed : (fractionDigits?: number) => string
+>toFixed : (fractionDigits?: number | undefined) => string
 >2 : 2
 >toString : () => string
             }
             else if (this.hasEmptyFraction) {
->this.hasEmptyFraction : boolean
+>this.hasEmptyFraction : boolean | undefined
 >this : this
->hasEmptyFraction : boolean
+>hasEmptyFraction : boolean | undefined
 
                 return this.value.toString() + ".0";
 >this.value.toString() + ".0" : string
 >this.value.toString() : string
->this.value.toString : (radix?: number) => string
+>this.value.toString : (radix?: number | undefined) => string
 >this.value : number
 >this : this
 >value : number
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
 >".0" : ".0"
             }
             else {
                 return this.value.toString();
 >this.value.toString() : string
->this.value.toString : (radix?: number) => string
+>this.value.toString : (radix?: number | undefined) => string
 >this.value : number
 >this : this
 >value : number
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
             }
         }
     }
@@ -3929,7 +3929,7 @@ module TypeScript {
 
         public getAliasName(aliasAST?: AST = this.alias) : string {
 >getAliasName : (aliasAST?: AST) => string
->aliasAST : AST
+>aliasAST : AST | undefined
 >this.alias : AST
 >this : this
 >alias : AST
@@ -3960,17 +3960,17 @@ module TypeScript {
 >this.getAliasName(dotExpr.operand1) + "." + this.getAliasName(dotExpr.operand2) : string
 >this.getAliasName(dotExpr.operand1) + "." : string
 >this.getAliasName(dotExpr.operand1) : string
->this.getAliasName : (aliasAST?: AST) => string
+>this.getAliasName : (aliasAST?: AST | undefined) => string
 >this : this
->getAliasName : (aliasAST?: AST) => string
+>getAliasName : (aliasAST?: AST | undefined) => string
 >dotExpr.operand1 : AST
 >dotExpr : BinaryExpression
 >operand1 : AST
 >"." : "."
 >this.getAliasName(dotExpr.operand2) : string
->this.getAliasName : (aliasAST?: AST) => string
+>this.getAliasName : (aliasAST?: AST | undefined) => string
 >this : this
->getAliasName : (aliasAST?: AST) => string
+>getAliasName : (aliasAST?: AST | undefined) => string
 >dotExpr.operand2 : AST
 >dotExpr : BinaryExpression
 >operand2 : AST
@@ -4337,7 +4337,7 @@ module TypeScript {
 
         public freeVariables: Symbol[] = [];
 >freeVariables : Symbol[]
->[] : undefined[]
+>[] : never[]
 
         public unitIndex = -1;
 >unitIndex : number
@@ -4356,7 +4356,7 @@ module TypeScript {
 
         public innerStaticFuncs: FuncDecl[] = [];
 >innerStaticFuncs : FuncDecl[]
->[] : undefined[]
+>[] : never[]
 
         public isTargetTypedAsMethod = false;
 >isTargetTypedAsMethod : boolean
@@ -4379,7 +4379,7 @@ module TypeScript {
 
         public returnStatementsWithExpressions: ReturnStatement[] = [];
 >returnStatementsWithExpressions : ReturnStatement[]
->[] : undefined[]
+>[] : never[]
 
         public scopeType: Type = null; // Type of the FuncDecl, before target typing
 >scopeType : Type
@@ -5014,7 +5014,7 @@ module TypeScript {
 
         public referencedFiles: IFileReference[] = [];
 >referencedFiles : IFileReference[]
->[] : undefined[]
+>[] : never[]
 
         public requiresGlobal = false;
 >requiresGlobal : boolean
@@ -5117,7 +5117,7 @@ module TypeScript {
 >emitRequired : () => boolean
 
             if (!this.isDeclareFile && !this.isResident && this.bod) {
->!this.isDeclareFile && !this.isResident && this.bod : ASTList
+>!this.isDeclareFile && !this.isResident && this.bod : false | ASTList
 >!this.isDeclareFile && !this.isResident : boolean
 >!this.isDeclareFile : boolean
 >this.isDeclareFile : boolean
@@ -5398,7 +5398,7 @@ module TypeScript {
 
         public amdDependencies: string[] = [];
 >amdDependencies : string[]
->[] : undefined[]
+>[] : never[]
 
         public vars: ASTList;
 >vars : ASTList
@@ -8723,7 +8723,7 @@ module TypeScript {
                 condBlock.addSuccessor(afterLoop);
 >condBlock.addSuccessor(afterLoop) : any
 >condBlock.addSuccessor : any
->condBlock : BasicBlock
+>condBlock : any
 >addSuccessor : any
 >afterLoop : any
 
@@ -11000,11 +11000,11 @@ module TypeScript {
 >this : this
 >text : string[]
 >this.content.split("\n") : string[]
->this.content.split : (separator: string | RegExp, limit?: number) => string[]
+>this.content.split : (separator: string | RegExp, limit?: number | undefined) => string[]
 >this.content : string
 >this : this
 >content : string
->split : (separator: string | RegExp, limit?: number) => string[]
+>split : (separator: string | RegExp, limit?: number | undefined) => string[]
 >"\n" : "\n"
 
                     for (var i = 0; i < this.text.length; i++) {

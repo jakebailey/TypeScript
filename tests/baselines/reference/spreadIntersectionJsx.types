@@ -16,8 +16,8 @@ let intersected: A & C;
 >intersected : A & C
 
 let element = <div { ...intersected } />;
->element : error
-><div { ...intersected } /> : error
+>element : any
+><div { ...intersected } /> : any
 >div : any
 >intersected : A & C
 

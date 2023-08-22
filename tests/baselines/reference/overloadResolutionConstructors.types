@@ -44,13 +44,13 @@ var fn1: fn1;
 
 // Ambiguous call picks the first overload in declaration order
 var s = new fn1(undefined);
->s : string
->new fn1(undefined) : string
+>s : never
+>new fn1(undefined) : never
 >fn1 : fn1
 >undefined : undefined
 
 var s: string;
->s : string
+>s : never
 
 // No candidate overloads found
 new fn1({}); // Error
@@ -72,18 +72,18 @@ var fn2: fn2;
 >fn2 : fn2
 
 var d = new fn2<Date>(0, undefined);
->d : Date
->new fn2<Date>(0, undefined) : Date
+>d : number
+>new fn2<Date>(0, undefined) : number
 >fn2 : fn2
 >0 : 0
 >undefined : undefined
 
 var d: Date;
->d : Date
+>d : number
 
 // Generic and non - generic overload where generic overload is the only candidate when called without type arguments
 var s = new fn2(0, '');
->s : string
+>s : never
 >new fn2(0, '') : ""
 >fn2 : fn2
 >0 : 0
@@ -122,13 +122,13 @@ var fn3: fn3;
 >fn3 : fn3
 
 var s = new fn3(3);
->s : string
+>s : never
 >new fn3(3) : string
 >fn3 : fn3
 >3 : 3
 
 var s = new fn3('', 3, '');
->s : string
+>s : never
 >new fn3('', 3, '') : ""
 >fn3 : fn3
 >'' : ""
@@ -148,13 +148,13 @@ var n: number;
 
 // Generic overloads with differing arity called with type arguments matching each overload type parameter count
 var s = new fn3<number>(4);
->s : string
+>s : never
 >new fn3<number>(4) : string
 >fn3 : fn3
 >4 : 4
 
 var s = new fn3<string, string>('', '', '');
->s : string
+>s : never
 >new fn3<string, string>('', '', '') : string
 >fn3 : fn3
 >'' : ""
@@ -276,14 +276,14 @@ var n = new fn5((n) => n.toFixed());
 >toFixed : any
 
 var s = new fn5((n) => n.substr(0));
->s : string
+>s : never
 >new fn5((n) => n.substr(0)) : string
 >fn5 : fn5
 >(n) => n.substr(0) : (n: string) => string
 >n : string
 >n.substr(0) : string
->n.substr : (from: number, length?: number) => string
+>n.substr : (from: number, length?: number | undefined) => string
 >n : string
->substr : (from: number, length?: number) => string
+>substr : (from: number, length?: number | undefined) => string
 >0 : 0
 

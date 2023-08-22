@@ -1,18 +1,50 @@
+assignmentCompatWithObjectMembersOptionality.ts(32,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality.ts(33,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality.ts(34,9): error TS2454: Variable 'f' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality.ts(35,9): error TS2454: Variable 'a' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality.ts(37,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality.ts(38,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality.ts(39,9): error TS2454: Variable 'f' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality.ts(42,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality.ts(43,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality.ts(44,9): error TS2454: Variable 'f' is used before being assigned.
 assignmentCompatWithObjectMembersOptionality.ts(73,5): error TS2322: Type 'D' is not assignable to type 'C'.
-  Property 'opt' is optional in type 'D' but required in type 'C'.
+  Types of property 'opt' are incompatible.
+    Type 'Base | undefined' is not assignable to type 'Base'.
+      Type 'undefined' is not assignable to type 'Base'.
+assignmentCompatWithObjectMembersOptionality.ts(73,9): error TS2454: Variable 'd' is used before being assigned.
 assignmentCompatWithObjectMembersOptionality.ts(74,5): error TS2322: Type 'E' is not assignable to type 'C'.
-  Property 'opt' is optional in type 'E' but required in type 'C'.
+  Types of property 'opt' are incompatible.
+    Type 'Derived | undefined' is not assignable to type 'Base'.
+      Type 'undefined' is not assignable to type 'Base'.
+assignmentCompatWithObjectMembersOptionality.ts(74,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality.ts(75,9): error TS2454: Variable 'f' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality.ts(76,9): error TS2454: Variable 'a' is used before being assigned.
 assignmentCompatWithObjectMembersOptionality.ts(78,5): error TS2322: Type 'D' is not assignable to type '{ opt: Base; }'.
-  Property 'opt' is optional in type 'D' but required in type '{ opt: Base; }'.
+  Types of property 'opt' are incompatible.
+    Type 'Base | undefined' is not assignable to type 'Base'.
+      Type 'undefined' is not assignable to type 'Base'.
+assignmentCompatWithObjectMembersOptionality.ts(78,9): error TS2454: Variable 'd' is used before being assigned.
 assignmentCompatWithObjectMembersOptionality.ts(79,5): error TS2322: Type 'E' is not assignable to type '{ opt: Base; }'.
-  Property 'opt' is optional in type 'E' but required in type '{ opt: Base; }'.
+  Types of property 'opt' are incompatible.
+    Type 'Derived | undefined' is not assignable to type 'Base'.
+      Type 'undefined' is not assignable to type 'Base'.
+assignmentCompatWithObjectMembersOptionality.ts(79,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality.ts(80,9): error TS2454: Variable 'f' is used before being assigned.
 assignmentCompatWithObjectMembersOptionality.ts(83,5): error TS2322: Type 'D' is not assignable to type '{ opt: Base; }'.
-  Property 'opt' is optional in type 'D' but required in type '{ opt: Base; }'.
+  Types of property 'opt' are incompatible.
+    Type 'Base | undefined' is not assignable to type 'Base'.
+      Type 'undefined' is not assignable to type 'Base'.
+assignmentCompatWithObjectMembersOptionality.ts(83,9): error TS2454: Variable 'd' is used before being assigned.
 assignmentCompatWithObjectMembersOptionality.ts(84,5): error TS2322: Type 'E' is not assignable to type '{ opt: Base; }'.
-  Property 'opt' is optional in type 'E' but required in type '{ opt: Base; }'.
+  Types of property 'opt' are incompatible.
+    Type 'Derived | undefined' is not assignable to type 'Base'.
+      Type 'undefined' is not assignable to type 'Base'.
+assignmentCompatWithObjectMembersOptionality.ts(84,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality.ts(85,9): error TS2454: Variable 'f' is used before being assigned.
 
 
-==== assignmentCompatWithObjectMembersOptionality.ts (6 errors) ====
+==== assignmentCompatWithObjectMembersOptionality.ts (26 errors) ====
     // Derived member is not optional but base member is, should be ok
     
     class Base { foo: string; }
@@ -45,18 +77,38 @@ assignmentCompatWithObjectMembersOptionality.ts(84,5): error TS2322: Type 'E' is
     
         // all ok
         c = d;
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
         c = e;
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
         c = f;
+            ~
+!!! error TS2454: Variable 'f' is used before being assigned.
         c = a;
+            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     
         a = d;
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
         a = e;
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
         a = f;
+            ~
+!!! error TS2454: Variable 'f' is used before being assigned.
         a = c;
     
         b = d;
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
         b = e;
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
         b = f;
+            ~
+!!! error TS2454: Variable 'f' is used before being assigned.
         b = a;
         b = c;
     }
@@ -88,34 +140,66 @@ assignmentCompatWithObjectMembersOptionality.ts(84,5): error TS2322: Type 'E' is
         c = d; // error
         ~
 !!! error TS2322: Type 'D' is not assignable to type 'C'.
-!!! error TS2322:   Property 'opt' is optional in type 'D' but required in type 'C'.
+!!! error TS2322:   Types of property 'opt' are incompatible.
+!!! error TS2322:     Type 'Base | undefined' is not assignable to type 'Base'.
+!!! error TS2322:       Type 'undefined' is not assignable to type 'Base'.
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
         c = e; // error
         ~
 !!! error TS2322: Type 'E' is not assignable to type 'C'.
-!!! error TS2322:   Property 'opt' is optional in type 'E' but required in type 'C'.
+!!! error TS2322:   Types of property 'opt' are incompatible.
+!!! error TS2322:     Type 'Derived | undefined' is not assignable to type 'Base'.
+!!! error TS2322:       Type 'undefined' is not assignable to type 'Base'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
         c = f; // ok
+            ~
+!!! error TS2454: Variable 'f' is used before being assigned.
         c = a; // ok
+            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     
         a = d; // error
         ~
 !!! error TS2322: Type 'D' is not assignable to type '{ opt: Base; }'.
-!!! error TS2322:   Property 'opt' is optional in type 'D' but required in type '{ opt: Base; }'.
+!!! error TS2322:   Types of property 'opt' are incompatible.
+!!! error TS2322:     Type 'Base | undefined' is not assignable to type 'Base'.
+!!! error TS2322:       Type 'undefined' is not assignable to type 'Base'.
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
         a = e; // error
         ~
 !!! error TS2322: Type 'E' is not assignable to type '{ opt: Base; }'.
-!!! error TS2322:   Property 'opt' is optional in type 'E' but required in type '{ opt: Base; }'.
+!!! error TS2322:   Types of property 'opt' are incompatible.
+!!! error TS2322:     Type 'Derived | undefined' is not assignable to type 'Base'.
+!!! error TS2322:       Type 'undefined' is not assignable to type 'Base'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
         a = f; // ok
+            ~
+!!! error TS2454: Variable 'f' is used before being assigned.
         a = c; // ok
     
         b = d; // error
         ~
 !!! error TS2322: Type 'D' is not assignable to type '{ opt: Base; }'.
-!!! error TS2322:   Property 'opt' is optional in type 'D' but required in type '{ opt: Base; }'.
+!!! error TS2322:   Types of property 'opt' are incompatible.
+!!! error TS2322:     Type 'Base | undefined' is not assignable to type 'Base'.
+!!! error TS2322:       Type 'undefined' is not assignable to type 'Base'.
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
         b = e; // error
         ~
 !!! error TS2322: Type 'E' is not assignable to type '{ opt: Base; }'.
-!!! error TS2322:   Property 'opt' is optional in type 'E' but required in type '{ opt: Base; }'.
+!!! error TS2322:   Types of property 'opt' are incompatible.
+!!! error TS2322:     Type 'Derived | undefined' is not assignable to type 'Base'.
+!!! error TS2322:       Type 'undefined' is not assignable to type 'Base'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
         b = f; // ok
+            ~
+!!! error TS2454: Variable 'f' is used before being assigned.
         b = a; // ok
         b = c; // ok
     }

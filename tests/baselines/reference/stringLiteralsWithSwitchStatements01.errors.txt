@@ -1,11 +1,16 @@
+stringLiteralsWithSwitchStatements01.ts(4,9): error TS2454: Variable 'x' is used before being assigned.
 stringLiteralsWithSwitchStatements01.ts(7,10): error TS2678: Type '"bar"' is not comparable to type '"foo"'.
+stringLiteralsWithSwitchStatements01.ts(9,10): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithSwitchStatements01.ts(10,9): error TS2454: Variable 'y' is used before being assigned.
 
 
-==== stringLiteralsWithSwitchStatements01.ts (1 errors) ====
+==== stringLiteralsWithSwitchStatements01.ts (4 errors) ====
     let x: "foo";
     let y: "foo" | "bar"; 
     
     switch (x) {
+            ~
+!!! error TS2454: Variable 'x' is used before being assigned.
         case "foo":
             break;
         case "bar":
@@ -13,7 +18,11 @@ stringLiteralsWithSwitchStatements01.ts(7,10): error TS2678: Type '"bar"' is not
 !!! error TS2678: Type '"bar"' is not comparable to type '"foo"'.
             break;
         case y:
+             ~
+!!! error TS2454: Variable 'y' is used before being assigned.
             y;
+            ~
+!!! error TS2454: Variable 'y' is used before being assigned.
             break;
     }
     

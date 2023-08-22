@@ -35,8 +35,8 @@ declare class bar {
     f(): string;
     g(): {
         a: bar;
-        b: any;
-        c: any;
+        b: undefined;
+        c: undefined;
     };
-    h(x?: number, y?: any, z?: string): void;
+    h(x?: number, y?: null, z?: string): void;
 }

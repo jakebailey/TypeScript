@@ -6,7 +6,7 @@ interface ValueOnlyFields {
 >fields : { value: number | null; }[]
 
         value: number | null;
->value : number
+>value : number | null
 
     }>;
 }
@@ -15,10 +15,10 @@ interface ValueAndKeyFields {
 >fields : { key: string | null; value: number | null; }[]
 
         key: string | null;
->key : string
+>key : string | null
 
         value: number | null;
->value : number
+>value : number | null
 
     }>;
 }

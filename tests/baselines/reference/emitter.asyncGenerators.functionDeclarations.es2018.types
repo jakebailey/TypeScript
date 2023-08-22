@@ -6,7 +6,7 @@ async function * f1() {
 }
 === F2.ts ===
 async function * f2() {
->f2 : () => AsyncGenerator<any, void, unknown>
+>f2 : () => AsyncGenerator<undefined, void, unknown>
 
     const x = yield;
 >x : any

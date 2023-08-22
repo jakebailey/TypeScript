@@ -1,9 +1,10 @@
+assignFromNumberInterface2.ts(19,5): error TS2454: Variable 'b' is used before being assigned.
 assignFromNumberInterface2.ts(24,1): error TS2322: Type 'Number' is not assignable to type 'number'.
   'number' is a primitive, but 'Number' is a wrapper object. Prefer using 'number' when possible.
 assignFromNumberInterface2.ts(25,1): error TS2322: Type 'NotNumber' is not assignable to type 'number'.
 
 
-==== assignFromNumberInterface2.ts (2 errors) ====
+==== assignFromNumberInterface2.ts (3 errors) ====
     interface Number {
         doStuff(): string;
     }
@@ -23,6 +24,8 @@ assignFromNumberInterface2.ts(25,1): error TS2322: Type 'NotNumber' is not assig
     
     a = x; 
     a = b; 
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     
     b = a; 
     b = x; 

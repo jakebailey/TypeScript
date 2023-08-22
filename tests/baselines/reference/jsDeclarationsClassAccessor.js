@@ -67,9 +67,9 @@ export class Argument extends Base {
 //// [base.d.ts]
 export class Base {
     toJSON(): {
-        type: any;
-        name: any;
-        inheritance: any;
+        type: undefined;
+        name: undefined;
+        inheritance: undefined;
     };
 }
 //// [argument.d.ts]

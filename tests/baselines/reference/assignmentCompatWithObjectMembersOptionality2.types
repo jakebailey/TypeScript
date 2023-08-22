@@ -24,18 +24,18 @@ module TargetHasOptional {
     // targets
     interface C {
         opt?: Base
->opt : Base
+>opt : Base | undefined
     }
     var c: C;
 >c : C
 
     var a: { opt?: Base; }
->a : { opt?: Base; }
->opt : Base
+>a : { opt?: Base | undefined; }
+>opt : Base | undefined
 
     var b: typeof a = { opt: new Base() }
->b : { opt?: Base; }
->a : { opt?: Base; }
+>b : { opt?: Base | undefined; }
+>a : { opt?: Base | undefined; }
 >{ opt: new Base() } : { opt: Base; }
 >opt : Base
 >new Base() : Base
@@ -52,7 +52,7 @@ module TargetHasOptional {
     }
     interface F {
         other?: Derived;
->other : Derived
+>other : Derived | undefined
     }
     var d: D;
 >d : D
@@ -81,53 +81,53 @@ module TargetHasOptional {
 
     a = d;
 >a = d : D
->a : { opt?: Base; }
+>a : { opt?: Base | undefined; }
 >d : D
 
     a = e;
 >a = e : E
->a : { opt?: Base; }
+>a : { opt?: Base | undefined; }
 >e : E
 
     a = f;
 >a = f : F
->a : { opt?: Base; }
+>a : { opt?: Base | undefined; }
 >f : F
 
     b = d;
 >b = d : D
->b : { opt?: Base; }
+>b : { opt?: Base | undefined; }
 >d : D
 
     b = e;
 >b = e : E
->b : { opt?: Base; }
+>b : { opt?: Base | undefined; }
 >e : E
 
     b = f;
 >b = f : F
->b : { opt?: Base; }
+>b : { opt?: Base | undefined; }
 >f : F
 
     // ok
     c = a;
->c = a : { opt?: Base; }
+>c = a : { opt?: Base | undefined; }
 >c : C
->a : { opt?: Base; }
+>a : { opt?: Base | undefined; }
 
     a = c;
 >a = c : C
->a : { opt?: Base; }
+>a : { opt?: Base | undefined; }
 >c : C
 
     b = a;
->b = a : { opt?: Base; }
->b : { opt?: Base; }
->a : { opt?: Base; }
+>b = a : { opt?: Base | undefined; }
+>b : { opt?: Base | undefined; }
+>a : { opt?: Base | undefined; }
 
     b = c;
 >b = c : C
->b : { opt?: Base; }
+>b : { opt?: Base | undefined; }
 >c : C
 }
 
@@ -156,11 +156,11 @@ module SourceHasOptional {
     // sources
     interface D {
         other?: Base;
->other : Base
+>other : Base | undefined
     }
     interface E {
         other?: Derived;
->other : Derived
+>other : Derived | undefined
     }
     interface F {
         other: Derived;

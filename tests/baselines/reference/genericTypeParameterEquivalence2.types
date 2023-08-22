@@ -32,7 +32,7 @@ function forEach<A>(list: A[], f: (a: A, n?: number) => void ): void {
 >list : A[]
 >f : (a: A, n?: number) => void
 >a : A
->n : number
+>n : number | undefined
 
     for (var i = 0; i < list.length; ++i) {
 >i : number
@@ -47,7 +47,7 @@ function forEach<A>(list: A[], f: (a: A, n?: number) => void ): void {
 
         f(list[i], i);
 >f(list[i], i) : void
->f : (a: A, n?: number) => void
+>f : (a: A, n?: number | undefined) => void
 >list[i] : A
 >list : A[]
 >i : number
@@ -63,12 +63,12 @@ function filter<A>(f: (a: A) => boolean, ar: A[]): A[] {
 >ar : A[]
 
     var ret = [];
->ret : any[]
->[] : undefined[]
+>ret : never[]
+>[] : never[]
 
     forEach(ar, (el) => {
 >forEach(ar, (el) => {        if (f(el)) {            ret.push(el);        }    } ) : void
->forEach : <A>(list: A[], f: (a: A, n?: number) => void) => void
+>forEach : <A>(list: A[], f: (a: A, n?: number | undefined) => void) => void
 >ar : A[]
 >(el) => {        if (f(el)) {            ret.push(el);        }    } : (el: A) => void
 >el : A
@@ -80,15 +80,15 @@ function filter<A>(f: (a: A) => boolean, ar: A[]): A[] {
 
             ret.push(el);
 >ret.push(el) : number
->ret.push : (...items: any[]) => number
->ret : any[]
->push : (...items: any[]) => number
+>ret.push : (...items: never[]) => number
+>ret : never[]
+>push : (...items: never[]) => number
 >el : A
         }
     } );
 
     return ret;
->ret : any[]
+>ret : never[]
 }
 
 // length :: [a] -> Num

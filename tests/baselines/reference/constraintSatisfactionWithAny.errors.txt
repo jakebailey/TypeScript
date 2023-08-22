@@ -1,0 +1,88 @@
+constraintSatisfactionWithAny.ts(3,43): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+constraintSatisfactionWithAny.ts(4,51): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+constraintSatisfactionWithAny.ts(6,55): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+constraintSatisfactionWithAny.ts(14,10): error TS2454: Variable 'b' is used before being assigned.
+constraintSatisfactionWithAny.ts(15,11): error TS2454: Variable 'b' is used before being assigned.
+constraintSatisfactionWithAny.ts(17,11): error TS2454: Variable 'b' is used before being assigned.
+constraintSatisfactionWithAny.ts(28,21): error TS2454: Variable 'b' is used before being assigned.
+constraintSatisfactionWithAny.ts(35,22): error TS2454: Variable 'b' is used before being assigned.
+constraintSatisfactionWithAny.ts(49,22): error TS2454: Variable 'b' is used before being assigned.
+
+
+==== constraintSatisfactionWithAny.ts (9 errors) ====
+    // any is not a valid type argument unless there is no constraint, or the constraint is any
+    
+    function foo<T extends String>(x: T): T { return null; }
+                                              ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+    function foo2<T extends { x: number }>(x: T): T { return null; }
+                                                      ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+    //function foo3<T extends T[]>(x: T): T { return null; }
+    function foo4<T extends <T>(x: T) => void>(x: T): T { return null; }
+                                                          ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+    var a;
+    foo(a);
+    foo2(a);
+    //foo3(a);
+    foo4(a);
+    
+    var b: number;
+    foo<any>(b);
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    foo2<any>(b);
+              ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    //foo3<any>(b);
+    foo4<any>(b);
+              ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    
+    //function foo5<T extends String, U extends T>(x: T, y: U): T { return null; }
+    //foo5(a, a);
+    //foo5<any, any>(b, b);
+    
+    class C<T extends String> {
+        constructor(public x: T) { }
+    }
+    
+    var c1 = new C(a);
+    var c2 = new C<any>(b);
+                        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    
+    class C2<T extends { x: number }> {
+        constructor(public x: T) { }
+    }
+    
+    var c3 = new C2(a);
+    var c4 = new C2<any>(b);
+                         ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    
+    //class C3<T extends T[]> {
+    //    constructor(public x: T) { }
+    //}
+    
+    //var c5 = new C3(a);
+    //var c6 = new C3<any>(b);
+    
+    class C4<T extends <T>(x:T) => T> {
+        constructor(public x: T) { }
+    }
+    
+    var c7 = new C4(a);
+    var c8 = new C4<any>(b);
+                         ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    
+    
+    

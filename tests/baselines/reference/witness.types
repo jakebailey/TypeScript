@@ -182,7 +182,7 @@ var or3: any;
 // &&
 var and1 = and1 && '';
 >and1 : any
->and1 && '' : ""
+>and1 && '' : any
 >and1 : any
 >'' : ""
 

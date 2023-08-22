@@ -1,9 +1,11 @@
+derivedClassWithAny.ts(56,5): error TS2454: Variable 'd' is used before being assigned.
 derivedClassWithAny.ts(57,1): error TS2322: Type 'E' is not assignable to type 'C'.
   Types of property 'x' are incompatible.
     Type 'string' is not assignable to type 'number'.
+derivedClassWithAny.ts(57,5): error TS2454: Variable 'e' is used before being assigned.
 
 
-==== derivedClassWithAny.ts (1 errors) ====
+==== derivedClassWithAny.ts (3 errors) ====
     class C {
         x: number;
         get X(): number { return 1; }
@@ -60,10 +62,14 @@ derivedClassWithAny.ts(57,1): error TS2322: Type 'E' is not assignable to type '
     var e: E;
     
     c = d;
+        ~
+!!! error TS2454: Variable 'd' is used before being assigned.
     c = e;
     ~
 !!! error TS2322: Type 'E' is not assignable to type 'C'.
 !!! error TS2322:   Types of property 'x' are incompatible.
 !!! error TS2322:     Type 'string' is not assignable to type 'number'.
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
     var r = c.foo(); // e.foo would return string
     

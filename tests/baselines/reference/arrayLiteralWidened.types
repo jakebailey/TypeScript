@@ -4,53 +4,53 @@
 // array literals are widened upon assignment according to their element type
 
 var a = []; // any[]
->a : any[]
->[] : undefined[]
+>a : never[]
+>[] : never[]
 
 var a = [,,];
->a : any[]
+>a : never[]
 >[,,] : undefined[]
 > : undefined
 > : undefined
 
 var a = [null, null];
->a : any[]
+>a : never[]
 >[null, null] : null[]
 
 var a = [undefined, undefined];
->a : any[]
+>a : never[]
 >[undefined, undefined] : undefined[]
 >undefined : undefined
 >undefined : undefined
 
 var b = [[], [null, null]]; // any[][]
->b : any[][]
->[[], [null, null]] : undefined[][]
->[] : undefined[]
+>b : null[][]
+>[[], [null, null]] : null[][]
+>[] : never[]
 >[null, null] : null[]
 
 var b = [[], []];
->b : any[][]
->[[], []] : undefined[][]
->[] : undefined[]
->[] : undefined[]
+>b : null[][]
+>[[], []] : never[][]
+>[] : never[]
+>[] : never[]
 
 var b = [[undefined, undefined]];
->b : any[][]
+>b : null[][]
 >[[undefined, undefined]] : undefined[][]
 >[undefined, undefined] : undefined[]
 >undefined : undefined
 >undefined : undefined
 
 var c = [[[]]]; // any[][][]
->c : any[][][]
->[[[]]] : undefined[][][]
->[[]] : undefined[][]
->[] : undefined[]
+>c : never[][][]
+>[[[]]] : never[][][]
+>[[]] : never[][]
+>[] : never[]
 
 var c = [[[null]],[undefined]]
->c : any[][][]
->[[[null]],[undefined]] : null[][][]
+>c : never[][][]
+>[[[null]],[undefined]] : (undefined[] | null[][])[]
 >[[null]] : null[][]
 >[null] : null[]
 >[undefined] : undefined[]

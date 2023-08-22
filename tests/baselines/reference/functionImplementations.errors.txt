@@ -1,8 +1,10 @@
 functionImplementations.ts(85,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 'a' must be of type 'any', but here has type 'Base'.
 functionImplementations.ts(90,1): error TS2839: This condition will always return 'false' since JavaScript compares objects by reference, not value.
+functionImplementations.ts(109,9): error TS2403: Subsequent variable declarations must have the same type.  Variable 'm' must be of type '{ x: null; y: undefined; }', but here has type '{ x: any; y: any; }'.
+functionImplementations.ts(123,5): error TS2322: Type 'undefined' is not assignable to type 'number'.
 
 
-==== functionImplementations.ts (2 errors) ====
+==== functionImplementations.ts (4 errors) ====
     // FunctionExpression with no return type annotation and no return statement returns void
     var v: void = function () { } ();
     
@@ -119,6 +121,9 @@ functionImplementations.ts(90,1): error TS2839: This condition will always retur
     function opt2(n = { x: null, y: undefined }) {
         var m = n;
         var m: { x: any; y: any };
+            ~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 'm' must be of type '{ x: null; y: undefined; }', but here has type '{ x: any; y: any; }'.
+!!! related TS6203 functionImplementations.ts:108:9: 'm' was also declared here.
     }
     
     // Function signature with initializer referencing other parameter to the left
@@ -133,6 +138,8 @@ functionImplementations.ts(90,1): error TS2839: This condition will always retur
     // FunctionExpression with non -void return type annotation return with no expression
     function f6(): number {
         return;
+        ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'number'.
     }
     
     class Derived2 extends Base { private r: string; }

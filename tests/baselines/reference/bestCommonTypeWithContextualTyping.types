@@ -6,7 +6,7 @@ interface Contextual {
 >dummy : any
 
     p?: number;
->p : number
+>p : number | undefined
 }
 
 interface Ellement {

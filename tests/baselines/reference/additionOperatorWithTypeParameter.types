@@ -154,5 +154,5 @@ function foo<T, U>(t: T, u: U) {
 >r20 : any
 >t + [] : any
 >t : T
->[] : undefined[]
+>[] : never[]
 }

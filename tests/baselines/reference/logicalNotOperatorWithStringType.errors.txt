@@ -1,7 +1,15 @@
+logicalNotOperatorWithStringType.ts(18,25): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(32,27): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(32,36): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(33,26): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(36,27): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(37,29): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(37,38): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(41,2): error TS2454: Variable 'STRING' is used before being assigned.
 logicalNotOperatorWithStringType.ts(44,1): error TS2695: Left side of comma operator is unused and has no side effects.
 
 
-==== logicalNotOperatorWithStringType.ts (1 errors) ====
+==== logicalNotOperatorWithStringType.ts (9 errors) ====
     // ! operator on string type
     var STRING: string;
     var STRING1: string[] = ["", "abc"];
@@ -20,6 +28,8 @@ logicalNotOperatorWithStringType.ts(44,1): error TS2695: Left side of comma oper
     
     // string type var
     var ResultIsBoolean1 = !STRING;
+                            ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     var ResultIsBoolean2 = !STRING1;
     
     // string type literal
@@ -34,15 +44,29 @@ logicalNotOperatorWithStringType.ts(44,1): error TS2695: Left side of comma oper
     var ResultIsBoolean9 = !foo();
     var ResultIsBoolean10 = !A.foo();
     var ResultIsBoolean11 = !(STRING + STRING);
+                              ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+                                       ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     var ResultIsBoolean12 = !STRING.charAt(0);
+                             ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     
     // multiple ! operator
     var ResultIsBoolean13 = !!STRING;
+                              ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     var ResultIsBoolean14 = !!!(STRING + STRING);
+                                ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+                                         ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     
     // miss assignment operators
     !"";
     !STRING;
+     ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     !STRING1;
     !foo();
     !objA.a,M.n;

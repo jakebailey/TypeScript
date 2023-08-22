@@ -1,7 +1,14 @@
+logicalNotOperatorWithNumberType.ts(18,25): error TS2454: Variable 'NUMBER' is used before being assigned.
+logicalNotOperatorWithNumberType.ts(32,27): error TS2454: Variable 'NUMBER' is used before being assigned.
+logicalNotOperatorWithNumberType.ts(32,36): error TS2454: Variable 'NUMBER' is used before being assigned.
+logicalNotOperatorWithNumberType.ts(35,27): error TS2454: Variable 'NUMBER' is used before being assigned.
+logicalNotOperatorWithNumberType.ts(36,29): error TS2454: Variable 'NUMBER' is used before being assigned.
+logicalNotOperatorWithNumberType.ts(36,38): error TS2454: Variable 'NUMBER' is used before being assigned.
+logicalNotOperatorWithNumberType.ts(40,2): error TS2454: Variable 'NUMBER' is used before being assigned.
 logicalNotOperatorWithNumberType.ts(45,1): error TS2695: Left side of comma operator is unused and has no side effects.
 
 
-==== logicalNotOperatorWithNumberType.ts (1 errors) ====
+==== logicalNotOperatorWithNumberType.ts (8 errors) ====
     // ! operator on number type
     var NUMBER: number;
     var NUMBER1: number[] = [1, 2];
@@ -20,6 +27,8 @@ logicalNotOperatorWithNumberType.ts(45,1): error TS2695: Left side of comma oper
     
     // number type var
     var ResultIsBoolean1 = !NUMBER;
+                            ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     var ResultIsBoolean2 = !NUMBER1;
     
     // number type literal
@@ -34,14 +43,26 @@ logicalNotOperatorWithNumberType.ts(45,1): error TS2695: Left side of comma oper
     var ResultIsBoolean9 = !foo();
     var ResultIsBoolean10 = !A.foo();
     var ResultIsBoolean11 = !(NUMBER + NUMBER);
+                              ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
+                                       ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     
     // multiple ! operator
     var ResultIsBoolean12 = !!NUMBER;
+                              ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     var ResultIsBoolean13 = !!!(NUMBER + NUMBER);
+                                ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
+                                         ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     
     // miss assignment operators
     !1;
     !NUMBER;
+     ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
     !NUMBER1;
     !foo();
     !objA.a;

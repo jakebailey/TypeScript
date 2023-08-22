@@ -1,0 +1,17 @@
+ambiguousOverloadResolution.ts(8,19): error TS2454: Variable 'x' is used before being assigned.
+ambiguousOverloadResolution.ts(8,22): error TS2454: Variable 'x' is used before being assigned.
+
+
+==== ambiguousOverloadResolution.ts (2 errors) ====
+    class A { }
+    class B extends A { x: number; }
+    
+    declare function f(p: A, q: B): number;
+    declare function f(p: B, q: A): string;
+    
+    var x: B;
+    var t: number = f(x, x); // Not an error
+                      ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+                         ~
+!!! error TS2454: Variable 'x' is used before being assigned.

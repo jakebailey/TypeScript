@@ -12,14 +12,14 @@ class X {
 >decorator : any
 
     a?: string?;
->a : string
+>a : string | null | undefined
 
     @decorator()
 >decorator() : any
 >decorator : any
 
     b?: string!;
->b : string
+>b : string | undefined
 
     @decorator()
 >decorator() : any

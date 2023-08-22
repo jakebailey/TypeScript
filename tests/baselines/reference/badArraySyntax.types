@@ -11,7 +11,7 @@ class Z {
 
 var a1: Z[] = [];
 >a1 : Z[]
->[] : undefined[]
+>[] : never[]
 
 var a2 = new Z[];
 >a2 : any

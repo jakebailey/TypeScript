@@ -1,12 +1,14 @@
 elaboratedErrors.ts(11,3): error TS2416: Property 'read' in type 'WorkerFS' is not assignable to the same property in base type 'FileSystem'.
   Type 'string' is not assignable to type 'number'.
 elaboratedErrors.ts(20,1): error TS2741: Property 'x' is missing in type 'Beta' but required in type 'Alpha'.
+elaboratedErrors.ts(20,5): error TS2454: Variable 'y' is used before being assigned.
 elaboratedErrors.ts(21,1): error TS2322: Type 'Beta' is not assignable to type 'Alpha'.
+elaboratedErrors.ts(21,5): error TS2454: Variable 'y' is used before being assigned.
 elaboratedErrors.ts(24,1): error TS2741: Property 'y' is missing in type 'Alpha' but required in type 'Beta'.
 elaboratedErrors.ts(25,1): error TS2322: Type 'Alpha' is not assignable to type 'Beta'.
 
 
-==== elaboratedErrors.ts (5 errors) ====
+==== elaboratedErrors.ts (7 errors) ====
     interface FileSystem {
       read: number;
     }
@@ -33,9 +35,13 @@ elaboratedErrors.ts(25,1): error TS2322: Type 'Alpha' is not assignable to type 
     ~
 !!! error TS2741: Property 'x' is missing in type 'Beta' but required in type 'Alpha'.
 !!! related TS2728 elaboratedErrors.ts:14:19: 'x' is declared here.
+        ~
+!!! error TS2454: Variable 'y' is used before being assigned.
     x = y;
     ~
 !!! error TS2322: Type 'Beta' is not assignable to type 'Alpha'.
+        ~
+!!! error TS2454: Variable 'y' is used before being assigned.
     
     // Only one of these errors should be large
     y = x;

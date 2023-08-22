@@ -1,10 +1,13 @@
 typeParameterDiamond2.ts(8,13): error TS2322: Type 'T | U' is not assignable to type 'Top'.
   'Top' could be instantiated with an arbitrary type which could be unrelated to 'T | U'.
+typeParameterDiamond2.ts(8,19): error TS2454: Variable 'middle' is used before being assigned.
+typeParameterDiamond2.ts(9,22): error TS2454: Variable 'bottom' is used before being assigned.
 typeParameterDiamond2.ts(10,13): error TS2322: Type 'Bottom' is not assignable to type 'Top'.
   'Top' could be instantiated with an arbitrary type which could be unrelated to 'Bottom'.
+typeParameterDiamond2.ts(10,19): error TS2454: Variable 'bottom' is used before being assigned.
 
 
-==== typeParameterDiamond2.ts (2 errors) ====
+==== typeParameterDiamond2.ts (5 errors) ====
     function diamondTop<Top>() {
         function diamondMiddle<T extends Top, U>() {
             function diamondBottom<Bottom extends T | U>() {
@@ -17,11 +20,17 @@ typeParameterDiamond2.ts(10,13): error TS2322: Type 'Bottom' is not assignable t
 !!! error TS2322: Type 'T | U' is not assignable to type 'Top'.
 !!! error TS2322:   'Top' could be instantiated with an arbitrary type which could be unrelated to 'T | U'.
 !!! related TS2208 typeParameterDiamond2.ts:2:43: This type parameter might need an `extends Top` constraint.
+                      ~~~~~~
+!!! error TS2454: Variable 'middle' is used before being assigned.
                 middle = bottom;
+                         ~~~~~~
+!!! error TS2454: Variable 'bottom' is used before being assigned.
                 top = bottom;
                 ~~~
 !!! error TS2322: Type 'Bottom' is not assignable to type 'Top'.
 !!! error TS2322:   'Top' could be instantiated with an arbitrary type which could be unrelated to 'Bottom'.
+                      ~~~~~~
+!!! error TS2454: Variable 'bottom' is used before being assigned.
             }
         }
     }

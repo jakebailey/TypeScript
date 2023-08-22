@@ -2,7 +2,7 @@
 
 === emitArrowFunctionWhenUsingArguments15_ES6.ts ===
 function f() {
->f : () => () => number
+>f : () => (() => number) | undefined
 
     var arguments = "hello";
 >arguments : string

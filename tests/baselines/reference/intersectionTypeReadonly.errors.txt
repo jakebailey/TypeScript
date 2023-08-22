@@ -1,10 +1,15 @@
+intersectionTypeReadonly.ts(17,1): error TS2454: Variable 'base' is used before being assigned.
 intersectionTypeReadonly.ts(17,6): error TS2540: Cannot assign to 'value' because it is a read-only property.
+intersectionTypeReadonly.ts(19,1): error TS2454: Variable 'identical' is used before being assigned.
 intersectionTypeReadonly.ts(19,11): error TS2540: Cannot assign to 'value' because it is a read-only property.
+intersectionTypeReadonly.ts(21,1): error TS2454: Variable 'mutable' is used before being assigned.
+intersectionTypeReadonly.ts(23,1): error TS2454: Variable 'differentType' is used before being assigned.
 intersectionTypeReadonly.ts(23,15): error TS2540: Cannot assign to 'value' because it is a read-only property.
+intersectionTypeReadonly.ts(25,1): error TS2454: Variable 'differentName' is used before being assigned.
 intersectionTypeReadonly.ts(25,15): error TS2540: Cannot assign to 'value' because it is a read-only property.
 
 
-==== intersectionTypeReadonly.ts (4 errors) ====
+==== intersectionTypeReadonly.ts (9 errors) ====
     interface Base {
         readonly value: number;
     }
@@ -22,20 +27,30 @@ intersectionTypeReadonly.ts(25,15): error TS2540: Cannot assign to 'value' becau
     }
     let base: Base;
     base.value = 12 // error, lhs can't be a readonly property
+    ~~~~
+!!! error TS2454: Variable 'base' is used before being assigned.
          ~~~~~
 !!! error TS2540: Cannot assign to 'value' because it is a read-only property.
     let identical: Base & Identical;
     identical.value = 12; // error, lhs can't be a readonly property
+    ~~~~~~~~~
+!!! error TS2454: Variable 'identical' is used before being assigned.
               ~~~~~
 !!! error TS2540: Cannot assign to 'value' because it is a read-only property.
     let mutable: Base & Mutable;
     mutable.value = 12;
+    ~~~~~~~
+!!! error TS2454: Variable 'mutable' is used before being assigned.
     let differentType: Base & DifferentType;
     differentType.value = 12; // error, lhs can't be a readonly property
+    ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'differentType' is used before being assigned.
                   ~~~~~
 !!! error TS2540: Cannot assign to 'value' because it is a read-only property.
     let differentName: Base & DifferentName;
     differentName.value = 12; // error, property 'value' doesn't exist
+    ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'differentName' is used before being assigned.
                   ~~~~~
 !!! error TS2540: Cannot assign to 'value' because it is a read-only property.
     

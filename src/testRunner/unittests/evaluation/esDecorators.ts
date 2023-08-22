@@ -1112,7 +1112,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 });
                 it("can add multiple", () => {
                     const { order } = exec`
-                        export const order = [];
+                        export const order: unknown[] = [];
                         export @((t, c) => {
                             c.addInitializer(() => { order.push("a"); });
                             c.addInitializer(() => { order.push("b"); });
@@ -1156,7 +1156,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 });
                 it("can add multiple", () => {
                     const { order } = exec`
-                        export const order = [];
+                        export const order: unknown[] = [];
                         export class C {
                             @((t, c) => {
                                 c.addInitializer(() => { order.push("a"); });
@@ -1195,7 +1195,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 describe("when: static", () => {
                     it("extra initializers run once", () => {
                         const { order, main } = exec`
-                            export const order = [];
+                            export const order: unknown[] = [];
                             class C {
                                 @((t, c) => { c.addInitializer(() => { order.push("extra"); }); })
                                 static method() {}
@@ -1210,7 +1210,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 describe("when: instance", () => {
                     it("extra initializers run each time constructor runs", () => {
                         const { order, main } = exec`
-                            export const order = [];
+                            export const order: unknown[] = [];
                             class C {
                                 @((t, c) => { c.addInitializer(() => { order.push("extra"); }); })
                                 method() {}
@@ -1237,7 +1237,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 });
                 it("can add multiple", () => {
                     const { order } = exec`
-                        export const order = [];
+                        export const order: unknown[] = [];
                         export class C {
                             @((t, c) => {
                                 c.addInitializer(() => { order.push("a"); });
@@ -1276,7 +1276,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 describe("when: static", () => {
                     it("extra initializers run once", () => {
                         const { order, main } = exec`
-                            export const order = [];
+                            export const order: unknown[] = [];
                             class C {
                                 @((t, c) => { c.addInitializer(() => { order.push("extra"); }); })
                                 static get x() { return 1; }
@@ -1291,7 +1291,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 describe("when: instance", () => {
                     it("extra initializers run each time constructor runs", () => {
                         const { order, main } = exec`
-                            export const order = [];
+                            export const order: unknown[] = [];
                             class C {
                                 @((t, c) => { c.addInitializer(() => { order.push("extra"); }); })
                                 get x() { return 1; }
@@ -1318,7 +1318,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 });
                 it("can add multiple", () => {
                     const { order } = exec`
-                        export const order = [];
+                        export const order: unknown[] = [];
                         export class C {
                             @((t, c) => {
                                 c.addInitializer(() => { order.push("a"); });
@@ -1357,7 +1357,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 describe("when: static", () => {
                     it("extra initializers run once", () => {
                         const { order, main } = exec`
-                            export const order = [];
+                            export const order: unknown[] = [];
                             class C {
                                 @((t, c) => { c.addInitializer(() => { order.push("extra"); }); })
                                 static set x(v: number) {}
@@ -1372,7 +1372,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 describe("when: instance", () => {
                     it("extra initializers run each time constructor runs", () => {
                         const { order, main } = exec`
-                            export const order = [];
+                            export const order: unknown[] = [];
                             class C {
                                 @((t, c) => { c.addInitializer(() => { order.push("extra"); }); })
                                 set x(v: number) {}
@@ -1399,7 +1399,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 });
                 it("can add multiple", () => {
                     const { order } = exec`
-                        export const order = [];
+                        export const order: unknown[] = [];
                         export class C {
                             @((t, c) => {
                                 c.addInitializer(() => { order.push("a"); });
@@ -1438,7 +1438,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 describe("when: static", () => {
                     it("extra initializers run once", () => {
                         const { order, main } = exec`
-                            export const order = [];
+                            export const order: unknown[] = [];
                             class C {
                                 @((t, c) => { c.addInitializer(() => { order.push("extra"); }); })
                                 static x: number;
@@ -1453,7 +1453,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 describe("when: instance", () => {
                     it("extra initializers run each time constructor runs", () => {
                         const { order, main } = exec`
-                            export const order = [];
+                            export const order: unknown[] = [];
                             class C {
                                 @((t, c) => { c.addInitializer(() => { order.push("extra"); }); })
                                 x: number;
@@ -1480,7 +1480,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 });
                 it("can add multiple", () => {
                     const { order } = exec`
-                        export const order = [];
+                        export const order: unknown[] = [];
                         export class C {
                             @((t, c) => {
                                 c.addInitializer(() => { order.push("a"); });
@@ -1519,7 +1519,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 describe("when: static", () => {
                     it("extra initializers run once", () => {
                         const { order, main } = exec`
-                            export const order = [];
+                            export const order: unknown[] = [];
                             class C {
                                 @((t, c) => { c.addInitializer(() => { order.push("extra"); }); })
                                 static accessor x: number;
@@ -1534,7 +1534,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
                 describe("when: instance", () => {
                     it("extra initializers run each time constructor runs", () => {
                         const { order, main } = exec`
-                            export const order = [];
+                            export const order: unknown[] = [];
                             class C {
                                 @((t, c) => { c.addInitializer(() => { order.push("extra"); }); })
                                 accessor x: number;
@@ -1914,7 +1914,7 @@ describe("unittests:: evaluation:: esDecorators", () => {
 
         it(`class definition evaluation order (${targetName})`, () => {
             const { order } = exec`
-                export const order = [];
+                export const order: unknown[] = [];
 
                 class Base {
                     constructor() {

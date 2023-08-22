@@ -19,7 +19,7 @@ class C {
 
     get [[]]() { return 0; }
 >[[]] : number
->[] : undefined[]
+>[] : never[]
 >0 : 0
 
     set [{}](v) { }

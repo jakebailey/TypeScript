@@ -1,8 +1,10 @@
 logicalNotOperatorInvalidOperations.ts(8,16): error TS2365: Operator '+' cannot be applied to types 'boolean' and 'number'.
+logicalNotOperatorInvalidOperations.ts(8,17): error TS2454: Variable 'b' is used before being assigned.
+logicalNotOperatorInvalidOperations.ts(8,21): error TS2454: Variable 'b' is used before being assigned.
 logicalNotOperatorInvalidOperations.ts(11,16): error TS1109: Expression expected.
 
 
-==== logicalNotOperatorInvalidOperations.ts (2 errors) ====
+==== logicalNotOperatorInvalidOperations.ts (4 errors) ====
     // Unary operator !
     var b: number;
     
@@ -13,6 +15,10 @@ logicalNotOperatorInvalidOperations.ts(11,16): error TS1109: Expression expected
     var BOOLEAN2 = !b + b;
                    ~~~~~~
 !!! error TS2365: Operator '+' cannot be applied to types 'boolean' and 'number'.
+                    ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     
     // miss an operand
     var BOOLEAN3 =!;

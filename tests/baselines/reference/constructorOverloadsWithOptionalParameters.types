@@ -9,7 +9,7 @@ class C {
 
     constructor(x?, y?: any[]); 
 >x : any
->y : any[]
+>y : any[] | undefined
 
     constructor() {
     }
@@ -23,7 +23,7 @@ class D<T> {
 
     constructor(x?, y?: any[]); 
 >x : any
->y : any[]
+>y : any[] | undefined
 
     constructor() {
     }

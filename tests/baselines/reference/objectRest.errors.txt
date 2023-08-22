@@ -1,3 +1,6 @@
+objectRest.ts(13,63): error TS2454: Variable 'nestedrest' is used before being assigned.
+objectRest.ts(16,51): error TS2454: Variable 'complex' is used before being assigned.
+objectRest.ts(17,46): error TS2454: Variable 'complex' is used before being assigned.
 objectRest.ts(43,8): error TS2537: Type '{ a: number; b: string; }' has no matching index signature for type 'string'.
 objectRest.ts(43,35): error TS2537: Type '{ a: number; b: string; }' has no matching index signature for type 'string'.
 objectRest.ts(43,57): error TS2403: Subsequent variable declarations must have the same type.  Variable 'o' must be of type '{ a: number; b: string; }', but here has type '{}'.
@@ -6,7 +9,7 @@ objectRest.ts(44,32): error TS2537: Type '{ a: number; b: string; }' has no matc
 objectRest.ts(44,53): error TS2739: Type '{}' is missing the following properties from type '{ a: number; b: string; }': a, b
 
 
-==== objectRest.ts (6 errors) ====
+==== objectRest.ts (9 errors) ====
     var o = { a: 1, b: 'no' }
     var { ...clone } = o;
     var { a, ...justB } = o;
@@ -20,10 +23,16 @@ objectRest.ts(44,53): error TS2739: Type '{}' is missing the following propertie
     
     let nestedrest: { x: number, n1: { y: number, n2: { z: number, n3: { n4: number } } }, rest: number, restrest: number };
     var { x, n1: { y, n2: { z, n3: { ...nr } } }, ...restrest } = nestedrest;
+                                                                  ~~~~~~~~~~
+!!! error TS2454: Variable 'nestedrest' is used before being assigned.
     
     let complex: { x: { ka, ki }, y: number };
     var { x: { ka, ...nested }, y: other, ...rest } = complex;
+                                                      ~~~~~~~
+!!! error TS2454: Variable 'complex' is used before being assigned.
     ({x: { ka, ...nested }, y: other, ...rest} = complex);
+                                                 ~~~~~~~
+!!! error TS2454: Variable 'complex' is used before being assigned.
     var { x, ...fresh } = { x: 1, y: 2 };
     ({ x, ...fresh } = { x: 1, y: 2 });
     

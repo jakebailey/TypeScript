@@ -1,0 +1,12 @@
+nonPrimitiveIndexingWithForIn.ts(3,17): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== nonPrimitiveIndexingWithForIn.ts (1 errors) ====
+    var a: object;
+    
+    for (var key in a) {
+                    ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        var value = a[key];
+    }
+    

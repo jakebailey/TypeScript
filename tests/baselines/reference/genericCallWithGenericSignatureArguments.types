@@ -32,23 +32,23 @@ var r1b = foo((x) => 1, (x) => ''); // {} => {}
 >'' : ""
 
 var r2 = foo((x: Object) => null, (x: string) => ''); // Object => Object
->r2 : (x: any) => any
->foo((x: Object) => null, (x: string) => '') : (x: any) => any
+>r2 : (x: Object | null) => Object | null
+>foo((x: Object) => null, (x: string) => '') : (x: Object | null) => Object | null
 >foo : <T>(a: (x: T) => T, b: (x: T) => T) => (x: T) => T
->(x: Object) => null : (x: Object) => any
+>(x: Object) => null : (x: Object) => null
 >x : Object
 >(x: string) => '' : (x: string) => string
 >x : string
 >'' : ""
 
 var r3 = foo((x: number) => 1, (x: Object) => null); // number => number
->r3 : (x: any) => any
->foo((x: number) => 1, (x: Object) => null) : (x: any) => any
+>r3 : (x: Object | null) => Object | null
+>foo((x: number) => 1, (x: Object) => null) : (x: Object | null) => Object | null
 >foo : <T>(a: (x: T) => T, b: (x: T) => T) => (x: T) => T
 >(x: number) => 1 : (x: number) => number
 >x : number
 >1 : 1
->(x: Object) => null : (x: Object) => any
+>(x: Object) => null : (x: Object) => null
 >x : Object
 
 var r3ii = foo((x: number) => 1, (x: number) => 1); // number => number
@@ -63,40 +63,40 @@ var r3ii = foo((x: number) => 1, (x: number) => 1); // number => number
 >1 : 1
 
 var a: { x: number; y?: number; };
->a : { x: number; y?: number; }
+>a : { x: number; y?: number | undefined; }
 >x : number
->y : number
+>y : number | undefined
 
 var b: { x: number; z?: number; };
->b : { x: number; z?: number; }
+>b : { x: number; z?: number | undefined; }
 >x : number
->z : number
+>z : number | undefined
 
 var r4 = foo((x: typeof a) => a, (x: typeof b) => b); // typeof a => typeof a
->r4 : (x: { x: number; y?: number; }) => { x: number; y?: number; }
->foo((x: typeof a) => a, (x: typeof b) => b) : (x: { x: number; y?: number; }) => { x: number; y?: number; }
+>r4 : (x: { x: number; y?: number | undefined; }) => { x: number; y?: number | undefined; }
+>foo((x: typeof a) => a, (x: typeof b) => b) : (x: { x: number; y?: number | undefined; }) => { x: number; y?: number | undefined; }
 >foo : <T>(a: (x: T) => T, b: (x: T) => T) => (x: T) => T
->(x: typeof a) => a : (x: typeof a) => { x: number; y?: number; }
->x : { x: number; y?: number; }
->a : { x: number; y?: number; }
->a : { x: number; y?: number; }
->(x: typeof b) => b : (x: typeof b) => { x: number; z?: number; }
->x : { x: number; z?: number; }
->b : { x: number; z?: number; }
->b : { x: number; z?: number; }
+>(x: typeof a) => a : (x: typeof a) => { x: number; y?: number | undefined; }
+>x : { x: number; y?: number | undefined; }
+>a : { x: number; y?: number | undefined; }
+>a : { x: number; y?: number | undefined; }
+>(x: typeof b) => b : (x: typeof b) => { x: number; z?: number | undefined; }
+>x : { x: number; z?: number | undefined; }
+>b : { x: number; z?: number | undefined; }
+>b : { x: number; z?: number | undefined; }
 
 var r5 = foo((x: typeof b) => b, (x: typeof a) => a); // typeof b => typeof b
->r5 : (x: { x: number; z?: number; }) => { x: number; z?: number; }
->foo((x: typeof b) => b, (x: typeof a) => a) : (x: { x: number; z?: number; }) => { x: number; z?: number; }
+>r5 : (x: { x: number; z?: number | undefined; }) => { x: number; z?: number | undefined; }
+>foo((x: typeof b) => b, (x: typeof a) => a) : (x: { x: number; z?: number | undefined; }) => { x: number; z?: number | undefined; }
 >foo : <T>(a: (x: T) => T, b: (x: T) => T) => (x: T) => T
->(x: typeof b) => b : (x: typeof b) => { x: number; z?: number; }
->x : { x: number; z?: number; }
->b : { x: number; z?: number; }
->b : { x: number; z?: number; }
->(x: typeof a) => a : (x: typeof a) => { x: number; y?: number; }
->x : { x: number; y?: number; }
->a : { x: number; y?: number; }
->a : { x: number; y?: number; }
+>(x: typeof b) => b : (x: typeof b) => { x: number; z?: number | undefined; }
+>x : { x: number; z?: number | undefined; }
+>b : { x: number; z?: number | undefined; }
+>b : { x: number; z?: number | undefined; }
+>(x: typeof a) => a : (x: typeof a) => { x: number; y?: number | undefined; }
+>x : { x: number; y?: number | undefined; }
+>a : { x: number; y?: number | undefined; }
+>a : { x: number; y?: number | undefined; }
 
 function other<T>(x: T) {
 >other : <T>(x: T) => void

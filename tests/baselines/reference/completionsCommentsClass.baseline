@@ -146,7 +146,7 @@
 // | var Object: ObjectConstructor
 // | package
 // | function parseFloat(string: string): number
-// | function parseInt(string: string, radix?: number): number
+// | function parseInt(string: string, radix?: number | undefined): number
 // | interface RangeError
 // | var RangeError: RangeErrorConstructor
 // | readonly
@@ -3098,6 +3098,22 @@
             },
             {
               "text": "number",
+              "kind": "keyword"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "|",
+              "kind": "punctuation"
+            },
+            {
+              "text": " ",
+              "kind": "space"
+            },
+            {
+              "text": "undefined",
               "kind": "keyword"
             },
             {

@@ -1,28 +1,56 @@
+overloadResolution.ts(18,10): error TS2394: This overload signature is not compatible with its implementation signature.
+overloadResolution.ts(22,13): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(s: string): string', gave the following error.
+    Argument of type 'undefined' is not assignable to parameter of type 'string'.
+  Overload 2 of 2, '(s: number): number', gave the following error.
+    Argument of type 'undefined' is not assignable to parameter of type 'number'.
+overloadResolution.ts(23,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 's' must be of type 'never', but here has type 'string'.
 overloadResolution.ts(27,5): error TS2769: No overload matches this call.
   Overload 1 of 2, '(s: string): string', gave the following error.
     Argument of type '{}' is not assignable to parameter of type 'string'.
   Overload 2 of 2, '(s: number): number', gave the following error.
     Argument of type '{}' is not assignable to parameter of type 'number'.
+overloadResolution.ts(30,10): error TS2394: This overload signature is not compatible with its implementation signature.
+overloadResolution.ts(34,22): error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'Date'.
+overloadResolution.ts(35,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 'd' must be of type 'number', but here has type 'Date'.
+overloadResolution.ts(38,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 's' must be of type 'never', but here has type 'string'.
 overloadResolution.ts(41,11): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+overloadResolution.ts(47,10): error TS2394: This overload signature is not compatible with its implementation signature.
+overloadResolution.ts(52,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 's' must be of type 'never', but here has type 'string'.
+overloadResolution.ts(53,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 's' must be of type 'never', but here has type 'string'.
+overloadResolution.ts(58,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 's' must be of type 'never', but here has type 'string'.
+overloadResolution.ts(59,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 's' must be of type 'never', but here has type 'string'.
 overloadResolution.ts(63,5): error TS2558: Expected 3 type arguments, but got 4.
 overloadResolution.ts(70,21): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
 overloadResolution.ts(71,21): error TS2345: Argument of type 'string' is not assignable to parameter of type 'number'.
+overloadResolution.ts(77,1): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(n: string, m: number): any', gave the following error.
+    Argument of type 'number' is not assignable to parameter of type 'string'.
+  Overload 2 of 2, '(n: 3, m: string): any', gave the following error.
+    Argument of type 'undefined' is not assignable to parameter of type 'string'.
+overloadResolution.ts(78,1): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(n: "", m: number): any', gave the following error.
+    Argument of type 'null' is not assignable to parameter of type 'number'.
+  Overload 2 of 2, '(n: number, m: string): any', gave the following error.
+    Argument of type 'string' is not assignable to parameter of type 'number'.
 overloadResolution.ts(81,5): error TS2344: Type 'boolean' does not satisfy the constraint 'number'.
 overloadResolution.ts(84,5): error TS2769: No overload matches this call.
-  Overload 1 of 2, '(n: string, m: any): any', gave the following error.
+  Overload 1 of 2, '(n: string, m: number): any', gave the following error.
     Argument of type 'boolean' is not assignable to parameter of type 'string'.
-  Overload 2 of 2, '(n: number, m: any): any', gave the following error.
+  Overload 2 of 2, '(n: number, m: string): any', gave the following error.
     Argument of type 'boolean' is not assignable to parameter of type 'number'.
-overloadResolution.ts(85,11): error TS2769: No overload matches this call.
-  Overload 1 of 2, '(n: any, m: number): any', gave the following error.
-    Argument of type 'boolean' is not assignable to parameter of type 'number'.
-  Overload 2 of 2, '(n: any, m: string): any', gave the following error.
-    Argument of type 'boolean' is not assignable to parameter of type 'string'.
+overloadResolution.ts(85,5): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(n: string, m: number): any', gave the following error.
+    Argument of type 'null' is not assignable to parameter of type 'string'.
+  Overload 2 of 2, '(n: number, m: string): any', gave the following error.
+    Argument of type 'null' is not assignable to parameter of type 'number'.
+overloadResolution.ts(88,10): error TS2394: This overload signature is not compatible with its implementation signature.
 overloadResolution.ts(91,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 'n' must be of type 'number', but here has type 'string'.
 overloadResolution.ts(91,22): error TS2339: Property 'toFixed' does not exist on type 'string'.
+overloadResolution.ts(92,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 's' must be of type 'never', but here has type 'string'.
 
 
-==== overloadResolution.ts (10 errors) ====
+==== overloadResolution.ts (26 errors) ====
     class SomeBase {
         private n;
     
@@ -41,11 +69,23 @@ overloadResolution.ts(91,22): error TS2339: Property 'toFixed' does not exist on
     
     // Ambiguous call picks the first overload in declaration order
     function fn1(s: string): string;
+             ~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 overloadResolution.ts:20:10: The implementation signature is declared here.
     function fn1(s: number): number;
     function fn1() { return null; }
     
     var s = fn1(undefined);
+                ~~~~~~~~~
+!!! error TS2769: No overload matches this call.
+!!! error TS2769:   Overload 1 of 2, '(s: string): string', gave the following error.
+!!! error TS2769:     Argument of type 'undefined' is not assignable to parameter of type 'string'.
+!!! error TS2769:   Overload 2 of 2, '(s: number): number', gave the following error.
+!!! error TS2769:     Argument of type 'undefined' is not assignable to parameter of type 'number'.
     var s: string;
+        ~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 's' must be of type 'never', but here has type 'string'.
+!!! related TS6203 overloadResolution.ts:22:5: 's' was also declared here.
     
     
     // No candidate overloads found
@@ -59,14 +99,25 @@ overloadResolution.ts(91,22): error TS2339: Property 'toFixed' does not exist on
     
     // Generic and non - generic overload where generic overload is the only candidate when called with type arguments
     function fn2(s: string, n: number): number;
+             ~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 overloadResolution.ts:32:10: The implementation signature is declared here.
     function fn2<T>(n: number, t: T): T;
     function fn2() { return undefined; }
     
     var d = fn2<Date>(0, undefined);
+                         ~~~~~~~~~
+!!! error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'Date'.
     var d: Date;
+        ~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 'd' must be of type 'number', but here has type 'Date'.
+!!! related TS6203 overloadResolution.ts:34:5: 'd' was also declared here.
     
     // Generic and non - generic overload where generic overload is the only candidate when called without type arguments
     var s = fn2(0, '');
+        ~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 's' must be of type 'never', but here has type 'string'.
+!!! related TS6203 overloadResolution.ts:22:5: 's' was also declared here.
     
     // Generic and non - generic overload where non - generic overload is the only candidate when called with type arguments
     fn2<Date>('', 0); // Error
@@ -78,18 +129,33 @@ overloadResolution.ts(91,22): error TS2339: Property 'toFixed' does not exist on
     
     // Generic overloads with differing arity called without type arguments
     function fn3<T>(n: T): string;
+             ~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 overloadResolution.ts:50:10: The implementation signature is declared here.
     function fn3<T, U>(s: string, t: T, u: U): U;
     function fn3<T, U, V>(v: V, u: U, t: T): number;
     function fn3() { return null; }
     
     var s = fn3(3);
+        ~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 's' must be of type 'never', but here has type 'string'.
+!!! related TS6203 overloadResolution.ts:22:5: 's' was also declared here.
     var s = fn3('', 3, '');
+        ~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 's' must be of type 'never', but here has type 'string'.
+!!! related TS6203 overloadResolution.ts:22:5: 's' was also declared here.
     var n = fn3(5, 5, 5);
     var n: number;
     
     // Generic overloads with differing arity called with type arguments matching each overload type parameter count
     var s = fn3<number>(4);
+        ~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 's' must be of type 'never', but here has type 'string'.
+!!! related TS6203 overloadResolution.ts:22:5: 's' was also declared here.
     var s = fn3<string, string>('', '', '');
+        ~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 's' must be of type 'never', but here has type 'string'.
+!!! related TS6203 overloadResolution.ts:22:5: 's' was also declared here.
     var n = fn3<number, string, string>('', '', 3);
     
     // Generic overloads with differing arity called with type argument count that doesn't match any overload
@@ -114,7 +180,19 @@ overloadResolution.ts(91,22): error TS2339: Property 'toFixed' does not exist on
     fn4('', 3);
     fn4(3, '');
     fn4(3, undefined);
+    ~~~~~~~~~~~~~~~~~
+!!! error TS2769: No overload matches this call.
+!!! error TS2769:   Overload 1 of 2, '(n: string, m: number): any', gave the following error.
+!!! error TS2769:     Argument of type 'number' is not assignable to parameter of type 'string'.
+!!! error TS2769:   Overload 2 of 2, '(n: 3, m: string): any', gave the following error.
+!!! error TS2769:     Argument of type 'undefined' is not assignable to parameter of type 'string'.
     fn4('', null);
+    ~~~~~~~~~~~~~
+!!! error TS2769: No overload matches this call.
+!!! error TS2769:   Overload 1 of 2, '(n: "", m: number): any', gave the following error.
+!!! error TS2769:     Argument of type 'null' is not assignable to parameter of type 'number'.
+!!! error TS2769:   Overload 2 of 2, '(n: number, m: string): any', gave the following error.
+!!! error TS2769:     Argument of type 'string' is not assignable to parameter of type 'number'.
     
     // Generic overloads with constraints called with type arguments that do not satisfy the constraints
     fn4<boolean, Date>(null, null); // Error
@@ -125,20 +203,23 @@ overloadResolution.ts(91,22): error TS2339: Property 'toFixed' does not exist on
     fn4(true, null); // Error
         ~~~~
 !!! error TS2769: No overload matches this call.
-!!! error TS2769:   Overload 1 of 2, '(n: string, m: any): any', gave the following error.
+!!! error TS2769:   Overload 1 of 2, '(n: string, m: number): any', gave the following error.
 !!! error TS2769:     Argument of type 'boolean' is not assignable to parameter of type 'string'.
-!!! error TS2769:   Overload 2 of 2, '(n: number, m: any): any', gave the following error.
+!!! error TS2769:   Overload 2 of 2, '(n: number, m: string): any', gave the following error.
 !!! error TS2769:     Argument of type 'boolean' is not assignable to parameter of type 'number'.
     fn4(null, true); // Error
-              ~~~~
+        ~~~~
 !!! error TS2769: No overload matches this call.
-!!! error TS2769:   Overload 1 of 2, '(n: any, m: number): any', gave the following error.
-!!! error TS2769:     Argument of type 'boolean' is not assignable to parameter of type 'number'.
-!!! error TS2769:   Overload 2 of 2, '(n: any, m: string): any', gave the following error.
-!!! error TS2769:     Argument of type 'boolean' is not assignable to parameter of type 'string'.
+!!! error TS2769:   Overload 1 of 2, '(n: string, m: number): any', gave the following error.
+!!! error TS2769:     Argument of type 'null' is not assignable to parameter of type 'string'.
+!!! error TS2769:   Overload 2 of 2, '(n: number, m: string): any', gave the following error.
+!!! error TS2769:     Argument of type 'null' is not assignable to parameter of type 'number'.
     
     // Non - generic overloads where contextual typing of function arguments has errors
     function fn5(f: (n: string) => void): string;
+             ~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 overloadResolution.ts:90:10: The implementation signature is declared here.
     function fn5(f: (n: number) => void): number;
     function fn5() { return undefined; }
     var n = fn5((n) => n.toFixed());
@@ -148,5 +229,8 @@ overloadResolution.ts(91,22): error TS2339: Property 'toFixed' does not exist on
                          ~~~~~~~
 !!! error TS2339: Property 'toFixed' does not exist on type 'string'.
     var s = fn5((n) => n.substr(0));
+        ~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 's' must be of type 'never', but here has type 'string'.
+!!! related TS6203 overloadResolution.ts:22:5: 's' was also declared here.
     
     

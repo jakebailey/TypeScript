@@ -3,5 +3,5 @@
 === parserMethodSignature4.ts ===
 interface I {
   D?<T>();
->D : <T>() => any
+>D : (<T>() => any) | undefined
 }

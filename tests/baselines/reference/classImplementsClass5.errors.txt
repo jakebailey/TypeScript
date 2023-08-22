@@ -2,11 +2,12 @@ classImplementsClass5.ts(5,7): error TS2720: Class 'C' incorrectly implements cl
   Types have separate declarations of a private property 'x'.
 classImplementsClass5.ts(16,1): error TS2322: Type 'C2' is not assignable to type 'C'.
   Types have separate declarations of a private property 'x'.
+classImplementsClass5.ts(16,5): error TS2454: Variable 'c2' is used before being assigned.
 classImplementsClass5.ts(17,1): error TS2322: Type 'C' is not assignable to type 'C2'.
   Types have separate declarations of a private property 'x'.
 
 
-==== classImplementsClass5.ts (3 errors) ====
+==== classImplementsClass5.ts (4 errors) ====
     class A {
         private x = 1;
         foo(): number { return 1; }
@@ -29,6 +30,8 @@ classImplementsClass5.ts(17,1): error TS2322: Type 'C' is not assignable to type
     ~
 !!! error TS2322: Type 'C2' is not assignable to type 'C'.
 !!! error TS2322:   Types have separate declarations of a private property 'x'.
+        ~~
+!!! error TS2454: Variable 'c2' is used before being assigned.
     c2 = c;
     ~~
 !!! error TS2322: Type 'C' is not assignable to type 'C2'.

@@ -44,6 +44,8 @@ if (typeof b === 'object') {
 
 } else {
    b.toString(); // error, never
+>b.toString : Symbol(Object.toString, Decl(lib.es5.d.ts, --, --))
 >b : Symbol(b, Decl(nonPrimitiveNarrow.ts, 15, 3))
+>toString : Symbol(Object.toString, Decl(lib.es5.d.ts, --, --))
 }
 

@@ -1,7 +1,10 @@
+logicalNotOperatorWithBooleanType.ts(17,25): error TS2454: Variable 'BOOLEAN' is used before being assigned.
+logicalNotOperatorWithBooleanType.ts(30,25): error TS2454: Variable 'BOOLEAN' is used before being assigned.
+logicalNotOperatorWithBooleanType.ts(34,2): error TS2454: Variable 'BOOLEAN' is used before being assigned.
 logicalNotOperatorWithBooleanType.ts(36,1): error TS2695: Left side of comma operator is unused and has no side effects.
 
 
-==== logicalNotOperatorWithBooleanType.ts (1 errors) ====
+==== logicalNotOperatorWithBooleanType.ts (4 errors) ====
     // ! operator on boolean type
     var BOOLEAN: boolean;
     
@@ -19,6 +22,8 @@ logicalNotOperatorWithBooleanType.ts(36,1): error TS2695: Left side of comma ope
     
     // boolean type var
     var ResultIsBoolean1 = !BOOLEAN;
+                            ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
     
     // boolean type literal
     var ResultIsBoolean2 = !true;
@@ -32,10 +37,14 @@ logicalNotOperatorWithBooleanType.ts(36,1): error TS2695: Left side of comma ope
     
     // multiple ! operators
     var ResultIsBoolean = !!BOOLEAN;
+                            ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
     
     // miss assignment operators
     !true;
     !BOOLEAN;
+     ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
     !foo();
     !true, false;
     ~~~~~

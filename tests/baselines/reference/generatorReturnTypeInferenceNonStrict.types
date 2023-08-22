@@ -16,7 +16,7 @@ function* g000() { // Generator<never, void, unknown>
 
 // 'yield' iteration type inference
 function* g001() { // Generator<any (implicit), void, unknown>
->g001 : () => Generator<any, void, unknown>
+>g001 : () => Generator<undefined, void, unknown>
 
     yield;
 >yield : any
@@ -31,13 +31,13 @@ function* g002() { // Generator<number, void, unknown>
 }
 
 function* g003() { // Generator<any (implicit), void, unknown>
->g003 : () => Generator<any, void, undefined>
+>g003 : () => Generator<never, void, undefined>
 
     // NOTE: In strict mode, `[]` produces the type `never[]`.
     //       In non-strict mode, `[]` produces the type `undefined[]` which is implicitly any.
     yield* [];
 >yield* [] : any
->[] : undefined[]
+>[] : never[]
 }
 
 function* g004() { // Generator<number, void, undefined>
@@ -167,7 +167,7 @@ function* g204() { // Generator<number, void, any>
 // mixed iteration types inference
 
 function* g301() { // Generator<any (implicit), void, unknown>
->g301 : () => Generator<any, void, unknown>
+>g301 : () => Generator<undefined, void, unknown>
 
     yield;
 >yield : any
@@ -186,7 +186,7 @@ function* g302() { // Generator<number, void, unknown>
 }
 
 function* g303() { // Generator<any (implicit), string, unknown>
->g303 : () => Generator<any, string, unknown>
+>g303 : () => Generator<undefined, string, unknown>
 
     yield;
 >yield : any
@@ -284,7 +284,7 @@ function* g309<T, U, V>(x: T, y: U) { // Generator<T, U, V>
 }
 
 function* g310() { // Generator<any (implicit), void, [(1 | undefined)?, (2 | undefined)?]>
->g310 : () => Generator<any, void, [1?, 2?]>
+>g310 : () => Generator<undefined, void, [(1 | undefined)?, (2 | undefined)?]>
 
 	const [a = 1, b = 2] = yield;
 >a : any
@@ -295,13 +295,13 @@ function* g310() { // Generator<any (implicit), void, [(1 | undefined)?, (2 | un
 }
 
 function* g311() { // Generator<any (implicit), void, string>
->g311 : () => Generator<any, void, string>
+>g311 : () => Generator<undefined, void, string>
 
 	yield* (function*() {
 >yield* (function*() {		const y: string = yield;	})() : void
->(function*() {		const y: string = yield;	})() : Generator<any, void, string>
->(function*() {		const y: string = yield;	}) : () => Generator<any, void, string>
->function*() {		const y: string = yield;	} : () => Generator<any, void, string>
+>(function*() {		const y: string = yield;	})() : Generator<undefined, void, string>
+>(function*() {		const y: string = yield;	}) : () => Generator<undefined, void, string>
+>function*() {		const y: string = yield;	} : () => Generator<undefined, void, string>
 
 		const y: string = yield;
 >y : string

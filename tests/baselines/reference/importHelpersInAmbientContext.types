@@ -14,11 +14,11 @@ declare class D extends C { }
 // Destructuring
 interface I {
     ({descendants, read}?: {
->descendants : boolean
+>descendants : boolean | undefined
 >read : any
 
         descendants?: boolean;
->descendants : boolean
+>descendants : boolean | undefined
 
         read?: any;
 >read : any
@@ -53,11 +53,11 @@ declare namespace N {
 	// Destructuring
 	interface I {
 		({descendants, read}?: {
->descendants : boolean
+>descendants : boolean | undefined
 >read : any
 
 			descendants?: boolean;
->descendants : boolean
+>descendants : boolean | undefined
 
 			read?: any;
 >read : any
@@ -97,7 +97,7 @@ export declare function __decorate(decorators: Function[], target: any, key?: st
 >__decorate : (decorators: Function[], target: any, key?: string | symbol, desc?: any) => any
 >decorators : Function[]
 >target : any
->key : string | symbol
+>key : string | symbol | undefined
 >desc : any
 
 export declare function __param(paramIndex: number, decorator: Function): Function;

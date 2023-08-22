@@ -5,46 +5,46 @@
 
 function foo(x?: number) { }
 >foo : (x?: number) => void
->x : number
+>x : number | undefined
 
 var f = function foo(x?: number) { }
 >f : (x?: number) => void
 >function foo(x?: number) { } : (x?: number) => void
 >foo : (x?: number) => void
->x : number
+>x : number | undefined
 
 var f2 = (x: number, y?: number) => { }
 >f2 : (x: number, y?: number) => void
 >(x: number, y?: number) => { } : (x: number, y?: number) => void
 >x : number
->y : number
+>y : number | undefined
 
 foo(1);
 >foo(1) : void
->foo : (x?: number) => void
+>foo : (x?: number | undefined) => void
 >1 : 1
 
 foo();
 >foo() : void
->foo : (x?: number) => void
+>foo : (x?: number | undefined) => void
 
 f(1);
 >f(1) : void
->f : (x?: number) => void
+>f : (x?: number | undefined) => void
 >1 : 1
 
 f();
 >f() : void
->f : (x?: number) => void
+>f : (x?: number | undefined) => void
 
 f2(1);
 >f2(1) : void
->f2 : (x: number, y?: number) => void
+>f2 : (x: number, y?: number | undefined) => void
 >1 : 1
 
 f2(1, 2);
 >f2(1, 2) : void
->f2 : (x: number, y?: number) => void
+>f2 : (x: number, y?: number | undefined) => void
 >1 : 1
 >2 : 2
 
@@ -53,7 +53,7 @@ class C {
 
     foo(x?: number) { }
 >foo : (x?: number) => void
->x : number
+>x : number | undefined
 }
 
 var c: C;
@@ -61,25 +61,25 @@ var c: C;
 
 c.foo();
 >c.foo() : void
->c.foo : (x?: number) => void
+>c.foo : (x?: number | undefined) => void
 >c : C
->foo : (x?: number) => void
+>foo : (x?: number | undefined) => void
 
 c.foo(1);
 >c.foo(1) : void
->c.foo : (x?: number) => void
+>c.foo : (x?: number | undefined) => void
 >c : C
->foo : (x?: number) => void
+>foo : (x?: number | undefined) => void
 >1 : 1
 
 interface I {
     (x?: number);
->x : number
+>x : number | undefined
 
     foo(x: number, y?: number);
 >foo : (x: number, y?: number) => any
 >x : number
->y : number
+>y : number | undefined
 }
 
 var i: I;
@@ -96,16 +96,16 @@ i(1);
 
 i.foo(1);
 >i.foo(1) : any
->i.foo : (x: number, y?: number) => any
+>i.foo : (x: number, y?: number | undefined) => any
 >i : I
->foo : (x: number, y?: number) => any
+>foo : (x: number, y?: number | undefined) => any
 >1 : 1
 
 i.foo(1, 2);
 >i.foo(1, 2) : any
->i.foo : (x: number, y?: number) => any
+>i.foo : (x: number, y?: number | undefined) => any
 >i : I
->foo : (x: number, y?: number) => any
+>foo : (x: number, y?: number | undefined) => any
 >1 : 1
 >2 : 2
 
@@ -113,33 +113,33 @@ var a: {
 >a : { (x?: number): any; foo(x?: number): any; }
 
     (x?: number);
->x : number
+>x : number | undefined
 
     foo(x?: number);
 >foo : (x?: number) => any
->x : number
+>x : number | undefined
 }
 
 a();
 >a() : any
->a : { (x?: number): any; foo(x?: number): any; }
+>a : { (x?: number | undefined): any; foo(x?: number | undefined): any; }
 
 a(1);
 >a(1) : any
->a : { (x?: number): any; foo(x?: number): any; }
+>a : { (x?: number | undefined): any; foo(x?: number | undefined): any; }
 >1 : 1
 
 a.foo();
 >a.foo() : any
->a.foo : (x?: number) => any
->a : { (x?: number): any; foo(x?: number): any; }
->foo : (x?: number) => any
+>a.foo : (x?: number | undefined) => any
+>a : { (x?: number | undefined): any; foo(x?: number | undefined): any; }
+>foo : (x?: number | undefined) => any
 
 a.foo(1);
 >a.foo(1) : any
->a.foo : (x?: number) => any
->a : { (x?: number): any; foo(x?: number): any; }
->foo : (x?: number) => any
+>a.foo : (x?: number | undefined) => any
+>a : { (x?: number | undefined): any; foo(x?: number | undefined): any; }
+>foo : (x?: number | undefined) => any
 >1 : 1
 
 var b = {
@@ -148,59 +148,59 @@ var b = {
 
     foo(x?: number) { },
 >foo : (x?: number) => void
->x : number
+>x : number | undefined
 
     a: function foo(x: number, y?: number) { },
 >a : (x: number, y?: number) => void
 >function foo(x: number, y?: number) { } : (x: number, y?: number) => void
 >foo : (x: number, y?: number) => void
 >x : number
->y : number
+>y : number | undefined
 
     b: (x?: number) => { }
 >b : (x?: number) => void
 >(x?: number) => { } : (x?: number) => void
->x : number
+>x : number | undefined
 }
 
 b.foo();
 >b.foo() : void
->b.foo : (x?: number) => void
->b : { foo(x?: number): void; a: (x: number, y?: number) => void; b: (x?: number) => void; }
->foo : (x?: number) => void
+>b.foo : (x?: number | undefined) => void
+>b : { foo(x?: number | undefined): void; a: (x: number, y?: number | undefined) => void; b: (x?: number | undefined) => void; }
+>foo : (x?: number | undefined) => void
 
 b.foo(1);
 >b.foo(1) : void
->b.foo : (x?: number) => void
->b : { foo(x?: number): void; a: (x: number, y?: number) => void; b: (x?: number) => void; }
->foo : (x?: number) => void
+>b.foo : (x?: number | undefined) => void
+>b : { foo(x?: number | undefined): void; a: (x: number, y?: number | undefined) => void; b: (x?: number | undefined) => void; }
+>foo : (x?: number | undefined) => void
 >1 : 1
 
 b.a(1);
 >b.a(1) : void
->b.a : (x: number, y?: number) => void
->b : { foo(x?: number): void; a: (x: number, y?: number) => void; b: (x?: number) => void; }
->a : (x: number, y?: number) => void
+>b.a : (x: number, y?: number | undefined) => void
+>b : { foo(x?: number | undefined): void; a: (x: number, y?: number | undefined) => void; b: (x?: number | undefined) => void; }
+>a : (x: number, y?: number | undefined) => void
 >1 : 1
 
 b.a(1, 2);
 >b.a(1, 2) : void
->b.a : (x: number, y?: number) => void
->b : { foo(x?: number): void; a: (x: number, y?: number) => void; b: (x?: number) => void; }
->a : (x: number, y?: number) => void
+>b.a : (x: number, y?: number | undefined) => void
+>b : { foo(x?: number | undefined): void; a: (x: number, y?: number | undefined) => void; b: (x?: number | undefined) => void; }
+>a : (x: number, y?: number | undefined) => void
 >1 : 1
 >2 : 2
 
 b.b();
 >b.b() : void
->b.b : (x?: number) => void
->b : { foo(x?: number): void; a: (x: number, y?: number) => void; b: (x?: number) => void; }
->b : (x?: number) => void
+>b.b : (x?: number | undefined) => void
+>b : { foo(x?: number | undefined): void; a: (x: number, y?: number | undefined) => void; b: (x?: number | undefined) => void; }
+>b : (x?: number | undefined) => void
 
 b.b(1);
 >b.b(1) : void
->b.b : (x?: number) => void
->b : { foo(x?: number): void; a: (x: number, y?: number) => void; b: (x?: number) => void; }
->b : (x?: number) => void
+>b.b : (x?: number | undefined) => void
+>b : { foo(x?: number | undefined): void; a: (x: number, y?: number | undefined) => void; b: (x?: number | undefined) => void; }
+>b : (x?: number | undefined) => void
 >1 : 1
 

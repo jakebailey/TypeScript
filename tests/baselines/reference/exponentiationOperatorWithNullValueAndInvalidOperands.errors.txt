@@ -1,14 +1,20 @@
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(9,12): error TS18050: The value 'null' cannot be used here.
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(9,20): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+exponentiationOperatorWithNullValueAndInvalidOperands.ts(9,20): error TS2454: Variable 'a' is used before being assigned.
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(10,12): error TS18050: The value 'null' cannot be used here.
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(10,20): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+exponentiationOperatorWithNullValueAndInvalidOperands.ts(10,20): error TS2454: Variable 'b' is used before being assigned.
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(11,12): error TS18050: The value 'null' cannot be used here.
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(11,20): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+exponentiationOperatorWithNullValueAndInvalidOperands.ts(11,20): error TS2454: Variable 'c' is used before being assigned.
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(13,12): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+exponentiationOperatorWithNullValueAndInvalidOperands.ts(13,12): error TS2454: Variable 'a' is used before being assigned.
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(13,17): error TS18050: The value 'null' cannot be used here.
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(14,12): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+exponentiationOperatorWithNullValueAndInvalidOperands.ts(14,12): error TS2454: Variable 'b' is used before being assigned.
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(14,17): error TS18050: The value 'null' cannot be used here.
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(15,12): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+exponentiationOperatorWithNullValueAndInvalidOperands.ts(15,12): error TS2454: Variable 'c' is used before being assigned.
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(15,17): error TS18050: The value 'null' cannot be used here.
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(17,12): error TS18050: The value 'null' cannot be used here.
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(17,20): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
@@ -24,7 +30,7 @@ exponentiationOperatorWithNullValueAndInvalidOperands.ts(23,12): error TS2362: T
 exponentiationOperatorWithNullValueAndInvalidOperands.ts(23,18): error TS18050: The value 'null' cannot be used here.
 
 
-==== exponentiationOperatorWithNullValueAndInvalidOperands.ts (24 errors) ====
+==== exponentiationOperatorWithNullValueAndInvalidOperands.ts (30 errors) ====
     // If one operand is the null or undefined value, it is treated as having the type of the
     // other operand.
     
@@ -38,30 +44,42 @@ exponentiationOperatorWithNullValueAndInvalidOperands.ts(23,18): error TS18050: 
 !!! error TS18050: The value 'null' cannot be used here.
                        ~
 !!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+                       ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     var r1a2 = null ** b;
                ~~~~
 !!! error TS18050: The value 'null' cannot be used here.
                        ~
 !!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+                       ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     var r1a3 = null ** c;
                ~~~~
 !!! error TS18050: The value 'null' cannot be used here.
                        ~
 !!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+                       ~
+!!! error TS2454: Variable 'c' is used before being assigned.
     
     var r1b1 = a ** null;
                ~
 !!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+               ~
+!!! error TS2454: Variable 'a' is used before being assigned.
                     ~~~~
 !!! error TS18050: The value 'null' cannot be used here.
     var r1b2 = b ** null;
                ~
 !!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+               ~
+!!! error TS2454: Variable 'b' is used before being assigned.
                     ~~~~
 !!! error TS18050: The value 'null' cannot be used here.
     var r1b3 = c ** null;
                ~
 !!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+               ~
+!!! error TS2454: Variable 'c' is used before being assigned.
                     ~~~~
 !!! error TS18050: The value 'null' cannot be used here.
     

@@ -1,0 +1,31 @@
+file3.ts(4,9): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== file1.ts (0 errors) ====
+    class foo {}
+    namespace foo {
+        export class A {}
+        export namespace B { export let a; }
+    }
+    export = foo;
+    
+==== file2.ts (0 errors) ====
+    import x = require("./file1"); 
+    x.B.b = 1;
+    
+    // OK - './file1' is a namespace
+    declare module "./file1" {
+        interface A { a: number }
+        namespace B {
+            export let b: number;
+        }
+    }
+    
+==== file3.ts (1 errors) ====
+    import * as x from "./file1";
+    import "./file2";
+    let a: x.A;
+    let b = a.a;
+            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    let c = x.B.b;

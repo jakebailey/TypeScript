@@ -4,12 +4,13 @@ dynamicNamesErrors.ts(19,5): error TS2717: Subsequent property declarations must
 dynamicNamesErrors.ts(24,1): error TS2322: Type 'T2' is not assignable to type 'T1'.
   Types of property '[c0]' are incompatible.
     Type 'string' is not assignable to type 'number'.
+dynamicNamesErrors.ts(24,6): error TS2454: Variable 't2' is used before being assigned.
 dynamicNamesErrors.ts(25,1): error TS2322: Type 'T1' is not assignable to type 'T2'.
   Types of property '[c0]' are incompatible.
     Type 'number' is not assignable to type 'string'.
 
 
-==== dynamicNamesErrors.ts (5 errors) ====
+==== dynamicNamesErrors.ts (6 errors) ====
     const c0 = "1";
     const c1 = 1;
     
@@ -45,6 +46,8 @@ dynamicNamesErrors.ts(25,1): error TS2322: Type 'T1' is not assignable to type '
 !!! error TS2322: Type 'T2' is not assignable to type 'T1'.
 !!! error TS2322:   Types of property '[c0]' are incompatible.
 !!! error TS2322:     Type 'string' is not assignable to type 'number'.
+         ~~
+!!! error TS2454: Variable 't2' is used before being assigned.
     t2 = t1;
     ~~
 !!! error TS2322: Type 'T1' is not assignable to type 'T2'.

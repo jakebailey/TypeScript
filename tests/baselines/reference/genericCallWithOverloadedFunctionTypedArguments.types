@@ -86,16 +86,16 @@ module GenericParameter {
 >cb : { (x: T): string; (x: T, y?: T): string; }
 >x : T
 >x : T
->y : T
+>y : T | undefined
 
         return cb;
->cb : { (x: T): string; (x: T, y?: T): string; }
+>cb : { (x: T): string; (x: T, y?: T | undefined): string; }
     }
 
     var r8 = foo6(x => x); // any => string (+1 overload) [inferences are made for T, but lambda not contextually typed]. T is any
 >r8 : { (x: any): string; (x: any, y?: any): string; }
 >foo6(x => x) : { (x: any): string; (x: any, y?: any): string; }
->foo6 : <T>(cb: { (x: T): string; (x: T, y?: T): string; }) => { (x: T): string; (x: T, y?: T): string; }
+>foo6 : <T>(cb: { (x: T): string; (x: T, y?: T | undefined): string; }) => { (x: T): string; (x: T, y?: T | undefined): string; }
 >x => x : (x: any) => any
 >x : any
 >x : any
@@ -103,7 +103,7 @@ module GenericParameter {
     var r9 = foo6(<T>(x: T) => ''); // any => string (+1 overload)
 >r9 : { (x: unknown): string; (x: unknown, y?: unknown): string; }
 >foo6(<T>(x: T) => '') : { (x: unknown): string; (x: unknown, y?: unknown): string; }
->foo6 : <T>(cb: { (x: T): string; (x: T, y?: T): string; }) => { (x: T): string; (x: T, y?: T): string; }
+>foo6 : <T>(cb: { (x: T): string; (x: T, y?: T | undefined): string; }) => { (x: T): string; (x: T, y?: T | undefined): string; }
 ><T>(x: T) => '' : <T>(x: T) => string
 >x : T
 >'' : ""
@@ -111,10 +111,10 @@ module GenericParameter {
     var r11 = foo6(<T>(x: T, y?: T) => ''); // any => string (+1 overload)
 >r11 : { (x: unknown): string; (x: unknown, y?: unknown): string; }
 >foo6(<T>(x: T, y?: T) => '') : { (x: unknown): string; (x: unknown, y?: unknown): string; }
->foo6 : <T>(cb: { (x: T): string; (x: T, y?: T): string; }) => { (x: T): string; (x: T, y?: T): string; }
-><T>(x: T, y?: T) => '' : <T>(x: T, y?: T) => string
+>foo6 : <T>(cb: { (x: T): string; (x: T, y?: T | undefined): string; }) => { (x: T): string; (x: T, y?: T | undefined): string; }
+><T>(x: T, y?: T) => '' : <T>(x: T, y?: T | undefined) => string
 >x : T
->y : T
+>y : T | undefined
 >'' : ""
 
     function foo7<T>(x:T, cb: { (x: T): string; (x: T, y?: T): string }) {
@@ -123,16 +123,16 @@ module GenericParameter {
 >cb : { (x: T): string; (x: T, y?: T): string; }
 >x : T
 >x : T
->y : T
+>y : T | undefined
 
         return cb;
->cb : { (x: T): string; (x: T, y?: T): string; }
+>cb : { (x: T): string; (x: T, y?: T | undefined): string; }
     }
 
     var r12 = foo7(1, (x) => x); // any => string (+1 overload) [inferences are made for T, but lambda not contextually typed]
 >r12 : { (x: any): string; (x: any, y?: any): string; }
 >foo7(1, (x) => x) : { (x: any): string; (x: any, y?: any): string; }
->foo7 : <T>(x: T, cb: { (x: T): string; (x: T, y?: T): string; }) => { (x: T): string; (x: T, y?: T): string; }
+>foo7 : <T>(x: T, cb: { (x: T): string; (x: T, y?: T | undefined): string; }) => { (x: T): string; (x: T, y?: T | undefined): string; }
 >1 : 1
 >(x) => x : (x: any) => any
 >x : any
@@ -141,7 +141,7 @@ module GenericParameter {
     var r13 = foo7(1, <T>(x: T) => ''); // any => string (+1 overload) [inferences are made for T, but lambda not contextually typed]
 >r13 : { (x: unknown): string; (x: unknown, y?: unknown): string; }
 >foo7(1, <T>(x: T) => '') : { (x: unknown): string; (x: unknown, y?: unknown): string; }
->foo7 : <T>(x: T, cb: { (x: T): string; (x: T, y?: T): string; }) => { (x: T): string; (x: T, y?: T): string; }
+>foo7 : <T>(x: T, cb: { (x: T): string; (x: T, y?: T | undefined): string; }) => { (x: T): string; (x: T, y?: T | undefined): string; }
 >1 : 1
 ><T>(x: T) => '' : <T>(x: T) => string
 >x : T
@@ -155,7 +155,7 @@ module GenericParameter {
     var r14 = foo7(1, a); // any => string (+1 overload) [inferences are made for T, but lambda not contextually typed]
 >r14 : { (x: unknown): string; (x: unknown, y?: unknown): string; }
 >foo7(1, a) : { (x: unknown): string; (x: unknown, y?: unknown): string; }
->foo7 : <T>(x: T, cb: { (x: T): string; (x: T, y?: T): string; }) => { (x: T): string; (x: T, y?: T): string; }
+>foo7 : <T>(x: T, cb: { (x: T): string; (x: T, y?: T | undefined): string; }) => { (x: T): string; (x: T, y?: T | undefined): string; }
 >1 : 1
 >a : { <T>(x: T): string; <T>(x: number): T; }
 }

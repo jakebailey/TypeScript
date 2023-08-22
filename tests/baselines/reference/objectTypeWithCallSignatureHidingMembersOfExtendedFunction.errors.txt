@@ -1,0 +1,65 @@
+objectTypeWithCallSignatureHidingMembersOfExtendedFunction.ts(16,37): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithCallSignatureHidingMembersOfExtendedFunction.ts(17,61): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithCallSignatureHidingMembersOfExtendedFunction.ts(18,11): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithCallSignatureHidingMembersOfExtendedFunction.ts(19,11): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithCallSignatureHidingMembersOfExtendedFunction.ts(20,11): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithCallSignatureHidingMembersOfExtendedFunction.ts(28,37): error TS2454: Variable 'x' is used before being assigned.
+objectTypeWithCallSignatureHidingMembersOfExtendedFunction.ts(29,61): error TS2454: Variable 'x' is used before being assigned.
+objectTypeWithCallSignatureHidingMembersOfExtendedFunction.ts(30,11): error TS2454: Variable 'x' is used before being assigned.
+objectTypeWithCallSignatureHidingMembersOfExtendedFunction.ts(31,11): error TS2454: Variable 'x' is used before being assigned.
+objectTypeWithCallSignatureHidingMembersOfExtendedFunction.ts(32,11): error TS2454: Variable 'x' is used before being assigned.
+
+
+==== objectTypeWithCallSignatureHidingMembersOfExtendedFunction.ts (10 errors) ====
+    // object types with call signatures can override members of Function
+    // no errors expected below 
+    
+    interface Function {
+        data: number;
+        [x: string]: Object;
+    }
+    
+    interface I {
+        (): void;
+        apply(a: any, b?: any): void;
+        call(thisArg: number, ...argArray: number[]): any;
+    }
+    
+    var i: I;
+    var r1: (a: any, b?: any) => void = i.apply;
+                                        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    var r1b: (thisArg: number, ...argArray: number[]) => void = i.call;
+                                                                ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    var r1c = i.arguments;
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    var r1d = i.data;
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    var r1e = i['hm']; // should be Object
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    
+    var x: {
+        (): void;
+        apply(a: any, b?: any): void;
+        call(thisArg: number, ...argArray: number[]): any;
+    }
+    
+    var r2: (a: any, b?: any) => void = x.apply;
+                                        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    var r2b: (thisArg: number, ...argArray: number[]) => void = x.call;
+                                                                ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    var r2c = x.arguments;
+              ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    var r2d = x.data;
+              ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    var r2e = x['hm']; // should be Object
+              ~
+!!! error TS2454: Variable 'x' is used before being assigned.

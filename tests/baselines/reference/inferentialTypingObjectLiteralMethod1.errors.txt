@@ -1,0 +1,14 @@
+inferentialTypingObjectLiteralMethod1.ts(5,48): error TS2322: Type '(p2: number) => undefined' is not assignable to type '(x: number) => string'.
+  Type 'undefined' is not assignable to type 'string'.
+
+
+==== inferentialTypingObjectLiteralMethod1.ts (1 errors) ====
+    interface Int<T, U> {
+        method(x: T): U;
+    }
+    declare function foo<T, U>(x: T, y: Int<T, U>, z: Int<U, T>): T;
+    foo("", { method(p1) { return p1.length } }, { method(p2) { return undefined } });
+                                                   ~~~~~~
+!!! error TS2322: Type '(p2: number) => undefined' is not assignable to type '(x: number) => string'.
+!!! error TS2322:   Type 'undefined' is not assignable to type 'string'.
+!!! related TS6500 inferentialTypingObjectLiteralMethod1.ts:2:5: The expected type comes from property 'method' which is declared here on type 'Int<number, string>'

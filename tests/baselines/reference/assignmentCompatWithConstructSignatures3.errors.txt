@@ -1,52 +1,65 @@
+assignmentCompatWithConstructSignatures3.ts(46,5): error TS2454: Variable 'b' is used before being assigned.
 assignmentCompatWithConstructSignatures3.ts(47,1): error TS2322: Type 'new (x: number) => number[]' is not assignable to type 'new <T>(x: T) => T[]'.
   Types of parameters 'x' and 'x' are incompatible.
     Type 'T' is not assignable to type 'number'.
+assignmentCompatWithConstructSignatures3.ts(49,6): error TS2454: Variable 'b2' is used before being assigned.
 assignmentCompatWithConstructSignatures3.ts(50,1): error TS2322: Type 'new (x: number) => string[]' is not assignable to type 'new <T>(x: T) => string[]'.
   Types of parameters 'x' and 'x' are incompatible.
     Type 'T' is not assignable to type 'number'.
+assignmentCompatWithConstructSignatures3.ts(52,6): error TS2454: Variable 'b3' is used before being assigned.
 assignmentCompatWithConstructSignatures3.ts(53,1): error TS2322: Type 'new (x: number) => void' is not assignable to type 'new <T>(x: T) => T'.
   Types of parameters 'x' and 'x' are incompatible.
     Type 'T' is not assignable to type 'number'.
+assignmentCompatWithConstructSignatures3.ts(55,6): error TS2454: Variable 'b4' is used before being assigned.
 assignmentCompatWithConstructSignatures3.ts(56,1): error TS2322: Type 'new (x: string, y: number) => string' is not assignable to type 'new <T, U>(x: T, y: U) => T'.
   Types of parameters 'x' and 'x' are incompatible.
     Type 'T' is not assignable to type 'string'.
+assignmentCompatWithConstructSignatures3.ts(58,6): error TS2454: Variable 'b5' is used before being assigned.
 assignmentCompatWithConstructSignatures3.ts(59,1): error TS2322: Type 'new (x: (arg: string) => number) => string' is not assignable to type 'new <T, U>(x: (arg: T) => U) => T'.
   Types of parameters 'x' and 'x' are incompatible.
     Types of parameters 'arg' and 'arg' are incompatible.
       Type 'string' is not assignable to type 'T'.
         'T' could be instantiated with an arbitrary type which could be unrelated to 'string'.
+assignmentCompatWithConstructSignatures3.ts(61,6): error TS2454: Variable 'b6' is used before being assigned.
 assignmentCompatWithConstructSignatures3.ts(62,1): error TS2322: Type 'new (x: (arg: Base) => Derived) => Base' is not assignable to type 'new <T extends Base, U extends Derived>(x: (arg: T) => U) => T'.
   Types of parameters 'x' and 'x' are incompatible.
     Types of parameters 'arg' and 'arg' are incompatible.
       Type 'Base' is not assignable to type 'T'.
         'Base' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Base'.
+assignmentCompatWithConstructSignatures3.ts(64,6): error TS2454: Variable 'b7' is used before being assigned.
 assignmentCompatWithConstructSignatures3.ts(65,1): error TS2322: Type 'new (x: (arg: Base) => Derived) => (r: Base) => Derived' is not assignable to type 'new <T extends Base, U extends Derived>(x: (arg: T) => U) => (r: T) => U'.
   Types of parameters 'x' and 'x' are incompatible.
     Types of parameters 'arg' and 'arg' are incompatible.
       Type 'Base' is not assignable to type 'T'.
         'Base' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Base'.
+assignmentCompatWithConstructSignatures3.ts(67,6): error TS2454: Variable 'b8' is used before being assigned.
 assignmentCompatWithConstructSignatures3.ts(68,1): error TS2322: Type 'new (x: (arg: Base) => Derived, y: (arg2: Base) => Derived) => (r: Base) => Derived' is not assignable to type 'new <T extends Base, U extends Derived>(x: (arg: T) => U, y: (arg2: T) => U) => (r: T) => U'.
   Types of parameters 'x' and 'x' are incompatible.
     Types of parameters 'arg' and 'arg' are incompatible.
       Type 'Base' is not assignable to type 'T'.
         'Base' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Base'.
+assignmentCompatWithConstructSignatures3.ts(70,6): error TS2454: Variable 'b9' is used before being assigned.
 assignmentCompatWithConstructSignatures3.ts(71,1): error TS2322: Type 'new (x: (arg: Base) => Derived, y: (arg2: Base) => Derived) => (r: Base) => Derived' is not assignable to type 'new <T extends Base, U extends Derived>(x: (arg: T) => U, y: (arg2: { foo: string; bing: number; }) => U) => (r: T) => U'.
   Types of parameters 'x' and 'x' are incompatible.
     Types of parameters 'arg' and 'arg' are incompatible.
       Type 'Base' is not assignable to type 'T'.
         'Base' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Base'.
+assignmentCompatWithConstructSignatures3.ts(73,7): error TS2454: Variable 'b10' is used before being assigned.
 assignmentCompatWithConstructSignatures3.ts(74,1): error TS2322: Type 'new (...x: Derived[]) => Derived' is not assignable to type 'new <T extends Derived>(...x: T[]) => T'.
   Type 'Derived' is not assignable to type 'T'.
     'Derived' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Derived'.
+assignmentCompatWithConstructSignatures3.ts(76,7): error TS2454: Variable 'b11' is used before being assigned.
 assignmentCompatWithConstructSignatures3.ts(77,1): error TS2322: Type 'new (x: { foo: string; }, y: { foo: string; bar: string; }) => Base' is not assignable to type 'new <T extends Base>(x: T, y: T) => T'.
   Types of parameters 'y' and 'y' are incompatible.
     Type 'T' is not assignable to type '{ foo: string; bar: string; }'.
       Property 'bar' is missing in type 'Base' but required in type '{ foo: string; bar: string; }'.
+assignmentCompatWithConstructSignatures3.ts(79,7): error TS2454: Variable 'b12' is used before being assigned.
 assignmentCompatWithConstructSignatures3.ts(80,1): error TS2322: Type 'new (x: Base[], y: Derived2[]) => Derived[]' is not assignable to type 'new <T extends Base[]>(x: Base[], y: T) => Derived[]'.
   Types of parameters 'y' and 'y' are incompatible.
     Type 'T' is not assignable to type 'Derived2[]'.
       Type 'Base[]' is not assignable to type 'Derived2[]'.
         Type 'Base' is missing the following properties from type 'Derived2': baz, bar
+assignmentCompatWithConstructSignatures3.ts(82,7): error TS2454: Variable 'b13' is used before being assigned.
 assignmentCompatWithConstructSignatures3.ts(83,1): error TS2322: Type 'new (x: Base[], y: Derived[]) => Derived[]' is not assignable to type 'new <T extends Derived[]>(x: Base[], y: T) => T'.
   Type 'Derived[]' is not assignable to type 'T'.
     'Derived[]' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Derived[]'.
@@ -55,14 +68,19 @@ assignmentCompatWithConstructSignatures3.ts(85,1): error TS2322: Type 'new <T>(x
     Type '{ a: string; b: number; }' is not assignable to type '{ a: string; b: string; }'.
       Types of property 'b' are incompatible.
         Type 'number' is not assignable to type 'string'.
+assignmentCompatWithConstructSignatures3.ts(85,7): error TS2454: Variable 'b14' is used before being assigned.
 assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: { a: string; b: number; }) => Object' is not assignable to type 'new <T>(x: { a: T; b: T; }) => T'.
   Types of parameters 'x' and 'x' are incompatible.
     Type '{ a: T; b: T; }' is not assignable to type '{ a: string; b: number; }'.
       Types of property 'a' are incompatible.
         Type 'T' is not assignable to type 'string'.
+assignmentCompatWithConstructSignatures3.ts(88,7): error TS2454: Variable 'b15' is used before being assigned.
+assignmentCompatWithConstructSignatures3.ts(91,7): error TS2454: Variable 'b16' is used before being assigned.
+assignmentCompatWithConstructSignatures3.ts(94,7): error TS2454: Variable 'b17' is used before being assigned.
+assignmentCompatWithConstructSignatures3.ts(97,7): error TS2454: Variable 'b18' is used before being assigned.
 
 
-==== assignmentCompatWithConstructSignatures3.ts (15 errors) ====
+==== assignmentCompatWithConstructSignatures3.ts (33 errors) ====
     // checking assignment compatibility relations for function types. All of these are valid.
     
     class Base { foo: string; }
@@ -109,6 +127,8 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
     
     var b: new <T>(x: T) => T[]; 
     a = b; // ok
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
     b = a; // ok
     ~
 !!! error TS2322: Type 'new (x: number) => number[]' is not assignable to type 'new <T>(x: T) => T[]'.
@@ -117,6 +137,8 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
 !!! related TS2208 assignmentCompatWithConstructSignatures3.ts:45:13: This type parameter might need an `extends number` constraint.
     var b2: new <T>(x: T) => string[]; 
     a2 = b2; // ok 
+         ~~
+!!! error TS2454: Variable 'b2' is used before being assigned.
     b2 = a2; // ok
     ~~
 !!! error TS2322: Type 'new (x: number) => string[]' is not assignable to type 'new <T>(x: T) => string[]'.
@@ -125,6 +147,8 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
 !!! related TS2208 assignmentCompatWithConstructSignatures3.ts:48:14: This type parameter might need an `extends number` constraint.
     var b3: new <T>(x: T) => T; 
     a3 = b3; // ok
+         ~~
+!!! error TS2454: Variable 'b3' is used before being assigned.
     b3 = a3; // ok
     ~~
 !!! error TS2322: Type 'new (x: number) => void' is not assignable to type 'new <T>(x: T) => T'.
@@ -133,6 +157,8 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
 !!! related TS2208 assignmentCompatWithConstructSignatures3.ts:51:14: This type parameter might need an `extends number` constraint.
     var b4: new <T, U>(x: T, y: U) => T; 
     a4 = b4; // ok
+         ~~
+!!! error TS2454: Variable 'b4' is used before being assigned.
     b4 = a4; // ok
     ~~
 !!! error TS2322: Type 'new (x: string, y: number) => string' is not assignable to type 'new <T, U>(x: T, y: U) => T'.
@@ -141,6 +167,8 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
 !!! related TS2208 assignmentCompatWithConstructSignatures3.ts:54:14: This type parameter might need an `extends string` constraint.
     var b5: new <T, U>(x: (arg: T) => U) => T; 
     a5 = b5; // ok
+         ~~
+!!! error TS2454: Variable 'b5' is used before being assigned.
     b5 = a5; // ok
     ~~
 !!! error TS2322: Type 'new (x: (arg: string) => number) => string' is not assignable to type 'new <T, U>(x: (arg: T) => U) => T'.
@@ -150,6 +178,8 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
 !!! error TS2322:         'T' could be instantiated with an arbitrary type which could be unrelated to 'string'.
     var b6: new <T extends Base, U extends Derived>(x: (arg: T) => U) => T; 
     a6 = b6; // ok
+         ~~
+!!! error TS2454: Variable 'b6' is used before being assigned.
     b6 = a6; // ok
     ~~
 !!! error TS2322: Type 'new (x: (arg: Base) => Derived) => Base' is not assignable to type 'new <T extends Base, U extends Derived>(x: (arg: T) => U) => T'.
@@ -159,6 +189,8 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
 !!! error TS2322:         'Base' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Base'.
     var b7: new <T extends Base, U extends Derived>(x: (arg: T) => U) => (r: T) => U; 
     a7 = b7; // ok
+         ~~
+!!! error TS2454: Variable 'b7' is used before being assigned.
     b7 = a7; // ok
     ~~
 !!! error TS2322: Type 'new (x: (arg: Base) => Derived) => (r: Base) => Derived' is not assignable to type 'new <T extends Base, U extends Derived>(x: (arg: T) => U) => (r: T) => U'.
@@ -168,6 +200,8 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
 !!! error TS2322:         'Base' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Base'.
     var b8: new <T extends Base, U extends Derived>(x: (arg: T) => U, y: (arg2: T) => U) => (r: T) => U;
     a8 = b8; // ok
+         ~~
+!!! error TS2454: Variable 'b8' is used before being assigned.
     b8 = a8; // ok
     ~~
 !!! error TS2322: Type 'new (x: (arg: Base) => Derived, y: (arg2: Base) => Derived) => (r: Base) => Derived' is not assignable to type 'new <T extends Base, U extends Derived>(x: (arg: T) => U, y: (arg2: T) => U) => (r: T) => U'.
@@ -177,6 +211,8 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
 !!! error TS2322:         'Base' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Base'.
     var b9: new <T extends Base, U extends Derived>(x: (arg: T) => U, y: (arg2: { foo: string; bing: number }) => U) => (r: T) => U; 
     a9 = b9; // ok
+         ~~
+!!! error TS2454: Variable 'b9' is used before being assigned.
     b9 = a9; // ok
     ~~
 !!! error TS2322: Type 'new (x: (arg: Base) => Derived, y: (arg2: Base) => Derived) => (r: Base) => Derived' is not assignable to type 'new <T extends Base, U extends Derived>(x: (arg: T) => U, y: (arg2: { foo: string; bing: number; }) => U) => (r: T) => U'.
@@ -186,6 +222,8 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
 !!! error TS2322:         'Base' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Base'.
     var b10: new <T extends Derived>(...x: T[]) => T; 
     a10 = b10; // ok
+          ~~~
+!!! error TS2454: Variable 'b10' is used before being assigned.
     b10 = a10; // ok
     ~~~
 !!! error TS2322: Type 'new (...x: Derived[]) => Derived' is not assignable to type 'new <T extends Derived>(...x: T[]) => T'.
@@ -193,6 +231,8 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
 !!! error TS2322:     'Derived' is assignable to the constraint of type 'T', but 'T' could be instantiated with a different subtype of constraint 'Derived'.
     var b11: new <T extends Base>(x: T, y: T) => T; 
     a11 = b11; // ok
+          ~~~
+!!! error TS2454: Variable 'b11' is used before being assigned.
     b11 = a11; // ok
     ~~~
 !!! error TS2322: Type 'new (x: { foo: string; }, y: { foo: string; bar: string; }) => Base' is not assignable to type 'new <T extends Base>(x: T, y: T) => T'.
@@ -202,6 +242,8 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
 !!! related TS2728 assignmentCompatWithConstructSignatures3.ts:18:53: 'bar' is declared here.
     var b12: new <T extends Array<Base>>(x: Array<Base>, y: T) => Array<Derived>; 
     a12 = b12; // ok
+          ~~~
+!!! error TS2454: Variable 'b12' is used before being assigned.
     b12 = a12; // ok
     ~~~
 !!! error TS2322: Type 'new (x: Base[], y: Derived2[]) => Derived[]' is not assignable to type 'new <T extends Base[]>(x: Base[], y: T) => Derived[]'.
@@ -211,6 +253,8 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
 !!! error TS2322:         Type 'Base' is missing the following properties from type 'Derived2': baz, bar
     var b13: new <T extends Array<Derived>>(x: Array<Base>, y: T) => T; 
     a13 = b13; // ok
+          ~~~
+!!! error TS2454: Variable 'b13' is used before being assigned.
     b13 = a13; // ok
     ~~~
 !!! error TS2322: Type 'new (x: Base[], y: Derived[]) => Derived[]' is not assignable to type 'new <T extends Derived[]>(x: Base[], y: T) => T'.
@@ -224,6 +268,8 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
 !!! error TS2322:     Type '{ a: string; b: number; }' is not assignable to type '{ a: string; b: string; }'.
 !!! error TS2322:       Types of property 'b' are incompatible.
 !!! error TS2322:         Type 'number' is not assignable to type 'string'.
+          ~~~
+!!! error TS2454: Variable 'b14' is used before being assigned.
     b14 = a14; // ok
     ~~~
 !!! error TS2322: Type 'new (x: { a: string; b: number; }) => Object' is not assignable to type 'new <T>(x: { a: T; b: T; }) => T'.
@@ -234,14 +280,22 @@ assignmentCompatWithConstructSignatures3.ts(86,1): error TS2322: Type 'new (x: {
 !!! related TS2208 assignmentCompatWithConstructSignatures3.ts:84:15: This type parameter might need an `extends string` constraint.
     var b15: new <T>(x: T) => T[]; 
     a15 = b15; // ok
+          ~~~
+!!! error TS2454: Variable 'b15' is used before being assigned.
     b15 = a15; // ok
     var b16: new <T extends Base>(x: T) => number[];
     a16 = b16; // ok
+          ~~~
+!!! error TS2454: Variable 'b16' is used before being assigned.
     b16 = a16; // ok
     var b17: new <T>(x: new (a: T) => T) => T[]; // ok
     a17 = b17; // ok
+          ~~~
+!!! error TS2454: Variable 'b17' is used before being assigned.
     b17 = a17; // ok
     var b18: new <T>(x: new (a: T) => T) => T[]; 
     a18 = b18; // ok
+          ~~~
+!!! error TS2454: Variable 'b18' is used before being assigned.
     b18 = a18; // ok
     

@@ -3,7 +3,7 @@
 === a.js ===
 var my = my || {};
 >my : typeof my
->my || {} : typeof my | {}
+>my || {} : typeof my
 >my : typeof my
 >{} : {}
 
@@ -50,7 +50,7 @@ my.app.Application()
 === b.js ===
 var min = window.min || {};
 >min : typeof min
->window.min || {} : typeof min | {}
+>window.min || {} : typeof min
 >window.min : typeof min
 >window : Window & typeof globalThis
 >min : typeof min

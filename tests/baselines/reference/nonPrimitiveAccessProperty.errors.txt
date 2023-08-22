@@ -1,16 +1,28 @@
+nonPrimitiveAccessProperty.ts(2,1): error TS2454: Variable 'a' is used before being assigned.
+nonPrimitiveAccessProperty.ts(3,1): error TS2454: Variable 'a' is used before being assigned.
 nonPrimitiveAccessProperty.ts(3,3): error TS2339: Property 'nonExist' does not exist on type 'object'.
 nonPrimitiveAccessProperty.ts(5,7): error TS2339: Property 'destructuring' does not exist on type '{}'.
+nonPrimitiveAccessProperty.ts(5,25): error TS2454: Variable 'a' is used before being assigned.
+nonPrimitiveAccessProperty.ts(6,19): error TS2454: Variable 'a' is used before being assigned.
 
 
-==== nonPrimitiveAccessProperty.ts (2 errors) ====
+==== nonPrimitiveAccessProperty.ts (6 errors) ====
     var a: object;
     a.toString();
+    ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     a.nonExist(); // error
+    ~
+!!! error TS2454: Variable 'a' is used before being assigned.
       ~~~~~~~~
 !!! error TS2339: Property 'nonExist' does not exist on type 'object'.
     
     var { destructuring } = a; // error
           ~~~~~~~~~~~~~
 !!! error TS2339: Property 'destructuring' does not exist on type '{}'.
+                            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     var { ...rest } = a; // ok
+                      ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     

@@ -587,7 +587,7 @@ function foo5() {
 
     for (let x in []) {
 >x : string
->[] : undefined[]
+>[] : never[]
 
         use(x);
 >use(x) : any
@@ -605,7 +605,7 @@ function foo6() {
 
     for (const x in []) {
 >x : string
->[] : undefined[]
+>[] : never[]
 
         use(x);
 >use(x) : any
@@ -622,13 +622,13 @@ function foo7() {
 >foo7 : () => void
 
     for (let x of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
         use(x);
 >use(x) : any
 >use : (a: any) => any
->x : any
+>x : never
     }
     use(x);
 >use(x) : any
@@ -640,13 +640,13 @@ function foo8() {
 >foo8 : () => void
 
     for (let [x] of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
         use(x);
 >use(x) : any
 >use : (a: any) => any
->x : any
+>x : never
     }
     use(x);
 >use(x) : any
@@ -659,13 +659,13 @@ function foo9() {
 
     for (let {a: x} of []) {
 >a : any
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
         use(x);
 >use(x) : any
 >use : (a: any) => any
->x : any
+>x : never
     }
     use(x);
 >use(x) : any
@@ -677,13 +677,13 @@ function foo10() {
 >foo10 : () => void
 
     for (const x of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
         use(x);
 >use(x) : any
 >use : (a: any) => any
->x : any
+>x : never
     }
     use(x);
 >use(x) : any
@@ -695,13 +695,13 @@ function foo11() {
 >foo11 : () => void
 
     for (const [x] of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
         use(x);
 >use(x) : any
 >use : (a: any) => any
->x : any
+>x : never
     }
     use(x);
 >use(x) : any
@@ -714,13 +714,13 @@ function foo12() {
 
     for (const {a: x} of []) {
 >a : any
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
         use(x);
 >use(x) : any
 >use : (a: any) => any
->x : any
+>x : never
     }
     use(x);
 >use(x) : any

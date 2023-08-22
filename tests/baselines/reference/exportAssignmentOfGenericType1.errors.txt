@@ -1,0 +1,17 @@
+exportAssignmentOfGenericType1_1.ts(6,17): error TS2454: Variable 'm' is used before being assigned.
+
+
+==== exportAssignmentOfGenericType1_1.ts (1 errors) ====
+    ///<reference path='exportAssignmentOfGenericType1_0.ts'/>
+    import q = require("exportAssignmentOfGenericType1_0");
+    
+    class M extends q<string> { }
+    var m: M;
+    var r: string = m.foo;
+                    ~
+!!! error TS2454: Variable 'm' is used before being assigned.
+    
+==== exportAssignmentOfGenericType1_0.ts (0 errors) ====
+    export = T;
+    class T<X> { foo: X; }
+    

@@ -46,8 +46,8 @@ module m1 {
 
     export function f2(arg1: { x?: C1, y: number }) {
 >f2 : (arg1: {    x?: C1;    y: number;}) => void
->arg1 : { x?: C1; y: number; }
->x : C1
+>arg1 : { x?: C1 | undefined; y: number; }
+>x : C1 | undefined
 >y : number
     }
 

@@ -1,12 +1,16 @@
+plusOperatorWithAnyOtherType.ts(30,24): error TS2454: Variable 'obj' is used before being assigned.
 plusOperatorWithAnyOtherType.ts(34,24): error TS18050: The value 'undefined' cannot be used here.
 plusOperatorWithAnyOtherType.ts(35,24): error TS18050: The value 'null' cannot be used here.
-plusOperatorWithAnyOtherType.ts(46,26): error TS2365: Operator '+' cannot be applied to types 'null' and 'undefined'.
-plusOperatorWithAnyOtherType.ts(47,26): error TS2365: Operator '+' cannot be applied to types 'null' and 'null'.
-plusOperatorWithAnyOtherType.ts(48,26): error TS2365: Operator '+' cannot be applied to types 'undefined' and 'undefined'.
+plusOperatorWithAnyOtherType.ts(46,26): error TS18050: The value 'null' cannot be used here.
+plusOperatorWithAnyOtherType.ts(46,33): error TS18050: The value 'undefined' cannot be used here.
+plusOperatorWithAnyOtherType.ts(47,26): error TS18050: The value 'null' cannot be used here.
+plusOperatorWithAnyOtherType.ts(47,33): error TS18050: The value 'null' cannot be used here.
+plusOperatorWithAnyOtherType.ts(48,26): error TS18050: The value 'undefined' cannot be used here.
+plusOperatorWithAnyOtherType.ts(48,38): error TS18050: The value 'undefined' cannot be used here.
 plusOperatorWithAnyOtherType.ts(54,1): error TS2695: Left side of comma operator is unused and has no side effects.
 
 
-==== plusOperatorWithAnyOtherType.ts (6 errors) ====
+==== plusOperatorWithAnyOtherType.ts (10 errors) ====
     // + operator on any type
     
     var ANY: any;
@@ -37,6 +41,8 @@ plusOperatorWithAnyOtherType.ts(54,1): error TS2695: Left side of comma operator
     var ResultIsNumber3 = +A;
     var ResultIsNumber4 = +M;
     var ResultIsNumber5 = +obj;
+                           ~~~
+!!! error TS2454: Variable 'obj' is used before being assigned.
     var ResultIsNumber6 = +obj1;
     
     // any type literal
@@ -57,14 +63,20 @@ plusOperatorWithAnyOtherType.ts(54,1): error TS2695: Left side of comma operator
     var ResultIsNumber15 = +A.foo();
     var ResultIsNumber16 = +(ANY + ANY1);
     var ResultIsNumber17 = +(null + undefined);
-                             ~~~~~~~~~~~~~~~~
-!!! error TS2365: Operator '+' cannot be applied to types 'null' and 'undefined'.
+                             ~~~~
+!!! error TS18050: The value 'null' cannot be used here.
+                                    ~~~~~~~~~
+!!! error TS18050: The value 'undefined' cannot be used here.
     var ResultIsNumber18 = +(null + null);
-                             ~~~~~~~~~~~
-!!! error TS2365: Operator '+' cannot be applied to types 'null' and 'null'.
+                             ~~~~
+!!! error TS18050: The value 'null' cannot be used here.
+                                    ~~~~
+!!! error TS18050: The value 'null' cannot be used here.
     var ResultIsNumber19 = +(undefined + undefined);
-                             ~~~~~~~~~~~~~~~~~~~~~
-!!! error TS2365: Operator '+' cannot be applied to types 'undefined' and 'undefined'.
+                             ~~~~~~~~~
+!!! error TS18050: The value 'undefined' cannot be used here.
+                                         ~~~~~~~~~
+!!! error TS18050: The value 'undefined' cannot be used here.
     
     // miss assignment operators
     +ANY;

@@ -1,8 +1,15 @@
+contextualTyping.ts(51,13): error TS2352: Conversion of type '{ a: never[]; }' to type 'IFoo' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ a: never[]; }' is missing the following properties from type 'IFoo': n, s, f
+contextualTyping.ts(79,1): error TS2454: Variable 'c7t2' is used before being assigned.
+contextualTyping.ts(142,13): error TS2352: Conversion of type '{ a: never[]; }' to type 'IFoo' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ a: never[]; }' is missing the following properties from type 'IFoo': n, s, f
+contextualTyping.ts(182,14): error TS2352: Conversion of type '{ a: never[]; }' to type 'IFoo' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ a: never[]; }' is missing the following properties from type 'IFoo': n, s, f
 contextualTyping.ts(189,18): error TS2384: Overload signatures must all be ambient or non-ambient.
 contextualTyping.ts(223,5): error TS2741: Property 'x' is missing in type '{}' but required in type 'B'.
 
 
-==== contextualTyping.ts (2 errors) ====
+==== contextualTyping.ts (6 errors) ====
     // DEFAULT INTERFACES
     interface IFoo {
         n: number;
@@ -54,8 +61,13 @@ contextualTyping.ts(223,5): error TS2741: Property 'x' is missing in type '{}' b
         f: function(i, s) { return s; }
     })
     var c3t14 = <IFoo>({
+                ~~~~~~~~
         a: []
+    ~~~~~~~~~
     })
+    ~~
+!!! error TS2352: Conversion of type '{ a: never[]; }' to type 'IFoo' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+!!! error TS2352:   Type '{ a: never[]; }' is missing the following properties from type 'IFoo': n, s, f
     
     // CONTEXT: Class property assignment
     class C4T5 {
@@ -82,6 +94,8 @@ contextualTyping.ts(223,5): error TS2741: Property 'x' is missing in type '{}' b
     // CONTEXT: Array index assignment
     var c7t2: IFoo[];
     c7t2[0] = <IFoo>({n: 1});
+    ~~~~
+!!! error TS2454: Variable 'c7t2' is used before being assigned.
     
     // CONTEXT: Object property assignment
     interface IPlaceHolder {
@@ -145,8 +159,13 @@ contextualTyping.ts(223,5): error TS2741: Property 'x' is missing in type '{}' b
         f: function(i, s) { return s; }
     })
     objc8.t14 = <IFoo>({
+                ~~~~~~~~
         a: []
+    ~~~~~~~~~
     })
+    ~~
+!!! error TS2352: Conversion of type '{ a: never[]; }' to type 'IFoo' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+!!! error TS2352:   Type '{ a: never[]; }' is missing the following properties from type 'IFoo': n, s, f
     // CONTEXT: Function call
     function c9t5(f: (n: number) => IFoo) {};
     c9t5(function(n) {
@@ -185,8 +204,13 @@ contextualTyping.ts(223,5): error TS2741: Property 'x' is missing in type '{}' b
         f: function(i, s) { return s; }
     })
     var c12t14 = <IFoo> ({
+                 ~~~~~~~~~
         a: []
+    ~~~~~~~~~
     })
+    ~~
+!!! error TS2352: Conversion of type '{ a: never[]; }' to type 'IFoo' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+!!! error TS2352:   Type '{ a: never[]; }' is missing the following properties from type 'IFoo': n, s, f
     
     // CONTEXT: Contextual typing declarations
     

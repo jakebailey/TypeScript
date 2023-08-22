@@ -1,9 +1,15 @@
+propertyAccess1.ts(2,1): error TS2454: Variable 'foo' is used before being assigned.
+propertyAccess1.ts(3,1): error TS2454: Variable 'foo' is used before being assigned.
 propertyAccess1.ts(3,5): error TS2339: Property 'b' does not exist on type '{ a: number; }'.
 
 
-==== propertyAccess1.ts (1 errors) ====
+==== propertyAccess1.ts (3 errors) ====
     var foo: { a: number; };
     foo.a = 4;
+    ~~~
+!!! error TS2454: Variable 'foo' is used before being assigned.
     foo.b = 5;
+    ~~~
+!!! error TS2454: Variable 'foo' is used before being assigned.
         ~
 !!! error TS2339: Property 'b' does not exist on type '{ a: number; }'.

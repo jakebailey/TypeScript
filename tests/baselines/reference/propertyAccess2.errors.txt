@@ -1,8 +1,11 @@
+propertyAccess2.ts(2,1): error TS2454: Variable 'foo' is used before being assigned.
 propertyAccess2.ts(2,5): error TS2339: Property 'toBAZ' does not exist on type 'number'.
 
 
-==== propertyAccess2.ts (1 errors) ====
+==== propertyAccess2.ts (2 errors) ====
     var foo: number;
     foo.toBAZ();
+    ~~~
+!!! error TS2454: Variable 'foo' is used before being assigned.
         ~~~~~
 !!! error TS2339: Property 'toBAZ' does not exist on type 'number'.

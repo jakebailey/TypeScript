@@ -18,27 +18,27 @@ export const username = () => 'username';
 export * from './username';
 === hello.ts ===
 const sayHello = (name?: string) => void (`Hello, ${name}!`);
->sayHello : (name?: string) => any
->(name?: string) => void (`Hello, ${name}!`) : (name?: string) => any
->name : string
+>sayHello : (name?: string) => undefined
+>(name?: string) => void (`Hello, ${name}!`) : (name?: string) => undefined
+>name : string | undefined
 >void (`Hello, ${name}!`) : undefined
 >(`Hello, ${name}!`) : string
 >`Hello, ${name}!` : string
->name : string
+>name : string | undefined
 
 export default sayHello;
->sayHello : (name?: string) => any
+>sayHello : (name?: string | undefined) => undefined
 
 === index.ts ===
 import sayHello from "./hello";
->sayHello : (name?: string) => any
+>sayHello : (name?: string | undefined) => undefined
 
 import { username } from './utils';
 >username : () => string
 
 sayHello(username());
->sayHello(username()) : any
->sayHello : (name?: string) => any
+>sayHello(username()) : undefined
+>sayHello : (name?: string | undefined) => undefined
 >username() : string
 >username : () => string
 

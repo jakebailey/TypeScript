@@ -1,10 +1,14 @@
+parenthesizedContexualTyping1.ts(27,31): error TS2322: Type 'undefined' is not assignable to type 'string'.
 parenthesizedContexualTyping1.ts(27,32): error TS2695: Left side of comma operator is unused and has no side effects.
+parenthesizedContexualTyping1.ts(27,55): error TS2322: Type 'undefined' is not assignable to type 'number'.
 parenthesizedContexualTyping1.ts(27,56): error TS2695: Left side of comma operator is unused and has no side effects.
+parenthesizedContexualTyping1.ts(28,32): error TS2322: Type 'undefined' is not assignable to type 'string'.
 parenthesizedContexualTyping1.ts(28,33): error TS2695: Left side of comma operator is unused and has no side effects.
+parenthesizedContexualTyping1.ts(28,56): error TS2322: Type 'undefined' is not assignable to type 'number'.
 parenthesizedContexualTyping1.ts(28,57): error TS2695: Left side of comma operator is unused and has no side effects.
 
 
-==== parenthesizedContexualTyping1.ts (4 errors) ====
+==== parenthesizedContexualTyping1.ts (8 errors) ====
     function fun<T>(g: (x: T) => T, x: T): T;
     function fun<T>(g: (x: T) => T, h: (y: T) => T, x: T): T;
     function fun<T>(g: (x: T) => T, x: T): T {
@@ -32,12 +36,24 @@ parenthesizedContexualTyping1.ts(28,57): error TS2695: Left side of comma operat
     
     type ObjType = { x: (p: number) => string; y: (p: string) => number };
     var obj1: ObjType = { x: x => (x, undefined), y: y => (y, undefined) };
+                                  ~~~~~~~~~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'string'.
+!!! related TS6502 parenthesizedContexualTyping1.ts:26:21: The expected type comes from the return type of this signature.
                                    ~
 !!! error TS2695: Left side of comma operator is unused and has no side effects.
+                                                          ~~~~~~~~~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'number'.
+!!! related TS6502 parenthesizedContexualTyping1.ts:26:47: The expected type comes from the return type of this signature.
                                                            ~
 !!! error TS2695: Left side of comma operator is unused and has no side effects.
     var obj2: ObjType = ({ x: x => (x, undefined), y: y => (y, undefined) });
+                                   ~~~~~~~~~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'string'.
+!!! related TS6502 parenthesizedContexualTyping1.ts:26:21: The expected type comes from the return type of this signature.
                                     ~
 !!! error TS2695: Left side of comma operator is unused and has no side effects.
+                                                           ~~~~~~~~~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'number'.
+!!! related TS6502 parenthesizedContexualTyping1.ts:26:47: The expected type comes from the return type of this signature.
                                                             ~
 !!! error TS2695: Left side of comma operator is unused and has no side effects.

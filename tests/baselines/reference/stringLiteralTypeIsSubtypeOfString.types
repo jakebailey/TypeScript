@@ -135,12 +135,12 @@ class C implements String {
     indexOf(searchString: string, position?: number): number { return null; }
 >indexOf : (searchString: string, position?: number) => number
 >searchString : string
->position : number
+>position : number | undefined
 
     lastIndexOf(searchString: string, position?: number): number { return null; }
 >lastIndexOf : (searchString: string, position?: number) => number
 >searchString : string
->position : number
+>position : number | undefined
 
     localeCompare(that: string): number { return null; }
 >localeCompare : (that: string) => number
@@ -161,18 +161,18 @@ class C implements String {
 
     slice(start?: number, end?: number): string { return null; }
 >slice : (start?: number, end?: number) => string
->start : number
->end : number
+>start : number | undefined
+>end : number | undefined
 
     split(separator: any, limit?: number): string[] { return null; }
 >split : (separator: any, limit?: number) => string[]
 >separator : any
->limit : number
+>limit : number | undefined
 
     substring(start: number, end?: number): string { return null; }
 >substring : (start: number, end?: number) => string
 >start : number
->end : number
+>end : number | undefined
 
     toLowerCase(): string { return null; }
 >toLowerCase : () => string
@@ -195,7 +195,7 @@ class C implements String {
     substr(from: number, length?: number): string { return null; }
 >substr : (from: number, length?: number) => string
 >from : number
->length : number
+>length : number | undefined
 
     valueOf(): string { return null; }
 >valueOf : () => string

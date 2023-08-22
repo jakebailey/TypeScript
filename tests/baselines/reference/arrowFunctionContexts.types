@@ -35,10 +35,10 @@ class Derived extends Base {
 // Arrow function as function argument
 window.setTimeout(() => null, 100);
 >window.setTimeout(() => null, 100) : number
->window.setTimeout : ((handler: TimerHandler, timeout?: number, ...arguments: any[]) => number) & ((handler: TimerHandler, timeout?: number, ...arguments: any[]) => number)
+>window.setTimeout : ((handler: TimerHandler, timeout?: number | undefined, ...arguments: any[]) => number) & ((handler: TimerHandler, timeout?: number | undefined, ...arguments: any[]) => number)
 >window : Window & typeof globalThis
->setTimeout : ((handler: TimerHandler, timeout?: number, ...arguments: any[]) => number) & ((handler: TimerHandler, timeout?: number, ...arguments: any[]) => number)
->() => null : () => any
+>setTimeout : ((handler: TimerHandler, timeout?: number | undefined, ...arguments: any[]) => number) & ((handler: TimerHandler, timeout?: number | undefined, ...arguments: any[]) => number)
+>() => null : () => null
 >100 : 100
 
 // Arrow function as value in array literal
@@ -137,10 +137,10 @@ module M2 {
     // Arrow function as function argument
     window.setTimeout(() => null, 100);
 >window.setTimeout(() => null, 100) : number
->window.setTimeout : ((handler: TimerHandler, timeout?: number, ...arguments: any[]) => number) & ((handler: TimerHandler, timeout?: number, ...arguments: any[]) => number)
+>window.setTimeout : ((handler: TimerHandler, timeout?: number | undefined, ...arguments: any[]) => number) & ((handler: TimerHandler, timeout?: number | undefined, ...arguments: any[]) => number)
 >window : Window & typeof globalThis
->setTimeout : ((handler: TimerHandler, timeout?: number, ...arguments: any[]) => number) & ((handler: TimerHandler, timeout?: number, ...arguments: any[]) => number)
->() => null : () => any
+>setTimeout : ((handler: TimerHandler, timeout?: number | undefined, ...arguments: any[]) => number) & ((handler: TimerHandler, timeout?: number | undefined, ...arguments: any[]) => number)
+>() => null : () => null
 >100 : 100
 
     // Arrow function as value in array literal

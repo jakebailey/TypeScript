@@ -2,12 +2,12 @@
 
 === findLast.ts ===
 const itemNumber: number | undefined = [0].findLast((item) => item === 0);
->itemNumber : number
->[0].findLast((item) => item === 0) : number
->[0].findLast : { <S extends number>(predicate: (value: number, index: number, array: number[]) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: number[]) => unknown, thisArg?: any): number; }
+>itemNumber : number | undefined
+>[0].findLast((item) => item === 0) : number | undefined
+>[0].findLast : { <S extends number>(predicate: (value: number, index: number, array: number[]) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: number[]) => unknown, thisArg?: any): number | undefined; }
 >[0] : number[]
 >0 : 0
->findLast : { <S extends number>(predicate: (value: number, index: number, array: number[]) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: number[]) => unknown, thisArg?: any): number; }
+>findLast : { <S extends number>(predicate: (value: number, index: number, array: number[]) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: number[]) => unknown, thisArg?: any): number | undefined; }
 >(item) => item === 0 : (item: number) => boolean
 >item : number
 >item === 0 : boolean
@@ -15,12 +15,12 @@ const itemNumber: number | undefined = [0].findLast((item) => item === 0);
 >0 : 0
 
 const itemString: string | undefined = ["string"].findLast((item) => item === "string");
->itemString : string
->["string"].findLast((item) => item === "string") : string
->["string"].findLast : { <S extends string>(predicate: (value: string, index: number, array: string[]) => value is S, thisArg?: any): S; (predicate: (value: string, index: number, array: string[]) => unknown, thisArg?: any): string; }
+>itemString : string | undefined
+>["string"].findLast((item) => item === "string") : string | undefined
+>["string"].findLast : { <S extends string>(predicate: (value: string, index: number, array: string[]) => value is S, thisArg?: any): S | undefined; (predicate: (value: string, index: number, array: string[]) => unknown, thisArg?: any): string | undefined; }
 >["string"] : string[]
 >"string" : "string"
->findLast : { <S extends string>(predicate: (value: string, index: number, array: string[]) => value is S, thisArg?: any): S; (predicate: (value: string, index: number, array: string[]) => unknown, thisArg?: any): string; }
+>findLast : { <S extends string>(predicate: (value: string, index: number, array: string[]) => value is S, thisArg?: any): S | undefined; (predicate: (value: string, index: number, array: string[]) => unknown, thisArg?: any): string | undefined; }
 >(item) => item === "string" : (item: string) => boolean
 >item : string
 >item === "string" : boolean
@@ -28,11 +28,11 @@ const itemString: string | undefined = ["string"].findLast((item) => item === "s
 >"string" : "string"
 
 new Int8Array().findLast((item) => item === 0);
->new Int8Array().findLast((item) => item === 0) : number
->new Int8Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Int8Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Int8Array) => unknown, thisArg?: any): number; }
+>new Int8Array().findLast((item) => item === 0) : number | undefined
+>new Int8Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Int8Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Int8Array) => unknown, thisArg?: any): number | undefined; }
 >new Int8Array() : Int8Array
 >Int8Array : Int8ArrayConstructor
->findLast : { <S extends number>(predicate: (value: number, index: number, array: Int8Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Int8Array) => unknown, thisArg?: any): number; }
+>findLast : { <S extends number>(predicate: (value: number, index: number, array: Int8Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Int8Array) => unknown, thisArg?: any): number | undefined; }
 >(item) => item === 0 : (item: number) => boolean
 >item : number
 >item === 0 : boolean
@@ -40,11 +40,11 @@ new Int8Array().findLast((item) => item === 0);
 >0 : 0
 
 new Uint8Array().findLast((item) => item === 0);
->new Uint8Array().findLast((item) => item === 0) : number
->new Uint8Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint8Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any): number; }
+>new Uint8Array().findLast((item) => item === 0) : number | undefined
+>new Uint8Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint8Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any): number | undefined; }
 >new Uint8Array() : Uint8Array
 >Uint8Array : Uint8ArrayConstructor
->findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint8Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any): number; }
+>findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint8Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Uint8Array) => unknown, thisArg?: any): number | undefined; }
 >(item) => item === 0 : (item: number) => boolean
 >item : number
 >item === 0 : boolean
@@ -52,11 +52,11 @@ new Uint8Array().findLast((item) => item === 0);
 >0 : 0
 
 new Uint8ClampedArray().findLast((item) => item === 0);
->new Uint8ClampedArray().findLast((item) => item === 0) : number
->new Uint8ClampedArray().findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint8ClampedArray) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Uint8ClampedArray) => unknown, thisArg?: any): number; }
+>new Uint8ClampedArray().findLast((item) => item === 0) : number | undefined
+>new Uint8ClampedArray().findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint8ClampedArray) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Uint8ClampedArray) => unknown, thisArg?: any): number | undefined; }
 >new Uint8ClampedArray() : Uint8ClampedArray
 >Uint8ClampedArray : Uint8ClampedArrayConstructor
->findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint8ClampedArray) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Uint8ClampedArray) => unknown, thisArg?: any): number; }
+>findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint8ClampedArray) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Uint8ClampedArray) => unknown, thisArg?: any): number | undefined; }
 >(item) => item === 0 : (item: number) => boolean
 >item : number
 >item === 0 : boolean
@@ -64,11 +64,11 @@ new Uint8ClampedArray().findLast((item) => item === 0);
 >0 : 0
 
 new Int16Array().findLast((item) => item === 0);
->new Int16Array().findLast((item) => item === 0) : number
->new Int16Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Int16Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Int16Array) => unknown, thisArg?: any): number; }
+>new Int16Array().findLast((item) => item === 0) : number | undefined
+>new Int16Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Int16Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Int16Array) => unknown, thisArg?: any): number | undefined; }
 >new Int16Array() : Int16Array
 >Int16Array : Int16ArrayConstructor
->findLast : { <S extends number>(predicate: (value: number, index: number, array: Int16Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Int16Array) => unknown, thisArg?: any): number; }
+>findLast : { <S extends number>(predicate: (value: number, index: number, array: Int16Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Int16Array) => unknown, thisArg?: any): number | undefined; }
 >(item) => item === 0 : (item: number) => boolean
 >item : number
 >item === 0 : boolean
@@ -76,11 +76,11 @@ new Int16Array().findLast((item) => item === 0);
 >0 : 0
 
 new Uint16Array().findLast((item) => item === 0);
->new Uint16Array().findLast((item) => item === 0) : number
->new Uint16Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint16Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Uint16Array) => unknown, thisArg?: any): number; }
+>new Uint16Array().findLast((item) => item === 0) : number | undefined
+>new Uint16Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint16Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Uint16Array) => unknown, thisArg?: any): number | undefined; }
 >new Uint16Array() : Uint16Array
 >Uint16Array : Uint16ArrayConstructor
->findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint16Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Uint16Array) => unknown, thisArg?: any): number; }
+>findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint16Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Uint16Array) => unknown, thisArg?: any): number | undefined; }
 >(item) => item === 0 : (item: number) => boolean
 >item : number
 >item === 0 : boolean
@@ -88,11 +88,11 @@ new Uint16Array().findLast((item) => item === 0);
 >0 : 0
 
 new Int32Array().findLast((item) => item === 0);
->new Int32Array().findLast((item) => item === 0) : number
->new Int32Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Int32Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Int32Array) => unknown, thisArg?: any): number; }
+>new Int32Array().findLast((item) => item === 0) : number | undefined
+>new Int32Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Int32Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Int32Array) => unknown, thisArg?: any): number | undefined; }
 >new Int32Array() : Int32Array
 >Int32Array : Int32ArrayConstructor
->findLast : { <S extends number>(predicate: (value: number, index: number, array: Int32Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Int32Array) => unknown, thisArg?: any): number; }
+>findLast : { <S extends number>(predicate: (value: number, index: number, array: Int32Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Int32Array) => unknown, thisArg?: any): number | undefined; }
 >(item) => item === 0 : (item: number) => boolean
 >item : number
 >item === 0 : boolean
@@ -100,11 +100,11 @@ new Int32Array().findLast((item) => item === 0);
 >0 : 0
 
 new Uint32Array().findLast((item) => item === 0);
->new Uint32Array().findLast((item) => item === 0) : number
->new Uint32Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint32Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Uint32Array) => unknown, thisArg?: any): number; }
+>new Uint32Array().findLast((item) => item === 0) : number | undefined
+>new Uint32Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint32Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Uint32Array) => unknown, thisArg?: any): number | undefined; }
 >new Uint32Array() : Uint32Array
 >Uint32Array : Uint32ArrayConstructor
->findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint32Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Uint32Array) => unknown, thisArg?: any): number; }
+>findLast : { <S extends number>(predicate: (value: number, index: number, array: Uint32Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Uint32Array) => unknown, thisArg?: any): number | undefined; }
 >(item) => item === 0 : (item: number) => boolean
 >item : number
 >item === 0 : boolean
@@ -112,11 +112,11 @@ new Uint32Array().findLast((item) => item === 0);
 >0 : 0
 
 new Float32Array().findLast((item) => item === 0);
->new Float32Array().findLast((item) => item === 0) : number
->new Float32Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Float32Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Float32Array) => unknown, thisArg?: any): number; }
+>new Float32Array().findLast((item) => item === 0) : number | undefined
+>new Float32Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Float32Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Float32Array) => unknown, thisArg?: any): number | undefined; }
 >new Float32Array() : Float32Array
 >Float32Array : Float32ArrayConstructor
->findLast : { <S extends number>(predicate: (value: number, index: number, array: Float32Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Float32Array) => unknown, thisArg?: any): number; }
+>findLast : { <S extends number>(predicate: (value: number, index: number, array: Float32Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Float32Array) => unknown, thisArg?: any): number | undefined; }
 >(item) => item === 0 : (item: number) => boolean
 >item : number
 >item === 0 : boolean
@@ -124,11 +124,11 @@ new Float32Array().findLast((item) => item === 0);
 >0 : 0
 
 new Float64Array().findLast((item) => item === 0);
->new Float64Array().findLast((item) => item === 0) : number
->new Float64Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Float64Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Float64Array) => unknown, thisArg?: any): number; }
+>new Float64Array().findLast((item) => item === 0) : number | undefined
+>new Float64Array().findLast : { <S extends number>(predicate: (value: number, index: number, array: Float64Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Float64Array) => unknown, thisArg?: any): number | undefined; }
 >new Float64Array() : Float64Array
 >Float64Array : Float64ArrayConstructor
->findLast : { <S extends number>(predicate: (value: number, index: number, array: Float64Array) => value is S, thisArg?: any): S; (predicate: (value: number, index: number, array: Float64Array) => unknown, thisArg?: any): number; }
+>findLast : { <S extends number>(predicate: (value: number, index: number, array: Float64Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: number, index: number, array: Float64Array) => unknown, thisArg?: any): number | undefined; }
 >(item) => item === 0 : (item: number) => boolean
 >item : number
 >item === 0 : boolean
@@ -136,11 +136,11 @@ new Float64Array().findLast((item) => item === 0);
 >0 : 0
 
 new BigInt64Array().findLast((item) => item === BigInt(0));
->new BigInt64Array().findLast((item) => item === BigInt(0)) : bigint
->new BigInt64Array().findLast : { <S extends bigint>(predicate: (value: bigint, index: number, array: BigInt64Array) => value is S, thisArg?: any): S; (predicate: (value: bigint, index: number, array: BigInt64Array) => unknown, thisArg?: any): bigint; }
+>new BigInt64Array().findLast((item) => item === BigInt(0)) : bigint | undefined
+>new BigInt64Array().findLast : { <S extends bigint>(predicate: (value: bigint, index: number, array: BigInt64Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: bigint, index: number, array: BigInt64Array) => unknown, thisArg?: any): bigint | undefined; }
 >new BigInt64Array() : BigInt64Array
 >BigInt64Array : BigInt64ArrayConstructor
->findLast : { <S extends bigint>(predicate: (value: bigint, index: number, array: BigInt64Array) => value is S, thisArg?: any): S; (predicate: (value: bigint, index: number, array: BigInt64Array) => unknown, thisArg?: any): bigint; }
+>findLast : { <S extends bigint>(predicate: (value: bigint, index: number, array: BigInt64Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: bigint, index: number, array: BigInt64Array) => unknown, thisArg?: any): bigint | undefined; }
 >(item) => item === BigInt(0) : (item: bigint) => boolean
 >item : bigint
 >item === BigInt(0) : boolean
@@ -150,11 +150,11 @@ new BigInt64Array().findLast((item) => item === BigInt(0));
 >0 : 0
 
 new BigUint64Array().findLast((item) => item === BigInt(0));
->new BigUint64Array().findLast((item) => item === BigInt(0)) : bigint
->new BigUint64Array().findLast : { <S extends bigint>(predicate: (value: bigint, index: number, array: BigUint64Array) => value is S, thisArg?: any): S; (predicate: (value: bigint, index: number, array: BigUint64Array) => unknown, thisArg?: any): bigint; }
+>new BigUint64Array().findLast((item) => item === BigInt(0)) : bigint | undefined
+>new BigUint64Array().findLast : { <S extends bigint>(predicate: (value: bigint, index: number, array: BigUint64Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: bigint, index: number, array: BigUint64Array) => unknown, thisArg?: any): bigint | undefined; }
 >new BigUint64Array() : BigUint64Array
 >BigUint64Array : BigUint64ArrayConstructor
->findLast : { <S extends bigint>(predicate: (value: bigint, index: number, array: BigUint64Array) => value is S, thisArg?: any): S; (predicate: (value: bigint, index: number, array: BigUint64Array) => unknown, thisArg?: any): bigint; }
+>findLast : { <S extends bigint>(predicate: (value: bigint, index: number, array: BigUint64Array) => value is S, thisArg?: any): S | undefined; (predicate: (value: bigint, index: number, array: BigUint64Array) => unknown, thisArg?: any): bigint | undefined; }
 >(item) => item === BigInt(0) : (item: bigint) => boolean
 >item : bigint
 >item === BigInt(0) : boolean

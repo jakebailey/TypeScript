@@ -10,7 +10,7 @@ function f0(x) {
 }
 
 function f1(x) {
->f1 : (x: any) => number
+>f1 : (x: any) => 1 | undefined
 >x : any
 
     if (x) {
@@ -62,7 +62,7 @@ function f3_1 (x) {
 }
 
 function f4(x) {
->f4 : (x: any) => number
+>f4 : (x: any) => 1 | undefined
 >x : any
 
     try {
@@ -79,7 +79,7 @@ function f4(x) {
 }
 
 function f5(x) {
->f5 : (x: any) => 1 | 2
+>f5 : (x: any) => 1 | 2 | undefined
 >x : any
 
     try {
@@ -99,7 +99,7 @@ function f5(x) {
 }
 
 function f6(x) {
->f6 : (x: any) => number
+>f6 : (x: any) => 1 | undefined
 >x : any
 
     try {
@@ -147,7 +147,7 @@ function f7(x) {
 }
 
 function f8(x) {
->f8 : (x: any) => number
+>f8 : (x: any) => 1 | undefined
 >x : any
 
     try {
@@ -172,7 +172,7 @@ function f8(x) {
 }
 
 function f9(x) {
->f9 : (x: any) => number
+>f9 : (x: any) => 1 | undefined
 >x : any
 
     try {
@@ -213,7 +213,7 @@ function f10(x) {
 }
 
 function f11(x) {
->f11 : (x: any) => number
+>f11 : (x: any) => 1 | undefined
 >x : any
 
     test:

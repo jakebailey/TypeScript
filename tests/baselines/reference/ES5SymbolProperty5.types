@@ -16,8 +16,8 @@ class C {
 }
 
 (new C)[Symbol.iterator](0) // Should error
->(new C)[Symbol.iterator](0) : error
->(new C)[Symbol.iterator] : error
+>(new C)[Symbol.iterator](0) : any
+>(new C)[Symbol.iterator] : any
 >(new C) : C
 >new C : C
 >C : typeof C

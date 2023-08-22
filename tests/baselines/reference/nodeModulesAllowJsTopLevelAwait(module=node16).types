@@ -11,8 +11,8 @@ export {x};
 >x : 1
 
 for await (const y of []) {}
->y : any
->[] : undefined[]
+>y : never
+>[] : never[]
 
 === index.js ===
 // esm format file
@@ -25,6 +25,6 @@ export {x};
 >x : 1
 
 for await (const y of []) {}
->y : any
->[] : undefined[]
+>y : never
+>[] : never[]
 

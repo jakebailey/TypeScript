@@ -1,13 +1,21 @@
 argumentsObjectIterator01_ES5.ts(3,21): error TS2495: Type 'IArguments' is not an array type or a string type.
+argumentsObjectIterator01_ES5.ts(4,21): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+argumentsObjectIterator01_ES5.ts(6,12): error TS2352: Conversion of type 'never[]' to type '[any, any, any]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Target requires 3 element(s) but source may have fewer.
 
 
-==== argumentsObjectIterator01_ES5.ts (1 errors) ====
+==== argumentsObjectIterator01_ES5.ts (3 errors) ====
     function doubleAndReturnAsArray(x: number, y: number, z: number): [number, number, number] {
         let result = [];
         for (let arg of arguments) {
                         ~~~~~~~~~
 !!! error TS2495: Type 'IArguments' is not an array type or a string type.
             result.push(arg + arg);
+                        ~~~~~~~~~
+!!! error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
         }
         return <[any, any, any]>result;
+               ~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2352: Conversion of type 'never[]' to type '[any, any, any]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+!!! error TS2352:   Target requires 3 element(s) but source may have fewer.
     }

@@ -79,7 +79,7 @@ var r5 = foo5(1);
 >1 : 1
 
 function foo6(x) {
->foo6 : (x: any) => any[]
+>foo6 : (x: any) => never[]
 >x : any
 
     try {
@@ -88,17 +88,17 @@ function foo6(x) {
 >e : any
 
         return [];
->[] : undefined[]
+>[] : never[]
     }
     finally {
         return [];
->[] : undefined[]
+>[] : never[]
     }
 }
 var r6 = foo6(1);
->r6 : any[]
->foo6(1) : any[]
->foo6 : (x: any) => any[]
+>r6 : never[]
+>foo6(1) : never[]
+>foo6 : (x: any) => never[]
 >1 : 1
 
 function foo7(x) {

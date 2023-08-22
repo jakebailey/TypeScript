@@ -3,10 +3,10 @@
 === declFileForInterfaceWithOptionalFunction.ts ===
 interface I {
     foo? (x?);
->foo : (x?: any) => any
+>foo : ((x?: any) => any) | undefined
 >x : any
 
     foo2? (x?: number): number;
->foo2 : (x?: number) => number
->x : number
+>foo2 : ((x?: number) => number) | undefined
+>x : number | undefined
 }

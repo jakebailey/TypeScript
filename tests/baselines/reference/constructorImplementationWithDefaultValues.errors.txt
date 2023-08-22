@@ -1,0 +1,33 @@
+constructorImplementationWithDefaultValues.ts(10,17): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+constructorImplementationWithDefaultValues.ts(17,17): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+
+
+==== constructorImplementationWithDefaultValues.ts (2 errors) ====
+    class C {
+        constructor(x);
+        constructor(x = 1) {
+            var y = x;
+        }
+    }
+    
+    class D<T> {
+        constructor(x);
+        constructor(x:T = null) {
+                    ~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+            var y = x;
+        }
+    }
+    
+    class E<T extends Date> {
+        constructor(x);
+        constructor(x: T = null) {
+                    ~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+            var y = x;
+        }
+    }

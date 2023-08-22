@@ -41,11 +41,11 @@ const nodes = document.getElementsByTagName("li");
 type ItemType = "".typeof(nodes.item(0));
 >ItemType : ""
 >typeof(nodes.item(0)) : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
->(nodes.item(0)) : HTMLLIElement
->nodes.item(0) : HTMLLIElement
->nodes.item : (index: number) => HTMLLIElement
+>(nodes.item(0)) : HTMLLIElement | null
+>nodes.item(0) : HTMLLIElement | null
+>nodes.item : (index: number) => HTMLLIElement | null
 >nodes : HTMLCollectionOf<HTMLLIElement>
->item : (index: number) => HTMLLIElement
+>item : (index: number) => HTMLLIElement | null
 >0 : 0
 
 === number.ts ===
@@ -82,11 +82,11 @@ const nodes2 = document.getElementsByTagName("li");
 type ItemType2 = 4..typeof(nodes.item(0));
 >ItemType2 : 4
 >typeof(nodes.item(0)) : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
->(nodes.item(0)) : HTMLLIElement
->nodes.item(0) : HTMLLIElement
->nodes.item : (index: number) => HTMLLIElement
+>(nodes.item(0)) : HTMLLIElement | null
+>nodes.item(0) : HTMLLIElement | null
+>nodes.item : (index: number) => HTMLLIElement | null
 >nodes : HTMLCollectionOf<HTMLLIElement>
->item : (index: number) => HTMLLIElement
+>item : (index: number) => HTMLLIElement | null
 >0 : 0
 
 === boolean.ts ===
@@ -125,11 +125,11 @@ type ItemType3 = true.typeof(nodes.item(0));
 >ItemType3 : true
 >true : true
 >typeof(nodes.item(0)) : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
->(nodes.item(0)) : HTMLLIElement
->nodes.item(0) : HTMLLIElement
->nodes.item : (index: number) => HTMLLIElement
+>(nodes.item(0)) : HTMLLIElement | null
+>nodes.item(0) : HTMLLIElement | null
+>nodes.item : (index: number) => HTMLLIElement | null
 >nodes : HTMLCollectionOf<HTMLLIElement>
->item : (index: number) => HTMLLIElement
+>item : (index: number) => HTMLLIElement | null
 >0 : 0
 
 

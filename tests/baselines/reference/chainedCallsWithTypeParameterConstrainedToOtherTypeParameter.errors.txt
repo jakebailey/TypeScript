@@ -1,12 +1,15 @@
+chainedCallsWithTypeParameterConstrainedToOtherTypeParameter.ts(4,9): error TS2322: Type 'null' is not assignable to type 'Chain<S>'.
 chainedCallsWithTypeParameterConstrainedToOtherTypeParameter.ts(19,64): error TS2741: Property 'z' is missing in type 'B' but required in type 'C'.
 chainedCallsWithTypeParameterConstrainedToOtherTypeParameter.ts(19,81): error TS2739: Type 'A' is missing the following properties from type 'C': z, y
 
 
-==== chainedCallsWithTypeParameterConstrainedToOtherTypeParameter.ts (2 errors) ====
+==== chainedCallsWithTypeParameterConstrainedToOtherTypeParameter.ts (3 errors) ====
     class Chain<T extends A> {
         constructor(public value: T) { }
         then<S extends T>(cb: (x: T) => S): Chain<S> {
             return null;
+            ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Chain<S>'.
         }
     }
     

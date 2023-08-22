@@ -1,0 +1,55 @@
+propertyAccessOnTypeParameterWithConstraints.ts(7,17): error TS2454: Variable 'x' is used before being assigned.
+propertyAccessOnTypeParameterWithConstraints.ts(8,20): error TS2454: Variable 'x' is used before being assigned.
+propertyAccessOnTypeParameterWithConstraints.ts(18,10): error TS2454: Variable 'i' is used before being assigned.
+propertyAccessOnTypeParameterWithConstraints.ts(19,11): error TS2454: Variable 'i' is used before being assigned.
+propertyAccessOnTypeParameterWithConstraints.ts(24,10): error TS2454: Variable 'a' is used before being assigned.
+propertyAccessOnTypeParameterWithConstraints.ts(25,11): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== propertyAccessOnTypeParameterWithConstraints.ts (6 errors) ====
+    // generic types should behave as if they have properties of their constraint type
+    // no errors expected 
+    
+    class C<T extends Date> {
+        f() {
+            var x: T;
+            var a = x['getDate'](); // number
+                    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+            return a + x.getDate();
+                       ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+        }
+    }
+    
+    var r = (new C<Date>()).f();
+    
+    interface I<T extends Date> {
+        foo: T;
+    }
+    var i: I<Date>;
+    var r2 = i.foo.getDate();
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    var r2b = i.foo['getDate']();
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    
+    var a: {
+        <T extends Date>(): T;
+    }
+    var r3 = a<Date>().getDate();
+             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    var r3b = a()['getDate']();
+              ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    var b = {
+        foo: <T extends Date>(x: T) => {
+            var a = x['getDate'](); // number
+            return a + x.getDate();
+        }
+    }
+    
+    var r4 = b.foo(new Date());

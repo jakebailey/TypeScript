@@ -154,7 +154,7 @@ class B extends A {
 >A : A
 
     boz() {
->boz : () => any
+>boz : () => null
 
         for (var x in this.biz()) { }
 >x : string

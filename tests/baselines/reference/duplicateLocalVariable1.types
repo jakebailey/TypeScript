@@ -20,7 +20,7 @@ export class TestCase {
     constructor (public name: string, public test: ()=>boolean, public errorMessageRegEx?: string) {
 >name : string
 >test : () => boolean
->errorMessageRegEx : string
+>errorMessageRegEx : string | undefined
     }
 }
 export class TestRunner { 
@@ -28,7 +28,7 @@ export class TestRunner {
 
     private tests: TestCase[] = [];
 >tests : TestCase[]
->[] : undefined[]
+>[] : never[]
 
     static arrayCompare(arg1: any[], arg2: any[]): boolean {
 >arrayCompare : (arg1: any[], arg2: any[]) => boolean
@@ -119,9 +119,9 @@ export class TestRunner {
                 if (typeof testcase.errorMessageRegEx === "string") {
 >typeof testcase.errorMessageRegEx === "string" : boolean
 >typeof testcase.errorMessageRegEx : "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
->testcase.errorMessageRegEx : string
+>testcase.errorMessageRegEx : string | undefined
 >testcase : TestCase
->errorMessageRegEx : string
+>errorMessageRegEx : string | undefined
 >"string" : "string"
 
                     if (testcase.errorMessageRegEx === "") { // Any error is fine
@@ -173,9 +173,9 @@ export class TestRunner {
 >(testcase.errorMessageRegEx !== undefined) && !exception : boolean
 >(testcase.errorMessageRegEx !== undefined) : boolean
 >testcase.errorMessageRegEx !== undefined : boolean
->testcase.errorMessageRegEx : string
+>testcase.errorMessageRegEx : string | undefined
 >testcase : TestCase
->errorMessageRegEx : string
+>errorMessageRegEx : string | undefined
 >undefined : undefined
 >!exception : boolean
 >exception : boolean
@@ -472,7 +472,7 @@ export var tests: TestRunner = (function () {
 >App.App : any
 >App : any
 >App : any
->[] : undefined[]
+>[] : never[]
 
             return (app.fixLines === false &&
 >(app.fixLines === false &&                   app.recurse === true &&                   app.lineEndings === "CRLF" &&                   app.matchPattern === undefined &&                   app.rootDirectory === ".\\" &&                   app.encodings[0] === "ascii" &&                   app.encodings[1] === "utf8nobom") : boolean
@@ -874,8 +874,8 @@ export var tests: TestRunner = (function () {
 >"\\UTF8BOM.txt" : "\\UTF8BOM.txt"
 
             var chars = [];
->chars : any[]
->[] : undefined[]
+>chars : never[]
+>[] : never[]
 
             for (var i = 0; i < 11; i++) {
 >i : number
@@ -888,9 +888,9 @@ export var tests: TestRunner = (function () {
 
                 chars.push(fb.readByte());
 >chars.push(fb.readByte()) : number
->chars.push : (...items: any[]) => number
->chars : any[]
->push : (...items: any[]) => number
+>chars.push : (...items: never[]) => number
+>chars : never[]
+>push : (...items: never[]) => number
 >fb.readByte() : any
 >fb.readByte : any
 >fb : any
@@ -901,7 +901,7 @@ export var tests: TestRunner = (function () {
 >TestRunner.arrayCompare : (arg1: any[], arg2: any[]) => boolean
 >TestRunner : typeof TestRunner
 >arrayCompare : (arg1: any[], arg2: any[]) => boolean
->chars : any[]
+>chars : never[]
 >[0x54, 0xC3, 0xA8, 0xE1, 0xB4, 0xA3, 0xE2, 0x80, 0xA0, 0x0D, 0x0A] : number[]
 >0x54 : 84
 >0xC3 : 195
@@ -941,8 +941,8 @@ export var tests: TestRunner = (function () {
 >"\\UTF8BOM.txt" : "\\UTF8BOM.txt"
 
             var chars = [];
->chars : any[]
->[] : undefined[]
+>chars : never[]
+>[] : never[]
 
             for (var i = 0; i < 6; i++) {
 >i : number
@@ -955,9 +955,9 @@ export var tests: TestRunner = (function () {
 
                 chars.push(fb.readUtf8CodePoint());
 >chars.push(fb.readUtf8CodePoint()) : number
->chars.push : (...items: any[]) => number
->chars : any[]
->push : (...items: any[]) => number
+>chars.push : (...items: never[]) => number
+>chars : never[]
+>push : (...items: never[]) => number
 >fb.readUtf8CodePoint() : any
 >fb.readUtf8CodePoint : any
 >fb : any
@@ -968,7 +968,7 @@ export var tests: TestRunner = (function () {
 >TestRunner.arrayCompare : (arg1: any[], arg2: any[]) => boolean
 >TestRunner : typeof TestRunner
 >arrayCompare : (arg1: any[], arg2: any[]) => boolean
->chars : any[]
+>chars : never[]
 >[0x0054, 0x00E8, 0x1D23, 0x2020, 0x000D, 0x000A] : number[]
 >0x0054 : 84
 >0x00E8 : 232
@@ -1036,8 +1036,8 @@ export var tests: TestRunner = (function () {
 >0 : 0
 
             var bytes = [];
->bytes : any[]
->[] : undefined[]
+>bytes : never[]
+>[] : never[]
 
             for (var i = 0; i < 14; i++) {
 >i : string
@@ -1050,9 +1050,9 @@ export var tests: TestRunner = (function () {
 
                 bytes.push(fb.readByte());
 >bytes.push(fb.readByte()) : number
->bytes.push : (...items: any[]) => number
->bytes : any[]
->push : (...items: any[]) => number
+>bytes.push : (...items: never[]) => number
+>bytes : never[]
+>push : (...items: never[]) => number
 >fb.readByte() : any
 >fb.readByte : any
 >fb : any
@@ -1081,7 +1081,7 @@ export var tests: TestRunner = (function () {
 >TestRunner.arrayCompare : (arg1: any[], arg2: any[]) => boolean
 >TestRunner : typeof TestRunner
 >arrayCompare : (arg1: any[], arg2: any[]) => boolean
->bytes : any[]
+>bytes : never[]
 >expected : number[]
 
         }));
@@ -1335,8 +1335,8 @@ export var tests: TestRunner = (function () {
             }
 
             var codePoints = [];
->codePoints : any[]
->[] : undefined[]
+>codePoints : never[]
+>[] : never[]
 
             for (var i = 0; i < 6; i++) {
 >i : number
@@ -1349,9 +1349,9 @@ export var tests: TestRunner = (function () {
 
                 codePoints.push(savedFile.readUtf16CodePoint(false));
 >codePoints.push(savedFile.readUtf16CodePoint(false)) : number
->codePoints.push : (...items: any[]) => number
->codePoints : any[]
->push : (...items: any[]) => number
+>codePoints.push : (...items: never[]) => number
+>codePoints : never[]
+>push : (...items: never[]) => number
 >savedFile.readUtf16CodePoint(false) : any
 >savedFile.readUtf16CodePoint : any
 >savedFile : any
@@ -1373,7 +1373,7 @@ export var tests: TestRunner = (function () {
 >TestRunner.arrayCompare : (arg1: any[], arg2: any[]) => boolean
 >TestRunner : typeof TestRunner
 >arrayCompare : (arg1: any[], arg2: any[]) => boolean
->codePoints : any[]
+>codePoints : never[]
 >expectedCodePoints : number[]
 
         }));
@@ -1414,8 +1414,8 @@ export var tests: TestRunner = (function () {
             }
 
             var codePoints = [];
->codePoints : any[]
->[] : undefined[]
+>codePoints : never[]
+>[] : never[]
 
             for (var i = 0; i < 6; i++) {
 >i : number
@@ -1428,9 +1428,9 @@ export var tests: TestRunner = (function () {
 
                 codePoints.push(savedFile.readUtf8CodePoint());
 >codePoints.push(savedFile.readUtf8CodePoint()) : number
->codePoints.push : (...items: any[]) => number
->codePoints : any[]
->push : (...items: any[]) => number
+>codePoints.push : (...items: never[]) => number
+>codePoints : never[]
+>push : (...items: never[]) => number
 >savedFile.readUtf8CodePoint() : any
 >savedFile.readUtf8CodePoint : any
 >savedFile : any
@@ -1451,7 +1451,7 @@ export var tests: TestRunner = (function () {
 >TestRunner.arrayCompare : (arg1: any[], arg2: any[]) => boolean
 >TestRunner : typeof TestRunner
 >arrayCompare : (arg1: any[], arg2: any[]) => boolean
->codePoints : any[]
+>codePoints : never[]
 >expectedCodePoints : number[]
 
         }));

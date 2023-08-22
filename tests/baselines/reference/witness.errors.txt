@@ -14,12 +14,15 @@ witness.ts(39,5): error TS2403: Subsequent variable declarations must have the s
 witness.ts(43,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 'cnd1' must be of type 'any', but here has type 'number'.
 witness.ts(57,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 'and1' must be of type 'any', but here has type 'string'.
 witness.ts(68,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 'fnCallResult' must be of type 'never', but here has type 'any'.
+witness.ts(76,10): error TS2394: This overload signature is not compatible with its implementation signature.
+witness.ts(96,20): error TS2454: Variable 'a' is used before being assigned.
+witness.ts(102,16): error TS2454: Variable 'a' is used before being assigned.
 witness.ts(110,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 'propAcc1' must be of type 'any', but here has type '{ m: any; }'.
 witness.ts(121,14): error TS2729: Property 'n' is used before its initialization.
 witness.ts(128,19): error TS2729: Property 'q' is used before its initialization.
 
 
-==== witness.ts (19 errors) ====
+==== witness.ts (22 errors) ====
     // Initializers
     var varInit = varInit; // any
     var pInit: any;
@@ -137,6 +140,9 @@ witness.ts(128,19): error TS2729: Property 'q' is used before its initialization
     }
     
     function overload1(x: (n: string) => string): string;
+             ~~~~~~~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 witness.ts:79:10: The implementation signature is declared here.
     function overload1(x: (n: number) => number): number;
     function overload1(x: (n: any) => any): any;
     function overload1() { return undefined; };
@@ -157,12 +163,16 @@ witness.ts(128,19): error TS2729: Property 'q' is used before its initialization
         fn3() {
             var a: new(x) => number;
             return new a(this.fn3);
+                       ~
+!!! error TS2454: Variable 'a' is used before being assigned.
         }
     }
     
     function fn5() {
         var a: new (x) => number;
         return new a(fn5);
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
     }
     var fn5r = fn5(); // fn5r: should be 'any', but is 'number'
     

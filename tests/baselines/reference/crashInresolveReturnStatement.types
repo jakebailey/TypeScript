@@ -18,7 +18,7 @@ class CreateCopyOfWorkItemDialog {
 >CreateCopyOfWorkItemDialog : CreateCopyOfWorkItemDialog
 
     public getDialogResult() {
->getDialogResult : () => any
+>getDialogResult : () => null
 
         return null;
     }

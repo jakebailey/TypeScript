@@ -1,8 +1,12 @@
+typeofClass.ts(7,1): error TS2454: Variable 'k1' is used before being assigned.
+typeofClass.ts(8,1): error TS2454: Variable 'k1' is used before being assigned.
 typeofClass.ts(8,4): error TS2576: Property 'bar' does not exist on type 'K'. Did you mean to access the static member 'K.bar' instead?
+typeofClass.ts(10,1): error TS2454: Variable 'k2' is used before being assigned.
 typeofClass.ts(10,4): error TS2339: Property 'foo' does not exist on type 'typeof K'.
+typeofClass.ts(11,1): error TS2454: Variable 'k2' is used before being assigned.
 
 
-==== typeofClass.ts (2 errors) ====
+==== typeofClass.ts (6 errors) ====
     class K {
         foo: number;
         static bar: string;
@@ -10,11 +14,19 @@ typeofClass.ts(10,4): error TS2339: Property 'foo' does not exist on type 'typeo
     
     var k1: K;
     k1.foo;
+    ~~
+!!! error TS2454: Variable 'k1' is used before being assigned.
     k1.bar;
+    ~~
+!!! error TS2454: Variable 'k1' is used before being assigned.
        ~~~
 !!! error TS2576: Property 'bar' does not exist on type 'K'. Did you mean to access the static member 'K.bar' instead?
     var k2: typeof K;
     k2.foo;
+    ~~
+!!! error TS2454: Variable 'k2' is used before being assigned.
        ~~~
 !!! error TS2339: Property 'foo' does not exist on type 'typeof K'.
     k2.bar;
+    ~~
+!!! error TS2454: Variable 'k2' is used before being assigned.

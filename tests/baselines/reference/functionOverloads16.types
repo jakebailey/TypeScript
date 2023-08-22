@@ -13,8 +13,8 @@ function foo(foo:{a:string;}):number;
 
 function foo(foo:{a:string; b?:number;}):any { return "" }
 >foo : { (foo: { a: string; }): string; (foo: { a: string; }): number; }
->foo : { a: string; b?: number; }
+>foo : { a: string; b?: number | undefined; }
 >a : string
->b : number
+>b : number | undefined
 >"" : ""
 

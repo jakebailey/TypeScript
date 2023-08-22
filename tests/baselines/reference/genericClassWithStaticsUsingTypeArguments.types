@@ -15,7 +15,7 @@ class Foo<T> {
 
     static c: T[] = [];
 >c : T[]
->[] : undefined[]
+>[] : never[]
 
     static d = false || ((x: T) => x || undefined)(null)
 >d : any
@@ -30,8 +30,8 @@ class Foo<T> {
 >undefined : undefined
 
     static e = function (x: T) { return null; }
->e : (x: T) => any
->function (x: T) { return null; } : (x: T) => any
+>e : (x: T) => null
+>function (x: T) { return null; } : (x: T) => null
 >x : T
 
     static f(xs: T[]): T[] {

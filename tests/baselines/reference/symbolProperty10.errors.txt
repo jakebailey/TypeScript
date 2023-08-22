@@ -1,6 +1,7 @@
 symbolProperty10.ts(10,5): error TS2322: Type 'I' is not assignable to type 'C'.
   Types of property '[Symbol.iterator]' are incompatible.
-    Property 'y' is missing in type '{ x: any; }' but required in type '{ x: any; y: any; }'.
+    Type '{ x: any; } | undefined' is not assignable to type '{ x: any; y: any; }'.
+      Type 'undefined' is not assignable to type '{ x: any; y: any; }'.
 
 
 ==== symbolProperty10.ts (1 errors) ====
@@ -17,5 +18,5 @@ symbolProperty10.ts(10,5): error TS2322: Type 'I' is not assignable to type 'C'.
         ~
 !!! error TS2322: Type 'I' is not assignable to type 'C'.
 !!! error TS2322:   Types of property '[Symbol.iterator]' are incompatible.
-!!! error TS2322:     Property 'y' is missing in type '{ x: any; }' but required in type '{ x: any; y: any; }'.
-!!! related TS2728 symbolProperty10.ts:2:29: 'y' is declared here.
+!!! error TS2322:     Type '{ x: any; } | undefined' is not assignable to type '{ x: any; y: any; }'.
+!!! error TS2322:       Type 'undefined' is not assignable to type '{ x: any; y: any; }'.

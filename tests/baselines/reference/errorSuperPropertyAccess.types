@@ -161,7 +161,7 @@ class SomeDerived1 extends SomeBase {
     }
 
     get a() {
->a : any
+>a : undefined
 
         var x = super.publicMember;
 >x : number
@@ -173,12 +173,12 @@ class SomeDerived1 extends SomeBase {
 >undefined : undefined
     }
     set a(n) {
->a : any
->n : any
+>a : undefined
+>n : undefined
 
         n = super.publicMember;
 >n = super.publicMember : number
->n : any
+>n : undefined
 >super.publicMember : number
 >super : SomeBase
 >publicMember : number
@@ -241,7 +241,7 @@ class SomeDerived2 extends SomeBase {
     }
 
     get a() {
->a : any
+>a : undefined
 
         var x = super.privateMember;
 >x : number
@@ -253,12 +253,12 @@ class SomeDerived2 extends SomeBase {
 >undefined : undefined
     }
     set a(n) {
->a : any
->n : any
+>a : undefined
+>n : undefined
 
         n = super.privateMember;
 >n = super.privateMember : number
->n : any
+>n : undefined
 >super.privateMember : number
 >super : SomeBase
 >privateMember : number

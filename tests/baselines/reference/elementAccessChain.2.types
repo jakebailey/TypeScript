@@ -2,49 +2,49 @@
 
 === elementAccessChain.2.ts ===
 declare const o1: undefined | { b: string };
->o1 : { b: string; }
+>o1 : { b: string; } | undefined
 >b : string
 
 o1?.["b"];
->o1?.["b"] : string
->o1 : { b: string; }
+>o1?.["b"] : string | undefined
+>o1 : { b: string; } | undefined
 >"b" : "b"
 
 declare const o2: undefined | { b: { c: string } };
->o2 : { b: {    c: string;}; }
+>o2 : { b: {    c: string;}; } | undefined
 >b : { c: string; }
 >c : string
 
 o2?.["b"].c;
->o2?.["b"].c : string
->o2?.["b"] : { c: string; }
->o2 : { b: { c: string; }; }
+>o2?.["b"].c : string | undefined
+>o2?.["b"] : { c: string; } | undefined
+>o2 : { b: { c: string; }; } | undefined
 >"b" : "b"
->c : string
+>c : string | undefined
 
 o2?.b["c"];
->o2?.b["c"] : string
->o2?.b : { c: string; }
->o2 : { b: { c: string; }; }
->b : { c: string; }
+>o2?.b["c"] : string | undefined
+>o2?.b : { c: string; } | undefined
+>o2 : { b: { c: string; }; } | undefined
+>b : { c: string; } | undefined
 >"c" : "c"
 
 declare const o3: { b: undefined | { c: string } };
 >o3 : { b: undefined | {    c: string;}; }
->b : { c: string; }
+>b : { c: string; } | undefined
 >c : string
 
 o3["b"]?.c;
->o3["b"]?.c : string
->o3["b"] : { c: string; }
->o3 : { b: { c: string; }; }
+>o3["b"]?.c : string | undefined
+>o3["b"] : { c: string; } | undefined
+>o3 : { b: { c: string; } | undefined; }
 >"b" : "b"
->c : string
+>c : string | undefined
 
 o3.b?.["c"];
->o3.b?.["c"] : string
->o3.b : { c: string; }
->o3 : { b: { c: string; }; }
->b : { c: string; }
+>o3.b?.["c"] : string | undefined
+>o3.b : { c: string; } | undefined
+>o3 : { b: { c: string; } | undefined; }
+>b : { c: string; } | undefined
 >"c" : "c"
 

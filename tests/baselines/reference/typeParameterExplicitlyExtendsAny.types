@@ -13,9 +13,9 @@ function fee<T>() {
 >blah : any
 
     t.toString; // ok
->t.toString : () => string
+>t.toString : any
 >t : T
->toString : () => string
+>toString : any
 }
 
 function fee2<T extends any>() {
@@ -30,9 +30,9 @@ function fee2<T extends any>() {
 >blah : any
 
     t.toString; // ok
->t.toString : () => string
+>t.toString : any
 >t : T
->toString : () => string
+>toString : any
 }
 
 function f<T extends any>(x: T) {
@@ -69,7 +69,7 @@ type Tree<T> = T & {
 >Tree : Tree<T>
 
     children?: Tree<T>[];
->children : Tree<T>[]
+>children : Tree<T>[] | undefined
 }
 
 class MyClass {

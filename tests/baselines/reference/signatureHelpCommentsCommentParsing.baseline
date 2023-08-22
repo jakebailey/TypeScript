@@ -188,23 +188,23 @@
 // multiply(10, 20, 30, 40, 50);
 //          ^
 // | ----------------------------------------------------------------------
-// | multiply(**a: number**, b: number, c?: number, d?: any, e?: any): void
+// | multiply(**a: number**, b: number, c?: number | undefined, d?: any, e?: any): void
 // | ----------------------------------------------------------------------
 //             ^
 // | ----------------------------------------------------------------------
-// | multiply(a: number, **b: number**, c?: number, d?: any, e?: any): void
+// | multiply(a: number, **b: number**, c?: number | undefined, d?: any, e?: any): void
 // | ----------------------------------------------------------------------
 //                 ^
 // | ----------------------------------------------------------------------
-// | multiply(a: number, b: number, **c?: number**, d?: any, e?: any): void
+// | multiply(a: number, b: number, **c?: number | undefined**, d?: any, e?: any): void
 // | ----------------------------------------------------------------------
 //                      ^
 // | ----------------------------------------------------------------------
-// | multiply(a: number, b: number, c?: number, **d?: any**, e?: any): void
+// | multiply(a: number, b: number, c?: number | undefined, **d?: any**, e?: any): void
 // | ----------------------------------------------------------------------
 //                          ^
 // | ----------------------------------------------------------------------
-// | multiply(a: number, b: number, c?: number, d?: any, **e?: any**): void
+// | multiply(a: number, b: number, c?: number | undefined, d?: any, **e?: any**): void
 // | This is multiplication function
 // | @param 
 // | @param a first number
@@ -250,27 +250,27 @@
 // subtract(10,  20,  null,  null,  null, null);
 //          ^
 // | ----------------------------------------------------------------------
-// | subtract(**a: number**, b: number, c?: () => string, d?: () => string, e?: () => string, f?: () => string): void
+// | subtract(**a: number**, b: number, c?: (() => string) | undefined, d?: (() => string) | undefined, e?: (() => string) | undefined, f?: (() => string) | undefined): void
 // | ----------------------------------------------------------------------
 //              ^
 // | ----------------------------------------------------------------------
-// | subtract(a: number, **b: number**, c?: () => string, d?: () => string, e?: () => string, f?: () => string): void
+// | subtract(a: number, **b: number**, c?: (() => string) | undefined, d?: (() => string) | undefined, e?: (() => string) | undefined, f?: (() => string) | undefined): void
 // | ----------------------------------------------------------------------
 //                   ^
 // | ----------------------------------------------------------------------
-// | subtract(a: number, b: number, **c?: () => string**, d?: () => string, e?: () => string, f?: () => string): void
+// | subtract(a: number, b: number, **c?: (() => string) | undefined**, d?: (() => string) | undefined, e?: (() => string) | undefined, f?: (() => string) | undefined): void
 // | ----------------------------------------------------------------------
 //                          ^
 // | ----------------------------------------------------------------------
-// | subtract(a: number, b: number, c?: () => string, **d?: () => string**, e?: () => string, f?: () => string): void
+// | subtract(a: number, b: number, c?: (() => string) | undefined, **d?: (() => string) | undefined**, e?: (() => string) | undefined, f?: (() => string) | undefined): void
 // | ----------------------------------------------------------------------
 //                                 ^
 // | ----------------------------------------------------------------------
-// | subtract(a: number, b: number, c?: () => string, d?: () => string, **e?: () => string**, f?: () => string): void
+// | subtract(a: number, b: number, c?: (() => string) | undefined, d?: (() => string) | undefined, **e?: (() => string) | undefined**, f?: (() => string) | undefined): void
 // | ----------------------------------------------------------------------
 //                                        ^
 // | ----------------------------------------------------------------------
-// | subtract(a: number, b: number, c?: () => string, d?: () => string, e?: () => string, **f?: () => string**): void
+// | subtract(a: number, b: number, c?: (() => string) | undefined, d?: (() => string) | undefined, e?: (() => string) | undefined, **f?: (() => string) | undefined**): void
 // | This is subtract function
 // | @param 
 // | @param b this is about b
@@ -1802,6 +1802,22 @@
                 {
                   "text": "number",
                   "kind": "keyword"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
+                  "kind": "keyword"
                 }
               ],
               "isOptional": true,
@@ -2088,6 +2104,22 @@
                 },
                 {
                   "text": "number",
+                  "kind": "keyword"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -2376,6 +2408,22 @@
                 {
                   "text": "number",
                   "kind": "keyword"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
+                  "kind": "keyword"
                 }
               ],
               "isOptional": true,
@@ -2663,6 +2711,22 @@
                 {
                   "text": "number",
                   "kind": "keyword"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
+                  "kind": "keyword"
                 }
               ],
               "isOptional": true,
@@ -2949,6 +3013,22 @@
                 },
                 {
                   "text": "number",
+                  "kind": "keyword"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -3602,6 +3682,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -3619,6 +3703,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -3655,6 +3759,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -3672,6 +3780,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -3708,6 +3836,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -3725,6 +3857,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -3756,6 +3908,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -3773,6 +3929,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -4025,6 +4201,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -4042,6 +4222,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -4078,6 +4278,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -4095,6 +4299,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -4131,6 +4355,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -4148,6 +4376,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -4179,6 +4427,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -4196,6 +4448,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -4448,6 +4720,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -4465,6 +4741,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -4501,6 +4797,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -4518,6 +4818,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -4554,6 +4874,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -4571,6 +4895,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -4602,6 +4946,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -4619,6 +4967,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -4871,6 +5239,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -4888,6 +5260,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -4924,6 +5316,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -4941,6 +5337,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -4977,6 +5393,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -4994,6 +5414,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -5025,6 +5465,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -5042,6 +5486,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -5294,6 +5758,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -5311,6 +5779,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -5347,6 +5835,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -5364,6 +5856,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -5400,6 +5912,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -5417,6 +5933,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -5448,6 +5984,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -5465,6 +6005,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -5717,6 +6277,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -5734,6 +6298,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -5770,6 +6354,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -5787,6 +6375,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -5823,6 +6431,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -5840,6 +6452,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],
@@ -5871,6 +6503,10 @@
                   "kind": "punctuation"
                 },
                 {
+                  "text": "(",
+                  "kind": "punctuation"
+                },
+                {
                   "text": ")",
                   "kind": "punctuation"
                 },
@@ -5888,6 +6524,26 @@
                 },
                 {
                   "text": "string",
+                  "kind": "keyword"
+                },
+                {
+                  "text": ")",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "|",
+                  "kind": "punctuation"
+                },
+                {
+                  "text": " ",
+                  "kind": "space"
+                },
+                {
+                  "text": "undefined",
                   "kind": "keyword"
                 }
               ],

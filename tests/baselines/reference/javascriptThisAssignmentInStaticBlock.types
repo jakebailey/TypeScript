@@ -7,18 +7,18 @@ class Thing {
     static {
         this.doSomething = () => {};
 >this.doSomething = () => {} : () => void
->this.doSomething : () => void
+>this.doSomething : (() => void) | undefined
 >this : typeof Thing
->doSomething : () => void
+>doSomething : (() => void) | undefined
 >() => {} : () => void
     }
 }
 
 Thing.doSomething();
 >Thing.doSomething() : void
->Thing.doSomething : () => void
+>Thing.doSomething : (() => void) | undefined
 >Thing : typeof Thing
->doSomething : () => void
+>doSomething : (() => void) | undefined
 
 // GH#46468
 class ElementsArray extends Array {
@@ -42,18 +42,18 @@ class ElementsArray extends Array {
 
         this.isArray = customIsArray;
 >this.isArray = customIsArray : (arg: any) => boolean
->this.isArray : (arg: any) => boolean
+>this.isArray : ((arg: any) => boolean) | undefined
 >this : typeof ElementsArray
->isArray : (arg: any) => boolean
+>isArray : ((arg: any) => boolean) | undefined
 >customIsArray : (arg: any) => boolean
     }
 }
 
 ElementsArray.isArray(new ElementsArray());
 >ElementsArray.isArray(new ElementsArray()) : boolean
->ElementsArray.isArray : (arg: any) => boolean
+>ElementsArray.isArray : ((arg: any) => boolean) | undefined
 >ElementsArray : typeof ElementsArray
->isArray : (arg: any) => boolean
+>isArray : ((arg: any) => boolean) | undefined
 >new ElementsArray() : ElementsArray
 >ElementsArray : typeof ElementsArray
 

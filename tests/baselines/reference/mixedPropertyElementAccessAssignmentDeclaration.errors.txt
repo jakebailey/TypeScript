@@ -1,0 +1,10 @@
+mixedPropertyElementAccessAssignmentDeclaration.ts(3,8): error TS2339: Property 'prop' does not exist on type 'never'.
+
+
+==== mixedPropertyElementAccessAssignmentDeclaration.ts (1 errors) ====
+    // Should not crash: #34642
+    var arr = [];
+    arr[0].prop[2] = {};
+           ~~~~
+!!! error TS2339: Property 'prop' does not exist on type 'never'.
+    

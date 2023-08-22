@@ -5,10 +5,10 @@ export async function get(): Promise<[]> {
 >get : () => Promise<[]>
 
   let emails = [];
->emails : any[]
->[] : undefined[]
+>emails : never[]
+>[] : never[]
 
   return emails;
->emails : any[]
+>emails : never[]
 }
 

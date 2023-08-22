@@ -17,7 +17,7 @@ class T<T> {
 >T : globalThis.T<T>
 
     constructor(n?: T) { }
->n : T
+>n : T | undefined
 }
 
 var anyCtor: {

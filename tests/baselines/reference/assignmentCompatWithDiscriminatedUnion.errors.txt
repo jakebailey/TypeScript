@@ -8,9 +8,11 @@ assignmentCompatWithDiscriminatedUnion.ts(58,5): error TS2322: Type 'S' is not a
   Type 'S' is not assignable to type '{ a: 0; b: 4 | 1; } | { a: 2; b: 4 | 3; c: string; }'.
     Property 'c' is missing in type 'S' but required in type '{ a: 2; b: 4 | 3; c: string; }'.
 assignmentCompatWithDiscriminatedUnion.ts(82,5): error TS2322: Type 'S' is not assignable to type 'T'.
+assignmentCompatWithDiscriminatedUnion.ts(103,5): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithDiscriminatedUnion.ts(140,27): error TS2322: Type 'undefined' is not assignable to type '"linear" | "categorical"'.
 
 
-==== assignmentCompatWithDiscriminatedUnion.ts (3 errors) ====
+==== assignmentCompatWithDiscriminatedUnion.ts (5 errors) ====
     // see 'typeRelatedToDiscriminatedType' in checker.ts:
     
     // IteratorResult
@@ -128,6 +130,8 @@ assignmentCompatWithDiscriminatedUnion.ts(82,5): error TS2322: Type 'S' is not a
         let b: Style1;
         a.type; // "A" | "B"
         b.type; // "A" | "B"
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
         b = a; // should be assignable
     }
     
@@ -165,6 +169,9 @@ assignmentCompatWithDiscriminatedUnion.ts(82,5): error TS2322: Type 'S' is not a
     
         const bad: IAxis = { type: getAxisType() };
         const good: IAxis = { type: undefined };
+                              ~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type '"linear" | "categorical"'.
+!!! related TS6500 assignmentCompatWithDiscriminatedUnion.ts:124:29: The expected type comes from property 'type' which is declared here on type 'IAxis'
         good.type = getAxisType();
     }
     

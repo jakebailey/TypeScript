@@ -2,9 +2,10 @@ assignmentToReferenceTypes.ts(5,1): error TS2708: Cannot use namespace 'M' as a 
 assignmentToReferenceTypes.ts(9,1): error TS2629: Cannot assign to 'C' because it is a class.
 assignmentToReferenceTypes.ts(13,1): error TS2628: Cannot assign to 'E' because it is an enum.
 assignmentToReferenceTypes.ts(16,1): error TS2630: Cannot assign to 'f' because it is a function.
+assignmentToReferenceTypes.ts(19,1): error TS2322: Type 'null' is not assignable to type 'number'.
 
 
-==== assignmentToReferenceTypes.ts (4 errors) ====
+==== assignmentToReferenceTypes.ts (5 errors) ====
     // Should all be allowed
     
     module M {
@@ -32,6 +33,8 @@ assignmentToReferenceTypes.ts(16,1): error TS2630: Cannot assign to 'f' because 
     
     var x = 1;
     x = null;
+    ~
+!!! error TS2322: Type 'null' is not assignable to type 'number'.
     
     function g(x) {
         x = null;

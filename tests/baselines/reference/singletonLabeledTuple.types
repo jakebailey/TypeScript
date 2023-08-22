@@ -2,7 +2,7 @@
 
 === singletonLabeledTuple.ts ===
 type AliasOptional = [p?: number]
->AliasOptional : [p?: number]
+>AliasOptional : [p?: number | undefined]
 
 // literal type vs type alias
 type Literal = [p?: number] extends [unknown] ? true : false // Expect `Literal` to be `false`

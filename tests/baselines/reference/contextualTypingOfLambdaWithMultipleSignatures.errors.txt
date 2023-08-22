@@ -1,0 +1,13 @@
+contextualTypingOfLambdaWithMultipleSignatures.ts(7,1): error TS2454: Variable 'foo' is used before being assigned.
+
+
+==== contextualTypingOfLambdaWithMultipleSignatures.ts (1 errors) ====
+    interface Foo {
+        getFoo(n: number): void;
+        getFoo(s: string): void;
+    }
+    
+    var foo: Foo;
+    foo.getFoo = bar => { };
+    ~~~
+!!! error TS2454: Variable 'foo' is used before being assigned.

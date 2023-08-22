@@ -12,9 +12,9 @@ use(x.toExponential());
 >use(x.toExponential()) : any
 >use : (x: string) => any
 >x.toExponential() : string
->x.toExponential : (fractionDigits?: number) => string
+>x.toExponential : (fractionDigits?: number | undefined) => string
 >x : number
->toExponential : (fractionDigits?: number) => string
+>toExponential : (fractionDigits?: number | undefined) => string
 
 === c:/root/src/file2.d.ts ===
 export let x: number;

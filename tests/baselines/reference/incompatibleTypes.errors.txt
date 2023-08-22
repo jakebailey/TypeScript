@@ -9,6 +9,7 @@ incompatibleTypes.ts(26,12): error TS2416: Property 'p1' in type 'C3' is not ass
   Type 'number' is not assignable to type 'string'.
 incompatibleTypes.ts(34,12): error TS2416: Property 'p1' in type 'C4' is not assignable to the same property in base type 'IFoo4'.
   Type '{ c: { b: string; }; d: string; }' is missing the following properties from type '{ a: { a: string; }; b: string; }': a, b
+incompatibleTypes.ts(42,5): error TS2454: Variable 'c1' is used before being assigned.
 incompatibleTypes.ts(42,5): error TS2769: No overload matches this call.
   Overload 1 of 2, '(i: IFoo1): void', gave the following error.
     Argument of type 'C1' is not assignable to parameter of type 'IFoo1'.
@@ -18,6 +19,7 @@ incompatibleTypes.ts(42,5): error TS2769: No overload matches this call.
     Argument of type 'C1' is not assignable to parameter of type 'IFoo2'.
       The types returned by 'p1(...)' are incompatible between these types.
         Type 'string' is not assignable to type 'number'.
+incompatibleTypes.ts(45,10): error TS2394: This overload signature is not compatible with its implementation signature.
 incompatibleTypes.ts(49,7): error TS2769: No overload matches this call.
   Overload 1 of 2, '(n: { a: { a: string; }; b: string; }): number', gave the following error.
     Object literal may only specify known properties, and 'e' does not exist in type '{ a: { a: string; }; b: string; }'.
@@ -29,7 +31,7 @@ incompatibleTypes.ts(74,5): error TS2322: Type '(a: any) => number' is not assig
   Target signature provides too few arguments. Expected 1 or more, but got 0.
 
 
-==== incompatibleTypes.ts (9 errors) ====
+==== incompatibleTypes.ts (11 errors) ====
     interface IFoo1 {
         p1(): number;
     }
@@ -88,6 +90,8 @@ incompatibleTypes.ts(74,5): error TS2322: Type '(a: any) => number' is not assig
     var c2: C2;
     if1(c1);
         ~~
+!!! error TS2454: Variable 'c1' is used before being assigned.
+        ~~
 !!! error TS2769: No overload matches this call.
 !!! error TS2769:   Overload 1 of 2, '(i: IFoo1): void', gave the following error.
 !!! error TS2769:     Argument of type 'C1' is not assignable to parameter of type 'IFoo1'.
@@ -101,6 +105,9 @@ incompatibleTypes.ts(74,5): error TS2322: Type '(a: any) => number' is not assig
     
     
     function of1(n: { a: { a: string; }; b: string; }): number;
+             ~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 incompatibleTypes.ts:47:10: The implementation signature is declared here.
     function of1(s: { c: { b: string; }; d: string; }): string;
     function of1(a: any) { return null; }
     

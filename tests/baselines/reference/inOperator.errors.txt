@@ -1,7 +1,8 @@
 inOperator.ts(7,15): error TS2322: Type 'number' is not assignable to type 'object'.
+inOperator.ts(11,5): error TS2454: Variable 'y' is used before being assigned.
 
 
-==== inOperator.ts (1 errors) ====
+==== inOperator.ts (2 errors) ====
     var a=[];
     
     for (var x in a) {}
@@ -15,4 +16,6 @@ inOperator.ts(7,15): error TS2322: Type 'number' is not assignable to type 'obje
     var c: any;
     var y: number;
     if (y in c) { }
+        ~
+!!! error TS2454: Variable 'y' is used before being assigned.
     

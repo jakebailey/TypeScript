@@ -79,35 +79,35 @@ var f1 = function () { return new C1();}
 
 var arr_any: any[] = [];
 >arr_any : any[]
->[] : undefined[]
+>[] : never[]
 
 var arr_i1: I1[] = [];
 >arr_i1 : I1[]
->[] : undefined[]
+>[] : never[]
 
 var arr_c1: C1[] = [];
 >arr_c1 : C1[]
->[] : undefined[]
+>[] : never[]
 
 var arr_c2: C2[] = [];
 >arr_c2 : C2[]
->[] : undefined[]
+>[] : never[]
 
 var arr_i1_2: I1[] = [];
 >arr_i1_2 : I1[]
->[] : undefined[]
+>[] : never[]
 
 var arr_c1_2: C1[] = [];
 >arr_c1_2 : C1[]
->[] : undefined[]
+>[] : never[]
 
 var arr_c2_2: C2[] = [];
 >arr_c2_2 : C2[]
->[] : undefined[]
+>[] : never[]
 
 var arr_c3: C3[] = [];
 >arr_c3 : C3[]
->[] : undefined[]
+>[] : never[]
 
 // "clean up error" occurs at this point
 arr_c3 = arr_c2_2; // should be an error - is
@@ -131,9 +131,9 @@ arr_any = f1; // should be an error - is
 >f1 : () => C1
 
 arr_any = function () { return null;} // should be an error - is
->arr_any = function () { return null;} : () => any
+>arr_any = function () { return null;} : () => null
 >arr_any : any[]
->function () { return null;} : () => any
+>function () { return null;} : () => null
 
 arr_any = o1; // should be an error - is
 >arr_any = o1 : { one: number; }

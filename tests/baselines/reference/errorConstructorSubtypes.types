@@ -6,7 +6,7 @@ interface ErrorConstructor {
   captureStackTrace(targetObject: Object, constructorOpt?: Function): void;
 >captureStackTrace : (targetObject: Object, constructorOpt?: Function) => void
 >targetObject : Object
->constructorOpt : Function
+>constructorOpt : Function | undefined
 }
 
 declare var x: ErrorConstructor
@@ -29,7 +29,7 @@ new x().message
 >message : string
 
 x.captureStackTrace
->x.captureStackTrace : (targetObject: Object, constructorOpt?: Function) => void
+>x.captureStackTrace : (targetObject: Object, constructorOpt?: Function | undefined) => void
 >x : ErrorConstructor
->captureStackTrace : (targetObject: Object, constructorOpt?: Function) => void
+>captureStackTrace : (targetObject: Object, constructorOpt?: Function | undefined) => void
 

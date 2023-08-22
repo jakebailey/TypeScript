@@ -45,17 +45,17 @@ var a3 = [1, ];
 >1 : 1
 
 var a4 = [];
->a4 : any[]
->[] : undefined[]
+>a4 : never[]
+>[] : never[]
 
 var a5 = [1, , ];
->a5 : number[]
->[1, , ] : number[]
+>a5 : (number | undefined)[]
+>[1, , ] : (number | undefined)[]
 >1 : 1
 > : undefined
 
 var a6 = [, , ];
->a6 : any[]
+>a6 : undefined[]
 >[, , ] : undefined[]
 > : undefined
 > : undefined

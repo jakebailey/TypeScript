@@ -23,8 +23,8 @@ for (var a in null) { }
 >a : string
 
 var t = [3, (3, null)];
->t : number[]
->[3, (3, null)] : number[]
+>t : (number | null)[]
+>[3, (3, null)] : (number | null)[]
 >3 : 3
 >(3, null) : null
 >3, null : null
@@ -32,27 +32,27 @@ var t = [3, (3, null)];
 
 t[3] = "";
 >t[3] = "" : ""
->t[3] : number
->t : number[]
+>t[3] : number | null
+>t : (number | null)[]
 >3 : 3
 >"" : ""
 
 var x: typeof undefined = 3;
->x : any
+>x : undefined
 >undefined : undefined
 >3 : 3
 
 x = 3;
 >x = 3 : 3
->x : any
+>x : undefined
 >3 : 3
 
 var y;
 >y : any
 
 var u = [3, (y = null)];
->u : number[]
->[3, (y = null)] : number[]
+>u : (number | null)[]
+>[3, (y = null)] : (number | null)[]
 >3 : 3
 >(y = null) : null
 >y = null : null
@@ -60,14 +60,14 @@ var u = [3, (y = null)];
 
 u[3] = "";
 >u[3] = "" : ""
->u[3] : number
->u : number[]
+>u[3] : number | null
+>u : (number | null)[]
 >3 : 3
 >"" : ""
 
 var ob: { x: typeof undefined } = { x: "" };
 >ob : { x: typeof undefined; }
->x : any
+>x : undefined
 >undefined : undefined
 >{ x: "" } : { x: string; }
 >x : string
@@ -76,7 +76,7 @@ var ob: { x: typeof undefined } = { x: "" };
 // Highlights the difference between array literals and object literals
 var arr: string[] = [3, null]; // not assignable because null is not widened. BCT is {}
 >arr : string[]
->[3, null] : number[]
+>[3, null] : (number | null)[]
 >3 : 3
 
 var obj: { [x: string]: string; } = { x: 3, y: null }; // assignable because null is widened, and therefore BCT is any

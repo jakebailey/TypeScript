@@ -1,12 +1,24 @@
 propertyAccess.ts(11,55): error TS2353: Object literal may only specify known properties, and ''three'' does not exist in type '{ [n: number]: string; }'.
 propertyAccess.ts(45,14): error TS2339: Property 'qqq' does not exist on type '{ 10: string; x: string; y: number; z: { n: string; m: number; o: () => boolean; }; 'literal property': number; }'.
+propertyAccess.ts(80,19): error TS2454: Variable 'someObject' is used before being assigned.
 propertyAccess.ts(80,19): error TS2538: Type '{ name: string; }' cannot be used as an index type.
+propertyAccess.ts(117,18): error TS2454: Variable 'someObject' is used before being assigned.
 propertyAccess.ts(117,18): error TS2538: Type '{ name: string; }' cannot be used as an index type.
+propertyAccess.ts(124,10): error TS2454: Variable 'bothIndex' is used before being assigned.
+propertyAccess.ts(128,10): error TS2454: Variable 'bothIndex' is used before being assigned.
+propertyAccess.ts(132,10): error TS2454: Variable 'bothIndex' is used before being assigned.
+propertyAccess.ts(136,10): error TS2454: Variable 'bothIndex' is used before being assigned.
+propertyAccess.ts(140,12): error TS2454: Variable 'bothIndex' is used before being assigned.
+propertyAccess.ts(140,22): error TS2454: Variable 'someObject' is used before being assigned.
 propertyAccess.ts(140,22): error TS2538: Type '{ name: string; }' cannot be used as an index type.
+propertyAccess.ts(142,19): error TS2454: Variable 'stringOrNumber' is used before being assigned.
+propertyAccess.ts(145,19): error TS2454: Variable 'stringOrNumber' is used before being assigned.
+propertyAccess.ts(148,10): error TS2454: Variable 'bothIndex' is used before being assigned.
+propertyAccess.ts(148,20): error TS2454: Variable 'stringOrNumber' is used before being assigned.
 propertyAccess.ts(149,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 'x3' must be of type 'A | B', but here has type 'A'.
 
 
-==== propertyAccess.ts (6 errors) ====
+==== propertyAccess.ts (18 errors) ====
     class A {
         a: number;
     }
@@ -92,6 +104,8 @@ propertyAccess.ts(149,5): error TS2403: Subsequent variable declarations must ha
     // Bracket notation property access using value of other type on type with numeric index signature and no string index signature
     var ll = numIndex[someObject]; // Error
                       ~~~~~~~~~~
+!!! error TS2454: Variable 'someObject' is used before being assigned.
+                      ~~~~~~~~~~
 !!! error TS2538: Type '{ name: string; }' cannot be used as an index type.
     
     // Bracket notation property access using string value on type with string index signature and no numeric index signature
@@ -131,6 +145,8 @@ propertyAccess.ts(149,5): error TS2403: Subsequent variable declarations must ha
     // Bracket notation property access using values of other types on type with no index signatures
     var uu = noIndex[someObject]; // Error
                      ~~~~~~~~~~
+!!! error TS2454: Variable 'someObject' is used before being assigned.
+                     ~~~~~~~~~~
 !!! error TS2538: Type '{ name: string; }' cannot be used as an index type.
     
     // Bracket notation property access using numeric value on type with numeric index signature and string index signature
@@ -139,32 +155,52 @@ propertyAccess.ts(149,5): error TS2403: Subsequent variable declarations must ha
     
     // Bracket notation property access using enum value on type with numeric index signature and string index signature
     var ww = bothIndex[Compass.East];
+             ~~~~~~~~~
+!!! error TS2454: Variable 'bothIndex' is used before being assigned.
     var ww: B;
     
     // Bracket notation property access using value of type 'any' on type with numeric index signature and string index signature
     var xx = bothIndex[<any>null];
+             ~~~~~~~~~
+!!! error TS2454: Variable 'bothIndex' is used before being assigned.
     var xx: B;
     
     // Bracket notation property access using string value on type with numeric index signature and string index signature
     var yy = bothIndex['foo'];
+             ~~~~~~~~~
+!!! error TS2454: Variable 'bothIndex' is used before being assigned.
     var yy: A;
     
     // Bracket notation property access using numeric string value on type with numeric index signature and string index signature
     var zz = bothIndex['1.0'];
+             ~~~~~~~~~
+!!! error TS2454: Variable 'bothIndex' is used before being assigned.
     var zz: A;
     
     // Bracket notation property access using value of other type on type with numeric index signature and no string index signature and string index signature
     var zzzz = bothIndex[someObject]; // Error
+               ~~~~~~~~~
+!!! error TS2454: Variable 'bothIndex' is used before being assigned.
+                         ~~~~~~~~~~
+!!! error TS2454: Variable 'someObject' is used before being assigned.
                          ~~~~~~~~~~
 !!! error TS2538: Type '{ name: string; }' cannot be used as an index type.
     
     var x1 = numIndex[stringOrNumber];
+                      ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'stringOrNumber' is used before being assigned.
     var x1: any;
     
     var x2 = strIndex[stringOrNumber];
+                      ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'stringOrNumber' is used before being assigned.
     var x2: Compass;
     
     var x3 = bothIndex[stringOrNumber];
+             ~~~~~~~~~
+!!! error TS2454: Variable 'bothIndex' is used before being assigned.
+                       ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'stringOrNumber' is used before being assigned.
     var x3: A;
         ~~
 !!! error TS2403: Subsequent variable declarations must have the same type.  Variable 'x3' must be of type 'A | B', but here has type 'A'.

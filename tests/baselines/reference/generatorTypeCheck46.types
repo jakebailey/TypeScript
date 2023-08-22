@@ -10,7 +10,7 @@ declare function foo<T, U>(x: T, fun: () => Iterable<(x: T) => U>, fun2: (y: U) 
 >y : U
 
 foo("", function* () {
->foo("", function* () {    yield* {        *[Symbol.iterator]() {            yield x => x.length        }    }}, p => undefined) : string
+>foo("", function* () {    yield* {        *[Symbol.iterator]() {            yield x => x.length        }    }}, p => undefined) : ""
 >foo : <T, U>(x: T, fun: () => Iterable<(x: T) => U>, fun2: (y: U) => T) => T
 >"" : ""
 >function* () {    yield* {        *[Symbol.iterator]() {            yield x => x.length        }    }} : () => Generator<(x: string) => number, void, undefined>
@@ -35,7 +35,7 @@ foo("", function* () {
         }
     }
 }, p => undefined); // T is fixed, should be string
->p => undefined : (p: number) => any
+>p => undefined : (p: number) => undefined
 >p : number
 >undefined : undefined
 

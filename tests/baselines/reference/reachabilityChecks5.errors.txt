@@ -1,13 +1,13 @@
-reachabilityChecks5.ts(5,17): error TS7030: Not all code paths return a value.
+reachabilityChecks5.ts(5,17): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
 reachabilityChecks5.ts(18,17): error TS2355: A function whose declared type is neither 'undefined', 'void', nor 'any' must return a value.
-reachabilityChecks5.ts(30,17): error TS7030: Not all code paths return a value.
-reachabilityChecks5.ts(40,17): error TS7030: Not all code paths return a value.
-reachabilityChecks5.ts(51,17): error TS7030: Not all code paths return a value.
-reachabilityChecks5.ts(79,17): error TS7030: Not all code paths return a value.
+reachabilityChecks5.ts(30,17): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
+reachabilityChecks5.ts(40,17): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
+reachabilityChecks5.ts(51,17): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
+reachabilityChecks5.ts(79,17): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
 reachabilityChecks5.ts(85,13): error TS7027: Unreachable code detected.
-reachabilityChecks5.ts(93,17): error TS7030: Not all code paths return a value.
+reachabilityChecks5.ts(93,17): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
 reachabilityChecks5.ts(96,13): error TS7027: Unreachable code detected.
-reachabilityChecks5.ts(115,18): error TS7030: Not all code paths return a value.
+reachabilityChecks5.ts(115,18): error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
 reachabilityChecks5.ts(122,13): error TS7027: Unreachable code detected.
 
 
@@ -18,7 +18,7 @@ reachabilityChecks5.ts(122,13): error TS7027: Unreachable code detected.
     
     function f1(x): number {
                     ~~~~~~
-!!! error TS7030: Not all code paths return a value.
+!!! error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
         if (x) {
             return 1
         }
@@ -47,7 +47,7 @@ reachabilityChecks5.ts(122,13): error TS7027: Unreachable code detected.
     
     function f4(x): number {
                     ~~~~~~
-!!! error TS7030: Not all code paths return a value.
+!!! error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
         try {
             if (x) {
                 return 1;
@@ -59,7 +59,7 @@ reachabilityChecks5.ts(122,13): error TS7027: Unreachable code detected.
     
     function f5(x): number {
                     ~~~~~~
-!!! error TS7030: Not all code paths return a value.
+!!! error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
         try {
             if (x) {
                 return 1;
@@ -72,7 +72,7 @@ reachabilityChecks5.ts(122,13): error TS7027: Unreachable code detected.
     
     function f6(x): number {
                     ~~~~~~
-!!! error TS7030: Not all code paths return a value.
+!!! error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
         try {
             if (x) {
                 return 1;
@@ -102,7 +102,7 @@ reachabilityChecks5.ts(122,13): error TS7027: Unreachable code detected.
     
     function f8(x): number {
                     ~~~~~~
-!!! error TS7030: Not all code paths return a value.
+!!! error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
         try {
             if (true) {
                 x++;
@@ -120,7 +120,7 @@ reachabilityChecks5.ts(122,13): error TS7027: Unreachable code detected.
     
     function f9(x): number {
                     ~~~~~~
-!!! error TS7030: Not all code paths return a value.
+!!! error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
         try {
             while (false) {
                 return 1;
@@ -146,7 +146,7 @@ reachabilityChecks5.ts(122,13): error TS7027: Unreachable code detected.
     
     function f11(x): number {
                      ~~~~~~
-!!! error TS7030: Not all code paths return a value.
+!!! error TS2366: Function lacks ending return statement and return type does not include 'undefined'.
         test:
         try {
             do {

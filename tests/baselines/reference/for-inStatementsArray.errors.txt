@@ -1,0 +1,78 @@
+for-inStatementsArray.ts(4,15): error TS2454: Variable 'a' is used before being assigned.
+for-inStatementsArray.ts(8,14): error TS2454: Variable 'b' is used before being assigned.
+for-inStatementsArray.ts(9,14): error TS2454: Variable 'b' is used before being assigned.
+for-inStatementsArray.ts(10,14): error TS2454: Variable 'b' is used before being assigned.
+for-inStatementsArray.ts(13,15): error TS2454: Variable 'a' is used before being assigned.
+for-inStatementsArray.ts(25,11): error TS2454: Variable 'a' is used before being assigned.
+for-inStatementsArray.ts(26,15): error TS2454: Variable 'b' is used before being assigned.
+for-inStatementsArray.ts(27,18): error TS2454: Variable 'a' is used before being assigned.
+for-inStatementsArray.ts(28,18): error TS2454: Variable 'a' is used before being assigned.
+for-inStatementsArray.ts(33,15): error TS2454: Variable 'a' is used before being assigned.
+for-inStatementsArray.ts(36,11): error TS2454: Variable 'a' is used before being assigned.
+for-inStatementsArray.ts(37,14): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== for-inStatementsArray.ts (12 errors) ====
+    let a: Date[];
+    let b: boolean[];
+    
+    for (let x in a) {
+                  ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        let a1 = a[x];
+        let a2 = a[(x)];
+        let a3 = a[+x];
+        let b1 = b[x];
+                 ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+        let b2 = b[(x)];
+                 ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+        let b3 = b[+x];
+                 ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    }
+    
+    for (let x in a) {
+                  ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        for (let y in a) {
+            for (let z in a) {
+                let a1 = a[x];
+                let a2 = a[y];
+                let a3 = a[z];
+            }
+        }
+    }
+    
+    let i: string;
+    let j: string;
+    for (i in a) {
+              ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        for (j in b) {
+                  ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            let a1 = a[i];
+                     ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+            let a2 = a[j];
+                     ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        }
+    }
+    
+    var s: string;
+    for (var s in a) {
+                  ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        let a1 = a[s];
+    }
+    for (s in a) {
+              ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        let a1 = a[s];
+                 ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    }
+    

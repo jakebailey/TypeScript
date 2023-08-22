@@ -1,0 +1,53 @@
+typesWithSpecializedCallSignatures.ts(30,5): error TS2454: Variable 'i' is used before being assigned.
+typesWithSpecializedCallSignatures.ts(31,5): error TS2454: Variable 'a' is used before being assigned.
+typesWithSpecializedCallSignatures.ts(34,5): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== typesWithSpecializedCallSignatures.ts (3 errors) ====
+    // basic uses of specialized signatures without errors
+    
+    class Base { foo: string }
+    class Derived1 extends Base { bar: string }
+    class Derived2 extends Base { baz: string }
+    
+    class C {
+        foo(x: 'hi'): Derived1;
+        foo(x: 'bye'): Derived2;
+        foo(x: string): Base;
+        foo(x) {
+            return x;
+        }
+    }
+    var c = new C();
+    
+    interface I {
+        foo(x: 'hi'): Derived1;
+        foo(x: 'bye'): Derived2;
+        foo(x: string): Base;
+    }
+    var i: I;
+    
+    var a: {
+        foo(x: 'hi'): Derived1;
+        foo(x: 'bye'): Derived2;
+        foo(x: string): Base;
+    };
+    
+    c = i;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    c = a;
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    i = c;
+    i = a;
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    a = c;
+    a = i;
+    
+    var r1: Derived1 = c.foo('hi');
+    var r2: Derived2 = c.foo('bye');
+    var r3: Base = c.foo('hm');

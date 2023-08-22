@@ -1,7 +1,12 @@
+negateOperatorWithStringType.ts(18,24): error TS2454: Variable 'STRING' is used before being assigned.
+negateOperatorWithStringType.ts(32,26): error TS2454: Variable 'STRING' is used before being assigned.
+negateOperatorWithStringType.ts(32,35): error TS2454: Variable 'STRING' is used before being assigned.
+negateOperatorWithStringType.ts(33,25): error TS2454: Variable 'STRING' is used before being assigned.
+negateOperatorWithStringType.ts(37,2): error TS2454: Variable 'STRING' is used before being assigned.
 negateOperatorWithStringType.ts(40,1): error TS2695: Left side of comma operator is unused and has no side effects.
 
 
-==== negateOperatorWithStringType.ts (1 errors) ====
+==== negateOperatorWithStringType.ts (6 errors) ====
     // - operator on string type
     var STRING: string;
     var STRING1: string[] = ["", "abc"];
@@ -20,6 +25,8 @@ negateOperatorWithStringType.ts(40,1): error TS2695: Left side of comma operator
     
     // string type var
     var ResultIsNumber1 = -STRING;
+                           ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     var ResultIsNumber2 = -STRING1;
     
     // string type literal
@@ -34,11 +41,19 @@ negateOperatorWithStringType.ts(40,1): error TS2695: Left side of comma operator
     var ResultIsNumber9 = -foo();
     var ResultIsNumber10 = -A.foo();
     var ResultIsNumber11 = -(STRING + STRING);
+                             ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+                                      ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     var ResultIsNumber12 = -STRING.charAt(0);
+                            ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     
     // miss assignment operators
     -"";
     -STRING;
+     ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
     -STRING1;
     -foo();
     -objA.a,M.n;

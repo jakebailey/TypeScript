@@ -8,11 +8,11 @@ class C {
 >x : string
 
     get y() { return null; }
->y : any
+>y : null
 
     set y(x) { }
->y : any
->x : any
+>y : null
+>x : null
 
     foo() { }
 >foo : () => void
@@ -21,11 +21,11 @@ class C {
 >a : string
 
     static get b() { return null; }
->b : any
+>b : null
 
     static set b(x) { }
->b : any
->x : any
+>b : null
+>x : null
 
     static foo() { }
 >foo : () => void
@@ -40,15 +40,15 @@ c.x;
 >x : string
 
 c.y;
->c.y : any
+>c.y : null
 >c : C
->y : any
+>y : null
 
 c.y = 1;
 >c.y = 1 : 1
->c.y : any
+>c.y : null
 >c : C
->y : any
+>y : null
 >1 : 1
 
 c.foo();
@@ -64,15 +64,15 @@ C.a;
 
 C.b();
 >C.b() : any
->C.b : any
+>C.b : null
 >C : typeof C
->b : any
+>b : null
 
 C.b = 1;
 >C.b = 1 : 1
->C.b : any
+>C.b : null
 >C : typeof C
->b : any
+>b : null
 >1 : 1
 
 C.foo();

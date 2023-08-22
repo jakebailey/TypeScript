@@ -135,8 +135,8 @@ var rc2 = x in (c2 || c3);
 >rc2 : boolean
 >x in (c2 || c3) : boolean
 >x : any
->(c2 || c3) : X | Y
->c2 || c3 : X | Y
+>(c2 || c3) : X
+>c2 || c3 : X
 >c2 : X
 >c3 : Y
 

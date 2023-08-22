@@ -19,7 +19,7 @@ function h<T>(nonarray: T, ...args) { }
 function i<T>(array: T[], opt?: any[]) { }
 >i : <T>(array: T[], opt?: any[]) => void
 >array : T[]
->opt : any[]
+>opt : any[] | undefined
 
 var a = [1, 2, 3, 4, 5];
 >a : number[]
@@ -47,6 +47,6 @@ h(a); // OK
 
 i(a); // OK
 >i(a) : void
->i : <T>(array: T[], opt?: any[]) => void
+>i : <T>(array: T[], opt?: any[] | undefined) => void
 >a : number[]
 

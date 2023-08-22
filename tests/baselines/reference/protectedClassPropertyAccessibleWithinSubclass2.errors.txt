@@ -1,27 +1,57 @@
+protectedClassPropertyAccessibleWithinSubclass2.ts(10,9): error TS2454: Variable 'b' is used before being assigned.
+protectedClassPropertyAccessibleWithinSubclass2.ts(11,9): error TS2454: Variable 'd1' is used before being assigned.
+protectedClassPropertyAccessibleWithinSubclass2.ts(12,9): error TS2454: Variable 'd2' is used before being assigned.
+protectedClassPropertyAccessibleWithinSubclass2.ts(13,9): error TS2454: Variable 'd3' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(13,12): error TS2445: Property 'x' is protected and only accessible within class 'Derived3' and its subclasses.
+protectedClassPropertyAccessibleWithinSubclass2.ts(14,9): error TS2454: Variable 'd4' is used before being assigned.
+protectedClassPropertyAccessibleWithinSubclass2.ts(26,9): error TS2454: Variable 'b' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(26,11): error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived1'. This is an instance of class 'Base'.
+protectedClassPropertyAccessibleWithinSubclass2.ts(27,9): error TS2454: Variable 'd1' is used before being assigned.
+protectedClassPropertyAccessibleWithinSubclass2.ts(28,9): error TS2454: Variable 'd2' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(28,12): error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived1'. This is an instance of class 'Derived2'.
+protectedClassPropertyAccessibleWithinSubclass2.ts(29,9): error TS2454: Variable 'd3' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(29,12): error TS2445: Property 'x' is protected and only accessible within class 'Derived3' and its subclasses.
+protectedClassPropertyAccessibleWithinSubclass2.ts(30,9): error TS2454: Variable 'd4' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(30,12): error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived1'. This is an instance of class 'Derived4'.
+protectedClassPropertyAccessibleWithinSubclass2.ts(42,9): error TS2454: Variable 'b' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(42,11): error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived2'. This is an instance of class 'Base'.
+protectedClassPropertyAccessibleWithinSubclass2.ts(43,9): error TS2454: Variable 'd1' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(43,12): error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived2'. This is an instance of class 'Derived1'.
+protectedClassPropertyAccessibleWithinSubclass2.ts(44,9): error TS2454: Variable 'd2' is used before being assigned.
+protectedClassPropertyAccessibleWithinSubclass2.ts(45,9): error TS2454: Variable 'd3' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(45,12): error TS2445: Property 'x' is protected and only accessible within class 'Derived3' and its subclasses.
+protectedClassPropertyAccessibleWithinSubclass2.ts(46,9): error TS2454: Variable 'd4' is used before being assigned.
+protectedClassPropertyAccessibleWithinSubclass2.ts(59,9): error TS2454: Variable 'b' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(59,11): error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived3'. This is an instance of class 'Base'.
+protectedClassPropertyAccessibleWithinSubclass2.ts(60,9): error TS2454: Variable 'd1' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(60,12): error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived3'. This is an instance of class 'Derived1'.
+protectedClassPropertyAccessibleWithinSubclass2.ts(61,9): error TS2454: Variable 'd2' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(61,12): error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived3'. This is an instance of class 'Derived2'.
+protectedClassPropertyAccessibleWithinSubclass2.ts(62,9): error TS2454: Variable 'd3' is used before being assigned.
+protectedClassPropertyAccessibleWithinSubclass2.ts(63,9): error TS2454: Variable 'd4' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(63,12): error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived3'. This is an instance of class 'Derived4'.
+protectedClassPropertyAccessibleWithinSubclass2.ts(75,9): error TS2454: Variable 'b' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(75,11): error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived4'. This is an instance of class 'Base'.
+protectedClassPropertyAccessibleWithinSubclass2.ts(76,9): error TS2454: Variable 'd1' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(76,12): error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived4'. This is an instance of class 'Derived1'.
+protectedClassPropertyAccessibleWithinSubclass2.ts(77,9): error TS2454: Variable 'd2' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(77,12): error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived4'. This is an instance of class 'Derived2'.
+protectedClassPropertyAccessibleWithinSubclass2.ts(78,9): error TS2454: Variable 'd3' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(78,12): error TS2445: Property 'x' is protected and only accessible within class 'Derived3' and its subclasses.
+protectedClassPropertyAccessibleWithinSubclass2.ts(79,9): error TS2454: Variable 'd4' is used before being assigned.
+protectedClassPropertyAccessibleWithinSubclass2.ts(90,1): error TS2454: Variable 'b' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(90,3): error TS2445: Property 'x' is protected and only accessible within class 'Base' and its subclasses.
+protectedClassPropertyAccessibleWithinSubclass2.ts(91,1): error TS2454: Variable 'd1' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(91,4): error TS2445: Property 'x' is protected and only accessible within class 'Base' and its subclasses.
+protectedClassPropertyAccessibleWithinSubclass2.ts(92,1): error TS2454: Variable 'd2' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(92,4): error TS2445: Property 'x' is protected and only accessible within class 'Base' and its subclasses.
+protectedClassPropertyAccessibleWithinSubclass2.ts(93,1): error TS2454: Variable 'd3' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(93,4): error TS2445: Property 'x' is protected and only accessible within class 'Derived3' and its subclasses.
+protectedClassPropertyAccessibleWithinSubclass2.ts(94,1): error TS2454: Variable 'd4' is used before being assigned.
 protectedClassPropertyAccessibleWithinSubclass2.ts(94,4): error TS2445: Property 'x' is protected and only accessible within class 'Base' and its subclasses.
 
 
-==== protectedClassPropertyAccessibleWithinSubclass2.ts (21 errors) ====
+==== protectedClassPropertyAccessibleWithinSubclass2.ts (51 errors) ====
     class Base {
         protected x: string;
         method() {
@@ -32,12 +62,22 @@ protectedClassPropertyAccessibleWithinSubclass2.ts(94,4): error TS2445: Property
             var d4: Derived4;
     
             b.x;            // OK, accessed within their declaring class
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
             d1.x;           // OK, accessed within their declaring class
+            ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
             d2.x;           // OK, accessed within their declaring class
+            ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
             d3.x;           // Error, redefined in a subclass, can only be accessed in the declaring class or one of its subclasses
+            ~~
+!!! error TS2454: Variable 'd3' is used before being assigned.
                ~
 !!! error TS2445: Property 'x' is protected and only accessible within class 'Derived3' and its subclasses.
             d4.x;           // OK, accessed within their declaring class
+            ~~
+!!! error TS2454: Variable 'd4' is used before being assigned.
         }
     }
     
@@ -50,16 +90,26 @@ protectedClassPropertyAccessibleWithinSubclass2.ts(94,4): error TS2445: Property
             var d4: Derived4;
     
             b.x;            // Error, isn't accessed through an instance of the enclosing class
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
               ~
 !!! error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived1'. This is an instance of class 'Base'.
             d1.x;           // OK, accessed within a class derived from their declaring class, and through an instance of the enclosing class
+            ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
             d2.x;           // Error, isn't accessed through an instance of the enclosing class
+            ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
                ~
 !!! error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived1'. This is an instance of class 'Derived2'.
             d3.x;           // Error, redefined in a subclass, can only be accessed in the declaring class or one of its subclasses
+            ~~
+!!! error TS2454: Variable 'd3' is used before being assigned.
                ~
 !!! error TS2445: Property 'x' is protected and only accessible within class 'Derived3' and its subclasses.
             d4.x;           // Error, isn't accessed through an instance of the enclosing class
+            ~~
+!!! error TS2454: Variable 'd4' is used before being assigned.
                ~
 !!! error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived1'. This is an instance of class 'Derived4'.
         }
@@ -74,16 +124,26 @@ protectedClassPropertyAccessibleWithinSubclass2.ts(94,4): error TS2445: Property
             var d4: Derived4;
     
             b.x;            // Error, isn't accessed through an instance of the enclosing class
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
               ~
 !!! error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived2'. This is an instance of class 'Base'.
             d1.x;           // Error, isn't accessed through an instance of the enclosing class
+            ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
                ~
 !!! error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived2'. This is an instance of class 'Derived1'.
             d2.x;           // OK, accessed within a class derived from their declaring class, and through an instance of the enclosing class
+            ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
             d3.x;           // Error, redefined in a subclass, can only be accessed in the declaring class or one of its subclasses
+            ~~
+!!! error TS2454: Variable 'd3' is used before being assigned.
                ~
 !!! error TS2445: Property 'x' is protected and only accessible within class 'Derived3' and its subclasses.
             d4.x;           // OK, accessed within a class derived from their declaring class, and through an instance of the enclosing class or one of its subclasses
+            ~~
+!!! error TS2454: Variable 'd4' is used before being assigned.
         }
     }
     
@@ -97,16 +157,26 @@ protectedClassPropertyAccessibleWithinSubclass2.ts(94,4): error TS2445: Property
             var d4: Derived4;
     
             b.x;            // Error, isn't accessed through an instance of the enclosing class
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
               ~
 !!! error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived3'. This is an instance of class 'Base'.
             d1.x;           // Error, isn't accessed through an instance of the enclosing class
+            ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
                ~
 !!! error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived3'. This is an instance of class 'Derived1'.
             d2.x;           // Error, isn't accessed through an instance of the enclosing class
+            ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
                ~
 !!! error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived3'. This is an instance of class 'Derived2'.
             d3.x;           // OK, accessed within their declaring class
+            ~~
+!!! error TS2454: Variable 'd3' is used before being assigned.
             d4.x;           // Error, isn't accessed through an instance of the enclosing class
+            ~~
+!!! error TS2454: Variable 'd4' is used before being assigned.
                ~
 !!! error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived3'. This is an instance of class 'Derived4'.
         }
@@ -121,18 +191,28 @@ protectedClassPropertyAccessibleWithinSubclass2.ts(94,4): error TS2445: Property
             var d4: Derived4;
     
             b.x;            // Error, isn't accessed through an instance of the enclosing class
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
               ~
 !!! error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived4'. This is an instance of class 'Base'.
             d1.x;           // Error, isn't accessed through an instance of the enclosing class
+            ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
                ~
 !!! error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived4'. This is an instance of class 'Derived1'.
             d2.x;           // Error, isn't accessed through an instance of the enclosing class
+            ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
                ~
 !!! error TS2446: Property 'x' is protected and only accessible through an instance of class 'Derived4'. This is an instance of class 'Derived2'.
             d3.x;           // Error, redefined in a subclass, can only be accessed in the declaring class or one of its subclasses
+            ~~
+!!! error TS2454: Variable 'd3' is used before being assigned.
                ~
 !!! error TS2445: Property 'x' is protected and only accessible within class 'Derived3' and its subclasses.
             d4.x;           // OK, accessed within a class derived from their declaring class, and through an instance of the enclosing class
+            ~~
+!!! error TS2454: Variable 'd4' is used before being assigned.
         }
     }
     
@@ -144,17 +224,27 @@ protectedClassPropertyAccessibleWithinSubclass2.ts(94,4): error TS2445: Property
     var d4: Derived4;
     
     b.x;                    // Error, neither within their declaring class nor classes derived from their declaring class
+    ~
+!!! error TS2454: Variable 'b' is used before being assigned.
       ~
 !!! error TS2445: Property 'x' is protected and only accessible within class 'Base' and its subclasses.
     d1.x;                   // Error, neither within their declaring class nor classes derived from their declaring class
+    ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
        ~
 !!! error TS2445: Property 'x' is protected and only accessible within class 'Base' and its subclasses.
     d2.x;                   // Error, neither within their declaring class nor classes derived from their declaring class
+    ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
        ~
 !!! error TS2445: Property 'x' is protected and only accessible within class 'Base' and its subclasses.
     d3.x;                   // Error, neither within their declaring class nor classes derived from their declaring class
+    ~~
+!!! error TS2454: Variable 'd3' is used before being assigned.
        ~
 !!! error TS2445: Property 'x' is protected and only accessible within class 'Derived3' and its subclasses.
     d4.x;                   // Error, neither within their declaring class nor classes derived from their declaring class
+    ~~
+!!! error TS2454: Variable 'd4' is used before being assigned.
        ~
 !!! error TS2445: Property 'x' is protected and only accessible within class 'Base' and its subclasses.

@@ -10,11 +10,11 @@ class ConstantIterator<T> implements AsyncIterator<T, undefined, T | undefined> 
     }
     async next(value?: T): Promise<IteratorResult<T>> {
 >next : (value?: T) => Promise<IteratorResult<T>>
->value : T
+>value : T | undefined
 
         if (value != null) {
 >value != null : boolean
->value : T
+>value : T | undefined
 
             throw new Error("ConstantIterator.prototype.next may not take any values");
 >new Error("ConstantIterator.prototype.next may not take any values") : Error

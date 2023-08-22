@@ -1,8 +1,9 @@
 constraints0.ts(14,11): error TS2344: Type 'B' does not satisfy the constraint 'A'.
   Property 'a' is missing in type 'B' but required in type 'A'.
+constraints0.ts(16,9): error TS2454: Variable 'v1' is used before being assigned.
 
 
-==== constraints0.ts (1 errors) ====
+==== constraints0.ts (2 errors) ====
     interface A {
     	a: number;
     }
@@ -23,3 +24,5 @@ constraints0.ts(14,11): error TS2344: Type 'B' does not satisfy the constraint '
 !!! related TS2728 constraints0.ts:2:2: 'a' is declared here.
     
     var y = v1.x.a; // 'a' should be of type 'number'
+            ~~
+!!! error TS2454: Variable 'v1' is used before being assigned.

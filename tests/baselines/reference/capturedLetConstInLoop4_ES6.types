@@ -15,7 +15,7 @@ export function exportedFoo() {
 >v0 + v00 + v1 + v2 : string
 >v0 + v00 + v1 : string
 >v0 + v00 : string
->v0 : any
+>v0 : never
 >v00 : string
 >v1 : number
 >v2 : any
@@ -28,29 +28,29 @@ export function exportedFoo() {
 }
 
 for (let x of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
     var v0 = x;
->v0 : any
->x : any
+>v0 : never
+>x : never
 
     (function() { return x + v0});
->(function() { return x + v0}) : () => any
->function() { return x + v0} : () => any
->x + v0 : any
->x : any
->v0 : any
+>(function() { return x + v0}) : () => number
+>function() { return x + v0} : () => number
+>x + v0 : number
+>x : never
+>v0 : never
 
     (() => x);    
->(() => x) : () => any
->() => x : () => any
->x : any
+>(() => x) : () => never
+>() => x : () => never
+>x : never
 }
 
 for (let x in []) {
 >x : string
->[] : undefined[]
+>[] : never[]
 
     var v00 = x;
 >v00 : string
@@ -315,7 +315,7 @@ export function exportedFoo2() {
 >v0_c + v00_c + v1_c + v2_c : string
 >v0_c + v00_c + v1_c : string
 >v0_c + v00_c : string
->v0_c : any
+>v0_c : never
 >v00_c : string
 >v1_c : number
 >v2_c : number
@@ -328,29 +328,29 @@ export function exportedFoo2() {
 }
 
 for (const x of []) {
->x : any
->[] : undefined[]
+>x : never
+>[] : never[]
 
     var v0_c = x;
->v0_c : any
->x : any
+>v0_c : never
+>x : never
 
     (function() { return x + v0_c});
->(function() { return x + v0_c}) : () => any
->function() { return x + v0_c} : () => any
->x + v0_c : any
->x : any
->v0_c : any
+>(function() { return x + v0_c}) : () => number
+>function() { return x + v0_c} : () => number
+>x + v0_c : number
+>x : never
+>v0_c : never
 
     (() => x);    
->(() => x) : () => any
->() => x : () => any
->x : any
+>(() => x) : () => never
+>() => x : () => never
+>x : never
 }
 
 for (const x in []) {
 >x : string
->[] : undefined[]
+>[] : never[]
 
     var v00_c = x;
 >v00_c : string

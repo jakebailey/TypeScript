@@ -1,7 +1,9 @@
+deleteExpressionMustBeOptional.ts(25,8): error TS2790: The operand of a 'delete' operator must be optional.
+deleteExpressionMustBeOptional.ts(27,8): error TS2790: The operand of a 'delete' operator must be optional.
 deleteExpressionMustBeOptional.ts(34,10): error TS2339: Property 'j' does not exist on type 'Foo'.
 
 
-==== deleteExpressionMustBeOptional.ts (1 errors) ====
+==== deleteExpressionMustBeOptional.ts (3 errors) ====
     interface Foo {
         a: number
         b: number | undefined
@@ -27,8 +29,12 @@ deleteExpressionMustBeOptional.ts(34,10): error TS2339: Property 'j' does not ex
     declare const b: BB
     
     delete f.a
+           ~~~
+!!! error TS2790: The operand of a 'delete' operator must be optional.
     delete f.b
     delete f.c
+           ~~~
+!!! error TS2790: The operand of a 'delete' operator must be optional.
     delete f.d
     delete f.e
     delete f.f

@@ -109,25 +109,25 @@ var n = function () {
 
 // FunctionExpression with no return type annotation and returns null
 var nu = null;
->nu : any
+>nu : null
 
 var nu = function () {
->nu : any
->function () {    return null;} () : any
->function () {    return null;} : () => any
+>nu : null
+>function () {    return null;} () : null
+>function () {    return null;} : () => null
 
     return null;
 } ();
 
 // FunctionExpression with no return type annotation and returns undefined
 var un = undefined;
->un : any
+>un : undefined
 >undefined : undefined
 
 var un = function () {
->un : any
->function () {    return undefined;} () : any
->function () {    return undefined;} : () => any
+>un : undefined
+>function () {    return undefined;} () : undefined
+>function () {    return undefined;} : () => undefined
 
     return undefined;
 >undefined : undefined
@@ -260,19 +260,19 @@ function opt1(n = 4) {
 
 // Function signature with optional parameter, no type annotation and initializer has initializer's widened type
 function opt2(n = { x: null, y: undefined }) {
->opt2 : (n?: { x: any; y: any; }) => void
->n : { x: any; y: any; }
+>opt2 : (n?: { x: null; y: undefined; }) => void
+>n : { x: null; y: undefined; }
 >{ x: null, y: undefined } : { x: null; y: undefined; }
 >x : null
 >y : undefined
 >undefined : undefined
 
     var m = n;
->m : { x: any; y: any; }
->n : { x: any; y: any; }
+>m : { x: null; y: undefined; }
+>n : { x: null; y: undefined; }
 
     var m: { x: any; y: any };
->m : { x: any; y: any; }
+>m : { x: null; y: undefined; }
 >x : any
 >y : any
 }
@@ -328,9 +328,9 @@ var f7: (x: number) => string | number = x => { // should be (x: number) => numb
 
     return x.toString();
 >x.toString() : string
->x.toString : (radix?: number) => string
+>x.toString : (radix?: number | undefined) => string
 >x : number
->toString : (radix?: number) => string
+>toString : (radix?: number | undefined) => string
 }
 var f8: (x: number) => any = x => { // should be (x: number) => Base
 >f8 : (x: number) => any
@@ -395,7 +395,7 @@ var f11: (x: number) => any = x => { // should be (x: number) => Base | AnotherC
 var f12: (x: number) => any = x => { // should be (x: number) => Base | AnotherClass
 >f12 : (x: number) => any
 >x : number
->x => { // should be (x: number) => Base | AnotherClass    return new Base();    return; // should be ignored    return new AnotherClass();} : (x: number) => Base | AnotherClass
+>x => { // should be (x: number) => Base | AnotherClass    return new Base();    return; // should be ignored    return new AnotherClass();} : (x: number) => Base | AnotherClass | undefined
 >x : number
 
     return new Base();
