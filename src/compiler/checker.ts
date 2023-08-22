@@ -1175,49 +1175,30 @@ export const enum TypeFacts {
     // The following members encode facts about particular kinds of types for use in the getTypeFacts function.
     // The presence of a particular fact means that the given test is true for some (and possibly all) values
     // of that kind of type.
+    // TODO(jakebailey): rename facts
     BaseStringStrictFacts = TypeofEQString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
-    BaseStringFacts = BaseStringStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
     StringStrictFacts = BaseStringStrictFacts | Truthy | Falsy,
-    StringFacts = BaseStringFacts | Truthy,
     EmptyStringStrictFacts = BaseStringStrictFacts | Falsy,
-    EmptyStringFacts = BaseStringFacts,
     NonEmptyStringStrictFacts = BaseStringStrictFacts | Truthy,
-    NonEmptyStringFacts = BaseStringFacts | Truthy,
     BaseNumberStrictFacts = TypeofEQNumber | TypeofNEString | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
-    BaseNumberFacts = BaseNumberStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
     NumberStrictFacts = BaseNumberStrictFacts | Truthy | Falsy,
-    NumberFacts = BaseNumberFacts | Truthy,
     ZeroNumberStrictFacts = BaseNumberStrictFacts | Falsy,
-    ZeroNumberFacts = BaseNumberFacts,
     NonZeroNumberStrictFacts = BaseNumberStrictFacts | Truthy,
-    NonZeroNumberFacts = BaseNumberFacts | Truthy,
     BaseBigIntStrictFacts = TypeofEQBigInt | TypeofNEString | TypeofNENumber | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
-    BaseBigIntFacts = BaseBigIntStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
     BigIntStrictFacts = BaseBigIntStrictFacts | Truthy | Falsy,
-    BigIntFacts = BaseBigIntFacts | Truthy,
     ZeroBigIntStrictFacts = BaseBigIntStrictFacts | Falsy,
-    ZeroBigIntFacts = BaseBigIntFacts,
     NonZeroBigIntStrictFacts = BaseBigIntStrictFacts | Truthy,
-    NonZeroBigIntFacts = BaseBigIntFacts | Truthy,
     BaseBooleanStrictFacts = TypeofEQBoolean | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull,
-    BaseBooleanFacts = BaseBooleanStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
     BooleanStrictFacts = BaseBooleanStrictFacts | Truthy | Falsy,
-    BooleanFacts = BaseBooleanFacts | Truthy,
     FalseStrictFacts = BaseBooleanStrictFacts | Falsy,
-    FalseFacts = BaseBooleanFacts,
     TrueStrictFacts = BaseBooleanStrictFacts | Truthy,
-    TrueFacts = BaseBooleanFacts | Truthy,
     SymbolStrictFacts = TypeofEQSymbol | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | NEUndefined | NENull | NEUndefinedOrNull | Truthy,
-    SymbolFacts = SymbolStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
     ObjectStrictFacts = TypeofEQObject | TypeofEQHostObject | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEFunction | NEUndefined | NENull | NEUndefinedOrNull | Truthy,
-    ObjectFacts = ObjectStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
     FunctionStrictFacts = TypeofEQFunction | TypeofEQHostObject | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | NEUndefined | NENull | NEUndefinedOrNull | Truthy,
-    FunctionFacts = FunctionStrictFacts | EQUndefined | EQNull | EQUndefinedOrNull | Falsy,
     VoidFacts = TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | EQUndefined | EQUndefinedOrNull | NENull | Falsy,
     UndefinedFacts = TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | TypeofNEHostObject | EQUndefined | EQUndefinedOrNull | NENull | Falsy | IsUndefined,
     NullFacts = TypeofEQObject | TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEFunction | TypeofNEHostObject | EQNull | EQUndefinedOrNull | NEUndefined | Falsy | IsNull,
     EmptyObjectStrictFacts = All & ~(EQUndefined | EQNull | EQUndefinedOrNull | IsUndefinedOrNull),
-    EmptyObjectFacts = All & ~IsUndefinedOrNull,
     UnknownFacts = All & ~IsUndefinedOrNull,
     AllTypeofNE = TypeofNEString | TypeofNENumber | TypeofNEBigInt | TypeofNEBoolean | TypeofNESymbol | TypeofNEObject | TypeofNEFunction | NEUndefined,
     // Masks
@@ -1441,7 +1422,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     var useDefineForClassFields = getUseDefineForClassFields(compilerOptions);
     var emitStandardClassFields = getEmitStandardClassFields(compilerOptions);
     var allowSyntheticDefaultImports = getAllowSyntheticDefaultImports(compilerOptions);
-    var strictNullChecks = true;
     var strictFunctionTypes = getStrictOptionValue(compilerOptions, "strictFunctionTypes");
     var strictBindCallApply = getStrictOptionValue(compilerOptions, "strictBindCallApply");
     var strictPropertyInitialization = getStrictOptionValue(compilerOptions, "strictPropertyInitialization");
@@ -1926,12 +1906,12 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     var unknownType = createIntrinsicType(TypeFlags.Unknown, "unknown");
     var nonNullUnknownType = createIntrinsicType(TypeFlags.Unknown, "unknown");
     var undefinedType = createIntrinsicType(TypeFlags.Undefined, "undefined");
-    var undefinedWideningType = strictNullChecks ? undefinedType : createIntrinsicType(TypeFlags.Undefined, "undefined", ObjectFlags.ContainsWideningType);
+    var undefinedWideningType = undefinedType; // TODO(jakebailey): inline
     var missingType = createIntrinsicType(TypeFlags.Undefined, "undefined");
     var undefinedOrMissingType = exactOptionalPropertyTypes ? missingType : undefinedType;
     var optionalType = createIntrinsicType(TypeFlags.Undefined, "undefined");
     var nullType = createIntrinsicType(TypeFlags.Null, "null");
-    var nullWideningType = strictNullChecks ? nullType : createIntrinsicType(TypeFlags.Null, "null", ObjectFlags.ContainsWideningType);
+    var nullWideningType = nullType; // TODO(jakebailey): inline
     var stringType = createIntrinsicType(TypeFlags.String, "string");
     var numberType = createIntrinsicType(TypeFlags.Number, "number");
     var bigintType = createIntrinsicType(TypeFlags.BigInt, "bigint");
@@ -1989,7 +1969,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     var emptyTypeLiteralType = createAnonymousType(emptyTypeLiteralSymbol, emptySymbols, emptyArray, emptyArray, emptyArray);
 
     var unknownEmptyObjectType = createAnonymousType(/*symbol*/ undefined, emptySymbols, emptyArray, emptyArray, emptyArray);
-    var unknownUnionType = strictNullChecks ? getUnionType([undefinedType, nullType, unknownEmptyObjectType]) : unknownType;
+    var unknownUnionType = getUnionType([undefinedType, nullType, unknownEmptyObjectType]);
 
     var emptyGenericType = createAnonymousType(/*symbol*/ undefined, emptySymbols, emptyArray, emptyArray, emptyArray) as ObjectType as GenericType;
     emptyGenericType.instantiations = new Map<string, TypeReference>();
@@ -10620,11 +10600,11 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
         const pattern = declaration.parent;
         // Relax null check on ambient destructuring parameters, since the parameters have no implementation and are just documentation
-        if (strictNullChecks && declaration.flags & NodeFlags.Ambient && isParameterDeclaration(declaration)) {
+        if (declaration.flags & NodeFlags.Ambient && isParameterDeclaration(declaration)) {
             parentType = getNonNullableType(parentType);
         }
         // Filter `undefined` from the type we check against if the parent has an initializer and that initializer is not possibly `undefined`
-        else if (strictNullChecks && pattern.parent.initializer && !(getTypeFacts(getTypeOfInitializer(pattern.parent.initializer)) & TypeFacts.EQUndefined)) {
+        else if (pattern.parent.initializer && !(getTypeFacts(getTypeOfInitializer(pattern.parent.initializer)) & TypeFacts.EQUndefined)) {
             parentType = getTypeWithFacts(parentType, TypeFacts.NEUndefined);
         }
 
@@ -10683,7 +10663,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         if (getEffectiveTypeAnnotationNode(walkUpBindingElementsAndPatterns(declaration))) {
             // In strict null checking mode, if a default value of a non-undefined type is specified, remove
             // undefined from the final type.
-            return strictNullChecks && !(getTypeFacts(checkDeclarationInitializer(declaration, CheckMode.Normal)) & TypeFacts.IsUndefined) ? getNonUndefinedType(type) : type;
+            return !(getTypeFacts(checkDeclarationInitializer(declaration, CheckMode.Normal)) & TypeFacts.IsUndefined) ? getNonUndefinedType(type) : type;
         }
         return widenTypeInferredFromInitializer(declaration, getUnionType([getNonUndefinedType(type), checkDeclarationInitializer(declaration, CheckMode.Normal)], UnionReduction.Subtype));
     }
@@ -10707,7 +10687,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function addOptionality(type: Type, isProperty = false, isOptional = true): Type {
-        return strictNullChecks && isOptional ? getOptionalType(type, isProperty) : type;
+        return isOptional ? getOptionalType(type, isProperty) : type;
     }
 
     // Return the inferred type for a variable, parameter, or property declaration
@@ -11674,7 +11654,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             return baseTypeVariable ? getIntersectionType([type, baseTypeVariable]) : type;
         }
         else {
-            return strictNullChecks && symbol.flags & SymbolFlags.Optional ? getOptionalType(type, /*isProperty*/ true) : type;
+            return symbol.flags & SymbolFlags.Optional ? getOptionalType(type, /*isProperty*/ true) : type;
         }
     }
 
@@ -13545,7 +13525,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         !(templateModifiers & MappedTypeModifiers.ExcludeOptional) && modifiersProp && modifiersProp.flags & SymbolFlags.Optional);
                     const isReadonly = !!(templateModifiers & MappedTypeModifiers.IncludeReadonly ||
                         !(templateModifiers & MappedTypeModifiers.ExcludeReadonly) && modifiersProp && isReadonlySymbol(modifiersProp));
-                    const stripOptional = strictNullChecks && !isOptional && modifiersProp && modifiersProp.flags & SymbolFlags.Optional;
+                    const stripOptional = !isOptional && modifiersProp && modifiersProp.flags & SymbolFlags.Optional;
                     const lateFlag: CheckFlags = modifiersProp ? getIsLateCheckFlag(modifiersProp) : 0;
                     const prop = createSymbol(SymbolFlags.Property | (isOptional ? SymbolFlags.Optional : 0), propName, lateFlag | CheckFlags.Mapped | (isReadonly ? CheckFlags.Readonly : 0) | (stripOptional ? CheckFlags.StripOptional : 0)) as MappedSymbol;
                     prop.links.mappedType = type;
@@ -13582,7 +13562,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             // When creating an optional property in strictNullChecks mode, if 'undefined' isn't assignable to the
             // type, we include 'undefined' in the type. Similarly, when creating a non-optional property in strictNullChecks
             // mode, if the underlying property is optional we remove 'undefined' from the type.
-            let type = strictNullChecks && symbol.flags & SymbolFlags.Optional && !maybeTypeOfKind(propType, TypeFlags.Undefined | TypeFlags.Void) ? getOptionalType(propType, /*isProperty*/ true) :
+            let type = symbol.flags & SymbolFlags.Optional && !maybeTypeOfKind(propType, TypeFlags.Undefined | TypeFlags.Void) ? getOptionalType(propType, /*isProperty*/ true) :
                 symbol.links.checkFlags & CheckFlags.StripOptional ? removeMissingOrUndefinedType(propType) :
                 propType;
             if (!popTypeResolution()) {
@@ -14196,7 +14176,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             t.flags & TypeFlags.ESSymbolLike ? getGlobalESSymbolType() :
             t.flags & TypeFlags.NonPrimitive ? emptyObjectType :
             t.flags & TypeFlags.Index ? keyofConstraintType :
-            t.flags & TypeFlags.Unknown && !strictNullChecks ? emptyObjectType :
             t;
     }
 
@@ -15886,7 +15865,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
 
     function getTypeFromJSDocNullableTypeNode(node: JSDocNullableType) {
         const type = getTypeFromTypeNode(node.type);
-        return strictNullChecks ? getNullableType(type, TypeFlags.Null) : type;
+        return getNullableType(type, TypeFlags.Null);
     }
 
     function getTypeFromTypeReference(node: TypeReferenceType): Type {
@@ -16569,15 +16548,10 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             includes |= flags & TypeFlags.IncludesMask;
             if (flags & TypeFlags.Instantiable) includes |= TypeFlags.IncludesInstantiable;
             if (type === wildcardType) includes |= TypeFlags.IncludesWildcard;
-            if (!strictNullChecks && flags & TypeFlags.Nullable) {
-                if (!(getObjectFlags(type) & ObjectFlags.ContainsWideningType)) includes |= TypeFlags.IncludesNonWideningType;
-            }
-            else {
-                const len = typeSet.length;
-                const index = len && type.id > typeSet[len - 1].id ? ~len : binarySearch(typeSet, type, getTypeId, compareValues);
-                if (index < 0) {
-                    typeSet.splice(~index, 0, type);
-                }
+            const len = typeSet.length;
+            const index = len && type.id > typeSet[len - 1].id ? ~len : binarySearch(typeSet, type, getTypeId, compareValues);
+            if (index < 0) {
+                typeSet.splice(~index, 0, type);
             }
         }
         return includes;
@@ -16914,7 +16888,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             if (flags & TypeFlags.AnyOrUnknown) {
                 if (type === wildcardType) includes |= TypeFlags.IncludesWildcard;
             }
-            else if (strictNullChecks || !(flags & TypeFlags.Nullable)) {
+            else {
                 if (type === missingType) {
                     includes |= TypeFlags.IncludesMissingType;
                     type = undefinedType;
@@ -17089,7 +17063,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             return contains(typeSet, silentNeverType) ? silentNeverType : neverType;
         }
         if (
-            strictNullChecks && includes & TypeFlags.Nullable && includes & (TypeFlags.Object | TypeFlags.NonPrimitive | TypeFlags.IncludesEmptyObject) ||
+            includes & TypeFlags.Nullable && includes & (TypeFlags.Object | TypeFlags.NonPrimitive | TypeFlags.IncludesEmptyObject) ||
             includes & TypeFlags.NonPrimitive && includes & (TypeFlags.DisjointDomains & ~TypeFlags.NonPrimitive) ||
             includes & TypeFlags.StringLike && includes & (TypeFlags.DisjointDomains & ~TypeFlags.StringLike) ||
             includes & TypeFlags.NumberLike && includes & (TypeFlags.DisjointDomains & ~TypeFlags.NumberLike) ||
@@ -17104,9 +17078,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
         if (includes & TypeFlags.Any) {
             return includes & TypeFlags.IncludesWildcard ? wildcardType : anyType;
-        }
-        if (!strictNullChecks && includes & TypeFlags.Nullable) {
-            return includes & TypeFlags.IncludesEmptyObject ? neverType : includes & TypeFlags.Undefined ? undefinedType : nullType;
         }
         if (
             includes & TypeFlags.String && includes & (TypeFlags.StringLiteral | TypeFlags.TemplateLiteral | TypeFlags.StringMapping) ||
@@ -19303,8 +19274,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         const templateMapper = appendTypeMapping(mapper, getTypeParameterFromMappedType(type), key);
         const propType = instantiateType(getTemplateTypeFromMappedType(type.target as MappedType || type), templateMapper);
         const modifiers = getMappedTypeModifiers(type);
-        return strictNullChecks && modifiers & MappedTypeModifiers.IncludeOptional && !maybeTypeOfKind(propType, TypeFlags.Undefined | TypeFlags.Void) ? getOptionalType(propType, /*isProperty*/ true) :
-            strictNullChecks && modifiers & MappedTypeModifiers.ExcludeOptional && isOptional ? getTypeWithFacts(propType, TypeFacts.NEUndefined) :
+        return modifiers & MappedTypeModifiers.IncludeOptional && !maybeTypeOfKind(propType, TypeFlags.Undefined | TypeFlags.Void) ? getOptionalType(propType, /*isProperty*/ true) :
+            modifiers & MappedTypeModifiers.ExcludeOptional && isOptional ? getTypeWithFacts(propType, TypeFacts.NEUndefined) :
             propType;
     }
 
@@ -20441,7 +20412,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function isUnknownLikeUnionType(type: Type) {
-        if (strictNullChecks && type.flags & TypeFlags.Union) {
+        if (type.flags & TypeFlags.Union) {
             if (!((type as UnionType).objectFlags & ObjectFlags.IsUnknownLikeUnionComputed)) {
                 const types = (type as UnionType).types;
                 (type as UnionType).objectFlags |= ObjectFlags.IsUnknownLikeUnionComputed | (types.length >= 3 && types[0].flags & TypeFlags.Undefined &&
@@ -20528,10 +20499,9 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 isEnumTypeRelatedTo(source.symbol, target.symbol, errorReporter)
             ) return true;
         }
-        // In non-strictNullChecks mode, `undefined` and `null` are assignable to anything except `never`.
         // Since unions and intersections may reduce to `never`, we exclude them here.
-        if (s & TypeFlags.Undefined && (!strictNullChecks && !(t & TypeFlags.UnionOrIntersection) || t & (TypeFlags.Undefined | TypeFlags.Void))) return true;
-        if (s & TypeFlags.Null && (!strictNullChecks && !(t & TypeFlags.UnionOrIntersection) || t & TypeFlags.Null)) return true;
+        if (s & TypeFlags.Undefined && (t & (TypeFlags.Undefined | TypeFlags.Void))) return true;
+        if (s & TypeFlags.Null && (t & TypeFlags.Null)) return true;
         if (s & TypeFlags.Object && t & TypeFlags.NonPrimitive && !(relation === strictSubtypeRelation && isEmptyAnonymousObjectType(source) && !(getObjectFlags(source) & ObjectFlags.FreshLiteral))) return true;
         if (relation === assignableRelation || relation === comparableRelation) {
             if (s & TypeFlags.Any) return true;
@@ -22399,7 +22369,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         if (!targetProperty) continue outer;
                         if (sourceProperty === targetProperty) continue;
                         // We compare the source property to the target in the context of a single discriminant type.
-                        const related = propertyRelatedTo(source, target, sourceProperty, targetProperty, _ => combination[i], /*reportErrors*/ false, IntersectionState.None, /*skipOptional*/ strictNullChecks || relation === comparableRelation);
+                        const related = propertyRelatedTo(source, target, sourceProperty, targetProperty, _ => combination[i], /*reportErrors*/ false, IntersectionState.None, /*skipOptional*/ true);
                         // If the target property could not be found, or if the properties were not related,
                         // then this constituent is not a match.
                         if (!related) {
@@ -22456,7 +22426,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
 
         function isPropertySymbolTypeRelated(sourceProp: Symbol, targetProp: Symbol, getTypeOfSourceProperty: (sym: Symbol) => Type, reportErrors: boolean, intersectionState: IntersectionState): Ternary {
-            const targetIsOptional = strictNullChecks && !!(getCheckFlags(targetProp) & CheckFlags.Partial);
+            const targetIsOptional = !!(getCheckFlags(targetProp) & CheckFlags.Partial);
             const effectiveTarget = addOptionality(getNonMissingTypeOfSymbol(targetProp), /*isProperty*/ false, targetIsOptional);
             const effectiveSource = getTypeOfSourceProperty(sourceProp);
             return isRelatedTo(effectiveSource, effectiveTarget, RecursionFlags.Both, reportErrors, /*headMessage*/ undefined, intersectionState);
@@ -23606,7 +23576,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             return types[0];
         }
         // Remove nullable types from each of the candidates.
-        const primaryTypes = strictNullChecks ? sameMap(types, t => filterType(t, u => !(u.flags & TypeFlags.Nullable))) : types;
+        const primaryTypes = sameMap(types, t => filterType(t, u => !(u.flags & TypeFlags.Nullable)));
         // When the candidate types are all literal types with the same base type, return a union
         // of those literal types. Otherwise, return the leftmost type for which no type to the
         // right is a supertype.
@@ -23681,7 +23651,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function isEmptyLiteralType(type: Type): boolean {
-        return strictNullChecks ? type === implicitNeverType : type === undefinedWideningType;
+        return type === implicitNeverType;
     }
 
     function isEmptyArrayLiteralType(type: Type): boolean {
@@ -23901,7 +23871,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function getOptionalType(type: Type, isProperty = false): Type {
-        Debug.assert(strictNullChecks);
         const missingOrUndefined = isProperty ? undefinedOrMissingType : undefinedType;
         return type === missingOrUndefined || type.flags & TypeFlags.Union && (type as UnionType).types[0] === missingOrUndefined ? type : getUnionType([type, missingOrUndefined]);
     }
@@ -23916,15 +23885,15 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function getNonNullableType(type: Type): Type {
-        return strictNullChecks ? getAdjustedTypeWithFacts(type, TypeFacts.NEUndefinedOrNull) : type;
+        return getAdjustedTypeWithFacts(type, TypeFacts.NEUndefinedOrNull);
     }
 
     function addOptionalTypeMarker(type: Type) {
-        return strictNullChecks ? getUnionType([type, optionalType]) : type;
+        return getUnionType([type, optionalType]);
     }
 
     function removeOptionalTypeMarker(type: Type): Type {
-        return strictNullChecks ? removeType(type, optionalType) : type;
+        return removeType(type, optionalType);
     }
 
     function propagateOptionalTypeMarker(type: Type, node: OptionalChain, wasOptional: boolean) {
@@ -26116,46 +26085,36 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
         const flags = type.flags;
         if (flags & (TypeFlags.String | TypeFlags.StringMapping)) {
-            return strictNullChecks ? TypeFacts.StringStrictFacts : TypeFacts.StringFacts;
+            return TypeFacts.StringStrictFacts;
         }
         if (flags & (TypeFlags.StringLiteral | TypeFlags.TemplateLiteral)) {
             const isEmpty = flags & TypeFlags.StringLiteral && (type as StringLiteralType).value === "";
-            return strictNullChecks ?
-                isEmpty ? TypeFacts.EmptyStringStrictFacts : TypeFacts.NonEmptyStringStrictFacts :
-                isEmpty ? TypeFacts.EmptyStringFacts : TypeFacts.NonEmptyStringFacts;
+            return isEmpty ? TypeFacts.EmptyStringStrictFacts : TypeFacts.NonEmptyStringStrictFacts;
         }
         if (flags & (TypeFlags.Number | TypeFlags.Enum)) {
-            return strictNullChecks ? TypeFacts.NumberStrictFacts : TypeFacts.NumberFacts;
+            return TypeFacts.NumberStrictFacts;
         }
         if (flags & TypeFlags.NumberLiteral) {
             const isZero = (type as NumberLiteralType).value === 0;
-            return strictNullChecks ?
-                isZero ? TypeFacts.ZeroNumberStrictFacts : TypeFacts.NonZeroNumberStrictFacts :
-                isZero ? TypeFacts.ZeroNumberFacts : TypeFacts.NonZeroNumberFacts;
+            return isZero ? TypeFacts.ZeroNumberStrictFacts : TypeFacts.NonZeroNumberStrictFacts;
         }
         if (flags & TypeFlags.BigInt) {
-            return strictNullChecks ? TypeFacts.BigIntStrictFacts : TypeFacts.BigIntFacts;
+            return TypeFacts.BigIntStrictFacts;
         }
         if (flags & TypeFlags.BigIntLiteral) {
             const isZero = isZeroBigInt(type as BigIntLiteralType);
-            return strictNullChecks ?
-                isZero ? TypeFacts.ZeroBigIntStrictFacts : TypeFacts.NonZeroBigIntStrictFacts :
-                isZero ? TypeFacts.ZeroBigIntFacts : TypeFacts.NonZeroBigIntFacts;
+            return isZero ? TypeFacts.ZeroBigIntStrictFacts : TypeFacts.NonZeroBigIntStrictFacts;
         }
         if (flags & TypeFlags.Boolean) {
-            return strictNullChecks ? TypeFacts.BooleanStrictFacts : TypeFacts.BooleanFacts;
+            return TypeFacts.BooleanStrictFacts;
         }
         if (flags & TypeFlags.BooleanLike) {
-            return strictNullChecks ?
-                (type === falseType || type === regularFalseType) ? TypeFacts.FalseStrictFacts : TypeFacts.TrueStrictFacts :
-                (type === falseType || type === regularFalseType) ? TypeFacts.FalseFacts : TypeFacts.TrueFacts;
+            return (type === falseType || type === regularFalseType) ? TypeFacts.FalseStrictFacts : TypeFacts.TrueStrictFacts;
         }
         if (flags & TypeFlags.Object) {
-            return getObjectFlags(type) & ObjectFlags.Anonymous && isEmptyObjectType(type as ObjectType) ?
-                strictNullChecks ? TypeFacts.EmptyObjectStrictFacts : TypeFacts.EmptyObjectFacts :
-                isFunctionObjectType(type as ObjectType) ?
-                strictNullChecks ? TypeFacts.FunctionStrictFacts : TypeFacts.FunctionFacts :
-                strictNullChecks ? TypeFacts.ObjectStrictFacts : TypeFacts.ObjectFacts;
+            return getObjectFlags(type) & ObjectFlags.Anonymous && isEmptyObjectType(type as ObjectType) ? TypeFacts.EmptyObjectStrictFacts :
+                isFunctionObjectType(type as ObjectType) ? TypeFacts.FunctionStrictFacts :
+                TypeFacts.ObjectStrictFacts;
         }
         if (flags & TypeFlags.Void) {
             return TypeFacts.VoidFacts;
@@ -26167,10 +26126,10 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             return TypeFacts.NullFacts;
         }
         if (flags & TypeFlags.ESSymbolLike) {
-            return strictNullChecks ? TypeFacts.SymbolStrictFacts : TypeFacts.SymbolFacts;
+            return TypeFacts.SymbolStrictFacts;
         }
         if (flags & TypeFlags.NonPrimitive) {
-            return strictNullChecks ? TypeFacts.ObjectStrictFacts : TypeFacts.ObjectFacts;
+            return TypeFacts.ObjectStrictFacts;
         }
         if (flags & TypeFlags.Never) {
             return TypeFacts.None;
@@ -26210,17 +26169,15 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     // unknown with the union {} | null | undefined (and reduces that accordingly), and it intersects remaining
     // instantiable types with {}, {} | null, or {} | undefined in order to remove null and/or undefined.
     function getAdjustedTypeWithFacts(type: Type, facts: TypeFacts) {
-        const reduced = recombineUnknownType(getTypeWithFacts(strictNullChecks && type.flags & TypeFlags.Unknown ? unknownUnionType : type, facts));
-        if (strictNullChecks) {
-            switch (facts) {
-                case TypeFacts.NEUndefined:
-                    return mapType(reduced, t => getTypeFacts(t) & TypeFacts.EQUndefined ? getIntersectionType([t, getTypeFacts(t) & TypeFacts.EQNull && !maybeTypeOfKind(reduced, TypeFlags.Null) ? getUnionType([emptyObjectType, nullType]) : emptyObjectType]) : t);
-                case TypeFacts.NENull:
-                    return mapType(reduced, t => getTypeFacts(t) & TypeFacts.EQNull ? getIntersectionType([t, getTypeFacts(t) & TypeFacts.EQUndefined && !maybeTypeOfKind(reduced, TypeFlags.Undefined) ? getUnionType([emptyObjectType, undefinedType]) : emptyObjectType]) : t);
-                case TypeFacts.NEUndefinedOrNull:
-                case TypeFacts.Truthy:
-                    return mapType(reduced, t => getTypeFacts(t) & TypeFacts.EQUndefinedOrNull ? getGlobalNonNullableTypeInstantiation(t) : t);
-            }
+        const reduced = recombineUnknownType(getTypeWithFacts(type.flags & TypeFlags.Unknown ? unknownUnionType : type, facts));
+        switch (facts) {
+            case TypeFacts.NEUndefined:
+                return mapType(reduced, t => getTypeFacts(t) & TypeFacts.EQUndefined ? getIntersectionType([t, getTypeFacts(t) & TypeFacts.EQNull && !maybeTypeOfKind(reduced, TypeFlags.Null) ? getUnionType([emptyObjectType, nullType]) : emptyObjectType]) : t);
+            case TypeFacts.NENull:
+                return mapType(reduced, t => getTypeFacts(t) & TypeFacts.EQNull ? getIntersectionType([t, getTypeFacts(t) & TypeFacts.EQUndefined && !maybeTypeOfKind(reduced, TypeFlags.Undefined) ? getUnionType([emptyObjectType, undefinedType]) : emptyObjectType]) : t);
+            case TypeFacts.NEUndefinedOrNull:
+            case TypeFacts.Truthy:
+                return mapType(reduced, t => getTypeFacts(t) & TypeFacts.EQUndefinedOrNull ? getGlobalNonNullableTypeInstantiation(t) : t);
         }
         return reduced;
     }
@@ -27215,13 +27172,11 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 type = narrowTypeBySwitchOnTypeOf(type, flow.switchStatement, flow.clauseStart, flow.clauseEnd);
             }
             else {
-                if (strictNullChecks) {
-                    if (optionalChainContainsReference(expr, reference)) {
-                        type = narrowTypeBySwitchOptionalChainContainment(type, flow.switchStatement, flow.clauseStart, flow.clauseEnd, t => !(t.flags & (TypeFlags.Undefined | TypeFlags.Never)));
-                    }
-                    else if (expr.kind === SyntaxKind.TypeOfExpression && optionalChainContainsReference((expr as TypeOfExpression).expression, reference)) {
-                        type = narrowTypeBySwitchOptionalChainContainment(type, flow.switchStatement, flow.clauseStart, flow.clauseEnd, t => !(t.flags & TypeFlags.Never || t.flags & TypeFlags.StringLiteral && (t as StringLiteralType).value === "undefined"));
-                    }
+                if (optionalChainContainsReference(expr, reference)) {
+                    type = narrowTypeBySwitchOptionalChainContainment(type, flow.switchStatement, flow.clauseStart, flow.clauseEnd, t => !(t.flags & (TypeFlags.Undefined | TypeFlags.Never)));
+                }
+                else if (expr.kind === SyntaxKind.TypeOfExpression && optionalChainContainsReference((expr as TypeOfExpression).expression, reference)) {
+                    type = narrowTypeBySwitchOptionalChainContainment(type, flow.switchStatement, flow.clauseStart, flow.clauseEnd, t => !(t.flags & TypeFlags.Never || t.flags & TypeFlags.StringLiteral && (t as StringLiteralType).value === "undefined"));
                 }
                 const access = getDiscriminantPropertyAccess(expr, type);
                 if (access) {
@@ -27447,7 +27402,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 return type;
             }
             const optionalChain = isOptionalChain(access);
-            const removeNullable = strictNullChecks && (optionalChain || isNonNullAccess(access)) && maybeTypeOfKind(type, TypeFlags.Nullable);
+            const removeNullable = (optionalChain || isNonNullAccess(access)) && maybeTypeOfKind(type, TypeFlags.Nullable);
             let propType = getTypeOfPropertyOfType(removeNullable ? getTypeWithFacts(type, TypeFacts.NEUndefinedOrNull) : type, propName);
             if (!propType) {
                 return type;
@@ -27490,7 +27445,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             if (isMatchingReference(reference, expr)) {
                 return getAdjustedTypeWithFacts(type, assumeTrue ? TypeFacts.Truthy : TypeFacts.Falsy);
             }
-            if (strictNullChecks && assumeTrue && optionalChainContainsReference(expr, reference)) {
+            if (assumeTrue && optionalChainContainsReference(expr, reference)) {
                 type = getAdjustedTypeWithFacts(type, TypeFacts.NEUndefinedOrNull);
             }
             const access = getDiscriminantPropertyAccess(expr, type);
@@ -27552,13 +27507,11 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     if (isMatchingReference(reference, right)) {
                         return narrowTypeByEquality(type, operator, left, assumeTrue);
                     }
-                    if (strictNullChecks) {
-                        if (optionalChainContainsReference(left, reference)) {
-                            type = narrowTypeByOptionalChainContainment(type, operator, right, assumeTrue);
-                        }
-                        else if (optionalChainContainsReference(right, reference)) {
-                            type = narrowTypeByOptionalChainContainment(type, operator, left, assumeTrue);
-                        }
+                    if (optionalChainContainsReference(left, reference)) {
+                        type = narrowTypeByOptionalChainContainment(type, operator, right, assumeTrue);
+                    }
+                    else if (optionalChainContainsReference(right, reference)) {
+                        type = narrowTypeByOptionalChainContainment(type, operator, left, assumeTrue);
                     }
                     const leftAccess = getDiscriminantPropertyAccess(left, type);
                     if (leftAccess) {
@@ -27659,9 +27612,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             const valueType = getTypeOfExpression(value);
             const doubleEquals = operator === SyntaxKind.EqualsEqualsToken || operator === SyntaxKind.ExclamationEqualsToken;
             if (valueType.flags & TypeFlags.Nullable) {
-                if (!strictNullChecks) {
-                    return type;
-                }
                 const facts = doubleEquals ?
                     assumeTrue ? TypeFacts.EQUndefinedOrNull : TypeFacts.NEUndefinedOrNull :
                     valueType.flags & TypeFlags.Null ?
@@ -27694,7 +27644,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             }
             const target = getReferenceCandidate(typeOfExpr.expression);
             if (!isMatchingReference(reference, target)) {
-                if (strictNullChecks && optionalChainContainsReference(target, reference) && assumeTrue === (literal.text !== "undefined")) {
+                if (optionalChainContainsReference(target, reference) && assumeTrue === (literal.text !== "undefined")) {
                     type = getAdjustedTypeWithFacts(type, TypeFacts.NEUndefinedOrNull);
                 }
                 const propertyAccess = getDiscriminantPropertyAccess(target, type);
@@ -27875,7 +27825,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         function narrowTypeByInstanceof(type: Type, expr: BinaryExpression, assumeTrue: boolean): Type {
             const left = getReferenceCandidate(expr.left);
             if (!isMatchingReference(reference, left)) {
-                if (assumeTrue && strictNullChecks && optionalChainContainsReference(left, reference)) {
+                if (assumeTrue && optionalChainContainsReference(left, reference)) {
                     return getAdjustedTypeWithFacts(type, TypeFacts.NEUndefinedOrNull);
                 }
                 return type;
@@ -27991,7 +27941,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         return getNarrowedType(type, predicate.type, assumeTrue, /*checkDerived*/ false);
                     }
                     if (
-                        strictNullChecks && assumeTrue && optionalChainContainsReference(predicateArgument, reference) &&
+                        assumeTrue && optionalChainContainsReference(predicateArgument, reference) &&
                         !(getTypeFacts(predicate.type) & TypeFacts.EQUndefined)
                     ) {
                         type = getAdjustedTypeWithFacts(type, TypeFacts.NEUndefinedOrNull);
@@ -28168,8 +28118,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
 
     /** remove undefined from the annotated type of a parameter when there is an initializer (that doesn't include undefined) */
     function removeOptionalityFromDeclaredType(declaredType: Type, declaration: VariableLikeDeclaration): Type {
-        const removeUndefined = strictNullChecks &&
-            declaration.kind === SyntaxKind.Parameter &&
+        const removeUndefined = declaration.kind === SyntaxKind.Parameter &&
             declaration.initializer &&
             getTypeFacts(declaredType) & TypeFacts.IsUndefined &&
             !parameterInitializerContainsUndefined(declaration);
@@ -28496,7 +28445,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         // the entire control flow graph from the variable's declaration (i.e. when the flow container and
         // declaration container are the same).
         const assumeInitialized = isParameter || isAlias || isOuterVariable || isSpreadDestructuringAssignmentTarget || isModuleExports || isSameScopedBindingElement(node, declaration) ||
-            type !== autoType && type !== autoArrayType && (!strictNullChecks || (type.flags & (TypeFlags.AnyOrUnknown | TypeFlags.Void)) !== 0 ||
+            type !== autoType && type !== autoArrayType && ((type.flags & (TypeFlags.AnyOrUnknown | TypeFlags.Void)) !== 0 ||
                     isInTypeQuery(node) || isInAmbientOrTypeNode(node) || node.parent.kind === SyntaxKind.ExportSpecifier) ||
             node.parent.kind === SyntaxKind.NonNullExpression ||
             declaration.kind === SyntaxKind.VariableDeclaration && (declaration as VariableDeclaration).exclamationToken ||
@@ -30498,7 +30447,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         return createArrayLiteralType(createArrayType(
             elementTypes.length ?
                 getUnionType(sameMap(elementTypes, (t, i) => elementFlags[i] & ElementFlags.Variadic ? getIndexedAccessTypeOrUndefined(t, numberType) || anyType : t), UnionReduction.Subtype) :
-                strictNullChecks ? implicitNeverType : undefinedWideningType,
+                implicitNeverType,
             inConstContext,
         ));
     }
@@ -30618,7 +30567,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         // Grammar checking
         checkGrammarObjectLiteralExpression(node, inDestructuringPattern);
 
-        const allPropertiesTable = strictNullChecks ? createSymbolTable() : undefined;
+        const allPropertiesTable = createSymbolTable();
         let propertiesTable = createSymbolTable();
         let propertiesArray: Symbol[] = [];
         let spread: Type = emptyObjectType;
@@ -30712,7 +30661,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 prop.links.type = type;
                 prop.links.target = member;
                 member = prop;
-                allPropertiesTable?.set(prop.escapedName, prop);
+                allPropertiesTable.set(prop.escapedName, prop);
 
                 if (
                     contextualType && checkMode & CheckMode.Inferential && !(checkMode & CheckMode.SkipContextSensitive) &&
@@ -30739,9 +30688,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 const type = getReducedType(checkExpression(memberDecl.expression, checkMode & CheckMode.Inferential));
                 if (isValidSpreadType(type)) {
                     const mergedType = tryMergeUnionOfObjectTypeAndEmptyObject(type, inConstContext);
-                    if (allPropertiesTable) {
-                        checkSpreadPropOverrides(mergedType, allPropertiesTable, memberDecl);
-                    }
+                    checkSpreadPropOverrides(mergedType, allPropertiesTable, memberDecl);
                     offset = propertiesArray.length;
                     if (isErrorType(spread)) {
                         continue;
@@ -30941,7 +30888,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     function createJsxAttributesTypeFromAttributesProperty(openingLikeElement: JsxOpeningLikeElement, checkMode: CheckMode = CheckMode.Normal) {
         const attributes = openingLikeElement.attributes;
         const contextualType = getContextualType(attributes, ContextFlags.None);
-        const allAttributesTable = strictNullChecks ? createSymbolTable() : undefined;
+        const allAttributesTable = createSymbolTable();
         let attributesTable = createSymbolTable();
         let spread: Type = emptyJsxObjectType;
         let hasSpreadAnyType = false;
@@ -30965,7 +30912,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 attributeSymbol.links.type = exprType;
                 attributeSymbol.links.target = member;
                 attributesTable.set(attributeSymbol.escapedName, attributeSymbol);
-                allAttributesTable?.set(attributeSymbol.escapedName, attributeSymbol);
+                allAttributesTable.set(attributeSymbol.escapedName, attributeSymbol);
                 if (getEscapedTextOfJsxAttributeName(attributeDecl.name) === jsxChildrenPropertyName) {
                     explicitlySpecifyChildrenAttribute = true;
                 }
@@ -30994,9 +30941,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 }
                 if (isValidSpreadType(exprType)) {
                     spread = getSpreadType(spread, exprType, attributes.symbol, objectFlags, /*readonly*/ false);
-                    if (allAttributesTable) {
-                        checkSpreadPropOverrides(exprType, allAttributesTable, attributeDecl);
-                    }
+                    checkSpreadPropOverrides(exprType, allAttributesTable, attributeDecl);
                 }
                 else {
                     error(attributeDecl.expression, Diagnostics.Spread_types_may_only_be_created_from_object_types);
@@ -31803,7 +31748,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         node: Node,
         reportError: (node: Node, facts: TypeFacts) => void,
     ): Type {
-        if (strictNullChecks && type.flags & TypeFlags.Unknown) {
+        if (type.flags & TypeFlags.Unknown) {
             if (isEntityNameExpression(node)) {
                 const nodeText = entityNameToString(node);
                 if (nodeText.length < 100) {
@@ -32165,7 +32110,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         // and if we are in a constructor of the same class as the property declaration, assume that
         // the property is uninitialized at the top of the control flow.
         let assumeUninitialized = false;
-        if (strictNullChecks && strictPropertyInitialization && isAccessExpression(node) && node.expression.kind === SyntaxKind.ThisKeyword) {
+        if (strictPropertyInitialization && isAccessExpression(node) && node.expression.kind === SyntaxKind.ThisKeyword) {
             const declaration = prop && prop.valueDeclaration;
             if (declaration && isPropertyWithoutInitializer(declaration)) {
                 if (!isStatic(declaration)) {
@@ -32177,7 +32122,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             }
         }
         else if (
-            strictNullChecks && prop && prop.valueDeclaration &&
+            prop && prop.valueDeclaration &&
             isPropertyAccessExpression(prop.valueDeclaration) &&
             getAssignmentDeclarationPropertyAccessKind(prop.valueDeclaration) &&
             getControlFlowContainer(node) === getControlFlowContainer(prop.valueDeclaration)
@@ -32796,10 +32741,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         return !!(t.flags & TypeFlags.Void);
     }
 
-    function acceptsVoidUndefinedUnknownOrAny(t: Type): boolean {
-        return !!(t.flags & (TypeFlags.Void | TypeFlags.Undefined | TypeFlags.Unknown | TypeFlags.Any));
-    }
-
     function hasCorrectArity(node: CallLikeExpression, args: readonly Expression[], signature: Signature, signatureHelpTrailingComma = false) {
         let argCount: number;
         let callIsIncomplete = false; // In incomplete call we want to be lenient when we have too few arguments
@@ -32865,7 +32806,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
         for (let i = argCount; i < effectiveMinimumArguments; i++) {
             const type = getTypeAtPosition(signature, i);
-            if (filterType(type, isInJSFile(node) && !strictNullChecks ? acceptsVoidUndefinedUnknownOrAny : acceptsVoid).flags & TypeFlags.Never) {
+            if (filterType(type, acceptsVoid).flags & TypeFlags.Never) {
                 return false;
             }
         }
@@ -36333,7 +36274,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             return undefined;
         }
         if (
-            strictNullChecks && aggregatedTypes.length && hasReturnWithNoExpression &&
+            aggregatedTypes.length && hasReturnWithNoExpression &&
             !(isJSConstructor(func) && aggregatedTypes.some(t => t.symbol === func.symbol))
         ) {
             // Javascript "callable constructors", containing eg `if (!(this instanceof A)) return new A()` should not add undefined
@@ -36393,7 +36334,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 // this function does not conform to the specification.
                 error(errorNode, Diagnostics.A_function_whose_declared_type_is_neither_undefined_void_nor_any_must_return_a_value);
             }
-            else if (type && strictNullChecks && !isTypeAssignableTo(undefinedType, type)) {
+            else if (type && !isTypeAssignableTo(undefinedType, type)) {
                 error(errorNode, Diagnostics.Function_lacks_ending_return_statement_and_return_type_does_not_include_undefined);
             }
             else if (compilerOptions.noImplicitReturns) {
@@ -36690,7 +36631,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     function checkDeleteExpressionMustBeOptional(expr: AccessExpression, symbol: Symbol) {
         const type = getTypeOfSymbol(symbol);
         if (
-            strictNullChecks &&
             !(type.flags & (TypeFlags.AnyOrUnknown | TypeFlags.Never)) &&
             !(exactOptionalPropertyTypes ? symbol.flags & SymbolFlags.Optional : getTypeFacts(type) & TypeFacts.IsUndefined)
         ) {
@@ -37009,7 +36949,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
 
     function checkObjectLiteralAssignment(node: ObjectLiteralExpression, sourceType: Type, rightIsThis?: boolean): Type {
         const properties = node.properties;
-        if (strictNullChecks && properties.length === 0) {
+        if (properties.length === 0) {
             return checkNonNullType(sourceType, node);
         }
         for (let i = 0; i < properties.length; i++) {
@@ -37128,7 +37068,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 // In strict null checking mode, if a default value of a non-undefined type is specified, remove
                 // undefined from the final type.
                 if (
-                    strictNullChecks &&
                     !(getTypeFacts(checkExpression(prop.objectAssignmentInitializer)) & TypeFacts.IsUndefined)
                 ) {
                     sourceType = getTypeWithFacts(sourceType, TypeFacts.NEUndefined);
@@ -37145,9 +37084,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             checkBinaryExpression(target as BinaryExpression, checkMode);
             target = (target as BinaryExpression).left;
             // A default value is specified, so remove undefined from the final type.
-            if (strictNullChecks) {
-                sourceType = getTypeWithFacts(sourceType, TypeFacts.NEUndefined);
-            }
+            sourceType = getTypeWithFacts(sourceType, TypeFacts.NEUndefined);
         }
         if (target.kind === SyntaxKind.ObjectLiteralExpression) {
             return checkObjectLiteralAssignment(target as ObjectLiteralExpression, sourceType, rightIsThis);
@@ -37606,7 +37543,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             case SyntaxKind.AmpersandAmpersandToken:
             case SyntaxKind.AmpersandAmpersandEqualsToken: {
                 const resultType = getTypeFacts(leftType) & TypeFacts.Truthy ?
-                    getUnionType([extractDefinitelyFalsyTypes(strictNullChecks ? leftType : getBaseTypeOfLiteralType(rightType)), rightType]) :
+                    getUnionType([extractDefinitelyFalsyTypes(leftType), rightType]) :
                     leftType;
                 if (operator === SyntaxKind.AmpersandAmpersandEqualsToken) {
                     checkAssignmentOperator(rightType);
@@ -40630,9 +40567,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             if (typeNode.kind === SyntaxKind.NeverKeyword) {
                 continue; // Always elide `never` from the union/intersection if possible
             }
-            if (!strictNullChecks && (typeNode.kind === SyntaxKind.LiteralType && (typeNode as LiteralTypeNode).literal.kind === SyntaxKind.NullKeyword || typeNode.kind === SyntaxKind.UndefinedKeyword)) {
-                continue; // Elide null and undefined from unions for metadata, just like what we did prior to the implementation of strict null checks
-            }
             const individualEntityName = getEntityNameForDecoratorMetadata(typeNode);
             if (!individualEntityName) {
                 // Individual is something like string number
@@ -41677,7 +41611,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 const widenedType = getWidenedTypeForVariableLikeDeclaration(node);
                 if (needCheckInitializer) {
                     const initializerType = checkExpressionCached(node.initializer);
-                    if (strictNullChecks && needCheckWidenedType) {
+                    if (needCheckWidenedType) {
                         checkNonNullNonVoidType(initializerType, node);
                     }
                     else {
@@ -41689,7 +41623,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     if (isArrayBindingPattern(node.name)) {
                         checkIteratedTypeOrElementType(IterationUse.Destructuring, widenedType, undefinedType, node);
                     }
-                    else if (strictNullChecks) {
+                    else {
                         checkNonNullNonVoidType(widenedType, node);
                     }
                 }
@@ -41859,7 +41793,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function checkTestingKnownTruthyCallableOrAwaitableType(condExpr: Expression, condType: Type, body?: Statement | Expression) {
-        if (!strictNullChecks) return;
         bothHelper(condExpr, body);
 
         function bothHelper(condExpr: Expression, body: Expression | Statement | undefined) {
@@ -43024,34 +42957,28 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         const signature = getSignatureFromDeclaration(container);
         const returnType = getReturnTypeOfSignature(signature);
         const functionFlags = getFunctionFlags(container);
-        if (strictNullChecks || node.expression || returnType.flags & TypeFlags.Never) {
-            const exprType = node.expression ? checkExpressionCached(node.expression) : undefinedType;
-            if (container.kind === SyntaxKind.SetAccessor) {
-                if (node.expression) {
-                    error(node, Diagnostics.Setters_cannot_return_a_value);
-                }
-            }
-            else if (container.kind === SyntaxKind.Constructor) {
-                if (node.expression && !checkTypeAssignableToAndOptionallyElaborate(exprType, returnType, node, node.expression)) {
-                    error(node, Diagnostics.Return_type_of_constructor_signature_must_be_assignable_to_the_instance_type_of_the_class);
-                }
-            }
-            else if (getReturnTypeFromAnnotation(container)) {
-                const unwrappedReturnType = unwrapReturnType(returnType, functionFlags) ?? returnType;
-                const unwrappedExprType = functionFlags & FunctionFlags.Async
-                    ? checkAwaitedType(exprType, /*withAlias*/ false, node, Diagnostics.The_return_type_of_an_async_function_must_either_be_a_valid_promise_or_must_not_contain_a_callable_then_member)
-                    : exprType;
-                if (unwrappedReturnType) {
-                    // If the function has a return type, but promisedType is
-                    // undefined, an error will be reported in checkAsyncFunctionReturnType
-                    // so we don't need to report one here.
-                    checkTypeAssignableToAndOptionallyElaborate(unwrappedExprType, unwrappedReturnType, node, node.expression);
-                }
+        const exprType = node.expression ? checkExpressionCached(node.expression) : undefinedType;
+        if (container.kind === SyntaxKind.SetAccessor) {
+            if (node.expression) {
+                error(node, Diagnostics.Setters_cannot_return_a_value);
             }
         }
-        else if (container.kind !== SyntaxKind.Constructor && compilerOptions.noImplicitReturns && !isUnwrappedReturnTypeUndefinedVoidOrAny(container, returnType)) {
-            // The function has a return type, but the return statement doesn't have an expression.
-            error(node, Diagnostics.Not_all_code_paths_return_a_value);
+        else if (container.kind === SyntaxKind.Constructor) {
+            if (node.expression && !checkTypeAssignableToAndOptionallyElaborate(exprType, returnType, node, node.expression)) {
+                error(node, Diagnostics.Return_type_of_constructor_signature_must_be_assignable_to_the_instance_type_of_the_class);
+            }
+        }
+        else if (getReturnTypeFromAnnotation(container)) {
+            const unwrappedReturnType = unwrapReturnType(returnType, functionFlags) ?? returnType;
+            const unwrappedExprType = functionFlags & FunctionFlags.Async
+                ? checkAwaitedType(exprType, /*withAlias*/ false, node, Diagnostics.The_return_type_of_an_async_function_must_either_be_a_valid_promise_or_must_not_contain_a_callable_then_member)
+                : exprType;
+            if (unwrappedReturnType) {
+                // If the function has a return type, but promisedType is
+                // undefined, an error will be reported in checkAsyncFunctionReturnType
+                // so we don't need to report one here.
+                checkTypeAssignableToAndOptionallyElaborate(unwrappedExprType, unwrappedReturnType, node, node.expression);
+            }
         }
     }
 
@@ -44077,7 +44004,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                                 (uninitialized as PropertyDeclaration).exclamationToken
                                 || !constructor
                                 || !isIdentifier(propName)
-                                || !strictNullChecks
                                 || !isPropertyInitializedInConstructor(propName, type, constructor)
                             ) {
                                 const errorMessage = Diagnostics.Property_0_will_overwrite_the_base_property_in_1_If_this_is_intentional_add_an_initializer_Otherwise_add_a_declare_modifier_or_remove_the_redundant_declaration;
@@ -44181,7 +44107,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function checkPropertyInitialization(node: ClassLikeDeclaration) {
-        if (!strictNullChecks || !strictPropertyInitialization || node.flags & NodeFlags.Ambient) {
+        if (!strictPropertyInitialization || node.flags & NodeFlags.Ambient) {
             return;
         }
         const constructor = findConstructorDeclaration(node);
@@ -47070,16 +46996,14 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function isRequiredInitializedParameter(parameter: ParameterDeclaration | JSDocParameterTag): boolean {
-        return !!strictNullChecks &&
-            !isOptionalParameter(parameter) &&
+        return !isOptionalParameter(parameter) &&
             !isJSDocParameterTag(parameter) &&
             !!parameter.initializer &&
             !hasSyntacticModifier(parameter, ModifierFlags.ParameterPropertyModifier);
     }
 
     function isOptionalUninitializedParameterProperty(parameter: ParameterDeclaration) {
-        return strictNullChecks &&
-            isOptionalParameter(parameter) &&
+        return isOptionalParameter(parameter) &&
             !parameter.initializer &&
             hasSyntacticModifier(parameter, ModifierFlags.ParameterPropertyModifier);
     }
