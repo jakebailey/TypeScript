@@ -62,6 +62,7 @@ import {
     stableSort,
     SyntaxKind,
     textChanges,
+    toComparison,
     TransformFlags,
     tryCast,
     UserPreferences,
@@ -806,8 +807,7 @@ function getOrganizeImportsUnicodeStringComparer(ignoreCase: boolean, preference
         numeric,
     });
 
-    // `compare` is a bound method, so we do not need to close over `collator`.
-    return collator.compare;
+    return (x, y) => toComparison(collator.compare(x, y));
 }
 
 function getOrganizeImportsLocale(preferences: UserPreferences): string {
