@@ -1,0 +1,19 @@
+exportImportMultipleFiles_math.ts(1,21): error TS7006: Parameter 'a' implicitly has an 'any' type.
+exportImportMultipleFiles_math.ts(1,24): error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+
+==== exportImportMultipleFiles_userCode.ts (0 errors) ====
+    import lib = require('./exportImportMultipleFiles_library');
+    lib.math.add(3, 4); // Shouldnt be error
+    
+==== exportImportMultipleFiles_math.ts (2 errors) ====
+    export function add(a, b) { return a + b; }
+                        ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                           ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    
+==== exportImportMultipleFiles_library.ts (0 errors) ====
+    export import math = require("exportImportMultipleFiles_math");
+    math.add(3, 4); // OK
+    

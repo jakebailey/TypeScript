@@ -1,0 +1,24 @@
+commonJSAliasedExport.js(1,17): error TS7006: Parameter 'ast' implicitly has an 'any' type.
+commonJSAliasedExport.js(3,16): error TS7006: Parameter 'declaration' implicitly has an 'any' type.
+
+
+==== bug43713.js (0 errors) ====
+    const { funky } = require('./commonJSAliasedExport');
+    /** @type {boolean} */
+    var diddy
+    var diddy = funky(1)
+    
+    
+==== commonJSAliasedExport.js (2 errors) ====
+    const donkey = (ast) =>  ast;
+                    ~~~
+!!! error TS7006: Parameter 'ast' implicitly has an 'any' type.
+    
+    function funky(declaration) {
+                   ~~~~~~~~~~~
+!!! error TS7006: Parameter 'declaration' implicitly has an 'any' type.
+        return false;
+    }
+    module.exports = donkey;
+    module.exports.funky = funky;
+    

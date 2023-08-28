@@ -1,0 +1,12 @@
+parserAccessibilityAfterStatic6.ts(3,8): error TS7008: Member 'public' implicitly has an 'any' type.
+parserAccessibilityAfterStatic6.ts(3,14): error TS1005: '}' expected.
+
+
+==== parserAccessibilityAfterStatic6.ts (2 errors) ====
+    class Outer
+    {
+    static public
+           ~~~~~~
+!!! error TS7008: Member 'public' implicitly has an 'any' type.
+                 
+!!! error TS1005: '}' expected.

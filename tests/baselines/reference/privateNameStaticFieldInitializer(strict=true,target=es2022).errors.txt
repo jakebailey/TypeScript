@@ -1,0 +1,11 @@
+privateNameStaticFieldInitializer.ts(3,12): error TS7008: Member '#uninitialized' implicitly has an 'any' type.
+
+
+==== privateNameStaticFieldInitializer.ts (1 errors) ====
+    class A {
+        static #field = 10;
+        static #uninitialized;
+               ~~~~~~~~~~~~~~
+!!! error TS7008: Member '#uninitialized' implicitly has an 'any' type.
+    }
+    

@@ -1,0 +1,18 @@
+/a.ts(1,16): error TS2665: Invalid module name in augmentation. Module 'foo' resolves to an untyped module at '/node_modules/foo/index.js', which cannot be augmented.
+/a.ts(4,19): error TS7016: Could not find a declaration file for module 'foo'. '/node_modules/foo/index.js' implicitly has an 'any' type.
+
+
+==== /a.ts (2 errors) ====
+    declare module "foo" {
+                   ~~~~~
+!!! error TS2665: Invalid module name in augmentation. Module 'foo' resolves to an untyped module at '/node_modules/foo/index.js', which cannot be augmented.
+        export const x: number;
+    }
+    import { x } from "foo";
+                      ~~~~~
+!!! error TS7016: Could not find a declaration file for module 'foo'. '/node_modules/foo/index.js' implicitly has an 'any' type.
+    x;
+    
+==== /node_modules/foo/index.js (0 errors) ====
+    This file is not processed.
+    

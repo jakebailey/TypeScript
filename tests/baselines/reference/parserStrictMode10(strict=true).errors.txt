@@ -1,0 +1,12 @@
+parserStrictMode10.ts(2,12): error TS1100: Invalid use of 'eval' in strict mode.
+parserStrictMode10.ts(2,12): error TS7006: Parameter 'eval' implicitly has an 'any' type.
+
+
+==== parserStrictMode10.ts (2 errors) ====
+    "use strict";
+    function f(eval) {
+               ~~~~
+!!! error TS1100: Invalid use of 'eval' in strict mode.
+               ~~~~
+!!! error TS7006: Parameter 'eval' implicitly has an 'any' type.
+    }

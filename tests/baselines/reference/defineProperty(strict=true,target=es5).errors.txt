@@ -1,0 +1,39 @@
+defineProperty.ts(4,5): error TS7008: Member 'b' implicitly has an 'any' type.
+defineProperty.ts(5,12): error TS7008: Member 'c' implicitly has an 'any' type.
+defineProperty.ts(11,13): error TS7008: Member 'notEmitted' implicitly has an 'any' type.
+defineProperty.ts(14,12): error TS7008: Member 'a' implicitly has an 'any' type.
+
+
+==== defineProperty.ts (4 errors) ====
+    var x: "p" = "p"
+    class A {
+        a = this.y
+        b
+        ~
+!!! error TS7008: Member 'b' implicitly has an 'any' type.
+        public c;
+               ~
+!!! error TS7008: Member 'c' implicitly has an 'any' type.
+        ["computed"] = 13
+        ;[x] = 14
+        m() { }
+        constructor(public readonly y: number) { }
+        z = this.y
+        declare notEmitted;
+                ~~~~~~~~~~
+!!! error TS7008: Member 'notEmitted' implicitly has an 'any' type.
+    }
+    class B {
+        public a;
+               ~
+!!! error TS7008: Member 'a' implicitly has an 'any' type.
+    }
+    class C extends B {
+        declare public a;
+        z = this.ka
+        constructor(public ka: number) {
+            super()
+        }
+        ki = this.ka
+    }
+    

@@ -1,0 +1,10 @@
+VariableDeclaration2_es6.ts(1,7): error TS1155: 'const' declarations must be initialized.
+VariableDeclaration2_es6.ts(1,7): error TS7005: Variable 'a' implicitly has an 'any' type.
+
+
+==== VariableDeclaration2_es6.ts (2 errors) ====
+    const a
+          ~
+!!! error TS1155: 'const' declarations must be initialized.
+          ~
+!!! error TS7005: Variable 'a' implicitly has an 'any' type.

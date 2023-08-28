@@ -1,0 +1,15 @@
+overloadWithCallbacksWithDifferingOptionalityOnArgs.ts(1,10): error TS7010: 'x2', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadWithCallbacksWithDifferingOptionalityOnArgs.ts(2,10): error TS7010: 'x2', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== overloadWithCallbacksWithDifferingOptionalityOnArgs.ts (2 errors) ====
+    function x2(callback: (x?: number) => number);
+             ~~
+!!! error TS7010: 'x2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function x2(callback: (x: string) => number);
+             ~~
+!!! error TS7010: 'x2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function x2(callback: (x: any) => number) { }
+    x2(() => 1);
+    x2((x) => 1 );
+    

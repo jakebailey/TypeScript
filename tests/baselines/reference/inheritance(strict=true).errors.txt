@@ -1,0 +1,59 @@
+inheritance.ts(2,12): error TS7008: Member 'x' implicitly has an 'any' type.
+inheritance.ts(6,12): error TS7008: Member 'x' implicitly has an 'any' type.
+inheritance.ts(18,12): error TS2564: Property 'y' has no initializer and is not definitely assigned in the constructor.
+inheritance.ts(22,12): error TS7008: Member 'y' implicitly has an 'any' type.
+inheritance.ts(31,12): error TS2425: Class 'Good' defines instance member property 'f', but extended class 'Baad' defines it as instance member function.
+inheritance.ts(32,12): error TS2416: Property 'g' in type 'Baad' is not assignable to the same property in base type 'Good'.
+  Type '(n: number) => number' is not assignable to type '() => number'.
+    Target signature provides too few arguments. Expected 1 or more, but got 0.
+
+
+==== inheritance.ts (6 errors) ====
+    class B1 {
+        public x;
+               ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    }
+    
+    class B2 {
+        public x;
+               ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    }
+    
+    
+    class D1 extends B1 {
+    }
+    
+    class D2 extends B2 {
+    }
+    
+    
+    class N {
+        public y:number;
+               ~
+!!! error TS2564: Property 'y' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class ND extends N { // any is assignable to number
+        public y;
+               ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    }
+    
+    class Good {
+        public f: () => number = function () { return 0; }
+        public g() { return 0; }
+    }
+    
+    class Baad extends Good {
+        public f(): number { return 0; }
+               ~
+!!! error TS2425: Class 'Good' defines instance member property 'f', but extended class 'Baad' defines it as instance member function.
+        public g(n: number) { return 0; }
+               ~
+!!! error TS2416: Property 'g' in type 'Baad' is not assignable to the same property in base type 'Good'.
+!!! error TS2416:   Type '(n: number) => number' is not assignable to type '() => number'.
+!!! error TS2416:     Target signature provides too few arguments. Expected 1 or more, but got 0.
+    }
+    

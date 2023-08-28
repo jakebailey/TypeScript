@@ -1,0 +1,9 @@
+FunctionDeclaration9_es6.ts(2,14): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+
+
+==== FunctionDeclaration9_es6.ts (1 errors) ====
+    function * foo() {
+      var v = { [yield]: foo }
+                 ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+    }

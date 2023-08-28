@@ -1,0 +1,16 @@
+defaultOfAnyInStrictNullChecks.ts(7,17): error TS18046: 'e' is of type 'unknown'.
+
+
+==== defaultOfAnyInStrictNullChecks.ts (1 errors) ====
+    // Regression test for #8295
+    
+    function foo() {
+        try {
+        }
+        catch (e) {
+            let s = e.message; 
+                    ~
+!!! error TS18046: 'e' is of type 'unknown'.
+        }
+    }
+    

@@ -1,0 +1,9 @@
+test.d.ts(2,12): error TS7005: Variable '__esModule' implicitly has an 'any' type.
+
+
+==== test.d.ts (1 errors) ====
+    export default undefined;
+    export var __esModule;
+               ~~~~~~~~~~
+!!! error TS7005: Variable '__esModule' implicitly has an 'any' type.
+    

@@ -1,0 +1,14 @@
+declFileForClassWithPrivateOverloadedFunction.ts(2,13): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+declFileForClassWithPrivateOverloadedFunction.ts(3,13): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== declFileForClassWithPrivateOverloadedFunction.ts (2 errors) ====
+    class C {
+        private foo(x: number);
+                ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        private foo(x: string);
+                ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        private foo(x: any) { }
+    }

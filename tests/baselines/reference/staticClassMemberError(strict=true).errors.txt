@@ -1,0 +1,38 @@
+staticClassMemberError.ts(2,9): error TS7008: Member 's' implicitly has an 'any' type.
+staticClassMemberError.ts(4,3): error TS2662: Cannot find name 's'. Did you mean the static member 'C.s'?
+staticClassMemberError.ts(9,10): error TS2391: Function implementation is missing or not immediately following the declaration.
+staticClassMemberError.ts(9,10): error TS2814: Function with bodies can only merge with classes that are ambient.
+staticClassMemberError.ts(9,10): error TS7010: 'Foo', which lacks return-type annotation, implicitly has an 'any' return type.
+staticClassMemberError.ts(10,7): error TS2813: Class declaration cannot implement overload list for 'Foo'.
+staticClassMemberError.ts(11,9): error TS7008: Member 'bar' implicitly has an 'any' type.
+
+
+==== staticClassMemberError.ts (7 errors) ====
+    class C {
+    	static s;
+    	       ~
+!!! error TS7008: Member 's' implicitly has an 'any' type.
+    	public a() {
+    		s = 1;
+    		~
+!!! error TS2662: Cannot find name 's'. Did you mean the static member 'C.s'?
+    	}
+    }
+    
+    // just want to make sure this one doesn't crash the compiler
+    function Foo();
+             ~~~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+             ~~~
+!!! error TS2814: Function with bodies can only merge with classes that are ambient.
+!!! related TS6506 staticClassMemberError.ts:10:7: Consider adding a 'declare' modifier to this class.
+             ~~~
+!!! error TS7010: 'Foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    class Foo {
+          ~~~
+!!! error TS2813: Class declaration cannot implement overload list for 'Foo'.
+!!! related TS6506 staticClassMemberError.ts:10:7: Consider adding a 'declare' modifier to this class.
+     static bar;
+            ~~~
+!!! error TS7008: Member 'bar' implicitly has an 'any' type.
+    }

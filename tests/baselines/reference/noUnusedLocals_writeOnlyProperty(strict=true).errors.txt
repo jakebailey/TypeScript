@@ -1,0 +1,16 @@
+noUnusedLocals_writeOnlyProperty.ts(2,13): error TS6133: 'x' is declared but its value is never read.
+noUnusedLocals_writeOnlyProperty.ts(2,13): error TS7008: Member 'x' implicitly has an 'any' type.
+
+
+==== noUnusedLocals_writeOnlyProperty.ts (2 errors) ====
+    class C {
+        private x;
+                ~
+!!! error TS6133: 'x' is declared but its value is never read.
+                ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+        m() {
+            this.x = 0;
+        }
+    }
+    

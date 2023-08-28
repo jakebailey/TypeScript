@@ -1,0 +1,13 @@
+blockScopedBindingCaptureThisInFunction.ts(4,9): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+
+
+==== blockScopedBindingCaptureThisInFunction.ts (1 errors) ====
+    // https://github.com/Microsoft/TypeScript/issues/11038
+    () => function () {
+        for (let someKey in {}) {
+            this.helloWorld();
+            ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+            () => someKey;
+        }
+    };

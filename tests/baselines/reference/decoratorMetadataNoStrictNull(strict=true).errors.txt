@@ -1,0 +1,15 @@
+decoratorMetadataNoStrictNull.ts(4,15): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+decoratorMetadataNoStrictNull.ts(5,15): error TS2564: Property 'bar' has no initializer and is not definitely assigned in the constructor.
+
+
+==== decoratorMetadataNoStrictNull.ts (2 errors) ====
+    const dec = (obj: {}, prop: string) => undefined
+    
+    class Foo {
+      @dec public foo: string | null;
+                  ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+      @dec public bar: string;
+                  ~~~
+!!! error TS2564: Property 'bar' has no initializer and is not definitely assigned in the constructor.
+    }

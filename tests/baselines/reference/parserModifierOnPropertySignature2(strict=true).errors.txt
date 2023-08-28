@@ -1,0 +1,14 @@
+parserModifierOnPropertySignature2.ts(2,5): error TS7008: Member 'public' implicitly has an 'any' type.
+parserModifierOnPropertySignature2.ts(3,5): error TS7008: Member 'biz' implicitly has an 'any' type.
+
+
+==== parserModifierOnPropertySignature2.ts (2 errors) ====
+    interface Foo{
+        public
+        ~~~~~~
+!!! error TS7008: Member 'public' implicitly has an 'any' type.
+        biz;
+        ~~~
+!!! error TS7008: Member 'biz' implicitly has an 'any' type.
+    }
+    

@@ -1,0 +1,52 @@
+errorMessagesIntersectionTypes04.ts(2,5): error TS7008: Member 'a' implicitly has an 'any' type.
+errorMessagesIntersectionTypes04.ts(6,5): error TS7008: Member 'b' implicitly has an 'any' type.
+errorMessagesIntersectionTypes04.ts(17,5): error TS2322: Type 'A & B' is not assignable to type 'number'.
+errorMessagesIntersectionTypes04.ts(17,11): error TS2454: Variable 'a_and_b' is used before being assigned.
+errorMessagesIntersectionTypes04.ts(18,5): error TS2322: Type 'A & B' is not assignable to type 'boolean'.
+errorMessagesIntersectionTypes04.ts(18,12): error TS2454: Variable 'a_and_b' is used before being assigned.
+errorMessagesIntersectionTypes04.ts(19,5): error TS2322: Type 'A & B' is not assignable to type 'string'.
+errorMessagesIntersectionTypes04.ts(19,11): error TS2454: Variable 'a_and_b' is used before being assigned.
+errorMessagesIntersectionTypes04.ts(21,11): error TS2454: Variable 'num_and_bool' is used before being assigned.
+
+
+==== errorMessagesIntersectionTypes04.ts (9 errors) ====
+    interface A {
+        a;
+        ~
+!!! error TS7008: Member 'a' implicitly has an 'any' type.
+    }
+    
+    interface B {
+        b;
+        ~
+!!! error TS7008: Member 'b' implicitly has an 'any' type.
+    }
+    
+    function f<T, U extends A, V extends U>(): void {
+        let num: number;
+        let bool: boolean;
+        let str: string;
+    
+        let a_and_b: A & B;
+        let num_and_bool: number & boolean;
+    
+        num = a_and_b;
+        ~~~
+!!! error TS2322: Type 'A & B' is not assignable to type 'number'.
+              ~~~~~~~
+!!! error TS2454: Variable 'a_and_b' is used before being assigned.
+        bool = a_and_b;
+        ~~~~
+!!! error TS2322: Type 'A & B' is not assignable to type 'boolean'.
+               ~~~~~~~
+!!! error TS2454: Variable 'a_and_b' is used before being assigned.
+        str = a_and_b;
+        ~~~
+!!! error TS2322: Type 'A & B' is not assignable to type 'string'.
+              ~~~~~~~
+!!! error TS2454: Variable 'a_and_b' is used before being assigned.
+    
+        str = num_and_bool;
+              ~~~~~~~~~~~~
+!!! error TS2454: Variable 'num_and_bool' is used before being assigned.
+    }

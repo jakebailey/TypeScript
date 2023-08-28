@@ -1,0 +1,23 @@
+defaultIndexProps2.ts(13,1): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type 'Number'.
+  Property '0' does not exist on type 'Number'.
+
+
+==== defaultIndexProps2.ts (1 errors) ====
+    class Foo {
+    	public v = "Yo";
+    }
+    
+    var f = new Foo();
+    
+    // WScript.Echo(f[0]);
+    
+    var o = {v:"Yo2"};
+    
+    // WScript.Echo(o[0]);
+    
+    1[0];
+    ~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type 'Number'.
+!!! error TS7053:   Property '0' does not exist on type 'Number'.
+    var q = "s"[0];
+    

@@ -1,0 +1,13 @@
+unusedMethodsInInterface.ts(2,5): error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+unusedMethodsInInterface.ts(3,5): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== unusedMethodsInInterface.ts (2 errors) ====
+    interface I1 {
+        f1();
+        ~~~~~
+!!! error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+        f2(x: number, y: string);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+    }

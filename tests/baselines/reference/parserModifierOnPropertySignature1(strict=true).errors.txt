@@ -1,0 +1,13 @@
+parserModifierOnPropertySignature1.ts(2,5): error TS1070: 'public' modifier cannot appear on a type member.
+parserModifierOnPropertySignature1.ts(2,12): error TS7008: Member 'biz' implicitly has an 'any' type.
+
+
+==== parserModifierOnPropertySignature1.ts (2 errors) ====
+    interface Foo{
+        public biz;
+        ~~~~~~
+!!! error TS1070: 'public' modifier cannot appear on a type member.
+               ~~~
+!!! error TS7008: Member 'biz' implicitly has an 'any' type.
+    }
+    

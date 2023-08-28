@@ -1,0 +1,12 @@
+nestedIndexer.ts(1,15): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== nestedIndexer.ts (1 errors) ====
+    function then(x) {
+                  ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+    var match: { [index: number]: string; }
+    
+    }
+    

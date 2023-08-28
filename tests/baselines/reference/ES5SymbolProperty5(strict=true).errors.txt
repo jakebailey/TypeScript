@@ -1,0 +1,16 @@
+ES5SymbolProperty5.ts(7,1): error TS7053: Element implicitly has an 'any' type because expression of type 'symbol' can't be used to index type 'C'.
+ES5SymbolProperty5.ts(7,9): error TS2454: Variable 'Symbol' is used before being assigned.
+
+
+==== ES5SymbolProperty5.ts (2 errors) ====
+    var Symbol: { iterator: symbol };
+    
+    class C {
+        [Symbol.iterator]() { }
+    }
+    
+    (new C)[Symbol.iterator](0) // Should error
+    ~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'symbol' can't be used to index type 'C'.
+            ~~~~~~
+!!! error TS2454: Variable 'Symbol' is used before being assigned.

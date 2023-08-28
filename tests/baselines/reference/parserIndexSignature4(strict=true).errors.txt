@@ -1,0 +1,15 @@
+parserIndexSignature4.ts(2,3): error TS1169: A computed property name in an interface must refer to an expression whose type is a literal type or a 'unique symbol' type.
+parserIndexSignature4.ts(2,3): error TS7008: Member '[a = 0]' implicitly has an 'any' type.
+parserIndexSignature4.ts(2,4): error TS2304: Cannot find name 'a'.
+
+
+==== parserIndexSignature4.ts (3 errors) ====
+    interface I {
+      [a = 0] // Used to be indexer, now it is a computed property
+      ~~~~~~~
+!!! error TS1169: A computed property name in an interface must refer to an expression whose type is a literal type or a 'unique symbol' type.
+      ~~~~~~~
+!!! error TS7008: Member '[a = 0]' implicitly has an 'any' type.
+       ~
+!!! error TS2304: Cannot find name 'a'.
+    }

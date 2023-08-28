@@ -1,0 +1,13 @@
+parserClassDeclaration17.ts(3,12): error TS7010: 'moveNext', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== parserClassDeclaration17.ts (1 errors) ====
+    declare class Enumerator {
+        public atEnd(): boolean;
+        public moveNext();
+               ~~~~~~~~
+!!! error TS7010: 'moveNext', which lacks return-type annotation, implicitly has an 'any' return type.
+        public item(): any;
+        constructor (o: any);
+    }
+    

@@ -1,0 +1,27 @@
+//// [tests/cases/compiler/defaultOfAnyInStrictNullChecks.ts] ////
+
+=== defaultOfAnyInStrictNullChecks.ts ===
+// Regression test for #8295
+
+function foo() {
+>foo : () => void
+>    : ^^^^^^^^^^
+
+    try {
+    }
+    catch (e) {
+>e : unknown
+>  : ^^^^^^^
+
+        let s = e.message; 
+>s : any
+>  : ^^^
+>e.message : any
+>          : ^^^
+>e : unknown
+>  : ^^^^^^^
+>message : any
+>        : ^^^
+    }
+}
+

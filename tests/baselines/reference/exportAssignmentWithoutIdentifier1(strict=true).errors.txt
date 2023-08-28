@@ -1,0 +1,14 @@
+exportAssignmentWithoutIdentifier1.ts(7,10): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+
+
+==== exportAssignmentWithoutIdentifier1.ts (1 errors) ====
+    function Greeter() {
+        //...
+    }
+    Greeter.prototype.greet = function () {
+        //...
+    }
+    export = new Greeter();
+             ~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+    

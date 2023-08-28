@@ -1,0 +1,51 @@
+collisionRestParameterInterfaceMembers.ts(3,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+collisionRestParameterInterfaceMembers.ts(3,18): error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+collisionRestParameterInterfaceMembers.ts(6,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+collisionRestParameterInterfaceMembers.ts(11,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+collisionRestParameterInterfaceMembers.ts(11,22): error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+collisionRestParameterInterfaceMembers.ts(14,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+collisionRestParameterInterfaceMembers.ts(19,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionRestParameterInterfaceMembers.ts(19,22): error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+collisionRestParameterInterfaceMembers.ts(20,5): error TS7010: 'fooNoError', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== collisionRestParameterInterfaceMembers.ts (9 errors) ====
+    // call
+    interface i1 {
+        (_i: number, ...restParameters); // no error - no code gen
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+                     ~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+    }
+    interface i1NoError {
+        (_i: number);  // no error
+        ~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    // new
+    interface i2 {
+        new (_i: number, ...restParameters); // no error - no code gen
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+                         ~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+    }
+    interface i2NoError {
+        new (_i: number);  // no error
+        ~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    // method
+    interface i3 {
+        foo (_i: number, ...restParameters); // no error - no code gen
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+                         ~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+        fooNoError (_i: number);  // no error
+        ~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'fooNoError', which lacks return-type annotation, implicitly has an 'any' return type.
+    }

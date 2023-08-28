@@ -1,0 +1,21 @@
+/a.js(7,1): error TS2454: Variable 'b' is used before being assigned.
+/a.js(8,1): error TS2454: Variable 'b' is used before being assigned.
+/a.js(8,3): error TS2554: Expected 0 arguments, but got 1.
+
+
+==== /a.js (3 errors) ====
+    /**
+     * @template T
+     * @callback B
+     */
+    /** @type {B<string>} */
+    let b;
+    b();
+    ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    b(1);
+    ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+      ~
+!!! error TS2554: Expected 0 arguments, but got 1.
+    

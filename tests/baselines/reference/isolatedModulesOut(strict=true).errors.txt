@@ -1,0 +1,13 @@
+error TS5102: Option 'out' has been removed. Please remove it from your configuration.
+  Use 'outFile' instead.
+file1.ts(1,12): error TS7005: Variable 'x' implicitly has an 'any' type.
+
+
+!!! error TS5102: Option 'out' has been removed. Please remove it from your configuration.
+!!! error TS5102:   Use 'outFile' instead.
+==== file1.ts (1 errors) ====
+    export var x;
+               ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+==== file2.ts (0 errors) ====
+    var y;

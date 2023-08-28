@@ -1,0 +1,25 @@
+superCallBeforeThisAccessing1.ts(4,17): error TS7006: Parameter 'c' implicitly has an 'any' type.
+superCallBeforeThisAccessing1.ts(7,13): error TS7008: Member '_t' implicitly has an 'any' type.
+
+
+==== superCallBeforeThisAccessing1.ts (2 errors) ====
+    declare var Factory: any
+    
+    class Base {
+        constructor(c) { }
+                    ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+    }
+    class D extends Base {
+        private _t;
+                ~~
+!!! error TS7008: Member '_t' implicitly has an 'any' type.
+        constructor() {
+            super(i);
+            var s = {
+                t: this._t
+            }
+            var i = Factory.create(s);
+        }
+    }
+    

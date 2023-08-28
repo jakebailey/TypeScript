@@ -1,0 +1,10 @@
+restParameterWithBindingPattern1.ts(1,16): error TS7031: Binding element 'a' implicitly has an 'any' type.
+restParameterWithBindingPattern1.ts(1,19): error TS7031: Binding element 'b' implicitly has an 'any' type.
+
+
+==== restParameterWithBindingPattern1.ts (2 errors) ====
+    function a(...{a, b}) { }
+                   ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                      ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.

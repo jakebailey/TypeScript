@@ -1,0 +1,19 @@
+argumentsBindsToFunctionScopeArgumentList.ts(1,5): error TS1100: Invalid use of 'arguments' in strict mode.
+argumentsBindsToFunctionScopeArgumentList.ts(2,14): error TS7006: Parameter 'a' implicitly has an 'any' type.
+argumentsBindsToFunctionScopeArgumentList.ts(3,5): error TS1100: Invalid use of 'arguments' in strict mode.
+argumentsBindsToFunctionScopeArgumentList.ts(3,5): error TS2322: Type 'number' is not assignable to type 'IArguments'.
+
+
+==== argumentsBindsToFunctionScopeArgumentList.ts (4 errors) ====
+    var arguments = 10;
+        ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+    function foo(a) {
+                 ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+        arguments = 10;  /// This shouldnt be of type number and result in error.
+        ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+        ~~~~~~~~~
+!!! error TS2322: Type 'number' is not assignable to type 'IArguments'.
+    }

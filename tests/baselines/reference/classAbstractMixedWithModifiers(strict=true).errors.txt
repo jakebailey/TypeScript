@@ -1,0 +1,78 @@
+classAbstractMixedWithModifiers.ts(2,14): error TS7010: 'foo_a', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractMixedWithModifiers.ts(4,21): error TS7010: 'foo_b', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractMixedWithModifiers.ts(5,24): error TS7010: 'foo_c', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractMixedWithModifiers.ts(6,13): error TS1243: 'private' modifier cannot be used with 'abstract' modifier.
+classAbstractMixedWithModifiers.ts(6,22): error TS7010: 'foo_d', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractMixedWithModifiers.ts(8,14): error TS1029: 'public' modifier must precede 'abstract' modifier.
+classAbstractMixedWithModifiers.ts(8,21): error TS7010: 'foo_bb', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractMixedWithModifiers.ts(9,14): error TS1029: 'protected' modifier must precede 'abstract' modifier.
+classAbstractMixedWithModifiers.ts(9,24): error TS7010: 'foo_cc', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractMixedWithModifiers.ts(10,14): error TS1243: 'private' modifier cannot be used with 'abstract' modifier.
+classAbstractMixedWithModifiers.ts(10,22): error TS7010: 'foo_dd', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractMixedWithModifiers.ts(12,14): error TS1243: 'static' modifier cannot be used with 'abstract' modifier.
+classAbstractMixedWithModifiers.ts(12,21): error TS7010: 'foo_d', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractMixedWithModifiers.ts(13,12): error TS1243: 'static' modifier cannot be used with 'abstract' modifier.
+classAbstractMixedWithModifiers.ts(13,21): error TS7010: 'foo_e', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractMixedWithModifiers.ts(15,14): error TS1243: 'async' modifier cannot be used with 'abstract' modifier.
+classAbstractMixedWithModifiers.ts(15,20): error TS7010: 'foo_f', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractMixedWithModifiers.ts(16,5): error TS1243: 'async' modifier cannot be used with 'abstract' modifier.
+classAbstractMixedWithModifiers.ts(16,20): error TS7010: 'foo_g', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== classAbstractMixedWithModifiers.ts (19 errors) ====
+    abstract class A {
+        abstract foo_a();
+                 ~~~~~
+!!! error TS7010: 'foo_a', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+        public abstract foo_b();
+                        ~~~~~
+!!! error TS7010: 'foo_b', which lacks return-type annotation, implicitly has an 'any' return type.
+        protected abstract foo_c();
+                           ~~~~~
+!!! error TS7010: 'foo_c', which lacks return-type annotation, implicitly has an 'any' return type.
+        private abstract foo_d();
+                ~~~~~~~~
+!!! error TS1243: 'private' modifier cannot be used with 'abstract' modifier.
+                         ~~~~~
+!!! error TS7010: 'foo_d', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+        abstract public foo_bb();
+                 ~~~~~~
+!!! error TS1029: 'public' modifier must precede 'abstract' modifier.
+                        ~~~~~~
+!!! error TS7010: 'foo_bb', which lacks return-type annotation, implicitly has an 'any' return type.
+        abstract protected foo_cc();
+                 ~~~~~~~~~
+!!! error TS1029: 'protected' modifier must precede 'abstract' modifier.
+                           ~~~~~~
+!!! error TS7010: 'foo_cc', which lacks return-type annotation, implicitly has an 'any' return type.
+        abstract private foo_dd();
+                 ~~~~~~~
+!!! error TS1243: 'private' modifier cannot be used with 'abstract' modifier.
+                         ~~~~~~
+!!! error TS7010: 'foo_dd', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+        abstract static foo_d();
+                 ~~~~~~
+!!! error TS1243: 'static' modifier cannot be used with 'abstract' modifier.
+                        ~~~~~
+!!! error TS7010: 'foo_d', which lacks return-type annotation, implicitly has an 'any' return type.
+        static abstract foo_e();
+               ~~~~~~~~
+!!! error TS1243: 'static' modifier cannot be used with 'abstract' modifier.
+                        ~~~~~
+!!! error TS7010: 'foo_e', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+        abstract async foo_f();
+                 ~~~~~
+!!! error TS1243: 'async' modifier cannot be used with 'abstract' modifier.
+                       ~~~~~
+!!! error TS7010: 'foo_f', which lacks return-type annotation, implicitly has an 'any' return type.
+        async abstract foo_g();
+        ~~~~~
+!!! error TS1243: 'async' modifier cannot be used with 'abstract' modifier.
+                       ~~~~~
+!!! error TS7010: 'foo_g', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    

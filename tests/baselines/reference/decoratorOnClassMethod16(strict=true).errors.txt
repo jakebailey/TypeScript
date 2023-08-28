@@ -1,0 +1,16 @@
+decoratorOnClassMethod16.ts(4,13): error TS7008: Member 'prop' implicitly has an 'any' type.
+
+
+==== decoratorOnClassMethod16.ts (1 errors) ====
+    declare var decorator: any;
+    
+    class Foo {
+        private prop
+                ~~~~
+!!! error TS7008: Member 'prop' implicitly has an 'any' type.
+        @decorator
+        foo() {
+            return 0;
+        }
+    }
+    

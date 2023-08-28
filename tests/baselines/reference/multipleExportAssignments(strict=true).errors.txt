@@ -1,0 +1,37 @@
+multipleExportAssignments.ts(2,6): error TS7006: Parameter 'res' implicitly has an 'any' type.
+multipleExportAssignments.ts(2,11): error TS7006: Parameter 'req' implicitly has an 'any' type.
+multipleExportAssignments.ts(2,16): error TS7006: Parameter 'next' implicitly has an 'any' type.
+multipleExportAssignments.ts(13,10): error TS2300: Duplicate identifier 'export='.
+multipleExportAssignments.ts(13,10): error TS2454: Variable 'server' is used before being assigned.
+multipleExportAssignments.ts(14,10): error TS2300: Duplicate identifier 'export='.
+
+
+==== multipleExportAssignments.ts (6 errors) ====
+    interface connectModule {
+        (res, req, next): void;
+         ~~~
+!!! error TS7006: Parameter 'res' implicitly has an 'any' type.
+              ~~~
+!!! error TS7006: Parameter 'req' implicitly has an 'any' type.
+                   ~~~~
+!!! error TS7006: Parameter 'next' implicitly has an 'any' type.
+    }
+    interface connectExport {
+        use: (mod: connectModule) => connectExport;
+        listen: (port: number) => void;
+    }
+    var server: {
+        (): connectExport;
+        test1: connectModule;
+        test2(): connectModule;
+    };
+    export = server;
+             ~~~~~~
+!!! error TS2300: Duplicate identifier 'export='.
+             ~~~~~~
+!!! error TS2454: Variable 'server' is used before being assigned.
+    export = connectExport;
+             ~~~~~~~~~~~~~
+!!! error TS2300: Duplicate identifier 'export='.
+     
+    

@@ -1,0 +1,457 @@
+parserRealSource4.ts(4,21): error TS6053: File 'typescript.ts' not found.
+parserRealSource4.ts(19,13): error TS2322: Type 'undefined' is not assignable to type 'Function'.
+parserRealSource4.ts(25,26): error TS7006: Parameter 'data' implicitly has an 'any' type.
+parserRealSource4.ts(26,34): error TS7006: Parameter 'data' implicitly has an 'any' type.
+parserRealSource4.ts(27,29): error TS7006: Parameter 'v' implicitly has an 'any' type.
+parserRealSource4.ts(27,32): error TS7006: Parameter 'c' implicitly has an 'any' type.
+parserRealSource4.ts(27,45): error TS7006: Parameter 'context' implicitly has an 'any' type.
+parserRealSource4.ts(28,31): error TS7006: Parameter 'v' implicitly has an 'any' type.
+parserRealSource4.ts(28,34): error TS7006: Parameter 'c' implicitly has an 'any' type.
+parserRealSource4.ts(28,49): error TS7006: Parameter 'context' implicitly has an 'any' type.
+parserRealSource4.ts(29,30): error TS7006: Parameter 'v' implicitly has an 'any' type.
+parserRealSource4.ts(29,33): error TS7006: Parameter 'c' implicitly has an 'any' type.
+parserRealSource4.ts(29,48): error TS7006: Parameter 'context' implicitly has an 'any' type.
+parserRealSource4.ts(48,33): error TS7006: Parameter 'data' implicitly has an 'any' type.
+parserRealSource4.ts(57,41): error TS7006: Parameter 'data' implicitly has an 'any' type.
+parserRealSource4.ts(67,36): error TS7006: Parameter 'v' implicitly has an 'any' type.
+parserRealSource4.ts(67,39): error TS7006: Parameter 'c' implicitly has an 'any' type.
+parserRealSource4.ts(67,52): error TS7006: Parameter 'context' implicitly has an 'any' type.
+parserRealSource4.ts(76,38): error TS7006: Parameter 'v' implicitly has an 'any' type.
+parserRealSource4.ts(76,41): error TS7006: Parameter 'c' implicitly has an 'any' type.
+parserRealSource4.ts(76,56): error TS7006: Parameter 'context' implicitly has an 'any' type.
+parserRealSource4.ts(88,37): error TS7006: Parameter 'v' implicitly has an 'any' type.
+parserRealSource4.ts(88,40): error TS7006: Parameter 'c' implicitly has an 'any' type.
+parserRealSource4.ts(88,55): error TS7006: Parameter 'context' implicitly has an 'any' type.
+parserRealSource4.ts(127,33): error TS7006: Parameter 'data' implicitly has an 'any' type.
+parserRealSource4.ts(136,41): error TS7006: Parameter 'data' implicitly has an 'any' type.
+parserRealSource4.ts(145,36): error TS7006: Parameter 'v' implicitly has an 'any' type.
+parserRealSource4.ts(145,39): error TS7006: Parameter 'c' implicitly has an 'any' type.
+parserRealSource4.ts(145,52): error TS7006: Parameter 'context' implicitly has an 'any' type.
+parserRealSource4.ts(150,38): error TS7006: Parameter 'v' implicitly has an 'any' type.
+parserRealSource4.ts(150,41): error TS7006: Parameter 'c' implicitly has an 'any' type.
+parserRealSource4.ts(150,56): error TS7006: Parameter 'context' implicitly has an 'any' type.
+parserRealSource4.ts(154,37): error TS7006: Parameter 'v' implicitly has an 'any' type.
+parserRealSource4.ts(154,40): error TS7006: Parameter 'c' implicitly has an 'any' type.
+parserRealSource4.ts(154,55): error TS7006: Parameter 'context' implicitly has an 'any' type.
+parserRealSource4.ts(188,16): error TS2564: Property 'next' has no initializer and is not definitely assigned in the constructor.
+parserRealSource4.ts(190,22): error TS7006: Parameter 'key' implicitly has an 'any' type.
+parserRealSource4.ts(190,34): error TS7006: Parameter 'data' implicitly has an 'any' type.
+parserRealSource4.ts(195,28): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof HashEntry'.
+parserRealSource4.ts(195,38): error TS1011: An element access expression should take an argument.
+parserRealSource4.ts(197,59): error TS7006: Parameter 'key' implicitly has an 'any' type.
+parserRealSource4.ts(198,39): error TS7006: Parameter 'key1' implicitly has an 'any' type.
+parserRealSource4.ts(198,45): error TS7006: Parameter 'key2' implicitly has an 'any' type.
+parserRealSource4.ts(204,20): error TS7006: Parameter 'key' implicitly has an 'any' type.
+parserRealSource4.ts(204,25): error TS7006: Parameter 'data' implicitly has an 'any' type.
+parserRealSource4.ts(221,23): error TS7006: Parameter 'key' implicitly has an 'any' type.
+parserRealSource4.ts(226,17): error TS2322: Type 'null' is not assignable to type 'HashEntry'.
+parserRealSource4.ts(247,23): error TS7006: Parameter 'key' implicitly has an 'any' type.
+parserRealSource4.ts(265,23): error TS7006: Parameter 'key' implicitly has an 'any' type.
+parserRealSource4.ts(282,20): error TS7006: Parameter 'key' implicitly has an 'any' type.
+parserRealSource4.ts(282,25): error TS7006: Parameter 'data' implicitly has an 'any' type.
+parserRealSource4.ts(288,13): error TS2322: Type 'any' is not assignable to type 'never'.
+parserRealSource4.ts(289,13): error TS2322: Type 'any' is not assignable to type 'never'.
+
+
+==== parserRealSource4.ts (53 errors) ====
+    // Copyright (c) Microsoft. All rights reserved. Licensed under the Apache License, Version 2.0. 
+    // See LICENSE.txt in the project root for complete license information.
+    
+    ///<reference path='typescript.ts' />
+                        ~~~~~~~~~~~~~
+!!! error TS6053: File 'typescript.ts' not found.
+    
+    module TypeScript {
+    
+        export class BlockIntrinsics {
+            public prototype = undefined;
+            public toString = undefined;
+            public toLocaleString = undefined;
+            public valueOf = undefined;
+            public hasOwnProperty = undefined;
+            public propertyIsEnumerable = undefined;
+            public isPrototypeOf = undefined;
+    
+            constructor () {
+                // initialize the 'constructor' field
+                this["constructor"] = undefined;
+                ~~~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'Function'.
+            }
+        }
+    
+        export interface IHashTable {
+            getAllKeys(): string[];
+            add(key: string, data): boolean;
+                             ~~~~
+!!! error TS7006: Parameter 'data' implicitly has an 'any' type.
+            addOrUpdate(key: string, data): boolean;
+                                     ~~~~
+!!! error TS7006: Parameter 'data' implicitly has an 'any' type.
+            map(fn: (k: string, v, c) => void , context): void;
+                                ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+                                   ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+                                                ~~~~~~~
+!!! error TS7006: Parameter 'context' implicitly has an 'any' type.
+            every(fn: (k: string, v, c) => boolean, context): boolean;
+                                  ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+                                     ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+                                                    ~~~~~~~
+!!! error TS7006: Parameter 'context' implicitly has an 'any' type.
+            some(fn: (k: string, v, c) => boolean, context): boolean;
+                                 ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+                                    ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+                                                   ~~~~~~~
+!!! error TS7006: Parameter 'context' implicitly has an 'any' type.
+            count(): number;
+            lookup(key: string): any;
+        }
+    
+        export class StringHashTable implements IHashTable {
+            public itemCount = 0;
+            public table = <any>(<any> new BlockIntrinsics());
+    
+            public getAllKeys(): string[]{
+                var result: string[] = [];
+                for (var k in this.table) {
+                    if (this.table[k] != undefined) {
+                        result[result.length] = k;
+                    }
+                }
+                return result;
+            }
+    
+            public add(key: string, data): boolean {
+                                    ~~~~
+!!! error TS7006: Parameter 'data' implicitly has an 'any' type.
+                if (this.table[key] != undefined) {
+                    return false;
+                }
+                this.table[key] = data;
+                this.itemCount++;
+                return true;
+            }
+    
+            public addOrUpdate(key: string, data): boolean {
+                                            ~~~~
+!!! error TS7006: Parameter 'data' implicitly has an 'any' type.
+                if (this.table[key] != undefined) {
+                    this.table[key] = data;
+                    return false;
+                }
+                this.table[key] = data;
+                this.itemCount++;
+                return true;
+            }
+    
+            public map(fn: (k: string, v, c) => void , context) {
+                                       ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+                                          ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+                                                       ~~~~~~~
+!!! error TS7006: Parameter 'context' implicitly has an 'any' type.
+                for (var k in this.table) {
+                    var data = this.table[k];
+                    if (data != undefined) {
+                        fn(k, this.table[k], context);
+                    }
+                }
+            }
+    
+            public every(fn: (k: string, v, c) => boolean, context) {
+                                         ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+                                            ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+                                                           ~~~~~~~
+!!! error TS7006: Parameter 'context' implicitly has an 'any' type.
+                for (var k in this.table) {
+                    var data = this.table[k];
+                    if (data != undefined) {
+                        if (!fn(k, this.table[k], context)) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+    
+            public some(fn: (k: string, v, c) => boolean, context) {
+                                        ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+                                           ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+                                                          ~~~~~~~
+!!! error TS7006: Parameter 'context' implicitly has an 'any' type.
+                for (var k in this.table) {
+                    var data = this.table[k];
+                    if (data != undefined) {
+                        if (fn(k, this.table[k], context)) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+    
+            public count(): number { return this.itemCount; }
+    
+            public lookup(key: string) {
+                var data = this.table[key];
+                if (data != undefined) {
+                    return data;
+                }
+                else {
+                    return (null);
+                }
+            }
+        }
+    
+        // The resident table is expected to reference the same table object, whereas the 
+        // transientTable may reference different objects over time
+        // REVIEW:  WARNING:  For performance reasons, neither the primary nor secondary table may be null
+        export class DualStringHashTable implements IHashTable {
+    
+            public insertPrimary = true;
+    
+            constructor (public primaryTable: IHashTable,
+                                            public secondaryTable: IHashTable) { }
+    
+            public getAllKeys(): string[]{
+                return this.primaryTable.getAllKeys().concat(this.secondaryTable.getAllKeys());
+            }
+    
+            public add(key: string, data): boolean {
+                                    ~~~~
+!!! error TS7006: Parameter 'data' implicitly has an 'any' type.
+                if (this.insertPrimary) {
+                    return this.primaryTable.add(key, data);
+                }
+                else {
+                    return this.secondaryTable.add(key, data);
+                }
+            }
+    
+            public addOrUpdate(key: string, data): boolean {
+                                            ~~~~
+!!! error TS7006: Parameter 'data' implicitly has an 'any' type.
+                if (this.insertPrimary) {
+                    return this.primaryTable.addOrUpdate(key, data);
+                }
+                else {
+                    return this.secondaryTable.addOrUpdate(key, data);
+                }
+            }
+    
+            public map(fn: (k: string, v, c) => void , context) {
+                                       ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+                                          ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+                                                       ~~~~~~~
+!!! error TS7006: Parameter 'context' implicitly has an 'any' type.
+                this.primaryTable.map(fn, context);
+                this.secondaryTable.map(fn, context);
+            }
+    
+            public every(fn: (k: string, v, c) => boolean, context) {
+                                         ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+                                            ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+                                                           ~~~~~~~
+!!! error TS7006: Parameter 'context' implicitly has an 'any' type.
+                return this.primaryTable.every(fn, context) && this.secondaryTable.every(fn, context);
+            }
+    
+            public some(fn: (k: string, v, c) => boolean, context) {
+                                        ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+                                           ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+                                                          ~~~~~~~
+!!! error TS7006: Parameter 'context' implicitly has an 'any' type.
+                return this.primaryTable.some(fn, context) || this.secondaryTable.some(fn, context);
+            }
+    
+            public count() {
+                return this.primaryTable.count() + this.secondaryTable.count();
+            }
+    
+            public lookup(key: string) {
+                var data = this.primaryTable.lookup(key);
+                if (data != undefined) {
+                    return data;
+                }
+                else {
+                    return this.secondaryTable.lookup(key);
+                }
+            }
+        }
+    
+        export function numberHashFn(key: number): number {
+            var c2 = 0x27d4eb2d; // a prime or an odd constant
+            key = (key ^ 61) ^ (key >>> 16);
+            key = key + (key << 3);
+            key = key ^ (key >>> 4);
+            key = key * c2;
+            key = key ^ (key >>> 15);
+            return key;
+        }
+    
+        export function combineHashes(key1: number, key2: number) {
+            return key2 ^ ((key1 >> 5) + key1);
+        }
+    
+        export class HashEntry {
+            public next: HashEntry;
+                   ~~~~
+!!! error TS2564: Property 'next' has no initializer and is not definitely assigned in the constructor.
+    
+            constructor (public key, public data) { }
+                         ~~~~~~~~~~
+!!! error TS7006: Parameter 'key' implicitly has an 'any' type.
+                                     ~~~~~~~~~~~
+!!! error TS7006: Parameter 'data' implicitly has an 'any' type.
+        }
+    
+        export class HashTable {
+            public itemCount: number = 0;
+            public table = new HashEntry[];
+                               ~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof HashEntry'.
+                                         
+!!! error TS1011: An element access expression should take an argument.
+    
+            constructor (public size: number, public hashFn: (key) =>number,
+                                                              ~~~
+!!! error TS7006: Parameter 'key' implicitly has an 'any' type.
+                        public equalsFn: (key1, key2) =>boolean) {
+                                          ~~~~
+!!! error TS7006: Parameter 'key1' implicitly has an 'any' type.
+                                                ~~~~
+!!! error TS7006: Parameter 'key2' implicitly has an 'any' type.
+                for (var i: number = 0; i < this.size; i++) {
+                    this.table[i] = null;
+                }
+            }
+    
+            public add(key, data): boolean {
+                       ~~~
+!!! error TS7006: Parameter 'key' implicitly has an 'any' type.
+                            ~~~~
+!!! error TS7006: Parameter 'data' implicitly has an 'any' type.
+                var current: HashEntry;
+                var entry: HashEntry = new HashEntry(key, data);
+                var val: number = this.hashFn(key);
+                val = val % this.size;
+    
+                for (current = this.table[val]; current != null ; current = current.next) {
+                    if (this.equalsFn(key, current.key)) {
+                        return false;
+                    }
+                }
+                entry.next = this.table[val];
+                this.table[val] = entry;
+                this.itemCount++;
+                return true;
+            }
+    
+            public remove(key) {
+                          ~~~
+!!! error TS7006: Parameter 'key' implicitly has an 'any' type.
+                var current: HashEntry;
+                var val: number = this.hashFn(key);
+                val = val % this.size;
+                var result = null;
+                var prevEntry: HashEntry = null;
+                    ~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'HashEntry'.
+    
+                for (current = this.table[val]; current != null ; current = current.next) {
+                    if (this.equalsFn(key, current.key)) {
+                        result = current.data;
+                        this.itemCount--;
+                        if (prevEntry) {
+                            prevEntry.next = current.next;
+                        }
+                        else {
+                            this.table[val] = current.next;
+                        }
+                        break;
+                    }
+                    prevEntry = current;
+                }
+                return result;
+            }
+    
+            public count(): number { return this.itemCount; }
+    
+            public lookup(key) {
+                          ~~~
+!!! error TS7006: Parameter 'key' implicitly has an 'any' type.
+                var current: HashEntry;
+                var val: number = this.hashFn(key);
+                val = val % this.size;
+                for (current = this.table[val]; current != null ; current = current.next) {
+                    if (this.equalsFn(key, current.key)) {
+                        return (current.data);
+                    }
+                }
+                return (null);
+            }
+        }
+    
+        // Simple Hash table with list of keys and values matching each other at the given index
+        export class SimpleHashTable {
+            private keys = [];
+            private values = [];
+    
+            public lookup(key, findValue?: boolean) {
+                          ~~~
+!!! error TS7006: Parameter 'key' implicitly has an 'any' type.
+                var searchArray = this.keys;
+                if (findValue) {
+                    searchArray = this.values;
+                }
+    
+                for (var i = 0; i < searchArray.length; i++) {
+                    if (searchArray[i] == key) {
+                        return {
+                            key: this.keys[i],
+                            data: this.values[i],
+                        };
+                    }
+                }
+                return null;
+            }
+    
+            public add(key, data): boolean {
+                       ~~~
+!!! error TS7006: Parameter 'key' implicitly has an 'any' type.
+                            ~~~~
+!!! error TS7006: Parameter 'data' implicitly has an 'any' type.
+                var lookupData = this.lookup(key);
+                if (lookupData) {
+                    return false;
+                }
+    
+                this.keys[this.keys.length] = key;
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type 'any' is not assignable to type 'never'.
+                this.values[this.values.length] = data;
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type 'any' is not assignable to type 'never'.
+    
+                return true;
+            }
+        }
+    
+    }

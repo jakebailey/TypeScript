@@ -1,0 +1,15 @@
+parserParameterList1.ts(2,6): error TS1014: A rest parameter must be last in a parameter list.
+parserParameterList1.ts(2,6): error TS7019: Rest parameter 'A' implicitly has an 'any[]' type.
+parserParameterList1.ts(2,12): error TS7006: Parameter 'B' implicitly has an 'any' type.
+
+
+==== parserParameterList1.ts (3 errors) ====
+    class C {
+       F(...A, B) { }
+         ~~~
+!!! error TS1014: A rest parameter must be last in a parameter list.
+         ~~~~
+!!! error TS7019: Rest parameter 'A' implicitly has an 'any[]' type.
+               ~
+!!! error TS7006: Parameter 'B' implicitly has an 'any' type.
+    }

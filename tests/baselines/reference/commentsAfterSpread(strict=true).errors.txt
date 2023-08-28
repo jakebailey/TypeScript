@@ -1,0 +1,119 @@
+commentsAfterSpread.ts(1,19): error TS7006: Parameter 'a' implicitly has an 'any' type.
+commentsAfterSpread.ts(31,13): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+commentsAfterSpread.ts(37,3): error TS7006: Parameter 'first' implicitly has an 'any' type.
+commentsAfterSpread.ts(38,3): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+commentsAfterSpread.ts(44,3): error TS7006: Parameter 'first' implicitly has an 'any' type.
+commentsAfterSpread.ts(45,3): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+commentsAfterSpread.ts(54,12): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+commentsAfterSpread.ts(57,3): error TS7006: Parameter 'first' implicitly has an 'any' type.
+commentsAfterSpread.ts(57,10): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+commentsAfterSpread.ts(61,3): error TS7006: Parameter 'first' implicitly has an 'any' type.
+commentsAfterSpread.ts(62,3): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+commentsAfterSpread.ts(67,3): error TS7031: Binding element 'first' implicitly has an 'any' type.
+
+
+==== commentsAfterSpread.ts (12 errors) ====
+    const identity = (a) => a;
+                      ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    
+    const a = {
+      .../*#__PURE__*/identity({
+        b: 1
+      })
+    };
+    
+    const b = {
+      ...
+      /*#__PURE__*/identity({
+        b: 1
+      })
+    };
+    
+    const c = {
+      ...
+      /*#__PURE__*/
+      identity({
+        b: 1
+      })
+    };
+    
+    const d = {
+      .../*#__PURE__*/
+      identity({
+        b: 1
+      })
+    };
+    
+    function e (.../* comment e */args) {
+                ~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+      const [ea, eb] = [.../* comment eab */args];
+      return args.length;
+    }
+    
+    function f (
+      first,
+      ~~~~~
+!!! error TS7006: Parameter 'first' implicitly has an 'any' type.
+      .../* comment f */rest
+      ~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    ) {
+      return rest.length;
+    }
+    
+    function g (
+      first,
+      ~~~~~
+!!! error TS7006: Parameter 'first' implicitly has an 'any' type.
+      .../* comment g */
+      ~~~~~~~~~~~~~~~~~~
+      rest
+    ~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    ) {
+      const [ga, gb] = [.../* comment gab */
+        rest
+      ]
+      return rest.length;
+    }
+    
+    const h = (.../* comment h */args) => args.length;
+               ~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+    
+    const i = (
+      first, .../* comment i */rest
+      ~~~~~
+!!! error TS7006: Parameter 'first' implicitly has an 'any' type.
+             ~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    ) => rest.length;
+    
+    const j = (
+      first,
+      ~~~~~
+!!! error TS7006: Parameter 'first' implicitly has an 'any' type.
+      .../* comment j */
+      ~~~~~~~~~~~~~~~~~~
+      rest
+    ~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    ) => rest.length;
+    
+    function k ({
+      first,
+      ~~~~~
+!!! error TS7031: Binding element 'first' implicitly has an 'any' type.
+      .../* comment k */rest
+    }) {
+      const { ka, kb, .../* comment kr */remaining } = rest;
+      const {
+        kc,
+        kd,
+        .../* comment kr2 */
+        remaining2
+      } = rest;
+      return { .../* comment return k */ remaining };
+    }

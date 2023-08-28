@@ -1,0 +1,24 @@
+unusedDestructuringParameters.ts(1,12): error TS6133: 'a' is declared but its value is never read.
+unusedDestructuringParameters.ts(1,13): error TS7031: Binding element 'a' implicitly has an 'any' type.
+unusedDestructuringParameters.ts(3,13): error TS6133: 'a' is declared but its value is never read.
+unusedDestructuringParameters.ts(3,14): error TS7031: Binding element 'a' implicitly has an 'any' type.
+unusedDestructuringParameters.ts(5,14): error TS7031: Binding element '_' implicitly has an 'any' type.
+
+
+==== unusedDestructuringParameters.ts (5 errors) ====
+    const f = ([a]) => { };
+               ~~~
+!!! error TS6133: 'a' is declared but its value is never read.
+                ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+    f([1]);
+    const f2 = ({a}) => { };
+                ~~~
+!!! error TS6133: 'a' is declared but its value is never read.
+                 ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+    f2({ a: 10 });
+    const f3 = ([_]) => { };
+                 ~
+!!! error TS7031: Binding element '_' implicitly has an 'any' type.
+    f3([10]);

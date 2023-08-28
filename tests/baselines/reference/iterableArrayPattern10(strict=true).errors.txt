@@ -1,0 +1,35 @@
+iterableArrayPattern10.ts(1,13): error TS7008: Member 'x' implicitly has an 'any' type.
+iterableArrayPattern10.ts(2,25): error TS7008: Member 'y' implicitly has an 'any' type.
+iterableArrayPattern10.ts(16,15): error TS7031: Binding element 'a' implicitly has an 'any' type.
+iterableArrayPattern10.ts(16,18): error TS7031: Binding element 'b' implicitly has an 'any' type.
+iterableArrayPattern10.ts(17,5): error TS2345: Argument of type 'FooIterator' is not assignable to parameter of type '[any, any]'.
+
+
+==== iterableArrayPattern10.ts (5 errors) ====
+    class Bar { x }
+                ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    class Foo extends Bar { y }
+                            ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    class FooIterator {
+        next() {
+            return {
+                value: new Foo,
+                done: false
+            };
+        }
+    
+        [Symbol.iterator]() {
+            return this;
+        }
+    }
+    
+    function fun([a, b]) { }
+                  ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                     ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+    fun(new FooIterator);
+        ~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type 'FooIterator' is not assignable to parameter of type '[any, any]'.

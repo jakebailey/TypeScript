@@ -1,0 +1,23 @@
+privateNameConstructorSignature.ts(5,5): error TS7008: Member '#x' implicitly has an 'any' type.
+
+
+==== privateNameConstructorSignature.ts (1 errors) ====
+    interface D {
+        x: number;
+    }
+    class C {
+        #x;
+        ~~
+!!! error TS7008: Member '#x' implicitly has an 'any' type.
+        static test() {
+            new C().#x = 10;
+            const y = new C();
+            const z = new y();
+            z.x = 123;
+        }
+    }
+    interface C {
+        new (): D;
+    }
+    
+    

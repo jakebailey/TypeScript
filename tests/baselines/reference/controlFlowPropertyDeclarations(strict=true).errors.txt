@@ -1,0 +1,196 @@
+controlFlowPropertyDeclarations.ts(26,23): error TS7006: Parameter 'string' implicitly has an 'any' type.
+controlFlowPropertyDeclarations.ts(26,31): error TS7006: Parameter 'times' implicitly has an 'any' type.
+controlFlowPropertyDeclarations.ts(50,19): error TS7006: Parameter 'haystack' implicitly has an 'any' type.
+controlFlowPropertyDeclarations.ts(50,29): error TS7006: Parameter 'needle' implicitly has an 'any' type.
+controlFlowPropertyDeclarations.ts(62,18): error TS7006: Parameter 'haystack' implicitly has an 'any' type.
+controlFlowPropertyDeclarations.ts(62,28): error TS7006: Parameter 'needle' implicitly has an 'any' type.
+controlFlowPropertyDeclarations.ts(71,28): error TS7006: Parameter 'string' implicitly has an 'any' type.
+controlFlowPropertyDeclarations.ts(72,43): error TS7006: Parameter 'match' implicitly has an 'any' type.
+controlFlowPropertyDeclarations.ts(72,50): error TS7006: Parameter 'chr' implicitly has an 'any' type.
+controlFlowPropertyDeclarations.ts(80,18): error TS7006: Parameter 'string' implicitly has an 'any' type.
+controlFlowPropertyDeclarations.ts(91,34): error TS7006: Parameter 'value' implicitly has an 'any' type.
+controlFlowPropertyDeclarations.ts(96,13): error TS2564: Property 'output' has no initializer and is not definitely assigned in the constructor.
+controlFlowPropertyDeclarations.ts(97,13): error TS2564: Property 'level' has no initializer and is not definitely assigned in the constructor.
+controlFlowPropertyDeclarations.ts(98,13): error TS2564: Property '_inPreTag' has no initializer and is not definitely assigned in the constructor.
+controlFlowPropertyDeclarations.ts(106,17): error TS7006: Parameter 'node' implicitly has an 'any' type.
+
+
+==== controlFlowPropertyDeclarations.ts (15 errors) ====
+    // Repro from ##8913
+    
+    declare var require:any;
+    
+    var HTMLDOMPropertyConfig = require('react/lib/HTMLDOMPropertyConfig');
+    
+    // Populate property map with ReactJS's attribute and property mappings
+    // TODO handle/use .Properties value eg: MUST_USE_PROPERTY is not HTML attr
+    for (var propname in HTMLDOMPropertyConfig.Properties) {
+      if (!HTMLDOMPropertyConfig.Properties.hasOwnProperty(propname)) {
+        continue;
+      }
+    
+      var mapFrom = HTMLDOMPropertyConfig.DOMAttributeNames[propname] || propname.toLowerCase();
+    }
+    
+    /**
+     * Repeats a string a certain number of times.
+     * Also: the future is bright and consists of native string repetition:
+     * https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String/repeat
+     *
+     * @param {string} string  String to repeat
+     * @param {number} times   Number of times to repeat string. Integer.
+     * @see http://jsperf.com/string-repeater/2
+     */
+    function repeatString(string, times) {
+                          ~~~~~~
+!!! error TS7006: Parameter 'string' implicitly has an 'any' type.
+                                  ~~~~~
+!!! error TS7006: Parameter 'times' implicitly has an 'any' type.
+      if (times === 1) {
+        return string;
+      }
+      if (times < 0) { throw new Error(); }
+      var repeated = '';
+      while (times) {
+        if (times & 1) {
+          repeated += string;
+        }
+        if (times >>= 1) {
+          string += string;
+        }
+      }
+      return repeated;
+    }
+    
+    /**
+     * Determine if the string ends with the specified substring.
+     *
+     * @param {string} haystack String to search in
+     * @param {string} needle   String to search for
+     * @return {boolean}
+     */
+    function endsWith(haystack, needle) {
+                      ~~~~~~~~
+!!! error TS7006: Parameter 'haystack' implicitly has an 'any' type.
+                                ~~~~~~
+!!! error TS7006: Parameter 'needle' implicitly has an 'any' type.
+      return haystack.slice(-needle.length) === needle;
+    }
+    
+    /**
+     * Trim the specified substring off the string. If the string does not end
+     * with the specified substring, this is a no-op.
+     *
+     * @param {string} haystack String to search in
+     * @param {string} needle   String to search for
+     * @return {string}
+     */
+    function trimEnd(haystack, needle) {
+                     ~~~~~~~~
+!!! error TS7006: Parameter 'haystack' implicitly has an 'any' type.
+                               ~~~~~~
+!!! error TS7006: Parameter 'needle' implicitly has an 'any' type.
+      return endsWith(haystack, needle)
+        ? haystack.slice(0, -needle.length)
+        : haystack;
+    }
+    
+    /**
+     * Convert a hyphenated string to camelCase.
+     */
+    function hyphenToCamelCase(string) {
+                               ~~~~~~
+!!! error TS7006: Parameter 'string' implicitly has an 'any' type.
+      return string.replace(/-(.)/g, function(match, chr) {
+                                              ~~~~~
+!!! error TS7006: Parameter 'match' implicitly has an 'any' type.
+                                                     ~~~
+!!! error TS7006: Parameter 'chr' implicitly has an 'any' type.
+        return chr.toUpperCase();
+      });
+    }
+    
+    /**
+     * Determines if the specified string consists entirely of whitespace.
+     */
+    function isEmpty(string) {
+                     ~~~~~~
+!!! error TS7006: Parameter 'string' implicitly has an 'any' type.
+       return !/[^\s]/.test(string);
+    }
+    
+    /**
+     * Determines if the CSS value can be converted from a
+     * 'px' suffixed string to a numeric value
+     *
+     * @param {string} value CSS property value
+     * @return {boolean}
+     */
+    function isConvertiblePixelValue(value) {
+                                     ~~~~~
+!!! error TS7006: Parameter 'value' implicitly has an 'any' type.
+      return /^\d+px$/.test(value);
+    }
+    
+    export class HTMLtoJSX {
+        private output: string;
+                ~~~~~~
+!!! error TS2564: Property 'output' has no initializer and is not definitely assigned in the constructor.
+        private level: number;
+                ~~~~~
+!!! error TS2564: Property 'level' has no initializer and is not definitely assigned in the constructor.
+        private _inPreTag: boolean;
+                ~~~~~~~~~
+!!! error TS2564: Property '_inPreTag' has no initializer and is not definitely assigned in the constructor.
+    
+    
+      /**
+       * Handles processing of the specified text node
+       *
+       * @param {TextNode} node
+       */
+      _visitText = (node) => {
+                    ~~~~
+!!! error TS7006: Parameter 'node' implicitly has an 'any' type.
+        var parentTag = node.parentNode && node.parentNode.tagName.toLowerCase();
+        if (parentTag === 'textarea' || parentTag === 'style') {
+          // Ignore text content of textareas and styles, as it will have already been moved
+          // to a "defaultValue" attribute and "dangerouslySetInnerHTML" attribute respectively.
+          return;
+        }
+    
+        var text = ''
+    
+        if (this._inPreTag) {
+          // If this text is contained within a <pre>, we need to ensure the JSX
+          // whitespace coalescing rules don't eat the whitespace. This means
+          // wrapping newlines and sequences of two or more spaces in variables.
+          text = text
+            .replace(/\r/g, '')
+            .replace(/( {2,}|\n|\t|\{|\})/g, function(whitespace) {
+              return '{' + JSON.stringify(whitespace) + '}';
+            });
+        } else {
+          // If there's a newline in the text, adjust the indent level
+          if (text.indexOf('\n') > -1) {
+          }
+        }
+        this.output += text;
+      }
+    
+    
+    
+    };
+    
+    /**
+     * Handles parsing of inline styles
+     */
+    export class StyleParser {
+      styles = {};
+      toJSXString = () => {
+        for (var key in this.styles) {
+          if (!this.styles.hasOwnProperty(key)) {
+          }
+        }
+      }
+    }

@@ -1,0 +1,16 @@
+paramTagNestedWithoutTopLevelObject2.js(2,20): error TS8032: Qualified name 'xyz.bar' is not allowed without a leading '@param {object} xyz'.
+paramTagNestedWithoutTopLevelObject2.js(5,12): error TS7006: Parameter 'xyz' implicitly has an 'any' type.
+
+
+==== paramTagNestedWithoutTopLevelObject2.js (2 errors) ====
+    /**
+     * @param {object} xyz.bar
+                       ~~~~~~~
+!!! error TS8032: Qualified name 'xyz.bar' is not allowed without a leading '@param {object} xyz'.
+     * @param {number} xyz.bar.p
+     */
+    function g(xyz) {
+               ~~~
+!!! error TS7006: Parameter 'xyz' implicitly has an 'any' type.
+        return xyz.bar.p;
+    }

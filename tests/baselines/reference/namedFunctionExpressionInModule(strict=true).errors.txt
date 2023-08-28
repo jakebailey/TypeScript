@@ -1,0 +1,18 @@
+namedFunctionExpressionInModule.ts(2,26): error TS7006: Parameter 'a' implicitly has an 'any' type.
+namedFunctionExpressionInModule.ts(2,29): error TS7006: Parameter 'b' implicitly has an 'any' type.
+namedFunctionExpressionInModule.ts(2,32): error TS7006: Parameter 'c' implicitly has an 'any' type.
+
+
+==== namedFunctionExpressionInModule.ts (3 errors) ====
+    module Variables{
+        var x = function bar(a, b, c) {
+                             ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                                ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+                                   ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+        }
+        x(1, 2, 3);
+    }
+    

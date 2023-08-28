@@ -1,0 +1,19 @@
+index.tsx(8,16): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+index.tsx(8,25): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+
+
+==== index.tsx (2 errors) ====
+    import "./jsx";
+    
+    var skate: any;
+    const React = { createElement: skate.h };
+    
+    class Component {
+        renderCallback() {
+            return <div>test</div>;
+                   ~~~~~
+!!! error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+                            ~~~~~~
+!!! error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+        }
+    };

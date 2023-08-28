@@ -1,0 +1,57 @@
+partiallyAnnotatedFunctionInferenceError.ts(2,3): error TS2564: Property 'test' has no initializer and is not definitely assigned in the constructor.
+partiallyAnnotatedFunctionInferenceError.ts(6,3): error TS2564: Property 'test2' has no initializer and is not definitely assigned in the constructor.
+partiallyAnnotatedFunctionInferenceError.ts(12,11): error TS2345: Argument of type '(t1: D, t2: any, t3: any) => void' is not assignable to parameter of type '(t: D, t1: D) => void'.
+  Target signature provides too few arguments. Expected 3 or more, but got 2.
+partiallyAnnotatedFunctionInferenceError.ts(12,19): error TS7006: Parameter 't2' implicitly has an 'any' type.
+partiallyAnnotatedFunctionInferenceError.ts(12,23): error TS7006: Parameter 't3' implicitly has an 'any' type.
+partiallyAnnotatedFunctionInferenceError.ts(13,11): error TS2345: Argument of type '(t1: any, t2: D, t3: any) => void' is not assignable to parameter of type '(t: D, t1: D) => void'.
+  Target signature provides too few arguments. Expected 3 or more, but got 2.
+partiallyAnnotatedFunctionInferenceError.ts(13,12): error TS7006: Parameter 't1' implicitly has an 'any' type.
+partiallyAnnotatedFunctionInferenceError.ts(13,23): error TS7006: Parameter 't3' implicitly has an 'any' type.
+partiallyAnnotatedFunctionInferenceError.ts(14,11): error TS2345: Argument of type '(t1: any, t2: any, t3: D) => void' is not assignable to parameter of type '(t: any, t1: any) => void'.
+  Target signature provides too few arguments. Expected 3 or more, but got 2.
+partiallyAnnotatedFunctionInferenceError.ts(14,12): error TS7006: Parameter 't1' implicitly has an 'any' type.
+partiallyAnnotatedFunctionInferenceError.ts(14,16): error TS7006: Parameter 't2' implicitly has an 'any' type.
+
+
+==== partiallyAnnotatedFunctionInferenceError.ts (11 errors) ====
+    class C {
+      test: string
+      ~~~~
+!!! error TS2564: Property 'test' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class D extends C {
+      test2: string
+      ~~~~~
+!!! error TS2564: Property 'test2' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    declare function testError<T extends C>(a: (t: T, t1: T) => void): T
+    
+    // more args
+    testError((t1: D, t2, t3) => {})
+              ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type '(t1: D, t2: any, t3: any) => void' is not assignable to parameter of type '(t: D, t1: D) => void'.
+!!! error TS2345:   Target signature provides too few arguments. Expected 3 or more, but got 2.
+                      ~~
+!!! error TS7006: Parameter 't2' implicitly has an 'any' type.
+                          ~~
+!!! error TS7006: Parameter 't3' implicitly has an 'any' type.
+    testError((t1, t2: D, t3) => {})
+              ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type '(t1: any, t2: D, t3: any) => void' is not assignable to parameter of type '(t: D, t1: D) => void'.
+!!! error TS2345:   Target signature provides too few arguments. Expected 3 or more, but got 2.
+               ~~
+!!! error TS7006: Parameter 't1' implicitly has an 'any' type.
+                          ~~
+!!! error TS7006: Parameter 't3' implicitly has an 'any' type.
+    testError((t1, t2, t3: D) => {})
+              ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type '(t1: any, t2: any, t3: D) => void' is not assignable to parameter of type '(t: any, t1: any) => void'.
+!!! error TS2345:   Target signature provides too few arguments. Expected 3 or more, but got 2.
+               ~~
+!!! error TS7006: Parameter 't1' implicitly has an 'any' type.
+                   ~~
+!!! error TS7006: Parameter 't2' implicitly has an 'any' type.
+    

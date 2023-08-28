@@ -1,0 +1,163 @@
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(1,10): error TS2394: This overload signature is not compatible with its implementation signature.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(1,10): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(5,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(6,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(11,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(12,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(17,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(18,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(23,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(24,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(25,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(26,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(30,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(31,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(32,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(33,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(37,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(38,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(39,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(40,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(44,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(45,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(46,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(47,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(51,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(52,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(53,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(54,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(58,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(59,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(60,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts(61,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts (32 errors) ====
+    function foo(x: 'a');
+             ~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 specializedSignatureIsNotSubtypeOfNonSpecializedSignature.ts:2:10: The implementation signature is declared here.
+             ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo(x: number) { }
+    
+    class C {
+        foo(x: 'a');
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: number);
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: any) { }
+    }
+    
+    class C2<T> {
+        foo(x: 'a');
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: T);
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: any) { }
+    }
+    
+    class C3<T extends String> {
+        foo(x: 'a');
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: T);
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: any) { }
+    }
+    
+    interface I {
+        (x: 'a');
+        ~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        (x: number);
+        ~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: 'a');
+        ~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: number);
+        ~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    interface I2<T> {
+        (x: 'a');
+        ~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        (x: T);
+        ~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: 'a');
+        ~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: T);
+        ~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    interface I3<T extends String> {
+        (x: 'a');
+        ~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        (x: T);
+        ~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: 'a');
+        ~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: T);
+        ~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    var a: {
+        (x: 'a');
+        ~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        (x: number);
+        ~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: 'a');
+        ~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: number);
+        ~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    var a2: {
+        (x: 'a');
+        ~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        <T>(x: T);
+        ~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: 'a');
+        ~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo<T>(x: T);
+        ~~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    var a3: {
+        (x: 'a');
+        ~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        <T>(x: T);
+        ~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: 'a');
+        ~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo<T extends String>(x: T);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    

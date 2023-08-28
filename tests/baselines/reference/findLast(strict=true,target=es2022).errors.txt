@@ -1,0 +1,187 @@
+findLast.ts(1,44): error TS2550: Property 'findLast' does not exist on type 'number[]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(1,54): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(2,51): error TS2550: Property 'findLast' does not exist on type 'string[]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(2,61): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(3,17): error TS2550: Property 'findLast' does not exist on type 'Int8Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(3,27): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(4,18): error TS2550: Property 'findLast' does not exist on type 'Uint8Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(4,28): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(5,25): error TS2550: Property 'findLast' does not exist on type 'Uint8ClampedArray'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(5,35): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(6,18): error TS2550: Property 'findLast' does not exist on type 'Int16Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(6,28): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(7,19): error TS2550: Property 'findLast' does not exist on type 'Uint16Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(7,29): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(8,18): error TS2550: Property 'findLast' does not exist on type 'Int32Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(8,28): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(9,19): error TS2550: Property 'findLast' does not exist on type 'Uint32Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(9,29): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(10,20): error TS2550: Property 'findLast' does not exist on type 'Float32Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(10,30): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(11,20): error TS2550: Property 'findLast' does not exist on type 'Float64Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(11,30): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(12,21): error TS2550: Property 'findLast' does not exist on type 'BigInt64Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(12,31): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(13,22): error TS2550: Property 'findLast' does not exist on type 'BigUint64Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(13,32): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(15,33): error TS2550: Property 'findLastIndex' does not exist on type 'number[]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(15,48): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(16,40): error TS2550: Property 'findLastIndex' does not exist on type 'string[]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(16,55): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(17,17): error TS2550: Property 'findLastIndex' does not exist on type 'Int8Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(17,32): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(18,18): error TS2550: Property 'findLastIndex' does not exist on type 'Uint8Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(18,33): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(19,25): error TS2550: Property 'findLastIndex' does not exist on type 'Uint8ClampedArray'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(19,40): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(20,18): error TS2550: Property 'findLastIndex' does not exist on type 'Int16Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(20,33): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(21,19): error TS2550: Property 'findLastIndex' does not exist on type 'Uint16Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(21,34): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(22,18): error TS2550: Property 'findLastIndex' does not exist on type 'Int32Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(22,33): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(23,19): error TS2550: Property 'findLastIndex' does not exist on type 'Uint32Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(23,34): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(24,20): error TS2550: Property 'findLastIndex' does not exist on type 'Float32Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(24,35): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(25,20): error TS2550: Property 'findLastIndex' does not exist on type 'Float64Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(25,35): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(26,21): error TS2550: Property 'findLastIndex' does not exist on type 'BigInt64Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(26,36): error TS7006: Parameter 'item' implicitly has an 'any' type.
+findLast.ts(27,22): error TS2550: Property 'findLastIndex' does not exist on type 'BigUint64Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+findLast.ts(27,37): error TS7006: Parameter 'item' implicitly has an 'any' type.
+
+
+==== findLast.ts (52 errors) ====
+    const itemNumber: number | undefined = [0].findLast((item) => item === 0);
+                                               ~~~~~~~~
+!!! error TS2550: Property 'findLast' does not exist on type 'number[]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                                         ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    const itemString: string | undefined = ["string"].findLast((item) => item === "string");
+                                                      ~~~~~~~~
+!!! error TS2550: Property 'findLast' does not exist on type 'string[]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                                                ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Int8Array().findLast((item) => item === 0);
+                    ~~~~~~~~
+!!! error TS2550: Property 'findLast' does not exist on type 'Int8Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                              ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Uint8Array().findLast((item) => item === 0);
+                     ~~~~~~~~
+!!! error TS2550: Property 'findLast' does not exist on type 'Uint8Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                               ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Uint8ClampedArray().findLast((item) => item === 0);
+                            ~~~~~~~~
+!!! error TS2550: Property 'findLast' does not exist on type 'Uint8ClampedArray'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                      ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Int16Array().findLast((item) => item === 0);
+                     ~~~~~~~~
+!!! error TS2550: Property 'findLast' does not exist on type 'Int16Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                               ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Uint16Array().findLast((item) => item === 0);
+                      ~~~~~~~~
+!!! error TS2550: Property 'findLast' does not exist on type 'Uint16Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Int32Array().findLast((item) => item === 0);
+                     ~~~~~~~~
+!!! error TS2550: Property 'findLast' does not exist on type 'Int32Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                               ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Uint32Array().findLast((item) => item === 0);
+                      ~~~~~~~~
+!!! error TS2550: Property 'findLast' does not exist on type 'Uint32Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Float32Array().findLast((item) => item === 0);
+                       ~~~~~~~~
+!!! error TS2550: Property 'findLast' does not exist on type 'Float32Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                 ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Float64Array().findLast((item) => item === 0);
+                       ~~~~~~~~
+!!! error TS2550: Property 'findLast' does not exist on type 'Float64Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                 ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new BigInt64Array().findLast((item) => item === BigInt(0));
+                        ~~~~~~~~
+!!! error TS2550: Property 'findLast' does not exist on type 'BigInt64Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                  ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new BigUint64Array().findLast((item) => item === BigInt(0));
+                         ~~~~~~~~
+!!! error TS2550: Property 'findLast' does not exist on type 'BigUint64Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                   ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    
+    const indexNumber: number = [0].findLastIndex((item) => item === 0);
+                                    ~~~~~~~~~~~~~
+!!! error TS2550: Property 'findLastIndex' does not exist on type 'number[]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                                   ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    const indexString: number = ["string"].findLastIndex((item) => item === "string");
+                                           ~~~~~~~~~~~~~
+!!! error TS2550: Property 'findLastIndex' does not exist on type 'string[]'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                                          ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Int8Array().findLastIndex((item) => item === 0);
+                    ~~~~~~~~~~~~~
+!!! error TS2550: Property 'findLastIndex' does not exist on type 'Int8Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                   ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Uint8Array().findLastIndex((item) => item === 0);
+                     ~~~~~~~~~~~~~
+!!! error TS2550: Property 'findLastIndex' does not exist on type 'Uint8Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                    ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Uint8ClampedArray().findLastIndex((item) => item === 0);
+                            ~~~~~~~~~~~~~
+!!! error TS2550: Property 'findLastIndex' does not exist on type 'Uint8ClampedArray'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                           ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Int16Array().findLastIndex((item) => item === 0);
+                     ~~~~~~~~~~~~~
+!!! error TS2550: Property 'findLastIndex' does not exist on type 'Int16Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                    ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Uint16Array().findLastIndex((item) => item === 0);
+                      ~~~~~~~~~~~~~
+!!! error TS2550: Property 'findLastIndex' does not exist on type 'Uint16Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                     ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Int32Array().findLastIndex((item) => item === 0);
+                     ~~~~~~~~~~~~~
+!!! error TS2550: Property 'findLastIndex' does not exist on type 'Int32Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                    ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Uint32Array().findLastIndex((item) => item === 0);
+                      ~~~~~~~~~~~~~
+!!! error TS2550: Property 'findLastIndex' does not exist on type 'Uint32Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                     ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Float32Array().findLastIndex((item) => item === 0);
+                       ~~~~~~~~~~~~~
+!!! error TS2550: Property 'findLastIndex' does not exist on type 'Float32Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                      ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new Float64Array().findLastIndex((item) => item === 0);
+                       ~~~~~~~~~~~~~
+!!! error TS2550: Property 'findLastIndex' does not exist on type 'Float64Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                      ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new BigInt64Array().findLastIndex((item) => item === BigInt(0));
+                        ~~~~~~~~~~~~~
+!!! error TS2550: Property 'findLastIndex' does not exist on type 'BigInt64Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                       ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    new BigUint64Array().findLastIndex((item) => item === BigInt(0));
+                         ~~~~~~~~~~~~~
+!!! error TS2550: Property 'findLastIndex' does not exist on type 'BigUint64Array'. Do you need to change your target library? Try changing the 'lib' compiler option to 'es2023' or later.
+                                        ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+    

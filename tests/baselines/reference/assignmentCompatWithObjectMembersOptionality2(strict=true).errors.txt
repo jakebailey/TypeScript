@@ -1,0 +1,222 @@
+assignmentCompatWithObjectMembersOptionality2.ts(4,14): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembersOptionality2.ts(5,30): error TS2564: Property 'bar' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembersOptionality2.ts(6,34): error TS2564: Property 'baz' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembersOptionality2.ts(33,5): error TS2559: Type 'D' has no properties in common with type 'C'.
+assignmentCompatWithObjectMembersOptionality2.ts(33,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(34,5): error TS2559: Type 'E' has no properties in common with type 'C'.
+assignmentCompatWithObjectMembersOptionality2.ts(34,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(35,5): error TS2559: Type 'F' has no properties in common with type 'C'.
+assignmentCompatWithObjectMembersOptionality2.ts(35,9): error TS2454: Variable 'f' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(36,5): error TS2559: Type 'D' has no properties in common with type '{ opt?: Base | undefined; }'.
+assignmentCompatWithObjectMembersOptionality2.ts(36,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(37,5): error TS2559: Type 'E' has no properties in common with type '{ opt?: Base | undefined; }'.
+assignmentCompatWithObjectMembersOptionality2.ts(37,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(38,5): error TS2559: Type 'F' has no properties in common with type '{ opt?: Base | undefined; }'.
+assignmentCompatWithObjectMembersOptionality2.ts(38,9): error TS2454: Variable 'f' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(39,5): error TS2559: Type 'D' has no properties in common with type '{ opt?: Base | undefined; }'.
+assignmentCompatWithObjectMembersOptionality2.ts(39,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(40,5): error TS2559: Type 'E' has no properties in common with type '{ opt?: Base | undefined; }'.
+assignmentCompatWithObjectMembersOptionality2.ts(40,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(41,5): error TS2559: Type 'F' has no properties in common with type '{ opt?: Base | undefined; }'.
+assignmentCompatWithObjectMembersOptionality2.ts(41,9): error TS2454: Variable 'f' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(74,5): error TS2741: Property 'opt' is missing in type 'D' but required in type 'C'.
+assignmentCompatWithObjectMembersOptionality2.ts(74,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(75,5): error TS2741: Property 'opt' is missing in type 'E' but required in type 'C'.
+assignmentCompatWithObjectMembersOptionality2.ts(75,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(76,5): error TS2741: Property 'opt' is missing in type 'F' but required in type 'C'.
+assignmentCompatWithObjectMembersOptionality2.ts(76,9): error TS2454: Variable 'f' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(77,9): error TS2454: Variable 'a' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(79,5): error TS2741: Property 'opt' is missing in type 'D' but required in type '{ opt: Base; }'.
+assignmentCompatWithObjectMembersOptionality2.ts(79,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(80,5): error TS2741: Property 'opt' is missing in type 'E' but required in type '{ opt: Base; }'.
+assignmentCompatWithObjectMembersOptionality2.ts(80,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(81,5): error TS2741: Property 'opt' is missing in type 'F' but required in type '{ opt: Base; }'.
+assignmentCompatWithObjectMembersOptionality2.ts(81,9): error TS2454: Variable 'f' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(84,5): error TS2741: Property 'opt' is missing in type 'D' but required in type '{ opt: Base; }'.
+assignmentCompatWithObjectMembersOptionality2.ts(84,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(85,5): error TS2741: Property 'opt' is missing in type 'E' but required in type '{ opt: Base; }'.
+assignmentCompatWithObjectMembersOptionality2.ts(85,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersOptionality2.ts(86,5): error TS2741: Property 'opt' is missing in type 'F' but required in type '{ opt: Base; }'.
+assignmentCompatWithObjectMembersOptionality2.ts(86,9): error TS2454: Variable 'f' is used before being assigned.
+
+
+==== assignmentCompatWithObjectMembersOptionality2.ts (40 errors) ====
+    // M is optional and S contains no property with the same name as M
+    // N is optional and T contains no property with the same name as N
+    
+    class Base { foo: string; }
+                 ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+    class Derived extends Base { bar: string; }
+                                 ~~~
+!!! error TS2564: Property 'bar' has no initializer and is not definitely assigned in the constructor.
+    class Derived2 extends Derived { baz: string; }
+                                     ~~~
+!!! error TS2564: Property 'baz' has no initializer and is not definitely assigned in the constructor.
+    
+    module TargetHasOptional {
+        // targets
+        interface C {
+            opt?: Base
+        }
+        var c: C;
+    
+        var a: { opt?: Base; }
+        var b: typeof a = { opt: new Base() }
+    
+        // sources
+        interface D {
+            other: Base;
+        }
+        interface E {
+            other: Derived;
+        }
+        interface F {
+            other?: Derived;
+        }
+        var d: D;
+        var e: E;
+        var f: F;
+    
+        // disallowed by weak type checking
+        c = d;
+        ~
+!!! error TS2559: Type 'D' has no properties in common with type 'C'.
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+        c = e;
+        ~
+!!! error TS2559: Type 'E' has no properties in common with type 'C'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        c = f;
+        ~
+!!! error TS2559: Type 'F' has no properties in common with type 'C'.
+            ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+        a = d;
+        ~
+!!! error TS2559: Type 'D' has no properties in common with type '{ opt?: Base | undefined; }'.
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+        a = e;
+        ~
+!!! error TS2559: Type 'E' has no properties in common with type '{ opt?: Base | undefined; }'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        a = f;
+        ~
+!!! error TS2559: Type 'F' has no properties in common with type '{ opt?: Base | undefined; }'.
+            ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+        b = d;
+        ~
+!!! error TS2559: Type 'D' has no properties in common with type '{ opt?: Base | undefined; }'.
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+        b = e;
+        ~
+!!! error TS2559: Type 'E' has no properties in common with type '{ opt?: Base | undefined; }'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        b = f;
+        ~
+!!! error TS2559: Type 'F' has no properties in common with type '{ opt?: Base | undefined; }'.
+            ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+    
+        // ok
+        c = a;
+        a = c;
+        b = a;
+        b = c;
+    }
+    
+    module SourceHasOptional {
+        // targets
+        interface C {
+            opt: Base
+        }
+        var c: C;
+    
+        var a: { opt: Base; }
+        var b = { opt: new Base() }
+    
+        // sources
+        interface D {
+            other?: Base;
+        }
+        interface E {
+            other?: Derived;
+        }
+        interface F {
+            other: Derived;
+        }
+        var d: D;
+        var e: E;
+        var f: F;
+    
+        c = d; // error
+        ~
+!!! error TS2741: Property 'opt' is missing in type 'D' but required in type 'C'.
+!!! related TS2728 assignmentCompatWithObjectMembersOptionality2.ts:53:9: 'opt' is declared here.
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+        c = e; // error
+        ~
+!!! error TS2741: Property 'opt' is missing in type 'E' but required in type 'C'.
+!!! related TS2728 assignmentCompatWithObjectMembersOptionality2.ts:53:9: 'opt' is declared here.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        c = f; // error
+        ~
+!!! error TS2741: Property 'opt' is missing in type 'F' but required in type 'C'.
+!!! related TS2728 assignmentCompatWithObjectMembersOptionality2.ts:53:9: 'opt' is declared here.
+            ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+        c = a; // ok
+            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+        a = d; // error
+        ~
+!!! error TS2741: Property 'opt' is missing in type 'D' but required in type '{ opt: Base; }'.
+!!! related TS2728 assignmentCompatWithObjectMembersOptionality2.ts:57:14: 'opt' is declared here.
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+        a = e; // error
+        ~
+!!! error TS2741: Property 'opt' is missing in type 'E' but required in type '{ opt: Base; }'.
+!!! related TS2728 assignmentCompatWithObjectMembersOptionality2.ts:57:14: 'opt' is declared here.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        a = f; // error
+        ~
+!!! error TS2741: Property 'opt' is missing in type 'F' but required in type '{ opt: Base; }'.
+!!! related TS2728 assignmentCompatWithObjectMembersOptionality2.ts:57:14: 'opt' is declared here.
+            ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+        a = c; // ok
+    
+        b = d; // error
+        ~
+!!! error TS2741: Property 'opt' is missing in type 'D' but required in type '{ opt: Base; }'.
+!!! related TS2728 assignmentCompatWithObjectMembersOptionality2.ts:58:15: 'opt' is declared here.
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+        b = e; // error
+        ~
+!!! error TS2741: Property 'opt' is missing in type 'E' but required in type '{ opt: Base; }'.
+!!! related TS2728 assignmentCompatWithObjectMembersOptionality2.ts:58:15: 'opt' is declared here.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        b = f; // error
+        ~
+!!! error TS2741: Property 'opt' is missing in type 'F' but required in type '{ opt: Base; }'.
+!!! related TS2728 assignmentCompatWithObjectMembersOptionality2.ts:58:15: 'opt' is declared here.
+            ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+        b = a; // ok
+        b = c; // ok
+    }
+    

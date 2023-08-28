@@ -1,0 +1,27 @@
+service.ts(2,24): error TS7006: Parameter 'target' implicitly has an 'any' type.
+
+
+==== db.ts (0 errors) ====
+    export class db {
+        public doSomething() {
+        }
+    }
+    
+==== service.ts (1 errors) ====
+    import {db} from './db';
+    function someDecorator(target) {
+                           ~~~~~~
+!!! error TS7006: Parameter 'target' implicitly has an 'any' type.
+        return target;
+    }
+    @someDecorator
+    class MyClass {
+        db: db;
+    
+        constructor(db: db) {
+            this.db = db;
+            this.db.doSomething();
+        }
+    }
+    export {MyClass};
+    

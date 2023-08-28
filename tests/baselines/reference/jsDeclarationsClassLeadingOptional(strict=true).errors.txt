@@ -1,0 +1,11 @@
+bar.js(2,14): error TS7006: Parameter 'y' implicitly has an 'any' type.
+
+
+==== bar.js (1 errors) ====
+    export class Z {
+        f(x = 1, y) {
+                 ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+            return [x, y];
+        }
+    }

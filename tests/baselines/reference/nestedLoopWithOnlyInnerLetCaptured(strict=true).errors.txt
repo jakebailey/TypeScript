@@ -1,0 +1,14 @@
+nestedLoopWithOnlyInnerLetCaptured.ts(1,13): error TS7005: Variable 'doSomething' implicitly has an 'any' type.
+nestedLoopWithOnlyInnerLetCaptured.ts(4,23): error TS2339: Property 'someArray' does not exist on type 'never'.
+
+
+==== nestedLoopWithOnlyInnerLetCaptured.ts (2 errors) ====
+    declare let doSomething;
+                ~~~~~~~~~~~
+!!! error TS7005: Variable 'doSomething' implicitly has an 'any' type.
+    
+    for (let a1 of [])
+        for (let a2 of a1.someArray)
+                          ~~~~~~~~~
+!!! error TS2339: Property 'someArray' does not exist on type 'never'.
+            doSomething(() => a2);

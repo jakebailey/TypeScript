@@ -1,0 +1,14 @@
+es5-asyncFunction.ts(1,13): error TS7005: Variable 'x' implicitly has an 'any' type.
+
+
+==== es5-asyncFunction.ts (1 errors) ====
+    declare var x;
+                ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    
+    async function empty() {
+    }
+    
+    async function singleAwait() {
+        await x;
+    }

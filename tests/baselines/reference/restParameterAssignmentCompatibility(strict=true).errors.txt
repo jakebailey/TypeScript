@@ -1,0 +1,50 @@
+restParameterAssignmentCompatibility.ts(2,7): error TS7019: Rest parameter 'p3' implicitly has an 'any[]' type.
+restParameterAssignmentCompatibility.ts(8,7): error TS7006: Parameter 'p1' implicitly has an 'any' type.
+restParameterAssignmentCompatibility.ts(8,11): error TS7006: Parameter 'p2' implicitly has an 'any' type.
+restParameterAssignmentCompatibility.ts(17,5): error TS2454: Variable 's' is used before being assigned.
+restParameterAssignmentCompatibility.ts(20,7): error TS7006: Parameter 'p1' implicitly has an 'any' type.
+restParameterAssignmentCompatibility.ts(20,12): error TS7006: Parameter 'p2' implicitly has an 'any' type.
+restParameterAssignmentCompatibility.ts(26,6): error TS2454: Variable 's' is used before being assigned.
+
+
+==== restParameterAssignmentCompatibility.ts (7 errors) ====
+    class T {
+        m(...p3) {
+          ~~~~~
+!!! error TS7019: Rest parameter 'p3' implicitly has an 'any[]' type.
+    
+        }
+    }
+    
+    class S {
+        m(p1, p2) {
+          ~~
+!!! error TS7006: Parameter 'p1' implicitly has an 'any' type.
+              ~~
+!!! error TS7006: Parameter 'p2' implicitly has an 'any' type.
+    
+        }
+    }
+    
+    var t: T;
+    var s: S;
+    // M is a non - specialized call or construct signature and S' contains a call or construct signature N where,
+    //  the number of non-optional parameters in N is less than or equal to the total number of parameters in M,
+    t = s; // Should be valid (rest params correspond to an infinite expansion of parameters)
+        ~
+!!! error TS2454: Variable 's' is used before being assigned.
+    
+    class T1 {
+        m(p1?, p2?) {
+          ~~~
+!!! error TS7006: Parameter 'p1' implicitly has an 'any' type.
+               ~~~
+!!! error TS7006: Parameter 'p2' implicitly has an 'any' type.
+    
+        }
+    }
+    var t1: T1;
+    // When comparing call or construct signatures, parameter names are ignored and rest parameters correspond to an unbounded expansion of optional parameters of the rest parameter element type.
+    t1 = s; // Similar to above, but optionality does not matter here.
+         ~
+!!! error TS2454: Variable 's' is used before being assigned.

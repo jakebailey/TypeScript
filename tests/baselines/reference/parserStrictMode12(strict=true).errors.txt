@@ -1,0 +1,14 @@
+parserStrictMode12.ts(2,15): error TS7032: Property 'foo' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+parserStrictMode12.ts(2,19): error TS1100: Invalid use of 'eval' in strict mode.
+parserStrictMode12.ts(2,19): error TS7006: Parameter 'eval' implicitly has an 'any' type.
+
+
+==== parserStrictMode12.ts (3 errors) ====
+    "use strict";
+    var v = { set foo(eval) { } }
+                  ~~~
+!!! error TS7032: Property 'foo' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                      ~~~~
+!!! error TS1100: Invalid use of 'eval' in strict mode.
+                      ~~~~
+!!! error TS7006: Parameter 'eval' implicitly has an 'any' type.

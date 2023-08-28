@@ -1,0 +1,19 @@
+computedPropertyNames9_ES5.ts(4,12): error TS7006: Parameter 'x' implicitly has an 'any' type.
+computedPropertyNames9_ES5.ts(9,5): error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+
+
+==== computedPropertyNames9_ES5.ts (2 errors) ====
+    function f(s: string): string;
+    function f(n: number): number;
+    function f<T>(x: T): T;
+    function f(x): any { }
+               ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+    var v = {
+        [f("")]: 0,
+        [f(0)]: 0,
+        [f(true)]: 0
+        ~~~~~~~~~
+!!! error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+    }

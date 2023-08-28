@@ -1,0 +1,122 @@
+fatarrowfunctions.ts(6,15): error TS7006: Parameter 'y' implicitly has an 'any' type.
+fatarrowfunctions.ts(6,17): error TS7006: Parameter 'z' implicitly has an 'any' type.
+fatarrowfunctions.ts(7,6): error TS7006: Parameter 'x' implicitly has an 'any' type.
+fatarrowfunctions.ts(7,8): error TS7006: Parameter 'y' implicitly has an 'any' type.
+fatarrowfunctions.ts(7,10): error TS7006: Parameter 'z' implicitly has an 'any' type.
+fatarrowfunctions.ts(8,6): error TS7006: Parameter 'x' implicitly has an 'any' type.
+fatarrowfunctions.ts(8,17): error TS7006: Parameter 'z' implicitly has an 'any' type.
+fatarrowfunctions.ts(9,6): error TS7006: Parameter 'x' implicitly has an 'any' type.
+fatarrowfunctions.ts(10,6): error TS7006: Parameter 'x' implicitly has an 'any' type.
+fatarrowfunctions.ts(10,8): error TS7006: Parameter 'y' implicitly has an 'any' type.
+fatarrowfunctions.ts(13,15): error TS7006: Parameter 'y' implicitly has an 'any' type.
+fatarrowfunctions.ts(13,17): error TS7006: Parameter 'z' implicitly has an 'any' type.
+fatarrowfunctions.ts(14,6): error TS7006: Parameter 'x' implicitly has an 'any' type.
+fatarrowfunctions.ts(14,8): error TS7006: Parameter 'y' implicitly has an 'any' type.
+fatarrowfunctions.ts(14,10): error TS7006: Parameter 'z' implicitly has an 'any' type.
+fatarrowfunctions.ts(15,6): error TS7006: Parameter 'x' implicitly has an 'any' type.
+fatarrowfunctions.ts(15,17): error TS7006: Parameter 'z' implicitly has an 'any' type.
+fatarrowfunctions.ts(16,6): error TS7006: Parameter 'x' implicitly has an 'any' type.
+fatarrowfunctions.ts(17,6): error TS7006: Parameter 'x' implicitly has an 'any' type.
+fatarrowfunctions.ts(17,8): error TS7006: Parameter 'y' implicitly has an 'any' type.
+fatarrowfunctions.ts(21,7): error TS7006: Parameter 'x' implicitly has an 'any' type.
+fatarrowfunctions.ts(23,5): error TS7006: Parameter 'x' implicitly has an 'any' type.
+fatarrowfunctions.ts(25,9): error TS7006: Parameter 'x' implicitly has an 'any' type.
+fatarrowfunctions.ts(32,45): error TS7006: Parameter 'n' implicitly has an 'any' type.
+fatarrowfunctions.ts(32,78): error TS7006: Parameter 'n' implicitly has an 'any' type.
+
+
+==== fatarrowfunctions.ts (25 errors) ====
+    function foo(x:any) {
+    	return x();
+    }
+    
+    
+    foo((x:number,y,z)=>{return x+y+z;});
+                  ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+                    ~
+!!! error TS7006: Parameter 'z' implicitly has an 'any' type.
+    foo((x,y,z)=>{return x+y+z;});
+         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+           ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+             ~
+!!! error TS7006: Parameter 'z' implicitly has an 'any' type.
+    foo((x,y:number,z)=>{return x+y+z;});
+         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                    ~
+!!! error TS7006: Parameter 'z' implicitly has an 'any' type.
+    foo((x,y:number,z:number)=>{return x+y+z;});
+         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    foo((x,y,z:number)=>{return x+y+z;});
+         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+           ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+    foo(()=>{return 0;});
+    
+    foo((x:number,y,z)=>x+y+z);
+                  ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+                    ~
+!!! error TS7006: Parameter 'z' implicitly has an 'any' type.
+    foo((x,y,z)=>x+y+z);
+         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+           ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+             ~
+!!! error TS7006: Parameter 'z' implicitly has an 'any' type.
+    foo((x,y:number,z)=>{return x+y+z;});
+         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                    ~
+!!! error TS7006: Parameter 'z' implicitly has an 'any' type.
+    foo((x,y:number,z:number)=>{return x+y+z;});
+         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    foo((x,y,z:number)=>{return x+y+z;});
+         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+           ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+    foo(()=>{return 0;});
+    
+    
+    foo(((x) => x));
+          ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+    foo(x => x*x);
+        ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+    var y = x => x*x;
+            ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    var z = (x:number) => x*x;
+    
+    var w = () => 3;
+    
+    function ternaryTest(isWhile:boolean) {
+    
+                    var f = isWhile ? function (n) { return n > 0; } : function (n) { return n === 0; };
+                                                ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+                                                                                 ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+    
+    }
+    
+    declare function setTimeout(expression: any, msec?: number, language?: any): number;
+    
+    var messenger = {
+        message: "Hello World",
+        start: function() {
+            setTimeout(() => { this.message.toString(); }, 3000);
+        }
+    };
+    

@@ -1,0 +1,61 @@
+declarationEmitProtectedMembers.ts(3,15): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+declarationEmitProtectedMembers.ts(34,5): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+declarationEmitProtectedMembers.ts(48,38): error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+
+==== declarationEmitProtectedMembers.ts (3 errors) ====
+    // Class with protected members
+    class C1 {
+        protected x: number;
+                  ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+    
+        protected f() {
+            return this.x;
+        }
+    
+        protected set accessor(a: number) { }
+        protected get accessor() { return 0; }
+    
+        protected static sx: number;
+    
+        protected static sf() {
+            return this.sx;
+        }
+    
+        protected static set staticSetter(a: number) { }
+        protected static get staticGetter() { return 0; }
+    }
+    
+    // Derived class overriding protected members
+    class C2 extends C1 {
+        protected f() {
+            return super.f() + this.x;
+        }
+        protected static sf() {
+            return super.sf() + this.sx;
+        }
+    }
+    
+    // Derived class making protected members public
+    class C3 extends C2 {
+        x: number;
+        ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+        static sx: number;
+        f() {
+            return super.f();
+        }
+        static sf() {
+            return super.sf();
+        }
+    
+        static get staticGetter() { return 1; }
+    }
+    
+    // Protected properties in constructors
+    class C4 {
+        constructor(protected a: number, protected b) { }
+                                         ~~~~~~~~~~~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    }

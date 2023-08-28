@@ -1,0 +1,22 @@
+indexerSignatureWithRestParam.ts(2,6): error TS1017: An index signature cannot have a rest parameter.
+indexerSignatureWithRestParam.ts(2,6): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+indexerSignatureWithRestParam.ts(6,6): error TS1017: An index signature cannot have a rest parameter.
+indexerSignatureWithRestParam.ts(6,6): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+
+
+==== indexerSignatureWithRestParam.ts (4 errors) ====
+    interface I {
+        [...x]: string;
+         ~~~
+!!! error TS1017: An index signature cannot have a rest parameter.
+         ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+    }
+    
+    class C {
+        [...x]: string
+         ~~~
+!!! error TS1017: An index signature cannot have a rest parameter.
+         ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+    }

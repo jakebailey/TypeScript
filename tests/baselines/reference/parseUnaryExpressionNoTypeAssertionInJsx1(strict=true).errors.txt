@@ -1,0 +1,18 @@
+index.js(2,13): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+index.js(2,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+index.js(2,14): error TS17008: JSX element 'number' has no corresponding closing tag.
+index.js(3,1): error TS1005: '</' expected.
+
+
+==== index.js (4 errors) ====
+    const x = "oops";
+    const y = + <number> x;
+                ~~~~~~~~
+!!! error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+                ~~~~~~~~
+!!! error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+                 ~~~~~~
+!!! error TS17008: JSX element 'number' has no corresponding closing tag.
+    
+    
+!!! error TS1005: '</' expected.

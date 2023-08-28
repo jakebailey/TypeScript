@@ -1,0 +1,17 @@
+symbolProperty17.ts(2,5): error TS2411: Property '[Symbol.iterator]' of type 'number' is not assignable to 'symbol' index type 'string'.
+symbolProperty17.ts(8,10): error TS2454: Variable 'i' is used before being assigned.
+
+
+==== symbolProperty17.ts (2 errors) ====
+    interface I {
+        [Symbol.iterator]: number;
+        ~~~~~~~~~~~~~~~~~
+!!! error TS2411: Property '[Symbol.iterator]' of type 'number' is not assignable to 'symbol' index type 'string'.
+        [s: symbol]: string;
+        "__@iterator": string;
+    }
+    
+    var i: I;
+    var it = i[Symbol.iterator];
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.

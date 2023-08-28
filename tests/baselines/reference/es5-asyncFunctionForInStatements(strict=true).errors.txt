@@ -1,0 +1,58 @@
+es5-asyncFunctionForInStatements.ts(1,13): error TS7005: Variable 'x' implicitly has an 'any' type.
+es5-asyncFunctionForInStatements.ts(1,16): error TS7005: Variable 'y' implicitly has an 'any' type.
+es5-asyncFunctionForInStatements.ts(1,19): error TS7005: Variable 'z' implicitly has an 'any' type.
+es5-asyncFunctionForInStatements.ts(1,22): error TS7005: Variable 'a' implicitly has an 'any' type.
+es5-asyncFunctionForInStatements.ts(1,25): error TS7005: Variable 'b' implicitly has an 'any' type.
+es5-asyncFunctionForInStatements.ts(1,28): error TS7005: Variable 'c' implicitly has an 'any' type.
+
+
+==== es5-asyncFunctionForInStatements.ts (6 errors) ====
+    declare var x, y, z, a, b, c;
+                ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                   ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+                      ~
+!!! error TS7005: Variable 'z' implicitly has an 'any' type.
+                         ~
+!!! error TS7005: Variable 'a' implicitly has an 'any' type.
+                            ~
+!!! error TS7005: Variable 'b' implicitly has an 'any' type.
+                               ~
+!!! error TS7005: Variable 'c' implicitly has an 'any' type.
+    
+    async function forInStatement0() {
+        for (x in y) { z; }
+    }
+    
+    async function forInStatement1() {
+        for (x in await y) { z; }
+    }
+    
+    async function forInStatement2() {
+        for (x in y) { await z; }
+    }
+    
+    async function forInStatement3() {
+        for ((await x).a in y) { z; }
+    }
+    
+    async function forInStatement4() {
+        for (x.a in await y) { z; }
+    }
+    
+    async function forInStatement5() {
+        for (x.a in y) { await z; }
+    }
+    
+    async function forInStatement6() {
+        for (var a in y) { z; }
+    }
+    
+    async function forInStatement7() {
+        for (var b in await y) { z; }
+    }
+    
+    async function forInStatement8() {
+        for (var c in y) { await z; }
+    }

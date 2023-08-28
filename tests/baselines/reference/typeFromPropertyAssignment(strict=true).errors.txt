@@ -1,0 +1,36 @@
+a.js(2,7): error TS7006: Parameter 'x' implicitly has an 'any' type.
+a.js(2,10): error TS7006: Parameter 'y' implicitly has an 'any' type.
+a.js(5,7): error TS7006: Parameter 'a' implicitly has an 'any' type.
+a.js(5,10): error TS7006: Parameter 'b' implicitly has an 'any' type.
+a.js(10,1): error TS2454: Variable 'si' is used before being assigned.
+a.js(13,1): error TS2454: Variable 'oi' is used before being assigned.
+
+
+==== a.js (6 errors) ====
+    var Outer = class O {
+        m(x, y) { }
+          ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+             ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+    }
+    Outer.Inner = class I {
+        n(a, b) { }
+          ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+             ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    
+    }
+    /** @type {Outer} */
+    var si
+    si.m
+    ~~
+!!! error TS2454: Variable 'si' is used before being assigned.
+    /** @type {Outer.Inner} */
+    var oi
+    oi.n
+    ~~
+!!! error TS2454: Variable 'oi' is used before being assigned.
+    
+    

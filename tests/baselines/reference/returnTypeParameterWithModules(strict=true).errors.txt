@@ -1,0 +1,36 @@
+returnTypeParameterWithModules.ts(2,31): error TS7006: Parameter 'ar' implicitly has an 'any' type.
+returnTypeParameterWithModules.ts(2,35): error TS7006: Parameter 'f' implicitly has an 'any' type.
+returnTypeParameterWithModules.ts(2,38): error TS7006: Parameter 'e' implicitly has an 'any' type.
+returnTypeParameterWithModules.ts(3,9): error TS2322: Type 'unknown' is not assignable to type 'A[]'.
+returnTypeParameterWithModules.ts(3,49): error TS2345: Argument of type '[any, any] | [any]' is not assignable to parameter of type '[callbackfn: (previousValue: unknown, currentValue: any, currentIndex: number, array: any[]) => unknown, initialValue: unknown]'.
+  Type '[any]' is not assignable to type '[callbackfn: (previousValue: unknown, currentValue: any, currentIndex: number, array: any[]) => unknown, initialValue: unknown]'.
+    Source has 1 element(s) but target requires 2.
+
+
+==== returnTypeParameterWithModules.ts (5 errors) ====
+    module M1 {
+        export function reduce<A>(ar, f, e?): Array<A> {
+                                  ~~
+!!! error TS7006: Parameter 'ar' implicitly has an 'any' type.
+                                      ~
+!!! error TS7006: Parameter 'f' implicitly has an 'any' type.
+                                         ~~
+!!! error TS7006: Parameter 'e' implicitly has an 'any' type.
+            return Array.prototype.reduce.apply(ar, e ? [f, e] : [f]);
+            ~~~~~~
+!!! error TS2322: Type 'unknown' is not assignable to type 'A[]'.
+                                                    ~~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type '[any, any] | [any]' is not assignable to parameter of type '[callbackfn: (previousValue: unknown, currentValue: any, currentIndex: number, array: any[]) => unknown, initialValue: unknown]'.
+!!! error TS2345:   Type '[any]' is not assignable to type '[callbackfn: (previousValue: unknown, currentValue: any, currentIndex: number, array: any[]) => unknown, initialValue: unknown]'.
+!!! error TS2345:     Source has 1 element(s) but target requires 2.
+        };
+    };
+    module M2 {
+      import A = M1
+      export function compose() {
+            A.reduce(arguments, compose2);
+        };
+        export function compose2<B, C, D>(g: (x: B) => C, f: (x: D) => B): (x: D) => C {
+        return function (x) { return g(f(x)); }
+      };
+    };

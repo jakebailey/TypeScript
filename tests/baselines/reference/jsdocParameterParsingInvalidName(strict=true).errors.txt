@@ -1,0 +1,13 @@
+jsdocParameterParsingInvalidName.ts(5,12): error TS7006: Parameter 'foo' implicitly has an 'any' type.
+
+
+==== jsdocParameterParsingInvalidName.ts (1 errors) ====
+    class c {
+        /**
+         * @param {string} [`foo]
+         */
+        method(foo) {
+               ~~~
+!!! error TS7006: Parameter 'foo' implicitly has an 'any' type.
+        }
+    }

@@ -1,0 +1,26 @@
+emitDecoratorMetadata_restArgs.ts(6,17): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+emitDecoratorMetadata_restArgs.ts(8,12): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+
+
+==== emitDecoratorMetadata_restArgs.ts (2 errors) ====
+    declare const MyClassDecorator: ClassDecorator;
+    declare const MyMethodDecorator: MethodDecorator;
+    
+    @MyClassDecorator
+    class A {
+        constructor(...args) {}
+                    ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+        @MyMethodDecorator
+        method(...args) {}
+               ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+    }
+    
+    @MyClassDecorator
+    class B {
+        constructor(...args: number[]) {}
+        @MyMethodDecorator
+        method(this: this, ...args: string[]) {}
+    }
+    

@@ -1,0 +1,34 @@
+emitRestParametersMethod.ts(2,31): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+emitRestParametersMethod.ts(4,16): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+emitRestParametersMethod.ts(5,27): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+emitRestParametersMethod.ts(9,17): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+emitRestParametersMethod.ts(11,16): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+emitRestParametersMethod.ts(12,27): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+
+
+==== emitRestParametersMethod.ts (6 errors) ====
+    class C {
+        constructor(name: string, ...rest) { }
+                                  ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    
+        public bar(...rest) { }
+                   ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+        public foo(x: number, ...rest) { }
+                              ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    }
+    
+    class D {
+        constructor(...rest) { }
+                    ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    
+        public bar(...rest) { }
+                   ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+        public foo(x: number, ...rest) { }
+                              ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    }

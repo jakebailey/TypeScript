@@ -1,0 +1,13 @@
+parserClassDeclaration22.ts(2,5): error TS7010: '"foo"', which lacks return-type annotation, implicitly has an 'any' return type.
+parserClassDeclaration22.ts(3,5): error TS2389: Function implementation name must be '"foo"'.
+
+
+==== parserClassDeclaration22.ts (2 errors) ====
+    class C {
+        "foo"();
+        ~~~~~
+!!! error TS7010: '"foo"', which lacks return-type annotation, implicitly has an 'any' return type.
+        "bar"() { }
+        ~~~~~
+!!! error TS2389: Function implementation name must be '"foo"'.
+    }

@@ -1,0 +1,47 @@
+ExtendedClass.js(7,1): error TS2345: Argument of type '(BaseClass: typeof import("deps/BaseClass")) => any' is not assignable to parameter of type '(...modules: unknown[]) => any'.
+  Types of parameters 'BaseClass' and 'modules' are incompatible.
+    Type 'unknown' is not assignable to type 'typeof BaseClass'.
+ExtendedClass.js(17,12): error TS2339: Property 'exports' does not exist on type '{}'.
+ExtendedClass.js(18,19): error TS2339: Property 'exports' does not exist on type '{}'.
+typing.d.ts(1,18): error TS7010: 'define', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== typing.d.ts (1 errors) ====
+    declare function define<T=unknown>(name: string, modules: string[], ready: (...modules: unknown[]) => T);
+                     ~~~~~~
+!!! error TS7010: 'define', which lacks return-type annotation, implicitly has an 'any' return type.
+==== deps/BaseClass.d.ts (0 errors) ====
+    declare module "deps/BaseClass" {
+        class BaseClass {
+            static extends<A>(a: A): new () => A & BaseClass;
+        }
+        export = BaseClass;
+    }
+==== ExtendedClass.js (3 errors) ====
+    define("lib/ExtendedClass", ["deps/BaseClass"], 
+    /**
+     * {typeof import("deps/BaseClass")}
+     * @param  {typeof import("deps/BaseClass")} BaseClass 
+     * @returns 
+     */
+    (BaseClass) => {    
+    ~~~~~~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type '(BaseClass: typeof import("deps/BaseClass")) => any' is not assignable to parameter of type '(...modules: unknown[]) => any'.
+!!! error TS2345:   Types of parameters 'BaseClass' and 'modules' are incompatible.
+!!! error TS2345:     Type 'unknown' is not assignable to type 'typeof BaseClass'.
+        
+        const ExtendedClass = BaseClass.extends({
+            f: function() {
+                return "something";
+            }
+        });
+    
+        // Exports the module in a way tsc recognize class export 
+        const module = {};
+        module.exports = ExtendedClass
+               ~~~~~~~
+!!! error TS2339: Property 'exports' does not exist on type '{}'.
+        return module.exports;
+                      ~~~~~~~
+!!! error TS2339: Property 'exports' does not exist on type '{}'.
+    });

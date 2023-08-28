@@ -1,0 +1,22 @@
+semver.js(3,13): error TS7006: Parameter 'n' implicitly has an 'any' type.
+
+
+==== index.js (0 errors) ====
+    /// <reference path='node.d.ts' />
+    const C = require("./semver")
+    var two = C.f(1)
+    var c = new C
+    
+==== node.d.ts (0 errors) ====
+    declare function require(name: string): any;
+    declare var exports: any;
+    declare var module: { exports: any };
+==== semver.js (1 errors) ====
+    /// <reference path='node.d.ts' />
+    exports = module.exports = C
+    exports.f = n => n + 1
+                ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+    function C() {
+        this.p = 1
+    }

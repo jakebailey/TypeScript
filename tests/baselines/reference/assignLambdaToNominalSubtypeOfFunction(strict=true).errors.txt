@@ -1,0 +1,30 @@
+assignLambdaToNominalSubtypeOfFunction.ts(7,4): error TS2345: Argument of type '(a: any, b: any) => boolean' is not assignable to parameter of type 'IResultCallback'.
+assignLambdaToNominalSubtypeOfFunction.ts(7,5): error TS7006: Parameter 'a' implicitly has an 'any' type.
+assignLambdaToNominalSubtypeOfFunction.ts(7,8): error TS7006: Parameter 'b' implicitly has an 'any' type.
+assignLambdaToNominalSubtypeOfFunction.ts(8,4): error TS2345: Argument of type '(a: any, b: any) => boolean' is not assignable to parameter of type 'IResultCallback'.
+assignLambdaToNominalSubtypeOfFunction.ts(8,14): error TS7006: Parameter 'a' implicitly has an 'any' type.
+assignLambdaToNominalSubtypeOfFunction.ts(8,17): error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+
+==== assignLambdaToNominalSubtypeOfFunction.ts (6 errors) ====
+    interface IResultCallback extends Function {
+        x: number;
+    }
+    
+    function fn(cb: IResultCallback) { }
+    
+    fn((a, b) => true);
+       ~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type '(a: any, b: any) => boolean' is not assignable to parameter of type 'IResultCallback'.
+        ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+           ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    fn(function (a, b) { return true; })
+       ~~~~~~~~
+!!! error TS2345: Argument of type '(a: any, b: any) => boolean' is not assignable to parameter of type 'IResultCallback'.
+                 ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                    ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    

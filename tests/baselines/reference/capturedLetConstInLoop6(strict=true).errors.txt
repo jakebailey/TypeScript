@@ -1,0 +1,307 @@
+capturedLetConstInLoop6.ts(37,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop6.ts(38,26): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop6.ts(39,12): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop6.ts(49,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop6.ts(50,26): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop6.ts(51,12): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop6.ts(84,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop6.ts(84,12): error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop6.ts(85,26): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop6.ts(85,30): error TS7005: Variable 'y' implicitly has an 'any' type.
+capturedLetConstInLoop6.ts(86,12): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop6.ts(86,16): error TS7005: Variable 'y' implicitly has an 'any' type.
+capturedLetConstInLoop6.ts(96,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop6.ts(96,12): error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop6.ts(97,26): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop6.ts(97,30): error TS7005: Variable 'y' implicitly has an 'any' type.
+capturedLetConstInLoop6.ts(98,12): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop6.ts(98,16): error TS7005: Variable 'y' implicitly has an 'any' type.
+capturedLetConstInLoop6.ts(147,9): error TS2367: This comparison appears to be unintentional because the types '0' and '1' have no overlap.
+capturedLetConstInLoop6.ts(150,9): error TS2367: This comparison appears to be unintentional because the types '0' and '2' have no overlap.
+capturedLetConstInLoop6.ts(194,9): error TS2367: This comparison appears to be unintentional because the types '0' and '1' have no overlap.
+capturedLetConstInLoop6.ts(197,9): error TS2367: This comparison appears to be unintentional because the types '0' and '2' have no overlap.
+
+
+==== capturedLetConstInLoop6.ts (22 errors) ====
+    // ====let
+    for (let x of []) {
+        (function() { return x});
+        (() => x);
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    }
+    
+    for (let x in []) {
+        (function() { return x});
+        (() => x);
+        if (x == "1") {
+            break;
+        }
+        if (x == "2") {
+            continue;
+        }
+    }
+    
+    
+    for (let x = 0; x < 1; ++x) {
+        (function() { return x});
+        (() => x);
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    }
+    
+    while (1 === 1) {
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+        (function() { return x});
+                             ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        (() => x);
+               ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    }
+    
+    do {
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+        (function() { return x});
+                             ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        (() => x);
+               ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    } while (1 === 1)
+    
+    for (let y = 0; y < 1; ++y) {
+        let x = 1;
+        (function() { return x});
+        (() => x);
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    }
+    
+    for (let x = 0, y = 1; x < 1; ++x) {
+        (function() { return x + y});
+        (() => x + y);
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    }
+    
+    while (1 === 1) {
+        let x, y;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+               ~
+!!! error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+        (function() { return x + y});
+                             ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                                 ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+        (() => x + y);
+               ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                   ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    }
+    
+    do {
+        let x, y;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+               ~
+!!! error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+        (function() { return x + y});
+                             ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                                 ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+        (() => x + y);
+               ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                   ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    } while (1 === 1)
+    
+    for (let y = 0; y < 1; ++y) {
+        let x = 1;
+        (function() { return x + y});
+        (() => x + y);
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    }
+    
+    // ====const
+    
+    for (const x of []) {
+        (function() { return x});
+        (() => x);
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    }
+    
+    for (const x in []) {
+        (function() { return x});
+        (() => x);
+        if (x == "1") {
+            break;
+        }
+        if (x == "2") {
+            continue;
+        }
+    }
+    
+    
+    for (const x = 0; x < 1;) {
+        (function() { return x});
+        (() => x);
+        if (x == 1) {
+            ~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '0' and '1' have no overlap.
+            break;
+        }
+        if (x == 2) {
+            ~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '0' and '2' have no overlap.
+            continue;
+        }
+    }
+    
+    while (1 === 1) {
+        const x = 1;
+        (function() { return x});
+        (() => x);
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    }
+    
+    do {
+        const x = 1;
+        (function() { return x});
+        (() => x);
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    } while (1 === 1)
+    
+    for (const y = 0; y < 1;) {
+        const x = 1;
+        (function() { return x});
+        (() => x);
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    }
+    
+    for (const x = 0, y = 1; x < 1;) {
+        (function() { return x + y});
+        (() => x + y);
+        if (x == 1) {
+            ~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '0' and '1' have no overlap.
+            break;
+        }
+        if (x == 2) {
+            ~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '0' and '2' have no overlap.
+            continue;
+        }
+    }
+    
+    while (1 === 1) {
+        const x = 1, y = 1;
+        (function() { return x + y});
+        (() => x + y);
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    }
+    
+    do {
+        const x = 1, y = 1;
+        (function() { return x + y});
+        (() => x + y);
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    } while (1 === 1)
+    
+    for (const y = 0; y < 1;) {
+        const x = 1;
+        (function() { return x + y});
+        (() => x + y);
+        if (x == 1) {
+            break;
+        }
+        if (x == 2) {
+            continue;
+        }
+    }
+    
+    

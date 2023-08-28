@@ -1,0 +1,173 @@
+for-inStatementsInvalid.ts(2,6): error TS2405: The left-hand side of a 'for...in' statement must be of type 'string' or 'any'.
+for-inStatementsInvalid.ts(5,6): error TS2405: The left-hand side of a 'for...in' statement must be of type 'string' or 'any'.
+for-inStatementsInvalid.ts(8,6): error TS2405: The left-hand side of a 'for...in' statement must be of type 'string' or 'any'.
+for-inStatementsInvalid.ts(10,10): error TS2404: The left-hand side of a 'for...in' statement cannot use a type annotation.
+for-inStatementsInvalid.ts(13,15): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'void'.
+for-inStatementsInvalid.ts(17,15): error TS2454: Variable 'c' is used before being assigned.
+for-inStatementsInvalid.ts(17,15): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'string'.
+for-inStatementsInvalid.ts(17,20): error TS2454: Variable 'd' is used before being assigned.
+for-inStatementsInvalid.ts(18,15): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'string'.
+for-inStatementsInvalid.ts(18,19): error TS2454: Variable 'c' is used before being assigned.
+for-inStatementsInvalid.ts(18,23): error TS2454: Variable 'd' is used before being assigned.
+for-inStatementsInvalid.ts(19,15): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'string'.
+for-inStatementsInvalid.ts(19,20): error TS2454: Variable 'c' is used before being assigned.
+for-inStatementsInvalid.ts(19,24): error TS2454: Variable 'd' is used before being assigned.
+for-inStatementsInvalid.ts(20,15): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'string'.
+for-inStatementsInvalid.ts(20,20): error TS2454: Variable 'c' is used before being assigned.
+for-inStatementsInvalid.ts(20,24): error TS2454: Variable 'd' is used before being assigned.
+for-inStatementsInvalid.ts(21,20): error TS2454: Variable 'd' is used before being assigned.
+for-inStatementsInvalid.ts(21,22): error TS2454: Variable 'x' is used before being assigned.
+for-inStatementsInvalid.ts(21,22): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+for-inStatementsInvalid.ts(21,27): error TS2454: Variable 'c' is used before being assigned.
+for-inStatementsInvalid.ts(21,29): error TS2454: Variable 'x' is used before being assigned.
+for-inStatementsInvalid.ts(21,29): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+for-inStatementsInvalid.ts(22,15): error TS2454: Variable 'c' is used before being assigned.
+for-inStatementsInvalid.ts(22,15): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'string'.
+for-inStatementsInvalid.ts(29,23): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'number'.
+for-inStatementsInvalid.ts(31,18): error TS2403: Subsequent variable declarations must have the same type.  Variable 'x' must be of type 'string', but here has type 'Extract<keyof this, string>'.
+for-inStatementsInvalid.ts(32,9): error TS2322: Type 'null' is not assignable to type 'number'.
+for-inStatementsInvalid.ts(38,23): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'number'.
+for-inStatementsInvalid.ts(40,9): error TS2322: Type 'null' is not assignable to type 'number'.
+for-inStatementsInvalid.ts(46,23): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'number'.
+for-inStatementsInvalid.ts(48,18): error TS2403: Subsequent variable declarations must have the same type.  Variable 'x' must be of type 'string', but here has type 'Extract<keyof this, string>'.
+for-inStatementsInvalid.ts(51,23): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'number'.
+for-inStatementsInvalid.ts(62,15): error TS2454: Variable 'i' is used before being assigned.
+for-inStatementsInvalid.ts(62,15): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'number'.
+
+
+==== for-inStatementsInvalid.ts (35 errors) ====
+    var aNumber: number;
+    for (aNumber in {}) { }
+         ~~~~~~~
+!!! error TS2405: The left-hand side of a 'for...in' statement must be of type 'string' or 'any'.
+    
+    var aBoolean: boolean;
+    for (aBoolean in {}) { }
+         ~~~~~~~~
+!!! error TS2405: The left-hand side of a 'for...in' statement must be of type 'string' or 'any'.
+    
+    var aRegExp: RegExp;
+    for (aRegExp in {}) { }
+         ~~~~~~~
+!!! error TS2405: The left-hand side of a 'for...in' statement must be of type 'string' or 'any'.
+    
+    for (var idx : number in {}) { }
+             ~~~
+!!! error TS2404: The left-hand side of a 'for...in' statement cannot use a type annotation.
+    
+    function fn(): void { }
+    for (var x in fn()) { }
+                  ~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'void'.
+    
+    var c : string, d:string, e;
+    
+    for (var x in c || d) { }
+                  ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                  ~~~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'string'.
+                       ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+    for (var x in e ? c : d) { }
+                  ~~~~~~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'string'.
+                      ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                          ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+    for (var x in 42 ? c : d) { }
+                  ~~~~~~~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'string'.
+                       ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                           ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+    for (var x in '' ? c : d) { }
+                  ~~~~~~~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'string'.
+                       ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                           ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+    for (var x in 42 ? d[x] : c[x]) { }
+                       ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+                         ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+                         ~
+!!! error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+                              ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                                ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+                                ~
+!!! error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+    for (var x in c[23]) { }
+                  ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                  ~~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'string'.
+    
+    for (var x in (<T>(x: T) => x)) { }
+    for (var x in function (x: string, y: number) { return x + y }) { }
+    
+    class A {
+        biz() : number{
+            for (var x in this.biz()) { }
+                          ~~~~~~~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'number'.
+            for (var x in this.biz) { }
+            for (var x in this) { }
+                     ~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 'x' must be of type 'string', but here has type 'Extract<keyof this, string>'.
+!!! related TS6203 for-inStatementsInvalid.ts:29:18: 'x' was also declared here.
+            return null;
+            ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'number'.
+        }
+    
+        static baz() : number {
+            for (var x in this) { }
+            for (var x in this.baz) { }
+            for (var x in this.baz()) { }
+                          ~~~~~~~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'number'.
+    
+            return null;
+            ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'number'.
+        }
+    }
+    
+    class B extends A {
+        boz() {
+            for (var x in this.biz()) { }
+                          ~~~~~~~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'number'.
+            for (var x in this.biz) { }
+            for (var x in this) { }
+                     ~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 'x' must be of type 'string', but here has type 'Extract<keyof this, string>'.
+!!! related TS6203 for-inStatementsInvalid.ts:46:18: 'x' was also declared here.
+    
+            for (var x in super.biz) { }
+            for (var x in super.biz()) { }
+                          ~~~~~~~~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'number'.
+            return null;
+        }
+    }
+    
+    interface I {
+        id: number;
+        [idx: number]: number;
+    }
+    var i: I;
+    
+    for (var x in i[42]) { } 
+                  ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+                  ~~~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'number'.
+    

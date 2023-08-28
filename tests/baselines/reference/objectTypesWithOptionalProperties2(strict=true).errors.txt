@@ -1,0 +1,98 @@
+objectTypesWithOptionalProperties2.ts(4,5): error TS7010: 'x', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesWithOptionalProperties2.ts(4,8): error TS1005: ';' expected.
+objectTypesWithOptionalProperties2.ts(4,9): error TS1131: Property or signature expected.
+objectTypesWithOptionalProperties2.ts(4,11): error TS7008: Member 'number' implicitly has an 'any' type.
+objectTypesWithOptionalProperties2.ts(8,5): error TS7010: 'x', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesWithOptionalProperties2.ts(8,8): error TS1005: ';' expected.
+objectTypesWithOptionalProperties2.ts(8,9): error TS1131: Property or signature expected.
+objectTypesWithOptionalProperties2.ts(8,11): error TS7008: Member 'number' implicitly has an 'any' type.
+objectTypesWithOptionalProperties2.ts(12,5): error TS7010: 'x', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesWithOptionalProperties2.ts(12,8): error TS1144: '{' or ';' expected.
+objectTypesWithOptionalProperties2.ts(12,9): error TS1068: Unexpected token. A constructor, method, accessor, or property was expected.
+objectTypesWithOptionalProperties2.ts(12,11): error TS7008: Member 'number' implicitly has an 'any' type.
+objectTypesWithOptionalProperties2.ts(16,5): error TS7010: 'x', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesWithOptionalProperties2.ts(16,8): error TS1005: ';' expected.
+objectTypesWithOptionalProperties2.ts(16,9): error TS1131: Property or signature expected.
+objectTypesWithOptionalProperties2.ts(16,11): error TS7008: Member 'T' implicitly has an 'any' type.
+objectTypesWithOptionalProperties2.ts(20,5): error TS7010: 'x', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesWithOptionalProperties2.ts(20,8): error TS1144: '{' or ';' expected.
+objectTypesWithOptionalProperties2.ts(20,9): error TS1068: Unexpected token. A constructor, method, accessor, or property was expected.
+objectTypesWithOptionalProperties2.ts(20,11): error TS7008: Member 'T' implicitly has an 'any' type.
+objectTypesWithOptionalProperties2.ts(25,8): error TS1005: '{' expected.
+objectTypesWithOptionalProperties2.ts(25,9): error TS1136: Property assignment expected.
+objectTypesWithOptionalProperties2.ts(26,1): error TS1005: ':' expected.
+
+
+==== objectTypesWithOptionalProperties2.ts (23 errors) ====
+    // Illegal attempts to define optional methods
+    
+    var a: {
+        x()?: number; // error
+        ~~~
+!!! error TS7010: 'x', which lacks return-type annotation, implicitly has an 'any' return type.
+           ~
+!!! error TS1005: ';' expected.
+            ~
+!!! error TS1131: Property or signature expected.
+              ~~~~~~
+!!! error TS7008: Member 'number' implicitly has an 'any' type.
+    }
+    
+    interface I {
+        x()?: number; // error
+        ~~~
+!!! error TS7010: 'x', which lacks return-type annotation, implicitly has an 'any' return type.
+           ~
+!!! error TS1005: ';' expected.
+            ~
+!!! error TS1131: Property or signature expected.
+              ~~~~~~
+!!! error TS7008: Member 'number' implicitly has an 'any' type.
+    }
+    
+    class C {
+        x()?: number; // error
+        ~
+!!! error TS7010: 'x', which lacks return-type annotation, implicitly has an 'any' return type.
+           ~
+!!! error TS1144: '{' or ';' expected.
+            ~
+!!! error TS1068: Unexpected token. A constructor, method, accessor, or property was expected.
+              ~~~~~~
+!!! error TS7008: Member 'number' implicitly has an 'any' type.
+    }
+    
+    interface I2<T> {
+        x()?: T; // error
+        ~~~
+!!! error TS7010: 'x', which lacks return-type annotation, implicitly has an 'any' return type.
+           ~
+!!! error TS1005: ';' expected.
+            ~
+!!! error TS1131: Property or signature expected.
+              ~
+!!! error TS7008: Member 'T' implicitly has an 'any' type.
+    }
+    
+    class C2<T> {
+        x()?: T; // error
+        ~
+!!! error TS7010: 'x', which lacks return-type annotation, implicitly has an 'any' return type.
+           ~
+!!! error TS1144: '{' or ';' expected.
+            ~
+!!! error TS1068: Unexpected token. A constructor, method, accessor, or property was expected.
+              ~
+!!! error TS7008: Member 'T' implicitly has an 'any' type.
+    }
+    
+    
+    var b = {
+        x()?: 1 // error
+           ~
+!!! error TS1005: '{' expected.
+            ~
+!!! error TS1136: Property assignment expected.
+    }
+    ~
+!!! error TS1005: ':' expected.

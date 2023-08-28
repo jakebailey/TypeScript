@@ -1,0 +1,27 @@
+overloadOnConstNoStringImplementation.ts(1,10): error TS7010: 'x2', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadOnConstNoStringImplementation.ts(2,10): error TS7010: 'x2', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadOnConstNoStringImplementation.ts(12,10): error TS7051: Parameter has a name but no type. Did you mean 'arg0: number'?
+
+
+==== overloadOnConstNoStringImplementation.ts (3 errors) ====
+    function x2(a: number, cb: (x: 'hi') => number);
+             ~~
+!!! error TS7010: 'x2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function x2(a: number, cb: (x: 'bye') => number);
+             ~~
+!!! error TS7010: 'x2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function x2(a: number, cb: (x: any) => number) {
+        cb('hi');
+        cb('bye');
+        var hm = 'hm';
+        cb(hm); // should this work without a string definition?
+        cb('uh');
+        cb(1); 
+    }
+    
+    var cb: (number) => number = (x: number) => 1;
+             ~~~~~~
+!!! error TS7051: Parameter has a name but no type. Did you mean 'arg0: number'?
+    x2(1, cb); // error
+    x2(1, (x: 'hi') => 1); // error
+    x2(1, (x: string) => 1);

@@ -1,0 +1,38 @@
+index.js(3,14): error TS2339: Property 'x' does not exist on type '{ foo(): void; }'.
+index.js(9,14): error TS2339: Property 'x' does not exist on type '{ foo: typeof foo; }'.
+index.js(16,14): error TS2339: Property 'x' does not exist on type '{ foo(): void; }'.
+
+
+==== index.js (3 errors) ====
+    const a1 = {
+        foo() {
+            this.x = 0;
+                 ~
+!!! error TS2339: Property 'x' does not exist on type '{ foo(): void; }'.
+        }
+    }
+    
+    const a2 = {
+        foo: function() {
+            this.x = 0;
+                 ~
+!!! error TS2339: Property 'x' does not exist on type '{ foo: typeof foo; }'.
+        }
+    }
+    
+    const b1 = {
+        /** @class */
+        foo() {
+            this.x = 0;
+                 ~
+!!! error TS2339: Property 'x' does not exist on type '{ foo(): void; }'.
+        }
+    }
+    
+    const b2 = {
+        /** @class */
+        foo: function() {
+            this.x = 0;
+        }
+    }
+    

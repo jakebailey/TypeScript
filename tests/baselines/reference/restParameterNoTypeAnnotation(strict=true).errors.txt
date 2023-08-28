@@ -1,0 +1,11 @@
+restParameterNoTypeAnnotation.ts(1,14): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+
+
+==== restParameterNoTypeAnnotation.ts (1 errors) ====
+    function foo(...rest) {   
+                 ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+         var x: number = rest[0];
+         return x;   
+    }  
+    

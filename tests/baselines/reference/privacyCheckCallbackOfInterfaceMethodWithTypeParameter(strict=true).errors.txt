@@ -1,0 +1,13 @@
+privacyCheckCallbackOfInterfaceMethodWithTypeParameter.ts(2,5): error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== privacyCheckCallbackOfInterfaceMethodWithTypeParameter.ts (1 errors) ====
+    export interface A<T> {
+        f1(callback: (p: T) => any); 
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+     
+    export interface B<T> extends A<T> {
+    }
+    

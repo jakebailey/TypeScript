@@ -1,0 +1,251 @@
+downlevelLetConst16.ts(3,18): error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+downlevelLetConst16.ts(6,5): error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+downlevelLetConst16.ts(7,5): error TS7034: Variable 'z' implicitly has type 'any' in some locations where its type cannot be determined.
+downlevelLetConst16.ts(143,9): error TS7005: Variable 'y' implicitly has an 'any' type.
+downlevelLetConst16.ts(144,9): error TS7005: Variable 'z' implicitly has an 'any' type.
+downlevelLetConst16.ts(151,15): error TS2493: Tuple type '[]' of length '0' has no element at index '0'.
+downlevelLetConst16.ts(164,17): error TS2493: Tuple type '[]' of length '0' has no element at index '0'.
+
+
+==== downlevelLetConst16.ts (7 errors) ====
+    'use strict'
+    
+    declare function use(a: any);
+                     ~~~
+!!! error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    var x = 10;
+    var y;
+        ~
+!!! error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+    var z;
+        ~
+!!! error TS7034: Variable 'z' implicitly has type 'any' in some locations where its type cannot be determined.
+    use(x);
+    use(y);
+    use(z);
+    function foo1() {
+        let x = 1;
+        use(x);
+        let [y] = [1];
+        use(y);
+        let {a: z} = {a: 1};
+        use(z);
+    }
+    
+    function foo2() {
+        {
+            let x = 1;
+            use(x);
+            let [y] = [1];
+            use(y);
+            let {a: z} = { a: 1 };
+            use(z);
+        }
+        use(x);
+    }
+    
+    class A {
+        m1() {
+            let x = 1;
+            use(x);
+            let [y] = [1];
+            use(y);
+            let {a: z} = { a: 1 };
+            use(z);
+        }
+        m2() {
+            {
+                let x = 1;
+                use(x);
+                let [y] = [1];
+                use(y);
+                let {a: z} = { a: 1 };
+                use(z);
+            }
+            use(x);
+        }
+    
+    }
+    
+    class B {
+        m1() {
+            const x = 1;
+            use(x);
+            const [y] = [1];
+            use(y);
+            const {a: z} = { a: 1 };
+            use(z);
+    
+        }
+        m2() {
+            {
+                const x = 1;
+                use(x);
+                const [y] = [1];
+                use(y);
+                const {a: z} = { a: 1 };
+                use(z);
+    
+            }
+            use(x);
+        }
+    }
+    
+    function bar1() {
+        const x = 1;
+        use(x);
+        const [y] = [1];
+        use(y);
+        const {a: z} = { a: 1 };
+        use(z);
+    }
+    
+    function bar2() {
+        {
+            const x = 1;
+            use(x);
+            const [y] = [1];
+            use(y);
+            const {a: z} = { a: 1 };
+            use(z);
+    
+        }
+        use(x);
+    }
+    
+    module M1 {
+        let x = 1;
+        use(x);
+        let [y] = [1];
+        use(y);
+        let {a: z} = { a: 1 };
+        use(z);
+    }
+    
+    module M2 {
+        {
+            let x = 1;
+            use(x);
+            let [y] = [1];
+            use(y);
+            let {a: z} = { a: 1 };
+            use(z);
+        }
+        use(x);
+    }
+    
+    module M3 {
+        const x = 1;
+        use(x);
+        const [y] = [1];
+        use(y);
+        const {a: z} = { a: 1 };
+        use(z);
+    
+    }
+    
+    module M4 {
+        {
+            const x = 1;
+            use(x);
+            const [y] = [1];
+            use(y);
+            const {a: z} = { a: 1 };
+            use(z);
+    
+        }
+        use(x);
+        use(y);
+            ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+        use(z);
+            ~
+!!! error TS7005: Variable 'z' implicitly has an 'any' type.
+    }
+    
+    function foo3() {
+        for (let x; ;) {
+            use(x);
+        }
+        for (let [y] = []; ;) {
+                  ~
+!!! error TS2493: Tuple type '[]' of length '0' has no element at index '0'.
+            use(y);
+        }
+        for (let {a: z} = {a: 1}; ;) {
+            use(z);
+        }
+        use(x);
+    }
+    
+    function foo4() {
+        for (const x = 1; ;) {
+            use(x);
+        }
+        for (const [y] = []; ;) {
+                    ~
+!!! error TS2493: Tuple type '[]' of length '0' has no element at index '0'.
+            use(y);
+        }
+        for (const {a: z} = { a: 1 }; ;) {
+            use(z);
+        }
+        use(x);
+    }
+    
+    function foo5() {
+        for (let x in []) {
+            use(x);
+        }
+        use(x);
+    }
+    
+    function foo6() {
+        for (const x in []) {
+            use(x);
+        }
+        use(x);
+    }
+    
+    function foo7() {
+        for (let x of []) {
+            use(x);
+        }
+        use(x);
+    }
+    
+    function foo8() {
+        for (let [x] of []) {
+            use(x);
+        }
+        use(x);
+    }
+    
+    function foo9() {
+        for (let {a: x} of []) {
+            use(x);
+        }
+        use(x);
+    }
+    
+    function foo10() {
+        for (const x of []) {
+            use(x);
+        }
+        use(x);
+    }
+    
+    function foo11() {
+        for (const [x] of []) {
+            use(x);
+        }
+        use(x);
+    }
+    
+    function foo12() {
+        for (const {a: x} of []) {
+            use(x);
+        }
+        use(x);
+    }

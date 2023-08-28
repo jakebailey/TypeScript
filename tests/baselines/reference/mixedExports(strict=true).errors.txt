@@ -1,0 +1,34 @@
+mixedExports.ts(2,15): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+mixedExports.ts(3,22): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+mixedExports.ts(4,15): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+mixedExports.ts(13,19): error TS7008: Member 'x' implicitly has an 'any' type.
+mixedExports.ts(15,19): error TS7008: Member 'y' implicitly has an 'any' type.
+
+
+==== mixedExports.ts (5 errors) ====
+    declare module M {
+         function foo();
+                  ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+         export function foo();
+                         ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+         function foo();
+                  ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    declare module M1 {
+         export interface Foo {}
+         interface Foo {}
+    }
+    
+    module A {
+         interface X {x}
+                      ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+         export module X {}
+         interface X {y}
+                      ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    }

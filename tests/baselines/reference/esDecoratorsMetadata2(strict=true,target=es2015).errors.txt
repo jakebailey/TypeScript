@@ -1,0 +1,44 @@
+/foo.ts(2,13): error TS7006: Parameter '_' implicitly has an 'any' type.
+/foo.ts(2,16): error TS7006: Parameter 'context' implicitly has an 'any' type.
+/foo.ts(13,1): error TS2531: Object is possibly 'null'.
+/foo.ts(14,1): error TS2531: Object is possibly 'null'.
+/foo.ts(21,1): error TS2531: Object is possibly 'null'.
+/foo.ts(22,1): error TS2531: Object is possibly 'null'.
+
+
+==== /foo.ts (6 errors) ====
+    function meta(key: string, value: string) {
+        return (_, context) => {
+                ~
+!!! error TS7006: Parameter '_' implicitly has an 'any' type.
+                   ~~~~~~~
+!!! error TS7006: Parameter 'context' implicitly has an 'any' type.
+            context.metadata[key] = value;
+        };
+    }
+    
+    @meta('a', 'x')
+    class C {
+        @meta('b', 'y')
+        m() {}
+    }
+    
+    C[Symbol.metadata].a; // 'x'
+    ~~~~~~~~~~~~~~~~~~
+!!! error TS2531: Object is possibly 'null'.
+    C[Symbol.metadata].b; // 'y'
+    ~~~~~~~~~~~~~~~~~~
+!!! error TS2531: Object is possibly 'null'.
+    
+    class D extends C {
+        @meta('b', 'z')
+        m() {}
+    }
+    
+    D[Symbol.metadata].a; // 'x'
+    ~~~~~~~~~~~~~~~~~~
+!!! error TS2531: Object is possibly 'null'.
+    D[Symbol.metadata].b; // 'z'
+    ~~~~~~~~~~~~~~~~~~
+!!! error TS2531: Object is possibly 'null'.
+    

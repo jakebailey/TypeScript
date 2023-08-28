@@ -1,0 +1,18 @@
+emitThisInObjectLiteralGetter.ts(3,16): error TS7006: Parameter 'item' implicitly has an 'any' type.
+emitThisInObjectLiteralGetter.ts(3,16): error TS7024: Function implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+emitThisInObjectLiteralGetter.ts(3,29): error TS2339: Property 'bar' does not exist on type '{ readonly foo: (item: any) => any; }'.
+
+
+==== emitThisInObjectLiteralGetter.ts (3 errors) ====
+    const example = {
+        get foo() {
+            return item => this.bar(item);
+                   ~~~~
+!!! error TS7006: Parameter 'item' implicitly has an 'any' type.
+                   ~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7024: Function implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+                                ~~~
+!!! error TS2339: Property 'bar' does not exist on type '{ readonly foo: (item: any) => any; }'.
+        }
+    };
+    

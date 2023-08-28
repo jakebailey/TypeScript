@@ -1,0 +1,9 @@
+computedPropertyNames20_ES6.ts(2,11): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+
+
+==== computedPropertyNames20_ES6.ts (1 errors) ====
+    var obj = {
+        [this.bar]: 0
+              ~~~
+!!! error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+    }

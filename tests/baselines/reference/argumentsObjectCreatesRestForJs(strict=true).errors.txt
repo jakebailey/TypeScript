@@ -1,0 +1,32 @@
+main.js(4,19): error TS7006: Parameter 'x' implicitly has an 'any' type.
+main.js(4,22): error TS7006: Parameter 'y' implicitly has an 'any' type.
+main.js(14,25): error TS7006: Parameter 'x' implicitly has an 'any' type.
+main.js(14,28): error TS7019: Rest parameter 'y' implicitly has an 'any[]' type.
+
+
+==== main.js (4 errors) ====
+    function allRest() { arguments; }
+    allRest();
+    allRest(1, 2, 3);
+    function someRest(x, y) { arguments; }
+                      ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                         ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+    someRest(); // x and y are still optional because they are in a JS file
+    someRest(1, 2, 3);
+    
+    /**
+     * @param {number} x - a thing
+     */
+    function jsdocced(x) { arguments; }
+    jsdocced(1);
+    
+    function dontDoubleRest(x, ...y) { arguments; }
+                            ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                               ~~~~
+!!! error TS7019: Rest parameter 'y' implicitly has an 'any[]' type.
+    dontDoubleRest(1, 2, 3);
+    
+    

@@ -1,0 +1,23 @@
+objectTypesIdentityWithComplexConstraints.ts(12,10): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithComplexConstraints.ts(13,10): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== objectTypesIdentityWithComplexConstraints.ts (2 errors) ====
+    interface A {
+          <T extends {
+                <S extends A>(x: T, y: S): void
+          }>(x: T, y: T): void
+    }
+    
+    interface B {
+          <U extends B>(x: U, y: U): void
+    }
+    
+    // ok, not considered identical because the steps of contextual signature instantiation create fresh type parameters
+    function foo(x: A);
+             ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo(x: B); // error after constraints above made illegal
+             ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo(x: any) { }

@@ -1,0 +1,11 @@
+templateStringWithEmbeddedYieldKeywordES6.ts(3,20): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+
+
+==== templateStringWithEmbeddedYieldKeywordES6.ts (1 errors) ====
+    function* gen() {
+        // Once this is supported, yield *must* be parenthesized.
+        var x = `abc${ yield 10 }def`;
+                       ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+    }
+    

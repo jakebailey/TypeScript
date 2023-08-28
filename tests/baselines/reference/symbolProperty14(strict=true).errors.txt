@@ -1,0 +1,34 @@
+symbolProperty14.ts(2,5): error TS2564: Property '[Symbol.iterator]' has no initializer and is not definitely assigned in the constructor.
+symbolProperty14.ts(2,26): error TS7008: Member 'x' implicitly has an 'any' type.
+symbolProperty14.ts(2,29): error TS7008: Member 'y' implicitly has an 'any' type.
+symbolProperty14.ts(5,27): error TS7008: Member 'x' implicitly has an 'any' type.
+symbolProperty14.ts(16,5): error TS2454: Variable 'i' is used before being assigned.
+
+
+==== symbolProperty14.ts (5 errors) ====
+    class C {
+        [Symbol.iterator]: { x; y };
+        ~~~~~~~~~~~~~~~~~
+!!! error TS2564: Property '[Symbol.iterator]' has no initializer and is not definitely assigned in the constructor.
+                             ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+                                ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    }
+    interface I {
+        [Symbol.iterator]?: { x };
+                              ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    }
+    
+    declare function foo(i: I): I;
+    declare function foo(a: any): any;
+    
+    declare function bar(i: C): C;
+    declare function bar(a: any): any;
+    
+    foo(new C);
+    var i: I;
+    bar(i);
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.

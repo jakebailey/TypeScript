@@ -1,0 +1,24 @@
+exportDeclareClass1.ts(2,21): error TS1183: An implementation cannot be declared in ambient contexts.
+exportDeclareClass1.ts(3,31): error TS1183: An implementation cannot be declared in ambient contexts.
+exportDeclareClass1.ts(7,16): error TS7010: 'tF', which lacks return-type annotation, implicitly has an 'any' return type.
+exportDeclareClass1.ts(8,16): error TS7010: 'tsF', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== exportDeclareClass1.ts (4 errors) ====
+        export declare class eaC {
+            static tF() { };
+                        ~
+!!! error TS1183: An implementation cannot be declared in ambient contexts.
+            static tsF(param:any) { };
+                                  ~
+!!! error TS1183: An implementation cannot be declared in ambient contexts.
+        };
+    	
+    	export declare class eaC2 {
+            static tF();
+                   ~~
+!!! error TS7010: 'tF', which lacks return-type annotation, implicitly has an 'any' return type.
+            static tsF(param:any);
+                   ~~~
+!!! error TS7010: 'tsF', which lacks return-type annotation, implicitly has an 'any' return type.
+        };

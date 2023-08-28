@@ -1,0 +1,83 @@
+typeQueryOnClass.ts(4,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+typeQueryOnClass.ts(6,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+typeQueryOnClass.ts(7,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+typeQueryOnClass.ts(8,16): error TS7006: Parameter 'x' implicitly has an 'any' type.
+typeQueryOnClass.ts(10,16): error TS7006: Parameter 'x' implicitly has an 'any' type.
+typeQueryOnClass.ts(25,9): error TS7006: Parameter 'x' implicitly has an 'any' type.
+typeQueryOnClass.ts(49,17): error TS7006: Parameter 'y' implicitly has an 'any' type.
+typeQueryOnClass.ts(50,5): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+
+
+==== typeQueryOnClass.ts (8 errors) ====
+    class C<T> {
+        constructor(x: number);
+        constructor(x: string);
+        constructor(public x) { }
+                    ~~~~~~~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+        static foo(x: number);
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        static foo(x: {});
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        static foo(x) { }
+                   ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+        static bar(x) { }
+                   ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+        static sa = 1;
+        static sb = () => 1;
+    
+        static get sc() {
+            return 1;
+        }
+        static set sc(x) {
+        }
+    
+        static get sd() {
+            return 1;
+        }
+    
+        baz(x): string { return ''; }
+            ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+        ia = 1;
+        ib = () => this.ia;
+    
+        get ic() {
+            return 1;
+        }
+        set ic(x) {
+        }
+    
+        get id() {
+            return 1;
+        }
+    
+    }
+    
+    var c: C<string>;
+    
+    // BUG 820454
+    var r1: typeof C;
+    var r2: typeof c;
+    
+    class D<T> {
+        constructor(public y?) { }
+                    ~~~~~~~~~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+        x: T;
+        ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+        foo() { }
+    }
+    
+    var d: D<string>;
+    var r3: typeof D;
+    var r4: typeof d;

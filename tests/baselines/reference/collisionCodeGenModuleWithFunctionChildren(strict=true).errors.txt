@@ -1,0 +1,25 @@
+collisionCodeGenModuleWithFunctionChildren.ts(3,17): error TS7006: Parameter 'M' implicitly has an 'any' type.
+
+
+==== collisionCodeGenModuleWithFunctionChildren.ts (1 errors) ====
+    module M {
+        export var x = 3;
+        function fn(M, p = x) { }
+                    ~
+!!! error TS7006: Parameter 'M' implicitly has an 'any' type.
+    }
+    
+    module M {
+        function fn2() {
+            var M;
+            var p = x;
+        }
+    }
+    
+    module M {
+        function fn3() {
+            function M() {
+                var p = x;
+            }
+        }
+    }

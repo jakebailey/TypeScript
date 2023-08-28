@@ -1,0 +1,56 @@
+logicalNotOperatorWithBooleanType.ts(7,12): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+logicalNotOperatorWithBooleanType.ts(17,25): error TS2454: Variable 'BOOLEAN' is used before being assigned.
+logicalNotOperatorWithBooleanType.ts(30,25): error TS2454: Variable 'BOOLEAN' is used before being assigned.
+logicalNotOperatorWithBooleanType.ts(34,2): error TS2454: Variable 'BOOLEAN' is used before being assigned.
+logicalNotOperatorWithBooleanType.ts(36,1): error TS2695: Left side of comma operator is unused and has no side effects.
+
+
+==== logicalNotOperatorWithBooleanType.ts (5 errors) ====
+    // ! operator on boolean type
+    var BOOLEAN: boolean;
+    
+    function foo(): boolean { return true; }
+    
+    class A {
+        public a: boolean;
+               ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+        static foo() { return false; }
+    }
+    module M {
+        export var n: boolean;
+    }
+    
+    var objA = new A();
+    
+    // boolean type var
+    var ResultIsBoolean1 = !BOOLEAN;
+                            ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
+    
+    // boolean type literal
+    var ResultIsBoolean2 = !true;
+    var ResultIsBoolean3 = !{ x: true, y: false };
+    
+    // boolean type expressions
+    var ResultIsBoolean4 = !objA.a;
+    var ResultIsBoolean5 = !M.n;
+    var ResultIsBoolean6 = !foo();
+    var ResultIsBoolean7 = !A.foo();
+    
+    // multiple ! operators
+    var ResultIsBoolean = !!BOOLEAN;
+                            ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
+    
+    // miss assignment operators
+    !true;
+    !BOOLEAN;
+     ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
+    !foo();
+    !true, false;
+    ~~~~~
+!!! error TS2695: Left side of comma operator is unused and has no side effects.
+    !objA.a;
+    !M.n;

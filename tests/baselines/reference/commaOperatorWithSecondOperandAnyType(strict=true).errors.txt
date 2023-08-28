@@ -1,0 +1,76 @@
+commaOperatorWithSecondOperandAnyType.ts(9,1): error TS2454: Variable 'BOOLEAN' is used before being assigned.
+commaOperatorWithSecondOperandAnyType.ts(10,1): error TS2454: Variable 'NUMBER' is used before being assigned.
+commaOperatorWithSecondOperandAnyType.ts(11,1): error TS2454: Variable 'STRING' is used before being assigned.
+commaOperatorWithSecondOperandAnyType.ts(12,1): error TS2454: Variable 'OBJECT' is used before being assigned.
+commaOperatorWithSecondOperandAnyType.ts(16,21): error TS2454: Variable 'BOOLEAN' is used before being assigned.
+commaOperatorWithSecondOperandAnyType.ts(17,21): error TS2454: Variable 'NUMBER' is used before being assigned.
+commaOperatorWithSecondOperandAnyType.ts(18,21): error TS2454: Variable 'STRING' is used before being assigned.
+commaOperatorWithSecondOperandAnyType.ts(19,21): error TS2454: Variable 'OBJECT' is used before being assigned.
+commaOperatorWithSecondOperandAnyType.ts(25,3): error TS2454: Variable 'NUMBER' is used before being assigned.
+commaOperatorWithSecondOperandAnyType.ts(29,2): error TS2454: Variable 'BOOLEAN' is used before being assigned.
+commaOperatorWithSecondOperandAnyType.ts(32,23): error TS2454: Variable 'NUMBER' is used before being assigned.
+commaOperatorWithSecondOperandAnyType.ts(36,23): error TS2454: Variable 'BOOLEAN' is used before being assigned.
+
+
+==== commaOperatorWithSecondOperandAnyType.ts (12 errors) ====
+    var ANY: any;
+    var BOOLEAN: boolean;
+    var NUMBER: number;
+    var STRING: string;
+    var OBJECT: Object;
+    
+    //The second operand type is any
+    ANY, ANY;
+    BOOLEAN, ANY;
+    ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
+    NUMBER, ANY;
+    ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
+    STRING, ANY;
+    ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    OBJECT, ANY;
+    ~~~~~~
+!!! error TS2454: Variable 'OBJECT' is used before being assigned.
+    
+    //Return type is any
+    var resultIsAny1 = (ANY, ANY);
+    var resultIsAny2 = (BOOLEAN, ANY);
+                        ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
+    var resultIsAny3 = (NUMBER, ANY);
+                        ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
+    var resultIsAny4 = (STRING, ANY);
+                        ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    var resultIsAny5 = (OBJECT, ANY);
+                        ~~~~~~
+!!! error TS2454: Variable 'OBJECT' is used before being assigned.
+    
+    //Literal and expression
+    var x: any;
+    
+    1, ANY;
+    ++NUMBER, ANY;
+      ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
+    "string", [null, 1];
+    "string".charAt(0), [null, 1];
+    true, x("any");
+    !BOOLEAN, x.doSomeThing();
+     ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
+    
+    var resultIsAny6 = (1, ANY);
+    var resultIsAny7 = (++NUMBER, ANY);
+                          ~~~~~~
+!!! error TS2454: Variable 'NUMBER' is used before being assigned.
+    var resultIsAny8 = ("string", null);
+    var resultIsAny9 = ("string".charAt(0), undefined);
+    var resultIsAny10 = (true, x("any"));
+    var resultIsAny11 = (!BOOLEAN, x.doSomeThing());
+                          ~~~~~~~
+!!! error TS2454: Variable 'BOOLEAN' is used before being assigned.
+    

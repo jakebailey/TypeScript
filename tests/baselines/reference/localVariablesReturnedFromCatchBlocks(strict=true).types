@@ -1,0 +1,27 @@
+//// [tests/cases/compiler/localVariablesReturnedFromCatchBlocks.ts] ////
+
+=== localVariablesReturnedFromCatchBlocks.ts ===
+function f() {
+>f : () => any
+>  : ^^^^^^^^^
+
+    try {
+    } catch (e) {
+>e : unknown
+>  : ^^^^^^^
+
+        var stack2 = e.stack;
+>stack2 : any
+>       : ^^^
+>e.stack : any
+>        : ^^^
+>e : unknown
+>  : ^^^^^^^
+>stack : any
+>      : ^^^
+
+        return stack2; //error TS2095: Could not find symbol 'stack2'.
+>stack2 : any
+>       : ^^^
+    }
+}

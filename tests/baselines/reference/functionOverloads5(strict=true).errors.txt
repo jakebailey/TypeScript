@@ -1,0 +1,14 @@
+functionOverloads5.ts(2,10): error TS2385: Overload signatures must all be public, private or protected.
+functionOverloads5.ts(2,10): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== functionOverloads5.ts (2 errors) ====
+    class baz { 
+      public foo();
+             ~~~
+!!! error TS2385: Overload signatures must all be public, private or protected.
+             ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+      private foo(bar?:any){ }
+    }
+    

@@ -1,0 +1,13 @@
+emitDefaultParametersFunction.ts(2,32): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+emitDefaultParametersFunction.ts(4,23): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+
+
+==== emitDefaultParametersFunction.ts (2 errors) ====
+    function foo(x: string, y = 10) { }
+    function baz(x: string, y = 5, ...rest) { }
+                                   ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    function bar(y = 10) { }
+    function bar1(y = 10, ...rest) { }
+                          ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.

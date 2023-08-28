@@ -1,0 +1,19 @@
+unusedParametersInLambda2.ts(3,17): error TS6133: 'X' is declared but its value is never read.
+unusedParametersInLambda2.ts(3,17): error TS7006: Parameter 'X' implicitly has an 'any' type.
+unusedParametersInLambda2.ts(3,20): error TS7006: Parameter 'Y' implicitly has an 'any' type.
+
+
+==== unusedParametersInLambda2.ts (3 errors) ====
+    class A {
+        public f1() {
+            return (X, Y) => {
+                    ~
+!!! error TS6133: 'X' is declared but its value is never read.
+                    ~
+!!! error TS7006: Parameter 'X' implicitly has an 'any' type.
+                       ~
+!!! error TS7006: Parameter 'Y' implicitly has an 'any' type.
+                Y;
+            }
+        }
+    }

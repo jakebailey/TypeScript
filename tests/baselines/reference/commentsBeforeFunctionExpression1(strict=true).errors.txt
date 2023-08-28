@@ -1,0 +1,10 @@
+commentsBeforeFunctionExpression1.ts(2,20): error TS7006: Parameter 'a' implicitly has an 'any' type.
+
+
+==== commentsBeforeFunctionExpression1.ts (1 errors) ====
+    var v = {
+        f: /**own f*/ (a) => 0
+                       ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    }
+    

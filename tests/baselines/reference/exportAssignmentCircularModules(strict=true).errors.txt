@@ -1,0 +1,32 @@
+foo_0.ts(3,13): error TS7022: 'x' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+foo_1.ts(3,13): error TS7022: 'x' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+foo_2.ts(3,13): error TS7022: 'x' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+
+
+==== foo_2.ts (1 errors) ====
+    import foo0 = require("./foo_0");
+    module Foo {
+    	export var x = foo0.x;
+    	           ~
+!!! error TS7022: 'x' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    }
+    export = Foo;
+    
+==== foo_0.ts (1 errors) ====
+    import foo1 = require('./foo_1');
+    module Foo {
+    	export var x = foo1.x;
+    	           ~
+!!! error TS7022: 'x' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    }
+    export = Foo;
+    
+==== foo_1.ts (1 errors) ====
+    import foo2 = require("./foo_2");
+    module Foo {
+    	export var x = foo2.x;
+    	           ~
+!!! error TS7022: 'x' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    }
+    export = Foo;
+    

@@ -1,0 +1,9 @@
+parserMethodSignature8.ts(2,3): error TS7010: '"H"', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== parserMethodSignature8.ts (1 errors) ====
+    interface I {
+      "H"?<T>();
+      ~~~~~~~~~~
+!!! error TS7010: '"H"', which lacks return-type annotation, implicitly has an 'any' return type.
+    }

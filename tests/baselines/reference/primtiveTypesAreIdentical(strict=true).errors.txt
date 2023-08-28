@@ -1,0 +1,79 @@
+primtiveTypesAreIdentical.ts(3,10): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+primtiveTypesAreIdentical.ts(4,10): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+primtiveTypesAreIdentical.ts(7,10): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+primtiveTypesAreIdentical.ts(8,10): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+primtiveTypesAreIdentical.ts(11,10): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+primtiveTypesAreIdentical.ts(12,10): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+primtiveTypesAreIdentical.ts(15,10): error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+primtiveTypesAreIdentical.ts(16,10): error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+primtiveTypesAreIdentical.ts(19,10): error TS7010: 'foo5', which lacks return-type annotation, implicitly has an 'any' return type.
+primtiveTypesAreIdentical.ts(20,10): error TS7010: 'foo5', which lacks return-type annotation, implicitly has an 'any' return type.
+primtiveTypesAreIdentical.ts(21,10): error TS7010: 'foo5', which lacks return-type annotation, implicitly has an 'any' return type.
+primtiveTypesAreIdentical.ts(25,10): error TS7010: 'foo6', which lacks return-type annotation, implicitly has an 'any' return type.
+primtiveTypesAreIdentical.ts(26,10): error TS7010: 'foo6', which lacks return-type annotation, implicitly has an 'any' return type.
+primtiveTypesAreIdentical.ts(29,10): error TS7010: 'foo7', which lacks return-type annotation, implicitly has an 'any' return type.
+primtiveTypesAreIdentical.ts(30,10): error TS7010: 'foo7', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== primtiveTypesAreIdentical.ts (15 errors) ====
+    // primitive types are identical to themselves so these overloads will all cause errors
+    
+    function foo1(x: number);
+             ~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo1(x: number);
+             ~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo1(x: any) { }
+    
+    function foo2(x: string);
+             ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo2(x: string);
+             ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo2(x: any) { }
+    
+    function foo3(x: boolean);
+             ~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo3(x: boolean);
+             ~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo3(x: any) { }
+    
+    function foo4(x: any);
+             ~~~~
+!!! error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo4(x: any);
+             ~~~~
+!!! error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo4(x: any) { }
+    
+    function foo5(x: 'a');
+             ~~~~
+!!! error TS7010: 'foo5', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo5(x: 'a');
+             ~~~~
+!!! error TS7010: 'foo5', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo5(x: string);
+             ~~~~
+!!! error TS7010: 'foo5', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo5(x: any) { }
+    
+    enum E { A }
+    function foo6(x: E);
+             ~~~~
+!!! error TS7010: 'foo6', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo6(x: E);
+             ~~~~
+!!! error TS7010: 'foo6', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo6(x: any) { }
+    
+    function foo7(x: void);
+             ~~~~
+!!! error TS7010: 'foo7', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo7(x: void);
+             ~~~~
+!!! error TS7010: 'foo7', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo7(x: any) { }

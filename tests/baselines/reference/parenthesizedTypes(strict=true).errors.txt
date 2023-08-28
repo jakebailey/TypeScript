@@ -1,0 +1,34 @@
+parenthesizedTypes.ts(22,9): error TS7051: Parameter has a name but no type. Did you mean 'arg0: string'?
+
+
+==== parenthesizedTypes.ts (1 errors) ====
+    var a: string;
+    var a: (string);
+    var a: ((string) | string | (((string))));
+    var a: ((((((((((((((((((((((((((((((((((((((((string))))))))))))))))))))))))))))))))))))))));
+    
+    var b: (x: string) => string;
+    var b: ((x: (string)) => (string));
+    
+    var c: string[] | number[];
+    var c: (string)[] | (number)[];
+    var c: ((string)[]) | ((number)[]);
+    
+    var d: (((x: string) => string) | ((x: number) => number))[];
+    var d: ({ (x: string): string } | { (x: number): number })[];
+    var d: Array<((x: string) => string) | ((x: number) => number)>;
+    var d: Array<{ (x: string): string } | { (x: number): number }>;
+    var d: (Array<{ (x: string): string } | { (x: number): number }>);
+    
+    var e: typeof a[];
+    var e: (typeof a)[];
+    
+    var f: (string) => string;
+            ~~~~~~
+!!! error TS7051: Parameter has a name but no type. Did you mean 'arg0: string'?
+    var f: (string: any) => string;
+    
+    var g: [string, string];
+    var g: [(string), string];
+    var g: [(string), (((typeof a)))];
+    

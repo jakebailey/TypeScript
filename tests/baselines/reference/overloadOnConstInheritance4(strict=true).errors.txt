@@ -1,0 +1,18 @@
+overloadOnConstInheritance4.ts(2,5): error TS7010: 'x1', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadOnConstInheritance4.ts(5,5): error TS7010: 'x1', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== overloadOnConstInheritance4.ts (2 errors) ====
+    interface I {
+        x1(a: number, callback: (x: 'hi') => number);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'x1', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    class C implements I {
+        x1(a: number, callback: (x: 'hi') => number);
+        ~~
+!!! error TS7010: 'x1', which lacks return-type annotation, implicitly has an 'any' return type.
+        x1(a: number, callback: (x: 'hi') => number) {
+        }
+    }
+    

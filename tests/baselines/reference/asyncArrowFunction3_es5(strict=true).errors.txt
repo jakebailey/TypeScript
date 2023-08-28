@@ -1,0 +1,11 @@
+asyncArrowFunction3_es5.ts(1,12): error TS7022: 'await' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+asyncArrowFunction3_es5.ts(1,20): error TS2372: Parameter 'await' cannot reference itself.
+
+
+==== asyncArrowFunction3_es5.ts (2 errors) ====
+    function f(await = await) {
+               ~~~~~~~~~~~~~
+!!! error TS7022: 'await' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+                       ~~~~~
+!!! error TS2372: Parameter 'await' cannot reference itself.
+    }

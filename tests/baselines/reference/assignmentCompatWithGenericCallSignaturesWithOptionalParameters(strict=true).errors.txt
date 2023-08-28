@@ -1,0 +1,793 @@
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(5,9): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(6,9): error TS2564: Property 'a2' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(7,9): error TS2564: Property 'a3' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(8,9): error TS2564: Property 'a4' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(9,9): error TS2564: Property 'a5' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(12,28): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(13,13): error TS2322: Type '(x?: T) => null' is not assignable to type '() => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(14,13): error TS2322: Type '(x: T) => null' is not assignable to type '() => T'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(16,29): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(17,13): error TS2322: Type '(x?: T) => null' is not assignable to type '(x?: T | undefined) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(18,13): error TS2322: Type '(x: T) => null' is not assignable to type '(x?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T | undefined' is not assignable to type 'T'.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(20,29): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(21,13): error TS2322: Type '(x?: T) => null' is not assignable to type '(x: T) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(22,13): error TS2322: Type '(x: T) => null' is not assignable to type '(x: T) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(23,13): error TS2322: Type '(x: T, y: T) => null' is not assignable to type '(x: T) => T'.
+  Target signature provides too few arguments. Expected 2 or more, but got 1.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(25,29): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(26,13): error TS2322: Type '(x?: T, y?: T) => null' is not assignable to type '(x: T, y?: T | undefined) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(27,13): error TS2322: Type '(x: T) => null' is not assignable to type '(x: T, y?: T | undefined) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(28,13): error TS2322: Type '(x: T, y: T) => null' is not assignable to type '(x: T, y?: T | undefined) => T'.
+  Types of parameters 'y' and 'y' are incompatible.
+    Type 'T | undefined' is not assignable to type 'T'.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(31,29): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(32,13): error TS2322: Type '(x?: T, y?: T) => null' is not assignable to type '(x?: T | undefined, y?: T | undefined) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(33,13): error TS2322: Type '(x: T) => null' is not assignable to type '(x?: T | undefined, y?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T | undefined' is not assignable to type 'T'.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(34,13): error TS2322: Type '(x: T, y: T) => null' is not assignable to type '(x?: T | undefined, y?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T | undefined' is not assignable to type 'T'.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(42,9): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(43,9): error TS2564: Property 'a2' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(44,9): error TS2564: Property 'a3' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(45,9): error TS2564: Property 'a4' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(46,9): error TS2564: Property 'a5' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(50,9): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(51,9): error TS2564: Property 'a2' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(52,9): error TS2564: Property 'a3' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(53,9): error TS2564: Property 'a4' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(54,9): error TS2564: Property 'a5' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(63,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(63,9): error TS2322: Type '() => T' is not assignable to type '<T>() => T'.
+  Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(63,15): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(64,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(64,9): error TS2322: Type '(x?: T | undefined) => T' is not assignable to type '<T>() => T'.
+  Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(64,15): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(65,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(65,9): error TS2322: Type '(x: T) => T' is not assignable to type '<T>() => T'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(65,15): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(66,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(66,9): error TS2322: Type '(x: T, y?: T | undefined) => T' is not assignable to type '<T>() => T'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(66,15): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(67,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(67,9): error TS2322: Type '(x?: T | undefined, y?: T | undefined) => T' is not assignable to type '<T>() => T'.
+  Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(67,15): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(69,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(69,9): error TS2322: Type '() => T' is not assignable to type '<T>(x?: T | undefined) => T'.
+  Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(69,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(70,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(70,9): error TS2322: Type '(x?: T | undefined) => T' is not assignable to type '<T>(x?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T | undefined' is not assignable to type 'T | undefined'. Two different types with this name exist, but they are unrelated.
+      Type 'T' is not assignable to type 'T | undefined'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(70,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(71,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(71,9): error TS2322: Type '(x: T) => T' is not assignable to type '<T>(x?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T | undefined' is not assignable to type 'T'.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(71,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(72,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(72,9): error TS2322: Type '(x: T, y?: T | undefined) => T' is not assignable to type '<T>(x?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T | undefined' is not assignable to type 'T'.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(72,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(73,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(73,9): error TS2322: Type '(x?: T | undefined, y?: T | undefined) => T' is not assignable to type '<T>(x?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T | undefined' is not assignable to type 'T | undefined'. Two different types with this name exist, but they are unrelated.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(73,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(75,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(75,9): error TS2322: Type '() => T' is not assignable to type '<T>(x: T) => T'.
+  Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(75,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(76,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(76,9): error TS2322: Type '(x?: T | undefined) => T' is not assignable to type '<T>(x: T) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T' is not assignable to type 'T | undefined'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(76,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(77,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(77,9): error TS2322: Type '(x: T) => T' is not assignable to type '<T>(x: T) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(77,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(78,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(78,9): error TS2322: Type '(x: T, y?: T | undefined) => T' is not assignable to type '<T>(x: T) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(78,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(79,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(79,9): error TS2322: Type '(x?: T | undefined, y?: T | undefined) => T' is not assignable to type '<T>(x: T) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T' is not assignable to type 'T | undefined'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(79,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(81,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(81,9): error TS2322: Type '() => T' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+  Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(81,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(82,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(82,9): error TS2322: Type '(x?: T | undefined) => T' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T' is not assignable to type 'T | undefined'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(82,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(83,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(83,9): error TS2322: Type '(x: T) => T' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(83,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(84,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(84,9): error TS2322: Type '(x: T, y?: T | undefined) => T' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(84,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(85,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(85,9): error TS2322: Type '(x?: T | undefined, y?: T | undefined) => T' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T' is not assignable to type 'T | undefined'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(85,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(87,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(87,9): error TS2322: Type '() => T' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+  Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(87,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(88,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(88,9): error TS2322: Type '(x?: T | undefined) => T' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T | undefined' is not assignable to type 'T | undefined'. Two different types with this name exist, but they are unrelated.
+      Type 'T' is not assignable to type 'T | undefined'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(88,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(89,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(89,9): error TS2322: Type '(x: T) => T' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T | undefined' is not assignable to type 'T'.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(89,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(90,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(90,9): error TS2322: Type '(x: T, y?: T | undefined) => T' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T | undefined' is not assignable to type 'T'.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(90,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(91,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(91,9): error TS2322: Type '(x?: T | undefined, y?: T | undefined) => T' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'T | undefined' is not assignable to type 'T | undefined'. Two different types with this name exist, but they are unrelated.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(91,16): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(98,9): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(99,9): error TS2564: Property 'a2' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(100,9): error TS2564: Property 'a3' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(101,9): error TS2564: Property 'a4' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(102,9): error TS2564: Property 'a5' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(105,31): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(106,13): error TS2322: Type '<T>(x?: T) => null' is not assignable to type '<T>() => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(107,13): error TS2322: Type '<T>(x: T) => null' is not assignable to type '<T>() => T'.
+  Target signature provides too few arguments. Expected 1 or more, but got 0.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(109,32): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(110,13): error TS2322: Type '<T>(x?: T) => null' is not assignable to type '<T>(x?: T | undefined) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(111,13): error TS2322: Type '<T>(x: T) => null' is not assignable to type '<T>(x?: T | undefined) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(113,32): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(114,13): error TS2322: Type '<T>(x?: T) => null' is not assignable to type '<T>(x: T) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(115,13): error TS2322: Type '<T>(x: T) => null' is not assignable to type '<T>(x: T) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(116,13): error TS2322: Type '<T>(x: T, y: T) => null' is not assignable to type '<T>(x: T) => T'.
+  Target signature provides too few arguments. Expected 2 or more, but got 1.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(118,32): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(119,13): error TS2322: Type '<T>(x?: T, y?: T) => null' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(120,13): error TS2322: Type '<T>(x: T) => null' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(121,13): error TS2322: Type '<T>(x: T, y: T) => null' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(124,32): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(125,13): error TS2322: Type '<T>(x?: T, y?: T) => null' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(126,13): error TS2322: Type '<T>(x: T) => null' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts(127,13): error TS2322: Type '<T>(x: T, y: T) => null' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+  Type 'null' is not assignable to type 'T'.
+    'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+
+
+==== assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts (131 errors) ====
+    // call signatures in derived types must have the same or fewer optional parameters as the target for assignment
+    
+    module ClassTypeParam {
+        class Base<T> {
+            a: () => T;
+            ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+            a2: (x?: T) => T;
+            ~~
+!!! error TS2564: Property 'a2' has no initializer and is not definitely assigned in the constructor.
+            a3: (x: T) => T;
+            ~~
+!!! error TS2564: Property 'a3' has no initializer and is not definitely assigned in the constructor.
+            a4: (x: T, y?: T) => T;
+            ~~
+!!! error TS2564: Property 'a4' has no initializer and is not definitely assigned in the constructor.
+            a5: (x?: T, y?: T) => T;
+            ~~
+!!! error TS2564: Property 'a5' has no initializer and is not definitely assigned in the constructor.
+    
+            init = () => {
+                this.a = () => null; // ok, same T of required params
+                               ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+!!! related TS6502 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:5:12: The expected type comes from the return type of this signature.
+                this.a = (x?: T) => null; // ok, same T of required params
+                ~~~~~~
+!!! error TS2322: Type '(x?: T) => null' is not assignable to type '() => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a = (x: T) => null; // error, too many required params
+                ~~~~~~
+!!! error TS2322: Type '(x: T) => null' is not assignable to type '() => T'.
+!!! error TS2322:   Target signature provides too few arguments. Expected 1 or more, but got 0.
+    
+                this.a2 = () => null; // ok, same T of required params
+                                ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+!!! related TS6502 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:6:13: The expected type comes from the return type of this signature.
+                this.a2 = (x?: T) => null; // ok, same T of required params
+                ~~~~~~~
+!!! error TS2322: Type '(x?: T) => null' is not assignable to type '(x?: T | undefined) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a2 = (x: T) => null; // ok, same number of params
+                ~~~~~~~
+!!! error TS2322: Type '(x: T) => null' is not assignable to type '(x?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T | undefined' is not assignable to type 'T'.
+!!! error TS2322:       'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+    
+                this.a3 = () => null; // ok, fewer required params
+                                ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+!!! related TS6502 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:7:13: The expected type comes from the return type of this signature.
+                this.a3 = (x?: T) => null; // ok, fewer required params
+                ~~~~~~~
+!!! error TS2322: Type '(x?: T) => null' is not assignable to type '(x: T) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a3 = (x: T) => null; // ok, same T of required params
+                ~~~~~~~
+!!! error TS2322: Type '(x: T) => null' is not assignable to type '(x: T) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a3 = (x: T, y: T) => null;  // error, too many required params
+                ~~~~~~~
+!!! error TS2322: Type '(x: T, y: T) => null' is not assignable to type '(x: T) => T'.
+!!! error TS2322:   Target signature provides too few arguments. Expected 2 or more, but got 1.
+    
+                this.a4 = () => null; // ok, fewer required params
+                                ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+!!! related TS6502 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:8:13: The expected type comes from the return type of this signature.
+                this.a4 = (x?: T, y?: T) => null; // ok, fewer required params
+                ~~~~~~~
+!!! error TS2322: Type '(x?: T, y?: T) => null' is not assignable to type '(x: T, y?: T | undefined) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a4 = (x: T) => null; // ok, same T of required params
+                ~~~~~~~
+!!! error TS2322: Type '(x: T) => null' is not assignable to type '(x: T, y?: T | undefined) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a4 = (x: T, y: T) => null;  // ok, same number of params
+                ~~~~~~~
+!!! error TS2322: Type '(x: T, y: T) => null' is not assignable to type '(x: T, y?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'y' and 'y' are incompatible.
+!!! error TS2322:     Type 'T | undefined' is not assignable to type 'T'.
+!!! error TS2322:       'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+    
+    
+                this.a5 = () => null; // ok, fewer required params
+                                ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+!!! related TS6502 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:9:13: The expected type comes from the return type of this signature.
+                this.a5 = (x?: T, y?: T) => null; // ok, fewer required params
+                ~~~~~~~
+!!! error TS2322: Type '(x?: T, y?: T) => null' is not assignable to type '(x?: T | undefined, y?: T | undefined) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a5 = (x: T) => null; // ok, all present params match
+                ~~~~~~~
+!!! error TS2322: Type '(x: T) => null' is not assignable to type '(x?: T | undefined, y?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T | undefined' is not assignable to type 'T'.
+!!! error TS2322:       'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+                this.a5 = (x: T, y: T) => null;  // ok, same number of params
+                ~~~~~~~
+!!! error TS2322: Type '(x: T, y: T) => null' is not assignable to type '(x?: T | undefined, y?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T | undefined' is not assignable to type 'T'.
+!!! error TS2322:       'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+            }
+        }
+    }
+    
+    module GenericSignaturesInvalid {
+    
+        class Base2 {
+            a: <T>() => T;
+            ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+            a2: <T>(x?: T) => T;
+            ~~
+!!! error TS2564: Property 'a2' has no initializer and is not definitely assigned in the constructor.
+            a3: <T>(x: T) => T;
+            ~~
+!!! error TS2564: Property 'a3' has no initializer and is not definitely assigned in the constructor.
+            a4: <T>(x: T, y?: T) => T;
+            ~~
+!!! error TS2564: Property 'a4' has no initializer and is not definitely assigned in the constructor.
+            a5: <T>(x?: T, y?: T) => T;
+            ~~
+!!! error TS2564: Property 'a5' has no initializer and is not definitely assigned in the constructor.
+        }
+    
+        class Target<T> {
+            a: () => T;
+            ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+            a2: (x?: T) => T;
+            ~~
+!!! error TS2564: Property 'a2' has no initializer and is not definitely assigned in the constructor.
+            a3: (x: T) => T;
+            ~~
+!!! error TS2564: Property 'a3' has no initializer and is not definitely assigned in the constructor.
+            a4: (x: T, y?: T) => T;
+            ~~
+!!! error TS2564: Property 'a4' has no initializer and is not definitely assigned in the constructor.
+            a5: (x?: T, y?: T) => T;
+            ~~
+!!! error TS2564: Property 'a5' has no initializer and is not definitely assigned in the constructor.
+        }
+    
+    
+        function foo<T>() {
+            var b: Base2;
+            var t: Target<T>;
+    
+            // all errors
+            b.a = t.a;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~
+!!! error TS2322: Type '() => T' is not assignable to type '<T>() => T'.
+!!! error TS2322:   Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:58:18: This type parameter might need an `extends T` constraint.
+                  ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a = t.a2;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~
+!!! error TS2322: Type '(x?: T | undefined) => T' is not assignable to type '<T>() => T'.
+!!! error TS2322:   Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:58:18: This type parameter might need an `extends T` constraint.
+                  ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a = t.a3;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~
+!!! error TS2322: Type '(x: T) => T' is not assignable to type '<T>() => T'.
+!!! error TS2322:   Target signature provides too few arguments. Expected 1 or more, but got 0.
+                  ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a = t.a4;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~
+!!! error TS2322: Type '(x: T, y?: T | undefined) => T' is not assignable to type '<T>() => T'.
+!!! error TS2322:   Target signature provides too few arguments. Expected 1 or more, but got 0.
+                  ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a = t.a5;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~
+!!! error TS2322: Type '(x?: T | undefined, y?: T | undefined) => T' is not assignable to type '<T>() => T'.
+!!! error TS2322:   Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:58:18: This type parameter might need an `extends T` constraint.
+                  ~
+!!! error TS2454: Variable 't' is used before being assigned.
+    
+            b.a2 = t.a;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '() => T' is not assignable to type '<T>(x?: T | undefined) => T'.
+!!! error TS2322:   Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:58:18: This type parameter might need an `extends T` constraint.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a2 = t.a2;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x?: T | undefined) => T' is not assignable to type '<T>(x?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T | undefined' is not assignable to type 'T | undefined'. Two different types with this name exist, but they are unrelated.
+!!! error TS2322:       Type 'T' is not assignable to type 'T | undefined'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:43:14: This type parameter might need an `extends T | undefined` constraint.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a2 = t.a3;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x: T) => T' is not assignable to type '<T>(x?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T | undefined' is not assignable to type 'T'.
+!!! error TS2322:       'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a2 = t.a4;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x: T, y?: T | undefined) => T' is not assignable to type '<T>(x?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T | undefined' is not assignable to type 'T'.
+!!! error TS2322:       'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a2 = t.a5;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x?: T | undefined, y?: T | undefined) => T' is not assignable to type '<T>(x?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T | undefined' is not assignable to type 'T | undefined'. Two different types with this name exist, but they are unrelated.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+    
+            b.a3 = t.a;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '() => T' is not assignable to type '<T>(x: T) => T'.
+!!! error TS2322:   Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:58:18: This type parameter might need an `extends T` constraint.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a3 = t.a2;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x?: T | undefined) => T' is not assignable to type '<T>(x: T) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T' is not assignable to type 'T | undefined'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:44:14: This type parameter might need an `extends T | undefined` constraint.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a3 = t.a3;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x: T) => T' is not assignable to type '<T>(x: T) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+!!! error TS2322:       'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:44:14: This type parameter might need an `extends T` constraint.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a3 = t.a4;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x: T, y?: T | undefined) => T' is not assignable to type '<T>(x: T) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+!!! error TS2322:       'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:44:14: This type parameter might need an `extends T` constraint.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a3 = t.a5;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x?: T | undefined, y?: T | undefined) => T' is not assignable to type '<T>(x: T) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T' is not assignable to type 'T | undefined'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:44:14: This type parameter might need an `extends T | undefined` constraint.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+    
+            b.a4 = t.a;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '() => T' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+!!! error TS2322:   Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:58:18: This type parameter might need an `extends T` constraint.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a4 = t.a2;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x?: T | undefined) => T' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T' is not assignable to type 'T | undefined'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:45:14: This type parameter might need an `extends T | undefined` constraint.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a4 = t.a3;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x: T) => T' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+!!! error TS2322:       'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:45:14: This type parameter might need an `extends T` constraint.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a4 = t.a4;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x: T, y?: T | undefined) => T' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+!!! error TS2322:       'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:45:14: This type parameter might need an `extends T` constraint.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a4 = t.a5;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x?: T | undefined, y?: T | undefined) => T' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T' is not assignable to type 'T | undefined'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:45:14: This type parameter might need an `extends T | undefined` constraint.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+    
+            b.a5 = t.a;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '() => T' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+!!! error TS2322:   Type 'T' is not assignable to type 'T'. Two different types with this name exist, but they are unrelated.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'T'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:58:18: This type parameter might need an `extends T` constraint.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a5 = t.a2;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x?: T | undefined) => T' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T | undefined' is not assignable to type 'T | undefined'. Two different types with this name exist, but they are unrelated.
+!!! error TS2322:       Type 'T' is not assignable to type 'T | undefined'.
+!!! related TS2208 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:46:14: This type parameter might need an `extends T | undefined` constraint.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a5 = t.a3;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x: T) => T' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T | undefined' is not assignable to type 'T'.
+!!! error TS2322:       'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a5 = t.a4;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x: T, y?: T | undefined) => T' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T | undefined' is not assignable to type 'T'.
+!!! error TS2322:       'T' could be instantiated with an arbitrary type which could be unrelated to 'T | undefined'.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+            b.a5 = t.a5;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+            ~~~~
+!!! error TS2322: Type '(x?: T | undefined, y?: T | undefined) => T' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+!!! error TS2322:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2322:     Type 'T | undefined' is not assignable to type 'T | undefined'. Two different types with this name exist, but they are unrelated.
+                   ~
+!!! error TS2454: Variable 't' is used before being assigned.
+        }
+    }
+    
+    module GenericSignaturesValid {
+    
+        class Base2 {
+            a: <T>() => T;
+            ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+            a2: <T>(x?: T) => T;
+            ~~
+!!! error TS2564: Property 'a2' has no initializer and is not definitely assigned in the constructor.
+            a3: <T>(x: T) => T;
+            ~~
+!!! error TS2564: Property 'a3' has no initializer and is not definitely assigned in the constructor.
+            a4: <T>(x: T, y?: T) => T;
+            ~~
+!!! error TS2564: Property 'a4' has no initializer and is not definitely assigned in the constructor.
+            a5: <T>(x?: T, y?: T) => T;
+            ~~
+!!! error TS2564: Property 'a5' has no initializer and is not definitely assigned in the constructor.
+    
+            init = () => {
+                this.a = <T>() => null; // ok, same T of required params
+                                  ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+!!! related TS6502 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:98:12: The expected type comes from the return type of this signature.
+                this.a = <T>(x?: T) => null; // ok, same T of required params
+                ~~~~~~
+!!! error TS2322: Type '<T>(x?: T) => null' is not assignable to type '<T>() => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a = <T>(x: T) => null; // error, too many required params
+                ~~~~~~
+!!! error TS2322: Type '<T>(x: T) => null' is not assignable to type '<T>() => T'.
+!!! error TS2322:   Target signature provides too few arguments. Expected 1 or more, but got 0.
+    
+                this.a2 = <T>() => null; // ok, same T of required params
+                                   ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+!!! related TS6502 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:99:13: The expected type comes from the return type of this signature.
+                this.a2 = <T>(x?: T) => null; // ok, same T of required params
+                ~~~~~~~
+!!! error TS2322: Type '<T>(x?: T) => null' is not assignable to type '<T>(x?: T | undefined) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a2 = <T>(x: T) => null; // ok, same number of params
+                ~~~~~~~
+!!! error TS2322: Type '<T>(x: T) => null' is not assignable to type '<T>(x?: T | undefined) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+    
+                this.a3 = <T>() => null; // ok, fewer required params
+                                   ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+!!! related TS6502 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:100:13: The expected type comes from the return type of this signature.
+                this.a3 = <T>(x?: T) => null; // ok, fewer required params
+                ~~~~~~~
+!!! error TS2322: Type '<T>(x?: T) => null' is not assignable to type '<T>(x: T) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a3 = <T>(x: T) => null; // ok, same T of required params
+                ~~~~~~~
+!!! error TS2322: Type '<T>(x: T) => null' is not assignable to type '<T>(x: T) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a3 = <T>(x: T, y: T) => null;  // error, too many required params
+                ~~~~~~~
+!!! error TS2322: Type '<T>(x: T, y: T) => null' is not assignable to type '<T>(x: T) => T'.
+!!! error TS2322:   Target signature provides too few arguments. Expected 2 or more, but got 1.
+    
+                this.a4 = <T>() => null; // ok, fewer required params
+                                   ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+!!! related TS6502 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:101:13: The expected type comes from the return type of this signature.
+                this.a4 = <T>(x?: T, y?: T) => null; // ok, fewer required params
+                ~~~~~~~
+!!! error TS2322: Type '<T>(x?: T, y?: T) => null' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a4 = <T>(x: T) => null; // ok, same T of required params
+                ~~~~~~~
+!!! error TS2322: Type '<T>(x: T) => null' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a4 = <T>(x: T, y: T) => null;  // ok, same number of params
+                ~~~~~~~
+!!! error TS2322: Type '<T>(x: T, y: T) => null' is not assignable to type '<T>(x: T, y?: T | undefined) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+    
+    
+                this.a5 = <T>() => null; // ok, fewer required params
+                                   ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+!!! related TS6502 assignmentCompatWithGenericCallSignaturesWithOptionalParameters.ts:102:13: The expected type comes from the return type of this signature.
+                this.a5 = <T>(x?: T, y?: T) => null; // ok, fewer required params
+                ~~~~~~~
+!!! error TS2322: Type '<T>(x?: T, y?: T) => null' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a5 = <T>(x: T) => null; // ok, all present params match
+                ~~~~~~~
+!!! error TS2322: Type '<T>(x: T) => null' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+                this.a5 = <T>(x: T, y: T) => null;  // ok, same number of params
+                ~~~~~~~
+!!! error TS2322: Type '<T>(x: T, y: T) => null' is not assignable to type '<T>(x?: T | undefined, y?: T | undefined) => T'.
+!!! error TS2322:   Type 'null' is not assignable to type 'T'.
+!!! error TS2322:     'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+            }
+        }
+    }

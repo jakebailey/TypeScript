@@ -1,0 +1,9 @@
+parserMethodSignature5.ts(2,3): error TS7010: '"E"', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== parserMethodSignature5.ts (1 errors) ====
+    interface I {
+      "E"();
+      ~~~~~~
+!!! error TS7010: '"E"', which lacks return-type annotation, implicitly has an 'any' return type.
+    }

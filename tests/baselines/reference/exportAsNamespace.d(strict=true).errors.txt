@@ -1,0 +1,10 @@
+exportAsNamespace.d.ts(3,12): error TS7005: Variable 'X' implicitly has an 'any' type.
+
+
+==== exportAsNamespace.d.ts (1 errors) ====
+    // issue: https://github.com/Microsoft/TypeScript/issues/11545
+    
+    export var X;
+               ~
+!!! error TS7005: Variable 'X' implicitly has an 'any' type.
+    export as namespace N

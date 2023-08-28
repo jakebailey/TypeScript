@@ -1,0 +1,10 @@
+ClassDeclarationWithInvalidConstOnPropertyDeclaration2.ts(2,5): error TS7008: Member 'const' implicitly has an 'any' type.
+
+
+==== ClassDeclarationWithInvalidConstOnPropertyDeclaration2.ts (1 errors) ====
+    class C {
+        const
+        ~~~~~
+!!! error TS7008: Member 'const' implicitly has an 'any' type.
+        x = 10;
+    }

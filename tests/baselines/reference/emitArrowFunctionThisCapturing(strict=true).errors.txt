@@ -1,0 +1,35 @@
+emitArrowFunctionThisCapturing.ts(2,5): error TS7041: The containing arrow function captures the global value of 'this'.
+emitArrowFunctionThisCapturing.ts(2,10): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+emitArrowFunctionThisCapturing.ts(6,5): error TS7041: The containing arrow function captures the global value of 'this'.
+emitArrowFunctionThisCapturing.ts(6,10): error TS2339: Property 'name' does not exist on type 'typeof globalThis'.
+emitArrowFunctionThisCapturing.ts(11,5): error TS7041: The containing arrow function captures the global value of 'this'.
+emitArrowFunctionThisCapturing.ts(11,10): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+
+
+==== emitArrowFunctionThisCapturing.ts (6 errors) ====
+    var f1 = () => {
+        this.age = 10
+        ~~~~
+!!! error TS7041: The containing arrow function captures the global value of 'this'.
+             ~~~
+!!! error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+    };
+    
+    var f2 = (x: string) => {
+        this.name = x
+        ~~~~
+!!! error TS7041: The containing arrow function captures the global value of 'this'.
+             ~~~~
+!!! error TS2339: Property 'name' does not exist on type 'typeof globalThis'.
+    }
+    
+    function foo(func: () => boolean) { }
+    foo(() => {
+        this.age = 100;
+        ~~~~
+!!! error TS7041: The containing arrow function captures the global value of 'this'.
+             ~~~
+!!! error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+        return true;
+    });
+    

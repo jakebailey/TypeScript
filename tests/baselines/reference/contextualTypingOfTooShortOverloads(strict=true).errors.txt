@@ -1,0 +1,74 @@
+contextualTypingOfTooShortOverloads.ts(3,1): error TS2454: Variable 'use' is used before being assigned.
+contextualTypingOfTooShortOverloads.ts(3,6): error TS7006: Parameter 'req' implicitly has an 'any' type.
+contextualTypingOfTooShortOverloads.ts(3,11): error TS7006: Parameter 'res' implicitly has an 'any' type.
+contextualTypingOfTooShortOverloads.ts(11,1): error TS2454: Variable 'app' is used before being assigned.
+contextualTypingOfTooShortOverloads.ts(11,20): error TS7006: Parameter 'req' implicitly has an 'any' type.
+contextualTypingOfTooShortOverloads.ts(11,25): error TS7006: Parameter 'res' implicitly has an 'any' type.
+contextualTypingOfTooShortOverloads.ts(11,30): error TS7006: Parameter 'next' implicitly has an 'any' type.
+
+
+==== contextualTypingOfTooShortOverloads.ts (7 errors) ====
+    // small repro from #11875
+    var use: Overload;
+    use((req, res) => {});
+    ~~~
+!!! error TS2454: Variable 'use' is used before being assigned.
+         ~~~
+!!! error TS7006: Parameter 'req' implicitly has an 'any' type.
+              ~~~
+!!! error TS7006: Parameter 'res' implicitly has an 'any' type.
+    
+    interface Overload {
+        (handler1: (req1: string) => void): void;
+        (handler2: (req2: number, res2: number) => void): void;
+    }
+    // larger repro from #11875
+    let app: MyApp;
+    app.use((err: any, req, res, next) => { return; });
+    ~~~
+!!! error TS2454: Variable 'app' is used before being assigned.
+                       ~~~
+!!! error TS7006: Parameter 'req' implicitly has an 'any' type.
+                            ~~~
+!!! error TS7006: Parameter 'res' implicitly has an 'any' type.
+                                 ~~~~
+!!! error TS7006: Parameter 'next' implicitly has an 'any' type.
+    
+    
+    interface MyApp {
+        use: IRouterHandler<this> & IRouterMatcher<this>;
+    }
+    
+    interface IRouterHandler<T> {
+        (...handlers: RequestHandler[]): T;
+        (...handlers: RequestHandlerParams[]): T;
+    }
+    
+    interface IRouterMatcher<T> {
+        (path: PathParams, ...handlers: RequestHandler[]): T;
+        (path: PathParams, ...handlers: RequestHandlerParams[]): T;
+    }
+    
+    type PathParams = string | RegExp | (string | RegExp)[];
+    type RequestHandlerParams = RequestHandler | ErrorRequestHandler | (RequestHandler | ErrorRequestHandler)[];
+    
+    interface RequestHandler {
+        (req: Request, res: Response, next: NextFunction): any;
+    }
+    
+    interface ErrorRequestHandler {
+        (err: any, req: Request, res: Response, next: NextFunction): any;
+    }
+    
+    interface Request {
+        method: string;
+    }
+    
+    interface Response {
+        statusCode: number;
+    }
+    
+    interface NextFunction {
+        (err?: any): void;
+    }
+    

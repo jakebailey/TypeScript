@@ -1,0 +1,17 @@
+declarationEmitDestructuring5.ts(1,17): error TS7031: Binding element 'z' implicitly has an 'any' type.
+declarationEmitDestructuring5.ts(3,15): error TS7031: Binding element 'z' implicitly has an 'any' type.
+declarationEmitDestructuring5.ts(5,18): error TS7031: Binding element 'z' implicitly has an 'any' type.
+
+
+==== declarationEmitDestructuring5.ts (3 errors) ====
+    function baz([, z, , ]) { }
+                    ~
+!!! error TS7031: Binding element 'z' implicitly has an 'any' type.
+    function foo([, b, ]: [any, any]): void { }
+    function bar([z, , , ]) { }
+                  ~
+!!! error TS7031: Binding element 'z' implicitly has an 'any' type.
+    function bar1([z, , , ] = [1, 3, 4, 6, 7]) { }
+    function bar2([,,z, , , ]) { }
+                     ~
+!!! error TS7031: Binding element 'z' implicitly has an 'any' type.

@@ -1,0 +1,46 @@
+TwoInternalModulesThatMergeEachWithExportedInterfacesOfTheSameName.ts(21,9): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+TwoInternalModulesThatMergeEachWithExportedInterfacesOfTheSameName.ts(35,40): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== TwoInternalModulesThatMergeEachWithExportedInterfacesOfTheSameName.ts (2 errors) ====
+    module A {
+        export interface Point {
+            x: number;
+            y: number;
+            toCarth(): Point;
+        }
+    }
+    
+    module A {
+        export interface Point {
+            fromCarth(): Point;
+        }
+    }
+    
+    // ensure merges as expected
+    var p: { x: number; y: number; toCarth(): A.Point; fromCarth(): A.Point; };
+    var p: A.Point;
+    
+    module X.Y.Z {
+        export interface Line {
+            new (start: A.Point, end: A.Point);
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        }
+    }
+    
+    module X {
+        export module Y.Z {
+            export interface Line {
+                start: A.Point;
+                end: A.Point;
+            }
+        }
+    }
+    
+    // ensure merges as expected
+    var l: { start: A.Point; end: A.Point; new (s: A.Point, e: A.Point); }
+                                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    var l: X.Y.Z.Line;
+    

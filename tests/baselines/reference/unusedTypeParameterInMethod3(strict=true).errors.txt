@@ -1,0 +1,20 @@
+unusedTypeParameterInMethod3.ts(2,21): error TS6133: 'Z' is declared but its value is never read.
+unusedTypeParameterInMethod3.ts(5,9): error TS2454: Variable 'a' is used before being assigned.
+unusedTypeParameterInMethod3.ts(6,9): error TS2454: Variable 'b' is used before being assigned.
+
+
+==== unusedTypeParameterInMethod3.ts (3 errors) ====
+    class A {
+        public f1<X, Y, Z>() {
+                        ~
+!!! error TS6133: 'Z' is declared but its value is never read.
+            var a: X;
+            var b: Y;
+            a;
+            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+            b;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+        }
+    }

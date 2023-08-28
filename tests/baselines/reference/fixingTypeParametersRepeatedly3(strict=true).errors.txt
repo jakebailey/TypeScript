@@ -1,0 +1,35 @@
+fixingTypeParametersRepeatedly3.ts(2,5): error TS7008: Member 'baseProp' implicitly has an 'any' type.
+fixingTypeParametersRepeatedly3.ts(11,18): error TS2454: Variable 'derived' is used before being assigned.
+fixingTypeParametersRepeatedly3.ts(11,32): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+fixingTypeParametersRepeatedly3.ts(17,19): error TS2454: Variable 'derived' is used before being assigned.
+fixingTypeParametersRepeatedly3.ts(17,33): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+
+
+==== fixingTypeParametersRepeatedly3.ts (5 errors) ====
+    interface Base {
+        baseProp;
+        ~~~~~~~~
+!!! error TS7008: Member 'baseProp' implicitly has an 'any' type.
+    }
+    interface Derived extends Base {
+        toBase?(): Base;
+    }
+    
+    var derived: Derived;
+    
+    declare function foo<T>(x: T, func: (p: T) => T): T;
+    var result = foo(derived, d => d.toBase());
+                     ~~~~~~~
+!!! error TS2454: Variable 'derived' is used before being assigned.
+                                   ~~~~~~~~
+!!! error TS2722: Cannot invoke an object which is possibly 'undefined'.
+    
+    // bar should type check just like foo.
+    // result2 should have the same type as result
+    declare function bar<T>(x: T, func: (p: T) => T): T;
+    declare function bar<T>(x: T, func: (p: T) => T): T;
+    var result2 = bar(derived, d => d.toBase());
+                      ~~~~~~~
+!!! error TS2454: Variable 'derived' is used before being assigned.
+                                    ~~~~~~~~
+!!! error TS2722: Cannot invoke an object which is possibly 'undefined'.

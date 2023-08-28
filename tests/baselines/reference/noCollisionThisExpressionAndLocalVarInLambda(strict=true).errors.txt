@@ -1,0 +1,17 @@
+noCollisionThisExpressionAndLocalVarInLambda.ts(3,15): error TS7006: Parameter 'callback' implicitly has an 'any' type.
+noCollisionThisExpressionAndLocalVarInLambda.ts(8,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== noCollisionThisExpressionAndLocalVarInLambda.ts (2 errors) ====
+    declare function alert(message?: any): void;
+    var x = {
+        doStuff: (callback) => () => {
+                  ~~~~~~~~
+!!! error TS7006: Parameter 'callback' implicitly has an 'any' type.
+            var _this = 2;
+            return callback(_this);
+        }
+    }
+    alert(x.doStuff(x => alert(x)));
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.

@@ -1,0 +1,17 @@
+callOfPropertylessConstructorFunction.js(4,21): error TS7006: Parameter 'j' implicitly has an 'any' type.
+callOfPropertylessConstructorFunction.js(7,1): error TS2348: Value of type 'typeof Dependency' is not callable. Did you mean to include 'new'?
+
+
+==== callOfPropertylessConstructorFunction.js (2 errors) ====
+    /**
+     * @constructor
+     */
+    function Dependency(j) {
+                        ~
+!!! error TS7006: Parameter 'j' implicitly has an 'any' type.
+      return j
+    }
+    Dependency({})
+    ~~~~~~~~~~~~~~
+!!! error TS2348: Value of type 'typeof Dependency' is not callable. Did you mean to include 'new'?
+    

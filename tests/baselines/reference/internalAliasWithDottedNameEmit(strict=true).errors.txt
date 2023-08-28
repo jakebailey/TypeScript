@@ -1,0 +1,13 @@
+internalAliasWithDottedNameEmit.ts(2,18): error TS7005: Variable 'd' implicitly has an 'any' type.
+
+
+==== internalAliasWithDottedNameEmit.ts (1 errors) ====
+    module a.b.c {
+          export var d;
+                     ~
+!!! error TS7005: Variable 'd' implicitly has an 'any' type.
+    }
+    module a.e.f {
+          import g = b.c;
+    }
+    

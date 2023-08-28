@@ -1,0 +1,27 @@
+varAsID.ts(2,5): error TS7008: Member 'var' implicitly has an 'any' type.
+varAsID.ts(10,5): error TS7008: Member 'var' implicitly has an 'any' type.
+
+
+==== varAsID.ts (2 errors) ====
+    class Foo {
+        var; // ok
+        ~~~
+!!! error TS7008: Member 'var' implicitly has an 'any' type.
+        x=1;
+    }
+    
+    var f = new Foo();
+    
+    
+    class Foo2 {
+        var // not an error, because of ASI.
+        ~~~
+!!! error TS7008: Member 'var' implicitly has an 'any' type.
+        x=1;
+    }
+    
+    var f2 = new Foo2();
+    
+    
+    
+    

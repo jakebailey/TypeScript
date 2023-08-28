@@ -1,0 +1,19 @@
+parserFunctionDeclaration6.ts(2,14): error TS1250: Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'.
+parserFunctionDeclaration6.ts(2,14): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+parserFunctionDeclaration6.ts(3,14): error TS1250: Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'.
+parserFunctionDeclaration6.ts(3,14): error TS2389: Function implementation name must be 'foo'.
+
+
+==== parserFunctionDeclaration6.ts (4 errors) ====
+    {
+        function foo();
+                 ~~~
+!!! error TS1250: Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'.
+                 ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        function bar() { }
+                 ~~~
+!!! error TS1250: Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'.
+                 ~~~
+!!! error TS2389: Function implementation name must be 'foo'.
+    }

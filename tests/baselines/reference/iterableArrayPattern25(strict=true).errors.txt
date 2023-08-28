@@ -1,0 +1,20 @@
+iterableArrayPattern25.ts(1,35): error TS7031: Binding element 'k1' implicitly has an 'any' type.
+iterableArrayPattern25.ts(1,39): error TS7031: Binding element 'v1' implicitly has an 'any' type.
+iterableArrayPattern25.ts(1,45): error TS7031: Binding element 'k2' implicitly has an 'any' type.
+iterableArrayPattern25.ts(1,49): error TS7031: Binding element 'v2' implicitly has an 'any' type.
+iterableArrayPattern25.ts(2,1): error TS2554: Expected 2 arguments, but got 1.
+
+
+==== iterableArrayPattern25.ts (5 errors) ====
+    function takeFirstTwoEntries(...[[k1, v1], [k2, v2]]) { }
+                                      ~~
+!!! error TS7031: Binding element 'k1' implicitly has an 'any' type.
+                                          ~~
+!!! error TS7031: Binding element 'v1' implicitly has an 'any' type.
+                                                ~~
+!!! error TS7031: Binding element 'k2' implicitly has an 'any' type.
+                                                    ~~
+!!! error TS7031: Binding element 'v2' implicitly has an 'any' type.
+    takeFirstTwoEntries(new Map([["", 0], ["hello", 1]]));
+    ~~~~~~~~~~~~~~~~~~~
+!!! error TS2554: Expected 2 arguments, but got 1.

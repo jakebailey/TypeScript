@@ -1,0 +1,9 @@
+Protected9.ts(2,16): error TS7006: Parameter 'p' implicitly has an 'any' type.
+
+
+==== Protected9.ts (1 errors) ====
+    class C {
+       constructor(protected p) { }
+                   ~~~~~~~~~~~
+!!! error TS7006: Parameter 'p' implicitly has an 'any' type.
+    }

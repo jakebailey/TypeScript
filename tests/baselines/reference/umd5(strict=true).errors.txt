@@ -1,0 +1,22 @@
+a.ts(4,17): error TS2454: Variable 'x' is used before being assigned.
+a.ts(6,9): error TS2686: 'Foo' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+
+
+==== a.ts (2 errors) ====
+    import * as Bar from './foo';
+    Bar.fn();
+    let x: Bar.Thing;
+    let y: number = x.n;
+                    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    // should error
+    let z = Foo;
+            ~~~
+!!! error TS2686: 'Foo' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+    
+==== foo.d.ts (0 errors) ====
+    export var x: number;
+    export function fn(): void;
+    export interface Thing { n: typeof x }
+    export as namespace Foo;
+    

@@ -1,0 +1,8 @@
+ambientModules.ts(1,37): error TS7005: Variable 'foo' implicitly has an 'any' type.
+
+
+==== ambientModules.ts (1 errors) ====
+    declare module Foo.Bar { export var foo; };
+                                        ~~~
+!!! error TS7005: Variable 'foo' implicitly has an 'any' type.
+    Foo.Bar.foo = 5; 

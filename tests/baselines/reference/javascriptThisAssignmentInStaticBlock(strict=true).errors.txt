@@ -1,0 +1,39 @@
+/src/a.js(7,1): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+/src/a.js(10,7): error TS2417: Class static side 'typeof ElementsArray' incorrectly extends base class static side '{ isArray(arg: any): arg is any[]; readonly prototype: any[]; }'.
+  Types of property 'isArray' are incompatible.
+    Type '((arg: any) => arg is any[]) | undefined' is not assignable to type '(arg: any) => arg is any[]'.
+      Type 'undefined' is not assignable to type '(arg: any) => arg is any[]'.
+/src/a.js(13,32): error TS7006: Parameter 'arg' implicitly has an 'any' type.
+/src/a.js(18,1): error TS2722: Cannot invoke an object which is possibly 'undefined'.
+
+
+==== /src/a.js (4 errors) ====
+    class Thing {
+        static {
+            this.doSomething = () => {};
+        }
+    }
+    
+    Thing.doSomething();
+    ~~~~~~~~~~~~~~~~~
+!!! error TS2722: Cannot invoke an object which is possibly 'undefined'.
+    
+    // GH#46468
+    class ElementsArray extends Array {
+          ~~~~~~~~~~~~~
+!!! error TS2417: Class static side 'typeof ElementsArray' incorrectly extends base class static side '{ isArray(arg: any): arg is any[]; readonly prototype: any[]; }'.
+!!! error TS2417:   Types of property 'isArray' are incompatible.
+!!! error TS2417:     Type '((arg: any) => arg is any[]) | undefined' is not assignable to type '(arg: any) => arg is any[]'.
+!!! error TS2417:       Type 'undefined' is not assignable to type '(arg: any) => arg is any[]'.
+        static {
+            const superisArray = super.isArray;
+            const customIsArray = (arg)=> superisArray(arg);
+                                   ~~~
+!!! error TS7006: Parameter 'arg' implicitly has an 'any' type.
+            this.isArray = customIsArray;
+        }
+    }
+    
+    ElementsArray.isArray(new ElementsArray());
+    ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2722: Cannot invoke an object which is possibly 'undefined'.

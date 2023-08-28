@@ -1,0 +1,65 @@
+stringLiteralTypesInImplementationSignatures2.ts(3,10): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+stringLiteralTypesInImplementationSignatures2.ts(7,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+stringLiteralTypesInImplementationSignatures2.ts(12,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+stringLiteralTypesInImplementationSignatures2.ts(13,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+stringLiteralTypesInImplementationSignatures2.ts(14,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+stringLiteralTypesInImplementationSignatures2.ts(15,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+stringLiteralTypesInImplementationSignatures2.ts(19,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+stringLiteralTypesInImplementationSignatures2.ts(20,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+stringLiteralTypesInImplementationSignatures2.ts(21,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+stringLiteralTypesInImplementationSignatures2.ts(22,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+stringLiteralTypesInImplementationSignatures2.ts(27,5): error TS2300: Duplicate identifier 'foo'.
+
+
+==== stringLiteralTypesInImplementationSignatures2.ts (11 errors) ====
+    // String literal types are only valid in overload signatures
+    
+    function foo(x: any);
+             ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo(x: 'hi') { }
+    
+    class C {
+        foo(x: string);
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: 'hi') { }
+    }
+    
+    interface I {
+        (x: 'a');
+        ~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        (x: 'hi');
+        ~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: 'a', y: 'a');
+        ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: 'hi', y: 'hi');
+        ~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    var a: {
+        (x: 'hi');
+        ~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        (x: 'a');
+        ~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: 'hi');
+        ~~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: 'a');
+        ~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    var b = {
+        foo(x: 'hi') { },
+        foo(x: 'a') { },
+        ~~~
+!!! error TS2300: Duplicate identifier 'foo'.
+    }
+    

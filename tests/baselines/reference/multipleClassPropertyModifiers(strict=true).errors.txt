@@ -1,0 +1,27 @@
+multipleClassPropertyModifiers.ts(2,19): error TS7008: Member 'p1' implicitly has an 'any' type.
+multipleClassPropertyModifiers.ts(3,12): error TS1029: 'public' modifier must precede 'static' modifier.
+multipleClassPropertyModifiers.ts(3,19): error TS7008: Member 'p2' implicitly has an 'any' type.
+multipleClassPropertyModifiers.ts(4,20): error TS7008: Member 'p3' implicitly has an 'any' type.
+multipleClassPropertyModifiers.ts(5,12): error TS1029: 'private' modifier must precede 'static' modifier.
+multipleClassPropertyModifiers.ts(5,20): error TS7008: Member 'p4' implicitly has an 'any' type.
+
+
+==== multipleClassPropertyModifiers.ts (6 errors) ====
+    class C {
+        public static p1;
+                      ~~
+!!! error TS7008: Member 'p1' implicitly has an 'any' type.
+        static public p2;
+               ~~~~~~
+!!! error TS1029: 'public' modifier must precede 'static' modifier.
+                      ~~
+!!! error TS7008: Member 'p2' implicitly has an 'any' type.
+        private static p3;
+                       ~~
+!!! error TS7008: Member 'p3' implicitly has an 'any' type.
+        static private p4;
+               ~~~~~~~
+!!! error TS1029: 'private' modifier must precede 'static' modifier.
+                       ~~
+!!! error TS7008: Member 'p4' implicitly has an 'any' type.
+    }

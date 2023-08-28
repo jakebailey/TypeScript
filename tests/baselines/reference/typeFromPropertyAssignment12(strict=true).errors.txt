@@ -1,0 +1,25 @@
+module.js(1,22): error TS7006: Parameter 'element' implicitly has an 'any' type.
+module.js(1,31): error TS7006: Parameter 'config' implicitly has an 'any' type.
+usage.js(2,23): error TS7006: Parameter 'line' implicitly has an 'any' type.
+usage.js(2,29): error TS7006: Parameter 'ch' implicitly has an 'any' type.
+
+
+==== module.js (2 errors) ====
+    var Outer = function(element, config) {};
+                         ~~~~~~~
+!!! error TS7006: Parameter 'element' implicitly has an 'any' type.
+                                  ~~~~~~
+!!! error TS7006: Parameter 'config' implicitly has an 'any' type.
+==== usage.js (2 errors) ====
+    /** @constructor */
+    Outer.Pos = function (line, ch) {};
+                          ~~~~
+!!! error TS7006: Parameter 'line' implicitly has an 'any' type.
+                                ~~
+!!! error TS7006: Parameter 'ch' implicitly has an 'any' type.
+    /** @type {number} */
+    Outer.Pos.prototype.line;
+    var pos = new Outer.Pos(1, 'x');
+    pos.line;
+    
+    

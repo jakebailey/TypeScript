@@ -1,0 +1,16 @@
+checkSuperCallBeforeThisAccessing6.ts(2,17): error TS7019: Rest parameter 'arg' implicitly has an 'any[]' type.
+
+
+==== checkSuperCallBeforeThisAccessing6.ts (1 errors) ====
+    class Base {
+        constructor(...arg) {
+                    ~~~~~~
+!!! error TS7019: Rest parameter 'arg' implicitly has an 'any[]' type.
+        }
+    }
+    class Super extends Base {
+        constructor() {
+            (() => this);  // No Error
+            super();
+        }
+    }

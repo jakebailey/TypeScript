@@ -1,0 +1,69 @@
+interfaceExtendingClassWithProtecteds2.ts(2,15): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+interfaceExtendingClassWithProtecteds2.ts(6,15): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+interfaceExtendingClassWithProtecteds2.ts(9,11): error TS2320: Interface 'I3' cannot simultaneously extend types 'Foo' and 'Bar'.
+  Named property 'x' of types 'Foo' and 'Bar' are not identical.
+interfaceExtendingClassWithProtecteds2.ts(12,11): error TS2430: Interface 'I4' incorrectly extends interface 'Bar'.
+  Property 'x' is protected but type 'I4' is not a class derived from 'Bar'.
+interfaceExtendingClassWithProtecteds2.ts(12,11): error TS2430: Interface 'I4' incorrectly extends interface 'Foo'.
+  Property 'x' is protected but type 'I4' is not a class derived from 'Foo'.
+interfaceExtendingClassWithProtecteds2.ts(17,15): error TS2564: Property 'y' has no initializer and is not definitely assigned in the constructor.
+interfaceExtendingClassWithProtecteds2.ts(25,17): error TS2454: Variable 'i' is used before being assigned.
+interfaceExtendingClassWithProtecteds2.ts(26,10): error TS2454: Variable 'i' is used before being assigned.
+interfaceExtendingClassWithProtecteds2.ts(26,12): error TS2445: Property 'x' is protected and only accessible within class 'Foo' and its subclasses.
+interfaceExtendingClassWithProtecteds2.ts(27,10): error TS2454: Variable 'i' is used before being assigned.
+interfaceExtendingClassWithProtecteds2.ts(27,12): error TS2445: Property 'y' is protected and only accessible within class 'Baz' and its subclasses.
+
+
+==== interfaceExtendingClassWithProtecteds2.ts (11 errors) ====
+    class Foo {
+        protected x: string;
+                  ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class Bar {
+        protected x: string;
+                  ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    interface I3 extends Foo, Bar { // error
+              ~~
+!!! error TS2320: Interface 'I3' cannot simultaneously extend types 'Foo' and 'Bar'.
+!!! error TS2320:   Named property 'x' of types 'Foo' and 'Bar' are not identical.
+    }
+    
+    interface I4 extends Foo, Bar { // error
+              ~~
+!!! error TS2430: Interface 'I4' incorrectly extends interface 'Bar'.
+!!! error TS2430:   Property 'x' is protected but type 'I4' is not a class derived from 'Bar'.
+              ~~
+!!! error TS2430: Interface 'I4' incorrectly extends interface 'Foo'.
+!!! error TS2430:   Property 'x' is protected but type 'I4' is not a class derived from 'Foo'.
+        x: string;
+    }
+    
+    class Baz {
+        protected y: string;
+                  ~
+!!! error TS2564: Property 'y' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    interface I5 extends Foo, Baz {
+        z: string;
+    }
+    
+    var i: I5;
+    var r: string = i.z;
+                    ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    var r2 = i.x; // error
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+               ~
+!!! error TS2445: Property 'x' is protected and only accessible within class 'Foo' and its subclasses.
+    var r3 = i.y; // error
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+               ~
+!!! error TS2445: Property 'y' is protected and only accessible within class 'Baz' and its subclasses.

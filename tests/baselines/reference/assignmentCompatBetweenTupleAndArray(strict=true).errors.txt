@@ -1,0 +1,52 @@
+assignmentCompatBetweenTupleAndArray.ts(10,12): error TS2454: Variable 'numNumTuple' is used before being assigned.
+assignmentCompatBetweenTupleAndArray.ts(11,17): error TS2454: Variable 'emptyObjTuple' is used before being assigned.
+assignmentCompatBetweenTupleAndArray.ts(12,17): error TS2454: Variable 'numStrTuple' is used before being assigned.
+assignmentCompatBetweenTupleAndArray.ts(13,17): error TS2454: Variable 'numNumTuple' is used before being assigned.
+assignmentCompatBetweenTupleAndArray.ts(14,17): error TS2454: Variable 'numEmptyObjTuple' is used before being assigned.
+assignmentCompatBetweenTupleAndArray.ts(17,1): error TS2322: Type '[number, string]' is not assignable to type 'number[]'.
+  Type 'string | number' is not assignable to type 'number'.
+    Type 'string' is not assignable to type 'number'.
+assignmentCompatBetweenTupleAndArray.ts(17,12): error TS2454: Variable 'numStrTuple' is used before being assigned.
+assignmentCompatBetweenTupleAndArray.ts(18,1): error TS2322: Type '{}[]' is not assignable to type '[{}]'.
+  Target requires 1 element(s) but source may have fewer.
+
+
+==== assignmentCompatBetweenTupleAndArray.ts (8 errors) ====
+    var numStrTuple: [number, string];
+    var numNumTuple: [number, number];
+    var numEmptyObjTuple: [number, {}];
+    var emptyObjTuple: [{}];
+    
+    var numArray: number[];
+    var emptyObjArray: {}[];
+    
+    // no error
+    numArray = numNumTuple;
+               ~~~~~~~~~~~
+!!! error TS2454: Variable 'numNumTuple' is used before being assigned.
+    emptyObjArray = emptyObjTuple;
+                    ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'emptyObjTuple' is used before being assigned.
+    emptyObjArray = numStrTuple;
+                    ~~~~~~~~~~~
+!!! error TS2454: Variable 'numStrTuple' is used before being assigned.
+    emptyObjArray = numNumTuple;
+                    ~~~~~~~~~~~
+!!! error TS2454: Variable 'numNumTuple' is used before being assigned.
+    emptyObjArray = numEmptyObjTuple;
+                    ~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'numEmptyObjTuple' is used before being assigned.
+    
+    // error
+    numArray = numStrTuple;
+    ~~~~~~~~
+!!! error TS2322: Type '[number, string]' is not assignable to type 'number[]'.
+!!! error TS2322:   Type 'string | number' is not assignable to type 'number'.
+!!! error TS2322:     Type 'string' is not assignable to type 'number'.
+               ~~~~~~~~~~~
+!!! error TS2454: Variable 'numStrTuple' is used before being assigned.
+    emptyObjTuple = emptyObjArray;
+    ~~~~~~~~~~~~~
+!!! error TS2322: Type '{}[]' is not assignable to type '[{}]'.
+!!! error TS2322:   Target requires 1 element(s) but source may have fewer.
+    

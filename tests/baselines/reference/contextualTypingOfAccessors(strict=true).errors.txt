@@ -1,0 +1,19 @@
+contextualTypingOfAccessors.ts(9,15): error TS7006: Parameter 'n' implicitly has an 'any' type.
+
+
+==== contextualTypingOfAccessors.ts (1 errors) ====
+    // not contextually typing accessors
+    
+    var x: {
+       foo: (x: number) => number;
+    }
+     
+    x = {
+       get foo() {
+          return (n)=>n
+                  ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+       },
+       set foo(x) {}
+    }
+    

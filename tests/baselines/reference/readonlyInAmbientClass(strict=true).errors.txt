@@ -1,0 +1,16 @@
+readonlyInAmbientClass.ts(2,14): error TS2369: A parameter property is only allowed in a constructor implementation.
+readonlyInAmbientClass.ts(3,2): error TS7010: 'method', which lacks return-type annotation, implicitly has an 'any' return type.
+readonlyInAmbientClass.ts(3,9): error TS2369: A parameter property is only allowed in a constructor implementation.
+
+
+==== readonlyInAmbientClass.ts (3 errors) ====
+    declare class C{
+    	constructor(readonly x: number);
+    	            ~~~~~~~~~~~~~~~~~~
+!!! error TS2369: A parameter property is only allowed in a constructor implementation.
+    	method(readonly x: number);
+    	~~~~~~
+!!! error TS7010: 'method', which lacks return-type annotation, implicitly has an 'any' return type.
+    	       ~~~~~~~~~~~~~~~~~~
+!!! error TS2369: A parameter property is only allowed in a constructor implementation.
+    }

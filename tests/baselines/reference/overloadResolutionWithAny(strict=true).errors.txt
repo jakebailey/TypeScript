@@ -1,0 +1,45 @@
+overloadResolutionWithAny.ts(6,1): error TS2454: Variable 'func' is used before being assigned.
+overloadResolutionWithAny.ts(7,1): error TS2454: Variable 'func' is used before being assigned.
+overloadResolutionWithAny.ts(9,1): error TS2454: Variable 'func' is used before being assigned.
+overloadResolutionWithAny.ts(18,1): error TS2454: Variable 'func2' is used before being assigned.
+overloadResolutionWithAny.ts(19,1): error TS2454: Variable 'func2' is used before being assigned.
+overloadResolutionWithAny.ts(20,1): error TS2454: Variable 'func2' is used before being assigned.
+overloadResolutionWithAny.ts(21,1): error TS2454: Variable 'func2' is used before being assigned.
+
+
+==== overloadResolutionWithAny.ts (7 errors) ====
+    var func: {
+        (s: string): number;
+        (s: any): string;
+    };
+    
+    func(""); // number
+    ~~~~
+!!! error TS2454: Variable 'func' is used before being assigned.
+    func(3); // string
+    ~~~~
+!!! error TS2454: Variable 'func' is used before being assigned.
+    var x: any;
+    func(x); // string
+    ~~~~
+!!! error TS2454: Variable 'func' is used before being assigned.
+    
+    var func2: {
+        (s: string, t: string): number;
+        (s: any, t: string): boolean;
+        (s: string, t: any): RegExp;
+        (s: any, t: any): string;
+    }
+    
+    func2(x, x); // string
+    ~~~~~
+!!! error TS2454: Variable 'func2' is used before being assigned.
+    func2("", ""); // number
+    ~~~~~
+!!! error TS2454: Variable 'func2' is used before being assigned.
+    func2(x, ""); // boolean
+    ~~~~~
+!!! error TS2454: Variable 'func2' is used before being assigned.
+    func2("", x); // RegExp
+    ~~~~~
+!!! error TS2454: Variable 'func2' is used before being assigned.

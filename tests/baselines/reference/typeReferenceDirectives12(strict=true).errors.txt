@@ -1,0 +1,47 @@
+/main.ts(1,14): error TS6131: Cannot compile modules using option 'outFile' unless the '--module' flag is 'amd' or 'system'.
+/main.ts(2,5): error TS7008: Member 'x' implicitly has an 'any' type.
+/mod1.ts(4,1): error TS2322: Type '() => undefined' is not assignable to type '() => Lib'.
+  Type 'undefined' is not assignable to type 'Lib'.
+/types/lib/index.d.ts(1,17): error TS7008: Member 'x' implicitly has an 'any' type.
+
+
+==== /mod2.ts (0 errors) ====
+    import { Cls } from "./main";
+    import "./mod1";
+    
+    export const cls = Cls;
+    export const foo = new Cls().foo();
+    export const bar = Cls.bar();
+    
+==== /types/lib/index.d.ts (1 errors) ====
+    interface Lib { x }
+                    ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    
+==== /main.ts (2 errors) ====
+    export class Cls {
+                 ~~~
+!!! error TS6131: Cannot compile modules using option 'outFile' unless the '--module' flag is 'amd' or 'system'.
+        x
+        ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    }
+    
+==== /mod1.ts (1 errors) ====
+    /// <reference types="lib" />
+    
+    import {Cls} from "./main";
+    Cls.prototype.foo = function() { return undefined; }
+    ~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type '() => undefined' is not assignable to type '() => Lib'.
+!!! error TS2322:   Type 'undefined' is not assignable to type 'Lib'.
+    
+    declare module "./main" {
+        interface Cls {
+            foo(): Lib;
+        }
+        namespace Cls {
+            function bar(): Lib;
+        }
+    }
+    

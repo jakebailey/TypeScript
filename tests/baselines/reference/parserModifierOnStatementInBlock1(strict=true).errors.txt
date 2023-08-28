@@ -1,0 +1,14 @@
+parserModifierOnStatementInBlock1.ts(2,4): error TS1184: Modifiers cannot appear here.
+parserModifierOnStatementInBlock1.ts(2,19): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+
+
+==== parserModifierOnStatementInBlock1.ts (2 errors) ====
+    export function foo() {
+       export var x = this;
+       ~~~~~~
+!!! error TS1184: Modifiers cannot appear here.
+                      ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+!!! related TS2738 parserModifierOnStatementInBlock1.ts:1:17: An outer value of 'this' is shadowed by this container.
+    }
+    

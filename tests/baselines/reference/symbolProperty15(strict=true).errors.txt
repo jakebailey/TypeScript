@@ -1,0 +1,23 @@
+symbolProperty15.ts(3,27): error TS7008: Member 'x' implicitly has an 'any' type.
+symbolProperty15.ts(14,5): error TS2454: Variable 'i' is used before being assigned.
+
+
+==== symbolProperty15.ts (2 errors) ====
+    class C { }
+    interface I {
+        [Symbol.iterator]?: { x };
+                              ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    }
+    
+    declare function foo(i: I): I;
+    declare function foo(a: any): any;
+    
+    declare function bar(i: C): C;
+    declare function bar(a: any): any;
+    
+    foo(new C);
+    var i: I;
+    bar(i);
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.

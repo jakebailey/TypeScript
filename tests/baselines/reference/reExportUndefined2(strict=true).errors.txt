@@ -1,0 +1,19 @@
+b.ts(1,10): error TS7034: Variable 'undefined' implicitly has type 'any' in some locations where its type cannot be determined.
+b.ts(2,18): error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+b.ts(3,5): error TS7005: Variable 'undefined' implicitly has an 'any' type.
+
+
+==== a.ts (0 errors) ====
+    var undefined;
+    export { undefined };
+    
+==== b.ts (3 errors) ====
+    import { undefined } from "./a";
+             ~~~~~~~~~
+!!! error TS7034: Variable 'undefined' implicitly has type 'any' in some locations where its type cannot be determined.
+    declare function use(a: number);
+                     ~~~
+!!! error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+    use(undefined);
+        ~~~~~~~~~
+!!! error TS7005: Variable 'undefined' implicitly has an 'any' type.

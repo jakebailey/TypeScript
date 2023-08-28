@@ -1,0 +1,60 @@
+consumer.ts(16,8): error TS7034: Variable 'iAny' implicitly has type 'any' in some locations where its type cannot be determined.
+consumer.ts(17,10): error TS7005: Variable 'iAny' implicitly has an 'any' type.
+
+
+==== consumer.ts (2 errors) ====
+    import iString = require('./expString');
+    var v1: string = iString;
+    
+    import iNumber = require('./expNumber');
+    var v2: number = iNumber;
+    
+    import iBoolean = require('./expBoolean');
+    var v3: boolean = iBoolean;
+    
+    import iArray = require('./expArray');
+    var v4: Array<number> = iArray;
+    
+    import iObject = require('./expObject');
+    var v5: Object = iObject;
+    
+    import iAny = require('./expAny');
+           ~~~~
+!!! error TS7034: Variable 'iAny' implicitly has type 'any' in some locations where its type cannot be determined.
+    var v6 = iAny;
+             ~~~~
+!!! error TS7005: Variable 'iAny' implicitly has an 'any' type.
+    
+    import iGeneric = require('./expGeneric');
+    var v7: {<x>(p1: x): x} = iGeneric;
+    
+==== expString.ts (0 errors) ====
+    var x = "test";
+    export = x;
+    
+==== expNumber.ts (0 errors) ====
+    var x = 42;
+    export = x;
+    
+==== expBoolean.ts (0 errors) ====
+    var x = true;
+    export = x;
+    
+==== expArray.ts (0 errors) ====
+    var x = [1,2];
+    export = x;
+    
+==== expObject.ts (0 errors) ====
+    var x = { answer: 42, when: 1776};
+    export = x;
+    
+==== expAny.ts (0 errors) ====
+    var x;
+    export = x;
+    
+==== expGeneric.ts (0 errors) ====
+    function x<T>(a: T){
+    	return a;
+    }
+    export = x;
+    

@@ -1,0 +1,21 @@
+overloadCallTest.ts(4,18): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== overloadCallTest.ts (1 errors) ====
+    class foo {
+        constructor() {
+            function bar(): string;
+            function bar(s:string);
+                     ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+            function bar(foo?: string) { return "foo" };
+    
+            var test = bar("test");
+            var goo = bar();
+    
+            goo = bar("test");
+        }
+     
+    }
+    
+    

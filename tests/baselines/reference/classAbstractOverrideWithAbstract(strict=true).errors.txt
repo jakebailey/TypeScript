@@ -1,0 +1,38 @@
+classAbstractOverrideWithAbstract.ts(6,14): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractOverrideWithAbstract.ts(11,14): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractOverrideWithAbstract.ts(15,14): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractOverrideWithAbstract.ts(19,7): error TS2515: Non-abstract class 'CC' does not implement inherited abstract member foo from class 'BB'.
+
+
+==== classAbstractOverrideWithAbstract.ts (4 errors) ====
+    class A {
+        foo() {}
+    }
+    
+    abstract class B extends A {
+        abstract foo();
+                 ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    abstract class AA {
+        foo() {}
+        abstract bar();
+                 ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    abstract class BB extends AA {
+        abstract foo();
+                 ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        bar () {}
+    }
+    
+    class CC extends BB {} // error
+          ~~
+!!! error TS2515: Non-abstract class 'CC' does not implement inherited abstract member foo from class 'BB'.
+    
+    class DD extends BB {
+        foo() {}
+    }

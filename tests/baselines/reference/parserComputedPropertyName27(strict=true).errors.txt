@@ -1,0 +1,24 @@
+parserComputedPropertyName27.ts(3,6): error TS2304: Cannot find name 'e'.
+parserComputedPropertyName27.ts(3,19): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Number'.
+parserComputedPropertyName27.ts(4,6): error TS2304: Cannot find name 'e2'.
+parserComputedPropertyName27.ts(4,9): error TS1005: ';' expected.
+parserComputedPropertyName27.ts(4,11): error TS7008: Member 'number' implicitly has an 'any' type.
+
+
+==== parserComputedPropertyName27.ts (5 errors) ====
+    class C {
+        // No ASI
+        [e]: number = 0
+         ~
+!!! error TS2304: Cannot find name 'e'.
+                      ~
+        [e2]: number
+    ~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Number'.
+         ~~
+!!! error TS2304: Cannot find name 'e2'.
+            ~
+!!! error TS1005: ';' expected.
+              ~~~~~~
+!!! error TS7008: Member 'number' implicitly has an 'any' type.
+    }

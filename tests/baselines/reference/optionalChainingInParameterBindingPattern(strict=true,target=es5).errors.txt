@@ -1,0 +1,15 @@
+optionalChainingInParameterBindingPattern.ts(3,5): error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+optionalChainingInParameterBindingPattern.ts(3,6): error TS2537: Type 'undefined' has no matching index signature for type 'string'.
+optionalChainingInParameterBindingPattern.ts(3,6): error TS2538: Type 'undefined' cannot be used as an index type.
+
+
+==== optionalChainingInParameterBindingPattern.ts (3 errors) ====
+    // https://github.com/microsoft/TypeScript/issues/36295
+    const a = (): { d: string } | undefined => undefined;
+    (({ [a()?.d]: c = "" }) => {})();
+        ~~~~~~~~
+!!! error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+         ~~~~~~
+!!! error TS2537: Type 'undefined' has no matching index signature for type 'string'.
+         ~~~~~~
+!!! error TS2538: Type 'undefined' cannot be used as an index type.

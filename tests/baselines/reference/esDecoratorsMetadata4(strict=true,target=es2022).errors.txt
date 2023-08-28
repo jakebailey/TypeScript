@@ -1,0 +1,41 @@
+/foo.ts(4,13): error TS7006: Parameter '_' implicitly has an 'any' type.
+/foo.ts(4,16): error TS7006: Parameter 'context' implicitly has an 'any' type.
+/foo.ts(22,22): error TS2345: Argument of type 'DecoratorMetadataObject | null' is not assignable to parameter of type 'WeakKey'.
+  Type 'null' is not assignable to type 'WeakKey'.
+/foo.ts(23,22): error TS2345: Argument of type 'DecoratorMetadataObject | null' is not assignable to parameter of type 'WeakKey'.
+
+
+==== /foo.ts (4 errors) ====
+    const PRIVATE_METADATA = new WeakMap();
+    
+    function meta(key: string, value: string) {
+        return (_, context) => {
+                ~
+!!! error TS7006: Parameter '_' implicitly has an 'any' type.
+                   ~~~~~~~
+!!! error TS7006: Parameter 'context' implicitly has an 'any' type.
+            let metadata = PRIVATE_METADATA.get(context.metadata);
+    
+            if (!metadata) {
+                metadata = {};
+                PRIVATE_METADATA.set(context.metadata, metadata);
+            }
+    
+            metadata[key] = value;
+        };
+    }
+    
+    @meta('a', 'x')
+    class C {
+        @meta('b', 'y')
+        m() { }
+    }
+    
+    PRIVATE_METADATA.get(C[Symbol.metadata]).a; // 'x'
+                         ~~~~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type 'DecoratorMetadataObject | null' is not assignable to parameter of type 'WeakKey'.
+!!! error TS2345:   Type 'null' is not assignable to type 'WeakKey'.
+    PRIVATE_METADATA.get(C[Symbol.metadata]).b; // 'y'
+                         ~~~~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type 'DecoratorMetadataObject | null' is not assignable to parameter of type 'WeakKey'.
+    

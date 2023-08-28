@@ -1,0 +1,47 @@
+parserErrantSemicolonInClass1.ts(11,12): error TS7008: Member 'pv' implicitly has an 'any' type.
+parserErrantSemicolonInClass1.ts(15,16): error TS1049: A 'set' accessor must have exactly one parameter.
+parserErrantSemicolonInClass1.ts(27,13): error TS7008: Member 'pv3' implicitly has an 'any' type.
+
+
+==== parserErrantSemicolonInClass1.ts (3 errors) ====
+    class a {
+        //constructor ();
+        constructor (n: number);
+        constructor (s: string);
+        constructor (ns: any) {
+    
+        }
+    
+        public pgF() { };
+    
+        public pv;
+               ~~
+!!! error TS7008: Member 'pv' implicitly has an 'any' type.
+        public get d() {
+            return 30;
+        }
+        public set d() {
+                   ~
+!!! error TS1049: A 'set' accessor must have exactly one parameter.
+        }
+    
+        public static get p2() {
+            return { x: 30, y: 40 };
+        }
+    
+        private static d2() {
+        }
+        private static get p3() {
+            return "string";
+        }
+        private pv3;
+                ~~~
+!!! error TS7008: Member 'pv3' implicitly has an 'any' type.
+    
+        private foo(n: number): string;
+        private foo(s: string): string;
+        private foo(ns: any) {
+            return ns.toString();
+        }
+    }
+    

@@ -1,0 +1,34 @@
+contextualTypingOfConditionalExpression2.ts(2,5): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+contextualTypingOfConditionalExpression2.ts(5,5): error TS2564: Property 'bar' has no initializer and is not definitely assigned in the constructor.
+contextualTypingOfConditionalExpression2.ts(8,5): error TS2564: Property 'baz' has no initializer and is not definitely assigned in the constructor.
+contextualTypingOfConditionalExpression2.ts(11,5): error TS2322: Type '((a: C) => number) | ((b: number) => void)' is not assignable to type '(a: A) => void'.
+  Type '(a: C) => number' is not assignable to type '(a: A) => void'.
+    Types of parameters 'a' and 'a' are incompatible.
+      Property 'baz' is missing in type 'A' but required in type 'C'.
+
+
+==== contextualTypingOfConditionalExpression2.ts (4 errors) ====
+    class A {
+        foo: number;
+        ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+    }
+    class B extends A {
+        bar: number;
+        ~~~
+!!! error TS2564: Property 'bar' has no initializer and is not definitely assigned in the constructor.
+    }
+    class C extends A {
+        baz: number;
+        ~~~
+!!! error TS2564: Property 'baz' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    var x2: (a: A) => void = true ? (a: C) => a.foo : (b: number) => { };
+        ~~
+!!! error TS2322: Type '((a: C) => number) | ((b: number) => void)' is not assignable to type '(a: A) => void'.
+!!! error TS2322:   Type '(a: C) => number' is not assignable to type '(a: A) => void'.
+!!! error TS2322:     Types of parameters 'a' and 'a' are incompatible.
+!!! error TS2322:       Property 'baz' is missing in type 'A' but required in type 'C'.
+!!! related TS2728 contextualTypingOfConditionalExpression2.ts:8:5: 'baz' is declared here.
+    

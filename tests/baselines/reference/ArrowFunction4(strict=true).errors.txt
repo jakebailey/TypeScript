@@ -1,0 +1,12 @@
+ArrowFunction4.ts(1,10): error TS7006: Parameter 'a' implicitly has an 'any' type.
+ArrowFunction4.ts(1,13): error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+
+==== ArrowFunction4.ts (2 errors) ====
+    var v = (a, b) => {
+             ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+       
+    };

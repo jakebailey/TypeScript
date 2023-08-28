@@ -1,0 +1,15 @@
+indexClassByNumber.ts(7,1): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type 'foo'.
+  Property '0' does not exist on type 'foo'.
+
+
+==== indexClassByNumber.ts (1 errors) ====
+    // Shouldn't be able to index a class instance by a number (unless it has declared a number index signature)
+    
+    class foo { }
+    
+    var f = new foo();
+    
+    f[0] = 4; // Shouldn't be allowed
+    ~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type 'foo'.
+!!! error TS7053:   Property '0' does not exist on type 'foo'.

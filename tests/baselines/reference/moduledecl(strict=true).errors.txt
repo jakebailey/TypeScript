@@ -1,0 +1,292 @@
+moduledecl.ts(22,14): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+moduledecl.ts(23,14): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+moduledecl.ts(28,16): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+moduledecl.ts(29,17): error TS2564: Property 'b' has no initializer and is not definitely assigned in the constructor.
+moduledecl.ts(30,24): error TS7008: Member 's1' implicitly has an 'any' type.
+moduledecl.ts(31,23): error TS7008: Member 's2' implicitly has an 'any' type.
+moduledecl.ts(51,21): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+moduledecl.ts(52,21): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+moduledecl.ts(57,16): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+moduledecl.ts(58,17): error TS2564: Property 'b' has no initializer and is not definitely assigned in the constructor.
+moduledecl.ts(59,24): error TS7008: Member 's1' implicitly has an 'any' type.
+moduledecl.ts(60,23): error TS7008: Member 's2' implicitly has an 'any' type.
+moduledecl.ts(66,16): error TS2564: Property 'e' has no initializer and is not definitely assigned in the constructor.
+moduledecl.ts(67,22): error TS7006: Parameter 'n' implicitly has an 'any' type.
+moduledecl.ts(67,51): error TS7006: Parameter 'n3' implicitly has an 'any' type.
+moduledecl.ts(119,16): error TS7005: Variable 'b' implicitly has an 'any' type.
+moduledecl.ts(123,16): error TS7005: Variable 'c' implicitly has an 'any' type.
+moduledecl.ts(127,16): error TS7005: Variable 'b' implicitly has an 'any' type.
+moduledecl.ts(131,16): error TS7005: Variable 'c' implicitly has an 'any' type.
+
+
+==== moduledecl.ts (19 errors) ====
+    module a {
+    }
+    
+    module b.a {
+    }
+    
+    module c.a.b {
+        import ma = a;
+    }
+    
+    module mImport {
+        import d = a;
+        import e = b.a;
+        import d1 = a;
+        import e1 = b.a;
+    }
+    
+    module m0 {
+        function f1() {
+        }
+    
+        function f2(s: string);
+                 ~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+        function f2(n: number);
+                 ~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+        function f2(ns: any) {
+        }
+    
+        class c1 {
+            public a : ()=>string;
+                   ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+            private b: ()=>number;
+                    ~
+!!! error TS2564: Property 'b' has no initializer and is not definitely assigned in the constructor.
+            private static s1;
+                           ~~
+!!! error TS7008: Member 's1' implicitly has an 'any' type.
+            public static s2;
+                          ~~
+!!! error TS7008: Member 's2' implicitly has an 'any' type.
+        }
+    
+        interface i1 {
+            () : Object;
+            [n: number]: c1;
+        }
+    
+        import m2 = a;
+        import m3 = b;
+        import m4 = b.a;
+        import m5 = c;
+        import m6 = c.a;
+        import m7 = c.a.b;
+    }
+    
+    module m1 {
+        export function f1() {
+        }
+    
+        export function f2(s: string);
+                        ~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+        export function f2(n: number);
+                        ~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+        export function f2(ns: any) {
+        }
+    
+        export class c1 {
+            public a: () =>string;
+                   ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+            private b: () =>number;
+                    ~
+!!! error TS2564: Property 'b' has no initializer and is not definitely assigned in the constructor.
+            private static s1;
+                           ~~
+!!! error TS7008: Member 's1' implicitly has an 'any' type.
+            public static s2;
+                          ~~
+!!! error TS7008: Member 's2' implicitly has an 'any' type.
+    
+            public d() {
+                return "Hello";
+            }
+    
+            public e: { x: number; y: string; };
+                   ~
+!!! error TS2564: Property 'e' has no initializer and is not definitely assigned in the constructor.
+            constructor (public n, public n2: number, private n3, private n4: string) {
+                         ~~~~~~~~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+                                                      ~~~~~~~~~~
+!!! error TS7006: Parameter 'n3' implicitly has an 'any' type.
+            }
+        }
+    
+        export interface i1 {
+            () : Object;
+            [n: number]: c1;
+        }
+    
+        import m2 = a;
+        import m3 = b;
+        import m4 = b.a;
+        import m5 = c;
+        import m6 = c.a;
+        import m7 = c.a.b;
+    }
+    
+    module m {
+        export module m2 {
+            var a = 10;
+            export var b: number;
+        }
+    
+        export module m3 {
+            export var c: number;
+        }
+    }
+    
+    module m {
+    
+        export module m25 {
+            export module m5 {
+                export var c: number;
+            }
+        }
+    }
+    
+    module m13 {
+        export module m4 {
+            export module m2 {
+                export module m3 {
+                    export var c: number;
+                }
+            }
+    
+            export function f() {
+                return 20;
+            }
+        }
+    }
+    
+    declare module m4 {
+        export var b;
+                   ~
+!!! error TS7005: Variable 'b' implicitly has an 'any' type.
+    }
+    
+    declare module m5 {
+        export var c;
+                   ~
+!!! error TS7005: Variable 'c' implicitly has an 'any' type.
+    }
+    
+    declare module m43 {
+        export var b;
+                   ~
+!!! error TS7005: Variable 'b' implicitly has an 'any' type.
+    }
+    
+    declare module m55 {
+        export var c;
+                   ~
+!!! error TS7005: Variable 'c' implicitly has an 'any' type.
+    }
+    
+    declare module "m3" {
+        export var b: number;
+    }
+    
+    module exportTests {
+        export class C1_public {
+            private f2() {
+                return 30;
+            }
+    
+            public f3() {
+                return "string";
+            }
+        }
+        class C2_private {
+            private f2() {
+                return 30;
+            }
+    
+            public f3() {
+                return "string";
+            }
+        }
+    
+        export class C3_public {
+            private getC2_private() {
+                return new C2_private();
+            }
+            private setC2_private(arg: C2_private) {
+            }
+            private get c2() {
+                return new C2_private();
+            }
+            public getC1_public() {
+                return new C1_public();
+            }
+            public setC1_public(arg: C1_public) {
+            }
+            public get c1() {
+                return new C1_public();
+            }
+        }
+    }
+    
+    declare module mAmbient {
+        class C {
+            public myProp: number;
+        }
+    
+        function foo() : C;
+        var aVar: C;
+        interface B {
+            x: number;
+            y: C;
+        }
+        enum e {
+            x,
+            y,
+            z
+        }
+    
+        module m3 {
+            class C {
+                public myProp: number;
+            }
+    
+            function foo(): C;
+            var aVar: C;
+            interface B {
+                x: number;
+                y: C;
+            }
+            enum e {
+                x,
+                y,
+                z
+            }
+        }
+    }
+    
+    function foo() {
+        return mAmbient.foo();
+    }
+    
+    var cVar = new mAmbient.C();
+    var aVar = mAmbient.aVar;
+    var bB: mAmbient.B;
+    var eVar: mAmbient.e;
+    
+    function m3foo() {
+        return mAmbient.m3.foo();
+    }
+    
+    var m3cVar = new mAmbient.m3.C();
+    var m3aVar = mAmbient.m3.aVar;
+    var m3bB: mAmbient.m3.B;
+    var m3eVar: mAmbient.m3.e;
+    
+    

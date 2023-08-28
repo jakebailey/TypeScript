@@ -1,0 +1,106 @@
+throwStatements.ts(8,5): error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+throwStatements.ts(12,5): error TS2564: Property 'source' has no initializer and is not definitely assigned in the constructor.
+throwStatements.ts(13,5): error TS2564: Property 'recurse' has no initializer and is not definitely assigned in the constructor.
+throwStatements.ts(14,5): error TS2564: Property 'wrapped' has no initializer and is not definitely assigned in the constructor.
+throwStatements.ts(21,9): error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+throwStatements.ts(53,16): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== throwStatements.ts (6 errors) ====
+    // all legal
+    
+    interface I {
+        id: number;
+    }
+    
+    class C implements I {
+        id: number;
+        ~~
+!!! error TS2564: Property 'id' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class D<T>{
+        source: T;
+        ~~~~~~
+!!! error TS2564: Property 'source' has no initializer and is not definitely assigned in the constructor.
+        recurse: D<T>;
+        ~~~~~~~
+!!! error TS2564: Property 'recurse' has no initializer and is not definitely assigned in the constructor.
+        wrapped: D<D<T>>
+        ~~~~~~~
+!!! error TS2564: Property 'wrapped' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    function F(x: string): number { return 42; }
+    
+    module M {
+        export class A {
+            name: string;
+            ~~~~
+!!! error TS2564: Property 'name' has no initializer and is not definitely assigned in the constructor.
+        }
+    
+        export function F2(x: number): string { return x.toString(); }
+    }
+    
+    var aNumber = 9.9;
+    throw aNumber;
+    var aString = 'this is a string';
+    throw aString;
+    var aDate = new Date(12);
+    throw aDate;
+    var anObject = new Object();
+    throw anObject;
+    
+    var anAny = null;
+    throw anAny;
+    var anOtherAny = <any> new C();
+    throw anOtherAny;
+    var anUndefined = undefined;
+    throw anUndefined;
+    
+    var aClass = new C();
+    throw aClass;
+    var aGenericClass = new D<string>();
+    throw aGenericClass;
+    var anObjectLiteral = { id: 12 };
+    throw anObjectLiteral;
+    
+    var aFunction = F;
+    throw aFunction;
+    throw aFunction('');
+    var aLambda = (x) => 2;
+                   ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    throw aLambda;
+    throw aLambda(1);
+    
+    var aModule = M;
+    throw aModule;
+    throw typeof M;
+    var aClassInModule = new M.A();
+    throw aClassInModule;
+    var aFunctionInModule = M.F2;
+    throw aFunctionInModule;
+    
+    // no initializer or annotation, so this is an 'any'
+    var x;
+    throw x;
+    
+    // literals
+    throw 0.0;
+    throw false;
+    throw null;
+    throw undefined;
+    throw 'a string';
+    throw function () { return 'a string' };
+    throw <T>(x:T) => 42;
+    throw { x: 12, y: 13 };
+    throw [];
+    throw ['a', ['b']];
+    throw /[a-z]/;
+    throw new Date();
+    throw new C();
+    throw new Object();
+    throw new D<number>();
+    

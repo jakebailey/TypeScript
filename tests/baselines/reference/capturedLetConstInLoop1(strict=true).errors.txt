@@ -1,0 +1,195 @@
+capturedLetConstInLoop1.ts(20,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop1.ts(21,26): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop1.ts(22,12): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop1.ts(26,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop1.ts(27,26): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop1.ts(28,12): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop1.ts(43,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop1.ts(43,12): error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop1.ts(44,26): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop1.ts(44,30): error TS7005: Variable 'y' implicitly has an 'any' type.
+capturedLetConstInLoop1.ts(45,12): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop1.ts(45,16): error TS7005: Variable 'y' implicitly has an 'any' type.
+capturedLetConstInLoop1.ts(49,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop1.ts(49,12): error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop1.ts(50,26): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop1.ts(50,30): error TS7005: Variable 'y' implicitly has an 'any' type.
+capturedLetConstInLoop1.ts(51,12): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop1.ts(51,16): error TS7005: Variable 'y' implicitly has an 'any' type.
+
+
+==== capturedLetConstInLoop1.ts (18 errors) ====
+    declare function use(x: any): any;
+    
+    //==== let
+    for (let x in {}) {
+        (function() { return x});
+        (() => x);
+    }
+    
+    for (let x of []) {
+        (function() { return x});
+        (() => x);
+    }
+    
+    for (let x = 0; x < 1; ++x) {
+        (function() { return x});
+        (() => x);
+    }
+    
+    while (1 === 1) {
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+        (function() { return x});
+                             ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        (() => x);
+               ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    }
+    
+    do {
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+        (function() { return x});
+                             ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        (() => x);
+               ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    } while (1 === 1)
+    
+    for (let y = 0; y < 1; ++y) {
+        let x = 1;
+        (function() { return x});
+        (() => x);
+    }
+    
+    for (let x = 0, y = 1; x < 1; ++x) {
+        (function() { return x + y});
+        (() => x + y);
+    }
+    
+    while (1 === 1) {
+        let x, y;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+               ~
+!!! error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+        (function() { return x + y});
+                             ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                                 ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+        (() => x + y);
+               ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                   ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+    }
+    
+    do {
+        let x, y;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+               ~
+!!! error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+        (function() { return x + y});
+                             ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                                 ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+        (() => x + y);
+               ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                   ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+    } while (1 === 1)
+    
+    for (let y = 0; y < 1; ++y) {
+        let x = 1;
+        (function() { return x + y});
+        (() => x + y);
+    }
+    
+    for (let y = (use(() => y), 0); y < 1; ++y) {
+    }
+    
+    for (let y = 0; use(() => y), y < 1; ++y) {
+    }
+    
+    for (let y = 0; y < 1; use(() => y), ++y) {
+    }
+    
+    for (let y = (use(() => y), 0); use(() => y), y < 1; use(() => y), ++y) {
+        use(() => y);
+    }
+    
+    //=========const
+    for (const x in {}) {
+        (function() { return x});
+        (() => x);
+    }
+    
+    for (const x of []) {
+        (function() { return x});
+        (() => x);
+    }
+    
+    for (const x = 0; x < 1;) {
+        (function() { return x});
+        (() => x);
+    }
+    
+    while (1 === 1) {
+        const x = 1;
+        (function() { return x});
+        (() => x);
+    }
+    
+    do {
+        const x = 1;
+        (function() { return x});
+        (() => x);
+    } while (1 === 1)
+    
+    for (const y = 0; y < 1;) {
+        const x = 1;
+        (function() { return x});
+        (() => x);
+    }
+    
+    for (const x = 0, y = 1; x < 1;) {
+        (function() { return x + y});
+        (() => x + y);
+    }
+    
+    while (1 === 1) {
+        const x = 1, y = 1;
+        (function() { return x + y});
+        (() => x + y);
+    }
+    
+    do {
+        const x = 1, y = 1;
+        (function() { return x + y});
+        (() => x + y);
+    } while (1 === 1)
+    
+    for (const y = 0; y < 1;) {
+        const x = 1;
+        (function() { return x + y});
+        (() => x + y);
+    }
+    
+    // https://github.com/Microsoft/TypeScript/issues/20594
+    declare const sobj: { [x: string]: any };
+    for (let sx in sobj) {
+        (() => sobj[sx]);
+    }
+    declare const iobj: { [x: number]: any };
+    for (let ix in iobj) {
+        (() => iobj[ix]);
+    }

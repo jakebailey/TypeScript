@@ -1,0 +1,48 @@
+autoAccessor11.ts(2,5): error TS2300: Duplicate identifier 'accessor'.
+autoAccessor11.ts(2,5): error TS7008: Member 'accessor' implicitly has an 'any' type.
+autoAccessor11.ts(3,5): error TS7008: Member 'a' implicitly has an 'any' type.
+autoAccessor11.ts(5,12): error TS7008: Member 'accessor' implicitly has an 'any' type.
+autoAccessor11.ts(6,5): error TS7008: Member 'b' implicitly has an 'any' type.
+autoAccessor11.ts(9,5): error TS2300: Duplicate identifier 'accessor'.
+autoAccessor11.ts(10,5): error TS7008: Member 'c' implicitly has an 'any' type.
+autoAccessor11.ts(12,14): error TS2300: Duplicate identifier 'accessor'.
+autoAccessor11.ts(12,14): error TS7008: Member 'accessor' implicitly has an 'any' type.
+autoAccessor11.ts(13,5): error TS7008: Member 'd' implicitly has an 'any' type.
+
+
+==== autoAccessor11.ts (10 errors) ====
+    class C {
+        accessor
+        ~~~~~~~~
+!!! error TS2300: Duplicate identifier 'accessor'.
+        ~~~~~~~~
+!!! error TS7008: Member 'accessor' implicitly has an 'any' type.
+        a
+        ~
+!!! error TS7008: Member 'a' implicitly has an 'any' type.
+    
+        static accessor
+               ~~~~~~~~
+!!! error TS7008: Member 'accessor' implicitly has an 'any' type.
+        b
+        ~
+!!! error TS7008: Member 'b' implicitly has an 'any' type.
+    
+        static
+        accessor
+        ~~~~~~~~
+!!! error TS2300: Duplicate identifier 'accessor'.
+        c
+        ~
+!!! error TS7008: Member 'c' implicitly has an 'any' type.
+    
+        accessor accessor
+                 ~~~~~~~~
+!!! error TS2300: Duplicate identifier 'accessor'.
+                 ~~~~~~~~
+!!! error TS7008: Member 'accessor' implicitly has an 'any' type.
+        d;
+        ~
+!!! error TS7008: Member 'd' implicitly has an 'any' type.
+    }
+    

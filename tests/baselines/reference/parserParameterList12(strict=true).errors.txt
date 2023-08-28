@@ -1,0 +1,8 @@
+parserParameterList12.ts(1,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+
+
+==== parserParameterList12.ts (1 errors) ====
+    function F(a,) {
+               ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    }

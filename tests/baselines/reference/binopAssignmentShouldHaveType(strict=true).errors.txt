@@ -1,0 +1,28 @@
+binopAssignmentShouldHaveType.ts(1,13): error TS7005: Variable 'console' implicitly has an 'any' type.
+binopAssignmentShouldHaveType.ts(9,8): error TS2322: Type 'null' is not assignable to type 'string'.
+
+
+==== binopAssignmentShouldHaveType.ts (2 errors) ====
+    declare var console;
+                ~~~~~~~
+!!! error TS7005: Variable 'console' implicitly has an 'any' type.
+    "use strict";
+    module Test {
+     export class Bug {
+      getName():string {
+       return "name";
+      }
+      bug() {
+       var name:string= null;
+           ~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'string'.
+       if ((name= this.getName()).length > 0) {
+        console.log(name);
+       }
+      }
+     }
+    }
+    
+     
+    
+    

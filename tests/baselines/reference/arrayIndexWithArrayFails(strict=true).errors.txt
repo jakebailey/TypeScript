@@ -1,0 +1,12 @@
+arrayIndexWithArrayFails.ts(3,16): error TS2538: Type 'string[]' cannot be used as an index type.
+arrayIndexWithArrayFails.ts(3,16): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+
+
+==== arrayIndexWithArrayFails.ts (2 errors) ====
+    declare const arr1: (string | string[])[];
+    declare const arr2: number[];
+    const j = arr2[arr1[0]]; // should error
+                   ~~~~~~~
+!!! error TS2538: Type 'string[]' cannot be used as an index type.
+                   ~~~~~~~
+!!! error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.

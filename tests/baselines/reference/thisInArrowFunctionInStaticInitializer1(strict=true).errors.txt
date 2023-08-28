@@ -1,0 +1,14 @@
+thisInArrowFunctionInStaticInitializer1.ts(1,14): error TS7006: Parameter 'a' implicitly has an 'any' type.
+
+
+==== thisInArrowFunctionInStaticInitializer1.ts (1 errors) ====
+    function log(a) { }
+                 ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    
+    class Vector {
+     static foo = () => {
+      // 'this' should be allowed in a static initializer.
+      log(this);
+     }
+    }

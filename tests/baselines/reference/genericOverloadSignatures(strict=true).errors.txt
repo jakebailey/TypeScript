@@ -1,0 +1,42 @@
+genericOverloadSignatures.ts(6,10): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+genericOverloadSignatures.ts(7,10): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+genericOverloadSignatures.ts(8,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+
+
+==== genericOverloadSignatures.ts (3 errors) ====
+    interface A {
+        <T>(x: T): void;
+        <T>(x: T): void;
+    }
+    
+    function f<T>(a: T);
+             ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+    function f<T>(a: T);
+             ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+    function f(a) { }
+               ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    
+    interface I2 {
+        f<T>(x: T): number;
+        f<T>(x: T): string;
+    }
+    
+    interface I3<T> {
+        f(x: T): number;
+        f(x: T): string;
+    }
+    
+    class C2<T> {
+    }
+    var b: {
+        new <T>(x: T, y: string): C2<T>;
+        new <T>(x: T, y: string): C2<T>;
+    }
+    
+    interface D {
+        <T>(x: T): T;
+        <T>(x: T): T;
+    }

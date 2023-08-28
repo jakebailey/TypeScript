@@ -1,0 +1,15 @@
+parserMemberAccessorDeclaration18.ts(2,8): error TS7032: Property 'Foo' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+parserMemberAccessorDeclaration18.ts(2,12): error TS1053: A 'set' accessor cannot have rest parameter.
+parserMemberAccessorDeclaration18.ts(2,12): error TS7019: Rest parameter 'a' implicitly has an 'any[]' type.
+
+
+==== parserMemberAccessorDeclaration18.ts (3 errors) ====
+    class C {
+       set Foo(...a) { }
+           ~~~
+!!! error TS7032: Property 'Foo' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+               ~~~
+!!! error TS1053: A 'set' accessor cannot have rest parameter.
+               ~~~~
+!!! error TS7019: Rest parameter 'a' implicitly has an 'any[]' type.
+    }

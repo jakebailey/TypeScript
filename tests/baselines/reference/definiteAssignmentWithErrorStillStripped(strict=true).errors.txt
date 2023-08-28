@@ -1,0 +1,12 @@
+definiteAssignmentWithErrorStillStripped.ts(2,5): error TS7008: Member 'p' implicitly has an 'any' type.
+definiteAssignmentWithErrorStillStripped.ts(2,6): error TS1264: Declarations with definite assignment assertions must also have type annotations.
+
+
+==== definiteAssignmentWithErrorStillStripped.ts (2 errors) ====
+    class C {
+        p!;
+        ~
+!!! error TS7008: Member 'p' implicitly has an 'any' type.
+         ~
+!!! error TS1264: Declarations with definite assignment assertions must also have type annotations.
+    }

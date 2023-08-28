@@ -1,0 +1,55 @@
+derivedClassIncludesInheritedMembers.ts(2,5): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+derivedClassIncludesInheritedMembers.ts(12,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+derivedClassIncludesInheritedMembers.ts(37,10): error TS2454: Variable 'd2' is used before being assigned.
+derivedClassIncludesInheritedMembers.ts(38,10): error TS2454: Variable 'd2' is used before being assigned.
+
+
+==== derivedClassIncludesInheritedMembers.ts (4 errors) ====
+    class Base {
+        a: string;
+        ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+        b() { }
+        get c() { return ''; }
+        set c(v) { }
+    
+        static r: string;
+        static s() { }
+        static get t() { return ''; }
+        static set t(v) { }
+    
+        constructor(x) { }
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    class Derived extends Base {
+    }
+    
+    var d: Derived = new Derived(1);
+    var r1 = d.a;
+    var r2 = d.b();
+    var r3 = d.c;
+    d.c = '';
+    var r4 = Derived.r;
+    var r5 = Derived.s();
+    var r6 = Derived.t;
+    Derived.t = '';
+    
+    class Base2 {
+        [x: string]: Object;
+        [x: number]: Date;
+    }
+    
+    class Derived2 extends Base2 {
+    }
+    
+    var d2: Derived2;
+    var r7 = d2[''];
+             ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+    var r8 = d2[1];
+             ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+    
+    

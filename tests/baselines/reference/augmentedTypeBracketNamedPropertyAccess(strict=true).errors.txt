@@ -1,0 +1,21 @@
+augmentedTypeBracketNamedPropertyAccess.ts(11,10): error TS7053: Element implicitly has an 'any' type because expression of type '"functionData"' can't be used to index type '{}'.
+  Property 'functionData' does not exist on type '{}'.
+
+
+==== augmentedTypeBracketNamedPropertyAccess.ts (1 errors) ====
+    interface Object {
+        data: number;
+    }
+    interface Function {
+        functionData: string;
+    }
+    var o = {};
+    var f = function () { };
+    
+    var r1 = o['data']; // Should be number
+    var r2 = o['functionData']; // Should be any (no property found)
+             ~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '"functionData"' can't be used to index type '{}'.
+!!! error TS7053:   Property 'functionData' does not exist on type '{}'.
+    var r3 = f['functionData']; // Should be string
+    var r4 = f['data']; // Should be number

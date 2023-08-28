@@ -1,0 +1,53 @@
+withImportDecl_0.ts(1,18): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+withImportDecl_1.ts(12,13): error TS7005: Variable 'declaredVar' implicitly has an 'any' type.
+withImportDecl_1.ts(13,13): error TS7005: Variable 'declareVar2' implicitly has an 'any' type.
+
+
+==== withImportDecl_1.ts (2 errors) ====
+    ///<reference path='withImportDecl_0.ts'/>
+    var simpleVar;
+    
+    var anotherVar: any;
+    var varWithSimpleType: number;
+    var varWithArrayType: number[];
+    
+    var varWithInitialValue = 30;
+    
+    var withComplicatedValue = { x: 30, y: 70, desc: "position" };
+    
+    declare var declaredVar;
+                ~~~~~~~~~~~
+!!! error TS7005: Variable 'declaredVar' implicitly has an 'any' type.
+    declare var declareVar2
+                ~~~~~~~~~~~
+!!! error TS7005: Variable 'declareVar2' implicitly has an 'any' type.
+    
+    declare var declaredVar;
+    declare var deckareVarWithType: number;
+    
+    var arrayVar: string[] = ['a', 'b'];
+    
+    
+    function simpleFunction() {
+        return {
+            x: "Hello",
+            y: "word",
+            n: 2
+        };
+    }
+    
+    module m1 {
+        export function foo() {
+            return "Hello";
+        }
+    }
+    
+    import m3 = require("withImportDecl_0");
+    
+    var b = new m3.A();
+    b.foo;
+==== withImportDecl_0.ts (1 errors) ====
+    export class A { foo: string; }
+                     ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+    

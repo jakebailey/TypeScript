@@ -1,0 +1,854 @@
+expr.ts(19,8): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(21,8): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(26,8): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(28,8): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(33,8): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(35,8): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(37,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(38,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(39,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(40,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(41,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(42,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(42,8): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(44,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(45,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(46,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(47,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(48,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(48,8): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(49,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(54,8): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(56,8): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(61,8): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(63,8): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(68,8): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(70,8): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(72,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(73,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(74,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(75,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(76,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(76,8): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(77,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(77,8): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(79,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(80,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(81,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(82,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(83,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(83,8): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(84,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(84,8): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(87,5): error TS2367: This comparison appears to be unintentional because the types 'number' and 'string' have no overlap.
+expr.ts(88,5): error TS2367: This comparison appears to be unintentional because the types 'number' and 'boolean' have no overlap.
+expr.ts(89,8): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(91,8): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(94,5): error TS2367: This comparison appears to be unintentional because the types 'string' and 'number' have no overlap.
+expr.ts(95,5): error TS2367: This comparison appears to be unintentional because the types 'string' and 'boolean' have no overlap.
+expr.ts(96,8): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(98,5): error TS2367: This comparison appears to be unintentional because the types 'string' and 'E' have no overlap.
+expr.ts(98,8): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(103,8): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(105,8): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(107,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(108,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(109,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(110,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(111,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(111,8): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(112,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(112,8): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(114,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(115,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(115,5): error TS2367: This comparison appears to be unintentional because the types 'E' and 'string' have no overlap.
+expr.ts(116,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(116,5): error TS2367: This comparison appears to be unintentional because the types 'E' and 'boolean' have no overlap.
+expr.ts(117,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(118,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(118,8): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(119,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(119,8): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(121,6): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(127,6): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(133,6): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(142,5): error TS2365: Operator '+' cannot be applied to types 'number' and 'boolean'.
+expr.ts(143,5): error TS2365: Operator '+' cannot be applied to types 'number' and 'I'.
+expr.ts(143,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(145,7): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(150,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(152,7): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(157,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(159,7): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(161,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(161,5): error TS2365: Operator '+' cannot be applied to types 'I' and 'number'.
+expr.ts(162,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(163,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(163,5): error TS2365: Operator '+' cannot be applied to types 'I' and 'boolean'.
+expr.ts(164,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(165,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(165,5): error TS2365: Operator '+' cannot be applied to types 'I' and 'I'.
+expr.ts(165,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(166,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(166,5): error TS2365: Operator '+' cannot be applied to types 'I' and 'E'.
+expr.ts(166,7): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(168,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(169,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(170,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(170,5): error TS2365: Operator '+' cannot be applied to types 'E' and 'boolean'.
+expr.ts(171,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(172,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(172,5): error TS2365: Operator '+' cannot be applied to types 'E' and 'I'.
+expr.ts(172,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(173,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(173,7): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(176,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(177,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(178,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(178,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(180,7): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(182,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(183,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(184,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(184,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(185,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(185,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(185,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(186,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(186,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(187,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(187,7): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(190,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(191,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(192,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(192,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(194,7): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(196,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(196,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(197,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(197,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(197,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(198,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(198,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(198,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(199,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(199,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(200,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(200,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(200,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(200,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(201,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(201,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(201,7): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(203,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(204,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(204,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(205,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(205,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(206,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(207,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(207,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(207,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(208,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(208,7): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(211,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(212,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(213,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(213,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(215,7): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(217,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(218,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(219,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(219,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(220,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(220,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(220,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(221,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(221,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(222,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(222,7): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(225,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(226,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(227,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(227,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(229,7): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(231,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(231,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(232,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(232,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(232,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(233,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(233,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(233,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(234,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(234,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(235,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(235,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(235,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(235,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(236,5): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(236,5): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(236,7): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(238,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(239,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(239,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(240,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(240,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(241,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(242,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(242,7): error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+expr.ts(242,7): error TS2454: Variable 'i' is used before being assigned.
+expr.ts(243,5): error TS2454: Variable 'e' is used before being assigned.
+expr.ts(243,7): error TS2454: Variable 'e' is used before being assigned.
+
+
+==== expr.ts (202 errors) ====
+    interface I {
+    }
+    
+    enum E {
+        Red, Green, Blue
+    }
+    
+    function f() {
+        var a: any;
+        var n=3;
+        var s="";
+        var b=false;
+        var i:I;
+        var e:E;
+    
+        n&&a;
+        n&&s;
+        n&&b;
+        n&&i;
+           ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        n&&n;
+        n&&e;
+           ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        s&&a;
+        s&&n;
+        s&&b;
+        s&&i;
+           ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        s&&s;
+        s&&e;
+           ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        a&&n;
+        a&&s;
+        a&&b;
+        a&&i;
+           ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        a&&a;
+        a&&e;
+           ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        i&&n;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i&&s;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i&&b;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i&&a;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i&&i;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i&&e;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        e&&n;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e&&s;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e&&b;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e&&a;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e&&i;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        e&&e;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        n||a;
+        n||s;
+        n||b;
+        n||i;
+           ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        n||n;
+        n||e;
+           ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        s||a;
+        s||n;
+        s||b;
+        s||i;
+           ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        s||s;
+        s||e;
+           ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        a||n;
+        a||s;
+        a||b;
+        a||i;
+           ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        a||a;
+        a||e;
+           ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        i||n;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i||s;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i||b;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i||a;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i||i;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i||e;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        e||n;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e||s;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e||b;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e||a;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e||i;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        e||e;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        n==a;
+        n==s;
+        ~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types 'number' and 'string' have no overlap.
+        n==b;
+        ~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types 'number' and 'boolean' have no overlap.
+        n==i;
+           ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        n==n;
+        n==e;
+           ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        s==a;
+        s==n;
+        ~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types 'string' and 'number' have no overlap.
+        s==b;
+        ~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types 'string' and 'boolean' have no overlap.
+        s==i;
+           ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        s==s;
+        s==e;
+        ~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types 'string' and 'E' have no overlap.
+           ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        a==n;
+        a==s;
+        a==b;
+        a==i;
+           ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        a==a;
+        a==e;
+           ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        i==n;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i==s;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i==b;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i==a;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i==i;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i==e;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        e==n;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e==s;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        ~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types 'E' and 'string' have no overlap.
+        e==b;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        ~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types 'E' and 'boolean' have no overlap.
+        e==a;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e==i;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        e==e;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        +i;
+         ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        +s;
+        +n;
+        +a;
+        +b;
+    
+        -i;
+         ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        -s;
+        -n;
+        -a;
+        -b;
+    
+        !i;
+         ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        !s;
+        !n;
+        !a;
+        !b;
+    
+    
+        n+a;
+        n+s;
+        n+b;
+        ~~~
+!!! error TS2365: Operator '+' cannot be applied to types 'number' and 'boolean'.
+        n+i;
+        ~~~
+!!! error TS2365: Operator '+' cannot be applied to types 'number' and 'I'.
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        n+n;
+        n+e;
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        s+a;
+        s+n;
+        s+b;
+        s+i;
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        s+s;
+        s+e;
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        a+n;
+        a+s;
+        a+b;
+        a+i;
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        a+a;
+        a+e;
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        i+n;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        ~~~
+!!! error TS2365: Operator '+' cannot be applied to types 'I' and 'number'.
+        i+s;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i+b;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        ~~~
+!!! error TS2365: Operator '+' cannot be applied to types 'I' and 'boolean'.
+        i+a;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i+i;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        ~~~
+!!! error TS2365: Operator '+' cannot be applied to types 'I' and 'I'.
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i+e;
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        ~~~
+!!! error TS2365: Operator '+' cannot be applied to types 'I' and 'E'.
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        e+n;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e+s;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e+b;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        ~~~
+!!! error TS2365: Operator '+' cannot be applied to types 'E' and 'boolean'.
+        e+a;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e+i;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        ~~~
+!!! error TS2365: Operator '+' cannot be applied to types 'E' and 'I'.
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        e+e;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        n^a;
+        n^s;
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        n^b;
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        n^i;
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        n^n;
+        n^e;
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        s^a;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        s^n;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        s^b;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        s^i;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        s^s;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        s^e;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        a^n;
+        a^s;
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        a^b;
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        a^i;
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        a^a;
+        a^e;
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        i^n;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i^s;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        i^b;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        i^a;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i^i;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i^e;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        e^n;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e^s;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        e^b;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        e^a;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e^i;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        e^e;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        n-a;
+        n-s;
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        n-b;
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        n-i;
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        n-n;
+        n-e;
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        s-a;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        s-n;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        s-b;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        s-i;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        s-s;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        s-e;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        a-n;
+        a-s;
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        a-b;
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        a-i;
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        a-a;
+        a-e;
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        i-n;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i-s;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        i-b;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        i-a;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i-i;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        i-e;
+        ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        e-n;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e-s;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        e-b;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+        e-a;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        e-i;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+          ~
+!!! error TS2363: The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+          ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        e-e;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+    }

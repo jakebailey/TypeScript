@@ -1,0 +1,19 @@
+parserAmbiguityWithBinaryOperator1.ts(3,9): error TS18048: 'a' is possibly 'undefined'.
+parserAmbiguityWithBinaryOperator1.ts(3,13): error TS18048: 'b' is possibly 'undefined'.
+parserAmbiguityWithBinaryOperator1.ts(3,18): error TS18048: 'b' is possibly 'undefined'.
+parserAmbiguityWithBinaryOperator1.ts(3,23): error TS18048: 'c' is possibly 'undefined'.
+
+
+==== parserAmbiguityWithBinaryOperator1.ts (4 errors) ====
+    function f1() {
+        var a, b, c;
+        if (a < b || b > (c + 1)) { }
+            ~
+!!! error TS18048: 'a' is possibly 'undefined'.
+                ~
+!!! error TS18048: 'b' is possibly 'undefined'.
+                     ~
+!!! error TS18048: 'b' is possibly 'undefined'.
+                          ~
+!!! error TS18048: 'c' is possibly 'undefined'.
+    }

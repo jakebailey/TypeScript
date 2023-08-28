@@ -1,0 +1,298 @@
+assignmentCompatWithObjectMembersAccessibility.ts(6,16): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembersAccessibility.ts(19,16): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembersAccessibility.ts(23,17): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembersAccessibility.ts(28,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(29,9): error TS2454: Variable 'i' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(30,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(31,5): error TS2322: Type 'E' is not assignable to type '{ foo: string; }'.
+  Property 'foo' is private in type 'E' but not in type '{ foo: string; }'.
+assignmentCompatWithObjectMembersAccessibility.ts(31,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(34,9): error TS2454: Variable 'i' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(35,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(36,5): error TS2322: Type 'E' is not assignable to type 'Base'.
+  Property 'foo' is private in type 'E' but not in type 'Base'.
+assignmentCompatWithObjectMembersAccessibility.ts(36,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(40,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(41,5): error TS2322: Type 'E' is not assignable to type 'I'.
+  Property 'foo' is private in type 'E' but not in type 'I'.
+assignmentCompatWithObjectMembersAccessibility.ts(41,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(46,5): error TS2322: Type 'E' is not assignable to type 'D'.
+  Property 'foo' is private in type 'E' but not in type 'D'.
+assignmentCompatWithObjectMembersAccessibility.ts(46,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(48,5): error TS2322: Type '{ foo: string; }' is not assignable to type 'E'.
+  Property 'foo' is private in type 'E' but not in type '{ foo: string; }'.
+assignmentCompatWithObjectMembersAccessibility.ts(49,5): error TS2322: Type 'Base' is not assignable to type 'E'.
+  Property 'foo' is private in type 'E' but not in type 'Base'.
+assignmentCompatWithObjectMembersAccessibility.ts(50,5): error TS2322: Type 'I' is not assignable to type 'E'.
+  Property 'foo' is private in type 'E' but not in type 'I'.
+assignmentCompatWithObjectMembersAccessibility.ts(51,5): error TS2322: Type 'D' is not assignable to type 'E'.
+  Property 'foo' is private in type 'E' but not in type 'D'.
+assignmentCompatWithObjectMembersAccessibility.ts(59,17): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembersAccessibility.ts(71,16): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembersAccessibility.ts(75,17): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembersAccessibility.ts(81,5): error TS2322: Type 'Base' is not assignable to type '{ foo: string; }'.
+  Property 'foo' is private in type 'Base' but not in type '{ foo: string; }'.
+assignmentCompatWithObjectMembersAccessibility.ts(81,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(82,5): error TS2322: Type 'I' is not assignable to type '{ foo: string; }'.
+assignmentCompatWithObjectMembersAccessibility.ts(82,9): error TS2454: Variable 'i' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(83,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(84,5): error TS2322: Type 'E' is not assignable to type '{ foo: string; }'.
+  Property 'foo' is private in type 'E' but not in type '{ foo: string; }'.
+assignmentCompatWithObjectMembersAccessibility.ts(84,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(86,5): error TS2322: Type '{ foo: string; }' is not assignable to type 'Base'.
+  Property 'foo' is private in type 'Base' but not in type '{ foo: string; }'.
+assignmentCompatWithObjectMembersAccessibility.ts(87,9): error TS2454: Variable 'i' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(88,5): error TS2322: Type 'D' is not assignable to type 'Base'.
+  Property 'foo' is private in type 'Base' but not in type 'D'.
+assignmentCompatWithObjectMembersAccessibility.ts(88,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(89,5): error TS2322: Type 'E' is not assignable to type 'Base'.
+  Types have separate declarations of a private property 'foo'.
+assignmentCompatWithObjectMembersAccessibility.ts(89,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(92,5): error TS2322: Type '{ foo: string; }' is not assignable to type 'I'.
+assignmentCompatWithObjectMembersAccessibility.ts(94,5): error TS2322: Type 'D' is not assignable to type 'I'.
+assignmentCompatWithObjectMembersAccessibility.ts(94,9): error TS2454: Variable 'd' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(95,5): error TS2322: Type 'E' is not assignable to type 'I'.
+assignmentCompatWithObjectMembersAccessibility.ts(95,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(99,5): error TS2322: Type 'Base' is not assignable to type 'D'.
+  Property 'foo' is private in type 'Base' but not in type 'D'.
+assignmentCompatWithObjectMembersAccessibility.ts(100,5): error TS2322: Type 'I' is not assignable to type 'D'.
+assignmentCompatWithObjectMembersAccessibility.ts(101,5): error TS2322: Type 'E' is not assignable to type 'D'.
+  Property 'foo' is private in type 'E' but not in type 'D'.
+assignmentCompatWithObjectMembersAccessibility.ts(101,9): error TS2454: Variable 'e' is used before being assigned.
+assignmentCompatWithObjectMembersAccessibility.ts(103,5): error TS2322: Type '{ foo: string; }' is not assignable to type 'E'.
+  Property 'foo' is private in type 'E' but not in type '{ foo: string; }'.
+assignmentCompatWithObjectMembersAccessibility.ts(104,5): error TS2322: Type 'Base' is not assignable to type 'E'.
+  Types have separate declarations of a private property 'foo'.
+assignmentCompatWithObjectMembersAccessibility.ts(105,5): error TS2322: Type 'I' is not assignable to type 'E'.
+assignmentCompatWithObjectMembersAccessibility.ts(106,5): error TS2322: Type 'D' is not assignable to type 'E'.
+  Property 'foo' is private in type 'E' but not in type 'D'.
+
+
+==== assignmentCompatWithObjectMembersAccessibility.ts (50 errors) ====
+    // members N and M of types S and T have the same name, same accessibility, same optionality, and N is assignable M
+    
+    module TargetIsPublic {
+        // targets
+        class Base {
+            public foo: string;
+                   ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+        }
+    
+        interface I {
+            foo: string;
+        }
+    
+        var a: { foo: string; }
+        var b: Base;
+        var i: I;
+    
+        // sources
+        class D {
+            public foo: string;
+                   ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+        }
+    
+        class E {
+            private foo: string;
+                    ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+        }
+        var d: D;
+        var e: E;
+    
+        a = b;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+        a = i;
+            ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        a = d;
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+        a = e; // error
+        ~
+!!! error TS2322: Type 'E' is not assignable to type '{ foo: string; }'.
+!!! error TS2322:   Property 'foo' is private in type 'E' but not in type '{ foo: string; }'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        b = a;
+        b = i;
+            ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        b = d;
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+        b = e; // error
+        ~
+!!! error TS2322: Type 'E' is not assignable to type 'Base'.
+!!! error TS2322:   Property 'foo' is private in type 'E' but not in type 'Base'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        i = a;
+        i = b;
+        i = d;
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+        i = e; // error
+        ~
+!!! error TS2322: Type 'E' is not assignable to type 'I'.
+!!! error TS2322:   Property 'foo' is private in type 'E' but not in type 'I'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        d = a;
+        d = b;
+        d = i;
+        d = e; // error
+        ~
+!!! error TS2322: Type 'E' is not assignable to type 'D'.
+!!! error TS2322:   Property 'foo' is private in type 'E' but not in type 'D'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        e = a; // errror
+        ~
+!!! error TS2322: Type '{ foo: string; }' is not assignable to type 'E'.
+!!! error TS2322:   Property 'foo' is private in type 'E' but not in type '{ foo: string; }'.
+        e = b; // errror
+        ~
+!!! error TS2322: Type 'Base' is not assignable to type 'E'.
+!!! error TS2322:   Property 'foo' is private in type 'E' but not in type 'Base'.
+        e = i; // errror
+        ~
+!!! error TS2322: Type 'I' is not assignable to type 'E'.
+!!! error TS2322:   Property 'foo' is private in type 'E' but not in type 'I'.
+        e = d; // errror
+        ~
+!!! error TS2322: Type 'D' is not assignable to type 'E'.
+!!! error TS2322:   Property 'foo' is private in type 'E' but not in type 'D'.
+        e = e; 
+    
+    }
+    
+    module TargetIsPublic {
+        // targets
+        class Base {
+            private foo: string;
+                    ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+        }
+    
+        interface I extends Base {
+        }
+    
+        var a: { foo: string; }
+        var b: Base;
+        var i: I;
+    
+        // sources
+        class D {
+            public foo: string;
+                   ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+        }
+    
+        class E {
+            private foo: string;
+                    ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+        }
+    
+        var d: D;
+        var e: E;
+    
+        a = b; // error
+        ~
+!!! error TS2322: Type 'Base' is not assignable to type '{ foo: string; }'.
+!!! error TS2322:   Property 'foo' is private in type 'Base' but not in type '{ foo: string; }'.
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+        a = i; // error
+        ~
+!!! error TS2322: Type 'I' is not assignable to type '{ foo: string; }'.
+            ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        a = d;
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+        a = e; // error
+        ~
+!!! error TS2322: Type 'E' is not assignable to type '{ foo: string; }'.
+!!! error TS2322:   Property 'foo' is private in type 'E' but not in type '{ foo: string; }'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        b = a; // error
+        ~
+!!! error TS2322: Type '{ foo: string; }' is not assignable to type 'Base'.
+!!! error TS2322:   Property 'foo' is private in type 'Base' but not in type '{ foo: string; }'.
+        b = i;
+            ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+        b = d; // error
+        ~
+!!! error TS2322: Type 'D' is not assignable to type 'Base'.
+!!! error TS2322:   Property 'foo' is private in type 'Base' but not in type 'D'.
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+        b = e; // error
+        ~
+!!! error TS2322: Type 'E' is not assignable to type 'Base'.
+!!! error TS2322:   Types have separate declarations of a private property 'foo'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        b = b;
+        
+        i = a; // error
+        ~
+!!! error TS2322: Type '{ foo: string; }' is not assignable to type 'I'.
+        i = b;
+        i = d; // error
+        ~
+!!! error TS2322: Type 'D' is not assignable to type 'I'.
+            ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+        i = e; // error
+        ~
+!!! error TS2322: Type 'E' is not assignable to type 'I'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+        i = i;
+    
+        d = a;
+        d = b; // error
+        ~
+!!! error TS2322: Type 'Base' is not assignable to type 'D'.
+!!! error TS2322:   Property 'foo' is private in type 'Base' but not in type 'D'.
+        d = i; // error
+        ~
+!!! error TS2322: Type 'I' is not assignable to type 'D'.
+        d = e; // error
+        ~
+!!! error TS2322: Type 'E' is not assignable to type 'D'.
+!!! error TS2322:   Property 'foo' is private in type 'E' but not in type 'D'.
+            ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+        e = a; // errror
+        ~
+!!! error TS2322: Type '{ foo: string; }' is not assignable to type 'E'.
+!!! error TS2322:   Property 'foo' is private in type 'E' but not in type '{ foo: string; }'.
+        e = b; // errror
+        ~
+!!! error TS2322: Type 'Base' is not assignable to type 'E'.
+!!! error TS2322:   Types have separate declarations of a private property 'foo'.
+        e = i; // errror
+        ~
+!!! error TS2322: Type 'I' is not assignable to type 'E'.
+        e = d; // errror
+        ~
+!!! error TS2322: Type 'D' is not assignable to type 'E'.
+!!! error TS2322:   Property 'foo' is private in type 'E' but not in type 'D'.
+        e = e;
+    
+    }

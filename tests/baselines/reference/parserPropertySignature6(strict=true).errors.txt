@@ -1,0 +1,9 @@
+parserPropertySignature6.ts(2,3): error TS7008: Member '"F"' implicitly has an 'any' type.
+
+
+==== parserPropertySignature6.ts (1 errors) ====
+    interface I {
+      "F"?;
+      ~~~
+!!! error TS7008: Member '"F"' implicitly has an 'any' type.
+    }

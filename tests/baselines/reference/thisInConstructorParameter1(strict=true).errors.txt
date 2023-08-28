@@ -1,0 +1,10 @@
+thisInConstructorParameter1.ts(2,12): error TS7008: Member 'y' implicitly has an 'any' type.
+
+
+==== thisInConstructorParameter1.ts (1 errors) ====
+    class Foo {
+        public y;
+               ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+        constructor(x = this.y) { }
+    }

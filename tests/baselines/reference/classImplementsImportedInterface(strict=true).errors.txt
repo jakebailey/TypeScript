@@ -1,0 +1,18 @@
+classImplementsImportedInterface.ts(3,9): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== classImplementsImportedInterface.ts (1 errors) ====
+    module M1 {
+        export interface I {
+            foo();
+            ~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        }
+    }
+    
+    module M2 {
+        import T = M1.I;
+        class C implements T {
+            foo() {}
+        }
+    }

@@ -1,0 +1,12 @@
+asyncFunctionTempVariableScoping.ts(3,10): error TS7031: Binding element 'foo' implicitly has an 'any' type.
+asyncFunctionTempVariableScoping.ts(3,15): error TS7031: Binding element 'bar' implicitly has an 'any' type.
+
+
+==== asyncFunctionTempVariableScoping.ts (2 errors) ====
+    // https://github.com/Microsoft/TypeScript/issues/19187
+    
+    async ({ foo, bar, ...rest }) => bar(await foo);
+             ~~~
+!!! error TS7031: Binding element 'foo' implicitly has an 'any' type.
+                  ~~~
+!!! error TS7031: Binding element 'bar' implicitly has an 'any' type.

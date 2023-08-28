@@ -1,0 +1,32 @@
+collisionCodeGenModuleWithConstructorChildren.ts(4,21): error TS7006: Parameter 'M' implicitly has an 'any' type.
+collisionCodeGenModuleWithConstructorChildren.ts(11,21): error TS7006: Parameter 'M' implicitly has an 'any' type.
+
+
+==== collisionCodeGenModuleWithConstructorChildren.ts (2 errors) ====
+    module M {
+        export var x = 3;
+        class c {
+            constructor(M, p = x) {
+                        ~
+!!! error TS7006: Parameter 'M' implicitly has an 'any' type.
+            }
+        }
+    }
+    
+    module M {
+        class d {
+            constructor(private M, p = x) {
+                        ~~~~~~~~~
+!!! error TS7006: Parameter 'M' implicitly has an 'any' type.
+            }
+        }
+    }
+    
+    module M {
+        class d2 {
+            constructor() {
+                var M = 10;
+                var p = x;
+            }
+        }
+    }

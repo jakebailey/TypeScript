@@ -1,0 +1,31 @@
+specializationsShouldNotAffectEachOther.ts(10,25): error TS7006: Parameter 'series' implicitly has an 'any' type.
+specializationsShouldNotAffectEachOther.ts(14,5): error TS2454: Variable 'series2' is used before being assigned.
+specializationsShouldNotAffectEachOther.ts(19,25): error TS2454: Variable 'series' is used before being assigned.
+
+
+==== specializationsShouldNotAffectEachOther.ts (3 errors) ====
+    interface Series  {
+        data: string[];
+    }
+    
+    var series: Series;
+    
+    
+    function foo() {
+    
+        var seriesExtent = (series) => null;
+                            ~~~~~~
+!!! error TS7006: Parameter 'series' implicitly has an 'any' type.
+    
+        var series2: number[];
+    
+        series2.map(seriesExtent);
+        ~~~~~~~
+!!! error TS2454: Variable 'series2' is used before being assigned.
+        return null;
+    }
+    
+    
+    var keyExtent2: any[] = series.data.map(function (d: string) { return d; });
+                            ~~~~~~
+!!! error TS2454: Variable 'series' is used before being assigned.

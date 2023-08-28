@@ -1,0 +1,13 @@
+evalAfter0.ts(3,13): error TS7005: Variable 'eva' implicitly has an 'any' type.
+evalAfter0.ts(4,2): error TS2695: Left side of comma operator is unused and has no side effects.
+
+
+==== evalAfter0.ts (2 errors) ====
+    (0,eval)("10"); // fine: special case for eval
+    
+    declare var eva;
+                ~~~
+!!! error TS7005: Variable 'eva' implicitly has an 'any' type.
+    (0,eva)("10"); // error: no side effect left of comma (suspect of missing method name or something)
+     ~
+!!! error TS2695: Left side of comma operator is unused and has no side effects.

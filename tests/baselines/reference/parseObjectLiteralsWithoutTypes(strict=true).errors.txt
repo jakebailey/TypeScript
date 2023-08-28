@@ -1,0 +1,19 @@
+parseObjectLiteralsWithoutTypes.ts(1,10): error TS7008: Member 'foo' implicitly has an 'any' type.
+parseObjectLiteralsWithoutTypes.ts(1,15): error TS7008: Member 'bar' implicitly has an 'any' type.
+parseObjectLiteralsWithoutTypes.ts(2,23): error TS7008: Member 'bar' implicitly has an 'any' type.
+parseObjectLiteralsWithoutTypes.ts(3,10): error TS7008: Member 'foo' implicitly has an 'any' type.
+
+
+==== parseObjectLiteralsWithoutTypes.ts (4 errors) ====
+    let x: { foo, bar }
+             ~~~
+!!! error TS7008: Member 'foo' implicitly has an 'any' type.
+                  ~~~
+!!! error TS7008: Member 'bar' implicitly has an 'any' type.
+    let y: { foo: number, bar }
+                          ~~~
+!!! error TS7008: Member 'bar' implicitly has an 'any' type.
+    let z: { foo, bar: number }
+             ~~~
+!!! error TS7008: Member 'foo' implicitly has an 'any' type.
+    

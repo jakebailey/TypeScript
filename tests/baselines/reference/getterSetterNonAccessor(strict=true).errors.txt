@@ -1,0 +1,15 @@
+getterSetterNonAccessor.ts(2,18): error TS7006: Parameter 'v' implicitly has an 'any' type.
+
+
+==== getterSetterNonAccessor.ts (1 errors) ====
+    function getFunc():any{return 0;}
+    function setFunc(v){}          
+                     ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+    
+    Object.defineProperty({}, "0", <PropertyDescriptor>({
+              get: getFunc,
+              set: setFunc,
+              configurable: true
+          }));
+    

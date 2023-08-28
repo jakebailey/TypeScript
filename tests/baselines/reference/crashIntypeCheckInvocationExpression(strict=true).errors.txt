@@ -1,0 +1,33 @@
+crashIntypeCheckInvocationExpression.ts(1,5): error TS7034: Variable 'nake' implicitly has type 'any' in some locations where its type cannot be determined.
+crashIntypeCheckInvocationExpression.ts(6,28): error TS2304: Cannot find name 'task'.
+crashIntypeCheckInvocationExpression.ts(8,18): error TS2304: Cannot find name 'path'.
+crashIntypeCheckInvocationExpression.ts(9,19): error TS7005: Variable 'nake' implicitly has an 'any' type.
+crashIntypeCheckInvocationExpression.ts(9,19): error TS2347: Untyped function calls may not accept type arguments.
+crashIntypeCheckInvocationExpression.ts(10,50): error TS2304: Cannot find name 'moduleType'.
+
+
+==== crashIntypeCheckInvocationExpression.ts (6 errors) ====
+    var nake;
+        ~~~~
+!!! error TS7034: Variable 'nake' implicitly has type 'any' in some locations where its type cannot be determined.
+    function doCompile<P0, P1, P2>(fileset: P0, moduleType: P1) {
+    
+        return undefined;
+    }
+    export var compileServer = task<number, number, any>(<P0, P1, P2>() => {
+                               ~~~~
+!!! error TS2304: Cannot find name 'task'.
+    
+        var folder = path.join(),
+                     ~~~~
+!!! error TS2304: Cannot find name 'path'.
+            fileset = nake.fileSetSync<number, number, any>(folder)
+                      ~~~~
+!!! error TS7005: Variable 'nake' implicitly has an 'any' type.
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2347: Untyped function calls may not accept type arguments.
+      return doCompile<number, number, any>(fileset, moduleType);
+                                                     ~~~~~~~~~~
+!!! error TS2304: Cannot find name 'moduleType'.
+    });
+    

@@ -1,0 +1,35 @@
+declFileForClassWithMultipleBaseClasses.ts(10,5): error TS7010: 'baz', which lacks return-type annotation, implicitly has an 'any' return type.
+declFileForClassWithMultipleBaseClasses.ts(14,5): error TS7010: 'bat', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== declFileForClassWithMultipleBaseClasses.ts (2 errors) ====
+    class A {
+        foo() { }
+    }
+    
+    class B {
+        bar() { }
+    }
+    
+    interface I {
+        baz();
+        ~~~~~~
+!!! error TS7010: 'baz', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    interface J {
+        bat();
+        ~~~~~~
+!!! error TS7010: 'bat', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    
+    class D implements I, J {
+        baz() { }
+        bat() { }
+        foo() { }
+        bar() { }
+    }
+    
+    interface I extends A, B {
+    }

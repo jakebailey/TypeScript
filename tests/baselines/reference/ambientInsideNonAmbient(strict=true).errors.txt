@@ -1,0 +1,30 @@
+ambientInsideNonAmbient.ts(2,24): error TS7005: Variable 'x' implicitly has an 'any' type.
+ambientInsideNonAmbient.ts(3,29): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+ambientInsideNonAmbient.ts(10,17): error TS7005: Variable 'x' implicitly has an 'any' type.
+ambientInsideNonAmbient.ts(11,22): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== ambientInsideNonAmbient.ts (4 errors) ====
+    module M {
+        export declare var x;
+                           ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        export declare function f();
+                                ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+        export declare class C { }
+        export declare enum E { }
+        export declare module M { }
+    }
+    
+    module M2 {
+        declare var x;
+                    ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        declare function f();
+                         ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+        declare class C { }
+        declare enum E { }
+        declare module M { }
+    }

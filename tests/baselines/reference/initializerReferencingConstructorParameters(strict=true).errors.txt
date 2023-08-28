@@ -1,0 +1,52 @@
+initializerReferencingConstructorParameters.ts(4,9): error TS2301: Initializer of instance member variable 'a' cannot reference identifier 'x' declared in the constructor.
+initializerReferencingConstructorParameters.ts(5,15): error TS2844: Type of instance member variable 'b' cannot reference identifier 'x' declared in the constructor.
+initializerReferencingConstructorParameters.ts(6,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+initializerReferencingConstructorParameters.ts(10,9): error TS2663: Cannot find name 'x'. Did you mean the instance member 'this.x'?
+initializerReferencingConstructorParameters.ts(11,15): error TS2844: Type of instance member variable 'b' cannot reference identifier 'x' declared in the constructor.
+initializerReferencingConstructorParameters.ts(12,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+initializerReferencingConstructorParameters.ts(18,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+initializerReferencingConstructorParameters.ts(23,9): error TS2663: Cannot find name 'x'. Did you mean the instance member 'this.x'?
+
+
+==== initializerReferencingConstructorParameters.ts (8 errors) ====
+    // Initializer expressions for instance member variables are evaluated in the scope of the class constructor body but are not permitted to reference parameters or local variables of the constructor. 
+    
+    class C {
+        a = x; // error
+            ~
+!!! error TS2301: Initializer of instance member variable 'a' cannot reference identifier 'x' declared in the constructor.
+        b: typeof x; // error
+                  ~
+!!! error TS2844: Type of instance member variable 'b' cannot reference identifier 'x' declared in the constructor.
+        constructor(x) { }
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    class D {
+        a = x; // error
+            ~
+!!! error TS2663: Cannot find name 'x'. Did you mean the instance member 'this.x'?
+        b: typeof x; // error
+                  ~
+!!! error TS2844: Type of instance member variable 'b' cannot reference identifier 'x' declared in the constructor.
+        constructor(public x) { }
+                    ~~~~~~~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    class E {
+        a = this.x; // ok
+        b: typeof this.x; // ok
+        constructor(public x) { }
+                    ~~~~~~~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    class F<T> {
+        a = this.x; // ok
+        b = x; // error
+            ~
+!!! error TS2663: Cannot find name 'x'. Did you mean the instance member 'this.x'?
+        constructor(public x: T) { }
+    }

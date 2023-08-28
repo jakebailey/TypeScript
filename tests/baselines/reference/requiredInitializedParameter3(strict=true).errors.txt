@@ -1,0 +1,16 @@
+requiredInitializedParameter3.ts(2,5): error TS7010: 'method', which lacks return-type annotation, implicitly has an 'any' return type.
+requiredInitializedParameter3.ts(6,19): error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+
+==== requiredInitializedParameter3.ts (2 errors) ====
+    interface I1 {
+        method();
+        ~~~~~~~~~
+!!! error TS7010: 'method', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    class C1 implements I1 {
+        method(a = 0, b?) { }
+                      ~~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    }

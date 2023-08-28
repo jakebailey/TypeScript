@@ -1,0 +1,47 @@
+derivedClassSuperCallsWithThisArg.ts(2,5): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+derivedClassSuperCallsWithThisArg.ts(3,17): error TS7006: Parameter 'a' implicitly has an 'any' type.
+derivedClassSuperCallsWithThisArg.ts(8,15): error TS17009: 'super' must be called before accessing 'this' in the constructor of a derived class.
+derivedClassSuperCallsWithThisArg.ts(14,15): error TS17009: 'super' must be called before accessing 'this' in the constructor of a derived class.
+derivedClassSuperCallsWithThisArg.ts(26,36): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+
+
+==== derivedClassSuperCallsWithThisArg.ts (5 errors) ====
+    class Base {
+        x: string;
+        ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+        constructor(a) { }
+                    ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    }
+    
+    class Derived extends Base {
+        constructor() {
+            super(this); // ok
+                  ~~~~
+!!! error TS17009: 'super' must be called before accessing 'this' in the constructor of a derived class.
+        }
+    }
+    
+    class Derived2 extends Base {
+        constructor(public a: string) {
+            super(this); // error
+                  ~~~~
+!!! error TS17009: 'super' must be called before accessing 'this' in the constructor of a derived class.
+        }
+    }
+    
+    class Derived3 extends Base {
+        constructor(public a: string) {
+            super(() => this); // error
+        }
+    }
+    
+    class Derived4 extends Base {
+        constructor(public a: string) {
+            super(function () { return this; }); // ok
+                                       ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+!!! related TS2738 derivedClassSuperCallsWithThisArg.ts:26:15: An outer value of 'this' is shadowed by this container.
+        }
+    }

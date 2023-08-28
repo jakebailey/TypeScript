@@ -1,0 +1,47 @@
+badArraySyntax.ts(6,14): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof Z'.
+badArraySyntax.ts(6,16): error TS1011: An element access expression should take an argument.
+badArraySyntax.ts(7,14): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof Z'.
+badArraySyntax.ts(7,16): error TS1011: An element access expression should take an argument.
+badArraySyntax.ts(8,19): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof Z'.
+badArraySyntax.ts(8,21): error TS1011: An element access expression should take an argument.
+badArraySyntax.ts(9,19): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof Z'.
+badArraySyntax.ts(9,21): error TS1011: An element access expression should take an argument.
+badArraySyntax.ts(10,23): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof Z'.
+badArraySyntax.ts(10,30): error TS1011: An element access expression should take an argument.
+badArraySyntax.ts(10,41): error TS1011: An element access expression should take an argument.
+
+
+==== badArraySyntax.ts (11 errors) ====
+    class Z {
+     public x = "";
+    }
+    
+    var a1: Z[] = [];
+    var a2 = new Z[];
+                 ~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof Z'.
+                   
+!!! error TS1011: An element access expression should take an argument.
+    var a3 = new Z[]();
+                 ~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof Z'.
+                   
+!!! error TS1011: An element access expression should take an argument.
+    var a4: Z[] = new Z[];
+                      ~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof Z'.
+                        
+!!! error TS1011: An element access expression should take an argument.
+    var a5: Z[] = new Z[]();
+                      ~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof Z'.
+                        
+!!! error TS1011: An element access expression should take an argument.
+    var a6: Z[][] = new   Z     [      ]   [  ];
+                          ~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof Z'.
+                                 
+!!! error TS1011: An element access expression should take an argument.
+                                            
+!!! error TS1011: An element access expression should take an argument.
+    

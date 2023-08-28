@@ -1,0 +1,32 @@
+grammarAmbiguities.ts(8,7): error TS18048: 'A' is possibly 'undefined'.
+grammarAmbiguities.ts(8,10): error TS18048: 'B' is possibly 'undefined'.
+grammarAmbiguities.ts(8,10): error TS2554: Expected 1 arguments, but got 2.
+grammarAmbiguities.ts(9,7): error TS18048: 'A' is possibly 'undefined'.
+grammarAmbiguities.ts(9,10): error TS18048: 'B' is possibly 'undefined'.
+grammarAmbiguities.ts(9,10): error TS2554: Expected 1 arguments, but got 2.
+
+
+==== grammarAmbiguities.ts (6 errors) ====
+    function f(n: any) { return null; }
+    function g<A, B>(x: any) { return null; }
+    interface A { }
+    interface B { }
+    var A, B;
+    
+    f(g<A, B>(7));
+    f(g < A, B > 7); // Should error
+          ~
+!!! error TS18048: 'A' is possibly 'undefined'.
+             ~
+!!! error TS18048: 'B' is possibly 'undefined'.
+             ~~~~~
+!!! error TS2554: Expected 1 arguments, but got 2.
+    f(g < A, B > +(7)); // Should error
+          ~
+!!! error TS18048: 'A' is possibly 'undefined'.
+             ~
+!!! error TS18048: 'B' is possibly 'undefined'.
+             ~~~~~~~~
+!!! error TS2554: Expected 1 arguments, but got 2.
+    
+    

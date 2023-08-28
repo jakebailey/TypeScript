@@ -1,0 +1,21 @@
+emitDefaultParametersFunctionExpression.ts(3,40): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+emitDefaultParametersFunctionExpression.ts(4,29): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+emitDefaultParametersFunctionExpression.ts(6,34): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+
+
+==== emitDefaultParametersFunctionExpression.ts (3 errors) ====
+    var lambda1 = (y = "hello") => { }
+    var lambda2 = (x: number, y = "hello") => { }
+    var lambda3 = (x: number, y = "hello", ...rest) => { }
+                                           ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    var lambda4 = (y = "hello", ...rest) => { }
+                                ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    
+    var x = function (str = "hello", ...rest) { }
+                                     ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    var y = (function (num = 10, boo = false, ...rest) { })()
+    var z = (function (num: number, boo = false, ...rest) { })(10)
+    

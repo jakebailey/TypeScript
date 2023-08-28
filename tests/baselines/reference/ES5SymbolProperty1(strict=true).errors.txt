@@ -1,0 +1,19 @@
+ES5SymbolProperty1.ts(7,6): error TS2454: Variable 'Symbol' is used before being assigned.
+ES5SymbolProperty1.ts(10,5): error TS2454: Variable 'Symbol' is used before being assigned.
+
+
+==== ES5SymbolProperty1.ts (2 errors) ====
+    interface SymbolConstructor {
+        foo: string;
+    }
+    var Symbol: SymbolConstructor;
+    
+    var obj = {
+        [Symbol.foo]: 0
+         ~~~~~~
+!!! error TS2454: Variable 'Symbol' is used before being assigned.
+    }
+    
+    obj[Symbol.foo];
+        ~~~~~~
+!!! error TS2454: Variable 'Symbol' is used before being assigned.

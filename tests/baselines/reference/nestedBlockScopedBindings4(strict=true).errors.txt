@@ -1,0 +1,67 @@
+nestedBlockScopedBindings4.ts(3,13): error TS18048: 'x' is possibly 'undefined'.
+nestedBlockScopedBindings4.ts(6,13): error TS18048: 'x' is possibly 'undefined'.
+nestedBlockScopedBindings4.ts(12,13): error TS18048: 'x' is possibly 'undefined'.
+nestedBlockScopedBindings4.ts(16,13): error TS18048: 'x' is possibly 'undefined'.
+nestedBlockScopedBindings4.ts(22,13): error TS18048: 'x' is possibly 'undefined'.
+nestedBlockScopedBindings4.ts(25,13): error TS18048: 'x' is possibly 'undefined'.
+nestedBlockScopedBindings4.ts(33,13): error TS18048: 'x' is possibly 'undefined'.
+nestedBlockScopedBindings4.ts(37,13): error TS18048: 'x' is possibly 'undefined'.
+
+
+==== nestedBlockScopedBindings4.ts (8 errors) ====
+    function a0() {
+        for (let x; x < 1;) {
+            x = x + 1;
+                ~
+!!! error TS18048: 'x' is possibly 'undefined'.
+        }
+        for (let x;;) {
+            x = x + 2;
+                ~
+!!! error TS18048: 'x' is possibly 'undefined'.
+        }
+    }
+    
+    function a1() {
+        for (let x; x < 1;) {
+            x = x + 1;
+                ~
+!!! error TS18048: 'x' is possibly 'undefined'.
+            () => x;
+        }
+        for (let x;;) {
+            x = x + 2;
+                ~
+!!! error TS18048: 'x' is possibly 'undefined'.
+        }
+    }
+    
+    function a2() {
+        for (let x; x < 1;) {
+            x = x + 1;
+                ~
+!!! error TS18048: 'x' is possibly 'undefined'.
+        }
+        for (let x;;) {
+            x = x + 2;
+                ~
+!!! error TS18048: 'x' is possibly 'undefined'.
+            () => x;
+        }
+    }
+    
+    
+    function a3() {
+        for (let x; x < 1;) {
+            x = x + 1;
+                ~
+!!! error TS18048: 'x' is possibly 'undefined'.
+            () => x;
+        }
+        for (let x;;) {
+            x = x + 2;
+                ~
+!!! error TS18048: 'x' is possibly 'undefined'.
+            () => x;
+        }
+    }

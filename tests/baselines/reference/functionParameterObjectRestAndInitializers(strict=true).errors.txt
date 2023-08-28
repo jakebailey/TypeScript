@@ -1,0 +1,22 @@
+functionParameterObjectRestAndInitializers.ts(3,13): error TS7031: Binding element 'a' implicitly has an 'any' type.
+functionParameterObjectRestAndInitializers.ts(7,13): error TS7031: Binding element 'a' implicitly has an 'any' type.
+functionParameterObjectRestAndInitializers.ts(7,29): error TS7031: Binding element 'a' implicitly has an 'any' type.
+
+
+==== functionParameterObjectRestAndInitializers.ts (3 errors) ====
+    // https://github.com/microsoft/TypeScript/issues/47079
+    
+    function f({a, ...x}, b = a) {
+                ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+        return b;
+    }
+    
+    function g({a, ...x}, b = ({a}, b = a) => {}) {
+                ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                                ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+        return b;
+    }
+    

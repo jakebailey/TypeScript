@@ -1,0 +1,72 @@
+metadataOfUnionWithNull.ts(8,5): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+metadataOfUnionWithNull.ts(11,5): error TS2564: Property 'y' has no initializer and is not definitely assigned in the constructor.
+metadataOfUnionWithNull.ts(17,5): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+metadataOfUnionWithNull.ts(20,5): error TS2564: Property 'b' has no initializer and is not definitely assigned in the constructor.
+metadataOfUnionWithNull.ts(29,5): error TS2564: Property 'e' has no initializer and is not definitely assigned in the constructor.
+metadataOfUnionWithNull.ts(32,5): error TS2564: Property 'f' has no initializer and is not definitely assigned in the constructor.
+metadataOfUnionWithNull.ts(35,5): error TS2564: Property 'g' has no initializer and is not definitely assigned in the constructor.
+metadataOfUnionWithNull.ts(38,5): error TS2564: Property 'h' has no initializer and is not definitely assigned in the constructor.
+metadataOfUnionWithNull.ts(41,5): error TS2564: Property 'j' has no initializer and is not definitely assigned in the constructor.
+
+
+==== metadataOfUnionWithNull.ts (9 errors) ====
+    function PropDeco(target: Object, propKey: string | symbol) { }
+    
+    class A {
+    }
+    
+    class B {
+        @PropDeco
+        x: "foo" | null;
+        ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+    
+        @PropDeco
+        y: true | never;
+        ~
+!!! error TS2564: Property 'y' has no initializer and is not definitely assigned in the constructor.
+    
+        @PropDeco
+        z: "foo" | undefined;
+    
+        @PropDeco
+        a: null;
+        ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+    
+        @PropDeco
+        b: never;
+        ~
+!!! error TS2564: Property 'b' has no initializer and is not definitely assigned in the constructor.
+    
+        @PropDeco
+        c: undefined;
+    
+        @PropDeco
+        d: undefined | null;
+    
+        @PropDeco
+        e: symbol | null;
+        ~
+!!! error TS2564: Property 'e' has no initializer and is not definitely assigned in the constructor.
+    
+        @PropDeco
+        f: symbol | A;
+        ~
+!!! error TS2564: Property 'f' has no initializer and is not definitely assigned in the constructor.
+    
+        @PropDeco
+        g: A | null;
+        ~
+!!! error TS2564: Property 'g' has no initializer and is not definitely assigned in the constructor.
+    
+        @PropDeco
+        h: null | B;
+        ~
+!!! error TS2564: Property 'h' has no initializer and is not definitely assigned in the constructor.
+    
+        @PropDeco
+        j: null | symbol;
+        ~
+!!! error TS2564: Property 'j' has no initializer and is not definitely assigned in the constructor.
+    }

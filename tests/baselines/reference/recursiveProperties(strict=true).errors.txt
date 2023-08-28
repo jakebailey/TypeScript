@@ -1,0 +1,13 @@
+recursiveProperties.ts(2,9): error TS7023: 'testProp' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+
+
+==== recursiveProperties.ts (1 errors) ====
+    class A {
+        get testProp() { return this.testProp; }
+            ~~~~~~~~
+!!! error TS7023: 'testProp' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+    }
+    
+    class B {
+        set testProp(value:string) { this.testProp = value; }
+    }

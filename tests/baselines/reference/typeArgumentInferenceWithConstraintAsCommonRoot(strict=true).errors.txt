@@ -1,0 +1,36 @@
+typeArgumentInferenceWithConstraintAsCommonRoot.ts(1,20): error TS7008: Member 'x' implicitly has an 'any' type.
+typeArgumentInferenceWithConstraintAsCommonRoot.ts(2,36): error TS7008: Member 'y' implicitly has an 'any' type.
+typeArgumentInferenceWithConstraintAsCommonRoot.ts(3,37): error TS7008: Member 'z' implicitly has an 'any' type.
+typeArgumentInferenceWithConstraintAsCommonRoot.ts(4,47): error TS2322: Type 'undefined' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'undefined'.
+typeArgumentInferenceWithConstraintAsCommonRoot.ts(7,3): error TS2454: Variable 'g' is used before being assigned.
+typeArgumentInferenceWithConstraintAsCommonRoot.ts(7,6): error TS2345: Argument of type 'Elephant' is not assignable to parameter of type 'Giraffe'.
+  Property 'y' is missing in type 'Elephant' but required in type 'Giraffe'.
+typeArgumentInferenceWithConstraintAsCommonRoot.ts(7,6): error TS2454: Variable 'e' is used before being assigned.
+
+
+==== typeArgumentInferenceWithConstraintAsCommonRoot.ts (7 errors) ====
+    interface Animal { x }
+                       ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    interface Giraffe extends Animal { y }
+                                       ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    interface Elephant extends Animal { z }
+                                        ~
+!!! error TS7008: Member 'z' implicitly has an 'any' type.
+    function f<T extends Animal>(x: T, y: T): T { return undefined; }
+                                                  ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'undefined'.
+    var g: Giraffe;
+    var e: Elephant;
+    f(g, e); // valid because both Giraffe and Elephant satisfy the constraint. T is Animal
+      ~
+!!! error TS2454: Variable 'g' is used before being assigned.
+         ~
+!!! error TS2345: Argument of type 'Elephant' is not assignable to parameter of type 'Giraffe'.
+!!! error TS2345:   Property 'y' is missing in type 'Elephant' but required in type 'Giraffe'.
+!!! related TS2728 typeArgumentInferenceWithConstraintAsCommonRoot.ts:2:36: 'y' is declared here.
+         ~
+!!! error TS2454: Variable 'e' is used before being assigned.

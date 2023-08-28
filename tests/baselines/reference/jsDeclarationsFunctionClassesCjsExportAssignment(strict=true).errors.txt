@@ -1,0 +1,75 @@
+context.js(36,5): error TS7022: 'state' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+
+
+==== timer.js (0 errors) ====
+    /**
+     * @param {number} timeout
+     */
+    function Timer(timeout) {
+        this.timeout = timeout;
+    }
+    module.exports = Timer;
+==== hook.js (0 errors) ====
+    /**
+     * @typedef {(arg: import("./context")) => void} HookHandler
+     */
+    /**
+     * @param {HookHandler} handle
+     */
+    function Hook(handle) {
+        this.handle = handle;
+    }
+    module.exports = Hook;
+    
+==== context.js (1 errors) ====
+    /**
+     * Imports
+     *
+     * @typedef {import("./timer")} Timer
+     * @typedef {import("./hook")} Hook
+     * @typedef {import("./hook").HookHandler} HookHandler
+     */
+    
+    /**
+     * Input type definition
+     *
+     * @typedef {Object} Input
+     * @prop {Timer} timer
+     * @prop {Hook} hook
+     */
+     
+    /**
+     * State type definition
+     *
+     * @typedef {Object} State
+     * @prop {Timer} timer
+     * @prop {Hook} hook
+     */
+    
+    /**
+     * New `Context`
+     *
+     * @class
+     * @param {Input} input
+     */
+    
+    function Context(input) {
+        if (!(this instanceof Context)) {
+          return new Context(input)
+        }
+        this.state = this.construct(input);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7022: 'state' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    }
+    Context.prototype = {
+        /**
+         * @param {Input} input
+         * @param {HookHandler=} handle
+         * @returns {State}
+         */
+        construct(input, handle = () => void 0) {
+            return input;
+        }
+    }
+    module.exports = Context;
+    

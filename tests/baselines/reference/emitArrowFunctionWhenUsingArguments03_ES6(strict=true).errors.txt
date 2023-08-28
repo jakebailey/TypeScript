@@ -1,0 +1,14 @@
+emitArrowFunctionWhenUsingArguments03_ES6.ts(1,5): error TS1100: Invalid use of 'arguments' in strict mode.
+emitArrowFunctionWhenUsingArguments03_ES6.ts(1,5): error TS7034: Variable 'arguments' implicitly has type 'any' in some locations where its type cannot be determined.
+emitArrowFunctionWhenUsingArguments03_ES6.ts(2,15): error TS7005: Variable 'arguments' implicitly has an 'any' type.
+
+
+==== emitArrowFunctionWhenUsingArguments03_ES6.ts (3 errors) ====
+    var arguments;
+        ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+        ~~~~~~~~~
+!!! error TS7034: Variable 'arguments' implicitly has type 'any' in some locations where its type cannot be determined.
+    var a = () => arguments;
+                  ~~~~~~~~~
+!!! error TS7005: Variable 'arguments' implicitly has an 'any' type.

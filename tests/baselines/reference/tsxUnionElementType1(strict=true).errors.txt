@@ -1,0 +1,23 @@
+error TS2318: Cannot find global type 'CallableFunction'.
+error TS2318: Cannot find global type 'NewableFunction'.
+file.tsx(12,10): error TS2322: Type 'boolean' is not assignable to type 'number'.
+
+
+!!! error TS2318: Cannot find global type 'CallableFunction'.
+!!! error TS2318: Cannot find global type 'NewableFunction'.
+==== file.tsx (1 errors) ====
+    import React = require('react');
+    
+    function SFC1(prop: { x: number }) {
+        return <div>hello</div>;
+    };
+    
+    function SFC2(prop: { x: boolean }) {
+        return <h1>World </h1>;
+    }
+    
+    var SFCComp = SFC1 || SFC2;
+    <SFCComp x />
+             ~
+!!! error TS2322: Type 'boolean' is not assignable to type 'number'.
+!!! related TS6500 file.tsx:3:23: The expected type comes from property 'x' which is declared here on type 'IntrinsicAttributes & { x: number; }'

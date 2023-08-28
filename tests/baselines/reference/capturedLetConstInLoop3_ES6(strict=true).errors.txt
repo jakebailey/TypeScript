@@ -1,0 +1,391 @@
+capturedLetConstInLoop3_ES6.ts(2,18): error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+capturedLetConstInLoop3_ES6.ts(3,15): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(10,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop3_ES6.ts(13,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(20,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop3_ES6.ts(23,15): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(30,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop3_ES6.ts(33,15): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(41,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop3_ES6.ts(44,15): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(46,13): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop3_ES6.ts(47,13): error TS7034: Variable 'v' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop3_ES6.ts(48,30): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(48,34): error TS7005: Variable 'v' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(49,16): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(49,20): error TS7005: Variable 'v' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(55,15): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(63,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop3_ES6.ts(66,15): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(73,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop3_ES6.ts(77,15): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(79,13): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop3_ES6.ts(79,16): error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop3_ES6.ts(81,30): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(81,34): error TS7005: Variable 'y' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(82,16): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(82,20): error TS7005: Variable 'y' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(88,15): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(90,13): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop3_ES6.ts(90,16): error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop3_ES6.ts(92,30): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(92,34): error TS7005: Variable 'y' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(93,16): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(93,20): error TS7005: Variable 'y' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(100,15): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(108,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop3_ES6.ts(111,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(118,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop3_ES6.ts(121,19): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(128,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop3_ES6.ts(131,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(138,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop3_ES6.ts(141,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(149,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop3_ES6.ts(152,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(155,13): error TS7034: Variable 'v' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop3_ES6.ts(156,34): error TS7005: Variable 'v' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(157,20): error TS7005: Variable 'v' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(163,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(171,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop3_ES6.ts(174,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(181,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop3_ES6.ts(185,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(193,9): error TS2454: Variable 'v' is used before being assigned.
+capturedLetConstInLoop3_ES6.ts(196,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(208,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+capturedLetConstInLoop3_ES6.ts(216,9): error TS2454: Variable 'v' is used before being assigned.
+
+
+==== capturedLetConstInLoop3_ES6.ts (57 errors) ====
+    ///=========let
+    declare function use(a: any);
+                     ~~~
+!!! error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo0(x) {
+                  ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        for (let x of []) {
+            var v = x;
+            (function() { return x + v });
+            (() => x + v);
+        }
+    
+        use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }
+    
+    function foo0_1(x) {
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        for (let x in []) {
+            var v = x;
+            (function() { return x + v });
+            (() => x + v);
+        }
+    
+        use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }
+    
+    function foo1(x) {
+                  ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        for (let x = 0; x < 1; ++x) {
+            var v = x;
+            (function() { return x + v });
+            (() => x + v);
+        }
+    
+        use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }
+    
+    function foo2(x) {
+                  ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        while (1 === 1) {
+            let x = 1;
+            var v = x;
+            (function() { return x + v });
+            (() => x + v);
+        }
+        
+        use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }
+    
+    function foo3(x) {
+                  ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        do {
+            let x;
+                ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+            var v;
+                ~
+!!! error TS7034: Variable 'v' implicitly has type 'any' in some locations where its type cannot be determined.
+            (function() { return x + v });
+                                 ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                                     ~
+!!! error TS7005: Variable 'v' implicitly has an 'any' type.
+            (() => x + v);
+                   ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                       ~
+!!! error TS7005: Variable 'v' implicitly has an 'any' type.
+        } while (1 === 1);
+        
+        use(v);
+    }
+    
+    function foo4(x) {
+                  ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        for (let y = 0; y < 1; ++y) {
+            var v = y;
+            let x = 1;
+            (function() { return x + v });
+            (() => x + v);
+        }
+        
+        use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }
+    
+    function foo5(x) {
+                  ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        for (let x = 0, y = 1; x < 1; ++x) {
+            var v = x;
+            (function() { return x + y + v });
+            (() => x + y + v);
+        }
+        
+        use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }
+    
+    
+    function foo6(x) {
+                  ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        while (1 === 1) {
+            let x, y;
+                ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+                   ~
+!!! error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+            var v = x;
+            (function() { return x + y + v });
+                                 ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                                     ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+            (() => x + y + v);
+                   ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                       ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+        }
+        
+        use(v)
+    }
+    
+    function foo7(x) {
+                  ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        do {
+            let x, y;
+                ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+                   ~
+!!! error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+            var v = x;
+            (function() { return x + y + v });
+                                 ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                                     ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+            (() => x + y + v);
+                   ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                       ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+        } while (1 === 1);
+        
+        use(v);
+    }
+    
+    
+    function foo8(x) {
+                  ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        for (let y = 0; y < 1; ++y) {
+            let x = 1;
+            var v = x;
+            (function() { return x + y + v });
+            (() => x + y + v);
+        }
+        
+        use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }
+    //===const
+    function foo0_c(x) {
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        for (const x of []) {
+            var v = x;
+            (function() { return x + v });
+            (() => x + v);
+        }
+    
+        use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }
+    
+    function foo0_1_c(x) {
+                      ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        for (const x in []) {
+            var v = x;
+            (function() { return x + v });
+            (() => x + v);
+        }
+    
+        use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }
+    
+    function foo1_c(x) {
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        for (const x = 0; x < 1;) {
+            var v = x;
+            (function() { return x + v });
+            (() => x + v);
+        }
+    
+        use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }
+    
+    function foo2_c(x) {
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        while (1 === 1) {
+            const x = 1;
+            var v = x;
+            (function() { return x + v });
+            (() => x + v);
+        }
+        
+        use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }
+    
+    function foo3_c(x) {
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        do {
+            const x = 1;
+            var v;
+                ~
+!!! error TS7034: Variable 'v' implicitly has type 'any' in some locations where its type cannot be determined.
+            (function() { return x + v });
+                                     ~
+!!! error TS7005: Variable 'v' implicitly has an 'any' type.
+            (() => x + v);
+                       ~
+!!! error TS7005: Variable 'v' implicitly has an 'any' type.
+        } while (1 === 1);
+        
+        use(v);
+    }
+    
+    function foo4_c(x) {
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        for (const y = 0; y < 1;) {
+            var v = y;
+            const x = 1;
+            (function() { return x + v });
+            (() => x + v);
+        }
+        
+        use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }
+    
+    function foo5_c(x) {
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        for (const x = 0, y = 1; x < 1;) {
+            var v = x;
+            (function() { return x + y + v });
+            (() => x + y + v);
+        }
+        
+        use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }
+    
+    
+    function foo6_c(x) {
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        while (1 === 1) {
+            const x = 1, y = 1;
+            var v = x;
+            (function() { return x + y + v });
+            (() => x + y + v);
+        }
+        
+        use(v)
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }
+    
+    function foo7_c(x) {
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        do {
+            const x = 1, y = 1;
+            var v = x;
+            (function() { return x + y + v });
+            (() => x + y + v);
+        } while (1 === 1);
+        
+        use(v);
+    }
+    
+    
+    function foo8_c(x) {
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        for (const y = 0; y < 1;) {
+            const x = 1;
+            var v = x;
+            (function() { return x + y + v });
+            (() => x + y + v);
+        }
+        
+        use(v);
+            ~
+!!! error TS2454: Variable 'v' is used before being assigned.
+    }

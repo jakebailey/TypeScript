@@ -1,0 +1,72 @@
+constructorsWithSpecializedSignatures.ts(18,5): error TS2394: This overload signature is not compatible with its implementation signature.
+constructorsWithSpecializedSignatures.ts(26,5): error TS2394: This overload signature is not compatible with its implementation signature.
+constructorsWithSpecializedSignatures.ts(33,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+constructorsWithSpecializedSignatures.ts(34,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+constructorsWithSpecializedSignatures.ts(35,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+constructorsWithSpecializedSignatures.ts(40,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+constructorsWithSpecializedSignatures.ts(41,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+constructorsWithSpecializedSignatures.ts(42,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== constructorsWithSpecializedSignatures.ts (8 errors) ====
+    // errors
+    declare class C {
+        constructor(x: "hi");
+        constructor(x: "foo");
+        constructor(x: number);
+    }
+    
+    // ok
+    declare class C2 {
+        constructor(x: "hi");
+        constructor(x: "foo");
+        constructor(x: string);
+    }
+    
+    // errors
+    class D {
+        constructor(x: "hi");
+        constructor(x: "foo");
+        ~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 constructorsWithSpecializedSignatures.ts:20:5: The implementation signature is declared here.
+        constructor(x: number);
+        constructor(x: "hi") { }
+    }
+    
+    // overloads are ok
+    class D2 {
+        constructor(x: "hi");
+        constructor(x: "foo");
+        ~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 constructorsWithSpecializedSignatures.ts:28:5: The implementation signature is declared here.
+        constructor(x: string);
+        constructor(x: "hi") { } // error
+    }
+    
+    // errors
+    interface I {
+        new (x: "hi");
+        ~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        new (x: "foo");
+        ~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        new (x: number);
+        ~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    // ok
+    interface I2 {
+        new (x: "hi");
+        ~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        new (x: "foo");
+        ~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        new (x: string);
+        ~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    }

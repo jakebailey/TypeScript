@@ -1,0 +1,17 @@
+asOperatorASI.ts(2,18): error TS7010: 'as', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== asOperatorASI.ts (1 errors) ====
+    class Foo { }
+    declare function as(...args: any[]);
+                     ~~
+!!! error TS7010: 'as', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    // Example 1
+    var x = 10
+    as `Hello world`; // should not error
+    
+    // Example 2
+    var y = 20
+    as(Foo); // should emit
+    

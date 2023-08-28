@@ -1,0 +1,18 @@
+commentsAfterFunctionExpression1.ts(2,8): error TS7006: Parameter 'a' implicitly has an 'any' type.
+commentsAfterFunctionExpression1.ts(3,9): error TS7006: Parameter 'a' implicitly has an 'any' type.
+commentsAfterFunctionExpression1.ts(4,9): error TS7006: Parameter 'a' implicitly has an 'any' type.
+
+
+==== commentsAfterFunctionExpression1.ts (3 errors) ====
+    var v = {
+        f: a => 0 /*t1*/,
+           ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+        g: (a => 0) /*t2*/,
+            ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+        h: (a => 0 /*t3*/)
+            ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    }
+    

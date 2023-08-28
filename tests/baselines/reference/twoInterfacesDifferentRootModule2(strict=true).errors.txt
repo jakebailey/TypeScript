@@ -1,0 +1,76 @@
+twoInterfacesDifferentRootModule2.ts(18,18): error TS2454: Variable 'a' is used before being assigned.
+twoInterfacesDifferentRootModule2.ts(18,20): error TS2339: Property 'foo' does not exist on type 'A'.
+twoInterfacesDifferentRootModule2.ts(19,18): error TS2454: Variable 'a' is used before being assigned.
+twoInterfacesDifferentRootModule2.ts(26,18): error TS2454: Variable 'b' is used before being assigned.
+twoInterfacesDifferentRootModule2.ts(26,20): error TS2339: Property 'foo' does not exist on type 'B<string>'.
+twoInterfacesDifferentRootModule2.ts(27,18): error TS2454: Variable 'b' is used before being assigned.
+twoInterfacesDifferentRootModule2.ts(31,14): error TS2454: Variable 'a' is used before being assigned.
+twoInterfacesDifferentRootModule2.ts(32,14): error TS2454: Variable 'a' is used before being assigned.
+twoInterfacesDifferentRootModule2.ts(32,16): error TS2339: Property 'bar' does not exist on type 'A'.
+twoInterfacesDifferentRootModule2.ts(35,14): error TS2454: Variable 'b' is used before being assigned.
+twoInterfacesDifferentRootModule2.ts(36,14): error TS2454: Variable 'b' is used before being assigned.
+twoInterfacesDifferentRootModule2.ts(36,16): error TS2339: Property 'bar' does not exist on type 'B<string>'.
+
+
+==== twoInterfacesDifferentRootModule2.ts (12 errors) ====
+    // two interfaces with different root modules should not merge
+    
+    module M {
+        export interface A {
+            foo: string;
+        }
+    
+        export interface B<T> {
+            foo: T;
+        }
+    
+        module M2 {
+            export interface A {
+                bar: number;
+            }
+    
+            var a: A;
+            var r1 = a.foo; // error
+                     ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+                       ~~~
+!!! error TS2339: Property 'foo' does not exist on type 'A'.
+            var r2 = a.bar;
+                     ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+            export interface B<T> {
+                bar: T;
+            }
+    
+            var b: B<string>;
+            var r3 = b.foo; // error
+                     ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                       ~~~
+!!! error TS2339: Property 'foo' does not exist on type 'B<string>'.
+            var r4 = b.bar;
+                     ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+        }
+    
+        var a: A;
+        var r1 = a.foo; 
+                 ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        var r2 = a.bar; // error
+                 ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+                   ~~~
+!!! error TS2339: Property 'bar' does not exist on type 'A'.
+    
+        var b: B<string>;
+        var r3 = b.foo; 
+                 ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+        var r4 = b.bar; // error
+                 ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                   ~~~
+!!! error TS2339: Property 'bar' does not exist on type 'B<string>'.
+    }

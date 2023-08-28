@@ -1,0 +1,24 @@
+classAbstractExtends.ts(6,14): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractExtends.ts(9,7): error TS2515: Non-abstract class 'C' does not implement inherited abstract member bar from class 'B'.
+
+
+==== classAbstractExtends.ts (2 errors) ====
+    class A {
+        foo() {}
+    }
+    
+    abstract class B extends A {
+        abstract bar();
+                 ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    class C extends B { }
+          ~
+!!! error TS2515: Non-abstract class 'C' does not implement inherited abstract member bar from class 'B'.
+    
+    abstract class D extends B {}
+    
+    class E extends B {
+        bar() {}
+    }

@@ -1,0 +1,56 @@
+jsdocAccessibilityTagDeclarations.js(3,17): error TS7006: Parameter 'c' implicitly has an 'any' type.
+jsdocAccessibilityTagDeclarations.js(19,17): error TS7006: Parameter 'c' implicitly has an 'any' type.
+jsdocAccessibilityTagDeclarations.js(35,32): error TS7006: Parameter 'x' implicitly has an 'any' type.
+jsdocAccessibilityTagDeclarations.js(35,53): error TS7006: Parameter 'y' implicitly has an 'any' type.
+jsdocAccessibilityTagDeclarations.js(35,72): error TS7006: Parameter 'z' implicitly has an 'any' type.
+
+
+==== jsdocAccessibilityTagDeclarations.js (5 errors) ====
+    class Protected {
+        /** @protected */
+        constructor(c) {
+                    ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+            /** @protected */
+            this.c = c
+        }
+        /** @protected */
+        m() {
+            return this.c
+        }
+        /** @protected */
+        get p() { return this.c }
+        /** @protected */
+        set p(value) { this.c = value }
+    }
+    
+    class Private {
+        /** @private */
+        constructor(c) {
+                    ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+            /** @private */
+            this.c = c
+        }
+        /** @private */
+        m() {
+            return this.c
+        }
+        /** @private */
+        get p() { return this.c }
+        /** @private */
+        set p(value) { this.c = value }
+    }
+    
+    // https://github.com/microsoft/TypeScript/issues/38401
+    class C {
+        constructor(/** @public */ x, /** @protected */ y, /** @private */ z) {
+                                   ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                                                        ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+                                                                           ~
+!!! error TS7006: Parameter 'z' implicitly has an 'any' type.
+        }
+    }
+    

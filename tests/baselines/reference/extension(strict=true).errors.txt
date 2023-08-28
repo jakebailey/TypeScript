@@ -1,0 +1,61 @@
+extension.ts(2,5): error TS7008: Member 'x' implicitly has an 'any' type.
+extension.ts(6,5): error TS7008: Member 'y' implicitly has an 'any' type.
+extension.ts(10,18): error TS2300: Duplicate identifier 'C'.
+extension.ts(16,5): error TS1128: Declaration or statement expected.
+extension.ts(16,12): error TS1434: Unexpected keyword or identifier.
+extension.ts(16,12): error TS2304: Cannot find name 'extension'.
+extension.ts(16,28): error TS2300: Duplicate identifier 'C'.
+extension.ts(22,3): error TS2339: Property 'pe' does not exist on type 'C'.
+extension.ts(25,1): error TS2454: Variable 'i' is used before being assigned.
+extension.ts(26,1): error TS2454: Variable 'i' is used before being assigned.
+
+
+==== extension.ts (10 errors) ====
+    interface I {
+        x;
+        ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    }
+    
+    interface I {
+        y;
+        ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    }
+    
+    declare module M {
+        export class C {
+                     ~
+!!! error TS2300: Duplicate identifier 'C'.
+            public p:number;
+        }
+    }
+    
+    declare module M {
+        export extension class C {
+        ~~~~~~
+!!! error TS1128: Declaration or statement expected.
+               ~~~~~~~~~
+!!! error TS1434: Unexpected keyword or identifier.
+               ~~~~~~~~~
+!!! error TS2304: Cannot find name 'extension'.
+                               ~
+!!! error TS2300: Duplicate identifier 'C'.
+            public pe:string;
+        }
+    }
+    
+    var c=new M.C();
+    c.pe;
+      ~~
+!!! error TS2339: Property 'pe' does not exist on type 'C'.
+    c.p;
+    var i:I;
+    i.x;
+    ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    i.y;
+    ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    
+    

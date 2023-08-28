@@ -1,0 +1,25 @@
+c:/root/src/file1.ts(2,18): error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== c:/root/src/tsconfig.json (0 errors) ====
+    {
+        "compilerOptions": {
+            "rootDirs": [
+                ".",
+                "../generated/src"
+            ]
+        }
+    }
+    
+==== c:/root/src/file1.ts (1 errors) ====
+    import {x} from "./project/file3";
+    declare function use(x: string);
+                     ~~~
+!!! error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+    use(x.toFixed());
+    
+==== c:/root/src/file2/index.d.ts (0 errors) ====
+    export let x: number;
+    
+==== c:/root/generated/src/project/file3.ts (0 errors) ====
+    export {x} from "../file2";

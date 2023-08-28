@@ -1,0 +1,16 @@
+dontShowCompilerGeneratedMembers.ts(3,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+dontShowCompilerGeneratedMembers.ts(3,6): error TS1139: Type parameter declaration expected.
+dontShowCompilerGeneratedMembers.ts(4,1): error TS1109: Expression expected.
+
+
+==== dontShowCompilerGeneratedMembers.ts (3 errors) ====
+    var f: {
+        x: number;
+        <-
+        ~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+         ~
+!!! error TS1139: Type parameter declaration expected.
+    };
+    ~
+!!! error TS1109: Expression expected.

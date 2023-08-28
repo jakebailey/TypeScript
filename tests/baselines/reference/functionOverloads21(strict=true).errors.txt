@@ -1,0 +1,13 @@
+functionOverloads21.ts(1,10): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloads21.ts(2,10): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== functionOverloads21.ts (2 errors) ====
+    function foo(bar:{a:number;}[]);
+             ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo(bar:{a:number; b:string;}[]);
+             ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo(bar:{a:any; b?:string;}[]) { return 0 }
+    

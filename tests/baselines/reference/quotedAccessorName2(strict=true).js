@@ -1,0 +1,19 @@
+//// [tests/cases/compiler/quotedAccessorName2.ts] ////
+
+//// [quotedAccessorName2.ts]
+class C {
+    static get "foo"() { return 0; }
+}
+
+//// [quotedAccessorName2.js]
+"use strict";
+var C = /** @class */ (function () {
+    function C() {
+    }
+    Object.defineProperty(C, "foo", {
+        get: function () { return 0; },
+        enumerable: false,
+        configurable: true
+    });
+    return C;
+}());

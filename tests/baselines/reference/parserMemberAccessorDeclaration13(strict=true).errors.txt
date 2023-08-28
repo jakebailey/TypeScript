@@ -1,0 +1,12 @@
+parserMemberAccessorDeclaration13.ts(2,8): error TS1049: A 'set' accessor must have exactly one parameter.
+parserMemberAccessorDeclaration13.ts(2,8): error TS7032: Property 'Foo' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+
+
+==== parserMemberAccessorDeclaration13.ts (2 errors) ====
+    class C {
+       set Foo() { }
+           ~~~
+!!! error TS1049: A 'set' accessor must have exactly one parameter.
+           ~~~
+!!! error TS7032: Property 'Foo' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+    }

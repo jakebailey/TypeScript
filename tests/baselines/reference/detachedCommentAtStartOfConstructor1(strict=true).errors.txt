@@ -1,0 +1,16 @@
+detachedCommentAtStartOfConstructor1.ts(3,12): error TS7008: Member 'name' implicitly has an 'any' type.
+
+
+==== detachedCommentAtStartOfConstructor1.ts (1 errors) ====
+    class TestFile {
+        public message: string;
+        public name;
+               ~~~~
+!!! error TS7008: Member 'name' implicitly has an 'any' type.
+        constructor(message: string) {
+            /// <summary>Test summary</summary>
+            /// <param name="message" type="String" />
+            var getMessage = () => message + this.name;
+            this.message = getMessage();
+        }
+    }

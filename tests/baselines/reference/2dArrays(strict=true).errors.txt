@@ -1,0 +1,27 @@
+2dArrays.ts(5,5): error TS2564: Property 'isSunk' has no initializer and is not definitely assigned in the constructor.
+2dArrays.ts(9,5): error TS2564: Property 'ships' has no initializer and is not definitely assigned in the constructor.
+2dArrays.ts(10,5): error TS2564: Property 'cells' has no initializer and is not definitely assigned in the constructor.
+
+
+==== 2dArrays.ts (3 errors) ====
+    class Cell {
+    }
+    
+    class Ship {
+        isSunk: boolean;
+        ~~~~~~
+!!! error TS2564: Property 'isSunk' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class Board {
+        ships: Ship[];
+        ~~~~~
+!!! error TS2564: Property 'ships' has no initializer and is not definitely assigned in the constructor.
+        cells: Cell[];
+        ~~~~~
+!!! error TS2564: Property 'cells' has no initializer and is not definitely assigned in the constructor.
+    
+        private allShipsSunk() {
+            return this.ships.every(function (val) { return val.isSunk; });
+        }    
+    }

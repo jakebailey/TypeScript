@@ -1,0 +1,13 @@
+superCallBeforeThisAccessing5.ts(2,13): error TS7008: Member '_t' implicitly has an 'any' type.
+
+
+==== superCallBeforeThisAccessing5.ts (1 errors) ====
+    class D extends null {
+        private _t;
+                ~~
+!!! error TS7008: Member '_t' implicitly has an 'any' type.
+        constructor() {
+            this._t;  // No error
+        }
+    }
+    

@@ -1,0 +1,23 @@
+f1.ts(2,26): error TS7008: Member 'x' implicitly has an 'any' type.
+f2.ts(2,26): error TS7008: Member 'y' implicitly has an 'any' type.
+
+
+==== f1.ts (1 errors) ====
+    declare global {
+        interface Something {x}
+                             ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    }
+    export {};
+==== f2.ts (1 errors) ====
+    declare global {
+        interface Something {y}
+                             ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    }
+    export {};
+==== f3.ts (0 errors) ====
+    import "./f1";
+    import "./f2";
+    
+    

@@ -1,0 +1,16 @@
+//// [tests/cases/compiler/illegalModifiersOnClassElements.ts] ////
+
+//// [illegalModifiersOnClassElements.ts]
+class C {
+    declare foo = 1;
+    export bar = 1;
+}
+
+//// [illegalModifiersOnClassElements.js]
+"use strict";
+var C = /** @class */ (function () {
+    function C() {
+        this.bar = 1;
+    }
+    return C;
+}());

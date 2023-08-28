@@ -1,0 +1,16 @@
+exportAssignmentInternalModule_A.ts(2,13): error TS7005: Variable 'x' implicitly has an 'any' type.
+
+
+==== exportAssignmentInternalModule_B.ts (0 errors) ====
+    import modM = require("exportAssignmentInternalModule_A");
+    
+    var n: number = modM.x;
+==== exportAssignmentInternalModule_A.ts (1 errors) ====
+    module M {
+    	export var x;
+    	           ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    }
+    
+    export = M;
+    

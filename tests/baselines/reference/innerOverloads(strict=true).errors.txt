@@ -1,0 +1,20 @@
+innerOverloads.ts(2,14): error TS7010: 'inner', which lacks return-type annotation, implicitly has an 'any' return type.
+innerOverloads.ts(3,14): error TS7010: 'inner', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== innerOverloads.ts (2 errors) ====
+    function outer() {
+        function inner(x:number); // should work
+                 ~~~~~
+!!! error TS7010: 'inner', which lacks return-type annotation, implicitly has an 'any' return type.
+        function inner(x:string);
+                 ~~~~~
+!!! error TS7010: 'inner', which lacks return-type annotation, implicitly has an 'any' return type.
+        function inner(a:any) { return a; }
+    
+        return inner(0);
+    }
+    
+    var x = outer(); // should work
+    
+    

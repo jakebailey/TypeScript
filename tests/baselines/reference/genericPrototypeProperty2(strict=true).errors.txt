@@ -1,0 +1,33 @@
+genericPrototypeProperty2.ts(1,25): error TS7008: Member 'x' implicitly has an 'any' type.
+genericPrototypeProperty2.ts(3,5): error TS2564: Property 'target' has no initializer and is not definitely assigned in the constructor.
+genericPrototypeProperty2.ts(7,5): error TS2564: Property 'target' has no initializer and is not definitely assigned in the constructor.
+genericPrototypeProperty2.ts(10,5): error TS2564: Property 't' has no initializer and is not definitely assigned in the constructor.
+genericPrototypeProperty2.ts(14,5): error TS2564: Property 't' has no initializer and is not definitely assigned in the constructor.
+
+
+==== genericPrototypeProperty2.ts (5 errors) ====
+    interface EventTarget { x } 
+                            ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    class BaseEvent {
+        target: EventTarget;
+        ~~~~~~
+!!! error TS2564: Property 'target' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class MyEvent<T extends EventTarget> extends BaseEvent {
+        target: T;
+        ~~~~~~
+!!! error TS2564: Property 'target' has no initializer and is not definitely assigned in the constructor.
+    }
+    class BaseEventWrapper {
+        t: BaseEvent;
+        ~
+!!! error TS2564: Property 't' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class MyEventWrapper extends BaseEventWrapper {
+        t: MyEvent<any>; // any satisfies constraint and passes assignability check between 'target' properties
+        ~
+!!! error TS2564: Property 't' has no initializer and is not definitely assigned in the constructor.
+    }

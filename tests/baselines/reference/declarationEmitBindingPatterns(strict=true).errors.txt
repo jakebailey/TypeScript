@@ -1,0 +1,23 @@
+declarationEmitBindingPatterns.ts(3,5): error TS7034: Variable 'a' implicitly has type 'any' in some locations where its type cannot be determined.
+declarationEmitBindingPatterns.ts(4,17): error TS7005: Variable 'a' implicitly has an 'any' type.
+declarationEmitBindingPatterns.ts(4,25): error TS7005: Variable 'a' implicitly has an 'any' type.
+declarationEmitBindingPatterns.ts(4,38): error TS7005: Variable 'a' implicitly has an 'any' type.
+declarationEmitBindingPatterns.ts(4,43): error TS7005: Variable 'a' implicitly has an 'any' type.
+
+
+==== declarationEmitBindingPatterns.ts (5 errors) ====
+    const k = ({x: z = 'y'}) => { }
+    
+    var a;
+        ~
+!!! error TS7034: Variable 'a' implicitly has type 'any' in some locations where its type cannot be determined.
+    function f({} = a, [] = a, { p: {} = a} = a) {
+                    ~
+!!! error TS7005: Variable 'a' implicitly has an 'any' type.
+                            ~
+!!! error TS7005: Variable 'a' implicitly has an 'any' type.
+                                         ~
+!!! error TS7005: Variable 'a' implicitly has an 'any' type.
+                                              ~
+!!! error TS7005: Variable 'a' implicitly has an 'any' type.
+    }

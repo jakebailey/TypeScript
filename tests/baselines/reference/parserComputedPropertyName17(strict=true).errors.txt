@@ -1,0 +1,13 @@
+parserComputedPropertyName17.ts(1,15): error TS7032: Property '[e]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+parserComputedPropertyName17.ts(1,16): error TS2304: Cannot find name 'e'.
+parserComputedPropertyName17.ts(1,19): error TS7006: Parameter 'v' implicitly has an 'any' type.
+
+
+==== parserComputedPropertyName17.ts (3 errors) ====
+    var v = { set [e](v) { } }
+                  ~~~
+!!! error TS7032: Property '[e]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                   ~
+!!! error TS2304: Cannot find name 'e'.
+                      ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.

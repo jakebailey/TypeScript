@@ -1,0 +1,100 @@
+callSignaturesWithOptionalParameters.ts(19,1): error TS2454: Variable 'c' is used before being assigned.
+callSignaturesWithOptionalParameters.ts(20,1): error TS2454: Variable 'c' is used before being assigned.
+callSignaturesWithOptionalParameters.ts(23,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+callSignaturesWithOptionalParameters.ts(24,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+callSignaturesWithOptionalParameters.ts(28,1): error TS2454: Variable 'i' is used before being assigned.
+callSignaturesWithOptionalParameters.ts(29,1): error TS2454: Variable 'i' is used before being assigned.
+callSignaturesWithOptionalParameters.ts(30,1): error TS2454: Variable 'i' is used before being assigned.
+callSignaturesWithOptionalParameters.ts(31,1): error TS2454: Variable 'i' is used before being assigned.
+callSignaturesWithOptionalParameters.ts(34,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+callSignaturesWithOptionalParameters.ts(35,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+callSignaturesWithOptionalParameters.ts(38,1): error TS2454: Variable 'a' is used before being assigned.
+callSignaturesWithOptionalParameters.ts(39,1): error TS2454: Variable 'a' is used before being assigned.
+callSignaturesWithOptionalParameters.ts(40,1): error TS2454: Variable 'a' is used before being assigned.
+callSignaturesWithOptionalParameters.ts(41,1): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== callSignaturesWithOptionalParameters.ts (14 errors) ====
+    // Optional parameters should be valid in all the below casts
+    
+    function foo(x?: number) { }
+    var f = function foo(x?: number) { }
+    var f2 = (x: number, y?: number) => { }
+    
+    foo(1);
+    foo();
+    f(1);
+    f();
+    f2(1);
+    f2(1, 2);
+    
+    class C {
+        foo(x?: number) { }
+    }
+    
+    var c: C;
+    c.foo();
+    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    c.foo(1);
+    ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    
+    interface I {
+        (x?: number);
+        ~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: number, y?: number);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    var i: I;
+    i();
+    ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    i(1);
+    ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    i.foo(1);
+    ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    i.foo(1, 2);
+    ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    
+    var a: {
+        (x?: number);
+        ~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x?: number);
+        ~~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    a();
+    ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    a(1);
+    ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    a.foo();
+    ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    a.foo(1);
+    ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    var b = {
+        foo(x?: number) { },
+        a: function foo(x: number, y?: number) { },
+        b: (x?: number) => { }
+    }
+    
+    b.foo();
+    b.foo(1);
+    b.a(1);
+    b.a(1, 2);
+    b.b();
+    b.b(1);
+    

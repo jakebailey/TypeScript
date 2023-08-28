@@ -1,0 +1,16 @@
+node_modules/a.d.ts(2,20): error TS7005: Variable 'y' implicitly has an 'any' type.
+
+
+==== b.ts (0 errors) ====
+    import y = require("a"); 
+    
+==== node_modules/ref.ts (0 errors) ====
+    var x = 1;
+    
+==== node_modules/a.d.ts (1 errors) ====
+    /// <reference path="ref.ts"/>
+    export declare var y;
+                       ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+    
+    

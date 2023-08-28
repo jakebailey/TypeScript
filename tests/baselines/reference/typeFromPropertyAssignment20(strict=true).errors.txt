@@ -1,0 +1,19 @@
+bluebird.js(7,70): error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+
+==== bluebird.js (1 errors) ====
+    !function outer (f) { return f }(
+        function inner () {
+            function Async() {
+                this._trampolineEnabled = true;
+            }
+    
+            Async.prototype.disableTrampolineIfNecessary = function dtin(b) {
+                                                                         ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+                if (b) {
+                    this._trampolineEnabled = false;
+                }
+            };
+        })
+    

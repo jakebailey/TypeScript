@@ -1,0 +1,255 @@
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(6,60): error TS2322: Type 'null' is not assignable to type 'string'.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(10,31): error TS2322: Type 'null' is not assignable to type 'string'.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(14,31): error TS2322: Type 'null' is not assignable to type 'string'.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(18,31): error TS2322: Type 'null' is not assignable to type 'string'.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(32,10): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(33,10): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(36,10): error TS7010: 'foo1b', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(37,10): error TS7010: 'foo1b', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(40,10): error TS7010: 'foo1c', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(41,10): error TS7010: 'foo1c', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(44,10): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(45,10): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(48,10): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(49,10): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(52,10): error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(53,10): error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(56,10): error TS7010: 'foo5', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(57,10): error TS7010: 'foo5', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(60,10): error TS7010: 'foo5b', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(61,10): error TS7010: 'foo5b', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(64,10): error TS7010: 'foo5c', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(65,10): error TS7010: 'foo5c', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(68,10): error TS7010: 'foo6c', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(69,10): error TS7010: 'foo6c', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(72,10): error TS7010: 'foo6', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(73,10): error TS7010: 'foo6', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(76,10): error TS7010: 'foo7', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(77,10): error TS7010: 'foo7', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(80,10): error TS7010: 'foo8', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(81,10): error TS7010: 'foo8', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(84,10): error TS7010: 'foo9', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(85,10): error TS7010: 'foo9', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(88,10): error TS7010: 'foo10', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(89,10): error TS7010: 'foo10', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(92,10): error TS7010: 'foo11', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(93,10): error TS7010: 'foo11', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(96,10): error TS7010: 'foo12', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(97,10): error TS7010: 'foo12', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(100,10): error TS7010: 'foo12b', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(101,10): error TS7010: 'foo12b', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(104,10): error TS7010: 'foo13', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(105,10): error TS7010: 'foo13', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(108,10): error TS7010: 'foo14', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(109,10): error TS7010: 'foo14', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(112,10): error TS7010: 'foo15', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts(113,10): error TS7010: 'foo15', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== objectTypesIdentityWithGenericCallSignaturesDifferingByConstraints2.ts (46 errors) ====
+    // Two call or construct signatures are considered identical when they have the same number of type parameters and, considering those 
+    // parameters pairwise identical, have identical type parameter constraints, identical number of parameters with identical kind(required, 
+    // optional or rest) and types, and identical return types.
+    
+    class A {
+        foo<T extends U, U extends Date>(x: T, y: U): string { return null; }
+                                                               ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'string'.
+    }
+    
+    class B<T extends U, U extends Array<number>> {
+        foo(x: T, y: U): string { return null; }
+                                  ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'string'.
+    }
+    
+    class C<T extends U, U extends String> {
+        foo(x: T, y: U): string { return null; }
+                                  ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'string'.
+    }
+    
+    class D<T extends U, U extends Number> {
+        foo(x: T, y: U): string { return null; }
+                                  ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'string'.
+    }
+    
+    interface I<T extends U, U extends Number> {
+        foo(x: T, y: U): string;
+    }
+    
+    interface I2 {
+        foo<T extends U, U extends Boolean>(x: T, y: U): string;
+    }
+    
+    var a: { foo<T extends U, U extends Array<string>>(x: T, y: U): string }
+    var b = { foo<T extends U, U extends RegExp>(x: T, y: U) { return ''; } };
+    
+    function foo1(x: A);
+             ~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo1(x: A); // error
+             ~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo1(x: any) { }
+    
+    function foo1b(x: B<Array<number>, Array<number>>);
+             ~~~~~
+!!! error TS7010: 'foo1b', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo1b(x: B<Array<number>, Array<number>>); // error
+             ~~~~~
+!!! error TS7010: 'foo1b', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo1b(x: any) { }
+    
+    function foo1c(x: C<String, String>);
+             ~~~~~
+!!! error TS7010: 'foo1c', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo1c(x: C<String, String>); // error
+             ~~~~~
+!!! error TS7010: 'foo1c', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo1c(x: any) { }
+    
+    function foo2(x: I<Number, Number>);
+             ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo2(x: I<Number, Number>); // error
+             ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo2(x: any) { }
+    
+    function foo3(x: typeof a);
+             ~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo3(x: typeof a); // error
+             ~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo3(x: any) { }
+    
+    function foo4(x: typeof b);
+             ~~~~
+!!! error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo4(x: typeof b); // error
+             ~~~~
+!!! error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo4(x: any) { }
+    
+    function foo5(x: A);
+             ~~~~
+!!! error TS7010: 'foo5', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo5(x: B<Array<number>, Array<number>>); // ok
+             ~~~~
+!!! error TS7010: 'foo5', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo5(x: any) { }
+    
+    function foo5b(x: A);
+             ~~~~~
+!!! error TS7010: 'foo5b', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo5b(x: C<String, String>); // ok
+             ~~~~~
+!!! error TS7010: 'foo5b', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo5b(x: any) { }
+    
+    function foo5c(x: C<String, String>);
+             ~~~~~
+!!! error TS7010: 'foo5c', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo5c(x: D<Number, Number>); // ok
+             ~~~~~
+!!! error TS7010: 'foo5c', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo5c(x: any) { }
+    
+    function foo6c(x: C<String, String>);
+             ~~~~~
+!!! error TS7010: 'foo6c', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo6c(x: D<any, Number>); // error, "any" does not satisfy the constraint
+             ~~~~~
+!!! error TS7010: 'foo6c', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo6c(x: any) { }
+    
+    function foo6(x: A);
+             ~~~~
+!!! error TS7010: 'foo6', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo6(x: I<Number, Number>); // ok
+             ~~~~
+!!! error TS7010: 'foo6', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo6(x: any) { }
+    
+    function foo7(x: A);
+             ~~~~
+!!! error TS7010: 'foo7', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo7(x: typeof a); // ok
+             ~~~~
+!!! error TS7010: 'foo7', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo7(x: any) { }
+    
+    function foo8(x: B<Array<number>, Array<number>>);
+             ~~~~
+!!! error TS7010: 'foo8', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo8(x: I<Number, Number>); // ok
+             ~~~~
+!!! error TS7010: 'foo8', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo8(x: any) { }
+    
+    function foo9(x: B<Array<number>, Array<number>>);
+             ~~~~
+!!! error TS7010: 'foo9', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo9(x: C<String, String>); // ok
+             ~~~~
+!!! error TS7010: 'foo9', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo9(x: any) { }
+    
+    function foo10(x: B<Array<number>, Array<number>>);
+             ~~~~~
+!!! error TS7010: 'foo10', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo10(x: typeof a); // ok
+             ~~~~~
+!!! error TS7010: 'foo10', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo10(x: any) { }
+    
+    function foo11(x: B<Array<number>, Array<number>>);
+             ~~~~~
+!!! error TS7010: 'foo11', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo11(x: typeof b); // ok
+             ~~~~~
+!!! error TS7010: 'foo11', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo11(x: any) { }
+    
+    function foo12(x: I<Number, Number>);
+             ~~~~~
+!!! error TS7010: 'foo12', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo12(x: C<String, String>); // ok
+             ~~~~~
+!!! error TS7010: 'foo12', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo12(x: any) { }
+    
+    function foo12b(x: I2);
+             ~~~~~~
+!!! error TS7010: 'foo12b', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo12b(x: C<String, String>); // ok
+             ~~~~~~
+!!! error TS7010: 'foo12b', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo12b(x: any) { }
+    
+    function foo13(x: I<Number, Number>);
+             ~~~~~
+!!! error TS7010: 'foo13', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo13(x: typeof a); // ok
+             ~~~~~
+!!! error TS7010: 'foo13', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo13(x: any) { }
+    
+    function foo14(x: I<Number, Number>);
+             ~~~~~
+!!! error TS7010: 'foo14', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo14(x: typeof b); // ok
+             ~~~~~
+!!! error TS7010: 'foo14', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo14(x: any) { }
+    
+    function foo15(x: I2);
+             ~~~~~
+!!! error TS7010: 'foo15', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo15(x: C<String, String>); // ok
+             ~~~~~
+!!! error TS7010: 'foo15', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo15(x: any) { }

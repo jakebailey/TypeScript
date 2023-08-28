@@ -1,0 +1,90 @@
+collisionRestParameterFunction.ts(2,25): error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+collisionRestParameterFunction.ts(9,18): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionRestParameterFunction.ts(9,33): error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+collisionRestParameterFunction.ts(10,18): error TS7010: 'f2NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionRestParameterFunction.ts(12,13): error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+collisionRestParameterFunction.ts(19,10): error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionRestParameterFunction.ts(19,25): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionRestParameterFunction.ts(20,10): error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionRestParameterFunction.ts(20,25): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionRestParameterFunction.ts(21,22): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionRestParameterFunction.ts(24,10): error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionRestParameterFunction.ts(25,10): error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionRestParameterFunction.ts(29,18): error TS7010: 'f5', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionRestParameterFunction.ts(29,33): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionRestParameterFunction.ts(30,18): error TS7010: 'f5', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionRestParameterFunction.ts(30,33): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionRestParameterFunction.ts(32,18): error TS7010: 'f6', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionRestParameterFunction.ts(33,18): error TS7010: 'f6', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== collisionRestParameterFunction.ts (18 errors) ====
+    // Functions
+    function f1(_i: number, ...restParameters) { //_i is error
+                            ~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+        var _i = 10; // no error
+    }
+    function f1NoError(_i: number) { // no error
+        var _i = 10; // no error
+    }
+    
+    declare function f2(_i: number, ...restParameters); // no error - no code gen
+                     ~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+                                    ~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+    declare function f2NoError(_i: number); // no error
+                     ~~~~~~~~~
+!!! error TS7010: 'f2NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    function f3(...restParameters) {
+                ~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+        var _i = 10; // no error
+    }
+    function f3NoError() {
+        var _i = 10; // no error
+    }
+    
+    function f4(_i: number, ...rest); // no codegen no error
+             ~~
+!!! error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+                            ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    function f4(_i: string, ...rest); // no codegen no error
+             ~~
+!!! error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+                            ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    function f4(_i: any, ...rest) { // error
+                         ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    }
+    
+    function f4NoError(_i: number); // no error
+             ~~~~~~~~~
+!!! error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+    function f4NoError(_i: string); // no error
+             ~~~~~~~~~
+!!! error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+    function f4NoError(_i: any) { // no error
+    }
+    
+    declare function f5(_i: number, ...rest); // no codegen no error
+                     ~~
+!!! error TS7010: 'f5', which lacks return-type annotation, implicitly has an 'any' return type.
+                                    ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    declare function f5(_i: string, ...rest); // no codegen no error
+                     ~~
+!!! error TS7010: 'f5', which lacks return-type annotation, implicitly has an 'any' return type.
+                                    ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    
+    declare function f6(_i: number); // no codegen no error
+                     ~~
+!!! error TS7010: 'f6', which lacks return-type annotation, implicitly has an 'any' return type.
+    declare function f6(_i: string); // no codegen no error
+                     ~~
+!!! error TS7010: 'f6', which lacks return-type annotation, implicitly has an 'any' return type.

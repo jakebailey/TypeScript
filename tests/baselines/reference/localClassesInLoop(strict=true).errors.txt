@@ -1,0 +1,16 @@
+localClassesInLoop.ts(1,18): error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== localClassesInLoop.ts (1 errors) ====
+    declare function use(a: any);
+                     ~~~
+!!! error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    "use strict"
+    var data = [];
+    for (let x = 0; x < 2; ++x) {
+        class C { }
+        data.push(() => C);
+    }
+    
+    use(data[0]() === data[1]());

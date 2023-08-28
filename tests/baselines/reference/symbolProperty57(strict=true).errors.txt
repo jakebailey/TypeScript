@@ -1,0 +1,17 @@
+symbolProperty57.ts(6,1): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ [Symbol.iterator]: number; }'.
+symbolProperty57.ts(6,5): error TS7053: Element implicitly has an 'any' type because expression of type '"nonsense"' can't be used to index type 'SymbolConstructor'.
+  Property 'nonsense' does not exist on type 'SymbolConstructor'.
+
+
+==== symbolProperty57.ts (2 errors) ====
+    var obj = {
+        [Symbol.iterator]: 0
+    };
+    
+    // Should give type 'any'.
+    obj[Symbol["nonsense"]];
+    ~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ [Symbol.iterator]: number; }'.
+        ~~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '"nonsense"' can't be used to index type 'SymbolConstructor'.
+!!! error TS7053:   Property 'nonsense' does not exist on type 'SymbolConstructor'.

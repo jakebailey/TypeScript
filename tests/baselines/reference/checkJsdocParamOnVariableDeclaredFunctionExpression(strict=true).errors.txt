@@ -1,0 +1,26 @@
+0.js(14,20): error TS8024: JSDoc '@param' tag has name 's', but there is no parameter with that name.
+0.js(16,45): error TS7006: Parameter 'untyped' implicitly has an 'any' type.
+
+
+==== 0.js (2 errors) ====
+    // @ts-check
+    /**
+     * @param {number=} n
+     * @param {string} [s]
+     */
+    var x = function foo(n, s) {}
+    var y;
+    /**
+     * @param {boolean!} b
+     */
+    y = function bar(b) {}
+    
+    /**
+     * @param {string} s
+                       ~
+!!! error TS8024: JSDoc '@param' tag has name 's', but there is no parameter with that name.
+     */
+    var one = function (s) { }, two = function (untyped) { };
+                                                ~~~~~~~
+!!! error TS7006: Parameter 'untyped' implicitly has an 'any' type.
+    

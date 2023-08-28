@@ -1,0 +1,29 @@
+iterableArrayPattern7.ts(1,13): error TS7008: Member 'x' implicitly has an 'any' type.
+iterableArrayPattern7.ts(2,25): error TS7008: Member 'y' implicitly has an 'any' type.
+iterableArrayPattern7.ts(17,5): error TS2740: Type 'Foo' is missing the following properties from type 'string[]': length, pop, push, concat, and 25 more.
+
+
+==== iterableArrayPattern7.ts (3 errors) ====
+    class Bar { x }
+                ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    class Foo extends Bar { y }
+                            ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    class FooIterator {
+        next() {
+            return {
+                value: new Foo,
+                done: false
+            };
+        }
+    
+        [Symbol.iterator]() {
+            return this;
+        }
+    }
+    
+    var a: Bar, b: string[];
+    [a, b] = new FooIterator;
+        ~
+!!! error TS2740: Type 'Foo' is missing the following properties from type 'string[]': length, pop, push, concat, and 25 more.

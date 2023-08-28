@@ -1,0 +1,15 @@
+classImplementingInterfaceIndexer.ts(2,24): error TS7008: Member 'prop' implicitly has an 'any' type.
+classImplementingInterfaceIndexer.ts(5,24): error TS7008: Member 'prop' implicitly has an 'any' type.
+
+
+==== classImplementingInterfaceIndexer.ts (2 errors) ====
+    interface I {
+        [index: string]: { prop }
+                           ~~~~
+!!! error TS7008: Member 'prop' implicitly has an 'any' type.
+    }
+    class A implements I {
+        [index: string]: { prop }
+                           ~~~~
+!!! error TS7008: Member 'prop' implicitly has an 'any' type.
+    }

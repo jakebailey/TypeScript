@@ -1,0 +1,25 @@
+inheritanceMemberPropertyOverridingAccessor.ts(2,13): error TS2564: Property '__x' has no initializer and is not definitely assigned in the constructor.
+inheritanceMemberPropertyOverridingAccessor.ts(12,5): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+inheritanceMemberPropertyOverridingAccessor.ts(12,5): error TS2610: 'x' is defined as an accessor in class 'a', but is overridden here in 'b' as an instance property.
+
+
+==== inheritanceMemberPropertyOverridingAccessor.ts (3 errors) ====
+    class a {
+        private __x: () => string;
+                ~~~
+!!! error TS2564: Property '__x' has no initializer and is not definitely assigned in the constructor.
+        get x() {
+            return this.__x;
+        }
+        set x(aValue: () => string) {
+            this.__x = aValue;
+        }
+    }
+    
+    class b extends a {
+        x: () => string;
+        ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+        ~
+!!! error TS2610: 'x' is defined as an accessor in class 'a', but is overridden here in 'b' as an instance property.
+    }

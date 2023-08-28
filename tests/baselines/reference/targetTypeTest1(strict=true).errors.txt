@@ -1,0 +1,111 @@
+targetTypeTest1.ts(14,16): error TS7006: Parameter 'x' implicitly has an 'any' type.
+targetTypeTest1.ts(14,19): error TS7006: Parameter 'y' implicitly has an 'any' type.
+targetTypeTest1.ts(15,5): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+targetTypeTest1.ts(16,5): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+targetTypeTest1.ts(19,18): error TS2384: Overload signatures must all be ambient or non-ambient.
+targetTypeTest1.ts(21,14): error TS7006: Parameter 'a' implicitly has an 'any' type.
+targetTypeTest1.ts(21,16): error TS7006: Parameter 'b' implicitly has an 'any' type.
+targetTypeTest1.ts(48,13): error TS7005: Variable 'z' implicitly has an 'any' type.
+targetTypeTest1.ts(60,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+targetTypeTest1.ts(60,14): error TS7006: Parameter 'b' implicitly has an 'any' type.
+targetTypeTest1.ts(61,2): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+targetTypeTest1.ts(62,2): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+
+
+==== targetTypeTest1.ts (12 errors) ====
+    declare class Point
+    {
+          constructor(x: number, y: number);
+          public x: number;
+          public y: number;
+          public add(dx: number, dy: number): Point;
+          static origin: Point;
+    
+    }
+    
+    // Type provided by extern declaration
+    // Because Point is a constructor function, this is inferred
+    // to be Point and return type is inferred to be void
+    function Point(x, y) {
+                   ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                      ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+        this.x = x;
+        ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+        this.y = y;
+        ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+    }
+    
+    declare function EF1(a:number, b:number):number;
+                     ~~~
+!!! error TS2384: Overload signatures must all be ambient or non-ambient.
+    
+    function EF1(a,b) { return a+b; }
+                 ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                   ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    
+    var x = EF1(1,2);
+    
+    // Point.origin declared as type Point
+    Point.origin = new Point(0, 0);
+    
+    // Point.prototype declared as type Point
+    // this inferred as Point because of obj.prop assignment
+    // dx, dy, and return type inferred using target typing
+    Point.prototype.add = function(dx, dy) {
+        return new Point(this.x + dx, this.y + dy);
+    };
+    
+    var f : number = 5;
+    
+    // Object literal type inferred using target typing
+    // this in function add inferred to be type of object literal (i.e. Point)
+    // dx, dy, and return type of add inferred using target typing
+    Point.prototype = {
+        x: 0,
+        y: 0,
+        add: function(dx, dy) {
+            return new Point(this.x + dx, this.y + dy);
+        }
+    };
+    
+    declare var z;
+                ~
+!!! error TS7005: Variable 'z' implicitly has an 'any' type.
+    z = function(a: number) {
+        a
+    }
+    
+    declare class C {
+        constructor(a:number, b:number);
+    	public a : number;
+    	public b: number;    
+    	C1M1(c:number,d:number):number;
+    } 
+    
+    function C(a,b) {
+               ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                 ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    	this.a=a;
+    	~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+    	this.b=b;
+    	~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+    }
+    
+    C.prototype = 
+    	{	a:0,
+    		b:0, 
+    		C1M1: function(c,d) {     
+    				return (this.a + c) + (this.b + d);
+    			}
+    	};
+    

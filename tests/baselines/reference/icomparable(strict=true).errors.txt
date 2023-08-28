@@ -1,0 +1,21 @@
+icomparable.ts(2,8): error TS7010: 'compareTo', which lacks return-type annotation, implicitly has an 'any' return type.
+icomparable.ts(12,18): error TS2454: Variable 'sc' is used before being assigned.
+
+
+==== icomparable.ts (2 errors) ====
+        interface IComparable<T> {
+           compareTo(other: T);
+           ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'compareTo', which lacks return-type annotation, implicitly has an 'any' return type.
+        }
+    
+        declare function sort<U extends IComparable<any>>(items: U[]): U[];
+    
+        interface StringComparable extends IComparable<string> {
+        }
+    
+        var sc: StringComparable[];
+    
+        var x = sort(sc);
+                     ~~
+!!! error TS2454: Variable 'sc' is used before being assigned.

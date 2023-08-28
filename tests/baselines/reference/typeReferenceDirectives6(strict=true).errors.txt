@@ -1,0 +1,20 @@
+/types/lib/index.d.ts(1,15): error TS7008: Member 'x' implicitly has an 'any' type.
+
+
+==== /app.ts (0 errors) ====
+    /// <reference path="./ref.d.ts"/>
+    /// <reference types="lib"/>
+    
+    let x: $;
+    let y = () => x
+    
+    
+==== /ref.d.ts (0 errors) ====
+    declare let $: { x: number }
+        
+==== /types/lib/index.d.ts (1 errors) ====
+    interface $ { x }
+                  ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    
+    

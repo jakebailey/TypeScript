@@ -1,0 +1,29 @@
+privateNameNestedClassFieldShadowing.ts(2,5): error TS7008: Member '#x' implicitly has an 'any' type.
+privateNameNestedClassFieldShadowing.ts(5,13): error TS7008: Member '#x' implicitly has an 'any' type.
+privateNameNestedClassFieldShadowing.ts(7,31): error TS18014: The property '#x' cannot be accessed on type 'Base' within this class because it is shadowed by another private identifier with the same spelling.
+
+
+==== privateNameNestedClassFieldShadowing.ts (3 errors) ====
+    class Base {
+        #x;
+        ~~
+!!! error TS7008: Member '#x' implicitly has an 'any' type.
+        constructor() {
+            class Derived {
+                #x;
+                ~~
+!!! error TS7008: Member '#x' implicitly has an 'any' type.
+                testBase(x: Base) {
+                    console.log(x.#x);
+                                  ~~
+!!! error TS18014: The property '#x' cannot be accessed on type 'Base' within this class because it is shadowed by another private identifier with the same spelling.
+!!! related TS18017 privateNameNestedClassFieldShadowing.ts:5:13: The shadowing declaration of '#x' is defined here
+!!! related TS18018 privateNameNestedClassFieldShadowing.ts:2:5: The declaration of '#x' that you probably intended to use is defined here
+                }
+                testDerived(x: Derived) {
+                    console.log(x.#x);
+                }
+            }
+        }
+    }
+    

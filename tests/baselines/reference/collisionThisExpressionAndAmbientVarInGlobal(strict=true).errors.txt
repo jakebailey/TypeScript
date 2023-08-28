@@ -1,0 +1,9 @@
+collisionThisExpressionAndAmbientVarInGlobal.ts(2,15): error TS7041: The containing arrow function captures the global value of 'this'.
+
+
+==== collisionThisExpressionAndAmbientVarInGlobal.ts (1 errors) ====
+    declare var _this: number; // no error as no code gen
+    var f = () => this;
+                  ~~~~
+!!! error TS7041: The containing arrow function captures the global value of 'this'.
+    _this = 10; // Error

@@ -1,0 +1,14 @@
+genericFunctionSpecializations1.ts(1,10): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+genericFunctionSpecializations1.ts(4,10): error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== genericFunctionSpecializations1.ts (2 errors) ====
+    function foo3<T>(test: string); // error
+             ~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo3<T>(test: T) { }
+    
+    function foo4<T>(test: string); // valid
+             ~~~~
+!!! error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo4<T extends String>(test: T) { }

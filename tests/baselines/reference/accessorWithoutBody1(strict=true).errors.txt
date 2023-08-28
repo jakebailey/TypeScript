@@ -1,0 +1,10 @@
+accessorWithoutBody1.ts(1,15): error TS7033: Property 'foo' implicitly has type 'any', because its get accessor lacks a return type annotation.
+accessorWithoutBody1.ts(1,19): error TS1005: '{' expected.
+
+
+==== accessorWithoutBody1.ts (2 errors) ====
+    var v = { get foo() }
+                  ~~~
+!!! error TS7033: Property 'foo' implicitly has type 'any', because its get accessor lacks a return type annotation.
+                      ~
+!!! error TS1005: '{' expected.

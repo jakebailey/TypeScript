@@ -1,0 +1,21 @@
+exportSpecifierAndLocalMemberDeclaration.ts(5,14): error TS7010: 'Y', which lacks return-type annotation, implicitly has an 'any' return type.
+exportSpecifierAndLocalMemberDeclaration.ts(11,20): error TS2503: Cannot find namespace 'X'.
+
+
+==== exportSpecifierAndLocalMemberDeclaration.ts (2 errors) ====
+    declare module "m2" {
+        module X {
+            interface I { }
+        }
+        function Y();
+                 ~
+!!! error TS7010: 'Y', which lacks return-type annotation, implicitly has an 'any' return type.
+        export { Y as X };
+        function Z(): X.I;
+    }
+    
+    declare module "m2" {
+        function Z2(): X.I;
+                       ~
+!!! error TS2503: Cannot find namespace 'X'.
+    }

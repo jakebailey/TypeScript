@@ -1,0 +1,27 @@
+file2.ts(6,19): error TS7008: Member 'a' implicitly has an 'any' type.
+
+
+==== file1.ts (0 errors) ====
+    function foo() {}
+    namespace foo {
+        export var v = 1;
+    }
+    export = foo;
+    
+==== file2.ts (1 errors) ====
+    import x = require("./file1"); 
+    x.b = 1;
+    
+    // OK - './file1' is a namespace
+    declare module "./file1" {
+        interface A { a }
+                      ~
+!!! error TS7008: Member 'a' implicitly has an 'any' type.
+        let b: number;
+    }
+    
+==== file3.ts (0 errors) ====
+    import * as x from "./file1";
+    import "./file2";
+    let a: x.A;
+    let b = x.b;

@@ -1,0 +1,12 @@
+untypedArgumentInLambdaExpression.ts(1,18): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== untypedArgumentInLambdaExpression.ts (1 errors) ====
+    declare function f(fn: (a: string) => string);
+                     ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+     
+    f((input): string => {
+        return "." + input;
+    });
+     

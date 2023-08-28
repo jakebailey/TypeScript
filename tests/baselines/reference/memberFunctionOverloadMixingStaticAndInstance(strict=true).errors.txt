@@ -1,0 +1,70 @@
+memberFunctionOverloadMixingStaticAndInstance.ts(2,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionOverloadMixingStaticAndInstance.ts(3,12): error TS2388: Function overload must not be static.
+memberFunctionOverloadMixingStaticAndInstance.ts(3,12): error TS2391: Function implementation is missing or not immediately following the declaration.
+memberFunctionOverloadMixingStaticAndInstance.ts(3,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionOverloadMixingStaticAndInstance.ts(7,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionOverloadMixingStaticAndInstance.ts(8,5): error TS2387: Function overload must be static.
+memberFunctionOverloadMixingStaticAndInstance.ts(8,5): error TS2391: Function implementation is missing or not immediately following the declaration.
+memberFunctionOverloadMixingStaticAndInstance.ts(8,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionOverloadMixingStaticAndInstance.ts(12,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionOverloadMixingStaticAndInstance.ts(13,12): error TS2388: Function overload must not be static.
+memberFunctionOverloadMixingStaticAndInstance.ts(13,12): error TS2391: Function implementation is missing or not immediately following the declaration.
+memberFunctionOverloadMixingStaticAndInstance.ts(13,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionOverloadMixingStaticAndInstance.ts(17,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionOverloadMixingStaticAndInstance.ts(18,5): error TS2387: Function overload must be static.
+memberFunctionOverloadMixingStaticAndInstance.ts(18,5): error TS2391: Function implementation is missing or not immediately following the declaration.
+memberFunctionOverloadMixingStaticAndInstance.ts(18,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== memberFunctionOverloadMixingStaticAndInstance.ts (16 errors) ====
+    class C {
+        foo();
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        static foo(); // error
+               ~~~
+!!! error TS2388: Function overload must not be static.
+               ~~~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    class D {
+        static foo();
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(); // error    
+        ~~~
+!!! error TS2387: Function overload must be static.
+        ~~~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    class E<T> {
+        foo(x: T);
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        static foo(x: number); // error
+               ~~~
+!!! error TS2388: Function overload must not be static.
+               ~~~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    class F<T> {
+        static foo(x: number);
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(x: T); // error    
+        ~~~
+!!! error TS2387: Function overload must be static.
+        ~~~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }

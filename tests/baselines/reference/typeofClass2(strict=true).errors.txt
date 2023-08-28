@@ -1,0 +1,39 @@
+typeofClass2.ts(4,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+typeofClass2.ts(6,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+typeofClass2.ts(7,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+typeofClass2.ts(8,16): error TS7006: Parameter 'x' implicitly has an 'any' type.
+typeofClass2.ts(10,16): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== typeofClass2.ts (5 errors) ====
+    class C {
+        constructor(x: number);
+        constructor(x: string);
+        constructor(x) { }
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+        static foo(x: number);
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        static foo(x: C);
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        static foo(x) { }
+                   ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+        static bar(x) { }
+                   ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    class D extends C {
+        static baz(x: number) { }
+        foo() { }
+    }
+    
+    var d: D;
+    
+    var r1: typeof D;
+    var r2: typeof d;

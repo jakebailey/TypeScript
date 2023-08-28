@@ -1,0 +1,74 @@
+typeGuardFunctionGenerics.ts(2,5): error TS2564: Property 'propA' has no initializer and is not definitely assigned in the constructor.
+typeGuardFunctionGenerics.ts(6,5): error TS2564: Property 'propB' has no initializer and is not definitely assigned in the constructor.
+typeGuardFunctionGenerics.ts(10,5): error TS2564: Property 'propC' has no initializer and is not definitely assigned in the constructor.
+typeGuardFunctionGenerics.ts(13,22): error TS7006: Parameter 'p1' implicitly has an 'any' type.
+typeGuardFunctionGenerics.ts(14,22): error TS7006: Parameter 'p1' implicitly has an 'any' type.
+typeGuardFunctionGenerics.ts(15,23): error TS7006: Parameter 'x' implicitly has an 'any' type.
+typeGuardFunctionGenerics.ts(17,31): error TS7006: Parameter 'p1' implicitly has an 'any' type.
+typeGuardFunctionGenerics.ts(18,31): error TS7006: Parameter 'p1' implicitly has an 'any' type.
+typeGuardFunctionGenerics.ts(19,31): error TS7006: Parameter 'p1' implicitly has an 'any' type.
+typeGuardFunctionGenerics.ts(20,31): error TS7006: Parameter 'p1' implicitly has an 'any' type.
+typeGuardFunctionGenerics.ts(21,34): error TS7006: Parameter 'p1' implicitly has an 'any' type.
+typeGuardFunctionGenerics.ts(25,16): error TS2454: Variable 'a' is used before being assigned.
+typeGuardFunctionGenerics.ts(29,15): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== typeGuardFunctionGenerics.ts (13 errors) ====
+    class A {
+        propA: number;
+        ~~~~~
+!!! error TS2564: Property 'propA' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class B {
+        propB: number;
+        ~~~~~
+!!! error TS2564: Property 'propB' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class C extends A {
+        propC: number;
+        ~~~~~
+!!! error TS2564: Property 'propC' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    declare function isB(p1): p1 is B;
+                         ~~
+!!! error TS7006: Parameter 'p1' implicitly has an 'any' type.
+    declare function isC(p1): p1 is C;
+                         ~~
+!!! error TS7006: Parameter 'p1' implicitly has an 'any' type.
+    declare function retC(x): C; 
+                          ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+    declare function funA<T>(p1: (p1) => T): T;
+                                  ~~
+!!! error TS7006: Parameter 'p1' implicitly has an 'any' type.
+    declare function funB<T>(p1: (p1) => T, p2: any): p2 is T;
+                                  ~~
+!!! error TS7006: Parameter 'p1' implicitly has an 'any' type.
+    declare function funC<T>(p1: (p1) => p1 is T): T;
+                                  ~~
+!!! error TS7006: Parameter 'p1' implicitly has an 'any' type.
+    declare function funD<T>(p1: (p1) => p1 is T, p2: any): p2 is T;
+                                  ~~
+!!! error TS7006: Parameter 'p1' implicitly has an 'any' type.
+    declare function funE<T, U>(p1: (p1) => p1 is T, p2: U): T;
+                                     ~~
+!!! error TS7006: Parameter 'p1' implicitly has an 'any' type.
+    
+    let a: A;
+    let test1: boolean = funA(isB);
+    if (funB(retC, a)) {
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        a.propC;
+    }
+    let test2: B = funC(isB);
+    if (funD(isC, a)) {
+                  ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        a.propC;
+    }
+    let test3: B = funE(isB, 1);

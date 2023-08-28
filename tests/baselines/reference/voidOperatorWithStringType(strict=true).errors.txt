@@ -1,0 +1,74 @@
+voidOperatorWithStringType.ts(8,12): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+voidOperatorWithStringType.ts(18,25): error TS2454: Variable 'STRING' is used before being assigned.
+voidOperatorWithStringType.ts(32,27): error TS2454: Variable 'STRING' is used before being assigned.
+voidOperatorWithStringType.ts(32,36): error TS2454: Variable 'STRING' is used before being assigned.
+voidOperatorWithStringType.ts(33,26): error TS2454: Variable 'STRING' is used before being assigned.
+voidOperatorWithStringType.ts(36,31): error TS2454: Variable 'STRING' is used before being assigned.
+voidOperatorWithStringType.ts(37,37): error TS2454: Variable 'STRING' is used before being assigned.
+voidOperatorWithStringType.ts(37,46): error TS2454: Variable 'STRING' is used before being assigned.
+voidOperatorWithStringType.ts(41,6): error TS2454: Variable 'STRING' is used before being assigned.
+
+
+==== voidOperatorWithStringType.ts (9 errors) ====
+    // void  operator on string type
+    var STRING: string;
+    var STRING1: string[] = ["", "abc"];
+    
+    function foo(): string { return "abc"; }
+    
+    class A {
+        public a: string;
+               ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+        static foo() { return ""; }
+    }
+    module M {
+        export var n: string;
+    }
+    
+    var objA = new A();
+    
+    // string type var
+    var ResultIsAny1 = void STRING;
+                            ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    var ResultIsAny2 = void STRING1;
+    
+    // string type literal
+    var ResultIsAny3 = void "";
+    var ResultIsAny4 = void { x: "", y: "" };
+    var ResultIsAny5 = void { x: "", y: (s: string) => { return s; } };
+    
+    // string type expressions
+    var ResultIsAny6 = void objA.a;
+    var ResultIsAny7 = void M.n;
+    var ResultIsAny8 = void STRING1[0];
+    var ResultIsAny9 = void foo();
+    var ResultIsAny10 = void A.foo();
+    var ResultIsAny11 = void (STRING + STRING);
+                              ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+                                       ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    var ResultIsAny12 = void STRING.charAt(0);
+                             ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    
+    // multiple void  operators
+    var ResultIsAny13 = void void STRING;
+                                  ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    var ResultIsAny14 = void void void (STRING + STRING);
+                                        ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+                                                 ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    
+    // miss assignment operators
+    void "";
+    void STRING;
+         ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    void STRING1;
+    void foo();
+    void objA.a,M.n;

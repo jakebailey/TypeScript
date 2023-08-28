@@ -1,0 +1,13 @@
+protoInIndexer.ts(3,9): error TS7053: Element implicitly has an 'any' type because expression of type '"__proto__"' can't be used to index type 'X'.
+  Property '__proto__' does not exist on type 'X'.
+
+
+==== protoInIndexer.ts (1 errors) ====
+    class X {
+        constructor() {
+            this['__proto__'] = null; // used to cause ICE
+            ~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '"__proto__"' can't be used to index type 'X'.
+!!! error TS7053:   Property '__proto__' does not exist on type 'X'.
+        }
+    }

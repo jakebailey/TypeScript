@@ -1,0 +1,7 @@
+templateStringInArrowFunctionES6.ts(1,9): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== templateStringInArrowFunctionES6.ts (1 errors) ====
+    var x = x => `abc${ x }def`;
+            ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.

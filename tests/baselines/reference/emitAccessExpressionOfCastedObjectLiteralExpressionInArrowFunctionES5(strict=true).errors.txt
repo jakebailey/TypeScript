@@ -1,0 +1,11 @@
+emitAccessExpressionOfCastedObjectLiteralExpressionInArrowFunctionES5.ts(1,2): error TS7006: Parameter 'x' implicitly has an 'any' type.
+emitAccessExpressionOfCastedObjectLiteralExpressionInArrowFunctionES5.ts(2,2): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== emitAccessExpressionOfCastedObjectLiteralExpressionInArrowFunctionES5.ts (2 errors) ====
+    (x) => ({ "1": "one", "2": "two" } as { [key: string]: string })[x];
+     ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    (x) => ({ "1": "one", "2": "two" } as { [key: string]: string }).x;
+     ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.

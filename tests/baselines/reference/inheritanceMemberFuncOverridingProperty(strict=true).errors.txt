@@ -1,0 +1,18 @@
+inheritanceMemberFuncOverridingProperty.ts(2,5): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+inheritanceMemberFuncOverridingProperty.ts(6,5): error TS2425: Class 'a' defines instance member property 'x', but extended class 'b' defines it as instance member function.
+
+
+==== inheritanceMemberFuncOverridingProperty.ts (2 errors) ====
+    class a {
+        x: () => string;
+        ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class b extends a {
+        x() {
+        ~
+!!! error TS2425: Class 'a' defines instance member property 'x', but extended class 'b' defines it as instance member function.
+            return "20";
+        }
+    }

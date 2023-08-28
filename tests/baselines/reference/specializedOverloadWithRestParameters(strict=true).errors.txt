@@ -1,0 +1,33 @@
+specializedOverloadWithRestParameters.ts(3,29): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+specializedOverloadWithRestParameters.ts(4,29): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+specializedOverloadWithRestParameters.ts(6,5): error TS2322: Type 'null' is not assignable to type 'Base'.
+specializedOverloadWithRestParameters.ts(8,29): error TS7006: Parameter 'arg' implicitly has an 'any' type.
+specializedOverloadWithRestParameters.ts(9,29): error TS7006: Parameter 'arg' implicitly has an 'any' type.
+specializedOverloadWithRestParameters.ts(11,5): error TS2322: Type 'null' is not assignable to type 'Base'.
+
+
+==== specializedOverloadWithRestParameters.ts (6 errors) ====
+    class Base { foo() { } }
+    class Derived1 extends Base { bar() { } }
+    function f(tagName: 'span', ...args): Derived1;   // error
+                                ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+    function f(tagName: number, ...args): Base;
+                                ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+    function f(tagName: any): Base {
+        return null;
+        ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Base'.
+    }
+    function g(tagName: 'span', arg): Derived1;    // error
+                                ~~~
+!!! error TS7006: Parameter 'arg' implicitly has an 'any' type.
+    function g(tagName: number, arg): Base;
+                                ~~~
+!!! error TS7006: Parameter 'arg' implicitly has an 'any' type.
+    function g(tagName: any): Base {
+        return null;
+        ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'Base'.
+    }

@@ -1,0 +1,14 @@
+declFileForInterfaceWithRestParams.ts(2,9): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+declFileForInterfaceWithRestParams.ts(3,21): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+
+
+==== declFileForInterfaceWithRestParams.ts (2 errors) ====
+    interface I {
+        foo(...x): typeof x;
+            ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+        foo2(a: number, ...x): typeof x;
+                        ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+        foo3(b: string, ...x: string[]): typeof x;
+    }

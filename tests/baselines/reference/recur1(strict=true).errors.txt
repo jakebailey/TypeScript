@@ -1,0 +1,13 @@
+recur1.ts(4,5): error TS7022: 'cobalt' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+
+
+==== recur1.ts (1 errors) ====
+    var salt:any = new salt.pepper();   
+    salt.pepper = function() {}
+    
+    var cobalt = new cobalt.pitch();   
+        ~~~~~~
+!!! error TS7022: 'cobalt' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    cobalt.pitch = function() {}
+     
+    

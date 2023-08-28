@@ -1,0 +1,15 @@
+error TS2318: Cannot find global type 'CallableFunction'.
+error TS2318: Cannot find global type 'NewableFunction'.
+
+
+!!! error TS2318: Cannot find global type 'CallableFunction'.
+!!! error TS2318: Cannot find global type 'NewableFunction'.
+==== jsxHasLiteralType.tsx (0 errors) ====
+    import * as React from "react";
+    
+    interface Props {
+        x?: "a" | "b";
+    }
+    class MyComponent<P extends Props = Props> extends React.Component<P, {}> {}
+    const m = <MyComponent x="a"/>
+    

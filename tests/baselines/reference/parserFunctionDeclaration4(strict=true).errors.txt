@@ -1,0 +1,11 @@
+parserFunctionDeclaration4.ts(1,10): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+parserFunctionDeclaration4.ts(2,10): error TS2389: Function implementation name must be 'foo'.
+
+
+==== parserFunctionDeclaration4.ts (2 errors) ====
+    function foo();
+             ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    function bar() { }
+             ~~~
+!!! error TS2389: Function implementation name must be 'foo'.

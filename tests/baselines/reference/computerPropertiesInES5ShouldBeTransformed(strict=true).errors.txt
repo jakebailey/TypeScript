@@ -1,0 +1,7 @@
+computerPropertiesInES5ShouldBeTransformed.ts(1,23): error TS7031: Binding element 'renamed' implicitly has an 'any' type.
+
+
+==== computerPropertiesInES5ShouldBeTransformed.ts (1 errors) ====
+    const b = ({ [`key`]: renamed }) => renamed;
+                          ~~~~~~~
+!!! error TS7031: Binding element 'renamed' implicitly has an 'any' type.

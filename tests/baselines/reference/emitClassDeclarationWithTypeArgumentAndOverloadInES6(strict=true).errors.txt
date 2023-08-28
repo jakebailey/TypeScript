@@ -1,0 +1,37 @@
+emitClassDeclarationWithTypeArgumentAndOverloadInES6.ts(2,5): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+emitClassDeclarationWithTypeArgumentAndOverloadInES6.ts(9,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+emitClassDeclarationWithTypeArgumentAndOverloadInES6.ts(10,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+emitClassDeclarationWithTypeArgumentAndOverloadInES6.ts(11,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== emitClassDeclarationWithTypeArgumentAndOverloadInES6.ts (4 errors) ====
+    class B<T> {
+        x: T;
+        ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+        B: T;
+    
+        constructor(a: any)
+        constructor(a: any,b: T)
+        constructor(a: T) { this.B = a;}
+    
+        foo(a: T)
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(a: any)
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(b: string)
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(): T {
+            return this.x;
+        }
+    
+        get BB(): T {
+            return this.B;
+        }
+        set BBWith(c: T) {
+            this.B = c;
+        }
+    }

@@ -1,0 +1,24 @@
+functionOverloadImplementationOfWrongName.ts(1,10): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadImplementationOfWrongName.ts(1,14): error TS7006: Parameter 'x' implicitly has an 'any' type.
+functionOverloadImplementationOfWrongName.ts(2,10): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadImplementationOfWrongName.ts(2,14): error TS7006: Parameter 'x' implicitly has an 'any' type.
+functionOverloadImplementationOfWrongName.ts(2,17): error TS7006: Parameter 'y' implicitly has an 'any' type.
+functionOverloadImplementationOfWrongName.ts(3,10): error TS2389: Function implementation name must be 'foo'.
+
+
+==== functionOverloadImplementationOfWrongName.ts (6 errors) ====
+    function foo(x);
+             ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+                 ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    function foo(x, y);
+             ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+                 ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                    ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+    function bar() { }
+             ~~~
+!!! error TS2389: Function implementation name must be 'foo'.

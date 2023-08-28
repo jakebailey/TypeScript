@@ -1,0 +1,28 @@
+scopeCheckInsideStaticMethod1.ts(2,12): error TS7008: Member 'v' implicitly has an 'any' type.
+scopeCheckInsideStaticMethod1.ts(3,11): error TS7008: Member 'p' implicitly has an 'any' type.
+scopeCheckInsideStaticMethod1.ts(4,11): error TS7008: Member 's' implicitly has an 'any' type.
+scopeCheckInsideStaticMethod1.ts(6,7): error TS2304: Cannot find name 'v'.
+scopeCheckInsideStaticMethod1.ts(8,12): error TS2339: Property 'p' does not exist on type 'typeof C'.
+
+
+==== scopeCheckInsideStaticMethod1.ts (5 errors) ====
+    class C {
+       private v;
+               ~
+!!! error TS7008: Member 'v' implicitly has an 'any' type.
+       public p;
+              ~
+!!! error TS7008: Member 'p' implicitly has an 'any' type.
+       static s;
+              ~
+!!! error TS7008: Member 's' implicitly has an 'any' type.
+       static b() {
+          v = 1; // ERR
+          ~
+!!! error TS2304: Cannot find name 'v'.
+          C.s = 1;
+          this.p = 1; // ERR
+               ~
+!!! error TS2339: Property 'p' does not exist on type 'typeof C'.
+       }
+    }

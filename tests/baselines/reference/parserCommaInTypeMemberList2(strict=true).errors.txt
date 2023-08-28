@@ -1,0 +1,11 @@
+parserCommaInTypeMemberList2.ts(1,9): error TS2581: Cannot find name '$'. Do you need to install type definitions for jQuery? Try `npm i --save-dev @types/jquery`.
+parserCommaInTypeMemberList2.ts(1,89): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+
+
+==== parserCommaInTypeMemberList2.ts (2 errors) ====
+    var s = $.extend< { workItem: any }, { workItem: any, width: string }>({ workItem: this._workItem }, {});
+            ~
+!!! error TS2581: Cannot find name '$'. Do you need to install type definitions for jQuery? Try `npm i --save-dev @types/jquery`.
+                                                                                            ~~~~~~~~~
+!!! error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+    

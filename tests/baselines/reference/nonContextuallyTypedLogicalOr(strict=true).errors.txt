@@ -1,0 +1,29 @@
+nonContextuallyTypedLogicalOr.ts(2,5): error TS7008: Member 'dummy' implicitly has an 'any' type.
+nonContextuallyTypedLogicalOr.ts(7,5): error TS7008: Member 'dummy' implicitly has an 'any' type.
+nonContextuallyTypedLogicalOr.ts(14,2): error TS2454: Variable 'c' is used before being assigned.
+nonContextuallyTypedLogicalOr.ts(14,7): error TS2454: Variable 'e' is used before being assigned.
+
+
+==== nonContextuallyTypedLogicalOr.ts (4 errors) ====
+    interface Contextual {
+        dummy;
+        ~~~~~
+!!! error TS7008: Member 'dummy' implicitly has an 'any' type.
+        p?: number;
+    }
+    
+    interface Ellement {
+        dummy;
+        ~~~~~
+!!! error TS7008: Member 'dummy' implicitly has an 'any' type.
+        p: any;
+    }
+    
+    var c: Contextual;
+    var e: Ellement;
+    
+    (c || e).dummy;
+     ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+          ~
+!!! error TS2454: Variable 'e' is used before being assigned.

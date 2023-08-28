@@ -1,0 +1,12 @@
+/a.js(2,17): error TS7006: Parameter 'map' implicitly has an 'any' type.
+/a.js(2,22): error TS7006: Parameter 'key' implicitly has an 'any' type.
+
+
+==== /a.js (2 errors) ====
+    /** {@link Map.delete} */
+    const remove = (map, key) => {}
+                    ~~~
+!!! error TS7006: Parameter 'map' implicitly has an 'any' type.
+                         ~~~
+!!! error TS7006: Parameter 'key' implicitly has an 'any' type.
+    

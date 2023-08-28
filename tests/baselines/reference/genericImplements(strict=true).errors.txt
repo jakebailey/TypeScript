@@ -1,0 +1,53 @@
+genericImplements.ts(1,11): error TS7008: Member 'a' implicitly has an 'any' type.
+genericImplements.ts(2,11): error TS7008: Member 'b' implicitly has an 'any' type.
+genericImplements.ts(9,5): error TS2416: Property 'f' in type 'X' is not assignable to the same property in base type 'I'.
+  Type '<T extends B>() => T' is not assignable to type '<T extends A>() => T'.
+    Type 'B' is not assignable to type 'T'.
+      'T' could be instantiated with an arbitrary type which could be unrelated to 'B'.
+genericImplements.ts(9,27): error TS2322: Type 'undefined' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'undefined'.
+genericImplements.ts(14,27): error TS2322: Type 'undefined' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'undefined'.
+genericImplements.ts(19,17): error TS2322: Type 'undefined' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'undefined'.
+
+
+==== genericImplements.ts (6 errors) ====
+    class A { a; };
+              ~
+!!! error TS7008: Member 'a' implicitly has an 'any' type.
+    class B { b; };
+              ~
+!!! error TS7008: Member 'b' implicitly has an 'any' type.
+    interface I {
+        f<T extends A>(): T;
+    } // { f: () => { a; } }
+    
+    // OK
+    class X implements I {  
+        f<T extends B>(): T { return undefined; }
+        ~
+!!! error TS2416: Property 'f' in type 'X' is not assignable to the same property in base type 'I'.
+!!! error TS2416:   Type '<T extends B>() => T' is not assignable to type '<T extends A>() => T'.
+!!! error TS2416:     Type 'B' is not assignable to type 'T'.
+!!! error TS2416:       'T' could be instantiated with an arbitrary type which could be unrelated to 'B'.
+                              ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'undefined'.
+    } // { f: () => { b; } }
+    
+    // OK
+    class Y implements I {
+        f<T extends A>(): T { return undefined; }
+                              ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'undefined'.
+    } // { f: () => { a; } }
+    
+    // OK
+    class Z implements I {
+        f<T>(): T { return undefined; }
+                    ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'undefined'.
+    } // { f: <T>() => T } 

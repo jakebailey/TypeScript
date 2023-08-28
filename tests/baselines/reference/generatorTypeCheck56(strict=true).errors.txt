@@ -1,0 +1,13 @@
+generatorTypeCheck56.ts(3,11): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+
+
+==== generatorTypeCheck56.ts (1 errors) ====
+    function* g() {
+        var x = class C {
+            *[yield 0]() {
+              ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+                yield 0;
+            }
+        };
+    }

@@ -1,0 +1,53 @@
+nonPrimitiveNarrow.ts(2,5): error TS2564: Property 'narrowed' has no initializer and is not definitely assigned in the constructor.
+nonPrimitiveNarrow.ts(7,5): error TS2454: Variable 'a' is used before being assigned.
+nonPrimitiveNarrow.ts(9,5): error TS2322: Type 'number' is not assignable to type 'object'.
+nonPrimitiveNarrow.ts(12,12): error TS2454: Variable 'a' is used before being assigned.
+nonPrimitiveNarrow.ts(13,7): error TS2339: Property 'toFixed' does not exist on type 'never'.
+nonPrimitiveNarrow.ts(18,12): error TS2454: Variable 'b' is used before being assigned.
+nonPrimitiveNarrow.ts(19,4): error TS18047: 'b' is possibly 'null'.
+nonPrimitiveNarrow.ts(21,4): error TS2454: Variable 'b' is used before being assigned.
+nonPrimitiveNarrow.ts(21,4): error TS18047: 'b' is possibly 'null'.
+
+
+==== nonPrimitiveNarrow.ts (9 errors) ====
+    class Narrow {
+        narrowed: boolean
+        ~~~~~~~~
+!!! error TS2564: Property 'narrowed' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    var a: object
+    
+    if (a instanceof Narrow) {
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        a.narrowed; // ok
+        a = 123; // error
+        ~
+!!! error TS2322: Type 'number' is not assignable to type 'object'.
+    }
+    
+    if (typeof a === 'number') {
+               ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        a.toFixed(); // error, never
+          ~~~~~~~
+!!! error TS2339: Property 'toFixed' does not exist on type 'never'.
+    }
+    
+    var b: object | null
+    
+    if (typeof b === 'object') {
+               ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+       b.toString(); // ok, object | null
+       ~
+!!! error TS18047: 'b' is possibly 'null'.
+    } else {
+       b.toString(); // error, never
+       ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+       ~
+!!! error TS18047: 'b' is possibly 'null'.
+    }
+    

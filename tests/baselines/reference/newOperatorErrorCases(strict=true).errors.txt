@@ -1,0 +1,52 @@
+newOperatorErrorCases.ts(17,10): error TS7006: Parameter 'n' implicitly has an 'any' type.
+newOperatorErrorCases.ts(26,16): error TS1005: ',' expected.
+newOperatorErrorCases.ts(26,16): error TS2695: Left side of comma operator is unused and has no side effects.
+newOperatorErrorCases.ts(36,9): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+
+
+==== newOperatorErrorCases.ts (4 errors) ====
+    class C0 {
+    
+    }
+    class C1 {
+        constructor(n: number, s: string) { }
+    }
+    
+    class T<T> {
+        constructor(n?: T) { }
+    }
+    
+    var anyCtor: {
+        new (): any;
+    };
+    
+    var anyCtor1: {
+        new (n): any;
+             ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+    };
+    
+    interface nestedCtor {
+        new (): nestedCtor;
+    }
+    var nestedCtor: nestedCtor;
+    
+    // Construct expression with no parentheses for construct signature with > 0 parameters
+    var b = new C0 32, ''; // Parse error
+                   ~~
+!!! error TS1005: ',' expected.
+                   ~~
+!!! error TS2695: Left side of comma operator is unused and has no side effects.
+    
+    // Generic construct expression with no parentheses
+    var c1 = new T;
+    var c1: T<{}>;
+    var c2 = new T<string>;  // Ok
+    
+    
+    // Construct expression of non-void returning function
+    function fnNumber(): number { return 32; }
+    var s = new fnNumber(); // Error
+            ~~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+    

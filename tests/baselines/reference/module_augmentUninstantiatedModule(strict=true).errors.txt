@@ -1,0 +1,15 @@
+module_augmentUninstantiatedModule.ts(3,8): error TS7005: Variable 'M' implicitly has an 'any' type.
+
+
+==== module_augmentUninstantiatedModule.ts (1 errors) ====
+    declare module "foo" {
+       namespace M {}
+       var M;
+           ~
+!!! error TS7005: Variable 'M' implicitly has an 'any' type.
+       export = M;
+    }
+    
+    declare module "bar" {
+        module "foo" {}
+    }

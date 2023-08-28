@@ -1,0 +1,13 @@
+/a.ts(1,12): error TS7005: Variable 'x' implicitly has an 'any' type.
+/a.ts(2,1): error TS2309: An export assignment cannot be used in a module with other exported elements.
+
+
+==== /a.ts (2 errors) ====
+    export var x;
+               ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    export = x;
+    ~~~~~~~~~~~
+!!! error TS2309: An export assignment cannot be used in a module with other exported elements.
+    import("./a");
+    

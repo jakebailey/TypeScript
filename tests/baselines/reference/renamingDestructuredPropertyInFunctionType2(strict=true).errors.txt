@@ -1,0 +1,84 @@
+a.d.ts(7,17): error TS7031: Binding element 'string' implicitly has an 'any' type.
+a.d.ts(8,17): error TS7031: Binding element 'string' implicitly has an 'any' type.
+a.d.ts(8,28): error TS7031: Binding element 'number' implicitly has an 'any' type.
+a.d.ts(9,14): error TS7031: Binding element 'a' implicitly has an 'any' type.
+a.d.ts(9,20): error TS7031: Binding element 'number' implicitly has an 'any' type.
+a.d.ts(10,13): error TS7031: Binding element 'a' implicitly has an 'any' type.
+a.d.ts(10,16): error TS7031: Binding element 'b' implicitly has an 'any' type.
+a.d.ts(10,19): error TS7031: Binding element 'c' implicitly has an 'any' type.
+a.d.ts(17,17): error TS7031: Binding element 'string' implicitly has an 'any' type.
+a.d.ts(18,17): error TS7031: Binding element 'string' implicitly has an 'any' type.
+a.d.ts(18,28): error TS7031: Binding element 'number' implicitly has an 'any' type.
+a.d.ts(19,14): error TS7031: Binding element 'a' implicitly has an 'any' type.
+a.d.ts(19,20): error TS7031: Binding element 'number' implicitly has an 'any' type.
+a.d.ts(20,13): error TS7031: Binding element 'a' implicitly has an 'any' type.
+a.d.ts(20,16): error TS7031: Binding element 'b' implicitly has an 'any' type.
+a.d.ts(20,19): error TS7031: Binding element 'c' implicitly has an 'any' type.
+
+
+==== a.d.ts (16 errors) ====
+    type O = { a: string; b: number; c: number; };
+    type F1 = (arg: number) => any; 
+    type F2 = ({ a: string }: O) => any; 
+    type F3 = ({ a: string, b, c }: O) => any; 
+    type F4 = ({ a: string }: O) => any; 
+    type F5 = ({ a: string, b, c }: O) => any; 
+    type F6 = ({ a: string }) => typeof string; 
+                    ~~~~~~
+!!! error TS7031: Binding element 'string' implicitly has an 'any' type.
+    type F7 = ({ a: string, b: number }) => typeof number; 
+                    ~~~~~~
+!!! error TS7031: Binding element 'string' implicitly has an 'any' type.
+                               ~~~~~~
+!!! error TS7031: Binding element 'number' implicitly has an 'any' type.
+    type F8 = ({ a, b: number }) => typeof number; 
+                 ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                       ~~~~~~
+!!! error TS7031: Binding element 'number' implicitly has an 'any' type.
+    type F9 = ([a, b, c]) => void; 
+                ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                   ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+                      ~
+!!! error TS7031: Binding element 'c' implicitly has an 'any' type.
+    
+    type G1 = (arg: number) => any; 
+    type G2 = ({ a: string }: O) => any; 
+    type G3 = ({ a: string, b, c }: O) => any; 
+    type G4 = ({ a: string }: O) => any; 
+    type G5 = ({ a: string, b, c }: O) => any; 
+    type G6 = ({ a: string }) => typeof string; 
+                    ~~~~~~
+!!! error TS7031: Binding element 'string' implicitly has an 'any' type.
+    type G7 = ({ a: string, b: number }) => typeof number; 
+                    ~~~~~~
+!!! error TS7031: Binding element 'string' implicitly has an 'any' type.
+                               ~~~~~~
+!!! error TS7031: Binding element 'number' implicitly has an 'any' type.
+    type G8 = ({ a, b: number }) => typeof number; 
+                 ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                       ~~~~~~
+!!! error TS7031: Binding element 'number' implicitly has an 'any' type.
+    type G9 = ([a, b, c]) => void; 
+                ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                   ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+                      ~
+!!! error TS7031: Binding element 'c' implicitly has an 'any' type.
+    
+    interface I {
+      method1(arg: number): any; 
+      method2({ a: string }): any; 
+    
+      (arg: number): any; 
+      ({ a: string }): any; 
+    
+      new (arg: number): any; 
+      new ({ a: string }): any; 
+    }
+    
+    

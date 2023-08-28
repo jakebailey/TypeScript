@@ -1,0 +1,87 @@
+parserUsingConstructorAsIdentifier.ts(1,25): error TS7006: Parameter 'constructor' implicitly has an 'any' type.
+parserUsingConstructorAsIdentifier.ts(1,38): error TS7006: Parameter 'instanceMembers' implicitly has an 'any' type.
+parserUsingConstructorAsIdentifier.ts(1,55): error TS7006: Parameter 'staticMembers' implicitly has an 'any' type.
+parserUsingConstructorAsIdentifier.ts(3,13): error TS2304: Cannot find name 'PluginUtilities'.
+parserUsingConstructorAsIdentifier.ts(5,17): error TS2304: Cannot find name 'initializeProperties'.
+parserUsingConstructorAsIdentifier.ts(8,17): error TS2304: Cannot find name 'initializeProperties'.
+parserUsingConstructorAsIdentifier.ts(13,25): error TS7006: Parameter 'baseClass' implicitly has an 'any' type.
+parserUsingConstructorAsIdentifier.ts(13,36): error TS7006: Parameter 'constructor' implicitly has an 'any' type.
+parserUsingConstructorAsIdentifier.ts(13,49): error TS7006: Parameter 'instanceMembers' implicitly has an 'any' type.
+parserUsingConstructorAsIdentifier.ts(13,66): error TS7006: Parameter 'staticMembers' implicitly has an 'any' type.
+parserUsingConstructorAsIdentifier.ts(18,17): error TS2304: Cannot find name 'PluginUtilities'.
+parserUsingConstructorAsIdentifier.ts(21,21): error TS2304: Cannot find name 'initializeProperties'.
+parserUsingConstructorAsIdentifier.ts(24,21): error TS2304: Cannot find name 'initializeProperties'.
+parserUsingConstructorAsIdentifier.ts(32,22): error TS7006: Parameter 'constructor' implicitly has an 'any' type.
+parserUsingConstructorAsIdentifier.ts(36,17): error TS2304: Cannot find name 'initializeProperties'.
+
+
+==== parserUsingConstructorAsIdentifier.ts (15 errors) ====
+            function define(constructor, instanceMembers, staticMembers) {
+                            ~~~~~~~~~~~
+!!! error TS7006: Parameter 'constructor' implicitly has an 'any' type.
+                                         ~~~~~~~~~~~~~~~
+!!! error TS7006: Parameter 'instanceMembers' implicitly has an 'any' type.
+                                                          ~~~~~~~~~~~~~
+!!! error TS7006: Parameter 'staticMembers' implicitly has an 'any' type.
+                constructor = constructor || function () { };
+                PluginUtilities.Utilities.markSupportedForProcessing(constructor);
+                ~~~~~~~~~~~~~~~
+!!! error TS2304: Cannot find name 'PluginUtilities'.
+                if (instanceMembers) {
+                    initializeProperties(constructor.prototype, instanceMembers);
+                    ~~~~~~~~~~~~~~~~~~~~
+!!! error TS2304: Cannot find name 'initializeProperties'.
+                }
+                if (staticMembers) {
+                    initializeProperties(constructor, staticMembers);
+                    ~~~~~~~~~~~~~~~~~~~~
+!!! error TS2304: Cannot find name 'initializeProperties'.
+                }
+                return constructor;
+            }
+    
+            function derive(baseClass, constructor, instanceMembers, staticMembers) {
+                            ~~~~~~~~~
+!!! error TS7006: Parameter 'baseClass' implicitly has an 'any' type.
+                                       ~~~~~~~~~~~
+!!! error TS7006: Parameter 'constructor' implicitly has an 'any' type.
+                                                    ~~~~~~~~~~~~~~~
+!!! error TS7006: Parameter 'instanceMembers' implicitly has an 'any' type.
+                                                                     ~~~~~~~~~~~~~
+!!! error TS7006: Parameter 'staticMembers' implicitly has an 'any' type.
+                if (baseClass) {
+                    constructor = constructor || function () { };
+                    var basePrototype = baseClass.prototype;
+                    constructor.prototype = Object.create(basePrototype);
+                    PluginUtilities.Utilities.markSupportedForProcessing(constructor);
+                    ~~~~~~~~~~~~~~~
+!!! error TS2304: Cannot find name 'PluginUtilities'.
+                    Object.defineProperty(constructor.prototype, "constructor", { value: constructor, writable: true, configurable: true, enumerable: true });
+                    if (instanceMembers) {
+                        initializeProperties(constructor.prototype, instanceMembers);
+                        ~~~~~~~~~~~~~~~~~~~~
+!!! error TS2304: Cannot find name 'initializeProperties'.
+                    }
+                    if (staticMembers) {
+                        initializeProperties(constructor, staticMembers);
+                        ~~~~~~~~~~~~~~~~~~~~
+!!! error TS2304: Cannot find name 'initializeProperties'.
+                    }
+                    return constructor;
+                } else {
+                    return define(constructor, instanceMembers, staticMembers);
+                }
+            }
+    
+            function mix(constructor) {
+                         ~~~~~~~~~~~
+!!! error TS7006: Parameter 'constructor' implicitly has an 'any' type.
+                constructor = constructor || function () { };
+                var i, len;
+                for (i = 1, len = arguments.length; i < len; i++) {
+                    initializeProperties(constructor.prototype, arguments[i]);
+                    ~~~~~~~~~~~~~~~~~~~~
+!!! error TS2304: Cannot find name 'initializeProperties'.
+                }
+                return constructor;
+            }

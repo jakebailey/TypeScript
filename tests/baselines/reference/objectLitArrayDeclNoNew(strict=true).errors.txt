@@ -1,0 +1,45 @@
+objectLitArrayDeclNoNew.ts(1,13): error TS7005: Variable 'console' implicitly has an 'any' type.
+objectLitArrayDeclNoNew.ts(20,11): error TS2322: Type 'null' is not assignable to type 'IState'.
+objectLitArrayDeclNoNew.ts(22,16): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof Gar'.
+objectLitArrayDeclNoNew.ts(22,20): error TS1011: An element access expression should take an argument.
+objectLitArrayDeclNoNew.ts(27,1): error TS1128: Declaration or statement expected.
+
+
+==== objectLitArrayDeclNoNew.ts (5 errors) ====
+    declare var console;
+                ~~~~~~~
+!!! error TS7005: Variable 'console' implicitly has an 'any' type.
+    "use strict";
+    module Test {
+        export interface IState {
+        }
+    
+        export interface IToken {
+        }
+    
+        export interface ILineTokens {
+            tokens: IToken[];
+            endState: IState;
+        }
+    
+        export class Gar {
+            public moo: number = 0;
+        }
+    
+        export function bug(): ILineTokens {
+          var state:IState= null;
+              ~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'IState'.
+          return {
+           tokens: Gar[],//IToken[],  // Missing new. Correct syntax is: tokens: new IToken[]
+                   ~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof Gar'.
+                       
+!!! error TS1011: An element access expression should take an argument.
+           endState: state
+          };
+         }
+        }
+    }
+    ~
+!!! error TS1128: Declaration or statement expected.

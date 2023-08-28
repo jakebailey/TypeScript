@@ -1,0 +1,23 @@
+noUnusedLocals_writeOnlyProperty_dynamicNames.ts(4,13): error TS2564: Property '[x]' has no initializer and is not definitely assigned in the constructor.
+noUnusedLocals_writeOnlyProperty_dynamicNames.ts(4,13): error TS6133: '[x]' is declared but its value is never read.
+noUnusedLocals_writeOnlyProperty_dynamicNames.ts(5,13): error TS2564: Property '[y]' has no initializer and is not definitely assigned in the constructor.
+
+
+==== noUnusedLocals_writeOnlyProperty_dynamicNames.ts (3 errors) ====
+    const x = Symbol("x");
+    const y = Symbol("y");
+    class C {
+        private [x]: number;
+                ~~~
+!!! error TS2564: Property '[x]' has no initializer and is not definitely assigned in the constructor.
+                ~~~
+!!! error TS6133: '[x]' is declared but its value is never read.
+        private [y]: number;
+                ~~~
+!!! error TS2564: Property '[y]' has no initializer and is not definitely assigned in the constructor.
+        m() {
+            this[x] = 0; // write-only
+            this[y];
+        }
+    }
+    

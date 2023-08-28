@@ -1,0 +1,29 @@
+declareAlreadySeen.ts(2,13): error TS1030: 'declare' modifier already seen.
+declareAlreadySeen.ts(2,25): error TS7005: Variable 'x' implicitly has an 'any' type.
+declareAlreadySeen.ts(3,13): error TS1030: 'declare' modifier already seen.
+declareAlreadySeen.ts(3,30): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+declareAlreadySeen.ts(5,13): error TS1030: 'declare' modifier already seen.
+declareAlreadySeen.ts(7,13): error TS1030: 'declare' modifier already seen.
+
+
+==== declareAlreadySeen.ts (6 errors) ====
+    module M {
+        declare declare var x;
+                ~~~~~~~
+!!! error TS1030: 'declare' modifier already seen.
+                            ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        declare declare function f();
+                ~~~~~~~
+!!! error TS1030: 'declare' modifier already seen.
+                                 ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+        declare declare module N { }  
+                ~~~~~~~
+!!! error TS1030: 'declare' modifier already seen.
+    
+        declare declare class C { }
+                ~~~~~~~
+!!! error TS1030: 'declare' modifier already seen.
+    }

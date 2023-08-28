@@ -1,0 +1,18 @@
+declarationInAmbientContext.ts(1,14): error TS7031: Binding element 'a' implicitly has an 'any' type.
+declarationInAmbientContext.ts(1,17): error TS7031: Binding element 'b' implicitly has an 'any' type.
+declarationInAmbientContext.ts(2,14): error TS7031: Binding element 'c' implicitly has an 'any' type.
+declarationInAmbientContext.ts(2,17): error TS7031: Binding element 'd' implicitly has an 'any' type.
+
+
+==== declarationInAmbientContext.ts (4 errors) ====
+    declare var [a, b];  // Error, destructuring declaration not allowed in ambient context
+                 ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                    ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+    declare var {c, d};  // Error, destructuring declaration not allowed in ambient context
+                 ~
+!!! error TS7031: Binding element 'c' implicitly has an 'any' type.
+                    ~
+!!! error TS7031: Binding element 'd' implicitly has an 'any' type.
+    

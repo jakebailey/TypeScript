@@ -1,0 +1,213 @@
+collisionArgumentsClassMethod.ts(2,27): error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+collisionArgumentsClassMethod.ts(2,27): error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(2,30): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(3,13): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(5,17): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(5,17): error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+collisionArgumentsClassMethod.ts(5,36): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(6,13): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(8,23): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(9,13): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(11,12): error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(11,26): error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(11,29): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(12,12): error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(12,26): error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(12,29): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(13,23): error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+collisionArgumentsClassMethod.ts(13,23): error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(13,26): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(14,13): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(16,12): error TS7010: 'f41', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(16,16): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(16,35): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(17,12): error TS7010: 'f41', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(17,16): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(17,35): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(18,16): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(18,16): error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+collisionArgumentsClassMethod.ts(18,32): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(19,13): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(21,12): error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(21,22): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(22,12): error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(22,22): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(23,22): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(24,13): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(29,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(29,27): error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(30,12): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(30,36): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(31,12): error TS7010: 'fooNoError', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(33,12): error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(33,26): error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(34,12): error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(34,26): error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(35,12): error TS7010: 'f41', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(35,35): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(36,12): error TS7010: 'f41', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(36,35): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(37,12): error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(38,12): error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsClassMethod.ts(42,16): error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+collisionArgumentsClassMethod.ts(43,13): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+collisionArgumentsClassMethod.ts(46,13): error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+
+
+==== collisionArgumentsClassMethod.ts (54 errors) ====
+    class c1 {
+        public foo(i: number, ...arguments) { //arguments is error
+                              ~~~~~~~~~~~~
+!!! error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+                              ~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+                                 ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+            var arguments: any[]; // no error
+                ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+        }
+        public foo1(arguments: number, ...rest) { //arguments is error
+                    ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+                    ~~~~~~~~~~~~~~~~~
+!!! error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+                                       ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+            var arguments = 10; // no error
+                ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+        }
+        public fooNoError(arguments: number) { // no error
+                          ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+            var arguments = 10; // no error
+                ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+        }
+        public f4(i: number, ...arguments); // no codegen no error
+               ~~
+!!! error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+                             ~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+                                ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+        public f4(i: string, ...arguments); // no codegen no error
+               ~~
+!!! error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+                             ~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+                                ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+        public f4(i: any, ...arguments) { // error
+                          ~~~~~~~~~~~~
+!!! error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+                          ~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+                             ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+            var arguments: any[]; // no error
+                ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+        }
+        public f41(arguments: number, ...rest); // no codegen no error
+               ~~~
+!!! error TS7010: 'f41', which lacks return-type annotation, implicitly has an 'any' return type.
+                   ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+                                      ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+        public f41(arguments: string, ...rest); // no codegen no error
+               ~~~
+!!! error TS7010: 'f41', which lacks return-type annotation, implicitly has an 'any' return type.
+                   ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+                                      ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+        public f41(arguments: any, ...rest) { // error
+                   ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+                   ~~~~~~~~~~~~~~
+!!! error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+                                   ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+            var arguments: any; // no error
+                ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+        }
+        public f4NoError(arguments: number); // no error
+               ~~~~~~~~~
+!!! error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+                         ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+        public f4NoError(arguments: string); // no error
+               ~~~~~~~~~
+!!! error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+                         ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+        public f4NoError(arguments: any) { // no error
+                         ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+            var arguments: any; // no error
+                ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+        }
+    }
+    
+    declare class c2 {
+        public foo(i: number, ...arguments); // No error - no code gen
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+                              ~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+        public foo1(arguments: number, ...rest); // No error - no code gen
+               ~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+                                       ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+        public fooNoError(arguments: number); // No error - no code gen
+               ~~~~~~~~~~
+!!! error TS7010: 'fooNoError', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+        public f4(i: number, ...arguments); // no codegen no error
+               ~~
+!!! error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+                             ~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+        public f4(i: string, ...arguments); // no codegen no error
+               ~~
+!!! error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+                             ~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+        public f41(arguments: number, ...rest); // no codegen no error
+               ~~~
+!!! error TS7010: 'f41', which lacks return-type annotation, implicitly has an 'any' return type.
+                                      ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+        public f41(arguments: string, ...rest); // no codegen no error
+               ~~~
+!!! error TS7010: 'f41', which lacks return-type annotation, implicitly has an 'any' return type.
+                                      ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+        public f4NoError(arguments: number); // no error
+               ~~~~~~~~~
+!!! error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+        public f4NoError(arguments: string); // no error
+               ~~~~~~~~~
+!!! error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    class c3 {
+        public foo(...restParameters) {
+                   ~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+            var arguments = 10; // no error
+                ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+        }
+        public fooNoError() {
+            var arguments = 10; // no error
+                ~~~~~~~~~
+!!! error TS1210: Code contained in a class is evaluated in JavaScript's strict mode which does not allow this use of 'arguments'. For more information, see https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Strict_mode.
+        }
+    }

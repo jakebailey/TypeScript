@@ -1,0 +1,72 @@
+typeParameterAsTypeParameterConstraintTransitively.ts(16,5): error TS2454: Variable 'a' is used before being assigned.
+typeParameterAsTypeParameterConstraintTransitively.ts(16,8): error TS2454: Variable 'b' is used before being assigned.
+typeParameterAsTypeParameterConstraintTransitively.ts(16,11): error TS2454: Variable 'c' is used before being assigned.
+typeParameterAsTypeParameterConstraintTransitively.ts(17,5): error TS2454: Variable 'a' is used before being assigned.
+typeParameterAsTypeParameterConstraintTransitively.ts(17,8): error TS2454: Variable 'b' is used before being assigned.
+typeParameterAsTypeParameterConstraintTransitively.ts(18,17): error TS7006: Parameter 'y' implicitly has an 'any' type.
+typeParameterAsTypeParameterConstraintTransitively.ts(18,29): error TS7006: Parameter 'x' implicitly has an 'any' type.
+typeParameterAsTypeParameterConstraintTransitively.ts(22,5): error TS2454: Variable 'a' is used before being assigned.
+typeParameterAsTypeParameterConstraintTransitively.ts(22,8): error TS2454: Variable 'a' is used before being assigned.
+typeParameterAsTypeParameterConstraintTransitively.ts(22,11): error TS2454: Variable 'a' is used before being assigned.
+typeParameterAsTypeParameterConstraintTransitively.ts(23,5): error TS2454: Variable 'a' is used before being assigned.
+typeParameterAsTypeParameterConstraintTransitively.ts(23,8): error TS2454: Variable 'b' is used before being assigned.
+typeParameterAsTypeParameterConstraintTransitively.ts(23,11): error TS2454: Variable 'c' is used before being assigned.
+typeParameterAsTypeParameterConstraintTransitively.ts(24,5): error TS2454: Variable 'b' is used before being assigned.
+typeParameterAsTypeParameterConstraintTransitively.ts(24,8): error TS2454: Variable 'b' is used before being assigned.
+
+
+==== typeParameterAsTypeParameterConstraintTransitively.ts (15 errors) ====
+    // using a type parameter as a constraint for a type parameter is valid
+    // no errors expected
+    
+    interface A { foo: number }
+    interface B extends A { bar: string; }
+    interface C extends B { baz: boolean; }
+    var a: A;
+    var b: B;
+    var c: C;
+    
+    function foo<T, U, V>(x: T, y: U, z: V): V { return z; }
+    //function foo<T, U extends T, V extends U>(x: T, y: U, z: V): V { return z; }
+    
+    foo(1, 2, 3);
+    foo({ x: 1 }, { x: 1, y: '' }, { x: 2, y: '', z: true });
+    foo(a, b, c);
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+              ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    foo(a, b, { foo: 1, bar: '', hm: true });
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    foo((x: number, y) => { }, (x) => { }, () => { });
+                    ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+                                ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+    function foo2<T extends A, U, V>(x: T, y: U, z: V): V { return z; }
+    //function foo2<T extends A, U extends T, V extends U>(x: T, y: U, z: V): V { return z; }
+    foo(a, a, a);
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+              ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    foo(a, b, c);
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+              ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    foo(b, b, { foo: 1, bar: '', hm: '' });
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+           ~
+!!! error TS2454: Variable 'b' is used before being assigned.

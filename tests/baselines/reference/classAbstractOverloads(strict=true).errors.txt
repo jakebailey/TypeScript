@@ -1,0 +1,81 @@
+classAbstractOverloads.ts(2,14): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractOverloads.ts(4,14): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractOverloads.ts(6,14): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractOverloads.ts(7,5): error TS2512: Overload signatures must all be abstract or non-abstract.
+classAbstractOverloads.ts(7,5): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractOverloads.ts(8,14): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractOverloads.ts(10,14): error TS2512: Overload signatures must all be abstract or non-abstract.
+classAbstractOverloads.ts(10,14): error TS7010: 'baz', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractOverloads.ts(11,5): error TS7010: 'baz', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractOverloads.ts(12,14): error TS2512: Overload signatures must all be abstract or non-abstract.
+classAbstractOverloads.ts(12,14): error TS7010: 'baz', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractOverloads.ts(15,5): error TS2391: Function implementation is missing or not immediately following the declaration.
+classAbstractOverloads.ts(15,5): error TS7010: 'qux', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractOverloads.ts(20,14): error TS2516: All declarations of an abstract method must be consecutive.
+classAbstractOverloads.ts(20,14): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractOverloads.ts(21,5): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+classAbstractOverloads.ts(22,14): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+classAbstractOverloads.ts(23,14): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== classAbstractOverloads.ts (18 errors) ====
+    abstract class A {
+        abstract foo();
+                 ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        abstract foo() : number;
+        abstract foo();
+                 ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        
+        abstract bar();
+                 ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        bar();
+        ~~~
+!!! error TS2512: Overload signatures must all be abstract or non-abstract.
+        ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        abstract bar();
+                 ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        
+        abstract baz();
+                 ~~~
+!!! error TS2512: Overload signatures must all be abstract or non-abstract.
+                 ~~~
+!!! error TS7010: 'baz', which lacks return-type annotation, implicitly has an 'any' return type.
+        baz();
+        ~~~
+!!! error TS7010: 'baz', which lacks return-type annotation, implicitly has an 'any' return type.
+        abstract baz();
+                 ~~~
+!!! error TS2512: Overload signatures must all be abstract or non-abstract.
+                 ~~~
+!!! error TS7010: 'baz', which lacks return-type annotation, implicitly has an 'any' return type.
+        baz() {}
+        
+        qux();
+        ~~~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+        ~~~
+!!! error TS7010: 'qux', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    abstract class B {
+        abstract foo() : number;
+        abstract foo();
+                 ~~~
+!!! error TS2516: All declarations of an abstract method must be consecutive.
+                 ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        x : number;
+        ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+        abstract foo();
+                 ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        abstract foo();
+                 ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }

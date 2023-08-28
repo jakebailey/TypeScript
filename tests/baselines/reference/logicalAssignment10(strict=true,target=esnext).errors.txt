@@ -1,0 +1,26 @@
+logicalAssignment10.ts(11,1): error TS7053: Element implicitly has an 'any' type because expression of type 'number' can't be used to index type '{}'.
+  No index signature with a parameter of type 'number' was found on type '{}'.
+logicalAssignment10.ts(12,1): error TS7053: Element implicitly has an 'any' type because expression of type 'number' can't be used to index type '{}'.
+  No index signature with a parameter of type 'number' was found on type '{}'.
+
+
+==== logicalAssignment10.ts (2 errors) ====
+    var count = 0;
+    var obj = {};
+    function incr() {
+        return ++count;
+    }
+    
+    const oobj = {
+        obj
+    }
+    
+    obj[incr()] ??= incr();
+    ~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'number' can't be used to index type '{}'.
+!!! error TS7053:   No index signature with a parameter of type 'number' was found on type '{}'.
+    oobj["obj"][incr()] ??= incr();
+    ~~~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'number' can't be used to index type '{}'.
+!!! error TS7053:   No index signature with a parameter of type 'number' was found on type '{}'.
+    

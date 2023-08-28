@@ -1,0 +1,37 @@
+other.js(5,1): error TS2454: Variable 'one' is used before being assigned.
+other.js(5,5): error TS2339: Property 'wat' does not exist on type 'One'.
+other.js(10,1): error TS2454: Variable 'two' is used before being assigned.
+other.js(10,5): error TS2339: Property 'wat' does not exist on type 'Two'.
+
+
+==== prototypePropertyAssignmentMergeAcrossFiles2.js (0 errors) ====
+    var Ns = {}
+    Ns.One = function() {};
+    Ns.Two = function() {};
+    
+    Ns.One.prototype = {
+      ok() {},
+    };
+    Ns.Two.prototype = {
+    }
+    
+==== other.js (4 errors) ====
+    /**
+     * @type {Ns.One}
+     */
+    var one;
+    one.wat;
+    ~~~
+!!! error TS2454: Variable 'one' is used before being assigned.
+        ~~~
+!!! error TS2339: Property 'wat' does not exist on type 'One'.
+    /**
+     * @type {Ns.Two}
+     */
+    var two;
+    two.wat;
+    ~~~
+!!! error TS2454: Variable 'two' is used before being assigned.
+        ~~~
+!!! error TS2339: Property 'wat' does not exist on type 'Two'.
+    

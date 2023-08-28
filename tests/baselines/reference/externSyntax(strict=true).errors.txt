@@ -1,0 +1,29 @@
+externSyntax.ts(1,13): error TS7005: Variable 'v' implicitly has an 'any' type.
+externSyntax.ts(4,16): error TS7008: Member 'p' implicitly has an 'any' type.
+externSyntax.ts(7,16): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+externSyntax.ts(8,20): error TS1183: An implementation cannot be declared in ambient contexts.
+
+
+==== externSyntax.ts (4 errors) ====
+    declare var v;
+                ~
+!!! error TS7005: Variable 'v' implicitly has an 'any' type.
+    declare module M {
+        export class D {
+            public p;
+                   ~
+!!! error TS7008: Member 'p' implicitly has an 'any' type.
+        }
+        export class C {
+            public f();
+                   ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+            public g() { } // error body
+                       ~
+!!! error TS1183: An implementation cannot be declared in ambient contexts.
+        }
+    }
+    
+    
+    
+    

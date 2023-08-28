@@ -1,0 +1,12 @@
+parserMemberFunctionDeclaration2.ts(2,12): error TS1434: Unexpected keyword or identifier.
+parserMemberFunctionDeclaration2.ts(2,12): error TS7008: Member 'static' implicitly has an 'any' type.
+
+
+==== parserMemberFunctionDeclaration2.ts (2 errors) ====
+    class C {
+        static static Foo() { }
+               ~~~~~~
+!!! error TS1434: Unexpected keyword or identifier.
+               ~~~~~~
+!!! error TS7008: Member 'static' implicitly has an 'any' type.
+    }

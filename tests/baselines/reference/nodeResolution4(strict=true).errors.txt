@@ -1,0 +1,14 @@
+a.ts(2,12): error TS7005: Variable 'y' implicitly has an 'any' type.
+
+
+==== b.ts (0 errors) ====
+    import y = require("./a");
+==== ref.ts (0 errors) ====
+    var x = 1;
+    
+==== a.ts (1 errors) ====
+    /// <reference path="ref.ts"/>
+    export var y;
+               ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+    

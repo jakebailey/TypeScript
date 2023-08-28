@@ -1,0 +1,10 @@
+parserClassDeclaration16.ts(2,4): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== parserClassDeclaration16.ts (1 errors) ====
+    class C {
+       foo();
+       ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+       foo() { }
+    }

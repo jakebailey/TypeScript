@@ -1,0 +1,21 @@
+error TS2318: Cannot find global type 'CallableFunction'.
+error TS2318: Cannot find global type 'NewableFunction'.
+
+
+!!! error TS2318: Cannot find global type 'CallableFunction'.
+!!! error TS2318: Cannot find global type 'NewableFunction'.
+==== file.tsx (0 errors) ====
+    import React = require('react');
+    
+    class Poisoned extends React.Component<{}, {}> {
+        render() {
+            return <div>Hello</div>;
+        }
+    }
+    
+    const obj = {};
+    
+    // OK
+    let p = <Poisoned {...obj} />;
+    let y = <Poisoned />;
+    

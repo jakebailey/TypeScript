@@ -1,0 +1,17 @@
+commentLeadingCloseBrace.ts(1,38): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+
+
+==== commentLeadingCloseBrace.ts (1 errors) ====
+    declare function commentedParameters(...args): any;
+                                         ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+    
+    function ifelse() {
+        if (commentedParameters(1, 2)) {
+            /*comment1*/
+            commentedParameters(3, 4);
+            /*comment2*/
+        } else {
+            commentedParameters(5, 6);
+        }
+    }

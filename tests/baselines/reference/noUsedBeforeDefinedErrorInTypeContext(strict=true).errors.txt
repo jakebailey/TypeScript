@@ -1,0 +1,34 @@
+noUsedBeforeDefinedErrorInTypeContext.ts(7,5): error TS7022: 'foo' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+noUsedBeforeDefinedErrorInTypeContext.ts(15,5): error TS7022: 'bar' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+noUsedBeforeDefinedErrorInTypeContext.ts(19,7): error TS7022: 'qwe' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+
+
+==== noUsedBeforeDefinedErrorInTypeContext.ts (3 errors) ====
+    // https://github.com/microsoft/TypeScript/issues/8775
+    
+    interface IThing<T> {
+        owner: T;
+    }
+    
+    var foo = {
+        ~~~
+!!! error TS7022: 'foo' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+        one: {} as IThing<typeof foo>,
+    }
+    
+    let baz = {
+        two: {} as IThing<typeof bar>,
+    }
+    
+    let bar = {
+        ~~~
+!!! error TS7022: 'bar' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+        three: {} as IThing<typeof bar>,
+    }
+    
+    const qwe = {
+          ~~~
+!!! error TS7022: 'qwe' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+        four: {} as IThing<typeof qwe>,
+    }
+    

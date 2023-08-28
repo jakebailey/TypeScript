@@ -1,0 +1,16 @@
+optionalParamReferencingOtherParams3.ts(1,16): error TS7022: 'a' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+optionalParamReferencingOtherParams3.ts(1,20): error TS2373: Parameter 'a' cannot reference identifier 'b' declared after it.
+optionalParamReferencingOtherParams3.ts(1,23): error TS7022: 'b' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+
+
+==== optionalParamReferencingOtherParams3.ts (3 errors) ====
+    function right(a = b, b = a) {
+                   ~~~~~
+!!! error TS7022: 'a' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+                       ~
+!!! error TS2373: Parameter 'a' cannot reference identifier 'b' declared after it.
+                          ~~~~~
+!!! error TS7022: 'b' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+        a;
+        b;
+    }

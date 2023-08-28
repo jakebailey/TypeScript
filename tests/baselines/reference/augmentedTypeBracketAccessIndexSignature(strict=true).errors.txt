@@ -1,0 +1,30 @@
+augmentedTypeBracketAccessIndexSignature.ts(1,17): error TS7008: Member 'a' implicitly has an 'any' type.
+augmentedTypeBracketAccessIndexSignature.ts(2,17): error TS7008: Member 'b' implicitly has an 'any' type.
+augmentedTypeBracketAccessIndexSignature.ts(12,9): error TS2339: Property '0' does not exist on type '{}'.
+augmentedTypeBracketAccessIndexSignature.ts(13,9): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type '() => void'.
+  Property '0' does not exist on type '() => void'.
+
+
+==== augmentedTypeBracketAccessIndexSignature.ts (4 errors) ====
+    interface Foo { a }
+                    ~
+!!! error TS7008: Member 'a' implicitly has an 'any' type.
+    interface Bar { b }
+                    ~
+!!! error TS7008: Member 'b' implicitly has an 'any' type.
+    
+    interface Object {
+        [n: number]: Foo;
+    }
+    
+    interface Function {
+        [n: number]: Bar;
+    }
+    
+    var a = {}[0]; // Should be Foo
+            ~~~~~
+!!! error TS2339: Property '0' does not exist on type '{}'.
+    var b = (() => { })[0]; // Should be Bar
+            ~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type '() => void'.
+!!! error TS7053:   Property '0' does not exist on type '() => void'.

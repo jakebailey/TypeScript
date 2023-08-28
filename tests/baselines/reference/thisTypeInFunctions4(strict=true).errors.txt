@@ -1,0 +1,22 @@
+thisTypeInFunctions4.ts(6,18): error TS7010: 'callsCallback', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== thisTypeInFunctions4.ts (1 errors) ====
+    type WrongObject = {value: number};
+    type CorrectObject = {name: string};
+    
+    declare function isCorrect(obj: any): obj is CorrectObject
+    
+    declare function callsCallback(cb: (name: string)=>void)
+                     ~~~~~~~~~~~~~
+!!! error TS7010: 'callsCallback', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    function problemFunction(this: CorrectObject | WrongObject): void {
+        //check type
+        if (!isCorrect(this)) return;
+    
+        callsCallback((name)=>{
+            this.name = name; //should not error
+            type T = typeof this;
+        });
+    }

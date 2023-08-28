@@ -1,0 +1,25 @@
+accessorWithRestParam.ts(2,9): error TS7032: Property 'X' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+accessorWithRestParam.ts(2,11): error TS1053: A 'set' accessor cannot have rest parameter.
+accessorWithRestParam.ts(2,11): error TS7019: Rest parameter 'v' implicitly has an 'any[]' type.
+accessorWithRestParam.ts(3,16): error TS7032: Property 'X' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+accessorWithRestParam.ts(3,18): error TS1053: A 'set' accessor cannot have rest parameter.
+accessorWithRestParam.ts(3,18): error TS7019: Rest parameter 'v2' implicitly has an 'any[]' type.
+
+
+==== accessorWithRestParam.ts (6 errors) ====
+    class C {
+        set X(...v) { }
+            ~
+!!! error TS7032: Property 'X' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+              ~~~
+!!! error TS1053: A 'set' accessor cannot have rest parameter.
+              ~~~~
+!!! error TS7019: Rest parameter 'v' implicitly has an 'any[]' type.
+        static set X(...v2) { }
+                   ~
+!!! error TS7032: Property 'X' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                     ~~~
+!!! error TS1053: A 'set' accessor cannot have rest parameter.
+                     ~~~~~
+!!! error TS7019: Rest parameter 'v2' implicitly has an 'any[]' type.
+    }

@@ -1,0 +1,23 @@
+test.ts(6,21): error TS7006: Parameter 'parameters' implicitly has an 'any' type.
+
+
+==== test.ts (1 errors) ====
+    namespace C {
+        export class Name {
+            static funcData = A.AA.func();
+            static someConst = A.AA.foo;
+    
+            constructor(parameters) {}
+                        ~~~~~~~~~~
+!!! error TS7006: Parameter 'parameters' implicitly has an 'any' type.
+        }
+    }
+    
+==== typings.d.ts (0 errors) ====
+    declare namespace A {
+        namespace AA {
+            function func(): number;
+            const foo = "";
+        }
+    }
+    

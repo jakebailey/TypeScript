@@ -1,0 +1,18 @@
+decoratorOnClassMethod17.ts(4,13): error TS7008: Member 'prop' implicitly has an 'any' type.
+decoratorOnClassMethod17.ts(4,18): error TS1436: Decorators must precede the name and all keywords of property declarations.
+
+
+==== decoratorOnClassMethod17.ts (2 errors) ====
+    declare var decorator: any;
+    
+    class Foo {
+        private prop @decorator
+                ~~~~
+!!! error TS7008: Member 'prop' implicitly has an 'any' type.
+                     ~
+!!! error TS1436: Decorators must precede the name and all keywords of property declarations.
+        foo() {
+            return 0;
+        }
+    }
+    

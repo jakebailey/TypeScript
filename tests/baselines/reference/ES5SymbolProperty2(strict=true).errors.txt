@@ -1,0 +1,22 @@
+ES5SymbolProperty2.ts(7,5): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'C'.
+ES5SymbolProperty2.ts(10,1): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'C'.
+ES5SymbolProperty2.ts(10,11): error TS2585: 'Symbol' only refers to a type, but is being used as a value here. Do you need to change your target library? Try changing the 'lib' compiler option to es2015 or later.
+
+
+==== ES5SymbolProperty2.ts (3 errors) ====
+    module M {
+        var Symbol: any;
+    
+        export class C {
+            [Symbol.iterator]() { }
+        }
+        (new C)[Symbol.iterator];
+        ~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'C'.
+    }
+    
+    (new M.C)[Symbol.iterator];
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'C'.
+              ~~~~~~
+!!! error TS2585: 'Symbol' only refers to a type, but is being used as a value here. Do you need to change your target library? Try changing the 'lib' compiler option to es2015 or later.

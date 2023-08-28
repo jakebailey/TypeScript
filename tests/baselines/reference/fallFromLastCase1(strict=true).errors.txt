@@ -1,0 +1,28 @@
+fallFromLastCase1.ts(1,18): error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== fallFromLastCase1.ts (1 errors) ====
+    declare function use(a: string);
+                     ~~~
+!!! error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    function foo1(a: number) {
+        switch (a) {
+            case 1:
+                use("1");
+                break;
+            case 2:
+                use("2");
+        }
+    }
+    
+    
+    function foo2(a: number) {
+        switch (a) {
+            case 1:
+                use("1");
+                break;
+            default:
+                use("2");
+        }
+    }

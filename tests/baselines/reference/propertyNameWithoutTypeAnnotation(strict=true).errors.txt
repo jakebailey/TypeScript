@@ -1,0 +1,39 @@
+propertyNameWithoutTypeAnnotation.ts(2,5): error TS7008: Member 'foo' implicitly has an 'any' type.
+propertyNameWithoutTypeAnnotation.ts(6,5): error TS7008: Member 'foo' implicitly has an 'any' type.
+propertyNameWithoutTypeAnnotation.ts(10,5): error TS7008: Member 'foo' implicitly has an 'any' type.
+propertyNameWithoutTypeAnnotation.ts(19,11): error TS2352: Conversion of type 'null' to type 'I' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+propertyNameWithoutTypeAnnotation.ts(20,10): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== propertyNameWithoutTypeAnnotation.ts (5 errors) ====
+    class C {
+        foo;
+        ~~~
+!!! error TS7008: Member 'foo' implicitly has an 'any' type.
+    }
+    
+    interface I {
+        foo;
+        ~~~
+!!! error TS7008: Member 'foo' implicitly has an 'any' type.
+    }
+    
+    var a: {
+        foo;
+        ~~~
+!!! error TS7008: Member 'foo' implicitly has an 'any' type.
+    }
+    
+    var b = {
+        foo: null
+    }
+    
+    // These should all be of type 'any'
+    var r1 = (new C()).foo;
+    var r2 = (<I>null).foo;
+              ~~~~~~~
+!!! error TS2352: Conversion of type 'null' to type 'I' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+    var r3 = a.foo;
+             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    var r4 = b.foo;

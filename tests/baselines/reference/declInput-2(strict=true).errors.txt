@@ -1,0 +1,54 @@
+declInput-2.ts(7,17): error TS2564: Property 'c' has no initializer and is not definitely assigned in the constructor.
+declInput-2.ts(8,16): error TS2564: Property 'm1' has no initializer and is not definitely assigned in the constructor.
+declInput-2.ts(9,16): error TS2564: Property 'm2' has no initializer and is not definitely assigned in the constructor.
+declInput-2.ts(10,16): error TS2564: Property 'm22' has no initializer and is not definitely assigned in the constructor.
+declInput-2.ts(11,16): error TS2564: Property 'm23' has no initializer and is not definitely assigned in the constructor.
+declInput-2.ts(12,16): error TS2564: Property 'm24' has no initializer and is not definitely assigned in the constructor.
+declInput-2.ts(13,16): error TS2564: Property 'm25' has no initializer and is not definitely assigned in the constructor.
+declInput-2.ts(14,28): error TS2322: Type 'null' is not assignable to type 'E'.
+declInput-2.ts(15,29): error TS2322: Type 'null' is not assignable to type 'I1'.
+declInput-2.ts(16,29): error TS2322: Type 'null' is not assignable to type 'I2'.
+
+
+==== declInput-2.ts (10 errors) ====
+    module M {
+        class C { }
+        export class E {}
+        export interface I1 {}
+        interface I2 {}
+        export class D {
+            private c: C; // don't generate
+                    ~
+!!! error TS2564: Property 'c' has no initializer and is not definitely assigned in the constructor.
+            public m1: number;
+                   ~~
+!!! error TS2564: Property 'm1' has no initializer and is not definitely assigned in the constructor.
+            public m2: string;
+                   ~~
+!!! error TS2564: Property 'm2' has no initializer and is not definitely assigned in the constructor.
+            public m22: C; // don't generate
+                   ~~~
+!!! error TS2564: Property 'm22' has no initializer and is not definitely assigned in the constructor.
+            public m23: E;
+                   ~~~
+!!! error TS2564: Property 'm23' has no initializer and is not definitely assigned in the constructor.
+            public m24: I1;
+                   ~~~
+!!! error TS2564: Property 'm24' has no initializer and is not definitely assigned in the constructor.
+            public m25: I2; // don't generate
+                   ~~~
+!!! error TS2564: Property 'm25' has no initializer and is not definitely assigned in the constructor.
+            public m232(): E { return null;}
+                               ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'E'.
+            public m242(): I1 { return null; }
+                                ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'I1'.
+            public m252(): I2 { return null; } // don't generate
+                                ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'I2'.
+            public m26(i:I1) {}
+            public m262(i:I2) {}
+            public m3():C { return new C(); }
+        }
+    }

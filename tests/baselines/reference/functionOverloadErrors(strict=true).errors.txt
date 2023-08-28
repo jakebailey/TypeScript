@@ -1,0 +1,259 @@
+functionOverloadErrors.ts(2,10): error TS7010: 'fn1', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(2,14): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+functionOverloadErrors.ts(6,10): error TS7010: 'fn2a', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(7,10): error TS7010: 'fn2a', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(11,10): error TS7010: 'fn2b', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(12,10): error TS7010: 'fn2b', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(24,10): error TS7010: 'fn6', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(25,10): error TS7010: 'fn6', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(29,10): error TS7010: 'fn7', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(30,10): error TS7010: 'fn7', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(34,10): error TS7010: 'fn8', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(35,10): error TS7010: 'fn8', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(39,10): error TS7010: 'fn9', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(40,10): error TS7010: 'fn9', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(44,10): error TS7010: 'fn10', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(45,10): error TS7010: 'fn10', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(50,10): error TS7010: 'fn11', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(51,10): error TS7010: 'fn11', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(58,10): error TS7010: 'fn12', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(59,10): error TS7010: 'fn12', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(64,12): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(65,13): error TS2385: Overload signatures must all be public, private or protected.
+functionOverloadErrors.ts(65,13): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(68,13): error TS2385: Overload signatures must all be public, private or protected.
+functionOverloadErrors.ts(68,13): error TS7010: 'g', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(69,12): error TS7010: 'g', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(75,21): error TS2383: Overload signatures must all be exported or non-exported.
+functionOverloadErrors.ts(75,21): error TS7010: 'fn1', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(76,14): error TS7010: 'fn1', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(79,14): error TS2383: Overload signatures must all be exported or non-exported.
+functionOverloadErrors.ts(79,14): error TS7010: 'fn2', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(80,21): error TS7010: 'fn2', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(85,18): error TS2384: Overload signatures must all be ambient or non-ambient.
+functionOverloadErrors.ts(85,18): error TS7010: 'dfn1', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(86,10): error TS7010: 'dfn1', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(89,10): error TS7010: 'dfn2', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(90,18): error TS2384: Overload signatures must all be ambient or non-ambient.
+functionOverloadErrors.ts(90,18): error TS7010: 'dfn2', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(94,10): error TS2394: This overload signature is not compatible with its implementation signature.
+functionOverloadErrors.ts(94,10): error TS7010: 'fewerParams', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(99,10): error TS2394: This overload signature is not compatible with its implementation signature.
+functionOverloadErrors.ts(99,10): error TS7010: 'fn13', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(103,10): error TS2394: This overload signature is not compatible with its implementation signature.
+functionOverloadErrors.ts(116,10): error TS7010: 'initExpr', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadErrors.ts(116,19): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+
+
+==== functionOverloadErrors.ts (45 errors) ====
+    //Function overload signature with initializer
+    function fn1(x = 3);
+             ~~~
+!!! error TS7010: 'fn1', which lacks return-type annotation, implicitly has an 'any' return type.
+                 ~~~~~
+!!! error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+    function fn1() { }
+    
+    //Multiple function overload signatures that are identical
+    function fn2a();
+             ~~~~
+!!! error TS7010: 'fn2a', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn2a();
+             ~~~~
+!!! error TS7010: 'fn2a', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn2a() {
+    
+    }
+    function fn2b(n: number[]);
+             ~~~~
+!!! error TS7010: 'fn2b', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn2b(n: Array<number>);
+             ~~~~
+!!! error TS7010: 'fn2b', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn2b() {
+    }
+    
+    //Multiple function overload signatures that differ only by return type
+    function fn3(x: string): string;
+    function fn3(y: string): number;
+    function fn3(): any {
+        return null;
+    }
+    
+    //Function overload with rest param and another with only an optional parameter
+    function fn6(...t: any[]);
+             ~~~
+!!! error TS7010: 'fn6', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn6(x?: any);
+             ~~~
+!!! error TS7010: 'fn6', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn6() { }
+    
+    //Function overload with rest param and another with only optional parameters
+    function fn7(...t: any[]);
+             ~~~
+!!! error TS7010: 'fn7', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn7(x?: any, y?: any, z?: any);
+             ~~~
+!!! error TS7010: 'fn7', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn7() { }
+    
+    //Function overloads that differ only by type parameter name
+    function fn8<T>(n: string);
+             ~~~
+!!! error TS7010: 'fn8', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn8<S>(n: string);
+             ~~~
+!!! error TS7010: 'fn8', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn8() { }
+    
+    //Function overloads that differ only by type parameter name when used in parameter type annotations
+    function fn9<T>(n: T);
+             ~~~
+!!! error TS7010: 'fn9', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn9<S>(n: S);
+             ~~~
+!!! error TS7010: 'fn9', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn9() { }
+    
+    //Function overloads that differ only by type parameter constraints
+    function fn10<T extends Window>();
+             ~~~~
+!!! error TS7010: 'fn10', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn10<S extends Date>();
+             ~~~~
+!!! error TS7010: 'fn10', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn10() { }
+    // (actually OK)
+    
+    //Function overloads that differ only by type parameter constraints where constraints are structually identical
+    function fn11<T extends Window>();
+             ~~~~
+!!! error TS7010: 'fn11', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn11<S extends typeof window>();
+             ~~~~
+!!! error TS7010: 'fn11', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn11() { }
+    
+    //Function overloads that differ only by type parameter constraints where constraints include infinitely recursive type reference
+    interface List<T> {
+        parents: List<List<T>>;
+    }
+    function fn12<T extends List<List<any>>>();
+             ~~~~
+!!! error TS7010: 'fn12', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn12<T extends List<any>>();
+             ~~~~
+!!! error TS7010: 'fn12', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn12() { }
+    
+    //Function overloads that differ by accessibility
+    class cls {
+        public f();
+               ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+        private f(s: string);
+                ~
+!!! error TS2385: Overload signatures must all be public, private or protected.
+                ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+        f() { }
+    
+        private g(s: string);
+                ~
+!!! error TS2385: Overload signatures must all be public, private or protected.
+                ~
+!!! error TS7010: 'g', which lacks return-type annotation, implicitly has an 'any' return type.
+        public g();
+               ~
+!!! error TS7010: 'g', which lacks return-type annotation, implicitly has an 'any' return type.
+        g() { }
+    }
+    
+    //Function overloads with differing export
+    module M {
+        export function fn1();
+                        ~~~
+!!! error TS2383: Overload signatures must all be exported or non-exported.
+                        ~~~
+!!! error TS7010: 'fn1', which lacks return-type annotation, implicitly has an 'any' return type.
+        function fn1(n: string);
+                 ~~~
+!!! error TS7010: 'fn1', which lacks return-type annotation, implicitly has an 'any' return type.
+        function fn1() { } 
+    
+        function fn2(n: string);
+                 ~~~
+!!! error TS2383: Overload signatures must all be exported or non-exported.
+                 ~~~
+!!! error TS7010: 'fn2', which lacks return-type annotation, implicitly has an 'any' return type.
+        export function fn2();
+                        ~~~
+!!! error TS7010: 'fn2', which lacks return-type annotation, implicitly has an 'any' return type.
+        export function fn2() { } 
+    }
+    
+    //Function overloads with differing ambience
+    declare function dfn1();
+                     ~~~~
+!!! error TS2384: Overload signatures must all be ambient or non-ambient.
+                     ~~~~
+!!! error TS7010: 'dfn1', which lacks return-type annotation, implicitly has an 'any' return type.
+    function dfn1(s: string);
+             ~~~~
+!!! error TS7010: 'dfn1', which lacks return-type annotation, implicitly has an 'any' return type.
+    function dfn1() { }
+    
+    function dfn2();
+             ~~~~
+!!! error TS7010: 'dfn2', which lacks return-type annotation, implicitly has an 'any' return type.
+    declare function dfn2(s: string);
+                     ~~~~
+!!! error TS2384: Overload signatures must all be ambient or non-ambient.
+                     ~~~~
+!!! error TS7010: 'dfn2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function dfn2() { }
+    
+    //Function overloads with fewer params than implementation signature
+    function fewerParams();
+             ~~~~~~~~~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 functionOverloadErrors.ts:95:10: The implementation signature is declared here.
+             ~~~~~~~~~~~
+!!! error TS7010: 'fewerParams', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fewerParams(n: string) {
+    }
+    
+    //Function implementation whose parameter types are not assignable to all corresponding overload signature parameters
+    function fn13(n: string);
+             ~~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 functionOverloadErrors.ts:100:10: The implementation signature is declared here.
+             ~~~~
+!!! error TS7010: 'fn13', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fn13(n: number) { }
+    
+    //Function overloads where return types are not all subtype of implementation return type
+    function fn14(n: string): string;
+             ~~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 functionOverloadErrors.ts:104:10: The implementation signature is declared here.
+    function fn14() {
+        return 3;
+    }
+    
+    //Function overloads where return types are different infinitely recursive type reference
+    function fn15<T extends List<List<any>>>(): T;
+    function fn15<T extends List<any>>(): T;
+    function fn15() {
+        return undefined;
+    }
+    
+    //Function overloads which use initializer expressions
+    function initExpr(n = 13);
+             ~~~~~~~~
+!!! error TS7010: 'initExpr', which lacks return-type annotation, implicitly has an 'any' return type.
+                      ~~~~~~
+!!! error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+    function initExpr() { }
+    

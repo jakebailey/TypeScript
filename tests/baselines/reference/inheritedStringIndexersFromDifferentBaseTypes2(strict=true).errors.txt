@@ -1,0 +1,42 @@
+inheritedStringIndexersFromDifferentBaseTypes2.ts(4,9): error TS7008: Member 'a' implicitly has an 'any' type.
+inheritedStringIndexersFromDifferentBaseTypes2.ts(9,9): error TS7008: Member 'a' implicitly has an 'any' type.
+inheritedStringIndexersFromDifferentBaseTypes2.ts(10,9): error TS7008: Member 'b' implicitly has an 'any' type.
+inheritedStringIndexersFromDifferentBaseTypes2.ts(18,11): error TS2413: 'number' index type '{}' is not assignable to 'string' index type '{ a: any; }'.
+inheritedStringIndexersFromDifferentBaseTypes2.ts(22,9): error TS7008: Member 'a' implicitly has an 'any' type.
+
+
+==== inheritedStringIndexersFromDifferentBaseTypes2.ts (5 errors) ====
+    // indexer in B is a subtype of indexer in A
+    interface A {
+        [s: string]: {
+            a;
+            ~
+!!! error TS7008: Member 'a' implicitly has an 'any' type.
+        };
+    }
+    interface B {
+        [s: number]: {
+            a;
+            ~
+!!! error TS7008: Member 'a' implicitly has an 'any' type.
+            b;
+            ~
+!!! error TS7008: Member 'b' implicitly has an 'any' type.
+        };
+    }
+    interface C extends A, B { } // ok
+    
+    interface D {
+        [s: number]: {};
+    }
+    interface E extends A, D { } // error
+              ~
+!!! error TS2413: 'number' index type '{}' is not assignable to 'string' index type '{ a: any; }'.
+    
+    interface F extends A, D {
+        [s: number]: {
+            a;
+            ~
+!!! error TS7008: Member 'a' implicitly has an 'any' type.
+        };
+    } // ok because we overrode D's number index signature

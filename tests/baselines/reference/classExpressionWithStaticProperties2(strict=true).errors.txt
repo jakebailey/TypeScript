@@ -1,0 +1,14 @@
+classExpressionWithStaticProperties2.ts(3,12): error TS7008: Member 'b' implicitly has an 'any' type.
+
+
+==== classExpressionWithStaticProperties2.ts (1 errors) ====
+    var v = class C {
+        static a = 1;
+        static b
+               ~
+!!! error TS7008: Member 'b' implicitly has an 'any' type.
+        static c = {
+            x: "hi"
+        }
+        static d = C.c.x + " world";
+     };

@@ -1,0 +1,31 @@
+specializeVarArgs1.ts(9,5): error TS7010: 'push', which lacks return-type annotation, implicitly has an 'any' return type.
+specializeVarArgs1.ts(15,53): error TS2322: Type 'null' is not assignable to type 'ObservableArray<T>'.
+
+
+==== specializeVarArgs1.ts (2 errors) ====
+    interface Observable<T>{ }
+    
+     
+    
+    interface ObservableArray<T> extends Observable<T[]>
+    
+    {
+    
+        push(...values: T[]);
+        ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'push', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    }
+    
+     
+    
+    function observableArray<T>(): ObservableArray<T> { return null;}
+                                                        ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'ObservableArray<T>'.
+    
+     
+    
+    var a =  observableArray<string>();
+    
+    a.push('Some Value');
+    

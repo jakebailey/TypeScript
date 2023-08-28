@@ -1,0 +1,33 @@
+nestedRecursiveLambda.ts(2,7): error TS7006: Parameter 'r' implicitly has an 'any' type.
+nestedRecursiveLambda.ts(2,12): error TS7006: Parameter 'r' implicitly has an 'any' type.
+nestedRecursiveLambda.ts(4,4): error TS7006: Parameter 'r' implicitly has an 'any' type.
+nestedRecursiveLambda.ts(4,9): error TS7006: Parameter 'r' implicitly has an 'any' type.
+nestedRecursiveLambda.ts(5,6): error TS7006: Parameter 'r' implicitly has an 'any' type.
+nestedRecursiveLambda.ts(5,11): error TS7006: Parameter 'r' implicitly has an 'any' type.
+nestedRecursiveLambda.ts(6,3): error TS7006: Parameter 'r' implicitly has an 'any' type.
+nestedRecursiveLambda.ts(6,8): error TS7006: Parameter 'r' implicitly has an 'any' type.
+
+
+==== nestedRecursiveLambda.ts (8 errors) ====
+    function f(a:any) {
+    void (r =>(r => r));
+          ~
+!!! error TS7006: Parameter 'r' implicitly has an 'any' type.
+               ~
+!!! error TS7006: Parameter 'r' implicitly has an 'any' type.
+    }
+    f((r =>(r => r)));
+       ~
+!!! error TS7006: Parameter 'r' implicitly has an 'any' type.
+            ~
+!!! error TS7006: Parameter 'r' implicitly has an 'any' type.
+    void(r =>(r => r));
+         ~
+!!! error TS7006: Parameter 'r' implicitly has an 'any' type.
+              ~
+!!! error TS7006: Parameter 'r' implicitly has an 'any' type.
+    [(r =>(r => r))]
+      ~
+!!! error TS7006: Parameter 'r' implicitly has an 'any' type.
+           ~
+!!! error TS7006: Parameter 'r' implicitly has an 'any' type.

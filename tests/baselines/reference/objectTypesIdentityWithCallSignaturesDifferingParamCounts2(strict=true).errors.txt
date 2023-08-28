@@ -1,0 +1,94 @@
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(13,10): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(14,10): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(17,10): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(18,10): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(21,10): error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(22,10): error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(25,10): error TS7010: 'foo5', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(26,10): error TS7010: 'foo5', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(29,10): error TS7010: 'foo13', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(30,10): error TS7010: 'foo13', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(33,10): error TS7010: 'foo14', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(34,10): error TS7010: 'foo14', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(37,10): error TS7010: 'foo14b', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(38,10): error TS7010: 'foo14b', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(41,10): error TS7010: 'foo15', which lacks return-type annotation, implicitly has an 'any' return type.
+objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts(42,10): error TS7010: 'foo15', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== objectTypesIdentityWithCallSignaturesDifferingParamCounts2.ts (16 errors) ====
+    // object types are identical structurally
+    
+    interface I {
+        (x: string): string;
+    }
+    
+    interface I2<T> {
+        (x: T): T;
+    }
+    
+    var a: { (x: string, y: string): string }
+    
+    function foo2(x: I);
+             ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo2(x: I); // error
+             ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo2(x: any) { }
+    
+    function foo3(x: typeof a);
+             ~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo3(x: typeof a); // error
+             ~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo3(x: any) { }
+    
+    function foo4(x: I2<string>);
+             ~~~~
+!!! error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo4(x: I2<string>); // error
+             ~~~~
+!!! error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo4(x: any) { }
+    
+    function foo5(x: I2<string>);
+             ~~~~
+!!! error TS7010: 'foo5', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo5(x: I2<number>); // ok
+             ~~~~
+!!! error TS7010: 'foo5', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo5(x: any) { }
+    
+    function foo13(x: I);
+             ~~~~~
+!!! error TS7010: 'foo13', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo13(x: typeof a); // ok
+             ~~~~~
+!!! error TS7010: 'foo13', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo13(x: any) { }
+    
+    function foo14(x: I);
+             ~~~~~
+!!! error TS7010: 'foo14', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo14(x: I2<string>); // error
+             ~~~~~
+!!! error TS7010: 'foo14', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo14(x: any) { }
+    
+    function foo14b(x: typeof a);
+             ~~~~~~
+!!! error TS7010: 'foo14b', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo14b(x: I2<string>); // ok
+             ~~~~~~
+!!! error TS7010: 'foo14b', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo14b(x: any) { }
+    
+    function foo15(x: I);
+             ~~~~~
+!!! error TS7010: 'foo15', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo15(x: I2<number>); // ok
+             ~~~~~
+!!! error TS7010: 'foo15', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo15(x: any) { }

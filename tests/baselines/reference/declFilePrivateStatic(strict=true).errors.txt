@@ -1,0 +1,28 @@
+declFilePrivateStatic.ts(11,24): error TS7032: Property 'e' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+declFilePrivateStatic.ts(11,26): error TS7006: Parameter 'v' implicitly has an 'any' type.
+declFilePrivateStatic.ts(12,16): error TS7032: Property 'f' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+declFilePrivateStatic.ts(12,18): error TS7006: Parameter 'v' implicitly has an 'any' type.
+
+
+==== declFilePrivateStatic.ts (4 errors) ====
+    class C {
+        private static x = 1;
+        static y = 1;
+    
+        private static a() { }
+        static b() { }
+    
+        private static get c() { return 1; }
+        static get d() { return 1; }
+    
+        private static set e(v) { }
+                           ~
+!!! error TS7032: Property 'e' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                             ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+        static set f(v) { }
+                   ~
+!!! error TS7032: Property 'f' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                     ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+    }

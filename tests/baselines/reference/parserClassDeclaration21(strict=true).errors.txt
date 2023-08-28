@@ -1,0 +1,13 @@
+parserClassDeclaration21.ts(2,5): error TS7010: '0', which lacks return-type annotation, implicitly has an 'any' return type.
+parserClassDeclaration21.ts(3,5): error TS2389: Function implementation name must be '0'.
+
+
+==== parserClassDeclaration21.ts (2 errors) ====
+    class C {
+        0();
+        ~
+!!! error TS7010: '0', which lacks return-type annotation, implicitly has an 'any' return type.
+        1() { }
+        ~
+!!! error TS2389: Function implementation name must be '0'.
+    }

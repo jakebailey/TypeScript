@@ -1,0 +1,16 @@
+asOpEmitParens.ts(1,13): error TS7005: Variable 'x' implicitly has an 'any' type.
+
+
+==== asOpEmitParens.ts (1 errors) ====
+    declare var x;
+                ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    // Must emit as (x + 1) * 3
+    (x + 1 as number) * 3;
+    
+    // Should still emit as x.y
+    (x as any).y;
+    
+    // Emit as new (x())
+    new (x() as any);
+    

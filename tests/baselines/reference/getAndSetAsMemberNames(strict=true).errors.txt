@@ -1,0 +1,39 @@
+getAndSetAsMemberNames.ts(2,5): error TS2564: Property 'set' has no initializer and is not definitely assigned in the constructor.
+getAndSetAsMemberNames.ts(6,5): error TS7008: Member 'set' implicitly has an 'any' type.
+getAndSetAsMemberNames.ts(9,10): error TS7006: Parameter 'x' implicitly has an 'any' type.
+getAndSetAsMemberNames.ts(19,9): error TS7032: Property 't' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+getAndSetAsMemberNames.ts(19,11): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== getAndSetAsMemberNames.ts (5 errors) ====
+    class C1 {
+        set: boolean;
+        ~~~
+!!! error TS2564: Property 'set' has no initializer and is not definitely assigned in the constructor.
+        get = 1;
+    }
+    class C2 {
+        set;
+        ~~~
+!!! error TS7008: Member 'set' implicitly has an 'any' type.
+    }
+    class C3 {
+        set (x) {
+             ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            return x + 1;
+        }
+    }
+    class C4 {
+        get: boolean = true;
+    }
+    class C5 {
+        public set: () => boolean = function () { return true; };
+        get (): boolean { return true; }
+        set t(x) { }
+            ~
+!!! error TS7032: Property 't' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+              ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    

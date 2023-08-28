@@ -1,0 +1,104 @@
+collisionExportsRequireAndModule_externalmodule.ts(1,15): error TS2441: Duplicate identifier 'require'. Compiler reserves name 'require' in top level scope of a module.
+collisionExportsRequireAndModule_externalmodule.ts(8,5): error TS2322: Type 'null' is not assignable to type 'I'.
+collisionExportsRequireAndModule_externalmodule.ts(10,15): error TS2441: Duplicate identifier 'exports'. Compiler reserves name 'exports' in top level scope of a module.
+collisionExportsRequireAndModule_externalmodule.ts(17,5): error TS2322: Type 'null' is not assignable to type 'I'.
+
+
+==== collisionExportsRequireAndModule_externalmodule.ts (4 errors) ====
+    export module require {
+                  ~~~~~~~
+!!! error TS2441: Duplicate identifier 'require'. Compiler reserves name 'require' in top level scope of a module.
+        export interface I {
+        }
+        export class C {
+        }
+    }
+    export function foo(): require.I {
+        return null;
+        ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'I'.
+    }
+    export module exports {
+                  ~~~~~~~
+!!! error TS2441: Duplicate identifier 'exports'. Compiler reserves name 'exports' in top level scope of a module.
+        export interface I {
+        }
+        export class C {
+        }
+    }
+    export function foo2(): exports.I {
+        return null;
+        ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'I'.
+    }
+    module m1 {
+        module require {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+        module exports {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+    }
+    module m2 {
+        export module require {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+        export module exports {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+    }
+    
+==== collisionExportsRequireAndModule_globalFile.ts (0 errors) ====
+    module require {
+        export interface I {
+        }
+        export class C {
+        }
+    }
+    module exports {
+        export interface I {
+        }
+        export class C {
+        }
+    }
+    module m3 {
+        module require {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+        module exports {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+    }
+    module m4 {
+        export module require {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+        export module exports {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+    }
+    

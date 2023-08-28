@@ -1,0 +1,49 @@
+computedPropertyNames16_ES6.ts(6,9): error TS7032: Property '[n]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+computedPropertyNames16_ES6.ts(6,13): error TS7006: Parameter 'v' implicitly has an 'any' type.
+computedPropertyNames16_ES6.ts(8,9): error TS7032: Property '[s + n]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+computedPropertyNames16_ES6.ts(8,17): error TS7006: Parameter 'v' implicitly has an 'any' type.
+computedPropertyNames16_ES6.ts(10,16): error TS7032: Property '[""]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+computedPropertyNames16_ES6.ts(10,21): error TS7006: Parameter 'v' implicitly has an 'any' type.
+computedPropertyNames16_ES6.ts(12,9): error TS7032: Property '[a]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+computedPropertyNames16_ES6.ts(12,13): error TS7006: Parameter 'v' implicitly has an 'any' type.
+computedPropertyNames16_ES6.ts(14,9): error TS7032: Property '[`hello bye`]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+computedPropertyNames16_ES6.ts(14,23): error TS7006: Parameter 'v' implicitly has an 'any' type.
+
+
+==== computedPropertyNames16_ES6.ts (10 errors) ====
+    var s: string;
+    var n: number;
+    var a: any;
+    class C {
+        get [s]() { return 0;}
+        set [n](v) { }
+            ~~~
+!!! error TS7032: Property '[n]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+        static get [s + s]() { return 0; }
+        set [s + n](v) { }
+            ~~~~~~~
+!!! error TS7032: Property '[s + n]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                    ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+        get [+s]() { return 0; }
+        static set [""](v) { }
+                   ~~~~
+!!! error TS7032: Property '[""]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                        ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+        get [0]() { return 0; }
+        set [a](v) { }
+            ~~~
+!!! error TS7032: Property '[a]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+        static get [<any>true]() { return 0; }
+        set [`hello bye`](v) { }
+            ~~~~~~~~~~~~~
+!!! error TS7032: Property '[`hello bye`]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                          ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+        get [`hello ${a} bye`]() { return 0; }
+    }

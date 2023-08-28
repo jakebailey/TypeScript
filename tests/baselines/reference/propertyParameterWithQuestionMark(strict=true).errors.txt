@@ -1,0 +1,29 @@
+propertyParameterWithQuestionMark.ts(2,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+propertyParameterWithQuestionMark.ts(7,11): error TS7008: Member 'x' implicitly has an 'any' type.
+propertyParameterWithQuestionMark.ts(8,5): error TS2454: Variable 'v2' is used before being assigned.
+propertyParameterWithQuestionMark.ts(9,5): error TS2322: Type 'C' is not assignable to type '{ x: any; }'.
+  Property 'x' is optional in type 'C' but required in type '{ x: any; }'.
+propertyParameterWithQuestionMark.ts(9,11): error TS7008: Member 'x' implicitly has an 'any' type.
+
+
+==== propertyParameterWithQuestionMark.ts (5 errors) ====
+    class C {
+        constructor(public x?) { }
+                    ~~~~~~~~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    // x should be an optional property
+    var v: C = {}; // Should succeed
+    var v2: { x? }
+              ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    v = v2; // Should succeed
+        ~~
+!!! error TS2454: Variable 'v2' is used before being assigned.
+    var v3: { x } = new C; // Should fail
+        ~~
+!!! error TS2322: Type 'C' is not assignable to type '{ x: any; }'.
+!!! error TS2322:   Property 'x' is optional in type 'C' but required in type '{ x: any; }'.
+              ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.

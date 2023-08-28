@@ -1,0 +1,17 @@
+overloadsInDifferentContainersDisagreeOnAmbient.ts(3,21): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadsInDifferentContainersDisagreeOnAmbient.ts(7,21): error TS2384: Overload signatures must all be ambient or non-ambient.
+
+
+==== overloadsInDifferentContainersDisagreeOnAmbient.ts (2 errors) ====
+    declare module M {
+        // Error because body is not ambient and this overload is
+        export function f();
+                        ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    module M {
+        export function f() { }
+                        ~
+!!! error TS2384: Overload signatures must all be ambient or non-ambient.
+    }

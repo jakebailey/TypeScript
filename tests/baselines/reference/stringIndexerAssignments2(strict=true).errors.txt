@@ -1,0 +1,53 @@
+stringIndexerAssignments2.ts(3,5): error TS2564: Property 'one' has no initializer and is not definitely assigned in the constructor.
+stringIndexerAssignments2.ts(7,5): error TS2564: Property 'one' has no initializer and is not definitely assigned in the constructor.
+stringIndexerAssignments2.ts(11,5): error TS2564: Property 'one' has no initializer and is not definitely assigned in the constructor.
+stringIndexerAssignments2.ts(12,5): error TS2564: Property 'two' has no initializer and is not definitely assigned in the constructor.
+stringIndexerAssignments2.ts(19,1): error TS2322: Type 'C2' is not assignable to type 'C1'.
+  Index signature for type 'string' is missing in type 'C2'.
+stringIndexerAssignments2.ts(19,5): error TS2454: Variable 'a' is used before being assigned.
+stringIndexerAssignments2.ts(20,1): error TS2322: Type 'C3' is not assignable to type 'C1'.
+  Types of property 'one' are incompatible.
+    Type 'number' is not assignable to type 'string'.
+stringIndexerAssignments2.ts(20,5): error TS2454: Variable 'b' is used before being assigned.
+
+
+==== stringIndexerAssignments2.ts (8 errors) ====
+    class C1 {
+        [index: string]: string
+        one: string;
+        ~~~
+!!! error TS2564: Property 'one' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class C2 {
+        one: string;
+        ~~~
+!!! error TS2564: Property 'one' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class C3 {
+        one: number;
+        ~~~
+!!! error TS2564: Property 'one' has no initializer and is not definitely assigned in the constructor.
+        two: string;
+        ~~~
+!!! error TS2564: Property 'two' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    var x: C1;
+    var a: C2;
+    var b: C3;
+    
+    x = a;
+    ~
+!!! error TS2322: Type 'C2' is not assignable to type 'C1'.
+!!! error TS2322:   Index signature for type 'string' is missing in type 'C2'.
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    x = b;
+    ~
+!!! error TS2322: Type 'C3' is not assignable to type 'C1'.
+!!! error TS2322:   Types of property 'one' are incompatible.
+!!! error TS2322:     Type 'number' is not assignable to type 'string'.
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.

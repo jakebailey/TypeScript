@@ -1,0 +1,70 @@
+twoAccessorsWithSameName.ts(2,9): error TS2300: Duplicate identifier 'x'.
+twoAccessorsWithSameName.ts(3,9): error TS2300: Duplicate identifier 'x'.
+twoAccessorsWithSameName.ts(7,9): error TS2300: Duplicate identifier 'x'.
+twoAccessorsWithSameName.ts(7,9): error TS7032: Property 'x' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+twoAccessorsWithSameName.ts(7,11): error TS7006: Parameter 'v' implicitly has an 'any' type.
+twoAccessorsWithSameName.ts(8,9): error TS2300: Duplicate identifier 'x'.
+twoAccessorsWithSameName.ts(8,9): error TS7032: Property 'x' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+twoAccessorsWithSameName.ts(8,11): error TS7006: Parameter 'v' implicitly has an 'any' type.
+twoAccessorsWithSameName.ts(19,9): error TS2300: Duplicate identifier 'x'.
+twoAccessorsWithSameName.ts(24,9): error TS1118: An object literal cannot have multiple get/set accessors with the same name.
+twoAccessorsWithSameName.ts(24,9): error TS2300: Duplicate identifier 'x'.
+
+
+==== twoAccessorsWithSameName.ts (11 errors) ====
+    class C {
+        get x() { return 1; }
+            ~
+!!! error TS2300: Duplicate identifier 'x'.
+        get x() { return 1; } // error
+            ~
+!!! error TS2300: Duplicate identifier 'x'.
+    }
+    
+    class D {
+        set x(v) {  }
+            ~
+!!! error TS2300: Duplicate identifier 'x'.
+            ~
+!!! error TS7032: Property 'x' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+              ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+        set x(v) {  } // error
+            ~
+!!! error TS2300: Duplicate identifier 'x'.
+            ~
+!!! error TS7032: Property 'x' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+              ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+    }
+    
+    class E {
+        get x() {
+            return 1;
+        }
+        set x(v) { }
+    }
+    
+    var x = {
+        get x() {
+            ~
+!!! error TS2300: Duplicate identifier 'x'.
+            return 1;
+        },
+    
+        // error
+        get x() {
+            ~
+!!! error TS1118: An object literal cannot have multiple get/set accessors with the same name.
+            ~
+!!! error TS2300: Duplicate identifier 'x'.
+            return 1;
+        }
+    }
+    
+    var y = {
+        get x() {
+            return 1;
+        },
+        set x(v) { }
+    }

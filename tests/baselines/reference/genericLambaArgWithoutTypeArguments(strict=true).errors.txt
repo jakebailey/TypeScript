@@ -1,0 +1,17 @@
+genericLambaArgWithoutTypeArguments.ts(4,14): error TS7006: Parameter 'a' implicitly has an 'any' type.
+genericLambaArgWithoutTypeArguments.ts(7,11): error TS2314: Generic type 'Foo<T>' requires 1 type argument(s).
+
+
+==== genericLambaArgWithoutTypeArguments.ts (2 errors) ====
+    interface Foo<T> {
+       x: T;
+    }
+    function foo(a) {
+                 ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+       return null;
+    }
+    foo((arg: Foo) => { return arg.x; });
+              ~~~
+!!! error TS2314: Generic type 'Foo<T>' requires 1 type argument(s).
+    

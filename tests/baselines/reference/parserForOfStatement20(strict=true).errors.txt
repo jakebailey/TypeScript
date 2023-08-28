@@ -1,0 +1,10 @@
+parserForOfStatement20.ts(1,10): error TS1189: The variable declaration of a 'for...in' statement cannot have an initializer.
+parserForOfStatement20.ts(1,10): error TS7022: 'of' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+
+
+==== parserForOfStatement20.ts (2 errors) ====
+    for (var of = 0 in of) { }
+             ~~
+!!! error TS1189: The variable declaration of a 'for...in' statement cannot have an initializer.
+             ~~
+!!! error TS7022: 'of' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.

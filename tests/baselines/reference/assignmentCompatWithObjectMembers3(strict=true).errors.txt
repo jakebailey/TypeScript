@@ -1,0 +1,66 @@
+assignmentCompatWithObjectMembers3.ts(4,25): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembers3.ts(5,25): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembers3.ts(20,5): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithObjectMembers3.ts(22,5): error TS2454: Variable 's2' is used before being assigned.
+assignmentCompatWithObjectMembers3.ts(25,6): error TS2454: Variable 't2' is used before being assigned.
+assignmentCompatWithObjectMembers3.ts(28,6): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithObjectMembers3.ts(31,5): error TS2454: Variable 'b' is used before being assigned.
+
+
+==== assignmentCompatWithObjectMembers3.ts (7 errors) ====
+    // members N and M of types S and T have the same name, same accessibility, same optionality, and N is assignable M
+    // additional optional properties do not cause errors
+    
+    class S implements S2 { foo: string; }
+                            ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+    class T implements T2 { foo: string; }
+                            ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+    var s: S;
+    var t: T;
+    
+    interface S2 { foo: string; bar?: string }
+    interface T2 { foo: string; baz?: string }
+    var s2: S2;
+    var t2: T2;
+    
+    var a: { foo: string; bar?: string }
+    var b: { foo: string; baz?: string }
+    
+    var a2: S2 = { foo: '' };
+    var b2: T2 = { foo: '' };
+    
+    s = t;
+        ~
+!!! error TS2454: Variable 't' is used before being assigned.
+    t = s;
+    s = s2;
+        ~~
+!!! error TS2454: Variable 's2' is used before being assigned.
+    s = a2;
+    
+    s2 = t2;
+         ~~
+!!! error TS2454: Variable 't2' is used before being assigned.
+    t2 = s2;
+    s2 = t;
+    s2 = b;
+         ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    s2 = a2;
+    
+    a = b;
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    b = a;
+    a = s;
+    a = s2;
+    a = a2;
+    
+    a2 = b2;
+    b2 = a2;
+    a2 = b;
+    a2 = t2;
+    a2 = t;
+    

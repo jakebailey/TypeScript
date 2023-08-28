@@ -1,0 +1,46 @@
+declFileTypeofFunction.ts(1,10): error TS2394: This overload signature is not compatible with its implementation signature.
+declFileTypeofFunction.ts(4,10): error TS2394: This overload signature is not compatible with its implementation signature.
+declFileTypeofFunction.ts(15,5): error TS2322: Type 'null' is not assignable to type '() => typeof foo'.
+
+
+==== declFileTypeofFunction.ts (3 errors) ====
+    function f(n: typeof f): string;
+             ~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 declFileTypeofFunction.ts:3:10: The implementation signature is declared here.
+    function f(n: typeof g): string;
+    function f() { return undefined; }
+    function g(n: typeof g): number;
+             ~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 declFileTypeofFunction.ts:6:10: The implementation signature is declared here.
+    function g(n: typeof f): number;
+    function g() { return undefined; }
+    
+    var b: () => typeof b;
+    
+    function b1() {
+        return b1;
+    }
+    
+    function foo(): typeof foo {
+        return null;
+        ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type '() => typeof foo'.
+    }
+    var foo1: typeof foo;
+    var foo2 = foo;
+    
+    var foo3 = function () {
+        return foo3;
+    }
+    var x = () => {
+        return x;
+    }
+    
+    function foo5(x: number) {
+        function bar(x: number) {
+            return x;
+        }
+        return bar;
+    }

@@ -1,0 +1,101 @@
+interfacedeclWithIndexerErrors.ts(3,6): error TS7051: Parameter has a name but no type. Did you mean 'arg0: a'?
+interfacedeclWithIndexerErrors.ts(3,9): error TS7051: Parameter has a name but no type. Did you mean 'arg1: b'?
+interfacedeclWithIndexerErrors.ts(6,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+interfacedeclWithIndexerErrors.ts(11,5): error TS7008: Member 'p1' implicitly has an 'any' type.
+interfacedeclWithIndexerErrors.ts(12,5): error TS2411: Property 'p2' of type 'string' is not assignable to 'string' index type '() => string'.
+interfacedeclWithIndexerErrors.ts(13,5): error TS7008: Member 'p3' implicitly has an 'any' type.
+interfacedeclWithIndexerErrors.ts(14,5): error TS2411: Property 'p4' of type 'number | undefined' is not assignable to 'string' index type '() => string'.
+interfacedeclWithIndexerErrors.ts(15,5): error TS2411: Property 'p5' of type '(s: number) => string' is not assignable to 'string' index type '() => string'.
+interfacedeclWithIndexerErrors.ts(17,5): error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+interfacedeclWithIndexerErrors.ts(18,5): error TS2411: Property 'f2' of type '(() => any) | undefined' is not assignable to 'string' index type '() => string'.
+interfacedeclWithIndexerErrors.ts(18,5): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+interfacedeclWithIndexerErrors.ts(19,5): error TS2411: Property 'f3' of type '(a: string) => number' is not assignable to 'string' index type '() => string'.
+interfacedeclWithIndexerErrors.ts(20,5): error TS2411: Property 'f4' of type '((s: number) => string) | undefined' is not assignable to 'string' index type '() => string'.
+interfacedeclWithIndexerErrors.ts(44,21): error TS2840: An interface cannot extend a primitive type like 'number'. It can only extend other named object types.
+interfacedeclWithIndexerErrors.ts(48,18): error TS2693: 'string' only refers to a type, but is being used as a value here.
+
+
+==== interfacedeclWithIndexerErrors.ts (15 errors) ====
+    interface a0 {
+        (): string;
+        (a, b, c?: string): number;
+         ~
+!!! error TS7051: Parameter has a name but no type. Did you mean 'arg0: a'?
+            ~
+!!! error TS7051: Parameter has a name but no type. Did you mean 'arg1: b'?
+        
+        new (): string;
+        new (s: string);
+        ~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    
+        [n: number]: ()=>string;
+        [s: string]: ()=>string;
+    
+        p1;
+        ~~
+!!! error TS7008: Member 'p1' implicitly has an 'any' type.
+        p2: string;
+        ~~
+!!! error TS2411: Property 'p2' of type 'string' is not assignable to 'string' index type '() => string'.
+        p3?;
+        ~~
+!!! error TS7008: Member 'p3' implicitly has an 'any' type.
+        p4?: number;
+        ~~
+!!! error TS2411: Property 'p4' of type 'number | undefined' is not assignable to 'string' index type '() => string'.
+        p5: (s: number) =>string;
+        ~~
+!!! error TS2411: Property 'p5' of type '(s: number) => string' is not assignable to 'string' index type '() => string'.
+    
+        f1();
+        ~~~~~
+!!! error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+        f2? ();
+        ~~~~~~~
+!!! error TS2411: Property 'f2' of type '(() => any) | undefined' is not assignable to 'string' index type '() => string'.
+        ~~~~~~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+        f3(a: string): number;
+        ~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2411: Property 'f3' of type '(a: string) => number' is not assignable to 'string' index type '() => string'.
+        f4? (s: number): string;
+        ~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2411: Property 'f4' of type '((s: number) => string) | undefined' is not assignable to 'string' index type '() => string'.
+    }
+    
+    
+    interface a1 {
+        [n: number]: number;
+    }
+    
+    interface a2 {
+        [s: string]: number;
+    }
+    
+    interface a {
+    }
+    
+    interface b extends a {
+    }
+    
+    interface c extends a, b {
+    }
+    
+    interface d extends a {
+    }
+    
+    interface e extends number {
+                        ~~~~~~
+!!! error TS2840: An interface cannot extend a primitive type like 'number'. It can only extend other named object types.
+    }
+    
+    interface f {
+        prop: typeof string;
+                     ~~~~~~
+!!! error TS2693: 'string' only refers to a type, but is being used as a value here.
+    }
+    
+    class c1 implements a {
+    }
+    var instance2 = new c1();

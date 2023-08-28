@@ -1,0 +1,33 @@
+noUncheckedIndexAccess.ts(18,23): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+
+
+==== noUncheckedIndexAccess.ts (1 errors) ====
+    enum Meat {
+        Sausage,
+        Bacon
+      }
+      const sausage = Meat.Sausage
+      const valueSausage = Meat[sausage]
+    
+      const bacon = Meat.Bacon
+      const valueBacon = Meat[bacon]
+    
+      const union: Meat.Bacon | Meat.Sausage = Meat.Bacon
+      const valueUnion = Meat[union]
+    
+      //Avoiding a false positive
+      const value = Meat[0]
+    
+      const valueUndefined = "testing"
+      const value2 = Meat[valueUndefined]
+                          ~~~~~~~~~~~~~~
+!!! error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+    
+      enum A {
+        a, b, c
+      }
+      enum B {
+        x, y, z
+      }
+      
+      const value3 = A[B.x];

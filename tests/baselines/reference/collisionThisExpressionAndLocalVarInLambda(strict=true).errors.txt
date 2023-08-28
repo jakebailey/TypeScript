@@ -1,0 +1,21 @@
+collisionThisExpressionAndLocalVarInLambda.ts(4,15): error TS7006: Parameter 'callback' implicitly has an 'any' type.
+collisionThisExpressionAndLocalVarInLambda.ts(6,25): error TS7041: The containing arrow function captures the global value of 'this'.
+collisionThisExpressionAndLocalVarInLambda.ts(9,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== collisionThisExpressionAndLocalVarInLambda.ts (3 errors) ====
+    declare function alert(message?: any): void;
+    
+    var x = {
+        doStuff: (callback) => () => {
+                  ~~~~~~~~
+!!! error TS7006: Parameter 'callback' implicitly has an 'any' type.
+            var _this = 2;
+            return callback(this);
+                            ~~~~
+!!! error TS7041: The containing arrow function captures the global value of 'this'.
+        }
+    }
+    alert(x.doStuff(x => alert(x)));
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.

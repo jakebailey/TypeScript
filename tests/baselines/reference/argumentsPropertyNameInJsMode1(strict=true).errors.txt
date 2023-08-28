@@ -1,0 +1,22 @@
+a.js(2,9): error TS7006: Parameter 'params' implicitly has an 'any' type.
+a.js(5,13): error TS7006: Parameter 'x' implicitly has an 'any' type.
+a.js(9,7): error TS2554: Expected 0-1 arguments, but got 3.
+
+
+==== a.js (3 errors) ====
+    const foo = {
+       f1: (params) => { }
+            ~~~~~~
+!!! error TS7006: Parameter 'params' implicitly has an 'any' type.
+    }
+    
+    function f2(x) {
+                ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+      foo.f1({ x, arguments: [] });
+    }
+    
+    f2(1, 2, 3);
+          ~~~~
+!!! error TS2554: Expected 0-1 arguments, but got 3.
+    

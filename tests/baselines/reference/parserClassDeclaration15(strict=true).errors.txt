@@ -1,0 +1,13 @@
+parserClassDeclaration15.ts(2,4): error TS2391: Function implementation is missing or not immediately following the declaration.
+parserClassDeclaration15.ts(2,4): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== parserClassDeclaration15.ts (2 errors) ====
+    class C {
+       foo();
+       ~~~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+       ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+       constructor() { }
+    }

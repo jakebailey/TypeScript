@@ -1,0 +1,10 @@
+collisionThisExpressionAndAmbientClassInGlobal.ts(3,15): error TS7041: The containing arrow function captures the global value of 'this'.
+
+
+==== collisionThisExpressionAndAmbientClassInGlobal.ts (1 errors) ====
+    declare class _this { // no error - as no code generation
+    }
+    var f = () => this;
+                  ~~~~
+!!! error TS7041: The containing arrow function captures the global value of 'this'.
+    var a = new _this(); // Error

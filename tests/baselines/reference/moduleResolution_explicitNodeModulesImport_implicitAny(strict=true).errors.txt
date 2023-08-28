@@ -1,0 +1,11 @@
+/src/index.ts(1,19): error TS7016: Could not find a declaration file for module '../node_modules/foo'. '/node_modules/foo/index.js' implicitly has an 'any' type.
+
+
+==== /src/index.ts (1 errors) ====
+    import { y } from "../node_modules/foo";
+                      ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7016: Could not find a declaration file for module '../node_modules/foo'. '/node_modules/foo/index.js' implicitly has an 'any' type.
+    
+==== /node_modules/foo/index.js (0 errors) ====
+    exports.x = 0;
+    

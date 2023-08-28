@@ -1,0 +1,19 @@
+innerExtern.ts(3,20): error TS7005: Variable 'Elephant' implicitly has an 'any' type.
+
+
+==== innerExtern.ts (1 errors) ====
+    module A {
+        export declare module BB {
+            export var Elephant;
+                       ~~~~~~~~
+!!! error TS7005: Variable 'Elephant' implicitly has an 'any' type.
+        }
+        export module B {
+            export class C {
+                x = BB.Elephant.X;
+            }
+        }
+    }
+    
+    
+    

@@ -1,0 +1,39 @@
+multipleClassPropertyModifiersErrors.ts(2,16): error TS7008: Member 'p1' implicitly has an 'any' type.
+multipleClassPropertyModifiersErrors.ts(3,18): error TS7008: Member 'p2' implicitly has an 'any' type.
+multipleClassPropertyModifiersErrors.ts(4,9): error TS1434: Unexpected keyword or identifier.
+multipleClassPropertyModifiersErrors.ts(4,9): error TS7008: Member 'static' implicitly has an 'any' type.
+multipleClassPropertyModifiersErrors.ts(4,16): error TS7008: Member 'p3' implicitly has an 'any' type.
+multipleClassPropertyModifiersErrors.ts(5,17): error TS7008: Member 'p4' implicitly has an 'any' type.
+multipleClassPropertyModifiersErrors.ts(6,17): error TS7008: Member 'p5' implicitly has an 'any' type.
+multipleClassPropertyModifiersErrors.ts(7,16): error TS7008: Member 'p6' implicitly has an 'any' type.
+multipleClassPropertyModifiersErrors.ts(8,17): error TS7008: Member 'p7' implicitly has an 'any' type.
+
+
+==== multipleClassPropertyModifiersErrors.ts (9 errors) ====
+    class C {
+    	public public p1;
+    	              ~~
+!!! error TS7008: Member 'p1' implicitly has an 'any' type.
+    	private private p2;
+    	                ~~
+!!! error TS7008: Member 'p2' implicitly has an 'any' type.
+    	static static p3;
+    	       ~~~~~~
+!!! error TS1434: Unexpected keyword or identifier.
+    	       ~~~~~~
+!!! error TS7008: Member 'static' implicitly has an 'any' type.
+    	              ~~
+!!! error TS7008: Member 'p3' implicitly has an 'any' type.
+    	public private p4;
+    	               ~~
+!!! error TS7008: Member 'p4' implicitly has an 'any' type.
+    	private public p5;
+    	               ~~
+!!! error TS7008: Member 'p5' implicitly has an 'any' type.
+    	public static p6;
+    	              ~~
+!!! error TS7008: Member 'p6' implicitly has an 'any' type.
+    	private static p7;
+    	               ~~
+!!! error TS7008: Member 'p7' implicitly has an 'any' type.
+    }

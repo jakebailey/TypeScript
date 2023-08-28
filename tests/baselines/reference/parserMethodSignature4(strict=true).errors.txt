@@ -1,0 +1,9 @@
+parserMethodSignature4.ts(2,3): error TS7010: 'D', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== parserMethodSignature4.ts (1 errors) ====
+    interface I {
+      D?<T>();
+      ~~~~~~~~
+!!! error TS7010: 'D', which lacks return-type annotation, implicitly has an 'any' return type.
+    }

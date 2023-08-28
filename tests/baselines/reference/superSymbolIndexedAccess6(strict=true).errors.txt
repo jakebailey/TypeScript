@@ -1,0 +1,19 @@
+superSymbolIndexedAccess6.ts(11,16): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof Foo'.
+
+
+==== superSymbolIndexedAccess6.ts (1 errors) ====
+    var symbol: any;
+    
+    class Foo {
+        static [symbol]() {
+            return 0;
+        }
+    }
+    
+    class Bar extends Foo {
+        static [symbol]() {
+            return super[symbol]();
+                   ~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'typeof Foo'.
+        }
+    }

@@ -1,0 +1,72 @@
+additionOperatorWithAnyAndEveryType.ts(3,12): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+additionOperatorWithAnyAndEveryType.ts(7,23): error TS7005: Variable 'a' implicitly has an 'any' type.
+additionOperatorWithAnyAndEveryType.ts(17,14): error TS2454: Variable 'b' is used before being assigned.
+additionOperatorWithAnyAndEveryType.ts(18,14): error TS2454: Variable 'c' is used before being assigned.
+additionOperatorWithAnyAndEveryType.ts(19,14): error TS2454: Variable 'd' is used before being assigned.
+additionOperatorWithAnyAndEveryType.ts(20,14): error TS2454: Variable 'e' is used before being assigned.
+additionOperatorWithAnyAndEveryType.ts(23,10): error TS2454: Variable 'b' is used before being assigned.
+additionOperatorWithAnyAndEveryType.ts(24,10): error TS2454: Variable 'c' is used before being assigned.
+additionOperatorWithAnyAndEveryType.ts(25,10): error TS2454: Variable 'd' is used before being assigned.
+additionOperatorWithAnyAndEveryType.ts(26,10): error TS2454: Variable 'e' is used before being assigned.
+
+
+==== additionOperatorWithAnyAndEveryType.ts (10 errors) ====
+    function foo() { }
+    class C {
+        public a: string;
+               ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+        static foo() { }
+    }
+    enum E { a, b, c }
+    module M { export var a }
+                          ~
+!!! error TS7005: Variable 'a' implicitly has an 'any' type.
+    
+    var a: any;
+    var b: boolean;
+    var c: number;
+    var d: string;
+    var e: Object;
+    
+    // any as left operand, result is type Any except plusing string
+    var r1 = a + a;
+    var r2 = a + b;
+                 ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    var r3 = a + c;
+                 ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    var r4 = a + d;
+                 ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+    var r5 = a + e;
+                 ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+    // any as right operand, result is type Any except plusing string
+    var r6 = b + a;
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    var r7 = c + a;
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    var r8 = d + a;
+             ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+    var r9 = e + a;
+             ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    
+    // other cases
+    var r10 = a + foo;
+    var r11 = a + foo();
+    var r12 = a + C;
+    var r13 = a + new C();
+    var r14 = a + E;
+    var r15 = a + E.a;
+    var r16 = a + M;
+    var r17 = a + '';
+    var r18 = a + 123;
+    var r19 = a + { a: '' };
+    var r20 = a + ((a: string) => { return a });

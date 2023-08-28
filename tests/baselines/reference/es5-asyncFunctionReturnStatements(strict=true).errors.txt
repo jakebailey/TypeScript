@@ -1,0 +1,47 @@
+es5-asyncFunctionReturnStatements.ts(1,13): error TS7005: Variable 'x' implicitly has an 'any' type.
+es5-asyncFunctionReturnStatements.ts(1,16): error TS7005: Variable 'y' implicitly has an 'any' type.
+es5-asyncFunctionReturnStatements.ts(1,19): error TS7005: Variable 'z' implicitly has an 'any' type.
+es5-asyncFunctionReturnStatements.ts(1,22): error TS7005: Variable 'a' implicitly has an 'any' type.
+es5-asyncFunctionReturnStatements.ts(1,25): error TS7005: Variable 'b' implicitly has an 'any' type.
+es5-asyncFunctionReturnStatements.ts(1,28): error TS7005: Variable 'c' implicitly has an 'any' type.
+
+
+==== es5-asyncFunctionReturnStatements.ts (6 errors) ====
+    declare var x, y, z, a, b, c;
+                ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                   ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+                      ~
+!!! error TS7005: Variable 'z' implicitly has an 'any' type.
+                         ~
+!!! error TS7005: Variable 'a' implicitly has an 'any' type.
+                            ~
+!!! error TS7005: Variable 'b' implicitly has an 'any' type.
+                               ~
+!!! error TS7005: Variable 'c' implicitly has an 'any' type.
+    
+    async function returnStatement0(): Promise<any> {
+        return;
+    }
+    
+    async function returnStatement1(): Promise<any> {
+        return x;
+    }
+    
+    async function returnStatement2(): Promise<any> {
+        return await x;
+    }
+    
+    async function returnStatement3(): Promise<any> {
+        { return; }
+    }
+    
+    async function returnStatement4(): Promise<any> {
+        await x;
+        { return; }
+    }
+    
+    async function returnStatement5(): Promise<any>{
+        { return await x; }
+    }

@@ -1,0 +1,60 @@
+metadataOfUnion.ts(8,5): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+metadataOfUnion.ts(11,5): error TS2564: Property 'y' has no initializer and is not definitely assigned in the constructor.
+metadataOfUnion.ts(14,5): error TS2564: Property 'z' has no initializer and is not definitely assigned in the constructor.
+metadataOfUnion.ts(26,5): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+metadataOfUnion.ts(29,5): error TS2564: Property 'b' has no initializer and is not definitely assigned in the constructor.
+metadataOfUnion.ts(32,5): error TS2564: Property 'c' has no initializer and is not definitely assigned in the constructor.
+metadataOfUnion.ts(35,5): error TS2564: Property 'd' has no initializer and is not definitely assigned in the constructor.
+
+
+==== metadataOfUnion.ts (7 errors) ====
+    function PropDeco(target: Object, propKey: string | symbol) { }
+    
+    class A {
+    }
+    
+    class B {
+        @PropDeco
+        x: "foo" | A;
+        ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+    
+        @PropDeco
+        y: true | boolean;
+        ~
+!!! error TS2564: Property 'y' has no initializer and is not definitely assigned in the constructor.
+    
+        @PropDeco
+        z: "foo" | boolean;
+        ~
+!!! error TS2564: Property 'z' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    enum E {
+        A,
+        B,
+        C,
+        D
+    }
+    
+    class D {
+        @PropDeco
+        a: E.A;
+        ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+    
+        @PropDeco
+        b: E.B | E.C;
+        ~
+!!! error TS2564: Property 'b' has no initializer and is not definitely assigned in the constructor.
+    
+        @PropDeco
+        c: E;
+        ~
+!!! error TS2564: Property 'c' has no initializer and is not definitely assigned in the constructor.
+    
+        @PropDeco
+        d: E | number;
+        ~
+!!! error TS2564: Property 'd' has no initializer and is not definitely assigned in the constructor.
+    }

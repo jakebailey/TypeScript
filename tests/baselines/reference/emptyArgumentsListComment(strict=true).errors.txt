@@ -1,0 +1,17 @@
+emptyArgumentsListComment.ts(1,13): error TS7005: Variable 'a' implicitly has an 'any' type.
+
+
+==== emptyArgumentsListComment.ts (1 errors) ====
+    declare var a;
+                ~
+!!! error TS7005: Variable 'a' implicitly has an 'any' type.
+    
+    a(/*1*/);
+    a(
+        /*first*/
+        // foo
+        /*middle*/
+        // bar
+        /*last*/
+    );
+    

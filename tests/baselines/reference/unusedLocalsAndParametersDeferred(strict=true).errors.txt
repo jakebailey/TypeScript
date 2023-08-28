@@ -1,0 +1,201 @@
+unusedLocalsAndParametersDeferred.ts(8,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+unusedLocalsAndParametersDeferred.ts(16,22): error TS7006: Parameter 'a' implicitly has an 'any' type.
+unusedLocalsAndParametersDeferred.ts(24,15): error TS7006: Parameter 'a' implicitly has an 'any' type.
+unusedLocalsAndParametersDeferred.ts(31,5): error TS7034: Variable 'prop1' implicitly has type 'any' in some locations where its type cannot be determined.
+unusedLocalsAndParametersDeferred.ts(35,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+unusedLocalsAndParametersDeferred.ts(48,9): error TS7005: Variable 'prop1' implicitly has an 'any' type.
+unusedLocalsAndParametersDeferred.ts(54,5): error TS7034: Variable 'prop2' implicitly has type 'any' in some locations where its type cannot be determined.
+unusedLocalsAndParametersDeferred.ts(58,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+unusedLocalsAndParametersDeferred.ts(71,9): error TS7005: Variable 'prop2' implicitly has an 'any' type.
+unusedLocalsAndParametersDeferred.ts(80,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+unusedLocalsAndParametersDeferred.ts(93,9): error TS7005: Variable 'prop1' implicitly has an 'any' type.
+unusedLocalsAndParametersDeferred.ts(153,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+unusedLocalsAndParametersDeferred.ts(155,9): error TS7005: Variable 'x' implicitly has an 'any' type.
+
+
+==== unusedLocalsAndParametersDeferred.ts (13 errors) ====
+    export { };
+    
+    function defered<T>(a: () => T): T {
+        return a();
+    }
+    
+    // function declaration paramter
+    function f(a) {
+               ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+        defered(() => {
+            a;
+        });
+    }
+    f(0);
+    
+    // function expression paramter
+    var fexp = function (a) {
+                         ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+        defered(() => {
+            a;
+        });
+    };
+    fexp(1);
+    
+    // arrow function paramter
+    var farrow = (a) => {
+                  ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+        defered(() => {
+            a;
+        });
+    };
+    farrow(2);
+    
+    let prop1;
+        ~~~~~
+!!! error TS7034: Variable 'prop1' implicitly has type 'any' in some locations where its type cannot be determined.
+    
+    class C {
+        // Method declaration paramter
+        method(a) {
+               ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+            defered(() => {
+                a;
+            });
+        }
+        // Accessor declaration paramter
+        set x(v: number) {
+            defered(() => {
+                v;
+            });
+        }
+        // in a property initalizer
+        p = defered(() => {
+            prop1;
+            ~~~~~
+!!! error TS7005: Variable 'prop1' implicitly has an 'any' type.
+        });
+    }
+    
+    new C();
+    
+    let prop2;
+        ~~~~~
+!!! error TS7034: Variable 'prop2' implicitly has type 'any' in some locations where its type cannot be determined.
+    
+    var E = class {
+        // Method declaration paramter
+        method(a) {
+               ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+            defered(() => {
+                a;
+            });
+        }
+        // Accessor declaration paramter
+        set x(v: number) {
+            defered(() => {
+                v;
+            });
+        }
+        // in a property initalizer
+        p = defered(() => {
+            prop2;
+            ~~~~~
+!!! error TS7005: Variable 'prop2' implicitly has an 'any' type.
+        });
+    }
+    
+    new E();
+    
+    
+    var o = {
+        // Object literal method declaration paramter
+        method(a) {
+               ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+            defered(() => {
+                a;
+            });
+        },
+        // Accessor declaration paramter
+        set x(v: number) {
+            defered(() => {
+                v;
+            });
+        },
+        // in a property initalizer
+        p: defered(() => {
+            prop1;
+            ~~~~~
+!!! error TS7005: Variable 'prop1' implicitly has an 'any' type.
+        })
+    };
+    
+    o;
+    
+    // in a for..in statment
+    for (let i in o) {
+        defered(() => {
+            i;
+        });
+    }
+    
+    // in a for..of statment
+    for (let i of [1,2,3]) {
+        defered(() => {
+            i;
+        });
+    }
+    
+    // in a for. statment
+    for (let i = 0; i < 10; i++) {
+        defered(() => {
+            i;
+        });
+    }
+    
+    // in a block
+    
+    const condition = false;
+    if (condition) {
+        const c = 0;
+        defered(() => {
+            c;
+        });
+    }
+    
+    // in try/catch/finally
+    try {
+        const a = 0;
+        defered(() => {
+            a;
+        });
+    }
+    catch (e) {
+        const c = 1;
+        defered(() => {
+            c;
+        });
+    }
+    finally {
+        const c = 0;
+        defered(() => {
+            c;
+        });
+    }
+    
+    
+    // in a namespace
+    namespace N {
+        var x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+        defered(() => {
+            x;
+            ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        });
+    }
+    N;
+        

@@ -1,0 +1,9 @@
+parserMethodSignature3.ts(2,3): error TS7010: 'C', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== parserMethodSignature3.ts (1 errors) ====
+    interface I {
+      C<T>();
+      ~~~~~~~
+!!! error TS7010: 'C', which lacks return-type annotation, implicitly has an 'any' return type.
+    }

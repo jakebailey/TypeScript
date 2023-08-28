@@ -1,0 +1,139 @@
+ambientDeclarations.ts(2,13): error TS7005: Variable 'n' implicitly has an 'any' type.
+ambientDeclarations.ts(8,18): error TS7010: 'fn1', which lacks return-type annotation, implicitly has an 'any' return type.
+ambientDeclarations.ts(18,18): error TS7010: 'fn5', which lacks return-type annotation, implicitly has an 'any' return type.
+ambientDeclarations.ts(18,22): error TS7006: Parameter 'x' implicitly has an 'any' type.
+ambientDeclarations.ts(18,25): error TS7006: Parameter 'y' implicitly has an 'any' type.
+ambientDeclarations.ts(19,18): error TS7010: 'fn6', which lacks return-type annotation, implicitly has an 'any' return type.
+ambientDeclarations.ts(19,22): error TS7006: Parameter 'e' implicitly has an 'any' type.
+ambientDeclarations.ts(20,18): error TS7010: 'fn7', which lacks return-type annotation, implicitly has an 'any' return type.
+ambientDeclarations.ts(20,22): error TS7006: Parameter 'x' implicitly has an 'any' type.
+ambientDeclarations.ts(20,25): error TS7006: Parameter 'y' implicitly has an 'any' type.
+ambientDeclarations.ts(20,29): error TS7019: Rest parameter 'z' implicitly has an 'any[]' type.
+ambientDeclarations.ts(21,18): error TS7010: 'fn8', which lacks return-type annotation, implicitly has an 'any' return type.
+ambientDeclarations.ts(21,22): error TS7006: Parameter 'y' implicitly has an 'any' type.
+ambientDeclarations.ts(22,18): error TS7010: 'fn9', which lacks return-type annotation, implicitly has an 'any' return type.
+ambientDeclarations.ts(23,18): error TS7010: 'fn10', which lacks return-type annotation, implicitly has an 'any' return type.
+ambientDeclarations.ts(29,19): error TS7006: Parameter 'p' implicitly has an 'any' type.
+ambientDeclarations.ts(30,12): error TS7008: Member 'q' implicitly has an 'any' type.
+ambientDeclarations.ts(56,9): error TS7005: Variable 'B' implicitly has an 'any' type.
+ambientDeclarations.ts(62,9): error TS7005: Variable 'x' implicitly has an 'any' type.
+ambientDeclarations.ts(73,9): error TS7005: Variable 'q' implicitly has an 'any' type.
+
+
+==== ambientDeclarations.ts (20 errors) ====
+    // Ambient variable without type annotation
+    declare var n;
+                ~
+!!! error TS7005: Variable 'n' implicitly has an 'any' type.
+    
+    // Ambient variable with type annotation
+    declare var m: string;
+    
+    // Ambient function with no type annotations
+    declare function fn1();
+                     ~~~
+!!! error TS7010: 'fn1', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    // Ambient function with type annotations
+    declare function fn2(n: string): number;
+    
+    // Ambient function with valid overloads
+    declare function fn3(n: string): number;
+    declare function fn4(n: number, y: number): string;
+    
+    // Ambient function with optional parameters
+    declare function fn5(x, y?);
+                     ~~~
+!!! error TS7010: 'fn5', which lacks return-type annotation, implicitly has an 'any' return type.
+                         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                            ~~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+    declare function fn6(e?);
+                     ~~~
+!!! error TS7010: 'fn6', which lacks return-type annotation, implicitly has an 'any' return type.
+                         ~~
+!!! error TS7006: Parameter 'e' implicitly has an 'any' type.
+    declare function fn7(x, y?, ...z);
+                     ~~~
+!!! error TS7010: 'fn7', which lacks return-type annotation, implicitly has an 'any' return type.
+                         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                            ~~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+                                ~~~~
+!!! error TS7019: Rest parameter 'z' implicitly has an 'any[]' type.
+    declare function fn8(y?, ...z: number[]);
+                     ~~~
+!!! error TS7010: 'fn8', which lacks return-type annotation, implicitly has an 'any' return type.
+                         ~~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+    declare function fn9(...q: {}[]);
+                     ~~~
+!!! error TS7010: 'fn9', which lacks return-type annotation, implicitly has an 'any' return type.
+    declare function fn10<T>(...q: T[]);
+                     ~~~~
+!!! error TS7010: 'fn10', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    // Ambient class
+    declare class cls {
+        constructor();
+        method(): cls;
+        static static(p): number;
+                      ~
+!!! error TS7006: Parameter 'p' implicitly has an 'any' type.
+        static q;
+               ~
+!!! error TS7008: Member 'q' implicitly has an 'any' type.
+        private fn();
+        private static fns();
+    }
+    
+    // Ambient enum
+    declare enum E1 {
+        x,
+        y,
+        z
+    }
+    
+    // Ambient enum with integer literal initializer
+    declare enum E2 {
+        q,
+        a = 1,
+        b,
+        c = 2,
+        d
+    }
+    
+    // Ambient enum members are always exported with or without export keyword
+    declare enum E3 {
+        A
+    }
+    declare module E3 {
+        var B;
+            ~
+!!! error TS7005: Variable 'B' implicitly has an 'any' type.
+    }
+    var x = E3.B;
+    
+    // Ambient module
+    declare module M1 {
+        var x;
+            ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        function fn(): number;
+    }
+    
+    // Ambient module members are always exported with or without export keyword
+    var p = M1.x;
+    var q = M1.fn();
+    
+    // Ambient external module in the global module
+    // Ambient external module with a string literal name that is a top level external module name
+    declare module 'external1' {
+        var q;
+            ~
+!!! error TS7005: Variable 'q' implicitly has an 'any' type.
+    }
+    
+    

@@ -1,0 +1,20 @@
+globalThisCapture.ts(2,6): error TS7041: The containing arrow function captures the global value of 'this'.
+globalThisCapture.ts(4,5): error TS7034: Variable 'parts' implicitly has type 'any[]' in some locations where its type cannot be determined.
+globalThisCapture.ts(7,1): error TS7005: Variable 'parts' implicitly has an 'any[]' type.
+
+
+==== globalThisCapture.ts (3 errors) ====
+    // Add a lambda to ensure global 'this' capture is triggered
+    (()=>this.window);
+         ~~~~
+!!! error TS7041: The containing arrow function captures the global value of 'this'.
+    
+    var parts = [];
+        ~~~~~
+!!! error TS7034: Variable 'parts' implicitly has type 'any[]' in some locations where its type cannot be determined.
+    
+    // Ensure that the generated code is correct
+    parts[0];
+    ~~~~~
+!!! error TS7005: Variable 'parts' implicitly has an 'any[]' type.
+    

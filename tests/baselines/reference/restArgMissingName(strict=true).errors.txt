@@ -1,0 +1,11 @@
+restArgMissingName.ts(1,15): error TS7019: Rest parameter '(Missing)' implicitly has an 'any[]' type.
+restArgMissingName.ts(1,18): error TS1003: Identifier expected.
+
+
+==== restArgMissingName.ts (2 errors) ====
+    function sum (...) {} 
+                  ~~~
+!!! error TS7019: Rest parameter '(Missing)' implicitly has an 'any[]' type.
+                     ~
+!!! error TS1003: Identifier expected.
+    

@@ -1,0 +1,37 @@
+privateNameAccessorsCallExpression.ts(2,45): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+privateNameAccessorsCallExpression.ts(3,42): error TS7006: Parameter 'a' implicitly has an 'any' type.
+privateNameAccessorsCallExpression.ts(3,45): error TS7019: Rest parameter 'b' implicitly has an 'any[]' type.
+privateNameAccessorsCallExpression.ts(9,9): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+privateNameAccessorsCallExpression.ts(13,19): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+
+
+==== privateNameAccessorsCallExpression.ts (5 errors) ====
+    class A {
+        get #fieldFunc() {  return function() { this.x = 10; } }
+                                                ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+!!! related TS2738 privateNameAccessorsCallExpression.ts:2:32: An outer value of 'this' is shadowed by this container.
+        get #fieldFunc2() { return  function(a, ...b) {}; }
+                                             ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                                                ~~~~
+!!! error TS7019: Rest parameter 'b' implicitly has an 'any[]' type.
+        x = 1;
+        test() {
+            this.#fieldFunc();
+            const func = this.#fieldFunc;
+            func();
+            new this.#fieldFunc();
+            ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+    
+            const arr = [ 1, 2 ];
+            this.#fieldFunc2(0, ...arr, 3);
+            const b = new this.#fieldFunc2(0, ...arr, 3);
+                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+            const str = this.#fieldFunc2`head${1}middle${2}tail`;
+            this.getInstance().#fieldFunc2`test${1}and${2}`;
+        }
+        getInstance() { return new A(); }
+    }

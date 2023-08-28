@@ -1,0 +1,11 @@
+decoratorOnClassProperty1.es6.ts(4,10): error TS7008: Member 'prop' implicitly has an 'any' type.
+
+
+==== decoratorOnClassProperty1.es6.ts (1 errors) ====
+    declare function dec(target: any, propertyKey: string): void;
+    
+    export default class {
+        @dec prop;
+             ~~~~
+!!! error TS7008: Member 'prop' implicitly has an 'any' type.
+    }

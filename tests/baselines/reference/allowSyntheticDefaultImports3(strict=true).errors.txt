@@ -1,0 +1,17 @@
+a.ts(1,8): error TS1192: Module '"b"' has no default export.
+b.ts(2,2): error TS2564: Property 'member' has no initializer and is not definitely assigned in the constructor.
+
+
+==== a.ts (1 errors) ====
+    import Namespace from "./b";
+           ~~~~~~~~~
+!!! error TS1192: Module '"b"' has no default export.
+    export var x = new Namespace.Foo();
+    
+==== b.ts (1 errors) ====
+    export class Foo {
+    	member: string;
+    	~~~~~~
+!!! error TS2564: Property 'member' has no initializer and is not definitely assigned in the constructor.
+    }
+    

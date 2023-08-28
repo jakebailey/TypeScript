@@ -1,0 +1,40 @@
+downlevelLetConst19.ts(2,18): error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+downlevelLetConst19.ts(3,5): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+downlevelLetConst19.ts(6,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+downlevelLetConst19.ts(9,14): error TS1250: Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'.
+downlevelLetConst19.ts(14,13): error TS7005: Variable 'x' implicitly has an 'any' type.
+downlevelLetConst19.ts(17,7): error TS7005: Variable 'x' implicitly has an 'any' type.
+
+
+==== downlevelLetConst19.ts (6 errors) ====
+    'use strict'
+    declare function use(a: any);
+                     ~~~
+!!! error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+    var x;
+        ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+    function a() {
+      {
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+        use(x);
+    
+        function b() {
+                 ~
+!!! error TS1250: Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'.
+            {
+                let x;
+                use(x);
+            }
+            use(x);
+                ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        }
+      }
+      use(x)
+          ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    }
+    use(x)

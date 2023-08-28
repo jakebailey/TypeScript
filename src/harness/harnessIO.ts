@@ -1149,13 +1149,20 @@ export function getFileBasedTestConfigurations(settings: TestCaseParser.Compiler
     let varyByEntries: [string, string[]][] | undefined;
     let variationCount = 1;
     for (const varyByKey of varyBy) {
-        if (ts.hasProperty(settings, varyByKey)) {
+        const keyIsSet = ts.hasProperty(settings, varyByKey);
+        const keyIsStrict = varyByKey === "strict";
+        if (keyIsSet || keyIsStrict) {
+            let setting = settings[varyByKey];
+            if (!keyIsSet && keyIsStrict) {
+                setting = "*";
+            }
+
             // we only consider variations when there are 2 or more variable entries.
-            const entries = splitVaryBySettingValue(settings[varyByKey], varyByKey);
+            const entries = splitVaryBySettingValue(setting, varyByKey);
             if (entries) {
                 if (!varyByEntries) varyByEntries = [];
                 variationCount *= entries.length;
-                if (variationCount > 25) throw new Error(`Provided test options exceeded the maximum number of variations: ${varyBy.map(v => `'@${v}'`).join(", ")}`);
+                if (variationCount > 50) throw new Error(`Provided test options exceeded the maximum number of variations: ${varyBy.map(v => `'@${v}'`).join(", ")}`);
                 varyByEntries.push([varyByKey, entries]);
             }
         }

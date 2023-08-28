@@ -1,0 +1,58 @@
+throwInEnclosingStatements.ts(1,13): error TS7006: Parameter 'x' implicitly has an 'any' type.
+throwInEnclosingStatements.ts(8,9): error TS2454: Variable 'y' is used before being assigned.
+throwInEnclosingStatements.ts(12,15): error TS2454: Variable 'y' is used before being assigned.
+
+
+==== throwInEnclosingStatements.ts (3 errors) ====
+    function fn(x) {
+                ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        throw x;
+    }
+    
+    <T>(x: T) => { throw x; }
+    
+    var y: string;
+    switch (y) {
+            ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+        case 'a':
+            throw y;
+        default:
+            throw y;
+                  ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    }
+    
+    var z = 0;
+    while (z < 10) {
+        throw z;
+    }
+    
+    for (var i = 0; ;) { throw i; }
+    
+    for (var idx in {}) { throw idx; }
+    
+    do { throw null; }while(true)
+    
+    var j = 0;
+    while (j < 0) { throw j; }
+    
+    class C<T> {
+        private value: T;
+        biz() {
+            throw this.value;
+        }
+    
+        constructor() {
+            throw this;
+        }
+    }
+    
+    var aa = {
+        id:12,
+        biz() {
+            throw this;
+        }
+    }
+    

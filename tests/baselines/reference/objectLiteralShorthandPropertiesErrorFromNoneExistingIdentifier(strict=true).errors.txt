@@ -1,0 +1,14 @@
+objectLiteralShorthandPropertiesErrorFromNoneExistingIdentifier.ts(1,5): error TS7022: 'x' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+objectLiteralShorthandPropertiesErrorFromNoneExistingIdentifier.ts(3,5): error TS18004: No value exists in scope for the shorthand property 'undefinedVariable'. Either declare one or provide an initializer.
+
+
+==== objectLiteralShorthandPropertiesErrorFromNoneExistingIdentifier.ts (2 errors) ====
+    var x = {
+        ~
+!!! error TS7022: 'x' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+        x, // OK
+        undefinedVariable // Error
+        ~~~~~~~~~~~~~~~~~
+!!! error TS18004: No value exists in scope for the shorthand property 'undefinedVariable'. Either declare one or provide an initializer.
+    }
+    

@@ -1,0 +1,28 @@
+noCollisionThisExpressionAndLocalVarInProperty.ts(3,19): error TS7006: Parameter 'callback' implicitly has an 'any' type.
+noCollisionThisExpressionAndLocalVarInProperty.ts(15,19): error TS7006: Parameter 'callback' implicitly has an 'any' type.
+
+
+==== noCollisionThisExpressionAndLocalVarInProperty.ts (2 errors) ====
+    class class1 {
+        public prop1 = {
+            doStuff: (callback) => () => {
+                      ~~~~~~~~
+!!! error TS7006: Parameter 'callback' implicitly has an 'any' type.
+                var _this = 2;
+                return callback(_this);
+            }
+        }
+    }
+    
+    class class2 {
+        constructor() {
+            var _this = 2;
+        }
+        public prop1 = {
+            doStuff: (callback) => () => {
+                      ~~~~~~~~
+!!! error TS7006: Parameter 'callback' implicitly has an 'any' type.
+                return callback(10);
+            }
+        }
+    }

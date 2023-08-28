@@ -1,0 +1,34 @@
+//// [tests/cases/compiler/functionType.ts] ////
+
+=== functionType.ts ===
+function salt() {}
+>salt : () => void
+>     : ^^^^^^^^^^
+
+salt.apply("hello", []);
+>salt.apply("hello", []) : void
+>                        : ^^^^
+>salt.apply : { <T, R>(this: (this: T) => R, thisArg: T): R; <T_1, A extends any[], R_1>(this: (this: T_1, ...args: A) => R_1, thisArg: T_1, args: A): R_1; }
+>           : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>salt : () => void
+>     : ^^^^^^^^^^
+>apply : { <T, R>(this: (this: T) => R, thisArg: T): R; <T_1, A extends any[], R_1>(this: (this: T_1, ...args: A) => R_1, thisArg: T_1, args: A): R_1; }
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>"hello" : "hello"
+>        : ^^^^^^^
+>[] : []
+>   : ^^
+
+(new Function("return 5"))();
+>(new Function("return 5"))() : any
+>(new Function("return 5")) : Function
+>                           : ^^^^^^^^
+>new Function("return 5") : Function
+>                         : ^^^^^^^^
+>Function : FunctionConstructor
+>         : ^^^^^^^^^^^^^^^^^^^
+>"return 5" : "return 5"
+>           : ^^^^^^^^^^
+ 
+ 
+

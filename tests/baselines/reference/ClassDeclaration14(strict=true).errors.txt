@@ -1,0 +1,16 @@
+ClassDeclaration14.ts(2,4): error TS2391: Function implementation is missing or not immediately following the declaration.
+ClassDeclaration14.ts(2,4): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+ClassDeclaration14.ts(3,4): error TS2390: Constructor implementation is missing.
+
+
+==== ClassDeclaration14.ts (3 errors) ====
+    class C {
+       foo();
+       ~~~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+       ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+       constructor();
+       ~~~~~~~~~~~~~~
+!!! error TS2390: Constructor implementation is missing.
+    }

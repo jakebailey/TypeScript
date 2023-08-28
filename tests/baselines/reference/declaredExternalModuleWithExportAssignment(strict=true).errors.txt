@@ -1,0 +1,30 @@
+declaredExternalModuleWithExportAssignment.ts(3,10): error TS7006: Parameter 'res' implicitly has an 'any' type.
+declaredExternalModuleWithExportAssignment.ts(3,15): error TS7006: Parameter 'req' implicitly has an 'any' type.
+declaredExternalModuleWithExportAssignment.ts(3,20): error TS7006: Parameter 'next' implicitly has an 'any' type.
+
+
+==== declaredExternalModuleWithExportAssignment.ts (3 errors) ====
+    declare module 'connect' {
+        interface connectModule {
+            (res, req, next): void;
+             ~~~
+!!! error TS7006: Parameter 'res' implicitly has an 'any' type.
+                  ~~~
+!!! error TS7006: Parameter 'req' implicitly has an 'any' type.
+                       ~~~~
+!!! error TS7006: Parameter 'next' implicitly has an 'any' type.
+        }
+    
+        interface connectExport {
+            use: (mod: connectModule) => connectExport;
+            listen: (port: number) => void;
+        }
+    
+        var server: {
+            (): connectExport;
+            test1: connectModule;
+            test2(): connectModule;
+        };
+        export = server;
+    }
+    

@@ -1,0 +1,11 @@
+collisionThisExpressionAndAliasInGlobal.ts(4,15): error TS7041: The containing arrow function captures the global value of 'this'.
+
+
+==== collisionThisExpressionAndAliasInGlobal.ts (1 errors) ====
+    module a {
+        export var b = 10;
+    }
+    var f = () => this;
+                  ~~~~
+!!! error TS7041: The containing arrow function captures the global value of 'this'.
+    import _this = a; // Error

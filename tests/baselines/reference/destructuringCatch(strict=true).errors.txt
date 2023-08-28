@@ -1,0 +1,46 @@
+destructuringCatch.ts(4,8): error TS2461: Type 'unknown' is not an array type.
+destructuringCatch.ts(11,9): error TS2339: Property 'a' does not exist on type 'unknown'.
+destructuringCatch.ts(11,12): error TS2339: Property 'b' does not exist on type 'unknown'.
+destructuringCatch.ts(18,8): error TS2461: Type 'unknown' is not an array type.
+destructuringCatch.ts(25,31): error TS2461: Type 'unknown' is not an array type.
+
+
+==== destructuringCatch.ts (5 errors) ====
+    try {
+        throw [0, 1];
+    }
+    catch ([a, b]) {
+           ~~~~~~
+!!! error TS2461: Type 'unknown' is not an array type.
+        a + b;
+    }
+    
+    try {
+        throw { a: 0, b: 1 };
+    }
+    catch ({a, b}) {
+            ~
+!!! error TS2339: Property 'a' does not exist on type 'unknown'.
+               ~
+!!! error TS2339: Property 'b' does not exist on type 'unknown'.
+        a + b;
+    }
+    
+    try {
+        throw [{ x: [0], z: 1 }];
+    }
+    catch ([{x: [y], z}]) {
+           ~~~~~~~~~~~~~
+!!! error TS2461: Type 'unknown' is not an array type.
+        y + z;
+    }
+    
+    // Test of comment ranges. A fix to GH#11755 should update this.
+    try {
+    }
+    catch (/*Test comment ranges*/[/*a*/a]) {
+                                  ~~~~~~~~
+!!! error TS2461: Type 'unknown' is not an array type.
+    
+    }
+    

@@ -1,0 +1,15 @@
+moduleAugmentationGlobal6_1.ts(1,1): error TS2669: Augmentations for the global scope can only be directly nested in external modules or ambient module declarations.
+moduleAugmentationGlobal6_1.ts(1,1): error TS2670: Augmentations for the global scope should have 'declare' modifier unless they appear in already ambient context.
+moduleAugmentationGlobal6_1.ts(2,26): error TS7008: Member 'x' implicitly has an 'any' type.
+
+
+==== moduleAugmentationGlobal6_1.ts (3 errors) ====
+    global {
+    ~~~~~~
+!!! error TS2669: Augmentations for the global scope can only be directly nested in external modules or ambient module declarations.
+    ~~~~~~
+!!! error TS2670: Augmentations for the global scope should have 'declare' modifier unless they appear in already ambient context.
+        interface Array<T> { x }
+                             ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    }

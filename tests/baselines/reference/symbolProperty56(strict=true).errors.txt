@@ -1,0 +1,24 @@
+symbolProperty56.ts(9,5): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ [Symbol.iterator]: number; }'.
+symbolProperty56.ts(9,9): error TS2454: Variable 'Symbol' is used before being assigned.
+symbolProperty56.ts(9,9): error TS7053: Element implicitly has an 'any' type because expression of type '"iterator"' can't be used to index type '{}'.
+  Property 'iterator' does not exist on type '{}'.
+
+
+==== symbolProperty56.ts (3 errors) ====
+    var obj = {
+        [Symbol.iterator]: 0
+    };
+    
+    module M {
+        var Symbol: {};
+        // The following should be of type 'any'. This is because even though obj has a property keyed by Symbol.iterator,
+        // the key passed in here is the *wrong* Symbol.iterator. It is not the iterator property of the global Symbol.
+        obj[Symbol["iterator"]];
+        ~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type '{ [Symbol.iterator]: number; }'.
+            ~~~~~~
+!!! error TS2454: Variable 'Symbol' is used before being assigned.
+            ~~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '"iterator"' can't be used to index type '{}'.
+!!! error TS7053:   Property 'iterator' does not exist on type '{}'.
+    }

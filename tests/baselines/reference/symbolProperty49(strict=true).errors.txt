@@ -1,0 +1,13 @@
+symbolProperty49.ts(2,16): error TS7005: Variable 'Symbol' implicitly has an 'any' type.
+
+
+==== symbolProperty49.ts (1 errors) ====
+    module M {
+        export var Symbol;
+                   ~~~~~~
+!!! error TS7005: Variable 'Symbol' implicitly has an 'any' type.
+    
+        class C {
+            [Symbol.iterator]() { }
+        }
+    }

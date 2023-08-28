@@ -1,0 +1,11 @@
+interfaceWithCommaSeparators.ts(1,23): error TS7008: Member 'baz' implicitly has an 'any' type.
+interfaceWithCommaSeparators.ts(2,30): error TS7008: Member 'baz' implicitly has an 'any' type.
+
+
+==== interfaceWithCommaSeparators.ts (2 errors) ====
+    var v: { bar(): void, baz }
+                          ~~~
+!!! error TS7008: Member 'baz' implicitly has an 'any' type.
+    interface Foo { bar(): void, baz }
+                                 ~~~
+!!! error TS7008: Member 'baz' implicitly has an 'any' type.

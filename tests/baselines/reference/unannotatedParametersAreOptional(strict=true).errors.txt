@@ -1,0 +1,42 @@
+test.js(1,12): error TS7006: Parameter 'x' implicitly has an 'any' type.
+test.js(5,12): error TS7006: Parameter 'x' implicitly has an 'any' type.
+test.js(6,7): error TS7006: Parameter 'x' implicitly has an 'any' type.
+test.js(7,5): error TS7006: Parameter 'x' implicitly has an 'any' type.
+test.js(15,5): error TS7006: Parameter 'x' implicitly has an 'any' type.
+test.js(16,6): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== test.js (6 errors) ====
+    function f(x) {}
+               ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    f(); // Always been ok
+    
+    class C {
+      static m(x) {}
+               ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+      p = x => {}
+          ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+      m(x) {}
+        ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    C.m();       // Always been ok
+    new C().m(); // Regression #39261
+    new C().p(); // Regression #39261
+    
+    const obj = {
+      m(x) {},
+        ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+      p: x => {}
+         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    };
+    
+    obj.m(); // Always been ok
+    obj.p(); // Always been ok
+    

@@ -1,0 +1,30 @@
+ambientClassDeclarationExtends_file1.ts(2,12): error TS7008: Member 'bar' implicitly has an 'any' type.
+ambientClassDeclarationExtends_singleFile.ts(5,12): error TS7008: Member 'foo' implicitly has an 'any' type.
+
+
+==== ambientClassDeclarationExtends_singleFile.ts (1 errors) ====
+    declare class A { }
+    declare class B extends A { }
+    
+    declare class C {
+        public foo;
+               ~~~
+!!! error TS7008: Member 'foo' implicitly has an 'any' type.
+    }
+    namespace D { var x; }
+    declare class D extends C { }
+    
+    var d: C = new D();
+    
+==== ambientClassDeclarationExtends_file1.ts (1 errors) ====
+    declare class E {
+        public bar;
+               ~~~
+!!! error TS7008: Member 'bar' implicitly has an 'any' type.
+    }
+    namespace F { var y; }
+    
+==== ambientClassDeclarationExtends_file2.ts (0 errors) ====
+    declare class F extends E { }
+    var f: E = new F();
+    

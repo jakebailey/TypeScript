@@ -1,0 +1,37 @@
+//// [tests/cases/conformance/async/es2017/asyncArrowFunction/asyncArrowFunctionCapturesArguments_es2017.ts] ////
+
+=== asyncArrowFunctionCapturesArguments_es2017.ts ===
+class C {
+>C : C
+>  : ^
+
+   method() {
+>method : () => void
+>       : ^^^^^^^^^^
+
+      function other() {}
+>other : () => void
+>      : ^^^^^^^^^^
+
+      var fn = async () => await other.apply(this, arguments);      
+>fn : () => Promise<void>
+>   : ^^^^^^^^^^^^^^^^^^^
+>async () => await other.apply(this, arguments) : () => Promise<void>
+>                                               : ^^^^^^^^^^^^^^^^^^^
+>await other.apply(this, arguments) : void
+>                                   : ^^^^
+>other.apply(this, arguments) : void
+>                             : ^^^^
+>other.apply : { <T, R>(this: (this: T) => R, thisArg: T): R; <T_1, A extends any[], R_1>(this: (this: T_1, ...args: A) => R_1, thisArg: T_1, args: A): R_1; }
+>            : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>other : () => void
+>      : ^^^^^^^^^^
+>apply : { <T, R>(this: (this: T) => R, thisArg: T): R; <T_1, A extends any[], R_1>(this: (this: T_1, ...args: A) => R_1, thisArg: T_1, args: A): R_1; }
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>this : this
+>     : ^^^^
+>arguments : IArguments
+>          : ^^^^^^^^^^
+   }
+}
+

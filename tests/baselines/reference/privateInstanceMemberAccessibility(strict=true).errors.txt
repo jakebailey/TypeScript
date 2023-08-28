@@ -1,0 +1,42 @@
+privateInstanceMemberAccessibility.ts(2,13): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+privateInstanceMemberAccessibility.ts(5,7): error TS2415: Class 'Derived' incorrectly extends base class 'Base'.
+  Property 'foo' is private in type 'Base' but not in type 'Derived'.
+privateInstanceMemberAccessibility.ts(6,15): error TS2340: Only public and protected methods of the base class are accessible via the 'super' keyword.
+privateInstanceMemberAccessibility.ts(8,22): error TS2340: Only public and protected methods of the base class are accessible via the 'super' keyword.
+privateInstanceMemberAccessibility.ts(10,15): error TS2304: Cannot find name 'super'.
+privateInstanceMemberAccessibility.ts(12,5): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+privateInstanceMemberAccessibility.ts(12,12): error TS1442: Expected '=' for property initializer.
+privateInstanceMemberAccessibility.ts(12,13): error TS7008: Member 'foo' implicitly has an 'any' type.
+
+
+==== privateInstanceMemberAccessibility.ts (8 errors) ====
+    class Base {
+        private foo: string;
+                ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class Derived extends Base {
+          ~~~~~~~
+!!! error TS2415: Class 'Derived' incorrectly extends base class 'Base'.
+!!! error TS2415:   Property 'foo' is private in type 'Base' but not in type 'Derived'.
+        x = super.foo; // error
+                  ~~~
+!!! error TS2340: Only public and protected methods of the base class are accessible via the 'super' keyword.
+        y() {
+            return super.foo; // error
+                         ~~~
+!!! error TS2340: Only public and protected methods of the base class are accessible via the 'super' keyword.
+        }
+        z: typeof super.foo; // error
+                  ~~~~~
+!!! error TS2304: Cannot find name 'super'.
+    
+        a: this.foo; // error
+        ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+               ~
+!!! error TS1442: Expected '=' for property initializer.
+                ~~~
+!!! error TS7008: Member 'foo' implicitly has an 'any' type.
+    }

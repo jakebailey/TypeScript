@@ -1,0 +1,42 @@
+constructorImplementationWithDefaultValues.ts(2,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructorImplementationWithDefaultValues.ts(9,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructorImplementationWithDefaultValues.ts(10,17): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+constructorImplementationWithDefaultValues.ts(16,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructorImplementationWithDefaultValues.ts(17,17): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+
+
+==== constructorImplementationWithDefaultValues.ts (5 errors) ====
+    class C {
+        constructor(x);
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        constructor(x = 1) {
+            var y = x;
+        }
+    }
+    
+    class D<T> {
+        constructor(x);
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        constructor(x:T = null) {
+                    ~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+            var y = x;
+        }
+    }
+    
+    class E<T extends Date> {
+        constructor(x);
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        constructor(x: T = null) {
+                    ~~~~~~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+            var y = x;
+        }
+    }

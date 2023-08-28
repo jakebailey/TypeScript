@@ -1,0 +1,24 @@
+privateNameDeclarationMerging.ts(4,5): error TS7008: Member '#x' implicitly has an 'any' type.
+privateNameDeclarationMerging.ts(9,11): error TS2339: Property '#x' does not exist on type 'D'.
+
+
+==== privateNameDeclarationMerging.ts (2 errors) ====
+    class D {};
+    
+    class C {
+        #x;
+        ~~
+!!! error TS7008: Member '#x' implicitly has an 'any' type.
+        foo () {
+            const c = new C();
+            c.#x;     // OK
+            const d: D = new C();
+            d.#x;    // Error
+              ~~
+!!! error TS2339: Property '#x' does not exist on type 'D'.
+        }
+    }
+    interface C {
+        new (): D;
+    }
+    

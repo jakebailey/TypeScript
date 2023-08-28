@@ -1,0 +1,16 @@
+externSemantics.ts(1,15): error TS1039: Initializers are not allowed in ambient contexts.
+externSemantics.ts(2,13): error TS7005: Variable 'v' implicitly has an 'any' type.
+externSemantics.ts(3,22): error TS1039: Initializers are not allowed in ambient contexts.
+
+
+==== externSemantics.ts (3 errors) ====
+    declare var x=10;
+                  ~~
+!!! error TS1039: Initializers are not allowed in ambient contexts.
+    declare var v;
+                ~
+!!! error TS7005: Variable 'v' implicitly has an 'any' type.
+    declare var y:number=3;
+                         ~
+!!! error TS1039: Initializers are not allowed in ambient contexts.
+    

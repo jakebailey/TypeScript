@@ -1,0 +1,18 @@
+multiModuleFundule1.ts(11,10): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+
+
+==== multiModuleFundule1.ts (1 errors) ====
+    function C(x: number) { }
+    
+    module C {
+        export var x = 1;
+    }
+    module C {
+        export function foo() { }
+    }
+    
+    var r = C(2);
+    var r2 = new C(2); // using void returning function as constructor
+             ~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+    var r3 = C.foo();

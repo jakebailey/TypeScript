@@ -1,0 +1,18 @@
+exportAssignmentInterface_B.ts(5,17): error TS2454: Variable 'i' is used before being assigned.
+
+
+==== exportAssignmentInterface_B.ts (1 errors) ====
+    import I1 = require("exportAssignmentInterface_A");
+    
+    var i: I1;
+    
+    var n: number = i.p1;
+                    ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+==== exportAssignmentInterface_A.ts (0 errors) ====
+    interface A {
+    	p1: number;
+    }
+    
+    export = A;
+    

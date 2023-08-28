@@ -1,0 +1,23 @@
+e.tsx(1,13): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+e.tsx(1,22): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+
+
+==== a.js (0 errors) ====
+    var elemA = 42;
+    
+==== b.jsx (0 errors) ====
+    var elemB = <b>{"test"}</b>;
+    
+==== c.js (0 errors) ====
+    var elemC = <c>{42}</c>;
+    
+==== d.ts (0 errors) ====
+    var elemD = 42;
+    
+==== e.tsx (2 errors) ====
+    var elemE = <e>{true}</e>;
+                ~~~
+!!! error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+                         ~~~~
+!!! error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+    

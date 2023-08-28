@@ -1,0 +1,14 @@
+symbolDeclarationEmit3.ts(2,5): error TS7010: '[Symbol.toPrimitive]', which lacks return-type annotation, implicitly has an 'any' return type.
+symbolDeclarationEmit3.ts(3,5): error TS7010: '[Symbol.toPrimitive]', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== symbolDeclarationEmit3.ts (2 errors) ====
+    class C {
+        [Symbol.toPrimitive](x: number);
+        ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: '[Symbol.toPrimitive]', which lacks return-type annotation, implicitly has an 'any' return type.
+        [Symbol.toPrimitive](x: string);
+        ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: '[Symbol.toPrimitive]', which lacks return-type annotation, implicitly has an 'any' return type.
+        [Symbol.toPrimitive](x: any) { }
+    }

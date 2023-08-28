@@ -1,0 +1,33 @@
+privateIndexer2.ts(3,5): error TS7022: 'x' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+privateIndexer2.ts(4,15): error TS1005: ']' expected.
+privateIndexer2.ts(4,17): error TS2693: 'string' only refers to a type, but is being used as a value here.
+privateIndexer2.ts(4,23): error TS1005: ',' expected.
+privateIndexer2.ts(4,24): error TS1136: Property assignment expected.
+privateIndexer2.ts(4,26): error TS2693: 'string' only refers to a type, but is being used as a value here.
+privateIndexer2.ts(4,32): error TS1005: ',' expected.
+
+
+==== privateIndexer2.ts (7 errors) ====
+    // private indexers not allowed
+    
+    var x = {
+        ~
+!!! error TS7022: 'x' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+        private [x: string]: string;
+                  ~
+!!! error TS1005: ']' expected.
+                    ~~~~~~
+!!! error TS2693: 'string' only refers to a type, but is being used as a value here.
+                          ~
+!!! error TS1005: ',' expected.
+                           ~
+!!! error TS1136: Property assignment expected.
+                             ~~~~~~
+!!! error TS2693: 'string' only refers to a type, but is being used as a value here.
+                                   ~
+!!! error TS1005: ',' expected.
+    }
+    
+    var y: {
+        private[x: string]: string;
+    }

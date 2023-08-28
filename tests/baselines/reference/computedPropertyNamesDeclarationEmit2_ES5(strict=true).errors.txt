@@ -1,0 +1,14 @@
+computedPropertyNamesDeclarationEmit2_ES5.ts(4,16): error TS7032: Property '["" + ""]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+computedPropertyNamesDeclarationEmit2_ES5.ts(4,26): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== computedPropertyNamesDeclarationEmit2_ES5.ts (2 errors) ====
+    class C {
+        static ["" + ""]() { }
+        static get ["" + ""]() { return 0; }
+        static set ["" + ""](x) { }
+                   ~~~~~~~~~
+!!! error TS7032: Property '["" + ""]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                             ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }

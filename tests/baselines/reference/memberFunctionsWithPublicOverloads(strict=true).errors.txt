@@ -1,0 +1,103 @@
+memberFunctionsWithPublicOverloads.ts(2,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(3,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(6,12): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(7,12): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(8,12): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(11,19): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(12,19): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(15,19): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(16,19): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(17,19): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(22,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(23,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(26,12): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(27,12): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(28,12): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(31,19): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(32,19): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(35,19): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(36,19): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPublicOverloads.ts(37,19): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== memberFunctionsWithPublicOverloads.ts (20 errors) ====
+    class C {
+        public foo(x: number);
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        public foo(x: number, y: string);
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        public foo(x: any, y?: any) { }
+    
+        public bar(x: 'hi');
+               ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        public bar(x: string);
+               ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        public bar(x: number, y: string);
+               ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        public bar(x: any, y?: any) { }
+    
+        public static foo(x: number);
+                      ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        public static foo(x: number, y: string);
+                      ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        public static foo(x: any, y?: any) { }
+    
+        public static bar(x: 'hi');
+                      ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        public static bar(x: string);
+                      ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        public static bar(x: number, y: string);
+                      ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        public static bar(x: any, y?: any) { }
+    }
+    
+    class D<T> {
+        public foo(x: number);
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        public foo(x: T, y: T);
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        public foo(x: any, y?: any) { }
+    
+        public bar(x: 'hi');
+               ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        public bar(x: string);
+               ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        public bar(x: T, y: T);
+               ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        public bar(x: any, y?: any) { }
+    
+        public static foo(x: number);
+                      ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        public static foo(x: number, y: string);
+                      ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        public static foo(x: any, y?: any) { }
+    
+        public static bar(x: 'hi');
+                      ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        public static bar(x: string);
+                      ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        public static bar(x: number, y: string);
+                      ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        public static bar(x: any, y?: any) { }
+    
+    }

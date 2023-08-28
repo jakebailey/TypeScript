@@ -1,0 +1,11 @@
+decoratorOnClassProperty13.ts(4,19): error TS7008: Member 'prop' implicitly has an 'any' type.
+
+
+==== decoratorOnClassProperty13.ts (1 errors) ====
+    declare function dec(target: any, propertyKey: string, desc: PropertyDescriptor): void;
+    
+    class C {
+        @dec accessor prop;
+                      ~~~~
+!!! error TS7008: Member 'prop' implicitly has an 'any' type.
+    }

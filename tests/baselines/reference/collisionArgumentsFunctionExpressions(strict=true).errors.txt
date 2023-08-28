@@ -1,0 +1,154 @@
+collisionArgumentsFunctionExpressions.ts(2,17): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(2,17): error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+collisionArgumentsFunctionExpressions.ts(2,36): error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+collisionArgumentsFunctionExpressions.ts(3,13): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(5,29): error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+collisionArgumentsFunctionExpressions.ts(5,29): error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+collisionArgumentsFunctionExpressions.ts(5,32): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(6,13): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(8,24): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(9,13): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(12,17): error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+collisionArgumentsFunctionExpressions.ts(13,13): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(16,13): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(19,14): error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsFunctionExpressions.ts(19,17): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(19,36): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionArgumentsFunctionExpressions.ts(20,14): error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsFunctionExpressions.ts(20,17): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(20,36): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionArgumentsFunctionExpressions.ts(21,17): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(21,17): error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+collisionArgumentsFunctionExpressions.ts(21,33): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionArgumentsFunctionExpressions.ts(22,13): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(24,14): error TS7010: 'f42', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsFunctionExpressions.ts(24,29): error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+collisionArgumentsFunctionExpressions.ts(24,32): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(25,14): error TS7010: 'f42', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsFunctionExpressions.ts(25,29): error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+collisionArgumentsFunctionExpressions.ts(25,32): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(26,26): error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+collisionArgumentsFunctionExpressions.ts(26,26): error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+collisionArgumentsFunctionExpressions.ts(26,29): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(27,13): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(29,14): error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsFunctionExpressions.ts(29,24): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(30,14): error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionArgumentsFunctionExpressions.ts(30,24): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(31,24): error TS1100: Invalid use of 'arguments' in strict mode.
+collisionArgumentsFunctionExpressions.ts(32,13): error TS1100: Invalid use of 'arguments' in strict mode.
+
+
+==== collisionArgumentsFunctionExpressions.ts (39 errors) ====
+    function foo() {
+        function f1(arguments: number, ...restParameters) { //arguments is error
+                    ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+                    ~~~~~~~~~~~~~~~~~
+!!! error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+                                       ~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+            var arguments = 10; // no error
+                ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+        }
+        function f12(i: number, ...arguments) { //arguments is error
+                                ~~~~~~~~~~~~
+!!! error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+                                ~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+                                   ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+            var arguments: any[]; // no error
+                ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+        }
+        function f1NoError(arguments: number) { // no error
+                           ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+            var arguments = 10; // no error
+                ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+        }
+    
+        function f3(...restParameters) {
+                    ~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+            var arguments = 10; // no error
+                ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+        }
+        function f3NoError() {
+            var arguments = 10; // no error
+                ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+        }
+    
+        function f4(arguments: number, ...rest); // no codegen no error
+                 ~~
+!!! error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+                    ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+                                       ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+        function f4(arguments: string, ...rest); // no codegen no error
+                 ~~
+!!! error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+                    ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+                                       ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+        function f4(arguments: any, ...rest) { // error
+                    ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+                    ~~~~~~~~~~~~~~
+!!! error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+                                    ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+            var arguments: any; // No error
+                ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+        }
+        function f42(i: number, ...arguments); // no codegen no error
+                 ~~~
+!!! error TS7010: 'f42', which lacks return-type annotation, implicitly has an 'any' return type.
+                                ~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+                                   ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+        function f42(i: string, ...arguments); // no codegen no error
+                 ~~~
+!!! error TS7010: 'f42', which lacks return-type annotation, implicitly has an 'any' return type.
+                                ~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+                                   ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+        function f42(i: any, ...arguments) { // error
+                             ~~~~~~~~~~~~
+!!! error TS2396: Duplicate identifier 'arguments'. Compiler uses 'arguments' to initialize rest parameters.
+                             ~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'arguments' implicitly has an 'any[]' type.
+                                ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+            var arguments: any[]; // No error
+                ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+        }
+        function f4NoError(arguments: number); // no error
+                 ~~~~~~~~~
+!!! error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+                           ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+        function f4NoError(arguments: string); // no error
+                 ~~~~~~~~~
+!!! error TS7010: 'f4NoError', which lacks return-type annotation, implicitly has an 'any' return type.
+                           ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+        function f4NoError(arguments: any) { // no error
+                           ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+            var arguments: any; // No error
+                ~~~~~~~~~
+!!! error TS1100: Invalid use of 'arguments' in strict mode.
+        }
+    }

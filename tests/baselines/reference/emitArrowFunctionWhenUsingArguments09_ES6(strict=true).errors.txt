@@ -1,0 +1,9 @@
+emitArrowFunctionWhenUsingArguments09_ES6.ts(1,12): error TS7006: Parameter '_arguments' implicitly has an 'any' type.
+
+
+==== emitArrowFunctionWhenUsingArguments09_ES6.ts (1 errors) ====
+    function f(_arguments) {
+               ~~~~~~~~~~
+!!! error TS7006: Parameter '_arguments' implicitly has an 'any' type.
+        var a = () => () => arguments;
+    }

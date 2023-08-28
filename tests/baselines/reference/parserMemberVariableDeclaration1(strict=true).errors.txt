@@ -1,0 +1,12 @@
+parserMemberVariableDeclaration1.ts(2,10): error TS1028: Accessibility modifier already seen.
+parserMemberVariableDeclaration1.ts(2,17): error TS7008: Member 'Foo' implicitly has an 'any' type.
+
+
+==== parserMemberVariableDeclaration1.ts (2 errors) ====
+    class C {
+      public public Foo;
+             ~~~~~~
+!!! error TS1028: Accessibility modifier already seen.
+                    ~~~
+!!! error TS7008: Member 'Foo' implicitly has an 'any' type.
+    }

@@ -1,0 +1,257 @@
+genericCallWithConstraintsTypeArgumentInference.ts(3,14): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+genericCallWithConstraintsTypeArgumentInference.ts(4,30): error TS2564: Property 'bar' has no initializer and is not definitely assigned in the constructor.
+genericCallWithConstraintsTypeArgumentInference.ts(5,34): error TS2564: Property 'baz' has no initializer and is not definitely assigned in the constructor.
+genericCallWithConstraintsTypeArgumentInference.ts(14,13): error TS2454: Variable 'b' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(15,14): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(23,12): error TS2454: Variable 'x' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(28,12): error TS2454: Variable 'x' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(31,16): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(60,16): error TS2454: Variable 'x' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(65,16): error TS2454: Variable 'x' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(70,16): error TS2454: Variable 'x' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(74,15): error TS2454: Variable 'b' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(74,18): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(75,16): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(75,20): error TS2454: Variable 'd2' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(76,17): error TS2454: Variable 'b' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(76,20): error TS2454: Variable 'd2' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(77,17): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(77,21): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(78,17): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(78,21): error TS2454: Variable 'd2' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(79,17): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(79,21): error TS2454: Variable 'd2' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(80,18): error TS2454: Variable 'd2' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(80,22): error TS2454: Variable 'd2' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(82,18): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(86,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+genericCallWithConstraintsTypeArgumentInference.ts(98,10): error TS2454: Variable 'i' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(98,16): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(98,20): error TS2454: Variable 'd2' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(99,10): error TS2454: Variable 'i' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(99,17): error TS2454: Variable 'b' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(99,20): error TS2454: Variable 'd2' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(100,10): error TS2454: Variable 'i' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(100,17): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(100,21): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(101,10): error TS2454: Variable 'i' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(101,17): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(101,21): error TS2454: Variable 'd2' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(102,10): error TS2454: Variable 'i' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(102,17): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(102,21): error TS2454: Variable 'd2' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(103,11): error TS2454: Variable 'i' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(103,18): error TS2454: Variable 'd2' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(103,22): error TS2454: Variable 'd2' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(104,10): error TS2454: Variable 'i' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(105,11): error TS2454: Variable 'i' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(105,18): error TS2454: Variable 'd1' is used before being assigned.
+genericCallWithConstraintsTypeArgumentInference.ts(106,11): error TS2454: Variable 'i' is used before being assigned.
+
+
+==== genericCallWithConstraintsTypeArgumentInference.ts (49 errors) ====
+    // Basic type inference with generic calls and constraints, no errors expected
+    
+    class Base { foo: string; }
+                 ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+    class Derived extends Base { bar: string; }
+                                 ~~~
+!!! error TS2564: Property 'bar' has no initializer and is not definitely assigned in the constructor.
+    class Derived2 extends Derived { baz: string; }
+                                     ~~~
+!!! error TS2564: Property 'baz' has no initializer and is not definitely assigned in the constructor.
+    var b: Base;
+    var d1: Derived;
+    var d2: Derived2;
+    
+    function foo<T extends Base>(t: T) {
+        return t;
+    }
+    
+    var r = foo(b); // Base
+                ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    var r2 = foo(d1); // Derived
+                 ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+    
+    function foo2<T extends Base, U extends Derived>(t: T, u: U) {
+        return u;
+    }
+    
+    function foo2b<T extends Base, U extends Derived>(u: U) {
+        var x: T;
+        return x;
+               ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    }
+    
+    function foo2c<T extends Base, U extends Derived>() {
+        var x: T;
+        return x;
+               ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    }
+    
+    var r3 = foo2b(d1); // Base
+                   ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+    var r3b = foo2c(); // Base
+    
+    class C<T extends Base, U extends Derived> {
+        constructor(public t: T, public u: U) {
+        }
+    
+        foo(t: T, u: U) {
+            return t;
+        }
+    
+        foo2(t: T, u: U) {
+            return u;
+        }
+    
+        foo3<T extends Derived>(t: T, u: U) {
+            return t;
+        }
+    
+        foo4<U extends Derived2>(t: T, u: U) {
+            return t;
+        }
+    
+        foo5<T extends Derived, U extends Derived2>(t: T, u: U) {
+            return t;
+        }
+    
+        foo6<T extends Derived, U extends Derived2>() {
+            var x: T;
+            return x;
+                   ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+        }
+    
+        foo7<T extends Base, U extends Derived>(u: U) {
+            var x: T;
+            return x;
+                   ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+        }
+    
+        foo8<T extends Base, U extends Derived>() {
+            var x: T;
+            return x;
+                   ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+        }
+    }
+    
+    var c = new C(b, d1);
+                  ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                     ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+    var r4 = c.foo(d1, d2); // Base
+                   ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+                       ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+    var r5 = c.foo2(b, d2); // Derived
+                    ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                       ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+    var r6 = c.foo3(d1, d1); // Derived
+                    ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+                        ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+    var r7 = c.foo4(d1, d2); // Base
+                    ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+                        ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+    var r8 = c.foo5(d1, d2); // Derived
+                    ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+                        ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+    var r8b = c.foo5(d2, d2); // Derived2
+                     ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+                         ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+    var r9 = c.foo6(); // Derived
+    var r10 = c.foo7(d1); // Base
+                     ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+    var r11 = c.foo8(); // Base
+    
+    interface I<T extends Base, U extends Derived> {
+        new (t: T, u: U);
+        ~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(t: T, u: U): T;
+        foo2(t: T, u: U): U;
+        foo3<T extends Derived>(t: T, u: U): T;
+        foo4<U extends Derived2>(t: T, u: U): T;
+        foo5<T extends Derived, U extends Derived2>(t: T, u: U): T;
+        foo6<T extends Derived, U extends Derived2>(): T;
+        foo7<T extends Base, U extends Derived>(u: U): T;
+        foo8<T extends Base, U extends Derived>(): T;
+    }
+    
+    var i: I<Base, Derived>;
+    var r4 = i.foo(d1, d2); // Base
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+                   ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+                       ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+    var r5 = i.foo2(b, d2); // Derived
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+                    ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                       ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+    var r6 = i.foo3(d1, d1); // Derived
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+                        ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+    var r7 = i.foo4(d1, d2); // Base
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+                        ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+    var r8 = i.foo5(d1, d2); // Derived
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+                    ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+                        ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+    var r8b = i.foo5(d2, d2); // Derived2
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+                     ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+                         ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+    var r9 = i.foo6(); // Derived
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    var r10 = i.foo7(d1); // Base
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+                     ~~
+!!! error TS2454: Variable 'd1' is used before being assigned.
+    var r11 = i.foo8(); // Base
+              ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    

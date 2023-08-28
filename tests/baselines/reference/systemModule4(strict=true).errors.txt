@@ -1,0 +1,8 @@
+systemModule4.ts(2,12): error TS7005: Variable 'y' implicitly has an 'any' type.
+
+
+==== systemModule4.ts (1 errors) ====
+    export var x = 1;
+    export var y;
+               ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.

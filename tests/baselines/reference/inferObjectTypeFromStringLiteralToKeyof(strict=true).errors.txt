@@ -1,0 +1,12 @@
+inferObjectTypeFromStringLiteralToKeyof.ts(5,44): error TS7006: Parameter 'n' implicitly has an 'any' type.
+
+
+==== inferObjectTypeFromStringLiteralToKeyof.ts (1 errors) ====
+    declare function inference1<T>(name: keyof T): T;
+    declare function inference2<T>(target: T, name: keyof T): T;
+    declare var two: "a" | "d";
+    const x = inference1(two);
+    const y = inference2({ a: 1, b: 2, c: 3, d(n) { return n } }, two);
+                                               ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+    

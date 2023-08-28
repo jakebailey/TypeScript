@@ -1,0 +1,79 @@
+asiPublicPrivateProtected.ts(1,1): error TS1212: Identifier expected. 'public' is a reserved word in strict mode.
+asiPublicPrivateProtected.ts(1,1): error TS2304: Cannot find name 'public'.
+asiPublicPrivateProtected.ts(8,5): error TS7008: Member 'public' implicitly has an 'any' type.
+asiPublicPrivateProtected.ts(12,1): error TS1212: Identifier expected. 'private' is a reserved word in strict mode.
+asiPublicPrivateProtected.ts(12,1): error TS2304: Cannot find name 'private'.
+asiPublicPrivateProtected.ts(19,5): error TS7008: Member 'private' implicitly has an 'any' type.
+asiPublicPrivateProtected.ts(23,1): error TS1212: Identifier expected. 'protected' is a reserved word in strict mode.
+asiPublicPrivateProtected.ts(23,1): error TS2304: Cannot find name 'protected'.
+asiPublicPrivateProtected.ts(30,5): error TS7008: Member 'protected' implicitly has an 'any' type.
+asiPublicPrivateProtected.ts(36,5): error TS7008: Member 'public' implicitly has an 'any' type.
+asiPublicPrivateProtected.ts(37,5): error TS7008: Member 'private' implicitly has an 'any' type.
+asiPublicPrivateProtected.ts(38,5): error TS7008: Member 'protected' implicitly has an 'any' type.
+
+
+==== asiPublicPrivateProtected.ts (12 errors) ====
+    public
+    ~~~~~~
+!!! error TS1212: Identifier expected. 'public' is a reserved word in strict mode.
+    ~~~~~~
+!!! error TS2304: Cannot find name 'public'.
+    class NonPublicClass {
+        public s() {
+        }
+    }
+    
+    class NonPublicClass2 {
+        public
+        ~~~~~~
+!!! error TS7008: Member 'public' implicitly has an 'any' type.
+        private nonPublicFunction() {
+        }
+    }
+    private
+    ~~~~~~~
+!!! error TS1212: Identifier expected. 'private' is a reserved word in strict mode.
+    ~~~~~~~
+!!! error TS2304: Cannot find name 'private'.
+    class NonPrivateClass {
+        private s() {
+        }
+    }
+    
+    class NonPrivateClass2 {
+        private
+        ~~~~~~~
+!!! error TS7008: Member 'private' implicitly has an 'any' type.
+        public nonPrivateFunction() {
+        }
+    }
+    protected
+    ~~~~~~~~~
+!!! error TS1212: Identifier expected. 'protected' is a reserved word in strict mode.
+    ~~~~~~~~~
+!!! error TS2304: Cannot find name 'protected'.
+    class NonProtectedClass {
+      protected s() {
+      }
+    }
+    
+    class NonProtectedClass2 {
+        protected
+        ~~~~~~~~~
+!!! error TS7008: Member 'protected' implicitly has an 'any' type.
+        public nonProtectedFunction() {
+        }
+    }
+    
+    class ClassWithThreeMembers {
+        public
+        ~~~~~~
+!!! error TS7008: Member 'public' implicitly has an 'any' type.
+        private
+        ~~~~~~~
+!!! error TS7008: Member 'private' implicitly has an 'any' type.
+        protected
+        ~~~~~~~~~
+!!! error TS7008: Member 'protected' implicitly has an 'any' type.
+    }
+    

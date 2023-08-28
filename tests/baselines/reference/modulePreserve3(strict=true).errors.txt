@@ -1,0 +1,18 @@
+error TS2688: Cannot find type definition file for 'react'.
+  The file is in the program because:
+    Entry point for implicit type library 'react'
+/index.tsx(2,2): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+
+
+!!! error TS2688: Cannot find type definition file for 'react'.
+!!! error TS2688:   The file is in the program because:
+!!! error TS2688:     Entry point for implicit type library 'react'
+==== /node_modules/@types/react/jsx-runtime.d.ts (0 errors) ====
+    export namespace JSX {}
+    
+==== /index.tsx (1 errors) ====
+    export {};
+    (<div />);
+     ~~~~~~~
+!!! error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+    

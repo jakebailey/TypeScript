@@ -1,0 +1,36 @@
+privateNameComputedPropertyName3.ts(4,17): error TS7006: Parameter 'name' implicitly has an 'any' type.
+privateNameComputedPropertyName3.ts(8,14): error TS7006: Parameter 'x' implicitly has an 'any' type.
+privateNameComputedPropertyName3.ts(19,16): error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Bar'.
+
+
+==== privateNameComputedPropertyName3.ts (3 errors) ====
+    class Foo {
+        #name;
+    
+        constructor(name) {
+                    ~~~~
+!!! error TS7006: Parameter 'name' implicitly has an 'any' type.
+            this.#name = name;
+        }
+    
+        getValue(x) {
+                 ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            const obj = this;
+    
+            class Bar {
+                #y = 100;
+    
+                [obj.#name]() {
+                    return x + this.#y;
+                }
+            }
+    
+            return new Bar()[obj.#name]();
+                   ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'any' can't be used to index type 'Bar'.
+        }
+    }
+    
+    console.log(new Foo("NAME").getValue(100));
+    

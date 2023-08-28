@@ -1,0 +1,37 @@
+t1.ts(14,16): error TS7005: Variable 'x' implicitly has an 'any' type.
+
+
+==== t1.ts (1 errors) ====
+    var v = 1;
+    function f() { }
+    class C {
+    }
+    interface I {
+    }
+    enum E {
+        A, B, C
+    }
+    const enum D {
+        A, B, C
+    }
+    module M {
+        export var x;
+                   ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    }
+    module N {
+        export interface I {
+        }
+    }
+    type T = number;
+    import a = M.x;
+    
+    export { v, f, C, I, E, D, M, N, T, a };
+    
+==== t2.ts (0 errors) ====
+    export { v, f, C, I, E, D, M, N, T, a } from "./t1";
+    
+==== t3.ts (0 errors) ====
+    import { v, f, C, I, E, D, M, N, T, a } from "./t1";
+    export { v, f, C, I, E, D, M, N, T, a };
+    

@@ -1,0 +1,13 @@
+declFileForInterfaceWithOptionalFunction.ts(2,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+declFileForInterfaceWithOptionalFunction.ts(2,11): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== declFileForInterfaceWithOptionalFunction.ts (2 errors) ====
+    interface I {
+        foo? (x?);
+        ~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+              ~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        foo2? (x?: number): number;
+    }

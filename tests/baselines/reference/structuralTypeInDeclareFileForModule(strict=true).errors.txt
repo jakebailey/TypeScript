@@ -1,0 +1,8 @@
+structuralTypeInDeclareFileForModule.ts(1,23): error TS7005: Variable 'x' implicitly has an 'any' type.
+
+
+==== structuralTypeInDeclareFileForModule.ts (1 errors) ====
+    module M { export var x; }
+                          ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    var m = M;

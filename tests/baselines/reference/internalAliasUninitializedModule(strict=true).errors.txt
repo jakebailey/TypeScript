@@ -1,0 +1,22 @@
+internalAliasUninitializedModule.ts(4,13): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+internalAliasUninitializedModule.ts(12,5): error TS2454: Variable 'x' is used before being assigned.
+
+
+==== internalAliasUninitializedModule.ts (2 errors) ====
+    module a {
+        export module b {
+            export interface I {
+                foo();
+                ~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+            }
+        }
+    }
+    
+    module c {
+        import b = a.b;
+        export var x: b.I;
+        x.foo();
+        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    }

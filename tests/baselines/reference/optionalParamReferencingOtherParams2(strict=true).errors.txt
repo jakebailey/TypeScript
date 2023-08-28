@@ -1,0 +1,14 @@
+optionalParamReferencingOtherParams2.ts(2,29): error TS2373: Parameter 'y' cannot reference identifier 'b' declared after it.
+optionalParamReferencingOtherParams2.ts(2,29): error TS2454: Variable 'b' is used before being assigned.
+
+
+==== optionalParamReferencingOtherParams2.ts (2 errors) ====
+    var a = 1;
+    function strange(x = a, y = b) { 
+                                ~
+!!! error TS2373: Parameter 'y' cannot reference identifier 'b' declared after it.
+                                ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+        var b = "";
+        return y;
+    }

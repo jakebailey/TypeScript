@@ -1,0 +1,9 @@
+parserPropertySignature1.ts(2,3): error TS7008: Member 'A' implicitly has an 'any' type.
+
+
+==== parserPropertySignature1.ts (1 errors) ====
+    interface I {
+      A;
+      ~
+!!! error TS7008: Member 'A' implicitly has an 'any' type.
+    }

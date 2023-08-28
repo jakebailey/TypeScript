@@ -1,0 +1,21 @@
+a.ts(2,15): error TS2564: Property '_f' has no initializer and is not definitely assigned in the constructor.
+b.ts(4,9): error TS7010: 'run', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== a.ts (1 errors) ====
+    export class A {
+        protected _f: number;
+                  ~~
+!!! error TS2564: Property '_f' has no initializer and is not definitely assigned in the constructor.
+        getF() { return this._f; }
+    }
+    
+==== b.ts (1 errors) ====
+    export {}
+    declare module "./a" {
+        interface A {
+            run();
+            ~~~~~~
+!!! error TS7010: 'run', which lacks return-type annotation, implicitly has an 'any' return type.
+        }
+    }

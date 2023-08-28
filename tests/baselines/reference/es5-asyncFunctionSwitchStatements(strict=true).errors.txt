@@ -1,0 +1,88 @@
+es5-asyncFunctionSwitchStatements.ts(1,13): error TS7005: Variable 'x' implicitly has an 'any' type.
+es5-asyncFunctionSwitchStatements.ts(1,16): error TS7005: Variable 'y' implicitly has an 'any' type.
+es5-asyncFunctionSwitchStatements.ts(1,19): error TS7005: Variable 'z' implicitly has an 'any' type.
+es5-asyncFunctionSwitchStatements.ts(1,22): error TS7005: Variable 'a' implicitly has an 'any' type.
+es5-asyncFunctionSwitchStatements.ts(1,25): error TS7005: Variable 'b' implicitly has an 'any' type.
+es5-asyncFunctionSwitchStatements.ts(1,28): error TS7005: Variable 'c' implicitly has an 'any' type.
+
+
+==== es5-asyncFunctionSwitchStatements.ts (6 errors) ====
+    declare var x, y, z, a, b, c;
+                ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                   ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+                      ~
+!!! error TS7005: Variable 'z' implicitly has an 'any' type.
+                         ~
+!!! error TS7005: Variable 'a' implicitly has an 'any' type.
+                            ~
+!!! error TS7005: Variable 'b' implicitly has an 'any' type.
+                               ~
+!!! error TS7005: Variable 'c' implicitly has an 'any' type.
+    
+    async function switchStatement0() {
+        switch (x) {
+            case y: a; break;
+            default: b; break;
+        }
+    }
+    
+    async function switchStatement1() {
+        switch (await x) {
+            case y: a; break;
+            default: b; break;
+        }
+    }
+    
+    async function switchStatement2() {
+        switch (x) {
+            case await y: a; break;
+            default: b; break;
+        }
+    }
+    
+    async function switchStatement3() {
+        switch (x) {
+            case y: await a; break;
+            default: b; break;
+        }
+    }
+    
+    async function switchStatement4() {
+        switch (x) {
+            case y: a; break;
+            default: await b; break;
+        }
+    }
+    
+    async function switchStatement5() {
+        switch (x) {
+            case y: a; break;
+            case await z: b; break;
+        }
+    }
+    
+    async function switchStatement6() {
+        switch (x) {
+            default: c; break;
+            case await y: a; break;
+            case z: b; break;
+        }
+    }
+    
+    async function switchStatement7() {
+        switch (x) {
+            default: c; break;
+            case y: a; break;
+            case await z: b; break;
+        }
+    }
+    
+    async function switchStatement8() {
+        switch (x) {
+            default: c;
+            case y: a; break;
+            case await z: b; break;
+        }
+    }

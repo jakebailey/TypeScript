@@ -1,0 +1,21 @@
+index1.js(4,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+
+
+==== index1.js (1 errors) ====
+    /**
+     * const doc comment
+     */
+    const x = (a) => {
+               ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+        return '';
+    };
+    
+    /**
+     * function doc comment
+     */
+    function b() {
+        return 0;
+    }
+    
+    module.exports = {x, b}

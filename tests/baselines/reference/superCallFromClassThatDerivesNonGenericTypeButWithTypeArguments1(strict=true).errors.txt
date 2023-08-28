@@ -1,0 +1,18 @@
+superCallFromClassThatDerivesNonGenericTypeButWithTypeArguments1.ts(7,17): error TS2315: Type 'A' is not generic.
+superCallFromClassThatDerivesNonGenericTypeButWithTypeArguments1.ts(8,27): error TS7006: Parameter 'value' implicitly has an 'any' type.
+
+
+==== superCallFromClassThatDerivesNonGenericTypeButWithTypeArguments1.ts (2 errors) ====
+    class A {
+        constructor(private map: (value: number) => string) {
+    
+        }
+    }
+    
+    class B extends A<number, string> {
+                    ~~~~~~~~~~~~~~~~~
+!!! error TS2315: Type 'A' is not generic.
+        constructor() { super(value => String(value)); }
+                              ~~~~~
+!!! error TS7006: Parameter 'value' implicitly has an 'any' type.
+    }

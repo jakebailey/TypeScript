@@ -1,0 +1,45 @@
+instantiateNonGenericTypeWithTypeArguments.ts(5,5): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+instantiateNonGenericTypeWithTypeArguments.ts(8,15): error TS2558: Expected 0 type arguments, but got 1.
+instantiateNonGenericTypeWithTypeArguments.ts(11,9): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+instantiateNonGenericTypeWithTypeArguments.ts(11,17): error TS2558: Expected 0 type arguments, but got 1.
+instantiateNonGenericTypeWithTypeArguments.ts(14,10): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+instantiateNonGenericTypeWithTypeArguments.ts(14,14): error TS2454: Variable 'f' is used before being assigned.
+instantiateNonGenericTypeWithTypeArguments.ts(14,16): error TS2558: Expected 0 type arguments, but got 1.
+instantiateNonGenericTypeWithTypeArguments.ts(18,10): error TS2347: Untyped function calls may not accept type arguments.
+
+
+==== instantiateNonGenericTypeWithTypeArguments.ts (8 errors) ====
+    // it is an error to provide type arguments to a non-generic call
+    // all of these are errors
+    
+    class C {
+        x: string;
+        ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    var c = new C<number>();
+                  ~~~~~~
+!!! error TS2558: Expected 0 type arguments, but got 1.
+    
+    function Foo(): void { }
+    var r = new Foo<number>();
+            ~~~~~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+                    ~~~~~~
+!!! error TS2558: Expected 0 type arguments, but got 1.
+    
+    var f: { (): void };
+    var r2 = new f<number>();
+             ~~~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+                 ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+                   ~~~~~~
+!!! error TS2558: Expected 0 type arguments, but got 1.
+    
+    var a: any;
+    // BUG 790977
+    var r2 = new a<number>();
+             ~~~~~~~~~~~~~~~
+!!! error TS2347: Untyped function calls may not accept type arguments.

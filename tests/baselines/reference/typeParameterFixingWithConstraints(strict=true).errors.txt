@@ -1,0 +1,20 @@
+typeParameterFixingWithConstraints.ts(10,1): error TS2454: Variable 'foo' is used before being assigned.
+typeParameterFixingWithConstraints.ts(10,31): error TS2322: Type 'null' is not assignable to type '{ bar: null; }'.
+
+
+==== typeParameterFixingWithConstraints.ts (2 errors) ====
+    interface IBar {
+        [barId: string]: any;
+    }
+    
+    interface IFoo {
+        foo<TBar extends IBar>(bar: TBar, bar1: (bar: TBar) => TBar, bar2: (bar: TBar) => TBar): TBar;
+    }
+    
+    var foo: IFoo;
+    foo.foo({ bar: null }, bar => null, bar => null);
+    ~~~
+!!! error TS2454: Variable 'foo' is used before being assigned.
+                                  ~~~~
+!!! error TS2322: Type 'null' is not assignable to type '{ bar: null; }'.
+!!! related TS6502 typeParameterFixingWithConstraints.ts:6:45: The expected type comes from the return type of this signature.

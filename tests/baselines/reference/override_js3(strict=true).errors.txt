@@ -1,0 +1,29 @@
+a.js(2,10): error TS7006: Parameter 'v' implicitly has an 'any' type.
+a.js(3,11): error TS7006: Parameter 'v' implicitly has an 'any' type.
+a.js(7,5): error TS8009: The 'override' modifier can only be used in TypeScript files.
+a.js(7,19): error TS7006: Parameter 'v' implicitly has an 'any' type.
+a.js(9,11): error TS7006: Parameter 'v' implicitly has an 'any' type.
+
+
+==== a.js (5 errors) ====
+    class B {
+        foo (v) {}
+             ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+        fooo (v) {}
+              ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+    }
+    
+    class D extends B {
+        override foo (v) {}
+        ~~~~~~~~
+!!! error TS8009: The 'override' modifier can only be used in TypeScript files.
+                      ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+        /** @override */
+        fooo (v) {}
+              ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+    }
+    

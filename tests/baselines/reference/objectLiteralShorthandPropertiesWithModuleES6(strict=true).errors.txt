@@ -1,0 +1,18 @@
+objectLiteralShorthandPropertiesWithModuleES6.ts(2,16): error TS7005: Variable 'x' implicitly has an 'any' type.
+
+
+==== objectLiteralShorthandPropertiesWithModuleES6.ts (1 errors) ====
+    module m {
+        export var x;
+                   ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    }
+    
+    module m {
+        var z = x;
+        var y = {
+            a: x,
+            x
+        };
+    }
+    

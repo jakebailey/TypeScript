@@ -1,0 +1,33 @@
+objectRestParameter.ts(4,18): error TS7010: 'suddenly', which lacks return-type annotation, implicitly has an 'any' return type.
+objectRestParameter.ts(4,41): error TS7008: Member 'z' implicitly has an 'any' type.
+objectRestParameter.ts(4,44): error TS7008: Member 'ka' implicitly has an 'any' type.
+
+
+==== objectRestParameter.ts (3 errors) ====
+    function cloneAgain({ a, ...clone }: { a: number, b: string }): void {
+    }
+    
+    declare function suddenly(f: (a: { x: { z, ka }, y: string }) => void);
+                     ~~~~~~~~
+!!! error TS7010: 'suddenly', which lacks return-type annotation, implicitly has an 'any' return type.
+                                            ~
+!!! error TS7008: Member 'z' implicitly has an 'any' type.
+                                               ~~
+!!! error TS7008: Member 'ka' implicitly has an 'any' type.
+    suddenly(({ x: a, ...rest }) => rest.y);
+    suddenly(({ x: { z = 12, ...nested }, ...rest } = { x: { z: 1, ka: 1 }, y: 'noo' }) => rest.y + nested.ka);
+    
+    class C {
+        m({ a, ...clone }: { a: number, b: string}): void {
+            // actually, never mind, don't clone
+        }
+        set p({ a, ...clone }: { a: number, b: string}) {
+            // actually, never mind, don't clone
+        }
+    }
+    function foobar({ bar={}, ...opts }: any = {}) {
+    }
+    foobar();
+    foobar({ baz: 'hello' });
+    foobar({ bar: { greeting: 'hello' } });
+    

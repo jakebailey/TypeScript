@@ -1,0 +1,18 @@
+superCallFromClassThatHasNoBaseType1.ts(8,21): error TS2335: 'super' can only be referenced in a derived class.
+superCallFromClassThatHasNoBaseType1.ts(8,27): error TS7006: Parameter 'value' implicitly has an 'any' type.
+
+
+==== superCallFromClassThatHasNoBaseType1.ts (2 errors) ====
+    class A {
+        constructor(private map: (value: number) => string) {
+    
+        }
+    }
+    
+    class B {
+        constructor() { super(value => String(value)); }
+                        ~~~~~
+!!! error TS2335: 'super' can only be referenced in a derived class.
+                              ~~~~~
+!!! error TS7006: Parameter 'value' implicitly has an 'any' type.
+    }

@@ -1,0 +1,25 @@
+symbolType17.ts(1,17): error TS7008: Member 'prop' implicitly has an 'any' type.
+symbolType17.ts(4,1): error TS2454: Variable 'x' is used before being assigned.
+symbolType17.ts(5,12): error TS2454: Variable 'x' is used before being assigned.
+symbolType17.ts(9,5): error TS2454: Variable 'x' is used before being assigned.
+
+
+==== symbolType17.ts (4 errors) ====
+    interface Foo { prop }
+                    ~~~~
+!!! error TS7008: Member 'prop' implicitly has an 'any' type.
+    var x: symbol | Foo;
+    
+    x;
+    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    if (typeof x === "symbol") {
+               ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+        x;
+    }
+    else {
+        x;
+        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    }

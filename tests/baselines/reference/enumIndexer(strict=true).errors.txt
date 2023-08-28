@@ -1,0 +1,13 @@
+enumIndexer.ts(6,34): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+
+
+==== enumIndexer.ts (1 errors) ====
+    enum MyEnumType {
+        foo, bar
+    }
+    var _arr = [{ key: 'foo' }, { key: 'bar' }]
+    var enumValue = MyEnumType.foo;
+    var x = _arr.map(o => MyEnumType[o.key] === enumValue); // these are not same type
+                                     ~~~~~
+!!! error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+    

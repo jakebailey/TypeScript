@@ -1,0 +1,10 @@
+declFileOptionalInterfaceMethod.ts(2,5): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== declFileOptionalInterfaceMethod.ts (1 errors) ====
+    interface X {
+        f? <T>();
+        ~~~~~~~~~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    

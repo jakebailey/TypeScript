@@ -1,0 +1,12 @@
+parserParameterList9.ts(2,8): error TS7019: Rest parameter 'bar' implicitly has an 'any[]' type.
+parserParameterList9.ts(2,14): error TS1047: A rest parameter cannot be optional.
+
+
+==== parserParameterList9.ts (2 errors) ====
+    class C {
+       foo(...bar?) { }
+           ~~~~~~~
+!!! error TS7019: Rest parameter 'bar' implicitly has an 'any[]' type.
+                 ~
+!!! error TS1047: A rest parameter cannot be optional.
+    }

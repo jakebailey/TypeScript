@@ -1,0 +1,39 @@
+varArgsOnConstructorTypes.ts(2,17): error TS7006: Parameter 'ctor' implicitly has an 'any' type.
+varArgsOnConstructorTypes.ts(17,5): error TS7010: 'register', which lacks return-type annotation, implicitly has an 'any' return type.
+varArgsOnConstructorTypes.ts(18,5): error TS7010: 'register', which lacks return-type annotation, implicitly has an 'any' return type.
+varArgsOnConstructorTypes.ts(23,1): error TS2454: Variable 'reg' is used before being assigned.
+
+
+==== varArgsOnConstructorTypes.ts (4 errors) ====
+    export class A {
+        constructor(ctor) { }
+                    ~~~~
+!!! error TS7006: Parameter 'ctor' implicitly has an 'any' type.
+    }
+    
+    export class B extends A {
+        private p1: number;
+        private p2: string;
+    
+        constructor(element: any, url: string) {
+           super(element);
+            this.p1 = element;
+            this.p2 = url;
+        }
+    }
+    
+    export interface I1 {
+        register(inputClass: new(...params: any[]) => A);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'register', which lacks return-type annotation, implicitly has an 'any' return type.
+        register(inputClass: { new (...params: any[]): A; }[]);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'register', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    
+    var reg: I1;
+    reg.register(B);
+    ~~~
+!!! error TS2454: Variable 'reg' is used before being assigned.
+    

@@ -1,0 +1,51 @@
+constructorOverloads8.ts(2,5): error TS2392: Multiple constructor implementations are not allowed.
+constructorOverloads8.ts(2,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructorOverloads8.ts(3,5): error TS2392: Multiple constructor implementations are not allowed.
+constructorOverloads8.ts(3,17): error TS7006: Parameter 'y' implicitly has an 'any' type.
+constructorOverloads8.ts(3,20): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructorOverloads8.ts(9,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructorOverloads8.ts(13,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+constructorOverloads8.ts(13,10): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructorOverloads8.ts(14,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+constructorOverloads8.ts(14,10): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructorOverloads8.ts(14,13): error TS7006: Parameter 'y' implicitly has an 'any' type.
+
+
+==== constructorOverloads8.ts (11 errors) ====
+    class C {
+        constructor(x) { }
+        ~~~~~~~~~~~~~~~~~~
+!!! error TS2392: Multiple constructor implementations are not allowed.
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        constructor(y, x) { } // illegal, 2 constructor implementations
+        ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2392: Multiple constructor implementations are not allowed.
+                    ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+                       ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    class D {
+        constructor(x: number);
+        constructor(y: string); // legal, overload signatures for 1 implementation
+        constructor(x) { }
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    interface I {
+        new (x);
+        ~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+             ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        new (x, y); // legal, overload signatures for (presumably) 1 implementation
+        ~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+             ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+    }

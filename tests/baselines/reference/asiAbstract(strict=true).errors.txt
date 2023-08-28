@@ -1,0 +1,33 @@
+asiAbstract.ts(1,1): error TS2304: Cannot find name 'abstract'.
+asiAbstract.ts(3,3): error TS1244: Abstract methods can only appear within an abstract class.
+asiAbstract.ts(3,12): error TS7010: 's', which lacks return-type annotation, implicitly has an 'any' return type.
+asiAbstract.ts(7,5): error TS7008: Member 'abstract' implicitly has an 'any' type.
+asiAbstract.ts(13,5): error TS7008: Member 'abstract' implicitly has an 'any' type.
+
+
+==== asiAbstract.ts (5 errors) ====
+    abstract
+    ~~~~~~~~
+!!! error TS2304: Cannot find name 'abstract'.
+    class NonAbstractClass {
+      abstract s();
+      ~~~~~~~~
+!!! error TS1244: Abstract methods can only appear within an abstract class.
+               ~
+!!! error TS7010: 's', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    class C2 {
+        abstract
+        ~~~~~~~~
+!!! error TS7008: Member 'abstract' implicitly has an 'any' type.
+        nonAbstractFunction() {
+        }
+    }
+    
+    class C3 {
+        abstract
+        ~~~~~~~~
+!!! error TS7008: Member 'abstract' implicitly has an 'any' type.
+    }
+    

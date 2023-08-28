@@ -1,0 +1,136 @@
+assignmentCompatWithObjectMembers.ts(5,15): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembers.ts(6,15): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembers.ts(21,9): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithObjectMembers.ts(23,9): error TS2454: Variable 's2' is used before being assigned.
+assignmentCompatWithObjectMembers.ts(26,10): error TS2454: Variable 't2' is used before being assigned.
+assignmentCompatWithObjectMembers.ts(29,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithObjectMembers.ts(32,9): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithObjectMembers.ts(46,15): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembers.ts(47,15): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembers.ts(59,9): error TS7022: 'a2' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+assignmentCompatWithObjectMembers.ts(60,9): error TS7022: 'b2' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+assignmentCompatWithObjectMembers.ts(62,9): error TS2454: Variable 't' is used before being assigned.
+assignmentCompatWithObjectMembers.ts(64,9): error TS2454: Variable 's2' is used before being assigned.
+assignmentCompatWithObjectMembers.ts(67,10): error TS2454: Variable 't2' is used before being assigned.
+assignmentCompatWithObjectMembers.ts(70,10): error TS2454: Variable 'b' is used before being assigned.
+assignmentCompatWithObjectMembers.ts(73,9): error TS2454: Variable 'b' is used before being assigned.
+
+
+==== assignmentCompatWithObjectMembers.ts (16 errors) ====
+    // members N and M of types S and T have the same name, same accessibility, same optionality, and N is assignable M
+    // no errors expected
+    
+    module SimpleTypes {
+        class S { foo: string; }
+                  ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+        class T { foo: string; }
+                  ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+        var s: S;
+        var t: T;
+    
+        interface S2 { foo: string; }
+        interface T2 { foo: string; }
+        var s2: S2;
+        var t2: T2;
+    
+        var a: { foo: string; }
+        var b: { foo: string; }
+    
+        var a2 = { foo: '' };
+        var b2 = { foo: '' };
+    
+        s = t;
+            ~
+!!! error TS2454: Variable 't' is used before being assigned.
+        t = s;
+        s = s2;
+            ~~
+!!! error TS2454: Variable 's2' is used before being assigned.
+        s = a2;
+    
+        s2 = t2;
+             ~~
+!!! error TS2454: Variable 't2' is used before being assigned.
+        t2 = s2;
+        s2 = t;
+        s2 = b;
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+        s2 = a2;
+    
+        a = b;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+        b = a;
+        a = s;
+        a = s2;
+        a = a2;
+    
+        a2 = b2;
+        b2 = a2;
+        a2 = b;
+        a2 = t2;
+        a2 = t;
+    }
+    
+    module ObjectTypes {
+        class S { foo: S; }
+                  ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+        class T { foo: T; }
+                  ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+        var s: S;
+        var t: T;
+    
+        interface S2 { foo: S2; }
+        interface T2 { foo: T2; }
+        var s2: S2;
+        var t2: T2;
+    
+        var a: { foo: typeof a; }
+        var b: { foo: typeof b; }
+    
+        var a2 = { foo: a2 };
+            ~~
+!!! error TS7022: 'a2' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+        var b2 = { foo: b2 };
+            ~~
+!!! error TS7022: 'b2' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    
+        s = t;
+            ~
+!!! error TS2454: Variable 't' is used before being assigned.
+        t = s;
+        s = s2;
+            ~~
+!!! error TS2454: Variable 's2' is used before being assigned.
+        s = a2;
+    
+        s2 = t2;
+             ~~
+!!! error TS2454: Variable 't2' is used before being assigned.
+        t2 = s2;
+        s2 = t;
+        s2 = b;
+             ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+        s2 = a2;
+    
+        a = b;
+            ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+        b = a;
+        a = s;
+        a = s2;
+        a = a2;
+    
+        a2 = b2;
+        b2 = a2;
+        a2 = b;
+        a2 = t2;
+        a2 = t;
+    
+    }

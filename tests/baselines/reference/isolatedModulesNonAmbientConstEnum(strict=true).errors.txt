@@ -1,0 +1,9 @@
+file1.ts(3,12): error TS7005: Variable 'x' implicitly has an 'any' type.
+
+
+==== file1.ts (1 errors) ====
+    const enum E { X = 100 };
+    var e = E.X;
+    export var x;
+               ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.

@@ -1,0 +1,11 @@
+generatorES6_6.ts(3,13): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+
+
+==== generatorES6_6.ts (1 errors) ====
+    class C {
+      *[Symbol.iterator]() {
+        let a = yield 1;
+                ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+      }
+    }

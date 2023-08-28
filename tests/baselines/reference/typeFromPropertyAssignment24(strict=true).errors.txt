@@ -1,0 +1,24 @@
+usage.js(9,1): error TS2454: Variable 'x' is used before being assigned.
+
+
+==== usage.js (1 errors) ====
+    // note that usage is first in the compilation
+    Outer.Inner.Message = function() {
+    };
+    
+    var y = new Outer.Inner()
+    y.name
+    /** @type {Outer.Inner} should be instance type, not static type */
+    var x;
+    x.name
+    ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    
+==== def.js (0 errors) ====
+    var Outer = {}
+    Outer.Inner = class {
+      name() {
+        return 'hi'
+      }
+    }
+    

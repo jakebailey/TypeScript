@@ -1,0 +1,21 @@
+bug24934.js(1,21): error TS7006: Parameter 'a' implicitly has an 'any' type.
+bug24934.js(1,24): error TS7006: Parameter 'b' implicitly has an 'any' type.
+bug24934.js(1,27): error TS7006: Parameter 'c' implicitly has an 'any' type.
+bug24934.js(2,1): error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+
+
+==== bug24934.js (4 errors) ====
+    export function abc(a, b, c) { return 5; }
+                        ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                           ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+                              ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+    module.exports = { abc };
+    ~~~~~~
+!!! error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+==== use.js (0 errors) ====
+    import { abc } from './bug24934';
+    abc(1, 2, 3);
+    

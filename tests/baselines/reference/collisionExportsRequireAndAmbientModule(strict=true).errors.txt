@@ -1,0 +1,101 @@
+collisionExportsRequireAndAmbientModule_externalmodule.ts(8,5): error TS2322: Type 'null' is not assignable to type 'I'.
+collisionExportsRequireAndAmbientModule_externalmodule.ts(17,5): error TS2322: Type 'null' is not assignable to type 'I'.
+
+
+==== collisionExportsRequireAndAmbientModule_externalmodule.ts (2 errors) ====
+    export declare module require {
+        export interface I {
+        }
+        export class C {
+        }
+    }
+    export function foo(): require.I {
+        return null;
+        ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'I'.
+    }
+    export declare module exports {
+        export interface I {
+        }
+        export class C {
+        }
+    }
+    export function foo2(): exports.I {
+        return null;
+        ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'I'.
+    }
+    declare module m1 {
+        module require {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+        module exports {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+    }
+    module m2 {
+        export declare module require {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+        export declare module exports {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+        var a = 10;
+    }
+    
+==== collisionExportsRequireAndAmbientModule_globalFile.ts (0 errors) ====
+    declare module require {
+        export interface I {
+        }
+        export class C {
+        }
+    }
+    declare module exports {
+        export interface I {
+        }
+        export class C {
+        }
+    }
+    declare module m3 {
+        module require {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+        module exports {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+    }
+    module m4 {
+        export declare module require {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+        export declare module exports {
+            export interface I {
+            }
+            export class C {
+            }
+        }
+    
+        var a = 10;
+    }
+    

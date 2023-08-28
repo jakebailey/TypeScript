@@ -1,0 +1,18 @@
+privateNameBadSuperUseDefineForClassFields.ts(3,3): error TS7008: Member '#x' implicitly has an 'any' type.
+privateNameBadSuperUseDefineForClassFields.ts(5,5): error TS17009: 'super' must be called before accessing 'this' in the constructor of a derived class.
+
+
+==== privateNameBadSuperUseDefineForClassFields.ts (2 errors) ====
+    class B {};
+    class A extends B {
+      #x;
+      ~~
+!!! error TS7008: Member '#x' implicitly has an 'any' type.
+      constructor() {
+        this;
+        ~~~~
+!!! error TS17009: 'super' must be called before accessing 'this' in the constructor of a derived class.
+        super();
+      }
+    }
+    

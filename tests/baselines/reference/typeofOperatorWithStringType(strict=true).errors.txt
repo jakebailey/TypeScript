@@ -1,0 +1,93 @@
+typeofOperatorWithStringType.ts(8,12): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+typeofOperatorWithStringType.ts(18,30): error TS2454: Variable 'STRING' is used before being assigned.
+typeofOperatorWithStringType.ts(32,32): error TS2454: Variable 'STRING' is used before being assigned.
+typeofOperatorWithStringType.ts(32,41): error TS2454: Variable 'STRING' is used before being assigned.
+typeofOperatorWithStringType.ts(33,31): error TS2454: Variable 'STRING' is used before being assigned.
+typeofOperatorWithStringType.ts(36,38): error TS2454: Variable 'STRING' is used before being assigned.
+typeofOperatorWithStringType.ts(37,46): error TS2454: Variable 'STRING' is used before being assigned.
+typeofOperatorWithStringType.ts(37,55): error TS2454: Variable 'STRING' is used before being assigned.
+typeofOperatorWithStringType.ts(41,8): error TS2454: Variable 'STRING' is used before being assigned.
+typeofOperatorWithStringType.ts(44,1): error TS2695: Left side of comma operator is unused and has no side effects.
+typeofOperatorWithStringType.ts(50,11): error TS2454: Variable 'STRING' is used before being assigned.
+
+
+==== typeofOperatorWithStringType.ts (11 errors) ====
+    // typeof  operator on string type
+    var STRING: string;
+    var STRING1: string[] = ["", "abc"];
+    
+    function foo(): string { return "abc"; }
+    
+    class A {
+        public a: string;
+               ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+        static foo() { return ""; }
+    }
+    module M {
+        export var n: string;
+    }
+    
+    var objA = new A();
+    
+    // string type var
+    var ResultIsString1 = typeof STRING;
+                                 ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    var ResultIsString2 = typeof STRING1;
+    
+    // string type literal
+    var ResultIsString3 = typeof "";
+    var ResultIsString4 = typeof { x: "", y: "" };
+    var ResultIsString5 = typeof { x: "", y: (s: string) => { return s; } };
+    
+    // string type expressions
+    var ResultIsString6 = typeof objA.a;
+    var ResultIsString7 = typeof M.n;
+    var ResultIsString8 = typeof STRING1[0];
+    var ResultIsString9 = typeof foo();
+    var ResultIsString10 = typeof A.foo();
+    var ResultIsString11 = typeof (STRING + STRING);
+                                   ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+                                            ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    var ResultIsString12 = typeof STRING.charAt(0);
+                                  ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    
+    // multiple typeof  operators
+    var ResultIsString13 = typeof typeof STRING;
+                                         ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    var ResultIsString14 = typeof typeof typeof (STRING + STRING);
+                                                 ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+                                                          ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    
+    // miss assignment operators
+    typeof "";
+    typeof STRING;
+           ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    typeof STRING1;
+    typeof foo();
+    typeof objA.a, M.n;
+    ~~~~~~~~~~~~~
+!!! error TS2695: Left side of comma operator is unused and has no side effects.
+    
+    // use typeof in type query
+    var z: string;
+    var x: string[];
+    var r: () => string;
+    z: typeof STRING;
+              ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    x: typeof STRING1;
+    r: typeof foo;
+    var y = { a: "", b: "" };
+    z: typeof y.a;
+    z: typeof objA.a;
+    z: typeof A.foo;
+    z: typeof M.n;

@@ -1,0 +1,13 @@
+Protected8.ts(2,4): error TS7008: Member 'protected' implicitly has an 'any' type.
+Protected8.ts(3,4): error TS7008: Member 'p' implicitly has an 'any' type.
+
+
+==== Protected8.ts (2 errors) ====
+    interface I {
+       protected
+       ~~~~~~~~~
+!!! error TS7008: Member 'protected' implicitly has an 'any' type.
+       p
+       ~
+!!! error TS7008: Member 'p' implicitly has an 'any' type.
+    }

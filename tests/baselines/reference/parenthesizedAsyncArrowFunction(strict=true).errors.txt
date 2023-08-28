@@ -1,0 +1,10 @@
+parenthesizedAsyncArrowFunction.ts(3,18): error TS7006: Parameter 'bar' implicitly has an 'any' type.
+
+
+==== parenthesizedAsyncArrowFunction.ts (1 errors) ====
+    // Repro from #20096
+    
+    let foo = (async bar => bar);
+                     ~~~
+!!! error TS7006: Parameter 'bar' implicitly has an 'any' type.
+    

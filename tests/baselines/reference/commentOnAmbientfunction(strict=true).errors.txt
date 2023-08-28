@@ -1,0 +1,23 @@
+a.ts(7,18): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+a.ts(10,18): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== b.ts (0 errors) ====
+    ///<reference path="a.ts"/>
+    declare function foobar(a: typeof foo): typeof bar;
+==== a.ts (2 errors) ====
+    /*!=========
+        Keep this pinned comment
+       =========
+    */
+    
+    /*! Don't keep this pinned comment */
+    declare function foo();
+                     ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    // Don't keep this comment.
+    declare function bar();
+                     ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+    

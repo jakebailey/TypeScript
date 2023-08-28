@@ -1,0 +1,14 @@
+templateStringInYieldKeyword.ts(3,9): error TS7022: 'x' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+templateStringInYieldKeyword.ts(3,13): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+
+
+==== templateStringInYieldKeyword.ts (2 errors) ====
+    function* gen() {
+        // Once this is supported, the inner expression does not need to be parenthesized.
+        var x = yield `abc${ x }def`;
+            ~
+!!! error TS7022: 'x' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+                ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+    }
+    

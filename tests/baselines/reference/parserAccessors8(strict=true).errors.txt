@@ -1,0 +1,10 @@
+parserAccessors8.ts(1,15): error TS1049: A 'set' accessor must have exactly one parameter.
+parserAccessors8.ts(1,15): error TS7032: Property 'foo' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+
+
+==== parserAccessors8.ts (2 errors) ====
+    var v = { set foo() { } }
+                  ~~~
+!!! error TS1049: A 'set' accessor must have exactly one parameter.
+                  ~~~
+!!! error TS7032: Property 'foo' implicitly has type 'any', because its set accessor lacks a parameter type annotation.

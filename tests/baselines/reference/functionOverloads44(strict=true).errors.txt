@@ -1,0 +1,40 @@
+functionOverloads44.ts(1,20): error TS7008: Member 'animal' implicitly has an 'any' type.
+functionOverloads44.ts(2,32): error TS7008: Member 'dog' implicitly has an 'any' type.
+functionOverloads44.ts(3,32): error TS7008: Member 'cat' implicitly has an 'any' type.
+functionOverloads44.ts(8,5): error TS2322: Type 'undefined' is not assignable to type 'Dog'.
+functionOverloads44.ts(14,5): error TS2322: Type 'undefined' is not assignable to type 'Cat'.
+
+
+==== functionOverloads44.ts (5 errors) ====
+    interface Animal { animal }
+                       ~~~~~~
+!!! error TS7008: Member 'animal' implicitly has an 'any' type.
+    interface Dog extends Animal { dog }
+                                   ~~~
+!!! error TS7008: Member 'dog' implicitly has an 'any' type.
+    interface Cat extends Animal { cat }
+                                   ~~~
+!!! error TS7008: Member 'cat' implicitly has an 'any' type.
+    
+    function foo1(bar: { a:number }[]): Dog;
+    function foo1(bar: { a:string }[]): Animal;
+    function foo1([x]: { a:number | string }[]): Dog {
+        return undefined;
+        ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'Dog'.
+    }
+    
+    function foo2(bar: { a:number }[]): Cat;
+    function foo2(bar: { a:string }[]): Cat | Dog;
+    function foo2([x]: { a:number | string }[]): Cat {
+        return undefined;
+        ~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'Cat'.
+    }
+    
+    
+    var x1 = foo1([{a: "str"}]);
+    var y1 = foo1([{a: 100}]);
+    
+    var x2 = foo2([{a: "str"}]);
+    var y2 = foo2([{a: 100}]);

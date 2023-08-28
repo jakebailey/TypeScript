@@ -1,0 +1,31 @@
+mergedModuleDeclarationCodeGen4.ts(10,37): error TS7006: Parameter 'contain' implicitly has an 'any' type.
+mergedModuleDeclarationCodeGen4.ts(10,46): error TS7006: Parameter 'my' implicitly has an 'any' type.
+mergedModuleDeclarationCodeGen4.ts(10,50): error TS7006: Parameter 'buz' implicitly has an 'any' type.
+mergedModuleDeclarationCodeGen4.ts(10,55): error TS7006: Parameter 'data' implicitly has an 'any' type.
+
+
+==== mergedModuleDeclarationCodeGen4.ts (4 errors) ====
+    module superContain {
+        export module contain {
+            export module my.buz {
+                export module data {
+                    export function foo() { }
+                }
+            }
+            export module my.buz {
+                export module data {
+                    export function bar(contain, my, buz, data) {
+                                        ~~~~~~~
+!!! error TS7006: Parameter 'contain' implicitly has an 'any' type.
+                                                 ~~
+!!! error TS7006: Parameter 'my' implicitly has an 'any' type.
+                                                     ~~~
+!!! error TS7006: Parameter 'buz' implicitly has an 'any' type.
+                                                          ~~~~
+!!! error TS7006: Parameter 'data' implicitly has an 'any' type.
+                        foo();
+                    }
+                }
+            }
+        }
+    }

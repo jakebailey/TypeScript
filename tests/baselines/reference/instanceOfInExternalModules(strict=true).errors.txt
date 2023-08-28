@@ -1,0 +1,15 @@
+instanceOfInExternalModules_require.ts(1,20): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+
+
+==== instanceOfInExternalModules_1.ts (0 errors) ====
+    ///<reference path='instanceOfInExternalModules_require.ts'/>
+    import Bar = require("instanceOfInExternalModules_require");
+    function IsFoo(value: any): boolean {
+        return value instanceof Bar.Foo;
+    }
+    
+==== instanceOfInExternalModules_require.ts (1 errors) ====
+    export class Foo { foo: string; }
+                       ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+    

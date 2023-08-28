@@ -1,0 +1,12 @@
+a.js(1,12): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== a.js (1 errors) ====
+    function f(x) {
+               ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+      arguments;
+    }
+    
+    f(1, 2, 3);
+    

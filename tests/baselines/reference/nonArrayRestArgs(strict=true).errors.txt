@@ -1,0 +1,15 @@
+nonArrayRestArgs.ts(1,14): error TS2370: A rest parameter must be of an array type.
+nonArrayRestArgs.ts(2,18): error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type 'Number'.
+  Property '0' does not exist on type 'Number'.
+
+
+==== nonArrayRestArgs.ts (2 errors) ====
+    function foo(...rest: number) { // error
+                 ~~~~~~~~~~~~~~~
+!!! error TS2370: A rest parameter must be of an array type.
+    	var x: string = rest[0];
+    	                ~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '0' can't be used to index type 'Number'.
+!!! error TS7053:   Property '0' does not exist on type 'Number'.
+    	return x;
+    }

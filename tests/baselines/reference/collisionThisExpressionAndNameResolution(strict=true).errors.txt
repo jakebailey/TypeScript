@@ -1,0 +1,25 @@
+collisionThisExpressionAndNameResolution.ts(2,5): error TS7010: 'log', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionThisExpressionAndNameResolution.ts(9,20): error TS7006: Parameter 'x' implicitly has an 'any' type.
+collisionThisExpressionAndNameResolution.ts(9,25): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+
+
+==== collisionThisExpressionAndNameResolution.ts (3 errors) ====
+    var console : {
+        log(message: any);
+        ~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'log', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    class Foo {
+        x() {
+            var _this = 10; // Local var. No this capture in x(), so no conflict.
+            function inner() {
+                console.log(_this); // Error as this doesnt not resolve to user defined _this
+                return x => this;   // New scope.  So should inject new _this capture into function inner
+                       ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                            ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+!!! related TS2738 collisionThisExpressionAndNameResolution.ts:7:18: An outer value of 'this' is shadowed by this container.
+            }
+        }
+    }

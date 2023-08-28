@@ -1,0 +1,14 @@
+doNotEmitPinnedCommentOnNotEmittedNodets.ts(3,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== doNotEmitPinnedCommentOnNotEmittedNodets.ts (1 errors) ====
+    class C {
+        /*! remove pinned comment anywhere else */
+        public foo(x: string, y: any)
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        public foo(x: string, y: number) { }
+    }
+    
+    /*! remove pinned comment anywhere else */
+    declare var OData: any;

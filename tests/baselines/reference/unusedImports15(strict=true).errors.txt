@@ -1,0 +1,33 @@
+foo.tsx(3,29): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+foo.tsx(3,34): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+node_modules/@types/react/index.d.ts(5,14): error TS7010: 'createClass', which lacks return-type annotation, implicitly has an 'any' return type.
+node_modules/@types/react/index.d.ts(5,32): error TS7006: Parameter 'spec' implicitly has an 'any' type.
+
+
+==== foo.tsx (2 errors) ====
+    import Element = require("react");
+    
+    export const FooComponent = <div></div>
+                                ~~~~~
+!!! error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+                                     ~~~~~~
+!!! error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+    
+==== node_modules/@types/react/index.d.ts (2 errors) ====
+    export = React;
+    export as namespace React;
+    
+    declare namespace React {
+        function createClass<P, S>(spec);
+                 ~~~~~~~~~~~
+!!! error TS7010: 'createClass', which lacks return-type annotation, implicitly has an 'any' return type.
+                                   ~~~~
+!!! error TS7006: Parameter 'spec' implicitly has an 'any' type.
+    }
+    declare global {
+        namespace JSX {
+        }
+    }
+    
+    
+    

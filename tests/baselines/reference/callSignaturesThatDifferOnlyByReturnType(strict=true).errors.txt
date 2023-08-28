@@ -1,0 +1,49 @@
+callSignaturesThatDifferOnlyByReturnType.ts(4,6): error TS7006: Parameter 'x' implicitly has an 'any' type.
+callSignaturesThatDifferOnlyByReturnType.ts(5,6): error TS7006: Parameter 'x' implicitly has an 'any' type.
+callSignaturesThatDifferOnlyByReturnType.ts(21,6): error TS7006: Parameter 'x' implicitly has an 'any' type.
+callSignaturesThatDifferOnlyByReturnType.ts(21,9): error TS7006: Parameter 'y' implicitly has an 'any' type.
+callSignaturesThatDifferOnlyByReturnType.ts(22,6): error TS7006: Parameter 'x' implicitly has an 'any' type.
+callSignaturesThatDifferOnlyByReturnType.ts(22,9): error TS7006: Parameter 'y' implicitly has an 'any' type.
+
+
+==== callSignaturesThatDifferOnlyByReturnType.ts (6 errors) ====
+    // Each pair of signatures in these types has a signature that should cause an error. 
+    // Overloads, generic or not, that differ only by return type are an error.
+    interface I {
+        (x): number;
+         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        (x): void; // error
+         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        <T>(x: T): number;
+        <T>(x: T): string; // error
+    }
+    
+    interface I2 {
+        <T>(x: T): number;
+        <T>(x: T): string; // error
+    }
+    
+    interface I3<T> {
+        (x: T): number;
+        (x: T): string; // error
+    }
+    
+    var a: {
+        (x, y): Object;
+         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+        (x, y): any; // error
+         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+    }
+    
+    var a2: {
+        <T>(x: T): number;
+        <T>(x: T): string; // error
+    }

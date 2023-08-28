@@ -1,0 +1,16 @@
+//// [tests/cases/compiler/functionWithDefaultParameterWithNoStatements8.ts] ////
+
+//// [functionWithDefaultParameterWithNoStatements8.ts]
+function foo(a = undefined) { }
+
+function bar(a = undefined) {
+}
+
+//// [functionWithDefaultParameterWithNoStatements8.js]
+"use strict";
+function foo(a) {
+    if (a === void 0) { a = undefined; }
+}
+function bar(a) {
+    if (a === void 0) { a = undefined; }
+}

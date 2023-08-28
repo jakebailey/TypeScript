@@ -1,0 +1,38 @@
+//// [tests/cases/conformance/async/es5/functionDeclarations/asyncFunctionDeclarationCapturesArguments_es5.ts] ////
+
+=== asyncFunctionDeclarationCapturesArguments_es5.ts ===
+class C {
+>C : C
+>  : ^
+
+   method() {
+>method : () => void
+>       : ^^^^^^^^^^
+
+      function other() {}
+>other : () => void
+>      : ^^^^^^^^^^
+
+      async function fn () {
+>fn : () => Promise<void>
+>   : ^^^^^^^^^^^^^^^^^^^
+
+           await other.apply(this, arguments);
+>await other.apply(this, arguments) : void
+>                                   : ^^^^
+>other.apply(this, arguments) : void
+>                             : ^^^^
+>other.apply : { <T, R>(this: (this: T) => R, thisArg: T): R; <T_1, A extends any[], R_1>(this: (this: T_1, ...args: A) => R_1, thisArg: T_1, args: A): R_1; }
+>            : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>other : () => void
+>      : ^^^^^^^^^^
+>apply : { <T, R>(this: (this: T) => R, thisArg: T): R; <T_1, A extends any[], R_1>(this: (this: T_1, ...args: A) => R_1, thisArg: T_1, args: A): R_1; }
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>this : any
+>     : ^^^
+>arguments : IArguments
+>          : ^^^^^^^^^^
+      }
+   }
+}
+

@@ -1,0 +1,18 @@
+ambientFundule.ts(1,18): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+ambientFundule.ts(2,24): error TS7005: Variable 'x' implicitly has an 'any' type.
+ambientFundule.ts(3,18): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+ambientFundule.ts(3,20): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== ambientFundule.ts (4 errors) ====
+    declare function f();
+                     ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+    declare module f { var x }
+                           ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    declare function f(x);
+                     ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+                       ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.

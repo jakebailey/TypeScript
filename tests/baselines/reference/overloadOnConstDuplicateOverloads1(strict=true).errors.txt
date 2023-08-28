@@ -1,0 +1,28 @@
+overloadOnConstDuplicateOverloads1.ts(1,10): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadOnConstDuplicateOverloads1.ts(2,10): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadOnConstDuplicateOverloads1.ts(6,10): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadOnConstDuplicateOverloads1.ts(7,10): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadOnConstDuplicateOverloads1.ts(8,10): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== overloadOnConstDuplicateOverloads1.ts (5 errors) ====
+    function foo(a: 'hi', x: string);
+             ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo(a: 'hi', x: string);
+             ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo(a: any, x: any) {
+    }
+    
+    function foo2(a: 'hi', x: string);
+             ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo2(a: 'hi', x: string);
+             ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo2(a: string, x: string);
+             ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo2(a: any, x: any) {
+    }

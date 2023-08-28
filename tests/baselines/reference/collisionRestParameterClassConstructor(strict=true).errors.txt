@@ -1,0 +1,96 @@
+collisionRestParameterClassConstructor.ts(3,29): error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+collisionRestParameterClassConstructor.ts(14,17): error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+collisionRestParameterClassConstructor.ts(25,36): error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+collisionRestParameterClassConstructor.ts(36,29): error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+collisionRestParameterClassConstructor.ts(43,29): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionRestParameterClassConstructor.ts(44,29): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionRestParameterClassConstructor.ts(45,26): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionRestParameterClassConstructor.ts(59,29): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+collisionRestParameterClassConstructor.ts(60,29): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+
+
+==== collisionRestParameterClassConstructor.ts (9 errors) ====
+    // Constructors
+    class c1 {
+        constructor(_i: number, ...restParameters) { //_i is error
+                                ~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+            var _i = 10; // no error
+        }
+    }
+    class c1NoError {
+        constructor(_i: number) { // no error
+            var _i = 10; // no error
+        }
+    }
+    
+    class c2 {
+        constructor(...restParameters) {
+                    ~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+            var _i = 10; // no error
+        }
+    }
+    class c2NoError {
+        constructor() {
+            var _i = 10; // no error
+        }
+    }
+    
+    class c3 {
+        constructor(public _i: number, ...restParameters) { //_i is error
+                                       ~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+            var _i = 10; // no error
+        }
+    }
+    class c3NoError {
+        constructor(public _i: number) { // no error
+            var _i = 10; // no error
+        }
+    }
+    
+    declare class c4 {
+        constructor(_i: number, ...restParameters); // No error - no code gen
+                                ~~~~~~~~~~~~~~~~~
+!!! error TS7019: Rest parameter 'restParameters' implicitly has an 'any[]' type.
+    }
+    declare class c4NoError {
+        constructor(_i: number);  // no error
+    }
+    
+    class c5 {
+        constructor(_i: number, ...rest); // no codegen no error
+                                ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+        constructor(_i: string, ...rest); // no codegen no error
+                                ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+        constructor(_i: any, ...rest) { // error
+                             ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+            var _i: any; // no error
+        }
+    }
+    
+    class c5NoError {
+        constructor(_i: number); // no error
+        constructor(_i: string); // no error
+        constructor(_i: any) { // no error
+            var _i: any; // no error
+        }
+    }
+    
+    declare class c6 {
+        constructor(_i: number, ...rest); // no codegen no error
+                                ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+        constructor(_i: string, ...rest); // no codegen no error
+                                ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    }
+    
+    declare class c6NoError {
+        constructor(_i: number); // no error
+        constructor(_i: string); // no error
+    }

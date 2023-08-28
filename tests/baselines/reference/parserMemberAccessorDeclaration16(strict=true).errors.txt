@@ -1,0 +1,12 @@
+parserMemberAccessorDeclaration16.ts(2,8): error TS1052: A 'set' accessor parameter cannot have an initializer.
+parserMemberAccessorDeclaration16.ts(2,8): error TS7032: Property 'Foo' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+
+
+==== parserMemberAccessorDeclaration16.ts (2 errors) ====
+    class C {
+       set Foo(a = 1) { }
+           ~~~
+!!! error TS1052: A 'set' accessor parameter cannot have an initializer.
+           ~~~
+!!! error TS7032: Property 'Foo' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+    }

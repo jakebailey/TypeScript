@@ -1,0 +1,17 @@
+mergedModuleDeclarationCodeGen3.ts(5,19): error TS7006: Parameter 'my' implicitly has an 'any' type.
+mergedModuleDeclarationCodeGen3.ts(5,23): error TS7006: Parameter 'foo' implicitly has an 'any' type.
+
+
+==== mergedModuleDeclarationCodeGen3.ts (2 errors) ====
+    module my.data {
+        export function buz() { }
+    }
+    module my.data.foo {
+        function data(my, foo) {
+                      ~~
+!!! error TS7006: Parameter 'my' implicitly has an 'any' type.
+                          ~~~
+!!! error TS7006: Parameter 'foo' implicitly has an 'any' type.
+            buz();
+        }
+    }

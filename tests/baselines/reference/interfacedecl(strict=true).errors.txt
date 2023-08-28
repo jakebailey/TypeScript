@@ -1,0 +1,70 @@
+interfacedecl.ts(3,6): error TS7051: Parameter has a name but no type. Did you mean 'arg0: a'?
+interfacedecl.ts(3,9): error TS7051: Parameter has a name but no type. Did you mean 'arg1: b'?
+interfacedecl.ts(6,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+interfacedecl.ts(11,5): error TS7008: Member 'p1' implicitly has an 'any' type.
+interfacedecl.ts(13,5): error TS7008: Member 'p3' implicitly has an 'any' type.
+interfacedecl.ts(17,5): error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+interfacedecl.ts(18,5): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== interfacedecl.ts (7 errors) ====
+    interface a0 {
+        (): string;
+        (a, b, c?: string): number;
+         ~
+!!! error TS7051: Parameter has a name but no type. Did you mean 'arg0: a'?
+            ~
+!!! error TS7051: Parameter has a name but no type. Did you mean 'arg1: b'?
+        
+        new (): string;
+        new (s: string);
+        ~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    
+        [n: number]: ()=>string;
+        [s: string]: any;
+    
+        p1;
+        ~~
+!!! error TS7008: Member 'p1' implicitly has an 'any' type.
+        p2: string;
+        p3?;
+        ~~
+!!! error TS7008: Member 'p3' implicitly has an 'any' type.
+        p4?: number;
+        p5: (s: number) =>string;
+    
+        f1();
+        ~~~~~
+!!! error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+        f2? ();
+        ~~~~~~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+        f3(a: string): number;
+        f4? (s: number): string;
+    }
+    
+    
+    interface a1 {
+        [n: number]: number;
+    }
+    
+    interface a2 {
+        [s: string]: number;
+    }
+    
+    interface a {
+    }
+    
+    interface b extends a {
+    }
+    
+    interface c extends a, b {
+    }
+    
+    interface d extends a {
+    }
+    
+    class c1 implements a {
+    }
+    var instance2 = new c1();

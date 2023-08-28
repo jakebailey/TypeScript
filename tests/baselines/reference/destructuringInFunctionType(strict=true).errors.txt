@@ -1,0 +1,92 @@
+destructuringInFunctionType.ts(1,15): error TS7008: Member 'a' implicitly has an 'any' type.
+destructuringInFunctionType.ts(2,15): error TS7008: Member 'b' implicitly has an 'any' type.
+destructuringInFunctionType.ts(3,15): error TS7008: Member 'c' implicitly has an 'any' type.
+destructuringInFunctionType.ts(6,13): error TS7031: Binding element 'a' implicitly has an 'any' type.
+destructuringInFunctionType.ts(6,16): error TS7031: Binding element 'b' implicitly has an 'any' type.
+destructuringInFunctionType.ts(6,19): error TS7031: Binding element 'c' implicitly has an 'any' type.
+destructuringInFunctionType.ts(8,14): error TS7008: Member 'a' implicitly has an 'any' type.
+destructuringInFunctionType.ts(9,14): error TS7031: Binding element 'a' implicitly has an 'any' type.
+destructuringInFunctionType.ts(12,18): error TS2842: 'b' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+destructuringInFunctionType.ts(12,18): error TS7031: Binding element 'b' implicitly has an 'any' type.
+destructuringInFunctionType.ts(12,28): error TS2842: 'a' is an unused renaming of 'b'. Did you intend to use it as a type annotation?
+destructuringInFunctionType.ts(12,28): error TS7031: Binding element 'a' implicitly has an 'any' type.
+destructuringInFunctionType.ts(15,19): error TS7031: Binding element 'b' implicitly has an 'any' type.
+destructuringInFunctionType.ts(15,22): error TS7031: Binding element 'c' implicitly has an 'any' type.
+destructuringInFunctionType.ts(17,23): error TS7031: Binding element 'b' implicitly has an 'any' type.
+destructuringInFunctionType.ts(17,26): error TS7031: Binding element 'c' implicitly has an 'any' type.
+destructuringInFunctionType.ts(19,12): error TS7031: Binding element 'a' implicitly has an 'any' type.
+destructuringInFunctionType.ts(19,15): error TS7031: Binding element 'b' implicitly has an 'any' type.
+destructuringInFunctionType.ts(19,18): error TS7031: Binding element 'c' implicitly has an 'any' type.
+destructuringInFunctionType.ts(20,11): error TS7031: Binding element 'a' implicitly has an 'any' type.
+destructuringInFunctionType.ts(20,14): error TS7031: Binding element 'b' implicitly has an 'any' type.
+destructuringInFunctionType.ts(20,17): error TS7031: Binding element 'c' implicitly has an 'any' type.
+
+
+==== destructuringInFunctionType.ts (22 errors) ====
+    interface a { a }
+                  ~
+!!! error TS7008: Member 'a' implicitly has an 'any' type.
+    interface b { b }
+                  ~
+!!! error TS7008: Member 'b' implicitly has an 'any' type.
+    interface c { c }
+                  ~
+!!! error TS7008: Member 'c' implicitly has an 'any' type.
+    
+    type T1 = ([a, b, c]);
+    type F1 = ([a, b, c]) => void;
+                ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                   ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+                      ~
+!!! error TS7031: Binding element 'c' implicitly has an 'any' type.
+    
+    type T2 = ({ a });
+                 ~
+!!! error TS7008: Member 'a' implicitly has an 'any' type.
+    type F2 = ({ a }) => void;
+                 ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+    
+    type T3 = ([{ a: b }, { b: a }]);
+    type F3 = ([{ a: b }, { b: a }]) => void;
+                     ~
+!!! error TS2842: 'b' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+!!! related TS2843 destructuringInFunctionType.ts:12:32: We can only write a type for 'a' by adding a type for the entire parameter here.
+                     ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+                               ~
+!!! error TS2842: 'a' is an unused renaming of 'b'. Did you intend to use it as a type annotation?
+!!! related TS2843 destructuringInFunctionType.ts:12:32: We can only write a type for 'b' by adding a type for the entire parameter here.
+                               ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+    
+    type T4 = ([{ a: [b, c] }]);
+    type F4 = ([{ a: [b, c] }]) => void;
+                      ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+                         ~
+!!! error TS7031: Binding element 'c' implicitly has an 'any' type.
+    
+    type C1 = new ([{ a: [b, c] }]) => void;
+                          ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+                             ~
+!!! error TS7031: Binding element 'c' implicitly has an 'any' type.
+    
+    var v1 = ([a, b, c]) => "hello";
+               ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                  ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+                     ~
+!!! error TS7031: Binding element 'c' implicitly has an 'any' type.
+    var v2: ([a, b, c]) => string;
+              ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                 ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+                    ~
+!!! error TS7031: Binding element 'c' implicitly has an 'any' type.
+    

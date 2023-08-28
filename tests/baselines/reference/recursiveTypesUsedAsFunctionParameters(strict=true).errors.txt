@@ -1,0 +1,82 @@
+recursiveTypesUsedAsFunctionParameters.ts(2,5): error TS2564: Property 'data' has no initializer and is not definitely assigned in the constructor.
+recursiveTypesUsedAsFunctionParameters.ts(3,5): error TS2564: Property 'next' has no initializer and is not definitely assigned in the constructor.
+recursiveTypesUsedAsFunctionParameters.ts(7,5): error TS2564: Property 'data' has no initializer and is not definitely assigned in the constructor.
+recursiveTypesUsedAsFunctionParameters.ts(8,5): error TS2564: Property 'next' has no initializer and is not definitely assigned in the constructor.
+recursiveTypesUsedAsFunctionParameters.ts(11,10): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+recursiveTypesUsedAsFunctionParameters.ts(12,10): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+recursiveTypesUsedAsFunctionParameters.ts(16,10): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+recursiveTypesUsedAsFunctionParameters.ts(17,10): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+recursiveTypesUsedAsFunctionParameters.ts(24,14): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+recursiveTypesUsedAsFunctionParameters.ts(29,14): error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+recursiveTypesUsedAsFunctionParameters.ts(41,18): error TS2454: Variable 'list' is used before being assigned.
+recursiveTypesUsedAsFunctionParameters.ts(42,19): error TS2454: Variable 'myList' is used before being assigned.
+
+
+==== recursiveTypesUsedAsFunctionParameters.ts (12 errors) ====
+    class List<T> {
+        data: T;
+        ~~~~
+!!! error TS2564: Property 'data' has no initializer and is not definitely assigned in the constructor.
+        next: List<List<T>>;
+        ~~~~
+!!! error TS2564: Property 'next' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class MyList<T> {
+        data: T;
+        ~~~~
+!!! error TS2564: Property 'data' has no initializer and is not definitely assigned in the constructor.
+        next: MyList<MyList<T>>;
+        ~~~~
+!!! error TS2564: Property 'next' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    function foo<T>(x: List<T>);
+             ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo<U>(x: List<U>); // error, duplicate
+             ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo<T>(x: List<T>) {
+    }
+    
+    function foo2<T>(x: List<T>);
+             ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo2<U>(x: MyList<U>); // ok, nominally compared with first overload
+             ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo2<T>(x: any) {
+    }
+    
+    function other<T extends List<U>, U>() {
+        // error but wrong error
+        // BUG 838247
+        function foo3<V>(x: T);
+                 ~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+        function foo3<V>(x: MyList<V>) { }
+    
+        // should be error
+        // BUG 838247
+        function foo4<V>(x: T);
+                 ~~~~
+!!! error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+        function foo4<V>(x: List<V>) { }
+    
+        // ok
+        function foo5<V>(x: T): string;
+        function foo5<V>(x: List<V>): number;
+        function foo5<V>(x: MyList<V>): boolean;
+        function foo5<V>(x: any): any { return null; }
+    
+        var list: List<string>;
+        var myList: MyList<string>;
+    
+        var r = foo5(list);
+                     ~~~~
+!!! error TS2454: Variable 'list' is used before being assigned.
+        var r2 = foo5(myList);
+                      ~~~~~~
+!!! error TS2454: Variable 'myList' is used before being assigned.
+    }

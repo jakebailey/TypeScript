@@ -1,0 +1,50 @@
+chainedAssignmentChecking.ts(2,15): error TS7006: Parameter 'z' implicitly has an 'any' type.
+chainedAssignmentChecking.ts(3,3): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+chainedAssignmentChecking.ts(7,15): error TS7006: Parameter 'z' implicitly has an 'any' type.
+chainedAssignmentChecking.ts(8,3): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+chainedAssignmentChecking.ts(9,3): error TS2564: Property 'b' has no initializer and is not definitely assigned in the constructor.
+chainedAssignmentChecking.ts(14,3): error TS2564: Property 'c' has no initializer and is not definitely assigned in the constructor.
+chainedAssignmentChecking.ts(21,1): error TS2741: Property 'a' is missing in type 'Z' but required in type 'X'.
+chainedAssignmentChecking.ts(21,6): error TS2739: Type 'Z' is missing the following properties from type 'Y': a, b
+
+
+==== chainedAssignmentChecking.ts (8 errors) ====
+    class X {
+      constructor(public z) { }
+                  ~~~~~~~~
+!!! error TS7006: Parameter 'z' implicitly has an 'any' type.
+      a: number;
+      ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class Y {
+      constructor(public z) { }
+                  ~~~~~~~~
+!!! error TS7006: Parameter 'z' implicitly has an 'any' type.
+      a: number;
+      ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+      b: string;
+      ~
+!!! error TS2564: Property 'b' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class Z {
+      z: any;
+      c: string;
+      ~
+!!! error TS2564: Property 'c' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    var c1 = new X(3);
+    var c2 = new Y(5);
+    var c3 = new Z();
+    
+    c1 = c2 = c3; // Should be error
+    ~~
+!!! error TS2741: Property 'a' is missing in type 'Z' but required in type 'X'.
+!!! related TS2728 chainedAssignmentChecking.ts:3:3: 'a' is declared here.
+         ~~
+!!! error TS2739: Type 'Z' is missing the following properties from type 'Y': a, b
+    

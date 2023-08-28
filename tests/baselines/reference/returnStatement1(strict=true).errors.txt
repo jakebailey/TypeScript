@@ -1,0 +1,12 @@
+returnStatement1.ts(2,22): error TS7006: Parameter 's' implicitly has an 'any' type.
+
+
+==== returnStatement1.ts (1 errors) ====
+    function f() {
+        return function (s) {
+                         ~
+!!! error TS7006: Parameter 's' implicitly has an 'any' type.
+            var x = s;
+        };
+        ("harmless extra line");
+    }

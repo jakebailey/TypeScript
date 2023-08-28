@@ -1,0 +1,26 @@
+overloadCrash.ts(5,18): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadCrash.ts(6,18): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadCrash.ts(10,5): error TS2454: Variable 'i3' is used before being assigned.
+overloadCrash.ts(10,9): error TS2454: Variable 'i3' is used before being assigned.
+
+
+==== overloadCrash.ts (4 errors) ====
+    interface I1 {a:number; b:number;};
+    interface I2 {c:number; d:number;};
+    interface I3 {a:number; b:number; c:number; d:number;};
+    
+    declare function foo(...n:I1[]);
+                     ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    declare function foo(n1:I2, n3:I2);
+                     ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    var i3:I3;
+    
+    foo(i3, i3); // should not crash the compiler :)
+        ~~
+!!! error TS2454: Variable 'i3' is used before being assigned.
+            ~~
+!!! error TS2454: Variable 'i3' is used before being assigned.
+    

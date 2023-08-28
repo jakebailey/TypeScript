@@ -1,0 +1,16 @@
+emitRestParametersFunctionExpressionES6.ts(1,16): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+emitRestParametersFunctionExpressionES6.ts(2,28): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+emitRestParametersFunctionExpressionES6.ts(3,26): error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+
+
+==== emitRestParametersFunctionExpressionES6.ts (3 errors) ====
+    var funcExp = (...rest) => { }
+                   ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    var funcExp1 = (X: number, ...rest) => { }
+                               ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    var funcExp2 = function (...rest) { }
+                             ~~~~~~~
+!!! error TS7019: Rest parameter 'rest' implicitly has an 'any[]' type.
+    var funcExp3 = (function (...rest) { })()

@@ -1,0 +1,15 @@
+assignFromNumberInterface.ts(3,1): error TS2322: Type 'Number' is not assignable to type 'number'.
+  'number' is a primitive, but 'Number' is a wrapper object. Prefer using 'number' when possible.
+assignFromNumberInterface.ts(3,5): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== assignFromNumberInterface.ts (2 errors) ====
+    var x = 1;
+    var a: Number;
+    x = a;
+    ~
+!!! error TS2322: Type 'Number' is not assignable to type 'number'.
+!!! error TS2322:   'number' is a primitive, but 'Number' is a wrapper object. Prefer using 'number' when possible.
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    a = x;

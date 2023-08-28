@@ -1,0 +1,156 @@
+arrowFunctionExpressions.ts(6,9): error TS7006: Parameter 'j' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(7,10): error TS7006: Parameter 'j' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(11,9): error TS7006: Parameter 'n' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(12,10): error TS7006: Parameter 'n' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(16,12): error TS7031: Binding element 'a' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(18,14): error TS7031: Binding element 'a' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(19,17): error TS7031: Binding element 'a' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(21,13): error TS7031: Binding element 'a' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(22,18): error TS7031: Binding element 'b' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(25,15): error TS7031: Binding element 'value' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(25,22): error TS7031: Binding element 'done' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(30,10): error TS7006: Parameter 'n' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(31,10): error TS7006: Parameter 'n' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(34,18): error TS7006: Parameter 'n' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(35,18): error TS7006: Parameter 'n' implicitly has an 'any' type.
+arrowFunctionExpressions.ts(92,23): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+arrowFunctionExpressions.ts(94,27): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+arrowFunctionExpressions.ts(96,23): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+
+
+==== arrowFunctionExpressions.ts (18 errors) ====
+    // ArrowFormalParameters => AssignmentExpression is equivalent to ArrowFormalParameters => { return AssignmentExpression; }
+    var a = (p: string) => p.length;
+    var a = (p: string) => { return p.length; }
+    
+    // Identifier => Block is equivalent to(Identifier) => Block
+    var b = j => { return 0; }
+            ~
+!!! error TS7006: Parameter 'j' implicitly has an 'any' type.
+    var b = (j) => { return 0; }
+             ~
+!!! error TS7006: Parameter 'j' implicitly has an 'any' type.
+    
+    // Identifier => AssignmentExpression is equivalent to(Identifier) => AssignmentExpression
+    var c: number;
+    var d = n => c = n;
+            ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+    var d = (n) => c = n;
+             ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+    var d: (n: any) => any;
+    
+    // Binding patterns in arrow functions
+    var p1 = ([a]) => { };
+               ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+    var p2 = ([...a]) => { };
+    var p3 = ([, a]) => { };
+                 ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+    var p4 = ([, ...a]) => { };
+                    ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+    var p5 = ([a = 1]) => { };
+    var p6 = ({ a }) => { };
+                ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+    var p7 = ({ a: { b } }) => { };
+                     ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+    var p8 = ({ a = 1 }) => { };
+    var p9 = ({ a: { b = 1 } = { b: 1 } }) => { };
+    var p10 = ([{ value, done }]) => { };
+                  ~~~~~
+!!! error TS7031: Binding element 'value' implicitly has an 'any' type.
+                         ~~~~
+!!! error TS7031: Binding element 'done' implicitly has an 'any' type.
+    
+    // Arrow function used in class member initializer
+    // Arrow function used in class member function
+    class MyClass {
+        m = (n) => n + 1;
+             ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+        p = (n) => n && this;
+             ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+    
+        fn() {
+            var m = (n) => n + 1;
+                     ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+            var p = (n) => n && this;
+                     ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+        }
+    }
+    
+    // Arrow function used in arrow function
+    var arrrr = () => (m: number) => () => (n: number) => m + n;
+    var e = arrrr()(3)()(4);
+    var e: number;
+    
+    // Arrow function used in arrow function used in function
+    function someFn() {
+        var arr = (n: number) => (p: number) => p * n;
+        arr(3)(4).toExponential();
+    }
+    
+    // Arrow function used in function
+    function someOtherFn() {
+        var arr = (n: number) => '' + n;
+        arr(4).charAt(0);
+    }
+    
+    // Arrow function used in nested function in function
+    function outerFn() {
+        function innerFn() {
+            var arrowFn = () => { };
+            var p = arrowFn();
+            var p: void;
+        }
+    }
+    
+    // Arrow function used in nested function in arrow function
+    var f = (n: string) => {
+        function fn(x: number) {
+            return () => n + x;
+        }
+        return fn(4);
+    }
+    var g = f('')();
+    var g: string;
+    
+    
+    // Arrow function used in nested function in arrow function in nested function
+    function someOuterFn() {
+        var arr = (n: string) => {
+            function innerFn() {
+                return () => n.length;
+            }
+            return innerFn;
+        }
+        return arr;
+    }
+    var h = someOuterFn()('')()();
+    h.toExponential();
+    
+    // Arrow function used in try/catch/finally in function
+    function tryCatchFn() {
+        try {
+            var x = () => this;
+                          ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+        } catch (e) {
+            var t = () => e + this;
+                              ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+        } finally {
+            var m = () => this + '';
+                          ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+        }
+    }
+    

@@ -1,0 +1,73 @@
+defaultArgsInOverloads.ts(1,10): error TS2394: This overload signature is not compatible with its implementation signature.
+defaultArgsInOverloads.ts(1,10): error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+defaultArgsInOverloads.ts(2,10): error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+defaultArgsInOverloads.ts(2,14): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+defaultArgsInOverloads.ts(6,2): error TS2394: This overload signature is not compatible with its implementation signature.
+defaultArgsInOverloads.ts(6,2): error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+defaultArgsInOverloads.ts(7,2): error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+defaultArgsInOverloads.ts(7,6): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+defaultArgsInOverloads.ts(9,9): error TS2394: This overload signature is not compatible with its implementation signature.
+defaultArgsInOverloads.ts(9,9): error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+defaultArgsInOverloads.ts(10,9): error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+defaultArgsInOverloads.ts(10,13): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+defaultArgsInOverloads.ts(15,5): error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+defaultArgsInOverloads.ts(16,5): error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+defaultArgsInOverloads.ts(16,9): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+defaultArgsInOverloads.ts(19,9): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+
+
+==== defaultArgsInOverloads.ts (16 errors) ====
+    function fun(a: string);
+             ~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 defaultArgsInOverloads.ts:3:10: The implementation signature is declared here.
+             ~~~
+!!! error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+    function fun(a = 3);
+             ~~~
+!!! error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+                 ~~~~~
+!!! error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+    function fun(a = null) { }
+    
+    class C {
+    	fun(a: string);
+    	~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 defaultArgsInOverloads.ts:8:2: The implementation signature is declared here.
+    	~~~
+!!! error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+    	fun(a = 3);
+    	~~~
+!!! error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+    	    ~~~~~
+!!! error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+    	fun(a = null) { }
+    	static fun(a: string);
+    	       ~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 defaultArgsInOverloads.ts:11:9: The implementation signature is declared here.
+    	       ~~~
+!!! error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+    	static fun(a = 3);
+    	       ~~~
+!!! error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+    	           ~~~~~
+!!! error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+    	static fun(a = null) { }
+    }
+    
+    interface I {
+        fun(a: string);
+        ~~~~~~~~~~~~~~~
+!!! error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+        fun(a = 3);
+        ~~~~~~~~~~~
+!!! error TS7010: 'fun', which lacks return-type annotation, implicitly has an 'any' return type.
+            ~~~~~
+!!! error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+    }
+    
+    var f: (a = 3) => number;
+            ~~~~~
+!!! error TS2371: A parameter initializer is only allowed in a function or constructor implementation.

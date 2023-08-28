@@ -1,0 +1,27 @@
+decls.ts(3,9): error TS7005: Variable 'x' implicitly has an 'any' type.
+
+
+==== consumer.ts (0 errors) ====
+    /// <reference path="decls.ts" />
+    import imp1 = require('equ');
+    
+    
+    // Ambient external module members are always exported with or without export keyword when module lacks export assignment
+    import imp3 = require('equ2');
+    var n = imp3.x;
+    var n: number;
+    
+==== decls.ts (1 errors) ====
+    // Ambient external module with export assignment
+    declare module 'equ' {
+        var x;
+            ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        export = x;
+    }
+    
+    declare module 'equ2' {
+        var x: number;
+    }
+    
+    // Ambient external import declaration referencing ambient external module using top level module name

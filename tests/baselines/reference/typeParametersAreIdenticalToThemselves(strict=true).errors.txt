@@ -1,0 +1,187 @@
+typeParametersAreIdenticalToThemselves.ts(3,10): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(4,10): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(7,10): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(8,10): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(12,14): error TS7010: 'inner', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(13,14): error TS7010: 'inner', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(16,14): error TS7010: 'inner2', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(17,14): error TS7010: 'inner2', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(22,5): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(23,5): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(26,5): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(27,5): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(30,5): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(31,5): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(34,5): error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(35,5): error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(40,5): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(41,5): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(44,5): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(45,5): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(48,5): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(49,5): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(54,5): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(55,5): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(57,5): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(58,5): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(60,5): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(61,5): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(63,5): error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(64,5): error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(68,5): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(69,5): error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(71,5): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(72,5): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(74,5): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+typeParametersAreIdenticalToThemselves.ts(75,5): error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== typeParametersAreIdenticalToThemselves.ts (36 errors) ====
+    // type parameters from the same declaration are identical to themself
+    
+    function foo1<T>(x: T);
+             ~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo1<T>(x: T); // no error, different declaration for each T
+             ~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo1<T>(x: T) { }
+    
+    function foo2<T, U>(x: T);
+             ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo2<T, U>(x: T); // no error, different declaration for each T
+             ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function foo2<T, U>(x: T) { }
+    
+    function foo3<T, U>(x: T, y: U) {
+        function inner(x: T);
+                 ~~~~~
+!!! error TS7010: 'inner', which lacks return-type annotation, implicitly has an 'any' return type.
+        function inner(x: T); // error, same T
+                 ~~~~~
+!!! error TS7010: 'inner', which lacks return-type annotation, implicitly has an 'any' return type.
+        function inner(x: T) { }
+    
+        function inner2(x: T);
+                 ~~~~~~
+!!! error TS7010: 'inner2', which lacks return-type annotation, implicitly has an 'any' return type.
+        function inner2<T>(x: T); // no error, different T
+                 ~~~~~~
+!!! error TS7010: 'inner2', which lacks return-type annotation, implicitly has an 'any' return type.
+        function inner2(x: any) { }
+    }
+    
+    class C<T> {
+        foo1(x: T);
+        ~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo1(x: T); // error, same T
+        ~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo1(x: T) { }
+    
+        foo2<U>(a: T, x: U);
+        ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo2<U>(a: T, x: U); // no error, different declaration for each U
+        ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo2<U>(a: T, x: U) { }
+    
+        foo3<T>(x: T);
+        ~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo3<T>(x: T); // no error, different declaration for each T
+        ~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo3<T>(x: T) { }
+    
+        foo4<T extends Date>(x: T);
+        ~~~~
+!!! error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo4<T extends Date>(x: T); // no error, different declaration for each T
+        ~~~~
+!!! error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo4<T extends Date>(x: T) { }
+    }
+    
+    class C2<T extends Date> {
+        foo1(x: T);
+        ~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo1(x: T); // error, same T
+        ~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo1(x: T) { }
+    
+        foo2<U>(a: T, x: U);
+        ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo2<U>(a: T, x: U); // no error, different declaration for each U
+        ~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo2<U>(a: T, x: U) { }
+    
+        foo3<T>(x: T);
+        ~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo3<T>(x: T); // no error, different declaration for each T
+        ~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo3<T>(x: T) { }
+    }
+    
+    interface I<T> {
+        foo1(x: T);
+        ~~~~~~~~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo1(x: T); // error, same T
+        ~~~~~~~~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+        foo2<U>(a: T, x: U);
+        ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo2<U>(a: T, x: U); // no error, different declaration for each U
+        ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+        foo3<T>(x: T);
+        ~~~~~~~~~~~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo3<T>(x: T); // no error, different declaration for each T
+        ~~~~~~~~~~~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+        foo4<T extends Date>(x: T);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo4<T extends Date>(x: T); // no error, different declaration for each T
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo4', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    interface I2<T extends Date> {
+        foo1(x: T);
+        ~~~~~~~~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo1(x: T); // error, same T
+        ~~~~~~~~~~~
+!!! error TS7010: 'foo1', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+        foo2<U>(a: T, x: U);
+        ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo2<U>(a: T, x: U); // no error, different declaration for each U
+        ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+        foo3<T>(x: T);
+        ~~~~~~~~~~~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo3<T>(x: T); // no error, different declaration for each T
+        ~~~~~~~~~~~~~~
+!!! error TS7010: 'foo3', which lacks return-type annotation, implicitly has an 'any' return type.
+    }

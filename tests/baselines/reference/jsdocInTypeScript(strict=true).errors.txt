@@ -1,0 +1,92 @@
+jsdocInTypeScript.ts(6,5): error TS2564: Property 'prop' has no initializer and is not definitely assigned in the constructor.
+jsdocInTypeScript.ts(16,23): error TS2304: Cannot find name 'MyType'.
+jsdocInTypeScript.ts(23,33): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+jsdocInTypeScript.ts(25,3): error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+jsdocInTypeScript.ts(25,15): error TS2339: Property 'length' does not exist on type 'number'.
+jsdocInTypeScript.ts(30,3): error TS2339: Property 'x' does not exist on type '{}'.
+jsdocInTypeScript.ts(42,12): error TS2503: Cannot find namespace 'N'.
+jsdocInTypeScript.ts(48,21): error TS7006: Parameter 'a' implicitly has an 'any' type.
+jsdocInTypeScript.ts(48,24): error TS7006: Parameter 'b' implicitly has an 'any' type.
+jsdocInTypeScript.ts(52,1): error TS7053: Element implicitly has an 'any' type because expression of type '""' can't be used to index type '{}'.
+  Property '' does not exist on type '{}'.
+
+
+==== jsdocInTypeScript.ts (10 errors) ====
+    // JSDoc typedef tags are not bound TypeScript files.
+    /** @typedef {function} T */
+    declare const x: T;
+    
+    class T {
+        prop: number;
+        ~~~~
+!!! error TS2564: Property 'prop' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    x.prop;
+    
+    // Just to be sure that @property has no impact either.
+    /**
+     * @typedef {Object} MyType
+     * @property {string} yes
+     */
+    declare const myType: MyType; // should error, no such type
+                          ~~~~~~
+!!! error TS2304: Cannot find name 'MyType'.
+    
+    // @param type has no effect.
+    /**
+     * @param {number} x
+     * @returns string
+     */
+    function f(x: boolean) { return x * 2; } // Should error
+                                    ~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+    // Should fail, because it takes a boolean and returns a number
+    f(1); f(true).length;
+      ~
+!!! error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+                  ~~~~~~
+!!! error TS2339: Property 'length' does not exist on type 'number'.
+    
+    // @type has no effect either.
+    /** @type {{ x?: number }} */
+    const z = {};
+    z.x = 1; // Error
+      ~
+!!! error TS2339: Property 'x' does not exist on type '{}'.
+    
+    // @template tag should not interfere with constraint or default.
+    /** @template T */
+    interface I<T extends number = 0> {}
+    
+    /** @template T */
+    function tem<T extends number>(t: T): I<T> { return {}; }
+    
+    let i: I; // Should succeed thanks to type parameter default
+    
+    /** @typedef {string} N.Str */
+    import M = N; // Error: @typedef does not create namespaces in TypeScript code.
+               ~
+!!! error TS2503: Cannot find namespace 'N'.
+    
+    // Not legal JSDoc, but that shouldn't matter in TypeScript.
+    /**
+     * @type {{foo: (function(string, string): string)}}
+     */
+    const obj = { foo: (a, b) => a + b };
+                        ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                           ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    
+    /** @enum {string} */
+    var E = {};
+    E[""];
+    ~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '""' can't be used to index type '{}'.
+!!! error TS7053:   Property '' does not exist on type '{}'.
+    
+    // make sure import types in JSDoc are not resolved
+    /** @type {import("should-not-be-resolved").Type} */
+    var v = import(String());
+    

@@ -1,0 +1,58 @@
+objectTypeWithStringIndexerHidingObjectIndexer.ts(8,9): error TS7053: Element implicitly has an 'any' type because expression of type '""' can't be used to index type '{}'.
+  Property '' does not exist on type '{}'.
+objectTypeWithStringIndexerHidingObjectIndexer.ts(11,5): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+objectTypeWithStringIndexerHidingObjectIndexer.ts(15,18): error TS2454: Variable 'c' is used before being assigned.
+objectTypeWithStringIndexerHidingObjectIndexer.ts(22,18): error TS2454: Variable 'i' is used before being assigned.
+objectTypeWithStringIndexerHidingObjectIndexer.ts(28,18): error TS2454: Variable 'o2' is used before being assigned.
+lib.es5.d.ts(--,--): error TS2411: Property 'constructor' of type 'Function' is not assignable to 'string' index type 'Object'.
+lib.es5.d.ts(--,--): error TS2411: Property 'toString' of type '() => string' is not assignable to 'string' index type 'Object'.
+lib.es5.d.ts(--,--): error TS2411: Property 'toLocaleString' of type '() => string' is not assignable to 'string' index type 'Object'.
+lib.es5.d.ts(--,--): error TS2411: Property 'valueOf' of type '() => Object' is not assignable to 'string' index type 'Object'.
+lib.es5.d.ts(--,--): error TS2411: Property 'hasOwnProperty' of type '(v: PropertyKey) => boolean' is not assignable to 'string' index type 'Object'.
+lib.es5.d.ts(--,--): error TS2411: Property 'isPrototypeOf' of type '(v: Object) => boolean' is not assignable to 'string' index type 'Object'.
+lib.es5.d.ts(--,--): error TS2411: Property 'propertyIsEnumerable' of type '(v: PropertyKey) => boolean' is not assignable to 'string' index type 'Object'.
+
+
+==== objectTypeWithStringIndexerHidingObjectIndexer.ts (5 errors) ====
+    // object types can define string indexers that are more specific than the default 'any' that would be returned
+    // no errors expected below 
+    
+    interface Object {
+        [x: string]: Object;
+    }
+    var o = {};
+    var r = o['']; // should be Object
+            ~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '""' can't be used to index type '{}'.
+!!! error TS7053:   Property '' does not exist on type '{}'.
+    
+    class C {
+        foo: string;
+        ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+        [x: string]: string;
+    }
+    var c: C;
+    var r2: string = c[''];
+                     ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    
+    interface I {
+        bar: string;
+        [x: string]: string;
+    }
+    var i: I;
+    var r3: string = i[''];
+                     ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    
+    var o2: {
+        baz: string;
+        [x: string]: string;
+    }
+    var r4: string = o2[''];
+                     ~~
+!!! error TS2454: Variable 'o2' is used before being assigned.
+    
+    
+    

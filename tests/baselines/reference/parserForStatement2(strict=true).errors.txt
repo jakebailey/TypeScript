@@ -1,0 +1,27 @@
+parserForStatement2.ts(2,5): error TS7034: Variable 'b' implicitly has type 'any[]' in some locations where its type cannot be determined.
+parserForStatement2.ts(4,11): error TS7005: Variable 'b' implicitly has an 'any[]' type.
+parserForStatement2.ts(4,13): error TS2538: Type 'undefined' cannot be used as an index type.
+parserForStatement2.ts(4,18): error TS7005: Variable 'b' implicitly has an 'any[]' type.
+parserForStatement2.ts(4,20): error TS2538: Type 'undefined' cannot be used as an index type.
+parserForStatement2.ts(4,30): error TS2304: Cannot find name 'd'.
+
+
+==== parserForStatement2.ts (6 errors) ====
+    var a;
+    var b = [];
+        ~
+!!! error TS7034: Variable 'b' implicitly has type 'any[]' in some locations where its type cannot be determined.
+    var c;
+    for (a in b[c] = b[c] || [], d) {
+              ~
+!!! error TS7005: Variable 'b' implicitly has an 'any[]' type.
+                ~
+!!! error TS2538: Type 'undefined' cannot be used as an index type.
+                     ~
+!!! error TS7005: Variable 'b' implicitly has an 'any[]' type.
+                       ~
+!!! error TS2538: Type 'undefined' cannot be used as an index type.
+                                 ~
+!!! error TS2304: Cannot find name 'd'.
+    
+    }

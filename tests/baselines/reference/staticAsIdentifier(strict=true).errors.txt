@@ -1,0 +1,66 @@
+staticAsIdentifier.ts(2,12): error TS7008: Member 'static' implicitly has an 'any' type.
+staticAsIdentifier.ts(7,12): error TS7008: Member 'static' implicitly has an 'any' type.
+staticAsIdentifier.ts(12,12): error TS1434: Unexpected keyword or identifier.
+staticAsIdentifier.ts(12,12): error TS7008: Member 'static' implicitly has an 'any' type.
+staticAsIdentifier.ts(12,19): error TS2564: Property 'p' has no initializer and is not definitely assigned in the constructor.
+staticAsIdentifier.ts(16,12): error TS1434: Unexpected keyword or identifier.
+staticAsIdentifier.ts(16,12): error TS7008: Member 'static' implicitly has an 'any' type.
+staticAsIdentifier.ts(20,12): error TS7008: Member 'static' implicitly has an 'any' type.
+staticAsIdentifier.ts(25,5): error TS7008: Member 'static' implicitly has an 'any' type.
+staticAsIdentifier.ts(29,21): error TS7008: Member 'static' implicitly has an 'any' type.
+
+
+==== staticAsIdentifier.ts (10 errors) ====
+    class C1 {
+        static static
+               ~~~~~~
+!!! error TS7008: Member 'static' implicitly has an 'any' type.
+        [x: string]: string;
+    }
+    
+    class C2 {
+        static static
+               ~~~~~~
+!!! error TS7008: Member 'static' implicitly has an 'any' type.
+        m() {}
+    }
+    
+    class C3 {
+        static static p: string;
+               ~~~~~~
+!!! error TS1434: Unexpected keyword or identifier.
+               ~~~~~~
+!!! error TS7008: Member 'static' implicitly has an 'any' type.
+                      ~
+!!! error TS2564: Property 'p' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class C4 {
+        static static foo() {}
+               ~~~~~~
+!!! error TS1434: Unexpected keyword or identifier.
+               ~~~~~~
+!!! error TS7008: Member 'static' implicitly has an 'any' type.
+    }
+    
+    class C5 {
+        static static
+               ~~~~~~
+!!! error TS7008: Member 'static' implicitly has an 'any' type.
+    }
+    
+    class C6 {
+        static 
+        static
+        ~~~~~~
+!!! error TS7008: Member 'static' implicitly has an 'any' type.
+    }
+    
+    class C7 extends C6 {
+        static override static
+                        ~~~~~~
+!!! error TS7008: Member 'static' implicitly has an 'any' type.
+    }
+    
+    
+    

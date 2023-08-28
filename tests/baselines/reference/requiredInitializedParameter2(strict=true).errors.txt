@@ -1,0 +1,23 @@
+requiredInitializedParameter2.ts(2,5): error TS7010: 'method', which lacks return-type annotation, implicitly has an 'any' return type.
+requiredInitializedParameter2.ts(6,5): error TS2416: Property 'method' in type 'C1' is not assignable to the same property in base type 'I1'.
+  Type '(a: number | undefined, b: any) => void' is not assignable to type '() => any'.
+    Target signature provides too few arguments. Expected 2 or more, but got 0.
+requiredInitializedParameter2.ts(6,19): error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+
+==== requiredInitializedParameter2.ts (3 errors) ====
+    interface I1 {
+        method();
+        ~~~~~~~~~
+!!! error TS7010: 'method', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    class C1 implements I1 {
+        method(a = 0, b) { }
+        ~~~~~~
+!!! error TS2416: Property 'method' in type 'C1' is not assignable to the same property in base type 'I1'.
+!!! error TS2416:   Type '(a: number | undefined, b: any) => void' is not assignable to type '() => any'.
+!!! error TS2416:     Target signature provides too few arguments. Expected 2 or more, but got 0.
+                      ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    }

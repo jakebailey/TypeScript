@@ -1,0 +1,92 @@
+restParameterWithoutAnnotationIsAnyArray.ts(3,14): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+restParameterWithoutAnnotationIsAnyArray.ts(4,22): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+restParameterWithoutAnnotationIsAnyArray.ts(5,11): error TS1014: A rest parameter must be last in a parameter list.
+restParameterWithoutAnnotationIsAnyArray.ts(5,11): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+restParameterWithoutAnnotationIsAnyArray.ts(5,17): error TS7019: Rest parameter 'y' implicitly has an 'any[]' type.
+restParameterWithoutAnnotationIsAnyArray.ts(8,9): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+restParameterWithoutAnnotationIsAnyArray.ts(12,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+restParameterWithoutAnnotationIsAnyArray.ts(12,6): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+restParameterWithoutAnnotationIsAnyArray.ts(13,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+restParameterWithoutAnnotationIsAnyArray.ts(13,9): error TS1014: A rest parameter must be last in a parameter list.
+restParameterWithoutAnnotationIsAnyArray.ts(13,9): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+restParameterWithoutAnnotationIsAnyArray.ts(13,15): error TS7019: Rest parameter 'y' implicitly has an 'any[]' type.
+restParameterWithoutAnnotationIsAnyArray.ts(17,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+restParameterWithoutAnnotationIsAnyArray.ts(17,6): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+restParameterWithoutAnnotationIsAnyArray.ts(18,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+restParameterWithoutAnnotationIsAnyArray.ts(18,9): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+restParameterWithoutAnnotationIsAnyArray.ts(22,9): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+restParameterWithoutAnnotationIsAnyArray.ts(23,21): error TS1014: A rest parameter must be last in a parameter list.
+restParameterWithoutAnnotationIsAnyArray.ts(23,21): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+restParameterWithoutAnnotationIsAnyArray.ts(23,27): error TS7019: Rest parameter 'y' implicitly has an 'any[]' type.
+restParameterWithoutAnnotationIsAnyArray.ts(24,9): error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+
+
+==== restParameterWithoutAnnotationIsAnyArray.ts (21 errors) ====
+    // Rest parameters without type annotations are 'any', errors only for the functions with 2 rest params
+    
+    function foo(...x) { }
+                 ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+    var f = function foo(...x) { }
+                         ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+    var f2 = (...x, ...y) => { }
+              ~~~
+!!! error TS1014: A rest parameter must be last in a parameter list.
+              ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+                    ~~~~
+!!! error TS7019: Rest parameter 'y' implicitly has an 'any[]' type.
+    
+    class C {
+        foo(...x) { }
+            ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+    }
+    
+    interface I {
+        (...x);
+        ~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+         ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+        foo(...x, ...y);
+        ~~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+            ~~~
+!!! error TS1014: A rest parameter must be last in a parameter list.
+            ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+                  ~~~~
+!!! error TS7019: Rest parameter 'y' implicitly has an 'any[]' type.
+    }
+    
+    var a: {
+        (...x);
+        ~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+         ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+        foo(...x);
+        ~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+            ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+    }
+    
+    var b = {
+        foo(...x) { },
+            ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+        a: function foo(...x, ...y) { },
+                        ~~~
+!!! error TS1014: A rest parameter must be last in a parameter list.
+                        ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+                              ~~~~
+!!! error TS7019: Rest parameter 'y' implicitly has an 'any[]' type.
+        b: (...x) => { }
+            ~~~~
+!!! error TS7019: Rest parameter 'x' implicitly has an 'any[]' type.
+    }
+    

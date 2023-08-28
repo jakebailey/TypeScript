@@ -1,0 +1,86 @@
+typeParameterExplicitlyExtendsAny.ts(3,5): error TS2454: Variable 't' is used before being assigned.
+typeParameterExplicitlyExtendsAny.ts(3,7): error TS2339: Property 'blah' does not exist on type 'T'.
+typeParameterExplicitlyExtendsAny.ts(4,5): error TS2454: Variable 't' is used before being assigned.
+typeParameterExplicitlyExtendsAny.ts(4,7): error TS2339: Property 'toString' does not exist on type 'T'.
+typeParameterExplicitlyExtendsAny.ts(9,5): error TS2454: Variable 't' is used before being assigned.
+typeParameterExplicitlyExtendsAny.ts(9,7): error TS2339: Property 'blah' does not exist on type 'T'.
+typeParameterExplicitlyExtendsAny.ts(10,5): error TS2454: Variable 't' is used before being assigned.
+typeParameterExplicitlyExtendsAny.ts(10,7): error TS2339: Property 'toString' does not exist on type 'T'.
+typeParameterExplicitlyExtendsAny.ts(14,7): error TS2339: Property 'children' does not exist on type 'T'.
+typeParameterExplicitlyExtendsAny.ts(15,5): error TS2349: This expression is not callable.
+  Type 'unknown' has no call signatures.
+typeParameterExplicitlyExtendsAny.ts(16,9): error TS2351: This expression is not constructable.
+  Type 'unknown' has no construct signatures.
+typeParameterExplicitlyExtendsAny.ts(17,5): error TS7053: Element implicitly has an 'any' type because expression of type '100' can't be used to index type 'unknown'.
+  Property '100' does not exist on type 'unknown'.
+typeParameterExplicitlyExtendsAny.ts(18,5): error TS7053: Element implicitly has an 'any' type because expression of type '"hello"' can't be used to index type 'unknown'.
+  Property 'hello' does not exist on type 'unknown'.
+typeParameterExplicitlyExtendsAny.ts(30,14): error TS2339: Property 'children' does not exist on type 'T'.
+
+
+==== typeParameterExplicitlyExtendsAny.ts (14 errors) ====
+    function fee<T>() {
+        var t: T;
+        t.blah; // Error
+        ~
+!!! error TS2454: Variable 't' is used before being assigned.
+          ~~~~
+!!! error TS2339: Property 'blah' does not exist on type 'T'.
+        t.toString; // ok
+        ~
+!!! error TS2454: Variable 't' is used before being assigned.
+          ~~~~~~~~
+!!! error TS2339: Property 'toString' does not exist on type 'T'.
+    }
+    
+    function fee2<T extends any>() {
+        var t: T;
+        t.blah; // ok
+        ~
+!!! error TS2454: Variable 't' is used before being assigned.
+          ~~~~
+!!! error TS2339: Property 'blah' does not exist on type 'T'.
+        t.toString; // ok
+        ~
+!!! error TS2454: Variable 't' is used before being assigned.
+          ~~~~~~~~
+!!! error TS2339: Property 'toString' does not exist on type 'T'.
+    }
+    
+    function f<T extends any>(x: T) {
+        x.children;
+          ~~~~~~~~
+!!! error TS2339: Property 'children' does not exist on type 'T'.
+        x();
+        ~
+!!! error TS2349: This expression is not callable.
+!!! error TS2349:   Type 'unknown' has no call signatures.
+        new x();
+            ~
+!!! error TS2351: This expression is not constructable.
+!!! error TS2351:   Type 'unknown' has no construct signatures.
+        x[100];
+        ~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '100' can't be used to index type 'unknown'.
+!!! error TS7053:   Property '100' does not exist on type 'unknown'.
+        x['hello'];
+        ~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '"hello"' can't be used to index type 'unknown'.
+!!! error TS7053:   Property 'hello' does not exist on type 'unknown'.
+    }
+    
+    
+    // Generic Tree structure
+    type Tree<T> = T & {
+        children?: Tree<T>[];
+    }
+    
+    class MyClass {
+        public static displayTree1<T extends Tree<any>>(tree: T) {
+            // error "Property 'children' does not exist on type 'T'"
+            tree.children;
+                 ~~~~~~~~
+!!! error TS2339: Property 'children' does not exist on type 'T'.
+        }
+    }
+    

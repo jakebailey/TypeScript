@@ -1,0 +1,13 @@
+decoratorOnClassProperty12.ts(5,5): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+
+
+==== decoratorOnClassProperty12.ts (1 errors) ====
+    declare function dec(): <T>(target: any, propertyKey: string) => void;
+    
+    class A {
+        @dec()
+        foo: `${string}`
+        ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+    }
+    

@@ -1,0 +1,13 @@
+localVariablesReturnedFromCatchBlocks.ts(4,22): error TS18046: 'e' is of type 'unknown'.
+
+
+==== localVariablesReturnedFromCatchBlocks.ts (1 errors) ====
+    function f() {
+        try {
+        } catch (e) {
+            var stack2 = e.stack;
+                         ~
+!!! error TS18046: 'e' is of type 'unknown'.
+            return stack2; //error TS2095: Could not find symbol 'stack2'.
+        }
+    }

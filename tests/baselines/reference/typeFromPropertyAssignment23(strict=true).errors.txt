@@ -1,0 +1,49 @@
+a.js(17,5): error TS7041: The containing arrow function captures the global value of 'this'.
+a.js(17,10): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+a.js(23,1): error TS7005: Variable 'identifier' implicitly has an 'any' type.
+a.js(24,1): error TS7005: Variable 'size' implicitly has an 'any' type.
+
+
+==== a.js (4 errors) ====
+    class B {
+        constructor () {
+            this.n = 1
+        }
+        foo() {
+        }
+    }
+    
+    class C extends B { }
+    
+    // this override should be fine (even if it's a little odd)
+    C.prototype.foo = function() {
+    }
+    
+    class D extends B { }
+    D.prototype.foo = () =>  {
+        this.n = 'not checked, so no error'
+        ~~~~
+!!! error TS7041: The containing arrow function captures the global value of 'this'.
+             ~
+!!! error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+    }
+    
+    // post-class prototype assignments are trying to show that these properties are abstract
+    class Module {
+    }
+    Module.prototype.identifier = undefined
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7005: Variable 'identifier' implicitly has an 'any' type.
+    Module.prototype.size = null
+    ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7005: Variable 'size' implicitly has an 'any' type.
+    
+    class NormalModule extends Module {
+        identifier() {
+            return 'normal'
+        }
+        size() {
+            return 0
+        }
+    }
+    

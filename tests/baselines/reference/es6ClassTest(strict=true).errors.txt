@@ -1,0 +1,114 @@
+es6ClassTest.ts(2,12): error TS2564: Property 'goo' has no initializer and is not definitely assigned in the constructor.
+es6ClassTest.ts(3,18): error TS7006: Parameter 'x' implicitly has an 'any' type.
+es6ClassTest.ts(7,18): error TS7006: Parameter 'n' implicitly has an 'any' type.
+es6ClassTest.ts(12,2): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+es6ClassTest.ts(19,10): error TS7010: 'boo', which lacks return-type annotation, implicitly has an 'any' return type.
+es6ClassTest.ts(20,14): error TS7006: Parameter 'x' implicitly has an 'any' type.
+es6ClassTest.ts(25,14): error TS7006: Parameter 'x' implicitly has an 'any' type.
+es6ClassTest.ts(25,44): error TS1015: Parameter cannot have question mark and initializer.
+es6ClassTest.ts(42,3): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== es6ClassTest.ts (9 errors) ====
+    class Bar {
+        public goo: number;
+               ~~~
+!!! error TS2564: Property 'goo' has no initializer and is not definitely assigned in the constructor.
+        public prop1(x) {
+                     ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            return x;
+        }
+    
+        constructor (n) { }
+                     ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+    }
+    
+    // new-style class
+    class Foo  extends Bar {
+    	foo:number;
+    	~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+    	gar = 0;
+    	zoo:string = "zoo";
+    	x: any;
+    
+    	bar() { return 0; }
+    
+    	private boo();
+    	        ~~~
+!!! error TS7010: 'boo', which lacks return-type annotation, implicitly has an 'any' return type.
+    	private boo(x?) { return x; }
+    	            ~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+        static statVal = 0;
+    
+    	constructor();
+    	constructor(x?, private y?:string, public z?=0) {
+    	            ~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    	                                          ~
+!!! error TS1015: Parameter cannot have question mark and initializer.
+            super(x);
+    		this.x = x;
+            this.gar = 5;
+    	 }
+    }
+    
+    var f = new Foo();
+    
+    declare module AmbientMod {
+    	export class Provide {
+    		foo:number;
+    		zoo:string;
+    
+    		constructor();
+    		
+    		private boo();
+    		bar();
+    		~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+    	}
+    }
+    
+    
+    //class GetSetMonster {
+    
+    
+    //  // attack(target) {
+    //  //     WScript.Echo("Attacks " + target);
+    //  // }
+    //  // The contextual keyword "get" followed by an identifier and
+    //  // a curly body defines a getter in the same way that "get"
+    //  // defines one in an object literal.
+    //  // get isAlive() {
+    //  //   return this.health > 0;
+    //  // }
+     
+    //  // Likewise, "set" can be used to define setters.
+    //  set health(value:number) {
+    //    if (value < 0) {
+    //      throw new Error('Health must be non-negative.')
+    //    }
+    //    this.health = value
+    //  }
+    //  get health() { return 0; }
+    
+    //  constructor(this.name: string, health: number) {
+    //    this.health = 0;
+    //  }
+    //}
+    
+    
+    //class bar {
+    
+    //   static fnOverload( );
+    
+    //   static fnOverload(foo: string){ } // no error
+    
+    //   constructor(){};    
+    
+    //}
+    

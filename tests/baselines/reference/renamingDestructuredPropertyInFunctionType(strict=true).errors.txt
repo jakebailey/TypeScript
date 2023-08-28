@@ -1,0 +1,209 @@
+error TS-1: Pre-emit (39) and post-emit (48) diagnostic counts do not match! This can indicate that a semantic _error_ was added by the emit resolver - such an error may not be reflected on the command line or in the editor, but may be captured in a baseline here!
+renamingDestructuredPropertyInFunctionType.ts(5,17): error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(6,17): error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(7,17): error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(8,17): error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(9,17): error TS7031: Binding element 'string' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(10,17): error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(10,17): error TS7031: Binding element 'string' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(10,28): error TS7031: Binding element 'number' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(11,14): error TS7031: Binding element 'a' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(11,20): error TS7031: Binding element 'number' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(12,13): error TS7031: Binding element 'a' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(12,16): error TS7031: Binding element 'b' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(12,19): error TS7031: Binding element 'c' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(15,21): error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(16,21): error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(17,21): error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(18,21): error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(19,21): error TS7031: Binding element 'string' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(20,21): error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(20,21): error TS7031: Binding element 'string' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(20,32): error TS7031: Binding element 'number' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(21,18): error TS7031: Binding element 'a' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(21,24): error TS7031: Binding element 'number' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(22,17): error TS7031: Binding element 'a' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(22,20): error TS7031: Binding element 'b' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(22,23): error TS7031: Binding element 'c' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(26,20): error TS2842: 'string' is an unused renaming of '"a"'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(27,18): error TS2842: 'string' is an unused renaming of '2'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(28,22): error TS2842: 'string' is an unused renaming of '["a"]'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(29,20): error TS2842: 'string' is an unused renaming of '[2]'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(30,24): error TS2842: 'string' is an unused renaming of '"a"'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(31,22): error TS2842: 'string' is an unused renaming of '2'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(32,26): error TS2842: 'string' is an unused renaming of '["a"]'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(33,24): error TS2842: 'string' is an unused renaming of '[2]'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(37,16): error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(40,9): error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(43,13): error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+renamingDestructuredPropertyInFunctionType.ts(61,19): error TS7031: Binding element 'string' implicitly has an 'any' type.
+renamingDestructuredPropertyInFunctionType.ts(63,22): error TS7031: Binding element 'string' implicitly has an 'any' type.
+
+
+!!! error TS-1: Pre-emit (39) and post-emit (48) diagnostic counts do not match! This can indicate that a semantic _error_ was added by the emit resolver - such an error may not be reflected on the command line or in the editor, but may be captured in a baseline here!
+!!! related TS-1: The excess diagnostics are:
+!!! related TS7031 renamingDestructuredPropertyInFunctionType.ts:26:20: Binding element 'string' implicitly has an 'any' type.
+!!! related TS7031 renamingDestructuredPropertyInFunctionType.ts:27:18: Binding element 'string' implicitly has an 'any' type.
+!!! related TS7031 renamingDestructuredPropertyInFunctionType.ts:29:20: Binding element 'string' implicitly has an 'any' type.
+!!! related TS7031 renamingDestructuredPropertyInFunctionType.ts:30:24: Binding element 'string' implicitly has an 'any' type.
+!!! related TS7031 renamingDestructuredPropertyInFunctionType.ts:31:22: Binding element 'string' implicitly has an 'any' type.
+!!! related TS7031 renamingDestructuredPropertyInFunctionType.ts:33:24: Binding element 'string' implicitly has an 'any' type.
+!!! related TS7031 renamingDestructuredPropertyInFunctionType.ts:37:16: Binding element 'string' implicitly has an 'any' type.
+!!! related TS7031 renamingDestructuredPropertyInFunctionType.ts:40:9: Binding element 'string' implicitly has an 'any' type.
+!!! related TS7031 renamingDestructuredPropertyInFunctionType.ts:43:13: Binding element 'string' implicitly has an 'any' type.
+==== renamingDestructuredPropertyInFunctionType.ts (39 errors) ====
+    // GH#37454, GH#41044
+    
+    type O = { a?: string; b: number; c: number; };
+    type F1 = (arg: number) => any; // OK
+    type F2 = ({ a: string }: O) => any; // Error
+                    ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+    type F3 = ({ a: string, b, c }: O) => any; // Error
+                    ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+    type F4 = ({ a: string }: O) => any; // Error
+                    ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+    type F5 = ({ a: string, b, c }: O) => any; // Error
+                    ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+    type F6 = ({ a: string }) => typeof string; // OK
+                    ~~~~~~
+!!! error TS7031: Binding element 'string' implicitly has an 'any' type.
+    type F7 = ({ a: string, b: number }) => typeof number; // Error
+                    ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+!!! related TS2843 renamingDestructuredPropertyInFunctionType.ts:10:36: We can only write a type for 'a' by adding a type for the entire parameter here.
+                    ~~~~~~
+!!! error TS7031: Binding element 'string' implicitly has an 'any' type.
+                               ~~~~~~
+!!! error TS7031: Binding element 'number' implicitly has an 'any' type.
+    type F8 = ({ a, b: number }) => typeof number; // OK
+                 ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                       ~~~~~~
+!!! error TS7031: Binding element 'number' implicitly has an 'any' type.
+    type F9 = ([a, b, c]) => void; // OK
+                ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                   ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+                      ~
+!!! error TS7031: Binding element 'c' implicitly has an 'any' type.
+    
+    type G1 = new (arg: number) => any; // OK
+    type G2 = new ({ a: string }: O) => any; // Error
+                        ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+    type G3 = new ({ a: string, b, c }: O) => any; // Error
+                        ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+    type G4 = new ({ a: string }: O) => any; // Error
+                        ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+    type G5 = new ({ a: string, b, c }: O) => any; // Error
+                        ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+    type G6 = new ({ a: string }) => typeof string; // OK
+                        ~~~~~~
+!!! error TS7031: Binding element 'string' implicitly has an 'any' type.
+    type G7 = new ({ a: string, b: number }) => typeof number; // Error
+                        ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+!!! related TS2843 renamingDestructuredPropertyInFunctionType.ts:20:40: We can only write a type for 'a' by adding a type for the entire parameter here.
+                        ~~~~~~
+!!! error TS7031: Binding element 'string' implicitly has an 'any' type.
+                                   ~~~~~~
+!!! error TS7031: Binding element 'number' implicitly has an 'any' type.
+    type G8 = new ({ a, b: number }) => typeof number; // OK
+                     ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                           ~~~~~~
+!!! error TS7031: Binding element 'number' implicitly has an 'any' type.
+    type G9 = new ([a, b, c]) => void; // OK
+                    ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                       ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+                          ~
+!!! error TS7031: Binding element 'c' implicitly has an 'any' type.
+    
+    // Below are Error but renaming is retained in declaration emit,
+    // since elinding it would leave invalid syntax.
+    type F10 = ({ "a": string }) => void; // Error
+                       ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of '"a"'. Did you intend to use it as a type annotation?
+!!! related TS2843 renamingDestructuredPropertyInFunctionType.ts:26:28: We can only write a type for '"a"' by adding a type for the entire parameter here.
+    type F11 = ({ 2: string }) => void; // Error
+                     ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of '2'. Did you intend to use it as a type annotation?
+!!! related TS2843 renamingDestructuredPropertyInFunctionType.ts:27:26: We can only write a type for '2' by adding a type for the entire parameter here.
+    type F12 = ({ ["a"]: string }: O) => void; // Error
+                         ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of '["a"]'. Did you intend to use it as a type annotation?
+    type F13 = ({ [2]: string }) => void; // Error
+                       ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of '[2]'. Did you intend to use it as a type annotation?
+!!! related TS2843 renamingDestructuredPropertyInFunctionType.ts:29:28: We can only write a type for '[2]' by adding a type for the entire parameter here.
+    type G10 = new ({ "a": string }) => void; // Error
+                           ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of '"a"'. Did you intend to use it as a type annotation?
+!!! related TS2843 renamingDestructuredPropertyInFunctionType.ts:30:32: We can only write a type for '"a"' by adding a type for the entire parameter here.
+    type G11 = new ({ 2: string }) => void; // Error
+                         ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of '2'. Did you intend to use it as a type annotation?
+!!! related TS2843 renamingDestructuredPropertyInFunctionType.ts:31:30: We can only write a type for '2' by adding a type for the entire parameter here.
+    type G12 = new ({ ["a"]: string }: O) => void; // Error
+                             ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of '["a"]'. Did you intend to use it as a type annotation?
+    type G13 = new ({ [2]: string }) => void; // Error
+                           ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of '[2]'. Did you intend to use it as a type annotation?
+!!! related TS2843 renamingDestructuredPropertyInFunctionType.ts:33:32: We can only write a type for '[2]' by adding a type for the entire parameter here.
+    
+    interface I {
+      method1(arg: number): any; // OK
+      method2({ a: string }): any; // Error
+                   ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+!!! related TS2843 renamingDestructuredPropertyInFunctionType.ts:37:24: We can only write a type for 'a' by adding a type for the entire parameter here.
+    
+      (arg: number): any; // OK
+      ({ a: string }): any; // Error
+            ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+!!! related TS2843 renamingDestructuredPropertyInFunctionType.ts:40:17: We can only write a type for 'a' by adding a type for the entire parameter here.
+    
+      new (arg: number): any; // OK
+      new ({ a: string }): any; // Error
+                ~~~~~~
+!!! error TS2842: 'string' is an unused renaming of 'a'. Did you intend to use it as a type annotation?
+!!! related TS2843 renamingDestructuredPropertyInFunctionType.ts:43:21: We can only write a type for 'a' by adding a type for the entire parameter here.
+    }
+    
+    // Below are OK but renaming should be removed from declaration emit
+    function f1({ a: string }: O) { }
+    const f2 = function({ a: string }: O) { };
+    const f3 = ({ a: string, b, c }: O) => { };
+    const f4 = function({ a: string }: O): typeof string { return string; };
+    const f5 = ({ a: string, b, c }: O): typeof string => '';
+    const obj1 = {
+      method({ a: string }: O) { }
+    };
+    const obj2 = {
+      method({ a: string }: O): typeof string { return string; }
+    };
+    function f6({ a: string = "" }: O) { }
+    const f7 = ({ a: string = "", b, c }: O) => { };
+    const f8 = ({ "a": string }: O) => { };
+    function f9 ({ 2: string }) { };
+                      ~~~~~~
+!!! error TS7031: Binding element 'string' implicitly has an 'any' type.
+    function f10 ({ ["a"]: string }: O) { };
+    const f11 =  ({ [2]: string }) => { };
+                         ~~~~~~
+!!! error TS7031: Binding element 'string' implicitly has an 'any' type.
+    
+    // In below case `string` should be kept because it is used
+    function f12({ a: string = "" }: O): typeof string { return "a"; }

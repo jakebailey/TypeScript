@@ -1,0 +1,31 @@
+iterableArrayPattern18.ts(1,13): error TS7008: Member 'x' implicitly has an 'any' type.
+iterableArrayPattern18.ts(2,25): error TS7008: Member 'y' implicitly has an 'any' type.
+iterableArrayPattern18.ts(17,5): error TS2345: Argument of type 'FooIterator' is not assignable to parameter of type 'Bar[]'.
+  Type 'FooIterator' is missing the following properties from type 'Bar[]': length, pop, push, concat, and 24 more.
+
+
+==== iterableArrayPattern18.ts (3 errors) ====
+    class Bar { x }
+                ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    class Foo extends Bar { y }
+                            ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    class FooIterator {
+        next() {
+            return {
+                value: new Foo,
+                done: false
+            };
+        }
+    
+        [Symbol.iterator]() {
+            return this;
+        }
+    }
+    
+    function fun([a, b]: Bar[]) { }
+    fun(new FooIterator);
+        ~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type 'FooIterator' is not assignable to parameter of type 'Bar[]'.
+!!! error TS2345:   Type 'FooIterator' is missing the following properties from type 'Bar[]': length, pop, push, concat, and 24 more.

@@ -1,0 +1,15 @@
+parserParameterList3.ts(2,5): error TS7006: Parameter 'A' implicitly has an 'any' type.
+parserParameterList3.ts(2,9): error TS1016: A required parameter cannot follow an optional parameter.
+parserParameterList3.ts(2,9): error TS7006: Parameter 'B' implicitly has an 'any' type.
+
+
+==== parserParameterList3.ts (3 errors) ====
+    class C {
+      F(A?, B) { }
+        ~~
+!!! error TS7006: Parameter 'A' implicitly has an 'any' type.
+            ~
+!!! error TS1016: A required parameter cannot follow an optional parameter.
+            ~
+!!! error TS7006: Parameter 'B' implicitly has an 'any' type.
+    }

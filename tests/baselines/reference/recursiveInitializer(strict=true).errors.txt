@@ -1,0 +1,64 @@
+recursiveInitializer.ts(2,5): error TS7022: 'n1' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+recursiveInitializer.ts(3,18): error TS2454: Variable 'n2' is used before being assigned.
+recursiveInitializer.ts(3,23): error TS2454: Variable 'n2' is used before being assigned.
+recursiveInitializer.ts(4,5): error TS7022: 'n3' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+recursiveInitializer.ts(7,5): error TS7022: 's1' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+recursiveInitializer.ts(8,5): error TS7022: 's2' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+recursiveInitializer.ts(9,19): error TS2454: Variable 's3' is used before being assigned.
+recursiveInitializer.ts(9,24): error TS2454: Variable 's3' is used before being assigned.
+recursiveInitializer.ts(10,5): error TS7022: 's4' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+recursiveInitializer.ts(13,5): error TS7022: 'b1' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+recursiveInitializer.ts(14,5): error TS7022: 'b2' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+recursiveInitializer.ts(15,5): error TS7022: 'b3' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+recursiveInitializer.ts(16,5): error TS7022: 'b4' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+recursiveInitializer.ts(19,5): error TS7023: 'f' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+
+
+==== recursiveInitializer.ts (14 errors) ====
+    // number unless otherwise specified
+    var n1 = n1++;
+        ~~
+!!! error TS7022: 'n1' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    var n2: number = n2 + n2;
+                     ~~
+!!! error TS2454: Variable 'n2' is used before being assigned.
+                          ~~
+!!! error TS2454: Variable 'n2' is used before being assigned.
+    var n3 /* any */ = n3 + n3;
+        ~~
+!!! error TS7022: 'n3' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    
+    // string unless otherwise specified
+    var s1 = s1 + '';
+        ~~
+!!! error TS7022: 's1' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    var s2 /* any */ = s2 + s2;
+        ~~
+!!! error TS7022: 's2' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    var s3 : string = s3 + s3;
+                      ~~
+!!! error TS2454: Variable 's3' is used before being assigned.
+                           ~~
+!!! error TS2454: Variable 's3' is used before being assigned.
+    var s4 = '' + s4;
+        ~~
+!!! error TS7022: 's4' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    
+    // boolean unless otherwise specified
+    var b1 = !b1;
+        ~~
+!!! error TS7022: 'b1' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    var b2 = !!b2;
+        ~~
+!!! error TS7022: 'b2' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    var b3 = !b3 || b3; // expected boolean here. actually 'any'
+        ~~
+!!! error TS7022: 'b3' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    var b4 = (!b4) && b4; // expected boolean here. actually 'any'
+        ~~
+!!! error TS7022: 'b4' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    
+    // (x:string) => any
+    var f = (x: string) => f(x);
+        ~
+!!! error TS7023: 'f' implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.

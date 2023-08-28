@@ -1,0 +1,31 @@
+missingFunctionImplementation2_a.ts(3,19): error TS2384: Overload signatures must all be ambient or non-ambient.
+missingFunctionImplementation2_a.ts(3,21): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation2_a.ts(3,24): error TS7006: Parameter 'b' implicitly has an 'any' type.
+missingFunctionImplementation2_b.ts(1,17): error TS2391: Function implementation is missing or not immediately following the declaration.
+missingFunctionImplementation2_b.ts(1,17): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+missingFunctionImplementation2_b.ts(1,19): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation2_b.ts(1,23): error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+
+==== missingFunctionImplementation2_a.ts (3 errors) ====
+    export {};
+    declare module "./missingFunctionImplementation2_b" {
+      export function f(a, b): void;
+                      ~
+!!! error TS2384: Overload signatures must all be ambient or non-ambient.
+                        ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                           ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    }
+    
+==== missingFunctionImplementation2_b.ts (4 errors) ====
+    export function f(a?, b?);
+                    ~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+                    ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+                      ~~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                          ~~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.

@@ -1,0 +1,47 @@
+validEnumAssignments.ts(10,5): error TS2454: Variable 'e' is used before being assigned.
+validEnumAssignments.ts(14,5): error TS2454: Variable 'e' is used before being assigned.
+validEnumAssignments.ts(17,5): error TS2454: Variable 'e' is used before being assigned.
+validEnumAssignments.ts(21,1): error TS2322: Type 'null' is not assignable to type 'E'.
+validEnumAssignments.ts(22,1): error TS2322: Type 'undefined' is not assignable to type 'E'.
+validEnumAssignments.ts(26,1): error TS2322: Type '-1' is not assignable to type 'E'.
+
+
+==== validEnumAssignments.ts (6 errors) ====
+    enum E {
+        A,
+        B
+    }
+    
+    var n: number;
+    var a: any;
+    var e: E;
+    
+    n = e;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    n = E.A;
+    
+    a = n;
+    a = e;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    a = E.A;
+    
+    e = e;
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    e = E.A;
+    e = E.B;
+    e = n;
+    e = null;
+    ~
+!!! error TS2322: Type 'null' is not assignable to type 'E'.
+    e = undefined;
+    ~
+!!! error TS2322: Type 'undefined' is not assignable to type 'E'.
+    e = 1;
+    e = 1.;
+    e = 1.0;
+    e = -1;
+    ~
+!!! error TS2322: Type '-1' is not assignable to type 'E'.

@@ -1,0 +1,31 @@
+assignmentCompatWithObjectMembers5.ts(2,5): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+assignmentCompatWithObjectMembers5.ts(13,1): error TS2741: Property 'foo' is missing in type 'I' but required in type 'C'.
+assignmentCompatWithObjectMembers5.ts(13,5): error TS2454: Variable 'i' is used before being assigned.
+assignmentCompatWithObjectMembers5.ts(14,1): error TS2741: Property 'fooo' is missing in type 'C' but required in type 'I'.
+
+
+==== assignmentCompatWithObjectMembers5.ts (4 errors) ====
+    class C {
+        foo: string;
+        ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    var c: C;
+    
+    interface I {
+        fooo: string;
+    }
+    
+    var i: I;
+    
+    c = i; // error
+    ~
+!!! error TS2741: Property 'foo' is missing in type 'I' but required in type 'C'.
+!!! related TS2728 assignmentCompatWithObjectMembers5.ts:2:5: 'foo' is declared here.
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    i = c; // error
+    ~
+!!! error TS2741: Property 'fooo' is missing in type 'C' but required in type 'I'.
+!!! related TS2728 assignmentCompatWithObjectMembers5.ts:8:5: 'fooo' is declared here.

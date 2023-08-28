@@ -1,0 +1,13 @@
+returnInfiniteIntersection.ts(3,30): error TS7008: Member 'p' implicitly has an 'any' type.
+
+
+==== returnInfiniteIntersection.ts (1 errors) ====
+    function recursive() {
+        let x = <T>(subkey: T) => recursive();
+        return x as typeof x & { p };
+                                 ~
+!!! error TS7008: Member 'p' implicitly has an 'any' type.
+    }
+    
+    let result = recursive()(1)
+    

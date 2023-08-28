@@ -1,0 +1,17 @@
+//// [tests/cases/compiler/functionOverloads5.ts] ////
+
+//// [functionOverloads5.ts]
+class baz { 
+  public foo();
+  private foo(bar?:any){ }
+}
+
+
+//// [functionOverloads5.js]
+"use strict";
+var baz = /** @class */ (function () {
+    function baz() {
+    }
+    baz.prototype.foo = function (bar) { };
+    return baz;
+}());

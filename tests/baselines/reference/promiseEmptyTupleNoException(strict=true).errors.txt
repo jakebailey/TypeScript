@@ -1,0 +1,19 @@
+promiseEmptyTupleNoException.ts(2,7): error TS7034: Variable 'emails' implicitly has type 'any[]' in some locations where its type cannot be determined.
+promiseEmptyTupleNoException.ts(3,3): error TS2322: Type 'any[]' is not assignable to type '[]'.
+  Target allows only 0 element(s) but source may have more.
+promiseEmptyTupleNoException.ts(3,10): error TS7005: Variable 'emails' implicitly has an 'any[]' type.
+
+
+==== promiseEmptyTupleNoException.ts (3 errors) ====
+    export async function get(): Promise<[]> {
+      let emails = [];
+          ~~~~~~
+!!! error TS7034: Variable 'emails' implicitly has type 'any[]' in some locations where its type cannot be determined.
+      return emails;
+      ~~~~~~
+!!! error TS2322: Type 'any[]' is not assignable to type '[]'.
+!!! error TS2322:   Target allows only 0 element(s) but source may have more.
+             ~~~~~~
+!!! error TS7005: Variable 'emails' implicitly has an 'any[]' type.
+    }
+    

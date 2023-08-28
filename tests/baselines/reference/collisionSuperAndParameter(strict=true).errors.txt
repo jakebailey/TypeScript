@@ -1,0 +1,95 @@
+collisionSuperAndParameter.ts(4,20): error TS7006: Parameter 'x' implicitly has an 'any' type.
+collisionSuperAndParameter.ts(9,20): error TS7006: Parameter 'x' implicitly has an 'any' type.
+collisionSuperAndParameter.ts(18,20): error TS7006: Parameter 'x' implicitly has an 'any' type.
+collisionSuperAndParameter.ts(23,20): error TS7006: Parameter 'x' implicitly has an 'any' type.
+collisionSuperAndParameter.ts(28,12): error TS2564: Property 'prop3' has no initializer and is not definitely assigned in the constructor.
+collisionSuperAndParameter.ts(40,5): error TS7010: 'x', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionSuperAndParameter.ts(41,5): error TS7010: 'y', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionSuperAndParameter.ts(55,5): error TS7010: 'y', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionSuperAndParameter.ts(56,5): error TS7010: 'y', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionSuperAndParameter.ts(59,20): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== collisionSuperAndParameter.ts (10 errors) ====
+    class Foo {
+        a() {
+            var lamda = (_super: number) => { // No Error 
+                return x => this;   // New scope.  So should inject new _this capture
+                       ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            }
+        }
+        b(_super: number) { // No Error 
+            var lambda = () => {
+                return x => this;   // New scope.  So should inject new _this capture
+                       ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            }
+        }
+        set c(_super: number) { // No error
+        }
+    }
+    class Foo2 extends Foo {
+        x() {
+            var lamda = (_super: number) => { // Error 
+                return x => this;   // New scope.  So should inject new _this capture
+                       ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            }
+        }
+        y(_super: number) { // Error 
+            var lambda = () => {
+                return x => this;   // New scope.  So should inject new _this capture
+                       ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            }
+        }
+        set z(_super: number) { // Error
+        }
+        public prop3: {
+               ~~~~~
+!!! error TS2564: Property 'prop3' has no initializer and is not definitely assigned in the constructor.
+            doStuff: (_super: number) => void; // no error - no code gen
+        }
+        public prop4 = {
+            doStuff: (_super: number) => { // should be error
+            }
+        }
+        constructor(_super: number) { // should be error
+            super();
+        }
+    }
+    declare class Foo3 extends Foo {
+        x();
+        ~
+!!! error TS7010: 'x', which lacks return-type annotation, implicitly has an 'any' return type.
+        y(_super: number); // No error - no code gen
+        ~
+!!! error TS7010: 'y', which lacks return-type annotation, implicitly has an 'any' return type.
+        constructor(_super: number); // No error - no code gen
+        public prop2: {
+            doStuff: (_super: number) => void; // no error - no code gen
+        };
+        public _super: number; // No error
+    }
+    
+    class Foo4 extends Foo {
+        constructor(_super: number); // no code gen - no error
+        constructor(_super: string);// no code gen - no error
+        constructor(_super: any) { // should be error
+            super();
+        }
+        y(_super: number); // no code gen - no error
+        ~
+!!! error TS7010: 'y', which lacks return-type annotation, implicitly has an 'any' return type.
+        y(_super: string); // no code gen - no error
+        ~
+!!! error TS7010: 'y', which lacks return-type annotation, implicitly has an 'any' return type.
+        y(_super: any) { // Error 
+            var lambda = () => {
+                return x => this;   // New scope.  So should inject new _this capture
+                       ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            }
+        }
+    }

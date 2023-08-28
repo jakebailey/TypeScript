@@ -1,0 +1,38 @@
+classWithMultipleBaseClasses.ts(10,5): error TS7010: 'baz', which lacks return-type annotation, implicitly has an 'any' return type.
+classWithMultipleBaseClasses.ts(14,5): error TS7010: 'bat', which lacks return-type annotation, implicitly has an 'any' return type.
+classWithMultipleBaseClasses.ts(18,7): error TS2420: Class 'D' incorrectly implements interface 'I'.
+  Type 'D' is missing the following properties from type 'I': foo, bar
+
+
+==== classWithMultipleBaseClasses.ts (3 errors) ====
+    class A {
+        foo() { }
+    }
+    
+    class B {
+        bar() { }
+    }
+    
+    interface I {
+        baz();
+        ~~~~~~
+!!! error TS7010: 'baz', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    interface J {
+        bat();
+        ~~~~~~
+!!! error TS7010: 'bat', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    
+    class D implements I, J {
+          ~
+!!! error TS2420: Class 'D' incorrectly implements interface 'I'.
+!!! error TS2420:   Type 'D' is missing the following properties from type 'I': foo, bar
+        baz() { }
+        bat() { }
+    }
+    
+    interface I extends A, B {
+    }

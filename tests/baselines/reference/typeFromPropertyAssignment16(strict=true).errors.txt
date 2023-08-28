@@ -1,0 +1,25 @@
+a.js(11,1): error TS2454: Variable 'inner' is used before being assigned.
+a.js(12,1): error TS2454: Variable 'inner' is used before being assigned.
+
+
+==== a.js (2 errors) ====
+    var Outer = {};
+    
+    Outer.Inner = function () {}
+    Outer.Inner.prototype = {
+        x: 1,
+        m() { }
+    }
+    
+    /** @type {Outer.Inner} */
+    var inner
+    inner.x
+    ~~~~~
+!!! error TS2454: Variable 'inner' is used before being assigned.
+    inner.m()
+    ~~~~~
+!!! error TS2454: Variable 'inner' is used before being assigned.
+    var inno = new Outer.Inner()
+    inno.x
+    inno.m()
+    

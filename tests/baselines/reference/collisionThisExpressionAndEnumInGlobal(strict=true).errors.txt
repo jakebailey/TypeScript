@@ -1,0 +1,11 @@
+collisionThisExpressionAndEnumInGlobal.ts(5,15): error TS7041: The containing arrow function captures the global value of 'this'.
+
+
+==== collisionThisExpressionAndEnumInGlobal.ts (1 errors) ====
+    enum _this { // Error
+        _thisVal1,
+        _thisVal2,
+    }
+    var f = () => this;
+                  ~~~~
+!!! error TS7041: The containing arrow function captures the global value of 'this'.

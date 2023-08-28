@@ -1,0 +1,9 @@
+parserFunctionDeclaration8.ts(2,13): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== parserFunctionDeclaration8.ts (1 errors) ====
+    declare module M {
+       function foo();
+                ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }

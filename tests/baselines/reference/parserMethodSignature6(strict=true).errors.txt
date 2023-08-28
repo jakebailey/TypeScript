@@ -1,0 +1,9 @@
+parserMethodSignature6.ts(2,3): error TS7010: '"F"', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== parserMethodSignature6.ts (1 errors) ====
+    interface I {
+      "F"?();
+      ~~~~~~~
+!!! error TS7010: '"F"', which lacks return-type annotation, implicitly has an 'any' return type.
+    }

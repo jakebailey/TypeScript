@@ -1,0 +1,41 @@
+error TS-1: Pre-emit (6) and post-emit (7) diagnostic counts do not match! This can indicate that a semantic _error_ was added by the emit resolver - such an error may not be reflected on the command line or in the editor, but may be captured in a baseline here!
+error TS2318: Cannot find global type 'CallableFunction'.
+error TS2318: Cannot find global type 'NewableFunction'.
+b.ts(1,18): error TS7010: 'dec', which lacks return-type annotation, implicitly has an 'any' return type.
+b.ts(1,22): error TS7006: Parameter 't' implicitly has an 'any' type.
+b.ts(1,25): error TS7006: Parameter 'k' implicitly has an 'any' type.
+b.ts(1,28): error TS7006: Parameter 'd' implicitly has an 'any' type.
+
+
+!!! error TS-1: Pre-emit (6) and post-emit (7) diagnostic counts do not match! This can indicate that a semantic _error_ was added by the emit resolver - such an error may not be reflected on the command line or in the editor, but may be captured in a baseline here!
+!!! related TS-1: The excess diagnostics are:
+!!! related TS2318: Cannot find global type 'TypedPropertyDescriptor'.
+!!! error TS2318: Cannot find global type 'CallableFunction'.
+!!! error TS2318: Cannot find global type 'NewableFunction'.
+==== a.ts (0 errors) ====
+    interface Object { }
+    interface Array<T> { }
+    interface String { }
+    interface Boolean { }
+    interface Number { }
+    interface Function { }
+    interface RegExp { }
+    interface IArguments { }
+    
+==== b.ts (4 errors) ====
+    declare function dec(t, k, d);
+                     ~~~
+!!! error TS7010: 'dec', which lacks return-type annotation, implicitly has an 'any' return type.
+                         ~
+!!! error TS7006: Parameter 't' implicitly has an 'any' type.
+                            ~
+!!! error TS7006: Parameter 'k' implicitly has an 'any' type.
+                               ~
+!!! error TS7006: Parameter 'd' implicitly has an 'any' type.
+    
+    class C {
+        @dec
+        method() {}
+    }
+    
+    

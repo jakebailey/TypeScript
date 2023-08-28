@@ -1,0 +1,16 @@
+npm.js(1,38): error TS7006: Parameter 'tree' implicitly has an 'any' type.
+npm.js(3,44): error TS7006: Parameter 'tree' implicitly has an 'any' type.
+
+
+==== npm.js (2 errors) ====
+    var npm = module.exports = function (tree) {
+                                         ~~~~
+!!! error TS7006: Parameter 'tree' implicitly has an 'any' type.
+    }
+    module.exports.asReadInstalled = function (tree) {
+                                               ~~~~
+!!! error TS7006: Parameter 'tree' implicitly has an 'any' type.
+        npm(tree) // both references should be callable
+        module.exports(tree)
+    }
+    

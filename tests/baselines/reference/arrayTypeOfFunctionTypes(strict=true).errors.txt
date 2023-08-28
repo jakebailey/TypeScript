@@ -1,0 +1,39 @@
+arrayTypeOfFunctionTypes.ts(4,9): error TS2454: Variable 'x' is used before being assigned.
+arrayTypeOfFunctionTypes.ts(4,9): error TS7053: Element implicitly has an 'any' type because expression of type '1' can't be used to index type '() => string[]'.
+  Property '1' does not exist on type '() => string[]'.
+arrayTypeOfFunctionTypes.ts(9,10): error TS2454: Variable 'x2' is used before being assigned.
+arrayTypeOfFunctionTypes.ts(11,11): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+arrayTypeOfFunctionTypes.ts(14,10): error TS2454: Variable 'x2' is used before being assigned.
+arrayTypeOfFunctionTypes.ts(16,11): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+
+
+==== arrayTypeOfFunctionTypes.ts (6 errors) ====
+    // valid uses of arrays of function types
+    
+    var x: () => string[];
+    var r = x[1];
+            ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+            ~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '1' can't be used to index type '() => string[]'.
+!!! error TS7053:   Property '1' does not exist on type '() => string[]'.
+    var r2 = r();
+    var r2b = new r();
+    
+    var x2: { (): string }[];
+    var r3 = x2[1];
+             ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
+    var r4 = r3();
+    var r4b = new r3(); // error
+              ~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+    
+    var x3: Array<() => string>;
+    var r5 = x2[1];
+             ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
+    var r6 = r5();
+    var r6b = new r5(); // error
+              ~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.

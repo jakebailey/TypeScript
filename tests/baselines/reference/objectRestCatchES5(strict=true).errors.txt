@@ -1,0 +1,11 @@
+objectRestCatchES5.ts(2,17): error TS2339: Property 'a' does not exist on type 'unknown'.
+objectRestCatchES5.ts(2,23): error TS2700: Rest types may only be created from object types.
+
+
+==== objectRestCatchES5.ts (2 errors) ====
+    let a = 1, b = 2;
+    try {} catch ({ a, ...b }) {}
+                    ~
+!!! error TS2339: Property 'a' does not exist on type 'unknown'.
+                          ~
+!!! error TS2700: Rest types may only be created from object types.

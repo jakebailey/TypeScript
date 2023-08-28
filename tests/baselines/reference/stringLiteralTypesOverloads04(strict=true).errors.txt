@@ -1,0 +1,12 @@
+stringLiteralTypesOverloads04.ts(1,18): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== stringLiteralTypesOverloads04.ts (1 errors) ====
+    declare function f(x: (p: "foo" | "bar") => "foo");
+                     ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    f(y => {
+        const z = y = "foo";
+        return z;
+    })

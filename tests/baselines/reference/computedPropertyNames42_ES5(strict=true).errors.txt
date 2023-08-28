@@ -1,0 +1,27 @@
+computedPropertyNames42_ES5.ts(1,13): error TS7008: Member 'x' implicitly has an 'any' type.
+computedPropertyNames42_ES5.ts(2,14): error TS7008: Member 'x' implicitly has an 'any' type.
+computedPropertyNames42_ES5.ts(2,17): error TS7008: Member 'y' implicitly has an 'any' type.
+computedPropertyNames42_ES5.ts(8,5): error TS2411: Property '[""]' of type 'Foo' is not assignable to 'string' index type 'Foo2'.
+computedPropertyNames42_ES5.ts(8,5): error TS2564: Property '[""]' has no initializer and is not definitely assigned in the constructor.
+
+
+==== computedPropertyNames42_ES5.ts (5 errors) ====
+    class Foo { x }
+                ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    class Foo2 { x; y }
+                 ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+                    ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    
+    class C {
+        [s: string]: Foo2;
+    
+        // Computed properties
+        [""]: Foo;
+        ~~~~
+!!! error TS2411: Property '[""]' of type 'Foo' is not assignable to 'string' index type 'Foo2'.
+        ~~~~
+!!! error TS2564: Property '[""]' has no initializer and is not definitely assigned in the constructor.
+    }

@@ -1,0 +1,47 @@
+compoundAdditionAssignmentLHSCannotBeAssigned.ts(5,1): error TS2322: Type 'string' is not assignable to type 'boolean'.
+compoundAdditionAssignmentLHSCannotBeAssigned.ts(5,1): error TS2454: Variable 'x1' is used before being assigned.
+compoundAdditionAssignmentLHSCannotBeAssigned.ts(8,1): error TS2322: Type 'string' is not assignable to type 'number'.
+compoundAdditionAssignmentLHSCannotBeAssigned.ts(8,1): error TS2454: Variable 'x2' is used before being assigned.
+compoundAdditionAssignmentLHSCannotBeAssigned.ts(11,1): error TS2322: Type 'string' is not assignable to type 'E'.
+compoundAdditionAssignmentLHSCannotBeAssigned.ts(11,1): error TS2454: Variable 'x3' is used before being assigned.
+compoundAdditionAssignmentLHSCannotBeAssigned.ts(14,1): error TS2322: Type 'string' is not assignable to type '{ a: string; }'.
+compoundAdditionAssignmentLHSCannotBeAssigned.ts(14,1): error TS2454: Variable 'x4' is used before being assigned.
+compoundAdditionAssignmentLHSCannotBeAssigned.ts(17,1): error TS2322: Type 'string' is not assignable to type 'void'.
+
+
+==== compoundAdditionAssignmentLHSCannotBeAssigned.ts (9 errors) ====
+    // string can add every type, and result string cannot be assigned to below types
+    enum E { a, b, c }
+    
+    var x1: boolean;
+    x1 += '';
+    ~~
+!!! error TS2322: Type 'string' is not assignable to type 'boolean'.
+    ~~
+!!! error TS2454: Variable 'x1' is used before being assigned.
+    
+    var x2: number;
+    x2 += '';
+    ~~
+!!! error TS2322: Type 'string' is not assignable to type 'number'.
+    ~~
+!!! error TS2454: Variable 'x2' is used before being assigned.
+    
+    var x3: E;
+    x3 += '';
+    ~~
+!!! error TS2322: Type 'string' is not assignable to type 'E'.
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
+    
+    var x4: {a: string};
+    x4 += '';
+    ~~
+!!! error TS2322: Type 'string' is not assignable to type '{ a: string; }'.
+    ~~
+!!! error TS2454: Variable 'x4' is used before being assigned.
+    
+    var x5: void;
+    x5 += '';
+    ~~
+!!! error TS2322: Type 'string' is not assignable to type 'void'.

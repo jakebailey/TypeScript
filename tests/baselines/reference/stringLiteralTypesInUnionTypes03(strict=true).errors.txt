@@ -1,0 +1,34 @@
+stringLiteralTypesInUnionTypes03.ts(4,5): error TS2322: Type 'undefined' is not assignable to type 'T'.
+stringLiteralTypesInUnionTypes03.ts(6,5): error TS2454: Variable 'x' is used before being assigned.
+stringLiteralTypesInUnionTypes03.ts(9,10): error TS2454: Variable 'x' is used before being assigned.
+stringLiteralTypesInUnionTypes03.ts(10,13): error TS2454: Variable 'x' is used before being assigned.
+
+
+==== stringLiteralTypesInUnionTypes03.ts (4 errors) ====
+    type T = number | "foo" | "bar";
+    
+    var x: "foo" | "bar" | number;
+    var y: T = undefined;
+        ~
+!!! error TS2322: Type 'undefined' is not assignable to type 'T'.
+    
+    if (x === "foo") {
+        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+        let a = x;
+    }
+    else if (x !== "bar") {
+             ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+        let b = x || y;
+                ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    }
+    else {
+        let c = x;
+        let d = y;
+        let e: (typeof x) | (typeof y) = c || d;
+    }
+    
+    x = y;
+    y = x;

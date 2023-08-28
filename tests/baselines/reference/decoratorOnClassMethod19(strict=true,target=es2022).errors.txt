@@ -1,0 +1,28 @@
+decoratorOnClassMethod19.ts(5,5): error TS7008: Member '#x' implicitly has an 'any' type.
+decoratorOnClassMethod19.ts(12,5): error TS7008: Member '#x' implicitly has an 'any' type.
+decoratorOnClassMethod19.ts(14,7): error TS7006: Parameter 'p' implicitly has an 'any' type.
+
+
+==== decoratorOnClassMethod19.ts (3 errors) ====
+    // https://github.com/microsoft/TypeScript/issues/48515
+    declare var decorator: any;
+    
+    class C1 {
+        #x
+        ~~
+!!! error TS7008: Member '#x' implicitly has an 'any' type.
+    
+        @decorator((x: C1) => x.#x)
+        y() {}
+    }
+    
+    class C2 {
+        #x
+        ~~
+!!! error TS7008: Member '#x' implicitly has an 'any' type.
+    
+        y(@decorator((x: C2) => x.#x) p) {}
+          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7006: Parameter 'p' implicitly has an 'any' type.
+    }
+    

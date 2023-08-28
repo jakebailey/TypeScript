@@ -1,0 +1,70 @@
+index.js(17,11): error TS7006: Parameter 'n' implicitly has an 'any' type.
+index.js(18,9): error TS7006: Parameter 'n' implicitly has an 'any' type.
+index.js(19,11): error TS7006: Parameter 'n' implicitly has an 'any' type.
+index.js(41,10): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ START: string; MIDDLE: string; END: string; OK_I_GUESS: number; }'.
+  No index signature with a parameter of type 'string' was found on type '{ START: string; MIDDLE: string; END: string; OK_I_GUESS: number; }'.
+index.js(45,16): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ START: string; MIDDLE: string; END: string; OK_I_GUESS: number; }'.
+  No index signature with a parameter of type 'string' was found on type '{ START: string; MIDDLE: string; END: string; OK_I_GUESS: number; }'.
+
+
+==== index.js (5 errors) ====
+    /** @enum {string} */
+    export const Target = {
+        START: "start",
+        MIDDLE: "middle",
+        END: "end",
+        /** @type {number} */
+        OK_I_GUESS: 2
+    }
+    /** @enum number */
+    export const Second = {
+        OK: 1,
+        /** @type {number} */
+        FINE: 2,
+    }
+    /** @enum {function(number): number} */
+    export const Fs = {
+        ADD1: n => n + 1,
+              ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+        ID: n => n,
+            ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+        SUB1: n => n - 1
+              ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+    }
+    
+    /**
+     * @param {Target} t
+     * @param {Second} s
+     * @param {Fs} f
+     */
+    export function consume(t,s,f) {
+        /** @type {string} */
+        var str = t
+        /** @type {number} */
+        var num = s
+        /** @type {(n: number) => number} */
+        var fun = f
+        /** @type {Target} */
+        var v = Target.START
+        v = 'something else' // allowed, like Typescript's classic enums and unlike its string enums
+    }
+    /** @param {string} s */
+    export function ff(s) {
+        // element access with arbitrary string is an error only with noImplicitAny
+        if (!Target[s]) {
+             ~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ START: string; MIDDLE: string; END: string; OK_I_GUESS: number; }'.
+!!! error TS7053:   No index signature with a parameter of type 'string' was found on type '{ START: string; MIDDLE: string; END: string; OK_I_GUESS: number; }'.
+            return null
+        }
+        else {
+            return Target[s]
+                   ~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type '{ START: string; MIDDLE: string; END: string; OK_I_GUESS: number; }'.
+!!! error TS7053:   No index signature with a parameter of type 'string' was found on type '{ START: string; MIDDLE: string; END: string; OK_I_GUESS: number; }'.
+        }
+    }
+    

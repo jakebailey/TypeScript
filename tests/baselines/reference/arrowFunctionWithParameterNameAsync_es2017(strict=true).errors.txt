@@ -1,0 +1,7 @@
+arrowFunctionWithParameterNameAsync_es2017.ts(1,11): error TS7006: Parameter 'async' implicitly has an 'any' type.
+
+
+==== arrowFunctionWithParameterNameAsync_es2017.ts (1 errors) ====
+    const x = async => async;
+              ~~~~~
+!!! error TS7006: Parameter 'async' implicitly has an 'any' type.

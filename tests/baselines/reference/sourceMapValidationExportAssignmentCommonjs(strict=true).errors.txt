@@ -1,0 +1,10 @@
+sourceMapValidationExportAssignmentCommonjs.ts(2,12): error TS7008: Member 'c' implicitly has an 'any' type.
+
+
+==== sourceMapValidationExportAssignmentCommonjs.ts (1 errors) ====
+    class a {
+        public c;
+               ~
+!!! error TS7008: Member 'c' implicitly has an 'any' type.
+    }
+    export = a;

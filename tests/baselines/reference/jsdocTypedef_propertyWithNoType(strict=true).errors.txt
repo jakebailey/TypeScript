@@ -1,0 +1,15 @@
+/a.js(3,4): error TS7005: Variable 'foo' implicitly has an 'any' type.
+
+
+==== /a.js (1 errors) ====
+    /**
+     * @typedef Foo
+     * @property foo
+       ~~~~~~~~~~~~~
+     */
+    ~
+!!! error TS7005: Variable 'foo' implicitly has an 'any' type.
+    
+    /** @type {Foo} */
+    const x = { foo: 0 };
+    

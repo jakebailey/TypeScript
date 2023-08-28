@@ -1,0 +1,37 @@
+//// [tests/cases/compiler/contextualTypingTwoInstancesOfSameTypeParameter.ts] ////
+
+=== contextualTypingTwoInstancesOfSameTypeParameter.ts ===
+function f6<T>(x: (a: T) => T) {
+>f6 : <T>(x: (a: T) => T) => null
+>   : ^ ^^^^^           ^^^^^^^^^
+>x : (a: T) => T
+>  : ^^^^ ^^^^^ 
+>a : T
+>  : ^
+
+    return null;
+} 
+f6(x => f6(y => x = y));
+>f6(x => f6(y => x = y)) : null
+>                        : ^^^^
+>f6 : <T>(x: (a: T) => T) => null
+>   : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>x => f6(y => x = y) : (x: unknown) => null
+>                    : ^^^^^^^^^^^^^^^^^^^^
+>x : unknown
+>  : ^^^^^^^
+>f6(y => x = y) : null
+>               : ^^^^
+>f6 : <T>(x: (a: T) => T) => null
+>   : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>y => x = y : (y: unknown) => unknown
+>           : ^^^^^^^^^^^^^^^^^^^^^^^
+>y : unknown
+>  : ^^^^^^^
+>x = y : unknown
+>      : ^^^^^^^
+>x : unknown
+>  : ^^^^^^^
+>y : unknown
+>  : ^^^^^^^
+

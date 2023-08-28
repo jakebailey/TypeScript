@@ -1,0 +1,11 @@
+overloadOnConstNoNonSpecializedSignature.ts(2,4): error TS7010: 'x1', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== overloadOnConstNoNonSpecializedSignature.ts (1 errors) ====
+    class C {
+       x1(a: 'hi'); // error, no non-specialized signature in overload list
+       ~~
+!!! error TS7010: 'x1', which lacks return-type annotation, implicitly has an 'any' return type.
+       x1(a: string) { }
+    }
+    

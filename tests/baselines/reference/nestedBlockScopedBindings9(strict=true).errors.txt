@@ -1,0 +1,26 @@
+nestedBlockScopedBindings9.ts(2,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+nestedBlockScopedBindings9.ts(3,11): error TS7005: Variable 'x' implicitly has an 'any' type.
+nestedBlockScopedBindings9.ts(8,13): error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+nestedBlockScopedBindings9.ts(9,15): error TS7005: Variable 'y' implicitly has an 'any' type.
+
+
+==== nestedBlockScopedBindings9.ts (4 errors) ====
+    {
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+        () => x;
+              ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    }
+    
+    switch (1) {
+        case 1:
+            let y;
+                ~
+!!! error TS7034: Variable 'y' implicitly has type 'any' in some locations where its type cannot be determined.
+            () => y;
+                  ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+            break;
+    }

@@ -1,0 +1,30 @@
+service.ts(1,8): error TS2613: Module '"db"' has no default export. Did you mean to use 'import { db } from "db"' instead?
+service.ts(2,24): error TS7006: Parameter 'target' implicitly has an 'any' type.
+
+
+==== db.ts (0 errors) ====
+    export class db {
+        public doSomething() {
+        }
+    }
+    
+==== service.ts (2 errors) ====
+    import db from './db'; // error no default export
+           ~~
+!!! error TS2613: Module '"db"' has no default export. Did you mean to use 'import { db } from "db"' instead?
+    function someDecorator(target) {
+                           ~~~~~~
+!!! error TS7006: Parameter 'target' implicitly has an 'any' type.
+        return target;
+    }
+    @someDecorator
+    class MyClass {
+        db: db.db;
+    
+        constructor(db: db.db) {
+            this.db = db;
+            this.db.doSomething();
+        }
+    }
+    export {MyClass};
+    

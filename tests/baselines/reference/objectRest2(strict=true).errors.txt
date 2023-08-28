@@ -1,0 +1,23 @@
+objectRest2.ts(5,21): error TS7006: Parameter 'context' implicitly has an 'any' type.
+objectRest2.ts(5,30): error TS7006: Parameter 'args' implicitly has an 'any' type.
+
+
+==== objectRest2.ts (2 errors) ====
+    // test for #12203
+    declare function connectionFromArray(objects: number, args: any): {};
+    function rootConnection(name: string) {
+      return {
+        resolve: async (context, args) => {
+                        ~~~~~~~
+!!! error TS7006: Parameter 'context' implicitly has an 'any' type.
+                                 ~~~~
+!!! error TS7006: Parameter 'args' implicitly has an 'any' type.
+            const { objects } = await { objects: 12 };
+          return {
+            ...connectionFromArray(objects, args)
+          };
+        }
+      };
+    }
+    rootConnection('test');
+    

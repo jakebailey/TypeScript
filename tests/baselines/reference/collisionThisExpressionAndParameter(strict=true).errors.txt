@@ -1,0 +1,166 @@
+collisionThisExpressionAndParameter.ts(5,20): error TS7006: Parameter 'x' implicitly has an 'any' type.
+collisionThisExpressionAndParameter.ts(5,25): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+collisionThisExpressionAndParameter.ts(10,20): error TS7006: Parameter 'x' implicitly has an 'any' type.
+collisionThisExpressionAndParameter.ts(15,20): error TS7006: Parameter 'x' implicitly has an 'any' type.
+collisionThisExpressionAndParameter.ts(36,23): error TS7006: Parameter 'callback' implicitly has an 'any' type.
+collisionThisExpressionAndParameter.ts(43,5): error TS7010: 'log', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionThisExpressionAndParameter.ts(47,5): error TS7006: Parameter 'x' implicitly has an 'any' type.
+collisionThisExpressionAndParameter.ts(47,24): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+collisionThisExpressionAndParameter.ts(52,5): error TS7010: 'z', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionThisExpressionAndParameter.ts(54,18): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionThisExpressionAndParameter.ts(61,23): error TS7006: Parameter 'callback' implicitly has an 'any' type.
+collisionThisExpressionAndParameter.ts(67,5): error TS7010: 'z', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionThisExpressionAndParameter.ts(68,5): error TS7010: 'z', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionThisExpressionAndParameter.ts(71,20): error TS7006: Parameter 'x' implicitly has an 'any' type.
+collisionThisExpressionAndParameter.ts(76,5): error TS7010: 'log', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionThisExpressionAndParameter.ts(79,10): error TS7010: 'f3', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionThisExpressionAndParameter.ts(80,10): error TS7010: 'f3', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionThisExpressionAndParameter.ts(82,5): error TS7006: Parameter 'x' implicitly has an 'any' type.
+collisionThisExpressionAndParameter.ts(82,24): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+collisionThisExpressionAndParameter.ts(88,5): error TS7010: 'z', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionThisExpressionAndParameter.ts(89,5): error TS7010: 'z', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionThisExpressionAndParameter.ts(92,18): error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+collisionThisExpressionAndParameter.ts(93,18): error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== collisionThisExpressionAndParameter.ts (23 errors) ====
+    class Foo {
+        x() {
+            var _this = 10; // Local var. No this capture in x(), so no conflict.
+            function inner(_this: number) { // Error 
+                return x => this;   // New scope.  So should inject new _this capture into function inner
+                       ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                            ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+!!! related TS2738 collisionThisExpressionAndParameter.ts:4:18: An outer value of 'this' is shadowed by this container.
+            }
+        }
+        y() {
+            var lamda = (_this: number) => { // Error 
+                return x => this;   // New scope.  So should inject new _this capture
+                       ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            }
+        }
+        z(_this: number) { // Error 
+            var lambda = () => {
+                return x => this;   // New scope.  So should inject new _this capture
+                       ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            }
+        }
+    
+        x1() {
+            var _this = 10; // Local var. No this capture in x(), so no conflict.
+            function inner(_this: number) { // No Error 
+            }
+        }
+        y1() {
+            var lamda = (_this: number) => { // No Error 
+            }
+        }
+        z1(_this: number) { // No Error 
+            var lambda = () => {
+            }
+        }
+    }
+    class Foo1 {
+        constructor(_this: number) { // Error
+            var x2 = {
+                doStuff: (callback) => () => {
+                          ~~~~~~~~
+!!! error TS7006: Parameter 'callback' implicitly has an 'any' type.
+                    return callback(this);
+                }
+            }
+        }
+    }
+    declare var console: {
+        log(msg: any);
+        ~~~~~~~~~~~~~~
+!!! error TS7010: 'log', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    function f1(_this: number) {
+        x => { console.log(this.x); };
+        ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                           ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+    }
+    
+    declare class Foo2 {
+        constructor(_this: number); // no error - no code gen
+        z(_this: number); // no error - no code gen
+        ~
+!!! error TS7010: 'z', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    declare function f2(_this: number); // no error
+                     ~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    class Foo3 {
+        constructor(_this: string); // no code gen - no error
+        constructor(_this: number); // no code gen - no error
+        constructor(_this: any) { // Error
+            var x2 = {
+                doStuff: (callback) => () => {
+                          ~~~~~~~~
+!!! error TS7006: Parameter 'callback' implicitly has an 'any' type.
+                    return callback(this);
+                }
+            }
+        }
+    
+        z(_this: string); // no code gen - no error
+        ~
+!!! error TS7010: 'z', which lacks return-type annotation, implicitly has an 'any' return type.
+        z(_this: number); // no code gen - no error
+        ~
+!!! error TS7010: 'z', which lacks return-type annotation, implicitly has an 'any' return type.
+        z(_this: any) { // Error 
+            var lambda = () => {
+                return x => this;   // New scope.  So should inject new _this capture
+                       ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            }
+        }
+    }
+    declare var console: {
+        log(msg: any);
+        ~~~~~~~~~~~~~~
+!!! error TS7010: 'log', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    function f3(_this: number); // no code gen - no error
+             ~~
+!!! error TS7010: 'f3', which lacks return-type annotation, implicitly has an 'any' return type.
+    function f3(_this: string); // no code gen - no error
+             ~~
+!!! error TS7010: 'f3', which lacks return-type annotation, implicitly has an 'any' return type.
+    function f3(_this: any) {
+        x => { console.log(this.x); };
+        ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                           ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+    }
+    
+    declare class Foo4 {
+        constructor(_this: string); // no code gen - no error
+        constructor(_this: number); // no code gen - no error
+        z(_this: string); // no code gen - no error
+        ~
+!!! error TS7010: 'z', which lacks return-type annotation, implicitly has an 'any' return type.
+        z(_this: number); // no code gen - no error
+        ~
+!!! error TS7010: 'z', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    declare function f4(_this: number); // no code gen - no error
+                     ~~
+!!! error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.
+    declare function f4(_this: string); // no code gen - no error
+                     ~~
+!!! error TS7010: 'f4', which lacks return-type annotation, implicitly has an 'any' return type.

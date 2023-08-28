@@ -1,0 +1,23 @@
+assignmentCompatability37.ts(6,21): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+assignmentCompatability37.ts(7,28): error TS2454: Variable 'aa' is used before being assigned.
+assignmentCompatability37.ts(9,1): error TS2322: Type 'interfaceWithPublicAndOptional<number, string>' is not assignable to type 'new <Tnumber>(param: Tnumber) => any'.
+  Type 'interfaceWithPublicAndOptional<number, string>' provides no match for the signature 'new <Tnumber>(param: Tnumber): any'.
+
+
+==== assignmentCompatability37.ts (3 errors) ====
+    module __test1__ {
+        export interface interfaceWithPublicAndOptional<T,U> { one: T; two?: U; };  var obj4: interfaceWithPublicAndOptional<number,string> = { one: 1 };;
+        export var __val__obj4 = obj4;
+    }
+    module __test2__ {
+        export var aa:{ new <Tnumber>(param: Tnumber); };;
+                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        export var __val__aa = aa;
+                               ~~
+!!! error TS2454: Variable 'aa' is used before being assigned.
+    }
+    __test2__.__val__aa = __test1__.__val__obj4
+    ~~~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type 'interfaceWithPublicAndOptional<number, string>' is not assignable to type 'new <Tnumber>(param: Tnumber) => any'.
+!!! error TS2322:   Type 'interfaceWithPublicAndOptional<number, string>' provides no match for the signature 'new <Tnumber>(param: Tnumber): any'.

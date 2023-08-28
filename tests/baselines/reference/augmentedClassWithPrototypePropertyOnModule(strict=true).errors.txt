@@ -1,0 +1,18 @@
+augmentedClassWithPrototypePropertyOnModule.ts(2,9): error TS7005: Variable 'f' implicitly has an 'any' type.
+augmentedClassWithPrototypePropertyOnModule.ts(3,9): error TS2300: Duplicate identifier 'prototype'.
+augmentedClassWithPrototypePropertyOnModule.ts(3,9): error TS7005: Variable 'prototype' implicitly has an 'any' type.
+
+
+==== augmentedClassWithPrototypePropertyOnModule.ts (3 errors) ====
+    declare module m {
+        var f;
+            ~
+!!! error TS7005: Variable 'f' implicitly has an 'any' type.
+        var prototype; // This should be error since prototype would be static property on class m
+            ~~~~~~~~~
+!!! error TS2300: Duplicate identifier 'prototype'.
+            ~~~~~~~~~
+!!! error TS7005: Variable 'prototype' implicitly has an 'any' type.
+    }
+    declare class m {
+    }

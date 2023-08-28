@@ -1,0 +1,355 @@
+typeArgumentInferenceConstructSignatures.ts(3,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+typeArgumentInferenceConstructSignatures.ts(6,5): error TS2454: Variable 'noParams' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(7,5): error TS2454: Variable 'noParams' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(8,5): error TS2454: Variable 'noParams' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(12,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+typeArgumentInferenceConstructSignatures.ts(15,5): error TS2454: Variable 'noGenericParams' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(16,5): error TS2454: Variable 'noGenericParams' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(17,5): error TS2454: Variable 'noGenericParams' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(21,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+typeArgumentInferenceConstructSignatures.ts(24,5): error TS2454: Variable 'someGenerics1' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(25,5): error TS2454: Variable 'someGenerics1' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(25,35): error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+typeArgumentInferenceConstructSignatures.ts(26,5): error TS2454: Variable 'someGenerics1' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(30,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+typeArgumentInferenceConstructSignatures.ts(33,5): error TS2454: Variable 'someGenerics2a' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(34,5): error TS2454: Variable 'someGenerics2a' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(35,5): error TS2454: Variable 'someGenerics2a' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(38,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+typeArgumentInferenceConstructSignatures.ts(41,5): error TS2454: Variable 'someGenerics2b' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(42,5): error TS2454: Variable 'someGenerics2b' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(43,5): error TS2454: Variable 'someGenerics2b' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(47,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+typeArgumentInferenceConstructSignatures.ts(50,5): error TS2454: Variable 'someGenerics3' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(51,5): error TS2454: Variable 'someGenerics3' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(51,33): error TS2322: Type 'undefined' is not assignable to type 'Window'.
+typeArgumentInferenceConstructSignatures.ts(52,5): error TS2454: Variable 'someGenerics3' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(56,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+typeArgumentInferenceConstructSignatures.ts(59,5): error TS2454: Variable 'someGenerics4' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(60,5): error TS2454: Variable 'someGenerics4' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(61,5): error TS2454: Variable 'someGenerics4' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(61,39): error TS2345: Argument of type '(x: string) => string' is not assignable to parameter of type '(x: number) => void'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'number' is not assignable to type 'string'.
+typeArgumentInferenceConstructSignatures.ts(62,5): error TS2454: Variable 'someGenerics4' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(62,35): error TS2345: Argument of type 'null' is not assignable to parameter of type 'string'.
+typeArgumentInferenceConstructSignatures.ts(66,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+typeArgumentInferenceConstructSignatures.ts(69,5): error TS2454: Variable 'someGenerics5' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(70,5): error TS2454: Variable 'someGenerics5' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(71,5): error TS2454: Variable 'someGenerics5' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(71,39): error TS2345: Argument of type '(x: string) => string' is not assignable to parameter of type '(x: number) => void'.
+  Types of parameters 'x' and 'x' are incompatible.
+    Type 'number' is not assignable to type 'string'.
+typeArgumentInferenceConstructSignatures.ts(72,5): error TS2454: Variable 'someGenerics5' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(72,35): error TS2345: Argument of type 'null' is not assignable to parameter of type 'number'.
+typeArgumentInferenceConstructSignatures.ts(76,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+typeArgumentInferenceConstructSignatures.ts(79,5): error TS2454: Variable 'someGenerics6' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(80,5): error TS2454: Variable 'someGenerics6' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(81,5): error TS2454: Variable 'someGenerics6' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(81,45): error TS2345: Argument of type '(n: string) => string' is not assignable to parameter of type '(b: number) => number'.
+  Types of parameters 'n' and 'b' are incompatible.
+    Type 'number' is not assignable to type 'string'.
+typeArgumentInferenceConstructSignatures.ts(82,5): error TS2454: Variable 'someGenerics6' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(86,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+typeArgumentInferenceConstructSignatures.ts(89,5): error TS2454: Variable 'someGenerics7' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(90,5): error TS2454: Variable 'someGenerics7' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(91,5): error TS2454: Variable 'someGenerics7' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(98,13): error TS2454: Variable 'someGenerics8' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(98,27): error TS2454: Variable 'someGenerics7' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(99,31): error TS2345: Argument of type 'null' is not assignable to parameter of type '(a: string) => string'.
+typeArgumentInferenceConstructSignatures.ts(106,15): error TS2454: Variable 'someGenerics9' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(106,33): error TS2345: Argument of type '0' is not assignable to parameter of type '""'.
+typeArgumentInferenceConstructSignatures.ts(107,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 'a9a' must be of type 'string', but here has type '{}'.
+typeArgumentInferenceConstructSignatures.ts(108,15): error TS2454: Variable 'someGenerics9' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(108,79): error TS2345: Argument of type 'null' is not assignable to parameter of type '{ a?: number | undefined; b?: string | undefined; }'.
+typeArgumentInferenceConstructSignatures.ts(120,15): error TS2454: Variable 'someGenerics9' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(121,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 'a9e' must be of type '{ x: number; z: Window & typeof globalThis; y?: undefined; } | { x: number; y: string; z?: undefined; } | undefined', but here has type '{}'.
+typeArgumentInferenceConstructSignatures.ts(122,15): error TS2454: Variable 'someGenerics9' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(122,34): error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'A92'.
+typeArgumentInferenceConstructSignatures.ts(126,15): error TS2454: Variable 'someGenerics9' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(131,13): error TS2454: Variable 'someGenerics9' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(135,15): error TS2454: Variable 'someGenerics9' is used before being assigned.
+typeArgumentInferenceConstructSignatures.ts(136,5): error TS2403: Subsequent variable declarations must have the same type.  Variable 'arr' must be of type 'never[] | null | undefined', but here has type 'any[]'.
+
+
+==== typeArgumentInferenceConstructSignatures.ts (66 errors) ====
+    // Generic call with no parameters
+    interface NoParams {
+        new <T>();
+        ~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    var noParams: NoParams;
+    new noParams();
+        ~~~~~~~~
+!!! error TS2454: Variable 'noParams' is used before being assigned.
+    new noParams<string>();
+        ~~~~~~~~
+!!! error TS2454: Variable 'noParams' is used before being assigned.
+    new noParams<{}>();
+        ~~~~~~~~
+!!! error TS2454: Variable 'noParams' is used before being assigned.
+    
+    // Generic call with parameters but none use type parameter type
+    interface noGenericParams {
+        new <T>(n: string);
+        ~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    var noGenericParams: noGenericParams;
+    new noGenericParams('');
+        ~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'noGenericParams' is used before being assigned.
+    new noGenericParams<number>('');
+        ~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'noGenericParams' is used before being assigned.
+    new noGenericParams<{}>('');
+        ~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'noGenericParams' is used before being assigned.
+    
+    // Generic call with multiple type parameters and only one used in parameter type annotation
+    interface someGenerics1 {
+        new <T, U>(n: T, m: number);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    var someGenerics1: someGenerics1;
+    new someGenerics1(3, 4);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics1' is used before being assigned.
+    new someGenerics1<string, number>(3, 4); // Error
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics1' is used before being assigned.
+                                      ~
+!!! error TS2345: Argument of type 'number' is not assignable to parameter of type 'string'.
+    new someGenerics1<number, {}>(3, 4);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics1' is used before being assigned.
+    
+    // Generic call with argument of function type whose parameter is of type parameter type
+    interface someGenerics2a {
+        new <T>(n: (x: T) => void);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    var someGenerics2a: someGenerics2a;
+    new someGenerics2a((n: string) => n);
+        ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics2a' is used before being assigned.
+    new someGenerics2a<string>((n: string) => n);
+        ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics2a' is used before being assigned.
+    new someGenerics2a<string>((n) => n.substr(0));
+        ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics2a' is used before being assigned.
+    
+    interface someGenerics2b {
+        new <T, U>(n: (x: T, y: U) => void);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    var someGenerics2b: someGenerics2b;
+    new someGenerics2b((n: string, x: number) => n);
+        ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics2b' is used before being assigned.
+    new someGenerics2b<string, number>((n: string, t: number) => n);
+        ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics2b' is used before being assigned.
+    new someGenerics2b<string, number>((n, t) => n.substr(t * t));
+        ~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics2b' is used before being assigned.
+    
+    // Generic call with argument of function type whose parameter is not of type parameter type but body/return type uses type parameter
+    interface someGenerics3 {
+        new <T>(producer: () => T);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    var someGenerics3: someGenerics3;
+    new someGenerics3(() => '');
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics3' is used before being assigned.
+    new someGenerics3<Window>(() => undefined);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics3' is used before being assigned.
+                                    ~~~~~~~~~
+!!! error TS2322: Type 'undefined' is not assignable to type 'Window'.
+!!! related TS6502 typeArgumentInferenceConstructSignatures.ts:47:23: The expected type comes from the return type of this signature.
+    new someGenerics3<number>(() => 3);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics3' is used before being assigned.
+    
+    // 2 parameter generic call with argument 1 of type parameter type and argument 2 of function type whose parameter is of type parameter type
+    interface someGenerics4 {
+        new <T, U>(n: T, f: (x: U) => void);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    var someGenerics4: someGenerics4;
+    new someGenerics4(4, () => null);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics4' is used before being assigned.
+    new someGenerics4<string, number>('', () => 3);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics4' is used before being assigned.
+    new someGenerics4<string, number>('', (x: string) => ''); // Error
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics4' is used before being assigned.
+                                          ~~~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type '(x: string) => string' is not assignable to parameter of type '(x: number) => void'.
+!!! error TS2345:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2345:     Type 'number' is not assignable to type 'string'.
+    new someGenerics4<string, number>(null, null);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics4' is used before being assigned.
+                                      ~~~~
+!!! error TS2345: Argument of type 'null' is not assignable to parameter of type 'string'.
+    
+    // 2 parameter generic call with argument 2 of type parameter type and argument 1 of function type whose parameter is of type parameter type
+    interface someGenerics5 {
+        new <U, T>(n: T, f: (x: U) => void);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    var someGenerics5: someGenerics5;
+    new someGenerics5(4, () => null);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics5' is used before being assigned.
+    new someGenerics5<number, string>('', () => 3);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics5' is used before being assigned.
+    new someGenerics5<number, string>('', (x: string) => ''); // Error
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics5' is used before being assigned.
+                                          ~~~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type '(x: string) => string' is not assignable to parameter of type '(x: number) => void'.
+!!! error TS2345:   Types of parameters 'x' and 'x' are incompatible.
+!!! error TS2345:     Type 'number' is not assignable to type 'string'.
+    new someGenerics5<string, number>(null, null);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics5' is used before being assigned.
+                                      ~~~~
+!!! error TS2345: Argument of type 'null' is not assignable to parameter of type 'number'.
+    
+    // Generic call with multiple arguments of function types that each have parameters of the same generic type
+    interface someGenerics6 {
+        new <A>(a: (a: A) => A, b: (b: A) => A, c: (c: A) => A);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    var someGenerics6: someGenerics6;
+    new someGenerics6(n => n, n => n, n => n);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics6' is used before being assigned.
+    new someGenerics6<number>(n => n, n => n, n => n);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics6' is used before being assigned.
+    new someGenerics6<number>((n: number) => n, (n: string) => n, (n: number) => n); // Error
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics6' is used before being assigned.
+                                                ~~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type '(n: string) => string' is not assignable to parameter of type '(b: number) => number'.
+!!! error TS2345:   Types of parameters 'n' and 'b' are incompatible.
+!!! error TS2345:     Type 'number' is not assignable to type 'string'.
+    new someGenerics6<number>((n: number) => n, (n: number) => n, (n: number) => n);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics6' is used before being assigned.
+    
+    // Generic call with multiple arguments of function types that each have parameters of different generic type
+    interface someGenerics7 {
+        new <A, B, C>(a: (a: A) => A, b: (b: B) => B, c: (c: C) => C);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    var someGenerics7: someGenerics7;
+    new someGenerics7(n => n, n => n, n => n);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics7' is used before being assigned.
+    new someGenerics7<number, string, number>(n => n, n => n, n => n);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics7' is used before being assigned.
+    new someGenerics7<number, string, number>((n: number) => n, (n: string) => n, (n: number) => n);
+        ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics7' is used before being assigned.
+    
+    // Generic call with argument of generic function type
+    interface someGenerics8 {
+        new <T>(n: T): T;
+    }
+    var someGenerics8: someGenerics8;
+    var x = new someGenerics8(someGenerics7);
+                ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics8' is used before being assigned.
+                              ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics7' is used before being assigned.
+    new x<string, string, string>(null, null, null);
+                                  ~~~~
+!!! error TS2345: Argument of type 'null' is not assignable to parameter of type '(a: string) => string'.
+    
+    // Generic call with multiple parameters of generic type passed arguments with no best common type
+    interface someGenerics9 {
+        new <T>(a: T, b: T, c: T): T;
+    }
+    var someGenerics9: someGenerics9;
+    var a9a = new someGenerics9('', 0, []);
+                  ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics9' is used before being assigned.
+                                    ~
+!!! error TS2345: Argument of type '0' is not assignable to parameter of type '""'.
+    var a9a: {};
+        ~~~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 'a9a' must be of type 'string', but here has type '{}'.
+!!! related TS6203 typeArgumentInferenceConstructSignatures.ts:106:5: 'a9a' was also declared here.
+    var a9b = new someGenerics9<{ a?: number; b?: string; }>({ a: 0 }, { b: '' }, null);
+                  ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics9' is used before being assigned.
+                                                                                  ~~~~
+!!! error TS2345: Argument of type 'null' is not assignable to parameter of type '{ a?: number | undefined; b?: string | undefined; }'.
+    var a9b: { a?: number; b?: string; };
+    
+    // Generic call with multiple parameters of generic type passed arguments with multiple best common types
+    interface A91 {
+        x: number;
+        y?: string;
+    }
+    interface A92 {
+        x: number;
+        z?: Window;
+    }
+    var a9e = new someGenerics9(undefined, { x: 6, z: window }, { x: 6, y: '' });
+                  ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics9' is used before being assigned.
+    var a9e: {};
+        ~~~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 'a9e' must be of type '{ x: number; z: Window & typeof globalThis; y?: undefined; } | { x: number; y: string; z?: undefined; } | undefined', but here has type '{}'.
+!!! related TS6203 typeArgumentInferenceConstructSignatures.ts:120:5: 'a9e' was also declared here.
+    var a9f = new someGenerics9<A92>(undefined, { x: 6, z: window }, { x: 6, y: '' });
+                  ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics9' is used before being assigned.
+                                     ~~~~~~~~~
+!!! error TS2345: Argument of type 'undefined' is not assignable to parameter of type 'A92'.
+    var a9f: A92;
+    
+    // Generic call with multiple parameters of generic type passed arguments with a single best common type
+    var a9d = new someGenerics9({ x: 3 }, { x: 6 }, { x: 6 });
+                  ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics9' is used before being assigned.
+    var a9d: { x: number; };
+    
+    // Generic call with multiple parameters of generic type where one argument is of type 'any'
+    var anyVar: any;
+    var a = new someGenerics9(7, anyVar, 4);
+                ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics9' is used before being assigned.
+    var a: any;
+    
+    // Generic call with multiple parameters of generic type where one argument is [] and the other is not 'any'
+    var arr = new someGenerics9([], null, undefined);
+                  ~~~~~~~~~~~~~
+!!! error TS2454: Variable 'someGenerics9' is used before being assigned.
+    var arr: any[];
+        ~~~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 'arr' must be of type 'never[] | null | undefined', but here has type 'any[]'.
+!!! related TS6203 typeArgumentInferenceConstructSignatures.ts:135:5: 'arr' was also declared here.
+    
+    

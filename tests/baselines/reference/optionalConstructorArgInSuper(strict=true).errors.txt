@@ -1,0 +1,22 @@
+optionalConstructorArgInSuper.ts(2,17): error TS7006: Parameter 'opt' implicitly has an 'any' type.
+optionalConstructorArgInSuper.ts(3,9): error TS7006: Parameter 'other' implicitly has an 'any' type.
+optionalConstructorArgInSuper.ts(9,1): error TS2454: Variable 'd2' is used before being assigned.
+
+
+==== optionalConstructorArgInSuper.ts (3 errors) ====
+    class Base {
+        constructor(opt?) { }
+                    ~~~~
+!!! error TS7006: Parameter 'opt' implicitly has an 'any' type.
+        foo(other?) { }
+            ~~~~~~
+!!! error TS7006: Parameter 'other' implicitly has an 'any' type.
+    }
+    class Derived extends Base {
+    }
+    var d = new Derived(); // bug caused an error here, couldn't select overload
+    var d2: Derived;
+    d2.foo(); 
+    ~~
+!!! error TS2454: Variable 'd2' is used before being assigned.
+    

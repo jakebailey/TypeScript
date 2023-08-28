@@ -1,0 +1,21 @@
+commentsOnObjectLiteral2.ts(1,14): error TS2304: Cannot find name 'makeClass'.
+commentsOnObjectLiteral2.ts(8,29): error TS7006: Parameter 'name' implicitly has an 'any' type.
+
+
+==== commentsOnObjectLiteral2.ts (2 errors) ====
+    var Person = makeClass( 
+                 ~~~~~~~~~
+!!! error TS2304: Cannot find name 'makeClass'.
+       { 
+           /** 
+            This is just another way to define a constructor. 
+            @constructs 
+            @param {string} name The name of the person. 
+            */ 
+           initialize: function(name) { 
+                                ~~~~
+!!! error TS7006: Parameter 'name' implicitly has an 'any' type.
+               this.name = name; 
+           } /* trailing comment 1*/, 
+       } 
+    );

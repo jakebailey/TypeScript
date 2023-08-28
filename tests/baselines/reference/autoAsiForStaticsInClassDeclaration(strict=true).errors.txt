@@ -1,0 +1,13 @@
+autoAsiForStaticsInClassDeclaration.ts(2,12): error TS7008: Member 'x' implicitly has an 'any' type.
+autoAsiForStaticsInClassDeclaration.ts(3,12): error TS7008: Member 'y' implicitly has an 'any' type.
+
+
+==== autoAsiForStaticsInClassDeclaration.ts (2 errors) ====
+    class C {
+        static x
+               ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+        static y
+               ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    } 

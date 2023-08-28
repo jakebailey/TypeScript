@@ -1,0 +1,9 @@
+parserMemberVariableDeclaration5.ts(2,11): error TS7008: Member 'Foo' implicitly has an 'any' type.
+
+
+==== parserMemberVariableDeclaration5.ts (1 errors) ====
+    class C {
+      declare Foo;
+              ~~~
+!!! error TS7008: Member 'Foo' implicitly has an 'any' type.
+    }

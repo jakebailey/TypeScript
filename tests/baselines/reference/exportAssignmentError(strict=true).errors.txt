@@ -1,0 +1,14 @@
+exportEqualsModule_A.ts(2,13): error TS7005: Variable 'x' implicitly has an 'any' type.
+
+
+==== exportEqualsModule_A.ts (1 errors) ====
+    module M {
+    	export var x;
+    	           ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    }
+    
+    import M2 = M;
+    
+    export = M2; // should not error
+    

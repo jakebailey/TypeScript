@@ -1,0 +1,17 @@
+fileJs.js(1,10): error TS7006: Parameter 'param' implicitly has an 'any' type.
+fileJs.js(1,18): error TS8010: Type annotations can only be used in TypeScript files.
+fileTs.ts(1,10): error TS7006: Parameter 'param' implicitly has an 'any' type.
+
+
+==== fileJs.js (2 errors) ====
+    false ? (param): string => param : null // Not legal JS; "Unexpected token ':'" at last colon
+             ~~~~~
+!!! error TS7006: Parameter 'param' implicitly has an 'any' type.
+                     ~~~~~~
+!!! error TS8010: Type annotations can only be used in TypeScript files.
+    
+==== fileTs.ts (1 errors) ====
+    false ? (param): string => param : null
+             ~~~~~
+!!! error TS7006: Parameter 'param' implicitly has an 'any' type.
+    

@@ -1,0 +1,25 @@
+accessorParameterAccessibilityModifier.ts(2,9): error TS7032: Property 'X' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+accessorParameterAccessibilityModifier.ts(2,11): error TS2369: A parameter property is only allowed in a constructor implementation.
+accessorParameterAccessibilityModifier.ts(2,11): error TS7006: Parameter 'v' implicitly has an 'any' type.
+accessorParameterAccessibilityModifier.ts(3,16): error TS7032: Property 'X' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+accessorParameterAccessibilityModifier.ts(3,18): error TS2369: A parameter property is only allowed in a constructor implementation.
+accessorParameterAccessibilityModifier.ts(3,18): error TS7006: Parameter 'v2' implicitly has an 'any' type.
+
+
+==== accessorParameterAccessibilityModifier.ts (6 errors) ====
+    class C {
+        set X(public v) { }
+            ~
+!!! error TS7032: Property 'X' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+              ~~~~~~~~
+!!! error TS2369: A parameter property is only allowed in a constructor implementation.
+              ~~~~~~~~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+        static set X(public v2) { }
+                   ~
+!!! error TS7032: Property 'X' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                     ~~~~~~~~~
+!!! error TS2369: A parameter property is only allowed in a constructor implementation.
+                     ~~~~~~~~~
+!!! error TS7006: Parameter 'v2' implicitly has an 'any' type.
+    }

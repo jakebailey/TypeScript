@@ -1,0 +1,37 @@
+b.js(8,14): error TS2551: Property 'c' does not exist on type '{ C: typeof C; }'. Did you mean 'C'?
+
+
+==== b.js (1 errors) ====
+    exports.E = function() {
+        this.e = 'exported'
+    }
+    var e = new exports.E();
+    
+    var o = {
+        C: function () {
+            this.c = 'nested object'
+                 ~
+!!! error TS2551: Property 'c' does not exist on type '{ C: typeof C; }'. Did you mean 'C'?
+!!! related TS2728 b.js:7:5: 'C' is declared here.
+        }
+    }
+    var og = new o.C();
+    
+    var V = function () {
+        this.v = 'simple'
+    }
+    var v = new V();
+    
+    var A;
+    A = function () {
+        this.a = 'assignment'
+    }
+    var a = new A();
+    
+    const {
+        B = function() {
+            this.b = 'binding pattern'
+        }
+    } = { B: undefined };
+    var b = new B();
+    

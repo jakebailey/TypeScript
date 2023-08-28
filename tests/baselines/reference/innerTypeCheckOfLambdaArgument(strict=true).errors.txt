@@ -1,0 +1,22 @@
+innerTypeCheckOfLambdaArgument.ts(1,35): error TS7006: Parameter 'n' implicitly has an 'any' type.
+innerTypeCheckOfLambdaArgument.ts(10,7): error TS2322: Type 'number' is not assignable to type 'string'.
+
+
+==== innerTypeCheckOfLambdaArgument.ts (2 errors) ====
+    function takesCallback(callback: (n) =>any) {
+                                      ~
+!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
+    
+    }
+     
+    takesCallback(
+     
+    	function inner(n) {
+                    // this line should raise an error
+                    // otherwise, there's a bug in overload resolution / partial typechecking
+    		var k: string = 10; 
+    		    ~
+!!! error TS2322: Type 'number' is not assignable to type 'string'.
+        }
+    );
+    

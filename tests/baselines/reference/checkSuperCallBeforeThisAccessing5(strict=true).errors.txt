@@ -1,0 +1,22 @@
+checkSuperCallBeforeThisAccessing5.ts(1,27): error TS7019: Rest parameter 'arg' implicitly has an 'any[]' type.
+checkSuperCallBeforeThisAccessing5.ts(3,12): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+checkSuperCallBeforeThisAccessing5.ts(5,15): error TS17009: 'super' must be called before accessing 'this' in the constructor of a derived class.
+checkSuperCallBeforeThisAccessing5.ts(5,20): error TS2565: Property 'x' is used before being assigned.
+
+
+==== checkSuperCallBeforeThisAccessing5.ts (4 errors) ====
+    class Based { constructor(...arg) { } }
+                              ~~~~~~
+!!! error TS7019: Rest parameter 'arg' implicitly has an 'any[]' type.
+    class Derived extends Based {
+        public x: number;
+               ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+        constructor() {
+            super(this.x);
+                  ~~~~
+!!! error TS17009: 'super' must be called before accessing 'this' in the constructor of a derived class.
+                       ~
+!!! error TS2565: Property 'x' is used before being assigned.
+        }
+    }

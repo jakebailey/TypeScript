@@ -1,0 +1,45 @@
+iterableArrayPattern16.ts(2,5): error TS2345: Argument of type 'FooIterator' is not assignable to parameter of type '[Bar, Bar]'.
+iterableArrayPattern16.ts(2,12): error TS2449: Class 'FooIteratorIterator' used before its declaration.
+iterableArrayPattern16.ts(3,13): error TS7008: Member 'x' implicitly has an 'any' type.
+iterableArrayPattern16.ts(4,25): error TS7008: Member 'y' implicitly has an 'any' type.
+
+
+==== iterableArrayPattern16.ts (4 errors) ====
+    function fun(...[a, b]: [Bar, Bar][]) { }
+    fun(...new FooIteratorIterator);
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2345: Argument of type 'FooIterator' is not assignable to parameter of type '[Bar, Bar]'.
+               ~~~~~~~~~~~~~~~~~~~
+!!! error TS2449: Class 'FooIteratorIterator' used before its declaration.
+!!! related TS2728 iterableArrayPattern16.ts:18:7: 'FooIteratorIterator' is declared here.
+    class Bar { x }
+                ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    class Foo extends Bar { y }
+                            ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    class FooIterator {
+        next() {
+            return {
+                value: new Foo,
+                done: false
+            };
+        }
+    
+        [Symbol.iterator]() {
+            return this;
+        }
+    }
+    
+    class FooIteratorIterator {
+        next() {
+            return {
+                value: new FooIterator,
+                done: false
+            };
+        }
+    
+        [Symbol.iterator]() {
+            return this;
+        }
+    }

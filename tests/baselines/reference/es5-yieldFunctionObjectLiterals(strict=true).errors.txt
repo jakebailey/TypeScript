@@ -1,0 +1,89 @@
+es5-yieldFunctionObjectLiterals.ts(8,12): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+es5-yieldFunctionObjectLiterals.ts(16,16): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+es5-yieldFunctionObjectLiterals.ts(24,12): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+es5-yieldFunctionObjectLiterals.ts(34,12): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+es5-yieldFunctionObjectLiterals.ts(42,16): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+es5-yieldFunctionObjectLiterals.ts(50,10): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+es5-yieldFunctionObjectLiterals.ts(58,10): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+es5-yieldFunctionObjectLiterals.ts(58,18): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+
+
+==== es5-yieldFunctionObjectLiterals.ts (8 errors) ====
+    // mainly to verify indentation of emitted code
+    
+    function g() { return "g"; }
+    
+    function* objectLiteral1() {
+        const x = {
+            a: 1,
+            b: yield 2,
+               ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+            c: 3,
+        }
+    }
+    
+    function* objectLiteral2() {
+        const x = {
+            a: 1,
+            [g()]: yield 2,
+                   ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+            c: 3,
+        }
+    }
+    
+    function* objectLiteral3() {
+        const x = {
+            a: 1,
+            b: yield 2,
+               ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+            [g()]: 3,
+            c: 4,
+        }
+    }
+    
+    function* objectLiteral4() {
+        const x = {
+            a: 1,
+            [g()]: 2,
+            b: yield 3,
+               ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+            c: 4,
+        }
+    }
+    
+    function* objectLiteral5() {
+        const x = {
+            a: 1,
+            [g()]: yield 2,
+                   ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+            c: 4,
+        }
+    }
+    
+    function* objectLiteral6() {
+        const x = {
+            a: 1,
+            [yield]: 2,
+             ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+            c: 4,
+        }
+    }
+    
+    function* objectLiteral7() {
+        const x = {
+            a: 1,
+            [yield]: yield 2,
+             ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+                     ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+            c: 4,
+        }
+    }
+    

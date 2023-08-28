@@ -1,0 +1,13 @@
+defaultExportWithOverloads01.ts(1,25): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+defaultExportWithOverloads01.ts(2,25): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== defaultExportWithOverloads01.ts (2 errors) ====
+    export default function f();
+                            ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+    export default function f(x: string);
+                            ~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+    export default function f(...args: any[]) {
+    }

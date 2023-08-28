@@ -1,0 +1,34 @@
+functionOverloadAmbiguity1.ts(1,10): error TS7010: 'callb', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadAmbiguity1.ts(2,10): error TS7010: 'callb', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadAmbiguity1.ts(3,16): error TS7006: Parameter 'a' implicitly has an 'any' type.
+functionOverloadAmbiguity1.ts(4,18): error TS2339: Property 'length' does not exist on type 'number'.
+functionOverloadAmbiguity1.ts(6,10): error TS7010: 'callb2', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadAmbiguity1.ts(7,10): error TS7010: 'callb2', which lacks return-type annotation, implicitly has an 'any' return type.
+functionOverloadAmbiguity1.ts(8,17): error TS7006: Parameter 'a' implicitly has an 'any' type.
+
+
+==== functionOverloadAmbiguity1.ts (7 errors) ====
+    function callb(lam: (l: number) => void );
+             ~~~~~
+!!! error TS7010: 'callb', which lacks return-type annotation, implicitly has an 'any' return type.
+    function callb(lam: (n: string) => void );
+             ~~~~~
+!!! error TS7010: 'callb', which lacks return-type annotation, implicitly has an 'any' return type.
+    function callb(a) { }
+                   ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    callb((a) => { a.length; } ); // error, chose first overload
+                     ~~~~~~
+!!! error TS2339: Property 'length' does not exist on type 'number'.
+    
+    function callb2(lam: (n: string) => void );
+             ~~~~~~
+!!! error TS7010: 'callb2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function callb2(lam: (l: number) => void );
+             ~~~~~~
+!!! error TS7010: 'callb2', which lacks return-type annotation, implicitly has an 'any' return type.
+    function callb2(a) { }
+                    ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    callb2((a) => { a.length; } ); // ok, chose first overload
+    

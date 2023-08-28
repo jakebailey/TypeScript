@@ -1,0 +1,17 @@
+collisionSuperAndNameResolution.ts(2,5): error TS7010: 'log', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== collisionSuperAndNameResolution.ts (1 errors) ====
+    var console: {
+        log(message: any);
+        ~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'log', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    var _super = 10; // No error
+    class base {
+    }
+    class Foo extends base {
+        x() {
+            console.log(_super); // Error as this doesnt not resolve to user defined _super
+        }
+    }

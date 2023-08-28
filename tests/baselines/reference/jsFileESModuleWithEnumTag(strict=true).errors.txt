@@ -1,0 +1,31 @@
+jsFileESModuleWithEnumTag.js(7,1): error TS7053: Element implicitly has an 'any' type because expression of type 'number' can't be used to index type '{ OnPush: number; Default: number; }'.
+  No index signature with a parameter of type 'number' was found on type '{ OnPush: number; Default: number; }'.
+jsFileESModuleWithEnumTag.js(8,1): error TS7053: Element implicitly has an 'any' type because expression of type 'number' can't be used to index type '{ OnPush: number; Default: number; }'.
+  No index signature with a parameter of type 'number' was found on type '{ OnPush: number; Default: number; }'.
+jsFileESModuleWithEnumTag.js(11,1): error TS7053: Element implicitly has an 'any' type because expression of type '"bField"' can't be used to index type '{ OnPush: number; Default: number; }'.
+  Property 'bField' does not exist on type '{ OnPush: number; Default: number; }'.
+
+
+==== jsFileESModuleWithEnumTag.js (3 errors) ====
+    export {}; // mark as module
+    /** @enum {number} */
+    const ChangeDetectionStrategy = {
+      OnPush: 0,
+      Default: 1,
+    };
+    ChangeDetectionStrategy[ChangeDetectionStrategy.OnPush] = 'OnPush';
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'number' can't be used to index type '{ OnPush: number; Default: number; }'.
+!!! error TS7053:   No index signature with a parameter of type 'number' was found on type '{ OnPush: number; Default: number; }'.
+    ChangeDetectionStrategy[ChangeDetectionStrategy.Default] = 'Default';
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'number' can't be used to index type '{ OnPush: number; Default: number; }'.
+!!! error TS7053:   No index signature with a parameter of type 'number' was found on type '{ OnPush: number; Default: number; }'.
+    Object.defineProperty(ChangeDetectionStrategy, "aField", {value: 42});
+    /** @type {number} */
+    ChangeDetectionStrategy["bField"];
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '"bField"' can't be used to index type '{ OnPush: number; Default: number; }'.
+!!! error TS7053:   Property 'bField' does not exist on type '{ OnPush: number; Default: number; }'.
+    
+    

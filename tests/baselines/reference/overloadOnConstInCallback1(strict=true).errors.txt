@@ -1,0 +1,15 @@
+overloadOnConstInCallback1.ts(2,5): error TS7010: 'x1', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== overloadOnConstInCallback1.ts (1 errors) ====
+    class C {
+        x1(a: number, callback: (x: 'hi') => number); // error
+        ~~
+!!! error TS7010: 'x1', which lacks return-type annotation, implicitly has an 'any' return type.
+        x1(a: number, callback: (x: any) => number) {
+            callback('hi');
+            callback('bye');
+            var hm = "hm";
+            callback(hm);
+        }
+    }

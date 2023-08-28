@@ -1,0 +1,13 @@
+modularizeLibrary_UsingES5LibES6ArrayLibES6WellknownSymbolLib.ts(7,3): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+
+
+==== modularizeLibrary_UsingES5LibES6ArrayLibES6WellknownSymbolLib.ts (1 errors) ====
+    function f(x: number, y: number, z: number) {
+        return Array.from(arguments);
+    }
+    
+    f(1, 2, 3);   // no error
+    let a = ['c', 'd'];
+    a[Symbol.isConcatSpreadable] = false;
+      ~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.

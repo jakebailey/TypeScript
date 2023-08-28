@@ -1,0 +1,13 @@
+parserClassDeclaration26.ts(2,4): error TS7008: Member 'var' implicitly has an 'any' type.
+parserClassDeclaration26.ts(3,4): error TS7008: Member 'public' implicitly has an 'any' type.
+
+
+==== parserClassDeclaration26.ts (2 errors) ====
+    class C {
+       var
+       ~~~
+!!! error TS7008: Member 'var' implicitly has an 'any' type.
+       public
+       ~~~~~~
+!!! error TS7008: Member 'public' implicitly has an 'any' type.
+    }

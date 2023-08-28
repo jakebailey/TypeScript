@@ -1,0 +1,296 @@
+typeGuardConstructorClassAndNumber.ts(3,5): error TS2564: Property 'property1' has no initializer and is not definitely assigned in the constructor.
+typeGuardConstructorClassAndNumber.ts(7,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(12,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(14,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(19,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(21,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(26,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(28,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(33,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(35,11): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(40,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(42,11): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(47,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(49,12): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(54,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(56,12): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(61,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(64,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(65,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(66,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(66,10): error TS2339: Property 'property1' does not exist on type 'number | C1'.
+  Property 'property1' does not exist on type 'number'.
+typeGuardConstructorClassAndNumber.ts(71,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(72,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(73,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(73,10): error TS2339: Property 'property1' does not exist on type 'number | C1'.
+  Property 'property1' does not exist on type 'number'.
+typeGuardConstructorClassAndNumber.ts(78,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(79,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(80,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(80,10): error TS2339: Property 'property1' does not exist on type 'number | C1'.
+  Property 'property1' does not exist on type 'number'.
+typeGuardConstructorClassAndNumber.ts(85,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(86,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(87,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(87,10): error TS2339: Property 'property1' does not exist on type 'number | C1'.
+  Property 'property1' does not exist on type 'number'.
+typeGuardConstructorClassAndNumber.ts(92,11): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(93,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(94,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(94,10): error TS2339: Property 'property1' does not exist on type 'number | C1'.
+  Property 'property1' does not exist on type 'number'.
+typeGuardConstructorClassAndNumber.ts(99,11): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(100,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(101,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(101,10): error TS2339: Property 'property1' does not exist on type 'number | C1'.
+  Property 'property1' does not exist on type 'number'.
+typeGuardConstructorClassAndNumber.ts(106,12): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(107,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(108,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(108,10): error TS2339: Property 'property1' does not exist on type 'number | C1'.
+  Property 'property1' does not exist on type 'number'.
+typeGuardConstructorClassAndNumber.ts(113,12): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(114,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(115,5): error TS2454: Variable 'var1' is used before being assigned.
+typeGuardConstructorClassAndNumber.ts(115,10): error TS2339: Property 'property1' does not exist on type 'number | C1'.
+  Property 'property1' does not exist on type 'number'.
+
+
+==== typeGuardConstructorClassAndNumber.ts (49 errors) ====
+    // Typical case
+    class C1 {
+        property1: string;
+        ~~~~~~~~~
+!!! error TS2564: Property 'property1' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    let var1: C1 | number;
+    if (var1.constructor == C1) {
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1
+        var1.property1; // string
+    }
+    else {
+        var1; // number | C1
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+    }
+    if (var1["constructor"] == C1) {
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1
+        var1.property1; // string
+    }
+    else {
+        var1; // number | C1
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+    }
+    if (var1.constructor === C1) {
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1
+        var1.property1; // string
+    }
+    else {
+        var1; // number | C1
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+    }
+    if (var1["constructor"] === C1) {
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1
+        var1.property1; // string
+    }
+    else {
+        var1; // number | C1
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+    }
+    if (C1 == var1.constructor) {
+              ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1
+        var1.property1; // string
+    }
+    else {
+        var1; // number | C1
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+    }
+    if (C1 == var1["constructor"]) {
+              ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1
+        var1.property1; // string
+    }
+    else {
+        var1; // number | C1
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+    }
+    if (C1 === var1.constructor) {
+               ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1
+        var1.property1; // string
+    }
+    else {
+        var1; // number | C1
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+    }
+    if (C1 === var1["constructor"]) {
+               ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1
+        var1.property1; // string
+    }
+    else {
+        var1; // number | C1
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+    }
+    
+    if (var1.constructor != C1) {
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1 | number
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1.property1; // error
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+             ~~~~~~~~~
+!!! error TS2339: Property 'property1' does not exist on type 'number | C1'.
+!!! error TS2339:   Property 'property1' does not exist on type 'number'.
+    }
+    else {
+        var1; // C1
+    }
+    if (var1["constructor"] != C1) {
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1 | number
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1.property1; // error
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+             ~~~~~~~~~
+!!! error TS2339: Property 'property1' does not exist on type 'number | C1'.
+!!! error TS2339:   Property 'property1' does not exist on type 'number'.
+    }
+    else {
+        var1; // C1
+    }
+    if (var1.constructor !== C1) {
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1 | number
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1.property1; // error
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+             ~~~~~~~~~
+!!! error TS2339: Property 'property1' does not exist on type 'number | C1'.
+!!! error TS2339:   Property 'property1' does not exist on type 'number'.
+    }
+    else {
+        var1; // C1
+    }
+    if (var1["constructor"] !== C1) {
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1 | number
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1.property1; // error
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+             ~~~~~~~~~
+!!! error TS2339: Property 'property1' does not exist on type 'number | C1'.
+!!! error TS2339:   Property 'property1' does not exist on type 'number'.
+    }
+    else {
+        var1; // C1
+    }
+    if (C1 != var1.constructor) {
+              ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1 | number
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1.property1; // error
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+             ~~~~~~~~~
+!!! error TS2339: Property 'property1' does not exist on type 'number | C1'.
+!!! error TS2339:   Property 'property1' does not exist on type 'number'.
+    }
+    else {
+        var1; // C1
+    }
+    if (C1 != var1["constructor"]) {
+              ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1 | number
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1.property1; // error
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+             ~~~~~~~~~
+!!! error TS2339: Property 'property1' does not exist on type 'number | C1'.
+!!! error TS2339:   Property 'property1' does not exist on type 'number'.
+    }
+    else {
+        var1; // C1
+    }
+    if (C1 !== var1.constructor) {
+               ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1 | number
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1.property1; // error
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+             ~~~~~~~~~
+!!! error TS2339: Property 'property1' does not exist on type 'number | C1'.
+!!! error TS2339:   Property 'property1' does not exist on type 'number'.
+    }
+    else {
+        var1; // C1
+    }
+    if (C1 !== var1["constructor"]) {
+               ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1; // C1 | number
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+        var1.property1; // error
+        ~~~~
+!!! error TS2454: Variable 'var1' is used before being assigned.
+             ~~~~~~~~~
+!!! error TS2339: Property 'property1' does not exist on type 'number | C1'.
+!!! error TS2339:   Property 'property1' does not exist on type 'number'.
+    }
+    else {
+        var1; // C1
+    }
+    
+    // Repro from #37660
+    
+    function foo(instance: Function | object) {
+        if (typeof instance === 'function') {
+            if (instance.prototype == null || instance.prototype.constructor == null) {
+                return instance.length;
+            }
+        }
+    }
+    

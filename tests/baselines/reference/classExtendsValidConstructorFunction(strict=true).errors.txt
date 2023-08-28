@@ -1,0 +1,14 @@
+classExtendsValidConstructorFunction.ts(3,9): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+classExtendsValidConstructorFunction.ts(5,17): error TS2507: Type '() => void' is not a constructor function type.
+
+
+==== classExtendsValidConstructorFunction.ts (2 errors) ====
+    function foo() { }
+    
+    var x = new foo(); // can be used as a constructor function
+            ~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+    
+    class C extends foo { } // error, cannot extend it though
+                    ~~~
+!!! error TS2507: Type '() => void' is not a constructor function type.

@@ -1,0 +1,11 @@
+errorIsolation.js(1,30): error TS7006: Parameter '_' implicitly has an 'any' type.
+
+
+==== errorIsolation.js (1 errors) ====
+    const async = { doSomething: _ => {} };
+                                 ~
+!!! error TS7006: Parameter '_' implicitly has an 'any' type.
+    async.doSomething(
+    	/***/
+    	() => {}
+    );

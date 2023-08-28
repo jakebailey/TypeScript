@@ -1,0 +1,69 @@
+narrowFromAnyWithTypePredicate.ts(2,29): error TS7006: Parameter 'x' implicitly has an 'any' type.
+narrowFromAnyWithTypePredicate.ts(3,27): error TS7006: Parameter 'x' implicitly has an 'any' type.
+narrowFromAnyWithTypePredicate.ts(4,29): error TS7006: Parameter 'x' implicitly has an 'any' type.
+narrowFromAnyWithTypePredicate.ts(5,26): error TS7006: Parameter 'x' implicitly has an 'any' type.
+narrowFromAnyWithTypePredicate.ts(6,25): error TS7006: Parameter 'x' implicitly has an 'any' type.
+narrowFromAnyWithTypePredicate.ts(22,7): error TS2339: Property 'method' does not exist on type '{}'.
+narrowFromAnyWithTypePredicate.ts(23,5): error TS2349: This expression is not callable.
+  Type '{}' has no call signatures.
+narrowFromAnyWithTypePredicate.ts(28,7): error TS2551: Property 'mesage' does not exist on type 'Error'. Did you mean 'message'?
+narrowFromAnyWithTypePredicate.ts(33,7): error TS2551: Property 'getHuors' does not exist on type 'Date'. Did you mean 'getHours'?
+
+
+==== narrowFromAnyWithTypePredicate.ts (9 errors) ====
+    declare var x: any;
+    declare function isFunction(x): x is Function;
+                                ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    declare function isObject(x): x is Object;
+                              ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    declare function isAnything(x): x is {};
+                                ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    declare function isError(x): x is Error;
+                             ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    declare function isDate(x): x is Date;
+                            ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+    
+    if (isFunction(x)) { // 'any' is not narrowed when target type is 'Function'
+        x();
+        x(1, 2, 3);
+        x("hello!");
+        x.prop;
+    }
+    
+    if (isObject(x)) { // 'any' is not narrowed when target type is 'Object'
+        x.method();
+        x();
+    }
+    
+    if (isAnything(x)) { // 'any' is narrowed to types other than 'Function'/'Object' (including {})
+        x.method();
+          ~~~~~~
+!!! error TS2339: Property 'method' does not exist on type '{}'.
+        x();
+        ~
+!!! error TS2349: This expression is not callable.
+!!! error TS2349:   Type '{}' has no call signatures.
+    }
+    
+    if (isError(x)) { 
+        x.message;
+        x.mesage;
+          ~~~~~~
+!!! error TS2551: Property 'mesage' does not exist on type 'Error'. Did you mean 'message'?
+!!! related TS2728 lib.es5.d.ts:--:--: 'message' is declared here.
+    }
+    
+    if (isDate(x)) {
+        x.getDate();
+        x.getHuors();
+          ~~~~~~~~
+!!! error TS2551: Property 'getHuors' does not exist on type 'Date'. Did you mean 'getHours'?
+!!! related TS2728 lib.es5.d.ts:--:--: 'getHours' is declared here.
+    }
+    

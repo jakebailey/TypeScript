@@ -1,0 +1,28 @@
+constructorOverloadsWithOptionalParameters.ts(2,5): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+constructorOverloadsWithOptionalParameters.ts(3,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructorOverloadsWithOptionalParameters.ts(9,5): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+constructorOverloadsWithOptionalParameters.ts(10,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== constructorOverloadsWithOptionalParameters.ts (4 errors) ====
+    class C {
+        foo: string;
+        ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+        constructor(x?, y?: any[]); 
+                    ~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        constructor() {
+        }
+    }
+    
+    class D<T> {
+        foo: string;
+        ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+        constructor(x?, y?: any[]); 
+                    ~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        constructor() {
+        }
+    }

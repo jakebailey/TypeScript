@@ -1,0 +1,28 @@
+nonExportedElementsOfMergedModules.ts(4,20): error TS7005: Variable 'x' implicitly has an 'any' type.
+nonExportedElementsOfMergedModules.ts(11,20): error TS7005: Variable 'y' implicitly has an 'any' type.
+nonExportedElementsOfMergedModules.ts(13,7): error TS2339: Property 'x' does not exist on type 'typeof B'.
+
+
+==== nonExportedElementsOfMergedModules.ts (3 errors) ====
+    module One {
+        enum A { X }
+        module B {
+            export var x;
+                       ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        }
+    }
+    
+    module One {
+        enum A { Y }
+        module B {
+            export var y;
+                       ~
+!!! error TS7005: Variable 'y' implicitly has an 'any' type.
+        }
+        B.x;
+          ~
+!!! error TS2339: Property 'x' does not exist on type 'typeof B'.
+        B.y;
+    }
+    

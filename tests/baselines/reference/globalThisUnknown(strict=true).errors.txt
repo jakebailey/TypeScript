@@ -1,0 +1,39 @@
+globalThisUnknown.ts(4,5): error TS2339: Property 'hi' does not exist on type 'Window & typeof globalThis'.
+globalThisUnknown.ts(6,6): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+globalThisUnknown.ts(7,12): error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+globalThisUnknown.ts(10,5): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+globalThisUnknown.ts(11,1): error TS7053: Element implicitly has an 'any' type because expression of type '"hi"' can't be used to index type 'typeof globalThis'.
+  Property 'hi' does not exist on type 'typeof globalThis'.
+globalThisUnknown.ts(12,1): error TS7053: Element implicitly has an 'any' type because expression of type '"hi"' can't be used to index type 'typeof globalThis'.
+  Property 'hi' does not exist on type 'typeof globalThis'.
+
+
+==== globalThisUnknown.ts (6 errors) ====
+    declare let win: Window & typeof globalThis;
+    
+    // this access should be an error
+    win.hi
+        ~~
+!!! error TS2339: Property 'hi' does not exist on type 'Window & typeof globalThis'.
+    // these two should be fine, with type any
+    this.hi
+         ~~
+!!! error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+    globalThis.hi
+               ~~
+!!! error TS7017: Element implicitly has an 'any' type because type 'typeof globalThis' has no index signature.
+    
+    // element access is always ok without noImplicitAny
+    win['hi']
+        ~~~~
+!!! error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+    this['hi']
+    ~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '"hi"' can't be used to index type 'typeof globalThis'.
+!!! error TS7053:   Property 'hi' does not exist on type 'typeof globalThis'.
+    globalThis['hi']
+    ~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '"hi"' can't be used to index type 'typeof globalThis'.
+!!! error TS7053:   Property 'hi' does not exist on type 'typeof globalThis'.
+    
+    

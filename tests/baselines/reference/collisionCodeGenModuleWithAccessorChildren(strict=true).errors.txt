@@ -1,0 +1,75 @@
+collisionCodeGenModuleWithAccessorChildren.ts(4,17): error TS7008: Member 'y' implicitly has an 'any' type.
+collisionCodeGenModuleWithAccessorChildren.ts(5,13): error TS7032: Property 'Z' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+collisionCodeGenModuleWithAccessorChildren.ts(5,15): error TS7006: Parameter 'M' implicitly has an 'any' type.
+collisionCodeGenModuleWithAccessorChildren.ts(13,17): error TS7008: Member 'y' implicitly has an 'any' type.
+collisionCodeGenModuleWithAccessorChildren.ts(14,13): error TS7032: Property 'Z' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+collisionCodeGenModuleWithAccessorChildren.ts(14,15): error TS7006: Parameter 'p' implicitly has an 'any' type.
+collisionCodeGenModuleWithAccessorChildren.ts(23,17): error TS7008: Member 'y' implicitly has an 'any' type.
+collisionCodeGenModuleWithAccessorChildren.ts(24,13): error TS7032: Property 'M' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+collisionCodeGenModuleWithAccessorChildren.ts(24,15): error TS7006: Parameter 'p' implicitly has an 'any' type.
+
+
+==== collisionCodeGenModuleWithAccessorChildren.ts (9 errors) ====
+    module M {
+        export var x = 3;
+        class c {
+            private y;
+                    ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+            set Z(M) {
+                ~
+!!! error TS7032: Property 'Z' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                  ~
+!!! error TS7006: Parameter 'M' implicitly has an 'any' type.
+                this.y = x;
+            }
+        }
+    }
+    
+    module M {
+        class d {
+            private y;
+                    ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+            set Z(p) {
+                ~
+!!! error TS7032: Property 'Z' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                  ~
+!!! error TS7006: Parameter 'p' implicitly has an 'any' type.
+                var M = 10;
+                this.y = x;
+            }
+        }
+    }
+    
+    module M { // Shouldnt be _M
+        class e {
+            private y;
+                    ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+            set M(p) {
+                ~
+!!! error TS7032: Property 'M' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                  ~
+!!! error TS7006: Parameter 'p' implicitly has an 'any' type.
+                this.y = x;
+            }
+        }
+    }
+    
+    module M {
+        class f {
+            get Z() {
+                var M = 10;
+                return x;
+            }
+        }
+    }
+    
+    module M { // Shouldnt be _M
+        class e {
+            get M() {
+                return x;
+            }
+        }
+    }

@@ -1,0 +1,29 @@
+checkInfiniteExpansionTermination.ts(11,17): error TS7008: Member 'x' implicitly has an 'any' type.
+checkInfiniteExpansionTermination.ts(12,17): error TS7008: Member 'y' implicitly has an 'any' type.
+checkInfiniteExpansionTermination.ts(16,10): error TS2454: Variable 'values2' is used before being assigned.
+
+
+==== checkInfiniteExpansionTermination.ts (3 errors) ====
+    // Regression test for #1002
+    // Before fix this code would cause infinite loop
+    
+    interface IObservable<T> {
+        n: IObservable<T[]>; // Needed, must be T[]
+    }
+    
+    // Needed
+    interface ISubject<T> extends IObservable<T> { }
+    
+    interface Foo { x }
+                    ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    interface Bar { y }
+                    ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    
+    var values: IObservable<Foo>;
+    var values2: ISubject<Bar>;
+    values = values2;
+             ~~~~~~~
+!!! error TS2454: Variable 'values2' is used before being assigned.
+    

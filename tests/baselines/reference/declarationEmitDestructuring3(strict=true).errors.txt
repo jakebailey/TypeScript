@@ -1,0 +1,16 @@
+declarationEmitDestructuring3.ts(1,15): error TS7031: Binding element 'x' implicitly has an 'any' type.
+declarationEmitDestructuring3.ts(1,18): error TS7031: Binding element 'z' implicitly has an 'any' type.
+declarationEmitDestructuring3.ts(1,24): error TS7031: Binding element 'w' implicitly has an 'any' type.
+
+
+==== declarationEmitDestructuring3.ts (3 errors) ====
+    function bar([x, z, ...w]) { }
+                  ~
+!!! error TS7031: Binding element 'x' implicitly has an 'any' type.
+                     ~
+!!! error TS7031: Binding element 'z' implicitly has an 'any' type.
+                           ~
+!!! error TS7031: Binding element 'w' implicitly has an 'any' type.
+    function foo([x, ...y] = [1, "string", true]) { }
+    
+    

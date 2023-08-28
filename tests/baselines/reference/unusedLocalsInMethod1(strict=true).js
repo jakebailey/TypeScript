@@ -1,0 +1,19 @@
+//// [tests/cases/compiler/unusedLocalsInMethod1.ts] ////
+
+//// [unusedLocalsInMethod1.ts]
+class greeter {
+    public function1() {
+        var x = 10;
+    }
+}
+
+//// [unusedLocalsInMethod1.js]
+"use strict";
+var greeter = /** @class */ (function () {
+    function greeter() {
+    }
+    greeter.prototype.function1 = function () {
+        var x = 10;
+    };
+    return greeter;
+}());

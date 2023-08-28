@@ -1,0 +1,411 @@
+privacyInterface.ts(12,9): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(13,9): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(17,9): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(18,9): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(28,9): error TS2411: Property 'a' of type 'C1_public | undefined' is not assignable to 'string' index type 'C2_private'.
+privacyInterface.ts(29,9): error TS2411: Property 'b' of type 'C2_private | undefined' is not assignable to 'string' index type 'C2_private'.
+privacyInterface.ts(31,9): error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(32,9): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(39,9): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(40,9): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(44,9): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(45,9): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(55,9): error TS2411: Property 'a' of type 'C1_public | undefined' is not assignable to 'string' index type 'C2_private'.
+privacyInterface.ts(56,9): error TS2411: Property 'b' of type 'C2_private | undefined' is not assignable to 'string' index type 'C2_private'.
+privacyInterface.ts(58,9): error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(59,9): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(78,9): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(79,9): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(83,9): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(84,9): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(94,9): error TS2411: Property 'a' of type 'C1_public | undefined' is not assignable to 'string' index type 'C2_private'.
+privacyInterface.ts(95,9): error TS2411: Property 'b' of type 'C2_private | undefined' is not assignable to 'string' index type 'C2_private'.
+privacyInterface.ts(97,9): error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(98,9): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(105,9): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(106,9): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(110,9): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(111,9): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(121,9): error TS2411: Property 'a' of type 'C1_public | undefined' is not assignable to 'string' index type 'C2_private'.
+privacyInterface.ts(122,9): error TS2411: Property 'b' of type 'C2_private | undefined' is not assignable to 'string' index type 'C2_private'.
+privacyInterface.ts(124,9): error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(125,9): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(142,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(143,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(147,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(148,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(158,5): error TS2411: Property 'a' of type 'C5_public | undefined' is not assignable to 'string' index type 'C6_private'.
+privacyInterface.ts(159,5): error TS2411: Property 'b' of type 'C6_private | undefined' is not assignable to 'string' index type 'C6_private'.
+privacyInterface.ts(161,5): error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(162,5): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(169,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(170,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(174,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(175,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(185,5): error TS2411: Property 'a' of type 'C5_public | undefined' is not assignable to 'string' index type 'C6_private'.
+privacyInterface.ts(186,5): error TS2411: Property 'b' of type 'C6_private | undefined' is not assignable to 'string' index type 'C6_private'.
+privacyInterface.ts(188,5): error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+privacyInterface.ts(189,5): error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== privacyInterface.ts (48 errors) ====
+    export module m1 {
+        export class C1_public {
+            private f1() {
+            }
+        }
+    
+    
+        class C2_private {
+        }
+    
+        export interface C3_public {
+            (c1: C1_public);
+            ~~~~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            (c1: C2_private);
+            ~~~~~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            (): C1_public;
+            (c2: number): C2_private;
+    
+            new (c1: C1_public);
+            ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            new (c1: C2_private);
+            ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            new (): C1_public;
+            new (c2: number): C2_private;
+    
+            [c: number]: C1_public;
+            [c: string]: C2_private;
+    
+            x: C1_public;
+            y: C2_private;
+    
+            a?: C1_public;
+            ~
+!!! error TS2411: Property 'a' of type 'C1_public | undefined' is not assignable to 'string' index type 'C2_private'.
+            b?: C2_private;
+            ~
+!!! error TS2411: Property 'b' of type 'C2_private | undefined' is not assignable to 'string' index type 'C2_private'.
+    
+            f1(a1: C1_public);
+            ~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+            f2(a1: C2_private);
+            ~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+            f3(): C1_public;
+            f4(): C2_private;
+    
+        }
+    
+        interface C4_private {
+            (c1: C1_public);
+            ~~~~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            (c1: C2_private);
+            ~~~~~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            (): C1_public;
+            (c2: number): C2_private;
+    
+            new (c1: C1_public);
+            ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            new (c1: C2_private);
+            ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            new (): C1_public;
+            new (c2: number): C2_private;
+    
+            [c: number]: C1_public;
+            [c: string]: C2_private;
+    
+            x: C1_public;
+            y: C2_private;
+    
+            a?: C1_public;
+            ~
+!!! error TS2411: Property 'a' of type 'C1_public | undefined' is not assignable to 'string' index type 'C2_private'.
+            b?: C2_private;
+            ~
+!!! error TS2411: Property 'b' of type 'C2_private | undefined' is not assignable to 'string' index type 'C2_private'.
+    
+            f1(a1: C1_public);
+            ~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+            f2(a1: C2_private);
+            ~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+            f3(): C1_public;
+            f4(): C2_private;
+    
+        }
+    }
+    
+    
+    module m2 {
+        export class C1_public {
+            private f1() {
+            }
+        }
+    
+    
+        class C2_private {
+        }
+    
+        export interface C3_public {
+            (c1: C1_public);
+            ~~~~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            (c1: C2_private);
+            ~~~~~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            (): C1_public;
+            (c2: number): C2_private;
+    
+            new (c1: C1_public);
+            ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            new (c1: C2_private);
+            ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            new (): C1_public;
+            new (c2: number): C2_private;
+    
+            [c: number]: C1_public;
+            [c: string]: C2_private;
+    
+            x: C1_public;
+            y: C2_private;
+    
+            a?: C1_public;
+            ~
+!!! error TS2411: Property 'a' of type 'C1_public | undefined' is not assignable to 'string' index type 'C2_private'.
+            b?: C2_private;
+            ~
+!!! error TS2411: Property 'b' of type 'C2_private | undefined' is not assignable to 'string' index type 'C2_private'.
+    
+            f1(a1: C1_public);
+            ~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+            f2(a1: C2_private);
+            ~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+            f3(): C1_public;
+            f4(): C2_private;
+    
+        }
+    
+        interface C4_private {
+            (c1: C1_public);
+            ~~~~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            (c1: C2_private);
+            ~~~~~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            (): C1_public;
+            (c2: number): C2_private;
+    
+            new (c1: C1_public);
+            ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            new (c1: C2_private);
+            ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+            new (): C1_public;
+            new (c2: number): C2_private;
+    
+            [c: number]: C1_public;
+            [c: string]: C2_private;
+    
+            x: C1_public;
+            y: C2_private;
+    
+            a?: C1_public;
+            ~
+!!! error TS2411: Property 'a' of type 'C1_public | undefined' is not assignable to 'string' index type 'C2_private'.
+            b?: C2_private;
+            ~
+!!! error TS2411: Property 'b' of type 'C2_private | undefined' is not assignable to 'string' index type 'C2_private'.
+    
+            f1(a1: C1_public);
+            ~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+            f2(a1: C2_private);
+            ~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+            f3(): C1_public;
+            f4(): C2_private;
+    
+        }
+    }
+    
+    export class C5_public {
+        private f1() {
+        }
+    }
+    
+    
+    class C6_private {
+    }
+    
+    export interface C7_public {
+        (c1: C5_public);
+        ~~~~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        (c1: C6_private);
+        ~~~~~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        (): C5_public;
+        (c2: number): C6_private;
+    
+        new (c1: C5_public);
+        ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        new (c1: C6_private);
+        ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        new (): C5_public;
+        new (c2: number): C6_private;
+    
+        [c: number]: C5_public;
+        [c: string]: C6_private;
+    
+        x: C5_public;
+        y: C6_private;
+    
+        a?: C5_public;
+        ~
+!!! error TS2411: Property 'a' of type 'C5_public | undefined' is not assignable to 'string' index type 'C6_private'.
+        b?: C6_private;
+        ~
+!!! error TS2411: Property 'b' of type 'C6_private | undefined' is not assignable to 'string' index type 'C6_private'.
+    
+        f1(a1: C5_public);
+        ~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+        f2(a1: C6_private);
+        ~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+        f3(): C5_public;
+        f4(): C6_private;
+    
+    }
+    
+    interface C8_private {
+        (c1: C5_public);
+        ~~~~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        (c1: C6_private);
+        ~~~~~~~~~~~~~~~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        (): C5_public;
+        (c2: number): C6_private;
+    
+        new (c1: C5_public);
+        ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        new (c1: C6_private);
+        ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        new (): C5_public;
+        new (c2: number): C6_private;
+    
+        [c: number]: C5_public;
+        [c: string]: C6_private;
+    
+        x: C5_public;
+        y: C6_private;
+    
+        a?: C5_public;
+        ~
+!!! error TS2411: Property 'a' of type 'C5_public | undefined' is not assignable to 'string' index type 'C6_private'.
+        b?: C6_private;
+        ~
+!!! error TS2411: Property 'b' of type 'C6_private | undefined' is not assignable to 'string' index type 'C6_private'.
+    
+        f1(a1: C5_public);
+        ~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'f1', which lacks return-type annotation, implicitly has an 'any' return type.
+        f2(a1: C6_private);
+        ~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'f2', which lacks return-type annotation, implicitly has an 'any' return type.
+        f3(): C5_public;
+        f4(): C6_private;
+    
+    }
+    
+    export module m3 {
+        export interface m3_i_public {
+            f1(): number;
+        }
+    
+        interface m3_i_private {
+            f2(): string;
+        }
+    
+        interface m3_C1_private extends m3_i_public {
+        }
+        interface m3_C2_private extends m3_i_private {
+        }
+        export interface m3_C3_public extends m3_i_public {
+        }
+        export interface m3_C4_public extends m3_i_private {
+        }
+    
+        interface m3_C5_private extends m3_i_private, m3_i_public {
+        }
+        export interface m3_C6_public extends  m3_i_private, m3_i_public {
+        }
+    }
+    
+    
+    module m4 {
+        export interface m4_i_public {
+            f1(): number;
+        }
+    
+        interface m4_i_private {
+            f2(): string;
+        }
+    
+        interface m4_C1_private extends m4_i_public {
+        }
+        interface m4_C2_private extends m4_i_private {
+        }
+        export interface m4_C3_public extends m4_i_public {
+        }
+        export interface m4_C4_public extends m4_i_private {
+        }
+    
+        interface m4_C5_private extends m4_i_private, m4_i_public {
+        }
+        export interface m4_C6_public extends  m4_i_private, m4_i_public {
+        }
+    }
+    
+    export interface glo_i_public {
+        f1(): number;
+    }
+    
+    interface glo_i_private {
+        f2(): string;
+    }
+    
+    interface glo_C1_private extends glo_i_public {
+    }
+    interface glo_C2_private extends glo_i_private {
+    }
+    export interface glo_C3_public extends glo_i_public {
+    }
+    export interface glo_C4_public extends glo_i_private {
+    }
+    
+    interface glo_C5_private extends glo_i_private, glo_i_public {
+    }
+    export interface glo_C6_public extends  glo_i_private, glo_i_public {
+    }

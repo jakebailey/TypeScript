@@ -1,0 +1,30 @@
+thisBinding.ts(3,2): error TS7008: Member 'z' implicitly has an 'any' type.
+thisBinding.ts(9,8): error TS2339: Property 'e' does not exist on type 'I'.
+
+
+==== thisBinding.ts (2 errors) ====
+    module M {
+        export interface I {
+    	z;
+    	~
+!!! error TS7008: Member 'z' implicitly has an 'any' type.
+        }
+    
+        export class C {
+    	public x=0;
+    	f(x:I) {
+    	    x.e;  // e not found
+    	      ~
+!!! error TS2339: Property 'e' does not exist on type 'I'.
+    	    x.z;  // ok 
+    	}
+        constructor() {
+    	({z:10,f:this.f}).f(<I>({}));
+        }
+        }
+    }
+    
+    class C {
+        f(x: number) {
+        }
+    }

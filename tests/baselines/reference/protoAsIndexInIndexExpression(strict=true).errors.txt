@@ -1,0 +1,28 @@
+protoAsIndexInIndexExpression_0.ts(1,12): error TS7005: Variable 'x' implicitly has an 'any' type.
+protoAsIndexInIndexExpression_1.ts(7,1): error TS7053: Element implicitly has an 'any' type because expression of type '"__proto__"' can't be used to index type '{ serialize: () => any; }'.
+  Property '__proto__' does not exist on type '{ serialize: () => any; }'.
+
+
+==== protoAsIndexInIndexExpression_1.ts (1 errors) ====
+    ///<reference path='protoAsIndexInIndexExpression_0.ts'/>
+    var EntityPrototype = undefined;
+    var WorkspacePrototype = {
+        serialize: function (): any {
+        }
+    };
+    WorkspacePrototype['__proto__'] = EntityPrototype;
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type '"__proto__"' can't be used to index type '{ serialize: () => any; }'.
+!!! error TS7053:   Property '__proto__' does not exist on type '{ serialize: () => any; }'.
+    
+    var o = {
+        "__proto__": 0
+    };
+    class C {
+        "__proto__" = 0;
+    }
+==== protoAsIndexInIndexExpression_0.ts (1 errors) ====
+    export var x;
+               ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    

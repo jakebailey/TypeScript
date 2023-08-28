@@ -1,0 +1,32 @@
+unionTypeReduction.ts(3,6): error TS7006: Parameter 'q' implicitly has an 'any' type.
+unionTypeReduction.ts(13,10): error TS2454: Variable 'i2' is used before being assigned.
+unionTypeReduction.ts(13,16): error TS2454: Variable 'i3' is used before being assigned.
+unionTypeReduction.ts(15,10): error TS2454: Variable 'e1' is used before being assigned.
+
+
+==== unionTypeReduction.ts (4 errors) ====
+    interface I2 {
+        (): number;
+        (q): boolean;
+         ~
+!!! error TS7006: Parameter 'q' implicitly has an 'any' type.
+    }
+    
+    interface I3 {
+        (): number;
+    }
+    
+    var i2: I2, i3: I3;
+    
+    var e1: I2 | I3;
+    var e2 = i2 || i3;  // Type of e2 immediately reduced to I3
+             ~~
+!!! error TS2454: Variable 'i2' is used before being assigned.
+                   ~~
+!!! error TS2454: Variable 'i3' is used before being assigned.
+    
+    var r1 = e1();  // Type of e1 reduced to I3 upon accessing property or signature
+             ~~
+!!! error TS2454: Variable 'e1' is used before being assigned.
+    var r2 = e2();
+    

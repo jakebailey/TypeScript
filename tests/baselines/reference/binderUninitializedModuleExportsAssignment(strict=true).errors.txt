@@ -1,0 +1,14 @@
+loop.js(1,5): error TS7022: 'loop1' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+loop.js(2,5): error TS7022: 'loop2' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+
+
+==== loop.js (2 errors) ====
+    var loop1 = loop2;
+        ~~~~~
+!!! error TS7022: 'loop1' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    var loop2 = loop1;
+        ~~~~~
+!!! error TS7022: 'loop2' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    
+    module.exports = loop2;
+    

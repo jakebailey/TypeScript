@@ -1,0 +1,34 @@
+ambiguousGenericAssertion1.ts(1,26): error TS2322: Type 'null' is not assignable to type 'T'.
+  'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+ambiguousGenericAssertion1.ts(4,10): error TS1109: Expression expected.
+ambiguousGenericAssertion1.ts(4,12): error TS18048: 'T' is possibly 'undefined'.
+ambiguousGenericAssertion1.ts(4,15): error TS2304: Cannot find name 'x'.
+ambiguousGenericAssertion1.ts(4,16): error TS1005: ')' expected.
+ambiguousGenericAssertion1.ts(4,19): error TS1005: ',' expected.
+ambiguousGenericAssertion1.ts(4,21): error TS1005: ';' expected.
+ambiguousGenericAssertion1.ts(4,24): error TS18048: 'T' is possibly 'undefined'.
+
+
+==== ambiguousGenericAssertion1.ts (8 errors) ====
+    function f<T>(x: T): T { return null; }
+                             ~~~~~~
+!!! error TS2322: Type 'null' is not assignable to type 'T'.
+!!! error TS2322:   'T' could be instantiated with an arbitrary type which could be unrelated to 'null'.
+    var r = <T>(x: T) => x;
+    var r2 = < <T>(x: T) => T>f; // valid
+    var r3 = <<T>(x: T) => T>f; // ambiguous, appears to the parser as a << operation
+             ~~
+!!! error TS1109: Expression expected.
+               ~
+!!! error TS18048: 'T' is possibly 'undefined'.
+                  ~
+!!! error TS2304: Cannot find name 'x'.
+                   ~
+!!! error TS1005: ')' expected.
+                      ~
+!!! error TS1005: ',' expected.
+                        ~~
+!!! error TS1005: ';' expected.
+                           ~
+!!! error TS18048: 'T' is possibly 'undefined'.
+    

@@ -1,0 +1,35 @@
+/a.ts(1,22): error TS7016: Could not find a declaration file for module 'foo'. '/node_modules/foo/oof.js' implicitly has an 'any' type.
+/a.ts(2,22): error TS7016: Could not find a declaration file for module 'bar'. '/node_modules/bar/rab.js' implicitly has an 'any' type.
+/a.ts(3,22): error TS7016: Could not find a declaration file for module 'baz'. '/node_modules/baz/zab/index.js' implicitly has an 'any' type.
+
+
+==== /a.ts (3 errors) ====
+    import foo = require("foo");
+                         ~~~~~
+!!! error TS7016: Could not find a declaration file for module 'foo'. '/node_modules/foo/oof.js' implicitly has an 'any' type.
+    import bar = require("bar");
+                         ~~~~~
+!!! error TS7016: Could not find a declaration file for module 'bar'. '/node_modules/bar/rab.js' implicitly has an 'any' type.
+    import baz = require("baz");
+                         ~~~~~
+!!! error TS7016: Could not find a declaration file for module 'baz'. '/node_modules/baz/zab/index.js' implicitly has an 'any' type.
+    foo + bar + baz;
+    
+==== /node_modules/foo/package.json (0 errors) ====
+    { "main": "oof" }
+    
+==== /node_modules/foo/oof.js (0 errors) ====
+    module.exports = 0;
+    
+==== /node_modules/bar/package.json (0 errors) ====
+    { "main": "rab.js" }
+    
+==== /node_modules/bar/rab.js (0 errors) ====
+    module.exports = 0;
+    
+==== /node_modules/baz/package.json (0 errors) ====
+    { "main": "zab" }
+    
+==== /node_modules/baz/zab/index.js (0 errors) ====
+    module.exports = 0;
+    

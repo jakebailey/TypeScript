@@ -1,0 +1,12 @@
+a.js(2,24): error TS7006: Parameter 'hunch' implicitly has an 'any' type.
+
+
+==== a.js (1 errors) ====
+    var obj = {};
+    obj.method = function (hunch) {
+                           ~~~~~
+!!! error TS7006: Parameter 'hunch' implicitly has an 'any' type.
+        return true;
+    }
+    var b = obj.method();
+    

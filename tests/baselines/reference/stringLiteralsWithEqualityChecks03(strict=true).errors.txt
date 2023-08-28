@@ -1,0 +1,99 @@
+stringLiteralsWithEqualityChecks03.ts(13,5): error TS2454: Variable 'x' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(13,11): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(14,15): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(15,5): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(16,5): error TS2367: This comparison appears to be unintentional because the types '"foo"' and '"bar"' have no overlap.
+stringLiteralsWithEqualityChecks03.ts(17,15): error TS2454: Variable 'x' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(18,5): error TS2454: Variable 'x' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(19,5): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(19,5): error TS2367: This comparison appears to be unintentional because the types 'Refrigerator | "foo"' and '"bar"' have no overlap.
+stringLiteralsWithEqualityChecks03.ts(20,5): error TS2367: This comparison appears to be unintentional because the types '"bar"' and 'Refrigerator | "foo"' have no overlap.
+stringLiteralsWithEqualityChecks03.ts(20,15): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(22,5): error TS2454: Variable 'x' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(22,11): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(23,15): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(24,5): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(25,5): error TS2367: This comparison appears to be unintentional because the types '"foo"' and '"bar"' have no overlap.
+stringLiteralsWithEqualityChecks03.ts(26,15): error TS2454: Variable 'x' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(27,5): error TS2454: Variable 'x' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(28,5): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks03.ts(28,5): error TS2367: This comparison appears to be unintentional because the types 'Refrigerator | "foo"' and '"bar"' have no overlap.
+stringLiteralsWithEqualityChecks03.ts(29,5): error TS2367: This comparison appears to be unintentional because the types '"bar"' and 'Refrigerator | "foo"' have no overlap.
+stringLiteralsWithEqualityChecks03.ts(29,15): error TS2454: Variable 'y' is used before being assigned.
+
+
+==== stringLiteralsWithEqualityChecks03.ts (22 errors) ====
+    interface Runnable {
+        isRunning: boolean;
+    }
+    
+    interface Refrigerator extends Runnable {
+        makesFoodGoBrrr: boolean;
+    }
+    
+    let x: string;
+    let y: "foo" | Refrigerator;
+    
+    let b: boolean;
+    b = x === y;
+        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+              ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    b = "foo" === y
+                  ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    b = y === "foo";
+        ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    b = "foo" === "bar";
+        ~~~~~~~~~~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '"foo"' and '"bar"' have no overlap.
+    b = "bar" === x;
+                  ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    b = x === "bar";
+        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    b = y === "bar";
+        ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+        ~~~~~~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types 'Refrigerator | "foo"' and '"bar"' have no overlap.
+    b = "bar" === y;
+        ~~~~~~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '"bar"' and 'Refrigerator | "foo"' have no overlap.
+                  ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    
+    b = x !== y;
+        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+              ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    b = "foo" !== y
+                  ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    b = y !== "foo";
+        ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    b = "foo" !== "bar";
+        ~~~~~~~~~~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '"foo"' and '"bar"' have no overlap.
+    b = "bar" !== x;
+                  ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    b = x !== "bar";
+        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    b = y !== "bar";
+        ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+        ~~~~~~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types 'Refrigerator | "foo"' and '"bar"' have no overlap.
+    b = "bar" !== y;
+        ~~~~~~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '"bar"' and 'Refrigerator | "foo"' have no overlap.
+                  ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    

@@ -1,0 +1,19 @@
+testTypings.ts(2,4): error TS7010: 'compareTo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== testTypings.ts (1 errors) ====
+    interface IComparable<T> {
+       compareTo(other: T);
+       ~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'compareTo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    declare function sort<U extends IComparable<U>>(items: U[]): U[];
+    
+    
+    
+    
+    
+    
+    
+    

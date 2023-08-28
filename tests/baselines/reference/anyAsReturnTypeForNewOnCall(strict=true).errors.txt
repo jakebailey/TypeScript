@@ -1,0 +1,32 @@
+anyAsReturnTypeForNewOnCall.ts(1,16): error TS7006: Parameter 'x' implicitly has an 'any' type.
+anyAsReturnTypeForNewOnCall.ts(1,19): error TS7006: Parameter 'y' implicitly has an 'any' type.
+anyAsReturnTypeForNewOnCall.ts(3,2): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+anyAsReturnTypeForNewOnCall.ts(5,2): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+anyAsReturnTypeForNewOnCall.ts(9,9): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+
+
+==== anyAsReturnTypeForNewOnCall.ts (5 errors) ====
+    function Point(x, y) {
+                   ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                      ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+    
+     this.x = x;
+     ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+    
+     this.y = y;
+     ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+    
+    }
+    
+    var o = new Point(3, 4);
+            ~~~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+    
+    var xx = o.x;
+    
+     
+    

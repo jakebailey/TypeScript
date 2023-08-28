@@ -1,0 +1,57 @@
+downlevelLetConst18.ts(3,10): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+downlevelLetConst18.ts(4,14): error TS1250: Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'.
+downlevelLetConst18.ts(4,22): error TS7005: Variable 'x' implicitly has an 'any' type.
+downlevelLetConst18.ts(7,10): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+downlevelLetConst18.ts(8,14): error TS1250: Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'.
+downlevelLetConst18.ts(8,23): error TS7005: Variable 'x' implicitly has an 'any' type.
+downlevelLetConst18.ts(28,12): error TS7032: Property 'foo' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+downlevelLetConst18.ts(28,16): error TS7006: Parameter 'v' implicitly has an 'any' type.
+
+
+==== downlevelLetConst18.ts (8 errors) ====
+    'use strict'
+    
+    for (let x; ;) {
+             ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+        function foo() { x };
+                 ~~~
+!!! error TS1250: Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'.
+                         ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    }
+    
+    for (let x; ;) {
+             ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+        function foo1() { x };
+                 ~~~~
+!!! error TS1250: Function declarations are not allowed inside blocks in strict mode when targeting 'ES5'.
+                          ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+    }
+    
+    for (let x; ;) {
+        (() => { x })();
+    }
+    
+    for (const x = 1; ;) {
+        (() => { x })();
+    }
+    
+    for (let x; ;) {
+        ({ foo() { x }})
+    }
+    
+    for (let x; ;) {
+        ({ get foo() { return x } })
+    }
+    
+    for (let x; ;) {
+        ({ set foo(v) { x } })
+               ~~~
+!!! error TS7032: Property 'foo' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                   ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+    }
+    

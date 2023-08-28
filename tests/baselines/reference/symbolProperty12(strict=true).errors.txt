@@ -1,0 +1,32 @@
+symbolProperty12.ts(2,13): error TS2564: Property '[Symbol.iterator]' has no initializer and is not definitely assigned in the constructor.
+symbolProperty12.ts(2,34): error TS7008: Member 'x' implicitly has an 'any' type.
+symbolProperty12.ts(5,26): error TS7008: Member 'x' implicitly has an 'any' type.
+symbolProperty12.ts(9,1): error TS2322: Type 'C' is not assignable to type 'I'.
+  Property '[Symbol.iterator]' is private in type 'C' but not in type 'I'.
+symbolProperty12.ts(10,5): error TS2322: Type 'I' is not assignable to type 'C'.
+  Property '[Symbol.iterator]' is private in type 'C' but not in type 'I'.
+
+
+==== symbolProperty12.ts (5 errors) ====
+    class C {
+        private [Symbol.iterator]: { x };
+                ~~~~~~~~~~~~~~~~~
+!!! error TS2564: Property '[Symbol.iterator]' has no initializer and is not definitely assigned in the constructor.
+                                     ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    }
+    interface I {
+        [Symbol.iterator]: { x };
+                             ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    }
+    
+    var i: I;
+    i = new C;
+    ~
+!!! error TS2322: Type 'C' is not assignable to type 'I'.
+!!! error TS2322:   Property '[Symbol.iterator]' is private in type 'C' but not in type 'I'.
+    var c: C = i;
+        ~
+!!! error TS2322: Type 'I' is not assignable to type 'C'.
+!!! error TS2322:   Property '[Symbol.iterator]' is private in type 'C' but not in type 'I'.

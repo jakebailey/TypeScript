@@ -1,0 +1,47 @@
+//// [tests/cases/compiler/noParameterReassignmentIIFEAnnotated.ts] ////
+
+=== index.js ===
+self.importScripts = (function (importScripts) {
+>self.importScripts = (function (importScripts) {    /**     * @param {...unknown} rest     */    return function () {        return importScripts.apply(this, arguments);    };})(importScripts) : (...args: unknown[]) => void
+>                                                                                                                                                                                                 : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>self.importScripts : (...urls: string[]) => void
+>                   : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>self : Window & typeof globalThis
+>     : ^^^^^^^^^^^^^^^^^^^^^^^^^^
+>importScripts : (...urls: string[]) => void
+>              : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>(function (importScripts) {    /**     * @param {...unknown} rest     */    return function () {        return importScripts.apply(this, arguments);    };})(importScripts) : (...args: unknown[]) => void
+>                                                                                                                                                                            : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>(function (importScripts) {    /**     * @param {...unknown} rest     */    return function () {        return importScripts.apply(this, arguments);    };}) : (importScripts: (...urls: string[]) => void) => (...args: unknown[]) => void
+>                                                                                                                                                             : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>function (importScripts) {    /**     * @param {...unknown} rest     */    return function () {        return importScripts.apply(this, arguments);    };} : (importScripts: (...urls: string[]) => void) => (...args: unknown[]) => void
+>                                                                                                                                                           : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>importScripts : (...urls: string[]) => void
+>              : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    /**
+     * @param {...unknown} rest
+     */
+    return function () {
+>function () {        return importScripts.apply(this, arguments);    } : (...args: unknown[]) => void
+>                                                                       : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+        return importScripts.apply(this, arguments);
+>importScripts.apply(this, arguments) : void
+>                                     : ^^^^
+>importScripts.apply : { <T, R>(this: (this: T) => R, thisArg: T): R; <T_1, A extends any[], R_1>(this: (this: T_1, ...args: A) => R_1, thisArg: T_1, args: A): R_1; }
+>                    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>importScripts : (...urls: string[]) => void
+>              : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>apply : { <T, R>(this: (this: T) => R, thisArg: T): R; <T_1, A extends any[], R_1>(this: (this: T_1, ...args: A) => R_1, thisArg: T_1, args: A): R_1; }
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>this : any
+>     : ^^^
+>arguments : IArguments
+>          : ^^^^^^^^^^
+
+    };
+})(importScripts);
+>importScripts : (...urls: string[]) => void
+>              : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+

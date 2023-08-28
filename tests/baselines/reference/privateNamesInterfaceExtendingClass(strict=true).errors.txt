@@ -1,0 +1,22 @@
+privateNamesInterfaceExtendingClass.ts(2,5): error TS7008: Member '#prop' implicitly has an 'any' type.
+privateNamesInterfaceExtendingClass.ts(10,7): error TS18013: Property '#prop' is not accessible outside class 'C' because it has a private identifier.
+
+
+==== privateNamesInterfaceExtendingClass.ts (2 errors) ====
+    class C {
+        #prop;
+        ~~~~~
+!!! error TS7008: Member '#prop' implicitly has an 'any' type.
+        func(x: I) {
+            x.#prop = 123;
+        }
+    }
+    interface I extends C {}
+    
+    function func(x: I) {
+        x.#prop = 123;
+          ~~~~~
+!!! error TS18013: Property '#prop' is not accessible outside class 'C' because it has a private identifier.
+    }
+    
+    

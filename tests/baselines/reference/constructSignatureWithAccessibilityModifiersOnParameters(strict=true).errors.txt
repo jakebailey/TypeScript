@@ -1,0 +1,80 @@
+constructSignatureWithAccessibilityModifiersOnParameters.ts(4,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(4,27): error TS7006: Parameter 'y' implicitly has an 'any' type.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(8,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(12,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(16,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(16,10): error TS2369: A parameter property is only allowed in a constructor implementation.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(16,10): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(20,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(20,10): error TS2369: A parameter property is only allowed in a constructor implementation.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(20,10): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(24,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(24,10): error TS2369: A parameter property is only allowed in a constructor implementation.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(24,10): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(28,5): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(28,10): error TS2369: A parameter property is only allowed in a constructor implementation.
+constructSignatureWithAccessibilityModifiersOnParameters.ts(28,10): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== constructSignatureWithAccessibilityModifiersOnParameters.ts (16 errors) ====
+    // Parameter properties are only valid in constructor definitions, not even in other forms of construct signatures
+    
+    class C {
+        constructor(public x, private y) { }
+                    ~~~~~~~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                              ~~~~~~~~~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+    }
+    
+    class C2 {
+        constructor(public x) { }
+                    ~~~~~~~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    class C3 {
+        constructor(private x) { }
+                    ~~~~~~~~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    interface I {
+        new (public x);
+        ~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+             ~~~~~~~~
+!!! error TS2369: A parameter property is only allowed in a constructor implementation.
+             ~~~~~~~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    interface I2 {
+        new (private x);
+        ~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+             ~~~~~~~~~
+!!! error TS2369: A parameter property is only allowed in a constructor implementation.
+             ~~~~~~~~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    var a: {
+        new (public x);
+        ~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+             ~~~~~~~~
+!!! error TS2369: A parameter property is only allowed in a constructor implementation.
+             ~~~~~~~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    var b: {
+        new (private x);
+        ~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+             ~~~~~~~~~
+!!! error TS2369: A parameter property is only allowed in a constructor implementation.
+             ~~~~~~~~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }

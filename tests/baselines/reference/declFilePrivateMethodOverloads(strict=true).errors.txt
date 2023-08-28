@@ -1,0 +1,46 @@
+declFilePrivateMethodOverloads.ts(2,5): error TS7010: 'someMethod', which lacks return-type annotation, implicitly has an 'any' return type.
+declFilePrivateMethodOverloads.ts(5,13): error TS7010: '_forEachBindingContext', which lacks return-type annotation, implicitly has an 'any' return type.
+declFilePrivateMethodOverloads.ts(6,13): error TS7010: '_forEachBindingContext', which lacks return-type annotation, implicitly has an 'any' return type.
+declFilePrivateMethodOverloads.ts(7,36): error TS7006: Parameter 'context' implicitly has an 'any' type.
+declFilePrivateMethodOverloads.ts(11,13): error TS7010: 'overloadWithArityDifference', which lacks return-type annotation, implicitly has an 'any' return type.
+declFilePrivateMethodOverloads.ts(12,13): error TS7010: 'overloadWithArityDifference', which lacks return-type annotation, implicitly has an 'any' return type.
+declFilePrivateMethodOverloads.ts(13,41): error TS7006: Parameter 'context' implicitly has an 'any' type.
+
+
+==== declFilePrivateMethodOverloads.ts (7 errors) ====
+    interface IContext {
+        someMethod();
+        ~~~~~~~~~~~~~
+!!! error TS7010: 'someMethod', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    class c1 {
+        private _forEachBindingContext(bindingContext: IContext, fn: (bindingContext: IContext) => void);
+                ~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: '_forEachBindingContext', which lacks return-type annotation, implicitly has an 'any' return type.
+        private _forEachBindingContext(bindingContextArray: Array<IContext>, fn: (bindingContext: IContext) => void);
+                ~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: '_forEachBindingContext', which lacks return-type annotation, implicitly has an 'any' return type.
+        private _forEachBindingContext(context, fn: (bindingContext: IContext) => void): void {
+                                       ~~~~~~~
+!!! error TS7006: Parameter 'context' implicitly has an 'any' type.
+            // Function here
+        }
+    
+        private overloadWithArityDifference(bindingContext: IContext);
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'overloadWithArityDifference', which lacks return-type annotation, implicitly has an 'any' return type.
+        private overloadWithArityDifference(bindingContextArray: Array<IContext>, fn: (bindingContext: IContext) => void);
+                ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7010: 'overloadWithArityDifference', which lacks return-type annotation, implicitly has an 'any' return type.
+        private overloadWithArityDifference(context): void {
+                                            ~~~~~~~
+!!! error TS7006: Parameter 'context' implicitly has an 'any' type.
+            // Function here
+        }
+    }
+    declare class c2 {
+        private overload1(context, fn);
+    
+        private overload2(context);
+        private overload2(context, fn);
+    }

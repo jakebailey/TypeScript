@@ -1,0 +1,38 @@
+declFileImportModuleWithExportAssignment_0.ts(3,10): error TS7006: Parameter 'res' implicitly has an 'any' type.
+declFileImportModuleWithExportAssignment_0.ts(3,15): error TS7006: Parameter 'req' implicitly has an 'any' type.
+declFileImportModuleWithExportAssignment_0.ts(3,20): error TS7006: Parameter 'next' implicitly has an 'any' type.
+declFileImportModuleWithExportAssignment_0.ts(16,10): error TS2454: Variable 'm2' is used before being assigned.
+
+
+==== declFileImportModuleWithExportAssignment_1.ts (0 errors) ====
+    /**This is on import declaration*/
+    import a1 = require("./declFileImportModuleWithExportAssignment_0");
+    export var a = a1;
+    a.test1(null, null, null);
+    
+==== declFileImportModuleWithExportAssignment_0.ts (4 errors) ====
+    module m2 {
+        export interface connectModule {
+            (res, req, next): void;
+             ~~~
+!!! error TS7006: Parameter 'res' implicitly has an 'any' type.
+                  ~~~
+!!! error TS7006: Parameter 'req' implicitly has an 'any' type.
+                       ~~~~
+!!! error TS7006: Parameter 'next' implicitly has an 'any' type.
+        }
+        export interface connectExport {
+            use: (mod: connectModule) => connectExport;
+            listen: (port: number) => void;
+        }
+    
+    }
+    var m2: {
+        (): m2.connectExport;
+        test1: m2.connectModule;
+        test2(): m2.connectModule;
+    };
+    export = m2;
+             ~~
+!!! error TS2454: Variable 'm2' is used before being assigned.
+    

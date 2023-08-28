@@ -1,0 +1,50 @@
+promisesWithConstraints.ts(9,17): error TS7008: Member 'x' implicitly has an 'any' type.
+promisesWithConstraints.ts(10,17): error TS7008: Member 'x' implicitly has an 'any' type.
+promisesWithConstraints.ts(10,20): error TS7008: Member 'y' implicitly has an 'any' type.
+promisesWithConstraints.ts(14,5): error TS2454: Variable 'b' is used before being assigned.
+promisesWithConstraints.ts(15,1): error TS2322: Type 'Promise<Foo>' is not assignable to type 'Promise<Bar>'.
+  Property 'y' is missing in type 'Foo' but required in type 'Bar'.
+promisesWithConstraints.ts(19,6): error TS2454: Variable 'b2' is used before being assigned.
+promisesWithConstraints.ts(20,1): error TS2322: Type 'CPromise<Foo>' is not assignable to type 'CPromise<Bar>'.
+  Type 'Foo' is not assignable to type 'Bar'.
+
+
+==== promisesWithConstraints.ts (7 errors) ====
+    interface Promise<T> {
+        then<U>(cb: (x: T) => Promise<U>): Promise<U>;
+    }
+    
+    interface CPromise<T extends { x: any; }> {
+        then<U extends { x: any; }>(cb: (x: T) => Promise<U>): Promise<U>;
+    }
+    
+    interface Foo { x; }
+                    ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    interface Bar { x; y; }
+                    ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+                       ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    
+    var a: Promise<Foo>;
+    var b: Promise<Bar>;
+    a = b; // ok
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    b = a; // ok
+    ~
+!!! error TS2322: Type 'Promise<Foo>' is not assignable to type 'Promise<Bar>'.
+!!! error TS2322:   Property 'y' is missing in type 'Foo' but required in type 'Bar'.
+!!! related TS2728 promisesWithConstraints.ts:10:20: 'y' is declared here.
+    
+    var a2: CPromise<Foo>;
+    var b2: CPromise<Bar>;
+    a2 = b2; // ok
+         ~~
+!!! error TS2454: Variable 'b2' is used before being assigned.
+    b2 = a2; // was error
+    ~~
+!!! error TS2322: Type 'CPromise<Foo>' is not assignable to type 'CPromise<Bar>'.
+!!! error TS2322:   Type 'Foo' is not assignable to type 'Bar'.
+    

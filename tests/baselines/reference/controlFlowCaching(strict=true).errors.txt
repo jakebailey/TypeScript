@@ -1,0 +1,151 @@
+controlFlowCaching.ts(3,12): error TS7006: Parameter 'dim' implicitly has an 'any' type.
+controlFlowCaching.ts(3,17): error TS7006: Parameter 'offsets' implicitly has an 'any' type.
+controlFlowCaching.ts(3,26): error TS7006: Parameter 'arr' implicitly has an 'any' type.
+controlFlowCaching.ts(3,31): error TS7006: Parameter 'acommon' implicitly has an 'any' type.
+controlFlowCaching.ts(3,40): error TS7006: Parameter 'centerAnchorLimit' implicitly has an 'any' type.
+controlFlowCaching.ts(3,59): error TS7006: Parameter 'g' implicitly has an 'any' type.
+controlFlowCaching.ts(3,62): error TS7006: Parameter 'has' implicitly has an 'any' type.
+controlFlowCaching.ts(3,67): error TS7006: Parameter 'lin' implicitly has an 'any' type.
+controlFlowCaching.ts(4,17): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+controlFlowCaching.ts(6,13): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+controlFlowCaching.ts(6,28): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+controlFlowCaching.ts(9,20): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+controlFlowCaching.ts(16,23): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+controlFlowCaching.ts(17,23): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+controlFlowCaching.ts(18,23): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+controlFlowCaching.ts(28,24): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+controlFlowCaching.ts(37,17): error TS18048: 'labelOffset' is possibly 'undefined'.
+controlFlowCaching.ts(39,17): error TS18048: 'labelOffset' is possibly 'undefined'.
+controlFlowCaching.ts(41,17): error TS18048: 'labelOffset' is possibly 'undefined'.
+controlFlowCaching.ts(43,17): error TS18048: 'labelOffset' is possibly 'undefined'.
+controlFlowCaching.ts(45,17): error TS18048: 'labelOffset' is possibly 'undefined'.
+controlFlowCaching.ts(47,17): error TS18048: 'labelOffset' is possibly 'undefined'.
+controlFlowCaching.ts(52,5): error TS18048: 'titlePos' is possibly 'undefined'.
+controlFlowCaching.ts(54,14): error TS2678: Type '"start"' is not comparable to type 'undefined'.
+controlFlowCaching.ts(57,14): error TS2678: Type '"end"' is not comparable to type 'undefined'.
+controlFlowCaching.ts(60,14): error TS2678: Type '"middle"' is not comparable to type 'undefined'.
+controlFlowCaching.ts(61,13): error TS18048: 'labelOffset' is possibly 'undefined'.
+
+
+==== controlFlowCaching.ts (27 errors) ====
+    // Repro for #8401
+    
+    function f(dim, offsets, arr, acommon, centerAnchorLimit, g, has, lin) {
+               ~~~
+!!! error TS7006: Parameter 'dim' implicitly has an 'any' type.
+                    ~~~~~~~
+!!! error TS7006: Parameter 'offsets' implicitly has an 'any' type.
+                             ~~~
+!!! error TS7006: Parameter 'arr' implicitly has an 'any' type.
+                                  ~~~~~~~
+!!! error TS7006: Parameter 'acommon' implicitly has an 'any' type.
+                                           ~~~~~~~~~~~~~~~~~
+!!! error TS7006: Parameter 'centerAnchorLimit' implicitly has an 'any' type.
+                                                              ~
+!!! error TS7006: Parameter 'g' implicitly has an 'any' type.
+                                                                 ~~~
+!!! error TS7006: Parameter 'has' implicitly has an 'any' type.
+                                                                      ~~~
+!!! error TS7006: Parameter 'lin' implicitly has an 'any' type.
+        var isRtl = this._isRtl();  // chart mirroring
+                    ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+        // prepare variable
+        var o = this.opt, ta = this.chart.theme.axis, position = o.position,
+                ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+                               ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+            leftBottom = position !== "rightOrTop", rotation = o.rotation % 360,
+            start, stop, titlePos, titleRotation = 0, titleOffset, axisVector, tickVector, anchorOffset, labelOffset, labelAlign,
+            labelGap = this.chart.theme.axis.tick.labelGap,
+                       ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+            taFont = o.font || (ta.majorTick && ta.majorTick.font) || (ta.tick && ta.tick.font),
+            taTitleFont = o.titleFont || (ta.title && ta.title.font),
+            taFontColor = o.fontColor || (ta.majorTick && ta.majorTick.fontColor) || (ta.tick && ta.tick.fontColor) || "black",
+            taTitleFontColor = o.titleFontColor || (ta.title && ta.title.fontColor) || "black",
+            taTitleGap = (o.titleGap == 0) ? 0 : o.titleGap || (ta.title && ta.title.gap) || 15,
+            taTitleOrientation = o.titleOrientation || (ta.title && ta.title.orientation) || "axis",
+            taMajorTick = this.chart.theme.getTick("major", o),
+                          ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+            taMinorTick = this.chart.theme.getTick("minor", o),
+                          ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+            taMicroTick = this.chart.theme.getTick("micro", o),
+                          ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+    
+            taStroke = "stroke" in o ? o.stroke : ta.stroke,
+            size = taFont ? g.normalizedLength(g.splitFontString(taFont).size) : 0,
+            cosr = Math.abs(Math.cos(rotation * Math.PI / 180)),
+            sinr = Math.abs(Math.sin(rotation * Math.PI / 180)),
+            tsize = taTitleFont ? g.normalizedLength(g.splitFontString(taTitleFont).size) : 0;
+        if (rotation < 0) {
+            rotation += 360;
+        }
+        var cachedLabelW = this._getMaxLabelSize();
+                           ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+        cachedLabelW = cachedLabelW && cachedLabelW.majLabelW;
+        titleOffset = size * cosr + (cachedLabelW || 0) * sinr + labelGap + Math.max(taMajorTick.length > 0 ? taMajorTick.length : 0,
+            taMinorTick.length > 0 ? taMinorTick.length : 0) +
+            tsize + taTitleGap;
+        axisVector = { x: isRtl ? -1 : 1, y: 0 };     // chart mirroring
+        switch (rotation) {
+            default:
+                if (rotation < (90 - centerAnchorLimit)) {
+                    labelOffset.y = leftBottom ? size : 0;
+                    ~~~~~~~~~~~
+!!! error TS18048: 'labelOffset' is possibly 'undefined'.
+                } else if (rotation < (90 + centerAnchorLimit)) {
+                    labelOffset.x = -size * 0.4;
+                    ~~~~~~~~~~~
+!!! error TS18048: 'labelOffset' is possibly 'undefined'.
+                } else if (rotation < 180) {
+                    labelOffset.y = leftBottom ? 0 : -size;
+                    ~~~~~~~~~~~
+!!! error TS18048: 'labelOffset' is possibly 'undefined'.
+                } else if (rotation < (270 - centerAnchorLimit)) {
+                    labelOffset.y = leftBottom ? 0 : -size;
+                    ~~~~~~~~~~~
+!!! error TS18048: 'labelOffset' is possibly 'undefined'.
+                } else if (rotation < (270 + centerAnchorLimit)) {
+                    labelOffset.y = leftBottom ? size * 0.4 : 0;
+                    ~~~~~~~~~~~
+!!! error TS18048: 'labelOffset' is possibly 'undefined'.
+                } else {
+                    labelOffset.y = leftBottom ? size : 0;
+                    ~~~~~~~~~~~
+!!! error TS18048: 'labelOffset' is possibly 'undefined'.
+                }
+        }
+    
+        titleRotation = (taTitleOrientation && taTitleOrientation == "away") ? 180 : 0;
+        titlePos.y = offsets.t - titleOffset + (titleRotation ? 0 : tsize);
+        ~~~~~~~~
+!!! error TS18048: 'titlePos' is possibly 'undefined'.
+        switch (labelAlign) {
+            case "start":
+                 ~~~~~~~
+!!! error TS2678: Type '"start"' is not comparable to type 'undefined'.
+                labelAlign = "end";
+                break;
+            case "end":
+                 ~~~~~
+!!! error TS2678: Type '"end"' is not comparable to type 'undefined'.
+                labelAlign = "start";
+                break;
+            case "middle":
+                 ~~~~~~~~
+!!! error TS2678: Type '"middle"' is not comparable to type 'undefined'.
+                labelOffset.y -= size;
+                ~~~~~~~~~~~
+!!! error TS18048: 'labelOffset' is possibly 'undefined'.
+                break;
+        }
+    
+        let _ = rotation;
+    }
+    

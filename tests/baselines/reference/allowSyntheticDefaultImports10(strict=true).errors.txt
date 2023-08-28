@@ -1,0 +1,23 @@
+a.ts(2,5): error TS2339: Property 'default' does not exist on type 'typeof import("b")'.
+a.ts(3,5): error TS2339: Property 'default' does not exist on type 'typeof import("b")'.
+b.d.ts(1,17): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+b.d.ts(3,17): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== a.ts (2 errors) ====
+    import Foo = require("./b");
+    Foo.default.bar();
+        ~~~~~~~
+!!! error TS2339: Property 'default' does not exist on type 'typeof import("b")'.
+    Foo.default.default.foo();
+        ~~~~~~~
+!!! error TS2339: Property 'default' does not exist on type 'typeof import("b")'.
+==== b.d.ts (2 errors) ====
+    export function foo();
+                    ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    export function bar();
+                    ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+    

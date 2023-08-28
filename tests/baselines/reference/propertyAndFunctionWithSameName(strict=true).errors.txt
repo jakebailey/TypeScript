@@ -1,0 +1,35 @@
+propertyAndFunctionWithSameName.ts(2,5): error TS2300: Duplicate identifier 'x'.
+propertyAndFunctionWithSameName.ts(2,5): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+propertyAndFunctionWithSameName.ts(3,5): error TS2300: Duplicate identifier 'x'.
+propertyAndFunctionWithSameName.ts(9,5): error TS2300: Duplicate identifier 'x'.
+propertyAndFunctionWithSameName.ts(9,5): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+propertyAndFunctionWithSameName.ts(10,5): error TS2300: Duplicate identifier 'x'.
+propertyAndFunctionWithSameName.ts(10,7): error TS7006: Parameter 'v' implicitly has an 'any' type.
+
+
+==== propertyAndFunctionWithSameName.ts (7 errors) ====
+    class C {
+        x: number;
+        ~
+!!! error TS2300: Duplicate identifier 'x'.
+        ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+        x() { // error
+        ~
+!!! error TS2300: Duplicate identifier 'x'.
+            return 1;
+        }
+    }
+    
+    class D {
+        x: number;
+        ~
+!!! error TS2300: Duplicate identifier 'x'.
+        ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+        x(v) { } // error
+        ~
+!!! error TS2300: Duplicate identifier 'x'.
+          ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+    }

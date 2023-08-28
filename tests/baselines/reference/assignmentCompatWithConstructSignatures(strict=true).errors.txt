@@ -1,0 +1,106 @@
+assignmentCompatWithConstructSignatures.ts(9,5): error TS2454: Variable 'a' is used before being assigned.
+assignmentCompatWithConstructSignatures.ts(17,5): error TS2454: Variable 's' is used before being assigned.
+assignmentCompatWithConstructSignatures.ts(18,5): error TS2454: Variable 'a2' is used before being assigned.
+assignmentCompatWithConstructSignatures.ts(19,5): error TS2454: Variable 's' is used before being assigned.
+assignmentCompatWithConstructSignatures.ts(20,5): error TS2454: Variable 'a2' is used before being assigned.
+assignmentCompatWithConstructSignatures.ts(28,1): error TS2322: Type 'S2' is not assignable to type 'T'.
+  Type 'S2' provides no match for the signature 'new (x: number): void'.
+assignmentCompatWithConstructSignatures.ts(28,5): error TS2454: Variable 's2' is used before being assigned.
+assignmentCompatWithConstructSignatures.ts(29,1): error TS2322: Type '(x: string) => void' is not assignable to type 'T'.
+  Type '(x: string) => void' provides no match for the signature 'new (x: number): void'.
+assignmentCompatWithConstructSignatures.ts(29,5): error TS2454: Variable 'a3' is used before being assigned.
+assignmentCompatWithConstructSignatures.ts(30,1): error TS2322: Type '(x: string) => number' is not assignable to type 'T'.
+  Type '(x: string) => number' provides no match for the signature 'new (x: number): void'.
+assignmentCompatWithConstructSignatures.ts(31,1): error TS2322: Type '(x: string) => string' is not assignable to type 'T'.
+  Type '(x: string) => string' provides no match for the signature 'new (x: number): void'.
+assignmentCompatWithConstructSignatures.ts(32,1): error TS2322: Type 'S2' is not assignable to type 'new (x: number) => void'.
+  Type 'S2' provides no match for the signature 'new (x: number): void'.
+assignmentCompatWithConstructSignatures.ts(32,5): error TS2454: Variable 's2' is used before being assigned.
+assignmentCompatWithConstructSignatures.ts(33,1): error TS2322: Type '(x: string) => void' is not assignable to type 'new (x: number) => void'.
+  Type '(x: string) => void' provides no match for the signature 'new (x: number): void'.
+assignmentCompatWithConstructSignatures.ts(33,5): error TS2454: Variable 'a3' is used before being assigned.
+assignmentCompatWithConstructSignatures.ts(34,1): error TS2322: Type '(x: string) => number' is not assignable to type 'new (x: number) => void'.
+  Type '(x: string) => number' provides no match for the signature 'new (x: number): void'.
+assignmentCompatWithConstructSignatures.ts(35,1): error TS2322: Type '(x: string) => string' is not assignable to type 'new (x: number) => void'.
+  Type '(x: string) => string' provides no match for the signature 'new (x: number): void'.
+
+
+==== assignmentCompatWithConstructSignatures.ts (17 errors) ====
+    // void returning call signatures can be assigned a non-void returning call signature that otherwise matches
+    
+    interface T {
+        new (x: number): void;
+    }
+    var t: T;
+    var a: { new (x: number): void };
+    
+    t = a;
+        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    a = t;
+    
+    interface S {
+        new (x: number): string;
+    }
+    var s: S;
+    var a2: { new (x: number): string };
+    t = s;
+        ~
+!!! error TS2454: Variable 's' is used before being assigned.
+    t = a2;
+        ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
+    a = s;
+        ~
+!!! error TS2454: Variable 's' is used before being assigned.
+    a = a2;
+        ~~
+!!! error TS2454: Variable 'a2' is used before being assigned.
+    
+    interface S2 {
+        (x: string): void;
+    }
+    var s2: S2;
+    var a3: { (x: string): void };
+    // these are errors
+    t = s2;
+    ~
+!!! error TS2322: Type 'S2' is not assignable to type 'T'.
+!!! error TS2322:   Type 'S2' provides no match for the signature 'new (x: number): void'.
+        ~~
+!!! error TS2454: Variable 's2' is used before being assigned.
+    t = a3;
+    ~
+!!! error TS2322: Type '(x: string) => void' is not assignable to type 'T'.
+!!! error TS2322:   Type '(x: string) => void' provides no match for the signature 'new (x: number): void'.
+        ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
+    t = (x: string) => 1;
+    ~
+!!! error TS2322: Type '(x: string) => number' is not assignable to type 'T'.
+!!! error TS2322:   Type '(x: string) => number' provides no match for the signature 'new (x: number): void'.
+    t = function (x: string) { return ''; }
+    ~
+!!! error TS2322: Type '(x: string) => string' is not assignable to type 'T'.
+!!! error TS2322:   Type '(x: string) => string' provides no match for the signature 'new (x: number): void'.
+    a = s2;
+    ~
+!!! error TS2322: Type 'S2' is not assignable to type 'new (x: number) => void'.
+!!! error TS2322:   Type 'S2' provides no match for the signature 'new (x: number): void'.
+        ~~
+!!! error TS2454: Variable 's2' is used before being assigned.
+    a = a3;
+    ~
+!!! error TS2322: Type '(x: string) => void' is not assignable to type 'new (x: number) => void'.
+!!! error TS2322:   Type '(x: string) => void' provides no match for the signature 'new (x: number): void'.
+        ~~
+!!! error TS2454: Variable 'a3' is used before being assigned.
+    a = (x: string) => 1;
+    ~
+!!! error TS2322: Type '(x: string) => number' is not assignable to type 'new (x: number) => void'.
+!!! error TS2322:   Type '(x: string) => number' provides no match for the signature 'new (x: number): void'.
+    a = function (x: string) { return ''; }
+    ~
+!!! error TS2322: Type '(x: string) => string' is not assignable to type 'new (x: number) => void'.
+!!! error TS2322:   Type '(x: string) => string' provides no match for the signature 'new (x: number): void'.
+    

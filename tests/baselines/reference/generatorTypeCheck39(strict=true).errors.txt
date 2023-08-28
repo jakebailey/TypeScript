@@ -1,0 +1,24 @@
+generatorTypeCheck39.ts(2,12): error TS7006: Parameter 'y' implicitly has an 'any' type.
+generatorTypeCheck39.ts(5,16): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+generatorTypeCheck39.ts(7,13): error TS1163: A 'yield' expression is only allowed in a generator body.
+generatorTypeCheck39.ts(7,13): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+
+
+==== generatorTypeCheck39.ts (4 errors) ====
+    function decorator(x: any) {
+        return y => { };
+               ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+    }
+    function* g() {
+        @decorator(yield 0)
+                   ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+        class C {
+            x = yield 0;
+                ~~~~~
+!!! error TS1163: A 'yield' expression is only allowed in a generator body.
+                ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+        }
+    }

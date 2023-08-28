@@ -1,0 +1,127 @@
+//// [tests/cases/conformance/classes/members/accessibility/classPropertyAsProtected.ts] ////
+
+=== classPropertyAsProtected.ts ===
+class C {
+>C : C
+>  : ^
+
+    protected x: string;
+>x : string
+>  : ^^^^^^
+
+    protected get y() { return null; }
+>y : null
+>  : ^^^^
+
+    protected set y(x) { }
+>y : null
+>  : ^^^^
+>x : null
+>  : ^^^^
+
+    protected foo() { }
+>foo : () => void
+>    : ^^^^^^^^^^
+
+    protected static a: string;
+>a : string
+>  : ^^^^^^
+
+    protected static get b() { return null; }
+>b : null
+>  : ^^^^
+
+    protected static set b(x) { }
+>b : null
+>  : ^^^^
+>x : null
+>  : ^^^^
+
+    protected static foo() { }
+>foo : () => void
+>    : ^^^^^^^^^^
+}
+
+var c: C;
+>c : C
+>  : ^
+
+// all errors
+c.x;
+>c.x : string
+>    : ^^^^^^
+>c : C
+>  : ^
+>x : string
+>  : ^^^^^^
+
+c.y;
+>c.y : null
+>    : ^^^^
+>c : C
+>  : ^
+>y : null
+>  : ^^^^
+
+c.y = 1;
+>c.y = 1 : 1
+>        : ^
+>c.y : null
+>    : ^^^^
+>c : C
+>  : ^
+>y : null
+>  : ^^^^
+>1 : 1
+>  : ^
+
+c.foo();
+>c.foo() : void
+>        : ^^^^
+>c.foo : () => void
+>      : ^^^^^^^^^^
+>c : C
+>  : ^
+>foo : () => void
+>    : ^^^^^^^^^^
+
+C.a;
+>C.a : string
+>    : ^^^^^^
+>C : typeof C
+>  : ^^^^^^^^
+>a : string
+>  : ^^^^^^
+
+C.b();
+>C.b() : any
+>      : ^^^
+>C.b : null
+>    : ^^^^
+>C : typeof C
+>  : ^^^^^^^^
+>b : null
+>  : ^^^^
+
+C.b = 1;
+>C.b = 1 : 1
+>        : ^
+>C.b : null
+>    : ^^^^
+>C : typeof C
+>  : ^^^^^^^^
+>b : null
+>  : ^^^^
+>1 : 1
+>  : ^
+
+C.foo();
+>C.foo() : void
+>        : ^^^^
+>C.foo : () => void
+>      : ^^^^^^^^^^
+>C : typeof C
+>  : ^^^^^^^^
+>foo : () => void
+>    : ^^^^^^^^^^
+

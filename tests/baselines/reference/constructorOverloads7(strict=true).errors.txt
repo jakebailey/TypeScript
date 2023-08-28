@@ -1,0 +1,52 @@
+constructorOverloads7.ts(15,16): error TS7006: Parameter 'x' implicitly has an 'any' type.
+constructorOverloads7.ts(15,19): error TS7006: Parameter 'y' implicitly has an 'any' type.
+constructorOverloads7.ts(16,5): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+constructorOverloads7.ts(17,5): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+constructorOverloads7.ts(19,12): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+constructorOverloads7.ts(22,18): error TS2384: Overload signatures must all be ambient or non-ambient.
+constructorOverloads7.ts(24,14): error TS7006: Parameter 'a' implicitly has an 'any' type.
+constructorOverloads7.ts(24,16): error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+
+==== constructorOverloads7.ts (8 errors) ====
+    declare class Point
+    {
+        x: number;
+        y: number;
+        constructor(x: number, y: number);
+    
+         add(dx: number, dy: number): Point;
+         origin: Point;
+    
+    }
+    
+    // Type provided by extern declaration
+    // Because Point is a constructor function, this is inferred
+    // to be Point and return type is inferred to be void
+    function Point(x, y) {
+                   ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                      ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+        this.x = x;
+        ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+        this.y = y;
+        ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+    
+        return this;
+               ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+    }
+    
+    declare function EF1(a:number, b:number):number;
+                     ~~~
+!!! error TS2384: Overload signatures must all be ambient or non-ambient.
+    
+    function EF1(a,b) { return a+b; }
+                 ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                   ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    

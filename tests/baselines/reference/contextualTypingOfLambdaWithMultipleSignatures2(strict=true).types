@@ -1,0 +1,33 @@
+//// [tests/cases/compiler/contextualTypingOfLambdaWithMultipleSignatures2.ts] ////
+
+=== contextualTypingOfLambdaWithMultipleSignatures2.ts ===
+var f: {
+>f : { (x: string): string; (x: number): string; }
+>  : ^^^^^^      ^^^      ^^^^^^      ^^^      ^^^
+
+    (x: string): string;
+>x : string
+>  : ^^^^^^
+
+    (x: number): string
+>x : number
+>  : ^^^^^^
+
+};
+
+f = (a) => { return a.asdf }
+>f = (a) => { return a.asdf } : (a: string | number) => any
+>                             : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>f : { (x: string): string; (x: number): string; }
+>  : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>(a) => { return a.asdf } : (a: string | number) => any
+>                         : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>a : string | number
+>  : ^^^^^^^^^^^^^^^
+>a.asdf : any
+>       : ^^^
+>a : string | number
+>  : ^^^^^^^^^^^^^^^
+>asdf : any
+>     : ^^^
+

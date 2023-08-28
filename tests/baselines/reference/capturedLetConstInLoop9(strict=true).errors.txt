@@ -1,0 +1,192 @@
+capturedLetConstInLoop9.ts(2,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop9.ts(3,26): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop9.ts(5,13): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop9.ts(6,30): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop9.ts(11,13): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop9.ts(12,30): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop9.ts(16,14): error TS2678: Type '1' is not comparable to type 'undefined'.
+capturedLetConstInLoop9.ts(17,17): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop9.ts(18,34): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop9.ts(23,13): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+capturedLetConstInLoop9.ts(24,30): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop9.ts(29,20): error TS7005: Variable 'x' implicitly has an 'any' type.
+capturedLetConstInLoop9.ts(34,18): error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+capturedLetConstInLoop9.ts(85,9): error TS2454: Variable 'x' is used before being assigned.
+capturedLetConstInLoop9.ts(86,9): error TS2454: Variable 'z' is used before being assigned.
+capturedLetConstInLoop9.ts(87,9): error TS2454: Variable 'x1' is used before being assigned.
+capturedLetConstInLoop9.ts(88,9): error TS2454: Variable 'z1' is used before being assigned.
+
+
+==== capturedLetConstInLoop9.ts (17 errors) ====
+    for (let x = 0; x < 1; ++x) {
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+        (function() { return x });
+                             ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        {
+            let x;
+                ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+            (function() { return x });
+                                 ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        }
+    
+        try { }
+        catch (e) {
+            let x;
+                ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+            (function() { return x });
+                                 ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        }
+    
+        switch (x) {
+            case 1:
+                 ~
+!!! error TS2678: Type '1' is not comparable to type 'undefined'.
+                let x;
+                    ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+                (function() { return x });
+                                     ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+               break;
+        }
+        
+        while (1 == 1) {
+            let x;
+                ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+            (function() { return x });
+                                 ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        }
+        
+        class A {
+            m() {
+                return x + 1;
+                       ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+            }
+        }
+    }
+    
+    declare function use(a: any);
+                     ~~~
+!!! error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+    
+    function foo() {
+        l0:
+        for (let a of []) {
+            
+            if (a === 1) {
+                break;
+            }
+            
+            if (a === 2) {
+                break l0;
+            }
+            
+            for (let b of []) {
+                var [{x, y:z}] = [{x:1, y:2}];
+                if (b === 1) {
+                    break;
+                }
+                
+                
+                if (b === 2) {
+                    break l0;
+                }
+                
+                l1:
+                if (b === 3) {
+                    break l1;
+                }
+                
+                return 50;
+            }
+    
+            for (let b of []) {
+                var [{x1, y:z1}] = [{x1:1, y:arguments.length}];
+                if (b === 1) {
+                    break;
+                }
+                
+                if (b === 2) {
+                    break l0;
+                }
+                
+                () => b
+                return 100;
+            }
+    
+            
+            () => a;
+        }
+        
+        use(x);
+            ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+        use(z);
+            ~
+!!! error TS2454: Variable 'z' is used before being assigned.
+        use(x1);
+            ~~
+!!! error TS2454: Variable 'x1' is used before being assigned.
+        use(z1);
+            ~~
+!!! error TS2454: Variable 'z1' is used before being assigned.
+    }
+    
+    function foo2() {
+        for (let x of []) {
+            if (x === 1) {
+                break;
+            }
+            else if (x === 2) {
+                continue;
+            }
+            
+            while (1 === 1) {
+                if (x) {
+                    break;
+                }
+                else {
+                    continue;
+                }
+            }
+            
+            switch(x) {
+                case 1: break;
+                case 2: continue;
+            }
+            
+            for (let y of []) {
+                switch(y) {
+                    case 1: break;
+                    case 2: continue;
+                }
+            }
+        }
+    }
+    
+    class C {
+        constructor(private N: number) { }
+        foo() {
+            for (let i = 0; i < 100; i++) {
+                let f = () => this.N * i;
+            }
+        }
+    }
+    
+    function foo3 () {
+        let x = arguments.length;
+        for (let y of []) {
+            let z = arguments.length;
+            (function() { return y + z + arguments.length; });
+        }
+    }

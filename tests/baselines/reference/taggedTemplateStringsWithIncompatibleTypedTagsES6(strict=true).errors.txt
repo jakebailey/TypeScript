@@ -1,0 +1,89 @@
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(12,1): error TS2454: Variable 'f' is used before being assigned.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(14,1): error TS2454: Variable 'f' is used before being assigned.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(14,9): error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(16,1): error TS2454: Variable 'f' is used before being assigned.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(18,1): error TS2454: Variable 'f' is used before being assigned.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(18,9): error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(20,1): error TS2454: Variable 'f' is used before being assigned.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(22,1): error TS2454: Variable 'f' is used before being assigned.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(22,9): error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(24,1): error TS2454: Variable 'f' is used before being assigned.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(24,25): error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(26,1): error TS2454: Variable 'f' is used before being assigned.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(26,9): error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(26,46): error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(28,1): error TS2454: Variable 'f' is used before being assigned.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(28,57): error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(30,1): error TS2454: Variable 'f' is used before being assigned.
+taggedTemplateStringsWithIncompatibleTypedTagsES6.ts(32,1): error TS2454: Variable 'f' is used before being assigned.
+
+
+==== taggedTemplateStringsWithIncompatibleTypedTagsES6.ts (18 errors) ====
+    interface I {
+        (stringParts: TemplateStringsArray, ...rest: boolean[]): I;
+        g: I;
+        h: I;
+        member: I;
+        thisIsNotATag(x: string): void
+        [x: number]: I;
+    }
+    
+    var f: I;
+    
+    f `abc`
+    ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+    
+    f `abc${1}def${2}ghi`;
+    ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+            ~
+!!! error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+    
+    f `abc`.member
+    ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+    
+    f `abc${1}def${2}ghi`.member;
+    ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+            ~
+!!! error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+    
+    f `abc`["member"];
+    ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+    
+    f `abc${1}def${2}ghi`["member"];
+    ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+            ~
+!!! error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+    
+    f `abc`[0].member `abc${1}def${2}ghi`;
+    ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+                            ~
+!!! error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+    
+    f `abc${1}def${2}ghi`["member"].member `abc${1}def${2}ghi`;
+    ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+            ~
+!!! error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+                                                 ~
+!!! error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+    
+    f `abc${ true }def${ true }ghi`["member"].member `abc${ 1 }def${ 2 }ghi`;
+    ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+                                                            ~
+!!! error TS2345: Argument of type 'number' is not assignable to parameter of type 'boolean'.
+    
+    f.thisIsNotATag(`abc`);
+    ~
+!!! error TS2454: Variable 'f' is used before being assigned.
+    
+    f.thisIsNotATag(`abc${1}def${2}ghi`);
+    ~
+!!! error TS2454: Variable 'f' is used before being assigned.

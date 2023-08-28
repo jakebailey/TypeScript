@@ -1,0 +1,10 @@
+/a.ts(1,17): error TS7016: Could not find a declaration file for module './jsx'. '/jsx.jsx' implicitly has an 'any' type.
+
+
+==== /a.ts (1 errors) ====
+    import jsx from "./jsx";
+                    ~~~~~~~
+!!! error TS7016: Could not find a declaration file for module './jsx'. '/jsx.jsx' implicitly has an 'any' type.
+    
+==== /jsx.jsx (0 errors) ====
+    

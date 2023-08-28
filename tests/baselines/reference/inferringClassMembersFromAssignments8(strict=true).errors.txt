@@ -1,0 +1,18 @@
+inferringClassMembersFromAssignments8.ts(4,17): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+inferringClassMembersFromAssignments8.ts(7,9): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+
+
+==== inferringClassMembersFromAssignments8.ts (2 errors) ====
+    // no inference in TS files, even for `this` aliases:
+    
+    var app = function() {
+        var _this = this;
+                    ~~~~
+!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+        _this.swap = function() { }
+    }
+    var a = new app()
+            ~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+    a
+    

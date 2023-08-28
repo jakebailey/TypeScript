@@ -1,0 +1,15 @@
+es6modulekindWithES5Target6.ts(4,20): error TS7019: Rest parameter 'arg' implicitly has an 'any[]' type.
+
+
+==== es6modulekindWithES5Target6.ts (1 errors) ====
+    export function f1(d = 0) {
+    }
+    
+    export function f2(...arg) {
+                       ~~~~~~
+!!! error TS7019: Rest parameter 'arg' implicitly has an 'any[]' type.
+    }
+    
+    export default function f3(d = 0) {
+    }
+    

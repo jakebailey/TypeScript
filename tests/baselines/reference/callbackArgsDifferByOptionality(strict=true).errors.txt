@@ -1,0 +1,17 @@
+callbackArgsDifferByOptionality.ts(1,10): error TS7010: 'x3', which lacks return-type annotation, implicitly has an 'any' return type.
+callbackArgsDifferByOptionality.ts(2,10): error TS7010: 'x3', which lacks return-type annotation, implicitly has an 'any' return type.
+callbackArgsDifferByOptionality.ts(4,5): error TS2304: Cannot find name 'cb'.
+
+
+==== callbackArgsDifferByOptionality.ts (3 errors) ====
+    function x3(callback: (x?: 'hi') => number);
+             ~~
+!!! error TS7010: 'x3', which lacks return-type annotation, implicitly has an 'any' return type.
+    function x3(callback: (x: string) => number);
+             ~~
+!!! error TS7010: 'x3', which lacks return-type annotation, implicitly has an 'any' return type.
+    function x3(callback: (x: any) => number) {
+        cb();
+        ~~
+!!! error TS2304: Cannot find name 'cb'.
+    }

@@ -1,0 +1,92 @@
+stringLiteralsWithEqualityChecks01.ts(5,5): error TS2454: Variable 'x' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(5,11): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(6,15): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(7,5): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(8,5): error TS2367: This comparison appears to be unintentional because the types '"foo"' and '"bar"' have no overlap.
+stringLiteralsWithEqualityChecks01.ts(9,5): error TS2367: This comparison appears to be unintentional because the types '"bar"' and '"foo"' have no overlap.
+stringLiteralsWithEqualityChecks01.ts(9,15): error TS2454: Variable 'x' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(10,5): error TS2454: Variable 'x' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(10,5): error TS2367: This comparison appears to be unintentional because the types '"foo"' and '"bar"' have no overlap.
+stringLiteralsWithEqualityChecks01.ts(11,5): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(12,15): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(14,5): error TS2454: Variable 'x' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(14,11): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(15,15): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(16,5): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(17,5): error TS2367: This comparison appears to be unintentional because the types '"foo"' and '"bar"' have no overlap.
+stringLiteralsWithEqualityChecks01.ts(18,5): error TS2367: This comparison appears to be unintentional because the types '"bar"' and '"foo"' have no overlap.
+stringLiteralsWithEqualityChecks01.ts(18,15): error TS2454: Variable 'x' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(19,5): error TS2454: Variable 'x' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(19,5): error TS2367: This comparison appears to be unintentional because the types '"foo"' and '"bar"' have no overlap.
+stringLiteralsWithEqualityChecks01.ts(20,5): error TS2454: Variable 'y' is used before being assigned.
+stringLiteralsWithEqualityChecks01.ts(21,15): error TS2454: Variable 'y' is used before being assigned.
+
+
+==== stringLiteralsWithEqualityChecks01.ts (22 errors) ====
+    let x: "foo";
+    let y: "foo" | "bar";
+    
+    let b: boolean;
+    b = x === y;
+        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+              ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    b = "foo" === y
+                  ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    b = y === "foo";
+        ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    b = "foo" === "bar";
+        ~~~~~~~~~~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '"foo"' and '"bar"' have no overlap.
+    b = "bar" === x;
+        ~~~~~~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '"bar"' and '"foo"' have no overlap.
+                  ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    b = x === "bar";
+        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+        ~~~~~~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '"foo"' and '"bar"' have no overlap.
+    b = y === "bar";
+        ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    b = "bar" === y;
+                  ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    
+    b = x !== y;
+        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+              ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    b = "foo" !== y
+                  ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    b = y !== "foo";
+        ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    b = "foo" !== "bar";
+        ~~~~~~~~~~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '"foo"' and '"bar"' have no overlap.
+    b = "bar" !== x;
+        ~~~~~~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '"bar"' and '"foo"' have no overlap.
+                  ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+    b = x !== "bar";
+        ~
+!!! error TS2454: Variable 'x' is used before being assigned.
+        ~~~~~~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '"foo"' and '"bar"' have no overlap.
+    b = y !== "bar";
+        ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    b = "bar" !== y;
+                  ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    
+    

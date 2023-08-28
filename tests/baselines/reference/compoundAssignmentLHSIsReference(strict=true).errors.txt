@@ -1,0 +1,124 @@
+compoundAssignmentLHSIsReference.ts(1,5): error TS7034: Variable 'value' implicitly has type 'any' in some locations where its type cannot be determined.
+compoundAssignmentLHSIsReference.ts(5,1): error TS2454: Variable 'x1' is used before being assigned.
+compoundAssignmentLHSIsReference.ts(5,7): error TS18048: 'value' is possibly 'undefined'.
+compoundAssignmentLHSIsReference.ts(6,1): error TS2454: Variable 'x1' is used before being assigned.
+compoundAssignmentLHSIsReference.ts(6,7): error TS18048: 'value' is possibly 'undefined'.
+compoundAssignmentLHSIsReference.ts(9,11): error TS7005: Variable 'value' implicitly has an 'any' type.
+compoundAssignmentLHSIsReference.ts(10,11): error TS7005: Variable 'value' implicitly has an 'any' type.
+compoundAssignmentLHSIsReference.ts(15,1): error TS2454: Variable 'x3' is used before being assigned.
+compoundAssignmentLHSIsReference.ts(15,9): error TS18048: 'value' is possibly 'undefined'.
+compoundAssignmentLHSIsReference.ts(16,1): error TS2454: Variable 'x3' is used before being assigned.
+compoundAssignmentLHSIsReference.ts(16,9): error TS18048: 'value' is possibly 'undefined'.
+compoundAssignmentLHSIsReference.ts(18,1): error TS2454: Variable 'x3' is used before being assigned.
+compoundAssignmentLHSIsReference.ts(18,12): error TS18048: 'value' is possibly 'undefined'.
+compoundAssignmentLHSIsReference.ts(19,1): error TS2454: Variable 'x3' is used before being assigned.
+compoundAssignmentLHSIsReference.ts(19,12): error TS18048: 'value' is possibly 'undefined'.
+compoundAssignmentLHSIsReference.ts(22,2): error TS2454: Variable 'x1' is used before being assigned.
+compoundAssignmentLHSIsReference.ts(22,9): error TS18048: 'value' is possibly 'undefined'.
+compoundAssignmentLHSIsReference.ts(23,2): error TS2454: Variable 'x1' is used before being assigned.
+compoundAssignmentLHSIsReference.ts(23,9): error TS18048: 'value' is possibly 'undefined'.
+compoundAssignmentLHSIsReference.ts(26,13): error TS7005: Variable 'value' implicitly has an 'any' type.
+compoundAssignmentLHSIsReference.ts(27,13): error TS7005: Variable 'value' implicitly has an 'any' type.
+compoundAssignmentLHSIsReference.ts(30,2): error TS2454: Variable 'x3' is used before being assigned.
+compoundAssignmentLHSIsReference.ts(30,11): error TS18048: 'value' is possibly 'undefined'.
+compoundAssignmentLHSIsReference.ts(31,2): error TS2454: Variable 'x3' is used before being assigned.
+compoundAssignmentLHSIsReference.ts(31,11): error TS18048: 'value' is possibly 'undefined'.
+compoundAssignmentLHSIsReference.ts(33,2): error TS2454: Variable 'x3' is used before being assigned.
+compoundAssignmentLHSIsReference.ts(33,14): error TS18048: 'value' is possibly 'undefined'.
+compoundAssignmentLHSIsReference.ts(34,2): error TS2454: Variable 'x3' is used before being assigned.
+compoundAssignmentLHSIsReference.ts(34,14): error TS18048: 'value' is possibly 'undefined'.
+
+
+==== compoundAssignmentLHSIsReference.ts (29 errors) ====
+    var value;
+        ~~~~~
+!!! error TS7034: Variable 'value' implicitly has type 'any' in some locations where its type cannot be determined.
+    
+    // identifiers: variable and parameter
+    var x1: number;
+    x1 *= value;
+    ~~
+!!! error TS2454: Variable 'x1' is used before being assigned.
+          ~~~~~
+!!! error TS18048: 'value' is possibly 'undefined'.
+    x1 += value;
+    ~~
+!!! error TS2454: Variable 'x1' is used before being assigned.
+          ~~~~~
+!!! error TS18048: 'value' is possibly 'undefined'.
+    
+    function fn1(x2: number) {
+        x2 *= value;
+              ~~~~~
+!!! error TS7005: Variable 'value' implicitly has an 'any' type.
+        x2 += value;
+              ~~~~~
+!!! error TS7005: Variable 'value' implicitly has an 'any' type.
+    }
+    
+    // property accesses
+    var x3: { a: number };
+    x3.a *= value;
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
+            ~~~~~
+!!! error TS18048: 'value' is possibly 'undefined'.
+    x3.a += value;
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
+            ~~~~~
+!!! error TS18048: 'value' is possibly 'undefined'.
+    
+    x3['a'] *= value;
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
+               ~~~~~
+!!! error TS18048: 'value' is possibly 'undefined'.
+    x3['a'] += value;
+    ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
+               ~~~~~
+!!! error TS18048: 'value' is possibly 'undefined'.
+    
+    // parentheses, the contained expression is reference
+    (x1) *= value;
+     ~~
+!!! error TS2454: Variable 'x1' is used before being assigned.
+            ~~~~~
+!!! error TS18048: 'value' is possibly 'undefined'.
+    (x1) += value;
+     ~~
+!!! error TS2454: Variable 'x1' is used before being assigned.
+            ~~~~~
+!!! error TS18048: 'value' is possibly 'undefined'.
+    
+    function fn2(x4: number) {
+        (x4) *= value;
+                ~~~~~
+!!! error TS7005: Variable 'value' implicitly has an 'any' type.
+        (x4) += value;
+                ~~~~~
+!!! error TS7005: Variable 'value' implicitly has an 'any' type.
+    }
+    
+    (x3.a) *= value;
+     ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
+              ~~~~~
+!!! error TS18048: 'value' is possibly 'undefined'.
+    (x3.a) += value;
+     ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
+              ~~~~~
+!!! error TS18048: 'value' is possibly 'undefined'.
+    
+    (x3['a']) *= value;
+     ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
+                 ~~~~~
+!!! error TS18048: 'value' is possibly 'undefined'.
+    (x3['a']) += value;
+     ~~
+!!! error TS2454: Variable 'x3' is used before being assigned.
+                 ~~~~~
+!!! error TS18048: 'value' is possibly 'undefined'.

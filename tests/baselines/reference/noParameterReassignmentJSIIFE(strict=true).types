@@ -1,0 +1,44 @@
+//// [tests/cases/compiler/noParameterReassignmentJSIIFE.ts] ////
+
+=== index.js ===
+self.importScripts = (function (importScripts) {
+>self.importScripts = (function (importScripts) {    return function () {        return importScripts.apply(this, arguments);    };})(importScripts) : (...args: string[]) => void
+>                                                                                                                                                    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>self.importScripts : (...urls: string[]) => void
+>                   : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>self : Window & typeof globalThis
+>     : ^^^^^^^^^^^^^^^^^^^^^^^^^^
+>importScripts : (...urls: string[]) => void
+>              : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>(function (importScripts) {    return function () {        return importScripts.apply(this, arguments);    };})(importScripts) : (...args: string[]) => void
+>                                                                                                                               : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>(function (importScripts) {    return function () {        return importScripts.apply(this, arguments);    };}) : (importScripts: (...urls: string[]) => void) => (...args: string[]) => void
+>                                                                                                                : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>function (importScripts) {    return function () {        return importScripts.apply(this, arguments);    };} : (importScripts: (...urls: string[]) => void) => (...args: string[]) => void
+>                                                                                                              : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>importScripts : (...urls: string[]) => void
+>              : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+    return function () {
+>function () {        return importScripts.apply(this, arguments);    } : (...args: string[]) => void
+>                                                                       : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+        return importScripts.apply(this, arguments);
+>importScripts.apply(this, arguments) : void
+>                                     : ^^^^
+>importScripts.apply : { <T, R>(this: (this: T) => R, thisArg: T): R; <T_1, A extends any[], R_1>(this: (this: T_1, ...args: A) => R_1, thisArg: T_1, args: A): R_1; }
+>                    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>importScripts : (...urls: string[]) => void
+>              : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>apply : { <T, R>(this: (this: T) => R, thisArg: T): R; <T_1, A extends any[], R_1>(this: (this: T_1, ...args: A) => R_1, thisArg: T_1, args: A): R_1; }
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>this : any
+>     : ^^^
+>arguments : IArguments
+>          : ^^^^^^^^^^
+
+    };
+})(importScripts);
+>importScripts : (...urls: string[]) => void
+>              : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+

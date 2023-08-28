@@ -1,0 +1,27 @@
+declFileRestParametersOfFunctionAndFunctionType.ts(1,13): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+declFileRestParametersOfFunctionAndFunctionType.ts(2,17): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+declFileRestParametersOfFunctionAndFunctionType.ts(3,19): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+declFileRestParametersOfFunctionAndFunctionType.ts(4,24): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+declFileRestParametersOfFunctionAndFunctionType.ts(5,26): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+
+
+==== declFileRestParametersOfFunctionAndFunctionType.ts (5 errors) ====
+    function f1(...args) { }
+                ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+    function f2(x: (...args) => void) { }
+                    ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+    function f3(x: { (...args): void }) { }
+                      ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+    function f4<T extends (...args) => void>() { }
+                           ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+    function f5<T extends { (...args): void }>() { }
+                             ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+    var f6 = () => { return [<any>10]; }
+    
+    
+    

@@ -1,0 +1,9 @@
+functionCall5.ts(1,38): error TS7008: Member 'a' implicitly has an 'any' type.
+
+
+==== functionCall5.ts (1 errors) ====
+    module m1 { export class c1 { public a; }} 
+                                         ~
+!!! error TS7008: Member 'a' implicitly has an 'any' type.
+    function foo():m1.c1{return new m1.c1();}; 
+    var x = foo();

@@ -1,0 +1,16 @@
+noCollisionThisExpressionAndLocalVarInFunction.ts(2,5): error TS7010: 'log', which lacks return-type annotation, implicitly has an 'any' return type.
+noCollisionThisExpressionAndLocalVarInFunction.ts(6,5): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== noCollisionThisExpressionAndLocalVarInFunction.ts (2 errors) ====
+    var console: {
+        log(val: any);
+        ~~~~~~~~~~~~~~
+!!! error TS7010: 'log', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    function x() {
+        var _this = 5;
+        x => { console.log(_this); };
+        ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }

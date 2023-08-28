@@ -1,0 +1,12 @@
+parserMemberVariableDeclaration4.ts(2,3): error TS1031: 'export' modifier cannot appear on class elements of this kind.
+parserMemberVariableDeclaration4.ts(2,10): error TS7008: Member 'Foo' implicitly has an 'any' type.
+
+
+==== parserMemberVariableDeclaration4.ts (2 errors) ====
+    class C {
+      export Foo;
+      ~~~~~~
+!!! error TS1031: 'export' modifier cannot appear on class elements of this kind.
+             ~~~
+!!! error TS7008: Member 'Foo' implicitly has an 'any' type.
+    }

@@ -1,0 +1,29 @@
+computedPropertyNames44_ES6.ts(1,13): error TS7008: Member 'x' implicitly has an 'any' type.
+computedPropertyNames44_ES6.ts(2,14): error TS7008: Member 'x' implicitly has an 'any' type.
+computedPropertyNames44_ES6.ts(2,17): error TS7008: Member 'y' implicitly has an 'any' type.
+computedPropertyNames44_ES6.ts(6,9): error TS2411: Property '["get1"]' of type 'Foo' is not assignable to 'string' index type 'Foo2'.
+computedPropertyNames44_ES6.ts(10,9): error TS2411: Property '["set1"]' of type 'Foo' is not assignable to 'string' index type 'Foo2'.
+
+
+==== computedPropertyNames44_ES6.ts (5 errors) ====
+    class Foo { x }
+                ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    class Foo2 { x; y }
+                 ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+                    ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    
+    class C {
+        [s: string]: Foo2;
+        get ["get1"]() { return new Foo }
+            ~~~~~~~~
+!!! error TS2411: Property '["get1"]' of type 'Foo' is not assignable to 'string' index type 'Foo2'.
+    }
+    
+    class D extends C {
+        set ["set1"](p: Foo) { }
+            ~~~~~~~~
+!!! error TS2411: Property '["set1"]' of type 'Foo' is not assignable to 'string' index type 'Foo2'.
+    }

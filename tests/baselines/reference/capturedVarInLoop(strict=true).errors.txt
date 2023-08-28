@@ -1,0 +1,11 @@
+capturedVarInLoop.ts(3,20): error TS7006: Parameter 'y' implicitly has an 'any' type.
+
+
+==== capturedVarInLoop.ts (1 errors) ====
+    for (var i = 0; i < 10; i++) {
+        var str = 'x', len = str.length;
+        let lambda1 = (y) => { };
+                       ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+        let lambda2 = () => lambda1(len);
+    }

@@ -1,0 +1,22 @@
+voidOperatorInvalidOperations.ts(4,5): error TS7022: 'ANY' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+voidOperatorInvalidOperations.ts(4,15): error TS1005: ',' expected.
+voidOperatorInvalidOperations.ts(4,20): error TS1109: Expression expected.
+voidOperatorInvalidOperations.ts(7,17): error TS1109: Expression expected.
+
+
+==== voidOperatorInvalidOperations.ts (4 errors) ====
+    // Unary operator void
+    
+    // operand before void
+    var ANY = ANY void ;    //expect error
+        ~~~
+!!! error TS7022: 'ANY' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+                  ~~~~
+!!! error TS1005: ',' expected.
+                       ~
+!!! error TS1109: Expression expected.
+    
+    // miss an operand
+    var ANY1 = void ;
+                    ~
+!!! error TS1109: Expression expected.

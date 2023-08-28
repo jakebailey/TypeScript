@@ -1,0 +1,49 @@
+typeOfThisInInstanceMember.ts(10,11): error TS2339: Property 'z' does not exist on type 'C'.
+typeOfThisInInstanceMember.ts(21,9): error TS2454: Variable 'c' is used before being assigned.
+typeOfThisInInstanceMember.ts(22,10): error TS2454: Variable 'c' is used before being assigned.
+typeOfThisInInstanceMember.ts(23,10): error TS2454: Variable 'c' is used before being assigned.
+typeOfThisInInstanceMember.ts(24,10): error TS2454: Variable 'c' is used before being assigned.
+
+
+==== typeOfThisInInstanceMember.ts (5 errors) ====
+    class C {
+        x = this;
+        foo() {
+            return this;
+        }
+        constructor(x: number) {
+            var t = this;
+            t.x;
+            t.y;
+            t.z;
+              ~
+!!! error TS2339: Property 'z' does not exist on type 'C'.
+            var r = t.foo();
+        }
+    
+        get y() {
+            return this;
+        }
+    }
+    
+    var c: C;
+    // all ok
+    var r = c.x;
+            ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    var ra = c.x.x.x;
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    var r2 = c.y;
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    var r3 = c.foo();
+             ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    var rs = [r, r2, r3];
+    
+    rs.forEach(x => {
+        x.foo;
+        x.x;
+        x.y;
+    });

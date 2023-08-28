@@ -1,0 +1,51 @@
+forIn.ts(2,10): error TS2404: The left-hand side of a 'for...in' statement cannot use a type annotation.
+forIn.ts(2,22): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
+forIn.ts(7,15): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
+forIn.ts(12,5): error TS7034: Variable 'arr2' implicitly has type 'any[]' in some locations where its type cannot be determined.
+forIn.ts(13,11): error TS7005: Variable 'arr2' implicitly has an 'any[]' type.
+forIn.ts(14,14): error TS7005: Variable 'arr2' implicitly has an 'any[]' type.
+forIn.ts(15,14): error TS7005: Variable 'arr2' implicitly has an 'any[]' type.
+forIn.ts(18,15): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
+forIn.ts(20,4): error TS2304: Cannot find name 'k'.
+
+
+==== forIn.ts (9 errors) ====
+    var arr = null;
+    for (var i:number in arr) { // error
+             ~
+!!! error TS2404: The left-hand side of a 'for...in' statement cannot use a type annotation.
+                         ~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
+        var x1 = arr[i];
+        var y1 = arr[i];
+    }
+    
+    for (var j in arr) { // ok
+                  ~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
+        var x2 = arr[j];
+        var y2 = arr[j];
+    }
+    
+    var arr2 = [];
+        ~~~~
+!!! error TS7034: Variable 'arr2' implicitly has type 'any[]' in some locations where its type cannot be determined.
+    for (j in arr2) { // ok
+              ~~~~
+!!! error TS7005: Variable 'arr2' implicitly has an 'any[]' type.
+        var x3 = arr2[j];
+                 ~~~~
+!!! error TS7005: Variable 'arr2' implicitly has an 'any[]' type.
+        var y3 = arr2[j];
+                 ~~~~
+!!! error TS7005: Variable 'arr2' implicitly has an 'any[]' type.
+    }
+    
+    for (var l in arr) { 
+                  ~~~
+!!! error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
+       // error in the body
+       k[l] = 1;
+       ~
+!!! error TS2304: Cannot find name 'k'.
+    }

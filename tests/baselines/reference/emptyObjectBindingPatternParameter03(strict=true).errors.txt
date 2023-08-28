@@ -1,0 +1,9 @@
+emptyObjectBindingPatternParameter03.ts(1,16): error TS7006: Parameter 'a' implicitly has an 'any' type.
+
+
+==== emptyObjectBindingPatternParameter03.ts (1 errors) ====
+    function f({}, a) {
+                   ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+        var x, y, z;
+    }

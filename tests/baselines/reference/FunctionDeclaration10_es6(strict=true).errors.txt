@@ -1,0 +1,17 @@
+FunctionDeclaration10_es6.ts(1,20): error TS2523: 'yield' expressions cannot be used in a parameter initializer.
+FunctionDeclaration10_es6.ts(1,20): error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+FunctionDeclaration10_es6.ts(1,26): error TS1005: ',' expected.
+FunctionDeclaration10_es6.ts(1,29): error TS7006: Parameter 'yield' implicitly has an 'any' type.
+
+
+==== FunctionDeclaration10_es6.ts (4 errors) ====
+    function * foo(a = yield => yield) {
+                       ~~~~~
+!!! error TS2523: 'yield' expressions cannot be used in a parameter initializer.
+                       ~~~~~
+!!! error TS7057: 'yield' expression implicitly results in an 'any' type because its containing generator lacks a return-type annotation.
+                             ~~
+!!! error TS1005: ',' expected.
+                                ~~~~~
+!!! error TS7006: Parameter 'yield' implicitly has an 'any' type.
+    }

@@ -1,0 +1,16 @@
+inheritanceMemberPropertyOverridingProperty.ts(2,5): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+inheritanceMemberPropertyOverridingProperty.ts(6,5): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+
+
+==== inheritanceMemberPropertyOverridingProperty.ts (2 errors) ====
+    class a {
+        x: () => string;
+        ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class b extends a {
+        x: () => string;
+        ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+    }

@@ -1,0 +1,42 @@
+emitClassDeclarationWithConstructorInES6.ts(2,5): error TS2564: Property 'y' has no initializer and is not definitely assigned in the constructor.
+emitClassDeclarationWithConstructorInES6.ts(5,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+emitClassDeclarationWithConstructorInES6.ts(12,5): error TS2564: Property '_bar' has no initializer and is not definitely assigned in the constructor.
+emitClassDeclarationWithConstructorInES6.ts(14,41): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+emitClassDeclarationWithConstructorInES6.ts(17,9): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+
+
+==== emitClassDeclarationWithConstructorInES6.ts (5 errors) ====
+    class A {
+        y: number;
+        ~
+!!! error TS2564: Property 'y' has no initializer and is not definitely assigned in the constructor.
+        constructor(x: number) {
+        }
+        foo(a: any);
+        ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo() { }
+    }
+    
+    class B {
+        y: number;
+        x: string = "hello";
+        _bar: string;
+        ~~~~
+!!! error TS2564: Property '_bar' has no initializer and is not definitely assigned in the constructor.
+    
+        constructor(x: number, z = "hello", ...args) {
+                                            ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+            this.y = 10;
+        }
+        baz(...args): string;
+            ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+        baz(z: string, v: number): string {
+            return this._bar;
+        } 
+    }
+    
+    
+    

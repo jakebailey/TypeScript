@@ -1,0 +1,12 @@
+/a.js(1,21): error TS8024: JSDoc '@param' tag has name 'colour', but there is no parameter with that name.
+/a.js(2,12): error TS7006: Parameter 'color' implicitly has an 'any' type.
+
+
+==== /a.js (2 errors) ====
+    /** @param {string} colour */
+                        ~~~~~~
+!!! error TS8024: JSDoc '@param' tag has name 'colour', but there is no parameter with that name.
+    function f(color) {}
+               ~~~~~
+!!! error TS7006: Parameter 'color' implicitly has an 'any' type.
+    

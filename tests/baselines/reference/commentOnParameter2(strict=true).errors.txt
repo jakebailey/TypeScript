@@ -1,0 +1,17 @@
+commentOnParameter2.ts(3,1): error TS7006: Parameter 'a' implicitly has an 'any' type.
+commentOnParameter2.ts(6,1): error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+
+==== commentOnParameter2.ts (2 errors) ====
+    function commentedParameters(
+    /* Parameter a */
+    a /* End of parameter a */
+    ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    /* Parameter b */
+    ,
+    b
+    ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    /* End of parameter b */
+    ){}

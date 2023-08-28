@@ -1,0 +1,19 @@
+emitArrowFunctionsAsIs.ts(1,14): error TS7006: Parameter 'a' implicitly has an 'any' type.
+emitArrowFunctionsAsIs.ts(2,15): error TS7006: Parameter 'a' implicitly has an 'any' type.
+emitArrowFunctionsAsIs.ts(4,15): error TS7006: Parameter 'a' implicitly has an 'any' type.
+emitArrowFunctionsAsIs.ts(4,18): error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+
+==== emitArrowFunctionsAsIs.ts (4 errors) ====
+    var arrow1 = a => { };
+                 ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    var arrow2 = (a) => { };
+                  ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    
+    var arrow3 = (a, b) => { };
+                  ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                     ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.

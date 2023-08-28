@@ -1,0 +1,9 @@
+requiredInitializedParameter4.ts(2,19): error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+
+==== requiredInitializedParameter4.ts (1 errors) ====
+    class C1 {
+        method(a = 0, b) { }
+                      ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    }

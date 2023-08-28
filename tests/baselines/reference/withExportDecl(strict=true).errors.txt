@@ -1,0 +1,82 @@
+withExportDecl.ts(2,12): error TS7005: Variable 'exportedSimpleVar' implicitly has an 'any' type.
+withExportDecl.ts(14,13): error TS7005: Variable 'declaredVar' implicitly has an 'any' type.
+withExportDecl.ts(15,13): error TS7005: Variable 'declareVar2' implicitly has an 'any' type.
+withExportDecl.ts(24,1): error TS2454: Variable 'exportedArrayVar' is used before being assigned.
+withExportDecl.ts(56,12): error TS7005: Variable 'eVar1' implicitly has an 'any' type.
+withExportDecl.ts(58,24): error TS7005: Variable 'eVar4' implicitly has an 'any' type.
+withExportDecl.ts(58,31): error TS7005: Variable 'eVar5' implicitly has an 'any' type.
+
+
+==== withExportDecl.ts (7 errors) ====
+    var simpleVar;
+    export var exportedSimpleVar;
+               ~~~~~~~~~~~~~~~~~
+!!! error TS7005: Variable 'exportedSimpleVar' implicitly has an 'any' type.
+    
+    var anotherVar: any;
+    var varWithSimpleType: number;
+    var varWithArrayType: number[];
+    
+    var varWithInitialValue = 30;
+    export var exportedVarWithInitialValue = 70;
+    
+    var withComplicatedValue = { x: 30, y: 70, desc: "position" };
+    export var exportedWithComplicatedValue = { x: 30, y: 70, desc: "position" };
+    
+    declare var declaredVar;
+                ~~~~~~~~~~~
+!!! error TS7005: Variable 'declaredVar' implicitly has an 'any' type.
+    declare var declareVar2
+                ~~~~~~~~~~~
+!!! error TS7005: Variable 'declareVar2' implicitly has an 'any' type.
+    
+    declare var declaredVar;
+    declare var deckareVarWithType: number;
+    export declare var exportedDeclaredVar: number;
+    
+    var arrayVar: string[] = ['a', 'b'];
+    
+    export var exportedArrayVar: { x: number; y: string; }[] ;
+    exportedArrayVar.push({ x: 30, y : 'hello world' });
+    ~~~~~~~~~~~~~~~~
+!!! error TS2454: Variable 'exportedArrayVar' is used before being assigned.
+    
+    function simpleFunction() {
+        return {
+            x: "Hello",
+            y: "word",
+            n: 2
+        };
+    }
+    
+    export function exportedFunction() {
+        return simpleFunction();
+    }
+    
+    module m1 {
+        export function foo() {
+            return "Hello";
+        }
+    }
+    export declare module m2 {
+    
+        export var a: number;
+    }
+    
+    
+    export module m3 {
+    
+        export function foo() {
+            return m1.foo();
+        }
+    }
+    
+    export var eVar1, eVar2 = 10;
+               ~~~~~
+!!! error TS7005: Variable 'eVar1' implicitly has an 'any' type.
+    var eVar22;
+    export var eVar3 = 10, eVar4, eVar5;
+                           ~~~~~
+!!! error TS7005: Variable 'eVar4' implicitly has an 'any' type.
+                                  ~~~~~
+!!! error TS7005: Variable 'eVar5' implicitly has an 'any' type.

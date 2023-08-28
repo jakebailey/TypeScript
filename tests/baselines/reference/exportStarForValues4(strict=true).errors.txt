@@ -1,0 +1,25 @@
+file1.ts(1,24): error TS7008: Member 'x' implicitly has an 'any' type.
+file2.ts(1,22): error TS7008: Member 'x' implicitly has an 'any' type.
+file3.ts(1,22): error TS7008: Member 'x' implicitly has an 'any' type.
+
+
+==== file1.ts (1 errors) ====
+    export interface Foo { x }
+                           ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    
+==== file2.ts (1 errors) ====
+    export interface A { x }
+                         ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    export * from "file1"
+    export * from "file3"
+    var x = 1;
+    
+==== file3.ts (1 errors) ====
+    export interface B { x }
+                         ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    export * from "file2"
+    var x = 1;
+    

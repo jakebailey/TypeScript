@@ -1,0 +1,30 @@
+//// [tests/cases/conformance/statements/for-ofStatements/ES5For-of19.ts] ////
+
+=== ES5For-of19.ts ===
+for (let v of []) {
+>v : never
+>  : ^^^^^
+>[] : never[]
+>   : ^^^^^^^
+
+    v;
+>v : never
+>  : ^^^^^
+
+    function foo() {
+>foo : () => void
+>    : ^^^^^^^^^^
+
+        for (const v of []) {
+>v : never
+>  : ^^^^^
+>[] : never[]
+>   : ^^^^^^^
+
+            v;
+>v : never
+>  : ^^^^^
+        }
+    }
+}
+

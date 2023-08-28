@@ -1,0 +1,31 @@
+computedPropertyNames40_ES5.ts(1,13): error TS7008: Member 'x' implicitly has an 'any' type.
+computedPropertyNames40_ES5.ts(2,14): error TS7008: Member 'x' implicitly has an 'any' type.
+computedPropertyNames40_ES5.ts(2,17): error TS7008: Member 'y' implicitly has an 'any' type.
+computedPropertyNames40_ES5.ts(8,5): error TS2393: Duplicate function implementation.
+computedPropertyNames40_ES5.ts(8,5): error TS2411: Property '[""]' of type '() => Foo' is not assignable to 'string' index type '() => Foo2'.
+computedPropertyNames40_ES5.ts(9,5): error TS2393: Duplicate function implementation.
+
+
+==== computedPropertyNames40_ES5.ts (6 errors) ====
+    class Foo { x }
+                ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+    class Foo2 { x; y }
+                 ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+                    ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    
+    class C {
+        [s: string]: () => Foo2;
+    
+        // Computed properties
+        [""]() { return new Foo }
+        ~~~~
+!!! error TS2393: Duplicate function implementation.
+        ~~~~
+!!! error TS2411: Property '[""]' of type '() => Foo' is not assignable to 'string' index type '() => Foo2'.
+        [""]() { return new Foo2 }
+        ~~~~
+!!! error TS2393: Duplicate function implementation.
+    }

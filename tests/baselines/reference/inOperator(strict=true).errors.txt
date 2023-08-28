@@ -1,0 +1,30 @@
+inOperator.ts(1,5): error TS7034: Variable 'a' implicitly has type 'any[]' in some locations where its type cannot be determined.
+inOperator.ts(3,15): error TS7005: Variable 'a' implicitly has an 'any[]' type.
+inOperator.ts(5,10): error TS7005: Variable 'a' implicitly has an 'any[]' type.
+inOperator.ts(7,15): error TS2322: Type 'number' is not assignable to type 'object'.
+inOperator.ts(11,5): error TS2454: Variable 'y' is used before being assigned.
+
+
+==== inOperator.ts (5 errors) ====
+    var a=[];
+        ~
+!!! error TS7034: Variable 'a' implicitly has type 'any[]' in some locations where its type cannot be determined.
+    
+    for (var x in a) {}
+                  ~
+!!! error TS7005: Variable 'a' implicitly has an 'any[]' type.
+    
+    if (3 in a) {}
+             ~
+!!! error TS7005: Variable 'a' implicitly has an 'any[]' type.
+    
+    var b = '' in 0;
+                  ~
+!!! error TS2322: Type 'number' is not assignable to type 'object'.
+    
+    var c: any;
+    var y: number;
+    if (y in c) { }
+        ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    

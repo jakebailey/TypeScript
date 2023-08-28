@@ -1,0 +1,10 @@
+functionOverloads24.ts(3,24): error TS7006: Parameter 'a' implicitly has an 'any' type.
+
+
+==== functionOverloads24.ts (1 errors) ====
+    function foo(bar:number):(b:string)=>void;
+    function foo(bar:string):(a:number)=>void;
+    function foo(bar:any):(a)=>void { return function(){} }
+                           ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    

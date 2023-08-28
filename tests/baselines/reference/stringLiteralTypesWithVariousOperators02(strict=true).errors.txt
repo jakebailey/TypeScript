@@ -1,0 +1,38 @@
+stringLiteralTypesWithVariousOperators02.ts(11,9): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+stringLiteralTypesWithVariousOperators02.ts(12,11): error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+stringLiteralTypesWithVariousOperators02.ts(13,9): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+stringLiteralTypesWithVariousOperators02.ts(14,9): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+stringLiteralTypesWithVariousOperators02.ts(16,9): error TS2367: This comparison appears to be unintentional because the types '"ABC"' and '"XYZ"' have no overlap.
+stringLiteralTypesWithVariousOperators02.ts(17,9): error TS2367: This comparison appears to be unintentional because the types '"ABC"' and '"XYZ"' have no overlap.
+
+
+==== stringLiteralTypesWithVariousOperators02.ts (6 errors) ====
+    let abc: "ABC" = "ABC";
+    let xyz: "XYZ" = "XYZ";
+    let abcOrXyz: "ABC" | "XYZ" = abc || xyz;
+    let abcOrXyzOrNumber: "ABC" | "XYZ" | number = abcOrXyz || 100;
+    
+    let a = abcOrXyzOrNumber + 100;
+    let b = 100 + abcOrXyzOrNumber;
+    let c = abcOrXyzOrNumber + abcOrXyzOrNumber;
+    let d = abcOrXyzOrNumber + true;
+    let e = false + abcOrXyzOrNumber;
+    let f = abcOrXyzOrNumber++;
+            ~~~~~~~~~~~~~~~~
+!!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+    let g = --abcOrXyzOrNumber;
+              ~~~~~~~~~~~~~~~~
+!!! error TS2356: An arithmetic operand must be of type 'any', 'number', 'bigint' or an enum type.
+    let h = abcOrXyzOrNumber ^ 10;
+            ~~~~~~~~~~~~~~~~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+    let i = abcOrXyzOrNumber | 10;
+            ~~~~~~~~~~~~~~~~
+!!! error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+    let j = abc < xyz;
+    let k = abc === xyz;
+            ~~~~~~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '"ABC"' and '"XYZ"' have no overlap.
+    let l = abc != xyz;
+            ~~~~~~~~~~
+!!! error TS2367: This comparison appears to be unintentional because the types '"ABC"' and '"XYZ"' have no overlap.

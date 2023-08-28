@@ -1,0 +1,299 @@
+newWithSpreadES5.ts(8,9): error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+newWithSpreadES5.ts(34,1): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+newWithSpreadES5.ts(35,1): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+newWithSpreadES5.ts(35,16): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(36,1): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+newWithSpreadES5.ts(36,16): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(39,1): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+newWithSpreadES5.ts(39,11): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(39,17): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(40,1): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+newWithSpreadES5.ts(40,16): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(40,22): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(43,1): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+newWithSpreadES5.ts(44,1): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+newWithSpreadES5.ts(44,16): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(45,1): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+newWithSpreadES5.ts(45,16): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(48,5): error TS2454: Variable 'b' is used before being assigned.
+newWithSpreadES5.ts(49,5): error TS2454: Variable 'b' is used before being assigned.
+newWithSpreadES5.ts(49,18): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(50,5): error TS2454: Variable 'b' is used before being assigned.
+newWithSpreadES5.ts(50,18): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(53,6): error TS2454: Variable 'b' is used before being assigned.
+newWithSpreadES5.ts(54,6): error TS2454: Variable 'b' is used before being assigned.
+newWithSpreadES5.ts(54,20): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(55,6): error TS2454: Variable 'b' is used before being assigned.
+newWithSpreadES5.ts(55,20): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(58,5): error TS2454: Variable 'd' is used before being assigned.
+newWithSpreadES5.ts(59,5): error TS2454: Variable 'd' is used before being assigned.
+newWithSpreadES5.ts(59,21): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(60,5): error TS2454: Variable 'd' is used before being assigned.
+newWithSpreadES5.ts(60,21): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(63,5): error TS2454: Variable 'e' is used before being assigned.
+newWithSpreadES5.ts(64,5): error TS2454: Variable 'e' is used before being assigned.
+newWithSpreadES5.ts(64,25): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(65,5): error TS2454: Variable 'e' is used before being assigned.
+newWithSpreadES5.ts(65,25): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(69,16): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(70,16): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(73,5): error TS2454: Variable 'c' is used before being assigned.
+newWithSpreadES5.ts(74,5): error TS2454: Variable 'c' is used before being assigned.
+newWithSpreadES5.ts(74,23): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(75,5): error TS2454: Variable 'c' is used before being assigned.
+newWithSpreadES5.ts(75,23): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(78,6): error TS2454: Variable 'c' is used before being assigned.
+newWithSpreadES5.ts(79,6): error TS2454: Variable 'c' is used before being assigned.
+newWithSpreadES5.ts(79,25): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(80,6): error TS2454: Variable 'c' is used before being assigned.
+newWithSpreadES5.ts(80,25): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(83,5): error TS2454: Variable 'g' is used before being assigned.
+newWithSpreadES5.ts(84,5): error TS2454: Variable 'g' is used before being assigned.
+newWithSpreadES5.ts(84,26): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(85,5): error TS2454: Variable 'g' is used before being assigned.
+newWithSpreadES5.ts(85,26): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(88,5): error TS2454: Variable 'h' is used before being assigned.
+newWithSpreadES5.ts(89,5): error TS2454: Variable 'h' is used before being assigned.
+newWithSpreadES5.ts(89,30): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(90,5): error TS2454: Variable 'h' is used before being assigned.
+newWithSpreadES5.ts(90,30): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(93,5): error TS2454: Variable 'i' is used before being assigned.
+newWithSpreadES5.ts(93,7): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+newWithSpreadES5.ts(94,5): error TS2454: Variable 'i' is used before being assigned.
+newWithSpreadES5.ts(94,7): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+newWithSpreadES5.ts(94,26): error TS2454: Variable 'a' is used before being assigned.
+newWithSpreadES5.ts(95,5): error TS2454: Variable 'i' is used before being assigned.
+newWithSpreadES5.ts(95,7): error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+newWithSpreadES5.ts(95,26): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== newWithSpreadES5.ts (67 errors) ====
+    function f(x: number, y: number, ...z: string[]) {
+    }
+    
+    function f2(...x: string[]) {}
+    
+    interface A {
+        f: {
+            new (x: number, y: number, ...z: string[]);
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7013: Construct signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        }
+    }
+    
+    class B {
+        constructor(x: number, y: number, ...z: string[]) {}
+    }
+    
+    interface C {
+        "a-b": typeof B;
+    }
+    
+    interface D {
+        1: typeof B;
+    }
+    
+    var a: string[];
+    var b: A;
+    var c: C;
+    var d: A[];
+    var e: { [key: string]: A };
+    var g: C[];
+    var h: { [key: string]: C };
+    var i: C[][];
+    
+    // Basic expression
+    new f(1, 2, "string");
+    ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+    new f(1, 2, ...a);
+    ~~~~~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new f(1, 2, ...a, "string");
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Multiple spreads arguments
+    new f2(...a, ...a);
+    ~~~~~~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+              ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+                    ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new f(1 ,2, ...a, ...a);
+    ~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+                         ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Call expression
+    new f(1, 2, "string")();
+    ~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+    new f(1, 2, ...a)();
+    ~~~~~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new f(1, 2, ...a, "string")();
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Property access expression
+    new b.f(1, 2, "string");
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    new b.f(1, 2, ...a);
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                     ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new b.f(1, 2, ...a, "string"); 
+        ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                     ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Parenthesised expression
+    new (b.f)(1, 2, "string");
+         ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+    new (b.f)(1, 2, ...a);
+         ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                       ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new (b.f)(1, 2, ...a, "string"); 
+         ~
+!!! error TS2454: Variable 'b' is used before being assigned.
+                       ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Element access expression
+    new d[1].f(1, 2, "string");
+        ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+    new d[1].f(1, 2, ...a);
+        ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+                        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new d[1].f(1, 2, ...a, "string");
+        ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+                        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Element access expression with a punctuated key
+    new e["a-b"].f(1, 2, "string");
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+    new e["a-b"].f(1, 2, ...a);
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+                            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new e["a-b"].f(1, 2, ...a, "string");
+        ~
+!!! error TS2454: Variable 'e' is used before being assigned.
+                            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Basic expression
+    new B(1, 2, "string");
+    new B(1, 2, ...a);
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new B(1, 2, ...a, "string");
+                   ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Property access expression
+    new c["a-b"](1, 2, "string");
+        ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    new c["a-b"](1, 2, ...a);
+        ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                          ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new c["a-b"](1, 2, ...a, "string");
+        ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                          ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Parenthesised expression
+    new (c["a-b"])(1, 2, "string");
+         ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+    new (c["a-b"])(1, 2, ...a);
+         ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new (c["a-b"])(1, 2, ...a, "string");
+         ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+                            ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Element access expression
+    new g[1]["a-b"](1, 2, "string");
+        ~
+!!! error TS2454: Variable 'g' is used before being assigned.
+    new g[1]["a-b"](1, 2, ...a);
+        ~
+!!! error TS2454: Variable 'g' is used before being assigned.
+                             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new g[1]["a-b"](1, 2, ...a, "string");
+        ~
+!!! error TS2454: Variable 'g' is used before being assigned.
+                             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Element access expression with a punctuated key
+    new h["a-b"]["a-b"](1, 2, "string");
+        ~
+!!! error TS2454: Variable 'h' is used before being assigned.
+    new h["a-b"]["a-b"](1, 2, ...a);
+        ~
+!!! error TS2454: Variable 'h' is used before being assigned.
+                                 ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new h["a-b"]["a-b"](1, 2, ...a, "string");
+        ~
+!!! error TS2454: Variable 'h' is used before being assigned.
+                                 ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+    // Element access expression with a number
+    new i["a-b"][1](1, 2, "string");
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+          ~~~~~
+!!! error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+    new i["a-b"][1](1, 2, ...a);
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+          ~~~~~
+!!! error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+                             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    new i["a-b"][1](1, 2, ...a, "string");
+        ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+          ~~~~~
+!!! error TS7015: Element implicitly has an 'any' type because index expression is not of type 'number'.
+                             ~
+!!! error TS2454: Variable 'a' is used before being assigned.

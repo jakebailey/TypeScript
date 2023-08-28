@@ -1,0 +1,23 @@
+parserParameterList16.ts(2,4): error TS2394: This overload signature is not compatible with its implementation signature.
+parserParameterList16.ts(2,4): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+parserParameterList16.ts(2,8): error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+parserParameterList16.ts(3,8): error TS7006: Parameter 'a' implicitly has an 'any' type.
+parserParameterList16.ts(3,11): error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+
+==== parserParameterList16.ts (5 errors) ====
+    class C {
+       foo(a = 4);
+       ~~~
+!!! error TS2394: This overload signature is not compatible with its implementation signature.
+!!! related TS2750 parserParameterList16.ts:3:4: The implementation signature is declared here.
+       ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+           ~~~~~
+!!! error TS2371: A parameter initializer is only allowed in a function or constructor implementation.
+       foo(a, b) { }
+           ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+              ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    }

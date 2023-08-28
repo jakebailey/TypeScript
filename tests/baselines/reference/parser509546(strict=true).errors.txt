@@ -1,0 +1,10 @@
+parser509546.ts(2,6): error TS7008: Member 'public' implicitly has an 'any' type.
+
+
+==== parser509546.ts (1 errors) ====
+    export class Logger { 
+         public
+         ~~~~~~
+!!! error TS7008: Member 'public' implicitly has an 'any' type.
+    }
+    

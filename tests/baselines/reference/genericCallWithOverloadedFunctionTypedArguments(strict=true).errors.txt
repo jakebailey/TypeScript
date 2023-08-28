@@ -1,0 +1,76 @@
+genericCallWithOverloadedFunctionTypedArguments.ts(14,18): error TS2454: Variable 'a' is used before being assigned.
+genericCallWithOverloadedFunctionTypedArguments.ts(16,19): error TS2345: Argument of type '(x: string | boolean) => string | boolean' is not assignable to parameter of type '{ (x: boolean): boolean; (x: string): string; }'.
+  Type 'string | boolean' is not assignable to type 'boolean'.
+    Type 'string' is not assignable to type 'boolean'.
+genericCallWithOverloadedFunctionTypedArguments.ts(24,19): error TS2345: Argument of type '(x: unknown) => unknown' is not assignable to parameter of type '{ (x: unknown): string; (x: number): unknown; }'.
+  Type 'unknown' is not assignable to type 'string'.
+genericCallWithOverloadedFunctionTypedArguments.ts(26,19): error TS2454: Variable 'a' is used before being assigned.
+genericCallWithOverloadedFunctionTypedArguments.ts(32,24): error TS2322: Type 'unknown' is not assignable to type 'string'.
+genericCallWithOverloadedFunctionTypedArguments.ts(40,30): error TS2322: Type 'number' is not assignable to type 'string'.
+genericCallWithOverloadedFunctionTypedArguments.ts(43,23): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== genericCallWithOverloadedFunctionTypedArguments.ts (7 errors) ====
+    // Function typed arguments with multiple signatures must be passed an implementation that matches all of them
+    // Inferences are made quadratic-pairwise to and from these overload sets
+    
+    module NonGenericParameter {
+        var a: {
+            (x: boolean): boolean;
+            (x: string): string;
+        }
+    
+        function foo4(cb: typeof a) {
+            return cb;
+        }
+    
+        var r = foo4(a);
+                     ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+        var r2 = foo4(<T>(x: T) => x);
+        var r4 = foo4(x => x);    
+                      ~~~~~~
+!!! error TS2345: Argument of type '(x: string | boolean) => string | boolean' is not assignable to parameter of type '{ (x: boolean): boolean; (x: string): string; }'.
+!!! error TS2345:   Type 'string | boolean' is not assignable to type 'boolean'.
+!!! error TS2345:     Type 'string' is not assignable to type 'boolean'.
+    }
+    
+    module GenericParameter {
+        function foo5<T>(cb: { (x: T): string; (x: number): T }) {
+            return cb;
+        }
+    
+        var r5 = foo5(x => x); // any => string (+1 overload) [inferences are made for T, but lambda not contextually typed]. T is any
+                      ~~~~~~
+!!! error TS2345: Argument of type '(x: unknown) => unknown' is not assignable to parameter of type '{ (x: unknown): string; (x: number): unknown; }'.
+!!! error TS2345:   Type 'unknown' is not assignable to type 'string'.
+        var a: { <T>(x: T): string; <T>(x: number): T; }
+        var r7 = foo5(a); // any => string (+1 overload)
+                      ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    
+        function foo6<T>(cb: { (x: T): string; (x: T, y?: T): string }) {
+            return cb;
+        }
+    
+        var r8 = foo6(x => x); // any => string (+1 overload) [inferences are made for T, but lambda not contextually typed]. T is any
+                           ~
+!!! error TS2322: Type 'unknown' is not assignable to type 'string'.
+!!! related TS6502 genericCallWithOverloadedFunctionTypedArguments.ts:28:26: The expected type comes from the return type of this signature.
+        var r9 = foo6(<T>(x: T) => ''); // any => string (+1 overload)
+        var r11 = foo6(<T>(x: T, y?: T) => ''); // any => string (+1 overload)
+    
+        function foo7<T>(x:T, cb: { (x: T): string; (x: T, y?: T): string }) {
+            return cb;
+        }
+    
+        var r12 = foo7(1, (x) => x); // any => string (+1 overload) [inferences are made for T, but lambda not contextually typed]
+                                 ~
+!!! error TS2322: Type 'number' is not assignable to type 'string'.
+!!! related TS6502 genericCallWithOverloadedFunctionTypedArguments.ts:36:31: The expected type comes from the return type of this signature.
+        var r13 = foo7(1, <T>(x: T) => ''); // any => string (+1 overload) [inferences are made for T, but lambda not contextually typed]
+        var a: { <T>(x: T): string; <T>(x: number): T; }
+        var r14 = foo7(1, a); // any => string (+1 overload) [inferences are made for T, but lambda not contextually typed]
+                          ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    }

@@ -1,0 +1,24 @@
+bar.d.ts(1,10): error TS2305: Module '"./foo"' has no exported member 'Bar'.
+foo.d.ts(5,14): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== foo.d.ts (1 errors) ====
+    export = Foo;
+    export as namespace Foo;
+    
+    declare namespace Foo {
+        function foo();
+                 ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    declare global {
+        namespace Bar { }
+    }
+    
+==== bar.d.ts (1 errors) ====
+    import { Bar } from './foo';
+             ~~~
+!!! error TS2305: Module '"./foo"' has no exported member 'Bar'.
+    export = Bar;
+    export as namespace Bar;

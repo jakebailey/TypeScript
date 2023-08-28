@@ -1,0 +1,85 @@
+fatarrowfunctionsOptionalArgsErrors4.ts(1,14): error TS1015: Parameter cannot have question mark and initializer.
+fatarrowfunctionsOptionalArgsErrors4.ts(2,15): error TS1015: Parameter cannot have question mark and initializer.
+fatarrowfunctionsOptionalArgsErrors4.ts(3,21): error TS1015: Parameter cannot have question mark and initializer.
+fatarrowfunctionsOptionalArgsErrors4.ts(4,7): error TS1015: Parameter cannot have question mark and initializer.
+fatarrowfunctionsOptionalArgsErrors4.ts(4,39): error TS1015: Parameter cannot have question mark and initializer.
+fatarrowfunctionsOptionalArgsErrors4.ts(6,5): error TS2304: Cannot find name 'foo'.
+fatarrowfunctionsOptionalArgsErrors4.ts(7,10): error TS7006: Parameter 'a' implicitly has an 'any' type.
+fatarrowfunctionsOptionalArgsErrors4.ts(8,11): error TS7006: Parameter 'a' implicitly has an 'any' type.
+fatarrowfunctionsOptionalArgsErrors4.ts(9,10): error TS7006: Parameter 'a' implicitly has an 'any' type.
+fatarrowfunctionsOptionalArgsErrors4.ts(12,10): error TS7006: Parameter 'a' implicitly has an 'any' type.
+fatarrowfunctionsOptionalArgsErrors4.ts(13,10): error TS7006: Parameter 'a' implicitly has an 'any' type.
+fatarrowfunctionsOptionalArgsErrors4.ts(13,13): error TS7006: Parameter 'b' implicitly has an 'any' type.
+fatarrowfunctionsOptionalArgsErrors4.ts(17,10): error TS1015: Parameter cannot have question mark and initializer.
+fatarrowfunctionsOptionalArgsErrors4.ts(19,10): error TS7006: Parameter 'a' implicitly has an 'any' type.
+fatarrowfunctionsOptionalArgsErrors4.ts(19,13): error TS1015: Parameter cannot have question mark and initializer.
+fatarrowfunctionsOptionalArgsErrors4.ts(20,10): error TS7006: Parameter 'a' implicitly has an 'any' type.
+fatarrowfunctionsOptionalArgsErrors4.ts(20,17): error TS7006: Parameter 'b' implicitly has an 'any' type.
+fatarrowfunctionsOptionalArgsErrors4.ts(20,24): error TS7006: Parameter 'c' implicitly has an 'any' type.
+fatarrowfunctionsOptionalArgsErrors4.ts(21,17): error TS7006: Parameter 'a' implicitly has an 'any' type.
+fatarrowfunctionsOptionalArgsErrors4.ts(21,28): error TS7006: Parameter 'b' implicitly has an 'any' type.
+
+
+==== fatarrowfunctionsOptionalArgsErrors4.ts (20 errors) ====
+        false ? (arg?: number = 0) => 47 : null;
+                 ~~~
+!!! error TS1015: Parameter cannot have question mark and initializer.
+        false ? ((arg?: number = 0) => 57) : null;
+                  ~~~
+!!! error TS1015: Parameter cannot have question mark and initializer.
+        false ? null : (arg?: number = 0) => 67;
+                        ~~~
+!!! error TS1015: Parameter cannot have question mark and initializer.
+        ((arg?:number = 1) => 0) + '' + ((arg?:number = 2) => 106);
+          ~~~
+!!! error TS1015: Parameter cannot have question mark and initializer.
+                                          ~~~
+!!! error TS1015: Parameter cannot have question mark and initializer.
+    
+        foo(
+        ~~~
+!!! error TS2304: Cannot find name 'foo'.
+            (a) => 110, 
+             ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+            ((a) => 111), 
+              ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+            (a) => {
+             ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                return 112;
+            },
+            (a? ) => 113, 
+             ~~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+            (a, b? ) => 114, 
+             ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                ~~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+            (a: number) => 115, 
+            (a: number = 0) => 116, 
+            (a = 0) => 117, 
+            (a?: number = 0) => 118, 
+             ~
+!!! error TS1015: Parameter cannot have question mark and initializer.
+            (...a: number[]) => 119, 
+            (a, b? = 0, ...c: number[]) => 120,
+             ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                ~
+!!! error TS1015: Parameter cannot have question mark and initializer.
+            (a) => (b) => (c) => 121,
+             ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                    ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+                           ~
+!!! error TS7006: Parameter 'c' implicitly has an 'any' type.
+            false? (a) => 0 : (b) => 122
+                    ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                               ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+        );

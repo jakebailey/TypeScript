@@ -1,0 +1,26 @@
+computedPropertyNames6_ES6.ts(5,6): error TS2454: Variable 'p1' is used before being assigned.
+computedPropertyNames6_ES6.ts(6,5): error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+computedPropertyNames6_ES6.ts(6,6): error TS2454: Variable 'p2' is used before being assigned.
+computedPropertyNames6_ES6.ts(7,5): error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+computedPropertyNames6_ES6.ts(7,6): error TS2454: Variable 'p3' is used before being assigned.
+
+
+==== computedPropertyNames6_ES6.ts (5 errors) ====
+    var p1: number | string;
+    var p2: number | number[];
+    var p3: string | boolean;
+    var v = {
+        [p1]: 0,
+         ~~
+!!! error TS2454: Variable 'p1' is used before being assigned.
+        [p2]: 1,
+        ~~~~
+!!! error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+         ~~
+!!! error TS2454: Variable 'p2' is used before being assigned.
+        [p3]: 2
+        ~~~~
+!!! error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+         ~~
+!!! error TS2454: Variable 'p3' is used before being assigned.
+    }

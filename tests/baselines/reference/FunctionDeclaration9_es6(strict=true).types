@@ -1,0 +1,19 @@
+//// [tests/cases/conformance/es6/functionDeclarations/FunctionDeclaration9_es6.ts] ////
+
+=== FunctionDeclaration9_es6.ts ===
+function * foo() {
+>foo : () => Generator<undefined, void, unknown>
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  var v = { [yield]: foo }
+>v : { [x: number]: () => Generator<undefined, void, unknown>; }
+>  : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>{ [yield]: foo } : { [x: number]: () => Generator<undefined, void, unknown>; }
+>                 : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>[yield] : () => Generator<undefined, void, unknown>
+>        : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>yield : any
+>      : ^^^
+>foo : () => Generator<undefined, void, unknown>
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+}

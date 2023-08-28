@@ -1,0 +1,128 @@
+instanceOfAssignability.ts(8,2): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+instanceOfAssignability.ts(12,2): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+instanceOfAssignability.ts(13,2): error TS2564: Property 'optional' has no initializer and is not definitely assigned in the constructor.
+instanceOfAssignability.ts(17,2): error TS7008: Member 'move' implicitly has an 'any' type.
+instanceOfAssignability.ts(19,31): error TS7008: Member 'milk' implicitly has an 'any' type.
+instanceOfAssignability.ts(20,32): error TS7008: Member 'neck' implicitly has an 'any' type.
+instanceOfAssignability.ts(78,19): error TS7008: Member 'a' implicitly has an 'any' type.
+instanceOfAssignability.ts(79,18): error TS7008: Member 'b' implicitly has an 'any' type.
+instanceOfAssignability.ts(80,19): error TS7008: Member 'c' implicitly has an 'any' type.
+instanceOfAssignability.ts(81,13): error TS7008: Member 'a' implicitly has an 'any' type.
+instanceOfAssignability.ts(81,16): error TS7008: Member 'b' implicitly has an 'any' type.
+instanceOfAssignability.ts(81,19): error TS7008: Member 'c' implicitly has an 'any' type.
+
+
+==== instanceOfAssignability.ts (12 errors) ====
+    interface Base {
+    	foo: string|number;
+    	optional?: number;
+    }
+    
+    // Derived1 is assignable to, but not a subtype of, Base
+    class Derived1 implements Base {
+    	foo: string;
+    	~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+    }
+    // Derived2 is a subtype of Base that is not assignable to Derived1
+    class Derived2 implements Base {
+    	foo: number;
+    	~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+    	optional: number;
+    	~~~~~~~~
+!!! error TS2564: Property 'optional' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class Animal {
+    	move;
+    	~~~~
+!!! error TS7008: Member 'move' implicitly has an 'any' type.
+    }
+    class Mammal extends Animal { milk; }
+                                  ~~~~
+!!! error TS7008: Member 'milk' implicitly has an 'any' type.
+    class Giraffe extends Mammal { neck; }
+                                   ~~~~
+!!! error TS7008: Member 'neck' implicitly has an 'any' type.
+    
+    function fn1(x: Array<number>|Array<string>|boolean) {
+    	if(x instanceof Array) {
+    		// 1.5: y: Array<number>|Array<string>
+    		// Want: y: Array<number>|Array<string>
+    		let y = x;
+    	}
+    }
+    
+    function fn2(x: Base) {
+    	if(x instanceof Derived1) {
+    		// 1.5: y: Base
+    		// Want: y: Derived1
+    		let y = x;
+    	}
+    }
+    
+    function fn3(x: Base|Derived1) {
+    	if(x instanceof Derived2) {
+    		// 1.5: y: Derived2
+    		// Want: Derived2
+    		let y = x;
+    	}
+    }
+    
+    function fn4(x: Base|Derived2) {
+    	if(x instanceof Derived1) {
+    		// 1.5: y: {}
+    		// Want: Derived1
+    		let y = x;
+    	}
+    }
+    
+    function fn5(x: Derived1) {
+    	if(x instanceof Derived2) {
+    		// 1.5: y: Derived1
+    		// Want: ???
+    		let y = x;
+    	}
+    }
+    
+    function fn6(x: Animal|Mammal) {
+    	if(x instanceof Giraffe) {
+    		// 1.5: y: Derived1
+    		// Want: ???
+    		let y = x;
+    	}
+    }
+    
+    function fn7(x: Array<number>|Array<string>) {
+    	if(x instanceof Array) {
+    		// 1.5: y: Array<number>|Array<string>
+    		// Want: y: Array<number>|Array<string>
+    		let y = x;
+    	}
+    }
+    
+    interface Alpha { a }
+                      ~
+!!! error TS7008: Member 'a' implicitly has an 'any' type.
+    interface Beta { b }
+                     ~
+!!! error TS7008: Member 'b' implicitly has an 'any' type.
+    interface Gamma { c }
+                      ~
+!!! error TS7008: Member 'c' implicitly has an 'any' type.
+    class ABC { a; b; c; }
+                ~
+!!! error TS7008: Member 'a' implicitly has an 'any' type.
+                   ~
+!!! error TS7008: Member 'b' implicitly has an 'any' type.
+                      ~
+!!! error TS7008: Member 'c' implicitly has an 'any' type.
+    function fn8(x: Alpha|Beta|Gamma) {
+    	if(x instanceof ABC) {
+    		let y = x;
+    	}
+    }
+    
+    
+    

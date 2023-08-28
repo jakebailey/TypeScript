@@ -1,0 +1,11 @@
+typeAliasExport.ts(3,14): error TS7005: Variable 'a' implicitly has an 'any' type.
+
+
+==== typeAliasExport.ts (1 errors) ====
+    declare module "a" {
+      export default undefined
+      export var a;
+                 ~
+!!! error TS7005: Variable 'a' implicitly has an 'any' type.
+      export type a = typeof a;
+    }

@@ -1,0 +1,24 @@
+superWithTypeArgument2.ts(2,5): error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+superWithTypeArgument2.ts(6,17): error TS7006: Parameter 'x' implicitly has an 'any' type.
+superWithTypeArgument2.ts(7,14): error TS2754: 'super' may not use type arguments.
+superWithTypeArgument2.ts(7,18): error TS2554: Expected 0 arguments, but got 1.
+
+
+==== superWithTypeArgument2.ts (4 errors) ====
+    class C<T> {
+        foo: T;
+        ~~~
+!!! error TS2564: Property 'foo' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+    class D<T> extends C<T> {
+        constructor(x) {
+                    ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            super<T>(x);
+                 ~~~
+!!! error TS2754: 'super' may not use type arguments.
+                     ~
+!!! error TS2554: Expected 0 arguments, but got 1.
+        }
+    }

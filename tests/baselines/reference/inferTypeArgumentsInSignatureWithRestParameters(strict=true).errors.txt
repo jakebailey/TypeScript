@@ -1,0 +1,23 @@
+inferTypeArgumentsInSignatureWithRestParameters.ts(1,27): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+inferTypeArgumentsInSignatureWithRestParameters.ts(2,29): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+inferTypeArgumentsInSignatureWithRestParameters.ts(3,28): error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+
+
+==== inferTypeArgumentsInSignatureWithRestParameters.ts (3 errors) ====
+    function f<T>(array: T[], ...args) { }
+                              ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+    function g(array: number[], ...args) { }
+                                ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+    function h<T>(nonarray: T, ...args) { }
+                               ~~~~~~~
+!!! error TS7019: Rest parameter 'args' implicitly has an 'any[]' type.
+    function i<T>(array: T[], opt?: any[]) { }
+    var a = [1, 2, 3, 4, 5];
+    
+    f(a); // OK
+    g(a); // OK
+    h(a); // OK
+    i(a); // OK
+    

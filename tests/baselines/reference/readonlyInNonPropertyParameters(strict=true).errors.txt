@@ -1,0 +1,26 @@
+readonlyInNonPropertyParameters.ts(3,9): error TS2369: A parameter property is only allowed in a constructor implementation.
+readonlyInNonPropertyParameters.ts(4,8): error TS2369: A parameter property is only allowed in a constructor implementation.
+readonlyInNonPropertyParameters.ts(6,2): error TS2369: A parameter property is only allowed in a constructor implementation.
+readonlyInNonPropertyParameters.ts(6,2): error TS7006: Parameter 'x' implicitly has an 'any' type.
+readonlyInNonPropertyParameters.ts(8,2): error TS7006: Parameter 'readonly' implicitly has an 'any' type.
+
+
+==== readonlyInNonPropertyParameters.ts (5 errors) ====
+    // `readonly` won't work outside of property parameters
+    class X {
+    	method(readonly x: number) {}
+    	       ~~~~~~~~~~~~~~~~~~
+!!! error TS2369: A parameter property is only allowed in a constructor implementation.
+    	set x(readonly value: number) {}
+    	      ~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS2369: A parameter property is only allowed in a constructor implementation.
+    }
+    (readonly x) => 0;
+     ~~~~~~~~~~
+!!! error TS2369: A parameter property is only allowed in a constructor implementation.
+     ~~~~~~~~~~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    // OK to use `readonly` as a name
+    (readonly) => 0;
+     ~~~~~~~~
+!!! error TS7006: Parameter 'readonly' implicitly has an 'any' type.

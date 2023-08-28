@@ -1,0 +1,30 @@
+error TS2318: Cannot find global type 'CallableFunction'.
+error TS2318: Cannot find global type 'NewableFunction'.
+
+
+!!! error TS2318: Cannot find global type 'CallableFunction'.
+!!! error TS2318: Cannot find global type 'NewableFunction'.
+==== file.tsx (0 errors) ====
+    import React = require('react');
+    
+    interface ComponentProps {
+        AnyComponent: React.StatelessComponent<any> | React.ComponentClass<any>;
+    }
+    
+    class MyComponent extends React.Component<ComponentProps, {}> {
+        render() {
+            const { AnyComponent } = this.props;
+            return (<AnyComponent />);
+        }
+    }
+    
+    // Stateless Component As Props
+    <MyComponent AnyComponent={() => <button>test</button>}/>
+    
+    // Component Class as Props
+    class MyButtonComponent extends React.Component<{},{}> {
+    }
+    
+    <MyComponent AnyComponent={MyButtonComponent} />
+    
+    

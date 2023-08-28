@@ -1,0 +1,21 @@
+//// [tests/cases/compiler/noUnusedLocals_writeOnlyProperty.ts] ////
+
+//// [noUnusedLocals_writeOnlyProperty.ts]
+class C {
+    private x;
+    m() {
+        this.x = 0;
+    }
+}
+
+
+//// [noUnusedLocals_writeOnlyProperty.js]
+"use strict";
+var C = /** @class */ (function () {
+    function C() {
+    }
+    C.prototype.m = function () {
+        this.x = 0;
+    };
+    return C;
+}());

@@ -1,0 +1,13 @@
+parserObjectType4.ts(2,3): error TS7008: Member 'x' implicitly has an 'any' type.
+parserObjectType4.ts(3,3): error TS7008: Member 'y' implicitly has an 'any' type.
+
+
+==== parserObjectType4.ts (2 errors) ====
+    var v: {
+      x
+      ~
+!!! error TS7008: Member 'x' implicitly has an 'any' type.
+      y
+      ~
+!!! error TS7008: Member 'y' implicitly has an 'any' type.
+    };

@@ -1,0 +1,13 @@
+genericCallWithFixedArguments.ts(4,18): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== genericCallWithFixedArguments.ts (1 errors) ====
+    class A { foo() { } }
+    class B { bar() { }} 
+    
+    function g<T, U>(x) { }
+                     ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    g<A, B>(7) // the parameter list is fixed, so this should not error
+     
+    

@@ -1,0 +1,80 @@
+reachabilityChecks4.ts(1,14): error TS7006: Parameter 'x' implicitly has an 'any' type.
+reachabilityChecks4.ts(1,17): error TS7006: Parameter 'y' implicitly has an 'any' type.
+reachabilityChecks4.ts(6,9): error TS7029: Fallthrough case in switch.
+reachabilityChecks4.ts(22,9): error TS7029: Fallthrough case in switch.
+
+
+==== reachabilityChecks4.ts (4 errors) ====
+    function foo(x, y) {
+                 ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                    ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+        switch (x) {
+            case 1:
+            case 2:
+                return 1;
+            case 3:
+            ~~~~~~~
+!!! error TS7029: Fallthrough case in switch.
+                if (y) {
+                    return 2;
+                }
+            case 4:
+                return 3;
+        }
+    }
+    
+    declare function noop(): void;
+    declare function fail(): never;
+    
+    function f1(x: 0 | 1 | 2) {
+        switch (x) {
+            case 0:
+                fail();
+            case 1:
+            ~~~~~~~
+!!! error TS7029: Fallthrough case in switch.
+                noop();
+            case 2:
+                return;
+        }
+    }
+    
+    // Repro from #34021
+    
+    type Behavior = 'SLIDE' | 'SLIDE_OUT'
+    type Direction = 'LEFT' | 'RIGHT' | 'TOP' | 'BOTTOM'
+    
+    interface Transition {
+      behavior: Behavior
+      direction: Direction
+    }
+    
+    function f2(transition: Transition): any {
+        switch (transition.behavior) {
+            case 'SLIDE':
+                switch (transition.direction) {
+                    case 'LEFT':
+                        return []
+                    case 'RIGHT':
+                        return []
+                    case 'TOP':
+                        return []
+                    case 'BOTTOM':
+                        return []
+                }
+            case 'SLIDE_OUT':
+                switch (transition.direction) {
+                    case 'LEFT':
+                        return []
+                    case 'RIGHT':
+                        return []
+                    case 'TOP':
+                        return []
+                    case 'BOTTOM':
+                        return []
+                }
+        }
+    }
+    

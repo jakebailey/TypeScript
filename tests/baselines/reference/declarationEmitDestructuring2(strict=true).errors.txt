@@ -1,0 +1,64 @@
+declarationEmitDestructuring2.ts(3,13): error TS2300: Duplicate identifier 'a'.
+declarationEmitDestructuring2.ts(3,13): error TS7031: Binding element 'a' implicitly has an 'any' type.
+declarationEmitDestructuring2.ts(3,17): error TS2300: Duplicate identifier 'b'.
+declarationEmitDestructuring2.ts(3,17): error TS7031: Binding element 'b' implicitly has an 'any' type.
+declarationEmitDestructuring2.ts(3,23): error TS2300: Duplicate identifier 'c'.
+declarationEmitDestructuring2.ts(3,23): error TS7031: Binding element 'c' implicitly has an 'any' type.
+declarationEmitDestructuring2.ts(3,41): error TS2300: Duplicate identifier 'a'.
+declarationEmitDestructuring2.ts(3,41): error TS7031: Binding element 'a' implicitly has an 'any' type.
+declarationEmitDestructuring2.ts(3,44): error TS2300: Duplicate identifier 'b'.
+declarationEmitDestructuring2.ts(3,44): error TS7031: Binding element 'b' implicitly has an 'any' type.
+declarationEmitDestructuring2.ts(3,47): error TS2300: Duplicate identifier 'c'.
+declarationEmitDestructuring2.ts(3,47): error TS7031: Binding element 'c' implicitly has an 'any' type.
+declarationEmitDestructuring2.ts(3,55): error TS7031: Binding element 'a1' implicitly has an 'any' type.
+declarationEmitDestructuring2.ts(3,59): error TS7031: Binding element 'b1' implicitly has an 'any' type.
+declarationEmitDestructuring2.ts(4,14): error TS7031: Binding element 'a' implicitly has an 'any' type.
+declarationEmitDestructuring2.ts(4,18): error TS7031: Binding element 'b' implicitly has an 'any' type.
+declarationEmitDestructuring2.ts(4,24): error TS7031: Binding element 'c' implicitly has an 'any' type.
+declarationEmitDestructuring2.ts(4,57): error TS7031: Binding element 'a1' implicitly has an 'any' type.
+declarationEmitDestructuring2.ts(4,61): error TS7031: Binding element 'b1' implicitly has an 'any' type.
+
+
+==== declarationEmitDestructuring2.ts (19 errors) ====
+    function f({x = 10, y: [a, b, c, d] = [1, 2, 3, 4]} = { x: 10, y: [2, 4, 6, 8] }) { }
+    function g([a, b, c, d] = [1, 2, 3, 4]) { }
+    function h([a, [b], [[c]], {x = 10, y: [a, b, c], z: {a1, b1}}]){ }
+                ~
+!!! error TS2300: Duplicate identifier 'a'.
+                ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                    ~
+!!! error TS2300: Duplicate identifier 'b'.
+                    ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+                          ~
+!!! error TS2300: Duplicate identifier 'c'.
+                          ~
+!!! error TS7031: Binding element 'c' implicitly has an 'any' type.
+                                            ~
+!!! error TS2300: Duplicate identifier 'a'.
+                                            ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                                               ~
+!!! error TS2300: Duplicate identifier 'b'.
+                                               ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+                                                  ~
+!!! error TS2300: Duplicate identifier 'c'.
+                                                  ~
+!!! error TS7031: Binding element 'c' implicitly has an 'any' type.
+                                                          ~~
+!!! error TS7031: Binding element 'a1' implicitly has an 'any' type.
+                                                              ~~
+!!! error TS7031: Binding element 'b1' implicitly has an 'any' type.
+    function h1([a, [b], [[c]], {x = 10, y = [1, 2, 3], z: {a1, b1}}]){ }
+                 ~
+!!! error TS7031: Binding element 'a' implicitly has an 'any' type.
+                     ~
+!!! error TS7031: Binding element 'b' implicitly has an 'any' type.
+                           ~
+!!! error TS7031: Binding element 'c' implicitly has an 'any' type.
+                                                            ~~
+!!! error TS7031: Binding element 'a1' implicitly has an 'any' type.
+                                                                ~~
+!!! error TS7031: Binding element 'b1' implicitly has an 'any' type.

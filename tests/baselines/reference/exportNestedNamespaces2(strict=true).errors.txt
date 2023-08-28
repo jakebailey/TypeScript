@@ -1,0 +1,40 @@
+first.js(2,9): error TS2339: Property 'formatters' does not exist on type 'typeof import("first")'.
+first.js(2,34): error TS7006: Parameter 'v' implicitly has an 'any' type.
+second.js(2,9): error TS2339: Property 'formatters' does not exist on type 'typeof import("second")'.
+second.js(2,34): error TS7006: Parameter 'v' implicitly has an 'any' type.
+use.js(3,18): error TS2339: Property 'j' does not exist on type '{}'.
+use.js(4,28): error TS2339: Property 'o' does not exist on type '{}'.
+
+
+==== mod.js (0 errors) ====
+    // Based on a pattern from adonis
+    exports.formatters = {}
+==== first.js (2 errors) ====
+    exports = require('./mod')
+    exports.formatters.j = function (v) {
+            ~~~~~~~~~~
+!!! error TS2339: Property 'formatters' does not exist on type 'typeof import("first")'.
+                                     ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+        return v
+    }
+==== second.js (2 errors) ====
+    exports = require('./mod')
+    exports.formatters.o = function (v) {
+            ~~~~~~~~~~
+!!! error TS2339: Property 'formatters' does not exist on type 'typeof import("second")'.
+                                     ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+        return v
+    }
+    
+==== use.js (2 errors) ====
+    import * as debug from './mod'
+    
+    debug.formatters.j
+                     ~
+!!! error TS2339: Property 'j' does not exist on type '{}'.
+    var one = debug.formatters.o(1)
+                               ~
+!!! error TS2339: Property 'o' does not exist on type '{}'.
+    

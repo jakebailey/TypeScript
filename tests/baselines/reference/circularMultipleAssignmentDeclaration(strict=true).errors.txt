@@ -1,0 +1,9 @@
+circularMultipleAssignmentDeclaration.js(1,1): error TS7022: 'next' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+
+
+==== circularMultipleAssignmentDeclaration.js (1 errors) ====
+    ns.next = ns.next || { shared: {} };
+    ~~~~~~~
+!!! error TS7022: 'next' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    ns.next.shared.mymethod = {};
+    

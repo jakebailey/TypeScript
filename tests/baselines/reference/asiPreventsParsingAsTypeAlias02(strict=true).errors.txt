@@ -1,0 +1,23 @@
+asiPreventsParsingAsTypeAlias02.ts(1,5): error TS7034: Variable 'type' implicitly has type 'any' in some locations where its type cannot be determined.
+asiPreventsParsingAsTypeAlias02.ts(2,5): error TS7034: Variable 'string' implicitly has type 'any' in some locations where its type cannot be determined.
+asiPreventsParsingAsTypeAlias02.ts(6,5): error TS7005: Variable 'type' implicitly has an 'any' type.
+asiPreventsParsingAsTypeAlias02.ts(7,11): error TS7005: Variable 'string' implicitly has an 'any' type.
+
+
+==== asiPreventsParsingAsTypeAlias02.ts (4 errors) ====
+    var type;
+        ~~~~
+!!! error TS7034: Variable 'type' implicitly has type 'any' in some locations where its type cannot be determined.
+    var string;
+        ~~~~~~
+!!! error TS7034: Variable 'string' implicitly has type 'any' in some locations where its type cannot be determined.
+    var Foo;
+    
+    namespace container {
+        type
+        ~~~~
+!!! error TS7005: Variable 'type' implicitly has an 'any' type.
+        Foo = string;
+              ~~~~~~
+!!! error TS7005: Variable 'string' implicitly has an 'any' type.
+    }

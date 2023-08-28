@@ -1,0 +1,33 @@
+parser509534.ts(2,14): error TS2580: Cannot find name 'require'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+parser509534.ts(3,1): error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+parser509534.ts(3,34): error TS7006: Parameter 'server' implicitly has an 'any' type.
+parser509534.ts(6,60): error TS7006: Parameter 'req' implicitly has an 'any' type.
+parser509534.ts(6,65): error TS7006: Parameter 'res' implicitly has an 'any' type.
+parser509534.ts(6,70): error TS7006: Parameter 'next' implicitly has an 'any' type.
+
+
+==== parser509534.ts (6 errors) ====
+    "use strict";
+    var config = require("../config");
+                 ~~~~~~~
+!!! error TS2580: Cannot find name 'require'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+    module.exports.route = function (server) {
+    ~~~~~~
+!!! error TS2580: Cannot find name 'module'. Do you need to install type definitions for node? Try `npm i --save-dev @types/node`.
+                                     ~~~~~~
+!!! error TS7006: Parameter 'server' implicitly has an 'any' type.
+     
+     // General Login Page
+     server.get(config.env.siteRoot + "/auth/login", function (req, res, next) {
+                                                               ~~~
+!!! error TS7006: Parameter 'req' implicitly has an 'any' type.
+                                                                    ~~~
+!!! error TS7006: Parameter 'res' implicitly has an 'any' type.
+                                                                         ~~~~
+!!! error TS7006: Parameter 'next' implicitly has an 'any' type.
+      
+      // TODO Should render login page that shows auth options
+      req.redirect("/auth/live");
+     });
+    }
+    

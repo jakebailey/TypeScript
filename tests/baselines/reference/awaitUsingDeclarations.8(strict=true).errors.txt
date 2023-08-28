@@ -1,0 +1,14 @@
+awaitUsingDeclarations.8.ts(2,17): error TS1155: 'await using' declarations must be initialized.
+awaitUsingDeclarations.8.ts(2,17): error TS7005: Variable 'a' implicitly has an 'any' type.
+
+
+==== awaitUsingDeclarations.8.ts (2 errors) ====
+    {
+        await using a;
+                    ~
+!!! error TS1155: 'await using' declarations must be initialized.
+                    ~
+!!! error TS7005: Variable 'a' implicitly has an 'any' type.
+    }
+    
+    export {};

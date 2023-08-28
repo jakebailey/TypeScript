@@ -1,0 +1,77 @@
+parametersWithNoAnnotationAreAny.ts(1,14): error TS7006: Parameter 'x' implicitly has an 'any' type.
+parametersWithNoAnnotationAreAny.ts(2,22): error TS7006: Parameter 'x' implicitly has an 'any' type.
+parametersWithNoAnnotationAreAny.ts(3,11): error TS7006: Parameter 'x' implicitly has an 'any' type.
+parametersWithNoAnnotationAreAny.ts(4,14): error TS7006: Parameter 'x' implicitly has an 'any' type.
+parametersWithNoAnnotationAreAny.ts(7,9): error TS7006: Parameter 'x' implicitly has an 'any' type.
+parametersWithNoAnnotationAreAny.ts(13,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+parametersWithNoAnnotationAreAny.ts(13,9): error TS7006: Parameter 'x' implicitly has an 'any' type.
+parametersWithNoAnnotationAreAny.ts(14,5): error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+parametersWithNoAnnotationAreAny.ts(14,10): error TS7006: Parameter 'x' implicitly has an 'any' type.
+parametersWithNoAnnotationAreAny.ts(14,13): error TS7006: Parameter 'y' implicitly has an 'any' type.
+parametersWithNoAnnotationAreAny.ts(18,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+parametersWithNoAnnotationAreAny.ts(18,9): error TS7006: Parameter 'x' implicitly has an 'any' type.
+parametersWithNoAnnotationAreAny.ts(22,9): error TS7006: Parameter 'x' implicitly has an 'any' type.
+parametersWithNoAnnotationAreAny.ts(25,21): error TS7006: Parameter 'x' implicitly has an 'any' type.
+parametersWithNoAnnotationAreAny.ts(28,9): error TS7006: Parameter 'x' implicitly has an 'any' type.
+
+
+==== parametersWithNoAnnotationAreAny.ts (15 errors) ====
+    function foo(x) { return x; }
+                 ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    var f = function foo(x) { return x; }
+                         ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    var f2 = (x) => x;
+              ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    var f3 = <T>(x) => x;
+                 ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    
+    class C {
+        foo(x) {
+            ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            return x;
+        }
+    }
+    
+    interface I {
+        foo(x);
+        ~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+            ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+        foo2(x, y);
+        ~~~~~~~~~~~
+!!! error TS7010: 'foo2', which lacks return-type annotation, implicitly has an 'any' return type.
+             ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+                ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+    }
+    
+    var a: {
+        foo(x);
+        ~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+            ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }
+    
+    var b = {
+        foo(x) {
+            ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            return x;
+        },
+        a: function foo(x) {
+                        ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+            return x;
+        },
+        b: (x) => x
+            ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    }

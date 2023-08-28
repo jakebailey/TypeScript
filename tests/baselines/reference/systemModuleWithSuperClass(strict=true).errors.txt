@@ -1,0 +1,18 @@
+bar.ts(3,5): error TS2564: Property 'b' has no initializer and is not definitely assigned in the constructor.
+foo.ts(2,5): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+
+
+==== foo.ts (1 errors) ====
+    export class Foo {
+        a: string;
+        ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+    }
+    
+==== bar.ts (1 errors) ====
+    import {Foo} from './foo';
+    export class Bar extends Foo {
+        b: string;
+        ~
+!!! error TS2564: Property 'b' has no initializer and is not definitely assigned in the constructor.
+    }

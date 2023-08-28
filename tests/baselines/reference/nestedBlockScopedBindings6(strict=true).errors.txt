@@ -1,0 +1,115 @@
+nestedBlockScopedBindings6.ts(6,13): error TS18048: 'x' is possibly 'undefined'.
+nestedBlockScopedBindings6.ts(16,13): error TS18048: 'x' is possibly 'undefined'.
+nestedBlockScopedBindings6.ts(25,13): error TS18048: 'x' is possibly 'undefined'.
+nestedBlockScopedBindings6.ts(36,13): error TS18048: 'x' is possibly 'undefined'.
+nestedBlockScopedBindings6.ts(60,17): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+nestedBlockScopedBindings6.ts(61,19): error TS7005: Variable 'x' implicitly has an 'any' type.
+nestedBlockScopedBindings6.ts(84,17): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+nestedBlockScopedBindings6.ts(85,19): error TS7005: Variable 'x' implicitly has an 'any' type.
+
+
+==== nestedBlockScopedBindings6.ts (8 errors) ====
+    function a0() {
+        for (let x of [1]) {
+            x = x + 1;
+        }
+        for (let x;;) {
+            x = x + 2;
+                ~
+!!! error TS18048: 'x' is possibly 'undefined'.
+        }
+    }
+    
+    function a1() {
+        for (let x of [1]) {
+            x = x + 1;
+            () => x;
+        }
+        for (let x;;) {
+            x = x + 2;
+                ~
+!!! error TS18048: 'x' is possibly 'undefined'.
+        }
+    }
+    
+    function a2() {
+        for (let x of [1]) {
+            x = x + 1;
+        }
+        for (let x;;) {
+            x = x + 2;
+                ~
+!!! error TS18048: 'x' is possibly 'undefined'.
+            () => x;
+        }
+    }
+    
+    function a3() {
+        for (let x of [1]) {
+            x = x + 1;
+            () => x;
+        }
+        for (let x;;) {
+            x = x + 2;
+                ~
+!!! error TS18048: 'x' is possibly 'undefined'.
+            () => x;
+        }
+    }
+    
+    function a4() {
+        for (let x of [1]) {
+            x = x + 1;
+            () => x;
+        }
+        switch (1) {
+            case 1:
+                let x;
+                break;
+        }
+    }
+    
+    
+    function a5() {
+        for (let x of [1]) {
+            x = x + 1;
+        }
+        switch (1) {
+            case 1:
+                let x;
+                    ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+                () => x;
+                      ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                break;
+        }
+    }
+    
+    function a6() {
+        for (let x of [1]) {
+            x = x + 1;
+        }
+        switch (1) {
+            case 1:
+                let x;
+                break;
+        }
+    }
+    
+    function a7() {
+        for (let x of [1]) {
+            x = x + 1;
+            () => x;
+        }
+        switch (1) {
+            case 1:
+                let x;
+                    ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+                () => x;
+                      ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                break;
+        }
+    }

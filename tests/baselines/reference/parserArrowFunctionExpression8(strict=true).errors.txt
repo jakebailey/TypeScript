@@ -1,0 +1,26 @@
+fileJs.js(1,1): error TS2304: Cannot find name 'x'.
+fileJs.js(1,5): error TS7006: Parameter 'y' implicitly has an 'any' type.
+fileJs.js(1,20): error TS7006: Parameter 'z' implicitly has an 'any' type.
+fileTs.ts(1,1): error TS2304: Cannot find name 'x'.
+fileTs.ts(1,5): error TS7006: Parameter 'y' implicitly has an 'any' type.
+fileTs.ts(1,20): error TS7006: Parameter 'z' implicitly has an 'any' type.
+
+
+==== fileJs.js (3 errors) ====
+    x ? y => ({ y }) : z => ({ z }) // Legal JS
+    ~
+!!! error TS2304: Cannot find name 'x'.
+        ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+                       ~
+!!! error TS7006: Parameter 'z' implicitly has an 'any' type.
+    
+==== fileTs.ts (3 errors) ====
+    x ? y => ({ y }) : z => ({ z })
+    ~
+!!! error TS2304: Cannot find name 'x'.
+        ~
+!!! error TS7006: Parameter 'y' implicitly has an 'any' type.
+                       ~
+!!! error TS7006: Parameter 'z' implicitly has an 'any' type.
+    

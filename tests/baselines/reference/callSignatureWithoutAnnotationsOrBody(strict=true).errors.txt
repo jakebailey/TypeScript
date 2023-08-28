@@ -1,0 +1,49 @@
+callSignatureWithoutAnnotationsOrBody.ts(3,14): error TS7006: Parameter 'x' implicitly has an 'any' type.
+callSignatureWithoutAnnotationsOrBody.ts(7,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+callSignatureWithoutAnnotationsOrBody.ts(8,5): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+callSignatureWithoutAnnotationsOrBody.ts(11,10): error TS2454: Variable 'i' is used before being assigned.
+callSignatureWithoutAnnotationsOrBody.ts(12,10): error TS2454: Variable 'i' is used before being assigned.
+callSignatureWithoutAnnotationsOrBody.ts(15,5): error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+callSignatureWithoutAnnotationsOrBody.ts(16,5): error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+callSignatureWithoutAnnotationsOrBody.ts(18,10): error TS2454: Variable 'a' is used before being assigned.
+callSignatureWithoutAnnotationsOrBody.ts(19,10): error TS2454: Variable 'a' is used before being assigned.
+
+
+==== callSignatureWithoutAnnotationsOrBody.ts (9 errors) ====
+    // Call signatures without a return type annotation and function body return 'any'
+    
+    function foo(x) { }
+                 ~
+!!! error TS7006: Parameter 'x' implicitly has an 'any' type.
+    var r = foo(1); // void since there's a body
+    
+    interface I {
+        ();
+        ~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        f();
+        ~~~~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    var i: I;
+    var r2 = i();
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    var r3 = i.f();
+             ~
+!!! error TS2454: Variable 'i' is used before being assigned.
+    
+    var a: {
+        ();
+        ~~~
+!!! error TS7020: Call signature, which lacks return-type annotation, implicitly has an 'any' return type.
+        f();
+        ~~~~
+!!! error TS7010: 'f', which lacks return-type annotation, implicitly has an 'any' return type.
+    };
+    var r4 = a();
+             ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+    var r5 = a.f();
+             ~
+!!! error TS2454: Variable 'a' is used before being assigned.

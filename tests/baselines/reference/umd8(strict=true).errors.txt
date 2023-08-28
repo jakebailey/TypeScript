@@ -1,0 +1,27 @@
+a.ts(5,1): error TS2454: Variable 'y' is used before being assigned.
+a.ts(7,14): error TS2686: 'Foo' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+
+
+==== a.ts (2 errors) ====
+    /// <reference path="foo.d.ts" />
+    import * as ff from './foo';
+    
+    let y: Foo; // OK in type position
+    y.foo();
+    ~
+!!! error TS2454: Variable 'y' is used before being assigned.
+    let z: Foo.SubThing; // OK in ns position
+    let x: any = Foo; // Not OK in value position
+                 ~~~
+!!! error TS2686: 'Foo' refers to a UMD global, but the current file is a module. Consider adding an import instead.
+    
+==== foo.d.ts (0 errors) ====
+    declare class Thing {
+    	foo(): number;
+    }
+    declare namespace Thing {
+    	interface SubThing { }
+    }
+    export = Thing;
+    export as namespace Foo;
+    

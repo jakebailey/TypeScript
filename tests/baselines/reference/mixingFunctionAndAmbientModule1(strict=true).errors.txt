@@ -1,0 +1,63 @@
+mixingFunctionAndAmbientModule1.ts(12,14): error TS7010: 'My', which lacks return-type annotation, implicitly has an 'any' return type.
+mixingFunctionAndAmbientModule1.ts(20,22): error TS7010: 'My', which lacks return-type annotation, implicitly has an 'any' return type.
+mixingFunctionAndAmbientModule1.ts(27,22): error TS7010: 'My', which lacks return-type annotation, implicitly has an 'any' return type.
+mixingFunctionAndAmbientModule1.ts(28,22): error TS7010: 'My', which lacks return-type annotation, implicitly has an 'any' return type.
+mixingFunctionAndAmbientModule1.ts(36,22): error TS7010: 'My', which lacks return-type annotation, implicitly has an 'any' return type.
+mixingFunctionAndAmbientModule1.ts(40,22): error TS7010: 'My', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== mixingFunctionAndAmbientModule1.ts (6 errors) ====
+    module A {
+        declare module My {
+            export var x: number;
+        }
+        function My(s: string) { }
+    }
+    
+    module B {
+        declare module My {
+            export var x: number;
+        }
+        function My(s: boolean);
+                 ~~
+!!! error TS7010: 'My', which lacks return-type annotation, implicitly has an 'any' return type.
+        function My(s: any) { }
+    }
+    
+    module C {
+        declare module My {
+            export var x: number;
+        }
+        declare function My(s: boolean);
+                         ~~
+!!! error TS7010: 'My', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    module D {
+        declare module My {
+            export var x: number;
+        }
+        declare function My(s: boolean);
+                         ~~
+!!! error TS7010: 'My', which lacks return-type annotation, implicitly has an 'any' return type.
+        declare function My(s: any);
+                         ~~
+!!! error TS7010: 'My', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    
+    module E {
+        declare module My {
+            export var x: number;
+        }
+        declare function My(s: boolean);
+                         ~~
+!!! error TS7010: 'My', which lacks return-type annotation, implicitly has an 'any' return type.
+        declare module My {
+            export var y: number;
+        }
+        declare function My(s: any);
+                         ~~
+!!! error TS7010: 'My', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    

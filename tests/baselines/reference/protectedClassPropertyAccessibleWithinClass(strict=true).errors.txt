@@ -1,0 +1,46 @@
+protectedClassPropertyAccessibleWithinClass.ts(4,15): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+protectedClassPropertyAccessibleWithinClass.ts(18,15): error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+protectedClassPropertyAccessibleWithinClass.ts(20,34): error TS2322: Type 'string' is not assignable to type 'null'.
+protectedClassPropertyAccessibleWithinClass.ts(26,17): error TS2322: Type 'string' is not assignable to type 'null'.
+
+
+==== protectedClassPropertyAccessibleWithinClass.ts (4 errors) ====
+    // no errors
+    
+    class C {
+        protected x: string;
+                  ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+        protected get y() { return this.x; }
+        protected set y(x) { this.y = this.x; }
+        protected foo() { return this.foo; }
+    
+        protected static x: string;
+        protected static get y() { return this.x; }
+        protected static set y(x) { this.y = this.x; }
+        protected static foo() { return this.foo; }
+        protected static bar() { this.foo(); }
+    }
+    
+    // added level of function nesting
+    class C2 {
+        protected x: string;
+                  ~
+!!! error TS2564: Property 'x' has no initializer and is not definitely assigned in the constructor.
+        protected get y() { () => this.x; return null; }
+        protected set y(x) { () => { this.y = this.x; } }
+                                     ~~~~~~
+!!! error TS2322: Type 'string' is not assignable to type 'null'.
+        protected foo() { () => this.foo; }
+    
+        protected static x: string;
+        protected static get y() { () => this.x; return null; }
+        protected static set y(x) {
+            () => { this.y = this.x; }
+                    ~~~~~~
+!!! error TS2322: Type 'string' is not assignable to type 'null'.
+         }
+        protected static foo() { () => this.foo; }
+        protected static bar() { () => this.foo(); }
+    }
+    

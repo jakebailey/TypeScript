@@ -1,0 +1,37 @@
+privateNamesUseBeforeDef.ts(2,17): error TS2729: Property '#bar' is used before its initialization.
+privateNamesUseBeforeDef.ts(17,5): error TS7022: '#foo' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+privateNamesUseBeforeDef.ts(17,17): error TS2729: Property '#bar' is used before its initialization.
+privateNamesUseBeforeDef.ts(18,5): error TS7022: '#bar' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+
+
+==== privateNamesUseBeforeDef.ts (4 errors) ====
+    class A {
+        #foo = this.#bar; // Error
+                    ~~~~
+!!! error TS2729: Property '#bar' is used before its initialization.
+!!! related TS2728 privateNamesUseBeforeDef.ts:3:5: '#bar' is declared here.
+        #bar = 3;
+    }
+    
+    class A2 {
+        #foo = this.#bar(); // No Error
+        #bar() { return 3 };
+    }
+    
+    class A3 {
+        #foo = this.#bar; // No Error
+        get #bar() { return 3 };
+    }
+    
+    class B {
+        #foo = this.#bar; // Error
+        ~~~~
+!!! error TS7022: '#foo' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+                    ~~~~
+!!! error TS2729: Property '#bar' is used before its initialization.
+!!! related TS2728 privateNamesUseBeforeDef.ts:18:5: '#bar' is declared here.
+        #bar = this.#foo;
+        ~~~~
+!!! error TS7022: '#bar' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+    }
+    

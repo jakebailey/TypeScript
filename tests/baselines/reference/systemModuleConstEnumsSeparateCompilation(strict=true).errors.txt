@@ -1,0 +1,17 @@
+systemModuleConstEnumsSeparateCompilation.ts(1,18): error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== systemModuleConstEnumsSeparateCompilation.ts (1 errors) ====
+    declare function use(a: any);
+                     ~~~
+!!! error TS7010: 'use', which lacks return-type annotation, implicitly has an 'any' return type.
+    const enum TopLevelConstEnum { X }
+    
+    export function foo() {
+        use(TopLevelConstEnum.X);
+        use(M.NonTopLevelConstEnum.X);
+    }
+    
+    module M {
+        export const enum NonTopLevelConstEnum { X }
+    }

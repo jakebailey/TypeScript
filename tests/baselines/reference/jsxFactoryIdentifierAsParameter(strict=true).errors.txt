@@ -1,0 +1,21 @@
+test.tsx(8,12): error TS7006: Parameter 'createElement' implicitly has an 'any' type.
+test.tsx(9,16): error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+
+
+==== test.tsx (2 errors) ====
+    declare module JSX {
+        interface IntrinsicElements {
+            [s: string]: any;
+        }
+    }
+    
+    export class AppComponent {
+        render(createElement) {
+               ~~~~~~~~~~~~~
+!!! error TS7006: Parameter 'createElement' implicitly has an 'any' type.
+            return <div />;
+                   ~~~~~~~
+!!! error TS7026: JSX element implicitly has type 'any' because no interface 'JSX.IntrinsicElements' exists.
+        }
+    }
+    

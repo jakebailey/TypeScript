@@ -1,0 +1,284 @@
+blockScopedVariablesUseBeforeDef.ts(2,13): error TS2448: Block-scoped variable 'x' used before its declaration.
+blockScopedVariablesUseBeforeDef.ts(7,19): error TS7005: Variable 'x' implicitly has an 'any' type.
+blockScopedVariablesUseBeforeDef.ts(8,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+blockScopedVariablesUseBeforeDef.ts(12,34): error TS7005: Variable 'x' implicitly has an 'any' type.
+blockScopedVariablesUseBeforeDef.ts(13,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+blockScopedVariablesUseBeforeDef.ts(18,22): error TS7005: Variable 'x' implicitly has an 'any' type.
+blockScopedVariablesUseBeforeDef.ts(20,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+blockScopedVariablesUseBeforeDef.ts(25,22): error TS7005: Variable 'x' implicitly has an 'any' type.
+blockScopedVariablesUseBeforeDef.ts(27,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+blockScopedVariablesUseBeforeDef.ts(37,16): error TS7005: Variable 'x' implicitly has an 'any' type.
+blockScopedVariablesUseBeforeDef.ts(39,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+blockScopedVariablesUseBeforeDef.ts(44,13): error TS7005: Variable 'x' implicitly has an 'any' type.
+blockScopedVariablesUseBeforeDef.ts(46,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+blockScopedVariablesUseBeforeDef.ts(51,13): error TS7005: Variable 'x' implicitly has an 'any' type.
+blockScopedVariablesUseBeforeDef.ts(53,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+blockScopedVariablesUseBeforeDef.ts(58,20): error TS2448: Block-scoped variable 'x' used before its declaration.
+blockScopedVariablesUseBeforeDef.ts(58,20): error TS7005: Variable 'x' implicitly has an 'any' type.
+blockScopedVariablesUseBeforeDef.ts(60,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+blockScopedVariablesUseBeforeDef.ts(65,20): error TS2448: Block-scoped variable 'x' used before its declaration.
+blockScopedVariablesUseBeforeDef.ts(65,20): error TS7005: Variable 'x' implicitly has an 'any' type.
+blockScopedVariablesUseBeforeDef.ts(67,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+blockScopedVariablesUseBeforeDef.ts(73,24): error TS7005: Variable 'x' implicitly has an 'any' type.
+blockScopedVariablesUseBeforeDef.ts(76,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+blockScopedVariablesUseBeforeDef.ts(84,26): error TS7005: Variable 'x' implicitly has an 'any' type.
+blockScopedVariablesUseBeforeDef.ts(88,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+blockScopedVariablesUseBeforeDef.ts(93,26): error TS7005: Variable 'x' implicitly has an 'any' type.
+blockScopedVariablesUseBeforeDef.ts(95,9): error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+blockScopedVariablesUseBeforeDef.ts(100,12): error TS2448: Block-scoped variable 'x' used before its declaration.
+blockScopedVariablesUseBeforeDef.ts(111,28): error TS2448: Block-scoped variable 'a' used before its declaration.
+blockScopedVariablesUseBeforeDef.ts(111,28): error TS2454: Variable 'a' is used before being assigned.
+blockScopedVariablesUseBeforeDef.ts(112,21): error TS2448: Block-scoped variable 'a' used before its declaration.
+blockScopedVariablesUseBeforeDef.ts(112,21): error TS2454: Variable 'a' is used before being assigned.
+blockScopedVariablesUseBeforeDef.ts(122,10): error TS7022: 'a' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+blockScopedVariablesUseBeforeDef.ts(122,16): error TS7024: Function implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+blockScopedVariablesUseBeforeDef.ts(122,22): error TS2448: Block-scoped variable 'a' used before its declaration.
+blockScopedVariablesUseBeforeDef.ts(127,9): error TS2454: Variable 'promise' is used before being assigned.
+blockScopedVariablesUseBeforeDef.ts(128,9): error TS2454: Variable 'foo' is used before being assigned.
+blockScopedVariablesUseBeforeDef.ts(130,9): error TS2454: Variable 'promise' is used before being assigned.
+blockScopedVariablesUseBeforeDef.ts(131,9): error TS2454: Variable 'foo' is used before being assigned.
+blockScopedVariablesUseBeforeDef.ts(140,9): error TS2454: Variable 'iter' is used before being assigned.
+blockScopedVariablesUseBeforeDef.ts(147,9): error TS2454: Variable 'iter' is used before being assigned.
+
+
+==== blockScopedVariablesUseBeforeDef.ts (41 errors) ====
+    function foo0() {
+        let a = x;
+                ~
+!!! error TS2448: Block-scoped variable 'x' used before its declaration.
+!!! related TS2728 blockScopedVariablesUseBeforeDef.ts:3:9: 'x' is declared here.
+        let x;
+    }
+    
+    function foo1() {
+        let a = () => x;
+                      ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+    }
+    
+    function foo2() {
+        let a = function () { return x; }
+                                     ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+    }
+    
+    function foo3() {
+        class X {
+            m() { return x;}
+                         ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        }
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+    }
+    
+    function foo4() {
+        let y = class {
+            m() { return x; }
+                         ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        };
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+    }
+    
+    function foo5() {
+        let x = () => y;
+        let y = () => x;
+    }
+    
+    function foo6() {
+        function f() {
+            return x;
+                   ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        }
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+    }
+    
+    function foo7() {
+        class A {
+            a = x;
+                ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        }
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+    }
+    
+    function foo8() {
+        let y = class {
+            a = x;
+                ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        }
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+    }
+    
+    function foo9() {
+        let y = class {
+            static a = x;
+                       ~
+!!! error TS2448: Block-scoped variable 'x' used before its declaration.
+!!! related TS2728 blockScopedVariablesUseBeforeDef.ts:60:9: 'x' is declared here.
+                       ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        }
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+    }
+    
+    function foo10() {
+        class A {
+            static a = x;
+                       ~
+!!! error TS2448: Block-scoped variable 'x' used before its declaration.
+!!! related TS2728 blockScopedVariablesUseBeforeDef.ts:67:9: 'x' is declared here.
+                       ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        }
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+    }
+    
+    function foo11() {
+        function f () {
+            let y = class {
+                static a = x;
+                           ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+            }
+        }
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+    }
+    
+    function foo12() {
+        function f () {
+            let y = class {
+                a;
+                constructor() {
+                    this.a = x;
+                             ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+                }
+            }
+        }
+        let x;
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+    }
+    
+    function foo13() {
+        let a = {
+            get a() { return x } 
+                             ~
+!!! error TS7005: Variable 'x' implicitly has an 'any' type.
+        }
+        let x
+            ~
+!!! error TS7034: Variable 'x' implicitly has type 'any' in some locations where its type cannot be determined.
+    }
+    
+    function foo14() {
+        let a = {
+            a: x 
+               ~
+!!! error TS2448: Block-scoped variable 'x' used before its declaration.
+!!! related TS2728 blockScopedVariablesUseBeforeDef.ts:102:9: 'x' is declared here.
+        }
+        let x
+    }
+    
+    function foo15() {
+        // https://github.com/microsoft/TypeScript/issues/42678
+        const [
+            a,
+            b,
+        ] = ((): [number, number] => {
+            (() => console.log(a))();  // should error
+                               ~
+!!! error TS2448: Block-scoped variable 'a' used before its declaration.
+!!! related TS2728 blockScopedVariablesUseBeforeDef.ts:108:9: 'a' is declared here.
+                               ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+            console.log(a);            // should error
+                        ~
+!!! error TS2448: Block-scoped variable 'a' used before its declaration.
+!!! related TS2728 blockScopedVariablesUseBeforeDef.ts:108:9: 'a' is declared here.
+                        ~
+!!! error TS2454: Variable 'a' is used before being assigned.
+            const b = () => a;         // should be ok
+            return [
+                0,
+                0,
+            ];
+        })();    
+    }
+    
+    function foo16() {
+        let [a] = (() => a)();
+             ~
+!!! error TS7022: 'a' implicitly has type 'any' because it does not have a type annotation and is referenced directly or indirectly in its own initializer.
+                   ~~~~~~~
+!!! error TS7024: Function implicitly has return type 'any' because it does not have a return type annotation and is referenced directly or indirectly in one of its return expressions.
+                         ~
+!!! error TS2448: Block-scoped variable 'a' used before its declaration.
+!!! related TS2728 blockScopedVariablesUseBeforeDef.ts:122:10: 'a' is declared here.
+    }
+    
+    function foo17() {
+        const promise = (async () => {
+            promise
+            ~~~~~~~
+!!! error TS2454: Variable 'promise' is used before being assigned.
+            foo
+            ~~~
+!!! error TS2454: Variable 'foo' is used before being assigned.
+            await null
+            promise
+            ~~~~~~~
+!!! error TS2454: Variable 'promise' is used before being assigned.
+            foo
+            ~~~
+!!! error TS2454: Variable 'foo' is used before being assigned.
+        })()
+    
+        const foo = 1;
+    }
+    
+    // #30907
+    function wrapI1() {
+        const iter = (function* foo() {
+            iter;
+            ~~~~
+!!! error TS2454: Variable 'iter' is used before being assigned.
+            yield 1;
+        })();
+    }
+    
+    function wrapI2() {
+        const iter = (async function* foo() {
+            iter;
+            ~~~~
+!!! error TS2454: Variable 'iter' is used before being assigned.
+            yield 1;
+        })();
+    }
+    

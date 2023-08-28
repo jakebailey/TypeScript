@@ -1,0 +1,199 @@
+missingFunctionImplementation.ts(2,3): error TS2391: Function implementation is missing or not immediately following the declaration.
+missingFunctionImplementation.ts(7,3): error TS2391: Function implementation is missing or not immediately following the declaration.
+missingFunctionImplementation.ts(14,3): error TS7010: 'm', which lacks return-type annotation, implicitly has an 'any' return type.
+missingFunctionImplementation.ts(14,5): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation.ts(14,8): error TS7006: Parameter 'b' implicitly has an 'any' type.
+missingFunctionImplementation.ts(15,3): error TS2391: Function implementation is missing or not immediately following the declaration.
+missingFunctionImplementation.ts(15,3): error TS7010: 'm', which lacks return-type annotation, implicitly has an 'any' return type.
+missingFunctionImplementation.ts(15,5): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation.ts(21,10): error TS2391: Function implementation is missing or not immediately following the declaration.
+missingFunctionImplementation.ts(21,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation.ts(26,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation.ts(27,10): error TS2391: Function implementation is missing or not immediately following the declaration.
+missingFunctionImplementation.ts(32,10): error TS2391: Function implementation is missing or not immediately following the declaration.
+missingFunctionImplementation.ts(39,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation.ts(40,10): error TS2391: Function implementation is missing or not immediately following the declaration.
+missingFunctionImplementation.ts(47,10): error TS2300: Duplicate identifier 'm'.
+missingFunctionImplementation.ts(47,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation.ts(48,10): error TS2300: Duplicate identifier 'm'.
+missingFunctionImplementation.ts(48,10): error TS2391: Function implementation is missing or not immediately following the declaration.
+missingFunctionImplementation.ts(48,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation.ts(48,15): error TS7006: Parameter 'b' implicitly has an 'any' type.
+missingFunctionImplementation.ts(51,19): error TS2300: Duplicate identifier 'm'.
+missingFunctionImplementation.ts(51,21): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation.ts(51,25): error TS7006: Parameter 'b' implicitly has an 'any' type.
+missingFunctionImplementation.ts(56,10): error TS2300: Duplicate identifier 'm'.
+missingFunctionImplementation.ts(56,12): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation.ts(59,19): error TS2300: Duplicate identifier 'm'.
+missingFunctionImplementation.ts(59,19): error TS2391: Function implementation is missing or not immediately following the declaration.
+missingFunctionImplementation.ts(59,21): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation.ts(64,19): error TS2391: Function implementation is missing or not immediately following the declaration.
+missingFunctionImplementation.ts(64,21): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation.ts(67,21): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation.ts(72,19): error TS2393: Duplicate function implementation.
+missingFunctionImplementation.ts(72,21): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation.ts(73,19): error TS2393: Duplicate function implementation.
+missingFunctionImplementation.ts(74,19): error TS2393: Duplicate function implementation.
+missingFunctionImplementation.ts(74,21): error TS7006: Parameter 'a' implicitly has an 'any' type.
+missingFunctionImplementation.ts(77,19): error TS2393: Duplicate function implementation.
+missingFunctionImplementation.ts(77,21): error TS7006: Parameter 'a' implicitly has an 'any' type.
+
+
+==== missingFunctionImplementation.ts (39 errors) ====
+    export class C1 {
+      m(): void;
+      ~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+    }
+    
+    // merged with a namespace
+    export class C2 {
+      m(): void;
+      ~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+    }
+    export namespace C2 { }
+    
+    
+    // merged with a namespace, multiple overloads
+    class C3 {
+      m(a, b);
+      ~
+!!! error TS7010: 'm', which lacks return-type annotation, implicitly has an 'any' return type.
+        ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+           ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+      m(a);
+      ~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+      ~
+!!! error TS7010: 'm', which lacks return-type annotation, implicitly has an 'any' return type.
+        ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    }
+    namespace C3 { }
+    
+    // static methods, multiple overloads
+    class C4 {
+      static m(a): void;
+             ~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+               ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    }
+    
+    // static methods, multiple overloads
+    class C5 {
+      static m(a): void;
+               ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+      static m(): void;
+             ~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+    }
+    
+    // merged with namespace, static methods
+    class C6 {
+      static m(): void;
+             ~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+    }
+    namespace C6 {
+    }
+    
+    // merged with namespace, static methods, multiple overloads
+    class C7 {
+      static m(a): void;
+               ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+      static m(): void;
+             ~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+    }
+    namespace C7 {
+    }
+    
+    // merged with namespace, static methods, duplicate declarations
+    class C8 {
+      static m(a): void;
+             ~
+!!! error TS2300: Duplicate identifier 'm'.
+               ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+      static m(a, b): void;
+             ~
+!!! error TS2300: Duplicate identifier 'm'.
+             ~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+               ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                  ~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    }
+    namespace C8 {
+      export function m(a?, b?): void { }
+                      ~
+!!! error TS2300: Duplicate identifier 'm'.
+                        ~~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+                            ~~
+!!! error TS7006: Parameter 'b' implicitly has an 'any' type.
+    }
+    
+    // merged with namespace, static methods, duplicate declarations
+    class C9 {
+      static m(a): void { }
+             ~
+!!! error TS2300: Duplicate identifier 'm'.
+               ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    }
+    namespace C9 {
+      export function m(a): void;
+                      ~
+!!! error TS2300: Duplicate identifier 'm'.
+                      ~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+                        ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    }
+    
+    // merged namespaces
+    namespace N10 {
+      export function m(a): void;
+                      ~
+!!! error TS2391: Function implementation is missing or not immediately following the declaration.
+                        ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    }
+    namespace N10 {
+      export function m(a): void { }
+                        ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    }
+    
+    // merged namespaces, duplicate defintions
+    namespace N12 {
+      export function m(a): void;
+                      ~
+!!! error TS2393: Duplicate function implementation.
+                        ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+      export function m(): void;
+                      ~
+!!! error TS2393: Duplicate function implementation.
+      export function m(a?): void { }
+                      ~
+!!! error TS2393: Duplicate function implementation.
+                        ~~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    }
+    namespace N12 {
+      export function m(a): void { }
+                      ~
+!!! error TS2393: Duplicate function implementation.
+                        ~
+!!! error TS7006: Parameter 'a' implicitly has an 'any' type.
+    }
+    

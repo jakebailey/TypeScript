@@ -1,0 +1,15 @@
+parserMemberAccessorDeclaration8.ts(2,12): error TS1434: Unexpected keyword or identifier.
+parserMemberAccessorDeclaration8.ts(2,12): error TS7008: Member 'static' implicitly has an 'any' type.
+parserMemberAccessorDeclaration8.ts(2,23): error TS2378: A 'get' accessor must return a value.
+
+
+==== parserMemberAccessorDeclaration8.ts (3 errors) ====
+    class C {
+        static static get Foo() { }
+               ~~~~~~
+!!! error TS1434: Unexpected keyword or identifier.
+               ~~~~~~
+!!! error TS7008: Member 'static' implicitly has an 'any' type.
+                          ~~~
+!!! error TS2378: A 'get' accessor must return a value.
+    }

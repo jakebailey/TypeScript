@@ -1,0 +1,77 @@
+logicalNotOperatorWithStringType.ts(8,12): error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+logicalNotOperatorWithStringType.ts(18,25): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(32,27): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(32,36): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(33,26): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(36,27): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(37,29): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(37,38): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(41,2): error TS2454: Variable 'STRING' is used before being assigned.
+logicalNotOperatorWithStringType.ts(44,1): error TS2695: Left side of comma operator is unused and has no side effects.
+
+
+==== logicalNotOperatorWithStringType.ts (10 errors) ====
+    // ! operator on string type
+    var STRING: string;
+    var STRING1: string[] = ["", "abc"];
+    
+    function foo(): string { return "abc"; }
+    
+    class A {
+        public a: string;
+               ~
+!!! error TS2564: Property 'a' has no initializer and is not definitely assigned in the constructor.
+        static foo() { return ""; }
+    }
+    module M {
+        export var n: string;
+    }
+    
+    var objA = new A();
+    
+    // string type var
+    var ResultIsBoolean1 = !STRING;
+                            ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    var ResultIsBoolean2 = !STRING1;
+    
+    // string type literal
+    var ResultIsBoolean3 = !"";
+    var ResultIsBoolean4 = !{ x: "", y: "" };
+    var ResultIsBoolean5 = !{ x: "", y: (s: string) => { return s; } };
+    
+    // string type expressions
+    var ResultIsBoolean6 = !objA.a;
+    var ResultIsBoolean7 = !M.n;
+    var ResultIsBoolean8 = !STRING1[0];
+    var ResultIsBoolean9 = !foo();
+    var ResultIsBoolean10 = !A.foo();
+    var ResultIsBoolean11 = !(STRING + STRING);
+                              ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+                                       ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    var ResultIsBoolean12 = !STRING.charAt(0);
+                             ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    
+    // multiple ! operator
+    var ResultIsBoolean13 = !!STRING;
+                              ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    var ResultIsBoolean14 = !!!(STRING + STRING);
+                                ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+                                         ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    
+    // miss assignment operators
+    !"";
+    !STRING;
+     ~~~~~~
+!!! error TS2454: Variable 'STRING' is used before being assigned.
+    !STRING1;
+    !foo();
+    !objA.a,M.n;
+    ~~~~~~~
+!!! error TS2695: Left side of comma operator is unused and has no side effects.

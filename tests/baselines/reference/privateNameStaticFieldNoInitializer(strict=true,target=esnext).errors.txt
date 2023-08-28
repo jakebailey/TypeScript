@@ -1,0 +1,17 @@
+privateNameStaticFieldNoInitializer.ts(2,12): error TS7008: Member '#x' implicitly has an 'any' type.
+privateNameStaticFieldNoInitializer.ts(6,12): error TS7008: Member '#x' implicitly has an 'any' type.
+
+
+==== privateNameStaticFieldNoInitializer.ts (2 errors) ====
+    const C = class {
+        static #x;
+               ~~
+!!! error TS7008: Member '#x' implicitly has an 'any' type.
+    }
+    
+    class C2 {
+        static #x;
+               ~~
+!!! error TS7008: Member '#x' implicitly has an 'any' type.
+    }
+    

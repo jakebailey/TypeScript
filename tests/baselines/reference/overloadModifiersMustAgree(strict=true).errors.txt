@@ -1,0 +1,45 @@
+overloadModifiersMustAgree.ts(2,12): error TS2385: Overload signatures must all be public, private or protected.
+overloadModifiersMustAgree.ts(2,12): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadModifiersMustAgree.ts(6,18): error TS2384: Overload signatures must all be ambient or non-ambient.
+overloadModifiersMustAgree.ts(6,18): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadModifiersMustAgree.ts(7,17): error TS2383: Overload signatures must all be exported or non-exported.
+overloadModifiersMustAgree.ts(7,17): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadModifiersMustAgree.ts(11,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+overloadModifiersMustAgree.ts(12,5): error TS2386: Overload signatures must all be optional or required.
+overloadModifiersMustAgree.ts(12,5): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+
+
+==== overloadModifiersMustAgree.ts (9 errors) ====
+    class baz {
+        public foo();
+               ~~~
+!!! error TS2385: Overload signatures must all be public, private or protected.
+               ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        private foo(bar?: any) { } // error - access modifiers do not agree
+    }
+    
+    declare function bar();
+                     ~~~
+!!! error TS2384: Overload signatures must all be ambient or non-ambient.
+                     ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+    export function bar(s: string);
+                    ~~~
+!!! error TS2383: Overload signatures must all be exported or non-exported.
+                    ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+    function bar(s?: string) { }
+    
+    interface I {
+        foo? ();
+        ~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        foo(s: string);
+        ~~~
+!!! error TS2386: Overload signatures must all be optional or required.
+        ~~~~~~~~~~~~~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+    }
+    
+    

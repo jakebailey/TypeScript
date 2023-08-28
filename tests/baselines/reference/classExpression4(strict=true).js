@@ -1,0 +1,22 @@
+//// [tests/cases/conformance/classes/classExpressions/classExpression4.ts] ////
+
+//// [classExpression4.ts]
+let C = class {
+    foo() {
+        return new C();
+    }
+};
+let x = (new C).foo();
+
+
+//// [classExpression4.js]
+"use strict";
+var C = /** @class */ (function () {
+    function C() {
+    }
+    C.prototype.foo = function () {
+        return new C();
+    };
+    return C;
+}());
+var x = (new C).foo();

@@ -1,0 +1,12 @@
+recursiveSpecializationOfSignatures.ts(4,34): error TS7006: Parameter 'S18' implicitly has an 'any' type.
+
+
+==== recursiveSpecializationOfSignatures.ts (1 errors) ====
+    class S0<B, A> {
+    set S1(S2: S0<any,any>) {
+    }
+    constructor(public S17: S0<any, (S18) => A>) { }
+                                     ~~~
+!!! error TS7006: Parameter 'S18' implicitly has an 'any' type.
+    }
+    

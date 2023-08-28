@@ -1,0 +1,57 @@
+computedPropertyNames3_ES6.ts(1,5): error TS7034: Variable 'id' implicitly has type 'any' in some locations where its type cannot be determined.
+computedPropertyNames3_ES6.ts(4,12): error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+computedPropertyNames3_ES6.ts(5,9): error TS2378: A 'get' accessor must return a value.
+computedPropertyNames3_ES6.ts(5,9): error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+computedPropertyNames3_ES6.ts(5,17): error TS1102: 'delete' cannot be called on an identifier in strict mode.
+computedPropertyNames3_ES6.ts(5,17): error TS2703: The operand of a 'delete' operator must be a property reference.
+computedPropertyNames3_ES6.ts(5,17): error TS7005: Variable 'id' implicitly has an 'any' type.
+computedPropertyNames3_ES6.ts(6,9): error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+computedPropertyNames3_ES6.ts(6,9): error TS7032: Property '[[0, 1]]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+computedPropertyNames3_ES6.ts(6,18): error TS7006: Parameter 'v' implicitly has an 'any' type.
+computedPropertyNames3_ES6.ts(7,16): error TS2378: A 'get' accessor must return a value.
+computedPropertyNames3_ES6.ts(7,16): error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+computedPropertyNames3_ES6.ts(8,16): error TS7032: Property '[id.toString()]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+computedPropertyNames3_ES6.ts(8,17): error TS7005: Variable 'id' implicitly has an 'any' type.
+computedPropertyNames3_ES6.ts(8,32): error TS7006: Parameter 'v' implicitly has an 'any' type.
+
+
+==== computedPropertyNames3_ES6.ts (15 errors) ====
+    var id;
+        ~~
+!!! error TS7034: Variable 'id' implicitly has type 'any' in some locations where its type cannot be determined.
+    class C {
+        [0 + 1]() { }
+        static [() => { }]() { }
+               ~~~~~~~~~~~
+!!! error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+        get [delete id]() { }
+            ~~~~~~~~~~~
+!!! error TS2378: A 'get' accessor must return a value.
+            ~~~~~~~~~~~
+!!! error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+                    ~~
+!!! error TS1102: 'delete' cannot be called on an identifier in strict mode.
+                    ~~
+!!! error TS2703: The operand of a 'delete' operator must be a property reference.
+                    ~~
+!!! error TS7005: Variable 'id' implicitly has an 'any' type.
+        set [[0, 1]](v) { }
+            ~~~~~~~~
+!!! error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+            ~~~~~~~~
+!!! error TS7032: Property '[[0, 1]]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                     ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+        static get [<String>""]() { }
+                   ~~~~~~~~~~~~
+!!! error TS2378: A 'get' accessor must return a value.
+                   ~~~~~~~~~~~~
+!!! error TS2464: A computed property name must be of type 'string', 'number', 'symbol', or 'any'.
+        static set [id.toString()](v) { }
+                   ~~~~~~~~~~~~~~~
+!!! error TS7032: Property '[id.toString()]' implicitly has type 'any', because its set accessor lacks a parameter type annotation.
+                    ~~
+!!! error TS7005: Variable 'id' implicitly has an 'any' type.
+                                   ~
+!!! error TS7006: Parameter 'v' implicitly has an 'any' type.
+    }

@@ -1,0 +1,18 @@
+ES5SymbolProperty4.ts(7,1): error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type 'C'.
+  No index signature with a parameter of type 'string' was found on type 'C'.
+ES5SymbolProperty4.ts(7,9): error TS2454: Variable 'Symbol' is used before being assigned.
+
+
+==== ES5SymbolProperty4.ts (2 errors) ====
+    var Symbol: { iterator: string };
+    
+    class C {
+        [Symbol.iterator]() { }
+    }
+    
+    (new C)[Symbol.iterator]
+    ~~~~~~~~~~~~~~~~~~~~~~~~
+!!! error TS7053: Element implicitly has an 'any' type because expression of type 'string' can't be used to index type 'C'.
+!!! error TS7053:   No index signature with a parameter of type 'string' was found on type 'C'.
+            ~~~~~~
+!!! error TS2454: Variable 'Symbol' is used before being assigned.

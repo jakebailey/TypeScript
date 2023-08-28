@@ -1,0 +1,14 @@
+parser643728.ts(2,5): error TS7008: Member 'foo' implicitly has an 'any' type.
+parser643728.ts(3,5): error TS7008: Member 'new' implicitly has an 'any' type.
+
+
+==== parser643728.ts (2 errors) ====
+    interface C {
+        foo;
+        ~~~
+!!! error TS7008: Member 'foo' implicitly has an 'any' type.
+        new;
+        ~~~
+!!! error TS7008: Member 'new' implicitly has an 'any' type.
+    }
+    

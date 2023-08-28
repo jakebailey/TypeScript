@@ -1,0 +1,130 @@
+memberFunctionsWithPrivateOverloads.ts(2,13): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(3,13): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(6,13): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(7,13): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(8,13): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(11,20): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(12,20): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(15,20): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(16,20): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(17,20): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(22,13): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(23,13): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(26,13): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(27,13): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(28,13): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(31,20): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(32,20): error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(35,20): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(36,20): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(37,20): error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+memberFunctionsWithPrivateOverloads.ts(43,9): error TS2454: Variable 'c' is used before being assigned.
+memberFunctionsWithPrivateOverloads.ts(43,11): error TS2341: Property 'foo' is private and only accessible within class 'C'.
+memberFunctionsWithPrivateOverloads.ts(46,10): error TS2454: Variable 'd' is used before being assigned.
+memberFunctionsWithPrivateOverloads.ts(46,12): error TS2341: Property 'foo' is private and only accessible within class 'D<T>'.
+memberFunctionsWithPrivateOverloads.ts(48,12): error TS2341: Property 'foo' is private and only accessible within class 'C'.
+memberFunctionsWithPrivateOverloads.ts(49,12): error TS2341: Property 'bar' is private and only accessible within class 'D<T>'.
+
+
+==== memberFunctionsWithPrivateOverloads.ts (26 errors) ====
+    class C {
+        private foo(x: number);
+                ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        private foo(x: number, y: string);
+                ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        private foo(x: any, y?: any) { }
+    
+        private bar(x: 'hi');
+                ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        private bar(x: string);
+                ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        private bar(x: number, y: string);
+                ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        private bar(x: any, y?: any) { }
+    
+        private static foo(x: number);
+                       ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        private static foo(x: number, y: string);
+                       ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        private static foo(x: any, y?: any) { }
+    
+        private static bar(x: 'hi');
+                       ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        private static bar(x: string);
+                       ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        private static bar(x: number, y: string);
+                       ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        private static bar(x: any, y?: any) { }
+    }
+    
+    class D<T> {
+        private foo(x: number);
+                ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        private foo(x: T, y: T);
+                ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        private foo(x: any, y?: any) { }
+    
+        private bar(x: 'hi');
+                ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        private bar(x: string);
+                ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        private bar(x: T, y: T);
+                ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        private bar(x: any, y?: any) { }
+    
+        private static foo(x: number);
+                       ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        private static foo(x: number, y: number);
+                       ~~~
+!!! error TS7010: 'foo', which lacks return-type annotation, implicitly has an 'any' return type.
+        private static foo(x: any, y?: any) { }
+    
+        private static bar(x: 'hi');
+                       ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        private static bar(x: string);
+                       ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        private static bar(x: number, y: number);
+                       ~~~
+!!! error TS7010: 'bar', which lacks return-type annotation, implicitly has an 'any' return type.
+        private static bar(x: any, y?: any) { }
+    
+    }
+    
+    var c: C;
+    var r = c.foo(1); // error
+            ~
+!!! error TS2454: Variable 'c' is used before being assigned.
+              ~~~
+!!! error TS2341: Property 'foo' is private and only accessible within class 'C'.
+    
+    var d: D<number>;
+    var r2 = d.foo(2); // error
+             ~
+!!! error TS2454: Variable 'd' is used before being assigned.
+               ~~~
+!!! error TS2341: Property 'foo' is private and only accessible within class 'D<T>'.
+    
+    var r3 = C.foo(1); // error
+               ~~~
+!!! error TS2341: Property 'foo' is private and only accessible within class 'C'.
+    var r4 = D.bar(''); // error
+               ~~~
+!!! error TS2341: Property 'bar' is private and only accessible within class 'D<T>'.

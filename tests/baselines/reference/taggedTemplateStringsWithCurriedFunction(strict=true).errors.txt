@@ -1,0 +1,19 @@
+taggedTemplateStringsWithCurriedFunction.ts(3,11): error TS7006: Parameter '_' implicitly has an 'any' type.
+taggedTemplateStringsWithCurriedFunction.ts(3,17): error TS7019: Rest parameter '_' implicitly has an 'any[]' type.
+
+
+==== taggedTemplateStringsWithCurriedFunction.ts (2 errors) ====
+    // Originated from #38558
+    
+    const f = _ => (..._) => "";
+              ~
+!!! error TS7006: Parameter '_' implicitly has an 'any' type.
+                    ~~~~
+!!! error TS7019: Rest parameter '_' implicitly has an 'any[]' type.
+    
+    f({ ...{ x: 0 } })``;
+    f({ ...{ x: 0 } })`x`;
+    f({ ...{ x: 0 } })`x${f}x`;
+    f({ ...{ x: 0 }, y: (() => 1)() })``;
+    f({ x: (() => 1)(), ...{ y: 1 } })``;
+    

@@ -1,0 +1,18 @@
+constDeclarations-ambient.ts(4,15): error TS7005: Variable 'c3' implicitly has an 'any' type.
+constDeclarations-ambient.ts(7,11): error TS7005: Variable 'c6' implicitly has an 'any' type.
+
+
+==== constDeclarations-ambient.ts (2 errors) ====
+    // No error
+    declare const c1: boolean;
+    declare const c2: number;
+    declare const c3, c4 :string, c5: any;
+                  ~~
+!!! error TS7005: Variable 'c3' implicitly has an 'any' type.
+    
+    declare module M {
+        const c6;
+              ~~
+!!! error TS7005: Variable 'c6' implicitly has an 'any' type.
+        const c7: number;
+    }

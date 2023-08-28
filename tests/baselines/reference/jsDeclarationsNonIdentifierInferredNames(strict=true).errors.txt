@@ -1,0 +1,15 @@
+jsDeclarationsNonIdentifierInferredNames.jsx(4,61): error TS7031: Binding element 'dataTestId' implicitly has an 'any' type.
+jsDeclarationsNonIdentifierInferredNames.jsx(4,88): error TS7031: Binding element 'dynProp' implicitly has an 'any' type.
+
+
+==== jsDeclarationsNonIdentifierInferredNames.jsx (2 errors) ====
+    /// <reference path="/.lib/react16.d.ts" />
+    import * as React from "react";
+    const dynPropName = "data-dyn";
+    export const ExampleFunctionalComponent = ({ "data-testid": dataTestId, [dynPropName]: dynProp }) => (
+                                                                ~~~~~~~~~~
+!!! error TS7031: Binding element 'dataTestId' implicitly has an 'any' type.
+                                                                                           ~~~~~~~
+!!! error TS7031: Binding element 'dynProp' implicitly has an 'any' type.
+        <>Hello</>
+    );

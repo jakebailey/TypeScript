@@ -1,0 +1,16 @@
+symbolProperty48.ts(2,9): error TS7034: Variable 'Symbol' implicitly has type 'any' in some locations where its type cannot be determined.
+symbolProperty48.ts(5,10): error TS7005: Variable 'Symbol' implicitly has an 'any' type.
+
+
+==== symbolProperty48.ts (2 errors) ====
+    module M {
+        var Symbol;
+            ~~~~~~
+!!! error TS7034: Variable 'Symbol' implicitly has type 'any' in some locations where its type cannot be determined.
+    
+        class C {
+            [Symbol.iterator]() { }
+             ~~~~~~
+!!! error TS7005: Variable 'Symbol' implicitly has an 'any' type.
+        }
+    }
