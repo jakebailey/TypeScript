@@ -37,9 +37,7 @@ import {
     getExternalHelpersModuleName,
     getExternalModuleNameLiteral,
     getLocalNameForExternalImport,
-    getNodeId,
     getOriginalNode,
-    getOriginalNodeId,
     getStrictOptionValue,
     getTextOfIdentifierOrLiteral,
     hasSyntacticModifier,
@@ -158,10 +156,10 @@ export function transformSystemModule(context: TransformationContext): (x: Sourc
     context.enableSubstitution(SyntaxKind.MetaProperty); // Substitutes 'import.meta'
     context.enableEmitNotification(SyntaxKind.SourceFile); // Restore state when substituting nodes in a file.
 
-    const moduleInfoMap: ExternalModuleInfo[] = []; // The ExternalModuleInfo for each file.
-    const exportFunctionsMap: Identifier[] = []; // The export function associated with a source file.
-    const noSubstitutionMap: boolean[][] = []; // Set of nodes for which substitution rules should be ignored for each file.
-    const contextObjectMap: Identifier[] = []; // The context object associated with a source file.
+    const moduleInfoMap = new Map<Node, ExternalModuleInfo>(); // The ExternalModuleInfo for each file.
+    const exportFunctionsMap = new Map<Node, Identifier>(); // The export function associated with a source file.
+    const noSubstitutionMap = new Map<Node, Set<Node>>(); // Set of nodes for which substitution rules should be ignored for each file.
+    const contextObjectMap = new Map<Node, Identifier>(); // The context object associated with a source file.
 
     let currentSourceFile: SourceFile; // The current file.
     let moduleInfo: ExternalModuleInfo; // ExternalModuleInfo for the current file.
@@ -169,7 +167,7 @@ export function transformSystemModule(context: TransformationContext): (x: Sourc
     let contextObject: Identifier; // The context object for the current file.
     let hoistedStatements: Statement[] | undefined;
     let enclosingBlockScopedContainer: Node;
-    let noSubstitution: boolean[] | undefined; // Set of nodes for which substitution rules should be ignored.
+    let noSubstitution: Set<Node> | undefined; // Set of nodes for which substitution rules should be ignored.
 
     return chainBundle(context, transformSourceFile);
 
@@ -183,7 +181,7 @@ export function transformSystemModule(context: TransformationContext): (x: Sourc
             return node;
         }
 
-        const id = getOriginalNodeId(node);
+        const originalNode = getOriginalNode(node);
         currentSourceFile = node;
         enclosingBlockScopedContainer = node;
 
@@ -201,13 +199,15 @@ export function transformSystemModule(context: TransformationContext): (x: Sourc
         // see comment to 'substitutePostfixUnaryExpression' for more details
 
         // Collect information about the external module and dependency groups.
-        moduleInfo = moduleInfoMap[id] = collectExternalModuleInfo(context, node);
+        moduleInfo = collectExternalModuleInfo(context, node);
+        moduleInfoMap.set(originalNode, moduleInfo);
 
         // Make sure that the name of the 'exports' function does not conflict with
         // existing identifiers.
         exportFunction = factory.createUniqueName("exports");
-        exportFunctionsMap[id] = exportFunction;
-        contextObject = contextObjectMap[id] = factory.createUniqueName("context");
+        exportFunctionsMap.set(originalNode, exportFunction);
+        contextObject = factory.createUniqueName("context");
+        contextObjectMap.set(originalNode, contextObject);
 
         // Add the body of the module.
         const dependencyGroups = collectDependencyGroups(moduleInfo.externalImports);
@@ -256,7 +256,7 @@ export function transformSystemModule(context: TransformationContext): (x: Sourc
         }
 
         if (noSubstitution) {
-            noSubstitutionMap[id] = noSubstitution;
+            noSubstitutionMap.set(originalNode, noSubstitution);
             noSubstitution = undefined;
         }
 
@@ -1751,15 +1751,15 @@ export function transformSystemModule(context: TransformationContext): (x: Sourc
      */
     function onEmitNode(hint: EmitHint, node: Node, emitCallback: (hint: EmitHint, node: Node) => void): void {
         if (node.kind === SyntaxKind.SourceFile) {
-            const id = getOriginalNodeId(node);
+            const originalNode = getOriginalNode(node);
             currentSourceFile = node as SourceFile;
-            moduleInfo = moduleInfoMap[id];
-            exportFunction = exportFunctionsMap[id];
-            noSubstitution = noSubstitutionMap[id];
-            contextObject = contextObjectMap[id];
+            moduleInfo = moduleInfoMap.get(originalNode)!;
+            exportFunction = exportFunctionsMap.get(originalNode)!;
+            noSubstitution = noSubstitutionMap.get(originalNode);
+            contextObject = contextObjectMap.get(originalNode)!;
 
             if (noSubstitution) {
-                delete noSubstitutionMap[id];
+                noSubstitutionMap.delete(originalNode);
             }
 
             previousOnEmitNode(hint, node, emitCallback);
@@ -2015,8 +2015,8 @@ export function transformSystemModule(context: TransformationContext): (x: Sourc
      * @param node The node which should not be substituted.
      */
     function preventSubstitution<T extends Node>(node: T): T {
-        if (noSubstitution === undefined) noSubstitution = [];
-        noSubstitution[getNodeId(node)] = true;
+        noSubstitution ??= new Set();
+        noSubstitution.add(node);
         return node;
     }
 
@@ -2026,6 +2026,6 @@ export function transformSystemModule(context: TransformationContext): (x: Sourc
      * @param node The node to test.
      */
     function isSubstitutionPrevented(node: Node) {
-        return noSubstitution && node.id && noSubstitution[node.id];
+        return noSubstitution?.has(node);
     }
 }
