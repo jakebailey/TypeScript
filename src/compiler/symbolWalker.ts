@@ -1,10 +1,8 @@
 import {
+    arrayFrom,
     BaseType,
-    clear,
     EntityNameOrEntityNameExpression,
     forEach,
-    getOwnValues,
-    getSymbolId,
     Identifier,
     IndexedAccessType,
     IndexType,
@@ -42,28 +40,28 @@ export function createGetSymbolWalker(
     return getSymbolWalker;
 
     function getSymbolWalker(accept: (symbol: Symbol) => boolean = () => true): SymbolWalker {
-        const visitedTypes: Type[] = []; // Sparse array from id to type
-        const visitedSymbols: Symbol[] = []; // Sparse array from id to symbol
+        const visitedTypes = new Set<Type>();
+        const visitedSymbols = new Set<Symbol>();
 
         return {
             walkType: type => {
                 try {
                     visitType(type);
-                    return { visitedTypes: getOwnValues(visitedTypes), visitedSymbols: getOwnValues(visitedSymbols) };
+                    return { visitedTypes: arrayFrom(visitedTypes), visitedSymbols: arrayFrom(visitedSymbols) };
                 }
                 finally {
-                    clear(visitedTypes);
-                    clear(visitedSymbols);
+                    visitedTypes.clear();
+                    visitedSymbols.clear();
                 }
             },
             walkSymbol: symbol => {
                 try {
                     visitSymbol(symbol);
-                    return { visitedTypes: getOwnValues(visitedTypes), visitedSymbols: getOwnValues(visitedSymbols) };
+                    return { visitedTypes: arrayFrom(visitedTypes), visitedSymbols: arrayFrom(visitedSymbols) };
                 }
                 finally {
-                    clear(visitedTypes);
-                    clear(visitedSymbols);
+                    visitedTypes.clear();
+                    visitedSymbols.clear();
                 }
             },
         };
@@ -73,10 +71,10 @@ export function createGetSymbolWalker(
                 return;
             }
 
-            if (visitedTypes[type.id]) {
+            if (visitedTypes.has(type)) {
                 return;
             }
-            visitedTypes[type.id] = type;
+            visitedTypes.add(type);
 
             // Reuse visitSymbol to visit the type's symbol,
             //  but be sure to bail on recuring into the type if accept declines the symbol.
@@ -186,11 +184,10 @@ export function createGetSymbolWalker(
             if (!symbol) {
                 return false;
             }
-            const symbolId = getSymbolId(symbol);
-            if (visitedSymbols[symbolId]) {
+            if (visitedSymbols.has(symbol)) {
                 return false;
             }
-            visitedSymbols[symbolId] = symbol;
+            visitedSymbols.add(symbol);
             if (!accept(symbol)) {
                 return true;
             }
