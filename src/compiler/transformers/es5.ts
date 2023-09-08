@@ -3,7 +3,7 @@ import {
     chainBundle,
     EmitHint,
     Expression,
-    getOriginalNodeId,
+    getOriginalNode,
     Identifier,
     identifierToKeywordKind,
     isIdentifier,
@@ -36,14 +36,13 @@ export function transformES5(context: TransformationContext): (x: SourceFile | B
 
     // enable emit notification only if using --jsx preserve or react-native
     let previousOnEmitNode: (hint: EmitHint, node: Node, emitCallback: (hint: EmitHint, node: Node) => void) => void;
-    let noSubstitution: boolean[];
+    let noSubstitution: Set<Node> | undefined;
     if (compilerOptions.jsx === JsxEmit.Preserve || compilerOptions.jsx === JsxEmit.ReactNative) {
         previousOnEmitNode = context.onEmitNode;
         context.onEmitNode = onEmitNode;
         context.enableEmitNotification(SyntaxKind.JsxOpeningElement);
         context.enableEmitNotification(SyntaxKind.JsxClosingElement);
         context.enableEmitNotification(SyntaxKind.JsxSelfClosingElement);
-        noSubstitution = [];
     }
 
     const previousOnSubstituteNode = context.onSubstituteNode;
@@ -74,7 +73,7 @@ export function transformES5(context: TransformationContext): (x: SourceFile | B
             case SyntaxKind.JsxClosingElement:
             case SyntaxKind.JsxSelfClosingElement:
                 const tagName = (node as JsxOpeningElement | JsxClosingElement | JsxSelfClosingElement).tagName;
-                noSubstitution[getOriginalNodeId(tagName)] = true;
+                (noSubstitution ??= new Set()).add(getOriginalNode(tagName));
                 break;
         }
 
@@ -88,7 +87,7 @@ export function transformES5(context: TransformationContext): (x: SourceFile | B
      * @param node The node to substitute.
      */
     function onSubstituteNode(hint: EmitHint, node: Node) {
-        if (node.id && noSubstitution && noSubstitution[node.id]) {
+        if (noSubstitution?.has(node)) {
             return previousOnSubstituteNode(hint, node);
         }
 
