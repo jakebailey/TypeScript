@@ -5750,7 +5750,7 @@ export interface Symbol {
     /** @internal */ isReferenced?: SymbolFlags; // True if the symbol is referenced elsewhere. Keeps track of the meaning of a reference in case a symbol is both a type parameter and parameter.
     /** @internal */ isReplaceableByMethod?: boolean; // Can this Javascript class property be replaced by a method symbol?
     /** @internal */ isAssigned?: boolean;  // True if the symbol is a parameter with assignments
-    /** @internal */ assignmentDeclarationMembers?: Map<number, Declaration>; // detected late-bound assignment declarations associated with the symbol
+    /** @internal */ assignmentDeclarationMembers?: Set<Declaration>; // detected late-bound assignment declarations associated with the symbol
 }
 
 // dprint-ignore

@@ -3237,7 +3237,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
 
     function addLateBoundAssignmentDeclarationToSymbol(node: BinaryExpression | DynamicNamedDeclaration, symbol: Symbol | undefined) {
         if (symbol) {
-            (symbol.assignmentDeclarationMembers || (symbol.assignmentDeclarationMembers = new Map())).set(getNodeId(node), node);
+            (symbol.assignmentDeclarationMembers ??= new Set()).add(node);
         }
     }
 
