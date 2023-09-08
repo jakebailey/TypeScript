@@ -37,7 +37,6 @@ import {
     getCombinedNodeFlags,
     getFirstConstructorWithBody,
     getNameOfDeclaration,
-    getNodeId,
     getNodeKind,
     getNodeModifiers,
     group,
@@ -444,7 +443,7 @@ function convertEntryToCallSite(entry: FindAllReferences.Entry): CallSite | unde
 }
 
 function getCallSiteGroupKey(entry: CallSite) {
-    return getNodeId(entry.declaration);
+    return entry.declaration;
 }
 
 function createCallHierarchyIncomingCall(from: CallHierarchyItem, fromSpans: TextSpan[]): CallHierarchyIncomingCall {

@@ -50,7 +50,6 @@ import {
     getEnclosingBlockScopeContainer,
     getLocaleSpecificMessage,
     getModifiers,
-    getNodeId,
     getParentNodeInSpan,
     getRefactorContextSpan,
     getRenameLocation,
@@ -1599,7 +1598,7 @@ function getCalledExpression(scope: Node, range: TargetRange, functionNameText: 
     }
 }
 
-function transformFunctionBody(body: Node, exposedVariableDeclarations: readonly VariableDeclaration[], writes: readonly UsageEntry[] | undefined, substitutions: ReadonlyMap<string, Node>, hasReturn: boolean): { body: Block; returnValueProperty: string | undefined; } {
+function transformFunctionBody(body: Node, exposedVariableDeclarations: readonly VariableDeclaration[], writes: readonly UsageEntry[] | undefined, substitutions: ReadonlyMap<Node, Node>, hasReturn: boolean): { body: Block; returnValueProperty: string | undefined; } {
     const hasWritesOrVariableDeclarations = writes !== undefined || exposedVariableDeclarations.length > 0;
     if (isBlock(body) && !hasWritesOrVariableDeclarations && substitutions.size === 0) {
         // already block, no declarations or writes to propagate back, no substitutions - can use node as is
@@ -1647,7 +1646,7 @@ function transformFunctionBody(body: Node, exposedVariableDeclarations: readonly
         else {
             const oldIgnoreReturns = ignoreReturns;
             ignoreReturns = ignoreReturns || isFunctionLikeDeclaration(node) || isClassLike(node);
-            const substitution = substitutions.get(getNodeId(node).toString());
+            const substitution = substitutions.get(node);
             const result = substitution ? getSynthesizedDeepClone(substitution) : visitEachChild(node, visitor, nullTransformationContext);
             ignoreReturns = oldIgnoreReturns;
             return result;
@@ -1655,13 +1654,13 @@ function transformFunctionBody(body: Node, exposedVariableDeclarations: readonly
     }
 }
 
-function transformConstantInitializer(initializer: Expression, substitutions: ReadonlyMap<string, Node>): Expression {
+function transformConstantInitializer(initializer: Expression, substitutions: ReadonlyMap<Node, Node>): Expression {
     return substitutions.size
         ? visitor(initializer) as Expression
         : initializer;
 
     function visitor(node: Node): VisitResult<Node> {
-        const substitution = substitutions.get(getNodeId(node).toString());
+        const substitution = substitutions.get(node);
         return substitution ? getSynthesizedDeepClone(substitution) : visitEachChild(node, visitor, nullTransformationContext);
     }
 }
@@ -1804,7 +1803,7 @@ interface UsageEntry {
 interface ScopeUsages {
     readonly usages: Map<string, UsageEntry>;
     readonly typeParameterUsages: Map<string, TypeParameter>; // Key is type ID
-    readonly substitutions: Map<string, Node>;
+    readonly substitutions: Map<Node, Node>;
 }
 
 interface ReadsAndWrites {
@@ -1851,7 +1850,7 @@ function collectReadsAndWrites(
 
     // initialize results
     for (const scope of scopes) {
-        usagesPerScope.push({ usages: new Map<string, UsageEntry>(), typeParameterUsages: new Map<string, TypeParameter>(), substitutions: new Map<string, Expression>() });
+        usagesPerScope.push({ usages: new Map<string, UsageEntry>(), typeParameterUsages: new Map<string, TypeParameter>(), substitutions: new Map<Node, Expression>() });
         substitutionsPerScope.push(new Map<string, Expression>());
 
         functionErrorsPerScope.push([]);
@@ -2041,7 +2040,7 @@ function collectReadsAndWrites(
                 // push substitution from map<symbolId, subst> to map<nodeId, subst> to simplify rewriting
                 const substitution = substitutionsPerScope[i].get(symbolId);
                 if (substitution) {
-                    usagesPerScope[i].substitutions.set(getNodeId(n).toString(), substitution);
+                    usagesPerScope[i].substitutions.set(n, substitution);
                 }
             }
         }

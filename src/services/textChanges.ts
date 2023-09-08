@@ -51,7 +51,6 @@ import {
     getLineStartPositionForPosition,
     getNewLineKind,
     getNewLineOrDefaultFromHost,
-    getNodeId,
     getOriginalNode,
     getPrecedingNonSpaceCharacterPosition,
     getScriptKindFromFileName,
@@ -490,7 +489,7 @@ export function isThisTypeAnnotatable(containingFunction: SignatureDeclaration):
 export class ChangeTracker {
     private readonly changes: Change[] = [];
     private newFileChanges?: MultiMap<string, NewFileInsertion>;
-    private readonly classesWithNodesInsertedAtStart = new Map<number, { readonly node: ClassLikeDeclaration | InterfaceDeclaration | ObjectLiteralExpression; readonly sourceFile: SourceFile; }>(); // Set<ClassDeclaration> implemented as Map<node id, ClassDeclaration>
+    private readonly classesWithNodesInsertedAtStart = new Map<Node, { readonly node: ClassLikeDeclaration | InterfaceDeclaration | ObjectLiteralExpression; readonly sourceFile: SourceFile; }>(); // Set<ClassDeclaration> implemented as Map<node id, ClassDeclaration>
     private readonly deletedNodes: { readonly sourceFile: SourceFile; readonly node: Node | NodeArray<TypeParameterDeclaration>; }[] = [];
 
     public static fromContext(context: TextChangesContext): ChangeTracker {
@@ -900,7 +899,7 @@ export class ChangeTracker {
 
         const members = getMembersOrProperties(node);
         const isEmpty = members.length === 0;
-        const isFirstInsertion = addToSeen(this.classesWithNodesInsertedAtStart, getNodeId(node), { node, sourceFile });
+        const isFirstInsertion = addToSeen(this.classesWithNodesInsertedAtStart, node, { node, sourceFile });
         const insertTrailingComma = isObjectLiteralExpression(node) && (!isJsonSourceFile(sourceFile) || !isEmpty);
         const insertLeadingComma = isObjectLiteralExpression(node) && isJsonSourceFile(sourceFile) && isEmpty && !isFirstInsertion;
         return {

@@ -68,8 +68,8 @@ import {
     getNameOfDeclaration,
     getNameTable,
     getNextJSDocCommentLocation,
-    getNodeId,
     getNodeKind,
+    getOrUpdate,
     getPropertySymbolFromBindingElement,
     getPropertySymbolsFromContextualType,
     getQuoteFromPreference,
@@ -535,10 +535,10 @@ export function getImplementationsAtPosition(program: Program, cancellationToken
     }
     else if (entries) {
         const queue = createQueue(entries);
-        const seenNodes = new Map<number, true>();
+        const seenNodes = new Map<Node, true>();
         while (!queue.isEmpty()) {
             const entry = queue.dequeue() as NodeEntry;
-            if (!addToSeen(seenNodes, getNodeId(entry.node))) {
+            if (!addToSeen(seenNodes, entry.node)) {
                 continue;
             }
             referenceEntries = append(referenceEntries, entry);
@@ -1489,16 +1489,14 @@ export namespace Core {
             });
         }
 
-        // Source file ID -> symbol ID -> Whether the symbol has been searched for in the source file.
-        private readonly sourceFileToSeenSymbols: Set<number>[] = [];
+        // Source file -> symbol -> Whether the symbol has been searched for in the source file.
+        private readonly sourceFileToSeenSymbols = new Map<SourceFile, Set<Symbol>>();
         /** Returns `true` the first time we search for a symbol in a file and `false` afterwards. */
         markSearchedSymbols(sourceFile: SourceFile, symbols: readonly Symbol[]): boolean {
-            const sourceId = getNodeId(sourceFile);
-            const seenSymbols = this.sourceFileToSeenSymbols[sourceId] || (this.sourceFileToSeenSymbols[sourceId] = new Set<number>());
-
+            const seenSymbols = getOrUpdate(this.sourceFileToSeenSymbols, sourceFile, () => new Set());
             let anyNewSymbols = false;
             for (const sym of symbols) {
-                anyNewSymbols = tryAddToSet(seenSymbols, getSymbolId(sym)) || anyNewSymbols;
+                anyNewSymbols = tryAddToSet(seenSymbols, sym) || anyNewSymbols;
             }
             return anyNewSymbols;
         }

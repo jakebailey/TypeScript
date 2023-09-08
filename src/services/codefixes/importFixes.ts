@@ -45,7 +45,6 @@ import {
     getMeaningFromLocation,
     getModeForUsageLocation,
     getNameForExportedSymbol,
-    getNodeId,
     getOutputExtension,
     getQuoteFromPreference,
     getQuotePreference,
@@ -220,8 +219,8 @@ function createImportAdderWorker(sourceFile: SourceFile, program: Program, useAu
     // Namespace fixes don't conflict, so just build a list.
     const addToNamespace: FixUseNamespaceImport[] = [];
     const importType: FixAddJsdocTypeImport[] = [];
-    /** Keys are import clause node IDs. */
-    const addToExisting = new Map<string, AddToExistingState>();
+    /** Keys are import clause nodes. */
+    const addToExisting = new Map<Node, AddToExistingState>();
 
     type NewImportsKey = `${0 | 1}|${string}`;
     /** Use `getNewImportEntry` for access */
@@ -258,10 +257,9 @@ function createImportAdderWorker(sourceFile: SourceFile, program: Program, useAu
                 break;
             case ImportFixKind.AddToExisting: {
                 const { importClauseOrBindingPattern, importKind, addAsTypeOnly } = fix;
-                const key = String(getNodeId(importClauseOrBindingPattern));
-                let entry = addToExisting.get(key);
+                let entry = addToExisting.get(importClauseOrBindingPattern);
                 if (!entry) {
-                    addToExisting.set(key, entry = { importClauseOrBindingPattern, defaultImport: undefined, namedImports: new Map() });
+                    addToExisting.set(importClauseOrBindingPattern, entry = { importClauseOrBindingPattern, defaultImport: undefined, namedImports: new Map() });
                 }
                 if (importKind === ImportKind.Named) {
                     const prevValue = entry?.namedImports.get(symbolName);

@@ -101,7 +101,6 @@ import {
     getLocaleSpecificMessage,
     getModuleInstanceState,
     getNameOfDeclaration,
-    getNodeId,
     getPackageNameFromTypesPackageName,
     getPathComponents,
     getRootDeclaration,
@@ -2403,10 +2402,11 @@ export function isExternalModuleSymbol(moduleSymbol: Symbol): boolean {
 export type NodeSeenTracker<T = Node> = (node: T) => boolean;
 /** @internal */
 export function nodeSeenTracker<T extends Node>(): NodeSeenTracker<T> {
-    const seen: true[] = [];
+    const seen = new Set<Node>();
     return node => {
-        const id = getNodeId(node);
-        return !seen[id] && (seen[id] = true);
+        if (seen.has(node)) return false;
+        seen.add(node);
+        return true;
     };
 }
 

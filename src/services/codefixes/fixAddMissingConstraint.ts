@@ -7,7 +7,6 @@ import {
     find,
     flattenDiagnosticMessageText,
     getEmitScriptTarget,
-    getNodeId,
     getTokenAtPosition,
     isExpression,
     isIdentifier,
@@ -63,13 +62,13 @@ registerCodeFix({
     fixIds: [fixId],
     getAllCodeActions: context => {
         const { program, preferences, host } = context;
-        const seen = new Map<number, true>();
+        const seen = new Map<Node, true>();
 
         return createCombinedCodeActions(textChanges.ChangeTracker.with(context, changes => {
             eachDiagnostic(context, errorCodes, diag => {
                 const info = getInfo(program, diag.file, createTextSpan(diag.start, diag.length));
                 if (info) {
-                    if (addToSeen(seen, getNodeId(info.declaration))) {
+                    if (addToSeen(seen, info.declaration)) {
                         return addMissingConstraint(changes, program, preferences, host, diag.file, info);
                     }
                 }

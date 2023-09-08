@@ -6,11 +6,11 @@ import {
     Diagnostics,
     first,
     getEffectiveBaseTypeNode,
-    getNodeId,
     getSyntacticModifierFlags,
     getTokenAtPosition,
     isClassLike,
     ModifierFlags,
+    Node,
     SourceFile,
     Symbol,
     textChanges,
@@ -38,10 +38,10 @@ registerCodeFix({
     },
     fixIds: [fixId],
     getAllCodeActions: function getAllCodeActionsToFixClassDoesntImplementInheritedAbstractMember(context) {
-        const seenClassDeclarations = new Map<number, true>();
+        const seenClassDeclarations = new Map<Node, true>();
         return codeFixAll(context, errorCodes, (changes, diag) => {
             const classDeclaration = getClass(diag.file, diag.start);
-            if (addToSeen(seenClassDeclarations, getNodeId(classDeclaration))) {
+            if (addToSeen(seenClassDeclarations, classDeclaration)) {
                 addMissingMembers(classDeclaration, context.sourceFile, context, changes, context.preferences);
             }
         });

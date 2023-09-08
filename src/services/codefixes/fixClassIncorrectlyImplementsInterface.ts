@@ -13,7 +13,6 @@ import {
     getEffectiveBaseTypeNode,
     getEffectiveImplementsTypeNodes,
     getEffectiveModifierFlags,
-    getNodeId,
     getTokenAtPosition,
     IndexKind,
     InterfaceDeclaration,
@@ -21,6 +20,7 @@ import {
     isConstructorDeclaration,
     mapDefined,
     ModifierFlags,
+    Node,
     SourceFile,
     Symbol,
     SymbolTable,
@@ -55,10 +55,10 @@ registerCodeFix({
     },
     fixIds: [fixId],
     getAllCodeActions(context) {
-        const seenClassDeclarations = new Map<number, true>();
+        const seenClassDeclarations = new Map<Node, true>();
         return codeFixAll(context, errorCodes, (changes, diag) => {
             const classDeclaration = getClass(diag.file, diag.start);
-            if (addToSeen(seenClassDeclarations, getNodeId(classDeclaration))) {
+            if (addToSeen(seenClassDeclarations, classDeclaration)) {
                 for (const implementedTypeNode of getEffectiveImplementsTypeNodes(classDeclaration)!) {
                     addMissingDeclarations(context, implementedTypeNode, diag.file, classDeclaration, changes, context.preferences);
                 }

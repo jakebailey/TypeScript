@@ -9,7 +9,6 @@ import {
     FunctionExpression,
     getContainingFunction,
     getEntityNameFromTypeNode,
-    getNodeId,
     getTokenAtPosition,
     isFunctionTypeNode,
     isVariableDeclaration,
@@ -44,10 +43,10 @@ registerCodeFix({
     },
     fixIds: [fixId],
     getAllCodeActions: function getAllCodeActionsToFixAwaitInSyncFunction(context) {
-        const seen = new Map<number, true>();
+        const seen = new Map<Node, true>();
         return codeFixAll(context, errorCodes, (changes, diag) => {
             const nodes = getNodes(diag.file, diag.start);
-            if (!nodes || !addToSeen(seen, getNodeId(nodes.insertBefore))) return;
+            if (!nodes || !addToSeen(seen, nodes.insertBefore)) return;
             doChange(changes, context.sourceFile, nodes);
         });
     },

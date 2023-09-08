@@ -6,7 +6,6 @@ import {
     ExpressionStatement,
     forEachChild,
     getContainingFunction,
-    getNodeId,
     getTokenAtPosition,
     isExpressionStatement,
     isFunctionLike,
@@ -38,12 +37,12 @@ registerCodeFix({
     fixIds: [fixId],
     getAllCodeActions(context) {
         const { sourceFile } = context;
-        const seenClasses = new Map<number, true>(); // Ensure we only do this once per class.
+        const seenClasses = new Map<Node, true>(); // Ensure we only do this once per class.
         return codeFixAll(context, errorCodes, (changes, diag) => {
             const nodes = getNodes(diag.file, diag.start);
             if (!nodes) return;
             const { constructor, superCall } = nodes;
-            if (addToSeen(seenClasses, getNodeId(constructor.parent))) {
+            if (addToSeen(seenClasses, constructor.parent)) {
                 doChange(changes, sourceFile, constructor, superCall);
             }
         });

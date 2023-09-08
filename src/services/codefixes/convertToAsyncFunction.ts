@@ -26,7 +26,6 @@ import {
     FunctionLikeDeclaration,
     GeneratedIdentifierFlags,
     getContainingFunction,
-    getNodeId,
     getObjectFlags,
     getOriginalNode,
     getSymbolId,
@@ -124,7 +123,7 @@ interface SynthIdentifier {
 interface Transformer {
     readonly checker: TypeChecker;
     readonly synthNamesMap: Map<string, SynthIdentifier>; // keys are the symbol id of the identifier
-    readonly setOfExpressionsToReturn: ReadonlySet<number>; // keys are the node ids of the expressions
+    readonly setOfExpressionsToReturn: ReadonlySet<Node>; // keys are the nodes of the expressions
     readonly isInJSFile: boolean;
 }
 
@@ -204,27 +203,27 @@ function getReturnStatementsWithPromiseHandlers(body: Block, checker: TypeChecke
 /*
     Finds all of the expressions of promise type that should not be saved in a variable during the refactor
 */
-function getAllPromiseExpressionsToReturn(func: FunctionLikeDeclaration, checker: TypeChecker): Set<number> {
+function getAllPromiseExpressionsToReturn(func: FunctionLikeDeclaration, checker: TypeChecker): Set<Node> {
     if (!func.body) {
         return new Set();
     }
 
-    const setOfExpressionsToReturn = new Set<number>();
+    const setOfExpressionsToReturn = new Set<Node>();
     forEachChild(func.body, function visit(node: Node) {
         if (isPromiseReturningCallExpression(node, checker, "then")) {
-            setOfExpressionsToReturn.add(getNodeId(node));
+            setOfExpressionsToReturn.add(node);
             forEach(node.arguments, visit);
         }
         else if (
             isPromiseReturningCallExpression(node, checker, "catch") ||
             isPromiseReturningCallExpression(node, checker, "finally")
         ) {
-            setOfExpressionsToReturn.add(getNodeId(node));
+            setOfExpressionsToReturn.add(node);
             // if .catch() or .finally() is the last call in the chain, move leftward in the chain until we hit something else that should be returned
             forEachChild(node, visit);
         }
         else if (isPromiseTypedExpression(node, checker)) {
-            setOfExpressionsToReturn.add(getNodeId(node));
+            setOfExpressionsToReturn.add(node);
             // don't recurse here, since we won't refactor any children or arguments of the expression
         }
         else {
@@ -934,5 +933,5 @@ function isSynthBindingPattern(bindingName: SynthBindingName): bindingName is Sy
 }
 
 function shouldReturn(expression: Expression, transformer: Transformer): boolean {
-    return !!expression.original && transformer.setOfExpressionsToReturn.has(getNodeId(expression.original));
+    return !!expression.original && transformer.setOfExpressionsToReturn.has(expression.original);
 }

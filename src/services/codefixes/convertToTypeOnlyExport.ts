@@ -9,9 +9,9 @@ import {
     filter,
     findDiagnosticForNode,
     getDiagnosticsWithinSpan,
-    getNodeId,
     getTokenAtPosition,
     isExportSpecifier,
+    Node,
     SourceFile,
     SyntaxKind,
     textChanges,
@@ -36,10 +36,10 @@ registerCodeFix({
     },
     fixIds: [fixId],
     getAllCodeActions: function getAllCodeActionsToConvertToTypeOnlyExport(context) {
-        const fixedExportDeclarations = new Map<number, true>();
+        const fixedExportDeclarations = new Map<Node, true>();
         return codeFixAll(context, errorCodes, (changes, diag) => {
             const exportSpecifier = getExportSpecifierForDiagnosticSpan(diag, context.sourceFile);
-            if (exportSpecifier && addToSeen(fixedExportDeclarations, getNodeId(exportSpecifier.parent.parent))) {
+            if (exportSpecifier && addToSeen(fixedExportDeclarations, exportSpecifier.parent.parent)) {
                 fixSingleExportDeclaration(changes, exportSpecifier, context);
             }
         });
