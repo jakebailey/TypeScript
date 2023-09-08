@@ -53,6 +53,7 @@ import {
     getLocalNameForExternalImport,
     getNamespaceDeclarationNode,
     getNodeId,
+    getOriginalNode,
     getOriginalNodeId,
     getStrictOptionValue,
     getTextOfIdentifierOrLiteral,
@@ -2412,7 +2413,7 @@ export function transformModule(context: TransformationContext): (x: SourceFile 
         if (!isGeneratedIdentifier(name)) {
             const importDeclaration = resolver.getReferencedImportDeclaration(name);
             if (importDeclaration) {
-                return currentModuleInfo?.exportedBindings[getOriginalNodeId(importDeclaration)];
+                return currentModuleInfo?.exportedBindings.get(getOriginalNode(importDeclaration));
             }
 
             // An exported namespace or enum may merge with an ambient declaration, which won't show up in .js emit, so
@@ -2421,7 +2422,7 @@ export function transformModule(context: TransformationContext): (x: SourceFile 
             const declarations = resolver.getReferencedValueDeclarations(name);
             if (declarations) {
                 for (const declaration of declarations) {
-                    const bindings = currentModuleInfo?.exportedBindings[getOriginalNodeId(declaration)];
+                    const bindings = currentModuleInfo?.exportedBindings.get(getOriginalNode(declaration));
                     if (bindings) {
                         for (const binding of bindings) {
                             bindingsSet.add(binding);

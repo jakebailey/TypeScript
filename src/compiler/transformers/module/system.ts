@@ -1973,7 +1973,7 @@ export function transformSystemModule(context: TransformationContext): (x: Sourc
                 exportedNames = append(exportedNames, factory.getDeclarationName(valueDeclaration));
             }
 
-            exportedNames = addRange(exportedNames, moduleInfo?.exportedBindings[getOriginalNodeId(valueDeclaration)]);
+            exportedNames = addRange(exportedNames, moduleInfo?.exportedBindings.get(getOriginalNode(valueDeclaration)));
         }
         else if (isGeneratedIdentifier(name) && isFileLevelReservedGeneratedIdentifier(name)) {
             const exportSpecifiers = moduleInfo?.exportSpecifiers.get(name);
@@ -1994,14 +1994,14 @@ export function transformSystemModule(context: TransformationContext): (x: Sourc
             if (importDeclaration) return importDeclaration;
 
             const valueDeclaration = resolver.getReferencedValueDeclaration(name);
-            if (valueDeclaration && moduleInfo?.exportedBindings[getOriginalNodeId(valueDeclaration)]) return valueDeclaration;
+            if (valueDeclaration && moduleInfo?.exportedBindings.get(getOriginalNode(valueDeclaration))) return valueDeclaration;
 
             // An exported namespace or enum may merge with an ambient declaration, which won't show up in
             // .js emit. When that happens, try to find bindings associated with a non-ambient declaration.
             const declarations = resolver.getReferencedValueDeclarations(name);
             if (declarations) {
                 for (const declaration of declarations) {
-                    if (declaration !== valueDeclaration && moduleInfo?.exportedBindings[getOriginalNodeId(declaration)]) return declaration;
+                    if (declaration !== valueDeclaration && moduleInfo?.exportedBindings.get(getOriginalNode(declaration))) return declaration;
                 }
             }
 

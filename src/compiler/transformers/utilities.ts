@@ -15,6 +15,7 @@ import {
     CompoundAssignmentOperator,
     CoreTransformationContext,
     createExternalHelpersImportDeclarationIfNeeded,
+    createMultiMap,
     Decorator,
     ExportAssignment,
     ExportDeclaration,
@@ -67,6 +68,7 @@ import {
     map,
     MethodDeclaration,
     ModifierFlags,
+    MultiMap,
     NamedImportBindings,
     NamespaceExport,
     Node,
@@ -100,7 +102,7 @@ export interface ExternalModuleInfo {
     externalImports: (ImportDeclaration | ImportEqualsDeclaration | ExportDeclaration)[]; // imports of other external modules
     externalHelpersImportDeclaration: ImportDeclaration | undefined; // import of external helpers
     exportSpecifiers: IdentifierNameMap<ExportSpecifier[]>; // file-local export specifiers by name (no reexports)
-    exportedBindings: Identifier[][]; // exported names of local declarations
+    exportedBindings: MultiMap<Node, Identifier>; // exported names of local declarations
     exportedNames: Identifier[] | undefined; // all exported names in the module, both local and reexported
     exportEquals: ExportAssignment | undefined; // an export= declaration if one was present
     hasExportStarsToExportValues: boolean; // whether this module contains export*
@@ -166,7 +168,7 @@ export function collectExternalModuleInfo(context: TransformationContext, source
     const compilerOptions = context.getCompilerOptions();
     const externalImports: (ImportDeclaration | ImportEqualsDeclaration | ExportDeclaration)[] = [];
     const exportSpecifiers = new IdentifierNameMultiMap<ExportSpecifier>();
-    const exportedBindings: Identifier[][] = [];
+    const exportedBindings = createMultiMap<Node, Identifier>();
     const uniqueExports = new Map<string, boolean>();
     let exportedNames: Identifier[] | undefined;
     let hasExportDefault = false;
@@ -216,7 +218,7 @@ export function collectExternalModuleInfo(context: TransformationContext, source
                         else {
                             const name = ((node as ExportDeclaration).exportClause as NamespaceExport).name;
                             if (!uniqueExports.get(idText(name))) {
-                                multiMapSparseArrayAdd(exportedBindings, getOriginalNodeId(node), name);
+                                exportedBindings.add(getOriginalNode(node), name);
                                 uniqueExports.set(idText(name), true);
                                 exportedNames = append(exportedNames, name);
                             }
@@ -251,7 +253,7 @@ export function collectExternalModuleInfo(context: TransformationContext, source
                     if (hasSyntacticModifier(node, ModifierFlags.Default)) {
                         // export default function() { }
                         if (!hasExportDefault) {
-                            multiMapSparseArrayAdd(exportedBindings, getOriginalNodeId(node), context.factory.getDeclarationName(node as FunctionDeclaration));
+                            exportedBindings.add(getOriginalNode(node), context.factory.getDeclarationName(node as FunctionDeclaration));
                             hasExportDefault = true;
                         }
                     }
@@ -259,7 +261,7 @@ export function collectExternalModuleInfo(context: TransformationContext, source
                         // export function x() { }
                         const name = (node as FunctionDeclaration).name!;
                         if (!uniqueExports.get(idText(name))) {
-                            multiMapSparseArrayAdd(exportedBindings, getOriginalNodeId(node), name);
+                            exportedBindings.add(getOriginalNode(node), name);
                             uniqueExports.set(idText(name), true);
                             exportedNames = append(exportedNames, name);
                         }
@@ -272,7 +274,7 @@ export function collectExternalModuleInfo(context: TransformationContext, source
                     if (hasSyntacticModifier(node, ModifierFlags.Default)) {
                         // export default class { }
                         if (!hasExportDefault) {
-                            multiMapSparseArrayAdd(exportedBindings, getOriginalNodeId(node), context.factory.getDeclarationName(node as ClassDeclaration));
+                            exportedBindings.add(getOriginalNode(node), context.factory.getDeclarationName(node as ClassDeclaration));
                             hasExportDefault = true;
                         }
                     }
@@ -280,7 +282,7 @@ export function collectExternalModuleInfo(context: TransformationContext, source
                         // export class x { }
                         const name = (node as ClassDeclaration).name;
                         if (name && !uniqueExports.get(idText(name))) {
-                            multiMapSparseArrayAdd(exportedBindings, getOriginalNodeId(node), name);
+                            exportedBindings.add(getOriginalNode(node), name);
                             uniqueExports.set(idText(name), true);
                             exportedNames = append(exportedNames, name);
                         }
@@ -309,7 +311,7 @@ export function collectExternalModuleInfo(context: TransformationContext, source
                     || resolver.getReferencedValueDeclaration(name);
 
                 if (decl) {
-                    multiMapSparseArrayAdd(exportedBindings, getOriginalNodeId(decl), specifier.name);
+                    exportedBindings.add(getOriginalNode(decl), specifier.name);
                 }
 
                 uniqueExports.set(idText(specifier.name), true);
@@ -319,7 +321,7 @@ export function collectExternalModuleInfo(context: TransformationContext, source
     }
 }
 
-function collectExportedVariableInfo(decl: VariableDeclaration | BindingElement, uniqueExports: Map<string, boolean>, exportedNames: Identifier[] | undefined, exportedBindings: Identifier[][]) {
+function collectExportedVariableInfo(decl: VariableDeclaration | BindingElement, uniqueExports: Map<string, boolean>, exportedNames: Identifier[] | undefined, exportedBindings: MultiMap<Node, Identifier>) {
     if (isBindingPattern(decl.name)) {
         for (const element of decl.name.elements) {
             if (!isOmittedExpression(element)) {
@@ -333,23 +335,11 @@ function collectExportedVariableInfo(decl: VariableDeclaration | BindingElement,
             uniqueExports.set(text, true);
             exportedNames = append(exportedNames, decl.name);
             if (isLocalName(decl.name)) {
-                multiMapSparseArrayAdd(exportedBindings, getOriginalNodeId(decl), decl.name);
+                exportedBindings.add(getOriginalNode(decl), decl.name);
             }
         }
     }
     return exportedNames;
-}
-
-/** Use a sparse array as a multi-map. */
-function multiMapSparseArrayAdd<V>(map: V[][], key: number, value: V): V[] {
-    let values = map[key];
-    if (values) {
-        values.push(value);
-    }
-    else {
-        map[key] = values = [value];
-    }
-    return values;
 }
 
 /** @internal */
