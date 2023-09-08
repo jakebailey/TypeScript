@@ -52,9 +52,7 @@ import {
     getInternalEmitFlags,
     getLocalNameForExternalImport,
     getNamespaceDeclarationNode,
-    getNodeId,
     getOriginalNode,
-    getOriginalNodeId,
     getStrictOptionValue,
     getTextOfIdentifierOrLiteral,
     hasJsonModuleEmitEnabled,
@@ -207,11 +205,11 @@ export function transformModule(context: TransformationContext): (x: SourceFile 
     context.enableSubstitution(SyntaxKind.ShorthandPropertyAssignment); // Substitutes shorthand property assignments for imported/exported symbols.
     context.enableEmitNotification(SyntaxKind.SourceFile); // Restore state when substituting nodes in a file.
 
-    const moduleInfoMap: ExternalModuleInfo[] = []; // The ExternalModuleInfo for each file.
+    const moduleInfoMap = new Map<Node, ExternalModuleInfo>(); // The ExternalModuleInfo for each file.
 
     let currentSourceFile: SourceFile; // The current file.
     let currentModuleInfo: ExternalModuleInfo; // The ExternalModuleInfo for the current file.
-    const noSubstitution: boolean[] = []; // Set of nodes for which substitution rules should be ignored.
+    const noSubstitution = new Set<Node>(); // Set of nodes for which substitution rules should be ignored.
     let needUMDDynamicImportHelper: boolean;
 
     return chainBundle(context, transformSourceFile);
@@ -233,7 +231,7 @@ export function transformModule(context: TransformationContext): (x: SourceFile 
 
         currentSourceFile = node;
         currentModuleInfo = collectExternalModuleInfo(context, node);
-        moduleInfoMap[getOriginalNodeId(node)] = currentModuleInfo;
+        moduleInfoMap.set(getOriginalNode(node), currentModuleInfo);
 
         // Perform the transformation.
         const transformModule = getTransformModuleDelegate(moduleKind);
@@ -1134,13 +1132,13 @@ export function transformModule(context: TransformationContext): (x: SourceFile 
                 }
 
                 for (const exportName of exportedNames) {
-                    noSubstitution[getNodeId(expression)] = true;
+                    noSubstitution.add(expression);
                     expression = createExportExpression(exportName, expression);
                     setTextRange(expression, node);
                 }
 
                 if (temp) {
-                    noSubstitution[getNodeId(expression)] = true;
+                    noSubstitution.add(expression);
                     expression = factory.createComma(expression, temp);
                     setTextRange(expression, node);
                 }
@@ -2211,7 +2209,7 @@ export function transformModule(context: TransformationContext): (x: SourceFile 
     function onEmitNode(hint: EmitHint, node: Node, emitCallback: (hint: EmitHint, node: Node) => void): void {
         if (node.kind === SyntaxKind.SourceFile) {
             currentSourceFile = node as SourceFile;
-            currentModuleInfo = moduleInfoMap[getOriginalNodeId(currentSourceFile)];
+            currentModuleInfo = moduleInfoMap.get(getOriginalNode(currentSourceFile))!;
 
             previousOnEmitNode(hint, node, emitCallback);
 
@@ -2235,7 +2233,7 @@ export function transformModule(context: TransformationContext): (x: SourceFile 
      */
     function onSubstituteNode(hint: EmitHint, node: Node) {
         node = previousOnSubstituteNode(hint, node);
-        if (node.id && noSubstitution[node.id]) {
+        if (noSubstitution.has(node)) {
             return node;
         }
 
@@ -2293,7 +2291,7 @@ export function transformModule(context: TransformationContext): (x: SourceFile 
     function substituteCallExpression(node: CallExpression) {
         if (isIdentifier(node.expression)) {
             const expression = substituteExpressionIdentifier(node.expression);
-            noSubstitution[getNodeId(expression)] = true;
+            noSubstitution.add(expression);
             if (!isIdentifier(expression) && !(getEmitFlags(node.expression) & EmitFlags.HelperName)) {
                 return addInternalEmitFlags(
                     factory.updateCallExpression(node, expression, /*typeArguments*/ undefined, node.arguments),
@@ -2307,7 +2305,7 @@ export function transformModule(context: TransformationContext): (x: SourceFile 
     function substituteTaggedTemplateExpression(node: TaggedTemplateExpression) {
         if (isIdentifier(node.tag)) {
             const tag = substituteExpressionIdentifier(node.tag);
-            noSubstitution[getNodeId(tag)] = true;
+            noSubstitution.add(tag);
             if (!isIdentifier(tag) && !(getEmitFlags(node.tag) & EmitFlags.HelperName)) {
                 return addInternalEmitFlags(
                     factory.updateTaggedTemplateExpression(node, tag, /*typeArguments*/ undefined, node.template),
@@ -2393,7 +2391,7 @@ export function transformModule(context: TransformationContext): (x: SourceFile 
                 let expression: Expression = node;
                 for (const exportName of exportedNames) {
                     // Mark the node to prevent triggering this rule again.
-                    noSubstitution[getNodeId(expression)] = true;
+                    noSubstitution.add(expression);
                     expression = createExportExpression(exportName, expression, /*location*/ node);
                 }
 
