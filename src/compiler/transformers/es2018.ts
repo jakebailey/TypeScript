@@ -43,7 +43,6 @@ import {
     GetAccessorDeclaration,
     getEmitScriptTarget,
     getFunctionFlags,
-    getNodeId,
     hasSyntacticModifier,
     Identifier,
     insertStatementsAfterStandardPrologue,
@@ -183,8 +182,8 @@ export function transformES2018(context: TransformationContext): (x: SourceFile 
     let capturedSuperProperties: Set<__String>;
     /** Whether the async function contains an element access on super (`super[x]`). */
     let hasSuperElementAccess: boolean;
-    /** A set of node IDs for generated super accessors. */
-    const substitutedSuperAccessors: boolean[] = [];
+    /** A set of nodes for generated super accessors. */
+    const substitutedSuperAccessors = new Set<Node>();
 
     return chainBundle(context, transformSourceFile);
 
@@ -1168,7 +1167,7 @@ export function transformES2018(context: TransformationContext): (x: SourceFile 
         if (emitSuperHelpers) {
             enableSubstitutionForAsyncMethodsWithSuper();
             const variableStatement = createSuperAccessVariableStatement(factory, resolver, node, capturedSuperProperties);
-            substitutedSuperAccessors[getNodeId(variableStatement)] = true;
+            substitutedSuperAccessors.add(variableStatement);
             insertStatementsAfterStandardPrologue(statements, [variableStatement]);
         }
 
@@ -1346,7 +1345,7 @@ export function transformES2018(context: TransformationContext): (x: SourceFile 
             }
         }
         // Disable substitution in the generated super accessor itself.
-        else if (enabledSubstitutions && substitutedSuperAccessors[getNodeId(node)]) {
+        else if (enabledSubstitutions && substitutedSuperAccessors.has(node)) {
             const savedEnclosingSuperContainerFlags = enclosingSuperContainerFlags;
             enclosingSuperContainerFlags = 0 as NodeCheckFlags;
             previousOnEmitNode(hint, node, emitCallback);

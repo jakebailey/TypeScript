@@ -39,7 +39,6 @@ import {
     getEntityNameFromTypeNode,
     getFunctionFlags,
     getInitializedVariables,
-    getNodeId,
     getOriginalNode,
     insertStatementsAfterStandardPrologue,
     isAwaitKeyword,
@@ -145,8 +144,8 @@ export function transformES2017(context: TransformationContext): (x: SourceFile 
     let capturedSuperProperties: Set<__String>;
     /** Whether the async function contains an element access on super (`super[x]`). */
     let hasSuperElementAccess: boolean;
-    /** A set of node IDs for generated super accessors (variable statements). */
-    const substitutedSuperAccessors: boolean[] = [];
+    /** A set of nodes for generated super accessors (variable statements). */
+    const substitutedSuperAccessors = new Set<Node>();
 
     let contextFlags = ContextFlags.None;
 
@@ -600,7 +599,7 @@ export function transformES2017(context: TransformationContext): (x: SourceFile 
             enableSubstitutionForAsyncMethodsWithSuper();
             if (capturedSuperProperties.size) {
                 const variableStatement = createSuperAccessVariableStatement(factory, resolver, node, capturedSuperProperties);
-                substitutedSuperAccessors[getNodeId(variableStatement)] = true;
+                substitutedSuperAccessors.add(variableStatement);
 
                 const statements = updated.statements.slice();
                 insertStatementsAfterStandardPrologue(statements, [variableStatement]);
@@ -678,7 +677,7 @@ export function transformES2017(context: TransformationContext): (x: SourceFile 
                 enableSubstitutionForAsyncMethodsWithSuper();
                 if (capturedSuperProperties.size) {
                     const variableStatement = createSuperAccessVariableStatement(factory, resolver, node, capturedSuperProperties);
-                    substitutedSuperAccessors[getNodeId(variableStatement)] = true;
+                    substitutedSuperAccessors.add(variableStatement);
                     insertStatementsAfterStandardPrologue(statements, [variableStatement]);
                 }
             }
@@ -790,7 +789,7 @@ export function transformES2017(context: TransformationContext): (x: SourceFile 
             }
         }
         // Disable substitution in the generated super accessor itself.
-        else if (enabledSubstitutions && substitutedSuperAccessors[getNodeId(node)]) {
+        else if (enabledSubstitutions && substitutedSuperAccessors.has(node)) {
             const savedEnclosingSuperContainerFlags = enclosingSuperContainerFlags;
             enclosingSuperContainerFlags = 0;
             previousOnEmitNode(hint, node, emitCallback);
