@@ -5791,7 +5791,7 @@ export interface SymbolLinks {
     lateSymbol?: Symbol;                        // Late-bound symbol for a computed property
     specifierCache?: Map<ModeAwareCacheKey, string>; // For symbols corresponding to external modules, a cache of incoming path -> module specifier name mappings
     extendedContainers?: Symbol[];              // Containers (other than the parent) which this symbol is aliased in
-    extendedContainersByFile?: Map<NodeId, Symbol[]>; // Containers (other than the parent) which this symbol is aliased in
+    extendedContainersByFile?: Map<Node, Symbol[]>; // Containers (other than the parent) which this symbol is aliased in
     variances?: VarianceFlags[];                // Alias symbol type argument variance cache
     deferralConstituents?: Type[];              // Calculated list of constituents for a deferred type
     deferralWriteConstituents?: Type[];         // Constituents of a deferred `writeType`

@@ -5488,10 +5488,9 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
 
     function getAlternativeContainingModules(symbol: Symbol, enclosingDeclaration: Node): Symbol[] {
         const containingFile = getSourceFileOfNode(enclosingDeclaration);
-        const id = getNodeId(containingFile);
         const links = getSymbolLinks(symbol);
         let results: Symbol[] | undefined;
-        if (links.extendedContainersByFile && (results = links.extendedContainersByFile.get(id))) {
+        if (links.extendedContainersByFile && (results = links.extendedContainersByFile.get(containingFile))) {
             return results;
         }
         if (containingFile && containingFile.imports) {
@@ -5505,7 +5504,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 results = append(results, resolvedModule);
             }
             if (length(results)) {
-                (links.extendedContainersByFile || (links.extendedContainersByFile = new Map())).set(id, results!);
+                (links.extendedContainersByFile || (links.extendedContainersByFile = new Map())).set(containingFile, results!);
                 return results!;
             }
         }
