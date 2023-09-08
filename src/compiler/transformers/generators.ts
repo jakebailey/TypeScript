@@ -33,7 +33,6 @@ import {
     getInitializedVariables,
     getNonAssignmentOperatorForCompoundAssignment,
     getOriginalNode,
-    getOriginalNodeId,
     Identifier,
     idText,
     IfStatement,
@@ -350,7 +349,7 @@ export function transformGenerators(context: TransformationContext): (x: SourceF
     context.onSubstituteNode = onSubstituteNode;
 
     let renamedCatchVariables: Map<string, boolean>;
-    let renamedCatchVariableDeclarations: Identifier[];
+    let renamedCatchVariableDeclarations: Map<Node, Identifier>;
 
     let inGeneratorFunctionBody: boolean;
     let inStatementContainingYield: boolean;
@@ -2070,7 +2069,7 @@ export function transformGenerators(context: TransformationContext): (x: SourceF
             if (isIdentifier(original) && original.parent) {
                 const declaration = resolver.getReferencedValueDeclaration(original);
                 if (declaration) {
-                    const name = renamedCatchVariableDeclarations[getOriginalNodeId(declaration)];
+                    const name = renamedCatchVariableDeclarations.get(getOriginalNode(declaration));
                     if (name) {
                         // TODO(rbuckton): Does this need to be parented?
                         const clone = setParent(setTextRange(factory.cloneNode(name), name), name.parent);
@@ -2238,12 +2237,12 @@ export function transformGenerators(context: TransformationContext): (x: SourceF
             name = declareLocal(text);
             if (!renamedCatchVariables) {
                 renamedCatchVariables = new Map<string, boolean>();
-                renamedCatchVariableDeclarations = [];
+                renamedCatchVariableDeclarations = new Map();
                 context.enableSubstitution(SyntaxKind.Identifier);
             }
 
             renamedCatchVariables.set(text, true);
-            renamedCatchVariableDeclarations[getOriginalNodeId(variable)] = name;
+            renamedCatchVariableDeclarations.set(getOriginalNode(variable), name);
         }
 
         const exception = peekBlock() as ExceptionBlock;
