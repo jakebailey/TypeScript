@@ -66,7 +66,7 @@ import {
     getLeadingCommentRangesOfNode,
     getLineAndCharacterOfPosition,
     getNameOfDeclaration,
-    getOriginalNodeId,
+    getOriginalNode,
     getOutputPathsFor,
     getParseTreeNode,
     getRelativePathToDirectoryOrUrl,
@@ -177,7 +177,6 @@ import {
     NodeBuilderFlags,
     NodeFactory,
     NodeFlags,
-    NodeId,
     normalizeSlashes,
     OmittedExpression,
     orderedRemoveItem,
@@ -295,7 +294,7 @@ export function transformDeclarations(context: TransformationContext) {
     let enclosingDeclaration: Node;
     let necessaryTypeReferences: Set<[specifier: string, mode: ResolutionMode]> | undefined;
     let lateMarkedStatements: LateVisibilityPaintedStatement[] | undefined;
-    let lateStatementReplacementMap: Map<NodeId, VisitResult<LateVisibilityPaintedStatement | ExportAssignment | undefined>>;
+    let lateStatementReplacementMap: Map<Node, VisitResult<LateVisibilityPaintedStatement | ExportAssignment | undefined>>;
     let suppressNewDiagnosticContexts: boolean;
     let exportedModulesFromDeclarationEmit: Symbol[] | undefined;
 
@@ -320,7 +319,7 @@ export function transformDeclarations(context: TransformationContext) {
     let errorFallbackNode: Declaration | undefined;
 
     let currentSourceFile: SourceFile;
-    let refs: Map<NodeId, SourceFile>;
+    let refs: Map<Node, SourceFile>;
     let libs: Map<string, boolean>;
     let emittedImports: readonly AnyImportSyntax[] | undefined; // must be declared in container so it can be `undefined` while transformer's first pass
     const resolver = context.getEmitResolver();
@@ -346,7 +345,7 @@ export function transformDeclarations(context: TransformationContext) {
         }
         // Otherwise we should emit a path-based reference
         const container = getSourceFileOfNode(node);
-        refs.set(getOriginalNodeId(container), container);
+        refs.set(getOriginalNode(container), container);
     }
 
     function handleSymbolAccessibilityError(symbolAccessibilityResult: SymbolAccessibilityResult) {
@@ -663,12 +662,12 @@ export function transformDeclarations(context: TransformationContext) {
         }
     }
 
-    function collectReferences(sourceFile: SourceFile | UnparsedSource, ret: Map<NodeId, SourceFile>) {
+    function collectReferences(sourceFile: SourceFile | UnparsedSource, ret: Map<Node, SourceFile>) {
         if (noResolve || (!isUnparsedSource(sourceFile) && isSourceFileJS(sourceFile))) return ret;
         forEach(sourceFile.referencedFiles, f => {
             const elem = host.getSourceFileFromReference(sourceFile, f);
             if (elem) {
-                ret.set(getOriginalNodeId(elem), elem);
+                ret.set(getOriginalNode(elem), elem);
             }
         });
         return ret;
@@ -1087,7 +1086,7 @@ export function transformDeclarations(context: TransformationContext) {
             needsDeclare = i.parent && isSourceFile(i.parent) && !(isExternalModule(i.parent) && isBundledEmit);
             const result = transformTopLevelDeclaration(i);
             needsDeclare = priorNeedsDeclare;
-            lateStatementReplacementMap.set(getOriginalNodeId(i), result);
+            lateStatementReplacementMap.set(getOriginalNode(i), result);
         }
 
         // And lastly, we need to get the final form of all those indetermine import declarations from before and add them to the output list
@@ -1096,7 +1095,7 @@ export function transformDeclarations(context: TransformationContext) {
 
         function visitLateVisibilityMarkedStatements(statement: Statement) {
             if (isLateVisibilityPaintedStatement(statement)) {
-                const key = getOriginalNodeId(statement);
+                const key = getOriginalNode(statement);
                 if (lateStatementReplacementMap.has(key)) {
                     const result = lateStatementReplacementMap.get(key) as Statement | readonly Statement[] | undefined;
                     lateStatementReplacementMap.delete(key);
@@ -1425,7 +1424,7 @@ export function transformDeclarations(context: TransformationContext) {
 
         const result = transformTopLevelDeclaration(input);
         // Don't actually transform yet; just leave as original node - will be elided/swapped by late pass
-        lateStatementReplacementMap.set(getOriginalNodeId(input), result);
+        lateStatementReplacementMap.set(getOriginalNode(input), result);
         return input;
     }
 
@@ -1655,7 +1654,7 @@ export function transformDeclarations(context: TransformationContext) {
                     needsDeclare = false;
                     visitNode(inner, visitDeclarationStatements);
                     // eagerly transform nested namespaces (the nesting doesn't need any elision or painting done)
-                    const id = getOriginalNodeId(inner!); // TODO: GH#18217
+                    const id = getOriginalNode(inner!); // TODO: GH#18217
                     const body = lateStatementReplacementMap.get(id);
                     lateStatementReplacementMap.delete(id);
                     return cleanup(updateModuleDeclarationAndKeyword(
