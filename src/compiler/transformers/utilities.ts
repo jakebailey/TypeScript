@@ -92,12 +92,6 @@ import {
 } from "../_namespaces/ts";
 
 /** @internal */
-export function getOriginalNodeId(node: Node) {
-    node = getOriginalNode(node);
-    return node ? getNodeId(node) : 0;
-}
-
-/** @internal */
 export interface ExternalModuleInfo {
     externalImports: (ImportDeclaration | ImportEqualsDeclaration | ExportDeclaration)[]; // imports of other external modules
     externalHelpersImportDeclaration: ImportDeclaration | undefined; // import of external helpers
