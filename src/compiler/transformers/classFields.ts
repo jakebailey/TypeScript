@@ -61,7 +61,6 @@ import {
     getNameOfDeclaration,
     getNonAssignmentOperatorForCompoundAssignment,
     getOriginalNode,
-    getOriginalNodeId,
     getPrivateIdentifier,
     getProperties,
     getSourceMapRange,
@@ -403,7 +402,7 @@ export function transformClassFields(context: TransformationContext): (x: Source
     let shouldTransformPrivateStaticElementsInFile = false;
     let enabledSubstitutions: ClassPropertySubstitutionFlags;
 
-    let classAliases: Identifier[];
+    let classAliases: Map<Node, Identifier>;
 
     /**
      * Tracks what computed name expressions originating from elided names must be inlined
@@ -1931,7 +1930,7 @@ export function transformClassFields(context: TransformationContext): (x: Source
         const alias = getClassLexicalEnvironment().classConstructor;
         if (isClassWithConstructorReference && alias) {
             enableSubstitutionForClassAliases();
-            classAliases[getOriginalNodeId(node)] = alias;
+            classAliases.set(getOriginalNode(node), alias);
         }
 
         const classDecl = factory.updateClassDeclaration(
@@ -2052,7 +2051,7 @@ export function transformClassFields(context: TransformationContext): (x: Source
                     enableSubstitutionForClassAliases();
                     const alias = factory.cloneNode(temp) as GeneratedIdentifier;
                     alias.emitNode.autoGenerate.flags &= ~GeneratedIdentifierFlags.ReservedInNestedScopes;
-                    classAliases[getOriginalNodeId(node)] = alias;
+                    classAliases.set(getOriginalNode(node), alias);
                 }
 
                 expressions.push(factory.createAssignment(temp, classExpression));
@@ -2642,7 +2641,7 @@ export function transformClassFields(context: TransformationContext): (x: Source
             context.enableSubstitution(SyntaxKind.Identifier);
 
             // Keep track of class aliases.
-            classAliases = [];
+            classAliases = new Map();
         }
     }
 
@@ -3303,7 +3302,7 @@ export function transformClassFields(context: TransformationContext): (x: Source
                 // constructor references in static property initializers.
                 const declaration = resolver.getReferencedValueDeclaration(node);
                 if (declaration) {
-                    const classAlias = classAliases[declaration.id!]; // TODO: GH#18217
+                    const classAlias = classAliases.get(declaration);
                     if (classAlias) {
                         const clone = factory.cloneNode(classAlias);
                         setSourceMapRange(clone, node);
