@@ -98,7 +98,6 @@ import {
     getLeftmostAccessExpression,
     getNameOfDeclaration,
     getNameOrArgument,
-    getNodeId,
     getRangesWhere,
     getRightMostAssignedExpression,
     getSourceFileOfNode,
@@ -333,7 +332,7 @@ interface ActiveLabel {
 }
 
 /** @internal */
-export function getModuleInstanceState(node: ModuleDeclaration, visited?: Map<number, ModuleInstanceState | undefined>): ModuleInstanceState {
+export function getModuleInstanceState(node: ModuleDeclaration, visited?: Map<Node, ModuleInstanceState | undefined>): ModuleInstanceState {
     if (node.body && !node.body.parent) {
         // getModuleInstanceStateForAliasTarget needs to walk up the parent chain, so parent pointers must be set on this tree already
         setParent(node.body, node);
@@ -342,18 +341,17 @@ export function getModuleInstanceState(node: ModuleDeclaration, visited?: Map<nu
     return node.body ? getModuleInstanceStateCached(node.body, visited) : ModuleInstanceState.Instantiated;
 }
 
-function getModuleInstanceStateCached(node: Node, visited = new Map<number, ModuleInstanceState | undefined>()) {
-    const nodeId = getNodeId(node);
-    if (visited.has(nodeId)) {
-        return visited.get(nodeId) || ModuleInstanceState.NonInstantiated;
+function getModuleInstanceStateCached(node: Node, visited = new Map<Node, ModuleInstanceState | undefined>()) {
+    if (visited.has(node)) {
+        return visited.get(node) || ModuleInstanceState.NonInstantiated;
     }
-    visited.set(nodeId, undefined);
+    visited.set(node, undefined);
     const result = getModuleInstanceStateWorker(node, visited);
-    visited.set(nodeId, result);
+    visited.set(node, result);
     return result;
 }
 
-function getModuleInstanceStateWorker(node: Node, visited: Map<number, ModuleInstanceState | undefined>): ModuleInstanceState {
+function getModuleInstanceStateWorker(node: Node, visited: Map<Node, ModuleInstanceState | undefined>): ModuleInstanceState {
     // A module is uninstantiated if it contains only
     switch (node.kind) {
         // 1. interface declarations, type alias declarations
@@ -425,7 +423,7 @@ function getModuleInstanceStateWorker(node: Node, visited: Map<number, ModuleIns
     return ModuleInstanceState.Instantiated;
 }
 
-function getModuleInstanceStateForAliasTarget(specifier: ExportSpecifier, visited: Map<number, ModuleInstanceState | undefined>) {
+function getModuleInstanceStateForAliasTarget(specifier: ExportSpecifier, visited: Map<Node, ModuleInstanceState | undefined>) {
     const name = specifier.propertyName || specifier.name;
     let p: Node | undefined = specifier.parent;
     while (p) {
