@@ -99,18 +99,18 @@
         "setup-hooks": "node scripts/link-hooks.mjs"
     },
     "browser": {
+        "@microsoft/typescript-etw": false,
+        "buffer": false,
+        "crypto": false,
         "fs": false,
+        "inspector": false,
         "os": false,
         "path": false,
-        "crypto": false,
-        "buffer": false,
-        "@microsoft/typescript-etw": false,
-        "source-map-support": false,
-        "inspector": false
+        "source-map-support": false
     },
-    "packageManager": "npm@8.19.4",
     "volta": {
         "node": "20.1.0",
         "npm": "8.19.4"
-    }
+    },
+    "packageManager": "yarn@4.0.0-rc.50"
 }
