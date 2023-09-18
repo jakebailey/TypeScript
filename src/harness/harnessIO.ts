@@ -1548,4 +1548,4 @@ export function getConfigNameFromFileName(filename: string): "tsconfig.json" | "
     return ts.find(["tsconfig.json" as const, "jsconfig.json" as const], x => x === flc);
 }
 
-if (Error) (Error as any).stackTraceLimit = 100;
+if (Error) Error.stackTraceLimit = 100;

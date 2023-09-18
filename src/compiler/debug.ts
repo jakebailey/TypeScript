@@ -196,8 +196,8 @@ export namespace Debug {
         // eslint-disable-next-line no-debugger
         debugger;
         const e = new Error(message ? `Debug Failure. ${message}` : "Debug Failure.");
-        if ((Error as any).captureStackTrace) {
-            (Error as any).captureStackTrace(e, stackCrawlMark || fail);
+        if (Error.captureStackTrace) {
+            Error.captureStackTrace(e, stackCrawlMark || fail);
         }
         throw e;
     }

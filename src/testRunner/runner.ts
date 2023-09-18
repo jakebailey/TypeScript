@@ -147,11 +147,11 @@ function handleTestConfig() {
         }
 
         if (testConfig.stackTraceLimit === "full") {
-            (Error as any).stackTraceLimit = Infinity;
+            Error.stackTraceLimit = Infinity;
             stackTraceLimit = testConfig.stackTraceLimit;
         }
         else if ((+testConfig.stackTraceLimit! | 0) > 0) {
-            (Error as any).stackTraceLimit = +testConfig.stackTraceLimit! | 0;
+            Error.stackTraceLimit = +testConfig.stackTraceLimit! | 0;
             stackTraceLimit = +testConfig.stackTraceLimit! | 0;
         }
         if (testConfig.listenForWork) {

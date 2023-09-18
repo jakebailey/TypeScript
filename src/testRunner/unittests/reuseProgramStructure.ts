@@ -208,7 +208,7 @@ describe("unittests:: Reuse program structure:: General", () => {
     });
 
     it("resolution cache follows imports", () => {
-        (Error as any).stackTraceLimit = Infinity;
+        Error.stackTraceLimit = Infinity;
 
         const files = [
             { name: "a.ts", text: SourceText.New("", "import {_} from 'b'", "var x = 1") },

@@ -72,8 +72,8 @@ export function generateDjb2Hash(data: string): string {
  * @internal
  */
 export function setStackTraceLimit() {
-    if ((Error as any).stackTraceLimit < 100) { // Also tests that we won't set the property if it doesn't exist.
-        (Error as any).stackTraceLimit = 100;
+    if (Error.stackTraceLimit < 100) { // Also tests that we won't set the property if it doesn't exist.
+        Error.stackTraceLimit = 100;
     }
 }
 

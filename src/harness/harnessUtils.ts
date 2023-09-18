@@ -335,7 +335,7 @@ function findChildName(parent: any, child: any) {
 const maxHarnessFrames = 1;
 
 export function filterStack(error: Error, stackTraceLimit = Infinity) {
-    const stack = (error as any).stack as string;
+    const stack = error.stack;
     if (stack) {
         const lines = stack.split(/\r\n?|\n/g);
         const filtered: string[] = [];
@@ -366,7 +366,7 @@ export function filterStack(error: Error, stackTraceLimit = Infinity) {
             filtered.push(line);
         }
 
-        (error as any).stack = filtered.join(Harness.IO.newLine());
+        error.stack = filtered.join(Harness.IO.newLine());
     }
 
     return error;

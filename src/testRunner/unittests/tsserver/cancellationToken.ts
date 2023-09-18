@@ -12,14 +12,14 @@ import {
 
 describe("unittests:: tsserver:: cancellationToken", () => {
     // Disable sourcemap support for the duration of the test, as sourcemapping the errors generated during this test is slow and not something we care to test
-    let oldPrepare: ts.AnyFunction;
+    let oldPrepare: typeof Error.prepareStackTrace;
     before(() => {
-        oldPrepare = (Error as any).prepareStackTrace;
-        delete (Error as any).prepareStackTrace;
+        oldPrepare = Error.prepareStackTrace;
+        delete Error.prepareStackTrace;
     });
 
     after(() => {
-        (Error as any).prepareStackTrace = oldPrepare;
+        Error.prepareStackTrace = oldPrepare;
     });
 
     it("is attached to request", () => {
