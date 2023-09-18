@@ -32,11 +32,15 @@ jobs:
           - '14'
         bundle:
           - 'true'
+        frozenIntrinsics:
+          - 'false'
         include:
           - node-version: '*'
             bundle: 'false'
+          - node-version: '*'
+            frozenIntrinsics: 'true'
 
-    name: Test Node ${{ matrix.node-version }} with --bundle=${{ matrix.bundle }}
+    name: Test Node ${{ matrix.node-version }} with --bundle=${{ matrix.bundle }} --frozenIntrinsics=${{ matrix.frozenIntrinsics }}
 
     steps:
       - uses: actions/checkout@v3
@@ -49,7 +53,7 @@ jobs:
 
       - name: Tests
         # run tests, but lint separately
-        run: npm run test -- --no-lint --bundle=${{ matrix.bundle }}
+        run: npm run test -- --no-lint --bundle=${{ matrix.bundle }} --frozenIntrinsics=${{ matrix.frozenIntrinsics }}
 
   lint:
     runs-on: ubuntu-latest
