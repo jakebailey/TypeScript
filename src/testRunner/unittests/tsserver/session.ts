@@ -81,14 +81,22 @@ describe("unittests:: tsserver:: Session:: General functionality", () => {
     }
 
     // Disable sourcemap support for the duration of the test, as sourcemapping the errors generated during this test is slow and not something we care to test
-    let oldPrepare: typeof Error.prepareStackTrace;
+    let oldPrepare: typeof Error.prepareStackTrace | undefined;
     before(() => {
-        oldPrepare = Error.prepareStackTrace;
-        delete Error.prepareStackTrace;
+        const _oldPrepare = Error.prepareStackTrace;
+        try {
+            delete Error.prepareStackTrace;
+            oldPrepare = _oldPrepare;
+        }
+        catch {
+            // Intrinsics are frozen
+        }
     });
 
     after(() => {
-        Error.prepareStackTrace = oldPrepare;
+        if (oldPrepare) {
+            Error.prepareStackTrace = oldPrepare;
+        }
     });
 
     beforeEach(() => {
@@ -372,18 +380,25 @@ describe("unittests:: tsserver:: Session:: General functionality", () => {
 
 describe("unittests:: tsserver:: Session:: exceptions", () => {
     // Disable sourcemap support for the duration of the test, as sourcemapping the errors generated during this test is slow and not something we care to test
-    let oldPrepare: typeof Error.prepareStackTrace;
+    let oldPrepare: typeof Error.prepareStackTrace | undefined;
     let oldStackTraceLimit: number;
     before(() => {
-        oldStackTraceLimit = Error.stackTraceLimit;
-        oldPrepare = Error.prepareStackTrace;
-        delete Error.prepareStackTrace;
-        Error.stackTraceLimit = 10;
+        oldStackTraceLimit = ts.trySetStackTraceLimit(10);
+        const _oldPrepare = Error.prepareStackTrace;
+        try {
+            delete Error.prepareStackTrace;
+            oldPrepare = _oldPrepare;
+        }
+        catch {
+            // Intrinsics are frozen
+        }
     });
 
     after(() => {
-        Error.prepareStackTrace = oldPrepare;
-        Error.stackTraceLimit = oldStackTraceLimit;
+        ts.trySetStackTraceLimit(oldStackTraceLimit);
+        if (oldPrepare) {
+            Error.prepareStackTrace = oldPrepare;
+        }
     });
 
     const command = "testhandler";

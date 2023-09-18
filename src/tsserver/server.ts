@@ -1,6 +1,6 @@
 import {
     Debug,
-    setStackTraceLimit,
+    setStackTraceLimitHigh,
     sys,
     version,
 } from "./_namespaces/ts";
@@ -30,7 +30,7 @@ function start({ args, logger, cancellationToken, serverMode, unknownServerMode,
     logger.info(`Platform: ${platform} NodeVersion: ${process.version} CaseSensitive: ${sys.useCaseSensitiveFileNames}`);
     logger.info(`ServerMode: ${serverMode} hasUnknownServerMode: ${unknownServerMode}`);
 
-    setStackTraceLimit();
+    setStackTraceLimitHigh();
 
     if (Debug.isDebugging) {
         Debug.enableDebugInfo();
@@ -64,5 +64,4 @@ function start({ args, logger, cancellationToken, serverMode, unknownServerMode,
     );
 }
 
-setStackTraceLimit();
 start(initializeNodeSystem(), require("os").platform());

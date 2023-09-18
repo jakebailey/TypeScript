@@ -71,10 +71,27 @@ export function generateDjb2Hash(data: string): string {
  *
  * @internal
  */
-export function setStackTraceLimit() {
+export function setStackTraceLimitHigh() {
     if (Error.stackTraceLimit < 100) { // Also tests that we won't set the property if it doesn't exist.
-        Error.stackTraceLimit = 100;
+        trySetStackTraceLimit(100);
     }
+}
+
+/**
+ * Tries to set Error.stackTraceLimit, returning the old limit.
+ * This may fail if the intrisnics are frozen.
+ *
+ * @internal
+ */
+export function trySetStackTraceLimit(limit: number): number {
+    const old = Error.stackTraceLimit;
+    try {
+        Error.stackTraceLimit = limit;
+    }
+    catch {
+        // Intrinsics are frozen.
+    }
+    return old;
 }
 
 export enum FileWatcherEventKind {
@@ -1908,8 +1925,7 @@ export let sys: System = (() => {
         function fileSystemEntryExists(path: string, entryKind: FileSystemEntryKind): boolean {
             // Since the error thrown by fs.statSync isn't used, we can avoid collecting a stack trace to improve
             // the CPU time performance.
-            const originalStackTraceLimit = Error.stackTraceLimit;
-            Error.stackTraceLimit = 0;
+            const originalStackTraceLimit = trySetStackTraceLimit(0);
 
             try {
                 const stat = statSync(path);
@@ -1929,7 +1945,7 @@ export let sys: System = (() => {
                 return false;
             }
             finally {
-                Error.stackTraceLimit = originalStackTraceLimit;
+                trySetStackTraceLimit(originalStackTraceLimit);
             }
         }
 
@@ -1961,8 +1977,7 @@ export let sys: System = (() => {
         function getModifiedTime(path: string) {
             // Since the error thrown by fs.statSync isn't used, we can avoid collecting a stack trace to improve
             // the CPU time performance.
-            const originalStackTraceLimit = Error.stackTraceLimit;
-            Error.stackTraceLimit = 0;
+            const originalStackTraceLimit = trySetStackTraceLimit(0);
             try {
                 return statSync(path)?.mtime;
             }
@@ -1970,7 +1985,7 @@ export let sys: System = (() => {
                 return undefined;
             }
             finally {
-                Error.stackTraceLimit = originalStackTraceLimit;
+                trySetStackTraceLimit(originalStackTraceLimit);
             }
         }
 
