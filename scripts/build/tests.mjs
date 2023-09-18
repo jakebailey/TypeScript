@@ -85,6 +85,9 @@ export async function runConsoleTests(runJs, defaultReporter, runInParallel, opt
 
     /** @type {string[]} */
     const args = [];
+    if (cmdLineOptions.frozenIntrinsics) {
+        args.push("--frozen-intrinsics");
+    }
 
     // timeout normally isn't necessary but Travis-CI has been timing out on compiler baselines occasionally
     // default timeout is 2sec which really should be enough, but maybe we just need a small amount longer

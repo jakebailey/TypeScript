@@ -12,10 +12,16 @@ import {
 
 describe("unittests:: tsserver:: cancellationToken", () => {
     // Disable sourcemap support for the duration of the test, as sourcemapping the errors generated during this test is slow and not something we care to test
-    let oldPrepare: typeof Error.prepareStackTrace;
+    let oldPrepare: typeof Error.prepareStackTrace | undefined;
     before(() => {
-        oldPrepare = Error.prepareStackTrace;
-        delete Error.prepareStackTrace;
+        const _oldPrepare = Error.prepareStackTrace;
+        try {
+            delete Error.prepareStackTrace;
+            oldPrepare = _oldPrepare;
+        }
+        catch {
+            // Intrinsics are frozen
+        }
     });
 
     after(() => {
