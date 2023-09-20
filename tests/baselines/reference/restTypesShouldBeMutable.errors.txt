@@ -1,0 +1,25 @@
+restTypesShouldBeMutable.ts(7,5): error TS2542: Index signature in type 'readonly string[]' only permits reading.
+restTypesShouldBeMutable.ts(14,5): error TS2542: Index signature in type 'readonly string[]' only permits reading.
+
+
+==== restTypesShouldBeMutable.ts (2 errors) ====
+    declare function callFn<T extends readonly any[]>(args: T, fn: (...args: T) => void): void;
+    
+    declare const input: readonly string[];
+    
+    callFn(input, (...args) => {
+        args;
+        args[0] = "hello";
+        ~~~~~~~
+!!! error TS2542: Index signature in type 'readonly string[]' only permits reading.
+    })
+    
+    declare function callFnNonGeneric(args: readonly string[], fn: (...args: readonly string[]) => void): void;
+    
+    callFnNonGeneric(input, (...args) => {
+        args;
+        args[0] = "hello";
+        ~~~~~~~
+!!! error TS2542: Index signature in type 'readonly string[]' only permits reading.
+    })
+    

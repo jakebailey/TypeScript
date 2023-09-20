@@ -1,0 +1,56 @@
+//// [tests/cases/compiler/restTypesShouldBeMutable.ts] ////
+
+=== restTypesShouldBeMutable.ts ===
+declare function callFn<T extends readonly any[]>(args: T, fn: (...args: T) => void): void;
+>callFn : <T extends readonly any[]>(args: T, fn: (...args: T) => void) => void
+>args : T
+>fn : (...args: T) => void
+>args : T
+
+declare const input: readonly string[];
+>input : readonly string[]
+
+callFn(input, (...args) => {
+>callFn(input, (...args) => {    args;    args[0] = "hello";}) : void
+>callFn : <T extends readonly any[]>(args: T, fn: (...args: T) => void) => void
+>input : readonly string[]
+>(...args) => {    args;    args[0] = "hello";} : (...args: readonly string[]) => void
+>args : readonly string[]
+
+    args;
+>args : readonly string[]
+
+    args[0] = "hello";
+>args[0] = "hello" : "hello"
+>args[0] : string
+>args : readonly string[]
+>0 : 0
+>"hello" : "hello"
+
+})
+
+declare function callFnNonGeneric(args: readonly string[], fn: (...args: readonly string[]) => void): void;
+>callFnNonGeneric : (args: readonly string[], fn: (...args: readonly string[]) => void) => void
+>args : readonly string[]
+>fn : (...args: readonly string[]) => void
+>args : readonly string[]
+
+callFnNonGeneric(input, (...args) => {
+>callFnNonGeneric(input, (...args) => {    args;    args[0] = "hello";}) : void
+>callFnNonGeneric : (args: readonly string[], fn: (...args: readonly string[]) => void) => void
+>input : readonly string[]
+>(...args) => {    args;    args[0] = "hello";} : (...args: readonly string[]) => void
+>args : readonly string[]
+
+    args;
+>args : readonly string[]
+
+    args[0] = "hello";
+>args[0] = "hello" : "hello"
+>args[0] : string
+>args : readonly string[]
+>0 : 0
+>"hello" : "hello"
+
+})
+
