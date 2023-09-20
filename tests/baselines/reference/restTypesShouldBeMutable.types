@@ -54,3 +54,57 @@ callFnNonGeneric(input, (...args) => {
 
 })
 
+
+declare function callFnTuple<T extends readonly [string, string, string]>(args: T, fn: (...args: T) => void): void;
+>callFnTuple : <T extends readonly [string, string, string]>(args: T, fn: (...args: T) => void) => void
+>args : T
+>fn : (...args: T) => void
+>args : T
+
+declare const inputTuple: readonly [string, string, string];
+>inputTuple : readonly [string, string, string]
+
+callFnTuple(inputTuple, (...args) => {
+>callFnTuple(inputTuple, (...args) => {    args;    args[0] = "hello";}) : void
+>callFnTuple : <T extends readonly [string, string, string]>(args: T, fn: (...args: T) => void) => void
+>inputTuple : readonly [string, string, string]
+>(...args) => {    args;    args[0] = "hello";} : (args_0: string, args_1: string, args_2: string) => void
+>args : [string, string, string]
+
+    args;
+>args : [string, string, string]
+
+    args[0] = "hello";
+>args[0] = "hello" : "hello"
+>args[0] : string
+>args : [string, string, string]
+>0 : 0
+>"hello" : "hello"
+
+})
+
+declare function callFnNonGenericTuple(args: readonly [string, string, string], fn: (...args: readonly [string, string, string]) => void): void;
+>callFnNonGenericTuple : (args: readonly [string, string, string], fn: (args_0: string, args_1: string, args_2: string) => void) => void
+>args : readonly [string, string, string]
+>fn : (args_0: string, args_1: string, args_2: string) => void
+>args : readonly [string, string, string]
+
+callFnNonGenericTuple(inputTuple, (...args) => {
+>callFnNonGenericTuple(inputTuple, (...args) => {    args;    args[0] = "hello";}) : void
+>callFnNonGenericTuple : (args: readonly [string, string, string], fn: (args_0: string, args_1: string, args_2: string) => void) => void
+>inputTuple : readonly [string, string, string]
+>(...args) => {    args;    args[0] = "hello";} : (args_0: string, args_1: string, args_2: string) => void
+>args : [string, string, string]
+
+    args;
+>args : [string, string, string]
+
+    args[0] = "hello";
+>args[0] = "hello" : "hello"
+>args[0] : string
+>args : [string, string, string]
+>0 : 0
+>"hello" : "hello"
+
+})
+

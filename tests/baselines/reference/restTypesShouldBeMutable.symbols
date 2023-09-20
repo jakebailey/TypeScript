@@ -45,3 +45,50 @@ callFnNonGeneric(input, (...args) => {
 
 })
 
+
+declare function callFnTuple<T extends readonly [string, string, string]>(args: T, fn: (...args: T) => void): void;
+>callFnTuple : Symbol(callFnTuple, Decl(restTypesShouldBeMutable.ts, 14, 2))
+>T : Symbol(T, Decl(restTypesShouldBeMutable.ts, 17, 29))
+>args : Symbol(args, Decl(restTypesShouldBeMutable.ts, 17, 74))
+>T : Symbol(T, Decl(restTypesShouldBeMutable.ts, 17, 29))
+>fn : Symbol(fn, Decl(restTypesShouldBeMutable.ts, 17, 82))
+>args : Symbol(args, Decl(restTypesShouldBeMutable.ts, 17, 88))
+>T : Symbol(T, Decl(restTypesShouldBeMutable.ts, 17, 29))
+
+declare const inputTuple: readonly [string, string, string];
+>inputTuple : Symbol(inputTuple, Decl(restTypesShouldBeMutable.ts, 19, 13))
+
+callFnTuple(inputTuple, (...args) => {
+>callFnTuple : Symbol(callFnTuple, Decl(restTypesShouldBeMutable.ts, 14, 2))
+>inputTuple : Symbol(inputTuple, Decl(restTypesShouldBeMutable.ts, 19, 13))
+>args : Symbol(args, Decl(restTypesShouldBeMutable.ts, 21, 25))
+
+    args;
+>args : Symbol(args, Decl(restTypesShouldBeMutable.ts, 21, 25))
+
+    args[0] = "hello";
+>args : Symbol(args, Decl(restTypesShouldBeMutable.ts, 21, 25))
+>0 : Symbol(0)
+
+})
+
+declare function callFnNonGenericTuple(args: readonly [string, string, string], fn: (...args: readonly [string, string, string]) => void): void;
+>callFnNonGenericTuple : Symbol(callFnNonGenericTuple, Decl(restTypesShouldBeMutable.ts, 24, 2))
+>args : Symbol(args, Decl(restTypesShouldBeMutable.ts, 26, 39))
+>fn : Symbol(fn, Decl(restTypesShouldBeMutable.ts, 26, 79))
+>args : Symbol(args, Decl(restTypesShouldBeMutable.ts, 26, 85))
+
+callFnNonGenericTuple(inputTuple, (...args) => {
+>callFnNonGenericTuple : Symbol(callFnNonGenericTuple, Decl(restTypesShouldBeMutable.ts, 24, 2))
+>inputTuple : Symbol(inputTuple, Decl(restTypesShouldBeMutable.ts, 19, 13))
+>args : Symbol(args, Decl(restTypesShouldBeMutable.ts, 28, 35))
+
+    args;
+>args : Symbol(args, Decl(restTypesShouldBeMutable.ts, 28, 35))
+
+    args[0] = "hello";
+>args : Symbol(args, Decl(restTypesShouldBeMutable.ts, 28, 35))
+>0 : Symbol(0)
+
+})
+
