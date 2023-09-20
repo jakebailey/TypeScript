@@ -20377,8 +20377,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         const restIndex = sourceRestType || targetRestType ? paramCount - 1 : -1;
 
         for (let i = 0; i < paramCount; i++) {
-            const sourceType = i === restIndex ? getMutableArrayOrTupleType(getRestTypeAtPosition(source, i), /*forceVariadic*/ false) : tryGetTypeAtPosition(source, i);
-            const targetType = i === restIndex ? getMutableArrayOrTupleType(getRestTypeAtPosition(target, i), /*forceVariadic*/ false) : tryGetTypeAtPosition(target, i);
+            const sourceType = i === restIndex ? getRestTypeAtPosition(source, i) : tryGetTypeAtPosition(source, i);
+            const targetType = i === restIndex ? getRestTypeAtPosition(target, i) : tryGetTypeAtPosition(target, i);
             if (sourceType && targetType) {
                 // In order to ensure that any generic type Foo<T> is at least co-variant with respect to T no matter
                 // how Foo uses T, we need to relate parameters bi-variantly (given that parameters are input positions,
@@ -24420,7 +24420,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             callback(getTypeAtPosition(source, i), getTypeAtPosition(target, i));
         }
         if (targetRestType) {
-            callback(getRestTypeAtPosition(source, paramCount, /*readonly*/ isConstTypeVariable(targetRestType) && !someType(targetRestType, isMutableArrayLikeType)), targetRestType);
+            callback(getRestTypeAtPosition(source, paramCount), targetRestType);
         }
     }
 
@@ -33200,6 +33200,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         return type.flags & TypeFlags.Union ? mapType(type, t => getMutableArrayOrTupleType(t, forceVariadic)) :
             type.flags & TypeFlags.Any || isMutableArrayOrTuple(getBaseConstraintOfType(type) || type) ? type :
             isTupleType(type) ? createTupleType(getElementTypes(type), type.target.elementFlags, /*readonly*/ false, type.target.labeledElementDeclarations) :
+            isArrayType(type) ? createArrayType(getTypeArguments(type)[0]) :
             forceVariadic ? createTupleType([type], [ElementFlags.Variadic]) : type;
     }
 
@@ -35566,7 +35567,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         return undefined;
     }
 
-    function getRestTypeAtPosition(source: Signature, pos: number, readonly?: boolean): Type {
+    function getRestTypeAtPosition(source: Signature, pos: number): Type {
         const parameterCount = getParameterCount(source);
         const minArgumentCount = getMinArgumentCount(source);
         const restType = getEffectiveRestType(source);
@@ -35590,7 +35591,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 names.push(name);
             }
         }
-        return createTupleType(types, flags, readonly, length(names) === length(types) ? names : undefined);
+        return createTupleType(types, flags, /*readonly*/ false, length(names) === length(types) ? names : undefined);
     }
 
     // Return the number of parameters in a signature. The rest parameter, if present, counts as one
@@ -35656,10 +35657,10 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         if (signatureHasRestParameter(signature)) {
             const restType = getTypeOfSymbol(signature.parameters[signature.parameters.length - 1]);
             if (!isTupleType(restType)) {
-                return restType;
+                return getMutableArrayOrTupleType(restType, /*forceVariadic*/ false);
             }
             if (restType.target.hasRestElement) {
-                return sliceTupleType(restType, restType.target.fixedLength);
+                return getMutableArrayOrTupleType(sliceTupleType(restType, restType.target.fixedLength), /*forceVariadic*/ false);
             }
         }
         return undefined;
