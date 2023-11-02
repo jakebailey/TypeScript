@@ -1,7 +1,6 @@
 import {
     addToSeen,
     arrayFrom,
-    arrayToMap,
     AssertionLevel,
     CachedDirectoryStructureHost,
     canJsonReportNoInputFiles,
@@ -79,6 +78,7 @@ import {
     map,
     mapDefinedEntries,
     mapDefinedIterator,
+    mapIterator,
     missingFileModifiedTime,
     MultiMap,
     noop,
@@ -4226,9 +4226,9 @@ export class ProjectService {
 
     openExternalProjects(projects: protocol.ExternalProject[]): void {
         // record project list before the update
-        const projectsToClose = arrayToMap(this.externalProjects, p => p.getProjectName(), _ => true);
+        const projectsToClose = new Set(mapIterator(this.externalProjects, p => p.getProjectName()));
         forEachKey(this.externalProjectToConfiguredProjectMap, externalProjectName => {
-            projectsToClose.set(externalProjectName, true);
+            projectsToClose.add(externalProjectName);
         });
 
         for (const externalProject of projects) {
