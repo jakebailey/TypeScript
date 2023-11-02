@@ -1,6 +1,5 @@
 import {
     __String,
-    arrayToNumericMap,
     CancellationToken,
     CharacterCodes,
     ClassDeclaration,
@@ -167,7 +166,7 @@ export function createClassifier(): Classifier {
             switch (token) {
                 case SyntaxKind.SlashToken:
                 case SyntaxKind.SlashEqualsToken:
-                    if (!noRegexTable[lastNonTriviaToken] && scanner.reScanSlashToken() === SyntaxKind.RegularExpressionLiteral) {
+                    if (!noRegexSet.has(lastNonTriviaToken) && scanner.reScanSlashToken() === SyntaxKind.RegularExpressionLiteral) {
                         token = SyntaxKind.RegularExpressionLiteral;
                     }
                     break;
@@ -258,25 +257,21 @@ export function createClassifier(): Classifier {
 /// If we consider every slash token to be a regex, we could be missing cases like "1/2/3", where
 /// we have a series of divide operator. this list allows us to be more accurate by ruling out
 /// locations where a regexp cannot exist.
-const noRegexTable: true[] = arrayToNumericMap<SyntaxKind, true>(
-    [
-        SyntaxKind.Identifier,
-        SyntaxKind.StringLiteral,
-        SyntaxKind.NumericLiteral,
-        SyntaxKind.BigIntLiteral,
-        SyntaxKind.RegularExpressionLiteral,
-        SyntaxKind.ThisKeyword,
-        SyntaxKind.PlusPlusToken,
-        SyntaxKind.MinusMinusToken,
-        SyntaxKind.CloseParenToken,
-        SyntaxKind.CloseBracketToken,
-        SyntaxKind.CloseBraceToken,
-        SyntaxKind.TrueKeyword,
-        SyntaxKind.FalseKeyword,
-    ],
-    token => token,
-    () => true,
-);
+const noRegexSet = new Set([
+    SyntaxKind.Identifier,
+    SyntaxKind.StringLiteral,
+    SyntaxKind.NumericLiteral,
+    SyntaxKind.BigIntLiteral,
+    SyntaxKind.RegularExpressionLiteral,
+    SyntaxKind.ThisKeyword,
+    SyntaxKind.PlusPlusToken,
+    SyntaxKind.MinusMinusToken,
+    SyntaxKind.CloseParenToken,
+    SyntaxKind.CloseBracketToken,
+    SyntaxKind.CloseBraceToken,
+    SyntaxKind.TrueKeyword,
+    SyntaxKind.FalseKeyword,
+]);
 
 function getNewEndOfLineState(scanner: Scanner, token: SyntaxKind, lastOnTemplateStack: SyntaxKind | undefined): EndOfLineState | undefined {
     switch (token) {

@@ -1470,19 +1470,6 @@ export function arrayToMap<K, V1, V2>(array: readonly V1[], makeKey: (value: V1)
 }
 
 /** @internal */
-export function arrayToNumericMap<T>(array: readonly T[], makeKey: (value: T) => number): T[];
-/** @internal */
-export function arrayToNumericMap<T, U>(array: readonly T[], makeKey: (value: T) => number, makeValue: (value: T) => U): U[];
-/** @internal */
-export function arrayToNumericMap<T, U>(array: readonly T[], makeKey: (value: T) => number, makeValue: (value: T) => T | U = identity): (T | U)[] {
-    const result: (T | U)[] = [];
-    for (const value of array) {
-        result[makeKey(value)] = makeValue(value);
-    }
-    return result;
-}
-
-/** @internal */
 export function arrayToMultiMap<K, V>(values: readonly V[], makeKey: (value: V) => K): MultiMap<K, V>;
 /** @internal */
 export function arrayToMultiMap<K, V, U>(values: readonly V[], makeKey: (value: V) => K, makeValue: (value: V) => U): MultiMap<K, U>;
