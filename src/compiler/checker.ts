@@ -2367,7 +2367,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         return visitEachChild(node, markAsSynthetic, /*context*/ undefined);
     }
 
-    function getEmitResolver(sourceFile: SourceFile, cancellationToken: CancellationToken) {
+    function getEmitResolver(sourceFile?: SourceFile, cancellationToken?: CancellationToken) {
         // Ensure we have all the type information in place for this file so that all the
         // emitter questions of this resolver will return the right information.
         getDiagnostics(sourceFile, cancellationToken);
@@ -47037,7 +47037,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
     }
 
-    function getDiagnostics(sourceFile: SourceFile, ct: CancellationToken): Diagnostic[] {
+    function getDiagnostics(sourceFile?: SourceFile, ct?: CancellationToken): Diagnostic[] {
         try {
             // Record the cancellation token so it can be checked later on during checkSourceElement.
             // Do this in a finally block so we can ensure that it gets reset back to nothing after
@@ -47071,7 +47071,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         addLazyDiagnostic = oldAddLazyDiagnostics;
     }
 
-    function getDiagnosticsWorker(sourceFile: SourceFile): Diagnostic[] {
+    function getDiagnosticsWorker(sourceFile: SourceFile | undefined): Diagnostic[] {
         if (sourceFile) {
             ensurePendingDiagnosticWorkComplete();
             // Some global diagnostics are deferred until they are needed and
@@ -48372,7 +48372,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         }
     }
 
-    function createTypeOfDeclaration(declarationIn: AccessorDeclaration | VariableLikeDeclaration | PropertyAccessExpression, enclosingDeclaration: Node, flags: NodeBuilderFlags, tracker: SymbolTracker, addUndefined?: boolean) {
+    function createTypeOfDeclaration(declarationIn: AccessorDeclaration | VariableLikeDeclaration | PropertyAccessExpression | ElementAccessExpression | BinaryExpression, enclosingDeclaration: Node, flags: NodeBuilderFlags, tracker: SymbolTracker, addUndefined?: boolean) {
         const declaration = getParseTreeNode(declarationIn, isVariableLikeOrAccessor);
         if (!declaration) {
             return factory.createToken(SyntaxKind.AnyKeyword) as KeywordTypeNode;

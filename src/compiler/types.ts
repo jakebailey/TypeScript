@@ -4998,8 +4998,8 @@ export interface TypeChecker {
         & ((type: Type, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined, tracker?: SymbolTracker) => TypeNode | undefined); // eslint-disable-line @typescript-eslint/unified-signatures
     /** Note that the resulting nodes cannot be checked. */
     signatureToSignatureDeclaration:
-        & ((signature: Signature, kind: SyntaxKind, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined) => SignatureDeclaration & { typeArguments?: NodeArray<TypeNode>; } | undefined)
-        & ((signature: Signature, kind: SyntaxKind, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined, tracker?: SymbolTracker) => SignatureDeclaration & { typeArguments?: NodeArray<TypeNode>; } | undefined); // eslint-disable-line @typescript-eslint/unified-signatures
+        & ((signature: Signature, kind: SignatureDeclaration["kind"], enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined) => SignatureDeclaration & { typeArguments?: NodeArray<TypeNode>; } | undefined)
+        & ((signature: Signature, kind: SignatureDeclaration["kind"], enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined, tracker?: SymbolTracker) => SignatureDeclaration & { typeArguments?: NodeArray<TypeNode>; } | undefined); // eslint-disable-line @typescript-eslint/unified-signatures
     /** Note that the resulting nodes cannot be checked. */
     indexInfoToIndexSignatureDeclaration:
         & ((indexInfo: IndexInfo, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined) => IndexSignatureDeclaration | undefined)
@@ -5210,7 +5210,7 @@ export interface TypeChecker {
         flags: SignatureFlags,
     ) => Signature;
     /** @internal */ createSymbol: (flags: SymbolFlags, name: __String) => TransientSymbol;
-    /** @internal */ createIndexInfo: (keyType: Type, type: Type, isReadonly: boolean, declaration?: SignatureDeclaration) => IndexInfo;
+    /** @internal */ createIndexInfo: (keyType: Type, type: Type, isReadonly: boolean, declaration?: IndexSignatureDeclaration) => IndexInfo;
     /** @internal */ isSymbolAccessible: (symbol: Symbol, enclosingDeclaration: Node | undefined, meaning: SymbolFlags, shouldComputeAliasToMarkVisible: boolean) => SymbolAccessibilityResult;
     /** @internal */ tryFindAmbientModule: (moduleName: string) => Symbol | undefined;
     /** @internal */ tryFindAmbientModuleWithoutAugmentations: (moduleName: string) => Symbol | undefined;
