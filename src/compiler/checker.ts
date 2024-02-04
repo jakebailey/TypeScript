@@ -48534,11 +48534,11 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         return literalTypeToNode(type as FreshableType, node, tracker);
     }
 
-    function getJsxFactoryEntity(location: Node): EntityName | undefined {
+    function getJsxFactoryEntity(location?: Node): EntityName | undefined {
         return location ? (getJsxNamespace(location), (getSourceFileOfNode(location).localJsxFactory || _jsxFactoryEntity)) : _jsxFactoryEntity;
     }
 
-    function getJsxFragmentFactoryEntity(location: Node): EntityName | undefined {
+    function getJsxFragmentFactoryEntity(location?: Node): EntityName | undefined {
         if (location) {
             const file = getSourceFileOfNode(location);
             if (file) {

@@ -203,7 +203,7 @@ export function createEmitHelperFactory(context: TransformationContext): EmitHel
 
     // TypeScript Helpers
 
-    function createDecorateHelper(decoratorExpressions: Expression[], target: Expression, memberName?: Expression, descriptor?: Expression) {
+    function createDecorateHelper(decoratorExpressions: readonly Expression[], target: Expression, memberName?: Expression, descriptor?: Expression) {
         context.requestEmitHelper(decorateHelper);
 
         const argumentsArray: Expression[] = [];
@@ -397,7 +397,7 @@ export function createEmitHelperFactory(context: TransformationContext): EmitHel
     }
     // ES2018 Helpers
 
-    function createAssignHelper(attributesSegments: Expression[]) {
+    function createAssignHelper(attributesSegments: readonly Expression[]) {
         if (getEmitScriptTarget(context.getCompilerOptions()) >= ScriptTarget.ES2015) {
             return factory.createCallExpression(factory.createPropertyAccessExpression(factory.createIdentifier("Object"), "assign"), /*typeArguments*/ undefined, attributesSegments);
         }
@@ -498,7 +498,7 @@ export function createEmitHelperFactory(context: TransformationContext): EmitHel
 
     // ES2017 Helpers
 
-    function createAwaiterHelper(hasLexicalThis: boolean, argumentsExpression: Expression | undefined, promiseConstructor: EntityName | Expression | undefined, parameters: readonly ParameterDeclaration[], body: Block) {
+    function createAwaiterHelper(hasLexicalThis: boolean, argumentsExpression: Expression | undefined, promiseConstructor: EntityName | Expression | undefined, parameters: readonly ParameterDeclaration[] | undefined, body: Block) {
         context.requestEmitHelper(awaiterHelper);
 
         const generatorFunc = factory.createFunctionExpression(

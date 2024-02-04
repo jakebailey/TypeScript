@@ -5713,7 +5713,7 @@ export interface EmitResolver {
     createReturnTypeOfSignatureDeclaration: (signatureDeclaration: SignatureDeclaration, enclosingDeclaration: Node, flags: NodeBuilderFlags, tracker: SymbolTracker) => TypeNode | undefined;
     createTypeOfExpression: (expr: Expression, enclosingDeclaration: Node, flags: NodeBuilderFlags, tracker: SymbolTracker) => TypeNode | undefined;
     createLiteralConstValue: (node: VariableDeclaration | PropertyDeclaration | PropertySignature | ParameterDeclaration, tracker: SymbolTracker) => Expression;
-    isSymbolAccessible: (symbol: Symbol, enclosingDeclaration: Node | undefined, meaning: SymbolFlags | undefined, shouldComputeAliasToMarkVisible: boolean) => SymbolAccessibilityResult;
+    isSymbolAccessible: (symbol: Symbol, enclosingDeclaration: Node | undefined, meaning: SymbolFlags, shouldComputeAliasToMarkVisible: boolean) => SymbolAccessibilityResult;
     isEntityNameVisible: (entityName: EntityNameOrEntityNameExpression, enclosingDeclaration: Node) => SymbolVisibilityResult;
     // Returns the constant value this property access resolves to, or 'undefined' for a non-constant
     getConstantValue: (node: EnumMember | PropertyAccessExpression | ElementAccessExpression) => string | number | undefined;
