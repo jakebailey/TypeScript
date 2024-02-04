@@ -8274,8 +8274,8 @@ export interface CallBinding {
 
 /** @internal */
 export interface ParenthesizerRules {
-    getParenthesizeLeftSideOfBinaryForOperator: (binaryOperator: SyntaxKind) => (leftSide: Expression) => Expression;
-    getParenthesizeRightSideOfBinaryForOperator: (binaryOperator: SyntaxKind) => (rightSide: Expression) => Expression;
+    getParenthesizeLeftSideOfBinaryForOperator: (binaryOperator: BinaryOperator) => (leftSide: Expression) => Expression;
+    getParenthesizeRightSideOfBinaryForOperator: (binaryOperator: BinaryOperator) => (rightSide: Expression) => Expression;
     parenthesizeLeftSideOfBinary: (binaryOperator: SyntaxKind, leftSide: Expression) => Expression;
     parenthesizeRightSideOfBinary: (binaryOperator: SyntaxKind, leftSide: Expression | undefined, rightSide: Expression) => Expression;
     parenthesizeExpressionOfComputedPropertyName: (expression: Expression) => Expression;
