@@ -212,7 +212,7 @@ function getOrCreateValueMapFromConfigFileMap<K extends string, V>(configFileMap
  *
  * @internal
  */
-export function getCurrentTime(host: { now?(): Date; }) {
+export function getCurrentTime(host: { now?: () => Date; }) {
     return host.now ? host.now() : new Date();
 }
 
@@ -224,30 +224,30 @@ export interface ReportFileInError {
 }
 
 export interface SolutionBuilderHostBase<T extends BuilderProgram> extends ProgramHost<T> {
-    createDirectory?(path: string): void;
+    createDirectory?: (path: string) => void;
     /**
      * Should provide create directory and writeFile if done of invalidatedProjects is not invoked with
      * writeFileCallback
      */
-    writeFile?(path: string, data: string, writeByteOrderMark?: boolean): void;
+    writeFile?: (path: string, data: string, writeByteOrderMark?: boolean) => void;
     getCustomTransformers?: (project: string) => CustomTransformers | undefined;
 
-    getModifiedTime(fileName: string): Date | undefined;
-    setModifiedTime(fileName: string, date: Date): void;
-    deleteFile(fileName: string): void;
-    getParsedCommandLine?(fileName: string): ParsedCommandLine | undefined;
+    getModifiedTime: (fileName: string) => Date | undefined;
+    setModifiedTime: (fileName: string, date: Date) => void;
+    deleteFile: (fileName: string) => void;
+    getParsedCommandLine?: (fileName: string) => ParsedCommandLine | undefined;
 
     reportDiagnostic: DiagnosticReporter; // Technically we want to move it out and allow steps of actions on Solution, but for now just merge stuff in build host here
     reportSolutionBuilderStatus: DiagnosticReporter;
 
     // TODO: To do better with watch mode and normal build mode api that creates program and emits files
     // This currently helps enable --diagnostics and --extendedDiagnostics
-    afterProgramEmitAndDiagnostics?(program: T): void;
-    /** @deprecated @internal */ beforeEmitBundle?(config: ParsedCommandLine): void;
-    /** @deprecated @internal */ afterEmitBundle?(config: ParsedCommandLine): void;
+    afterProgramEmitAndDiagnostics?: (program: T) => void;
+    /** @deprecated @internal */ beforeEmitBundle?: (config: ParsedCommandLine) => void;
+    /** @deprecated @internal */ afterEmitBundle?: (config: ParsedCommandLine) => void;
 
     // For testing
-    /** @internal */ now?(): Date;
+    /** @internal */ now?: () => Date;
 }
 
 export interface SolutionBuilderHost<T extends BuilderProgram> extends SolutionBuilderHostBase<T> {
@@ -278,19 +278,19 @@ export function getBuildOrderFromAnyBuildOrder(anyBuildOrder: AnyBuildOrder): Bu
 }
 
 export interface SolutionBuilder<T extends BuilderProgram> {
-    build(project?: string, cancellationToken?: CancellationToken, writeFile?: WriteFileCallback, getCustomTransformers?: (project: string) => CustomTransformers): ExitStatus;
-    clean(project?: string): ExitStatus;
-    buildReferences(project: string, cancellationToken?: CancellationToken, writeFile?: WriteFileCallback, getCustomTransformers?: (project: string) => CustomTransformers): ExitStatus;
-    cleanReferences(project?: string): ExitStatus;
-    getNextInvalidatedProject(cancellationToken?: CancellationToken): InvalidatedProject<T> | undefined;
+    build: (project?: string, cancellationToken?: CancellationToken, writeFile?: WriteFileCallback, getCustomTransformers?: (project: string) => CustomTransformers) => ExitStatus;
+    clean: (project?: string) => ExitStatus;
+    buildReferences: (project: string, cancellationToken?: CancellationToken, writeFile?: WriteFileCallback, getCustomTransformers?: (project: string) => CustomTransformers) => ExitStatus;
+    cleanReferences: (project?: string) => ExitStatus;
+    getNextInvalidatedProject: (cancellationToken?: CancellationToken) => InvalidatedProject<T> | undefined;
 
     // Currently used for testing but can be made public if needed:
-    /** @internal */ getBuildOrder(): AnyBuildOrder;
+    /** @internal */ getBuildOrder: () => AnyBuildOrder;
 
     // Testing only
-    /** @internal */ getUpToDateStatusOfProject(project: string): UpToDateStatus;
-    /** @internal */ invalidateProject(configFilePath: ResolvedConfigFilePath, updateLevel?: ProgramUpdateLevel): void;
-    /** @internal */ close(): void;
+    /** @internal */ getUpToDateStatusOfProject: (project: string) => UpToDateStatus;
+    /** @internal */ invalidateProject: (configFilePath: ResolvedConfigFilePath, updateLevel?: ProgramUpdateLevel) => void;
+    /** @internal */ close: () => void;
 }
 
 /**
@@ -841,14 +841,14 @@ export interface InvalidatedProjectBase {
     /**
      *  To dispose this project and ensure that all the necessary actions are taken and state is updated accordingly
      */
-    done(cancellationToken?: CancellationToken, writeFile?: WriteFileCallback, customTransformers?: CustomTransformers): ExitStatus;
-    getCompilerOptions(): CompilerOptions;
-    getCurrentDirectory(): string;
+    done: (cancellationToken?: CancellationToken, writeFile?: WriteFileCallback, customTransformers?: CustomTransformers) => ExitStatus;
+    getCompilerOptions: () => CompilerOptions;
+    getCurrentDirectory: () => string;
 }
 
 export interface UpdateOutputFileStampsProject extends InvalidatedProjectBase {
     readonly kind: InvalidatedProjectKind.UpdateOutputFileStamps;
-    updateOutputFileStatmps(): void;
+    updateOutputFileStatmps: () => void;
 }
 
 export interface BuildInvalidedProject<T extends BuilderProgram> extends InvalidatedProjectBase {
@@ -857,17 +857,17 @@ export interface BuildInvalidedProject<T extends BuilderProgram> extends Invalid
      * Emitting with this builder program without the api provided for this project
      * can result in build system going into invalid state as files written reflect the state of the project
      */
-    getBuilderProgram(): T | undefined;
-    getProgram(): Program | undefined;
-    getSourceFile(fileName: string): SourceFile | undefined;
-    getSourceFiles(): readonly SourceFile[];
-    getOptionsDiagnostics(cancellationToken?: CancellationToken): readonly Diagnostic[];
-    getGlobalDiagnostics(cancellationToken?: CancellationToken): readonly Diagnostic[];
-    getConfigFileParsingDiagnostics(): readonly Diagnostic[];
-    getSyntacticDiagnostics(sourceFile?: SourceFile, cancellationToken?: CancellationToken): readonly Diagnostic[];
-    getAllDependencies(sourceFile: SourceFile): readonly string[];
-    getSemanticDiagnostics(sourceFile?: SourceFile, cancellationToken?: CancellationToken): readonly Diagnostic[];
-    getSemanticDiagnosticsOfNextAffectedFile(cancellationToken?: CancellationToken, ignoreSourceFile?: (sourceFile: SourceFile) => boolean): AffectedFileResult<readonly Diagnostic[]>;
+    getBuilderProgram: () => T | undefined;
+    getProgram: () => Program | undefined;
+    getSourceFile: (fileName: string) => SourceFile | undefined;
+    getSourceFiles: () => readonly SourceFile[];
+    getOptionsDiagnostics: (cancellationToken?: CancellationToken) => readonly Diagnostic[];
+    getGlobalDiagnostics: (cancellationToken?: CancellationToken) => readonly Diagnostic[];
+    getConfigFileParsingDiagnostics: () => readonly Diagnostic[];
+    getSyntacticDiagnostics: (sourceFile?: SourceFile, cancellationToken?: CancellationToken) => readonly Diagnostic[];
+    getAllDependencies: (sourceFile: SourceFile) => readonly string[];
+    getSemanticDiagnostics: (sourceFile?: SourceFile, cancellationToken?: CancellationToken) => readonly Diagnostic[];
+    getSemanticDiagnosticsOfNextAffectedFile: (cancellationToken?: CancellationToken, ignoreSourceFile?: (sourceFile: SourceFile) => boolean) => AffectedFileResult<readonly Diagnostic[]>;
     /*
      * Calling emit directly with targetSourceFile and emitOnlyDtsFiles set to true is not advised since
      * emit in build system is responsible in updating status of the project
@@ -876,7 +876,7 @@ export interface BuildInvalidedProject<T extends BuilderProgram> extends Invalid
      * (if that emit of that source file is required it would be emitted again when making sure invalidated project is completed)
      * This emit is not considered actual emit (and hence uptodate status is not reflected if
      */
-    emit(targetSourceFile?: SourceFile, writeFile?: WriteFileCallback, cancellationToken?: CancellationToken, emitOnlyDtsFiles?: boolean, customTransformers?: CustomTransformers): EmitResult | undefined;
+    emit: (targetSourceFile?: SourceFile, writeFile?: WriteFileCallback, cancellationToken?: CancellationToken, emitOnlyDtsFiles?: boolean, customTransformers?: CustomTransformers) => EmitResult | undefined;
     // TODO(shkamat):: investigate later if we can emit even when there are declaration diagnostics
     // emitNextAffectedFile(writeFile?: WriteFileCallback, cancellationToken?: CancellationToken, customTransformers?: CustomTransformers): AffectedFileResult<EmitResult>;
 }
@@ -884,7 +884,7 @@ export interface BuildInvalidedProject<T extends BuilderProgram> extends Invalid
 /** @deprecated */
 export interface UpdateBundleProject<T extends BuilderProgram> extends InvalidatedProjectBase {
     readonly kind: InvalidatedProjectKind.UpdateBundle;
-    emit(writeFile?: WriteFileCallback, customTransformers?: CustomTransformers): EmitResult | BuildInvalidedProject<T> | undefined;
+    emit: (writeFile?: WriteFileCallback, customTransformers?: CustomTransformers) => EmitResult | BuildInvalidedProject<T> | undefined;
 }
 
 export type InvalidatedProject<T extends BuilderProgram> = UpdateOutputFileStampsProject | BuildInvalidedProject<T> | UpdateBundleProject<T>;

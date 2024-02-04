@@ -1043,9 +1043,9 @@ function createWatchOfFilesAndCompilerOptions(
 }
 
 interface SolutionPerformance {
-    addAggregateStatistic(s: Statistic): void;
-    forEachAggregateStatistics(cb: (s: Statistic) => void): void;
-    clear(): void;
+    addAggregateStatistic: (s: Statistic) => void;
+    forEachAggregateStatistics: (cb: (s: Statistic) => void) => void;
+    clear: () => void;
 }
 
 function enableSolutionPerformance(system: System, options: BuildOptions) {

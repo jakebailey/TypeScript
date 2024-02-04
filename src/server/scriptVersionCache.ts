@@ -18,10 +18,10 @@ const lineCollectionCapacity = 4;
 
 /** @internal */
 export interface LineCollection {
-    charCount(): number;
-    lineCount(): number;
-    isLeaf(): this is LineLeaf;
-    walk(rangeStart: number, rangeLength: number, walkFns: LineIndexWalker): void;
+    charCount: () => number;
+    lineCount: () => number;
+    isLeaf: () => this is LineLeaf;
+    walk: (rangeStart: number, rangeLength: number, walkFns: LineIndexWalker) => void;
 }
 
 /** @internal */
@@ -44,9 +44,9 @@ export const enum CharRangeSection {
 export interface LineIndexWalker {
     goSubtree: boolean;
     done: boolean;
-    leaf(relativeStart: number, relativeLength: number, lineCollection: LineLeaf): void;
-    pre?(relativeStart: number, relativeLength: number, lineCollection: LineCollection, parent: LineNode, nodeType: CharRangeSection): void;
-    post?(relativeStart: number, relativeLength: number, lineCollection: LineCollection, parent: LineNode, nodeType: CharRangeSection): void;
+    leaf: (relativeStart: number, relativeLength: number, lineCollection: LineLeaf) => void;
+    pre?: (relativeStart: number, relativeLength: number, lineCollection: LineCollection, parent: LineNode, nodeType: CharRangeSection) => void;
+    post?: (relativeStart: number, relativeLength: number, lineCollection: LineCollection, parent: LineNode, nodeType: CharRangeSection) => void;
 }
 
 class EditWalker implements LineIndexWalker {

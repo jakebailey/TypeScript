@@ -840,16 +840,16 @@ export function getAutomaticTypeDirectiveNames(options: CompilerOptions, host: M
 }
 
 export interface TypeReferenceDirectiveResolutionCache extends PerDirectoryResolutionCache<ResolvedTypeReferenceDirectiveWithFailedLookupLocations>, NonRelativeNameResolutionCache<ResolvedTypeReferenceDirectiveWithFailedLookupLocations>, PackageJsonInfoCache {
-    /** @internal */ clearAllExceptPackageJsonInfoCache(): void;
+    /** @internal */ clearAllExceptPackageJsonInfoCache: () => void;
 }
 
 export interface ModeAwareCache<T> {
-    get(key: string, mode: ResolutionMode): T | undefined;
-    set(key: string, mode: ResolutionMode, value: T): this;
-    delete(key: string, mode: ResolutionMode): this;
-    has(key: string, mode: ResolutionMode): boolean;
-    forEach(cb: (elem: T, key: string, mode: ResolutionMode) => void): void;
-    size(): number;
+    get: (key: string, mode: ResolutionMode) => T | undefined;
+    set: (key: string, mode: ResolutionMode, value: T) => this;
+    delete: (key: string, mode: ResolutionMode) => this;
+    has: (key: string, mode: ResolutionMode) => boolean;
+    forEach: (cb: (elem: T, key: string, mode: ResolutionMode) => void) => void;
+    size: () => number;
 }
 
 /**
@@ -857,39 +857,39 @@ export interface ModeAwareCache<T> {
  * This assumes that any module id will have the same resolution for sibling files located in the same folder.
  */
 export interface PerDirectoryResolutionCache<T> {
-    getFromDirectoryCache(name: string, mode: ResolutionMode, directoryName: string, redirectedReference: ResolvedProjectReference | undefined): T | undefined;
-    getOrCreateCacheForDirectory(directoryName: string, redirectedReference?: ResolvedProjectReference): ModeAwareCache<T>;
-    clear(): void;
+    getFromDirectoryCache: (name: string, mode: ResolutionMode, directoryName: string, redirectedReference: ResolvedProjectReference | undefined) => T | undefined;
+    getOrCreateCacheForDirectory: (directoryName: string, redirectedReference?: ResolvedProjectReference) => ModeAwareCache<T>;
+    clear: () => void;
     /**
      *  Updates with the current compilerOptions the cache will operate with.
      *  This updates the redirects map as well if needed so module resolutions are cached if they can across the projects
      */
-    update(options: CompilerOptions): void;
+    update: (options: CompilerOptions) => void;
     /** @internal */ directoryToModuleNameMap: CacheWithRedirects<Path, ModeAwareCache<T>>;
     /** @internal */ isReadonly?: boolean;
 }
 
 export interface NonRelativeNameResolutionCache<T> {
-    getFromNonRelativeNameCache(nonRelativeName: string, mode: ResolutionMode, directoryName: string, redirectedReference: ResolvedProjectReference | undefined): T | undefined;
-    getOrCreateCacheForNonRelativeName(nonRelativeName: string, mode: ResolutionMode, redirectedReference?: ResolvedProjectReference): PerNonRelativeNameCache<T>;
-    clear(): void;
+    getFromNonRelativeNameCache: (nonRelativeName: string, mode: ResolutionMode, directoryName: string, redirectedReference: ResolvedProjectReference | undefined) => T | undefined;
+    getOrCreateCacheForNonRelativeName: (nonRelativeName: string, mode: ResolutionMode, redirectedReference?: ResolvedProjectReference) => PerNonRelativeNameCache<T>;
+    clear: () => void;
     /**
      *  Updates with the current compilerOptions the cache will operate with.
      *  This updates the redirects map as well if needed so module resolutions are cached if they can across the projects
      */
-    update(options: CompilerOptions): void;
+    update: (options: CompilerOptions) => void;
     /** @internal */ isReadonly?: boolean;
 }
 
 export interface PerNonRelativeNameCache<T> {
-    get(directory: string): T | undefined;
-    set(directory: string, result: T): void;
+    get: (directory: string) => T | undefined;
+    set: (directory: string, result: T) => void;
     /** @internal */ isReadonly?: boolean;
 }
 
 export interface ModuleResolutionCache extends PerDirectoryResolutionCache<ResolvedModuleWithFailedLookupLocations>, NonRelativeModuleNameResolutionCache, PackageJsonInfoCache {
-    getPackageJsonInfoCache(): PackageJsonInfoCache;
-    /** @internal */ clearAllExceptPackageJsonInfoCache(): void;
+    getPackageJsonInfoCache: () => PackageJsonInfoCache;
+    /** @internal */ clearAllExceptPackageJsonInfoCache: () => void;
     /** @internal */ optionsToRedirectsKey: Map<CompilerOptions, RedirectsCacheKey>;
 }
 
@@ -899,7 +899,7 @@ export interface ModuleResolutionCache extends PerDirectoryResolutionCache<Resol
  */
 export interface NonRelativeModuleNameResolutionCache extends NonRelativeNameResolutionCache<ResolvedModuleWithFailedLookupLocations>, PackageJsonInfoCache {
     /** @deprecated Use getOrCreateCacheForNonRelativeName */
-    getOrCreateCacheForModuleName(nonRelativeModuleName: string, mode: ResolutionMode, redirectedReference?: ResolvedProjectReference): PerModuleNameCache;
+    getOrCreateCacheForModuleName: (nonRelativeModuleName: string, mode: ResolutionMode, redirectedReference?: ResolvedProjectReference) => PerModuleNameCache;
 }
 
 /** @internal */
@@ -922,10 +922,10 @@ export function isMissingPackageJsonInfo(entry: PackageJsonInfoCacheEntry | unde
 }
 
 export interface PackageJsonInfoCache {
-    /** @internal */ getPackageJsonInfo(packageJsonPath: string): PackageJsonInfoCacheEntry | undefined;
-    /** @internal */ setPackageJsonInfo(packageJsonPath: string, info: PackageJsonInfoCacheEntry): void;
-    /** @internal */ getInternalMap(): Map<Path, PackageJsonInfoCacheEntry> | undefined;
-    clear(): void;
+    /** @internal */ getPackageJsonInfo: (packageJsonPath: string) => PackageJsonInfoCacheEntry | undefined;
+    /** @internal */ setPackageJsonInfo: (packageJsonPath: string, info: PackageJsonInfoCacheEntry) => void;
+    /** @internal */ getInternalMap: () => Map<Path, PackageJsonInfoCacheEntry> | undefined;
+    clear: () => void;
     /** @internal */ isReadonly?: boolean;
 }
 
@@ -954,11 +954,11 @@ export function getKeyForCompilerOptions(options: CompilerOptions, affectingOpti
 
 /** @internal */
 export interface CacheWithRedirects<K, V> {
-    getMapOfCacheRedirects(redirectedReference: ResolvedProjectReference | undefined): Map<K, V> | undefined;
-    getOrCreateMapOfCacheRedirects(redirectedReference: ResolvedProjectReference | undefined): Map<K, V>;
-    update(newOptions: CompilerOptions): void;
-    clear(): void;
-    getOwnMap(): Map<K, V>;
+    getMapOfCacheRedirects: (redirectedReference: ResolvedProjectReference | undefined) => Map<K, V> | undefined;
+    getOrCreateMapOfCacheRedirects: (redirectedReference: ResolvedProjectReference | undefined) => Map<K, V>;
+    update: (newOptions: CompilerOptions) => void;
+    clear: () => void;
+    getOwnMap: () => Map<K, V>;
 }
 
 /** @internal */
@@ -1260,8 +1260,8 @@ function createNonRelativeNameResolutionCache<T>(
 }
 
 interface ModuleOrTypeReferenceResolutionCache<T> extends PerDirectoryResolutionCache<T>, NonRelativeNameResolutionCache<T>, PackageJsonInfoCache {
-    getPackageJsonInfoCache(): PackageJsonInfoCache;
-    clearAllExceptPackageJsonInfoCache(): void;
+    getPackageJsonInfoCache: () => PackageJsonInfoCache;
+    clearAllExceptPackageJsonInfoCache: () => void;
     optionsToRedirectsKey: Map<CompilerOptions, RedirectsCacheKey>;
 }
 function createModuleOrTypeReferenceResolutionCache<T>(

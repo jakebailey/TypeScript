@@ -57,9 +57,9 @@ interface LogOptions {
 }
 
 interface NodeChildProcess {
-    send(message: any, sendHandle?: any): void;
-    on(message: "message" | "exit", f: (m: any) => void): void;
-    kill(): void;
+    send: (message: any, sendHandle?: any) => void;
+    on: (message: "message" | "exit", f: (m: any) => void) => void;
+    kill: () => void;
     pid: number;
 }
 
@@ -71,7 +71,7 @@ interface ReadLineOptions {
 }
 
 interface NodeSocket {
-    write(data: string, encoding: string): boolean;
+    write: (data: string, encoding: string) => boolean;
 }
 
 function parseLoggingEnvironmentString(logEnvStr: string | undefined): LogOptions {
@@ -143,17 +143,17 @@ function parseServerMode(): LanguageServiceMode | string | undefined {
 export function initializeNodeSystem(): StartInput {
     const sys = Debug.checkDefined(ts.sys) as ServerHost;
     const childProcess: {
-        execFileSync(file: string, args: string[], options: { stdio: "ignore"; env: MapLike<string>; }): string | Buffer;
+        execFileSync: (file: string, args: string[], options: { stdio: "ignore"; env: MapLike<string>; }) => string | Buffer;
     } = require("child_process");
 
     interface Stats {
-        isFile(): boolean;
-        isDirectory(): boolean;
-        isBlockDevice(): boolean;
-        isCharacterDevice(): boolean;
-        isSymbolicLink(): boolean;
-        isFIFO(): boolean;
-        isSocket(): boolean;
+        isFile: () => boolean;
+        isDirectory: () => boolean;
+        isBlockDevice: () => boolean;
+        isCharacterDevice: () => boolean;
+        isSymbolicLink: () => boolean;
+        isFIFO: () => boolean;
+        isSocket: () => boolean;
         dev: number;
         ino: number;
         mode: number;
@@ -171,11 +171,11 @@ export function initializeNodeSystem(): StartInput {
     }
 
     const fs: {
-        openSync(path: string, options: string): number;
-        close(fd: number, callback: (err: NodeJS.ErrnoException) => void): void;
-        writeSync(fd: number, buffer: Buffer, offset: number, length: number, position?: number): number;
-        statSync(path: string): Stats;
-        stat(path: string, callback?: (err: NodeJS.ErrnoException, stats: Stats) => any): void;
+        openSync: (path: string, options: string) => number;
+        close: (fd: number, callback: (err: NodeJS.ErrnoException) => void) => void;
+        writeSync: (fd: number, buffer: Buffer, offset: number, length: number, position?: number) => number;
+        statSync: (path: string) => Stats;
+        stat: (path: string, callback?: (err: NodeJS.ErrnoException, stats: Stats) => any) => void;
     } = require("fs");
 
     class Logger implements Logger {
@@ -471,20 +471,20 @@ function parseEventPort(eventPortStr: string | undefined) {
 }
 function startNodeSession(options: StartSessionOptions, logger: Logger, cancellationToken: ServerCancellationToken) {
     const childProcess: {
-        fork(modulePath: string, args: string[], options?: { execArgv: string[]; env?: MapLike<string>; }): NodeChildProcess;
+        fork: (modulePath: string, args: string[], options?: { execArgv: string[]; env?: MapLike<string>; }) => NodeChildProcess;
     } = require("child_process");
 
     const os: {
-        homedir?(): string;
-        tmpdir(): string;
+        homedir?: () => string;
+        tmpdir: () => string;
     } = require("os");
 
     const net: {
-        connect(options: { port: number; }, onConnect?: () => void): NodeSocket;
+        connect: (options: { port: number; }, onConnect?: () => void) => NodeSocket;
     } = require("net");
 
     const readline: {
-        createInterface(options: ReadLineOptions): NodeJS.EventEmitter;
+        createInterface: (options: ReadLineOptions) => NodeJS.EventEmitter;
     } = require("readline");
 
     const rl = readline.createInterface({

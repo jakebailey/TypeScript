@@ -48,12 +48,12 @@ export interface PatternMatcher {
     // this will return a successful match, having only tested "SK" against "SyntaxKind".  At
     // that point a call can be made to 'getMatches("SyntaxKind", "ts.compiler")', with the
     // work to create 'ts.compiler' only being done once the first match succeeded.
-    getMatchForLastSegmentOfPattern(candidate: string): PatternMatch | undefined;
+    getMatchForLastSegmentOfPattern: (candidate: string) => PatternMatch | undefined;
 
     // Fully checks a candidate, with an dotted container, against the search pattern.
     // The candidate must match the last part of the search pattern, and the dotted container
     // must match the preceding segments of the pattern.
-    getFullMatch(candidateContainers: readonly string[], candidate: string): PatternMatch | undefined;
+    getFullMatch: (candidateContainers: readonly string[], candidate: string) => PatternMatch | undefined;
 
     // Whether or not the pattern contained dots or not.  Clients can use this to determine
     // If they should call getMatches, or if getMatchesForLastSegmentOfPattern is sufficient.

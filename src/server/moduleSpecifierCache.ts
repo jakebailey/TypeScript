@@ -13,8 +13,8 @@ import {
 
 /** @internal */
 export interface ModuleSpecifierResolutionCacheHost {
-    watchNodeModulesForPackageJsonChanges(directoryPath: string): FileWatcher;
-    toPath(fileName: string): Path;
+    watchNodeModulesForPackageJsonChanges: (directoryPath: string) => FileWatcher;
+    toPath: (fileName: string) => Path;
 }
 
 /** @internal */

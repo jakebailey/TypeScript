@@ -54,16 +54,16 @@ export interface ParseConfigInput {
     basePath?: string;
     existingOptions?: ts.CompilerOptions;
     existingWatchOptions?: ts.WatchOptions;
-    baselineParsed(baseline: string[], parsed: ts.ParsedCommandLine): void;
+    baselineParsed: (baseline: string[], parsed: ts.ParsedCommandLine) => void;
 }
 export interface BaselineParseConfigInput {
     scenario: string;
     subScenario: string;
-    input(): ParseConfigInput[];
+    input: () => ParseConfigInput[];
     skipJson?: boolean;
     skipErrors?: boolean;
     skipFs?: boolean;
-    header?(baseline: string[]): void;
+    header?: (baseline: string[]) => void;
 }
 export function baselineParseConfig(input: BaselineParseConfigInput) {
     if (!input.skipJson) baselineParseConfigWith("with json api", getParsedCommandJson, input);

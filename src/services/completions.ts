@@ -563,8 +563,8 @@ function originIsComputedPropertyName(origin: SymbolOriginInfo | undefined): ori
 
 /** @internal */
 export interface UniqueNameSet {
-    add(name: string): void;
-    has(name: string): boolean;
+    add: (name: string) => void;
+    has: (name: string) => boolean;
 }
 
 /**

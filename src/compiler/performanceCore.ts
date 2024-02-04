@@ -15,11 +15,11 @@ export interface PerformanceHooks {
 
 /** @internal */
 export interface Performance {
-    mark(name: string): void;
-    measure(name: string, startMark?: string, endMark?: string): void;
-    clearMeasures(name?: string): void;
-    clearMarks(name?: string): void;
-    now(): number;
+    mark: (name: string) => void;
+    measure: (name: string, startMark?: string, endMark?: string) => void;
+    clearMeasures: (name?: string) => void;
+    clearMarks: (name?: string) => void;
+    now: () => number;
     timeOrigin: number;
 }
 
@@ -33,15 +33,15 @@ export interface PerformanceEntry {
 
 /** @internal */
 export interface PerformanceObserverEntryList {
-    getEntries(): PerformanceEntryList;
-    getEntriesByName(name: string, type?: string): PerformanceEntryList;
-    getEntriesByType(type: string): PerformanceEntryList;
+    getEntries: () => PerformanceEntryList;
+    getEntriesByName: (name: string, type?: string) => PerformanceEntryList;
+    getEntriesByType: (type: string) => PerformanceEntryList;
 }
 
 /** @internal */
 export interface PerformanceObserver {
-    disconnect(): void;
-    observe(options: { entryTypes: readonly ("mark" | "measure")[]; }): void;
+    disconnect: () => void;
+    observe: (options: { entryTypes: readonly ("mark" | "measure")[]; }) => void;
 }
 
 /** @internal */

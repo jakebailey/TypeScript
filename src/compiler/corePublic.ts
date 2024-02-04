@@ -30,8 +30,8 @@ export interface SortedArray<T> extends Array<T> {
  */
 export interface ReadonlyCollection<K> {
     readonly size: number;
-    has(key: K): boolean;
-    keys(): IterableIterator<K>;
+    has: (key: K) => boolean;
+    keys: () => IterableIterator<K>;
 }
 
 /**
@@ -40,8 +40,8 @@ export interface ReadonlyCollection<K> {
  * @internal
  */
 export interface Collection<K> extends ReadonlyCollection<K> {
-    delete(key: K): boolean;
-    clear(): void;
+    delete: (key: K) => boolean;
+    clear: () => void;
 }
 
 /** @internal */

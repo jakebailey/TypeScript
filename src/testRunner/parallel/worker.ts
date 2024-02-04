@@ -76,7 +76,7 @@ export function start() {
      * Mixes in an override for `clone` to support parallel test execution in a worker.
      */
     function Clone<T extends typeof Mocha.Suite | typeof Mocha.Test>(base: T) {
-        return class extends (base as new (...args: any[]) => { clone(): any; }) {
+        return class extends (base as new (...args: any[]) => { clone: () => any; }) {
             override clone() {
                 const cloned = super.clone();
                 Object.setPrototypeOf(cloned, this.constructor.prototype);

@@ -254,9 +254,9 @@ export interface PluginCreateInfo {
 }
 
 export interface PluginModule {
-    create(createInfo: PluginCreateInfo): LanguageService;
-    getExternalFiles?(proj: Project, updateLevel: ProgramUpdateLevel): string[];
-    onConfigurationChanged?(config: any): void;
+    create: (createInfo: PluginCreateInfo) => LanguageService;
+    getExternalFiles?: (proj: Project, updateLevel: ProgramUpdateLevel) => string[];
+    onConfigurationChanged?: (config: any) => void;
 }
 
 export interface PluginModuleWithName {

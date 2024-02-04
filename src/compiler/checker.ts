@@ -51096,14 +51096,14 @@ interface NodeBuilderContext {
 }
 
 class SymbolTrackerImpl implements SymbolTracker {
-    moduleResolverHost: ModuleSpecifierResolutionHost & { getCommonSourceDirectory(): string; } | undefined = undefined;
+    moduleResolverHost: ModuleSpecifierResolutionHost & { getCommonSourceDirectory: () => string; } | undefined = undefined;
     context: NodeBuilderContext;
 
     readonly inner: SymbolTracker | undefined = undefined;
     readonly canTrackSymbol: boolean;
     disableTrackSymbol = false;
 
-    constructor(context: NodeBuilderContext, tracker: SymbolTracker | undefined, moduleResolverHost: ModuleSpecifierResolutionHost & { getCommonSourceDirectory(): string; } | undefined) {
+    constructor(context: NodeBuilderContext, tracker: SymbolTracker | undefined, moduleResolverHost: ModuleSpecifierResolutionHost & { getCommonSourceDirectory: () => string; } | undefined) {
         while (tracker instanceof SymbolTrackerImpl) {
             tracker = tracker.inner;
         }

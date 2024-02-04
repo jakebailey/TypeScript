@@ -29,7 +29,7 @@ export function replaceAll(source: string, searchValue: string, replaceValue: st
 
 export interface Logger extends ts.server.Logger {
     logs?: string[];
-    log(s: string): void;
+    log: (s: string) => void;
     host?: ts.server.ServerHost;
 }
 

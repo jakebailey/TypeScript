@@ -27,18 +27,18 @@ const jsxScanner = createScanner(ScriptTarget.Latest, /*skipTrivia*/ false, Lang
 
 /** @internal */
 export interface FormattingScanner {
-    advance(): void;
-    getTokenFullStart(): number;
+    advance: () => void;
+    getTokenFullStart: () => number;
     /** @deprecated use {@link getTokenFullStart} */
-    getStartPos(): number;
-    isOnToken(): boolean;
-    isOnEOF(): boolean;
-    readTokenInfo(n: Node): TokenInfo;
-    readEOFTokenRange(): TextRangeWithKind;
-    getCurrentLeadingTrivia(): TextRangeWithKind[] | undefined;
-    lastTrailingTriviaWasNewLine(): boolean;
-    skipToEndOf(node: Node | NodeArray<Node>): void;
-    skipToStartOf(node: Node): void;
+    getStartPos: () => number;
+    isOnToken: () => boolean;
+    isOnEOF: () => boolean;
+    readTokenInfo: (n: Node) => TokenInfo;
+    readEOFTokenRange: () => TextRangeWithKind;
+    getCurrentLeadingTrivia: () => TextRangeWithKind[] | undefined;
+    lastTrailingTriviaWasNewLine: () => boolean;
+    skipToEndOf: (node: Node | NodeArray<Node>) => void;
+    skipToStartOf: (node: Node) => void;
 }
 
 const enum ScanAction {

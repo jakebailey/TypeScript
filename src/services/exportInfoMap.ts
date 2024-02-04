@@ -111,22 +111,22 @@ interface CachedSymbolExportInfo {
 
 /** @internal */
 export interface ExportInfoMap {
-    isUsableByFile(importingFile: Path): boolean;
-    clear(): void;
-    add(importingFile: Path, symbol: Symbol, key: __String, moduleSymbol: Symbol, moduleFile: SourceFile | undefined, exportKind: ExportKind, isFromPackageJson: boolean, checker: TypeChecker): void;
-    get(importingFile: Path, key: ExportMapInfoKey): readonly SymbolExportInfo[] | undefined;
-    search<T>(importingFile: Path, preferCapitalized: boolean, matches: (name: string, targetFlags: SymbolFlags) => boolean, action: (info: readonly SymbolExportInfo[], symbolName: string, isFromAmbientModule: boolean, key: ExportMapInfoKey) => T | undefined): T | undefined;
-    releaseSymbols(): void;
-    isEmpty(): boolean;
+    isUsableByFile: (importingFile: Path) => boolean;
+    clear: () => void;
+    add: (importingFile: Path, symbol: Symbol, key: __String, moduleSymbol: Symbol, moduleFile: SourceFile | undefined, exportKind: ExportKind, isFromPackageJson: boolean, checker: TypeChecker) => void;
+    get: (importingFile: Path, key: ExportMapInfoKey) => readonly SymbolExportInfo[] | undefined;
+    search: <T>(importingFile: Path, preferCapitalized: boolean, matches: (name: string, targetFlags: SymbolFlags) => boolean, action: (info: readonly SymbolExportInfo[], symbolName: string, isFromAmbientModule: boolean, key: ExportMapInfoKey) => T | undefined) => T | undefined;
+    releaseSymbols: () => void;
+    isEmpty: () => boolean;
     /** @returns Whether the change resulted in the cache being cleared */
-    onFileChanged(oldSourceFile: SourceFile, newSourceFile: SourceFile, typeAcquisitionEnabled: boolean): boolean;
+    onFileChanged: (oldSourceFile: SourceFile, newSourceFile: SourceFile, typeAcquisitionEnabled: boolean) => boolean;
 }
 
 /** @internal */
 export interface CacheableExportInfoMapHost {
-    getCurrentProgram(): Program | undefined;
-    getPackageJsonAutoImportProvider(): Program | undefined;
-    getGlobalTypingsCacheLocation(): string | undefined;
+    getCurrentProgram: () => Program | undefined;
+    getPackageJsonAutoImportProvider: () => Program | undefined;
+    getGlobalTypingsCacheLocation: () => string | undefined;
 }
 
 export type ExportMapInfoKey = string & { __exportInfoKey: void; };

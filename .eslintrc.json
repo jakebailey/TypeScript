@@ -117,6 +117,11 @@
         // Pending https://github.com/typescript-eslint/typescript-eslint/issues/4820
         "@typescript-eslint/prefer-optional-chain": "off",
 
+        "@typescript-eslint/method-signature-style": [
+            "error",
+            "property"
+        ],
+
         // scripts/eslint/rules
         "local/only-arrow-functions": [
             "error",

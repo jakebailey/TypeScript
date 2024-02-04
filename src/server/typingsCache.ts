@@ -26,11 +26,11 @@ export interface InstallPackageOptionsWithProject extends InstallPackageOptions 
 // for backwards-compatibility
 // eslint-disable-next-line @typescript-eslint/naming-convention
 export interface ITypingsInstaller {
-    isKnownTypesPackageName(name: string): boolean;
-    installPackage(options: InstallPackageOptionsWithProject): Promise<ApplyCodeActionCommandResult>;
-    enqueueInstallTypingsRequest(p: Project, typeAcquisition: TypeAcquisition, unresolvedImports: SortedReadonlyArray<string> | undefined): void;
-    attach(projectService: ProjectService): void;
-    onProjectClosed(p: Project): void;
+    isKnownTypesPackageName: (name: string) => boolean;
+    installPackage: (options: InstallPackageOptionsWithProject) => Promise<ApplyCodeActionCommandResult>;
+    enqueueInstallTypingsRequest: (p: Project, typeAcquisition: TypeAcquisition, unresolvedImports: SortedReadonlyArray<string> | undefined) => void;
+    attach: (projectService: ProjectService) => void;
+    onProjectClosed: (p: Project) => void;
     readonly globalTypingsCacheLocation: string | undefined;
 }
 

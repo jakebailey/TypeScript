@@ -730,7 +730,7 @@ export interface WatchFactoryWithLog<X, Y = undefined> extends WatchFactory<X, Y
 }
 
 /** @internal */
-export function createWatchFactory<Y = undefined>(host: WatchFactoryHost & { trace?(s: string): void; }, options: { extendedDiagnostics?: boolean; diagnostics?: boolean; }) {
+export function createWatchFactory<Y = undefined>(host: WatchFactoryHost & { trace?: (s: string) => void; }, options: { extendedDiagnostics?: boolean; diagnostics?: boolean; }) {
     const watchLogLevel = host.trace ? options.extendedDiagnostics ? WatchLogLevel.Verbose : options.diagnostics ? WatchLogLevel.TriggerOnly : WatchLogLevel.None : WatchLogLevel.None;
     const writeLog: (s: string) => void = watchLogLevel !== WatchLogLevel.None ? (s => host.trace!(s)) : noop;
     const result = getWatchFactory<WatchType, Y>(host, watchLogLevel, writeLog) as WatchFactoryWithLog<WatchType, Y>;
@@ -968,7 +968,7 @@ export interface IncrementalCompilationOptions {
     host?: CompilerHost;
     reportDiagnostic?: DiagnosticReporter;
     reportErrorSummary?: ReportEmitErrorSummary;
-    afterProgramEmitAndDiagnostics?(program: EmitAndSemanticDiagnosticsBuilderProgram): void;
+    afterProgramEmitAndDiagnostics?: (program: EmitAndSemanticDiagnosticsBuilderProgram) => void;
     system?: System;
 }
 /** @internal */

@@ -504,10 +504,10 @@ export function createCompilerHostWorker(
 
 /** @internal */
 export interface CompilerHostLikeForCache {
-    fileExists(fileName: string): boolean;
-    readFile(fileName: string, encoding?: string): string | undefined;
-    directoryExists?(directory: string): boolean;
-    createDirectory?(directory: string): void;
+    fileExists: (fileName: string) => boolean;
+    readFile: (fileName: string, encoding?: string) => string | undefined;
+    directoryExists?: (directory: string) => boolean;
+    createDirectory?: (directory: string) => void;
     writeFile?: WriteFileCallback;
 }
 
@@ -644,9 +644,9 @@ export function getPreEmitDiagnostics(program: Program | BuilderProgram, sourceF
 }
 
 export interface FormatDiagnosticsHost {
-    getCurrentDirectory(): string;
-    getCanonicalFileName(fileName: string): string;
-    getNewLine(): string;
+    getCurrentDirectory: () => string;
+    getCanonicalFileName: (fileName: string) => string;
+    getNewLine: () => string;
 }
 
 export function formatDiagnostics(diagnostics: readonly Diagnostic[], host: FormatDiagnosticsHost): string {
@@ -971,14 +971,14 @@ const emptyResolution: ResolvedModuleWithFailedLookupLocations & ResolvedTypeRef
 
 /** @internal */
 export interface ResolutionNameAndModeGetter<Entry, SourceFile> {
-    getName(entry: Entry): string;
-    getMode(entry: Entry, file: SourceFile, compilerOptions: CompilerOptions): ResolutionMode;
+    getName: (entry: Entry) => string;
+    getMode: (entry: Entry, file: SourceFile, compilerOptions: CompilerOptions) => ResolutionMode;
 }
 
 /** @internal */
 export interface ResolutionLoader<Entry, Resolution, SourceFile> {
     nameAndMode: ResolutionNameAndModeGetter<Entry, SourceFile>;
-    resolve(name: string, mode: ResolutionMode): Resolution;
+    resolve: (name: string, mode: ResolutionMode) => Resolution;
 }
 
 function getModuleResolutionName(literal: StringLiteralLike) {
@@ -5015,10 +5015,10 @@ interface HostForUseSourceOfProjectReferenceRedirect {
     compilerHost: CompilerHost;
     getSymlinkCache: () => SymlinkCache;
     useSourceOfProjectReferenceRedirect: boolean;
-    toPath(fileName: string): Path;
-    getResolvedProjectReferences(): readonly (ResolvedProjectReference | undefined)[] | undefined;
-    getSourceOfProjectReferenceRedirect(path: Path): SourceOfProjectReferenceRedirect | undefined;
-    forEachResolvedProjectReference<T>(cb: (resolvedProjectReference: ResolvedProjectReference) => T | undefined): T | undefined;
+    toPath: (fileName: string) => Path;
+    getResolvedProjectReferences: () => readonly (ResolvedProjectReference | undefined)[] | undefined;
+    getSourceOfProjectReferenceRedirect: (path: Path) => SourceOfProjectReferenceRedirect | undefined;
+    forEachResolvedProjectReference: <T>(cb: (resolvedProjectReference: ResolvedProjectReference) => T | undefined) => T | undefined;
 }
 
 function updateHostForUseSourceOfProjectReferenceRedirect(host: HostForUseSourceOfProjectReferenceRedirect) {

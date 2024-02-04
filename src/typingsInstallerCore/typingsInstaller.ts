@@ -50,8 +50,8 @@ interface NpmLock {
 }
 
 export interface Log {
-    isEnabled(): boolean;
-    writeLine(text: string): void;
+    isEnabled: () => boolean;
+    writeLine: (text: string) => void;
 }
 
 const nullLog: Log = {

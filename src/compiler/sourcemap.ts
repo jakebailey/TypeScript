@@ -369,8 +369,8 @@ export const whitespaceOrMapCommentRegExp = /^\s*(\/\/[@#] .*)?$/;
 
 /** @internal */
 export interface LineInfo {
-    getLineCount(): number;
-    getLineText(line: number): string;
+    getLineCount: () => number;
+    getLineText: (line: number) => string;
 }
 
 /** @internal */

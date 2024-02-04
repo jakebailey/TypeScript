@@ -62,16 +62,16 @@ export interface DocumentRegistry {
      * @param version Current version of the file. Only used if the file was not found
      * in the registry and a new one was created.
      */
-    acquireDocument(
+    acquireDocument: (
         fileName: string,
         compilationSettingsOrHost: CompilerOptions | MinimalResolutionCacheHost,
         scriptSnapshot: IScriptSnapshot,
         version: string,
         scriptKind?: ScriptKind,
         sourceFileOptions?: CreateSourceFileOptions | ScriptTarget,
-    ): SourceFile;
+    ) => SourceFile;
 
-    acquireDocumentWithKey(
+    acquireDocumentWithKey: (
         fileName: string,
         path: Path,
         compilationSettingsOrHost: CompilerOptions | MinimalResolutionCacheHost,
@@ -80,7 +80,7 @@ export interface DocumentRegistry {
         version: string,
         scriptKind?: ScriptKind,
         sourceFileOptions?: CreateSourceFileOptions | ScriptTarget,
-    ): SourceFile;
+    ) => SourceFile;
 
     /**
      * Request an updated version of an already existing SourceFile with a given fileName
@@ -97,16 +97,16 @@ export interface DocumentRegistry {
      * @param scriptSnapshot Text of the file.
      * @param version Current version of the file.
      */
-    updateDocument(
+    updateDocument: (
         fileName: string,
         compilationSettingsOrHost: CompilerOptions | MinimalResolutionCacheHost,
         scriptSnapshot: IScriptSnapshot,
         version: string,
         scriptKind?: ScriptKind,
         sourceFileOptions?: CreateSourceFileOptions | ScriptTarget,
-    ): SourceFile;
+    ) => SourceFile;
 
-    updateDocumentWithKey(
+    updateDocumentWithKey: (
         fileName: string,
         path: Path,
         compilationSettingsOrHost: CompilerOptions | MinimalResolutionCacheHost,
@@ -115,11 +115,11 @@ export interface DocumentRegistry {
         version: string,
         scriptKind?: ScriptKind,
         sourceFileOptions?: CreateSourceFileOptions | ScriptTarget,
-    ): SourceFile;
+    ) => SourceFile;
 
-    getKeyForCompilationSettings(settings: CompilerOptions): DocumentRegistryBucketKey;
+    getKeyForCompilationSettings: (settings: CompilerOptions) => DocumentRegistryBucketKey;
     /** @internal */
-    getDocumentRegistryBucketKeyWithMode(key: DocumentRegistryBucketKey, mode: ResolutionMode): DocumentRegistryBucketKeyWithMode;
+    getDocumentRegistryBucketKeyWithMode: (key: DocumentRegistryBucketKey, mode: ResolutionMode) => DocumentRegistryBucketKeyWithMode;
     /**
      * Informs the DocumentRegistry that a file is not needed any longer.
      *
@@ -132,32 +132,19 @@ export interface DocumentRegistry {
      *
      * @deprecated pass scriptKind and impliedNodeFormat for correctness
      */
-    releaseDocument(fileName: string, compilationSettings: CompilerOptions, scriptKind?: ScriptKind): void;
-    /**
-     * Informs the DocumentRegistry that a file is not needed any longer.
-     *
-     * Note: It is not allowed to call release on a SourceFile that was not acquired from
-     * this registry originally.
-     *
-     * @param fileName The name of the file to be released
-     * @param compilationSettings The compilation settings used to acquire the file
-     * @param scriptKind The script kind of the file to be released
-     * @param impliedNodeFormat The implied source file format of the file to be released
-     */
-    releaseDocument(fileName: string, compilationSettings: CompilerOptions, scriptKind: ScriptKind, impliedNodeFormat: ResolutionMode): void; // eslint-disable-line @typescript-eslint/unified-signatures
+    releaseDocument: ((fileName: string, compilationSettings: CompilerOptions, scriptKind?: ScriptKind) => void) & ((fileName: string, compilationSettings: CompilerOptions, scriptKind: ScriptKind, impliedNodeFormat: ResolutionMode) => void); // eslint-disable-line @typescript-eslint/unified-signatures
     /**
      * @deprecated pass scriptKind for and impliedNodeFormat correctness */
-    releaseDocumentWithKey(path: Path, key: DocumentRegistryBucketKey, scriptKind?: ScriptKind): void;
-    releaseDocumentWithKey(path: Path, key: DocumentRegistryBucketKey, scriptKind: ScriptKind, impliedNodeFormat: ResolutionMode): void; // eslint-disable-line @typescript-eslint/unified-signatures
+    releaseDocumentWithKey: ((path: Path, key: DocumentRegistryBucketKey, scriptKind?: ScriptKind) => void) & ((path: Path, key: DocumentRegistryBucketKey, scriptKind: ScriptKind, impliedNodeFormat: ResolutionMode) => void); // eslint-disable-line @typescript-eslint/unified-signatures
 
-    reportStats(): string;
-    /** @internal */ getBuckets(): Map<DocumentRegistryBucketKeyWithMode, Map<Path, BucketEntry>>;
+    reportStats: () => string;
+    /** @internal */ getBuckets: () => Map<DocumentRegistryBucketKeyWithMode, Map<Path, BucketEntry>>;
 }
 
 /** @internal */
 export interface ExternalDocumentCache {
-    setDocument(key: DocumentRegistryBucketKeyWithMode, path: Path, sourceFile: SourceFile): void;
-    getDocument(key: DocumentRegistryBucketKeyWithMode, path: Path): SourceFile | undefined;
+    setDocument: (key: DocumentRegistryBucketKeyWithMode, path: Path, sourceFile: SourceFile) => void;
+    getDocument: (key: DocumentRegistryBucketKeyWithMode, path: Path) => SourceFile | undefined;
 }
 
 export type DocumentRegistryBucketKey = string & { __bucketKey: any; };

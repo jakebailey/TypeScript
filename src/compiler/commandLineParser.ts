@@ -2047,7 +2047,7 @@ export interface ConfigFileDiagnosticsReporter {
  * Interface extending ParseConfigHost to support ParseConfigFile that reads config file and reports errors
  */
 export interface ParseConfigFileHost extends ParseConfigHost, ConfigFileDiagnosticsReporter {
-    getCurrentDirectory(): string;
+    getCurrentDirectory: () => string;
 }
 
 /**
@@ -2250,13 +2250,13 @@ function getTsconfigRootOptionsMap() {
 /** @internal */
 export interface JsonConversionNotifier {
     rootOptions: TsConfigOnlyOption;
-    onPropertySet(
+    onPropertySet: (
         keyText: string,
         value: any,
         propertyAssignment: PropertyAssignment,
         parentOption: TsConfigOnlyOption | undefined,
         option: CommandLineOption | undefined,
-    ): void;
+    ) => void;
 }
 
 function convertConfigFileToObject(
@@ -2455,7 +2455,7 @@ export interface TSConfig {
 
 /** @internal */
 export interface ConvertToTSConfigHost {
-    getCurrentDirectory(): string;
+    getCurrentDirectory: () => string;
     useCaseSensitiveFileNames: boolean;
 }
 

@@ -26,7 +26,7 @@ export interface DtsSignatureData {
 
 export type TscCompileSystem = fakes.System & {
     writtenFiles: Set<ts.Path>;
-    baseLine(): { file: string; text: string; };
+    baseLine: () => { file: string; text: string; };
     dtsSignaures?: Map<ts.Path, Map<string, DtsSignatureData>>;
     storeFilesChangingSignatureDuringEmit?: boolean;
 };

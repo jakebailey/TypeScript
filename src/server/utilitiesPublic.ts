@@ -22,15 +22,15 @@ export enum LogLevel {
 export const emptyArray: SortedReadonlyArray<never> = createSortedArray<never>();
 
 export interface Logger {
-    close(): void;
-    hasLevel(level: LogLevel): boolean;
-    loggingEnabled(): boolean;
-    perftrc(s: string): void;
-    info(s: string): void;
-    startGroup(): void;
-    endGroup(): void;
-    msg(s: string, type?: Msg): void;
-    getLogFileName(): string | undefined;
+    close: () => void;
+    hasLevel: (level: LogLevel) => boolean;
+    loggingEnabled: () => boolean;
+    perftrc: (s: string) => void;
+    info: (s: string) => void;
+    startGroup: () => void;
+    endGroup: () => void;
+    msg: (s: string, type?: Msg) => void;
+    getLogFileName: () => string | undefined;
     /** @internal*/ isTestLogger?: boolean;
 }
 
@@ -82,10 +82,10 @@ export function asNormalizedPath(fileName: string): NormalizedPath {
 }
 
 export interface NormalizedPathMap<T> {
-    get(path: NormalizedPath): T | undefined;
-    set(path: NormalizedPath, value: T): void;
-    contains(path: NormalizedPath): boolean;
-    remove(path: NormalizedPath): void;
+    get: (path: NormalizedPath) => T | undefined;
+    set: (path: NormalizedPath, value: T) => void;
+    contains: (path: NormalizedPath) => boolean;
+    remove: (path: NormalizedPath) => void;
 }
 
 export function createNormalizedPathMap<T>(): NormalizedPathMap<T> {

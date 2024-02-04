@@ -6733,7 +6733,7 @@ const enum TempFlags {
 }
 
 interface OrdinalParentheizerRuleSelector<T extends Node> {
-    select(index: number): ((node: T) => T) | undefined;
+    select: (index: number) => ((node: T) => T) | undefined;
 }
 
 type ParenthesizerRule<T extends Node> = (node: T) => T;

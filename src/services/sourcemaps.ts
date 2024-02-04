@@ -32,22 +32,22 @@ const base64UrlRegExp = /^data:(?:application\/json(?:;charset=[uU][tT][fF]-8);b
 
 /** @internal */
 export interface SourceMapper {
-    toLineColumnOffset(fileName: string, position: number): LineAndCharacter;
-    tryGetSourcePosition(info: DocumentPosition): DocumentPosition | undefined;
-    tryGetGeneratedPosition(info: DocumentPosition): DocumentPosition | undefined;
-    clearCache(): void;
+    toLineColumnOffset: (fileName: string, position: number) => LineAndCharacter;
+    tryGetSourcePosition: (info: DocumentPosition) => DocumentPosition | undefined;
+    tryGetGeneratedPosition: (info: DocumentPosition) => DocumentPosition | undefined;
+    clearCache: () => void;
 }
 
 /** @internal */
 export interface SourceMapperHost {
-    useCaseSensitiveFileNames(): boolean;
-    getCurrentDirectory(): string;
-    getProgram(): Program | undefined;
-    fileExists?(path: string): boolean;
-    readFile?(path: string, encoding?: string): string | undefined;
-    getSourceFileLike?(fileName: string): SourceFileLike | undefined;
-    getDocumentPositionMapper?(generatedFileName: string, sourceFileName?: string): DocumentPositionMapper | undefined;
-    log(s: string): void;
+    useCaseSensitiveFileNames: () => boolean;
+    getCurrentDirectory: () => string;
+    getProgram: () => Program | undefined;
+    fileExists?: (path: string) => boolean;
+    readFile?: (path: string, encoding?: string) => string | undefined;
+    getSourceFileLike?: (fileName: string) => SourceFileLike | undefined;
+    getDocumentPositionMapper?: (generatedFileName: string, sourceFileName?: string) => DocumentPositionMapper | undefined;
+    log: (s: string) => void;
 }
 
 /** @internal */

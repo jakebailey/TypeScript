@@ -113,14 +113,14 @@ export namespace BuilderState {
     }
 
     export interface ReadonlyManyToManyPathMap {
-        getKeys(v: Path): ReadonlySet<Path> | undefined;
-        getValues(k: Path): ReadonlySet<Path> | undefined;
-        keys(): IterableIterator<Path>;
+        getKeys: (v: Path) => ReadonlySet<Path> | undefined;
+        getValues: (k: Path) => ReadonlySet<Path> | undefined;
+        keys: () => IterableIterator<Path>;
     }
 
     export interface ManyToManyPathMap extends ReadonlyManyToManyPathMap {
-        deleteKey(k: Path): boolean;
-        set(k: Path, v: ReadonlySet<Path>): void;
+        deleteKey: (k: Path) => boolean;
+        set: (k: Path, v: ReadonlySet<Path>) => void;
     }
 
     export function createManyToManyPathMap(): ManyToManyPathMap {

@@ -51,7 +51,7 @@ export function toExternalFiles(fileNames: string[]) {
 
 export type TestSessionAndServiceHost = TestServerHostTrackingWrittenFiles & {
     patched: boolean;
-    baselineHost(title: string): void;
+    baselineHost: (title: string) => void;
 };
 export function patchHostTimeouts(
     inputHost: TestServerHostTrackingWrittenFiles,

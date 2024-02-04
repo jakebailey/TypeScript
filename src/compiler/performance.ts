@@ -21,8 +21,8 @@ let performanceImpl: Performance | undefined;
 
 /** @internal */
 export interface Timer {
-    enter(): void;
-    exit(): void;
+    enter: () => void;
+    exit: () => void;
 }
 
 /** @internal */

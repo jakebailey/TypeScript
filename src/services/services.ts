@@ -1273,7 +1273,7 @@ function getServicesObjectAllocator(): ObjectAllocator {
 
 /** @internal */
 export interface DisplayPartsSymbolWriter extends EmitTextWriter {
-    displayParts(): SymbolDisplayPart[];
+    displayParts: () => SymbolDisplayPart[];
 }
 
 /** @internal */

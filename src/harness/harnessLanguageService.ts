@@ -129,11 +129,11 @@ class DefaultHostCancellationToken implements ts.HostCancellationToken {
 }
 
 export interface LanguageServiceAdapter {
-    getHost(): LanguageServiceAdapterHost;
-    getLanguageService(): ts.LanguageService;
-    getClassifier(): ts.Classifier;
-    getPreProcessedFileInfo(fileName: string, fileContents: string): ts.PreProcessedFileInfo;
-    getLogger(): LoggerWithInMemoryLogs | undefined;
+    getHost: () => LanguageServiceAdapterHost;
+    getLanguageService: () => ts.LanguageService;
+    getClassifier: () => ts.Classifier;
+    getPreProcessedFileInfo: (fileName: string, fileContents: string) => ts.PreProcessedFileInfo;
+    getLogger: () => LoggerWithInMemoryLogs | undefined;
 }
 
 export abstract class LanguageServiceAdapterHost {

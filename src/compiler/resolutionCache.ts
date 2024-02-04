@@ -98,66 +98,66 @@ export interface ResolutionCache {
     resolutionsWithOnlyAffectingLocations: Set<ResolutionWithFailedLookupLocations>;
     directoryWatchesOfFailedLookups: Map<string, DirectoryWatchesOfFailedLookup>;
     fileWatchesOfAffectingLocations: Map<string, FileWatcherOfAffectingLocation>;
-    startRecordingFilesWithChangedResolutions(): void;
-    finishRecordingFilesWithChangedResolutions(): Path[] | undefined;
+    startRecordingFilesWithChangedResolutions: () => void;
+    finishRecordingFilesWithChangedResolutions: () => Path[] | undefined;
 
-    watchFailedLookupLocationsOfExternalModuleResolutions<T extends ResolutionWithFailedLookupLocations, R extends ResolutionWithResolvedFileName>(
+    watchFailedLookupLocationsOfExternalModuleResolutions: <T extends ResolutionWithFailedLookupLocations, R extends ResolutionWithResolvedFileName>(
         name: string,
         resolution: T,
         filePath: Path,
         getResolutionWithResolvedFileName: GetResolutionWithResolvedFileName<T, R>,
         deferWatchingNonRelativeResolution: boolean,
-    ): void;
+    ) => void;
 
-    resolveModuleNameLiterals(
+    resolveModuleNameLiterals: (
         moduleLiterals: readonly StringLiteralLike[],
         containingFile: string,
         redirectedReference: ResolvedProjectReference | undefined,
         options: CompilerOptions,
         containingSourceFile: SourceFile,
         reusedNames: readonly StringLiteralLike[] | undefined,
-    ): readonly ResolvedModuleWithFailedLookupLocations[];
-    resolveTypeReferenceDirectiveReferences<T extends FileReference | string>(
+    ) => readonly ResolvedModuleWithFailedLookupLocations[];
+    resolveTypeReferenceDirectiveReferences: <T extends FileReference | string>(
         typeDirectiveReferences: readonly T[],
         containingFile: string,
         redirectedReference: ResolvedProjectReference | undefined,
         options: CompilerOptions,
         containingSourceFile: SourceFile | undefined,
         reusedNames: readonly T[] | undefined,
-    ): readonly ResolvedTypeReferenceDirectiveWithFailedLookupLocations[];
-    resolveLibrary(
+    ) => readonly ResolvedTypeReferenceDirectiveWithFailedLookupLocations[];
+    resolveLibrary: (
         libraryName: string,
         resolveFrom: string,
         options: CompilerOptions,
         libFileName: string,
-    ): ResolvedModuleWithFailedLookupLocations;
-    resolveSingleModuleNameWithoutWatching(
+    ) => ResolvedModuleWithFailedLookupLocations;
+    resolveSingleModuleNameWithoutWatching: (
         moduleName: string,
         containingFile: string,
-    ): ResolvedModuleWithFailedLookupLocations;
+    ) => ResolvedModuleWithFailedLookupLocations;
 
-    invalidateResolutionsOfFailedLookupLocations(): boolean;
-    invalidateResolutionOfFile(filePath: Path): void;
-    removeResolutionsOfFile(filePath: Path, syncDirWatcherRemove?: boolean): void;
-    removeResolutionsFromProjectReferenceRedirects(filePath: Path): void;
-    setFilesWithInvalidatedNonRelativeUnresolvedImports(filesWithUnresolvedImports: Map<Path, readonly string[]>): void;
-    createHasInvalidatedResolutions(
+    invalidateResolutionsOfFailedLookupLocations: () => boolean;
+    invalidateResolutionOfFile: (filePath: Path) => void;
+    removeResolutionsOfFile: (filePath: Path, syncDirWatcherRemove?: boolean) => void;
+    removeResolutionsFromProjectReferenceRedirects: (filePath: Path) => void;
+    setFilesWithInvalidatedNonRelativeUnresolvedImports: (filesWithUnresolvedImports: Map<Path, readonly string[]>) => void;
+    createHasInvalidatedResolutions: (
         customHasInvalidatedResolutions: HasInvalidatedResolutions,
         customHasInvalidatedLibResolutions: HasInvalidatedLibResolutions,
-    ): HasInvalidatedFromResolutionCache;
-    hasChangedAutomaticTypeDirectiveNames(): boolean;
-    isFileWithInvalidatedNonRelativeUnresolvedImports(path: Path): boolean;
+    ) => HasInvalidatedFromResolutionCache;
+    hasChangedAutomaticTypeDirectiveNames: () => boolean;
+    isFileWithInvalidatedNonRelativeUnresolvedImports: (path: Path) => boolean;
 
-    startCachingPerDirectoryResolution(): void;
-    finishCachingPerDirectoryResolution(newProgram: Program | undefined, oldProgram: Program | undefined): void;
+    startCachingPerDirectoryResolution: () => void;
+    finishCachingPerDirectoryResolution: (newProgram: Program | undefined, oldProgram: Program | undefined) => void;
 
-    updateTypeRootsWatch(): void;
-    closeTypeRootsWatch(): void;
+    updateTypeRootsWatch: () => void;
+    closeTypeRootsWatch: () => void;
 
-    getModuleResolutionCache(): ModuleResolutionCache;
+    getModuleResolutionCache: () => ModuleResolutionCache;
 
-    clear(): void;
-    onChangesAffectModuleResolution(): void;
+    clear: () => void;
+    onChangesAffectModuleResolution: () => void;
 }
 
 /** @internal */
@@ -187,35 +187,35 @@ export interface CachedResolvedTypeReferenceDirectiveWithFailedLookupLocations e
 
 /** @internal */
 export interface ResolutionCacheHost extends MinimalResolutionCacheHost {
-    toPath(fileName: string): Path;
+    toPath: (fileName: string) => Path;
     getCanonicalFileName: GetCanonicalFileName;
-    getCompilationSettings(): CompilerOptions;
-    watchDirectoryOfFailedLookupLocation(directory: string, cb: DirectoryWatcherCallback, flags: WatchDirectoryFlags): FileWatcher;
-    watchAffectingFileLocation(file: string, cb: FileWatcherCallback): FileWatcher;
-    onInvalidatedResolution(): void;
-    watchTypeRootsDirectory(directory: string, cb: DirectoryWatcherCallback, flags: WatchDirectoryFlags): FileWatcher;
-    onChangedAutomaticTypeDirectiveNames(): void;
-    scheduleInvalidateResolutionsOfFailedLookupLocations(): void;
-    getCachedDirectoryStructureHost(): CachedDirectoryStructureHost | undefined;
+    getCompilationSettings: () => CompilerOptions;
+    watchDirectoryOfFailedLookupLocation: (directory: string, cb: DirectoryWatcherCallback, flags: WatchDirectoryFlags) => FileWatcher;
+    watchAffectingFileLocation: (file: string, cb: FileWatcherCallback) => FileWatcher;
+    onInvalidatedResolution: () => void;
+    watchTypeRootsDirectory: (directory: string, cb: DirectoryWatcherCallback, flags: WatchDirectoryFlags) => FileWatcher;
+    onChangedAutomaticTypeDirectiveNames: () => void;
+    scheduleInvalidateResolutionsOfFailedLookupLocations: () => void;
+    getCachedDirectoryStructureHost: () => CachedDirectoryStructureHost | undefined;
     projectName?: string;
-    getGlobalCache?(): string | undefined;
-    globalCacheResolutionModuleName?(externalModuleName: string): string;
-    writeLog(s: string): void;
-    getCurrentProgram(): Program | undefined;
-    fileIsOpen(filePath: Path): boolean;
-    onDiscoveredSymlink?(): void;
+    getGlobalCache?: () => string | undefined;
+    globalCacheResolutionModuleName?: (externalModuleName: string) => string;
+    writeLog: (s: string) => void;
+    getCurrentProgram: () => Program | undefined;
+    fileIsOpen: (filePath: Path) => boolean;
+    onDiscoveredSymlink?: () => void;
 
     // For incremental testing
-    beforeResolveSingleModuleNameWithoutWatching?(
+    beforeResolveSingleModuleNameWithoutWatching?: (
         moduleResolutionCache: ModuleResolutionCache,
-    ): any;
-    afterResolveSingleModuleNameWithoutWatching?(
+    ) => any;
+    afterResolveSingleModuleNameWithoutWatching?: (
         moduleResolutionCache: ModuleResolutionCache,
         moduleName: string,
         containingFile: string,
         result: ResolvedModuleWithFailedLookupLocations,
         data: any,
-    ): any;
+    ) => any;
 }
 
 /** @internal */

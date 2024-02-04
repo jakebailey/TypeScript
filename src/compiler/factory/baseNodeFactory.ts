@@ -11,11 +11,11 @@ import {
  * @internal
  */
 export interface BaseNodeFactory {
-    createBaseSourceFileNode(kind: SyntaxKind.SourceFile): Node;
-    createBaseIdentifierNode(kind: SyntaxKind.Identifier): Node;
-    createBasePrivateIdentifierNode(kind: SyntaxKind.PrivateIdentifier): Node;
-    createBaseTokenNode(kind: SyntaxKind): Node;
-    createBaseNode(kind: SyntaxKind): Node;
+    createBaseSourceFileNode: (kind: SyntaxKind.SourceFile) => Node;
+    createBaseIdentifierNode: (kind: SyntaxKind.Identifier) => Node;
+    createBasePrivateIdentifierNode: (kind: SyntaxKind.PrivateIdentifier) => Node;
+    createBaseTokenNode: (kind: SyntaxKind) => Node;
+    createBaseNode: (kind: SyntaxKind) => Node;
 }
 
 /**

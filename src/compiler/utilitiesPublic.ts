@@ -638,7 +638,7 @@ export const supportedLocaleDirectories = ["cs", "de", "es", "fr", "it", "ja", "
  */
 export function validateLocaleAndSetLanguage(
     locale: string,
-    sys: { getExecutingFilePath(): string; resolvePath(path: string): string; fileExists(fileName: string): boolean; readFile(fileName: string): string | undefined; },
+    sys: { getExecutingFilePath: () => string; resolvePath: (path: string) => string; fileExists: (fileName: string) => boolean; readFile: (fileName: string) => string | undefined; },
     errors?: Diagnostic[],
 ) {
     const lowerCaseLocale = locale.toLowerCase();

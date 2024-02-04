@@ -190,8 +190,8 @@ interface StackTraceError extends Error {
 }
 
 export interface ServerCancellationToken extends HostCancellationToken {
-    setRequest(requestId: number): void;
-    resetRequest(requestId: number): void;
+    setRequest: (requestId: number) => void;
+    resetRequest: (requestId: number) => void;
 }
 
 export const nullCancellationToken: ServerCancellationToken = {
@@ -335,20 +335,20 @@ export function formatMessage<T extends protocol.Message>(msg: T, logger: Logger
  * Allows to schedule next step in multistep operation
  */
 interface NextStep {
-    immediate(actionType: string, action: () => void): void;
-    delay(actionType: string, ms: number, action: () => void): void;
+    immediate: (actionType: string, action: () => void) => void;
+    delay: (actionType: string, ms: number, action: () => void) => void;
 }
 
 /**
  * External capabilities used by multistep operation
  */
 interface MultistepOperationHost {
-    getCurrentRequestId(): number;
-    sendRequestCompletedEvent(requestId: number): void;
-    getServerHost(): ServerHost;
-    isCancellationRequested(): boolean;
-    executeWithRequestId(requestId: number, action: () => void): void;
-    logError(error: Error, message: string): void;
+    getCurrentRequestId: () => number;
+    sendRequestCompletedEvent: (requestId: number) => void;
+    getServerHost: () => ServerHost;
+    isCancellationRequested: () => boolean;
+    executeWithRequestId: (requestId: number, action: () => void) => void;
+    logError: (error: Error, message: string) => void;
 }
 
 /**

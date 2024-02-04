@@ -80,7 +80,7 @@ import {
 } from "./_namespaces/ts.server";
 
 export interface SessionClientHost extends LanguageServiceHost {
-    writeMessage(message: string): void;
+    writeMessage: (message: string) => void;
 }
 
 interface RenameEntry {

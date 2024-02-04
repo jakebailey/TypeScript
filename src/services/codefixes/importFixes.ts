@@ -208,7 +208,7 @@ registerCodeFix({
  * @internal
  */
 export interface ImportAdder {
-    hasFixes(): boolean;
+    hasFixes: () => boolean;
     addImportFromDiagnostic: (diagnostic: DiagnosticWithLocation, context: CodeFixContextBase) => void;
     addImportFromExportedSymbol: (exportedSymbol: Symbol, isValidTypeOnlyUseSite?: boolean) => void;
     writeFixes: (changeTracker: textChanges.ChangeTracker, oldFileQuotePreference?: QuotePreference) => void;
@@ -419,12 +419,12 @@ function createImportAdderWorker(sourceFile: SourceFile, program: Program, useAu
  * @internal
  */
 export interface ImportSpecifierResolver {
-    getModuleSpecifierForBestExportInfo(
+    getModuleSpecifierForBestExportInfo: (
         exportInfo: readonly SymbolExportInfo[],
         position: number,
         isValidTypeOnlyUseSite: boolean,
         fromCacheOnly?: boolean,
-    ): { exportInfo?: SymbolExportInfo; moduleSpecifier: string; computedWithoutCacheCount: number; } | undefined;
+    ) => { exportInfo?: SymbolExportInfo; moduleSpecifier: string; computedWithoutCacheCount: number; } | undefined;
 }
 
 /** @internal */

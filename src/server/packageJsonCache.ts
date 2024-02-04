@@ -15,12 +15,12 @@ import {
 
 /** @internal */
 export interface PackageJsonCache {
-    addOrUpdate(fileName: string, path: Path): void;
-    invalidate(path: Path): void;
-    delete(fileName: Path): void;
-    getInDirectory(directory: string): ProjectPackageJsonInfo | undefined;
-    directoryHasPackageJson(directory: string): Ternary;
-    searchDirectoryAndAncestors(directory: string): void;
+    addOrUpdate: (fileName: string, path: Path) => void;
+    invalidate: (path: Path) => void;
+    delete: (fileName: Path) => void;
+    getInDirectory: (directory: string) => ProjectPackageJsonInfo | undefined;
+    directoryHasPackageJson: (directory: string) => Ternary;
+    searchDirectoryAndAncestors: (directory: string) => void;
 }
 
 /** @internal */

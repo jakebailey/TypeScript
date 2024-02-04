@@ -24,8 +24,8 @@ export interface ProgramWithSourceTexts extends ts.Program {
 }
 
 export interface TestCompilerHost extends ts.CompilerHost {
-    getTrace(): string[];
-    clearTrace(): void;
+    getTrace: () => string[];
+    clearTrace: () => void;
 }
 
 export class SourceText implements ts.IScriptSnapshot {

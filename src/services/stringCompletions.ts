@@ -160,9 +160,9 @@ import {
 } from "./_namespaces/ts.Completions";
 
 interface NameAndKindSet {
-    add(value: NameAndKind): void;
-    has(name: string): boolean;
-    values(): IterableIterator<NameAndKind>;
+    add: (value: NameAndKind) => void;
+    has: (name: string) => boolean;
+    values: () => IterableIterator<NameAndKind>;
 }
 const kindPrecedence = {
     [ScriptElementKind.directory]: 0,

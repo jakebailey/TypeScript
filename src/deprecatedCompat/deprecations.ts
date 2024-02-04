@@ -118,22 +118,22 @@ function createBinder<T extends OverloadDefinitions>(overloads: T, binder: Overl
 
 /** @internal */
 export interface OverloadBuilder {
-    overload<T extends OverloadDefinitions>(overloads: T): BindableOverloadBuilder<T>;
+    overload: <T extends OverloadDefinitions>(overloads: T) => BindableOverloadBuilder<T>;
 }
 
 /** @internal */
 export interface BindableOverloadBuilder<T extends OverloadDefinitions> {
-    bind(binder: OverloadBinders<T>): BoundOverloadBuilder<T>;
+    bind: (binder: OverloadBinders<T>) => BoundOverloadBuilder<T>;
 }
 
 /** @internal */
 export interface FinishableOverloadBuilder<T extends OverloadDefinitions> {
-    finish(): OverloadFunction<T>;
+    finish: () => OverloadFunction<T>;
 }
 
 /** @internal */
 export interface BoundOverloadBuilder<T extends OverloadDefinitions> extends FinishableOverloadBuilder<T> {
-    deprecate(deprecations: OverloadDeprecations<T>): FinishableOverloadBuilder<T>;
+    deprecate: (deprecations: OverloadDeprecations<T>) => FinishableOverloadBuilder<T>;
 }
 
 // NOTE: We only use this "builder" because we don't infer correctly when calling `createOverload` directly in < TS 4.7,

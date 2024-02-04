@@ -3689,7 +3689,7 @@ export function getPackageJsonsVisibleToFile(fileName: string, host: LanguageSer
 }
 
 /** @internal */
-export function createPackageJsonInfo(fileName: string, host: { readFile?(fileName: string): string | undefined; }): ProjectPackageJsonInfo | undefined {
+export function createPackageJsonInfo(fileName: string, host: { readFile?: (fileName: string) => string | undefined; }): ProjectPackageJsonInfo | undefined {
     if (!host.readFile) {
         return undefined;
     }
@@ -4164,8 +4164,8 @@ export function isSourceFileFromLibrary(program: Program, node: SourceFile) {
 
 /** @internal */
 export interface CaseClauseTracker {
-    addValue(value: string | number): void;
-    hasValue(value: string | number | PseudoBigInt): boolean;
+    addValue: (value: string | number) => void;
+    hasValue: (value: string | number | PseudoBigInt) => boolean;
 }
 
 /** @internal */

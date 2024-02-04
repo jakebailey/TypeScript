@@ -43,81 +43,81 @@ export function tokenIsIdentifierOrKeywordOrGreaterThan(token: SyntaxKind): bool
 
 export interface Scanner {
     /** @deprecated use {@link getTokenFullStart} */
-    getStartPos(): number;
-    getToken(): SyntaxKind;
-    getTokenFullStart(): number;
-    getTokenStart(): number;
-    getTokenEnd(): number;
+    getStartPos: () => number;
+    getToken: () => SyntaxKind;
+    getTokenFullStart: () => number;
+    getTokenStart: () => number;
+    getTokenEnd: () => number;
     /** @deprecated use {@link getTokenEnd} */
-    getTextPos(): number;
+    getTextPos: () => number;
     /** @deprecated use {@link getTokenStart} */
-    getTokenPos(): number;
-    getTokenText(): string;
-    getTokenValue(): string;
-    hasUnicodeEscape(): boolean;
-    hasExtendedUnicodeEscape(): boolean;
-    hasPrecedingLineBreak(): boolean;
+    getTokenPos: () => number;
+    getTokenText: () => string;
+    getTokenValue: () => string;
+    hasUnicodeEscape: () => boolean;
+    hasExtendedUnicodeEscape: () => boolean;
+    hasPrecedingLineBreak: () => boolean;
     /** @internal */
-    hasPrecedingJSDocComment(): boolean;
-    isIdentifier(): boolean;
-    isReservedWord(): boolean;
-    isUnterminated(): boolean;
+    hasPrecedingJSDocComment: () => boolean;
+    isIdentifier: () => boolean;
+    isReservedWord: () => boolean;
+    isUnterminated: () => boolean;
     /** @internal */
-    getNumericLiteralFlags(): TokenFlags;
+    getNumericLiteralFlags: () => TokenFlags;
     /** @internal */
-    getCommentDirectives(): CommentDirective[] | undefined;
+    getCommentDirectives: () => CommentDirective[] | undefined;
     /** @internal */
-    getTokenFlags(): TokenFlags;
-    reScanGreaterToken(): SyntaxKind;
-    reScanSlashToken(): SyntaxKind;
-    reScanAsteriskEqualsToken(): SyntaxKind;
-    reScanTemplateToken(isTaggedTemplate: boolean): SyntaxKind;
+    getTokenFlags: () => TokenFlags;
+    reScanGreaterToken: () => SyntaxKind;
+    reScanSlashToken: () => SyntaxKind;
+    reScanAsteriskEqualsToken: () => SyntaxKind;
+    reScanTemplateToken: (isTaggedTemplate: boolean) => SyntaxKind;
     /** @deprecated use {@link reScanTemplateToken}(false) */
-    reScanTemplateHeadOrNoSubstitutionTemplate(): SyntaxKind;
-    scanJsxIdentifier(): SyntaxKind;
-    scanJsxAttributeValue(): SyntaxKind;
-    reScanJsxAttributeValue(): SyntaxKind;
-    reScanJsxToken(allowMultilineJsxText?: boolean): JsxTokenSyntaxKind;
-    reScanLessThanToken(): SyntaxKind;
-    reScanHashToken(): SyntaxKind;
-    reScanQuestionToken(): SyntaxKind;
-    reScanInvalidIdentifier(): SyntaxKind;
-    scanJsxToken(): JsxTokenSyntaxKind;
-    scanJsDocToken(): JSDocSyntaxKind;
+    reScanTemplateHeadOrNoSubstitutionTemplate: () => SyntaxKind;
+    scanJsxIdentifier: () => SyntaxKind;
+    scanJsxAttributeValue: () => SyntaxKind;
+    reScanJsxAttributeValue: () => SyntaxKind;
+    reScanJsxToken: (allowMultilineJsxText?: boolean) => JsxTokenSyntaxKind;
+    reScanLessThanToken: () => SyntaxKind;
+    reScanHashToken: () => SyntaxKind;
+    reScanQuestionToken: () => SyntaxKind;
+    reScanInvalidIdentifier: () => SyntaxKind;
+    scanJsxToken: () => JsxTokenSyntaxKind;
+    scanJsDocToken: () => JSDocSyntaxKind;
     /** @internal */
-    scanJSDocCommentTextToken(inBackticks: boolean): JSDocSyntaxKind | SyntaxKind.JSDocCommentTextToken;
-    scan(): SyntaxKind;
+    scanJSDocCommentTextToken: (inBackticks: boolean) => JSDocSyntaxKind | SyntaxKind.JSDocCommentTextToken;
+    scan: () => SyntaxKind;
 
-    getText(): string;
+    getText: () => string;
     /** @internal */
-    clearCommentDirectives(): void;
+    clearCommentDirectives: () => void;
     // Sets the text for the scanner to scan.  An optional subrange starting point and length
     // can be provided to have the scanner only scan a portion of the text.
-    setText(text: string | undefined, start?: number, length?: number): void;
-    setOnError(onError: ErrorCallback | undefined): void;
-    setScriptTarget(scriptTarget: ScriptTarget): void;
-    setLanguageVariant(variant: LanguageVariant): void;
-    setScriptKind(scriptKind: ScriptKind): void;
-    setJSDocParsingMode(kind: JSDocParsingMode): void;
+    setText: (text: string | undefined, start?: number, length?: number) => void;
+    setOnError: (onError: ErrorCallback | undefined) => void;
+    setScriptTarget: (scriptTarget: ScriptTarget) => void;
+    setLanguageVariant: (variant: LanguageVariant) => void;
+    setScriptKind: (scriptKind: ScriptKind) => void;
+    setJSDocParsingMode: (kind: JSDocParsingMode) => void;
     /** @deprecated use {@link resetTokenState} */
-    setTextPos(textPos: number): void;
-    resetTokenState(pos: number): void;
+    setTextPos: (textPos: number) => void;
+    resetTokenState: (pos: number) => void;
     /** @internal */
-    setInJSDocType(inType: boolean): void;
+    setInJSDocType: (inType: boolean) => void;
     // Invokes the provided callback then unconditionally restores the scanner to the state it
     // was in immediately prior to invoking the callback.  The result of invoking the callback
     // is returned from this function.
-    lookAhead<T>(callback: () => T): T;
+    lookAhead: <T>(callback: () => T) => T;
 
     // Invokes the callback with the scanner set to scan the specified range. When the callback
     // returns, the scanner is restored to the state it was in before scanRange was called.
-    scanRange<T>(start: number, length: number, callback: () => T): T;
+    scanRange: <T>(start: number, length: number, callback: () => T) => T;
 
     // Invokes the provided callback.  If the callback returns something falsy, then it restores
     // the scanner to the state it was in immediately prior to invoking the callback.  If the
     // callback returns something truthy, then the scanner state is not rolled back.  The result
     // of invoking the callback is returned from this function.
-    tryScan<T>(callback: () => T): T;
+    tryScan: <T>(callback: () => T) => T;
 }
 
 /** @internal */

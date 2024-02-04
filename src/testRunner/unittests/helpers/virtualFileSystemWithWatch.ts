@@ -157,7 +157,7 @@ function isFsSymLink(s: FSEntry | undefined): s is FsSymLink {
 }
 
 export interface StateLogger {
-    log(s: string): void;
+    log: (s: string) => void;
     logs: string[];
 }
 

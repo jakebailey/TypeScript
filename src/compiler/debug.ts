@@ -105,7 +105,7 @@ export enum LogLevel {
 
 /** @internal */
 export interface LoggingHost {
-    log(level: LogLevel, s: string): void;
+    log: (level: LogLevel, s: string) => void;
 }
 
 /** @internal */
@@ -816,7 +816,7 @@ export namespace Debug {
         return result;
     }
 
-    export type DebugType = Type & { __debugTypeToString(): string; }; // eslint-disable-line @typescript-eslint/naming-convention
+    export type DebugType = Type & { __debugTypeToString: () => string; }; // eslint-disable-line @typescript-eslint/naming-convention
     export class DebugTypeMapper {
         declare kind: TypeMapKind;
         __debugToString(): string { // eslint-disable-line @typescript-eslint/naming-convention

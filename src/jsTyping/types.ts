@@ -99,9 +99,9 @@ export interface EndInstallTypes extends InstallTypes {
 
 export interface InstallTypingHost extends JsTyping.TypingResolutionHost {
     useCaseSensitiveFileNames: boolean;
-    writeFile(path: string, content: string): void;
-    createDirectory(path: string): void;
-    getCurrentDirectory?(): string;
+    writeFile: (path: string, content: string) => void;
+    createDirectory: (path: string) => void;
+    getCurrentDirectory?: () => string;
 }
 
 export interface SetTypings extends ProjectResponse {

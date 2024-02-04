@@ -24,9 +24,9 @@ describe("unittests:: tsserver:: events:: watchEvents", () => {
     interface TestServerHostWithCustomWatch extends TestServerHost {
         factoryData: {
             watchUtils: WatchUtils<ts.server.protocol.CreateFileWatcherEventBody, ts.server.protocol.CreateDirectoryWatcherEventBody>;
-            watchFile(data: ts.server.protocol.CreateFileWatcherEventBody): void;
-            watchDirectory(data: ts.server.protocol.CreateDirectoryWatcherEventBody): void;
-            closeWatcher(data: ts.server.protocol.CloseFileWatcherEventBody): void;
+            watchFile: (data: ts.server.protocol.CreateFileWatcherEventBody) => void;
+            watchDirectory: (data: ts.server.protocol.CreateDirectoryWatcherEventBody) => void;
+            closeWatcher: (data: ts.server.protocol.CloseFileWatcherEventBody) => void;
         };
     }
 

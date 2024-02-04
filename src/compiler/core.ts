@@ -1611,13 +1611,13 @@ export interface MultiMap<K, V> extends Map<K, V[]> {
      * Adds the value to an array of values associated with the key, and returns the array.
      * Creates the array if it does not already exist.
      */
-    add(key: K, value: V): V[];
+    add: (key: K, value: V) => V[];
     /**
      * Removes a value from an array of values associated with the key.
      * Does not preserve the order of those values.
      * Does nothing if `key` is not in `map`, or `value` is not in `map[key]`.
      */
-    remove(key: K, value: V): void;
+    remove: (key: K, value: V) => void;
 }
 
 /** @internal */
@@ -2023,9 +2023,9 @@ export function memoizeWeak<A extends object, T>(callback: (arg: A) => T): (arg:
 
 /** @internal */
 export interface MemoizeCache<A extends any[], T> {
-    has(args: A): boolean;
-    get(args: A): T | undefined;
-    set(args: A, value: T): void;
+    has: (args: A) => boolean;
+    get: (args: A) => T | undefined;
+    set: (args: A, value: T) => void;
 }
 
 /**

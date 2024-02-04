@@ -6193,20 +6193,20 @@ export function getTrailingSemicolonDeferringWriter(writer: EmitTextWriter): Emi
 }
 
 /** @internal */
-export function hostUsesCaseSensitiveFileNames(host: { useCaseSensitiveFileNames?(): boolean; }): boolean {
+export function hostUsesCaseSensitiveFileNames(host: { useCaseSensitiveFileNames?: () => boolean; }): boolean {
     return host.useCaseSensitiveFileNames ? host.useCaseSensitiveFileNames() : false;
 }
 
 /** @internal */
-export function hostGetCanonicalFileName(host: { useCaseSensitiveFileNames?(): boolean; }): GetCanonicalFileName {
+export function hostGetCanonicalFileName(host: { useCaseSensitiveFileNames?: () => boolean; }): GetCanonicalFileName {
     return createGetCanonicalFileName(hostUsesCaseSensitiveFileNames(host));
 }
 
 /** @internal */
 export interface ResolveModuleNameResolutionHost {
-    getCanonicalFileName(p: string): string;
-    getCommonSourceDirectory(): string;
-    getCurrentDirectory(): string;
+    getCanonicalFileName: (p: string) => string;
+    getCommonSourceDirectory: () => string;
+    getCurrentDirectory: () => string;
 }
 
 /** @internal */
@@ -6309,7 +6309,7 @@ export function outFile(options: CompilerOptions) {
  *
  * @internal
  */
-export function getPathsBasePath(options: CompilerOptions, host: { getCurrentDirectory?(): string; }) {
+export function getPathsBasePath(options: CompilerOptions, host: { getCurrentDirectory?: () => string; }) {
     if (!options.paths) return undefined;
     return options.baseUrl ?? Debug.checkDefined(options.pathsBasePath || host.getCurrentDirectory?.(), "Encountered 'paths' without a 'baseUrl', config file, or host 'getCurrentDirectory'.");
 }
@@ -7433,7 +7433,7 @@ function getStringFromExpandedCharCodes(codes: number[]): string {
 }
 
 /** @internal */
-export function base64encode(host: { base64encode?(input: string): string; } | undefined, input: string): string {
+export function base64encode(host: { base64encode?: (input: string) => string; } | undefined, input: string): string {
     if (host && host.base64encode) {
         return host.base64encode(input);
     }
@@ -7441,7 +7441,7 @@ export function base64encode(host: { base64encode?(input: string): string; } | u
 }
 
 /** @internal */
-export function base64decode(host: { base64decode?(input: string): string; } | undefined, input: string): string {
+export function base64decode(host: { base64decode?: (input: string) => string; } | undefined, input: string): string {
     if (host && host.base64decode) {
         return host.base64decode(input);
     }
@@ -7478,7 +7478,7 @@ export function base64decode(host: { base64decode?(input: string): string; } | u
 }
 
 /** @internal */
-export function readJsonOrUndefined(path: string, hostOrText: { readFile(fileName: string): string | undefined; } | string): object | undefined {
+export function readJsonOrUndefined(path: string, hostOrText: { readFile: (fileName: string) => string | undefined; } | string): object | undefined {
     const jsonText = isString(hostOrText) ? hostOrText : hostOrText.readFile(path);
     if (!jsonText) return undefined;
     // gracefully handle if readFile fails or returns not JSON
@@ -7487,7 +7487,7 @@ export function readJsonOrUndefined(path: string, hostOrText: { readFile(fileNam
 }
 
 /** @internal */
-export function readJson(path: string, host: { readFile(fileName: string): string | undefined; }): object {
+export function readJson(path: string, host: { readFile: (fileName: string) => string | undefined; }): object {
     return readJsonOrUndefined(path, host) || {};
 }
 
@@ -7861,7 +7861,7 @@ export function clearMap<K, T>(map: { forEach: Map<K, T>["forEach"]; clear: Map<
 
 /** @internal */
 export interface MutateMapSkippingNewValuesDelete<K, T> {
-    onDeleteValue(existingValue: T, key: K): void;
+    onDeleteValue: (existingValue: T, key: K) => void;
 }
 
 /** @internal */
@@ -7872,7 +7872,7 @@ export interface MutateMapSkippingNewValuesOptions<K, T, U> extends MutateMapSki
      * If the key is removed, caller will get callback of createNewValue for that key.
      * If this callback is not provided, the value of such keys is not updated.
      */
-    onExistingValue?(existingValue: T, valueInNewMap: U, key: K): void;
+    onExistingValue?: (existingValue: T, valueInNewMap: U, key: K) => void;
 }
 
 /**
@@ -7913,7 +7913,7 @@ export function mutateMapSkippingNewValues<K, T, U>(
 
 /** @internal */
 export interface MutateMapOptionsCreate<K, T, U> {
-    createNewValue(key: K, valueInNewMap: U): T;
+    createNewValue: (key: K, valueInNewMap: U) => T;
 }
 
 /** @internal */
@@ -8161,15 +8161,15 @@ export function getLeftmostExpression(node: Expression, stopAtCallExpressions: b
 
 /** @internal */
 export interface ObjectAllocator {
-    getNodeConstructor(): new (kind: SyntaxKind, pos: number, end: number) => Node;
-    getTokenConstructor(): new <TKind extends SyntaxKind>(kind: TKind, pos: number, end: number) => Token<TKind>;
-    getIdentifierConstructor(): new (kind: SyntaxKind.Identifier, pos: number, end: number) => Identifier;
-    getPrivateIdentifierConstructor(): new (kind: SyntaxKind.PrivateIdentifier, pos: number, end: number) => PrivateIdentifier;
-    getSourceFileConstructor(): new (kind: SyntaxKind.SourceFile, pos: number, end: number) => SourceFile;
-    getSymbolConstructor(): new (flags: SymbolFlags, name: __String) => Symbol;
-    getTypeConstructor(): new (checker: TypeChecker, flags: TypeFlags) => Type;
-    getSignatureConstructor(): new (checker: TypeChecker, flags: SignatureFlags) => Signature;
-    getSourceMapSourceConstructor(): new (fileName: string, text: string, skipTrivia?: (pos: number) => number) => SourceMapSource;
+    getNodeConstructor: () => new (kind: SyntaxKind, pos: number, end: number) => Node;
+    getTokenConstructor: () => new <TKind extends SyntaxKind>(kind: TKind, pos: number, end: number) => Token<TKind>;
+    getIdentifierConstructor: () => new (kind: SyntaxKind.Identifier, pos: number, end: number) => Identifier;
+    getPrivateIdentifierConstructor: () => new (kind: SyntaxKind.PrivateIdentifier, pos: number, end: number) => PrivateIdentifier;
+    getSourceFileConstructor: () => new (kind: SyntaxKind.SourceFile, pos: number, end: number) => SourceFile;
+    getSymbolConstructor: () => new (flags: SymbolFlags, name: __String) => Symbol;
+    getTypeConstructor: () => new (checker: TypeChecker, flags: TypeFlags) => Type;
+    getSignatureConstructor: () => new (checker: TypeChecker, flags: SignatureFlags) => Signature;
+    getSourceMapSourceConstructor: () => new (fileName: string, text: string, skipTrivia?: (pos: number) => number) => SourceMapSource;
 }
 
 function Symbol(this: Symbol, flags: SymbolFlags, name: __String) {
@@ -9006,20 +9006,20 @@ export interface SymlinkedDirectory {
 /** @internal */
 export interface SymlinkCache {
     /** Gets a map from symlink to realpath. Keys have trailing directory separators. */
-    getSymlinkedDirectories(): ReadonlyMap<Path, SymlinkedDirectory | false> | undefined;
+    getSymlinkedDirectories: () => ReadonlyMap<Path, SymlinkedDirectory | false> | undefined;
     /** Gets a map from realpath to symlinks. Keys have trailing directory separators. */
-    getSymlinkedDirectoriesByRealpath(): MultiMap<Path, string> | undefined;
+    getSymlinkedDirectoriesByRealpath: () => MultiMap<Path, string> | undefined;
     /** Gets a map from symlink to realpath */
-    getSymlinkedFiles(): ReadonlyMap<Path, string> | undefined;
-    setSymlinkedDirectory(symlink: string, real: SymlinkedDirectory | false): void;
-    setSymlinkedFile(symlinkPath: Path, real: string): void;
+    getSymlinkedFiles: () => ReadonlyMap<Path, string> | undefined;
+    setSymlinkedDirectory: (symlink: string, real: SymlinkedDirectory | false) => void;
+    setSymlinkedFile: (symlinkPath: Path, real: string) => void;
     /**
      * @internal
      * Uses resolvedTypeReferenceDirectives from program instead of from files, since files
      * don't include automatic type reference directives. Must be called only when
      * `hasProcessedResolutions` returns false (once per cache instance).
      */
-    setSymlinksFromResolutions(
+    setSymlinksFromResolutions: (
         forEachResolvedModule: (
             callback: (resolution: ResolvedModuleWithFailedLookupLocations, moduleName: string, mode: ResolutionMode, filePath: Path) => void,
         ) => void,
@@ -9027,12 +9027,12 @@ export interface SymlinkCache {
             callback: (resolution: ResolvedTypeReferenceDirectiveWithFailedLookupLocations, moduleName: string, mode: ResolutionMode, filePath: Path) => void,
         ) => void,
         typeReferenceDirectives: ModeAwareCache<ResolvedTypeReferenceDirectiveWithFailedLookupLocations>,
-    ): void;
+    ) => void;
     /**
      * @internal
      * Whether `setSymlinksFromResolutions` has already been called.
      */
-    hasProcessedResolutions(): boolean;
+    hasProcessedResolutions: () => boolean;
 }
 
 /** @internal */
@@ -9869,7 +9869,7 @@ export function rangeOfTypeParameters(sourceFile: SourceFile, typeParameters: No
 
 /** @internal */
 export interface HostWithIsSourceOfProjectReferenceRedirect {
-    isSourceOfProjectReferenceRedirect(fileName: string): boolean;
+    isSourceOfProjectReferenceRedirect: (fileName: string) => boolean;
 }
 /** @internal */
 export function skipTypeChecking(sourceFile: SourceFile, options: CompilerOptions, host: HostWithIsSourceOfProjectReferenceRedirect) {

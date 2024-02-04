@@ -133,7 +133,7 @@ interface Preferences {
     /**
      * @param syntaxImpliedNodeFormat Used when the import syntax implies ESM or CJS irrespective of the mode of the file.
      */
-    getAllowedEndingsInPreferredOrder(syntaxImpliedNodeFormat?: SourceFile["impliedNodeFormat"]): ModuleSpecifierEnding[];
+    getAllowedEndingsInPreferredOrder: (syntaxImpliedNodeFormat?: SourceFile["impliedNodeFormat"]) => ModuleSpecifierEnding[];
 }
 
 function getPreferences(

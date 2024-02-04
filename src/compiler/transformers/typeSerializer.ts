@@ -110,22 +110,22 @@ export interface RuntimeTypeSerializer {
      *
      * @param node The type node to serialize.
      */
-    serializeTypeNode(serializerContext: RuntimeTypeSerializerContext, node: TypeNode): Expression;
+    serializeTypeNode: (serializerContext: RuntimeTypeSerializerContext, node: TypeNode) => Expression;
     /**
      * Serializes the type of a node for use with decorator type metadata.
      * @param node The node that should have its type serialized.
      */
-    serializeTypeOfNode(serializerContext: RuntimeTypeSerializerContext, node: PropertyDeclaration | ParameterDeclaration | AccessorDeclaration | ClassLikeDeclaration | MethodDeclaration): Expression;
+    serializeTypeOfNode: (serializerContext: RuntimeTypeSerializerContext, node: PropertyDeclaration | ParameterDeclaration | AccessorDeclaration | ClassLikeDeclaration | MethodDeclaration) => Expression;
     /**
      * Serializes the types of the parameters of a node for use with decorator type metadata.
      * @param node The node that should have its parameter types serialized.
      */
-    serializeParameterTypesOfNode(serializerContext: RuntimeTypeSerializerContext, node: Node, container: ClassLikeDeclaration): ArrayLiteralExpression;
+    serializeParameterTypesOfNode: (serializerContext: RuntimeTypeSerializerContext, node: Node, container: ClassLikeDeclaration) => ArrayLiteralExpression;
     /**
      * Serializes the return type of a node for use with decorator type metadata.
      * @param node The node that should have its return type serialized.
      */
-    serializeReturnTypeOfNode(serializerContext: RuntimeTypeSerializerContext, node: Node): SerializedTypeNode;
+    serializeReturnTypeOfNode: (serializerContext: RuntimeTypeSerializerContext, node: Node) => SerializedTypeNode;
 }
 
 /** @internal */

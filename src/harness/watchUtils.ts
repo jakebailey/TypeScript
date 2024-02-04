@@ -23,21 +23,21 @@ export interface TestFsWatcher<DirCallback> {
 }
 
 export interface Watches<Data> {
-    add(path: string, data: Data): void;
-    remove(path: string, data: Data): void;
-    forEach(path: string, cb: (data: Data) => void): void;
-    serialize(baseline: string[]): void;
+    add: (path: string, data: Data) => void;
+    remove: (path: string, data: Data) => void;
+    forEach: (path: string, cb: (data: Data) => void) => void;
+    serialize: (baseline: string[]) => void;
 }
 
 export interface WatchUtils<PollingWatcherData, FsWatcherData> {
     pollingWatches: Watches<PollingWatcherData>;
     fsWatches: Watches<FsWatcherData>;
     fsWatchesRecursive: Watches<FsWatcherData>;
-    pollingWatch(path: string, data: PollingWatcherData): FileWatcher;
-    fsWatch(path: string, recursive: boolean, data: FsWatcherData): FileWatcher;
-    serializeWatches(baseline?: string[]): string[];
-    getHasWatchChanges(): boolean;
-    setHasWatchChanges(): void;
+    pollingWatch: (path: string, data: PollingWatcherData) => FileWatcher;
+    fsWatch: (path: string, recursive: boolean, data: FsWatcherData) => FileWatcher;
+    serializeWatches: (baseline?: string[]) => string[];
+    getHasWatchChanges: () => boolean;
+    setHasWatchChanges: () => void;
 }
 
 export function createWatchUtils<PollingWatcherData, FsWatcherData>(

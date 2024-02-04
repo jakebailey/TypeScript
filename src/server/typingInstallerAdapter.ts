@@ -43,12 +43,12 @@ import {
 
 /** @internal */
 export interface TypingsInstallerWorkerProcess {
-    send<T extends TypingInstallerRequestUnion>(rq: T): void;
+    send: <T extends TypingInstallerRequestUnion>(rq: T) => void;
 }
 
 interface PackageInstallPromise {
-    resolve(value: ApplyCodeActionCommandResult): void;
-    reject(reason: unknown): void;
+    resolve: (value: ApplyCodeActionCommandResult) => void;
+    reject: (reason: unknown) => void;
 }
 
 /** @internal */

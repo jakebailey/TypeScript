@@ -65,17 +65,17 @@ import {
  * @internal
  */
 export interface DirectoryStructureHost {
-    fileExists(path: string): boolean;
-    readFile(path: string, encoding?: string): string | undefined;
+    fileExists: (path: string) => boolean;
+    readFile: (path: string, encoding?: string) => string | undefined;
 
     // TODO: GH#18217 Optional methods are frequently used as non-optional
-    directoryExists?(path: string): boolean;
-    getDirectories?(path: string): string[];
-    readDirectory?(path: string, extensions?: readonly string[], exclude?: readonly string[], include?: readonly string[], depth?: number): string[];
-    realpath?(path: string): string;
+    directoryExists?: (path: string) => boolean;
+    getDirectories?: (path: string) => string[];
+    readDirectory?: (path: string, extensions?: readonly string[], exclude?: readonly string[], include?: readonly string[], depth?: number) => string[];
+    realpath?: (path: string) => string;
 
-    createDirectory?(path: string): void;
-    writeFile?(path: string, data: string, writeByteOrderMark?: boolean): void;
+    createDirectory?: (path: string) => void;
+    writeFile?: (path: string, data: string, writeByteOrderMark?: boolean) => void;
 }
 
 /** @internal */
@@ -88,13 +88,13 @@ export interface FileAndDirectoryExistence {
 export interface CachedDirectoryStructureHost extends DirectoryStructureHost {
     useCaseSensitiveFileNames: boolean;
 
-    getDirectories(path: string): string[];
-    readDirectory(path: string, extensions?: readonly string[], exclude?: readonly string[], include?: readonly string[], depth?: number): string[];
+    getDirectories: (path: string) => string[];
+    readDirectory: (path: string, extensions?: readonly string[], exclude?: readonly string[], include?: readonly string[], depth?: number) => string[];
 
     /** Returns the queried result for the file exists and directory exists if at all it was done */
-    addOrDeleteFileOrDirectory(fileOrDirectory: string, fileOrDirectoryPath: Path): FileAndDirectoryExistence | undefined;
-    addOrDeleteFile(fileName: string, filePath: Path, eventKind: FileWatcherEventKind): void;
-    clearCache(): void;
+    addOrDeleteFileOrDirectory: (fileOrDirectory: string, fileOrDirectoryPath: Path) => FileAndDirectoryExistence | undefined;
+    addOrDeleteFile: (fileName: string, filePath: Path, eventKind: FileWatcherEventKind) => void;
+    clearCache: () => void;
 }
 
 type Canonicalized = string & { __canonicalized: void; };
@@ -674,9 +674,9 @@ export enum WatchLogLevel {
 
 /** @internal */
 export interface WatchFactoryHost {
-    watchFile(path: string, callback: FileWatcherCallback, pollingInterval?: number, options?: WatchOptions): FileWatcher;
-    watchDirectory(path: string, callback: DirectoryWatcherCallback, recursive?: boolean, options?: WatchOptions): FileWatcher;
-    getCurrentDirectory?(): string;
+    watchFile: (path: string, callback: FileWatcherCallback, pollingInterval?: number, options?: WatchOptions) => FileWatcher;
+    watchDirectory: (path: string, callback: DirectoryWatcherCallback, recursive?: boolean, options?: WatchOptions) => FileWatcher;
+    getCurrentDirectory?: () => string;
     useCaseSensitiveFileNames: boolean | (() => boolean);
 }
 

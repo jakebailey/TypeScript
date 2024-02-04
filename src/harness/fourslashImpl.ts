@@ -4581,7 +4581,7 @@ function runCode(code: string, state: TestState, fileName: string): void {
 
     type SourceMapSupportModule = typeof import("source-map-support") & {
         // TODO(rbuckton): This is missing from the DT definitions and needs to be added.
-        resetRetrieveHandlers(): void;
+        resetRetrieveHandlers: () => void;
     };
 
     // Provide the content of the current test to 'source-map-support' so that it can give us the correct source positions

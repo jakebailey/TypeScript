@@ -246,7 +246,7 @@ interface SystemModuleDeclaration {
 }
 
 interface SystemGlobal {
-    register(dependencies: string[], declare: SystemModuleRegisterCallback): void;
+    register: (dependencies: string[], declare: SystemModuleRegisterCallback) => void;
 }
 
 class SystemLoader extends Loader<SystemModule> {

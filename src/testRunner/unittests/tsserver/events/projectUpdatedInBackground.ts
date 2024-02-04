@@ -91,7 +91,7 @@ describe("unittests:: tsserver:: events:: ProjectsUpdatedInBackground", () => {
                 /** custom config file options */
                 configObj?: any;
                 /** Additional files and folders to add */
-                getAdditionalFileOrFolder?(): File[];
+                getAdditionalFileOrFolder?: () => File[];
                 /** initial list of files to reload in fs and first file in this list being the file to open */
                 firstReloadFileList?: string[];
             }

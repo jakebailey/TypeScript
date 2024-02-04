@@ -10322,7 +10322,7 @@ namespace IncrementalParser {
     // The implementation takes advantage of the calling pattern it knows the parser will
     // make in order to optimize finding nodes as quickly as possible.
     export interface SyntaxCursor {
-        currentNode(position: number): IncrementalNode;
+        currentNode: (position: number) => IncrementalNode;
     }
 
     export function createSyntaxCursor(sourceFile: SourceFile): SyntaxCursor {

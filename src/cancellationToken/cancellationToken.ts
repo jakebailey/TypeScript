@@ -1,9 +1,9 @@
 import * as fs from "fs";
 
 interface ServerCancellationToken {
-    isCancellationRequested(): boolean;
-    setRequest(requestId: number): void;
-    resetRequest(requestId: number): void;
+    isCancellationRequested: () => boolean;
+    setRequest: (requestId: number) => void;
+    resetRequest: (requestId: number) => void;
 }
 
 function pipeExists(name: string): boolean {

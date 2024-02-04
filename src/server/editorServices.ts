@@ -526,9 +526,9 @@ interface AssignProjectResult extends OpenConfiguredProjectResult {
 }
 
 interface FilePropertyReader<T> {
-    getFileName(f: T): string;
-    getScriptKind(f: T, extraFileExtensions?: FileExtensionInfo[]): ScriptKind;
-    hasMixedContent(f: T, extraFileExtensions: FileExtensionInfo[] | undefined): boolean;
+    getFileName: (f: T) => string;
+    getScriptKind: (f: T, extraFileExtensions?: FileExtensionInfo[]) => ScriptKind;
+    hasMixedContent: (f: T, extraFileExtensions: FileExtensionInfo[] | undefined) => boolean;
 }
 
 const fileNamePropertyReader: FilePropertyReader<string> = {
@@ -3195,11 +3195,11 @@ export class ProjectService {
         return this.getOrCreateScriptInfoWorker(fileName, currentDirectory, /*openedByClient*/ true, fileContent, scriptKind, hasMixedContent);
     }
 
-    getOrCreateScriptInfoForNormalizedPath(fileName: NormalizedPath, openedByClient: boolean, fileContent?: string, scriptKind?: ScriptKind, hasMixedContent?: boolean, hostToQueryFileExistsOn?: { fileExists(path: string): boolean; }) {
+    getOrCreateScriptInfoForNormalizedPath(fileName: NormalizedPath, openedByClient: boolean, fileContent?: string, scriptKind?: ScriptKind, hasMixedContent?: boolean, hostToQueryFileExistsOn?: { fileExists: (path: string) => boolean; }) {
         return this.getOrCreateScriptInfoWorker(fileName, this.currentDirectory, openedByClient, fileContent, scriptKind, hasMixedContent, hostToQueryFileExistsOn);
     }
 
-    private getOrCreateScriptInfoWorker(fileName: NormalizedPath, currentDirectory: string, openedByClient: boolean, fileContent?: string, scriptKind?: ScriptKind, hasMixedContent?: boolean, hostToQueryFileExistsOn?: { fileExists(path: string): boolean; }) {
+    private getOrCreateScriptInfoWorker(fileName: NormalizedPath, currentDirectory: string, openedByClient: boolean, fileContent?: string, scriptKind?: ScriptKind, hasMixedContent?: boolean, hostToQueryFileExistsOn?: { fileExists: (path: string) => boolean; }) {
         Debug.assert(fileContent === undefined || openedByClient, "ScriptInfo needs to be opened by client to be able to set its user defined content");
         const path = normalizedPathToPath(fileName, currentDirectory, this.toCanonicalFileName);
         let info = this.getScriptInfoForPath(path);

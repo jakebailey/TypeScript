@@ -1396,7 +1396,7 @@ export namespace Core {
          * Whether a symbol is in the search set.
          * Do not compare directly to `symbol` because there may be related symbols to search for. See `populateSearchSymbolSet`.
          */
-        includes(symbol: Symbol): boolean;
+        includes: (symbol: Symbol) => boolean;
     }
 
     const enum SpecialSearchKind {

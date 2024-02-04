@@ -581,8 +581,8 @@ function onProjectCreation(project: ts.server.Project) {
 }
 
 export interface IncrementalVerifierCallbacks {
-    beforeVerification?(): any;
-    afterVerification?(dataFromBefore: any): void;
+    beforeVerification?: () => any;
+    afterVerification?: (dataFromBefore: any) => void;
 }
 
 export function incrementalVerifier(service: ts.server.ProjectService) {

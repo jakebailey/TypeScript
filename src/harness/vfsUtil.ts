@@ -1191,25 +1191,25 @@ export type Axis = "ancestors" | "ancestors-or-self" | "self" | "descendants-or-
 
 export interface Traversal {
     /** A function called to choose whether to continue to traverse to either ancestors or descendants. */
-    traverse?(path: string, stats: Stats): boolean;
+    traverse?: (path: string, stats: Stats) => boolean;
     /** A function called to choose whether to accept a path as part of the result. */
-    accept?(path: string, stats: Stats): boolean;
+    accept?: (path: string, stats: Stats) => boolean;
 }
 
 export interface FileSystemResolver {
-    statSync(path: string): { mode: number; size: number; };
-    readdirSync(path: string): string[];
-    readFileSync(path: string): FileDataBuffer;
+    statSync: (path: string) => { mode: number; size: number; };
+    readdirSync: (path: string) => string[];
+    readFileSync: (path: string) => FileDataBuffer;
 }
 
 export interface FileSystemResolverHost {
-    useCaseSensitiveFileNames(): boolean;
-    getAccessibleFileSystemEntries(path: string): ts.FileSystemEntries;
-    directoryExists(path: string): boolean;
-    fileExists(path: string): boolean;
-    getFileSize(path: string): number;
-    readFile(path: string): string | undefined;
-    getWorkspaceRoot(): string;
+    useCaseSensitiveFileNames: () => boolean;
+    getAccessibleFileSystemEntries: (path: string) => ts.FileSystemEntries;
+    directoryExists: (path: string) => boolean;
+    fileExists: (path: string) => boolean;
+    getFileSize: (path: string) => number;
+    readFile: (path: string) => string | undefined;
+    getWorkspaceRoot: () => string;
 }
 
 export function createResolver(host: FileSystemResolverHost): FileSystemResolver {

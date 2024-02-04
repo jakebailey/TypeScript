@@ -126,8 +126,8 @@ const enum Constants {
  * the first token in line so it should be indented
  */
 interface DynamicIndentation {
-    getIndentationForToken(tokenLine: number, tokenKind: SyntaxKind, container: Node, suppressDelta: boolean): number;
-    getIndentationForComment(owningToken: SyntaxKind, tokenIndentation: number, container: Node): number;
+    getIndentationForToken: (tokenLine: number, tokenKind: SyntaxKind, container: Node, suppressDelta: boolean) => number;
+    getIndentationForComment: (owningToken: SyntaxKind, tokenIndentation: number, container: Node) => number;
     /**
      * Indentation for open and close tokens of the node if it is block or another node that needs special indentation
      * ... {
@@ -136,7 +136,7 @@ interface DynamicIndentation {
      *  ____ - indentation
      *      ____ - delta
      */
-    getIndentation(): number;
+    getIndentation: () => number;
     /**
      * Prefered relative indentation for child nodes.
      * Delta is used to carry the indentation info
@@ -148,12 +148,12 @@ interface DynamicIndentation {
      * bar: { indentation: foo.indentation + foo.delta = 4, delta: 4} however 'foo' and 'bar' are on the same line
      * so bar inherits indentation from foo and bar.delta will be 4
      */
-    getDelta(child: TextRangeWithKind): number;
+    getDelta: (child: TextRangeWithKind) => number;
     /**
      * Formatter calls this function when rule adds or deletes new lines from the text
      * so indentation scope can adjust values of indentation and delta.
      */
-    recomputeIndentation(lineAddedByFormatting: boolean, parent: Node): void;
+    recomputeIndentation: (lineAddedByFormatting: boolean, parent: Node) => void;
 }
 
 /** @internal */
