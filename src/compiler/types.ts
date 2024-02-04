@@ -4461,7 +4461,7 @@ export interface UnparsedPrepend extends UnparsedSection {
     readonly kind: SyntaxKind.UnparsedPrepend;
     readonly parent: UnparsedSource;
     readonly data: string;
-    readonly texts: readonly UnparsedTextLike[];
+    readonly texts: readonly UnparsedSourceText[];
 }
 
 /** @deprecated */
