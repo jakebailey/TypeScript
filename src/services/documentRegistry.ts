@@ -132,10 +132,14 @@ export interface DocumentRegistry {
      *
      * @deprecated pass scriptKind and impliedNodeFormat for correctness
      */
-    releaseDocument: ((fileName: string, compilationSettings: CompilerOptions, scriptKind?: ScriptKind) => void) & ((fileName: string, compilationSettings: CompilerOptions, scriptKind: ScriptKind, impliedNodeFormat: ResolutionMode) => void); // eslint-disable-line @typescript-eslint/unified-signatures
+    releaseDocument:
+        & ((fileName: string, compilationSettings: CompilerOptions, scriptKind?: ScriptKind) => void)
+        & ((fileName: string, compilationSettings: CompilerOptions, scriptKind: ScriptKind, impliedNodeFormat: ResolutionMode) => void); // eslint-disable-line @typescript-eslint/unified-signatures
     /**
      * @deprecated pass scriptKind for and impliedNodeFormat correctness */
-    releaseDocumentWithKey: ((path: Path, key: DocumentRegistryBucketKey, scriptKind?: ScriptKind) => void) & ((path: Path, key: DocumentRegistryBucketKey, scriptKind: ScriptKind, impliedNodeFormat: ResolutionMode) => void); // eslint-disable-line @typescript-eslint/unified-signatures
+    releaseDocumentWithKey:
+        & ((path: Path, key: DocumentRegistryBucketKey, scriptKind?: ScriptKind) => void)
+        & ((path: Path, key: DocumentRegistryBucketKey, scriptKind: ScriptKind, impliedNodeFormat: ResolutionMode) => void); // eslint-disable-line @typescript-eslint/unified-signatures
 
     reportStats: () => string;
     /** @internal */ getBuckets: () => Map<DocumentRegistryBucketKeyWithMode, Map<Path, BucketEntry>>;

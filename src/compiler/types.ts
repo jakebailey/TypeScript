@@ -4722,7 +4722,9 @@ export interface Program extends ScriptReferenceHost {
      * used for writing the JavaScript and declaration files.  Otherwise, the writeFile parameter
      * will be invoked when writing the JavaScript and declaration files.
      */
-    emit: ((targetSourceFile?: SourceFile, writeFile?: WriteFileCallback, cancellationToken?: CancellationToken, emitOnlyDtsFiles?: boolean, customTransformers?: CustomTransformers) => EmitResult) & ((targetSourceFile?: SourceFile, writeFile?: WriteFileCallback, cancellationToken?: CancellationToken, emitOnly?: boolean | EmitOnly, customTransformers?: CustomTransformers, forceDtsEmit?: boolean) => EmitResult);
+    emit:
+        & ((targetSourceFile?: SourceFile, writeFile?: WriteFileCallback, cancellationToken?: CancellationToken, emitOnlyDtsFiles?: boolean, customTransformers?: CustomTransformers) => EmitResult)
+        & ((targetSourceFile?: SourceFile, writeFile?: WriteFileCallback, cancellationToken?: CancellationToken, emitOnly?: boolean | EmitOnly, customTransformers?: CustomTransformers, forceDtsEmit?: boolean) => EmitResult);
 
     getOptionsDiagnostics: (cancellationToken?: CancellationToken) => readonly Diagnostic[];
     getGlobalDiagnostics: (cancellationToken?: CancellationToken) => readonly Diagnostic[];
@@ -4991,11 +4993,17 @@ export interface TypeChecker {
 
     // TODO: GH#18217 `xToDeclaration` calls are frequently asserted as defined.
     /** Note that the resulting nodes cannot be checked. */
-    typeToTypeNode: ((type: Type, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined) => TypeNode | undefined) & ((type: Type, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined, tracker?: SymbolTracker) => TypeNode | undefined); // eslint-disable-line @typescript-eslint/unified-signatures
+    typeToTypeNode:
+        & ((type: Type, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined) => TypeNode | undefined)
+        & ((type: Type, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined, tracker?: SymbolTracker) => TypeNode | undefined); // eslint-disable-line @typescript-eslint/unified-signatures
     /** Note that the resulting nodes cannot be checked. */
-    signatureToSignatureDeclaration: ((signature: Signature, kind: SyntaxKind, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined) => SignatureDeclaration & { typeArguments?: NodeArray<TypeNode>; } | undefined) & ((signature: Signature, kind: SyntaxKind, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined, tracker?: SymbolTracker) => SignatureDeclaration & { typeArguments?: NodeArray<TypeNode>; } | undefined); // eslint-disable-line @typescript-eslint/unified-signatures
+    signatureToSignatureDeclaration:
+        & ((signature: Signature, kind: SyntaxKind, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined) => SignatureDeclaration & { typeArguments?: NodeArray<TypeNode>; } | undefined)
+        & ((signature: Signature, kind: SyntaxKind, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined, tracker?: SymbolTracker) => SignatureDeclaration & { typeArguments?: NodeArray<TypeNode>; } | undefined); // eslint-disable-line @typescript-eslint/unified-signatures
     /** Note that the resulting nodes cannot be checked. */
-    indexInfoToIndexSignatureDeclaration: ((indexInfo: IndexInfo, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined) => IndexSignatureDeclaration | undefined) & ((indexInfo: IndexInfo, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined, tracker?: SymbolTracker) => IndexSignatureDeclaration | undefined); // eslint-disable-line @typescript-eslint/unified-signatures
+    indexInfoToIndexSignatureDeclaration:
+        & ((indexInfo: IndexInfo, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined) => IndexSignatureDeclaration | undefined)
+        & ((indexInfo: IndexInfo, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined, tracker?: SymbolTracker) => IndexSignatureDeclaration | undefined); // eslint-disable-line @typescript-eslint/unified-signatures
     /** Note that the resulting nodes cannot be checked. */
     symbolToEntityName: (symbol: Symbol, meaning: SymbolFlags, enclosingDeclaration: Node | undefined, flags: NodeBuilderFlags | undefined) => EntityName | undefined;
     /** Note that the resulting nodes cannot be checked. */
@@ -5053,7 +5061,9 @@ export interface TypeChecker {
 
     getRootSymbols: (symbol: Symbol) => readonly Symbol[];
     getSymbolOfExpando: (node: Node, allowDeclaration: boolean) => Symbol | undefined;
-    getContextualType: ((node: Expression) => Type | undefined) & ((node: Expression, contextFlags?: ContextFlags) => Type | undefined); // eslint-disable-line @typescript-eslint/unified-signatures
+    getContextualType:
+        & ((node: Expression) => Type | undefined)
+        & ((node: Expression, contextFlags?: ContextFlags) => Type | undefined); // eslint-disable-line @typescript-eslint/unified-signatures
     /** @internal */ getContextualTypeForObjectLiteralElement: (element: ObjectLiteralElementLike) => Type | undefined;
     /** @internal */ getContextualTypeForArgumentAtIndex: (call: CallLikeExpression, argIndex: number) => Type | undefined;
     /** @internal */ getContextualTypeForJsxAttribute: (attribute: JsxAttribute | JsxSpreadAttribute) => Type | undefined;
@@ -5137,9 +5147,13 @@ export interface TypeChecker {
     getBooleanType: () => Type;
     /* eslint-disable @typescript-eslint/unified-signatures */
     /** @internal */
-    getFalseType: ((fresh?: boolean) => Type) & (() => Type);
+    getFalseType:
+        & ((fresh?: boolean) => Type)
+        & (() => Type);
     /** @internal */
-    getTrueType: ((fresh?: boolean) => Type) & (() => Type);
+    getTrueType:
+        & ((fresh?: boolean) => Type)
+        & (() => Type);
     /* eslint-enable @typescript-eslint/unified-signatures */
     getVoidType: () => Type;
     /**
@@ -8275,7 +8289,9 @@ export interface ParenthesizerRules {
     parenthesizeExpressionsOfCommaDelimitedList: (elements: readonly Expression[]) => NodeArray<Expression>;
     parenthesizeExpressionForDisallowedComma: (expression: Expression) => Expression;
     parenthesizeExpressionOfExpressionStatement: (expression: Expression) => Expression;
-    parenthesizeConciseBodyOfArrowFunction: ((body: Expression) => Expression) & ((body: ConciseBody) => ConciseBody);
+    parenthesizeConciseBodyOfArrowFunction:
+        & ((body: Expression) => Expression)
+        & ((body: ConciseBody) => ConciseBody);
     parenthesizeCheckTypeOfConditionalType: (type: TypeNode) => TypeNode;
     parenthesizeExtendsTypeOfConditionalType: (type: TypeNode) => TypeNode;
     parenthesizeOperandOfTypeOperator: (type: TypeNode) => TypeNode;
@@ -8331,7 +8347,9 @@ export interface NodeFactory {
 
     createNumericLiteral: (value: string | number, numericLiteralFlags?: TokenFlags) => NumericLiteral;
     createBigIntLiteral: (value: string | PseudoBigInt) => BigIntLiteral;
-    createStringLiteral: ((text: string, isSingleQuote?: boolean) => StringLiteral) & ((text: string, isSingleQuote?: boolean, hasExtendedUnicodeEscape?: boolean) => StringLiteral); // eslint-disable-line @typescript-eslint/unified-signatures
+    createStringLiteral:
+        & ((text: string, isSingleQuote?: boolean) => StringLiteral)
+        & ((text: string, isSingleQuote?: boolean, hasExtendedUnicodeEscape?: boolean) => StringLiteral); // eslint-disable-line @typescript-eslint/unified-signatures
     createStringLiteralFromNode: (sourceNode: PropertyNameLiteral | PrivateIdentifier, isSingleQuote?: boolean) => StringLiteral;
     createRegularExpressionLiteral: (text: string) => RegularExpressionLiteral;
 
@@ -8339,7 +8357,9 @@ export interface NodeFactory {
     // Identifiers
     //
 
-    createIdentifier: ((text: string) => Identifier) & ((text: string, originalKeywordKind?: SyntaxKind, hasExtendedUnicodeEscape?: boolean) => Identifier); // eslint-disable-line @typescript-eslint/unified-signatures
+    createIdentifier:
+        & ((text: string) => Identifier)
+        & ((text: string, originalKeywordKind?: SyntaxKind, hasExtendedUnicodeEscape?: boolean) => Identifier); // eslint-disable-line @typescript-eslint/unified-signatures
 
     /**
      * Create a unique temporary variable.
@@ -8350,7 +8370,9 @@ export interface NodeFactory {
      * during emit so that the variable can be referenced in a nested function body. This is an alternative to
      * setting `EmitFlags.ReuseTempVariableScope` on the nested function itself.
      */
-    createTempVariable: ((recordTempVariable: ((node: Identifier) => void) | undefined, reservedInNestedScopes?: boolean) => Identifier) & ((recordTempVariable: ((node: Identifier) => void) | undefined, reservedInNestedScopes?: boolean, prefix?: string | GeneratedNamePart, suffix?: string) => Identifier); // eslint-disable-line @typescript-eslint/unified-signatures
+    createTempVariable:
+        & ((recordTempVariable: ((node: Identifier) => void) | undefined, reservedInNestedScopes?: boolean) => Identifier)
+        & ((recordTempVariable: ((node: Identifier) => void) | undefined, reservedInNestedScopes?: boolean, prefix?: string | GeneratedNamePart, suffix?: string) => Identifier); // eslint-disable-line @typescript-eslint/unified-signatures
 
     /**
      * Create a unique temporary variable for use in a loop.
@@ -8361,20 +8383,40 @@ export interface NodeFactory {
     createLoopVariable: (reservedInNestedScopes?: boolean) => Identifier;
 
     /** Create a unique name based on the supplied text. */
-    createUniqueName: ((text: string, flags?: GeneratedIdentifierFlags) => Identifier) & ((text: string, flags?: GeneratedIdentifierFlags, prefix?: string | GeneratedNamePart, suffix?: string) => Identifier); // eslint-disable-line @typescript-eslint/unified-signatures
+    createUniqueName:
+        & ((text: string, flags?: GeneratedIdentifierFlags) => Identifier)
+        & ((text: string, flags?: GeneratedIdentifierFlags, prefix?: string | GeneratedNamePart, suffix?: string) => Identifier); // eslint-disable-line @typescript-eslint/unified-signatures
 
     /** Create a unique name generated for a node. */
-    getGeneratedNameForNode: ((node: Node | undefined, flags?: GeneratedIdentifierFlags) => Identifier) & ((node: Node | undefined, flags?: GeneratedIdentifierFlags, prefix?: string | GeneratedNamePart, suffix?: string) => Identifier); // eslint-disable-line @typescript-eslint/unified-signatures
+    getGeneratedNameForNode:
+        & ((node: Node | undefined, flags?: GeneratedIdentifierFlags) => Identifier)
+        & ((node: Node | undefined, flags?: GeneratedIdentifierFlags, prefix?: string | GeneratedNamePart, suffix?: string) => Identifier); // eslint-disable-line @typescript-eslint/unified-signatures
 
     createPrivateIdentifier: (text: string) => PrivateIdentifier;
-    createUniquePrivateName: ((text?: string) => PrivateIdentifier) & ((text?: string, prefix?: string | GeneratedNamePart, suffix?: string) => PrivateIdentifier); // eslint-disable-line @typescript-eslint/unified-signatures
-    getGeneratedPrivateNameForNode: ((node: Node) => PrivateIdentifier) & ((node: Node, prefix?: string | GeneratedNamePart, suffix?: string) => PrivateIdentifier); // eslint-disable-line @typescript-eslint/unified-signatures
+    createUniquePrivateName:
+        & ((text?: string) => PrivateIdentifier)
+        & ((text?: string, prefix?: string | GeneratedNamePart, suffix?: string) => PrivateIdentifier); // eslint-disable-line @typescript-eslint/unified-signatures
+    getGeneratedPrivateNameForNode:
+        & ((node: Node) => PrivateIdentifier)
+        & ((node: Node, prefix?: string | GeneratedNamePart, suffix?: string) => PrivateIdentifier); // eslint-disable-line @typescript-eslint/unified-signatures
 
     //
     // Punctuation
     //
 
-    createToken: ((token: SyntaxKind.SuperKeyword) => SuperExpression) & ((token: SyntaxKind.ThisKeyword) => ThisExpression) & ((token: SyntaxKind.NullKeyword) => NullLiteral) & ((token: SyntaxKind.TrueKeyword) => TrueLiteral) & ((token: SyntaxKind.FalseKeyword) => FalseLiteral) & ((token: SyntaxKind.EndOfFileToken) => EndOfFileToken) & ((token: SyntaxKind.Unknown) => Token<SyntaxKind.Unknown>) & (<TKind extends PunctuationSyntaxKind>(token: TKind) => PunctuationToken<TKind>) & (<TKind extends KeywordTypeSyntaxKind>(token: TKind) => KeywordTypeNode<TKind>) & (<TKind extends ModifierSyntaxKind>(token: TKind) => ModifierToken<TKind>) & (<TKind extends KeywordSyntaxKind>(token: TKind) => KeywordToken<TKind>) & (<TKind extends SyntaxKind>(token: TKind) => Token<TKind>);
+    createToken:
+        & ((token: SyntaxKind.SuperKeyword) => SuperExpression)
+        & ((token: SyntaxKind.ThisKeyword) => ThisExpression)
+        & ((token: SyntaxKind.NullKeyword) => NullLiteral)
+        & ((token: SyntaxKind.TrueKeyword) => TrueLiteral)
+        & ((token: SyntaxKind.FalseKeyword) => FalseLiteral)
+        & ((token: SyntaxKind.EndOfFileToken) => EndOfFileToken)
+        & ((token: SyntaxKind.Unknown) => Token<SyntaxKind.Unknown>)
+        & (<TKind extends PunctuationSyntaxKind>(token: TKind) => PunctuationToken<TKind>)
+        & (<TKind extends KeywordTypeSyntaxKind>(token: TKind) => KeywordTypeNode<TKind>)
+        & (<TKind extends ModifierSyntaxKind>(token: TKind) => ModifierToken<TKind>)
+        & (<TKind extends KeywordSyntaxKind>(token: TKind) => KeywordToken<TKind>)
+        & (<TKind extends SyntaxKind>(token: TKind) => Token<TKind>);
 
     //
     // Reserved words
@@ -8435,7 +8477,9 @@ export interface NodeFactory {
     updateCallSignature: (node: CallSignatureDeclaration, typeParameters: NodeArray<TypeParameterDeclaration> | undefined, parameters: NodeArray<ParameterDeclaration>, type: TypeNode | undefined) => CallSignatureDeclaration;
     createConstructSignature: (typeParameters: readonly TypeParameterDeclaration[] | undefined, parameters: readonly ParameterDeclaration[], type: TypeNode | undefined) => ConstructSignatureDeclaration;
     updateConstructSignature: (node: ConstructSignatureDeclaration, typeParameters: NodeArray<TypeParameterDeclaration> | undefined, parameters: NodeArray<ParameterDeclaration>, type: TypeNode | undefined) => ConstructSignatureDeclaration;
-    createIndexSignature: ((modifiers: readonly ModifierLike[] | undefined, parameters: readonly ParameterDeclaration[], type: TypeNode) => IndexSignatureDeclaration) & ((modifiers: readonly ModifierLike[] | undefined, parameters: readonly ParameterDeclaration[], type: TypeNode | undefined) => IndexSignatureDeclaration); // eslint-disable-line @typescript-eslint/unified-signatures
+    createIndexSignature:
+        & ((modifiers: readonly ModifierLike[] | undefined, parameters: readonly ParameterDeclaration[], type: TypeNode) => IndexSignatureDeclaration)
+        & ((modifiers: readonly ModifierLike[] | undefined, parameters: readonly ParameterDeclaration[], type: TypeNode | undefined) => IndexSignatureDeclaration); // eslint-disable-line @typescript-eslint/unified-signatures
     updateIndexSignature: (node: IndexSignatureDeclaration, modifiers: readonly ModifierLike[] | undefined, parameters: readonly ParameterDeclaration[], type: TypeNode) => IndexSignatureDeclaration;
     createTemplateLiteralTypeSpan: (type: TypeNode, literal: TemplateMiddle | TemplateTail) => TemplateLiteralTypeSpan;
     updateTemplateLiteralTypeSpan: (node: TemplateLiteralTypeSpan, type: TypeNode, literal: TemplateMiddle | TemplateTail) => TemplateLiteralTypeSpan;
@@ -8554,13 +8598,24 @@ export interface NodeFactory {
     updateConditionalExpression: (node: ConditionalExpression, condition: Expression, questionToken: QuestionToken, whenTrue: Expression, colonToken: ColonToken, whenFalse: Expression) => ConditionalExpression;
     createTemplateExpression: (head: TemplateHead, templateSpans: readonly TemplateSpan[]) => TemplateExpression;
     updateTemplateExpression: (node: TemplateExpression, head: TemplateHead, templateSpans: readonly TemplateSpan[]) => TemplateExpression;
-    createTemplateHead: ((text: string, rawText?: string, templateFlags?: TokenFlags) => TemplateHead) & ((text: string | undefined, rawText: string, templateFlags?: TokenFlags) => TemplateHead);
-    createTemplateMiddle: ((text: string, rawText?: string, templateFlags?: TokenFlags) => TemplateMiddle) & ((text: string | undefined, rawText: string, templateFlags?: TokenFlags) => TemplateMiddle);
-    createTemplateTail: ((text: string, rawText?: string, templateFlags?: TokenFlags) => TemplateTail) & ((text: string | undefined, rawText: string, templateFlags?: TokenFlags) => TemplateTail);
-    createNoSubstitutionTemplateLiteral: ((text: string, rawText?: string) => NoSubstitutionTemplateLiteral) & ((text: string | undefined, rawText: string) => NoSubstitutionTemplateLiteral);
+    createTemplateHead:
+        & ((text: string, rawText?: string, templateFlags?: TokenFlags) => TemplateHead)
+        & ((text: string | undefined, rawText: string, templateFlags?: TokenFlags) => TemplateHead);
+    createTemplateMiddle:
+        & ((text: string, rawText?: string, templateFlags?: TokenFlags) => TemplateMiddle)
+        & ((text: string | undefined, rawText: string, templateFlags?: TokenFlags) => TemplateMiddle);
+    createTemplateTail:
+        & ((text: string, rawText?: string, templateFlags?: TokenFlags) => TemplateTail)
+        & ((text: string | undefined, rawText: string, templateFlags?: TokenFlags) => TemplateTail);
+    createNoSubstitutionTemplateLiteral:
+        & ((text: string, rawText?: string) => NoSubstitutionTemplateLiteral)
+        & ((text: string | undefined, rawText: string) => NoSubstitutionTemplateLiteral);
     /** @internal */ createLiteralLikeNode: (kind: LiteralToken["kind"] | SyntaxKind.JsxTextAllWhiteSpaces, text: string) => LiteralToken;
     /** @internal */ createTemplateLiteralLikeNode: (kind: TemplateLiteralToken["kind"], text: string, rawText: string, templateFlags: TokenFlags | undefined) => TemplateLiteralLikeNode;
-    createYieldExpression: ((asteriskToken: AsteriskToken, expression: Expression) => YieldExpression) & ((asteriskToken: undefined, expression: Expression | undefined) => YieldExpression) & ((asteriskToken: AsteriskToken | undefined, expression: Expression | undefined) => YieldExpression); // eslint-disable-line @typescript-eslint/unified-signatures
+    createYieldExpression:
+        & ((asteriskToken: AsteriskToken, expression: Expression) => YieldExpression)
+        & ((asteriskToken: undefined, expression: Expression | undefined) => YieldExpression)
+        & ((asteriskToken: AsteriskToken | undefined, expression: Expression | undefined) => YieldExpression); // eslint-disable-line @typescript-eslint/unified-signatures
     updateYieldExpression: (node: YieldExpression, asteriskToken: AsteriskToken | undefined, expression: Expression | undefined) => YieldExpression;
     createSpreadElement: (expression: Expression) => SpreadElement;
     updateSpreadElement: (node: SpreadElement, expression: Expression) => SpreadElement;
@@ -8662,7 +8717,9 @@ export interface NodeFactory {
     /** @deprecated */ updateAssertEntry: (node: AssertEntry, name: AssertionKey, value: Expression) => AssertEntry;
     /** @deprecated */ createImportTypeAssertionContainer: (clause: AssertClause, multiLine?: boolean) => ImportTypeAssertionContainer;
     /** @deprecated */ updateImportTypeAssertionContainer: (node: ImportTypeAssertionContainer, clause: AssertClause, multiLine?: boolean) => ImportTypeAssertionContainer;
-    createImportAttributes: ((elements: NodeArray<ImportAttribute>, multiLine?: boolean) => ImportAttributes) & ((elements: NodeArray<ImportAttribute>, multiLine?: boolean, token?: ImportAttributes["token"]) => ImportAttributes);
+    createImportAttributes:
+        & ((elements: NodeArray<ImportAttribute>, multiLine?: boolean) => ImportAttributes)
+        & ((elements: NodeArray<ImportAttribute>, multiLine?: boolean, token?: ImportAttributes["token"]) => ImportAttributes);
     updateImportAttributes: (node: ImportAttributes, elements: NodeArray<ImportAttribute>, multiLine?: boolean) => ImportAttributes;
     createImportAttribute: (name: ImportAttributeName, value: Expression) => ImportAttribute;
     updateImportAttribute: (node: ImportAttribute, name: ImportAttributeName, value: Expression) => ImportAttribute;
@@ -8871,15 +8928,21 @@ export interface NodeFactory {
     /** @internal */ updateSyntheticReferenceExpression: (node: SyntheticReferenceExpression, expression: Expression, thisArg: Expression) => SyntheticReferenceExpression;
     createCommaListExpression: (elements: readonly Expression[]) => CommaListExpression;
     updateCommaListExpression: (node: CommaListExpression, elements: readonly Expression[]) => CommaListExpression;
-    createBundle: ((sourceFiles: readonly SourceFile[]) => Bundle) & ((sourceFiles: readonly SourceFile[], prepends?: readonly (UnparsedSource | InputFiles)[]) => Bundle); // eslint-disable-line @typescript-eslint/unified-signatures
-    updateBundle: ((node: Bundle, sourceFiles: readonly SourceFile[]) => Bundle) & ((node: Bundle, sourceFiles: readonly SourceFile[], prepends?: readonly (UnparsedSource | InputFiles)[]) => Bundle); // eslint-disable-line @typescript-eslint/unified-signatures
+    createBundle:
+        & ((sourceFiles: readonly SourceFile[]) => Bundle)
+        & ((sourceFiles: readonly SourceFile[], prepends?: readonly (UnparsedSource | InputFiles)[]) => Bundle); // eslint-disable-line @typescript-eslint/unified-signatures
+    updateBundle:
+        & ((node: Bundle, sourceFiles: readonly SourceFile[]) => Bundle)
+        & ((node: Bundle, sourceFiles: readonly SourceFile[], prepends?: readonly (UnparsedSource | InputFiles)[]) => Bundle); // eslint-disable-line @typescript-eslint/unified-signatures
 
     //
     // Common operators
     //
 
     createComma: (left: Expression, right: Expression) => BinaryExpression;
-    createAssignment: ((left: ObjectLiteralExpression | ArrayLiteralExpression, right: Expression) => DestructuringAssignment) & ((left: Expression, right: Expression) => AssignmentExpression<EqualsToken>);
+    createAssignment:
+        & ((left: ObjectLiteralExpression | ArrayLiteralExpression, right: Expression) => DestructuringAssignment)
+        & ((left: Expression, right: Expression) => AssignmentExpression<EqualsToken>);
     createLogicalOr: (left: Expression, right: Expression) => BinaryExpression;
     createLogicalAnd: (left: Expression, right: Expression) => BinaryExpression;
     createBitwiseOr: (left: Expression, right: Expression) => BinaryExpression;
@@ -8915,8 +8978,12 @@ export interface NodeFactory {
     // Compound Nodes
     //
 
-    createImmediatelyInvokedFunctionExpression: ((statements: readonly Statement[]) => CallExpression) & ((statements: readonly Statement[], param: ParameterDeclaration, paramValue: Expression) => CallExpression);
-    createImmediatelyInvokedArrowFunction: ((statements: readonly Statement[]) => ImmediatelyInvokedArrowFunction) & ((statements: readonly Statement[], param: ParameterDeclaration, paramValue: Expression) => ImmediatelyInvokedArrowFunction);
+    createImmediatelyInvokedFunctionExpression:
+        & ((statements: readonly Statement[]) => CallExpression)
+        & ((statements: readonly Statement[], param: ParameterDeclaration, paramValue: Expression) => CallExpression);
+    createImmediatelyInvokedArrowFunction:
+        & ((statements: readonly Statement[]) => ImmediatelyInvokedArrowFunction)
+        & ((statements: readonly Statement[], param: ParameterDeclaration, paramValue: Expression) => ImmediatelyInvokedArrowFunction);
 
     createVoidZero: () => VoidExpression;
     createExportDefault: (expression: Expression) => ExportAssignment;
@@ -9069,7 +9136,9 @@ export interface NodeFactory {
      *
      * @internal
      */
-    copyCustomPrologue: ((source: readonly Statement[], target: Statement[], statementOffset: number, visitor?: (node: Node) => VisitResult<Node | undefined>, filter?: (node: Statement) => boolean) => number) & ((source: readonly Statement[], target: Statement[], statementOffset: number | undefined, visitor?: (node: Node) => VisitResult<Node | undefined>, filter?: (node: Statement) => boolean) => number | undefined);
+    copyCustomPrologue:
+        & ((source: readonly Statement[], target: Statement[], statementOffset: number, visitor?: (node: Node) => VisitResult<Node | undefined>, filter?: (node: Statement) => boolean) => number)
+        & ((source: readonly Statement[], target: Statement[], statementOffset: number | undefined, visitor?: (node: Node) => VisitResult<Node | undefined>, filter?: (node: Statement) => boolean) => number | undefined);
     /** @internal */ ensureUseStrict: (statements: NodeArray<Statement>) => NodeArray<Statement>;
     /** @internal */ liftToBlock: (nodes: readonly Node[]) => Statement;
     /**
@@ -9077,7 +9146,9 @@ export interface NodeFactory {
      *
      * @internal
      */
-    mergeLexicalEnvironment: ((statements: NodeArray<Statement>, declarations: readonly Statement[] | undefined) => NodeArray<Statement>) & ((statements: Statement[], declarations: readonly Statement[] | undefined) => Statement[]);
+    mergeLexicalEnvironment:
+        & ((statements: NodeArray<Statement>, declarations: readonly Statement[] | undefined) => NodeArray<Statement>)
+        & ((statements: Statement[], declarations: readonly Statement[] | undefined) => Statement[]);
     /**
      * Creates a shallow, memberwise clone of a node.
      * - The result will have its `original` pointer set to `node`.
@@ -9575,7 +9646,9 @@ export interface SourceMapGenerator {
     /**
      * Adds a mapping without source information.
      */
-    addMapping: ((generatedLine: number, generatedCharacter: number) => void) & ((generatedLine: number, generatedCharacter: number, sourceIndex: number, sourceLine: number, sourceCharacter: number, nameIndex?: number) => void);
+    addMapping:
+        & ((generatedLine: number, generatedCharacter: number) => void)
+        & ((generatedLine: number, generatedCharacter: number, sourceIndex: number, sourceLine: number, sourceCharacter: number, nameIndex?: number) => void);
     /**
      * Appends a source map.
      */
@@ -9734,7 +9807,9 @@ export interface DiagnosticCollection {
 
     // If fileName is provided, gets all the diagnostics associated with that file name.
     // Otherwise, returns all the diagnostics (global and file associated) in this collection.
-    getDiagnostics: (() => Diagnostic[]) & ((fileName: string) => DiagnosticWithLocation[]);
+    getDiagnostics:
+        & (() => Diagnostic[])
+        & ((fileName: string) => DiagnosticWithLocation[]);
 }
 
 // SyntaxKind.SyntaxList

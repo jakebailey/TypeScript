@@ -526,10 +526,14 @@ export interface LanguageService {
     getCompilerOptionsDiagnostics: () => Diagnostic[];
 
     /** @deprecated Use getEncodedSyntacticClassifications instead. */
-    getSyntacticClassifications: ((fileName: string, span: TextSpan) => ClassifiedSpan[]) & ((fileName: string, span: TextSpan, format: SemanticClassificationFormat) => ClassifiedSpan[] | ClassifiedSpan2020[]);
+    getSyntacticClassifications:
+        & ((fileName: string, span: TextSpan) => ClassifiedSpan[])
+        & ((fileName: string, span: TextSpan, format: SemanticClassificationFormat) => ClassifiedSpan[] | ClassifiedSpan2020[]);
 
     /** @deprecated Use getEncodedSemanticClassifications instead. */
-    getSemanticClassifications: ((fileName: string, span: TextSpan) => ClassifiedSpan[]) & ((fileName: string, span: TextSpan, format: SemanticClassificationFormat) => ClassifiedSpan[] | ClassifiedSpan2020[]);
+    getSemanticClassifications:
+        & ((fileName: string, span: TextSpan) => ClassifiedSpan[])
+        & ((fileName: string, span: TextSpan, format: SemanticClassificationFormat) => ClassifiedSpan[] | ClassifiedSpan2020[]);
 
     /** Encoded as triples of [start, length, ClassificationType]. */
     getEncodedSyntacticClassifications: (fileName: string, span: TextSpan) => Classifications;
@@ -594,14 +598,21 @@ export interface LanguageService {
 
     getSignatureHelpItems: (fileName: string, position: number, options: SignatureHelpItemsOptions | undefined) => SignatureHelpItems | undefined;
 
-    getRenameInfo: ((fileName: string, position: number, preferences: UserPreferences) => RenameInfo) & ((fileName: string, position: number, options?: RenameInfoOptions) => RenameInfo);
+    getRenameInfo:
+        & ((fileName: string, position: number, preferences: UserPreferences) => RenameInfo)
+        & ((fileName: string, position: number, options?: RenameInfoOptions) => RenameInfo);
 
-    findRenameLocations: ((fileName: string, position: number, findInStrings: boolean, findInComments: boolean, preferences: UserPreferences) => readonly RenameLocation[] | undefined) & ((fileName: string, position: number, findInStrings: boolean, findInComments: boolean, providePrefixAndSuffixTextForRename?: boolean) => readonly RenameLocation[] | undefined);
+    findRenameLocations:
+        & ((fileName: string, position: number, findInStrings: boolean, findInComments: boolean, preferences: UserPreferences) => readonly RenameLocation[] | undefined)
+        & ((fileName: string, position: number, findInStrings: boolean, findInComments: boolean, providePrefixAndSuffixTextForRename?: boolean) => readonly RenameLocation[] | undefined);
 
     getSmartSelectionRange: (fileName: string, position: number) => SelectionRange;
 
     /** @internal */
-    getDefinitionAtPosition: ((fileName: string, position: number, searchOtherFilesOnly: false, stopAtAlias: boolean) => readonly DefinitionInfo[] | undefined) & ((fileName: string, position: number, searchOtherFilesOnly: boolean, stopAtAlias: false) => readonly DefinitionInfo[] | undefined) & ((fileName: string, position: number) => readonly DefinitionInfo[] | undefined);
+    getDefinitionAtPosition:
+        & ((fileName: string, position: number, searchOtherFilesOnly: false, stopAtAlias: boolean) => readonly DefinitionInfo[] | undefined)
+        & ((fileName: string, position: number, searchOtherFilesOnly: boolean, stopAtAlias: false) => readonly DefinitionInfo[] | undefined)
+        & ((fileName: string, position: number) => readonly DefinitionInfo[] | undefined);
     getDefinitionAndBoundSpan: (fileName: string, position: number) => DefinitionInfoAndBoundSpan | undefined;
     getTypeDefinitionAtPosition: (fileName: string, position: number) => readonly DefinitionInfo[] | undefined;
     getImplementationAtPosition: (fileName: string, position: number) => readonly ImplementationLocation[] | undefined;
@@ -651,7 +662,13 @@ export interface LanguageService {
     getCodeFixesAtPosition: (fileName: string, start: number, end: number, errorCodes: readonly number[], formatOptions: FormatCodeSettings, preferences: UserPreferences) => readonly CodeFixAction[];
     getCombinedCodeFix: (scope: CombinedCodeFixScope, fixId: {}, formatOptions: FormatCodeSettings, preferences: UserPreferences) => CombinedCodeActions;
 
-    applyCodeActionCommand: ((action: CodeActionCommand, formatSettings?: FormatCodeSettings) => Promise<ApplyCodeActionCommandResult>) & ((action: CodeActionCommand[], formatSettings?: FormatCodeSettings) => Promise<ApplyCodeActionCommandResult[]>) & ((action: CodeActionCommand | CodeActionCommand[], formatSettings?: FormatCodeSettings) => Promise<ApplyCodeActionCommandResult | ApplyCodeActionCommandResult[]>) & ((fileName: string, action: CodeActionCommand) => Promise<ApplyCodeActionCommandResult>) & ((fileName: string, action: CodeActionCommand[]) => Promise<ApplyCodeActionCommandResult[]>) & ((fileName: string, action: CodeActionCommand | CodeActionCommand[]) => Promise<ApplyCodeActionCommandResult | ApplyCodeActionCommandResult[]>);
+    applyCodeActionCommand:
+        & ((action: CodeActionCommand, formatSettings?: FormatCodeSettings) => Promise<ApplyCodeActionCommandResult>)
+        & ((action: CodeActionCommand[], formatSettings?: FormatCodeSettings) => Promise<ApplyCodeActionCommandResult[]>)
+        & ((action: CodeActionCommand | CodeActionCommand[], formatSettings?: FormatCodeSettings) => Promise<ApplyCodeActionCommandResult | ApplyCodeActionCommandResult[]>)
+        & ((fileName: string, action: CodeActionCommand) => Promise<ApplyCodeActionCommandResult>)
+        & ((fileName: string, action: CodeActionCommand[]) => Promise<ApplyCodeActionCommandResult[]>)
+        & ((fileName: string, action: CodeActionCommand | CodeActionCommand[]) => Promise<ApplyCodeActionCommandResult | ApplyCodeActionCommandResult[]>);
 
     /**
      * @param includeInteractiveActions Include refactor actions that require additional arguments to be

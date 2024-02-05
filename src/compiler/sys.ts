@@ -1326,7 +1326,10 @@ export type BufferEncoding = "ascii" | "utf8" | "utf-8" | "utf16le" | "ucs2" | "
 /** @internal */
 export interface NodeBuffer extends Uint8Array {
     constructor: any;
-    write: ((str: string, encoding?: BufferEncoding) => number) & ((str: string, offset: number, encoding?: BufferEncoding) => number) & ((str: string, offset: number, length: number, encoding?: BufferEncoding) => number);
+    write:
+        & ((str: string, encoding?: BufferEncoding) => number)
+        & ((str: string, offset: number, encoding?: BufferEncoding) => number)
+        & ((str: string, offset: number, length: number, encoding?: BufferEncoding) => number);
     toString: (encoding?: string, start?: number, end?: number) => string;
     toJSON: () => { type: "Buffer"; data: number[]; };
     equals: (otherBuffer: Uint8Array) => boolean;
