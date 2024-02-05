@@ -116,8 +116,8 @@ describe("unittests:: programApi:: Program.getMissingFilePaths", () => {
             }`;
 
         const host: ts.CompilerHost = {
-            getSourceFile: (fileName: string, languageVersion: ts.ScriptTarget, _onError?: (message: string) => void) => {
-                return fileName === "test.ts" ? ts.createSourceFile(fileName, testSource, languageVersion) : undefined;
+            getSourceFile: (fileName: string, languageVersionOrOptions: ts.ScriptTarget | ts.CreateSourceFileOptions, _onError?: (message: string) => void) => {
+                return fileName === "test.ts" ? ts.createSourceFile(fileName, testSource, languageVersionOrOptions) : undefined;
             },
             getDefaultLibFileName: () => "",
             writeFile: (_fileName, _content) => {

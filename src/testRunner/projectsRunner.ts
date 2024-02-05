@@ -106,7 +106,7 @@ class ProjectParseConfigHost extends fakes.ParseConfigHost {
         this._testCase = testCase;
     }
 
-    public override readDirectory(path: string, extensions: string[], excludes: string[], includes: string[], depth: number): string[] {
+    public override readDirectory(path: string, extensions: readonly string[] | undefined, excludes: readonly string[] | undefined, includes: readonly string[] | undefined, depth: number | undefined): string[] {
         const result = super.readDirectory(path, extensions, excludes, includes, depth);
         const projectRoot = vpath.resolve(vfs.srcFolder, this._testCase.projectRoot);
         return result.map(item =>

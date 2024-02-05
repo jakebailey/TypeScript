@@ -390,10 +390,10 @@ describe("unittests:: moduleResolution:: Relative imports", () => {
             files.forEach((content, file) => baselines.push(`//// [${file}]\n${content}`, ""));
             const options: ts.CompilerOptions = { module: ts.ModuleKind.CommonJS };
             const host: ts.CompilerHost = {
-                getSourceFile: (fileName: string, languageVersion: ts.ScriptTarget) => {
+                getSourceFile: (fileName: string, languageVersionOrOptions: ts.ScriptTarget | ts.CreateSourceFileOptions) => {
                     const path = ts.normalizePath(ts.combinePaths(currentDirectory, fileName));
                     const file = files.get(path);
-                    return file ? ts.createSourceFile(fileName, file, languageVersion) : undefined;
+                    return file ? ts.createSourceFile(fileName, file, languageVersionOrOptions) : undefined;
                 },
                 getDefaultLibFileName: () => "lib.d.ts",
                 writeFile: ts.notImplemented,
@@ -497,7 +497,7 @@ describe("unittests:: moduleResolution:: Files with different casing with forceC
             const baselines: string[] = [];
             files.forEach((content, file) => baselines.push(`//// [${file}]\n${content}`, ""));
             const host: ts.CompilerHost = {
-                getSourceFile: (fileName: string, languageVersion: ts.ScriptTarget) => {
+                getSourceFile: (fileName: string, languageVersionOrOptions: ts.ScriptTarget | ts.CreateSourceFileOptions) => {
                     if (fileName === "lib.d.ts") {
                         if (!library) {
                             library = ts.createSourceFile("lib.d.ts", "", ts.ScriptTarget.ES5);
@@ -506,7 +506,7 @@ describe("unittests:: moduleResolution:: Files with different casing with forceC
                     }
                     const path = getCanonicalFileName(ts.normalizePath(ts.combinePaths(currentDirectory, fileName)));
                     const file = files.get(path);
-                    return file ? ts.createSourceFile(fileName, file, languageVersion) : undefined;
+                    return file ? ts.createSourceFile(fileName, file, languageVersionOrOptions) : undefined;
                 },
                 getDefaultLibFileName: () => "lib.d.ts",
                 writeFile: ts.notImplemented,
