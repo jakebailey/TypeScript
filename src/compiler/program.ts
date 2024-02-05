@@ -2666,7 +2666,7 @@ export function createProgram(rootNamesOrOptions: readonly string[] | CreateProg
     function writeFile(
         fileName: string,
         text: string,
-        writeByteOrderMark: boolean,
+        writeByteOrderMark: boolean | undefined,
         onError?: (message: string) => void,
         sourceFiles?: readonly SourceFile[],
         data?: WriteFileCallbackData,
@@ -2954,7 +2954,7 @@ export function createProgram(rootNamesOrOptions: readonly string[] | CreateProg
         return { diagnostics, directives };
     }
 
-    function getSuggestionDiagnostics(sourceFile: SourceFile, cancellationToken: CancellationToken): readonly DiagnosticWithLocation[] {
+    function getSuggestionDiagnostics(sourceFile: SourceFile, cancellationToken?: CancellationToken): readonly DiagnosticWithLocation[] {
         return runWithCancellationToken(() => {
             return getTypeChecker().getSuggestionDiagnostics(sourceFile, cancellationToken);
         });

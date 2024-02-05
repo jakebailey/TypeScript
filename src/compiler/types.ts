@@ -4543,7 +4543,7 @@ export interface WriteFileCallbackData {
 export type WriteFileCallback = (
     fileName: string,
     text: string,
-    writeByteOrderMark: boolean,
+    writeByteOrderMark: boolean | undefined,
     onError?: (message: string) => void,
     sourceFiles?: readonly SourceFile[],
     data?: WriteFileCallbackData,
@@ -7824,7 +7824,7 @@ export interface CompilerHost extends ModuleResolutionHost {
     getCanonicalFileName: (fileName: string) => string;
     useCaseSensitiveFileNames: () => boolean;
     getNewLine: () => string;
-    readDirectory?: (rootDir: string, extensions: readonly string[], excludes: readonly string[] | undefined, includes: readonly string[], depth?: number) => string[];
+    readDirectory?: (rootDir: string, extensions: readonly string[] | undefined, excludes: readonly string[] | undefined, includes: readonly string[] | undefined, depth?: number) => string[];
 
     /*
      * CompilerHost must either implement resolveModuleNames (in case if it wants to be completely in charge of

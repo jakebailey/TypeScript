@@ -6433,7 +6433,7 @@ function ensureDirectoriesExist(
 export function writeFileEnsuringDirectories(
     path: string,
     data: string,
-    writeByteOrderMark: boolean,
+    writeByteOrderMark: boolean| undefined,
     writeFile: (path: string, data: string, writeByteOrderMark: boolean) => void,
     createDirectory: (path: string) => void,
     directoryExists: (path: string) => boolean,
