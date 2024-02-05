@@ -211,8 +211,8 @@ export function verifyResolutionCache(
 
     type ExpectedResolution = ts.CachedResolvedModuleWithFailedLookupLocations & ts.CachedResolvedTypeReferenceDirectiveWithFailedLookupLocations;
 
-    const expectedToResolution = new Map<ExpectedResolution, ts.ResolutionWithFailedLookupLocations>();
-    const resolutionToExpected = new Map<ts.ResolutionWithFailedLookupLocations, ExpectedResolution>();
+    const expectedToResolution = new Map<ts.ResolutionWithFailedLookupLocations, ts.ResolutionWithFailedLookupLocations>();
+    const resolutionToExpected = new Map<ts.ResolutionWithFailedLookupLocations, ts.ResolutionWithFailedLookupLocations>();
     const resolutionToRefs = new Map<ts.ResolutionWithFailedLookupLocations, ResolutionInfo[]>();
     actual.resolvedModuleNames.forEach((resolutions, path) =>
         collectResolutionToRefFromCache(
@@ -288,19 +288,19 @@ export function verifyResolutionCache(
     ts.Debug.assert(expected.directoryWatchesOfFailedLookups.size === 0, `${projectName}:: directoryWatchesOfFailedLookups should be released`);
     ts.Debug.assert(expected.fileWatchesOfAffectingLocations.size === 0, `${projectName}:: fileWatchesOfAffectingLocations should be released`);
 
-    function collectResolutionToRefFromCache<T extends ts.ResolutionWithFailedLookupLocations>(
+    function collectResolutionToRefFromCache<T extends ts.CachedResolvedModuleWithFailedLookupLocations | ts.CachedResolvedTypeReferenceDirectiveWithFailedLookupLocations>(
         cacheType: string,
         fileName: ts.Path,
         cache: ts.ModeAwareCache<T> | undefined,
         getResolvedFileName: (resolution: T) => string | undefined,
         deferWatchingNonRelativeResolution: boolean,
-        storeExpcted: Map<ts.Path, ts.ModeAwareCache<ts.ResolutionWithFailedLookupLocations>>,
+        storeExpcted: Map<ts.Path, ts.ModeAwareCache<T>>,
     ) {
         ts.Debug.assert(
             actualProgram.getSourceFileByPath(fileName) || ts.endsWith(fileName, ts.inferredTypesContainingFile),
             `${projectName}:: ${cacheType} ${fileName} Expect cache for file in program or auto type ref`,
         );
-        let expectedCache: ts.ModeAwareCache<ts.ResolutionWithFailedLookupLocations> | undefined;
+        let expectedCache: ts.ModeAwareCache<T> | undefined;
         cache?.forEach((resolved, name, mode) => {
             const resolvedFileName = getResolvedFileName(resolved);
             const expected = collectResolution(cacheType, fileName, resolved, resolvedFileName, name, mode, deferWatchingNonRelativeResolution);
@@ -309,7 +309,7 @@ export function verifyResolutionCache(
         });
     }
 
-    function collectResolution<T extends ts.ResolutionWithFailedLookupLocations>(
+    function collectResolution<T extends ts.CachedResolvedModuleWithFailedLookupLocations | ts.CachedResolvedTypeReferenceDirectiveWithFailedLookupLocations>(
         cacheType: string,
         fileName: ts.Path,
         resolved: T,
@@ -317,22 +317,22 @@ export function verifyResolutionCache(
         name: string,
         mode: ts.ResolutionMode,
         deferWatchingNonRelativeResolution: boolean,
-    ): ExpectedResolution {
+    ): T {
         const existing = resolutionToRefs.get(resolved);
-        let expectedResolution: ExpectedResolution;
+        let expectedResolution: T;
         if (existing) {
             existing.push({ cacheType, fileName, name, mode });
-            expectedResolution = resolutionToExpected.get(resolved)!;
+            expectedResolution = resolutionToExpected.get(resolved)! as T;
         }
         else {
             resolutionToRefs.set(resolved, [{ cacheType, fileName, name, mode }]);
             expectedResolution = {
-                resolvedModule: (resolved as any).resolvedModule,
-                resolvedTypeReferenceDirective: (resolved as any).resolvedTypeReferenceDirective,
+                resolvedModule: (resolved as ts.CachedResolvedModuleWithFailedLookupLocations).resolvedModule,
+                resolvedTypeReferenceDirective: (resolved as ts.CachedResolvedTypeReferenceDirectiveWithFailedLookupLocations).resolvedTypeReferenceDirective,
                 failedLookupLocations: resolved.failedLookupLocations,
                 affectingLocations: resolved.affectingLocations,
                 alternateResult: resolved.alternateResult,
-            };
+            } as (ts.CachedResolvedModuleWithFailedLookupLocations & ts.CachedResolvedTypeReferenceDirectiveWithFailedLookupLocations) as T;
             expectedToResolution.set(expectedResolution, resolved);
             resolutionToExpected.set(resolved, expectedResolution);
         }
