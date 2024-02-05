@@ -251,6 +251,7 @@ import {
     isStringLiteral,
     isTemplateLiteralKind,
     isTokenKind,
+    isTypeNode,
     isTypeParameterDeclaration,
     isUnparsedNode,
     isUnparsedPrepend,
@@ -1525,7 +1526,12 @@ export function createPrinter(printerOptions: PrinterOptions = {}, handlers: Pri
      */
     function writeNode(hint: EmitHint, node: TypeNode, sourceFile: undefined, output: EmitTextWriter): void;
     function writeNode(hint: EmitHint, node: Node, sourceFile: SourceFile, output: EmitTextWriter): void;
+    function writeNode(hint: EmitHint, node: Node, sourceFile: SourceFile | undefined, output: EmitTextWriter): void;
     function writeNode(hint: EmitHint, node: Node, sourceFile: SourceFile | undefined, output: EmitTextWriter) {
+        if (sourceFile === undefined) {
+            Debug.assertNode(node, isTypeNode, "Expected a TypeNode.");
+            Debug.assert(nodeIsSynthesized(node), "Expected a synthesized node.");
+        }
         const previousWriter = writer;
         setWriter(output, /*_sourceMapGenerator*/ undefined);
         print(hint, node, sourceFile);
@@ -1533,7 +1539,7 @@ export function createPrinter(printerOptions: PrinterOptions = {}, handlers: Pri
         writer = previousWriter;
     }
 
-    function writeList<T extends Node>(format: ListFormat, nodes: NodeArray<T>, sourceFile: SourceFile | undefined, output: EmitTextWriter) {
+    function writeList<T extends Node>(format: ListFormat, nodes: NodeArray<T> | undefined, sourceFile: SourceFile | undefined, output: EmitTextWriter) {
         const previousWriter = writer;
         setWriter(output, /*_sourceMapGenerator*/ undefined);
         if (sourceFile) {
