@@ -406,9 +406,13 @@ export function createParenthesizerRules(factory: NodeFactory): ParenthesizerRul
         return isUnaryExpression(operand) ? operand : setTextRange(factory.createParenthesizedExpression(operand), operand);
     }
 
-    function parenthesizeExpressionsOfCommaDelimitedList(elements: NodeArray<Expression>): NodeArray<Expression> {
+    function parenthesizeExpressionsOfCommaDelimitedList(elements: readonly Expression[]): NodeArray<Expression> {
         const result = sameMap(elements, parenthesizeExpressionForDisallowedComma);
-        return setTextRange(factory.createNodeArray(result, elements.hasTrailingComma), elements);
+        // TODO(jakebailey): is this change ok?
+        if (isNodeArray(elements)) {
+            return setTextRange(factory.createNodeArray(result, elements.hasTrailingComma), elements);
+        }
+        return factory.createNodeArray(result);
     }
 
     function parenthesizeExpressionForDisallowedComma(expression: Expression): Expression {
@@ -651,7 +655,7 @@ export function createParenthesizerRules(factory: NodeFactory): ParenthesizerRul
         return i === 0 ? parenthesizeLeadingTypeArgument(node) : node;
     }
 
-    function parenthesizeTypeArguments(typeArguments: NodeArray<TypeNode> | undefined): NodeArray<TypeNode> | undefined {
+    function parenthesizeTypeArguments(typeArguments: readonly TypeNode[] | undefined): NodeArray<TypeNode> | undefined {
         if (some(typeArguments)) {
             return factory.createNodeArray(sameMap(typeArguments, parenthesizeOrdinalTypeArgument));
         }

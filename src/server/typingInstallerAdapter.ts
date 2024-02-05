@@ -113,7 +113,7 @@ export abstract class TypingsInstallerAdapter implements ITypingsInstaller {
         this.installer.send({ projectName: p.getProjectName(), kind: "closeProject" });
     }
 
-    enqueueInstallTypingsRequest(project: Project, typeAcquisition: TypeAcquisition, unresolvedImports: SortedReadonlyArray<string>): void {
+    enqueueInstallTypingsRequest(project: Project, typeAcquisition: TypeAcquisition, unresolvedImports: SortedReadonlyArray<string> | undefined): void {
         const request = createInstallTypingsRequest(project, typeAcquisition, unresolvedImports);
         if (this.logger.hasLevel(LogLevel.verbose)) {
             this.logger.info(`TIAdapter:: Scheduling throttled operation:${stringifyIndented(request)}`);

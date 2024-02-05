@@ -385,7 +385,7 @@ class SessionClientHost extends NativeLanguageServiceHost implements ts.server.S
 
 interface ServerHostFileWatcher {
     cb: ts.FileWatcherCallback;
-    pollingInterval: ts.PollingInterval;
+    pollingInterval: ts.PollingInterval | undefined;
 }
 interface ServerHostDirectoryWatcher {
     cb: ts.DirectoryWatcherCallback;
@@ -465,11 +465,11 @@ class SessionServerHost implements ts.server.ServerHost {
         return this.host.readDirectory(path, extensions, exclude, include, depth);
     }
 
-    watchFile(file: string, cb: ts.FileWatcherCallback, pollingInterval: ts.PollingInterval) {
+    watchFile(file: string, cb: ts.FileWatcherCallback, pollingInterval: ts.PollingInterval | undefined) {
         return this.watchUtils.pollingWatch(file, { cb, pollingInterval });
     }
 
-    watchDirectory(dir: string, cb: ts.DirectoryWatcherCallback, recursive: boolean): ts.FileWatcher {
+    watchDirectory(dir: string, cb: ts.DirectoryWatcherCallback, recursive: boolean | undefined): ts.FileWatcher {
         return this.watchUtils.fsWatch(dir, recursive, { cb });
     }
 

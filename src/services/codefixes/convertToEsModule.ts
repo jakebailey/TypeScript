@@ -396,7 +396,7 @@ function convertReExportAll(reExported: StringLiteralLike, checker: TypeChecker)
     // `module.exports = require("x");` ==> `export * from "x"; export { default } from "x";`
     const moduleSpecifier = reExported.text;
     const moduleSymbol = checker.getSymbolAtLocation(reExported);
-    const exports = moduleSymbol ? moduleSymbol.exports! : emptyMap as ReadonlyCollection<__String>;
+    const exports = moduleSymbol ? moduleSymbol.exports! : emptyMap as ReadonlyMap<any, any> as ReadonlyCollection<__String>;
     return exports.has(InternalSymbolName.ExportEquals) ? [[reExportDefault(moduleSpecifier)], true] :
         !exports.has(InternalSymbolName.Default) ? [[reExportStar(moduleSpecifier)], false] :
         // If there's some non-default export, must include both `export *` and `export default`.

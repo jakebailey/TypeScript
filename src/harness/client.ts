@@ -25,6 +25,7 @@ import {
     DocumentHighlights,
     DocumentSpan,
     EditorOptions,
+    EditorSettings,
     EmitOutput,
     FileTextChanges,
     firstDefined,
@@ -314,7 +315,7 @@ export class SessionClient implements LanguageService {
         return notImplemented();
     }
 
-    getNavigateToItems(searchValue: string, maxResultCount: number, file: string | undefined, _excludeDtsFiles: boolean | undefined, excludeLibFiles: boolean | undefined): NavigateToItem[] {
+    getNavigateToItems(searchValue: string, maxResultCount: number | undefined, file: string | undefined, _excludeDtsFiles: boolean | undefined, excludeLibFiles: boolean | undefined): NavigateToItem[] {
         const args: protocol.NavtoRequestArgs = {
             searchValue,
             file,
@@ -346,7 +347,7 @@ export class SessionClient implements LanguageService {
         }));
     }
 
-    getFormattingEditsForRange(file: string, start: number, end: number, _options: FormatCodeOptions): TextChange[] {
+    getFormattingEditsForRange(file: string, start: number, end: number, _options: FormatCodeOptions | FormatCodeSettings): TextChange[] {
         const args: protocol.FormatRequestArgs = this.createFileLocationRequestArgsWithEndLineAndOffset(file, start, end);
 
         // TODO: handle FormatCodeOptions
@@ -356,11 +357,11 @@ export class SessionClient implements LanguageService {
         return response.body!.map(entry => this.convertCodeEditsToTextChange(file, entry)); // TODO: GH#18217
     }
 
-    getFormattingEditsForDocument(fileName: string, options: FormatCodeOptions): TextChange[] {
+    getFormattingEditsForDocument(fileName: string, options: FormatCodeOptions|FormatCodeSettings ): TextChange[] {
         return this.getFormattingEditsForRange(fileName, 0, this.host.getScriptSnapshot(fileName)!.getLength(), options);
     }
 
-    getFormattingEditsAfterKeystroke(fileName: string, position: number, key: string, _options: FormatCodeOptions): TextChange[] {
+    getFormattingEditsAfterKeystroke(fileName: string, position: number, key: string, _options: FormatCodeOptions|FormatCodeSettings ): TextChange[] {
         const args: protocol.FormatOnKeyRequestArgs = { ...this.createFileLocationRequestArgs(fileName, position), key };
 
         // TODO: handle FormatCodeOptions
@@ -528,7 +529,7 @@ export class SessionClient implements LanguageService {
         return notImplemented();
     }
 
-    getRenameInfo(fileName: string, position: number, _preferences: UserPreferences, findInStrings?: boolean, findInComments?: boolean): RenameInfo {
+    getRenameInfo(fileName: string, position: number, _preferences: UserPreferences | undefined, findInStrings?: boolean, findInComments?: boolean): RenameInfo {
         // Not passing along 'options' because server should already have those from the 'configure' command
         const args: protocol.RenameRequestArgs = { ...this.createFileLocationRequestArgs(fileName, position), findInStrings, findInComments };
 
@@ -936,7 +937,7 @@ export class SessionClient implements LanguageService {
         this.processResponse<protocol.ConfigurePluginResponse>(request, /*expectEmptyBody*/ true);
     }
 
-    getIndentationAtPosition(_fileName: string, _position: number, _options: EditorOptions): number {
+    getIndentationAtPosition(_fileName: string, _position: number, _options: EditorOptions | EditorSettings): number {
         return notImplemented();
     }
 

@@ -168,7 +168,7 @@ export function discoverTypings(
     safeList: SafeList,
     packageNameToTypingLocation: ReadonlyMap<string, CachedTyping>,
     typeAcquisition: TypeAcquisition,
-    unresolvedImports: readonly string[],
+    unresolvedImports: readonly string[] | undefined,
     typesRegistry: ReadonlyMap<string, MapLike<string>>,
     compilerOptions: CompilerOptions,
 ): { cachedTypingPaths: string[]; newTypingNames: string[]; filesToWatch: string[]; } {

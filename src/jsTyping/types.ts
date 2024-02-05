@@ -33,7 +33,7 @@ export interface DiscoverTypings extends TypingInstallerRequestWithProjectName {
     readonly projectRootPath: Path;
     readonly compilerOptions: CompilerOptions;
     readonly typeAcquisition: TypeAcquisition;
-    readonly unresolvedImports: SortedReadonlyArray<string>;
+    readonly unresolvedImports: SortedReadonlyArray<string> | undefined;
     readonly cachePath?: string;
     readonly kind: "discover";
 }
@@ -108,7 +108,7 @@ export interface SetTypings extends ProjectResponse {
     readonly typeAcquisition: TypeAcquisition;
     readonly compilerOptions: CompilerOptions;
     readonly typings: string[];
-    readonly unresolvedImports: SortedReadonlyArray<string>;
+    readonly unresolvedImports: SortedReadonlyArray<string> | undefined;
     readonly kind: ActionSet;
 }
 

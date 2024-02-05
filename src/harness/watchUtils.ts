@@ -34,7 +34,7 @@ export interface WatchUtils<PollingWatcherData, FsWatcherData> {
     fsWatches: Watches<FsWatcherData>;
     fsWatchesRecursive: Watches<FsWatcherData>;
     pollingWatch: (path: string, data: PollingWatcherData) => FileWatcher;
-    fsWatch: (path: string, recursive: boolean, data: FsWatcherData) => FileWatcher;
+    fsWatch: (path: string, recursive: boolean | undefined, data: FsWatcherData) => FileWatcher;
     serializeWatches: (baseline?: string[]) => string[];
     getHasWatchChanges: () => boolean;
     setHasWatchChanges: () => void;
@@ -136,7 +136,7 @@ export function createWatchUtils<PollingWatcherData, FsWatcherData>(
         );
     }
 
-    function fsWatch(path: string, recursive: boolean, data: FsWatcherData) {
+    function fsWatch(path: string, recursive: boolean | undefined, data: FsWatcherData) {
         return createWatcher(
             recursive ? fsWatchesRecursive : fsWatches,
             path,

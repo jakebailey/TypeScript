@@ -384,7 +384,7 @@ export interface LanguageServiceHost extends GetEffectiveTypeRootsHost, MinimalR
     resolveModuleNames?: (moduleNames: string[], containingFile: string, reusedNames: string[] | undefined, redirectedReference: ResolvedProjectReference | undefined, options: CompilerOptions, containingSourceFile?: SourceFile) => (ResolvedModule | undefined)[];
     getResolvedModuleWithFailedLookupLocationsFromCache?: (modulename: string, containingFile: string, resolutionMode?: ResolutionMode) => ResolvedModuleWithFailedLookupLocations | undefined;
     /** @deprecated supply resolveTypeReferenceDirectiveReferences instead for resolution that can handle newer resolution modes like nodenext */
-    resolveTypeReferenceDirectives?: (typeDirectiveNames: string[] | FileReference[], containingFile: string, redirectedReference: ResolvedProjectReference | undefined, options: CompilerOptions, containingFileMode?: ResolutionMode) => (ResolvedTypeReferenceDirective | undefined)[];
+    resolveTypeReferenceDirectives?: (typeDirectiveNames: string[] | readonly FileReference[], containingFile: string, redirectedReference: ResolvedProjectReference | undefined, options: CompilerOptions, containingFileMode?: ResolutionMode) => (ResolvedTypeReferenceDirective | undefined)[];
     resolveModuleNameLiterals?: (
         moduleLiterals: readonly StringLiteralLike[],
         containingFile: string,

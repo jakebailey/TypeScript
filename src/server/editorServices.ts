@@ -3740,8 +3740,9 @@ export class ProjectService {
     }
 
     /** @internal */
-    fileExists(fileName: NormalizedPath): boolean {
-        return !!this.getScriptInfoForNormalizedPath(fileName) || this.host.fileExists(fileName);
+    fileExists(fileName: string): boolean {
+        // TODO(jakebailey): is this okay? too much normalization? or was this signature a bug?
+        return !!this.getScriptInfoForNormalizedPath(toNormalizedPath(fileName)) || this.host.fileExists(fileName);
     }
 
     private findExternalProjectContainingOpenScriptInfo(info: ScriptInfo): ExternalProject | undefined {

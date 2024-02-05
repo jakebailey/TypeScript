@@ -221,7 +221,7 @@ export class ParseConfigHost implements ts.ParseConfigHost {
         return this.sys.readFile(path);
     }
 
-    public readDirectory(path: string, extensions: string[], excludes: string[], includes: string[], depth: number): string[] {
+    public readDirectory(path: string, extensions: readonly string[] | undefined, excludes: readonly string[] | undefined, includes: readonly string[] | undefined, depth: number | undefined): string[] {
         return this.sys.readDirectory(path, extensions, excludes, includes, depth);
     }
 
@@ -322,7 +322,7 @@ export class CompilerHost implements ts.CompilerHost {
         return this.sys.readFile(path);
     }
 
-    public writeFile(fileName: string, content: string, writeByteOrderMark: boolean) {
+    public writeFile(fileName: string, content: string, writeByteOrderMark: boolean | undefined) {
         if (writeByteOrderMark) content = Utils.addUTF8ByteOrderMark(content);
         this.sys.writeFile(fileName, content);
 
@@ -552,7 +552,7 @@ export function patchHostForBuildInfoWrite<T extends ts.System>(sys: T, version:
     const originalWrite = sys.write;
     sys.write = msg => originalWrite.call(sys, msg.replace(ts.version, version));
     const originalWriteFile = sys.writeFile;
-    sys.writeFile = (fileName: string, content: string, writeByteOrderMark: boolean) => {
+    sys.writeFile = (fileName, content, writeByteOrderMark) => {
         if (ts.isBuildInfoFile(fileName)) {
             const buildInfo = ts.getBuildInfo(fileName, content);
             if (buildInfo) {
