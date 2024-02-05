@@ -11,7 +11,7 @@ export interface EmitOutput {
 
 export interface OutputFile {
     name: string;
-    writeByteOrderMark: boolean;
+    writeByteOrderMark: boolean | undefined;
     text: string;
     /** @internal */ data?: WriteFileCallbackData;
 }

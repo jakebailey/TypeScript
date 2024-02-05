@@ -419,7 +419,7 @@ export function createGetSourceFile(
 
 /** @internal */
 export function createWriteFileMeasuringIO(
-    actualWriteFile: (path: string, data: string, writeByteOrderMark: boolean) => void,
+    actualWriteFile: (path: string, data: string, writeByteOrderMark: boolean | undefined) => void,
     createDirectory: (path: string) => void,
     directoryExists: (path: string) => boolean,
 ): CompilerHost["writeFile"] {

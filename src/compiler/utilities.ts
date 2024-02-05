@@ -6404,7 +6404,7 @@ export function getSourceFilePathInNewDirWorker(fileName: string, newDirPath: st
 }
 
 /** @internal */
-export function writeFile(host: { writeFile: WriteFileCallback; }, diagnostics: DiagnosticCollection, fileName: string, text: string, writeByteOrderMark: boolean, sourceFiles?: readonly SourceFile[], data?: WriteFileCallbackData) {
+export function writeFile(host: { writeFile: WriteFileCallback; }, diagnostics: DiagnosticCollection, fileName: string, text: string, writeByteOrderMark: boolean | undefined, sourceFiles?: readonly SourceFile[], data?: WriteFileCallbackData) {
     host.writeFile(
         fileName,
         text,
@@ -6433,8 +6433,8 @@ function ensureDirectoriesExist(
 export function writeFileEnsuringDirectories(
     path: string,
     data: string,
-    writeByteOrderMark: boolean| undefined,
-    writeFile: (path: string, data: string, writeByteOrderMark: boolean) => void,
+    writeByteOrderMark: boolean | undefined,
+    writeFile: (path: string, data: string, writeByteOrderMark: boolean | undefined) => void,
     createDirectory: (path: string) => void,
     directoryExists: (path: string) => boolean,
 ): void {

@@ -1597,7 +1597,7 @@ namespace Parser {
             result.libReferenceDirectives = emptyArray;
             result.amdDependencies = emptyArray;
             result.hasNoDefaultLib = false;
-            result.pragmas = emptyMap as ReadonlyPragmaMap;
+            result.pragmas = emptyMap as ReadonlyMap<any, any> as ReadonlyPragmaMap;
             return result;
         }
 

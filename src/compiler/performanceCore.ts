@@ -31,11 +31,13 @@ export interface PerformanceEntry {
     duration: number;
 }
 
+type EntryType = "node" | "mark" | "measure" | "gc" | "function" | "http2" | "http" | "dns" | "net";
+
 /** @internal */
 export interface PerformanceObserverEntryList {
     getEntries: () => PerformanceEntryList;
-    getEntriesByName: (name: string, type?: string) => PerformanceEntryList;
-    getEntriesByType: (type: string) => PerformanceEntryList;
+    getEntriesByName: (name: string, type?: EntryType) => PerformanceEntryList;
+    getEntriesByType: (type: EntryType) => PerformanceEntryList;
 }
 
 /** @internal */

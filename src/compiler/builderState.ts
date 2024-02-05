@@ -48,7 +48,7 @@ export function getFileEmitOutput(
     const { emitSkipped, diagnostics } = program.emit(sourceFile, writeFile, cancellationToken, emitOnlyDtsFiles, customTransformers, forceDtsEmit);
     return { outputFiles, emitSkipped, diagnostics };
 
-    function writeFile(fileName: string, text: string, writeByteOrderMark: boolean) {
+    function writeFile(fileName: string, text: string, writeByteOrderMark: boolean | undefined) {
         outputFiles.push({ name: fileName, writeByteOrderMark, text });
     }
 }
