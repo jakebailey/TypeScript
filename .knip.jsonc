@@ -1,0 +1,50 @@
+{
+    "$schema": "https://unpkg.com/knip@3/schema.json",
+    "entry": [
+        "src/parseOnly/parseOnly.ts",
+
+        // The rest of the entry files, mostly to track used dependencies:
+        "Herebyfile.mjs",
+        ".eslint-plugin-local.cjs",
+        ".gulp.js",
+        "scripts/eslint/**",
+        "scripts/**"
+    ],
+    "ignore": [
+        "built/**",
+        "src/lib/**",
+        "src/cancellationToken/**",
+        "src/compiler/**",
+        "src/deprecatedCompat/**",
+        "src/executeCommandLine/**",
+        "src/harness/**",
+        "src/jsTyping/**",
+        "src/server/**",
+        "src/services/**",
+        "src/testRunner/**",
+        "src/tsc/**",
+        "src/tsserver/**",
+        "src/typescript/**",
+        "src/typingsInstaller/**",
+        "src/typingsInstallerCore/**",
+        "src/watchGuard/**",
+        "tests/**",
+        "Herebyfile.mjs"
+    ],
+    "ignoreDependencies": [
+        "c8",
+        "eslint-formatter-autolinkable-stylish",
+        "mocha-fivemat-progress-reporter",
+        "@babel/cli",
+        "@babel/core",
+        "@babel/plugin-transform-classes",
+        "@types/chai",
+        "@types/ms",
+        "chai",
+        "diff",
+        "ms",
+        "@types/microsoft__typescript-etw",
+        "source-map-support",
+        "@types/source-map-support"
+    ]
+}

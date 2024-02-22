@@ -364,6 +364,17 @@ function entrypointBuildTask(options) {
     return { build, bundle, shim, main, watch };
 }
 
+const { main: parseOnly } = entrypointBuildTask({
+    name: "parseOnly",
+    buildDeps: [generateDiagnostics],
+    project: "src/parseOnly",
+    srcEntrypoint: "./src/parseOnly/parseOnly.ts",
+    builtEntrypoint: "./built/local/parseOnly/parseOnly.js",
+    output: "./built/local/parseOnly.js",
+    mainDeps: [generateLibs],
+});
+export { parseOnly };
+
 const { main: tsc, watch: watchTsc } = entrypointBuildTask({
     name: "tsc",
     description: "Builds the command-line compiler",
