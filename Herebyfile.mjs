@@ -184,6 +184,7 @@ async function runDtsBundler(entrypoint, output) {
  * @property {boolean} [exportIsTsObject]
  * @property {boolean} [treeShaking]
  * @property {() => void} [onWatchRebuild]
+ * @property {Record<string, string>} [define]
  */
 function createBundler(entrypoint, outfile, taskOptions = {}) {
     const getOptions = memoize(async () => {
@@ -201,6 +202,7 @@ function createBundler(entrypoint, outfile, taskOptions = {}) {
             treeShaking: taskOptions.treeShaking,
             packages: "external",
             logLevel: "warning",
+            define: taskOptions.define,
             // legalComments: "none", // If we add copyright headers to the source files, uncomment.
         };
 
@@ -226,7 +228,7 @@ function createBundler(entrypoint, outfile, taskOptions = {}) {
             const require = "require";
             const fakeName = "Q".repeat(require.length);
             const fakeNameRegExp = new RegExp(fakeName, "g");
-            options.define = { [require]: fakeName };
+            options.define = { ...options.define, [require]: fakeName };
             options.plugins = [
                 {
                     name: "fix-require",
@@ -372,6 +374,11 @@ const { main: parseOnly } = entrypointBuildTask({
     builtEntrypoint: "./built/local/parseOnly/parseOnly.js",
     output: "./built/local/parseOnly.js",
     mainDeps: [generateLibs],
+    bundlerOptions: {
+        define: {
+            CHECKER_TS: JSON.stringify(fs.readFileSync("src/compiler/checker.ts", "utf-8")),
+        },
+    },
 });
 export { parseOnly };
 

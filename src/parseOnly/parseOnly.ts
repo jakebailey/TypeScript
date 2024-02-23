@@ -5,4 +5,12 @@ import {
     ScriptTarget,
 } from "./compiler/types";
 
-createSourceFile("test.ts", "const x = 10", ScriptTarget.Latest);
+const iterations = 100;
+
+declare const CHECKER_TS: string;
+
+const source = CHECKER_TS;
+
+for (let i = 0; i < iterations; i++) {
+    createSourceFile("checker.ts", source, ScriptTarget.Latest);
+}
