@@ -4,8 +4,8 @@
         "outDir": "../built/local",
 
         "pretty": true,
-        "lib": ["es2021"],
-        "target": "es2021",
+        "lib": ["es2022"],
+        "target": "es2022",
         "module": "NodeNext",
         "moduleResolution": "NodeNext",
 

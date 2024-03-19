@@ -100,9 +100,9 @@ function getTestSessionPartialOptionsAndHost(optsOrHost: TestSessionConstructorO
 }
 export class TestSession extends ts.server.Session {
     private seq = 0;
-    public override host!: TestSessionAndServiceHost;
-    public override logger!: LoggerWithInMemoryLogs;
-    public override readonly typingsInstaller!: TestTypingsInstallerAdapter;
+    declare public host: TestSessionAndServiceHost;
+    declare public logger: LoggerWithInMemoryLogs;
+    declare public readonly typingsInstaller: TestTypingsInstallerAdapter;
     public serverCancellationToken: TestServerCancellationToken;
 
     constructor(optsOrHost: TestSessionConstructorOptions) {

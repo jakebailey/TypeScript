@@ -199,7 +199,7 @@ function createBundler(entrypoint, outfile, taskOptions = {}) {
             bundle: true,
             outfile,
             platform: "node",
-            target: ["es2021", "node16.14"],
+            target: ["es2022", "node18"],
             format: "cjs",
             sourcemap: "linked",
             sourcesContent: false,
