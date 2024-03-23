@@ -1,4 +1,6 @@
-=== tests/cases/compiler/destructuringAssignmentWithDefault.ts ===
+//// [tests/cases/compiler/destructuringAssignmentWithDefault.ts] ////
+
+=== destructuringAssignmentWithDefault.ts ===
 const a: { x?: number } = { };
 >a : { x?: number | undefined; }
 >x : number | undefined
@@ -19,7 +21,7 @@ let x = 0;
 // Repro from #26235
 
 function f1(options?: { color?: string, width?: number }) {
->f1 : (options?: { color?: string | undefined; width?: number | undefined; } | undefined) => void
+>f1 : (options?: {    color?: string;    width?: number;}) => void
 >options : { color?: string | undefined; width?: number | undefined; } | undefined
 >color : string | undefined
 >width : number | undefined
@@ -91,7 +93,7 @@ function f2(options?: [string?, number?]) {
 }
 
 function f3(options?: { color: string, width: number }) {
->f3 : (options?: { color: string; width: number; } | undefined) => void
+>f3 : (options?: {    color: string;    width: number;}) => void
 >options : { color: string; width: number; } | undefined
 >color : string
 >width : number

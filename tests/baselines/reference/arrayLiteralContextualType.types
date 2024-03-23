@@ -1,4 +1,6 @@
-=== tests/cases/compiler/arrayLiteralContextualType.ts ===
+//// [tests/cases/compiler/arrayLiteralContextualType.ts] ////
+
+=== arrayLiteralContextualType.ts ===
 interface IAnimal {
     name: string;
 >name : string
@@ -33,7 +35,7 @@ function foo(animals: IAnimal[]) { }
 >animals : IAnimal[]
 
 function bar(animals: { [n: number]: IAnimal }) { }
->bar : (animals: { [n: number]: IAnimal; }) => void
+>bar : (animals: {    [n: number]: IAnimal;}) => void
 >animals : { [n: number]: IAnimal; }
 >n : number
 

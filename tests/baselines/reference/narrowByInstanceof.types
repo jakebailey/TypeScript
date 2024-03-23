@@ -1,4 +1,6 @@
-=== tests/cases/compiler/narrowByInstanceof.ts ===
+//// [tests/cases/compiler/narrowByInstanceof.ts] ////
+
+=== narrowByInstanceof.ts ===
 interface A { a: string }
 >a : string
 
@@ -92,7 +94,7 @@ class PersonMixin extends Function {
 >Function : Function
 
     public check(o: any) {
->check : (o: any) => boolean
+>check : (o: any) => o is Person
 >o : any
 
         return typeof o === "object" && o !== null && o instanceof Person;
@@ -104,7 +106,6 @@ class PersonMixin extends Function {
 >"object" : "object"
 >o !== null : boolean
 >o : any
->null : null
 >o instanceof Person : boolean
 >o : any
 >Person : typeof Person

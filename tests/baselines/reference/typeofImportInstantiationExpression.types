@@ -1,8 +1,6 @@
-=== tests/cases/compiler/input.ts ===
-// @strict
+//// [tests/cases/compiler/typeofImportInstantiationExpression.ts] ////
 
-// Repro from #52248
-
+=== input.ts ===
 interface Arg<T = any, Params extends Record<string, any> = Record<string, any>> {
     "__is_argument__"?: true;
 >"__is_argument__" : true
@@ -26,7 +24,7 @@ export function myFunction<T = any, U extends Record<string, any> = Record<strin
 >params : U
 >{} : {}
 
-=== tests/cases/compiler/main.ts ===
+=== main.ts ===
 type T1 = typeof import('./input.js').myFunction;
 >T1 : <T = any, U extends Record<string, any> = Record<string, any>>(arg: Arg<T, U>) => U
 >myFunction : error

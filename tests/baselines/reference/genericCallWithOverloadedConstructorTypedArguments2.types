@@ -1,4 +1,6 @@
-=== tests/cases/conformance/types/typeRelationships/typeInference/genericCallWithOverloadedConstructorTypedArguments2.ts ===
+//// [tests/cases/conformance/types/typeRelationships/typeInference/genericCallWithOverloadedConstructorTypedArguments2.ts] ////
+
+=== genericCallWithOverloadedConstructorTypedArguments2.ts ===
 // Function typed arguments with multiple signatures must be passed an implementation that matches all of them
 // Inferences are made quadratic-pairwise to and from these overload sets
 
@@ -39,7 +41,7 @@ module GenericParameter {
 >GenericParameter : typeof GenericParameter
 
     function foo5<T>(cb: { new(x: T): string; new(x: number): T }) {
->foo5 : <T>(cb: { new (x: T): string; new (x: number): T; }) => { new (x: T): string; new (x: number): T; }
+>foo5 : <T>(cb: {    new (x: T): string;    new (x: number): T;}) => { new (x: T): string; new (x: number): T; }
 >cb : { new (x: T): string; new (x: number): T; }
 >x : T
 >x : number
@@ -59,7 +61,7 @@ module GenericParameter {
 >a : new <T>(x: T) => T
 
     function foo6<T>(cb: { new(x: T): string; new(x: T, y?: T): string }) {
->foo6 : <T>(cb: { new (x: T): string; new (x: T, y?: T): string; }) => { new (x: T): string; new (x: T, y?: T): string; }
+>foo6 : <T>(cb: {    new (x: T): string;    new (x: T, y?: T): string;}) => { new (x: T): string; new (x: T, y?: T): string; }
 >cb : { new (x: T): string; new (x: T, y?: T): string; }
 >x : T
 >x : T
@@ -81,7 +83,7 @@ module GenericParameter {
 >b : new <T>(x: T, y: T) => string
 
     function foo7<T>(x:T, cb: { new(x: T): string; new(x: T, y?: T): string }) {
->foo7 : <T>(x: T, cb: { new (x: T): string; new (x: T, y?: T): string; }) => { new (x: T): string; new (x: T, y?: T): string; }
+>foo7 : <T>(x: T, cb: {    new (x: T): string;    new (x: T, y?: T): string;}) => { new (x: T): string; new (x: T, y?: T): string; }
 >x : T
 >cb : { new (x: T): string; new (x: T, y?: T): string; }
 >x : T
@@ -100,7 +102,7 @@ module GenericParameter {
 >a : new <T>(x: T) => T
 
     var c: { new<T>(x: T): number; new<T>(x: number): T; }
->c : { new <T>(x: T): number; new <T>(x: number): T; }
+>c : { new <T>(x: T): number; new <T_1>(x: number): T_1; }
 >x : T
 >x : number
 
@@ -109,5 +111,5 @@ module GenericParameter {
 >foo7(1, c) : { new (x: unknown): string; new (x: unknown, y?: unknown): string; }
 >foo7 : <T>(x: T, cb: { new (x: T): string; new (x: T, y?: T): string; }) => { new (x: T): string; new (x: T, y?: T): string; }
 >1 : 1
->c : { new <T>(x: T): number; new <T>(x: number): T; }
+>c : { new <T>(x: T): number; new <T_1>(x: number): T_1; }
 }

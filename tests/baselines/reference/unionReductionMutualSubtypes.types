@@ -1,4 +1,6 @@
-=== tests/cases/compiler/unionReductionMutualSubtypes.ts ===
+//// [tests/cases/compiler/unionReductionMutualSubtypes.ts] ////
+
+=== unionReductionMutualSubtypes.ts ===
 // Repro from #35414
 
 interface ReturnVal {
@@ -15,7 +17,7 @@ declare const val: ReturnVal;
 >val : ReturnVal
 
 function run(options: { something?(b?: string): void }) {
->run : (options: { something?(b?: string): void; }) => void
+>run : (options: {    something?(b?: string): void;}) => void
 >options : { something?(b?: string): void; }
 >something : ((b?: string) => void) | undefined
 >b : string | undefined

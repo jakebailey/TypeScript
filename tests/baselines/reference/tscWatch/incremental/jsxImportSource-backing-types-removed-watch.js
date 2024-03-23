@@ -1,3 +1,4 @@
+currentDirectory:: /users/username/projects/project useCaseSensitiveFileNames: false
 Input::
 //// [/a/lib/lib.d.ts]
 /// <reference no-default-lib="true"/>
@@ -29,13 +30,23 @@ export const Fragment: unique symbol;
 
 
 //// [/users/username/projects/project/node_modules/react/package.json]
-{"name":"react","version":"0.0.1"}
+{
+  "name": "react",
+  "version": "0.0.1"
+}
 
 //// [/users/username/projects/project/index.tsx]
 export const App = () => <div propA={true}></div>;
 
 //// [/users/username/projects/project/tsconfig.json]
-{"compilerOptions":{"module":"commonjs","jsx":"react-jsx","incremental":true,"jsxImportSource":"react"}}
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "jsx": "react-jsx",
+    "incremental": true,
+    "jsxImportSource": "react"
+  }
+}
 
 
 /a/lib/tsc.js -w
@@ -47,48 +58,6 @@ Output::
 
 
 
-Program root files: ["/users/username/projects/project/index.tsx"]
-Program options: {"module":1,"jsx":4,"incremental":true,"jsxImportSource":"react","watch":true,"configFilePath":"/users/username/projects/project/tsconfig.json"}
-Program structureReused: Not
-Program files::
-/a/lib/lib.d.ts
-/users/username/projects/project/node_modules/react/jsx-runtime/index.d.ts
-/users/username/projects/project/index.tsx
-
-Semantic diagnostics in builder refreshed for::
-/a/lib/lib.d.ts
-/users/username/projects/project/node_modules/react/jsx-runtime/index.d.ts
-/users/username/projects/project/index.tsx
-
-Shape signatures in builder refreshed for::
-/a/lib/lib.d.ts (used version)
-/users/username/projects/project/node_modules/react/jsx-runtime/index.d.ts (used version)
-/users/username/projects/project/index.tsx (used version)
-
-PolledWatches::
-/users/username/projects/project/node_modules/@types: *new*
-  {"pollingInterval":500}
-
-FsWatches::
-/users/username/projects/project/tsconfig.json: *new*
-  {}
-/users/username/projects/project/index.tsx: *new*
-  {}
-/users/username/projects/project/node_modules/react/jsx-runtime/index.d.ts: *new*
-  {}
-/a/lib/lib.d.ts: *new*
-  {}
-/users/username/projects/project/node_modules/react/package.json: *new*
-  {}
-
-FsWatchesRecursive::
-/users/username/projects/project/node_modules: *new*
-  {}
-/users/username/projects/project: *new*
-  {}
-
-exitCode:: ExitStatus.undefined
-
 //// [/users/username/projects/project/index.js]
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
@@ -99,7 +68,7 @@ exports.App = App;
 
 
 //// [/users/username/projects/project/tsconfig.tsbuildinfo]
-{"program":{"fileNames":["../../../../a/lib/lib.d.ts","./node_modules/react/jsx-runtime/index.d.ts","./index.tsx"],"fileInfos":[{"version":"3858781397-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }\ninterface ReadonlyArray<T> {}\ndeclare const console: { log(msg: any): void; };","affectsGlobalScope":true},"-35656056833-export namespace JSX {\n    interface Element {}\n    interface IntrinsicElements {\n        div: {\n            propA?: boolean;\n        };\n    }\n}\nexport function jsx(...args: any[]): void;\nexport function jsxs(...args: any[]): void;\nexport const Fragment: unique symbol;\n","-14760199789-export const App = () => <div propA={true}></div>;"],"root":[3],"options":{"jsx":4,"jsxImportSource":"react","module":1},"fileIdsList":[[2]],"referencedMap":[[3,1]],"exportedModulesMap":[[3,1]],"semanticDiagnosticsPerFile":[1,3,2]},"version":"FakeTSVersion"}
+{"program":{"fileNames":["../../../../a/lib/lib.d.ts","./node_modules/react/jsx-runtime/index.d.ts","./index.tsx"],"fileInfos":[{"version":"3858781397-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }\ninterface ReadonlyArray<T> {}\ndeclare const console: { log(msg: any): void; };","affectsGlobalScope":true},"-35656056833-export namespace JSX {\n    interface Element {}\n    interface IntrinsicElements {\n        div: {\n            propA?: boolean;\n        };\n    }\n}\nexport function jsx(...args: any[]): void;\nexport function jsxs(...args: any[]): void;\nexport const Fragment: unique symbol;\n","-14760199789-export const App = () => <div propA={true}></div>;"],"root":[3],"options":{"jsx":4,"jsxImportSource":"react","module":1},"fileIdsList":[[2]],"referencedMap":[[3,1]],"semanticDiagnosticsPerFile":[1,3,2]},"version":"FakeTSVersion"}
 
 //// [/users/username/projects/project/tsconfig.tsbuildinfo.readable.baseline.txt]
 {
@@ -149,11 +118,6 @@ exports.App = App;
         "./node_modules/react/jsx-runtime/index.d.ts"
       ]
     },
-    "exportedModulesMap": {
-      "./index.tsx": [
-        "./node_modules/react/jsx-runtime/index.d.ts"
-      ]
-    },
     "semanticDiagnosticsPerFile": [
       "../../../../a/lib/lib.d.ts",
       "./index.tsx",
@@ -161,9 +125,62 @@ exports.App = App;
     ]
   },
   "version": "FakeTSVersion",
-  "size": 1176
+  "size": 1147
 }
 
+
+PolledWatches::
+/users/username/projects/node_modules/@types: *new*
+  {"pollingInterval":500}
+/users/username/projects/project/node_modules/@types: *new*
+  {"pollingInterval":500}
+
+FsWatches::
+/a/lib/lib.d.ts: *new*
+  {}
+/users/username/projects/project/index.tsx: *new*
+  {}
+/users/username/projects/project/node_modules/react/jsx-runtime/index.d.ts: *new*
+  {}
+/users/username/projects/project/node_modules/react/package.json: *new*
+  {}
+/users/username/projects/project/tsconfig.json: *new*
+  {}
+
+FsWatchesRecursive::
+/users/username/projects/project: *new*
+  {}
+/users/username/projects/project/node_modules: *new*
+  {}
+
+Program root files: [
+  "/users/username/projects/project/index.tsx"
+]
+Program options: {
+  "module": 1,
+  "jsx": 4,
+  "incremental": true,
+  "jsxImportSource": "react",
+  "watch": true,
+  "configFilePath": "/users/username/projects/project/tsconfig.json"
+}
+Program structureReused: Not
+Program files::
+/a/lib/lib.d.ts
+/users/username/projects/project/node_modules/react/jsx-runtime/index.d.ts
+/users/username/projects/project/index.tsx
+
+Semantic diagnostics in builder refreshed for::
+/a/lib/lib.d.ts
+/users/username/projects/project/node_modules/react/jsx-runtime/index.d.ts
+/users/username/projects/project/index.tsx
+
+Shape signatures in builder refreshed for::
+/a/lib/lib.d.ts (used version)
+/users/username/projects/project/node_modules/react/jsx-runtime/index.d.ts (used version)
+/users/username/projects/project/index.tsx (used version)
+
+exitCode:: ExitStatus.undefined
 
 Change::
 
@@ -172,25 +189,27 @@ Input::
 //// [/users/username/projects/project/node_modules/react/package.json] deleted
 
 PolledWatches *deleted*::
+/users/username/projects/node_modules/@types:
+  {"pollingInterval":500}
 /users/username/projects/project/node_modules/@types:
   {"pollingInterval":500}
 
 FsWatches *deleted*::
-/users/username/projects/project/tsconfig.json:
+/a/lib/lib.d.ts:
   {}
 /users/username/projects/project/index.tsx:
   {}
 /users/username/projects/project/node_modules/react/jsx-runtime/index.d.ts:
   {}
-/a/lib/lib.d.ts:
-  {}
 /users/username/projects/project/node_modules/react/package.json:
+  {}
+/users/username/projects/project/tsconfig.json:
   {}
 
 FsWatchesRecursive *deleted*::
-/users/username/projects/project/node_modules:
-  {}
 /users/username/projects/project:
+  {}
+/users/username/projects/project/node_modules:
   {}
 
 Output::
@@ -206,42 +225,9 @@ Output::
 
 
 
-Program root files: ["/users/username/projects/project/index.tsx"]
-Program options: {"module":1,"jsx":4,"incremental":true,"jsxImportSource":"react","watch":true,"configFilePath":"/users/username/projects/project/tsconfig.json"}
-Program structureReused: Not
-Program files::
-/a/lib/lib.d.ts
-/users/username/projects/project/index.tsx
-
-Semantic diagnostics in builder refreshed for::
-/users/username/projects/project/index.tsx
-
-Shape signatures in builder refreshed for::
-/users/username/projects/project/index.tsx (computed .d.ts)
-
-PolledWatches::
-/users/username/projects/project/node_modules/@types: *new*
-  {"pollingInterval":500}
-
-FsWatches::
-/users/username/projects/project/tsconfig.json: *new*
-  {}
-/users/username/projects/project/index.tsx: *new*
-  {}
-/a/lib/lib.d.ts: *new*
-  {}
-
-FsWatchesRecursive::
-/users/username/projects/project/node_modules: *new*
-  {}
-/users/username/projects/project: *new*
-  {}
-
-exitCode:: ExitStatus.undefined
-
 //// [/users/username/projects/project/index.js] file written with same contents
 //// [/users/username/projects/project/tsconfig.tsbuildinfo]
-{"program":{"fileNames":["../../../../a/lib/lib.d.ts","./index.tsx"],"fileInfos":[{"version":"3858781397-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }\ninterface ReadonlyArray<T> {}\ndeclare const console: { log(msg: any): void; };","affectsGlobalScope":true},{"version":"-14760199789-export const App = () => <div propA={true}></div>;","signature":"-11175433774-export declare const App: () => any;\n"}],"root":[2],"options":{"jsx":4,"jsxImportSource":"react","module":1},"referencedMap":[],"exportedModulesMap":[],"semanticDiagnosticsPerFile":[1,[2,[{"file":"./index.tsx","start":25,"length":24,"messageText":"Cannot find module 'react/jsx-runtime' or its corresponding type declarations.","category":1,"code":2307}]]]},"version":"FakeTSVersion"}
+{"program":{"fileNames":["../../../../a/lib/lib.d.ts","./index.tsx"],"fileInfos":[{"version":"3858781397-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }\ninterface ReadonlyArray<T> {}\ndeclare const console: { log(msg: any): void; };","affectsGlobalScope":true},{"version":"-14760199789-export const App = () => <div propA={true}></div>;","signature":"-11175433774-export declare const App: () => any;\n"}],"root":[2],"options":{"jsx":4,"jsxImportSource":"react","module":1},"referencedMap":[],"semanticDiagnosticsPerFile":[1,[2,[{"file":"./index.tsx","start":25,"length":24,"messageText":"Cannot find module 'react/jsx-runtime' or its corresponding type declarations.","category":1,"code":2307}]]]},"version":"FakeTSVersion"}
 
 //// [/users/username/projects/project/tsconfig.tsbuildinfo.readable.baseline.txt]
 {
@@ -281,7 +267,6 @@ exitCode:: ExitStatus.undefined
       "module": 1
     },
     "referencedMap": {},
-    "exportedModulesMap": {},
     "semanticDiagnosticsPerFile": [
       "../../../../a/lib/lib.d.ts",
       [
@@ -300,6 +285,52 @@ exitCode:: ExitStatus.undefined
     ]
   },
   "version": "FakeTSVersion",
-  "size": 1049
+  "size": 1025
 }
 
+
+PolledWatches::
+/users/username/projects/node_modules: *new*
+  {"pollingInterval":500}
+/users/username/projects/node_modules/@types: *new*
+  {"pollingInterval":500}
+/users/username/projects/project/node_modules/@types: *new*
+  {"pollingInterval":500}
+
+FsWatches::
+/a/lib/lib.d.ts: *new*
+  {}
+/users/username/projects/project/index.tsx: *new*
+  {}
+/users/username/projects/project/tsconfig.json: *new*
+  {}
+
+FsWatchesRecursive::
+/users/username/projects/project: *new*
+  {}
+/users/username/projects/project/node_modules: *new*
+  {}
+
+Program root files: [
+  "/users/username/projects/project/index.tsx"
+]
+Program options: {
+  "module": 1,
+  "jsx": 4,
+  "incremental": true,
+  "jsxImportSource": "react",
+  "watch": true,
+  "configFilePath": "/users/username/projects/project/tsconfig.json"
+}
+Program structureReused: Not
+Program files::
+/a/lib/lib.d.ts
+/users/username/projects/project/index.tsx
+
+Semantic diagnostics in builder refreshed for::
+/users/username/projects/project/index.tsx
+
+Shape signatures in builder refreshed for::
+/users/username/projects/project/index.tsx (computed .d.ts)
+
+exitCode:: ExitStatus.undefined

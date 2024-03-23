@@ -1,4 +1,6 @@
-=== tests/cases/compiler/paramsOnlyHaveLiteralTypesWhenAppropriatelyContextualized.ts ===
+//// [tests/cases/compiler/paramsOnlyHaveLiteralTypesWhenAppropriatelyContextualized.ts] ////
+
+=== paramsOnlyHaveLiteralTypesWhenAppropriatelyContextualized.ts ===
 // Using a homomorphic mapped type over `T`
 // Produces a lower-priority inference for `T` than other
 // positions, allowing one to override the priority the argument
@@ -7,7 +9,7 @@ type Lower<T> = { [K in keyof T]: T[K] };
 >Lower : Lower<T>
 
 export function appendToOptionalArray<
->appendToOptionalArray : <K extends string | number | symbol, T>(object: { [x in K]?: Lower<T>[] | undefined; }, key: K, value: T) => void
+>appendToOptionalArray : <K extends string | number | symbol, T>(object: {    [x in K]?: Lower<T>[];}, key: K, value: T) => void
 
   K extends string | number | symbol,
   T

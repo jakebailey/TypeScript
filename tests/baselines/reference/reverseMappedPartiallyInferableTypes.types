@@ -1,4 +1,6 @@
-=== tests/cases/compiler/reverseMappedPartiallyInferableTypes.ts ===
+//// [tests/cases/compiler/reverseMappedPartiallyInferableTypes.ts] ////
+
+=== reverseMappedPartiallyInferableTypes.ts ===
 // Repro from #30505
 
 export type Prop<T> = { (): T }
@@ -45,7 +47,7 @@ export type PropsDefinition<T> = RecordPropsDefinition<T>;
 
 
 declare function extend<T>({ props }: { props: PropsDefinition<T> }):  PropsDefinition<T>;
->extend : <T>({ props }: { props: PropsDefinition<T>; }) => PropsDefinition<T>
+>extend : <T>({ props }: {    props: PropsDefinition<T>;}) => PropsDefinition<T>
 >props : RecordPropsDefinition<T>
 >props : RecordPropsDefinition<T>
 

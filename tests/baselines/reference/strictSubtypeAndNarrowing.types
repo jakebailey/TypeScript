@@ -1,4 +1,6 @@
-=== tests/cases/compiler/strictSubtypeAndNarrowing.ts ===
+//// [tests/cases/compiler/strictSubtypeAndNarrowing.ts] ////
+
+=== strictSubtypeAndNarrowing.ts ===
 // Check that `any` is a strict supertype of `unknown`
 
 declare const x11: { x: unknown };
@@ -334,7 +336,7 @@ declare function isArrayLike(value: any): value is { length: number };
 >length : number
 
 function ff1(value: { [index: number]: boolean, length: number } | undefined) {
->ff1 : (value: { [index: number]: boolean; length: number; } | undefined) => void
+>ff1 : (value: {    [index: number]: boolean;    length: number;} | undefined) => void
 >value : { [index: number]: boolean; length: number; } | undefined
 >index : number
 >length : number
@@ -356,7 +358,7 @@ function ff1(value: { [index: number]: boolean, length: number } | undefined) {
 }
 
 function ff2(value: { [index: number]: boolean, length: number } | string) {
->ff2 : (value: string | { [index: number]: boolean; length: number; }) => void
+>ff2 : (value: {    [index: number]: boolean;    length: number;} | string) => void
 >value : string | { [index: number]: boolean; length: number; }
 >index : number
 >length : number
@@ -378,13 +380,12 @@ function ff2(value: { [index: number]: boolean, length: number } | string) {
 }
 
 function ff3(value: string | string[] | { [index: number]: boolean, length: number } | [number, boolean] | number | { length: string } | { a: string } | null | undefined) {
->ff3 : (value: string | number | { [index: number]: boolean; length: number; } | [number, boolean] | { length: string; } | { a: string; } | string[] | null | undefined) => void
+>ff3 : (value: string | string[] | {    [index: number]: boolean;    length: number;} | [number, boolean] | number | {    length: string;} | {    a: string;} | null | undefined) => void
 >value : string | number | { [index: number]: boolean; length: number; } | [number, boolean] | { length: string; } | { a: string; } | string[] | null | undefined
 >index : number
 >length : number
 >length : string
 >a : string
->null : null
 
     if (isArrayLike(value)) {
 >isArrayLike(value) : boolean

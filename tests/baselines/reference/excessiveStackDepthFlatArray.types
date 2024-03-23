@@ -1,4 +1,12 @@
-=== tests/cases/compiler/index.tsx ===
+//// [tests/cases/compiler/excessiveStackDepthFlatArray.ts] ////
+
+=== Performance Stats ===
+Assignability cache: 200 / 200 (nearest 100)
+Type Count: 900 / 900 (nearest 100)
+Instantiation count: 1,500 / 1,500 (nearest 500)
+Symbol count: 28,000 / 28,000 (nearest 500)
+
+=== index.tsx ===
 interface MiddlewareArray<T> extends Array<T> {}
 declare function configureStore(options: { middleware: MiddlewareArray<any> }): void;
 >configureStore : (options: {    middleware: MiddlewareArray<any>;}) => void
@@ -31,7 +39,6 @@ declare namespace React {
   }
   type ReactNode = ReactChild | ReactFragment | boolean | null | undefined;
 >ReactNode : boolean | ReactText | ReactFragment
->null : null
 
   type ReactText = string | number;
 >ReactText : string | number

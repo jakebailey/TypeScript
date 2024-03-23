@@ -1,6 +1,8 @@
-=== tests/cases/conformance/es6/restParameters/emitRestParametersFunctionProperty.ts ===
+//// [tests/cases/conformance/es6/restParameters/emitRestParametersFunctionProperty.ts] ////
+
+=== emitRestParametersFunctionProperty.ts ===
 var obj: {
->obj : { func1: (...rest: any[]) => void; }
+>obj : { func1: (...rest: any) => void; }
 
     func1: (...rest) => void
 >func1 : (...rest: any[]) => void

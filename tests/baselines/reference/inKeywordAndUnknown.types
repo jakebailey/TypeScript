@@ -1,4 +1,6 @@
-=== tests/cases/compiler/inKeywordAndUnknown.ts ===
+//// [tests/cases/compiler/inKeywordAndUnknown.ts] ////
+
+=== inKeywordAndUnknown.ts ===
 // Repro from #50531
 
 function f(x: {}, y: unknown) {
@@ -77,7 +79,7 @@ function f1(x: unknown) {
 }
 
 function f2<T>(x: T) {
->f2 : <T>(x: T) => boolean
+>f2 : <T>(x: T) => x is T & Object & Record<"a", unknown>
 >x : T
 
     return x && x instanceof Object && 'a' in x;
@@ -93,7 +95,7 @@ function f2<T>(x: T) {
 }
 
 function f3(x: {}) {
->f3 : (x: {}) => boolean
+>f3 : (x: {}) => x is Object & Record<"a", unknown>
 >x : {}
 
     return x instanceof Object && 'a' in x;
@@ -107,7 +109,7 @@ function f3(x: {}) {
 }
 
 function f4<T extends {}>(x: T) {
->f4 : <T extends {}>(x: T) => boolean
+>f4 : <T extends {}>(x: T) => x is T & Object & Record<"a", unknown>
 >x : T
 
     return x instanceof Object && 'a' in x;
@@ -121,7 +123,7 @@ function f4<T extends {}>(x: T) {
 }
 
 function f5<T>(x: T & {}) {
->f5 : <T>(x: T & {}) => boolean
+>f5 : <T>(x: T & {}) => x is T & Object & Record<"a", unknown>
 >x : T & {}
 
     return x instanceof Object && 'a' in x;
@@ -135,13 +137,13 @@ function f5<T>(x: T & {}) {
 }
 
 function f6<T extends {}>(x: T & {}) {
->f6 : <T extends {}>(x: T & {}) => boolean
->x : T & {}
+>f6 : <T extends {}>(x: T & {}) => x is T & Object & Record<"a", unknown>
+>x : T
 
     return x instanceof Object && 'a' in x;
 >x instanceof Object && 'a' in x : boolean
 >x instanceof Object : boolean
->x : T & {}
+>x : T
 >Object : ObjectConstructor
 >'a' in x : boolean
 >'a' : "a"
@@ -149,16 +151,16 @@ function f6<T extends {}>(x: T & {}) {
 }
 
 function f7<T extends object>(x: T & {}) {
->f7 : <T extends object>(x: T & {}) => boolean
->x : T & {}
+>f7 : <T extends object>(x: T & {}) => x is T & Record<"a", unknown>
+>x : T
 
     return x instanceof Object && 'a' in x;
 >x instanceof Object && 'a' in x : boolean
 >x instanceof Object : boolean
->x : T & {}
+>x : T
 >Object : ObjectConstructor
 >'a' in x : boolean
 >'a' : "a"
->x : T & {}
+>x : T
 }
 

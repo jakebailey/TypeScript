@@ -1,5 +1,7 @@
-=== tests/cases/compiler/usage.ts ===
-/// <reference path="./internal.ts" />
+//// [tests/cases/compiler/importAliasFromNamespace.ts] ////
+
+=== usage.ts ===
+/// <reference path="./internal.ts" preserve="true" />
 namespace SomeOther.Thing {
 >SomeOther : typeof SomeOther
 >Thing : typeof Thing
@@ -35,7 +37,7 @@ namespace SomeOther.Thing {
         }
     }
 }
-=== tests/cases/compiler/internal.ts ===
+=== internal.ts ===
 namespace My.Internal {
 >My : typeof My
 >Internal : typeof Internal

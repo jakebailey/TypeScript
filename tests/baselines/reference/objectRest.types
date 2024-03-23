@@ -1,4 +1,6 @@
-=== tests/cases/conformance/types/rest/objectRest.ts ===
+//// [tests/cases/conformance/types/rest/objectRest.ts] ////
+
+=== objectRest.ts ===
 var o = { a: 1, b: 'no' }
 >o : { a: number; b: string; }
 >{ a: 1, b: 'no' } : { a: number; b: string; }
@@ -79,7 +81,7 @@ var { x, n1: { y, n2: { z, n3: { ...nr } } }, ...restrest } = nestedrest;
 >nestedrest : { x: number; n1: { y: number; n2: { z: number; n3: { n4: number; }; }; }; rest: number; restrest: number; }
 
 let complex: { x: { ka, ki }, y: number };
->complex : { x: {    ka;    ki;}; y: number; }
+>complex : { x: {    ka: any;    ki: any;}; y: number; }
 >x : { ka: any; ki: any; }
 >ka : any
 >ki : any

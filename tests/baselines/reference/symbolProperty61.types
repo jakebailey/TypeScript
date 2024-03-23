@@ -1,4 +1,6 @@
-=== tests/cases/conformance/es6/Symbols/symbolProperty61.ts ===
+//// [tests/cases/conformance/es6/Symbols/symbolProperty61.ts] ////
+
+=== symbolProperty61.ts ===
 declare global {
 >global : any
 
@@ -49,7 +51,7 @@ type InteropObservable<T> = {
 >InteropObservable : InteropObservable<T>
 
     [Symbol.obs]: () => { subscribe(next: (val: T) => void): void }
->[Symbol.obs] : () => { subscribe(next: (val: T) => void): void; }
+>[Symbol.obs] : () => {    subscribe(next: (val: T) => void): void;}
 >Symbol.obs : unique symbol
 >Symbol : SymbolConstructor
 >obs : unique symbol

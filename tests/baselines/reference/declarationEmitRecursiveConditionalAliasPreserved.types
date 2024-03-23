@@ -1,4 +1,12 @@
-=== tests/cases/compiler/input.d.ts ===
+//// [tests/cases/compiler/declarationEmitRecursiveConditionalAliasPreserved.ts] ////
+
+=== Performance Stats ===
+Assignability cache: 1,900 / 1,900 (nearest 100)
+Type Count: 14,200 / 14,200 (nearest 100)
+Instantiation count: 57,000 / 57,000 (nearest 500)
+Symbol count: 49,000 / 49,000 (nearest 500)
+
+=== input.d.ts ===
 type _BuildPowersOf2LengthArrays<
 >_BuildPowersOf2LengthArrays : _BuildPowersOf2LengthArrays<Length, AccumulatedArray>
 
@@ -112,7 +120,7 @@ type PowerTailRec<
 export type Power<Num extends number, PowerOf extends number> = PowerTailRec<Num, PowerOf, 1>;
 >Power : Power<Num, PowerOf>
 
-=== tests/cases/compiler/a.tsx ===
+=== a.tsx ===
 import { Power } from "./input";
 >Power : any
 

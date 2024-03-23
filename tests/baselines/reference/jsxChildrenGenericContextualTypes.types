@@ -1,4 +1,6 @@
-=== tests/cases/compiler/jsxChildrenGenericContextualTypes.tsx ===
+//// [tests/cases/compiler/jsxChildrenGenericContextualTypes.tsx] ////
+
+=== jsxChildrenGenericContextualTypes.tsx ===
 namespace JSX {
     export interface Element {}
     export interface ElementAttributesProperty { props: {}; }
@@ -12,8 +14,8 @@ namespace JSX {
 >key : string
 }
 const Elem = <T,U=never>(p: { prop: T, children: (t: T) => T }) => <div></div>;
->Elem : <T, U = never>(p: { prop: T; children: (t: T) => T; }) => JSX.Element
-><T,U=never>(p: { prop: T, children: (t: T) => T }) => <div></div> : <T, U = never>(p: { prop: T; children: (t: T) => T; }) => JSX.Element
+>Elem : <T, U = never>(p: {    prop: T;    children: (t: T) => T;}) => JSX.Element
+><T,U=never>(p: { prop: T, children: (t: T) => T }) => <div></div> : <T, U = never>(p: {    prop: T;    children: (t: T) => T;}) => JSX.Element
 >p : { prop: T; children: (t: T) => T; }
 >prop : T
 >children : (t: T) => T
