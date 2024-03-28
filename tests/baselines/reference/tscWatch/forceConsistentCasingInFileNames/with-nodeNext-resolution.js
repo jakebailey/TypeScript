@@ -49,7 +49,7 @@ interface Array<T> { length: number; [n: number]: T; }
 /a/lib/tsc.js --w --explainFiles
 Output::
 >> Screen clear
-[[90m12:00:35 AM[0m] Starting compilation in watch mode...
+[[90mHH:MM:SS AM[0m] Starting compilation in watch mode...
 
 File '/Users/name/projects/web/src/package.json' does not exist.
 File '/Users/name/projects/web/package.json' does not exist.
@@ -111,7 +111,7 @@ node_modules/@types/yargs/index.d.ts
 src/bin.ts
   Matched by default include pattern '**/*'
   File is CommonJS module because 'package.json' was not found
-[[90m12:00:38 AM[0m] Found 1 error. Watching for file changes.
+[[90mHH:MM:SS AM[0m] Found 1 error. Watching for file changes.
 
 
 
@@ -122,39 +122,39 @@ Object.defineProperty(exports, "__esModule", { value: true });
 
 
 PolledWatches::
-/users/name/projects/node_modules/@types: *new*
+/Users/name/projects/node_modules/@types: *new*
   {"pollingInterval":500}
-/users/name/projects/package.json: *new*
+/Users/name/projects/package.json: *new*
   {"pollingInterval":2000}
-/users/name/projects/web/package.json: *new*
+/Users/name/projects/web/package.json: *new*
   {"pollingInterval":2000}
-/users/name/projects/web/src/package.json: *new*
+/Users/name/projects/web/src/package.json: *new*
   {"pollingInterval":2000}
 
 FsWatches::
+/Users/name/projects: *new*
+  {}
+/Users/name/projects/web: *new*
+  {}
+/Users/name/projects/web/node_modules/@types/yargs/index.d.ts: *new*
+  {}
+/Users/name/projects/web/node_modules/@types/yargs/package.json: *new*
+  {}
+/Users/name/projects/web/src/bin.ts: *new*
+  {}
+/Users/name/projects/web/tsconfig.json: *new*
+  {}
 /a/lib/lib.d.ts: *new*
-  {}
-/users/name/projects: *new*
-  {}
-/users/name/projects/web: *new*
-  {}
-/users/name/projects/web/node_modules/@types/yargs/index.d.ts: *new*
-  {}
-/users/name/projects/web/node_modules/@types/yargs/package.json: *new*
-  {}
-/users/name/projects/web/src/bin.ts: *new*
-  {}
-/users/name/projects/web/tsconfig.json: *new*
   {}
 
 FsWatchesRecursive::
-/users/name/projects/web: *new*
+/Users/name/projects/web: *new*
   {}
-/users/name/projects/web/node_modules: *new*
+/Users/name/projects/web/node_modules: *new*
   {}
-/users/name/projects/web/node_modules/@types: *new*
+/Users/name/projects/web/node_modules/@types: *new*
   {}
-/users/name/projects/web/src: *new*
+/Users/name/projects/web/src: *new*
   {}
 
 Program root files: [

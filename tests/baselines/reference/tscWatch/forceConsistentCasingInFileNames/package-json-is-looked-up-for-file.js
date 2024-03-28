@@ -43,7 +43,7 @@ interface Array<T> { length: number; [n: number]: T; }
 /a/lib/tsc.js -w --explainFiles
 Output::
 >> Screen clear
-[[90m12:00:29 AM[0m] Starting compilation in watch mode...
+[[90mHH:MM:SS AM[0m] Starting compilation in watch mode...
 
 File '/Users/name/projects/lib-boilerplate/src/package.json' does not exist.
 Found 'package.json' at '/Users/name/projects/lib-boilerplate/package.json'.
@@ -70,7 +70,7 @@ src/index.ts
 test/basic.spec.ts
   Matched by default include pattern '**/*'
   File is ECMAScript module because 'package.json' has field "type" with value "module"
-[[90m12:00:34 AM[0m] Found 0 errors. Watching for file changes.
+[[90mHH:MM:SS AM[0m] Found 0 errors. Watching for file changes.
 
 
 
@@ -84,31 +84,31 @@ export {};
 
 
 PolledWatches::
-/users/name/projects/lib-boilerplate/node_modules/@types: *new*
+/Users/name/projects/lib-boilerplate/node_modules/@types: *new*
   {"pollingInterval":500}
-/users/name/projects/lib-boilerplate/src/package.json: *new*
+/Users/name/projects/lib-boilerplate/src/package.json: *new*
   {"pollingInterval":2000}
-/users/name/projects/lib-boilerplate/test/package.json: *new*
+/Users/name/projects/lib-boilerplate/test/package.json: *new*
   {"pollingInterval":2000}
-/users/name/projects/node_modules/@types: *new*
+/Users/name/projects/node_modules/@types: *new*
   {"pollingInterval":500}
 
 FsWatches::
+/Users/name/projects/lib-boilerplate/package.json: *new*
+  {}
+/Users/name/projects/lib-boilerplate/src/index.ts: *new*
+  {}
+/Users/name/projects/lib-boilerplate/test/basic.spec.ts: *new*
+  {}
+/Users/name/projects/lib-boilerplate/tsconfig.json: *new*
+  {}
 /a/lib/lib.es2021.full.d.ts: *new*
-  {}
-/users/name/projects/lib-boilerplate/package.json: *new*
-  {}
-/users/name/projects/lib-boilerplate/src/index.ts: *new*
-  {}
-/users/name/projects/lib-boilerplate/test/basic.spec.ts: *new*
-  {}
-/users/name/projects/lib-boilerplate/tsconfig.json: *new*
   {}
 
 FsWatchesRecursive::
-/users/name/projects/lib-boilerplate: *new*
+/Users/name/projects/lib-boilerplate: *new*
   {}
-/users/name/projects/lib-boilerplate/test: *new*
+/Users/name/projects/lib-boilerplate/test: *new*
   {}
 
 Program root files: [
