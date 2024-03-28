@@ -1,5 +1,11 @@
 //// [tests/cases/compiler/libCompileChecks.ts] ////
 
+=== Performance Stats ===
+Assignability cache: 4,000 / 4,000 (nearest 100)
+Type Count: 15,400 / 15,400 (nearest 100)
+Instantiation count: 3,500 / 3,500 (nearest 500)
+Symbol count: 33,500 / 33,500 (nearest 500)
+
 === libCompileChecks.ts ===
 
 // This test is effectively the 'lib check' for all our .d.ts files because we use skipLibCheck

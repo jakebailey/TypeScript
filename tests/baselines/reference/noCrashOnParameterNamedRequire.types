@@ -3,21 +3,34 @@
 === index.js ===
 (function(require, module, exports){
 >(function(require, module, exports){    const mod = require("./mod");    mod.foo;})(null, null, null) : void
+>                                                                                                      : ^^^^
 >(function(require, module, exports){    const mod = require("./mod");    mod.foo;}) : (require: null, module: null, exports: null) => void
+>                                                                                    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >function(require, module, exports){    const mod = require("./mod");    mod.foo;} : (require: null, module: null, exports: null) => void
+>                                                                                  : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >require : null
+>        : ^^^^
 >module : null
+>       : ^^^^
 >exports : null
+>        : ^^^^
 
     const mod = require("./mod");
 >mod : any
+>    : ^^^
 >require("./mod") : any
+>                 : ^^^
 >require : null
+>        : ^^^^
 >"./mod" : "./mod"
+>        : ^^^^^^^
 
     mod.foo;
 >mod.foo : any
+>        : ^^^
 >mod : any
+>    : ^^^
 >foo : any
+>    : ^^^
 
 })(null, null, null);

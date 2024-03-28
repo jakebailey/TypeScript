@@ -3,6 +3,7 @@
 === generatorES6_1.ts ===
 function* foo() {
 >foo : () => Generator<undefined, void, unknown>
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     yield
 >yield : any

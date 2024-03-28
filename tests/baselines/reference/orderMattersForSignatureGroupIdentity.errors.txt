@@ -37,7 +37,7 @@ orderMattersForSignatureGroupIdentity.ts(24,20): error TS2339: Property 'toLower
     v({ s: "", n: 0 }).toLowerCase();
     ~
 !!! error TS2454: Variable 'v' is used before being assigned.
-    ~~~~~~~~~~~~~~~~~~
+    ~
 !!! error TS2769: No overload matches this call.
 !!! error TS2769:   Overload 1 of 2, '(x: { s: string; }): string', gave the following error.
 !!! error TS2769:     Object literal may only specify known properties, and 'n' does not exist in type '{ s: string; }'.
@@ -55,7 +55,7 @@ orderMattersForSignatureGroupIdentity.ts(24,20): error TS2339: Property 'toLower
     w({ s: "", n: 0 }).toLowerCase();
     ~
 !!! error TS2454: Variable 'w' is used before being assigned.
-    ~~~~~~~~~~~~~~~~~~
+    ~
 !!! error TS2769: No overload matches this call.
 !!! error TS2769:   Overload 1 of 2, '(x: { s: string; }): string', gave the following error.
 !!! error TS2769:     Object literal may only specify known properties, and 'n' does not exist in type '{ s: string; }'.

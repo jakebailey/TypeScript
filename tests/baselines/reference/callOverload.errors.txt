@@ -23,7 +23,7 @@ callOverload.ts(11,13): error TS2454: Variable 'n' is used before being assigned
                      ~
 !!! error TS2454: Variable 'n' is used before being assigned.
     withRest();
-    ~~~~~~~~~~
+    ~~~~~~~~
 !!! error TS2555: Expected at least 1 arguments, but got 0.
 !!! related TS6210 callOverload.ts:3:27: An argument for 'a' was not provided.
     withRest(...n); 

@@ -1,7 +1,7 @@
 /src/a.js(7,1): error TS2722: Cannot invoke an object which is possibly 'undefined'.
 /src/a.js(10,7): error TS2417: Class static side 'typeof ElementsArray' incorrectly extends base class static side '{ isArray(arg: any): arg is any[]; readonly prototype: any[]; }'.
   Types of property 'isArray' are incompatible.
-    Type '((arg: any) => boolean) | undefined' is not assignable to type '(arg: any) => arg is any[]'.
+    Type '((arg: any) => arg is any[]) | undefined' is not assignable to type '(arg: any) => arg is any[]'.
       Type 'undefined' is not assignable to type '(arg: any) => arg is any[]'.
 /src/a.js(18,1): error TS2722: Cannot invoke an object which is possibly 'undefined'.
 
@@ -22,7 +22,7 @@
           ~~~~~~~~~~~~~
 !!! error TS2417: Class static side 'typeof ElementsArray' incorrectly extends base class static side '{ isArray(arg: any): arg is any[]; readonly prototype: any[]; }'.
 !!! error TS2417:   Types of property 'isArray' are incompatible.
-!!! error TS2417:     Type '((arg: any) => boolean) | undefined' is not assignable to type '(arg: any) => arg is any[]'.
+!!! error TS2417:     Type '((arg: any) => arg is any[]) | undefined' is not assignable to type '(arg: any) => arg is any[]'.
 !!! error TS2417:       Type 'undefined' is not assignable to type '(arg: any) => arg is any[]'.
         static {
             const superisArray = super.isArray;

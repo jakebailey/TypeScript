@@ -6,19 +6,27 @@ export type Sizing = any;
 
 export const Sizing = null;
 >Sizing : null
+>       : ^^^^
 
 === index.ts ===
 // https://github.com/microsoft/TypeScript/issues/39195
 export { Sizing as GridViewSizing } from './gridview';
 >Sizing : null
+>       : ^^^^
 >GridViewSizing : null
+>               : ^^^^
 
 export namespace Sizing {
 >Sizing : typeof Sizing
+>       : ^^^^^^^^^^^^^
 
     export const Distribute = { type: 'distribute' };
 >Distribute : { type: string; }
+>           : ^^^^^^^^^^^^^^^^^
 >{ type: 'distribute' } : { type: string; }
+>                       : ^^^^^^^^^^^^^^^^^
 >type : string
+>     : ^^^^^^
 >'distribute' : "distribute"
+>             : ^^^^^^^^^^^^
 }

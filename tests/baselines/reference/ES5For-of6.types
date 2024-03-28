@@ -3,16 +3,24 @@
 === ES5For-of6.ts ===
 for (var w of []) {
 >w : never
+>  : ^^^^^
 >[] : never[]
+>   : ^^^^^^^
 
     for (var v of []) {
 >v : never
+>  : ^^^^^
 >[] : never[]
+>   : ^^^^^^^
 
         var x = [w, v];
 >x : never[]
+>  : ^^^^^^^
 >[w, v] : never[]
+>       : ^^^^^^^
 >w : never
+>  : ^^^^^
 >v : never
+>  : ^^^^^
     }
 }

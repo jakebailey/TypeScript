@@ -3,28 +3,45 @@
 === argumentsObjectIterator01_ES5.ts ===
 function doubleAndReturnAsArray(x: number, y: number, z: number): [number, number, number] {
 >doubleAndReturnAsArray : (x: number, y: number, z: number) => [number, number, number]
+>                       : ^^^^      ^^^^^      ^^^^^      ^^^^^                        
 >x : number
+>  : ^^^^^^
 >y : number
+>  : ^^^^^^
 >z : number
+>  : ^^^^^^
 
     let result = [];
 >result : never[]
+>       : ^^^^^^^
 >[] : never[]
+>   : ^^^^^^^
 
     for (let arg of arguments) {
 >arg : any
+>    : ^^^
 >arguments : IArguments
+>          : ^^^^^^^^^^
 
         result.push(arg + arg);
 >result.push(arg + arg) : number
+>                       : ^^^^^^
 >result.push : (...items: never[]) => number
+>            : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >result : never[]
+>       : ^^^^^^^
 >push : (...items: never[]) => number
+>     : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >arg + arg : any
+>          : ^^^
 >arg : any
+>    : ^^^
 >arg : any
+>    : ^^^
     }
     return <[any, any, any]>result;
 ><[any, any, any]>result : [any, any, any]
+>                        : ^^^^^^^^^^^^^^^
 >result : never[]
+>       : ^^^^^^^
 }

@@ -130,14 +130,14 @@ taggedTemplateStringsWithOverloadResolution3.ts(69,18): error TS2339: Property '
     fn4 `${ '' }${ 3  }`;
     fn4 `${ 3  }${ '' }`;
     fn4 `${ 3  }${ undefined }`;
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~
 !!! error TS2769: No overload matches this call.
 !!! error TS2769:   Overload 1 of 3, '(strs: TemplateStringsArray, n: string, m: number): any', gave the following error.
 !!! error TS2769:     Argument of type 'number' is not assignable to parameter of type 'string'.
 !!! error TS2769:   Overload 2 of 3, '(strs: TemplateStringsArray, n: 3, m: string): any', gave the following error.
 !!! error TS2769:     Argument of type 'undefined' is not assignable to parameter of type 'string'.
     fn4 `${ '' }${ null }`;
-    ~~~~~~~~~~~~~~~~~~~~~~
+    ~~~
 !!! error TS2769: No overload matches this call.
 !!! error TS2769:   Overload 1 of 3, '(strs: TemplateStringsArray, n: "", m: number): any', gave the following error.
 !!! error TS2769:     Argument of type 'null' is not assignable to parameter of type 'number'.

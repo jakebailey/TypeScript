@@ -2,7 +2,7 @@ import * as Harness from "./_namespaces/Harness";
 import * as ts from "./_namespaces/ts";
 
 export function encodeString(s: string): string {
-    return ts.sys.bufferFrom!(s).toString("utf8");
+    return Buffer.from(s).toString("utf8");
 }
 
 export function evalFile(fileContents: string, fileName: string, nodeContext?: any) {
@@ -33,7 +33,7 @@ export function splitContentByNewlines(content: string) {
 
 /** Reads a file under /tests */
 export function readTestFile(path: string) {
-    if (path.indexOf("tests") < 0) {
+    if (!path.includes("tests")) {
         path = "tests/" + path;
     }
 
@@ -138,7 +138,7 @@ export function assertInvariants(node: ts.Node | undefined, parent: ts.Node | un
                 }
                 const child = (node as any)[childName];
                 if (isNodeOrArray(child)) {
-                    assert.isFalse(childNodesAndArrays.indexOf(child) < 0, "Missing child when forEach'ing over node: " + ts.Debug.formatSyntaxKind(node.kind) + "-" + childName);
+                    assert.isFalse(!childNodesAndArrays.includes(child), "Missing child when forEach'ing over node: " + ts.Debug.formatSyntaxKind(node.kind) + "-" + childName);
                 }
             }
         }

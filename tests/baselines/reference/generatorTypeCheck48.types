@@ -3,6 +3,7 @@
 === generatorTypeCheck48.ts ===
 function* g() {
 >g : () => Generator<undefined, void, unknown>
+>  : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     yield;
 >yield : any
@@ -10,9 +11,11 @@ function* g() {
 
 function* h() {
 >h : () => Generator<undefined, void, unknown>
+>  : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     yield undefined;
 >yield undefined : any
 >undefined : undefined
+>          : ^^^^^^^^^
 }
 

@@ -1,13 +1,9 @@
-error TS5101: Option 'out' is deprecated and will stop functioning in TypeScript 5.5. Specify compilerOption '"ignoreDeprecations": "5.0"' to silence this error.
-  Use 'outFile' instead.
 e.ts(5,1): error TS2322: Type '() => undefined' is not assignable to type '() => Cls'.
   Type 'undefined' is not assignable to type 'Cls'.
 main.ts(7,9): error TS2454: Variable 'a' is used before being assigned.
 main.ts(8,9): error TS2454: Variable 'a' is used before being assigned.
 
 
-!!! error TS5101: Option 'out' is deprecated and will stop functioning in TypeScript 5.5. Specify compilerOption '"ignoreDeprecations": "5.0"' to silence this error.
-!!! error TS5101:   Use 'outFile' instead.
 ==== main.ts (2 errors) ====
     /// <reference path="d.d.ts"/>
     import {A} from "./a";
@@ -21,6 +17,7 @@ main.ts(8,9): error TS2454: Variable 'a' is used before being assigned.
     let c = a.getCls().y.toLowerCase();
             ~
 !!! error TS2454: Variable 'a' is used before being assigned.
+    
 ==== a.ts (0 errors) ====
     export class A {}
     
@@ -44,7 +41,7 @@ main.ts(8,9): error TS2454: Variable 'a' is used before being assigned.
     }
     
 ==== e.ts (1 errors) ====
-    /// <reference path="c.d.ts"/>
+    /// <reference path="c.d.ts" preserve="true"/>
     import {A} from "./a";
     import {Cls} from "C";
     

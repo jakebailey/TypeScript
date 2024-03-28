@@ -3,13 +3,19 @@
 === ES5For-of4.ts ===
 for (var v of [])
 >v : never
+>  : ^^^^^
 >[] : never[]
+>   : ^^^^^^^
 
     var x = v;
 >x : never
+>  : ^^^^^
 >v : never
+>  : ^^^^^
 
 var y = v;
 >y : never
+>  : ^^^^^
 >v : never
+>  : ^^^^^
 

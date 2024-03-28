@@ -4,18 +4,28 @@
 // Add a lambda to ensure global 'this' capture is triggered
 (()=>this.window);
 >(()=>this.window) : () => Window & typeof globalThis
+>                  : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >()=>this.window : () => Window & typeof globalThis
+>                : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >this.window : Window & typeof globalThis
+>            : ^^^^^^^^^^^^^^^^^^^^^^^^^^
 >this : typeof globalThis
+>     : ^^^^^^^^^^^^^^^^^
 >window : Window & typeof globalThis
+>       : ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 var parts = [];
 >parts : never[]
+>      : ^^^^^^^
 >[] : never[]
+>   : ^^^^^^^
 
 // Ensure that the generated code is correct
 parts[0];
 >parts[0] : never
+>         : ^^^^^
 >parts : never[]
+>      : ^^^^^^^
 >0 : 0
+>  : ^
 

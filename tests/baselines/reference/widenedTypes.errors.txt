@@ -1,5 +1,5 @@
 widenedTypes.ts(1,1): error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
-widenedTypes.ts(2,17): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+widenedTypes.ts(2,17): error TS2359: The right-hand side of an 'instanceof' expression must be either of type 'any', a class, function, or other type assignable to the 'Function' interface type, or an object type with a 'Symbol.hasInstance' method.
 widenedTypes.ts(4,1): error TS18050: The value 'null' cannot be used here.
 widenedTypes.ts(5,7): error TS18050: The value 'null' cannot be used here.
 widenedTypes.ts(7,15): error TS2407: The right-hand side of a 'for...in' statement must be of type 'any', an object type or a type parameter, but here has type 'never'.
@@ -21,7 +21,7 @@ widenedTypes.ts(23,45): error TS2322: Type 'null' is not assignable to type 'str
 !!! error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
     ({}) instanceof null; // Ok because null is a subtype of function
                     ~~~~
-!!! error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+!!! error TS2359: The right-hand side of an 'instanceof' expression must be either of type 'any', a class, function, or other type assignable to the 'Function' interface type, or an object type with a 'Symbol.hasInstance' method.
     
     null in {};
     ~~~~

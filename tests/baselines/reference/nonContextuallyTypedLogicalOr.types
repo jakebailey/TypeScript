@@ -4,30 +4,42 @@
 interface Contextual {
     dummy;
 >dummy : any
+>      : ^^^
 
     p?: number;
 >p : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 }
 
 interface Ellement {
     dummy;
 >dummy : any
+>      : ^^^
 
     p: any;
 >p : any
+>  : ^^^
 }
 
 var c: Contextual;
 >c : Contextual
+>  : ^^^^^^^^^^
 
 var e: Ellement;
 >e : Ellement
+>  : ^^^^^^^^
 
 (c || e).dummy;
 >(c || e).dummy : any
+>               : ^^^
 >(c || e) : Contextual
+>         : ^^^^^^^^^^
 >c || e : Contextual
+>       : ^^^^^^^^^^
 >c : Contextual
+>  : ^^^^^^^^^^
 >e : Ellement
+>  : ^^^^^^^^
 >dummy : any
+>      : ^^^
 

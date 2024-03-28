@@ -4,12 +4,18 @@
 /** @param {Image} image */
 function process(image) {
 >process : (image: new (width?: number | undefined, height?: number | undefined) => HTMLImageElement) => HTMLImageElement
+>        : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >image : new (width?: number | undefined, height?: number | undefined) => HTMLImageElement
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     return new image(1, 1)
 >new image(1, 1) : HTMLImageElement
+>                : ^^^^^^^^^^^^^^^^
 >image : new (width?: number | undefined, height?: number | undefined) => HTMLImageElement
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 >1 : 1
+>  : ^
 }
 

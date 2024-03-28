@@ -3,13 +3,21 @@
 === parser630933.ts ===
 var a = "Hello";
 >a : string
+>  : ^^^^^^
 >"Hello" : "Hello"
+>        : ^^^^^^^
 
 var b = a.match(/\/ver=([^/]+)/);
 >b : RegExpMatchArray | null
+>  : ^^^^^^^^^^^^^^^^^^^^^^^
 >a.match(/\/ver=([^/]+)/) : RegExpMatchArray | null
+>                         : ^^^^^^^^^^^^^^^^^^^^^^^
 >a.match : (regexp: string | RegExp) => RegExpMatchArray | null
+>        : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >a : string
+>  : ^^^^^^
 >match : (regexp: string | RegExp) => RegExpMatchArray | null
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >/\/ver=([^/]+)/ : RegExp
+>                : ^^^^^^
 

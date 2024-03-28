@@ -11,9 +11,11 @@ blockScopedVariablesUseBeforeDef.ts(127,9): error TS2454: Variable 'promise' is 
 blockScopedVariablesUseBeforeDef.ts(128,9): error TS2454: Variable 'foo' is used before being assigned.
 blockScopedVariablesUseBeforeDef.ts(130,9): error TS2454: Variable 'promise' is used before being assigned.
 blockScopedVariablesUseBeforeDef.ts(131,9): error TS2454: Variable 'foo' is used before being assigned.
+blockScopedVariablesUseBeforeDef.ts(140,9): error TS2454: Variable 'iter' is used before being assigned.
+blockScopedVariablesUseBeforeDef.ts(147,9): error TS2454: Variable 'iter' is used before being assigned.
 
 
-==== blockScopedVariablesUseBeforeDef.ts (13 errors) ====
+==== blockScopedVariablesUseBeforeDef.ts (15 errors) ====
     function foo0() {
         let a = x;
                 ~
@@ -181,5 +183,24 @@ blockScopedVariablesUseBeforeDef.ts(131,9): error TS2454: Variable 'foo' is used
         })()
     
         const foo = 1;
+    }
+    
+    // #30907
+    function wrapI1() {
+        const iter = (function* foo() {
+            iter;
+            ~~~~
+!!! error TS2454: Variable 'iter' is used before being assigned.
+            yield 1;
+        })();
+    }
+    
+    function wrapI2() {
+        const iter = (async function* foo() {
+            iter;
+            ~~~~
+!!! error TS2454: Variable 'iter' is used before being assigned.
+            yield 1;
+        })();
     }
     

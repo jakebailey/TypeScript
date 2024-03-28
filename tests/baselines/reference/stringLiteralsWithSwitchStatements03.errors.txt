@@ -9,13 +9,14 @@ stringLiteralsWithSwitchStatements03.ts(14,11): error TS2695: Left side of comma
 stringLiteralsWithSwitchStatements03.ts(14,14): error TS2454: Variable 'y' is used before being assigned.
 stringLiteralsWithSwitchStatements03.ts(16,9): error TS2454: Variable 'y' is used before being assigned.
 stringLiteralsWithSwitchStatements03.ts(20,10): error TS2678: Type '"bar"' is not comparable to type '"foo"'.
+stringLiteralsWithSwitchStatements03.ts(22,10): error TS2454: Variable 'z' is used before being assigned.
 stringLiteralsWithSwitchStatements03.ts(22,10): error TS2678: Type '"bar"' is not comparable to type '"foo"'.
 stringLiteralsWithSwitchStatements03.ts(23,10): error TS2678: Type '"baz"' is not comparable to type '"foo"'.
 stringLiteralsWithSwitchStatements03.ts(23,19): error TS2454: Variable 'z' is used before being assigned.
 stringLiteralsWithSwitchStatements03.ts(24,9): error TS2454: Variable 'z' is used before being assigned.
 
 
-==== stringLiteralsWithSwitchStatements03.ts (14 errors) ====
+==== stringLiteralsWithSwitchStatements03.ts (15 errors) ====
     let x: "foo";
     let y: "foo" | "bar"; 
     let z: "bar";
@@ -59,6 +60,8 @@ stringLiteralsWithSwitchStatements03.ts(24,9): error TS2454: Variable 'z' is use
 !!! error TS2678: Type '"bar"' is not comparable to type '"foo"'.
             break;
         case z || "baz":
+             ~
+!!! error TS2454: Variable 'z' is used before being assigned.
              ~~~~~~~~~~
 !!! error TS2678: Type '"bar"' is not comparable to type '"foo"'.
         case "baz" || z:

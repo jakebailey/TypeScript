@@ -3,10 +3,15 @@
 === nullAssignedToUndefined.ts ===
 var x = undefined = null; // error
 >x : null
+>  : ^^^^
 >undefined = null : null
+>                 : ^^^^
 >undefined : any
+>          : ^^^
 
 var y: typeof undefined = null; // ok, widened
 >y : undefined
+>  : ^^^^^^^^^
 >undefined : undefined
+>          : ^^^^^^^^^
 

@@ -1,15 +1,15 @@
 instanceofOperator.ts(7,11): error TS2725: Class name cannot be 'Object' when targeting ES5 with module CommonJS.
 instanceofOperator.ts(12,5): error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
-instanceofOperator.ts(12,18): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+instanceofOperator.ts(12,18): error TS2359: The right-hand side of an 'instanceof' expression must be either of type 'any', a class, function, or other type assignable to the 'Function' interface type, or an object type with a 'Symbol.hasInstance' method.
 instanceofOperator.ts(15,5): error TS2454: Variable 'obj' is used before being assigned.
-instanceofOperator.ts(15,20): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
-instanceofOperator.ts(16,23): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+instanceofOperator.ts(15,20): error TS2359: The right-hand side of an 'instanceof' expression must be either of type 'any', a class, function, or other type assignable to the 'Function' interface type, or an object type with a 'Symbol.hasInstance' method.
+instanceofOperator.ts(16,23): error TS2359: The right-hand side of an 'instanceof' expression must be either of type 'any', a class, function, or other type assignable to the 'Function' interface type, or an object type with a 'Symbol.hasInstance' method.
 instanceofOperator.ts(16,23): error TS2454: Variable 'obj' is used before being assigned.
 instanceofOperator.ts(19,5): error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
-instanceofOperator.ts(19,21): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+instanceofOperator.ts(19,21): error TS2359: The right-hand side of an 'instanceof' expression must be either of type 'any', a class, function, or other type assignable to the 'Function' interface type, or an object type with a 'Symbol.hasInstance' method.
 instanceofOperator.ts(20,5): error TS2454: Variable 'obj' is used before being assigned.
 instanceofOperator.ts(21,5): error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
-instanceofOperator.ts(21,26): error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+instanceofOperator.ts(21,26): error TS2359: The right-hand side of an 'instanceof' expression must be either of type 'any', a class, function, or other type assignable to the 'Function' interface type, or an object type with a 'Symbol.hasInstance' method.
 
 
 ==== instanceofOperator.ts (12 errors) ====
@@ -30,17 +30,17 @@ instanceofOperator.ts(21,26): error TS2359: The right-hand side of an 'instanceo
         ~
 !!! error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
                      ~~~~
-!!! error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+!!! error TS2359: The right-hand side of an 'instanceof' expression must be either of type 'any', a class, function, or other type assignable to the 'Function' interface type, or an object type with a 'Symbol.hasInstance' method.
     
         // Error and should be error
         obj instanceof 4;
         ~~~
 !!! error TS2454: Variable 'obj' is used before being assigned.
                        ~
-!!! error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+!!! error TS2359: The right-hand side of an 'instanceof' expression must be either of type 'any', a class, function, or other type assignable to the 'Function' interface type, or an object type with a 'Symbol.hasInstance' method.
         Object instanceof obj;
                           ~~~
-!!! error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+!!! error TS2359: The right-hand side of an 'instanceof' expression must be either of type 'any', a class, function, or other type assignable to the 'Function' interface type, or an object type with a 'Symbol.hasInstance' method.
                           ~~~
 !!! error TS2454: Variable 'obj' is used before being assigned.
     
@@ -49,7 +49,7 @@ instanceofOperator.ts(21,26): error TS2359: The right-hand side of an 'instanceo
         ~~~~
 !!! error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
                         ~~~~
-!!! error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+!!! error TS2359: The right-hand side of an 'instanceof' expression must be either of type 'any', a class, function, or other type assignable to the 'Function' interface type, or an object type with a 'Symbol.hasInstance' method.
         obj instanceof Object;
         ~~~
 !!! error TS2454: Variable 'obj' is used before being assigned.
@@ -57,7 +57,7 @@ instanceofOperator.ts(21,26): error TS2359: The right-hand side of an 'instanceo
         ~~~~~~~~~
 !!! error TS2358: The left-hand side of an 'instanceof' expression must be of type 'any', an object type or a type parameter.
                              ~~~~~~~~~
-!!! error TS2359: The right-hand side of an 'instanceof' expression must be of type 'any' or of a type assignable to the 'Function' interface type.
+!!! error TS2359: The right-hand side of an 'instanceof' expression must be either of type 'any', a class, function, or other type assignable to the 'Function' interface type, or an object type with a 'Symbol.hasInstance' method.
     }
     
     

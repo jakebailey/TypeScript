@@ -3,17 +3,24 @@
 === ES5For-of15.ts ===
 for (let v of []) {
 >v : never
+>  : ^^^^^
 >[] : never[]
+>   : ^^^^^^^
 
     v;
 >v : never
+>  : ^^^^^
 
     for (const v of []) {
 >v : never
+>  : ^^^^^
 >[] : never[]
+>   : ^^^^^^^
 
         var x = v;
 >x : never
+>  : ^^^^^
 >v : never
+>  : ^^^^^
     }
 }

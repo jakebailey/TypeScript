@@ -58,7 +58,7 @@ unionTypeCallSignatures4.ts(25,18): error TS2554: Expected 2 arguments, but got 
     f12345("a");  // error
     ~~~~~~
 !!! error TS2454: Variable 'f12345' is used before being assigned.
-    ~~~~~~~~~~~
+    ~~~~~~
 !!! error TS2554: Expected 2 arguments, but got 1.
 !!! related TS6210 unionTypeCallSignatures4.ts:5:23: An argument for 'b' was not provided.
     f12345("a", "b");

@@ -39,18 +39,18 @@ overloadResolutionConstructors.ts(78,25): error TS2345: Argument of type 'string
 overloadResolutionConstructors.ts(79,5): error TS2454: Variable 'fn4' is used before being assigned.
 overloadResolutionConstructors.ts(82,5): error TS2454: Variable 'fn4' is used before being assigned.
 overloadResolutionConstructors.ts(83,5): error TS2454: Variable 'fn4' is used before being assigned.
-overloadResolutionConstructors.ts(84,1): error TS2769: No overload matches this call.
+overloadResolutionConstructors.ts(84,5): error TS2454: Variable 'fn4' is used before being assigned.
+overloadResolutionConstructors.ts(84,5): error TS2769: No overload matches this call.
   Overload 1 of 2, '(n: string, m: number): any', gave the following error.
     Argument of type 'number' is not assignable to parameter of type 'string'.
   Overload 2 of 2, '(n: 3, m: string): any', gave the following error.
     Argument of type 'undefined' is not assignable to parameter of type 'string'.
-overloadResolutionConstructors.ts(84,5): error TS2454: Variable 'fn4' is used before being assigned.
-overloadResolutionConstructors.ts(85,1): error TS2769: No overload matches this call.
+overloadResolutionConstructors.ts(85,5): error TS2454: Variable 'fn4' is used before being assigned.
+overloadResolutionConstructors.ts(85,5): error TS2769: No overload matches this call.
   Overload 1 of 2, '(n: "", m: number): any', gave the following error.
     Argument of type 'null' is not assignable to parameter of type 'number'.
   Overload 2 of 2, '(n: number, m: string): any', gave the following error.
     Argument of type 'string' is not assignable to parameter of type 'number'.
-overloadResolutionConstructors.ts(85,5): error TS2454: Variable 'fn4' is used before being assigned.
 overloadResolutionConstructors.ts(88,5): error TS2454: Variable 'fn4' is used before being assigned.
 overloadResolutionConstructors.ts(88,9): error TS2344: Type 'boolean' does not satisfy the constraint 'number'.
 overloadResolutionConstructors.ts(91,5): error TS2454: Variable 'fn4' is used before being assigned.
@@ -238,23 +238,23 @@ overloadResolutionConstructors.ts(101,13): error TS2454: Variable 'fn5' is used 
         ~~~
 !!! error TS2454: Variable 'fn4' is used before being assigned.
     new fn4(3, undefined);
-    ~~~~~~~~~~~~~~~~~~~~~
+        ~~~
+!!! error TS2454: Variable 'fn4' is used before being assigned.
+        ~~~
 !!! error TS2769: No overload matches this call.
 !!! error TS2769:   Overload 1 of 2, '(n: string, m: number): any', gave the following error.
 !!! error TS2769:     Argument of type 'number' is not assignable to parameter of type 'string'.
 !!! error TS2769:   Overload 2 of 2, '(n: 3, m: string): any', gave the following error.
 !!! error TS2769:     Argument of type 'undefined' is not assignable to parameter of type 'string'.
+    new fn4('', null);
         ~~~
 !!! error TS2454: Variable 'fn4' is used before being assigned.
-    new fn4('', null);
-    ~~~~~~~~~~~~~~~~~
+        ~~~
 !!! error TS2769: No overload matches this call.
 !!! error TS2769:   Overload 1 of 2, '(n: "", m: number): any', gave the following error.
 !!! error TS2769:     Argument of type 'null' is not assignable to parameter of type 'number'.
 !!! error TS2769:   Overload 2 of 2, '(n: number, m: string): any', gave the following error.
 !!! error TS2769:     Argument of type 'string' is not assignable to parameter of type 'number'.
-        ~~~
-!!! error TS2454: Variable 'fn4' is used before being assigned.
     
     // Generic overloads with constraints called with type arguments that do not satisfy the constraints
     new fn4<boolean, Date>(null, null); // Error

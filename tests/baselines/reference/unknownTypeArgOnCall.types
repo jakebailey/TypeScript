@@ -3,22 +3,32 @@
 === unknownTypeArgOnCall.ts ===
 class Foo<T> {
 >Foo : Foo<T>
+>    : ^^^^^^
 
   public clone<U>() {
 >clone : <U>() => null
+>      : ^^^^^^^^^^^^^
 
    return null;
    }
 }
 var f = new Foo<number>();
 >f : Foo<number>
+>  : ^^^^^^^^^^^
 >new Foo<number>() : Foo<number>
+>                  : ^^^^^^^^^^^
 >Foo : typeof Foo
+>    : ^^^^^^^^^^
 
 var r = f.clone<Uhhhh>()
 >r : null
+>  : ^^^^
 >f.clone<Uhhhh>() : null
+>                 : ^^^^
 >f.clone : <U>() => null
+>        : ^^^^^^^^^^^^^
 >f : Foo<number>
+>  : ^^^^^^^^^^^
 >clone : <U>() => null
+>      : ^^^^^^^^^^^^^
 

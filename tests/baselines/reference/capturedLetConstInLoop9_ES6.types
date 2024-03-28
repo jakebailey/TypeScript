@@ -3,138 +3,203 @@
 === capturedLetConstInLoop9_ES6.ts ===
 for (let x = 0; x < 1; ++x) {
 >x : number
+>  : ^^^^^^
 >0 : 0
+>  : ^
 >x < 1 : boolean
+>      : ^^^^^^^
 >x : number
+>  : ^^^^^^
 >1 : 1
+>  : ^
 >++x : number
+>    : ^^^^^^
 >x : number
+>  : ^^^^^^
 
     let x;
 >x : any
+>  : ^^^
 
     (function() { return x });
 >(function() { return x }) : () => any
+>                          : ^^^^^^^^^
 >function() { return x } : () => any
+>                        : ^^^^^^^^^
 >x : any
+>  : ^^^
     {
         let x;
 >x : any
+>  : ^^^
 
         (function() { return x });
 >(function() { return x }) : () => any
+>                          : ^^^^^^^^^
 >function() { return x } : () => any
+>                        : ^^^^^^^^^
 >x : any
+>  : ^^^
     }
 
     try { }
     catch (e) {
 >e : any
+>  : ^^^
 
         let x;
 >x : any
+>  : ^^^
 
         (function() { return x });
 >(function() { return x }) : () => any
+>                          : ^^^^^^^^^
 >function() { return x } : () => any
+>                        : ^^^^^^^^^
 >x : any
+>  : ^^^
     }
 
     switch (x) {
 >x : any
+>  : ^^^
 
         case 1:
 >1 : 1
+>  : ^
 
             let x;
 >x : any
+>  : ^^^
 
             (function() { return x });
 >(function() { return x }) : () => any
+>                          : ^^^^^^^^^
 >function() { return x } : () => any
+>                        : ^^^^^^^^^
 >x : any
+>  : ^^^
 
            break;
     }
     
     while (1 == 1) {
 >1 == 1 : boolean
+>       : ^^^^^^^
 >1 : 1
+>  : ^
 >1 : 1
+>  : ^
 
         let x;
 >x : any
+>  : ^^^
 
         (function() { return x });
 >(function() { return x }) : () => any
+>                          : ^^^^^^^^^
 >function() { return x } : () => any
+>                        : ^^^^^^^^^
 >x : any
+>  : ^^^
     }
     
     class A {
 >A : A
+>  : ^
 
         m() {
 >m : () => any
+>  : ^^^^^^^^^
 
             return x + 1;
 >x + 1 : any
+>      : ^^^
 >x : any
+>  : ^^^
 >1 : 1
+>  : ^
         }
     }
 }
 
 declare function use(a: any);
 >use : (a: any) => any
+>    : ^^^^   ^^^^^^^^
 >a : any
+>  : ^^^
 
 function foo() {
 >foo : () => 50 | 100 | undefined
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     l0:
 >l0 : any
+>   : ^^^
 
     for (let a of []) {
 >a : never
+>  : ^^^^^
 >[] : never[]
+>   : ^^^^^^^
         
         if (a === 1) {
 >a === 1 : boolean
+>        : ^^^^^^^
 >a : never
+>  : ^^^^^
 >1 : 1
+>  : ^
 
             break;
         }
         
         if (a === 2) {
 >a === 2 : boolean
+>        : ^^^^^^^
 >a : never
+>  : ^^^^^
 >2 : 2
+>  : ^
 
             break l0;
 >l0 : any
+>   : ^^^
         }
         
         for (let b of []) {
 >b : never
+>  : ^^^^^
 >[] : never[]
+>   : ^^^^^^^
 
             var [{x, y:z}] = [{x:1, y:2}];
 >x : number
+>  : ^^^^^^
 >y : any
+>  : ^^^
 >z : number
+>  : ^^^^^^
 >[{x:1, y:2}] : [{ x: number; y: number; }]
+>             : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >{x:1, y:2} : { x: number; y: number; }
+>           : ^^^^^^^^^^^^^^^^^^^^^^^^^
 >x : number
+>  : ^^^^^^
 >1 : 1
+>  : ^
 >y : number
+>  : ^^^^^^
 >2 : 2
+>  : ^
 
             if (b === 1) {
 >b === 1 : boolean
+>        : ^^^^^^^
 >b : never
+>  : ^^^^^
 >1 : 1
+>  : ^
 
                 break;
             }
@@ -142,126 +207,186 @@ function foo() {
             
             if (b === 2) {
 >b === 2 : boolean
+>        : ^^^^^^^
 >b : never
+>  : ^^^^^
 >2 : 2
+>  : ^
 
                 break l0;
 >l0 : any
+>   : ^^^
             }
             
             l1:
 >l1 : any
+>   : ^^^
 
             if (b === 3) {
 >b === 3 : boolean
+>        : ^^^^^^^
 >b : never
+>  : ^^^^^
 >3 : 3
+>  : ^
 
                 break l1;
 >l1 : any
+>   : ^^^
             }
             
             return 50;
 >50 : 50
+>   : ^^
         }
 
         for (let b of []) {
 >b : never
+>  : ^^^^^
 >[] : never[]
+>   : ^^^^^^^
 
             var [{x1, y:z1}] = [{x1:1, y:arguments.length}];
 >x1 : number
+>   : ^^^^^^
 >y : any
+>  : ^^^
 >z1 : number
+>   : ^^^^^^
 >[{x1:1, y:arguments.length}] : [{ x1: number; y: number; }]
+>                             : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >{x1:1, y:arguments.length} : { x1: number; y: number; }
+>                           : ^^^^^^^^^^^^^^^^^^^^^^^^^^
 >x1 : number
+>   : ^^^^^^
 >1 : 1
+>  : ^
 >y : number
+>  : ^^^^^^
 >arguments.length : number
+>                 : ^^^^^^
 >arguments : IArguments
+>          : ^^^^^^^^^^
 >length : number
+>       : ^^^^^^
 
             if (b === 1) {
 >b === 1 : boolean
+>        : ^^^^^^^
 >b : never
+>  : ^^^^^
 >1 : 1
+>  : ^
 
                 break;
             }
             
             if (b === 2) {
 >b === 2 : boolean
+>        : ^^^^^^^
 >b : never
+>  : ^^^^^
 >2 : 2
+>  : ^
 
                 break l0;
 >l0 : any
+>   : ^^^
             }
             () => b
 >() => b : () => never
+>        : ^^^^^^^^^^^
 >b : never
+>  : ^^^^^
 
             return 100;
 >100 : 100
+>    : ^^^
         }
 
         
         () => a;
 >() => a : () => never
+>        : ^^^^^^^^^^^
 >a : never
+>  : ^^^^^
     }
     
     use(x);
 >use(x) : any
+>       : ^^^
 >use : (a: any) => any
+>    : ^^^^^^^^^^^^^^^
 >x : number
+>  : ^^^^^^
 
     use(z);
 >use(z) : any
+>       : ^^^
 >use : (a: any) => any
+>    : ^^^^^^^^^^^^^^^
 >z : number
+>  : ^^^^^^
 
     use(x1);
 >use(x1) : any
+>        : ^^^
 >use : (a: any) => any
+>    : ^^^^^^^^^^^^^^^
 >x1 : number
+>   : ^^^^^^
 
     use(z1);
 >use(z1) : any
+>        : ^^^
 >use : (a: any) => any
+>    : ^^^^^^^^^^^^^^^
 >z1 : number
+>   : ^^^^^^
 }
 
 function foo2() {
 >foo2 : () => void
+>     : ^^^^^^^^^^
 
     for (let x of []) {
 >x : never
+>  : ^^^^^
 >[] : never[]
+>   : ^^^^^^^
 
         if (x === 1) {
 >x === 1 : boolean
+>        : ^^^^^^^
 >x : never
+>  : ^^^^^
 >1 : 1
+>  : ^
 
             break;
         }
         else if (x === 2) {
 >x === 2 : boolean
+>        : ^^^^^^^
 >x : never
+>  : ^^^^^
 >2 : 2
+>  : ^
 
             continue;
         }
         
         while (1 === 1) {
 >1 === 1 : boolean
+>        : ^^^^^^^
 >1 : 1
+>  : ^
 >1 : 1
+>  : ^
 
             if (x) {
 >x : never
+>  : ^^^^^
 
                 break;
             }
@@ -272,26 +397,34 @@ function foo2() {
         
         switch(x) {
 >x : never
+>  : ^^^^^
 
             case 1: break;
 >1 : 1
+>  : ^
 
             case 2: continue;
 >2 : 2
+>  : ^
         }
         
         for (let y of []) {
 >y : never
+>  : ^^^^^
 >[] : never[]
+>   : ^^^^^^^
 
             switch(y) {
 >y : never
+>  : ^^^^^
 
                 case 1: break;
 >1 : 1
+>  : ^
 
                 case 2: continue;
 >2 : 2
+>  : ^
             }
         }
     }
@@ -299,62 +432,99 @@ function foo2() {
 
 class C {
 >C : C
+>  : ^
 
     constructor(private N: number) { }
 >N : number
+>  : ^^^^^^
 
     foo() {
 >foo : () => void
+>    : ^^^^^^^^^^
 
         for (let i = 0; i < 100; i++) {
 >i : number
+>  : ^^^^^^
 >0 : 0
+>  : ^
 >i < 100 : boolean
+>        : ^^^^^^^
 >i : number
+>  : ^^^^^^
 >100 : 100
+>    : ^^^
 >i++ : number
+>    : ^^^^^^
 >i : number
+>  : ^^^^^^
 
             let f = () => this.N * i;
 >f : () => number
+>  : ^^^^^^^^^^^^
 >() => this.N * i : () => number
+>                 : ^^^^^^^^^^^^
 >this.N * i : number
+>           : ^^^^^^
 >this.N : number
+>       : ^^^^^^
 >this : this
+>     : ^^^^
 >N : number
+>  : ^^^^^^
 >i : number
+>  : ^^^^^^
         }
     }
 }
 
 function foo3 () {
 >foo3 : () => void
+>     : ^^^^^^^^^^
 
     let x = arguments.length;
 >x : number
+>  : ^^^^^^
 >arguments.length : number
+>                 : ^^^^^^
 >arguments : IArguments
+>          : ^^^^^^^^^^
 >length : number
+>       : ^^^^^^
 
     for (let y of []) {
 >y : never
+>  : ^^^^^
 >[] : never[]
+>   : ^^^^^^^
 
         let z = arguments.length;
 >z : number
+>  : ^^^^^^
 >arguments.length : number
+>                 : ^^^^^^
 >arguments : IArguments
+>          : ^^^^^^^^^^
 >length : number
+>       : ^^^^^^
 
         (function() { return y + z + arguments.length; });
 >(function() { return y + z + arguments.length; }) : () => number
+>                                                  : ^^^^^^^^^^^^
 >function() { return y + z + arguments.length; } : () => number
+>                                                : ^^^^^^^^^^^^
 >y + z + arguments.length : number
+>                         : ^^^^^^
 >y + z : number
+>      : ^^^^^^
 >y : never
+>  : ^^^^^
 >z : number
+>  : ^^^^^^
 >arguments.length : number
+>                 : ^^^^^^
 >arguments : IArguments
+>          : ^^^^^^^^^^
 >length : number
+>       : ^^^^^^
     }
 }

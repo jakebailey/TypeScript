@@ -3,14 +3,18 @@
 === variableDeclarationInnerCommentEmit.ts ===
 var a = /*some comment*/ null;
 >a : null
+>  : ^^^^
 
 var b /*some comment*/ = null;
 >b : null
+>  : ^^^^
 
 var /*some comment*/ c = null;
 >c : null
+>  : ^^^^
 
 // no space
 var a=/*some comment*/null;
 >a : null
+>  : ^^^^
 

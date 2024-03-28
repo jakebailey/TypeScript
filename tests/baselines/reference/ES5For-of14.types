@@ -3,9 +3,13 @@
 === ES5For-of14.ts ===
 for (const v of []) {
 >v : never
+>  : ^^^^^
 >[] : never[]
+>   : ^^^^^^^
 
     var x = v;
 >x : never
+>  : ^^^^^
 >v : never
+>  : ^^^^^
 }

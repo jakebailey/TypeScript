@@ -130,7 +130,7 @@ unionTypeCallSignatures.ts(74,12): error TS2454: Variable 'unionWithRestParamete
     unionOfDifferentReturnType1(); // error missing parameter
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2454: Variable 'unionOfDifferentReturnType1' is used before being assigned.
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2554: Expected 1 arguments, but got 0.
 !!! related TS6210 unionTypeCallSignatures.ts:12:37: An argument for 'a' was not provided.
     
@@ -148,7 +148,7 @@ unionTypeCallSignatures.ts(74,12): error TS2454: Variable 'unionWithRestParamete
     unionOfDifferentParameterTypes();// error - no call signatures
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2454: Variable 'unionOfDifferentParameterTypes' is used before being assigned.
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2554: Expected 1 arguments, but got 0.
 !!! related TS6210 unionTypeCallSignatures.ts:18:40: An argument for 'a' was not provided.
     
@@ -156,7 +156,7 @@ unionTypeCallSignatures.ts(74,12): error TS2454: Variable 'unionWithRestParamete
     unionOfDifferentNumberOfSignatures(); // error - no call signatures
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2454: Variable 'unionOfDifferentNumberOfSignatures' is used before being assigned.
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2554: Expected 1 arguments, but got 0.
 !!! related TS6210 unionTypeCallSignatures.ts:23:44: An argument for 'a' was not provided.
     unionOfDifferentNumberOfSignatures(10); // error - no call signatures
@@ -172,13 +172,13 @@ unionTypeCallSignatures.ts(74,12): error TS2454: Variable 'unionWithRestParamete
     unionWithDifferentParameterCount();// needs more args
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2454: Variable 'unionWithDifferentParameterCount' is used before being assigned.
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2554: Expected 2 arguments, but got 0.
 !!! related TS6210 unionTypeCallSignatures.ts:28:69: An argument for 'a' was not provided.
     unionWithDifferentParameterCount("hello");// needs more args
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2454: Variable 'unionWithDifferentParameterCount' is used before being assigned.
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2554: Expected 2 arguments, but got 1.
 !!! related TS6210 unionTypeCallSignatures.ts:28:80: An argument for 'b' was not provided.
     unionWithDifferentParameterCount("hello", 10);// OK
@@ -200,7 +200,7 @@ unionTypeCallSignatures.ts(74,12): error TS2454: Variable 'unionWithRestParamete
     strOrNum = unionWithOptionalParameter1(); // error
                ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2454: Variable 'unionWithOptionalParameter1' is used before being assigned.
-               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2554: Expected 1-2 arguments, but got 0.
 !!! related TS6210 unionTypeCallSignatures.ts:33:37: An argument for 'a' was not provided.
     
@@ -208,7 +208,7 @@ unionTypeCallSignatures.ts(74,12): error TS2454: Variable 'unionWithRestParamete
     strOrNum = unionWithOptionalParameter2('hello'); // error no call signature
                ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2454: Variable 'unionWithOptionalParameter2' is used before being assigned.
-               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2554: Expected 2 arguments, but got 1.
 !!! related TS6210 unionTypeCallSignatures.ts:39:87: An argument for 'b' was not provided.
     strOrNum = unionWithOptionalParameter2('hello', 10); // error no call signature
@@ -222,7 +222,7 @@ unionTypeCallSignatures.ts(74,12): error TS2454: Variable 'unionWithRestParamete
     strOrNum = unionWithOptionalParameter2(); // error no call signature
                ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2454: Variable 'unionWithOptionalParameter2' is used before being assigned.
-               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2554: Expected 2 arguments, but got 0.
 !!! related TS6210 unionTypeCallSignatures.ts:39:76: An argument for 'a' was not provided.
     
@@ -241,7 +241,7 @@ unionTypeCallSignatures.ts(74,12): error TS2454: Variable 'unionWithRestParamete
     strOrNum = unionWithOptionalParameter3(); // needs more args
                ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2454: Variable 'unionWithOptionalParameter3' is used before being assigned.
-               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+               ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2554: Expected 1-2 arguments, but got 0.
 !!! related TS6210 unionTypeCallSignatures.ts:45:37: An argument for 'a' was not provided.
     
@@ -263,7 +263,7 @@ unionTypeCallSignatures.ts(74,12): error TS2454: Variable 'unionWithRestParamete
     strOrNum = unionWithRestParameter1(); // error
                ~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2454: Variable 'unionWithRestParameter1' is used before being assigned.
-               ~~~~~~~~~~~~~~~~~~~~~~~~~
+               ~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2555: Expected at least 1 arguments, but got 0.
 !!! related TS6210 unionTypeCallSignatures.ts:51:33: An argument for 'a' was not provided.
     
@@ -271,7 +271,7 @@ unionTypeCallSignatures.ts(74,12): error TS2454: Variable 'unionWithRestParamete
     strOrNum = unionWithRestParameter2('hello'); // error no call signature
                ~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2454: Variable 'unionWithRestParameter2' is used before being assigned.
-               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+               ~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2554: Expected 2 arguments, but got 1.
 !!! related TS6210 unionTypeCallSignatures.ts:58:87: An argument for 'b' was not provided.
     strOrNum = unionWithRestParameter2('hello', 10); // error no call signature
@@ -290,7 +290,7 @@ unionTypeCallSignatures.ts(74,12): error TS2454: Variable 'unionWithRestParamete
     strOrNum = unionWithRestParameter2(); // error no call signature
                ~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2454: Variable 'unionWithRestParameter2' is used before being assigned.
-               ~~~~~~~~~~~~~~~~~~~~~~~~~
+               ~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2554: Expected 2 arguments, but got 0.
 !!! related TS6210 unionTypeCallSignatures.ts:58:76: An argument for 'a' was not provided.
     
@@ -312,7 +312,7 @@ unionTypeCallSignatures.ts(74,12): error TS2454: Variable 'unionWithRestParamete
     strOrNum = unionWithRestParameter3(); // error no call signature
                ~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2454: Variable 'unionWithRestParameter3' is used before being assigned.
-               ~~~~~~~~~~~~~~~~~~~~~~~~~
+               ~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2555: Expected at least 1 arguments, but got 0.
 !!! related TS6210 unionTypeCallSignatures.ts:65:33: An argument for 'a' was not provided.
     
@@ -320,7 +320,7 @@ unionTypeCallSignatures.ts(74,12): error TS2454: Variable 'unionWithRestParamete
     strOrNum = unionWithRestParameter4("hello"); // error supplied parameters do not match any call signature
                ~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2454: Variable 'unionWithRestParameter4' is used before being assigned.
-               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+               ~~~~~~~~~~~~~~~~~~~~~~~
 !!! error TS2554: Expected 2 arguments, but got 1.
 !!! related TS6210 unionTypeCallSignatures.ts:72:76: An argument for 'b' was not provided.
     strOrNum = unionWithRestParameter4("hello", "world");

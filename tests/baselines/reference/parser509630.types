@@ -3,13 +3,18 @@
 === parser509630.ts ===
 class Type {
 >Type : Type
+>     : ^^^^
 
     public examples = [ // typing here
 >examples : never[]
+>         : ^^^^^^^
 >[ : never[]
+>  : ^^^^^^^
 }
 class Any extends Type {
 >Any : Any
+>    : ^^^
 >Type : Type
+>     : ^^^^
 }
 

@@ -3,15 +3,23 @@
 === defineVariables_useDefineForClassFields.ts ===
 const a = () => b()
 >a : () => null
+>  : ^^^^^^^^^^
 >() => b() : () => null
+>          : ^^^^^^^^^^
 >b() : null
+>    : ^^^^
 >b : () => null
+>  : ^^^^^^^^^^
 
 const b = () => null
 >b : () => null
+>  : ^^^^^^^^^^
 >() => null : () => null
+>           : ^^^^^^^^^^
 
 a()
 >a() : null
+>    : ^^^^
 >a : () => null
+>  : ^^^^^^^^^^
 

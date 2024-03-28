@@ -4,75 +4,118 @@
 /** @type {number | undefined} */
 var n;
 >n : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 
 // should get any on parameter initialisers
 function f(a = null, b = n, l = []) {
 >f : (a?: null, b?: number | undefined, l?: any[]) => void
+>  : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >a : null
+>  : ^^^^
 >b : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 >n : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 >l : any[]
+>  : ^^^^^
 >[] : never[]
+>   : ^^^^^^^
 
     // a should be any
     a = undefined
 >a = undefined : undefined
+>              : ^^^^^^^^^
 >a : null
+>  : ^^^^
 >undefined : undefined
+>          : ^^^^^^^^^
 
     a = null
 >a = null : null
+>         : ^^^^
 >a : null
+>  : ^^^^
 
     a = 1
 >a = 1 : 1
+>      : ^
 >a : null
+>  : ^^^^
 >1 : 1
+>  : ^
 
     a = true
 >a = true : true
+>         : ^^^^
 >a : null
+>  : ^^^^
 >true : true
+>     : ^^^^
 
     a = {}
 >a = {} : {}
+>       : ^^
 >a : null
+>  : ^^^^
 >{} : {}
+>   : ^^
 
     a = 'ok'
 >a = 'ok' : "ok"
+>         : ^^^^
 >a : null
+>  : ^^^^
 >'ok' : "ok"
+>     : ^^^^
 
     // b should be number | undefined, not any
     b = 1
 >b = 1 : 1
+>      : ^
 >b : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 
     b = undefined
 >b = undefined : undefined
+>              : ^^^^^^^^^
 >b : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 >undefined : undefined
+>          : ^^^^^^^^^
 
     b = 'error'
 >b = 'error' : "error"
+>            : ^^^^^^^
 >b : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 >'error' : "error"
+>        : ^^^^^^^
 
     // l should be any[]
     l.push(1)
 >l.push(1) : number
+>          : ^^^^^^
 >l.push : (...items: any[]) => number
+>       : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >l : any[]
+>  : ^^^^^
 >push : (...items: any[]) => number
+>     : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 
     l.push('ok')
 >l.push('ok') : number
+>             : ^^^^^^
 >l.push : (...items: any[]) => number
+>       : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >l : any[]
+>  : ^^^^^
 >push : (...items: any[]) => number
+>     : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >'ok' : "ok"
+>     : ^^^^
 }
 

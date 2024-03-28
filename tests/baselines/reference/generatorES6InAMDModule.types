@@ -3,6 +3,7 @@
 === generatorES6InAMDModule.ts ===
 export function* foo() {
 >foo : () => Generator<undefined, void, unknown>
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
     yield
 >yield : any

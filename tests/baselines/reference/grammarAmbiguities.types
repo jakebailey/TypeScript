@@ -3,45 +3,74 @@
 === grammarAmbiguities.ts ===
 function f(n: any) { return null; }
 >f : (n: any) => null
+>  : ^^^^   ^^^^^^^^^
 >n : any
+>  : ^^^
 
 function g<A, B>(x: any) { return null; }
 >g : <A, B>(x: any) => null
+>  : ^^^^^^^^^^   ^^^^^^^^^
 >x : any
+>  : ^^^
 
 interface A { }
 interface B { }
 var A, B;
 >A : any
+>  : ^^^
 >B : any
+>  : ^^^
 
 f(g<A, B>(7));
 >f(g<A, B>(7)) : null
+>              : ^^^^
 >f : (n: any) => null
+>  : ^^^^^^^^^^^^^^^^
 >g<A, B>(7) : null
+>           : ^^^^
 >g : <A, B>(x: any) => null
+>  : ^^^^^^^^^^^^^^^^^^^^^^
 >7 : 7
+>  : ^
 
 f(g < A, B > 7); // Should error
 >f(g < A, B > 7) : null
+>                : ^^^^
 >f : (n: any) => null
+>  : ^^^^^^^^^^^^^^^^
 >g < A : boolean
+>      : ^^^^^^^
 >g : <A, B>(x: any) => null
+>  : ^^^^^^^^^^^^^^^^^^^^^^
 >A : any
+>  : ^^^
 >B > 7 : boolean
+>      : ^^^^^^^
 >B : any
+>  : ^^^
 >7 : 7
+>  : ^
 
 f(g < A, B > +(7)); // Should error
 >f(g < A, B > +(7)) : null
+>                   : ^^^^
 >f : (n: any) => null
+>  : ^^^^^^^^^^^^^^^^
 >g < A : boolean
+>      : ^^^^^^^
 >g : <A, B>(x: any) => null
+>  : ^^^^^^^^^^^^^^^^^^^^^^
 >A : any
+>  : ^^^
 >B > +(7) : boolean
+>         : ^^^^^^^
 >B : any
+>  : ^^^
 >+(7) : number
+>     : ^^^^^^
 >(7) : 7
+>    : ^
 >7 : 7
+>  : ^
 
 

@@ -3,22 +3,34 @@
 === wideningTuples2.ts ===
 var foo: () => [any] = function bar() {
 >foo : () => [any]
+>    : ^^^^^^     
 >function bar() {    let intermediate = bar();    intermediate = [""];    return [undefined];} : () => [undefined]
+>                                                                                              : ^^^^^^^^^^^^^^^^^
 >bar : () => [undefined]
+>    : ^^^^^^^^^^^^^^^^^
 
     let intermediate = bar();
 >intermediate : [undefined]
+>             : ^^^^^^^^^^^
 >bar() : [undefined]
+>      : ^^^^^^^^^^^
 >bar : () => [undefined]
+>    : ^^^^^^^^^^^^^^^^^
 
     intermediate = [""];
 >intermediate = [""] : [string]
+>                    : ^^^^^^^^
 >intermediate : [undefined]
+>             : ^^^^^^^^^^^
 >[""] : [string]
+>     : ^^^^^^^^
 >"" : ""
+>   : ^^
 
     return [undefined];
 >[undefined] : [undefined]
+>            : ^^^^^^^^^^^
 >undefined : undefined
+>          : ^^^^^^^^^
 
 };

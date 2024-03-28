@@ -3,6 +3,9 @@
 === typeCheckReturnExpression.ts ===
 var foo = () => undefined;
 >foo : () => undefined
+>    : ^^^^^^^^^^^^^^^
 >() => undefined : () => undefined
+>                : ^^^^^^^^^^^^^^^
 >undefined : undefined
+>          : ^^^^^^^^^
 

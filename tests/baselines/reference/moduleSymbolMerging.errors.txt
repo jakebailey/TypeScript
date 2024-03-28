@@ -2,7 +2,7 @@ B.ts(4,29): error TS2322: Type 'null' is not assignable to type 'I'.
 
 
 ==== B.ts (1 errors) ====
-    ///<reference path="A.ts" />
+    ///<reference path="A.ts" preserve="true" />
     module A { ; }
     module B {
     	export function f(): A.I { return null; }

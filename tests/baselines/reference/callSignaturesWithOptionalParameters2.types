@@ -5,223 +5,357 @@
 
 function foo(x?: number);
 >foo : (x?: number) => any
+>    : ^^^^^      ^^^^^^^^
 >x : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 
 function foo(x?: number) { }
 >foo : (x?: number | undefined) => any
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >x : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 
 foo(1);
 >foo(1) : any
+>       : ^^^
 >foo : (x?: number | undefined) => any
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 
 foo();
 >foo() : any
+>      : ^^^
 >foo : (x?: number | undefined) => any
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 function foo2(x: number);
 >foo2 : { (x: number): any; (x: number, y?: number | undefined): any; }
+>     : ^^^^^^      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >x : number
+>  : ^^^^^^
 
 function foo2(x: number, y?: number);
 >foo2 : { (x: number): any; (x: number, y?: number): any; }
+>     : ^^^^^^^^^^^^^^^^^^^^^^^^      ^^^^^^      ^^^^^^^^^
 >x : number
+>  : ^^^^^^
 >y : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 
 function foo2(x: number, y?: number) { }
 >foo2 : { (x: number): any; (x: number, y?: number | undefined): any; }
+>     : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >x : number
+>  : ^^^^^^
 >y : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 
 foo2(1);
 >foo2(1) : any
+>        : ^^^
 >foo2 : { (x: number): any; (x: number, y?: number | undefined): any; }
+>     : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 
 foo2(1, 2);
 >foo2(1, 2) : any
+>           : ^^^
 >foo2 : { (x: number): any; (x: number, y?: number | undefined): any; }
+>     : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 >2 : 2
+>  : ^
 
 class C {
 >C : C
+>  : ^
 
     foo(x?: number);
 >foo : (x?: number) => any
+>    : ^^^^^      ^^^^^^^^
 >x : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 
     foo(x?: number) { }
 >foo : (x?: number | undefined) => any
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >x : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 
     foo2(x: number);
 >foo2 : { (x: number): any; (x: number, y?: number | undefined): any; }
+>     : ^^^^^^      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >x : number
+>  : ^^^^^^
 
     foo2(x: number, y?: number);
 >foo2 : { (x: number): any; (x: number, y?: number): any; }
+>     : ^^^^^^^^^^^^^^^^^^^^^^^^      ^^^^^^      ^^^^^^^^^
 >x : number
+>  : ^^^^^^
 >y : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 
     foo2(x: number, y?: number) { }
 >foo2 : { (x: number): any; (x: number, y?: number | undefined): any; }
+>     : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >x : number
+>  : ^^^^^^
 >y : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 }
 
 var c: C;
 >c : C
+>  : ^
 
 c.foo();
 >c.foo() : any
+>        : ^^^
 >c.foo : (x?: number | undefined) => any
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >c : C
+>  : ^
 >foo : (x?: number | undefined) => any
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 c.foo(1);
 >c.foo(1) : any
+>         : ^^^
 >c.foo : (x?: number | undefined) => any
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >c : C
+>  : ^
 >foo : (x?: number | undefined) => any
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 
 c.foo2(1);
 >c.foo2(1) : any
+>          : ^^^
 >c.foo2 : { (x: number): any; (x: number, y?: number | undefined): any; }
+>       : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >c : C
+>  : ^
 >foo2 : { (x: number): any; (x: number, y?: number | undefined): any; }
+>     : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 
 c.foo2(1, 2);
 >c.foo2(1, 2) : any
+>             : ^^^
 >c.foo2 : { (x: number): any; (x: number, y?: number | undefined): any; }
+>       : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >c : C
+>  : ^
 >foo2 : { (x: number): any; (x: number, y?: number | undefined): any; }
+>     : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 >2 : 2
+>  : ^
 
 interface I {
     (x?: number);
 >x : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 
     (x?: number, y?: number);
 >x : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 >y : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 
     foo(x: number, y?: number);
 >foo : { (x: number, y?: number): any; (x: number, y?: number | undefined, z?: number | undefined): any; }
+>    : ^^^^^^      ^^^^^^      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >x : number
+>  : ^^^^^^
 >y : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 
     foo(x: number, y?: number, z?: number);
 >foo : { (x: number, y?: number | undefined): any; (x: number, y?: number, z?: number): any; }
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^      ^^^^^^      ^^^^^^      ^^^^^^^^^
 >x : number
+>  : ^^^^^^
 >y : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 >z : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 }
 
 var i: I;
 >i : I
+>  : ^
 
 i();
 >i() : any
+>    : ^^^
 >i : I
+>  : ^
 
 i(1);
 >i(1) : any
+>     : ^^^
 >i : I
+>  : ^
 >1 : 1
+>  : ^
 
 i(1, 2);
 >i(1, 2) : any
+>        : ^^^
 >i : I
+>  : ^
 >1 : 1
+>  : ^
 >2 : 2
+>  : ^
 
 i.foo(1);
 >i.foo(1) : any
+>         : ^^^
 >i.foo : { (x: number, y?: number | undefined): any; (x: number, y?: number | undefined, z?: number | undefined): any; }
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >i : I
+>  : ^
 >foo : { (x: number, y?: number | undefined): any; (x: number, y?: number | undefined, z?: number | undefined): any; }
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 
 i.foo(1, 2);
 >i.foo(1, 2) : any
+>            : ^^^
 >i.foo : { (x: number, y?: number | undefined): any; (x: number, y?: number | undefined, z?: number | undefined): any; }
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >i : I
+>  : ^
 >foo : { (x: number, y?: number | undefined): any; (x: number, y?: number | undefined, z?: number | undefined): any; }
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 >2 : 2
+>  : ^
 
 i.foo(1, 2, 3);
 >i.foo(1, 2, 3) : any
+>               : ^^^
 >i.foo : { (x: number, y?: number | undefined): any; (x: number, y?: number | undefined, z?: number | undefined): any; }
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >i : I
+>  : ^
 >foo : { (x: number, y?: number | undefined): any; (x: number, y?: number | undefined, z?: number | undefined): any; }
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 >2 : 2
+>  : ^
 >3 : 3
+>  : ^
 
 var a: {
 >a : { (x?: number): any; (x?: number, y?: number): any; foo(x: number, y?: number): any; foo(x: number, y?: number, z?: number): any; }
+>  : ^^^^^^^      ^^^^^^^^^^^^^      ^^^^^^      ^^^^^^^^^^^^^^^      ^^^^^^      ^^^^^^^^^^^^^^^      ^^^^^^      ^^^^^^      ^^^^^^^^^
 
     (x?: number);
 >x : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 
     (x?: number, y?: number);
 >x : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 >y : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 
     foo(x: number, y?: number);
 >foo : { (x: number, y?: number): any; (x: number, y?: number | undefined, z?: number | undefined): any; }
+>    : ^^^^^^      ^^^^^^      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >x : number
+>  : ^^^^^^
 >y : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 
     foo(x: number, y?: number, z?: number);
 >foo : { (x: number, y?: number | undefined): any; (x: number, y?: number, z?: number): any; }
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^      ^^^^^^      ^^^^^^      ^^^^^^^^^
 >x : number
+>  : ^^^^^^
 >y : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 >z : number | undefined
+>  : ^^^^^^^^^^^^^^^^^^
 }
 
 a();
 >a() : any
+>    : ^^^
 >a : { (x?: number | undefined): any; (x?: number | undefined, y?: number | undefined): any; foo(x: number, y?: number | undefined): any; foo(x: number, y?: number | undefined, z?: number | undefined): any; }
+>  : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 a(1);
 >a(1) : any
+>     : ^^^
 >a : { (x?: number | undefined): any; (x?: number | undefined, y?: number | undefined): any; foo(x: number, y?: number | undefined): any; foo(x: number, y?: number | undefined, z?: number | undefined): any; }
+>  : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 
 a(1, 2);
 >a(1, 2) : any
+>        : ^^^
 >a : { (x?: number | undefined): any; (x?: number | undefined, y?: number | undefined): any; foo(x: number, y?: number | undefined): any; foo(x: number, y?: number | undefined, z?: number | undefined): any; }
+>  : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 >2 : 2
+>  : ^
 
 a.foo(1);
 >a.foo(1) : any
+>         : ^^^
 >a.foo : { (x: number, y?: number | undefined): any; (x: number, y?: number | undefined, z?: number | undefined): any; }
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >a : { (x?: number | undefined): any; (x?: number | undefined, y?: number | undefined): any; foo(x: number, y?: number | undefined): any; foo(x: number, y?: number | undefined, z?: number | undefined): any; }
+>  : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >foo : { (x: number, y?: number | undefined): any; (x: number, y?: number | undefined, z?: number | undefined): any; }
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 
 a.foo(1, 2);
 >a.foo(1, 2) : any
+>            : ^^^
 >a.foo : { (x: number, y?: number | undefined): any; (x: number, y?: number | undefined, z?: number | undefined): any; }
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >a : { (x?: number | undefined): any; (x?: number | undefined, y?: number | undefined): any; foo(x: number, y?: number | undefined): any; foo(x: number, y?: number | undefined, z?: number | undefined): any; }
+>  : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >foo : { (x: number, y?: number | undefined): any; (x: number, y?: number | undefined, z?: number | undefined): any; }
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 >2 : 2
+>  : ^
 
 a.foo(1, 2, 3);
 >a.foo(1, 2, 3) : any
+>               : ^^^
 >a.foo : { (x: number, y?: number | undefined): any; (x: number, y?: number | undefined, z?: number | undefined): any; }
+>      : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >a : { (x?: number | undefined): any; (x?: number | undefined, y?: number | undefined): any; foo(x: number, y?: number | undefined): any; foo(x: number, y?: number | undefined, z?: number | undefined): any; }
+>  : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >foo : { (x: number, y?: number | undefined): any; (x: number, y?: number | undefined, z?: number | undefined): any; }
+>    : ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 >1 : 1
+>  : ^
 >2 : 2
+>  : ^
 >3 : 3
+>  : ^
 

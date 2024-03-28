@@ -13,8 +13,6 @@
     y = x;
     
 ==== /src/library-a/index.ts (0 errors) ====
-    // Same as moduleResolutionWithSymlinks.ts, but with outDir
-    
     export class MyClass { private x: number; }
     
 ==== /src/library-b/index.ts (0 errors) ====
