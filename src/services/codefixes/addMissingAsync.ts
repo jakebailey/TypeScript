@@ -86,7 +86,7 @@ function makeChange(changeTracker: textChanges.ChangeTracker, sourceFile: Source
         }
     }
     fixedDeclarations?.add(insertionSite);
-    const cloneWithModifier = factory.updateModifiers(
+    const cloneWithModifier = factory.replaceModifiers(
         getSynthesizedDeepClone(insertionSite, /*includeTrivia*/ true),
         factory.createNodeArray(factory.createModifiersFromModifierFlags(getSyntacticModifierFlags(insertionSite) | ModifierFlags.Async)),
     );
