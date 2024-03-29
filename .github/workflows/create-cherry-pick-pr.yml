@@ -177,7 +177,7 @@ jobs:
 
             return commentBody;
 
-      - uses: microsoft/typescript-bot-test-triggerer/.github/actions/post-workflow-result@master
+      - uses: microsoft/typescript-bot-test-triggerer/.github/actions/post-workflow-result@54931102ee8640fcfb419fdc4fe3e6f851b34bcf # master
         if: ${{ !cancelled() && inputs.distinct_id }}
         with:
           success_comment: ${{ steps.open-pr.outputs.result }}
