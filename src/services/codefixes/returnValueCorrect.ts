@@ -198,7 +198,7 @@ function checkFixedAssignableTo(checker: TypeChecker, declaration: FunctionLikeD
             );
             exprType = checker.createAnonymousType(
                 /*symbol*/ undefined,
-                createSymbolTable(),
+                createSymbolTable(/*symbols*/ undefined),
                 [newSig],
                 [],
                 [],

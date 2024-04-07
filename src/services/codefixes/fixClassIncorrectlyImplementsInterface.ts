@@ -125,7 +125,7 @@ function addMissingDeclarations(
 
 function getHeritageClauseSymbolTable(classDeclaration: ClassLikeDeclaration, checker: TypeChecker): SymbolTable {
     const heritageClauseNode = getEffectiveBaseTypeNode(classDeclaration);
-    if (!heritageClauseNode) return createSymbolTable();
+    if (!heritageClauseNode) return createSymbolTable(/*symbols*/ undefined);
     const heritageClauseType = checker.getTypeAtLocation(heritageClauseNode) as InterfaceType;
     const heritageClauseTypeSymbols = checker.getPropertiesOfType(heritageClauseType);
     return createSymbolTable(heritageClauseTypeSymbols.filter(symbolPointsToNonPrivateMember));

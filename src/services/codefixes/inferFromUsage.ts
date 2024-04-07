@@ -1215,7 +1215,7 @@ function inferTypeFromReferences(program: Program, references: readonly Identifi
     }
 
     function getFunctionFromCalls(calls: CallUsage[]) {
-        return checker.createAnonymousType(/*symbol*/ undefined, createSymbolTable(), [getSignatureFromCalls(calls)], emptyArray, emptyArray);
+        return checker.createAnonymousType(/*symbol*/ undefined, createSymbolTable(/*symbols*/ undefined), [getSignatureFromCalls(calls)], emptyArray, emptyArray);
     }
 
     function getSignatureFromCalls(calls: CallUsage[]): Signature {

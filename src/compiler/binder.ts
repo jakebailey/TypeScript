@@ -649,11 +649,11 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
         symbol.declarations = appendIfUnique(symbol.declarations, node);
 
         if (symbolFlags & (SymbolFlags.Class | SymbolFlags.Enum | SymbolFlags.Module | SymbolFlags.Variable) && !symbol.exports) {
-            symbol.exports = createSymbolTable();
+            symbol.exports = createSymbolTable(/*symbols*/ undefined);
         }
 
         if (symbolFlags & (SymbolFlags.Class | SymbolFlags.Interface | SymbolFlags.TypeLiteral | SymbolFlags.ObjectLiteral) && !symbol.members) {
-            symbol.members = createSymbolTable();
+            symbol.members = createSymbolTable(/*symbols*/ undefined);
         }
 
         // On merge of const enum module with class or function, reset const enum only flag (namespaces will already recalculate)
@@ -991,7 +991,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
             }
             container = blockScopeContainer = node as IsContainer;
             if (containerFlags & ContainerFlags.HasLocals) {
-                (container as HasLocals).locals = createSymbolTable();
+                (container as HasLocals).locals = createSymbolTable(/*symbols*/ undefined);
                 addToContainerChain(container as HasLocals);
             }
         }
@@ -2378,8 +2378,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
 
         const typeLiteralSymbol = createSymbol(SymbolFlags.TypeLiteral, InternalSymbolName.Type);
         addDeclarationToSymbol(typeLiteralSymbol, node, SymbolFlags.TypeLiteral);
-        typeLiteralSymbol.members = createSymbolTable();
-        typeLiteralSymbol.members.set(symbol.escapedName, symbol);
+        typeLiteralSymbol.members = createSymbolTable([symbol]);
     }
 
     function bindObjectLiteralExpression(node: ObjectLiteralExpression) {
@@ -2417,7 +2416,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
             default:
                 Debug.assertNode(blockScopeContainer, canHaveLocals);
                 if (!blockScopeContainer.locals) {
-                    blockScopeContainer.locals = createSymbolTable();
+                    blockScopeContainer.locals = createSymbolTable(/*symbols*/ undefined);
                     addToContainerChain(blockScopeContainer);
                 }
                 declareSymbol(blockScopeContainer.locals, /*parent*/ undefined, node, symbolFlags, symbolExcludes);
@@ -3141,7 +3140,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
             file.bindDiagnostics.push(createDiagnosticForNode(node, diag));
         }
         else {
-            file.symbol.globalExports = file.symbol.globalExports || createSymbolTable();
+            file.symbol.globalExports = file.symbol.globalExports || createSymbolTable(/*symbols*/ undefined);
             declareSymbol(file.symbol.globalExports, file.symbol, node, SymbolFlags.Alias, SymbolFlags.AliasExcludes);
         }
     }
@@ -3271,7 +3270,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
 
                 if (constructorSymbol && constructorSymbol.valueDeclaration) {
                     // Declare a 'member' if the container is an ES5 class or ES6 constructor
-                    constructorSymbol.members = constructorSymbol.members || createSymbolTable();
+                    constructorSymbol.members = constructorSymbol.members || createSymbolTable(/*symbols*/ undefined);
                     // It's acceptable for multiple 'this' assignments of the same identifier to occur
                     if (hasDynamicName(node)) {
                         bindDynamicallyNamedThisPropertyAssignment(node, constructorSymbol, constructorSymbol.members);
@@ -3440,7 +3439,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
                 }
                 else {
                     const table = parent ? parent.exports! :
-                        file.jsGlobalAugmentations || (file.jsGlobalAugmentations = createSymbolTable());
+                        file.jsGlobalAugmentations || (file.jsGlobalAugmentations = createSymbolTable(/*symbols*/ undefined));
                     return declareSymbol(table, parent, id, flags, excludeFlags);
                 }
             });
@@ -3458,8 +3457,8 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
 
         // Set up the members collection if it doesn't exist already
         const symbolTable = isPrototypeProperty ?
-            (namespaceSymbol.members || (namespaceSymbol.members = createSymbolTable())) :
-            (namespaceSymbol.exports || (namespaceSymbol.exports = createSymbolTable()));
+            (namespaceSymbol.members || (namespaceSymbol.members = createSymbolTable(/*symbols*/ undefined))) :
+            (namespaceSymbol.exports || (namespaceSymbol.exports = createSymbolTable(/*symbols*/ undefined)));
 
         let includes = SymbolFlags.None;
         let excludes = SymbolFlags.None;
@@ -3745,7 +3744,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
             const container: HasLocals | undefined = getEffectiveContainerForJSDocTemplateTag(node.parent);
             if (container) {
                 Debug.assertNode(container, canHaveLocals);
-                container.locals ??= createSymbolTable();
+                container.locals ??= createSymbolTable(/*symbols*/ undefined);
                 declareSymbol(container.locals, /*parent*/ undefined, node, SymbolFlags.TypeParameter, SymbolFlags.TypeParameterExcludes);
             }
             else {
@@ -3756,7 +3755,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
             const container: HasLocals | undefined = getInferTypeContainer(node.parent);
             if (container) {
                 Debug.assertNode(container, canHaveLocals);
-                container.locals ??= createSymbolTable();
+                container.locals ??= createSymbolTable(/*symbols*/ undefined);
                 declareSymbol(container.locals, /*parent*/ undefined, node, SymbolFlags.TypeParameter, SymbolFlags.TypeParameterExcludes);
             }
             else {
