@@ -9,7 +9,18 @@ class MyClass {
 >MyClass : MyClass
 >        : ^^^^^^^
 
-    constructor(readonly arg?: BrokenType<any>) {}
+    constructor(readonly arg?: BrokenType<any>, prop = [null as any as BrokenType<any>][0]) {}
 >arg : BrokenType<T> | undefined
 >    : ^^^^^^^^^^^^^^^^^^^^^^^^^
+>prop : BrokenType<T>
+>     : ^^^^^^^^^^^^^
+>[null as any as BrokenType<any>][0] : BrokenType<T>
+>                                    : ^^^^^^^^^^^^^
+>[null as any as BrokenType<any>] : BrokenType<T>[]
+>                                 : ^^^^^^^^^^^^^^^
+>null as any as BrokenType<any> : BrokenType<T>
+>                               : ^^^^^^^^^^^^^
+>null as any : any
+>0 : 0
+>  : ^
 }
