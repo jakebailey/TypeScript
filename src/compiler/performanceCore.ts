@@ -1,4 +1,5 @@
 import { isNodeLikeSystem } from "./_namespaces/ts.js";
+import { nodeCreateRequire } from "./nodeGetBuiltinModule.js";
 
 // The following definitions provide the minimum compatible support for the Web Performance User Timings API
 // between browsers and NodeJS:
@@ -31,7 +32,8 @@ function tryGetPerformance() {
     if (isNodeLikeSystem()) {
         try {
             // By default, only write native events when generating a cpu profile or using the v8 profiler.
-            const { performance } = require("perf_hooks") as typeof import("perf_hooks");
+            const require = nodeCreateRequire(import.meta.url);
+            const { performance } = require("perf_hooks");
             return {
                 shouldWriteNativeEvents: false,
                 performance,

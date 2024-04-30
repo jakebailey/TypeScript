@@ -3,34 +3,47 @@
 //// [package.json]
 {
     "name": "typescript",
-    "types": "/.ts/typescript.d.ts"
+    "type": "module",
+    "exports": "./lib/typescript.d.ts"
 }
 
 //// [package.json]
 {
     "name": "typescript-internal",
-    "types": "/.ts/typescript.internal.d.ts"
+    "type": "module",
+    "exports": "./lib/typescript.internal.d.ts"
 }
 
 //// [package.json]
 {
     "name": "tsserverlibrary",
-    "types": "/.ts/tsserverlibrary.d.ts"
+    "type": "module",
+    "exports": "./lib/tsserverlibrary.d.ts"
 }
 
 //// [package.json]
 {
     "name": "tsserverlibrary-internal",
-    "types": "/.ts/tsserverlibrary.internal.d.ts"
+    "type": "module",
+    "exports": "./lib/tsserverlibrary.internal.d.ts"
+}
+
+//// [package.json]
+{
+    "name": "project",
+    "type": "module"
 }
 
 //// [index.ts]
-import ts = require("typescript");
-import tsInternal = require("typescript-internal");
-import tsserverlibrary = require("tsserverlibrary");
-import tsserverlibraryInternal = require("tsserverlibrary-internal");
+import * as ts from "typescript";
+import tsDefault from "typescript";
+import * as tsInternal from "typescript-internal";
+import tsInternalDefault from "typescript-internal";
+import * as tsserverlibrary from "tsserverlibrary";
+import tsserverlibraryDefault from "tsserverlibrary";
+import * as tsserverlibraryInternal from "tsserverlibrary-internal";
+import tsserverlibraryInternalDefault from "tsserverlibrary-internal";
 
 
 //// [index.js]
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
+export {};
