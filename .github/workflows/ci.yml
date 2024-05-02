@@ -29,21 +29,13 @@ jobs:
           - windows-latest
           - macos-14
         node-version:
-          - '22'
-          - '20'
-          - '18'
-          - '16'
-          - '14'
+          - 23-nightly
         bundle:
           - 'true'
         include:
-          - node-version: '*'
+          - node-version: 23-nightly
             bundle: false
             os: ubuntu-latest
-        exclude:
-          # No Node 14 on ARM macOS
-          - node-version: '14'
-            os: macos-14
 
     runs-on: ${{ matrix.os }}
     name: Test Node ${{ matrix.node-version }} on ${{ matrix.os }}${{ (!matrix.bundle && ' with --no-bundle') || '' }}
@@ -55,12 +47,20 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
           check-latest: true
+
+      - run: |
+          echo "value=--no-warnings=ExperimentalWarning --experimental-require-module" >> "$GITHUB_OUTPUT"
+        name: Enable require(ESM)
+        id: node-options
+
       - run: npm ci
 
       - name: Tests
         id: test
         # run tests, but lint separately
         run: npm run test -- --no-lint --bundle=${{ matrix.bundle }}
+        env:
+          NODE_OPTIONS: ${{ steps.node-options.outputs.value }}
 
       - name: Print baseline diff on failure
         if: ${{ failure() && steps.test.conclusion == 'failure' }}
@@ -68,6 +68,8 @@ jobs:
           npx hereby baseline-accept
           git add tests/baselines/reference
           git diff --staged --exit-code
+        env:
+          NODE_OPTIONS: ${{ steps.node-options.outputs.value }}
 
   lint:
     runs-on: ubuntu-latest
@@ -76,7 +78,7 @@ jobs:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: '*'
+          node-version: '23-nightly'
           check-latest: true
       - run: npm ci
 
@@ -104,7 +106,7 @@ jobs:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: '*'
+          node-version: '23-nightly'
           check-latest: true
       - run: npm ci
 
@@ -125,7 +127,7 @@ jobs:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: '*'
+          node-version: '23-nightly'
           check-latest: true
       - run: npm ci
 
@@ -142,7 +144,7 @@ jobs:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: '*'
+          node-version: '23-nightly'
           check-latest: true
       - run: npm ci
 
@@ -157,8 +159,14 @@ jobs:
 
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: '*'
+          node-version: '23-nightly'
           check-latest: true
+
+      - run: |
+          echo "value=--no-warnings=ExperimentalWarning --experimental-require-module" >> "$GITHUB_OUTPUT"
+        name: Enable require(ESM)
+        id: node-options
+
       - run: |
           npm --version
           # corepack enable npm
@@ -168,12 +176,16 @@ jobs:
       - run: npm ci
 
       - run: npx hereby lkg
+        env:
+          NODE_OPTIONS: ${{ steps.node-options.outputs.value }}
       - run: |
           node ./scripts/addPackageJsonGitHead.mjs package.json
           npm pack
           mv typescript*.tgz typescript.tgz
           echo "package=$PWD/typescript.tgz" >> "$GITHUB_OUTPUT"
         id: pack
+        env:
+          NODE_OPTIONS: ${{ steps.node-options.outputs.value }}
 
       - name: Smoke test
         run: |
@@ -189,6 +201,8 @@ jobs:
 
           node $GITHUB_WORKSPACE/scripts/checkModuleFormat.mjs typescript
           node $GITHUB_WORKSPACE/scripts/checkModuleFormat.mjs typescript/lib/tsserverlibrary
+        env:
+          NODE_OPTIONS: ${{ steps.node-options.outputs.value }}
 
   package-size:
     runs-on: ubuntu-latest
@@ -206,7 +220,7 @@ jobs:
 
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: '*'
+          node-version: '23-nightly'
           check-latest: true
       - run: |
           npm --version
@@ -240,7 +254,7 @@ jobs:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: '*'
+          node-version: 23-nightly
           check-latest: true
       - run: npm ci
 
@@ -257,18 +271,30 @@ jobs:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: '*'
+          node-version: 23-nightly
           check-latest: true
+
+      - run: |
+          echo "value=--no-warnings=ExperimentalWarning --experimental-require-module" >> "$GITHUB_OUTPUT"
+        name: Enable require(ESM)
+        id: node-options
+
       - run: npm ci
 
       - name: Build tsc
         run: npx hereby tsc
+        env:
+          NODE_OPTIONS: ${{ steps.node-options.outputs.value }}
 
       - name: Clean
         run: npx hereby clean-src
+        env:
+          NODE_OPTIONS: ${{ steps.node-options.outputs.value }}
 
       - name: Self build
         run: npx hereby build-src --built
+        env:
+          NODE_OPTIONS: ${{ steps.node-options.outputs.value }}
 
   baselines:
     runs-on: ubuntu-latest
@@ -277,8 +303,14 @@ jobs:
       - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
       - uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         with:
-          node-version: '*'
+          node-version: 23-nightly
           check-latest: true
+
+      - run: |
+          echo "value=--no-warnings=ExperimentalWarning --experimental-require-module" >> "$GITHUB_OUTPUT"
+        name: Enable require(ESM)
+        id: node-options
+
       - run: npm ci
 
       - name: Remove all baselines
@@ -286,11 +318,15 @@ jobs:
 
       - name: Run tests
         run: npm test &> /dev/null || exit 0
+        env:
+          NODE_OPTIONS: ${{ steps.node-options.outputs.value }}
 
       - name: Accept baselines
         run: |
           npx hereby baseline-accept
           git add tests/baselines/reference
+        env:
+          NODE_OPTIONS: ${{ steps.node-options.outputs.value }}
 
       - name: Check baselines
         id: check-baselines
@@ -309,6 +345,8 @@ jobs:
             git diff --staged > fix_baselines.patch
             exit 1
           fi
+        env:
+          NODE_OPTIONS: ${{ steps.node-options.outputs.value }}
 
       - name: Upload baseline diff artifact
         if: ${{ failure() && steps.check-baselines.conclusion == 'failure' }}
