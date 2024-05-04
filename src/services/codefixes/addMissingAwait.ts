@@ -2,12 +2,12 @@ import {
     codeFixAll,
     createCodeFixAction,
     createCodeFixActionWithoutFixAll,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     CancellationToken,
     CodeFixAllContext,
     CodeFixContext,
+    CodeFixRegistration,
     compact,
     contains,
     Diagnostic,
@@ -79,7 +79,7 @@ const errorCodes = [
     ...callableConstructableErrorCodes,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     fixIds: [fixId],
     errorCodes,
     getCodeActions: function getCodeActionsToAddMissingAwait(context) {
@@ -110,7 +110,8 @@ registerCodeFix({
                 || getUseSiteFix(context, expression, diagnostic.code, checker, trackChanges, fixedDeclarations);
         });
     },
-});
+};
+export default codefix;
 
 function getAwaitErrorSpanExpression(sourceFile: SourceFile, errorCode: number, span: TextSpan, cancellationToken: CancellationToken, program: Program) {
     const expression = getFixableErrorSpanExpression(sourceFile, span);

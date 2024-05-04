@@ -1,10 +1,10 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     cast,
+    CodeFixRegistration,
     Diagnostics,
     factory,
     getTokenAtPosition,
@@ -18,7 +18,7 @@ import {
 
 const fixId = "addMissingNewOperator";
 const errorCodes = [Diagnostics.Value_of_type_0_is_not_callable_Did_you_mean_to_include_new.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { sourceFile, span } = context;
@@ -27,7 +27,8 @@ registerCodeFix({
     },
     fixIds: [fixId],
     getAllCodeActions: context => codeFixAll(context, errorCodes, (changes, diag) => addMissingNewOperator(changes, context.sourceFile, diag)),
-});
+};
+export default codefix;
 
 function addMissingNewOperator(changes: textChanges.ChangeTracker, sourceFile: SourceFile, span: TextSpan): void {
     const call = cast(findAncestorMatchingSpan(sourceFile, span), isCallExpression);

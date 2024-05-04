@@ -1,13 +1,13 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     append,
     AsExpression,
     CallSignatureDeclaration,
     CodeFixAction,
+    CodeFixRegistration,
     ConstructSignatureDeclaration,
     DiagnosticMessage,
     Diagnostics,
@@ -45,7 +45,7 @@ const errorCodes = [
     Diagnostics._0_at_the_start_of_a_type_is_not_valid_TypeScript_syntax_Did_you_mean_to_write_1.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { sourceFile } = context;
@@ -79,7 +79,8 @@ registerCodeFix({
             doChange(changes, sourceFile, typeNode, fixedType, checker);
         });
     },
-});
+};
+export default codefix;
 
 function doChange(changes: textChanges.ChangeTracker, sourceFile: SourceFile, oldTypeNode: TypeNode, newType: Type, checker: TypeChecker): void {
     changes.replaceNode(sourceFile, oldTypeNode, checker.typeToTypeNode(newType, /*enclosingDeclaration*/ oldTypeNode, /*flags*/ undefined)!); // TODO: GH#18217

@@ -1,7 +1,6 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     __String,
@@ -13,6 +12,7 @@ import {
     ClassDeclaration,
     ClassElement,
     CodeFixContext,
+    CodeFixRegistration,
     CompilerOptions,
     concatenate,
     copyLeadingComments,
@@ -69,7 +69,7 @@ import {
 
 const fixId = "convertFunctionToEs6Class";
 const errorCodes = [Diagnostics.This_constructor_function_may_be_converted_to_a_class_declaration.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context: CodeFixContext) {
         const changes = textChanges.ChangeTracker.with(context, t => doChange(t, context.sourceFile, context.span.start, context.program.getTypeChecker(), context.preferences, context.program.getCompilerOptions()));
@@ -77,7 +77,8 @@ registerCodeFix({
     },
     fixIds: [fixId],
     getAllCodeActions: context => codeFixAll(context, errorCodes, (changes, err) => doChange(changes, err.file, err.start, context.program.getTypeChecker(), context.preferences, context.program.getCompilerOptions())),
-});
+};
+export default codefix;
 
 function doChange(changes: textChanges.ChangeTracker, sourceFile: SourceFile, position: number, checker: TypeChecker, preferences: UserPreferences, compilerOptions: CompilerOptions): void {
     const ctorSymbol = checker.getSymbolAtLocation(getTokenAtPosition(sourceFile, position))!;

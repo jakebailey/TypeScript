@@ -1,10 +1,10 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     cast,
+    CodeFixRegistration,
     Diagnostics,
     findChildOfKind,
     getTokenAtPosition,
@@ -18,7 +18,7 @@ import {
 
 const fixId = "fixUnusedLabel";
 const errorCodes = [Diagnostics.Unused_label.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const changes = textChanges.ChangeTracker.with(context, t => doChange(t, context.sourceFile, context.span.start));
@@ -26,7 +26,8 @@ registerCodeFix({
     },
     fixIds: [fixId],
     getAllCodeActions: context => codeFixAll(context, errorCodes, (changes, diag) => doChange(changes, diag.file, diag.start)),
-});
+};
+export default codefix;
 
 function doChange(changes: textChanges.ChangeTracker, sourceFile: SourceFile, start: number): void {
     const token = getTokenAtPosition(sourceFile, start);

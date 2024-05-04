@@ -1,11 +1,11 @@
 import {
     createCodeFixActionWithoutFixAll,
-    registerCodeFix,
     setJsonCompilerOptionValue,
     setJsonCompilerOptionValues,
 } from "../_namespaces/ts.codefix.js";
 import {
     CodeFixAction,
+    CodeFixRegistration,
     Diagnostics,
     Expression,
     factory,
@@ -17,7 +17,7 @@ import {
     textChanges,
 } from "../_namespaces/ts.js";
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes: [
         Diagnostics.Top_level_await_expressions_are_only_allowed_when_the_module_option_is_set_to_es2022_esnext_system_node16_nodenext_or_preserve_and_the_target_option_is_set_to_es2017_or_higher.code,
         Diagnostics.Top_level_await_using_statements_are_only_allowed_when_the_module_option_is_set_to_es2022_esnext_system_node16_nodenext_or_preserve_and_the_target_option_is_set_to_es2017_or_higher.code,
@@ -61,4 +61,5 @@ registerCodeFix({
 
         return codeFixes.length ? codeFixes : undefined;
     },
-});
+};
+export default codefix;

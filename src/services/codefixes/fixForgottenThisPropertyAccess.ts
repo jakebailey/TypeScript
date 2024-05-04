@@ -1,9 +1,9 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Diagnostics,
     factory,
     getContainingClass,
@@ -24,7 +24,7 @@ const errorCodes = [
     Diagnostics.Private_identifiers_are_only_allowed_in_class_bodies_and_may_only_be_used_as_part_of_a_class_member_declaration_property_access_or_on_the_left_hand_side_of_an_in_expression.code,
     didYouMeanStaticMemberCode,
 ];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { sourceFile } = context;
@@ -41,7 +41,8 @@ registerCodeFix({
             const info = getInfo(diag.file, diag.start, diag.code);
             if (info) doChange(changes, context.sourceFile, info);
         }),
-});
+};
+export default codefix;
 
 interface Info {
     readonly node: Identifier | PrivateIdentifier;

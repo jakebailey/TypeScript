@@ -9,7 +9,6 @@ import {
     eachDiagnostic,
     getAllSupers,
     ImportAdder,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     __String,
@@ -23,6 +22,7 @@ import {
     CodeFixAction,
     CodeFixContext,
     CodeFixContextBase,
+    CodeFixRegistration,
     concatenate,
     createPropertyNameNodeForIdentifierOrLiteral,
     Debug,
@@ -151,7 +151,7 @@ enum InfoKind {
     Signature,
 }
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const typeChecker = context.program.getTypeChecker();
@@ -242,7 +242,8 @@ registerCodeFix({
             });
         }));
     },
-});
+};
+export default codefix;
 
 type Info = TypeLikeDeclarationInfo | EnumInfo | FunctionInfo | ObjectLiteralInfo | JsxAttributesInfo | SignatureInfo;
 

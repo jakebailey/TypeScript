@@ -1,10 +1,10 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     cast,
+    CodeFixRegistration,
     Diagnostics,
     factory,
     getQuotePreference,
@@ -23,7 +23,7 @@ const errorCodes = [
     Diagnostics.Property_0_comes_from_an_index_signature_so_it_must_be_accessed_with_0.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     fixIds: [fixId],
     getCodeActions(context) {
@@ -33,7 +33,8 @@ registerCodeFix({
         return [createCodeFixAction(fixId, changes, [Diagnostics.Use_element_access_for_0, property.name.text], fixId, Diagnostics.Use_element_access_for_all_undeclared_properties)];
     },
     getAllCodeActions: context => codeFixAll(context, errorCodes, (changes, diag) => doChange(changes, diag.file, getPropertyAccessExpression(diag.file, diag.start), context.preferences)),
-});
+};
+export default codefix;
 
 function doChange(changes: textChanges.ChangeTracker, sourceFile: SourceFile, node: PropertyAccessExpression, preferences: UserPreferences): void {
     const quotePreference = getQuotePreference(sourceFile, preferences);

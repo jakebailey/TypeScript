@@ -1,10 +1,10 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     AsExpression,
+    CodeFixRegistration,
     Diagnostics,
     factory,
     findAncestor,
@@ -20,7 +20,7 @@ import {
 
 const fixId = "addConvertToUnknownForNonOverlappingTypes";
 const errorCodes = [Diagnostics.Conversion_of_type_0_to_type_1_may_be_a_mistake_because_neither_type_sufficiently_overlaps_with_the_other_If_this_was_intentional_convert_the_expression_to_unknown_first.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToAddConvertToUnknownForNonOverlappingTypes(context) {
         const assertion = getAssertion(context.sourceFile, context.span.start);
@@ -36,7 +36,9 @@ registerCodeFix({
                 makeChange(changes, diag.file, assertion);
             }
         }),
-});
+};
+
+export default codefix;
 
 function makeChange(changeTracker: textChanges.ChangeTracker, sourceFile: SourceFile, assertion: AsExpression | TypeAssertion) {
     const replacement = isAsExpression(assertion)

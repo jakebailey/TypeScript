@@ -1,9 +1,9 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Debug,
     Diagnostics,
     factory,
@@ -18,7 +18,7 @@ const fixIdAddMissingTypeof = "fixAddModuleReferTypeMissingTypeof";
 const fixId = fixIdAddMissingTypeof;
 const errorCodes = [Diagnostics.Module_0_does_not_refer_to_a_type_but_is_used_as_a_type_here_Did_you_mean_typeof_import_0.code];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToAddMissingTypeof(context) {
         const { sourceFile, span } = context;
@@ -28,7 +28,8 @@ registerCodeFix({
     },
     fixIds: [fixId],
     getAllCodeActions: context => codeFixAll(context, errorCodes, (changes, diag) => doChange(changes, context.sourceFile, getImportTypeNode(diag.file, diag.start))),
-});
+};
+export default codefix;
 
 function getImportTypeNode(sourceFile: SourceFile, pos: number): ImportTypeNode {
     const token = getTokenAtPosition(sourceFile, pos);

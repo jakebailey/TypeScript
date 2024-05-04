@@ -1,9 +1,9 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Diagnostics,
     factory,
     getTokenAtPosition,
@@ -19,7 +19,7 @@ const fixId = "fixExpectedComma";
 const expectedErrorCode = Diagnostics._0_expected.code;
 const errorCodes = [expectedErrorCode];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { sourceFile } = context;
@@ -42,7 +42,8 @@ registerCodeFix({
             const info = getInfo(diag.file, diag.start, diag.code);
             if (info) doChange(changes, context.sourceFile, info);
         }),
-});
+};
+export default codefix;
 
 interface Info {
     readonly node: Node;

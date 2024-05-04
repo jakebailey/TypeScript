@@ -1,10 +1,10 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     ANONYMOUS,
+    CodeFixRegistration,
     Debug,
     DiagnosticOrDiagnosticAndArguments,
     Diagnostics,
@@ -26,7 +26,7 @@ import {
 
 const fixId = "fixImplicitThis";
 const errorCodes = [Diagnostics.this_implicitly_has_type_any_because_it_does_not_have_a_type_annotation.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToFixImplicitThis(context) {
         const { sourceFile, program, span } = context;
@@ -41,7 +41,8 @@ registerCodeFix({
         codeFixAll(context, errorCodes, (changes, diag) => {
             doChange(changes, diag.file, diag.start, context.program.getTypeChecker());
         }),
-});
+};
+export default codefix;
 
 function doChange(changes: textChanges.ChangeTracker, sourceFile: SourceFile, pos: number, checker: TypeChecker): DiagnosticOrDiagnosticAndArguments | undefined {
     const token = getTokenAtPosition(sourceFile, pos);

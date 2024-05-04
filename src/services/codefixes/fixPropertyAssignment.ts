@@ -1,10 +1,10 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     cast,
+    CodeFixRegistration,
     Diagnostics,
     Expression,
     factory,
@@ -20,7 +20,7 @@ const errorCodes = [
     Diagnostics.Did_you_mean_to_use_a_Colon_An_can_only_follow_a_property_name_when_the_containing_object_literal_is_part_of_a_destructuring_pattern.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     fixIds: [fixId],
     getCodeActions(context) {
@@ -30,7 +30,8 @@ registerCodeFix({
         return [createCodeFixAction(fixId, changes, [Diagnostics.Change_0_to_1, "=", ":"], fixId, [Diagnostics.Switch_each_misused_0_to_1, "=", ":"])];
     },
     getAllCodeActions: context => codeFixAll(context, errorCodes, (changes, diag) => doChange(changes, diag.file, getProperty(diag.file, diag.start))),
-});
+};
+export default codefix;
 
 function doChange(changes: textChanges.ChangeTracker, sourceFile: SourceFile, node: ShorthandPropertyAssignment): void {
     changes.replaceNode(sourceFile, node, factory.createPropertyAssignment(node.name, node.objectAssignmentInitializer as Expression));

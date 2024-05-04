@@ -2,7 +2,6 @@ import {
     createCodeFixAction,
     createCombinedCodeActions,
     eachDiagnostic,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     AnyImportOrRequire,
@@ -16,6 +15,7 @@ import {
     CodeAction,
     CodeFixAction,
     CodeFixContextBase,
+    CodeFixRegistration,
     combine,
     compareBooleans,
     compareNumberOfDirectorySeparators,
@@ -186,7 +186,7 @@ const errorCodes: readonly number[] = [
     Diagnostics.Cannot_find_namespace_0_Did_you_mean_1.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { errorCode, preferences, sourceFile, span, program } = context;
@@ -211,7 +211,8 @@ registerCodeFix({
         eachDiagnostic(context, errorCodes, diag => importAdder.addImportFromDiagnostic(diag, context));
         return createCombinedCodeActions(textChanges.ChangeTracker.with(context, importAdder.writeFixes));
     },
-});
+};
+export default codefix;
 
 /**
  * The node kinds that may be the declaration of an alias symbol imported/required from an external module.

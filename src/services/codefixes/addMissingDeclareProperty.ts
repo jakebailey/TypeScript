@@ -1,9 +1,9 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Diagnostics,
     getTokenAtPosition,
     isIdentifier,
@@ -19,7 +19,7 @@ const errorCodes = [
     Diagnostics.Property_0_will_overwrite_the_base_property_in_1_If_this_is_intentional_add_an_initializer_Otherwise_add_a_declare_modifier_or_remove_the_redundant_declaration.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToAddMissingDeclareOnProperty(context) {
         const changes = textChanges.ChangeTracker.with(context, t => makeChange(t, context.sourceFile, context.span.start));
@@ -32,7 +32,8 @@ registerCodeFix({
         const fixedNodes = new Set<Node>();
         return codeFixAll(context, errorCodes, (changes, diag) => makeChange(changes, diag.file, diag.start, fixedNodes));
     },
-});
+};
+export default codefix;
 
 function makeChange(changeTracker: textChanges.ChangeTracker, sourceFile: SourceFile, pos: number, fixedNodes?: Set<Node>) {
     const token = getTokenAtPosition(sourceFile, pos);

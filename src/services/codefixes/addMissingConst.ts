@@ -1,9 +1,9 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Diagnostics,
     every,
     Expression,
@@ -30,7 +30,7 @@ const errorCodes = [
     Diagnostics.No_value_exists_in_scope_for_the_shorthand_property_0_Either_declare_one_or_provide_an_initializer.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToAddMissingConst(context) {
         const changes = textChanges.ChangeTracker.with(context, t => makeChange(t, context.sourceFile, context.span.start, context.program));
@@ -43,7 +43,8 @@ registerCodeFix({
         const fixedNodes = new Set<Node>();
         return codeFixAll(context, errorCodes, (changes, diag) => makeChange(changes, diag.file, diag.start, context.program, fixedNodes));
     },
-});
+};
+export default codefix;
 
 function makeChange(changeTracker: textChanges.ChangeTracker, sourceFile: SourceFile, pos: number, program: Program, fixedNodes?: Set<Node>) {
     const token = getTokenAtPosition(sourceFile, pos);

@@ -5,11 +5,11 @@ import {
     eachDiagnostic,
     findAncestorMatchingSpan,
     getNoopSymbolTrackerWithResolver,
-    registerCodeFix,
     typeToAutoImportableTypeNode,
 } from "../_namespaces/ts.codefix.js";
 import {
     addToSeen,
+    CodeFixRegistration,
     createTextSpan,
     DiagnosticMessageChain,
     Diagnostics,
@@ -50,7 +50,7 @@ const errorCodes = [
     Diagnostics.Property_0_in_type_1_is_not_assignable_to_type_2.code,
     Diagnostics.Type_0_does_not_satisfy_the_constraint_1.code,
 ];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { sourceFile, span, program, preferences, host } = context;
@@ -77,7 +77,8 @@ registerCodeFix({
             });
         }));
     },
-});
+};
+export default codefix;
 
 interface Info {
     constraint: Type | string;

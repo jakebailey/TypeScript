@@ -4,7 +4,6 @@ import {
     createImportAdder,
     createMissingMemberNodes,
     getNoopSymbolTrackerWithResolver,
-    registerCodeFix,
     TypeConstructionContext,
 } from "../_namespaces/ts.codefix.js";
 import {
@@ -13,6 +12,7 @@ import {
     ClassElement,
     ClassLikeDeclaration,
     CodeFixAction,
+    CodeFixRegistration,
     createSymbolTable,
     Debug,
     Diagnostics,
@@ -43,7 +43,7 @@ const errorCodes = [
     Diagnostics.Class_0_incorrectly_implements_class_1_Did_you_mean_to_extend_1_and_inherit_its_members_as_a_subclass.code,
 ];
 const fixId = "fixClassIncorrectlyImplementsInterface"; // TODO: share a group with fixClassDoesntImplementInheritedAbstractMember?
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { sourceFile, span } = context;
@@ -65,7 +65,8 @@ registerCodeFix({
             }
         });
     },
-});
+};
+export default codefix;
 
 function getClass(sourceFile: SourceFile, pos: number): ClassLikeDeclaration {
     return Debug.checkDefined(getContainingClass(getTokenAtPosition(sourceFile, pos)), "There should be a containing class");

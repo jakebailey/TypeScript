@@ -1,12 +1,12 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     ArrowFunction,
     CodeFixAllContext,
     CodeFixContext,
+    CodeFixRegistration,
     createTextSpanFromNode,
     Diagnostic,
     Diagnostics,
@@ -43,7 +43,7 @@ const errorCodes = [
     Diagnostics.Type_0_is_not_comparable_to_type_1.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     fixIds: [fixId],
     errorCodes,
     getCodeActions: function getCodeActionsToAddMissingAsync(context) {
@@ -72,7 +72,8 @@ registerCodeFix({
             return getFix(context, decl, trackChanges, fixedDeclarations);
         });
     },
-});
+};
+export default codefix;
 
 type FixableDeclaration = ArrowFunction | FunctionDeclaration | FunctionExpression | MethodDeclaration;
 function getFix(context: CodeFixContext | CodeFixAllContext, decl: FixableDeclaration, trackChanges: ContextualTrackChangesFunction, fixedDeclarations?: Set<number>) {

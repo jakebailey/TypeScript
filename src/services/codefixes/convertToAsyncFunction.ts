@@ -1,7 +1,6 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     ArrowFunction,
@@ -13,6 +12,7 @@ import {
     canBeConvertedToAsync,
     canHaveSymbol,
     CodeFixContext,
+    CodeFixRegistration,
     concatenate,
     createMultiMap,
     Debug,
@@ -87,7 +87,7 @@ import {
 const fixId = "convertToAsyncFunction";
 const errorCodes = [Diagnostics.This_may_be_converted_to_an_async_function.code];
 let codeActionSucceeded = true;
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context: CodeFixContext) {
         codeActionSucceeded = true;
@@ -96,7 +96,8 @@ registerCodeFix({
     },
     fixIds: [fixId],
     getAllCodeActions: context => codeFixAll(context, errorCodes, (changes, err) => convertToAsyncFunction(changes, err.file, err.start, context.program.getTypeChecker())),
-});
+};
+export default codefix;
 
 const enum SynthBindingNameKind {
     Identifier,

@@ -1,11 +1,11 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     addToSeen,
     CodeFixContextBase,
+    CodeFixRegistration,
     contains,
     createTextSpanFromNode,
     Diagnostics,
@@ -26,7 +26,7 @@ import {
 
 const errorCodes = [Diagnostics.Re_exporting_a_type_when_0_is_enabled_requires_using_export_type.code];
 const fixId = "convertToTypeOnlyExport";
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToConvertToTypeOnlyExport(context) {
         const changes = textChanges.ChangeTracker.with(context, t => fixSingleExportDeclaration(t, getExportSpecifierForDiagnosticSpan(context.span, context.sourceFile), context));
@@ -44,7 +44,8 @@ registerCodeFix({
             }
         });
     },
-});
+};
+export default codefix;
 
 function getExportSpecifierForDiagnosticSpan(span: TextSpan, sourceFile: SourceFile) {
     return tryCast(getTokenAtPosition(sourceFile, span.start).parent, isExportSpecifier);

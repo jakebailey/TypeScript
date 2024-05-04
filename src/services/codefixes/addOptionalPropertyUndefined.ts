@@ -1,8 +1,6 @@
+import { createCodeFixActionWithoutFixAll } from "../_namespaces/ts.codefix.js";
 import {
-    createCodeFixActionWithoutFixAll,
-    registerCodeFix,
-} from "../_namespaces/ts.codefix.js";
-import {
+    CodeFixRegistration,
     Diagnostics,
     emptyArray,
     factory,
@@ -40,7 +38,7 @@ const errorCodes = [
     Diagnostics.Argument_of_type_0_is_not_assignable_to_parameter_of_type_1_with_exactOptionalPropertyTypes_Colon_true_Consider_adding_undefined_to_the_types_of_the_target_s_properties.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const typeChecker = context.program.getTypeChecker();
@@ -52,7 +50,8 @@ registerCodeFix({
         return [createCodeFixActionWithoutFixAll(addOptionalPropertyUndefined, changes, Diagnostics.Add_undefined_to_optional_property_type)];
     },
     fixIds: [addOptionalPropertyUndefined],
-});
+};
+export default codefix;
 
 function getPropertiesToAdd(file: SourceFile, span: TextSpan, checker: TypeChecker): Symbol[] {
     const sourceTarget = getSourceTarget(getFixableErrorSpanExpression(file, span), checker);

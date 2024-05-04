@@ -2,10 +2,10 @@ import {
     codeFixAll,
     createCodeFixAction,
     findAncestorMatchingSpan,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     BinaryExpression,
+    CodeFixRegistration,
     createTextSpan,
     DiagnosticMessageChain,
     Diagnostics,
@@ -27,7 +27,7 @@ const errorCodes = [
     Diagnostics.This_condition_will_always_return_0.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { sourceFile, span, program } = context;
@@ -47,7 +47,8 @@ registerCodeFix({
             }
         });
     },
-});
+};
+export default codefix;
 
 interface Info {
     suggestion: string;

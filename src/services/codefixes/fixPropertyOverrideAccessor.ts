@@ -3,11 +3,11 @@ import {
     createCodeFixAction,
     generateAccessorFromProperty,
     getAllSupers,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     CodeFixAllContext,
     CodeFixContext,
+    CodeFixRegistration,
     Debug,
     Diagnostics,
     getSourceFileOfNode,
@@ -25,7 +25,7 @@ const errorCodes = [
     Diagnostics._0_is_defined_as_a_property_in_class_1_but_is_overridden_here_in_2_as_an_accessor.code,
 ];
 const fixId = "fixPropertyOverrideAccessor";
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const edits = doChange(context.sourceFile, context.span.start, context.span.length, context.errorCode, context);
@@ -44,7 +44,8 @@ registerCodeFix({
                 }
             }
         }),
-});
+};
+export default codefix;
 
 function doChange(file: SourceFile, start: number, length: number, code: number, context: CodeFixContext | CodeFixAllContext) {
     let startPosition: number;

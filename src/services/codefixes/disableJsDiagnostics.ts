@@ -3,10 +3,10 @@ import {
     createCodeFixAction,
     createCodeFixActionWithoutFixAll,
     createFileTextChanges,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     CodeFixAction,
+    CodeFixRegistration,
     createTextChange,
     createTextSpan,
     createTextSpanFromBounds,
@@ -29,7 +29,7 @@ const errorCodes = mapDefined(Object.keys(Diagnostics) as readonly (keyof typeof
     return diag.category === DiagnosticCategory.Error ? diag.code : undefined;
 });
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToDisableJsDiagnostics(context) {
         const { sourceFile, program, span, host, formatContext } = context;
@@ -70,7 +70,8 @@ registerCodeFix({
             }
         });
     },
-});
+};
+export default codefix;
 
 function makeChange(changes: textChanges.ChangeTracker, sourceFile: SourceFile, position: number, seenLines?: Set<number>) {
     const { line: lineNumber } = getLineAndCharacterOfPosition(sourceFile, position);

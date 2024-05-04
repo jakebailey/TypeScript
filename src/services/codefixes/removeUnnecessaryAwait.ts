@@ -1,10 +1,10 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     AwaitKeyword,
+    CodeFixRegistration,
     Diagnostics,
     findPrecedingToken,
     getLeftmostExpression,
@@ -25,7 +25,7 @@ const errorCodes = [
     Diagnostics.await_has_no_effect_on_the_type_of_this_expression.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToRemoveUnnecessaryAwait(context) {
         const changes = textChanges.ChangeTracker.with(context, t => makeChange(t, context.sourceFile, context.span));
@@ -37,7 +37,8 @@ registerCodeFix({
     getAllCodeActions: context => {
         return codeFixAll(context, errorCodes, (changes, diag) => makeChange(changes, diag.file, diag));
     },
-});
+};
+export default codefix;
 
 function makeChange(changeTracker: textChanges.ChangeTracker, sourceFile: SourceFile, span: TextSpan) {
     const awaitKeyword = tryCast(getTokenAtPosition(sourceFile, span.start), (node): node is AwaitKeyword => node.kind === SyntaxKind.AwaitKeyword);

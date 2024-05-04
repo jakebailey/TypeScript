@@ -2,10 +2,10 @@ import {
     createCodeFixActionMaybeFixAll,
     createCombinedCodeActions,
     eachDiagnostic,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     addToSeen,
+    CodeFixRegistration,
     Diagnostics,
     factory,
     findChildOfKind,
@@ -24,7 +24,7 @@ import {
 const fixId = "fixConvertConstToLet";
 const errorCodes = [Diagnostics.Cannot_assign_to_0_because_it_is_a_constant.code];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToConvertConstToLet(context) {
         const { sourceFile, span, program } = context;
@@ -51,7 +51,8 @@ registerCodeFix({
         }));
     },
     fixIds: [fixId],
-});
+};
+export default codefix;
 
 interface Info {
     symbol: Symbol;

@@ -1,9 +1,9 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Diagnostics,
     factory,
     findAncestor,
@@ -29,7 +29,7 @@ interface Info {
     readonly promisedType: Type;
 }
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     fixIds: [fixId],
     getCodeActions: function getCodeActionsToFixReturnTypeInAsyncFunction(context) {
@@ -56,7 +56,8 @@ registerCodeFix({
                 doChange(changes, diag.file, info.returnTypeNode, info.promisedTypeNode);
             }
         }),
-});
+};
+export default codefix;
 
 function getInfo(sourceFile: SourceFile, checker: TypeChecker, pos: number): Info | undefined {
     if (isInJSFile(sourceFile)) {

@@ -9,6 +9,7 @@ import {
     CodeFixAction,
     CodeFixAllContext,
     CodeFixContext,
+    CodeFixRegistration,
     createPrinter,
     Debug,
     Declaration,
@@ -101,7 +102,6 @@ import {
     createCombinedCodeActions,
     createImportAdder,
     eachDiagnostic,
-    registerCodeFix,
     typeToAutoImportableTypeNode,
 } from "../_namespaces/ts.codefix.js";
 import { getIdentifierForNode } from "../refactors/helpers.js";
@@ -168,7 +168,7 @@ enum TypePrintMode {
     Widened,
 }
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     fixIds: [fixId],
     getCodeActions(context) {
@@ -194,7 +194,8 @@ registerCodeFix({
         });
         return createCombinedCodeActions(changes.textChanges);
     },
-});
+};
+export default codefix;
 
 interface Fixer {
     addTypeAnnotation(span: TextSpan): DiagnosticOrDiagnosticAndArguments | undefined;

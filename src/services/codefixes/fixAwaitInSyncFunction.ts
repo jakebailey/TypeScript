@@ -1,11 +1,11 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     addToSeen,
     ArrowFunction,
+    CodeFixRegistration,
     Diagnostics,
     factory,
     findChildOfKind,
@@ -33,7 +33,7 @@ const errorCodes = [
     Diagnostics.for_await_loops_are_only_allowed_within_async_functions_and_at_the_top_levels_of_modules.code,
     Diagnostics.Cannot_find_name_0_Did_you_mean_to_write_this_in_an_async_function.code,
 ];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { sourceFile, span } = context;
@@ -51,7 +51,8 @@ registerCodeFix({
             doChange(changes, context.sourceFile, nodes);
         });
     },
-});
+};
+export default codefix;
 
 function getReturnType(expr: FunctionDeclaration | MethodDeclaration | FunctionExpression | ArrowFunction) {
     if (expr.type) {

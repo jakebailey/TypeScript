@@ -1,8 +1,6 @@
+import { createCodeFixAction } from "../_namespaces/ts.codefix.js";
 import {
-    createCodeFixAction,
-    registerCodeFix,
-} from "../_namespaces/ts.codefix.js";
-import {
+    CodeFixRegistration,
     Diagnostics,
     factory,
     findAncestor,
@@ -22,7 +20,7 @@ const errorCodes = [
     Diagnostics.A_labeled_tuple_element_is_declared_as_rest_with_a_before_the_name_rather_than_before_the_type.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToFixIncorrectNamedTupleSyntax(context) {
         const { sourceFile, span } = context;
@@ -31,7 +29,8 @@ registerCodeFix({
         return [createCodeFixAction(fixId, changes, Diagnostics.Move_labeled_tuple_element_modifiers_to_labels, fixId, Diagnostics.Move_labeled_tuple_element_modifiers_to_labels)];
     },
     fixIds: [fixId],
-});
+};
+export default codefix;
 
 function getNamedTupleMember(sourceFile: SourceFile, pos: number) {
     const token = getTokenAtPosition(sourceFile, pos);

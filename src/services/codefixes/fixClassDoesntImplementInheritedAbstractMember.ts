@@ -3,7 +3,6 @@ import {
     createCodeFixAction,
     createImportAdder,
     createMissingMemberNodes,
-    registerCodeFix,
     TypeConstructionContext,
 } from "../_namespaces/ts.codefix.js";
 import {
@@ -11,6 +10,7 @@ import {
     cast,
     ClassElement,
     ClassLikeDeclaration,
+    CodeFixRegistration,
     Diagnostics,
     first,
     getEffectiveBaseTypeNode,
@@ -35,7 +35,7 @@ const errorCodes = [
 ];
 
 const fixId = "fixClassDoesntImplementInheritedAbstractMember";
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToFixClassNotImplementingInheritedMembers(context) {
         const { sourceFile, span } = context;
@@ -52,7 +52,8 @@ registerCodeFix({
             }
         });
     },
-});
+};
+export default codefix;
 
 function getClass(sourceFile: SourceFile, pos: number): ClassLikeDeclaration {
     // Token is the identifier in the case of a class declaration

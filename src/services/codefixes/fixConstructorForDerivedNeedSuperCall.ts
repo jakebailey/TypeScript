@@ -1,9 +1,9 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     ConstructorDeclaration,
     Debug,
     Diagnostics,
@@ -17,7 +17,7 @@ import {
 
 const fixId = "constructorForDerivedNeedSuperCall";
 const errorCodes = [Diagnostics.Constructors_for_derived_classes_must_contain_a_super_call.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { sourceFile, span } = context;
@@ -27,7 +27,8 @@ registerCodeFix({
     },
     fixIds: [fixId],
     getAllCodeActions: context => codeFixAll(context, errorCodes, (changes, diag) => doChange(changes, context.sourceFile, getNode(diag.file, diag.start))),
-});
+};
+export default codefix;
 
 function getNode(sourceFile: SourceFile, pos: number): ConstructorDeclaration {
     const token = getTokenAtPosition(sourceFile, pos);

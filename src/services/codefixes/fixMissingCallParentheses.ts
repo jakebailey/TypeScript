@@ -1,9 +1,9 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Diagnostics,
     getTokenAtPosition,
     Identifier,
@@ -20,7 +20,7 @@ const errorCodes = [
     Diagnostics.This_condition_will_always_return_true_since_this_function_is_always_defined_Did_you_mean_to_call_it_instead.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     fixIds: [fixId],
     getCodeActions(context) {
@@ -36,7 +36,8 @@ registerCodeFix({
             const callName = getCallName(diag.file, diag.start);
             if (callName) doChange(changes, diag.file, callName);
         }),
-});
+};
+export default codefix;
 
 function doChange(changes: textChanges.ChangeTracker, sourceFile: SourceFile, name: Identifier | PrivateIdentifier): void {
     changes.replaceNodeWithText(sourceFile, name, `${name.text}()`);

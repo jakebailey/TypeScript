@@ -1,12 +1,10 @@
-import {
-    createCodeFixActionWithoutFixAll,
-    registerCodeFix,
-} from "../_namespaces/ts.codefix.js";
+import { createCodeFixActionWithoutFixAll } from "../_namespaces/ts.codefix.js";
 import {
     addRange,
     CallExpression,
     CodeFixAction,
     CodeFixContext,
+    CodeFixRegistration,
     Diagnostics,
     factory,
     findAncestor,
@@ -64,13 +62,13 @@ function createAction(context: CodeFixContext, sourceFile: SourceFile, node: Nod
     return createCodeFixActionWithoutFixAll(fixName, changes, [Diagnostics.Replace_import_with_0, changes[0].textChanges[0].newText]);
 }
 
-registerCodeFix({
+const getActionsForUsageOfInvalidImportCodefix: CodeFixRegistration = {
     errorCodes: [
         Diagnostics.This_expression_is_not_callable.code,
         Diagnostics.This_expression_is_not_constructable.code,
     ],
     getCodeActions: getActionsForUsageOfInvalidImport,
-});
+};
 
 function getActionsForUsageOfInvalidImport(context: CodeFixContext): CodeFixAction[] | undefined {
     const sourceFile = context.sourceFile;
@@ -83,7 +81,7 @@ function getActionsForUsageOfInvalidImport(context: CodeFixContext): CodeFixActi
     return getImportCodeFixesForExpression(context, expr);
 }
 
-registerCodeFix({
+const getActionsForInvalidImportLocationCodefix: CodeFixRegistration = {
     errorCodes: [
         // The following error codes cover pretty much all assignability errors that could involve an expression
         Diagnostics.Argument_of_type_0_is_not_assignable_to_parameter_of_type_1.code,
@@ -99,7 +97,7 @@ registerCodeFix({
         Diagnostics.The_this_context_of_type_0_is_not_assignable_to_method_s_this_of_type_1.code,
     ],
     getCodeActions: getActionsForInvalidImportLocation,
-});
+};
 
 function getActionsForInvalidImportLocation(context: CodeFixContext): CodeFixAction[] | undefined {
     const sourceFile = context.sourceFile;
@@ -127,3 +125,8 @@ function getImportCodeFixesForExpression(context: CodeFixContext, expr: Node): C
     }
     return fixes;
 }
+
+export default [
+    getActionsForUsageOfInvalidImportCodefix,
+    getActionsForInvalidImportLocationCodefix,
+]

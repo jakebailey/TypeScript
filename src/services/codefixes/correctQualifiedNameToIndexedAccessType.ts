@@ -1,9 +1,9 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Debug,
     Diagnostics,
     factory,
@@ -19,7 +19,7 @@ import {
 
 const fixId = "correctQualifiedNameToIndexedAccessType";
 const errorCodes = [Diagnostics.Cannot_access_0_1_because_0_is_a_type_but_not_a_namespace_Did_you_mean_to_retrieve_the_type_of_the_property_1_in_0_with_0_1.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const qualifiedName = getQualifiedName(context.sourceFile, context.span.start);
@@ -36,7 +36,8 @@ registerCodeFix({
                 doChange(changes, diag.file, q);
             }
         }),
-});
+};
+export default codefix;
 
 function getQualifiedName(sourceFile: SourceFile, pos: number): QualifiedName & { left: Identifier; } | undefined {
     const qualifiedName = findAncestor(getTokenAtPosition(sourceFile, pos), isQualifiedName)!;

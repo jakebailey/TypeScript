@@ -3,13 +3,13 @@ import {
     createCodeFixActionWithoutFixAll,
     createCombinedCodeActions,
     eachDiagnostic,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     __String,
     append,
     CodeFixAction,
     CodeFixContext,
+    CodeFixRegistration,
     Diagnostics,
     factory,
     firstDefined,
@@ -37,7 +37,7 @@ const errorCodes = [
     Diagnostics.JSDoc_param_tag_has_name_0_but_there_is_no_parameter_with_that_name.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     fixIds: [deleteUnmatchedParameter, renameUnmatchedParameter],
     errorCodes,
     getCodeActions: function getCodeActionsToFixUnmatchedParameter(context) {
@@ -69,7 +69,8 @@ registerCodeFix({
             });
         }));
     },
-});
+};
+export default codefix;
 
 function getDeleteAction(context: CodeFixContext, { name, jsDocHost, jsDocParameterTag }: Info) {
     const changes = textChanges.ChangeTracker.with(context, changeTracker => changeTracker.filterJSDocTags(context.sourceFile, jsDocHost, t => t !== jsDocParameterTag));

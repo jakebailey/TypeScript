@@ -2,11 +2,11 @@ import {
     createCodeFixAction,
     createCombinedCodeActions,
     eachDiagnostic,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     canHaveExportModifier,
     canHaveLocals,
+    CodeFixRegistration,
     Declaration,
     Diagnostics,
     ExportDeclaration,
@@ -43,7 +43,7 @@ const errorCodes = [
     Diagnostics.Module_0_declares_1_locally_but_it_is_not_exported.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     fixIds: [fixId],
     getCodeActions(context) {
@@ -91,7 +91,8 @@ registerCodeFix({
             });
         }));
     },
-});
+};
+export default codefix;
 
 interface ModuleExports {
     typeOnlyExports: ExportName[];

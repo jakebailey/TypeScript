@@ -1,7 +1,6 @@
 import {
     createCodeFixActionWithoutFixAll,
     moduleSpecifierToValidIdentifier,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     __String,
@@ -12,6 +11,7 @@ import {
     BindingName,
     ClassDeclaration,
     ClassExpression,
+    CodeFixRegistration,
     concatenate,
     copyEntries,
     createMultiMap,
@@ -81,7 +81,7 @@ import {
     VariableStatement,
 } from "../_namespaces/ts.js";
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes: [Diagnostics.File_is_a_CommonJS_module_it_may_be_converted_to_an_ES_module.code],
     getCodeActions(context) {
         const { sourceFile, program, preferences } = context;
@@ -96,7 +96,8 @@ registerCodeFix({
         // No support for fix-all since this applies to the whole file at once anyway.
         return [createCodeFixActionWithoutFixAll("convertToEsModule", changes, Diagnostics.Convert_to_ES_module)];
     },
-});
+};
+export default codefix;
 
 function fixImportOfModuleExports(
     importingFile: SourceFile,

@@ -3,7 +3,6 @@ import {
     createCodeFixAction,
     createImportAdder,
     ImportAdder,
-    registerCodeFix,
     tryGetAutoImportableReferenceFromTypeNode,
 } from "../_namespaces/ts.codefix.js";
 import {
@@ -14,6 +13,7 @@ import {
     CancellationToken,
     CaseOrDefaultClause,
     cast,
+    CodeFixRegistration,
     createMultiMap,
     createSymbolTable,
     Debug,
@@ -157,7 +157,7 @@ const errorCodes = [
     // Function expressions and declarations
     Diagnostics.this_implicitly_has_type_any_because_it_does_not_have_a_type_annotation.code,
 ];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { sourceFile, program, span: { start }, errorCode, cancellationToken, host, preferences } = context;
@@ -179,7 +179,8 @@ registerCodeFix({
             doChange(changes, sourceFile, getTokenAtPosition(err.file, err.start), err.code, program, cancellationToken, markSeen, host, preferences);
         });
     },
-});
+};
+export default codefix;
 
 function getDiagnostic(errorCode: number, token: Node): DiagnosticMessage {
     switch (errorCode) {

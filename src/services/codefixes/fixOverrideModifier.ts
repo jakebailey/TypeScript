@@ -1,11 +1,11 @@
 import {
     codeFixAll,
     createCodeFixActionMaybeFixAll,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     CodeFixAllContext,
     CodeFixContext,
+    CodeFixRegistration,
     ConstructorDeclaration,
     Debug,
     DiagnosticMessage,
@@ -121,7 +121,7 @@ const errorCodeFixIdMap: Record<number, ErrorCodeFixInfo> = {
     },
 };
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToFixOverrideModifierIssues(context) {
         const { errorCode, span } = context;
@@ -147,7 +147,8 @@ registerCodeFix({
 
             dispatchChanges(changes, context, code, start);
         }),
-});
+};
+export default codefix;
 
 function dispatchChanges(
     changeTracker: textChanges.ChangeTracker,

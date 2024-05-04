@@ -1,9 +1,9 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Debug,
     Diagnostics,
     getTokenAtPosition,
@@ -26,7 +26,7 @@ const errorCodes = [
     errorCodeCannotFindModule,
     Diagnostics.Could_not_find_a_declaration_file_for_module_0_1_implicitly_has_an_any_type.code,
 ];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToFixNotFoundModule(context) {
         const { host, sourceFile, span: { start } } = context;
@@ -55,7 +55,8 @@ registerCodeFix({
             }
         });
     },
-});
+};
+export default codefix;
 
 function getInstallCommand(fileName: string, packageName: string): InstallPackageAction {
     return { type: "install package", file: fileName, packageName };

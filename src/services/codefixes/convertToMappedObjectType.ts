@@ -1,10 +1,10 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     cast,
+    CodeFixRegistration,
     Diagnostics,
     emptyArray,
     factory,
@@ -33,7 +33,7 @@ const errorCodes = [Diagnostics.An_index_signature_parameter_type_cannot_be_a_li
 
 type FixableDeclaration = InterfaceDeclaration | TypeAliasDeclaration;
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToConvertToMappedTypeObject(context) {
         const { sourceFile, span } = context;
@@ -49,7 +49,8 @@ registerCodeFix({
             const info = getInfo(diag.file, diag.start);
             if (info) doChange(changes, diag.file, info);
         }),
-});
+};
+export default codefix;
 
 interface Info {
     readonly indexSignature: IndexSignatureDeclaration;

@@ -1,10 +1,10 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     BinaryExpression,
+    CodeFixRegistration,
     Diagnostics,
     factory,
     getTokenAtPosition,
@@ -20,7 +20,7 @@ import {
 
 const fixID = "wrapJsxInFragment";
 const errorCodes = [Diagnostics.JSX_expressions_must_have_one_parent_element.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToWrapJsxInFragment(context) {
         const { sourceFile, span } = context;
@@ -36,7 +36,8 @@ registerCodeFix({
             if (!node) return undefined;
             doChange(changes, context.sourceFile, node);
         }),
-});
+};
+export default codefix;
 
 function findNodeToFix(sourceFile: SourceFile, pos: number): BinaryExpression | undefined {
     // The error always at 1st token that is "<" in "<a /><a />"

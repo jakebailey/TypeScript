@@ -4,13 +4,13 @@ import {
     createImportAdder,
     ImportAdder,
     importSymbols,
-    registerCodeFix,
     tryGetAutoImportableReferenceFromTypeNode,
 } from "../_namespaces/ts.codefix.js";
 import {
     append,
     ArrowFunction,
     CodeFixAction,
+    CodeFixRegistration,
     declarationNameToString,
     Diagnostics,
     factory,
@@ -59,7 +59,7 @@ const addMissingParamFixId = "addMissingParam";
 const addOptionalParamFixId = "addOptionalParam";
 const errorCodes = [Diagnostics.Expected_0_arguments_but_got_1.code];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     fixIds: [addMissingParamFixId, addOptionalParamFixId],
     getCodeActions(context) {
@@ -110,7 +110,8 @@ registerCodeFix({
                 }
             }
         }),
-});
+};
+export default codefix;
 
 type ConvertibleSignatureDeclaration =
     | FunctionDeclaration

@@ -1,11 +1,11 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     addToSeen,
     CallExpression,
+    CodeFixRegistration,
     ConstructorDeclaration,
     Diagnostics,
     ExpressionStatement,
@@ -25,7 +25,7 @@ import {
 
 const fixId = "classSuperMustPrecedeThisAccess";
 const errorCodes = [Diagnostics.super_must_be_called_before_accessing_this_in_the_constructor_of_a_derived_class.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { sourceFile, span } = context;
@@ -48,7 +48,8 @@ registerCodeFix({
             }
         });
     },
-});
+};
+export default codefix;
 
 function doChange(changes: textChanges.ChangeTracker, sourceFile: SourceFile, constructor: ConstructorDeclaration, superCall: ExpressionStatement): void {
     changes.insertNodeAtConstructorStart(sourceFile, constructor, superCall);

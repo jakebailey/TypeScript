@@ -1,10 +1,10 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     CodeFixContextBase,
+    CodeFixRegistration,
     Debug,
     Diagnostics,
     factory,
@@ -19,7 +19,7 @@ import {
 
 const errorCodes = [Diagnostics.A_type_only_import_can_specify_a_default_import_or_named_bindings_but_not_both.code];
 const fixId = "splitTypeOnlyImport";
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     fixIds: [fixId],
     getCodeActions: function getCodeActionsToSplitTypeOnlyImport(context) {
@@ -34,7 +34,8 @@ registerCodeFix({
         codeFixAll(context, errorCodes, (changes, error) => {
             splitTypeOnlyImport(changes, getImportDeclaration(context.sourceFile, error), context);
         }),
-});
+};
+export default codefix;
 
 function getImportDeclaration(sourceFile: SourceFile, span: TextSpan) {
     return findAncestor(getTokenAtPosition(sourceFile, span.start), isImportDeclaration);

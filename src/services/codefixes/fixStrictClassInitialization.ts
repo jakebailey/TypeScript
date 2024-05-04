@@ -1,13 +1,13 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     append,
     BigIntLiteralType,
     CodeFixAction,
     CodeFixContext,
+    CodeFixRegistration,
     Debug,
     Diagnostics,
     Expression,
@@ -39,7 +39,7 @@ const fixIdAddDefiniteAssignmentAssertions = "addMissingPropertyDefiniteAssignme
 const fixIdAddUndefinedType = "addMissingPropertyUndefinedType";
 const fixIdAddInitializer = "addMissingPropertyInitializer";
 const errorCodes = [Diagnostics.Property_0_has_no_initializer_and_is_not_definitely_assigned_in_the_constructor.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsForStrictClassInitializationErrors(context) {
         const info = getInfo(context.sourceFile, context.span.start);
@@ -75,7 +75,8 @@ registerCodeFix({
             }
         });
     },
-});
+};
+export default codefix;
 
 interface Info {
     prop: PropertyDeclaration;

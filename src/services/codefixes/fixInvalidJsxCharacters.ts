@@ -1,9 +1,9 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Diagnostics,
     hasProperty,
     quote,
@@ -20,7 +20,7 @@ const errorCodes = [
     Diagnostics.Unexpected_token_Did_you_mean_or_rbrace.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     fixIds: [fixIdExpression, fixIdHtmlEntity],
     getCodeActions(context) {
@@ -36,7 +36,8 @@ registerCodeFix({
     getAllCodeActions(context) {
         return codeFixAll(context, errorCodes, (changes, diagnostic) => doChange(changes, context.preferences, diagnostic.file, diagnostic.start, context.fixId === fixIdHtmlEntity));
     },
-});
+};
+export default codefix;
 
 const htmlEntity = {
     ">": "&gt;",

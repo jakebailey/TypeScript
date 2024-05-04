@@ -1,12 +1,12 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     append,
     ArrowFunction,
     CodeFixContext,
+    CodeFixRegistration,
     copyComments,
     createSymbolTable,
     Debug,
@@ -79,7 +79,7 @@ interface MissingParenInfo {
 
 type Info = MissingReturnInfo | MissingParenInfo;
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     fixIds: [fixIdAddReturnStatement, fixRemoveBracesFromArrowFunctionBody, fixIdWrapTheBlockWithParen],
     getCodeActions: function getCodeActionsToCorrectReturnValue(context) {
@@ -118,7 +118,8 @@ registerCodeFix({
                     Debug.fail(JSON.stringify(context.fixId));
             }
         }),
-});
+};
+export default codefix;
 
 function createObjectTypeFromLabeledExpression(checker: TypeChecker, label: Identifier, expression: Expression) {
     const member = checker.createSymbol(SymbolFlags.Property, label.escapedText);

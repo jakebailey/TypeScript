@@ -1,10 +1,10 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     cast,
+    CodeFixRegistration,
     Debug,
     Diagnostics,
     factory,
@@ -30,7 +30,7 @@ import {
 
 const fixId = "requireInTs";
 const errorCodes = [Diagnostics.require_call_may_be_converted_to_an_import.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const info = getInfo(context.sourceFile, context.program, context.span.start);
@@ -48,7 +48,8 @@ registerCodeFix({
                 doChange(changes, context.sourceFile, info);
             }
         }),
-});
+};
+export default codefix;
 
 function doChange(changes: textChanges.ChangeTracker, sourceFile: SourceFile, info: Info) {
     const { allowSyntheticDefaults, defaultImportName, namedImports, statement, required } = info;

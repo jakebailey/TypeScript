@@ -1,10 +1,10 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     AnyImportSyntax,
+    CodeFixRegistration,
     Diagnostics,
     Expression,
     getQuotePreference,
@@ -23,7 +23,7 @@ import {
 
 const fixId = "useDefaultImport";
 const errorCodes = [Diagnostics.Import_may_be_converted_to_a_default_import.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { sourceFile, span: { start } } = context;
@@ -38,7 +38,8 @@ registerCodeFix({
             const info = getInfo(diag.file, diag.start);
             if (info) doChange(changes, diag.file, info, context.preferences);
         }),
-});
+};
+export default codefix;
 
 interface Info {
     readonly importNode: AnyImportSyntax;

@@ -1,9 +1,9 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Debug,
     Diagnostics,
     factory,
@@ -16,7 +16,7 @@ import {
 
 const fixId = "wrapDecoratorInParentheses";
 const errorCodes = [Diagnostics.Expression_must_be_enclosed_in_parentheses_to_be_used_as_a_decorator.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToWrapDecoratorExpressionInParentheses(context) {
         const changes = textChanges.ChangeTracker.with(context, t => makeChange(t, context.sourceFile, context.span.start));
@@ -24,7 +24,8 @@ registerCodeFix({
     },
     fixIds: [fixId],
     getAllCodeActions: context => codeFixAll(context, errorCodes, (changes, diag) => makeChange(changes, diag.file, diag.start)),
-});
+};
+export default codefix;
 
 function makeChange(changeTracker: textChanges.ChangeTracker, sourceFile: SourceFile, pos: number) {
     const token = getTokenAtPosition(sourceFile, pos);

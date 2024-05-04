@@ -1,9 +1,9 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Diagnostics,
     factory,
     getContainingClass,
@@ -18,7 +18,7 @@ import {
 
 const fixId = "extendsInterfaceBecomesImplements";
 const errorCodes = [Diagnostics.Cannot_extend_an_interface_0_Did_you_mean_implements.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { sourceFile } = context;
@@ -34,7 +34,8 @@ registerCodeFix({
             const nodes = getNodes(diag.file, diag.start);
             if (nodes) doChanges(changes, diag.file, nodes.extendsToken, nodes.heritageClauses);
         }),
-});
+};
+export default codefix;
 
 function getNodes(sourceFile: SourceFile, pos: number) {
     const token = getTokenAtPosition(sourceFile, pos);

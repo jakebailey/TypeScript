@@ -1,22 +1,19 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Diagnostics,
     factory,
-    flatMap,
     getNewLineOrDefaultFromHost,
     getSynthesizedDeepClone,
     getTokenAtPosition,
-    hasJSDocNodes,
     InterfaceDeclaration,
     isJSDocTypedefTag,
     isJSDocTypeLiteral,
     JSDoc,
     JSDocPropertyLikeTag,
-    JSDocTag,
     JSDocTypedefTag,
     JSDocTypeExpression,
     JSDocTypeLiteral,
@@ -32,7 +29,7 @@ import {
 
 const fixId = "convertTypedefToType";
 const errorCodes = [Diagnostics.JSDoc_typedef_may_be_converted_to_TypeScript_type.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     fixIds: [fixId],
     errorCodes,
     getCodeActions(context) {
@@ -68,7 +65,8 @@ registerCodeFix({
                 if (node) doChange(changes, node, diag.file, newLineCharacter, fixAll);
             },
         ),
-});
+};
+export default codefix;
 
 function doChange(
     changes: textChanges.ChangeTracker,
@@ -241,13 +239,4 @@ function createSignatureFromTypeLiteral(typeLiteral: JSDocTypeLiteral): Property
 
 function getPropertyName(tag: JSDocPropertyLikeTag): string | undefined {
     return tag.name.kind === SyntaxKind.Identifier ? tag.name.text : tag.name.right.text;
-}
-
-/** @internal */
-export function getJSDocTypedefNodes(node: Node): readonly JSDocTag[] {
-    if (hasJSDocNodes(node)) {
-        return flatMap(node.jsDoc, doc => doc.tags?.filter(tag => isJSDocTypedefTag(tag)));
-    }
-
-    return [];
 }

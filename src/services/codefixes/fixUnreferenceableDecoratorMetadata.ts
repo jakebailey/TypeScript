@@ -1,10 +1,8 @@
-import {
-    createCodeFixActionWithoutFixAll,
-    registerCodeFix,
-} from "../_namespaces/ts.codefix.js";
+import { createCodeFixActionWithoutFixAll } from "../_namespaces/ts.codefix.js";
 import {
     append,
     CodeFixAction,
+    CodeFixRegistration,
     Diagnostics,
     emptyArray,
     find,
@@ -31,7 +29,7 @@ import {
 
 const fixId = "fixUnreferenceableDecoratorMetadata";
 const errorCodes = [Diagnostics.A_type_referenced_in_a_decorated_signature_must_be_imported_with_import_type_or_a_namespace_import_when_isolatedModules_and_emitDecoratorMetadata_are_enabled.code];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: context => {
         const importDeclaration = getImportDeclaration(context.sourceFile, context.program, context.span.start);
@@ -49,7 +47,8 @@ registerCodeFix({
         return actions;
     },
     fixIds: [fixId],
-});
+};
+export default codefix;
 
 function getImportDeclaration(sourceFile: SourceFile, program: Program, start: number): ImportClause | ImportSpecifier | ImportEqualsDeclaration | undefined {
     const identifier = tryCast(getTokenAtPosition(sourceFile, start), isIdentifier);

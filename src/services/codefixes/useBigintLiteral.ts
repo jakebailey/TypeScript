@@ -1,9 +1,9 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Diagnostics,
     factory,
     getTokenAtPosition,
@@ -19,7 +19,7 @@ const errorCodes = [
     Diagnostics.Numeric_literals_with_absolute_values_equal_to_2_53_or_greater_are_too_large_to_be_represented_accurately_as_integers.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToUseBigintLiteral(context) {
         const changes = textChanges.ChangeTracker.with(context, t => makeChange(t, context.sourceFile, context.span));
@@ -31,7 +31,8 @@ registerCodeFix({
     getAllCodeActions: context => {
         return codeFixAll(context, errorCodes, (changes, diag) => makeChange(changes, diag.file, diag));
     },
-});
+};
+export default codefix;
 
 function makeChange(changeTracker: textChanges.ChangeTracker, sourceFile: SourceFile, span: TextSpan) {
     const numericLiteral = tryCast(getTokenAtPosition(sourceFile, span.start), isNumericLiteral);

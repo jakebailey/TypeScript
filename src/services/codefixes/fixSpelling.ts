@@ -1,10 +1,10 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     CodeFixContextBase,
+    CodeFixRegistration,
     Debug,
     Diagnostics,
     factory,
@@ -60,7 +60,7 @@ const errorCodes = [
     // for JSX FC
     Diagnostics.Type_0_is_not_assignable_to_type_1.code,
 ];
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { sourceFile, errorCode } = context;
@@ -78,7 +78,8 @@ registerCodeFix({
             const target = getEmitScriptTarget(context.host.getCompilationSettings());
             if (info) doChange(changes, context.sourceFile, info.node, info.suggestedSymbol, target);
         }),
-});
+};
+export default codefix;
 
 function getInfo(sourceFile: SourceFile, pos: number, context: CodeFixContextBase, errorCode: number): { node: Node; suggestedSymbol: Symbol; } | undefined {
     // This is the identifier of the misspelled word. eg:

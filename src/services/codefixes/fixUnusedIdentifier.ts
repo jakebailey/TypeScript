@@ -1,7 +1,6 @@
 import {
     codeFixAll,
     createCodeFixAction,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
     ArrayBindingPattern,
@@ -9,6 +8,7 @@ import {
     cast,
     CodeFixAction,
     CodeFixContext,
+    CodeFixRegistration,
     Debug,
     DiagnosticMessage,
     DiagnosticOrDiagnosticAndArguments,
@@ -81,7 +81,7 @@ const errorCodes = [
     Diagnostics.All_type_parameters_are_unused.code,
 ];
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions(context) {
         const { errorCode, sourceFile, program, cancellationToken } = context;
@@ -215,7 +215,8 @@ registerCodeFix({
             }
         });
     },
-});
+};
+export default codefix;
 
 function changeInferToUnknown(changes: textChanges.ChangeTracker, sourceFile: SourceFile, token: Node): void {
     changes.replaceNode(sourceFile, token.parent, factory.createKeywordTypeNode(SyntaxKind.UnknownKeyword));

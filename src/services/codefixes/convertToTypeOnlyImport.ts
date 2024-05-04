@@ -2,9 +2,9 @@ import {
     codeFixAll,
     createCodeFixAction,
     createCodeFixActionWithoutFixAll,
-    registerCodeFix,
 } from "../_namespaces/ts.codefix.js";
 import {
+    CodeFixRegistration,
     Diagnostics,
     factory,
     FindAllReferences,
@@ -31,7 +31,7 @@ const errorCodes = [
 ];
 const fixId = "convertToTypeOnlyImport";
 
-registerCodeFix({
+const codefix: CodeFixRegistration = {
     errorCodes,
     getCodeActions: function getCodeActionsToConvertToTypeOnlyImport(context) {
         const declaration = getDeclaration(context.sourceFile, context.span.start);
@@ -83,7 +83,8 @@ registerCodeFix({
             }
         });
     },
-});
+};
+export default codefix;
 
 function getDeclaration(sourceFile: SourceFile, pos: number) {
     const { parent } = getTokenAtPosition(sourceFile, pos);

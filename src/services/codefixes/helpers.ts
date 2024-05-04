@@ -23,12 +23,15 @@ import {
     flatMap,
     FunctionDeclaration,
     FunctionExpression,
+    FunctionLikeDeclaration,
     GetAccessorDeclaration,
     getAllAccessorDeclarations,
     getCheckFlags,
     getEffectiveModifierFlags,
     getEmitScriptTarget,
     getFirstIdentifier,
+    getJSDocReturnType,
+    getJSDocType,
     getModuleSpecifierResolverHost,
     getNameForExportedSymbol,
     getNameOfDeclaration,
@@ -39,6 +42,7 @@ import {
     getTokenAtPosition,
     getTsConfigObjectLiteralExpression,
     hasAbstractModifier,
+    hasJSDocNodes,
     Identifier,
     idText,
     IntersectionType,
@@ -46,10 +50,12 @@ import {
     isAutoAccessorPropertyDeclaration,
     isFunctionDeclaration,
     isFunctionExpression,
+    isFunctionLikeDeclaration,
     isGetAccessorDeclaration,
     isIdentifier,
     isImportTypeNode,
     isInJSFile,
+    isJSDocTypedefTag,
     isLiteralImportTypeNode,
     isMethodDeclaration,
     isObjectLiteralExpression,
@@ -60,6 +66,7 @@ import {
     isTypeNode,
     isTypeUsableAsPropertyName,
     isYieldExpression,
+    JSDocTag,
     LanguageServiceHost,
     length,
     map,
@@ -80,6 +87,7 @@ import {
     PropertyAssignment,
     PropertyDeclaration,
     PropertyName,
+    PropertySignature,
     QuotePreference,
     sameMap,
     ScriptTarget,
@@ -108,6 +116,7 @@ import {
     unescapeLeadingUnderscores,
     UnionType,
     UserPreferences,
+    VariableDeclaration,
     visitEachChild,
     visitNode,
     visitNodes,
@@ -934,4 +943,39 @@ export function findAncestorMatchingSpan(sourceFile: SourceFile, span: TextSpan)
         token = token.parent;
     }
     return token;
+}
+
+/** @internal */
+export type DeclarationWithType =
+    | FunctionLikeDeclaration
+    | VariableDeclaration
+    | PropertySignature
+    | PropertyDeclaration;
+
+/** @internal */
+export function isDeclarationWithType(node: Node): node is DeclarationWithType {
+    return isFunctionLikeDeclaration(node) ||
+        node.kind === SyntaxKind.VariableDeclaration ||
+        node.kind === SyntaxKind.PropertySignature ||
+        node.kind === SyntaxKind.PropertyDeclaration;
+}
+
+function hasUsableJSDoc(decl: DeclarationWithType | ParameterDeclaration): boolean {
+    return isFunctionLikeDeclaration(decl)
+        ? decl.parameters.some(hasUsableJSDoc) || (!decl.type && !!getJSDocReturnType(decl))
+        : !decl.type && !!getJSDocType(decl);
+}
+
+/** @internal */
+export function parameterShouldGetTypeFromJSDoc(node: Node): node is DeclarationWithType {
+    return isDeclarationWithType(node) && hasUsableJSDoc(node);
+}
+
+/** @internal */
+export function getJSDocTypedefNodes(node: Node): readonly JSDocTag[] {
+    if (hasJSDocNodes(node)) {
+        return flatMap(node.jsDoc, doc => doc.tags?.filter(tag => isJSDocTypedefTag(tag)));
+    }
+
+    return [];
 }
