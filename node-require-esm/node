@@ -1,0 +1,7 @@
+#!/bin/bash
+
+PATCH="$(dirname "$0")/patchProcessGetBuiltin.cjs"
+
+export NODE_OPTIONS="--no-warnings=ExperimentalWarning --experimental-require-module --require $PATCH"
+
+exec fnm exec --using=22 -- node "$@"
