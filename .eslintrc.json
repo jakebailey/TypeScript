@@ -13,11 +13,13 @@
     "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
-        "plugin:@typescript-eslint/stylistic"
+        "plugin:@typescript-eslint/stylistic",
+        "plugin:regexp/recommended"
     ],
     "plugins": [
         "@typescript-eslint",
-        "eslint-plugin-local"
+        "eslint-plugin-local",
+        "regexp"
     ],
     "ignorePatterns": [
         "**/node_modules/**",
