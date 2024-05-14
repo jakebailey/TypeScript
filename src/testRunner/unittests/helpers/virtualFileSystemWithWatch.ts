@@ -1183,7 +1183,7 @@ function baselineOutputs(baseline: string[], output: readonly string[], start: n
         (baselinedOutput ||= []).push(
             output[i]
                 .replace(/Elapsed::\s\d+(?:\.\d+)?ms/g, "Elapsed:: *ms")
-                .replace(/\d\d:\d\d:\d\d\s(A|P)M/g, "HH:MM:SS AM"),
+                .replace(/\d\d:\d\d:\d\d\s[AP]M/g, "HH:MM:SS AM"),
         );
     }
     if (baselinedOutput) baseline.push(baselinedOutput.join(""));
