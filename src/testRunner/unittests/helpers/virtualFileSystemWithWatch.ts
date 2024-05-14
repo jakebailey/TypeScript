@@ -1182,8 +1182,8 @@ function baselineOutputs(baseline: string[], output: readonly string[], start: n
     for (let i = start; i < end; i++) {
         (baselinedOutput ||= []).push(
             output[i]
-                .replace(/Elapsed::\s[0-9]+(?:\.\d+)?ms/g, "Elapsed:: *ms")
-                .replace(/[0-9][0-9]:[0-9][0-9]:[0-9][0-9]\s(A|P)M/g, "HH:MM:SS AM"),
+                .replace(/Elapsed::\s\d+(?:\.\d+)?ms/g, "Elapsed:: *ms")
+                .replace(/\d\d:\d\d:\d\d\s(A|P)M/g, "HH:MM:SS AM"),
         );
     }
     if (baselinedOutput) baseline.push(baselinedOutput.join(""));
