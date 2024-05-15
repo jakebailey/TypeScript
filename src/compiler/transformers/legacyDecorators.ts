@@ -77,7 +77,6 @@ import {
     Statement,
     SyntaxKind,
     TransformationContext,
-    TransformFlags,
     visitEachChild,
     visitNode,
     visitNodes,
@@ -121,9 +120,9 @@ export function transformLegacyDecorators(context: TransformationContext): (x: S
     }
 
     function visitor(node: Node): VisitResult<Node | undefined> {
-        if (!(node.transformFlags & TransformFlags.ContainsDecorators)) {
-            return node;
-        }
+        // if (!(node.transformFlags & TransformFlags.ContainsDecorators)) {
+        //     return node;
+        // }
 
         switch (node.kind) {
             case SyntaxKind.Decorator:
@@ -162,8 +161,9 @@ export function transformLegacyDecorators(context: TransformationContext): (x: S
         return singleOrMany(statements);
     }
 
-    function decoratorContainsPrivateIdentifierInExpression(decorator: Decorator) {
-        return !!(decorator.transformFlags & TransformFlags.ContainsPrivateIdentifierInExpression);
+    function decoratorContainsPrivateIdentifierInExpression(_decorator: Decorator) {
+        return true;
+        // return !!(decorator.transformFlags & TransformFlags.ContainsPrivateIdentifierInExpression);
     }
 
     function parameterDecoratorsContainPrivateIdentifierInExpression(parameterDecorators: readonly Decorator[] | undefined) {

@@ -177,7 +177,6 @@ import {
     TextRange,
     ThisTypeNode,
     Token,
-    TransformFlags,
     TypeNode,
     WrappedExpression,
 } from "../_namespaces/ts.js";
@@ -1765,20 +1764,20 @@ export function flattenCommaList(node: Expression) {
  * @internal
  */
 export function containsObjectRestOrSpread(node: AssignmentPattern): boolean {
-    if (node.transformFlags & TransformFlags.ContainsObjectRestOrSpread) return true;
-    if (node.transformFlags & TransformFlags.ContainsES2018) {
-        // check for nested spread assignments, otherwise '{ x: { a, ...b } = foo } = c'
-        // will not be correctly interpreted by the ES2018 transformer
-        for (const element of getElementsOfBindingOrAssignmentPattern(node)) {
-            const target = getTargetOfBindingOrAssignmentElement(element);
-            if (target && isAssignmentPattern(target)) {
-                if (target.transformFlags & TransformFlags.ContainsObjectRestOrSpread) {
-                    return true;
-                }
-                if (target.transformFlags & TransformFlags.ContainsES2018) {
-                    if (containsObjectRestOrSpread(target)) return true;
-                }
-            }
+    // if (node.transformFlags & TransformFlags.ContainsObjectRestOrSpread) return true;
+    // if (node.transformFlags & TransformFlags.ContainsES2018) {
+    // }
+    // check for nested spread assignments, otherwise '{ x: { a, ...b } = foo } = c'
+    // will not be correctly interpreted by the ES2018 transformer
+    for (const element of getElementsOfBindingOrAssignmentPattern(node)) {
+        const target = getTargetOfBindingOrAssignmentElement(element);
+        if (target && isAssignmentPattern(target)) {
+            // if (target.transformFlags & TransformFlags.ContainsObjectRestOrSpread) {
+            //     return true;
+            // }
+            // if (target.transformFlags & TransformFlags.ContainsES2018) {
+            // }
+            if (containsObjectRestOrSpread(target)) return true;
         }
     }
     return false;

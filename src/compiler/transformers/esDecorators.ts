@@ -176,7 +176,6 @@ import {
     TaggedTemplateExpression,
     ThisExpression,
     TransformationContext,
-    TransformFlags,
     transformNamedEvaluation,
     tryCast,
     VariableDeclaration,
@@ -414,10 +413,11 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
         }
     }
 
-    function shouldVisitNode(node: Node) {
-        return !!(node.transformFlags & TransformFlags.ContainsDecorators)
-            || !!classThis && !!(node.transformFlags & TransformFlags.ContainsLexicalThis)
-            || !!classThis && !!classSuper && !!(node.transformFlags & TransformFlags.ContainsLexicalSuper);
+    function shouldVisitNode(_node: Node) {
+        return true;
+        // return !!(node.transformFlags & TransformFlags.ContainsDecorators)
+        //     || !!classThis && !!(node.transformFlags & TransformFlags.ContainsLexicalThis)
+        //     || !!classThis && !!classSuper && !!(node.transformFlags & TransformFlags.ContainsLexicalSuper);
     }
 
     function visitor(node: Node): VisitResult<Node> {
@@ -765,9 +765,9 @@ export function transformESDecorators(context: TransformationContext): (x: Sourc
                 // class `static` block. We don't use substitution here because the size of the tree we are visiting
                 // is likely to be small and doesn't justify the complexity of introducing substitution.
                 expression = visitNode(expression, function thisVisitor(node: Node): Node {
-                    if (!(node.transformFlags & TransformFlags.ContainsLexicalThis)) {
-                        return node;
-                    }
+                    // if (!(node.transformFlags & TransformFlags.ContainsLexicalThis)) {
+                    //     return node;
+                    // }
 
                     switch (node.kind) {
                         case SyntaxKind.ThisKeyword:

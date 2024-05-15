@@ -208,7 +208,6 @@ import {
     Ternary,
     ThisExpression,
     TransformationContext,
-    TransformFlags,
     transformNamedEvaluation,
     tryCast,
     tryGetTextOfPropertyName,
@@ -456,12 +455,12 @@ export function transformClassFields(context: TransformationContext): (x: Source
     }
 
     function visitor(node: Node): VisitResult<Node> {
-        if (
-            !(node.transformFlags & TransformFlags.ContainsClassFields) &&
-            !(node.transformFlags & TransformFlags.ContainsLexicalThisOrSuper)
-        ) {
-            return node;
-        }
+        // if (
+        //     !(node.transformFlags & TransformFlags.ContainsClassFields) &&
+        //     !(node.transformFlags & TransformFlags.ContainsLexicalThisOrSuper)
+        // ) {
+        //     return node;
+        // }
 
         switch (node.kind) {
             case SyntaxKind.AccessorKeyword:
@@ -1735,13 +1734,13 @@ export function transformClassFields(context: TransformationContext): (x: Source
                     facts |= ClassFacts.NeedsClassConstructorReference;
                 }
                 if (isPropertyDeclaration(member) || isClassStaticBlockDeclaration(member)) {
-                    if (shouldTransformThisInStaticInitializers && member.transformFlags & TransformFlags.ContainsLexicalThis) {
+                    if (shouldTransformThisInStaticInitializers) {
                         facts |= ClassFacts.NeedsSubstitutionForThisInClassStaticField;
                         if (!(facts & ClassFacts.ClassWasDecorated)) {
                             facts |= ClassFacts.NeedsClassConstructorReference;
                         }
                     }
-                    if (shouldTransformSuperInStaticInitializers && member.transformFlags & TransformFlags.ContainsLexicalSuper) {
+                    if (shouldTransformSuperInStaticInitializers) {
                         if (!(facts & ClassFacts.ClassWasDecorated)) {
                             facts |= ClassFacts.NeedsClassConstructorReference | ClassFacts.NeedsClassSuperReference;
                         }
@@ -2157,7 +2156,8 @@ export function transformClassFields(context: TransformationContext): (x: Source
         let syntheticStaticBlock: ClassStaticBlockDeclaration | undefined;
         if (!shouldTransformPrivateElementsOrClassStaticBlocks && some(pendingExpressions)) {
             let statement = factory.createExpressionStatement(factory.inlineExpressions(pendingExpressions));
-            if (statement.transformFlags & TransformFlags.ContainsLexicalThisOrSuper) {
+            // eslint-disable-next-line no-constant-condition
+            if (true) {
                 // If there are `this` or `super` references from computed property names, shift the expression
                 // into an arrow function to be evaluated in the outer scope so that `this` and `super` are
                 // properly captured.

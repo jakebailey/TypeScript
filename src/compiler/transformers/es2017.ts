@@ -85,7 +85,6 @@ import {
     SyntaxKind,
     TextRange,
     TransformationContext,
-    TransformFlags,
     TypeNode,
     TypeReferenceSerializationKind,
     unescapeLeadingUnderscores,
@@ -207,32 +206,32 @@ export function transformES2017(context: TransformationContext): (x: SourceFile 
         return visitEachChild(node, visitor, context);
     }
 
-    function argumentsVisitor(node: Node): VisitResult<Node> {
-        switch (node.kind) {
-            case SyntaxKind.FunctionExpression:
-            case SyntaxKind.FunctionDeclaration:
-            case SyntaxKind.MethodDeclaration:
-            case SyntaxKind.GetAccessor:
-            case SyntaxKind.SetAccessor:
-            case SyntaxKind.Constructor:
-                return node;
-            case SyntaxKind.Parameter:
-            case SyntaxKind.BindingElement:
-            case SyntaxKind.VariableDeclaration:
-                break;
-            case SyntaxKind.Identifier:
-                if (lexicalArgumentsBinding && resolver.isArgumentsLocalBinding(node as Identifier)) {
-                    return lexicalArgumentsBinding;
-                }
-                break;
-        }
-        return visitEachChild(node, argumentsVisitor, context);
-    }
+    // function argumentsVisitor(node: Node): VisitResult<Node> {
+    //     switch (node.kind) {
+    //         case SyntaxKind.FunctionExpression:
+    //         case SyntaxKind.FunctionDeclaration:
+    //         case SyntaxKind.MethodDeclaration:
+    //         case SyntaxKind.GetAccessor:
+    //         case SyntaxKind.SetAccessor:
+    //         case SyntaxKind.Constructor:
+    //             return node;
+    //         case SyntaxKind.Parameter:
+    //         case SyntaxKind.BindingElement:
+    //         case SyntaxKind.VariableDeclaration:
+    //             break;
+    //         case SyntaxKind.Identifier:
+    //             if (lexicalArgumentsBinding && resolver.isArgumentsLocalBinding(node as Identifier)) {
+    //                 return lexicalArgumentsBinding;
+    //             }
+    //             break;
+    //     }
+    //     return visitEachChild(node, argumentsVisitor, context);
+    // }
 
     function visitor(node: Node): VisitResult<Node | undefined> {
-        if ((node.transformFlags & TransformFlags.ContainsES2017) === 0) {
-            return lexicalArgumentsBinding ? argumentsVisitor(node) : node;
-        }
+        // if ((node.transformFlags & TransformFlags.ContainsES2017) === 0) {
+        //     return lexicalArgumentsBinding ? argumentsVisitor(node) : node;
+        // }
         switch (node.kind) {
             case SyntaxKind.AsyncKeyword:
                 // ES2017 async modifier should be elided for targets < ES2017

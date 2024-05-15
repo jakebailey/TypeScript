@@ -7,7 +7,6 @@ import {
     SourceFile,
     SyntaxKind,
     TransformationContext,
-    TransformFlags,
     visitEachChild,
     visitNode,
     VisitResult,
@@ -27,9 +26,9 @@ export function transformES2019(context: TransformationContext): (x: SourceFile 
     }
 
     function visitor(node: Node): VisitResult<Node> {
-        if ((node.transformFlags & TransformFlags.ContainsES2019) === 0) {
-            return node;
-        }
+        // if ((node.transformFlags & TransformFlags.ContainsES2019) === 0) {
+        //     return node;
+        // }
         switch (node.kind) {
             case SyntaxKind.CatchClause:
                 return visitCatchClause(node as CatchClause);

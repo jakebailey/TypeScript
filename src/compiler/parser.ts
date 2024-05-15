@@ -370,7 +370,6 @@ import {
     tokenIsIdentifierOrKeywordOrGreaterThan,
     tokenToString,
     tracing,
-    TransformFlags,
     TryStatement,
     TupleTypeNode,
     TypeAliasDeclaration,
@@ -1925,9 +1924,10 @@ namespace Parser {
         syntaxCursor = savedSyntaxCursor;
         return factory.updateSourceFile(sourceFile, setTextRange(factoryCreateNodeArray(statements), sourceFile.statements));
 
-        function containsPossibleTopLevelAwait(node: Node) {
-            return !(node.flags & NodeFlags.AwaitContext)
-                && !!(node.transformFlags & TransformFlags.ContainsPossibleTopLevelAwait);
+        function containsPossibleTopLevelAwait(_node: Node) {
+            return true;
+            // return !(node.flags & NodeFlags.AwaitContext)
+            //     && !!(node.transformFlags & TransformFlags.ContainsPossibleTopLevelAwait);
         }
 
         function findNextStatementWithAwait(statements: NodeArray<Statement>, start: number) {
@@ -1982,7 +1982,7 @@ namespace Parser {
         setFields(sourceFile);
 
         // If we parsed this as an external module, it may contain top-level await
-        if (!isDeclarationFile && isExternalModule(sourceFile) && sourceFile.transformFlags & TransformFlags.ContainsPossibleTopLevelAwait) {
+        if (!isDeclarationFile && isExternalModule(sourceFile)) {
             const oldSourceFile = sourceFile;
             sourceFile = reparseTopLevelAwait(sourceFile);
             if (oldSourceFile !== sourceFile) setFields(sourceFile);

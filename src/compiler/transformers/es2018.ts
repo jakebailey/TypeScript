@@ -98,7 +98,6 @@ import {
     TaggedTemplateExpression,
     TextRange,
     TransformationContext,
-    TransformFlags,
     unwrapInnermostStatementOfLabel,
     VariableDeclaration,
     VariableStatement,
@@ -267,9 +266,9 @@ export function transformES2018(context: TransformationContext): (x: SourceFile 
      * expression of an `ExpressionStatement`).
      */
     function visitorWorker(node: Node, expressionResultIsUnused: boolean): VisitResult<Node> {
-        if ((node.transformFlags & TransformFlags.ContainsES2018) === 0) {
-            return node;
-        }
+        // if ((node.transformFlags & TransformFlags.ContainsES2018) === 0) {
+        //     return node;
+        // }
         switch (node.kind) {
             case SyntaxKind.AwaitExpression:
                 return visitAwaitExpression(node as AwaitExpression);
@@ -507,7 +506,8 @@ export function transformES2018(context: TransformationContext): (x: SourceFile 
     }
 
     function visitObjectLiteralExpression(node: ObjectLiteralExpression): Expression {
-        if (node.transformFlags & TransformFlags.ContainsObjectRestOrSpread) {
+        // eslint-disable-next-line no-constant-condition
+        if (true) {
             // spread elements emit like so:
             // non-spread elements are chunked together into object literals, and then all are passed to __assign:
             //     { a, ...o, b } => __assign(__assign({a}, o), {b});
@@ -643,7 +643,7 @@ export function transformES2018(context: TransformationContext): (x: SourceFile 
         if (
             node.variableDeclaration &&
             isBindingPattern(node.variableDeclaration.name) &&
-            node.variableDeclaration.name.transformFlags & TransformFlags.ContainsObjectRestOrSpread
+            true
         ) {
             const name = factory.getGeneratedNameForNode(node.variableDeclaration.name);
             const updatedDecl = factory.updateVariableDeclaration(node.variableDeclaration, node.variableDeclaration.name, /*exclamationToken*/ undefined, /*type*/ undefined, name);
@@ -693,7 +693,7 @@ export function transformES2018(context: TransformationContext): (x: SourceFile 
 
     function visitVariableDeclarationWorker(node: VariableDeclaration, exportedVariableStatement: boolean): VisitResult<VariableDeclaration> {
         // If we are here it is because the name contains a binding pattern with a rest somewhere in it.
-        if (isBindingPattern(node.name) && node.name.transformFlags & TransformFlags.ContainsObjectRestOrSpread) {
+        if (isBindingPattern(node.name) && true) {
             return flattenDestructuringBinding(
                 node,
                 visitor,
@@ -728,8 +728,8 @@ export function transformES2018(context: TransformationContext): (x: SourceFile 
     function visitForOfStatement(node: ForOfStatement, outermostLabeledStatement: LabeledStatement | undefined): VisitResult<Statement> {
         const ancestorFacts = enterSubtree(HierarchyFacts.IterationStatementExcludes, HierarchyFacts.IterationStatementIncludes);
         if (
-            node.initializer.transformFlags & TransformFlags.ContainsObjectRestOrSpread ||
-            isAssignmentPattern(node.initializer) && containsObjectRestOrSpread(node.initializer)
+            // eslint-disable-next-line no-constant-condition
+            true
         ) {
             node = transformForOfStatementWithObjectRest(node);
         }
@@ -954,7 +954,8 @@ export function transformES2018(context: TransformationContext): (x: SourceFile 
                 /*initializer*/ undefined,
             );
         }
-        if (node.transformFlags & TransformFlags.ContainsObjectRestOrSpread) {
+        // eslint-disable-next-line no-constant-condition
+        if (true) {
             // Binding patterns are converted into a generated name and are
             // evaluated inside the function body.
             return factory.updateParameterDeclaration(
@@ -976,7 +977,8 @@ export function transformES2018(context: TransformationContext): (x: SourceFile 
             if (parameters) {
                 parameters.add(parameter);
             }
-            else if (parameter.transformFlags & TransformFlags.ContainsObjectRestOrSpread) {
+            // eslint-disable-next-line no-constant-condition
+            else if (true) {
                 parameters = new Set();
             }
         }
@@ -1306,7 +1308,8 @@ export function transformES2018(context: TransformationContext): (x: SourceFile 
                     statements = append(statements, statement);
                 }
             }
-            else if (parameter.transformFlags & TransformFlags.ContainsObjectRestOrSpread) {
+            // eslint-disable-next-line no-constant-condition
+            else if (true) {
                 containsPrecedingObjectRestOrSpread = true;
                 const declarations = flattenDestructuringBinding(
                     parameter,

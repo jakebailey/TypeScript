@@ -78,7 +78,6 @@ import {
     SyntaxKind,
     TextRange,
     TransformationContext,
-    TransformFlags,
     utf16EncodeAsString,
     VariableDeclaration,
     visitEachChild,
@@ -205,12 +204,12 @@ export function transformJsx(context: TransformationContext): (x: SourceFile | B
     }
 
     function visitor(node: Node): VisitResult<Node | undefined> {
-        if (node.transformFlags & TransformFlags.ContainsJsx) {
-            return visitorWorker(node);
-        }
-        else {
-            return node;
-        }
+        return visitorWorker(node);
+        // if (node.transformFlags & TransformFlags.ContainsJsx) {
+        // }
+        // else {
+        //     return node;
+        // }
     }
 
     function visitorWorker(node: Node): VisitResult<Node | undefined> {

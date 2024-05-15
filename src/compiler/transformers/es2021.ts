@@ -15,7 +15,6 @@ import {
     SourceFile,
     Token,
     TransformationContext,
-    TransformFlags,
     visitEachChild,
     visitNode,
     VisitResult,
@@ -38,9 +37,9 @@ export function transformES2021(context: TransformationContext): (x: SourceFile 
     }
 
     function visitor(node: Node): VisitResult<Node> {
-        if ((node.transformFlags & TransformFlags.ContainsES2021) === 0) {
-            return node;
-        }
+        // if ((node.transformFlags & TransformFlags.ContainsES2021) === 0) {
+        //     return node;
+        // }
         if (isLogicalOrCoalescingAssignmentExpression(node)) {
             return transformLogicalAssignment(node);
         }

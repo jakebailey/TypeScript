@@ -148,7 +148,6 @@ import {
     TaggedTemplateExpression,
     TextRange,
     TransformationContext,
-    TransformFlags,
     tryGetModuleNameFromFile,
     TryStatement,
     VariableDeclaration,
@@ -224,7 +223,6 @@ export function transformModule(context: TransformationContext): (x: SourceFile 
         if (
             node.isDeclarationFile ||
             !(isEffectiveExternalModule(node, compilerOptions) ||
-                node.transformFlags & TransformFlags.ContainsDynamicImport ||
                 (isJsonSourceFile(node) && hasJsonModuleEmitEnabled(compilerOptions) && compilerOptions.outFile))
         ) {
             return node;
@@ -775,9 +773,9 @@ export function transformModule(context: TransformationContext): (x: SourceFile 
     function visitorWorker(node: Node, valueIsDiscarded: boolean): VisitResult<Node> {
         // This visitor does not need to descend into the tree if there is no dynamic import, destructuring assignment, or update expression
         // as export/import statements are only transformed at the top level of a file.
-        if (!(node.transformFlags & (TransformFlags.ContainsDynamicImport | TransformFlags.ContainsDestructuringAssignment | TransformFlags.ContainsUpdateExpressionForIdentifier))) {
-            return node;
-        }
+        // if (!(node.transformFlags & (TransformFlags.ContainsDynamicImport | TransformFlags.ContainsDestructuringAssignment | TransformFlags.ContainsUpdateExpressionForIdentifier))) {
+        //     return node;
+        // }
 
         switch (node.kind) {
             case SyntaxKind.ForStatement:
@@ -1170,7 +1168,7 @@ export function transformModule(context: TransformationContext): (x: SourceFile 
         const firstArgument = visitNode(firstOrUndefined(node.arguments), visitor, isExpression);
         // Only use the external module name if it differs from the first argument. This allows us to preserve the quote style of the argument on output.
         const argument = externalModuleName && (!firstArgument || !isStringLiteral(firstArgument) || firstArgument.text !== externalModuleName.text) ? externalModuleName : firstArgument;
-        const containsLexicalThis = !!(node.transformFlags & TransformFlags.ContainsLexicalThis);
+        const containsLexicalThis = true; // !!(node.transformFlags & TransformFlags.ContainsLexicalThis);
         switch (compilerOptions.module) {
             case ModuleKind.AMD:
                 return createImportCallExpressionAMD(argument, containsLexicalThis);

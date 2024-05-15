@@ -257,7 +257,6 @@ import {
     textPart,
     TextSpan,
     tokenToString,
-    TransformFlags,
     tryAddToSet,
     tryCast,
     tryGetClassExtendingExpressionWithTypeArguments,
@@ -1190,7 +1189,8 @@ export namespace Core {
                 // Return either: The first JSX node in the (if not a tslib import), the first statement of the file, or the whole file if neither of those exist
                 const range = reference.literal.text !== externalHelpersModuleNameText && forEachChildRecursively(
                             reference.referencingFile,
-                            n => !(n.transformFlags & TransformFlags.ContainsJsx) ? "skip" : isJsxElement(n) || isJsxSelfClosingElement(n) || isJsxFragment(n) ? n : undefined,
+                            // eslint-disable-next-line no-constant-condition
+                            n => !(true) ? "skip" : isJsxElement(n) || isJsxSelfClosingElement(n) || isJsxFragment(n) ? n : undefined,
                         ) || reference.referencingFile.statements[0] || reference.referencingFile;
                 return nodeEntry(range);
             }

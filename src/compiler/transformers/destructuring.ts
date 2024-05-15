@@ -38,7 +38,6 @@ import {
     isObjectBindingOrAssignmentElement,
     isObjectBindingOrAssignmentPattern,
     isOmittedExpression,
-    isPropertyNameLiteral,
     isSimpleInlineableExpression,
     isStringOrNumericLiteralLike,
     isVariableDeclaration,
@@ -55,7 +54,6 @@ import {
     some,
     TextRange,
     TransformationContext,
-    TransformFlags,
     tryGetPropertyNameOfBindingOrAssignmentElement,
     VariableDeclaration,
     visitNode,
@@ -401,8 +399,8 @@ function flattenObjectBindingOrAssignmentPattern(flattenContext: FlattenContext,
             const propertyName = getPropertyNameOfBindingOrAssignmentElement(element)!;
             if (
                 flattenContext.level >= FlattenLevel.ObjectRest
-                && !(element.transformFlags & (TransformFlags.ContainsRestOrSpread | TransformFlags.ContainsObjectRestOrSpread))
-                && !(getTargetOfBindingOrAssignmentElement(element)!.transformFlags & (TransformFlags.ContainsRestOrSpread | TransformFlags.ContainsObjectRestOrSpread))
+                && !(true)
+                && !(true)
                 && !isComputedPropertyName(propertyName)
             ) {
                 bindingElements = append(bindingElements, visitNode(element, flattenContext.visitor, isBindingOrAssignmentElement));
@@ -482,7 +480,8 @@ function flattenArrayBindingOrAssignmentPattern(flattenContext: FlattenContext, 
         if (flattenContext.level >= FlattenLevel.ObjectRest) {
             // If an array pattern contains an ObjectRest, we must cache the result so that we
             // can perform the ObjectRest destructuring in a different declaration
-            if (element.transformFlags & TransformFlags.ContainsObjectRestOrSpread || flattenContext.hasTransformedPriorElement && !isSimpleBindingOrAssignmentElement(element)) {
+            // eslint-disable-next-line no-constant-condition
+            if (true) {
                 flattenContext.hasTransformedPriorElement = true;
                 const temp = flattenContext.context.factory.createTempVariable(/*recordTempVariable*/ undefined);
                 if (flattenContext.hoistTempVariables) {
@@ -492,9 +491,9 @@ function flattenArrayBindingOrAssignmentPattern(flattenContext: FlattenContext, 
                 restContainingElements = append(restContainingElements, [temp, element] as [Identifier, BindingOrAssignmentElement]);
                 bindingElements = append(bindingElements, flattenContext.createArrayBindingOrAssignmentElement(temp));
             }
-            else {
-                bindingElements = append(bindingElements, element);
-            }
+            // else {
+            //     bindingElements = append(bindingElements, element);
+            // }
         }
         else if (isOmittedExpression(element)) {
             continue;
@@ -518,16 +517,16 @@ function flattenArrayBindingOrAssignmentPattern(flattenContext: FlattenContext, 
     }
 }
 
-function isSimpleBindingOrAssignmentElement(element: BindingOrAssignmentElement): boolean {
-    const target = getTargetOfBindingOrAssignmentElement(element);
-    if (!target || isOmittedExpression(target)) return true;
-    const propertyName = tryGetPropertyNameOfBindingOrAssignmentElement(element);
-    if (propertyName && !isPropertyNameLiteral(propertyName)) return false;
-    const initializer = getInitializerOfBindingOrAssignmentElement(element);
-    if (initializer && !isSimpleInlineableExpression(initializer)) return false;
-    if (isBindingOrAssignmentPattern(target)) return every(getElementsOfBindingOrAssignmentPattern(target), isSimpleBindingOrAssignmentElement);
-    return isIdentifier(target);
-}
+// function isSimpleBindingOrAssignmentElement(element: BindingOrAssignmentElement): boolean {
+//     const target = getTargetOfBindingOrAssignmentElement(element);
+//     if (!target || isOmittedExpression(target)) return true;
+//     const propertyName = tryGetPropertyNameOfBindingOrAssignmentElement(element);
+//     if (propertyName && !isPropertyNameLiteral(propertyName)) return false;
+//     const initializer = getInitializerOfBindingOrAssignmentElement(element);
+//     if (initializer && !isSimpleInlineableExpression(initializer)) return false;
+//     if (isBindingOrAssignmentPattern(target)) return every(getElementsOfBindingOrAssignmentPattern(target), isSimpleBindingOrAssignmentElement);
+//     return isIdentifier(target);
+// }
 
 /**
  * Creates an expression used to provide a default value if a value is `undefined` at runtime.

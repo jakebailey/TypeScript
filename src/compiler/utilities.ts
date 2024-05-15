@@ -546,7 +546,6 @@ import {
     tokenToString,
     toPath,
     tracing,
-    TransformFlags,
     TransientSymbol,
     TriviaSyntaxKind,
     tryCast,
@@ -8276,7 +8275,7 @@ function Node(this: Mutable<Node>, kind: SyntaxKind, pos: number, end: number) {
     this.id = 0;
     this.flags = NodeFlags.None;
     this.modifierFlagsCache = ModifierFlags.None;
-    this.transformFlags = TransformFlags.None;
+    // this.transformFlags = TransformFlags.None;
     this.parent = undefined!;
     this.original = undefined;
     this.emitNode = undefined;
@@ -8289,7 +8288,7 @@ function Token(this: Mutable<Node>, kind: SyntaxKind, pos: number, end: number) 
     this.kind = kind;
     this.id = 0;
     this.flags = NodeFlags.None;
-    this.transformFlags = TransformFlags.None;
+    // this.transformFlags = TransformFlags.None;
     this.parent = undefined!;
     this.emitNode = undefined;
 }
@@ -8301,7 +8300,7 @@ function Identifier(this: Mutable<Node>, kind: SyntaxKind, pos: number, end: num
     this.kind = kind;
     this.id = 0;
     this.flags = NodeFlags.None;
-    this.transformFlags = TransformFlags.None;
+    // this.transformFlags = TransformFlags.None;
     this.parent = undefined!;
     this.original = undefined;
     this.emitNode = undefined;
@@ -8722,7 +8721,7 @@ export function getLanguageVariant(scriptKind: ScriptKind) {
  * Unfortunately, there's no `NodeFlag` space to do the same for JSX.
  */
 function walkTreeForJSXTags(node: Node): Node | undefined {
-    if (!(node.transformFlags & TransformFlags.ContainsJsx)) return undefined;
+    // if (!(node.transformFlags & TransformFlags.ContainsJsx)) return undefined;
     return isJsxOpeningLikeElement(node) || isJsxFragment(node) ? node : forEachChild(node, walkTreeForJSXTags);
 }
 

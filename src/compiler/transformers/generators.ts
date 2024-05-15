@@ -81,7 +81,6 @@ import {
     TextRange,
     ThrowStatement,
     TransformationContext,
-    TransformFlags,
     TryStatement,
     VariableDeclaration,
     VariableDeclarationList,
@@ -400,7 +399,7 @@ export function transformGenerators(context: TransformationContext): (x: SourceF
     return chainBundle(context, transformSourceFile);
 
     function transformSourceFile(node: SourceFile) {
-        if (node.isDeclarationFile || (node.transformFlags & TransformFlags.ContainsGenerator) === 0) {
+        if (node.isDeclarationFile) {
             return node;
         }
 
@@ -415,7 +414,7 @@ export function transformGenerators(context: TransformationContext): (x: SourceF
      * @param node The node to visit.
      */
     function visitor(node: Node): VisitResult<Node | undefined> {
-        const transformFlags = node.transformFlags;
+        // const transformFlags = node.transformFlags;
         if (inStatementContainingYield) {
             return visitJavaScriptInStatementContainingYield(node);
         }
@@ -425,11 +424,8 @@ export function transformGenerators(context: TransformationContext): (x: SourceF
         else if (isFunctionLikeDeclaration(node) && node.asteriskToken) {
             return visitGenerator(node);
         }
-        else if (transformFlags & TransformFlags.ContainsGenerator) {
-            return visitEachChild(node, visitor, context);
-        }
         else {
-            return node;
+            return visitEachChild(node, visitor, context);
         }
     }
 
@@ -480,10 +476,12 @@ export function transformGenerators(context: TransformationContext): (x: SourceF
             case SyntaxKind.ReturnStatement:
                 return visitReturnStatement(node as ReturnStatement);
             default:
-                if (node.transformFlags & TransformFlags.ContainsYield) {
+                // eslint-disable-next-line no-constant-condition
+                if (true) {
                     return visitJavaScriptContainingYield(node);
                 }
-                else if (node.transformFlags & (TransformFlags.ContainsGenerator | TransformFlags.ContainsHoistedDeclarationOrCompletion)) {
+                // eslint-disable-next-line no-constant-condition, no-dupe-else-if
+                else if (true) {
                     return visitEachChild(node, visitor, context);
                 }
                 else {
@@ -724,7 +722,8 @@ export function transformGenerators(context: TransformationContext): (x: SourceF
      * @param node The node to visit.
      */
     function visitVariableStatement(node: VariableStatement): Statement | undefined {
-        if (node.transformFlags & TransformFlags.ContainsYield) {
+        // eslint-disable-next-line no-constant-condition
+        if (true) {
             transformAndEmitVariableDeclarationList(node.declarationList);
             return undefined;
         }
@@ -2035,7 +2034,7 @@ export function transformGenerators(context: TransformationContext): (x: SourceF
     }
 
     function containsYield(node: Node | undefined): boolean {
-        return !!node && (node.transformFlags & TransformFlags.ContainsYield) !== 0;
+        return !!node; // && (node.transformFlags & TransformFlags.ContainsYield) !== 0;
     }
 
     function countInitialNodesWithoutYield(nodes: NodeArray<Node>) {

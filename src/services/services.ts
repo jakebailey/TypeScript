@@ -315,7 +315,6 @@ import {
     Token,
     toPath,
     tracing,
-    TransformFlags,
     Type,
     TypeChecker,
     TypeFlags,
@@ -359,7 +358,7 @@ class NodeObject<TKind extends SyntaxKind> implements Node {
     public end: number;
     public flags: NodeFlags;
     public modifierFlagsCache: ModifierFlags;
-    public transformFlags: TransformFlags;
+    // public transformFlags: TransformFlags;
     public parent: Node;
     public symbol!: Symbol; // Actually optional, but it was too annoying to access `node.symbol!` everywhere since in many cases we know it must be defined
     public jsDoc?: JSDoc[];
@@ -375,7 +374,7 @@ class NodeObject<TKind extends SyntaxKind> implements Node {
         this.id = 0;
         this.flags = NodeFlags.None;
         this.modifierFlagsCache = ModifierFlags.None;
-        this.transformFlags = TransformFlags.None;
+        // this.transformFlags = TransformFlags.None;
         this.parent = undefined!;
         this.original = undefined;
         this.emitNode = undefined;
@@ -552,7 +551,7 @@ class TokenOrIdentifierObject<TKind extends SyntaxKind> implements Node {
     public end: number;
     public flags: NodeFlags;
     public modifierFlagsCache!: ModifierFlags;
-    public transformFlags: TransformFlags;
+    // public transformFlags: TransformFlags;
     public parent: Node;
     public symbol!: Symbol;
     public jsDocComments?: JSDoc[];
@@ -566,7 +565,7 @@ class TokenOrIdentifierObject<TKind extends SyntaxKind> implements Node {
         this.kind = kind;
         this.id = 0;
         this.flags = NodeFlags.None;
-        this.transformFlags = TransformFlags.None;
+        // this.transformFlags = TransformFlags.None;
         this.parent = undefined!;
         this.emitNode = undefined;
     }

@@ -82,7 +82,6 @@ import {
     SymbolFlags,
     symbolName,
     SyntaxKind,
-    TransformFlags,
     Type,
     TypeFacts,
     TypeFlags,
@@ -459,9 +458,9 @@ export namespace Debug {
         return formatEnum(flags, (ts as any).ModifierFlags, /*isFlags*/ true);
     }
 
-    export function formatTransformFlags(flags: TransformFlags | undefined): string {
-        return formatEnum(flags, (ts as any).TransformFlags, /*isFlags*/ true);
-    }
+    // export function formatTransformFlags(flags: TransformFlags | undefined): string {
+    //     return formatEnum(flags, (ts as any).TransformFlags, /*isFlags*/ true);
+    // }
 
     export function formatEmitFlags(flags: EmitFlags | undefined): string {
         return formatEnum(flags, (ts as any).EmitFlags, /*isFlags*/ true);
@@ -764,11 +763,11 @@ export namespace Debug {
                             return formatModifierFlags(getEffectiveModifierFlagsNoCache(this));
                         },
                     },
-                    __debugTransformFlags: {
-                        get(this: Node) {
-                            return formatTransformFlags(this.transformFlags);
-                        },
-                    },
+                    // __debugTransformFlags: {
+                    //     get(this: Node) {
+                    //         return formatTransformFlags(this.transformFlags);
+                    //     },
+                    // },
                     __debugIsParseTreeNode: {
                         get(this: Node) {
                             return isParseTreeNode(this);

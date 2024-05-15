@@ -31,7 +31,6 @@ import {
     SourceFile,
     SyntaxKind,
     TransformationContext,
-    TransformFlags,
     visitEachChild,
     visitNode,
     visitNodes,
@@ -56,9 +55,9 @@ export function transformES2020(context: TransformationContext): (x: SourceFile 
     }
 
     function visitor(node: Node): VisitResult<Node> {
-        if ((node.transformFlags & TransformFlags.ContainsES2020) === 0) {
-            return node;
-        }
+        // if ((node.transformFlags & TransformFlags.ContainsES2020) === 0) {
+        //     return node;
+        // }
         switch (node.kind) {
             case SyntaxKind.CallExpression: {
                 const updated = visitNonOptionalCallExpression(node as CallExpression, /*captureThisArg*/ false);

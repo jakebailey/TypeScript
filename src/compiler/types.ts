@@ -928,7 +928,7 @@ export interface Node extends ReadonlyTextRange {
     readonly kind: SyntaxKind;
     readonly flags: NodeFlags;
     /** @internal */ modifierFlagsCache: ModifierFlags;
-    /** @internal */ readonly transformFlags: TransformFlags; // Flags for transforms
+    // /** @internal */ readonly transformFlags: TransformFlags; // Flags for transforms
     /** @internal */ id?: NodeId; // Unique id (used to look up NodeLinks)
     readonly parent: Node; // Parent node (initialized by binding)
     /** @internal */ original?: Node; // The original node if this is an updated node.
@@ -1568,12 +1568,12 @@ export type HasContainerFlags =
 /** @internal */
 export interface MutableNodeArray<T extends Node> extends Array<T>, TextRange {
     hasTrailingComma: boolean;
-    /** @internal */ transformFlags: TransformFlags; // Flags for transforms, possibly undefined
+    // /** @internal */ transformFlags: TransformFlags; // Flags for transforms, possibly undefined
 }
 
 export interface NodeArray<T extends Node> extends ReadonlyArray<T>, ReadonlyTextRange {
     readonly hasTrailingComma: boolean;
-    /** @internal */ transformFlags: TransformFlags; // Flags for transforms, possibly undefined
+    // /** @internal */ transformFlags: TransformFlags; // Flags for transforms, possibly undefined
 }
 
 // TODO(rbuckton): Constraint 'TKind' to 'TokenSyntaxKind'
@@ -8007,92 +8007,92 @@ export interface ResolvedProjectReferenceCallbacks {
     forEachResolvedProjectReference<T>(cb: (resolvedProjectReference: ResolvedProjectReference) => T | undefined): T | undefined;
 }
 
-/** @internal */
-export const enum TransformFlags {
-    None = 0,
+// /** @internal */
+// export const enum TransformFlags {
+//     None = 0,
 
-    // Facts
-    // - Flags used to indicate that a node or subtree contains syntax that requires transformation.
-    ContainsTypeScript = 1 << 0,
-    ContainsJsx = 1 << 1,
-    ContainsESNext = 1 << 2,
-    ContainsES2022 = 1 << 3,
-    ContainsES2021 = 1 << 4,
-    ContainsES2020 = 1 << 5,
-    ContainsES2019 = 1 << 6,
-    ContainsES2018 = 1 << 7,
-    ContainsES2017 = 1 << 8,
-    ContainsES2016 = 1 << 9,
-    ContainsES2015 = 1 << 10,
-    ContainsGenerator = 1 << 11,
-    ContainsDestructuringAssignment = 1 << 12,
+//     // Facts
+//     // - Flags used to indicate that a node or subtree contains syntax that requires transformation.
+//     ContainsTypeScript = 1 << 0,
+//     ContainsJsx = 1 << 1,
+//     ContainsESNext = 1 << 2,
+//     ContainsES2022 = 1 << 3,
+//     ContainsES2021 = 1 << 4,
+//     ContainsES2020 = 1 << 5,
+//     ContainsES2019 = 1 << 6,
+//     ContainsES2018 = 1 << 7,
+//     ContainsES2017 = 1 << 8,
+//     ContainsES2016 = 1 << 9,
+//     ContainsES2015 = 1 << 10,
+//     ContainsGenerator = 1 << 11,
+//     ContainsDestructuringAssignment = 1 << 12,
 
-    // Markers
-    // - Flags used to indicate that a subtree contains a specific transformation.
-    ContainsTypeScriptClassSyntax = 1 << 13, // Property Initializers, Parameter Property Initializers
-    ContainsLexicalThis = 1 << 14,
-    ContainsRestOrSpread = 1 << 15,
-    ContainsObjectRestOrSpread = 1 << 16,
-    ContainsComputedPropertyName = 1 << 17,
-    ContainsBlockScopedBinding = 1 << 18,
-    ContainsBindingPattern = 1 << 19,
-    ContainsYield = 1 << 20,
-    ContainsAwait = 1 << 21,
-    ContainsHoistedDeclarationOrCompletion = 1 << 22,
-    ContainsDynamicImport = 1 << 23,
-    ContainsClassFields = 1 << 24,
-    ContainsDecorators = 1 << 25,
-    ContainsPossibleTopLevelAwait = 1 << 26,
-    ContainsLexicalSuper = 1 << 27,
-    ContainsUpdateExpressionForIdentifier = 1 << 28,
-    ContainsPrivateIdentifierInExpression = 1 << 29,
+//     // Markers
+//     // - Flags used to indicate that a subtree contains a specific transformation.
+//     ContainsTypeScriptClassSyntax = 1 << 13, // Property Initializers, Parameter Property Initializers
+//     ContainsLexicalThis = 1 << 14,
+//     ContainsRestOrSpread = 1 << 15,
+//     ContainsObjectRestOrSpread = 1 << 16,
+//     ContainsComputedPropertyName = 1 << 17,
+//     ContainsBlockScopedBinding = 1 << 18,
+//     ContainsBindingPattern = 1 << 19,
+//     ContainsYield = 1 << 20,
+//     ContainsAwait = 1 << 21,
+//     ContainsHoistedDeclarationOrCompletion = 1 << 22,
+//     ContainsDynamicImport = 1 << 23,
+//     ContainsClassFields = 1 << 24,
+//     ContainsDecorators = 1 << 25,
+//     ContainsPossibleTopLevelAwait = 1 << 26,
+//     ContainsLexicalSuper = 1 << 27,
+//     ContainsUpdateExpressionForIdentifier = 1 << 28,
+//     ContainsPrivateIdentifierInExpression = 1 << 29,
 
-    HasComputedFlags = 1 << 31, // Transform flags have been computed.
+//     HasComputedFlags = 1 << 31, // Transform flags have been computed.
 
-    // Assertions
-    // - Bitmasks that are used to assert facts about the syntax of a node and its subtree.
-    AssertTypeScript = ContainsTypeScript,
-    AssertJsx = ContainsJsx,
-    AssertESNext = ContainsESNext,
-    AssertES2022 = ContainsES2022,
-    AssertES2021 = ContainsES2021,
-    AssertES2020 = ContainsES2020,
-    AssertES2019 = ContainsES2019,
-    AssertES2018 = ContainsES2018,
-    AssertES2017 = ContainsES2017,
-    AssertES2016 = ContainsES2016,
-    AssertES2015 = ContainsES2015,
-    AssertGenerator = ContainsGenerator,
-    AssertDestructuringAssignment = ContainsDestructuringAssignment,
+//     // Assertions
+//     // - Bitmasks that are used to assert facts about the syntax of a node and its subtree.
+//     AssertTypeScript = ContainsTypeScript,
+//     AssertJsx = ContainsJsx,
+//     AssertESNext = ContainsESNext,
+//     AssertES2022 = ContainsES2022,
+//     AssertES2021 = ContainsES2021,
+//     AssertES2020 = ContainsES2020,
+//     AssertES2019 = ContainsES2019,
+//     AssertES2018 = ContainsES2018,
+//     AssertES2017 = ContainsES2017,
+//     AssertES2016 = ContainsES2016,
+//     AssertES2015 = ContainsES2015,
+//     AssertGenerator = ContainsGenerator,
+//     AssertDestructuringAssignment = ContainsDestructuringAssignment,
 
-    // Scope Exclusions
-    // - Bitmasks that exclude flags from propagating out of a specific context
-    //   into the subtree flags of their container.
-    OuterExpressionExcludes = HasComputedFlags,
-    PropertyAccessExcludes = OuterExpressionExcludes,
-    NodeExcludes = PropertyAccessExcludes,
-    ArrowFunctionExcludes = NodeExcludes | ContainsTypeScriptClassSyntax | ContainsBlockScopedBinding | ContainsYield | ContainsAwait | ContainsHoistedDeclarationOrCompletion | ContainsBindingPattern | ContainsObjectRestOrSpread | ContainsPossibleTopLevelAwait,
-    FunctionExcludes = NodeExcludes | ContainsTypeScriptClassSyntax | ContainsLexicalThis | ContainsLexicalSuper | ContainsBlockScopedBinding | ContainsYield | ContainsAwait | ContainsHoistedDeclarationOrCompletion | ContainsBindingPattern | ContainsObjectRestOrSpread | ContainsPossibleTopLevelAwait,
-    ConstructorExcludes = NodeExcludes | ContainsLexicalThis | ContainsLexicalSuper | ContainsBlockScopedBinding | ContainsYield | ContainsAwait | ContainsHoistedDeclarationOrCompletion | ContainsBindingPattern | ContainsObjectRestOrSpread | ContainsPossibleTopLevelAwait,
-    MethodOrAccessorExcludes = NodeExcludes | ContainsLexicalThis | ContainsLexicalSuper | ContainsBlockScopedBinding | ContainsYield | ContainsAwait | ContainsHoistedDeclarationOrCompletion | ContainsBindingPattern | ContainsObjectRestOrSpread,
-    PropertyExcludes = NodeExcludes | ContainsLexicalThis | ContainsLexicalSuper,
-    ClassExcludes = NodeExcludes | ContainsTypeScriptClassSyntax | ContainsComputedPropertyName,
-    ModuleExcludes = NodeExcludes | ContainsTypeScriptClassSyntax | ContainsLexicalThis | ContainsLexicalSuper | ContainsBlockScopedBinding | ContainsHoistedDeclarationOrCompletion | ContainsPossibleTopLevelAwait,
-    TypeExcludes = ~ContainsTypeScript,
-    ObjectLiteralExcludes = NodeExcludes | ContainsTypeScriptClassSyntax | ContainsComputedPropertyName | ContainsObjectRestOrSpread,
-    ArrayLiteralOrCallOrNewExcludes = NodeExcludes | ContainsRestOrSpread,
-    VariableDeclarationListExcludes = NodeExcludes | ContainsBindingPattern | ContainsObjectRestOrSpread,
-    ParameterExcludes = NodeExcludes,
-    CatchClauseExcludes = NodeExcludes | ContainsObjectRestOrSpread,
-    BindingPatternExcludes = NodeExcludes | ContainsRestOrSpread,
-    ContainsLexicalThisOrSuper = ContainsLexicalThis | ContainsLexicalSuper,
+//     // Scope Exclusions
+//     // - Bitmasks that exclude flags from propagating out of a specific context
+//     //   into the subtree flags of their container.
+//     OuterExpressionExcludes = HasComputedFlags,
+//     PropertyAccessExcludes = OuterExpressionExcludes,
+//     NodeExcludes = PropertyAccessExcludes,
+//     ArrowFunctionExcludes = NodeExcludes | ContainsTypeScriptClassSyntax | ContainsBlockScopedBinding | ContainsYield | ContainsAwait | ContainsHoistedDeclarationOrCompletion | ContainsBindingPattern | ContainsObjectRestOrSpread | ContainsPossibleTopLevelAwait,
+//     FunctionExcludes = NodeExcludes | ContainsTypeScriptClassSyntax | ContainsLexicalThis | ContainsLexicalSuper | ContainsBlockScopedBinding | ContainsYield | ContainsAwait | ContainsHoistedDeclarationOrCompletion | ContainsBindingPattern | ContainsObjectRestOrSpread | ContainsPossibleTopLevelAwait,
+//     ConstructorExcludes = NodeExcludes | ContainsLexicalThis | ContainsLexicalSuper | ContainsBlockScopedBinding | ContainsYield | ContainsAwait | ContainsHoistedDeclarationOrCompletion | ContainsBindingPattern | ContainsObjectRestOrSpread | ContainsPossibleTopLevelAwait,
+//     MethodOrAccessorExcludes = NodeExcludes | ContainsLexicalThis | ContainsLexicalSuper | ContainsBlockScopedBinding | ContainsYield | ContainsAwait | ContainsHoistedDeclarationOrCompletion | ContainsBindingPattern | ContainsObjectRestOrSpread,
+//     PropertyExcludes = NodeExcludes | ContainsLexicalThis | ContainsLexicalSuper,
+//     ClassExcludes = NodeExcludes | ContainsTypeScriptClassSyntax | ContainsComputedPropertyName,
+//     ModuleExcludes = NodeExcludes | ContainsTypeScriptClassSyntax | ContainsLexicalThis | ContainsLexicalSuper | ContainsBlockScopedBinding | ContainsHoistedDeclarationOrCompletion | ContainsPossibleTopLevelAwait,
+//     TypeExcludes = ~ContainsTypeScript,
+//     ObjectLiteralExcludes = NodeExcludes | ContainsTypeScriptClassSyntax | ContainsComputedPropertyName | ContainsObjectRestOrSpread,
+//     ArrayLiteralOrCallOrNewExcludes = NodeExcludes | ContainsRestOrSpread,
+//     VariableDeclarationListExcludes = NodeExcludes | ContainsBindingPattern | ContainsObjectRestOrSpread,
+//     ParameterExcludes = NodeExcludes,
+//     CatchClauseExcludes = NodeExcludes | ContainsObjectRestOrSpread,
+//     BindingPatternExcludes = NodeExcludes | ContainsRestOrSpread,
+//     ContainsLexicalThisOrSuper = ContainsLexicalThis | ContainsLexicalSuper,
 
-    // Propagating flags
-    // - Bitmasks for flags that should propagate from a child
-    PropertyNamePropagatingFlags = ContainsLexicalThis | ContainsLexicalSuper,
-    // Masks
-    // - Additional bitmasks
-}
+//     // Propagating flags
+//     // - Bitmasks for flags that should propagate from a child
+//     PropertyNamePropagatingFlags = ContainsLexicalThis | ContainsLexicalSuper,
+//     // Masks
+//     // - Additional bitmasks
+// }
 
 export interface SourceMapRange extends TextRange {
     source?: SourceMapSource;

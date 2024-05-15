@@ -93,13 +93,9 @@ import {
     isBlock,
     isCallExpression,
     isCallToHelper,
-    isCaseBlock,
-    isCaseClause,
-    isCatchClause,
     isClassElement,
     isClassLike,
     isComputedPropertyName,
-    isDefaultClause,
     isDestructuringAssignment,
     isExpression,
     isExpressionStatement,
@@ -112,10 +108,8 @@ import {
     isHoistedVariableStatement,
     isIdentifier,
     isIdentifierANonContextualKeyword,
-    isIfStatement,
     isInternalName,
     isIterationStatement,
-    isLabeledStatement,
     isModifier,
     isObjectLiteralElementLike,
     isOmittedExpression,
@@ -130,12 +124,9 @@ import {
     isStatic,
     isSuperCall,
     isSuperProperty,
-    isSwitchStatement,
-    isTryStatement,
     isVariableDeclaration,
     isVariableDeclarationList,
     isVariableStatement,
-    isWithStatement,
     IterationStatement,
     LabeledStatement,
     last,
@@ -200,7 +191,6 @@ import {
     ThisExpression,
     TokenFlags,
     TransformationContext,
-    TransformFlags,
     tryCast,
     unescapeLeadingUnderscores,
     unwrapInnermostStatementOfLabel,
@@ -573,28 +563,30 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             && !(node as ReturnStatement).expression;
     }
 
-    function isOrMayContainReturnCompletion(node: Node) {
-        return node.transformFlags & TransformFlags.ContainsHoistedDeclarationOrCompletion
-            && (isReturnStatement(node)
-                || isIfStatement(node)
-                || isWithStatement(node)
-                || isSwitchStatement(node)
-                || isCaseBlock(node)
-                || isCaseClause(node)
-                || isDefaultClause(node)
-                || isTryStatement(node)
-                || isCatchClause(node)
-                || isLabeledStatement(node)
-                || isIterationStatement(node, /*lookInLabeledStatements*/ false)
-                || isBlock(node));
-    }
+    // function isOrMayContainReturnCompletion(_node: Node) {
+    //     return true;
+    //     // return node.transformFlags & TransformFlags.ContainsHoistedDeclarationOrCompletion
+    //     //     && (isReturnStatement(node)
+    //     //         || isIfStatement(node)
+    //     //         || isWithStatement(node)
+    //     //         || isSwitchStatement(node)
+    //     //         || isCaseBlock(node)
+    //     //         || isCaseClause(node)
+    //     //         || isDefaultClause(node)
+    //     //         || isTryStatement(node)
+    //     //         || isCatchClause(node)
+    //     //         || isLabeledStatement(node)
+    //     //         || isIterationStatement(node, /*lookInLabeledStatements*/ false)
+    //     //         || isBlock(node));
+    // }
 
-    function shouldVisitNode(node: Node): boolean {
-        return (node.transformFlags & TransformFlags.ContainsES2015) !== 0
-            || convertedLoopState !== undefined
-            || (hierarchyFacts & HierarchyFacts.ConstructorWithSuperCall && isOrMayContainReturnCompletion(node))
-            || (isIterationStatement(node, /*lookInLabeledStatements*/ false) && shouldConvertIterationStatement(node))
-            || (getInternalEmitFlags(node) & InternalEmitFlags.TypeScriptClassWrapper) !== 0;
+    function shouldVisitNode(_node: Node): boolean {
+        return true;
+        // return (node.transformFlags & TransformFlags.ContainsES2015) !== 0
+        //     || convertedLoopState !== undefined
+        //     || (hierarchyFacts & HierarchyFacts.ConstructorWithSuperCall && isOrMayContainReturnCompletion(node))
+        //     || (isIterationStatement(node, /*lookInLabeledStatements*/ false) && shouldConvertIterationStatement(node))
+        //     || (getInternalEmitFlags(node) & InternalEmitFlags.TypeScriptClassWrapper) !== 0;
     }
 
     function visitor(node: Node): VisitResult<Node | undefined> {
@@ -1216,9 +1208,9 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         if (isSuperCall(node)) {
             return true;
         }
-        if (!(node.transformFlags & TransformFlags.ContainsLexicalSuper)) {
-            return false;
-        }
+        // if (!(node.transformFlags & TransformFlags.ContainsLexicalSuper)) {
+        //     return false;
+        // }
         switch (node.kind) {
             // stop at function boundaries
             case SyntaxKind.ArrowFunction:
@@ -1554,7 +1546,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
 
         // bail if there is a non-top-level `super()` in the original body
         for (const statement of original.statements) {
-            if (statement.transformFlags & TransformFlags.ContainsLexicalSuper && !getSuperCallFromStatement(statement)) {
+            if (!getSuperCallFromStatement(statement)) {
                 return body;
             }
         }
@@ -1562,7 +1554,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         // If the original node contained a lexical `this` that must be preserved, or if we recorded a captured `this`
         // or `super`, then we cannot simplify `var _this = ...;`, but may still be able to inline standalone `_this = ...`
         // assignment statements.
-        const canElideThisCapturingVariable = !(original.transformFlags & TransformFlags.ContainsLexicalThis) &&
+        const canElideThisCapturingVariable = !(true) &&
             !(hierarchyFacts & HierarchyFacts.LexicalThis) &&
             !(hierarchyFacts & HierarchyFacts.CapturedLexicalThis);
 
@@ -1614,48 +1606,49 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
     }
 
     /** Elides `var _this =` and `_this =` within the current function scope. */
-    function elideUnusedThisCaptureWorker(node: Node): VisitResult<Node | undefined> {
-        if (isThisCapturingVariableStatement(node)) {
-            const varDecl = node.declarationList.declarations[0];
-            if (varDecl.initializer.kind === SyntaxKind.ThisKeyword) {
-                return undefined; // elide `var _this = this;`
-            }
-        }
-        else if (isThisCapturingAssignment(node)) {
-            return factory.createPartiallyEmittedExpression(node.right, node); // elide `_this =`
-        }
+    // function elideUnusedThisCaptureWorker(node: Node): VisitResult<Node | undefined> {
+    //     if (isThisCapturingVariableStatement(node)) {
+    //         const varDecl = node.declarationList.declarations[0];
+    //         if (varDecl.initializer.kind === SyntaxKind.ThisKeyword) {
+    //             return undefined; // elide `var _this = this;`
+    //         }
+    //     }
+    //     else if (isThisCapturingAssignment(node)) {
+    //         return factory.createPartiallyEmittedExpression(node.right, node); // elide `_this =`
+    //     }
 
-        switch (node.kind) {
-            // stop at function boundaries
-            case SyntaxKind.ArrowFunction:
-            case SyntaxKind.FunctionExpression:
-            case SyntaxKind.FunctionDeclaration:
-            case SyntaxKind.Constructor:
-            case SyntaxKind.ClassStaticBlockDeclaration:
-                return node;
+    //     switch (node.kind) {
+    //         // stop at function boundaries
+    //         case SyntaxKind.ArrowFunction:
+    //         case SyntaxKind.FunctionExpression:
+    //         case SyntaxKind.FunctionDeclaration:
+    //         case SyntaxKind.Constructor:
+    //         case SyntaxKind.ClassStaticBlockDeclaration:
+    //             return node;
 
-            // only step into computed property names for class and object literal elements
-            case SyntaxKind.GetAccessor:
-            case SyntaxKind.SetAccessor:
-            case SyntaxKind.MethodDeclaration:
-            case SyntaxKind.PropertyDeclaration: {
-                const named = node as AccessorDeclaration | MethodDeclaration | PropertyDeclaration;
-                if (isComputedPropertyName(named.name)) {
-                    return factory.replacePropertyName(named, visitEachChild(named.name, elideUnusedThisCaptureWorker, /*context*/ undefined));
-                }
-                return node;
-            }
-        }
-        return visitEachChild(node, elideUnusedThisCaptureWorker, /*context*/ undefined);
-    }
+    //         // only step into computed property names for class and object literal elements
+    //         case SyntaxKind.GetAccessor:
+    //         case SyntaxKind.SetAccessor:
+    //         case SyntaxKind.MethodDeclaration:
+    //         case SyntaxKind.PropertyDeclaration: {
+    //             const named = node as AccessorDeclaration | MethodDeclaration | PropertyDeclaration;
+    //             if (isComputedPropertyName(named.name)) {
+    //                 return factory.replacePropertyName(named, visitEachChild(named.name, elideUnusedThisCaptureWorker, /*context*/ undefined));
+    //             }
+    //             return node;
+    //         }
+    //     }
+    //     return visitEachChild(node, elideUnusedThisCaptureWorker, /*context*/ undefined);
+    // }
 
+    // eslint-disable-next-line local/jsdoc-format
     /**
      * Simplifies a constructor by eliding `var _this = this;` and `_this = ...` when `this` capturing is no longer
      * necessary after other simplifications have been performed. No nested transformation is performed as it is assumed
      * that `body` has already been transformed prior to invoking this function. It is also assumed that this function is
      * only invoked after some other simplification has successfully replaced `body`.
      */
-    function simplifyConstructorElideUnusedThisCapture(body: Block, original: Block) {
+    function simplifyConstructorElideUnusedThisCapture(body: Block, _original: Block) {
         // given:
         //
         //   var C = (function (_super) {
@@ -1679,7 +1672,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         // If the original node contained a lexical `this` that must be preserved, or if we recorded a captured `this`,
         // then there is nothing we can simplify.
         if (
-            original.transformFlags & TransformFlags.ContainsLexicalThis ||
+            // eslint-disable-next-line no-constant-condition
+            true ||
             hierarchyFacts & HierarchyFacts.LexicalThis ||
             hierarchyFacts & HierarchyFacts.CapturedLexicalThis
         ) {
@@ -1687,13 +1681,13 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         }
 
         // bail if there is a non-top-level `super()` in the original body
-        for (const statement of original.statements) {
-            if (statement.transformFlags & TransformFlags.ContainsLexicalSuper && !getSuperCallFromStatement(statement)) {
-                return body;
-            }
-        }
+        // for (const statement of original.statements) {
+        //     if (statement.transformFlags & TransformFlags.ContainsLexicalSuper && !getSuperCallFromStatement(statement)) {
+        //         return body;
+        //     }
+        // }
 
-        return factory.updateBlock(body, visitNodes(body.statements, elideUnusedThisCaptureWorker, isStatement));
+        // return factory.updateBlock(body, visitNodes(body.statements, elideUnusedThisCaptureWorker, isStatement));
     }
 
     /** Injects `_super !== null &&` preceding any instance of a synthetic `_super.apply(this, arguments)` */
@@ -2413,7 +2407,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
      * @param node An ArrowFunction node.
      */
     function visitArrowFunction(node: ArrowFunction) {
-        if (node.transformFlags & TransformFlags.ContainsLexicalThis && !(hierarchyFacts & HierarchyFacts.StaticInitializer)) {
+        if (!(hierarchyFacts & HierarchyFacts.StaticInitializer)) {
             hierarchyFacts |= HierarchyFacts.CapturedLexicalThis;
         }
 
@@ -2777,7 +2771,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
      * @param node A VariableDeclarationList node.
      */
     function visitVariableDeclarationList(node: VariableDeclarationList): VariableDeclarationList {
-        if (node.flags & NodeFlags.BlockScoped || node.transformFlags & TransformFlags.ContainsBindingPattern) {
+        // eslint-disable-next-line no-constant-condition
+        if (node.flags & NodeFlags.BlockScoped || true) {
             if (node.flags & NodeFlags.BlockScoped) {
                 enableSubstitutionsForBlockScopedBindings();
             }
@@ -2798,8 +2793,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             // If the first or last declaration is a binding pattern, we need to modify
             // the source map range for the declaration list.
             if (
-                node.transformFlags & TransformFlags.ContainsBindingPattern
-                && (isBindingPattern(node.declarations[0].name) || isBindingPattern(last(node.declarations).name))
+                (isBindingPattern(node.declarations[0].name) || isBindingPattern(last(node.declarations).name))
             ) {
                 setSourceMapRange(declarationList, getRangeUnion(declarations));
             }
@@ -3316,8 +3310,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         for (let i = 0; i < properties.length; i++) {
             const property = properties[i];
             if (
-                (property.transformFlags & TransformFlags.ContainsYield &&
-                    hierarchyFacts & HierarchyFacts.AsyncFunctionBody)
+                (hierarchyFacts & HierarchyFacts.AsyncFunctionBody)
                 || (hasComputed = Debug.checkDefined(property.name).kind === SyntaxKind.ComputedPropertyName)
             ) {
                 numInitialProperties = i;
@@ -3704,7 +3697,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
     function createFunctionForInitializerOfForStatement(node: ForStatementWithConvertibleInitializer, currentState: ConvertedLoopState): IterationStatementPartFunction<VariableDeclarationList> {
         const functionName = factory.createUniqueName("_loop_init");
 
-        const containsYield = (node.initializer.transformFlags & TransformFlags.ContainsYield) !== 0;
+        const containsYield = true; // (node.initializer.transformFlags & TransformFlags.ContainsYield) !== 0;
         let emitFlags = EmitFlags.None;
         if (currentState.containsLexicalThis) emitFlags |= EmitFlags.CapturesThis;
         if (containsYield && hierarchyFacts & HierarchyFacts.AsyncFunctionBody) emitFlags |= EmitFlags.AsyncFunctionBody;
@@ -3857,7 +3850,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         const loopBody = factory.createBlock(statements, /*multiLine*/ true);
         if (isBlock(statement)) setOriginalNode(loopBody, statement);
 
-        const containsYield = (node.statement.transformFlags & TransformFlags.ContainsYield) !== 0;
+        const containsYield = true; // (node.statement.transformFlags & TransformFlags.ContainsYield) !== 0;
 
         let emitFlags: EmitFlags = EmitFlags.ReuseTempVariableScope;
         if (currentState.containsLexicalThis) emitFlags |= EmitFlags.CapturesThis;
@@ -4523,7 +4516,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
         // We are here either because SuperKeyword was used somewhere in the expression, or
         // because we contain a SpreadElementExpression.
         if (
-            node.transformFlags & TransformFlags.ContainsRestOrSpread ||
+            // eslint-disable-next-line no-constant-condition
+            true ||
             node.expression.kind === SyntaxKind.SuperKeyword ||
             isSuperProperty(skipOuterExpressions(node.expression))
         ) {
@@ -4533,7 +4527,8 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             }
 
             let resultingCall: CallExpression | BinaryExpression;
-            if (node.transformFlags & TransformFlags.ContainsRestOrSpread) {
+            // eslint-disable-next-line no-constant-condition
+            if (true) {
                 // [source]
                 //      f(...a, b)
                 //      x.m(...a, b)

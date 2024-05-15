@@ -60,7 +60,6 @@ import {
     stableSort,
     SyntaxKind,
     textChanges,
-    TransformFlags,
     tryCast,
     UserPreferences,
 } from "./_namespaces/ts.js";
@@ -300,7 +299,7 @@ function removeUnusedImports(oldImports: readonly ImportDeclaration[], sourceFil
     const compilerOptions = program.getCompilerOptions();
     const jsxNamespace = typeChecker.getJsxNamespace(sourceFile);
     const jsxFragmentFactory = typeChecker.getJsxFragmentFactory(sourceFile);
-    const jsxElementsPresent = !!(sourceFile.transformFlags & TransformFlags.ContainsJsx);
+    const jsxElementsPresent = true; // !!(sourceFile.transformFlags & TransformFlags.ContainsJsx);
 
     const usedImports: ImportDeclaration[] = [];
 

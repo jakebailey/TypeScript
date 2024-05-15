@@ -11,7 +11,6 @@ import {
     SourceFile,
     SyntaxKind,
     TransformationContext,
-    TransformFlags,
     visitEachChild,
     visitNode,
     VisitResult,
@@ -35,9 +34,9 @@ export function transformES2016(context: TransformationContext): (x: SourceFile 
     }
 
     function visitor(node: Node): VisitResult<Node> {
-        if ((node.transformFlags & TransformFlags.ContainsES2016) === 0) {
-            return node;
-        }
+        // if ((node.transformFlags & TransformFlags.ContainsES2016) === 0) {
+        //     return node;
+        // }
         switch (node.kind) {
             case SyntaxKind.BinaryExpression:
                 return visitBinaryExpression(node as BinaryExpression);

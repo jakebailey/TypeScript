@@ -51,7 +51,6 @@ import {
     SwitchStatement,
     SyntaxKind,
     TransformationContext,
-    TransformFlags,
     transformNamedEvaluation,
     VariableDeclaration,
     VariableDeclarationList,
@@ -104,9 +103,9 @@ export function transformESNext(context: TransformationContext): (x: SourceFile 
     }
 
     function visitor(node: Node): VisitResult<Node> {
-        if ((node.transformFlags & TransformFlags.ContainsESNext) === 0) {
-            return node;
-        }
+        // if ((node.transformFlags & TransformFlags.ContainsESNext) === 0) {
+        //     return node;
+        // }
 
         switch (node.kind) {
             case SyntaxKind.SourceFile:

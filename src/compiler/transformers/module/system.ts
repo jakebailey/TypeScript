@@ -115,7 +115,6 @@ import {
     SyntaxKind,
     TextRange,
     TransformationContext,
-    TransformFlags,
     tryGetModuleNameFromFile,
     TryStatement,
     VariableDeclaration,
@@ -178,7 +177,7 @@ export function transformSystemModule(context: TransformationContext): (x: Sourc
      * @param node The SourceFile node.
      */
     function transformSourceFile(node: SourceFile) {
-        if (node.isDeclarationFile || !(isEffectiveExternalModule(node, compilerOptions) || node.transformFlags & TransformFlags.ContainsDynamicImport)) {
+        if (node.isDeclarationFile || !(isEffectiveExternalModule(node, compilerOptions))) {
             return node;
         }
 
@@ -394,9 +393,7 @@ export function transformSystemModule(context: TransformationContext): (x: Sourc
         insertStatementsAfterStandardPrologue(statements, endLexicalEnvironment());
 
         const exportStarFunction = addExportStarIfNeeded(statements)!; // TODO: GH#18217
-        const modifiers = node.transformFlags & TransformFlags.ContainsAwait ?
-            factory.createModifiersFromModifierFlags(ModifierFlags.Async) :
-            undefined;
+        const modifiers = factory.createModifiersFromModifierFlags(ModifierFlags.Async); // TODO: uh oh
         const moduleObject = factory.createObjectLiteralExpression([
             factory.createPropertyAssignment("setters", createSettersArray(exportStarFunction, dependencyGroups)),
             factory.createPropertyAssignment(
@@ -1555,9 +1552,9 @@ export function transformSystemModule(context: TransformationContext): (x: Sourc
      * @param node The node to visit.
      */
     function visitorWorker(node: Node, valueIsDiscarded: boolean): VisitResult<Node> {
-        if (!(node.transformFlags & (TransformFlags.ContainsDestructuringAssignment | TransformFlags.ContainsDynamicImport | TransformFlags.ContainsUpdateExpressionForIdentifier))) {
-            return node;
-        }
+        // if (!(node.transformFlags & (TransformFlags.ContainsDestructuringAssignment | TransformFlags.ContainsDynamicImport | TransformFlags.ContainsUpdateExpressionForIdentifier))) {
+        //     return node;
+        // }
         switch (node.kind) {
             case SyntaxKind.ForStatement:
                 return visitForStatement(node as ForStatement, /*isTopLevel*/ false);

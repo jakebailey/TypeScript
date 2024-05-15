@@ -43,6 +43,7 @@ import {
     findLast,
     firstDefined,
     flatMap,
+    forEachChildRecursively,
     forEachKey,
     FunctionDeclaration,
     FutureSourceFile,
@@ -145,7 +146,6 @@ import {
     SyntaxKind,
     takeWhile,
     textChanges,
-    TransformFlags,
     tryCast,
     TypeAliasDeclaration,
     TypeChecker,
@@ -847,7 +847,26 @@ export function getStatementsToMove(context: RefactorContext): ToMove | undefine
 
 /** @internal */
 export function containsJsx(statements: readonly Statement[] | undefined) {
-    return find(statements, statement => !!(statement.transformFlags & TransformFlags.ContainsJsx));
+    return find(statements, statement =>
+        !!forEachChildRecursively(statement, node => {
+            switch (node.kind) {
+                case SyntaxKind.JsxElement:
+                case SyntaxKind.JsxSelfClosingElement:
+                case SyntaxKind.JsxOpeningElement:
+                case SyntaxKind.JsxClosingElement:
+                case SyntaxKind.JsxFragment:
+                case SyntaxKind.JsxOpeningFragment:
+                case SyntaxKind.JsxClosingFragment:
+                case SyntaxKind.JsxAttribute:
+                case SyntaxKind.JsxAttributes:
+                case SyntaxKind.JsxSpreadAttribute:
+                case SyntaxKind.JsxExpression:
+                case SyntaxKind.JsxNamespacedName:
+                    return node;
+                default:
+                    return undefined;
+            }
+        }));
 }
 
 function isAllowedStatementToMove(statement: Statement): boolean {
@@ -922,7 +941,7 @@ export function getUsageInfo(oldFile: SourceFile, toMove: readonly Statement[], 
         if (contains(toMove, statement)) continue;
 
         // jsxNamespaceSymbol will only be set iff it is in oldImportsNeededByTargetFile.
-        if (jsxNamespaceSymbol && !!(statement.transformFlags & TransformFlags.ContainsJsx)) {
+        if (jsxNamespaceSymbol) {
             unusedImportsFromOldFile.delete(jsxNamespaceSymbol);
         }
 

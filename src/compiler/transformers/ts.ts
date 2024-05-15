@@ -191,7 +191,6 @@ import {
     takeWhile,
     TextRange,
     TransformationContext,
-    TransformFlags,
     VariableDeclaration,
     VariableStatement,
     visitEachChild,
@@ -391,9 +390,9 @@ export function transformTypeScript(context: TransformationContext) {
      * @param node The node to visit.
      */
     function visitorWorker(node: Node): VisitResult<Node | undefined> {
-        if (node.transformFlags & TransformFlags.ContainsTypeScript) {
-            return visitTypeScript(node);
-        }
+        // if (node.transformFlags & TransformFlags.ContainsTypeScript) {
+        // }
+        return visitTypeScript(node);
         return node;
     }
 
@@ -482,12 +481,12 @@ export function transformTypeScript(context: TransformationContext) {
         if (isElisionBlocked(node)) {
             // We do not reuse `visitorWorker`, as the ellidable statement syntax kinds are technically unrecognized by
             // the switch-case in `visitTypeScript`, and will trigger debug failures when debug verbosity is turned up.
-            if (node.transformFlags & TransformFlags.ContainsTypeScript) {
-                // This node contains TypeScript, so we should visit its children.
-                return visitEachChild(node, visitor, context);
-            }
+            // if (node.transformFlags & TransformFlags.ContainsTypeScript) {
+            //     // This node contains TypeScript, so we should visit its children.
+            // }
+            return visitEachChild(node, visitor, context);
             // Otherwise, we can just return the node
-            return node;
+            // return node;
         }
         switch (node.kind) {
             case SyntaxKind.ImportDeclaration:
@@ -528,7 +527,7 @@ export function transformTypeScript(context: TransformationContext) {
             // do not emit ES6 imports and exports since they are illegal inside a namespace
             return undefined;
         }
-        else if (node.transformFlags & TransformFlags.ContainsTypeScript || hasSyntacticModifier(node, ModifierFlags.Export)) {
+        else {
             return visitTypeScript(node);
         }
 
@@ -868,8 +867,9 @@ export function transformTypeScript(context: TransformationContext) {
         return facts;
     }
 
-    function hasTypeScriptClassSyntax(node: Node) {
-        return !!(node.transformFlags & TransformFlags.ContainsTypeScriptClassSyntax);
+    function hasTypeScriptClassSyntax(_node: Node) {
+        return true;
+        // return !!(node.transformFlags & TransformFlags.ContainsTypeScriptClassSyntax);
     }
 
     function isClassLikeDeclarationWithTypeScriptSyntax(node: ClassLikeDeclaration) {
@@ -1466,9 +1466,9 @@ export function transformTypeScript(context: TransformationContext) {
     }
 
     function visitMethodDeclaration(node: MethodDeclaration, parent: ClassLikeDeclaration | ObjectLiteralExpression) {
-        if (!(node.transformFlags & TransformFlags.ContainsTypeScript)) {
-            return node;
-        }
+        // if (!(node.transformFlags & TransformFlags.ContainsTypeScript)) {
+        //     return node;
+        // }
 
         if (!shouldEmitFunctionLikeDeclaration(node)) {
             return undefined;
@@ -1504,9 +1504,9 @@ export function transformTypeScript(context: TransformationContext) {
     }
 
     function visitGetAccessor(node: GetAccessorDeclaration, parent: ClassLikeDeclaration | ObjectLiteralExpression) {
-        if (!(node.transformFlags & TransformFlags.ContainsTypeScript)) {
-            return node;
-        }
+        // if (!(node.transformFlags & TransformFlags.ContainsTypeScript)) {
+        //     return node;
+        // }
 
         if (!shouldEmitAccessorDeclaration(node)) {
             return undefined;
@@ -1529,9 +1529,9 @@ export function transformTypeScript(context: TransformationContext) {
     }
 
     function visitSetAccessor(node: SetAccessorDeclaration, parent: ClassLikeDeclaration | ObjectLiteralExpression) {
-        if (!(node.transformFlags & TransformFlags.ContainsTypeScript)) {
-            return node;
-        }
+        // if (!(node.transformFlags & TransformFlags.ContainsTypeScript)) {
+        //     return node;
+        // }
 
         if (!shouldEmitAccessorDeclaration(node)) {
             return undefined;
