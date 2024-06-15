@@ -190,7 +190,7 @@ export class FileSystem {
 
     private _filemeta(node: Inode): collections.Metadata {
         if (!node.meta) {
-            const parentMeta = node.shadowRoot && this._shadowRoot && this._shadowRoot._filemeta(node.shadowRoot);
+            const parentMeta = node.shadowRoot && this._shadowRoot?._filemeta(node.shadowRoot);
             node.meta = new collections.Metadata(parentMeta);
         }
         return node.meta;

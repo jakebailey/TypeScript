@@ -254,7 +254,7 @@ class CompilerTest {
             }
         }
 
-        if (tsConfigOptions && tsConfigOptions.configFilePath !== undefined) {
+        if (tsConfigOptions?.configFilePath !== undefined) {
             tsConfigOptions.configFile!.fileName = tsConfigOptions.configFilePath;
         }
 

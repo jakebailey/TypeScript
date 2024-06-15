@@ -698,7 +698,7 @@ export function resolveTypeReferenceDirective(typeReferenceDirectiveName: string
                 }
                 if (!isExternalModuleNameRelative(typeReferenceDirectiveName)) {
                     const searchResult = loadModuleFromNearestNodeModulesDirectory(Extensions.Declaration, typeReferenceDirectiveName, initialLocationForSecondaryLookup, moduleResolutionState, /*cache*/ undefined, /*redirectedReference*/ undefined);
-                    result = searchResult && searchResult.value;
+                    result = searchResult?.value;
                 }
                 else {
                     const { path: candidate } = normalizePathForCJSResolution(initialLocationForSecondaryLookup, typeReferenceDirectiveName);
@@ -2198,7 +2198,7 @@ function tryFileLookup(fileName: string, onlyRecordFailures: boolean, state: Mod
 
 function loadNodeModuleFromDirectory(extensions: Extensions, candidate: string, onlyRecordFailures: boolean, state: ModuleResolutionState, considerPackageJson = true) {
     const packageInfo = considerPackageJson ? getPackageJsonInfo(candidate, onlyRecordFailures, state) : undefined;
-    const packageJsonContent = packageInfo && packageInfo.contents.packageJsonContent;
+    const packageJsonContent = packageInfo?.contents.packageJsonContent;
     const versionPaths = packageInfo && getVersionPathsOfPackageJsonInfo(packageInfo, state);
     return withPackageId(packageInfo, loadNodeModuleFromDirectoryWorker(extensions, candidate, onlyRecordFailures, state, packageJsonContent, versionPaths), state);
 }
@@ -3085,7 +3085,7 @@ function loadModuleFromSpecificNodeModulesDirectory(extensions: Extensions, modu
                 candidate,
                 onlyRecordFailures,
                 state,
-                packageInfo && packageInfo.contents.packageJsonContent,
+                packageInfo?.contents.packageJsonContent,
                 packageInfo && getVersionPathsOfPackageJsonInfo(packageInfo, state),
             );
         if (
@@ -3201,7 +3201,7 @@ export function unmangleScopedPackageName(typesPackageName: string): string {
 }
 
 function tryFindNonRelativeModuleNameInCache(cache: NonRelativeModuleNameResolutionCache | undefined, moduleName: string, mode: ResolutionMode, containingDirectory: string, redirectedReference: ResolvedProjectReference | undefined, state: ModuleResolutionState): SearchResult<Resolved> {
-    const result = cache && cache.getFromNonRelativeNameCache(moduleName, mode, containingDirectory, redirectedReference);
+    const result = cache?.getFromNonRelativeNameCache(moduleName, mode, containingDirectory, redirectedReference);
     if (result) {
         if (state.traceEnabled) {
             trace(state.host, Diagnostics.Resolution_for_module_0_was_found_in_cache_from_location_1, moduleName, containingDirectory);
@@ -3246,7 +3246,7 @@ export function classicNameResolver(moduleName: string, containingFile: string, 
     // No originalPath because classic resolution doesn't resolve realPath
     return createResolvedModuleWithFailedLookupLocationsHandlingSymlink(
         moduleName,
-        resolved && resolved.value,
+        resolved?.value,
         resolved?.value && pathContainsNodeModules(resolved.value.path),
         failedLookupLocations,
         affectingLocations,

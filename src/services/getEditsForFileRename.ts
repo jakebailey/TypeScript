@@ -81,7 +81,7 @@ export type PathUpdater = (path: string) => string | undefined;
 export function getPathUpdater(oldFileOrDirPath: string, newFileOrDirPath: string, getCanonicalFileName: GetCanonicalFileName, sourceMapper: SourceMapper | undefined): PathUpdater {
     const canonicalOldPath = getCanonicalFileName(oldFileOrDirPath);
     return path => {
-        const originalPath = sourceMapper && sourceMapper.tryGetSourcePosition({ fileName: path, pos: 0 });
+        const originalPath = sourceMapper?.tryGetSourcePosition({ fileName: path, pos: 0 });
         const updatedPath = getUpdatedPath(originalPath ? originalPath.fileName : path);
         return originalPath
             ? updatedPath === undefined ? undefined : makeCorrespondingRelativeChange(originalPath.fileName, updatedPath, path, getCanonicalFileName)
@@ -248,7 +248,7 @@ function getSourceFileToImport(
         const mode = program.getModeForUsageLocation(importingSourceFile, importLiteral);
         const resolved = host.resolveModuleNameLiterals || !host.resolveModuleNames ?
             program.getResolvedModuleFromModuleSpecifier(importLiteral, importingSourceFile) :
-            host.getResolvedModuleWithFailedLookupLocationsFromCache && host.getResolvedModuleWithFailedLookupLocationsFromCache(importLiteral.text, importingSourceFile.fileName, mode);
+            host.getResolvedModuleWithFailedLookupLocationsFromCache?.(importLiteral.text, importingSourceFile.fileName, mode);
         return getSourceFileToImportFromResolved(importLiteral, resolved, oldToNew, program.getSourceFiles());
     }
 }

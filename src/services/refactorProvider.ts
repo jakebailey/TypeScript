@@ -33,5 +33,5 @@ export function getApplicableRefactors(context: RefactorContext, includeInteract
 /** @internal */
 export function getEditsForRefactor(context: RefactorContext, refactorName: string, actionName: string, interactiveRefactorArguments?: InteractiveRefactorArguments): RefactorEditInfo | undefined {
     const refactor = refactors.get(refactorName);
-    return refactor && refactor.getEditsForAction(context, actionName, interactiveRefactorArguments);
+    return refactor?.getEditsForAction(context, actionName, interactiveRefactorArguments);
 }

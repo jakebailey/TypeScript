@@ -302,7 +302,7 @@ function updateParameters(
                 declaration.modifiers,
                 declaration.dotDotDotToken,
                 declaration.name,
-                prev && prev.questionToken ? factory.createToken(SyntaxKind.QuestionToken) : declaration.questionToken,
+                prev?.questionToken ? factory.createToken(SyntaxKind.QuestionToken) : declaration.questionToken,
                 getParameterType(importAdder, declaration.type, scriptTarget),
                 declaration.initializer,
             ),

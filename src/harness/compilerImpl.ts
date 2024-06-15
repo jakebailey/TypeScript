@@ -180,12 +180,12 @@ export class CompilationResult {
 
     public getInputs(path: string): readonly documents.TextDocument[] | undefined {
         const outputs = this.getInputsAndOutputs(path);
-        return outputs && outputs.inputs;
+        return outputs?.inputs;
     }
 
     public getOutput(path: string, kind: "js" | "dts" | "map"): documents.TextDocument | undefined {
         const outputs = this.getInputsAndOutputs(path);
-        return outputs && outputs[kind];
+        return outputs?.[kind];
     }
 
     public getSourceMapRecord(): string | undefined {

@@ -378,7 +378,7 @@ function entryToFunctionCall(entry: FindAllReferences.NodeEntry): CallExpression
             // x.foo(...)
             case SyntaxKind.PropertyAccessExpression:
                 const propertyAccessExpression = tryCast(parent, isPropertyAccessExpression);
-                if (propertyAccessExpression && propertyAccessExpression.parent && propertyAccessExpression.name === functionReference) {
+                if (propertyAccessExpression?.parent && propertyAccessExpression.name === functionReference) {
                     const callOrNewExpression = tryCast(propertyAccessExpression.parent, isCallOrNewExpression);
                     if (callOrNewExpression && callOrNewExpression.expression === propertyAccessExpression) {
                         return callOrNewExpression;
@@ -388,7 +388,7 @@ function entryToFunctionCall(entry: FindAllReferences.NodeEntry): CallExpression
             // x["foo"](...)
             case SyntaxKind.ElementAccessExpression:
                 const elementAccessExpression = tryCast(parent, isElementAccessExpression);
-                if (elementAccessExpression && elementAccessExpression.parent && elementAccessExpression.argumentExpression === functionReference) {
+                if (elementAccessExpression?.parent && elementAccessExpression.argumentExpression === functionReference) {
                     const callOrNewExpression = tryCast(elementAccessExpression.parent, isCallOrNewExpression);
                     if (callOrNewExpression && callOrNewExpression.expression === elementAccessExpression) {
                         return callOrNewExpression;

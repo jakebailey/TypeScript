@@ -2026,7 +2026,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
      *                                          synthesized call to `super`
      */
     function shouldAddRestParameter(node: ParameterDeclaration | undefined, inConstructorWithSynthesizedSuper: boolean): node is ParameterDeclaration {
-        return !!(node && node.dotDotDotToken && !inConstructorWithSynthesizedSuper);
+        return !!(node?.dotDotDotToken && !inConstructorWithSynthesizedSuper);
     }
 
     /**
@@ -4491,7 +4491,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             factory.restoreOuterExpressions(
                 variable.initializer,
                 factory.restoreOuterExpressions(
-                    aliasAssignment && aliasAssignment.right,
+                    aliasAssignment?.right,
                     factory.updateCallExpression(
                         call,
                         factory.restoreOuterExpressions(

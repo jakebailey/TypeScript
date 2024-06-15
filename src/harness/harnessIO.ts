@@ -571,7 +571,7 @@ export namespace Compiler {
         const formatDiagnsoticHost = {
             getCurrentDirectory: () => options && options.currentDirectory ? options.currentDirectory : "",
             getNewLine: () => IO.newLine(),
-            getCanonicalFileName: ts.createGetCanonicalFileName(options && options.caseSensitive !== undefined ? options.caseSensitive : true),
+            getCanonicalFileName: ts.createGetCanonicalFileName(options?.caseSensitive !== undefined ? options.caseSensitive : true),
         };
 
         function outputErrorText(error: ts.Diagnostic) {

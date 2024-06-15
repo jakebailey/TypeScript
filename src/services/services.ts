@@ -2448,7 +2448,7 @@ export function createLanguageService(
         synchronizeHostData();
 
         const sourceFile = getValidSourceFile(fileName);
-        const customTransformers = host.getCustomTransformers && host.getCustomTransformers();
+        const customTransformers = host.getCustomTransformers?.();
         return getFileEmitOutput(program, sourceFile, !!emitOnlyDtsFiles, cancellationToken, customTransformers, forceDtsEmit);
     }
 

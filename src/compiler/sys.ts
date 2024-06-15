@@ -1059,7 +1059,7 @@ export function createSystemWatchFunctions({
     }
 
     function updateOptionsForWatchFile(options: WatchOptions | undefined, useNonPollingWatchers?: boolean): WatchOptions {
-        if (options && options.watchFile !== undefined) return options;
+        if (options?.watchFile !== undefined) return options;
         switch (tscWatchFile) {
             case "PriorityPollingInterval":
                 // Use polling interval based on priority when create watch using host.watchFile
@@ -1167,7 +1167,7 @@ export function createSystemWatchFunctions({
     }
 
     function updateOptionsForWatchDirectory(options: WatchOptions | undefined): WatchOptions {
-        if (options && options.watchDirectory !== undefined) return options;
+        if (options?.watchDirectory !== undefined) return options;
         switch (tscWatchDirectory) {
             case "RecursiveDirectoryUsingFsWatchFile":
                 // Use polling interval based on priority when create watch using host.watchFile

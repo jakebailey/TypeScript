@@ -288,7 +288,7 @@ export function getEmitHelpers(node: Node): EmitHelper[] | undefined {
  */
 export function moveEmitHelpers(source: Node, target: Node, predicate: (helper: EmitHelper) => boolean) {
     const sourceEmitNode = source.emitNode;
-    const sourceEmitHelpers = sourceEmitNode && sourceEmitNode.helpers;
+    const sourceEmitHelpers = sourceEmitNode?.helpers;
     if (!some(sourceEmitHelpers)) return;
 
     const targetEmitNode = getOrCreateEmitNode(target);

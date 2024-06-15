@@ -4215,11 +4215,11 @@ export function createPrinter(printerOptions: PrinterOptions = {}, handlers: Pri
             writeComment(`/// <reference no-default-lib="true"/>`);
             writeLine();
         }
-        if (currentSourceFile && currentSourceFile.moduleName) {
+        if (currentSourceFile?.moduleName) {
             writeComment(`/// <amd-module name="${currentSourceFile.moduleName}" />`);
             writeLine();
         }
-        if (currentSourceFile && currentSourceFile.amdDependencies) {
+        if (currentSourceFile?.amdDependencies) {
             for (const dep of currentSourceFile.amdDependencies) {
                 if (dep.name) {
                     writeComment(`/// <amd-dependency name="${dep.name}" path="${dep.path}" />`);
@@ -6171,10 +6171,10 @@ export function createPrinter(printerOptions: PrinterOptions = {}, handlers: Pri
             return emitCallback(token, writer, tokenPos);
         }
 
-        const emitNode = node && node.emitNode;
-        const emitFlags = emitNode && emitNode.flags || EmitFlags.None;
-        const range = emitNode && emitNode.tokenSourceMapRanges && emitNode.tokenSourceMapRanges[token];
-        const source = range && range.source || sourceMapSource;
+        const emitNode = node?.emitNode;
+        const emitFlags = emitNode?.flags ?? EmitFlags.None;
+        const range = emitNode?.tokenSourceMapRanges?.[token];
+        const source = range?.source || sourceMapSource;
 
         tokenPos = skipSourceTrivia(source, range ? range.pos : tokenPos);
         if ((emitFlags & EmitFlags.NoTokenLeadingSourceMaps) === 0 && tokenPos >= 0) {

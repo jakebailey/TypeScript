@@ -3772,7 +3772,7 @@ export interface PackageJsonImportFilter {
 /** @internal */
 export function createPackageJsonImportFilter(fromFile: SourceFile | FutureSourceFile, preferences: UserPreferences, host: LanguageServiceHost): PackageJsonImportFilter {
     const packageJsons = (
-        (host.getPackageJsonsVisibleToFile && host.getPackageJsonsVisibleToFile(fromFile.fileName)) || getPackageJsonsVisibleToFile(fromFile.fileName, host)
+        (host.getPackageJsonsVisibleToFile?.(fromFile.fileName)) || getPackageJsonsVisibleToFile(fromFile.fileName, host)
     ).filter(p => p.parseable);
 
     let usesNodeCoreModules: boolean | undefined;
@@ -4249,7 +4249,7 @@ export function newCaseClauseTracker(checker: TypeChecker, clauses: readonly (Ca
             }
             else {
                 const symbol = checker.getSymbolAtLocation(clause.expression);
-                if (symbol && symbol.valueDeclaration && isEnumMember(symbol.valueDeclaration)) {
+                if (symbol?.valueDeclaration && isEnumMember(symbol.valueDeclaration)) {
                     const enumValue = checker.getConstantValue(symbol.valueDeclaration);
                     if (enumValue !== undefined) {
                         addValue(enumValue);

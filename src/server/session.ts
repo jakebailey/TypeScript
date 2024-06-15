@@ -1528,8 +1528,8 @@ export class Session<TMessage = string> implements EventSender {
                 category: diagnosticCategoryName(d),
                 code: d.code,
                 source: d.source,
-                startLocation: scriptInfo && scriptInfo.positionToLineOffset(d.start!), // TODO: GH#18217
-                endLocation: scriptInfo && scriptInfo.positionToLineOffset(d.start! + d.length!),
+                startLocation: scriptInfo?.positionToLineOffset(d.start!), // TODO: GH#18217
+                endLocation: scriptInfo?.positionToLineOffset(d.start! + d.length!),
                 reportsUnnecessary: d.reportsUnnecessary,
                 reportsDeprecated: d.reportsDeprecated,
                 relatedInformation: map(d.relatedInformation, formatRelatedInformation),
@@ -2140,7 +2140,7 @@ export class Session<TMessage = string> implements EventSender {
         const scriptInfo = defaultProject.getScriptInfoForNormalizedPath(file)!;
         const nameInfo = defaultProject.getLanguageService().getQuickInfoAtPosition(file, position);
         const symbolDisplayString = nameInfo ? displayPartsToString(nameInfo.displayParts) : "";
-        const nameSpan = nameInfo && nameInfo.textSpan;
+        const nameSpan = nameInfo?.textSpan;
         const symbolStartOffset = nameSpan ? scriptInfo.positionToLineOffset(nameSpan.start).offset : 0;
         const symbolName = nameSpan ? scriptInfo.getSnapshot().getText(nameSpan.start, textSpanEnd(nameSpan)) : "";
         const refs: readonly protocol.ReferencesResponseItem[] = flatMap(references, referencedSymbol => {

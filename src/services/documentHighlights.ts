@@ -195,7 +195,7 @@ export namespace DocumentHighlights {
         }
 
         function highlightSpans(nodes: readonly Node[] | undefined): HighlightSpan[] | undefined {
-            return nodes && nodes.map(node => getHighlightSpanForNode(node, sourceFile));
+            return nodes?.map(node => getHighlightSpanForNode(node, sourceFile));
         }
     }
 

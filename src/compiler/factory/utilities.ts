@@ -697,7 +697,7 @@ export function startOnNewLine<T extends Node>(node: T): T {
 export function getExternalHelpersModuleName(node: SourceFile) {
     const parseNode = getOriginalNode(node, isSourceFile);
     const emitNode = parseNode && parseNode.emitNode;
-    return emitNode && emitNode.externalHelpersModuleName;
+    return emitNode?.externalHelpersModuleName;
 }
 
 /** @internal */

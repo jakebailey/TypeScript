@@ -1408,7 +1408,7 @@ export namespace Core {
     function getNonModuleSymbolOfMergedModuleSymbol(symbol: Symbol) {
         if (!(symbol.flags & (SymbolFlags.Module | SymbolFlags.Transient))) return undefined;
         const decl = symbol.declarations && find(symbol.declarations, d => !isSourceFile(d) && !isModuleDeclaration(d));
-        return decl && decl.symbol;
+        return decl?.symbol;
     }
 
     /**
@@ -2183,7 +2183,7 @@ export namespace Core {
      */
     function findOwnConstructorReferences(classSymbol: Symbol, sourceFile: SourceFile, addNode: (node: Node) => void): void {
         const constructorSymbol = getClassConstructorSymbol(classSymbol);
-        if (constructorSymbol && constructorSymbol.declarations) {
+        if (constructorSymbol?.declarations) {
             for (const decl of constructorSymbol.declarations) {
                 const ctrKeyword = findChildOfKind(decl, SyntaxKind.ConstructorKeyword, sourceFile)!;
                 Debug.assert(decl.kind === SyntaxKind.Constructor && !!ctrKeyword);
@@ -2209,13 +2209,13 @@ export namespace Core {
     }
 
     function getClassConstructorSymbol(classSymbol: Symbol): Symbol | undefined {
-        return classSymbol.members && classSymbol.members.get(InternalSymbolName.Constructor);
+        return classSymbol.members?.get(InternalSymbolName.Constructor);
     }
 
     /** Find references to `super` in the constructor of an extending class.  */
     function findSuperConstructorAccesses(classDeclaration: ClassLikeDeclaration, addNode: (node: Node) => void): void {
         const constructor = getClassConstructorSymbol(classDeclaration.symbol);
-        if (!(constructor && constructor.declarations)) {
+        if (!(constructor?.declarations)) {
             return;
         }
 

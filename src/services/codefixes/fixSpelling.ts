@@ -119,7 +119,7 @@ function getInfo(sourceFile: SourceFile, pos: number, context: CodeFixContextBas
         Debug.assertNode(node, isIdentifier, "Expected an identifier for spelling (import)");
         const importDeclaration = findAncestor(node, isImportDeclaration)!;
         const resolvedSourceFile = getResolvedSourceFileFromImportDeclaration(context, importDeclaration, sourceFile);
-        if (resolvedSourceFile && resolvedSourceFile.symbol) {
+        if (resolvedSourceFile?.symbol) {
             suggestedSymbol = checker.getSuggestedSymbolForNonexistentModule(node, resolvedSourceFile.symbol);
         }
     }

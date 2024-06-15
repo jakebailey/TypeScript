@@ -477,7 +477,7 @@ function getSymbolDisplayPartsDocumentationAndSymbolKindWorker(typeChecker: Type
     if (symbolFlags & SymbolFlags.Module && !isThisExpression) {
         prefixNextMeaning();
         const declaration = getDeclarationOfKind<ModuleDeclaration>(symbol, SyntaxKind.ModuleDeclaration);
-        const isNamespace = declaration && declaration.name && declaration.name.kind === SyntaxKind.Identifier;
+        const isNamespace = declaration?.name && declaration.name.kind === SyntaxKind.Identifier;
         displayParts.push(keywordPart(isNamespace ? SyntaxKind.NamespaceKeyword : SyntaxKind.ModuleKeyword));
         displayParts.push(spacePart());
         addFullSymbolName(symbol);

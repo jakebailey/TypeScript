@@ -373,7 +373,7 @@ export function updateImportsInOtherFiles(
 function getNamespaceLikeImport(node: SupportedImport): Identifier | undefined {
     switch (node.kind) {
         case SyntaxKind.ImportDeclaration:
-            return node.importClause && node.importClause.namedBindings && node.importClause.namedBindings.kind === SyntaxKind.NamespaceImport ?
+            return node.importClause?.namedBindings && node.importClause.namedBindings.kind === SyntaxKind.NamespaceImport ?
                 node.importClause.namedBindings.name : undefined;
         case SyntaxKind.ImportEqualsDeclaration:
             return node.name;
@@ -1074,7 +1074,7 @@ function moveStatementsToTargetFile(changes: textChanges.ChangeTracker, program:
                     const exportDeclaration = firstDefined(targetDeclarations, d =>
                         isExportDeclaration(d) ? d :
                             isExportSpecifier(d) ? tryCast(d.parent.parent, isExportDeclaration) : undefined);
-                    if (exportDeclaration && exportDeclaration.moduleSpecifier) {
+                    if (exportDeclaration?.moduleSpecifier) {
                         targetToSourceExports.set(exportDeclaration, (targetToSourceExports.get(exportDeclaration) || new Set()).add(declaration));
                     }
                 });
@@ -1130,8 +1130,8 @@ export function getExistingLocals(sourceFile: SourceFile, statements: readonly S
     for (const moduleSpecifier of sourceFile.imports) {
         const declaration = importFromModuleSpecifier(moduleSpecifier);
         if (
-            isImportDeclaration(declaration) && declaration.importClause &&
-            declaration.importClause.namedBindings && isNamedImports(declaration.importClause.namedBindings)
+            isImportDeclaration(declaration) &&
+            declaration.importClause?.namedBindings && isNamedImports(declaration.importClause.namedBindings)
         ) {
             for (const e of declaration.importClause.namedBindings.elements) {
                 const symbol = checker.getSymbolAtLocation(e.propertyName || e.name);

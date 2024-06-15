@@ -2635,7 +2635,7 @@ export function createNodeFactory(flags: NodeFactoryFlags, baseFactory: BaseNode
         const node = createBaseNode<ImportTypeNode>(SyntaxKind.ImportType);
         node.argument = argument;
         node.attributes = attributes;
-        if (node.assertions && node.assertions.assertClause && node.attributes) {
+        if (node.assertions?.assertClause && node.attributes) {
             (node.assertions as Mutable<ImportTypeAssertionContainer>).assertClause = node.attributes;
         }
         node.qualifier = qualifier;

@@ -2910,7 +2910,7 @@ export class ConfiguredProject extends Project {
     /** @internal */
     override getResolvedProjectReferenceToRedirect(fileName: string): ResolvedProjectReference | undefined {
         const program = this.getCurrentProgram();
-        return program && program.getResolvedProjectReferenceToRedirect(fileName);
+        return program?.getResolvedProjectReferenceToRedirect(fileName);
     }
 
     /** @internal */

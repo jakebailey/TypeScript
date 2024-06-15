@@ -2242,7 +2242,7 @@ export function createProgram(rootNamesOrOptions: readonly string[] | CreateProg
         let reusedNames: StringLiteralLike[] | undefined;
         /** A transient placeholder used to mark predicted resolution in the result list. */
         const predictedToResolveToAmbientModuleMarker: ResolvedModuleWithFailedLookupLocations = emptyResolution;
-        const oldSourceFile = oldProgram && oldProgram.getSourceFile(file.fileName);
+        const oldSourceFile = oldProgram?.getSourceFile(file.fileName);
 
         for (let i = 0; i < moduleNames.length; i++) {
             const moduleName = moduleNames[i];
@@ -2354,7 +2354,7 @@ export function createProgram(rootNamesOrOptions: readonly string[] | CreateProg
         let result: ResolvedTypeReferenceDirectiveWithFailedLookupLocations[] | undefined;
         let reusedNames: T[] | undefined;
         const containingSourceFile = !isString(containingFile) ? containingFile : undefined;
-        const oldSourceFile = !isString(containingFile) ? oldProgram && oldProgram.getSourceFile(containingFile.fileName) : undefined;
+        const oldSourceFile = !isString(containingFile) ? oldProgram?.getSourceFile(containingFile.fileName) : undefined;
         const canReuseResolutions = !isString(containingFile) ?
             containingFile === oldSourceFile && !hasInvalidatedResolutions(containingFile.path) :
             !hasInvalidatedResolutions(toPath(containingFile));

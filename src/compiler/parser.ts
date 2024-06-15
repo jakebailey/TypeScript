@@ -1403,7 +1403,7 @@ export function updateSourceFile(sourceFile: SourceFile, newText: string, textCh
 /** @internal */
 export function parseIsolatedJSDocComment(content: string, start?: number, length?: number) {
     const result = Parser.JSDocParser.parseIsolatedJSDocComment(content, start, length);
-    if (result && result.jsDoc) {
+    if (result?.jsDoc) {
         // because the jsDocComment was parsed out of the source file, it might
         // not be covered by the fixupParentReferences.
         Parser.fixupParentReferences(result.jsDoc);
@@ -9584,7 +9584,7 @@ namespace Parser {
                     if (hasChildren) {
                         const isArrayType = typeExpression && typeExpression.type.kind === SyntaxKind.ArrayType;
                         const jsdocTypeLiteral = factory.createJSDocTypeLiteral(jsDocPropertyTags, isArrayType);
-                        typeExpression = childTypeTag && childTypeTag.typeExpression && !isObjectOrObjectArrayTypeReference(childTypeTag.typeExpression.type) ?
+                        typeExpression = childTypeTag?.typeExpression && !isObjectOrObjectArrayTypeReference(childTypeTag.typeExpression.type) ?
                             childTypeTag.typeExpression :
                             finishNode(jsdocTypeLiteral, start);
                         end = typeExpression.end;

@@ -803,7 +803,7 @@ export function getEncodedSyntacticClassifications(cancellationToken: Cancellati
             // See if this is a doc comment.  If so, we'll classify certain portions of it
             // specially.
             const docCommentAndDiagnostics = parseIsolatedJSDocComment(sourceFile.text, start, width);
-            if (docCommentAndDiagnostics && docCommentAndDiagnostics.jsDoc) {
+            if (docCommentAndDiagnostics?.jsDoc) {
                 // TODO: This should be predicated on `token["kind"]` being compatible with `HasJSDoc["kind"]`
                 setParent(docCommentAndDiagnostics.jsDoc, token as HasJSDoc);
                 classifyJSDocComment(docCommentAndDiagnostics.jsDoc);

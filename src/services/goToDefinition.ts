@@ -166,7 +166,7 @@ export function getDefinitionAtPosition(program: Program, sourceFile: SourceFile
 
     if (node.kind === SyntaxKind.YieldKeyword) {
         const functionDeclaration = findAncestor(node, n => isFunctionLikeDeclaration(n));
-        const isGeneratorFunction = functionDeclaration && functionDeclaration.asteriskToken;
+        const isGeneratorFunction = functionDeclaration?.asteriskToken;
         return isGeneratorFunction ? [createDefinitionFromSignatureDeclaration(typeChecker, functionDeclaration)] : undefined;
     }
 
@@ -312,7 +312,7 @@ function getDefinitionFromObjectLiteralElement(typeChecker: TypeChecker, node: N
 
 function getDefinitionFromOverriddenMember(typeChecker: TypeChecker, node: Node) {
     const classElement = findAncestor(node, isClassElement);
-    if (!(classElement && classElement.name)) return;
+    if (!classElement?.name) return;
 
     const baseDeclaration = findAncestor(classElement, isClassLike);
     if (!baseDeclaration) return;
@@ -744,7 +744,7 @@ function tryGetSignatureDeclaration(typeChecker: TypeChecker, node: Node): Signa
     const callLike = getAncestorCallLikeExpression(node);
     const signature = callLike && typeChecker.getResolvedSignature(callLike);
     // Don't go to a function type, go to the value having that type.
-    return tryCast(signature && signature.declaration, (d): d is SignatureDeclaration => isFunctionLike(d) && !isFunctionTypeNode(d));
+    return tryCast(signature?.declaration, (d): d is SignatureDeclaration => isFunctionLike(d) && !isFunctionTypeNode(d));
 }
 
 function isJsxConstructorLike(node: Node): boolean {

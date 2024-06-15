@@ -309,7 +309,7 @@ function getInfo(sourceFile: SourceFile, tokenPos: number, errorCode: number, ch
         if (argIndex < 0) return undefined;
 
         const signature = checker.getResolvedSignature(parent.parent);
-        if (!(signature && signature.declaration && signature.parameters[argIndex])) return undefined;
+        if (!(signature?.declaration && signature.parameters[argIndex])) return undefined;
 
         const param = signature.parameters[argIndex].valueDeclaration;
         if (!(param && isParameter(param) && isIdentifier(param.name))) return undefined;

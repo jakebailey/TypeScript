@@ -297,7 +297,7 @@ function findImplementation(typeChecker: TypeChecker, node: FunctionLikeDeclarat
     }
     if (isFunctionDeclaration(node) || isMethodDeclaration(node)) {
         const symbol = getSymbolOfCallHierarchyDeclaration(typeChecker, node);
-        if (symbol && symbol.valueDeclaration && isFunctionLikeDeclaration(symbol.valueDeclaration) && symbol.valueDeclaration.body) {
+        if (symbol?.valueDeclaration && isFunctionLikeDeclaration(symbol.valueDeclaration) && symbol.valueDeclaration.body) {
             return symbol.valueDeclaration;
         }
         return undefined;
@@ -308,7 +308,7 @@ function findImplementation(typeChecker: TypeChecker, node: FunctionLikeDeclarat
 function findAllInitialDeclarations(typeChecker: TypeChecker, node: Exclude<CallHierarchyDeclaration, ClassStaticBlockDeclaration>) {
     const symbol = getSymbolOfCallHierarchyDeclaration(typeChecker, node);
     let declarations: CallHierarchyDeclaration[] | undefined;
-    if (symbol && symbol.declarations) {
+    if (symbol?.declarations) {
         const indices = indicesOf(symbol.declarations);
         const keys = map(symbol.declarations, decl => ({ file: decl.getSourceFile().fileName, pos: decl.pos }));
         indices.sort((a, b) => compareStringsCaseSensitive(keys[a].file, keys[b].file) || keys[a].pos - keys[b].pos);

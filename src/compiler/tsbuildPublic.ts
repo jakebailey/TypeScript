@@ -626,7 +626,7 @@ function createBuildOrder<T extends BuilderProgram>(state: SolutionBuilderState<
         temporaryMarks.set(projPath, true);
         circularityReportStack.push(configFileName);
         const parsed = parseConfigFile(state, configFileName, projPath);
-        if (parsed && parsed.projectReferences) {
+        if (parsed?.projectReferences) {
             for (const ref of parsed.projectReferences) {
                 const resolvedRefPath = resolveProjectName(state, ref.path);
                 visit(resolvedRefPath, inCircularContext || ref.circular);

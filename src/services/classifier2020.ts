@@ -226,7 +226,7 @@ function classifySymbol(symbol: Symbol, meaning: SemanticMeaning): TokenType | u
     else if (flags & SymbolFlags.TypeParameter) {
         return TokenType.typeParameter;
     }
-    let decl = symbol.valueDeclaration || symbol.declarations && symbol.declarations[0];
+    let decl = symbol.valueDeclaration || symbol.declarations?.[0];
     if (decl && isBindingElement(decl)) {
         decl = getDeclarationForBindingElement(decl);
     }

@@ -145,7 +145,7 @@ export function getImportNeedsImportStarHelper(node: ImportDeclaration): boolean
     if (!!getNamespaceDeclarationNode(node)) {
         return true;
     }
-    const bindings = node.importClause && node.importClause.namedBindings;
+    const bindings = node.importClause?.namedBindings;
     if (!bindings) {
         return false;
     }

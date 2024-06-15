@@ -305,7 +305,7 @@ function createImportAdderWorker(sourceFile: SourceFile | FutureSourceFile, prog
     function addImportForNonExistentExport(exportName: string, exportingFileName: string, exportKind: ExportKind, exportedMeanings: SymbolFlags, isImportUsageValidAsTypeOnly: boolean) {
         const exportingSourceFile = program.getSourceFile(exportingFileName);
         const useRequire = shouldUseRequire(sourceFile, program);
-        if (exportingSourceFile && exportingSourceFile.symbol) {
+        if (exportingSourceFile?.symbol) {
             const { fixes } = getImportFixes(
                 [{
                     exportKind,

@@ -1418,7 +1418,7 @@ export class ProjectService {
     /** @internal */
     getDocument(key: DocumentRegistryBucketKeyWithMode, path: Path): SourceFile | undefined {
         const info = this.getScriptInfoForPath(path);
-        return info && info.cacheSourceFile && info.cacheSourceFile.key === key ? info.cacheSourceFile.sourceFile : undefined;
+        return info?.cacheSourceFile && info.cacheSourceFile.key === key ? info.cacheSourceFile.sourceFile : undefined;
     }
 
     /** @internal */
@@ -1759,12 +1759,12 @@ export class ProjectService {
 
     getFormatCodeOptions(file: NormalizedPath) {
         const info = this.getScriptInfoForNormalizedPath(file);
-        return info && info.getFormatCodeSettings() || this.hostConfiguration.formatCodeOptions;
+        return info?.getFormatCodeSettings() || this.hostConfiguration.formatCodeOptions;
     }
 
     getPreferences(file: NormalizedPath): protocol.UserPreferences {
         const info = this.getScriptInfoForNormalizedPath(file);
-        return { ...this.hostConfiguration.preferences, ...info && info.getPreferences() };
+        return { ...this.hostConfiguration.preferences, ...info?.getPreferences() };
     }
 
     getHostFormatCodeOptions(): FormatCodeSettings {
@@ -3226,7 +3226,7 @@ export class ProjectService {
         const info = this.getScriptInfoForNormalizedPath(path);
         if (info) return info;
         const configProject = this.configuredProjects.get(this.toPath(uncheckedFileName));
-        return configProject && configProject.getCompilerOptions().configFile;
+        return configProject?.getCompilerOptions().configFile;
     }
 
     /** @internal */

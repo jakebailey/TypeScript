@@ -3771,7 +3771,7 @@ function hasExpandoValueProperty(node: ObjectLiteralExpression, isPrototypeAssig
  * @internal
  */
 export function getAssignedExpandoInitializer(node: Node | undefined): Expression | undefined {
-    if (node && node.parent && isBinaryExpression(node.parent) && node.parent.operatorToken.kind === SyntaxKind.EqualsToken) {
+    if (node?.parent && isBinaryExpression(node.parent) && node.parent.operatorToken.kind === SyntaxKind.EqualsToken) {
         const isPrototypeAssignment = isPrototypeAccess(node.parent.left);
         return getExpandoInitializer(node.parent.right, isPrototypeAssignment) ||
             getDefaultedExpandoInitializer(node.parent.left, node.parent.right, isPrototypeAssignment);
@@ -4260,7 +4260,7 @@ export function hasQuestionToken(node: Node) {
 /** @internal */
 export function isJSDocConstructSignature(node: Node) {
     const param = isJSDocFunctionType(node) ? firstOrUndefined(node.parameters) : undefined;
-    const name = tryCast(param && param.name, isIdentifier);
+    const name = tryCast(param?.name, isIdentifier);
     return !!name && name.escapedText === "new";
 }
 
@@ -4297,7 +4297,7 @@ export function getSingleInitializerOfVariableStatementOrPropertyDeclaration(nod
     switch (node.kind) {
         case SyntaxKind.VariableStatement:
             const v = getSingleVariableOfVariableStatement(node);
-            return v && v.initializer;
+            return v?.initializer;
         case SyntaxKind.PropertyDeclaration:
             return (node as PropertyDeclaration).initializer;
         case SyntaxKind.PropertyAssignment:
@@ -4450,7 +4450,7 @@ export function getJSDocCommentsAndTags(hostNode: Node, noCache?: boolean): read
     }
 
     let node: Node | undefined = hostNode;
-    while (node && node.parent) {
+    while (node?.parent) {
         if (hasJSDocNodes(node)) {
             result = addRange(result, filterOwnedJSDocTags(hostNode, node.jsDoc!));
         }
@@ -4547,7 +4547,7 @@ export function getParameterSymbolFromJSDoc(node: JSDocParameterTag): Symbol | u
         return undefined;
     }
     const parameter = find(decl.parameters, p => p.name.kind === SyntaxKind.Identifier && p.name.escapedText === name);
-    return parameter && parameter.symbol;
+    return parameter?.symbol;
 }
 
 /** @internal */
@@ -6623,7 +6623,7 @@ export function getSetAccessorValueParameter(accessor: SetAccessorDeclaration): 
  */
 export function getSetAccessorTypeAnnotationNode(accessor: SetAccessorDeclaration): TypeNode | undefined {
     const parameter = getSetAccessorValueParameter(accessor);
-    return parameter && parameter.type;
+    return parameter?.type;
 }
 
 /** @internal */
@@ -6742,7 +6742,7 @@ export function getEffectiveTypeAnnotationNode(node: Node): TypeNode | undefined
     if (isTypeAliasDeclaration(node)) return undefined; // has a .type, is not a type annotation
     const type = (node as HasType).type;
     if (type || !isInJSFile(node)) return type;
-    return isJSDocPropertyLikeTag(node) ? node.typeExpression && node.typeExpression.type : getJSDocType(node);
+    return isJSDocPropertyLikeTag(node) ? node.typeExpression?.type : getJSDocType(node);
 }
 
 /** @internal */
@@ -6758,7 +6758,7 @@ export function getTypeAnnotationNode(node: Node): TypeNode | undefined {
  */
 export function getEffectiveReturnTypeNode(node: SignatureDeclaration | JSDocSignature): TypeNode | undefined {
     return isJSDocSignature(node) ?
-        node.type && node.type.typeExpression && node.type.typeExpression.type :
+        node.type?.typeExpression?.type :
         node.type || (isInJSFile(node) ? getJSDocReturnType(node) : undefined);
 }
 
@@ -7578,7 +7578,7 @@ function getStringFromExpandedCharCodes(codes: number[]): string {
 
 /** @internal */
 export function base64encode(host: { base64encode?(input: string): string; } | undefined, input: string): string {
-    if (host && host.base64encode) {
+    if (host?.base64encode) {
         return host.base64encode(input);
     }
     return convertToBase64(input);
@@ -7586,7 +7586,7 @@ export function base64encode(host: { base64encode?(input: string): string; } | u
 
 /** @internal */
 export function base64decode(host: { base64decode?(input: string): string; } | undefined, input: string): string {
-    if (host && host.base64decode) {
+    if (host?.base64decode) {
         return host.base64decode(input);
     }
     const length = input.length;
@@ -9611,7 +9611,7 @@ export function matchFiles(path: string, extensions: readonly string[] | undefin
 
     const patterns = getFileMatcherPatterns(path, excludes, includes, useCaseSensitiveFileNames, currentDirectory);
 
-    const includeFileRegexes = patterns.includeFilePatterns && patterns.includeFilePatterns.map(pattern => getRegexFromPattern(pattern, useCaseSensitiveFileNames));
+    const includeFileRegexes = patterns.includeFilePatterns?.map(pattern => getRegexFromPattern(pattern, useCaseSensitiveFileNames));
     const includeDirectoryRegex = patterns.includeDirectoryPattern && getRegexFromPattern(patterns.includeDirectoryPattern, useCaseSensitiveFileNames);
     const excludeRegex = patterns.excludePattern && getRegexFromPattern(patterns.excludePattern, useCaseSensitiveFileNames);
 
@@ -10879,7 +10879,7 @@ export function getJSDocSatisfiesExpressionType(node: JSDocSatisfiesExpression) 
 /** @internal */
 export function tryGetJSDocSatisfiesTypeNode(node: Node) {
     const tag = getJSDocSatisfiesTag(node);
-    return tag && tag.typeExpression && tag.typeExpression.type;
+    return tag?.typeExpression.type;
 }
 
 /** @internal */
@@ -11421,7 +11421,7 @@ export function createNameResolver({
                     // in initializer expressions for instance member variables.
                     if (!isStatic(location)) {
                         const ctor = findConstructorDeclaration(location.parent as ClassLikeDeclaration);
-                        if (ctor && ctor.locals) {
+                        if (ctor?.locals) {
                             if (lookup(ctor.locals, name, meaning & SymbolFlags.Value)) {
                                 // Remember the property node, it will be used later to report appropriate error
                                 Debug.assertNode(location, isPropertyDeclaration);

@@ -3270,7 +3270,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
                     }
                 }
 
-                if (constructorSymbol && constructorSymbol.valueDeclaration) {
+                if (constructorSymbol?.valueDeclaration) {
                     // Declare a 'member' if the container is an ES5 class or ES6 constructor
                     constructorSymbol.members = constructorSymbol.members || createSymbolTable();
                     // It's acceptable for multiple 'this' assignments of the same identifier to occur
@@ -3355,7 +3355,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
 
     function bindObjectDefinePrototypeProperty(node: BindableObjectDefinePropertyCall) {
         const namespaceSymbol = lookupSymbolForPropertyAccess((node.arguments[0] as PropertyAccessExpression).expression as EntityNameExpression);
-        if (namespaceSymbol && namespaceSymbol.valueDeclaration) {
+        if (namespaceSymbol?.valueDeclaration) {
             // Ensure the namespace symbol becomes class-like
             addDeclarationToSymbol(namespaceSymbol, namespaceSymbol.valueDeclaration, SymbolFlags.Class);
         }
@@ -3446,7 +3446,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
                 }
             });
         }
-        if (containerIsClass && namespaceSymbol && namespaceSymbol.valueDeclaration) {
+        if (containerIsClass && namespaceSymbol?.valueDeclaration) {
             addDeclarationToSymbol(namespaceSymbol, namespaceSymbol.valueDeclaration, SymbolFlags.Class);
         }
         return namespaceSymbol;
@@ -3558,7 +3558,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
         }
         else {
             const symbol = lookupSymbolForPropertyAccess(node.expression);
-            return symbol && symbol.exports && symbol.exports.get(getElementOrPropertyAccessName(node));
+            return symbol?.exports?.get(getElementOrPropertyAccessName(node));
         }
     }
 
@@ -3576,7 +3576,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
             if (isPrivateIdentifier(name)) {
                 Debug.fail("unexpected PrivateIdentifier");
             }
-            return action(name, s && s.exports && s.exports.get(getElementOrPropertyAccessName(e)), s);
+            return action(name, s?.exports?.get(getElementOrPropertyAccessName(e)), s);
         }
     }
 

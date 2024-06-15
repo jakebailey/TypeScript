@@ -1194,7 +1194,7 @@ export function getJSDocSatisfiesTag(node: Node): JSDocSatisfiesTag | undefined 
 export function getJSDocTypeTag(node: Node): JSDocTypeTag | undefined {
     // We should have already issued an error if there were multiple type jsdocs, so just use the first one.
     const tag = getFirstJSDocTag(node, isJSDocTypeTag);
-    if (tag && tag.typeExpression && tag.typeExpression.type) {
+    if (tag?.typeExpression.type) {
         return tag;
     }
     return undefined;
@@ -1217,7 +1217,7 @@ export function getJSDocType(node: Node): TypeNode | undefined {
         tag = find(getJSDocParameterTags(node), tag => !!tag.typeExpression);
     }
 
-    return tag && tag.typeExpression && tag.typeExpression.type;
+    return tag?.typeExpression?.type;
 }
 
 /**
@@ -1228,15 +1228,15 @@ export function getJSDocType(node: Node): TypeNode | undefined {
  */
 export function getJSDocReturnType(node: Node): TypeNode | undefined {
     const returnTag = getJSDocReturnTag(node);
-    if (returnTag && returnTag.typeExpression) {
+    if (returnTag?.typeExpression) {
         return returnTag.typeExpression.type;
     }
     const typeTag = getJSDocTypeTag(node);
-    if (typeTag && typeTag.typeExpression) {
+    if (typeTag?.typeExpression) {
         const type = typeTag.typeExpression.type;
         if (isTypeLiteralNode(type)) {
             const sig = find(type.members, isCallSignatureDeclaration);
-            return sig && sig.type;
+            return sig?.type;
         }
         if (isFunctionTypeNode(type) || isJSDocFunctionType(type)) {
             return type.type;
@@ -2639,7 +2639,7 @@ export function hasRestParameter(s: SignatureDeclaration | JSDocSignature): bool
 }
 
 export function isRestParameter(node: ParameterDeclaration | JSDocParameterTag): boolean {
-    const type = isJSDocParameterTag(node) ? (node.typeExpression && node.typeExpression.type) : node.type;
+    const type = isJSDocParameterTag(node) ? node.typeExpression?.type : node.type;
     return (node as ParameterDeclaration).dotDotDotToken !== undefined || !!type && type.kind === SyntaxKind.JSDocVariadicType;
 }
 

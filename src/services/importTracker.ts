@@ -221,7 +221,7 @@ function getImportersForExport(
                     case SyntaxKind.ImportDeclaration:
                     case SyntaxKind.JSDocImportTag:
                         directImports.push(direct);
-                        const namedBindings = direct.importClause && direct.importClause.namedBindings;
+                        const namedBindings = direct.importClause?.namedBindings;
                         if (namedBindings && namedBindings.kind === SyntaxKind.NamespaceImport) {
                             handleNamespaceImport(direct, namedBindings.name, /*isReExport*/ false, /*alreadyAddedDirect*/ true);
                         }
@@ -525,7 +525,7 @@ function getDirectImportsMap(sourceFiles: readonly SourceFile[], checker: TypeCh
 function forEachPossibleImportOrExportStatement<T>(sourceFileLike: SourceFileLike, action: (statement: Statement) => T) {
     return forEach(sourceFileLike.kind === SyntaxKind.SourceFile ? sourceFileLike.statements : sourceFileLike.body!.statements, statement =>
         // TODO: GH#18217
-        action(statement) || (isAmbientModuleDeclaration(statement) && forEach(statement.body && statement.body.statements, action)));
+        action(statement) || (isAmbientModuleDeclaration(statement) && forEach(statement.body?.statements, action)));
 }
 
 /** Calls `action` for each import, re-export, or require() in a file. */

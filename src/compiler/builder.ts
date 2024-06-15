@@ -388,7 +388,7 @@ function createBuilderProgramState(
             // Implied formats dont match
             oldInfo.impliedFormat !== info.impliedFormat ||
             // Referenced files changed
-            !hasSameKeys(newReferences = referencedMap && referencedMap.getValues(sourceFilePath), oldReferencedMap && oldReferencedMap.getValues(sourceFilePath)) ||
+            !hasSameKeys(newReferences = referencedMap?.getValues(sourceFilePath), oldReferencedMap?.getValues(sourceFilePath)) ||
             // Referenced file was deleted in the new program
             newReferences && forEachKey(newReferences, path => !state.fileInfos.has(path) && oldState!.fileInfos.has(path))
         ) {
@@ -1620,7 +1620,7 @@ export function createBuilderProgram(
     { newProgram, host, oldProgram, configFileParsingDiagnostics }: BuilderCreationParameters,
 ) {
     // Return same program if underlying program doesnt change
-    let oldState = oldProgram && oldProgram.state;
+    let oldState = oldProgram?.state;
     if (oldState && newProgram === oldState.program && configFileParsingDiagnostics === newProgram.getConfigFileParsingDiagnostics()) {
         newProgram = undefined!;
         oldState = undefined;

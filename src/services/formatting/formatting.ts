@@ -274,8 +274,7 @@ function findImmediatelyPrecedingTokenOfKind(end: number, expectedTokenKind: Syn
 function findOutermostNodeWithinListLevel(node: Node | undefined) {
     let current = node;
     while (
-        current &&
-        current.parent &&
+        current?.parent &&
         current.parent.end === node!.end &&
         !isListElement(current.parent, current)
     ) {
