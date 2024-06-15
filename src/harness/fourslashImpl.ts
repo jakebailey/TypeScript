@@ -527,7 +527,7 @@ export class TestState {
     }
     private tryGetFileContent(fileName: string): string | undefined {
         const script = this.languageServiceAdapterHost.getScriptInfo(fileName);
-        return script && script.content;
+        return script?.content;
     }
 
     // Entry points from fourslash.ts

@@ -3652,7 +3652,7 @@ export function tryAndIgnoreErrors<T>(cb: () => T): T | undefined {
 
 /** @internal */
 export function tryIOAndConsumeErrors<T>(host: unknown, toApply: ((...a: any[]) => T) | undefined, ...args: any[]) {
-    return tryAndIgnoreErrors(() => toApply && toApply.apply(host, args));
+    return tryAndIgnoreErrors(() => toApply?.apply(host, args));
 }
 
 /** @internal */

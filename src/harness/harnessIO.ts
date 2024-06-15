@@ -569,7 +569,7 @@ export namespace Compiler {
         }
 
         const formatDiagnsoticHost = {
-            getCurrentDirectory: () => options && options.currentDirectory ? options.currentDirectory : "",
+            getCurrentDirectory: () => options?.currentDirectory ?? "",
             getNewLine: () => IO.newLine(),
             getCanonicalFileName: ts.createGetCanonicalFileName(options?.caseSensitive !== undefined ? options.caseSensitive : true),
         };
@@ -625,7 +625,7 @@ export namespace Compiler {
             // Filter down to the errors in the file
             const fileErrors = diagnostics.filter((e): e is ts.DiagnosticWithLocation => {
                 const errFn = e.file;
-                return !!errFn && ts.comparePaths(Utils.removeTestPathPrefixes(errFn.fileName), Utils.removeTestPathPrefixes(inputFile.unitName), options && options.currentDirectory || "", !(options && options.caseSensitive)) === ts.Comparison.EqualTo;
+                return !!errFn && ts.comparePaths(Utils.removeTestPathPrefixes(errFn.fileName), Utils.removeTestPathPrefixes(inputFile.unitName), options?.currentDirectory ?? "", !(options && options.caseSensitive)) === ts.Comparison.EqualTo;
             });
 
             // Header
@@ -1468,7 +1468,7 @@ export namespace Baseline {
             return undefined!; // TODO: GH#18217
         }
 
-        const refFileName = referencePath(relativeFileName, opts && opts.Baselinefolder, opts && opts.Subfolder);
+        const refFileName = referencePath(relativeFileName, opts?.Baselinefolder, opts?.Subfolder);
 
         // eslint-disable-next-line no-restricted-syntax
         if (actual === null) {
@@ -1539,7 +1539,7 @@ export namespace Baseline {
     }
 
     export function runBaseline(relativeFileName: string, actual: string | null, opts?: BaselineOptions): void { // eslint-disable-line no-restricted-syntax
-        const actualFileName = localPath(relativeFileName, opts && opts.Baselinefolder, opts && opts.Subfolder);
+        const actualFileName = localPath(relativeFileName, opts?.Baselinefolder, opts?.Subfolder);
         if (actual === undefined) {
             throw new Error('The generated content was "undefined". Return "null" if no baselining is required."');
         }
@@ -1558,7 +1558,7 @@ export namespace Baseline {
                 const [name, content, count] = value as [string, string, number | undefined];
                 if (count === 0) continue; // Allow error reporter to skip writing files without errors
                 const relativeFileName = relativeFileBase + "/" + name + extension;
-                const actualFileName = localPath(relativeFileName, opts && opts.Baselinefolder, opts && opts.Subfolder);
+                const actualFileName = localPath(relativeFileName, opts?.Baselinefolder, opts?.Subfolder);
                 const comparison = compareToBaseline(content, relativeFileName, opts);
                 try {
                     writeComparison(comparison.expected, comparison.actual, relativeFileName, actualFileName);
@@ -1570,7 +1570,7 @@ export namespace Baseline {
             }
         }
 
-        const referenceDir = referencePath(relativeFileBase, opts && opts.Baselinefolder, opts && opts.Subfolder);
+        const referenceDir = referencePath(relativeFileBase, opts?.Baselinefolder, opts?.Subfolder);
         let existing = IO.readDirectory(referenceDir, referencedExtensions || [extension]);
         if (extension === ".ts" || referencedExtensions && referencedExtensions.includes(".ts") && !referencedExtensions.includes(".d.ts")) {
             // special-case and filter .d.ts out of .ts results
@@ -1585,7 +1585,7 @@ export namespace Baseline {
         }
         if (missing.length) {
             for (const file of missing) {
-                IO.writeFile(localPath(file + ".delete", opts && opts.Baselinefolder, opts && opts.Subfolder), "");
+                IO.writeFile(localPath(file + ".delete", opts?.Baselinefolder, opts?.Subfolder), "");
             }
         }
 

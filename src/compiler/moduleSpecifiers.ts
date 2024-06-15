@@ -1131,7 +1131,7 @@ function tryGetModuleNameAsNodeModule({ path, isRedirect }: ModulePath, { getCan
         return undefined;
     }
 
-    const globalTypingsCacheLocation = host.getGlobalTypingsCacheLocation && host.getGlobalTypingsCacheLocation();
+    const globalTypingsCacheLocation = host.getGlobalTypingsCacheLocation?.();
     // Get a path that's relative to node_modules or the importing file's path
     // if node_modules folder is in this folder or any of its parent folders, no need to keep it.
     const pathToTopLevelNodeModules = getCanonicalFileName(moduleSpecifier.substring(0, parts.topLevelNodeModulesIndex));

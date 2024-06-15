@@ -91,7 +91,7 @@ export class CompilerBaselineRunner extends RunnerBase {
         let compilerTest!: CompilerTest;
         before(() => {
             let payload;
-            if (test && test.content) {
+            if (test?.content) {
                 payload = TestCaseParser.makeUnitsFromTest(test.content, test.file);
             }
             compilerTest = new CompilerTest(fileName, payload, configuration);

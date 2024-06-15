@@ -7805,7 +7805,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             const resolutionMode = overrideImportMode || contextFile?.impliedNodeFormat;
             const cacheKey = createModeAwareCacheKey(contextFile.path, resolutionMode);
             const links = getSymbolLinks(symbol);
-            let specifier = links.specifierCache && links.specifierCache.get(cacheKey);
+            let specifier = links.specifierCache?.get(cacheKey);
             if (!specifier) {
                 const isBundle = !!compilerOptions.outFile;
                 // For declaration bundles, we need to generate absolute paths relative to the common source dir for imports,

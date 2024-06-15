@@ -5230,7 +5230,7 @@ function updateHostForUseSourceOfProjectReferenceRedirect(host: HostForUseSource
         // Call getDirectories only if directory actually present on the host
         // This is needed to ensure that we arent getting directories that we fake about presence for
         host.compilerHost.getDirectories = path =>
-            !host.getResolvedProjectReferences() || (originalDirectoryExists && originalDirectoryExists.call(host.compilerHost, path)) ?
+            !host.getResolvedProjectReferences() || (originalDirectoryExists?.call(host.compilerHost, path)) ?
                 originalGetDirectories.call(host.compilerHost, path) :
                 [];
     }

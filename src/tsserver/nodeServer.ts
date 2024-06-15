@@ -699,7 +699,7 @@ function startNodeSession(options: StartSessionOptions, logger: ts.server.Logger
             case "win32": {
                 const basePath = process.env.LOCALAPPDATA ||
                     process.env.APPDATA ||
-                    (os.homedir && os.homedir()) ||
+                    os.homedir?.() ||
                     process.env.USERPROFILE ||
                     (process.env.HOMEDRIVE && process.env.HOMEPATH && normalizeSlashes(process.env.HOMEDRIVE + process.env.HOMEPATH)) ||
                     os.tmpdir();
@@ -724,7 +724,7 @@ function startNodeSession(options: StartSessionOptions, logger: ts.server.Logger
             return process.env.XDG_CACHE_HOME;
         }
         const usersDir = platformIsDarwin ? "Users" : "home";
-        const homePath = (os.homedir && os.homedir()) ||
+        const homePath = os.homedir?.() ||
             process.env.HOME ||
             ((process.env.LOGNAME || process.env.USER) && `/${usersDir}/${process.env.LOGNAME || process.env.USER}`) ||
             os.tmpdir();

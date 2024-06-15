@@ -135,7 +135,7 @@ export function createTestCompilerHost(texts: readonly NamedSourceText[], target
         fileExists: fileName => filesByPath.has(ts.toPath(fileName, "", getCanonicalFileName)),
         readFile: fileName => {
             const file = filesByPath.get(ts.toPath(fileName, "", getCanonicalFileName));
-            return file && file.text;
+            return file?.text;
         },
     };
     if (useGetSourceFileByPath) {

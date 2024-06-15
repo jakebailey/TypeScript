@@ -170,7 +170,7 @@ export class CompilationResult {
     }
 
     public get commonSourceDirectory(): string {
-        const common = this.program && this.program.getCommonSourceDirectory() || "";
+        const common = this.program?.getCommonSourceDirectory() || "";
         return common && vpath.combine(this.vfs.cwd(), common);
     }
 

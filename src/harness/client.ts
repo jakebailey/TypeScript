@@ -787,7 +787,7 @@ export class SessionClient implements LanguageService {
                         start: this.lineOffsetToPosition(span.file, span.start),
                         length: this.lineOffsetToPosition(span.file, span.end) - this.lineOffsetToPosition(span.file, span.start),
                     },
-                    file: span && span.file,
+                    file: span?.file,
                 })),
             });
         });

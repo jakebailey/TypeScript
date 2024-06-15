@@ -173,7 +173,7 @@ export class System implements ts.System {
     }
 
     public getEnvironmentVariable(name: string): string {
-        return (this._env && this._env[name])!; // TODO: GH#18217
+        return (this._env?.[name])!; // TODO: GH#18217
     }
 
     private _getStats(path: string) {

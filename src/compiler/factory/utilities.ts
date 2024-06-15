@@ -842,7 +842,7 @@ export function getExternalModuleNameLiteral(factory: NodeFactory, importNode: I
  * Here we check if alternative name was provided for a given moduleName and return it if possible.
  */
 function tryRenameExternalModule(factory: NodeFactory, moduleName: LiteralExpression, sourceFile: SourceFile) {
-    const rename = sourceFile.renamedDependencies && sourceFile.renamedDependencies.get(moduleName.text);
+    const rename = sourceFile.renamedDependencies?.get(moduleName.text);
     return rename ? factory.createStringLiteral(rename) : undefined;
 }
 

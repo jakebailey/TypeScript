@@ -387,8 +387,8 @@ export class TestServerHost implements server.ServerHost, FormatDiagnosticsHost,
         this.executingFilePath = this.getHostSpecificPath(executingFilePath || getExecutingFilePathFromLibFile());
         this.currentDirectory = this.getHostSpecificPath(currentDirectory);
         this.runWithFallbackPolling = !!runWithFallbackPolling;
-        const tscWatchFile = this.environmentVariables && this.environmentVariables.get("TSC_WATCHFILE");
-        const tscWatchDirectory = this.environmentVariables && this.environmentVariables.get("TSC_WATCHDIRECTORY");
+        const tscWatchFile = this.environmentVariables?.get("TSC_WATCHFILE");
+        const tscWatchDirectory = this.environmentVariables?.get("TSC_WATCHDIRECTORY");
         this.inodeWatching = this.osFlavor !== TestServerHostOsFlavor.Windows;
         if (this.inodeWatching) this.inodes = new Map();
 
@@ -1119,7 +1119,7 @@ export class TestServerHost implements server.ServerHost, FormatDiagnosticsHost,
         throw new Error(exitMessage);
     }
     getEnvironmentVariable(name: string) {
-        return this.environmentVariables && this.environmentVariables.get(name) || "";
+        return this.environmentVariables?.get(name) ?? "";
     }
 }
 
@@ -1133,7 +1133,7 @@ function inodeString(inode: number | undefined) {
     return inode !== undefined ? ` Inode:: ${inode}` : "";
 }
 function diffFsEntry(baseline: string[], oldFsEntry: FSEntry | undefined, newFsEntry: FSEntry | undefined, newInode: number | undefined, writtenFiles: Map<string, any> | undefined): void {
-    const file = newFsEntry && newFsEntry.fullPath;
+    const file = newFsEntry?.fullPath;
     if (isFsFile(oldFsEntry)) {
         if (isFsFile(newFsEntry)) {
             if (oldFsEntry.content !== newFsEntry.content) {

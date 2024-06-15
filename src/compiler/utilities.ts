@@ -6359,7 +6359,7 @@ export interface ResolveModuleNameResolutionHost {
 
 /** @internal */
 export function getResolvedExternalModuleName(host: ResolveModuleNameResolutionHost, file: SourceFile, referenceFile?: SourceFile): string {
-    return file.moduleName || getExternalModuleNameFromPath(host, file.fileName, referenceFile && referenceFile.fileName);
+    return file.moduleName || getExternalModuleNameFromPath(host, file.fileName, referenceFile?.fileName);
 }
 
 function getCanonicalAbsolutePath(host: ResolveModuleNameResolutionHost, path: string) {
@@ -8438,7 +8438,7 @@ export function maybeSetLocalizedDiagnosticMessages(getMessages: undefined | (()
 
 /** @internal */
 export function getLocaleSpecificMessage(message: DiagnosticMessage) {
-    return localizedDiagnosticMessages && localizedDiagnosticMessages[message.key] || message.message;
+    return localizedDiagnosticMessages?.[message.key] || message.message;
 }
 
 /** @internal */

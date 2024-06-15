@@ -243,7 +243,7 @@ export class FileSystem {
      */
     public popd() {
         if (this.isReadonly) throw createIOError("EPERM");
-        const path = this._dirStack && this._dirStack.pop();
+        const path = this._dirStack?.pop();
         if (path) {
             this.chdir(path);
         }

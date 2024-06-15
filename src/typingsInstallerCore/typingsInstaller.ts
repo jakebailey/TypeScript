@@ -62,7 +62,7 @@ const nullLog: Log = {
 function typingToFileName(cachePath: string, packageName: string, installTypingHost: InstallTypingHost, log: Log): string | undefined {
     try {
         const result = resolveModuleName(packageName, combinePaths(cachePath, "index.d.ts"), { moduleResolution: ModuleResolutionKind.Node10 }, installTypingHost);
-        return result.resolvedModule && result.resolvedModule.resolvedFileName;
+        return result.resolvedModule?.resolvedFileName;
     }
     catch (e) {
         if (log.isEnabled()) {
@@ -331,7 +331,7 @@ export abstract class TypingsInstaller {
                         this.log.writeLine(`Adding entry into typings cache: '${packageName}' => '${typingFile}'`);
                     }
                     const info = getProperty(npmLock.dependencies, key);
-                    const version = info && info.version;
+                    const version = info?.version;
                     if (!version) {
                         continue;
                     }

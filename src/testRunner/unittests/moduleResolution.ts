@@ -50,7 +50,7 @@ function createModuleResolutionHost(baselines: string[], hasDirectoryExists: boo
     }
     function readFile(path: string): string | undefined {
         const file = map.get(path);
-        return file && file.content;
+        return file?.content;
     }
     function realpath(path: string): string {
         return map.get(path)!.name;
@@ -1047,7 +1047,7 @@ describe("unittests:: moduleResolution:: Type reference directive resolution: ",
             useCaseSensitiveFileNames: () => false,
             readFile: fileName => {
                 const file = sourceFiles.get(fileName);
-                return file && file.text;
+                return file?.text;
             },
         };
         const program1 = ts.createProgram(names, {}, compilerHost);

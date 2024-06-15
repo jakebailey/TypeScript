@@ -678,7 +678,7 @@ export abstract class Project implements LanguageServiceHost, ModuleResolutionHo
             this.directoryStructureHost,
             /*deferredDeleteOk*/ false,
         );
-        return (info && info.getLatestVersion())!; // TODO: GH#18217
+        return info?.getLatestVersion()!; // TODO: GH#18217
     }
 
     getScriptSnapshot(filename: string): IScriptSnapshot | undefined {

@@ -431,7 +431,7 @@ export class LineIndex {
         const lineCount = this.getLineCount();
         if (oneBasedLine <= lineCount) {
             const { position, leaf } = this.root.lineNumberToInfo(oneBasedLine, 0);
-            return { absolutePosition: position, lineText: leaf && leaf.text };
+            return { absolutePosition: position, lineText: leaf?.text };
         }
         else {
             return { absolutePosition: this.root.charCount(), lineText: undefined };

@@ -7,9 +7,6 @@
     "rules": {
         "@typescript-eslint/no-unnecessary-type-assertion": "error",
         "@typescript-eslint/prefer-optional-chain": ["error", {
-            "checkAny": false,
-            "checkUnknown": false,
-            "checkString": false,
             "checkNumber": false,
             "checkBoolean": false,
             "checkBigInt": false,

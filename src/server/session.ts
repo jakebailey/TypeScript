@@ -294,7 +294,7 @@ export function formatDiagnosticToProtocol(diag: Diagnostic, includeFileName: bo
         relatedInformation: map(diag.relatedInformation, formatRelatedInformation),
     };
     return includeFileName
-        ? { ...common, fileName: diag.file && diag.file.fileName }
+        ? { ...common, fileName: diag.file?.fileName }
         : common;
 }
 
