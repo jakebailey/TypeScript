@@ -177,7 +177,7 @@ function transpileWorker(input: string, transpileOptions: TranspileOptions, decl
     };
 
     // if jsx is specified then treat file as .tsx
-    const inputFileName = transpileOptions.fileName || (transpileOptions.compilerOptions && transpileOptions.compilerOptions.jsx ? "module.tsx" : "module.ts");
+    const inputFileName = transpileOptions.fileName || (transpileOptions.compilerOptions?.jsx ? "module.tsx" : "module.ts");
     const sourceFile = createSourceFile(
         inputFileName,
         input,

@@ -656,7 +656,7 @@ export function resolveTypeReferenceDirective(typeReferenceDirectiveName: string
 
     function primaryLookup(): PathAndPackageId | undefined {
         // Check primary library paths
-        if (typeRoots && typeRoots.length) {
+        if (typeRoots?.length) {
             if (traceEnabled) {
                 trace(host, Diagnostics.Resolving_with_primary_search_path_0, typeRoots.join(", "));
             }

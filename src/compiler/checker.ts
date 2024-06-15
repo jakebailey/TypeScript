@@ -5081,7 +5081,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 }
                 lookupTable.forEach(({ exportsWithDuplicate }, id) => {
                     // It's not an error if the file with multiple `export *`s with duplicate names exports a member with that name itself
-                    if (id === "export=" || !(exportsWithDuplicate && exportsWithDuplicate.length) || symbols.has(id)) {
+                    if (id === "export=" || !exportsWithDuplicate?.length || symbols.has(id)) {
                         return;
                     }
                     for (const node of exportsWithDuplicate) {
@@ -5112,7 +5112,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     function getMergedSymbol(symbol: Symbol | undefined): Symbol | undefined;
     function getMergedSymbol(symbol: Symbol | undefined): Symbol | undefined {
         let merged: Symbol;
-        return symbol && symbol.mergeId && (merged = mergedSymbols[symbol.mergeId]) ? merged : symbol;
+        return symbol?.mergeId && (merged = mergedSymbols[symbol.mergeId]) ? merged : symbol;
     }
 
     function getSymbolOfDeclaration(node: Declaration): Symbol {
@@ -5629,7 +5629,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function isPropertyOrMethodDeclarationSymbol(symbol: Symbol) {
-        if (symbol.declarations && symbol.declarations.length) {
+        if (symbol.declarations?.length) {
             for (const declaration of symbol.declarations) {
                 switch (declaration.kind) {
                     case SyntaxKind.PropertyDeclaration:
@@ -10731,7 +10731,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         ) {
             return "default";
         }
-        if (symbol.declarations && symbol.declarations.length) {
+        if (symbol.declarations?.length) {
             let declaration = firstDefined(symbol.declarations, d => getNameOfDeclaration(d) ? d : undefined); // Try using a declaration with a name, first
             const name = declaration && getNameOfDeclaration(declaration);
             if (declaration && name) {
@@ -19832,7 +19832,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     function instantiateList<T>(items: readonly T[], mapper: TypeMapper, instantiator: (item: T, mapper: TypeMapper) => T): readonly T[];
     function instantiateList<T>(items: readonly T[] | undefined, mapper: TypeMapper, instantiator: (item: T, mapper: TypeMapper) => T): readonly T[] | undefined;
     function instantiateList<T>(items: readonly T[] | undefined, mapper: TypeMapper, instantiator: (item: T, mapper: TypeMapper) => T): readonly T[] | undefined {
-        if (items && items.length) {
+        if (items?.length) {
             for (let i = 0; i < items.length; i++) {
                 const item = items[i];
                 const mapped = instantiator(item, mapper);
@@ -35218,7 +35218,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         return undefined;
 
         function maybeAddMissingAwaitInfo(errorNode: Node | undefined, source: Type, target: Type) {
-            if (errorNode && reportErrors && errorOutputContainer.errors && errorOutputContainer.errors.length) {
+            if (errorNode && reportErrors && errorOutputContainer.errors?.length) {
                 // Bail if target is Promise-like---something else is wrong
                 if (getAwaitedTypeOfPromise(target)) {
                     return;
@@ -49903,7 +49903,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             if (file.jsGlobalAugmentations) {
                 mergeSymbolTable(globals, file.jsGlobalAugmentations);
             }
-            if (file.patternAmbientModules && file.patternAmbientModules.length) {
+            if (file.patternAmbientModules?.length) {
                 patternAmbientModules = concatenate(patternAmbientModules, file.patternAmbientModules);
             }
             if (file.moduleAugmentations.length) {

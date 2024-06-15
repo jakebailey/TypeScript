@@ -213,7 +213,7 @@ function getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeCheck
 }
 
 function getNormalizedSymbolModifiers(symbol: Symbol) {
-    if (symbol.declarations && symbol.declarations.length) {
+    if (symbol.declarations?.length) {
         const [declaration, ...declarations] = symbol.declarations;
         // omit deprecated flag if some declarations are not deprecated
         const excludeFlags = length(declarations) && isDeprecatedDeclaration(declaration) && some(declarations, d => !isDeprecatedDeclaration(d))

@@ -104,7 +104,7 @@ class TranspileTestCase {
                 if (!result.outputText.endsWith("\n")) {
                     baselineText += "\r\n";
                 }
-                if (result.diagnostics && result.diagnostics.length) {
+                if (result.diagnostics?.length) {
                     baselineText += "\r\n\r\n//// [Diagnostics reported]\r\n";
                     baselineText += Compiler.getErrorBaseline([{ content: unit.content, unitName: unit.name }], result.diagnostics, !!opts.pretty);
                     if (!baselineText.endsWith("\n")) {

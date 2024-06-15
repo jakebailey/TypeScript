@@ -507,7 +507,7 @@ export function provideInlayHints(context: InlayHintsContext): InlayHint[] {
                 case SyntaxKind.Identifier:
                     Debug.assertNode(node, isIdentifier);
                     const identifierText = idText(node);
-                    const name = node.symbol && node.symbol.declarations && node.symbol.declarations.length && getNameOfDeclaration(node.symbol.declarations[0]);
+                    const name = node.symbol?.declarations?.length && getNameOfDeclaration(node.symbol.declarations[0]);
                     if (name) {
                         parts.push(getNodeDisplayPart(identifierText, name));
                     }

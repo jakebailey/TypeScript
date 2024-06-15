@@ -169,7 +169,7 @@ function doChange(
 
     const functionCalls = sortAndDeduplicate(groupedReferences.functionCalls, /*comparer*/ (a, b) => compareValues(a.pos, b.pos));
     for (const call of functionCalls) {
-        if (call.arguments && call.arguments.length) {
+        if (call.arguments?.length) {
             const newArgument = getSynthesizedDeepClone(createNewArgument(functionDeclaration, call.arguments), /*includeTrivia*/ true);
             changes.replaceNodeRange(
                 getSourceFileOfNode(call),

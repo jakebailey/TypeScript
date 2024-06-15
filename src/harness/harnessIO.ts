@@ -145,7 +145,7 @@ function createNodeIO(): IO {
         readDirectory: (path, extension, exclude, include, depth) => ts.sys.readDirectory(path, extension, exclude, include, depth),
         getAccessibleFileSystemEntries: ts.sys.getAccessibleFileSystemEntries!,
         tryEnableSourceMapsForHost: () => ts.sys.tryEnableSourceMapsForHost && ts.sys.tryEnableSourceMapsForHost(),
-        getMemoryUsage: () => ts.sys.getMemoryUsage && ts.sys.getMemoryUsage(),
+        getMemoryUsage: () => ts.sys.getMemoryUsage?.(),
         getEnvironmentVariable: name => ts.sys.getEnvironmentVariable(name),
         joinPath,
     };
@@ -999,7 +999,7 @@ export namespace Compiler {
         );
         const declFileCompilationResult = compileDeclarationFiles(declFileContext, result.symlinks);
 
-        if (declFileCompilationResult && declFileCompilationResult.declResult.diagnostics.length) {
+        if (declFileCompilationResult?.declResult.diagnostics.length) {
             jsCode += "\r\n\r\n//// [DtsFileErrors]\r\n";
             jsCode += "\r\n\r\n";
             jsCode += getErrorBaseline(tsConfigFiles.concat(declFileCompilationResult.declInputFiles, declFileCompilationResult.declOtherFiles), declFileCompilationResult.declResult.diagnostics);

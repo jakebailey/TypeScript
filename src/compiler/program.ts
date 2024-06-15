@@ -2291,7 +2291,7 @@ export function createProgram(rootNamesOrOptions: readonly string[] | CreateProg
             }
         }
 
-        const resolutions = unknownModuleNames && unknownModuleNames.length
+        const resolutions = unknownModuleNames?.length
             ? resolveModuleNamesWorker(unknownModuleNames, file, reusedNames)
             : emptyArray;
 

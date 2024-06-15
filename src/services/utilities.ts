@@ -2506,7 +2506,7 @@ export function makeImport(defaultImport: Identifier | undefined, namedImports: 
     return factory.createImportDeclaration(
         /*modifiers*/ undefined,
         defaultImport || namedImports
-            ? factory.createImportClause(!!isTypeOnly, defaultImport, namedImports && namedImports.length ? factory.createNamedImports(namedImports) : undefined)
+            ? factory.createImportClause(!!isTypeOnly, defaultImport, namedImports?.length ? factory.createNamedImports(namedImports) : undefined)
             : undefined,
         typeof moduleSpecifier === "string" ? makeStringLiteral(moduleSpecifier, quotePreference) : moduleSpecifier,
         /*attributes*/ undefined,
@@ -3108,7 +3108,7 @@ export function isImportOrExportSpecifierName(location: Node): location is Ident
 export function getScriptKind(fileName: string, host: LanguageServiceHost): ScriptKind {
     // First check to see if the script kind was specified by the host. Chances are the host
     // may override the default script kind for the file extension.
-    return ensureScriptKind(fileName, host.getScriptKind && host.getScriptKind(fileName));
+    return ensureScriptKind(fileName, host.getScriptKind?.(fileName));
 }
 
 /** @internal */

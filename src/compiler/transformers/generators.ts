@@ -2173,7 +2173,7 @@ export function transformGenerators(context: TransformationContext): (x: SourceF
      */
     function peekBlockKind(): CodeBlockKind | undefined {
         const block = peekBlock();
-        return block && block.kind;
+        return block?.kind;
     }
 
     /**

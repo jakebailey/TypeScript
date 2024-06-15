@@ -342,7 +342,7 @@ function createSyntaxList(children: readonly Node[]): SyntaxList {
 }
 
 function isListOpener(token: Node | undefined): token is Node {
-    const kind = token && token.kind;
+    const kind = token?.kind;
     return kind === SyntaxKind.OpenBraceToken
         || kind === SyntaxKind.OpenBracketToken
         || kind === SyntaxKind.OpenParenToken
@@ -350,7 +350,7 @@ function isListOpener(token: Node | undefined): token is Node {
 }
 
 function isListCloser(token: Node | undefined): token is Node {
-    const kind = token && token.kind;
+    const kind = token?.kind;
     return kind === SyntaxKind.CloseBraceToken
         || kind === SyntaxKind.CloseBracketToken
         || kind === SyntaxKind.CloseParenToken

@@ -313,7 +313,7 @@ export function transformJsx(context: TransformationContext): (x: SourceFile | B
 
     function visitJsxOpeningLikeElementJSX(node: JsxOpeningLikeElement, children: readonly JsxChild[] | undefined, isChild: boolean, location: TextRange) {
         const tagName = getTagName(node);
-        const childrenProp = children && children.length ? convertJsxChildrenToChildrenPropAssignment(children) : undefined;
+        const childrenProp = children?.length ? convertJsxChildrenToChildrenPropAssignment(children) : undefined;
         const keyAttr = find(node.attributes.properties, p => !!p.name && isIdentifier(p.name) && p.name.escapedText === "key") as JsxAttribute | undefined;
         const attrs = keyAttr ? filter(node.attributes.properties, p => p !== keyAttr) : node.attributes.properties;
         const objectProperties = length(attrs) ? transformJsxAttributesToObjectProps(attrs, childrenProp) :

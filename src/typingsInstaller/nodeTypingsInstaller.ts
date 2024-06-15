@@ -214,7 +214,7 @@ process.on("message", (req: ts.server.TypingInstallerRequestUnion) => {
 });
 
 function indent(newline: string, str: string | undefined): string {
-    return str && str.length
+    return str?.length
         ? `${newline}    ` + str.replace(/\r?\n/, `${newline}    `)
         : "";
 }

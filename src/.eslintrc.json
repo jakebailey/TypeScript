@@ -7,7 +7,6 @@
     "rules": {
         "@typescript-eslint/no-unnecessary-type-assertion": "error",
         "@typescript-eslint/prefer-optional-chain": ["error", {
-            "checkNumber": false,
             "requireNullish": true
         }],
         "no-restricted-globals": [

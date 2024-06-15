@@ -2245,7 +2245,7 @@ function createObjectLiteralMethod(
     preferences: UserPreferences,
 ): MethodDeclaration | undefined {
     const declarations = symbol.getDeclarations();
-    if (!(declarations && declarations.length)) {
+    if (!(declarations?.length)) {
         return undefined;
     }
     const checker = program.getTypeChecker();

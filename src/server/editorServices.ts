@@ -4607,7 +4607,7 @@ export class ProjectService {
     ): void {
         for (const proj of currentProjects) {
             const knownProject = find(lastKnownProjectVersions, p => p.projectName === proj.getProjectName());
-            result.push(proj.getChangesSinceVersion(knownProject && knownProject.version, includeProjectReferenceRedirectInfo));
+            result.push(proj.getChangesSinceVersion(knownProject?.version, includeProjectReferenceRedirectInfo));
         }
     }
 

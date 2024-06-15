@@ -848,7 +848,7 @@ function createBinder(): (file: SourceFile, options: CompilerOptions) => void {
                             // 1. multiple export default of class declaration or function declaration by checking NodeFlags.Default
                             // 2. multiple export default of export assignment. This one doesn't have NodeFlags.Default on (as export default doesn't considered as modifiers)
                             if (
-                                symbol.declarations && symbol.declarations.length &&
+                                symbol.declarations?.length &&
                                 (node.kind === SyntaxKind.ExportAssignment && !(node as ExportAssignment).isExportEquals)
                             ) {
                                 message = Diagnostics.A_module_cannot_have_multiple_default_exports;

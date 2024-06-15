@@ -331,7 +331,7 @@ describe("unittests:: tsbuild:: on 'sample1' project", () => {
 
             function verifyBuildNextResult() {
                 const project = builder.getNextInvalidatedProject();
-                const result = project && project.done();
+                const result = project?.done();
                 baseline.push(`Project Result:: ${jsonToReadableText({ project: project?.project, result })}`);
                 system.serializeState(baseline, SerializeOutputOrder.BeforeDiff);
             }

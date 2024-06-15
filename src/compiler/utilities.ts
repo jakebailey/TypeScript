@@ -1293,7 +1293,7 @@ export function indexOfNode(nodeArray: readonly Node[], node: Node) {
  */
 export function getEmitFlags(node: Node): EmitFlags {
     const emitNode = node.emitNode;
-    return emitNode && emitNode.flags || 0;
+    return emitNode?.flags ?? 0;
 }
 
 /**
@@ -1303,7 +1303,7 @@ export function getEmitFlags(node: Node): EmitFlags {
  */
 export function getInternalEmitFlags(node: Node): InternalEmitFlags {
     const emitNode = node.emitNode;
-    return emitNode && emitNode.internalFlags || 0;
+    return emitNode?.internalFlags ?? 0;
 }
 
 // Map from a type name, to a map of targets to array of features introduced to the type at that target.
@@ -2917,7 +2917,7 @@ export function getPropertyArrayElementValue(objectLiteral: ObjectLiteralExpress
 
 /** @internal */
 export function getTsConfigObjectLiteralExpression(tsConfigSourceFile: TsConfigSourceFile | undefined): ObjectLiteralExpression | undefined {
-    if (tsConfigSourceFile && tsConfigSourceFile.statements.length) {
+    if (tsConfigSourceFile?.statements.length) {
         const expression = tsConfigSourceFile.statements[0].expression;
         return tryCast(expression, isObjectLiteralExpression);
     }
@@ -6792,7 +6792,7 @@ export function emitNewLineBeforeLeadingComments(lineMap: readonly number[], wri
 export function emitNewLineBeforeLeadingCommentsOfPosition(lineMap: readonly number[], writer: EmitTextWriter, pos: number, leadingComments: readonly CommentRange[] | undefined) {
     // If the leading comments start on different line than the start of node, write new line
     if (
-        leadingComments && leadingComments.length && pos !== leadingComments[0].pos &&
+        leadingComments?.length && pos !== leadingComments[0].pos &&
         getLineOfLocalPositionFromLineMap(lineMap, pos) !== getLineOfLocalPositionFromLineMap(lineMap, leadingComments[0].pos)
     ) {
         writer.writeLine();

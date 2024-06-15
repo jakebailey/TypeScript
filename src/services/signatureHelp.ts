@@ -771,7 +771,7 @@ function itemInfoForTypeParameters(candidateSignature: Signature, checker: TypeC
 function itemInfoForParameters(candidateSignature: Signature, checker: TypeChecker, enclosingDeclaration: Node, sourceFile: SourceFile): SignatureHelpItemInfo[] {
     const printer = createPrinterWithRemoveComments();
     const typeParameterParts = mapToDisplayParts(writer => {
-        if (candidateSignature.typeParameters && candidateSignature.typeParameters.length) {
+        if (candidateSignature.typeParameters?.length) {
             const args = factory.createNodeArray(candidateSignature.typeParameters.map(p => checker.typeParameterToDeclaration(p, enclosingDeclaration, signatureHelpNodeBuilderFlags)!));
             printer.writeList(ListFormat.TypeParameters, args, sourceFile, writer);
         }
