@@ -9,6 +9,16 @@
         "@typescript-eslint/prefer-optional-chain": ["error", {
             "requireNullish": true
         }],
+        "@typescript-eslint/prefer-nullish-coalescing": ["error", {
+            "ignoreConditionalTests": true,
+            "ignoreMixedLogicalExpressions": true,
+            "ignorePrimitives": {
+                "bigint": true,
+                "boolean": true,
+                "number": true,
+                "string": true
+            }
+        }],
         "no-restricted-globals": [
             "error",
             { "name": "setTimeout" },

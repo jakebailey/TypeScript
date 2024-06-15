@@ -496,6 +496,8 @@ function isImportMeta(node: Node): boolean {
     return isMetaProperty(node) && node.keywordToken === SyntaxKind.ImportKeyword && node.name.escapedText === "meta";
 }
 
+/* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
+
 type ForEachChildFunction<TNode> = <T>(node: TNode, cbNode: (node: Node) => T | undefined, cbNodes?: (nodes: NodeArray<Node>) => T | undefined) => T | undefined;
 type ForEachChildTable = { [TNode in ForEachChildNodes as TNode["kind"]]: ForEachChildFunction<TNode>; };
 const forEachChildTable: ForEachChildTable = {
@@ -1228,6 +1230,8 @@ function forEachChildInJSDocImportTag<T>(node: JSDocImportTag, cbNode: (node: No
 function forEachChildInPartiallyEmittedExpression<T>(node: PartiallyEmittedExpression, cbNode: (node: Node) => T | undefined, _cbNodes?: (nodes: NodeArray<Node>) => T | undefined): T | undefined {
     return visitNode(cbNode, node.expression);
 }
+
+/* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
 
 /**
  * Invokes a callback for each child of the given node. The 'cbNode' callback is invoked for all child nodes
