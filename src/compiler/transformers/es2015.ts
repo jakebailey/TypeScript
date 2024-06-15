@@ -895,7 +895,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             //   - break/continue is labeled and label is located inside the converted loop
             //   - break/continue is non-labeled and located in non-converted loop/switch statement
             const jump = node.kind === SyntaxKind.BreakStatement ? Jump.Break : Jump.Continue;
-            const canUseBreakOrContinue = (node.label && convertedLoopState.labels && convertedLoopState.labels.get(idText(node.label))) ||
+            const canUseBreakOrContinue = (node.label && convertedLoopState.labels?.get(idText(node.label))) ||
                 (!node.label && (convertedLoopState.allowedNonLabeledJumps! & jump));
 
             if (!canUseBreakOrContinue) {
@@ -4033,7 +4033,7 @@ export function transformES2015(context: TransformationContext): (x: SourceFile 
             // if there are no outer converted loop or outer label in question is located inside outer converted loop
             // then emit labeled break\continue
             // otherwise propagate pair 'label -> marker' to outer converted loop and emit 'return labelMarker' so outer loop can later decide what to do
-            if (!outerLoop || (outerLoop.labels && outerLoop.labels.get(labelText))) {
+            if (!outerLoop || outerLoop.labels?.get(labelText)) {
                 const label = factory.createIdentifier(labelText);
                 statements.push(isBreak ? factory.createBreakStatement(label) : factory.createContinueStatement(label));
             }

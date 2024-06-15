@@ -537,7 +537,7 @@ function addChildrenRecursively(node: Node | undefined): void {
                     const targetFunction = assignmentTarget.expression;
                     if (
                         isIdentifier(targetFunction) && getElementOrPropertyAccessName(assignmentTarget) !== "prototype" &&
-                        trackedEs5Classes && trackedEs5Classes.has(targetFunction.text)
+                        trackedEs5Classes?.has(targetFunction.text)
                     ) {
                         if (isFunctionExpression(binaryExpression.right) || isArrowFunction(binaryExpression.right)) {
                             addNodeWithRecursiveChild(node, binaryExpression.right, targetFunction);

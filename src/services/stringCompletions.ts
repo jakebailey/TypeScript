@@ -688,7 +688,7 @@ function getBaseDirectoriesFromRootDirs(rootDirs: string[], basePath: string, sc
 
 function getCompletionEntriesForDirectoryFragmentWithRootDirs(rootDirs: string[], fragment: string, scriptDirectory: string, extensionOptions: ExtensionOptions, compilerOptions: CompilerOptions, host: LanguageServiceHost, exclude: string): readonly NameAndKind[] {
     const basePath = compilerOptions.project || host.getCurrentDirectory();
-    const ignoreCase = !(host.useCaseSensitiveFileNames && host.useCaseSensitiveFileNames());
+    const ignoreCase = !host.useCaseSensitiveFileNames?.();
     const baseDirectories = getBaseDirectoriesFromRootDirs(rootDirs, basePath, scriptDirectory, ignoreCase);
     return deduplicate<NameAndKind>(
         flatMap(baseDirectories, baseDirectory => arrayFrom(getCompletionEntriesForDirectoryFragment(fragment, baseDirectory, extensionOptions, host, /*moduleSpecifierIsRelative*/ true, exclude).values())),
@@ -756,7 +756,7 @@ function getCompletionEntriesForDirectoryFragment(
         }
     }
 
-    const ignoreCase = !(host.useCaseSensitiveFileNames && host.useCaseSensitiveFileNames());
+    const ignoreCase = !host.useCaseSensitiveFileNames?.();
     if (!tryDirectoryExists(host, baseDirectory)) return result;
 
     // Enumerate the available files if possible

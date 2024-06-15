@@ -202,7 +202,7 @@ function updateImports(
         }, importLiteral => {
             const importedModuleSymbol = program.getTypeChecker().getSymbolAtLocation(importLiteral);
             // No need to update if it's an ambient module^M
-            if (importedModuleSymbol?.declarations && importedModuleSymbol.declarations.some(d => isAmbientModule(d))) return undefined;
+            if (importedModuleSymbol?.declarations?.some(d => isAmbientModule(d))) return undefined;
 
             const toImport = oldFromNew !== undefined
                 // If we're at the new location (file was already renamed), need to redo module resolution starting from the old location.

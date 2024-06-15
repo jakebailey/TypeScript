@@ -606,7 +606,7 @@ export namespace Compiler {
             }
         }
 
-        let topDiagnostics = minimalDiagnosticsToString(diagnostics, options && options.pretty);
+        let topDiagnostics = minimalDiagnosticsToString(diagnostics, options?.pretty);
         topDiagnostics = Utils.removeTestPathPrefixes(topDiagnostics);
         topDiagnostics = topDiagnostics.replace(/^(lib(?:.*)\.d\.ts)\(\d+,\d+\)/igm, "$1(--,--)");
 
@@ -625,7 +625,7 @@ export namespace Compiler {
             // Filter down to the errors in the file
             const fileErrors = diagnostics.filter((e): e is ts.DiagnosticWithLocation => {
                 const errFn = e.file;
-                return !!errFn && ts.comparePaths(Utils.removeTestPathPrefixes(errFn.fileName), Utils.removeTestPathPrefixes(inputFile.unitName), options?.currentDirectory ?? "", !(options && options.caseSensitive)) === ts.Comparison.EqualTo;
+                return !!errFn && ts.comparePaths(Utils.removeTestPathPrefixes(errFn.fileName), Utils.removeTestPathPrefixes(inputFile.unitName), options?.currentDirectory ?? "", !options?.caseSensitive) === ts.Comparison.EqualTo;
             });
 
             // Header
@@ -689,7 +689,7 @@ export namespace Compiler {
             assert.equal(markedErrorCount, fileErrors.length, "count of errors in " + inputFile.unitName);
             const isDupe = dupeCase.has(sanitizeTestFilePath(inputFile.unitName));
             yield [checkDuplicatedFileName(inputFile.unitName, dupeCase), outputLines, errorsReported];
-            if (isDupe && !(options && options.caseSensitive)) {
+            if (isDupe && !options?.caseSensitive) {
                 // Case-duplicated files on a case-insensitive build will have errors reported in both the dupe and the original
                 // thanks to the canse-insensitive path comparison on the error file path - We only want to count those errors once
                 // for the assert below, so we subtract them here.
@@ -1518,7 +1518,7 @@ export namespace Baseline {
                 IO.writeFile(actualFileName, encodedActual);
             }
             const errorMessage = getBaselineFileChangedErrorMessage(relativeFileName);
-            if (!!require && opts && opts.PrintDiff) {
+            if (!!require && opts?.PrintDiff) {
                 const Diff = require("diff");
                 const patch = Diff.createTwoFilesPatch("Expected", "Actual", expected, actual, "The current baseline", "The new version");
                 throw new Error(`${errorMessage}${ts.ForegroundColorEscapeSequences.Grey}\n\n${patch}`);

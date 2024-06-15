@@ -135,7 +135,7 @@ export class System implements ts.System {
 
     public getFileSize(path: string) {
         const stats = this._getStats(path);
-        return stats && stats.isFile() ? stats.size : 0;
+        return stats?.isFile() ? stats.size : 0;
     }
 
     public resolvePath(path: string) {

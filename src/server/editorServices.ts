@@ -1846,7 +1846,7 @@ export class ProjectService {
                 const fsResult = config.cachedDirectoryStructureHost.addOrDeleteFileOrDirectory(fileOrDirectory, fileOrDirectoryPath);
                 if (
                     getBaseFileName(fileOrDirectoryPath) === "package.json" && !isInsideNodeModules(fileOrDirectoryPath) &&
-                    (fsResult && fsResult.fileExists || !fsResult && this.host.fileExists(fileOrDirectory))
+                    (fsResult?.fileExists || !fsResult && this.host.fileExists(fileOrDirectory))
                 ) {
                     const file = this.getNormalizedAbsolutePath(fileOrDirectory);
                     this.logger.info(`Config: ${configFileName} Detected new package.json: ${file}`);
@@ -2590,7 +2590,7 @@ export class ProjectService {
 
     /** Get a filename if the language service exceeds the maximum allowed program size; otherwise returns undefined. */
     private getFilenameForExceededTotalSizeLimitForNonTsFiles<T>(name: string, options: CompilerOptions | undefined, fileNames: T[], propertyReader: FilePropertyReader<T>): string | undefined {
-        if (options && options.disableSizeLimit || !this.host.getFileSize) {
+        if (options?.disableSizeLimit || !this.host.getFileSize) {
             return;
         }
 
@@ -2663,10 +2663,10 @@ export class ProjectService {
             fileStats: countEachFileTypes(project.getScriptInfos(), /*includeSizes*/ true),
             compilerOptions: convertCompilerOptionsForTelemetry(project.getCompilationSettings()),
             typeAcquisition: convertTypeAcquisition(project.getTypeAcquisition()),
-            extends: projectOptions && projectOptions.configHasExtendsProperty,
-            files: projectOptions && projectOptions.configHasFilesProperty,
-            include: projectOptions && projectOptions.configHasIncludeProperty,
-            exclude: projectOptions && projectOptions.configHasExcludeProperty,
+            extends: projectOptions?.configHasExtendsProperty,
+            files: projectOptions?.configHasFilesProperty,
+            include: projectOptions?.configHasIncludeProperty,
+            exclude: projectOptions?.configHasExcludeProperty,
             compileOnSave: project.compileOnSaveEnabled,
             configFileName: configFileName(),
             projectType: project instanceof ExternalProject ? "external" : "configured",

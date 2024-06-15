@@ -1469,7 +1469,7 @@ export class Session<TMessage = string> implements EventSender {
         const file = toNormalizedPath(args.file);
 
         return {
-            configFile: project && project.hasConfigFile(file) ? file : undefined,
+            configFile: project?.hasConfigFile(file) ? file : undefined,
             project,
         };
     }

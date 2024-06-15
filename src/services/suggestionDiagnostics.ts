@@ -89,7 +89,7 @@ export function computeSuggestionDiagnostics(sourceFile: SourceFile, program: Pr
             if (!name) continue;
             const module = program.getResolvedModuleFromModuleSpecifier(moduleSpecifier, sourceFile)?.resolvedModule;
             const resolvedFile = module && program.getSourceFile(module.resolvedFileName);
-            if (resolvedFile && resolvedFile.externalModuleIndicator && resolvedFile.externalModuleIndicator !== true && isExportAssignment(resolvedFile.externalModuleIndicator) && resolvedFile.externalModuleIndicator.isExportEquals) {
+            if (resolvedFile?.externalModuleIndicator && resolvedFile.externalModuleIndicator !== true && isExportAssignment(resolvedFile.externalModuleIndicator) && resolvedFile.externalModuleIndicator.isExportEquals) {
                 diags.push(createDiagnosticForNode(name, Diagnostics.Import_may_be_converted_to_a_default_import));
             }
         }

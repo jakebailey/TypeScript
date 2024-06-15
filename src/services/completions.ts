@@ -3657,8 +3657,7 @@ function getCompletionData(
                     if (
                         !isTypeLocation &&
                         !insideJsDocTagTypeExpression &&
-                        symbol.declarations &&
-                        symbol.declarations.some(d => d.kind !== SyntaxKind.SourceFile && d.kind !== SyntaxKind.ModuleDeclaration && d.kind !== SyntaxKind.EnumDeclaration)
+                        symbol.declarations?.some(d => d.kind !== SyntaxKind.SourceFile && d.kind !== SyntaxKind.ModuleDeclaration && d.kind !== SyntaxKind.EnumDeclaration)
                     ) {
                         let type = typeChecker.getTypeOfSymbolAtLocation(symbol, node).getNonOptionalType();
                         let insertQuestionDot = false;

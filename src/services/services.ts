@@ -1616,7 +1616,7 @@ const invalidOperationsInSyntacticMode: readonly (keyof LanguageService)[] = [
 ];
 export function createLanguageService(
     host: LanguageServiceHost,
-    documentRegistry: DocumentRegistry = createDocumentRegistry(host.useCaseSensitiveFileNames && host.useCaseSensitiveFileNames(), host.getCurrentDirectory(), host.jsDocParsingMode),
+    documentRegistry: DocumentRegistry = createDocumentRegistry(host.useCaseSensitiveFileNames?.(), host.getCurrentDirectory(), host.jsDocParsingMode),
     syntaxOnlyOrLanguageServiceMode?: boolean | LanguageServiceMode,
 ): LanguageService {
     let languageServiceMode: LanguageServiceMode;

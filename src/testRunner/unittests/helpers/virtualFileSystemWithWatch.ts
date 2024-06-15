@@ -507,7 +507,7 @@ export class TestServerHost implements server.ServerHost, FormatDiagnosticsHost,
             throw new Error(`file not present: ${filePath}`);
         }
 
-        if (options && options.invokeFileDeleteCreateAsPartInsteadOfChange) {
+        if (options?.invokeFileDeleteCreateAsPartInsteadOfChange) {
             this.removeFileOrFolder(currentEntry, /*isRenaming*/ false, options);
             this.ensureFileOrFolder({ path: filePath, content }, /*ignoreWatchInvokedWithTriggerAsFileCreate*/ undefined, /*ignoreParentWatch*/ undefined, options);
         }
@@ -515,7 +515,7 @@ export class TestServerHost implements server.ServerHost, FormatDiagnosticsHost,
             currentEntry.content = content;
             currentEntry.modifiedTime = this.now();
             if (options?.ignoreWatches) return;
-            if (options && options.invokeDirectoryWatcherInsteadOfFileChanged) {
+            if (options?.invokeDirectoryWatcherInsteadOfFileChanged) {
                 const directoryFullPath = getDirectoryPath(currentEntry.fullPath);
                 this.fs.get(getDirectoryPath(currentEntry.path))!.modifiedTime = this.now();
                 this.invokeFileWatcher(directoryFullPath, FileWatcherEventKind.Changed, /*modifiedTime*/ undefined);

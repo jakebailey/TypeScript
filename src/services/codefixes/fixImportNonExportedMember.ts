@@ -81,7 +81,7 @@ registerCodeFix({
 
             exports.forEach((moduleExports, moduleSourceFile) => {
                 const exportDeclaration = tryGetExportDeclaration(moduleSourceFile, /*isTypeOnly*/ true);
-                if (exportDeclaration && exportDeclaration.isTypeOnly) {
+                if (exportDeclaration?.isTypeOnly) {
                     doChanges(changes, program, moduleSourceFile, moduleExports.typeOnlyExports, exportDeclaration);
                     doChanges(changes, program, moduleSourceFile, moduleExports.exports, tryGetExportDeclaration(moduleSourceFile, /*isTypeOnly*/ false));
                 }

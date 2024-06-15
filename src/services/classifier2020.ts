@@ -192,7 +192,7 @@ function collectTokens(program: Program, sourceFile: SourceFile, span: TextSpan,
                             modifierSet |= 1 << TokenModifier.defaultLibrary;
                         }
                     }
-                    else if (symbol.declarations && symbol.declarations.some(d => program.isSourceFileDefaultLibrary(d.getSourceFile()))) {
+                    else if (symbol.declarations?.some(d => program.isSourceFileDefaultLibrary(d.getSourceFile()))) {
                         modifierSet |= 1 << TokenModifier.defaultLibrary;
                     }
 

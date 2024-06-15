@@ -162,7 +162,7 @@ export class CompilationResult {
     }
 
     public get emitSkipped(): boolean {
-        return this.result && this.result.emitSkipped || false;
+        return !!this.result?.emitSkipped;
     }
 
     public get singleFile(): boolean {

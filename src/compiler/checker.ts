@@ -21024,7 +21024,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         childrenPropName,
                         typeToString(childrenTargetType),
                     );
-                    if (errorOutputContainer && errorOutputContainer.skipLogging) {
+                    if (errorOutputContainer?.skipLogging) {
                         (errorOutputContainer.errors || (errorOutputContainer.errors = [])).push(diag);
                     }
                 }
@@ -21055,7 +21055,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         childrenPropName,
                         typeToString(childrenTargetType),
                     );
-                    if (errorOutputContainer && errorOutputContainer.skipLogging) {
+                    if (errorOutputContainer?.skipLogging) {
                         (errorOutputContainer.errors || (errorOutputContainer.errors = [])).push(diag);
                     }
                 }
@@ -33066,7 +33066,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         if (links && links.jsxImplicitImportContainer === false) {
             return undefined;
         }
-        if (links && links.jsxImplicitImportContainer) {
+        if (links?.jsxImplicitImportContainer) {
             return links.jsxImplicitImportContainer;
         }
         const runtimeImportSpecifier = getJSXRuntimeImport(getJSXImplicitImportBase(compilerOptions, file), compilerOptions);
@@ -33088,7 +33088,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
 
     function getJsxNamespaceAt(location: Node | undefined): Symbol {
         const links = location && getNodeLinks(location);
-        if (links && links.jsxNamespace) {
+        if (links?.jsxNamespace) {
             return links.jsxNamespace;
         }
         if (!links || links.jsxNamespace !== false) {
@@ -39766,7 +39766,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     if (propType.symbol && propType.symbol.flags & SymbolFlags.Class) {
                         const name = prop.escapedName;
                         const symbol = resolveName(prop.valueDeclaration, name, SymbolFlags.Type, /*nameNotFoundMessage*/ undefined, /*isUse*/ false);
-                        if (symbol?.declarations && symbol.declarations.some(isJSDocTypedefTag)) {
+                        if (symbol?.declarations?.some(isJSDocTypedefTag)) {
                             addDuplicateDeclarationErrorsForSymbols(symbol, Diagnostics.Duplicate_identifier_0, unescapeLeadingUnderscores(name), prop);
                             addDuplicateDeclarationErrorsForSymbols(prop, Diagnostics.Duplicate_identifier_0, unescapeLeadingUnderscores(name), symbol);
                         }
@@ -50624,7 +50624,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function checkGrammarForDisallowedTrailingComma(list: NodeArray<Node> | undefined, diag = Diagnostics.Trailing_comma_not_allowed): boolean {
-        if (list && list.hasTrailingComma) {
+        if (list?.hasTrailingComma) {
             return grammarErrorAtPos(list[0], list.end - ",".length, ",".length, diag);
         }
         return false;

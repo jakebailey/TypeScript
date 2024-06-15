@@ -2178,7 +2178,7 @@ function collectReadsAndWrites(
             return undefined;
         }
         const decls = symbol.getDeclarations();
-        if (decls && decls.some(d => d.parent === scopeDecl)) {
+        if (decls?.some(d => d.parent === scopeDecl)) {
             return factory.createIdentifier(symbol.name);
         }
         const prefix = tryReplaceWithQualifiedNameOrPropertyAccess(symbol.parent, scopeDecl, isTypeNode);

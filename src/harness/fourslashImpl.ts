@@ -3886,7 +3886,7 @@ export class TestState {
             switch (key) {
                 case "spans":
                 case "nameSpan":
-                    return options && options.checkSpans ? value : undefined;
+                    return options?.checkSpans ? value : undefined;
                 case "start":
                 case "length":
                     // Never omit the values in a span, even if they are 0.

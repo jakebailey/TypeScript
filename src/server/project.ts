@@ -637,7 +637,7 @@ export abstract class Project implements LanguageServiceHost, ModuleResolutionHo
 
         let result: string[] | undefined;
         this.rootFilesMap.forEach(value => {
-            if (this.languageServiceEnabled || (value.info && value.info.isScriptOpen())) {
+            if (this.languageServiceEnabled || value.info?.isScriptOpen()) {
                 // if language service is disabled - process only files that are open
                 (result || (result = [])).push(value.fileName);
             }
@@ -2030,7 +2030,7 @@ export abstract class Project implements LanguageServiceHost, ModuleResolutionHo
             if (!globalPluginName) continue;
 
             // Skip already-locally-loaded plugins
-            if (options.plugins && options.plugins.some(p => p.name === globalPluginName)) continue;
+            if (options.plugins?.some(p => p.name === globalPluginName)) continue;
 
             // Provide global: true so plugins can detect why they can't find their config
             this.projectService.logger.info(`Loading global plugin ${globalPluginName}`);

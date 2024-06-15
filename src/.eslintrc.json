@@ -8,8 +8,6 @@
         "@typescript-eslint/no-unnecessary-type-assertion": "error",
         "@typescript-eslint/prefer-optional-chain": ["error", {
             "checkNumber": false,
-            "checkBoolean": false,
-            "checkBigInt": false,
             "requireNullish": true
         }],
         "no-restricted-globals": [

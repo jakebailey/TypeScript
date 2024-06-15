@@ -3963,7 +3963,7 @@ function lookupSymbolForName(container: Node, name: __String): Symbol | undefine
     if (local) {
         return local.exportSymbol ?? local;
     }
-    if (isSourceFile(container) && container.jsGlobalAugmentations && container.jsGlobalAugmentations.has(name)) {
+    if (isSourceFile(container) && container.jsGlobalAugmentations?.has(name)) {
         return container.jsGlobalAugmentations.get(name);
     }
     if (canHaveSymbol(container)) {

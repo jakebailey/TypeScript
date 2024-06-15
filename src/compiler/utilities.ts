@@ -996,7 +996,7 @@ export function getEndLinePosition(line: number, sourceFile: SourceFileLike): nu
  * @internal
  */
 export function isFileLevelUniqueName(sourceFile: SourceFile, name: string, hasGlobalName?: PrintHandlers["hasGlobalName"]): boolean {
-    return !(hasGlobalName && hasGlobalName(name)) && !sourceFile.identifiers.has(name);
+    return !hasGlobalName?.(name) && !sourceFile.identifiers.has(name);
 }
 
 // Returns true if this node is missing from the actual source code. A 'missing' node is different

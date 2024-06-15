@@ -325,7 +325,7 @@ function renameCollidingVarNames(nodeToRename: FunctionLikeDeclaration, checker:
                 const collidingSymbols = collidingSymbolMap.get(originalName);
 
                 // if the identifier name conflicts with a different identifier that we've already seen
-                if (collidingSymbols && collidingSymbols.some(prevSymbol => prevSymbol !== symbol)) {
+                if (collidingSymbols?.some(prevSymbol => prevSymbol !== symbol)) {
                     const newName = getNewNameIfConflict(node, collidingSymbolMap);
                     identsToRenameMap.set(symbolIdString, newName.identifier);
                     synthNamesMap.set(symbolIdString, newName);
