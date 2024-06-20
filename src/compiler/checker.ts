@@ -1036,6 +1036,7 @@ import {
     ThisExpression,
     ThisTypeNode,
     ThrowStatement,
+    timestamp,
     TokenFlags,
     tokenToString,
     tracing,
@@ -2351,6 +2352,26 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         [".json", ".json"],
     ];
     /* eslint-enable no-var */
+
+    let logDepth = 0;
+    function logIncreaseDepth() {
+        logDepth++;
+    }
+    function logDecreaseDepth() {
+        logDepth--;
+    }
+    function log(s: string) {
+        const prefix = " ".repeat(logDepth);
+        console.log(prefix + s);
+    }
+    function debugNodeString(node: Node): string {
+        return (node as any).__debugGetText().replace(/\s+/g, " ").slice(0, 50);
+    }
+    function debugSignatureString(signature: Signature): string {
+        const node = signature.declaration;
+        if (node) return debugNodeString(node);
+        return "???";
+    }
 
     initializeTypeChecker();
 
@@ -15838,9 +15859,12 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
 
     function getReturnTypeOfSignature(signature: Signature): Type {
         if (!signature.resolvedReturnType) {
+            const start = timestamp();
+            log(`pushTypeResolution ${debugSignatureString(signature)}`);
             if (!pushTypeResolution(signature, TypeSystemPropertyName.ResolvedReturnType)) {
                 return errorType;
             }
+            logIncreaseDepth();
             let type = signature.target ? instantiateType(getReturnTypeOfSignature(signature.target), signature.mapper) :
                 signature.compositeSignatures ? instantiateType(getUnionOrIntersectionType(map(signature.compositeSignatures, getReturnTypeOfSignature), signature.compositeKind, UnionReduction.Subtype), signature.mapper) :
                 getReturnTypeFromAnnotation(signature.declaration!) ||
@@ -15851,6 +15875,9 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             else if (signature.flags & SignatureFlags.IsOuterCallChain) {
                 type = getOptionalType(type);
             }
+            logDecreaseDepth();
+            const took = timestamp() - start;
+            log(`popTypeResolution ${debugSignatureString(signature)} ${took > 50 ? " " + took.toFixed(2) + "ms" : ""}`);
             if (!popTypeResolution()) {
                 if (signature.declaration) {
                     const typeNode = getEffectiveReturnTypeNode(signature.declaration);
@@ -15907,7 +15934,12 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function isResolvingReturnTypeOfSignature(signature: Signature): boolean {
-        return signature.compositeSignatures && some(signature.compositeSignatures, isResolvingReturnTypeOfSignature) ||
+        const result = isResolvingReturnTypeOfSignature2(signature);
+        log(`isResolvingReturnTypeOfSignature ${debugSignatureString(signature)} ${result}`);
+        return result;
+    }
+    function isResolvingReturnTypeOfSignature2(signature: Signature): boolean {
+        return signature.compositeSignatures && some(signature.compositeSignatures, isResolvingReturnTypeOfSignature2) ||
             !signature.resolvedReturnType && findResolutionCycleStartIndex(signature, TypeSystemPropertyName.ResolvedReturnType) >= 0;
     }
 
@@ -36609,10 +36641,16 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             // through resolution of the containing function call. By resetting the resolution stack we'll
             // retry the symbol type resolution with the resolvingSignature marker in place to suppress
             // the contextual type circularity.
+            log(`getResolvedSignature reset point ${debugNodeString(node)}`);
+            logIncreaseDepth();
             resolutionStart = resolutionTargets.length;
         }
         links.resolvedSignature = resolvingSignature;
         let result = resolveSignature(node, candidatesOutArray, checkMode || CheckMode.Normal);
+        if (!cached) {
+            logDecreaseDepth();
+            log(`getResolvedSignature restore point ${debugNodeString(node)}`);
+        }
         resolutionStart = saveResolutionStart;
         // When CheckMode.SkipGenericFunctions is set we use resolvingSignature to indicate that call
         // resolution should be deferred.
