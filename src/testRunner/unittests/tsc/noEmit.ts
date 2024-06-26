@@ -167,4 +167,25 @@ describe("unittests:: tsc:: noEmit::", () => {
         edits: noChangeOnlyRuns,
         baselinePrograms: true,
     });
+
+    verifyTsc({
+        scenario: "noEmit",
+        subScenario: "when isolatedDeclarations is true",
+        commandLineArgs: ["-noEmit", "-p", `src/project`],
+        fs: () =>
+            loadProjectFromFiles({
+                "/src/project/tsconfig.json": jsonToReadableText({
+                    compilerOptions: {
+                        declaration: true,
+                        isolatedDeclarations: true,
+                    },
+                }),
+                "/src/project/class1.ts": dedent`
+                    function errorOnAssignmentBelowDecl(): void {}
+                    errorOnAssignmentBelowDecl.a = "";
+                `,
+            }),
+        edits: noChangeOnlyRuns,
+        baselinePrograms: true,
+    });
 });
