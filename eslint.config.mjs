@@ -162,6 +162,7 @@ export default tseslint.config(
             "local/no-keywords": "error",
             "local/jsdoc-format": "error",
             "local/js-extensions": "error",
+            "local/no-comparison-equality": "error",
         },
     },
     {
