@@ -8,7 +8,6 @@ import {
     BindingElement,
     ClassExpression,
     CompilerOptions,
-    Debug,
     ElementAccessExpression,
     ExportAssignment,
     Expression,
@@ -64,6 +63,7 @@ import {
     UnionTypeNode,
     VariableDeclaration,
 } from "./_namespaces/ts.js";
+import * as Debug from "./debug.js";
 
 /** @internal */
 export function createSyntacticTypeNodeBuilder(options: CompilerOptions, resolver: SyntacticTypeNodeBuilderResolver) {

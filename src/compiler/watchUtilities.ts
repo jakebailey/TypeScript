@@ -7,7 +7,6 @@ import {
     compareStringsCaseSensitive,
     CompilerOptions,
     createGetCanonicalFileName,
-    Debug,
     DirectoryWatcherCallback,
     emptyArray,
     emptyFileSystemEntries,
@@ -58,6 +57,7 @@ import {
     WatchFileKind,
     WatchOptions,
 } from "./_namespaces/ts.js";
+import * as Debug from "./debug.js";
 
 /**
  * Partial interface of the System thats needed to support the caching of directory structure

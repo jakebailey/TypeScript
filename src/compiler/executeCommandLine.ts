@@ -29,7 +29,6 @@ import {
     createWatchCompilerHostOfFilesAndCompilerOptions,
     createWatchProgram,
     createWatchStatusReporter as ts_createWatchStatusReporter,
-    Debug,
     Diagnostic,
     DiagnosticMessage,
     DiagnosticReporter,
@@ -87,6 +86,7 @@ import {
     WatchOfConfigFile,
     WatchOptions,
 } from "./_namespaces/ts.js";
+import * as Debug from "./debug.js";
 import * as performance from "./performance.js";
 
 interface Statistic {

@@ -15,7 +15,6 @@ import {
     contains,
     containsPath,
     createCompilerDiagnostic,
-    Debug,
     deduplicate,
     Diagnostic,
     DiagnosticMessage,
@@ -108,6 +107,7 @@ import {
     versionMajorMinor,
     VersionRange,
 } from "./_namespaces/ts.js";
+import * as Debug from "./debug.js";
 
 /** @internal */
 export function trace(host: ModuleResolutionHost, message: DiagnosticMessage, ...args: any[]): void {

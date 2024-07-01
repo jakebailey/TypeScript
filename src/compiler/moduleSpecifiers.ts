@@ -15,7 +15,6 @@ import {
     containsIgnoredPath,
     containsPath,
     createGetCanonicalFileName,
-    Debug,
     directorySeparator,
     emptyArray,
     endsWith,
@@ -126,6 +125,7 @@ import {
     TypeChecker,
     UserPreferences,
 } from "./_namespaces/ts.js";
+import * as Debug from "./debug.js";
 
 // Used by importFixes, getEditsForFileRename, and declaration emit to synthesize import module specifiers.
 

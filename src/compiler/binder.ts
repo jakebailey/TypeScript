@@ -39,7 +39,6 @@ import {
     createFileDiagnostic,
     createQueue,
     createSymbolTable,
-    Debug,
     Declaration,
     declarationNameToString,
     DeleteExpression,
@@ -322,6 +321,7 @@ import {
     WithStatement,
 } from "./_namespaces/ts.js";
 import * as performance from "./_namespaces/ts.performance.js";
+import * as Debug from "./debug.js";
 
 /** @internal */
 export const enum ModuleInstanceState {

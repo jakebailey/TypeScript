@@ -55,7 +55,6 @@ import {
     createScanner,
     createTextChangeRange,
     createTextSpanFromBounds,
-    Debug,
     Decorator,
     DefaultClause,
     DeleteExpression,
@@ -397,6 +396,7 @@ import {
     YieldExpression,
 } from "./_namespaces/ts.js";
 import * as performance from "./_namespaces/ts.performance.js";
+import * as Debug from "./debug.js";
 
 const enum SignatureFlags {
     None = 0,
