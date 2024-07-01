@@ -162,6 +162,7 @@ export default tseslint.config(
             "local/no-keywords": "error",
             "local/jsdoc-format": "error",
             "local/js-extensions": "error",
+            "local/prefer-direct-import": "error",
         },
     },
     {
@@ -207,6 +208,12 @@ export default tseslint.config(
         files: ["src/harness/**", "src/testRunner/**"],
         rules: {
             "no-restricted-globals": "off",
+        },
+    },
+    {
+        files: ["src/harness/**", "src/testRunner/**", "src/tsserver/**", "src/typingsInstaller/**"],
+        rules: {
+            "local/prefer-direct-import": "off",
         },
     },
     {
