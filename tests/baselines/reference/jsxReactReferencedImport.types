@@ -1,0 +1,26 @@
+//// [tests/cases/conformance/jsx/jsxReactReferencedImport.ts] ////
+
+=== Performance Stats ===
+Assignability cache: 2,500
+Type Count: 5,000
+Instantiation count: 50,000
+Symbol count: 50,000
+
+=== file.tsx ===
+/// <reference path="react16.d.ts" />
+
+import React from 'react';
+>React : typeof React
+>      : ^^^^^^^^^^^^
+
+export function Component1() {
+>Component1 : () => JSX.Element
+>           : ^^^^^^^^^^^^^^^^^
+
+  return <div />;
+><div /> : JSX.Element
+>        : ^^^^^^^^^^^
+>div : any
+>    : ^^^
+}
+
