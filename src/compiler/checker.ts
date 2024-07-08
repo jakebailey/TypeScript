@@ -29701,9 +29701,6 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     function markLinkedReferences(location: HasDecorators, hint: ReferenceHint.Decorator): void;
     function markLinkedReferences(location: Node, hint: ReferenceHint.Unspecified, propSymbol?: Symbol, parentType?: Type): void;
     function markLinkedReferences(location: Node, hint: ReferenceHint, propSymbol?: Symbol, parentType?: Type) {
-        if (!canCollectSymbolAliasAccessabilityData) {
-            return;
-        }
         if (location.flags & NodeFlags.Ambient) {
             return; // References within types and declaration files are never going to contribute to retaining a JS import
         }
@@ -30007,6 +30004,9 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function markExportAsReferenced(node: ImportEqualsDeclaration | ExportSpecifier) {
+        if (!canCollectSymbolAliasAccessabilityData) {
+            return;
+        }
         const symbol = getSymbolOfDeclaration(node);
         const target = resolveAlias(symbol);
         if (target) {
