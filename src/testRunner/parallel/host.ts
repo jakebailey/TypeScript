@@ -279,7 +279,7 @@ export function start(importTests: () => Promise<unknown>) {
             const configPath = ts.combinePaths(taskConfigsFolder, `task-config${i}.json`);
             IO.writeFile(configPath, JSON.stringify(config));
             const worker: Worker = {
-                process: fork(process.argv[1], [`--config="${configPath}"`], { stdio: ["pipe", "pipe", "pipe", "ipc"] }),
+                process: fork(process.argv[1], [`--config="${configPath}"`], { stdio: ["pipe", "pipe", "pipe", "ipc"], env: { ...process.env, BUN_DEBUG: `out-${i}.log`, BUN_DEBUG_zig: "1" } }),
                 accumulatedOutput: "",
                 currentTasks: undefined,
                 timer: undefined,
