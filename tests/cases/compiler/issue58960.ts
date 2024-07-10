@@ -11,3 +11,12 @@ const a: 0 extends 1 & A ? true : false = false;
 const b: 0 extends 1 & B ? true : false = false;
 // @ts-expect-error
 const c: 0 extends 1 & C ? true : false = false;
+
+
+// @ts-expect-error
+const a2: void extends A ? true : false = false;
+// @ts-expect-error
+const b2: void extends B ? true : false = false;
+// @ts-expect-error
+const c2: void extends C ? true : false = false;
+

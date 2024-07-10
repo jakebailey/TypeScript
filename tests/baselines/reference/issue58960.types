@@ -47,3 +47,38 @@ const c: 0 extends 1 & C ? true : false = false;
 >false : false
 >      : ^^^^^
 
+
+// @ts-expect-error
+const a2: void extends A ? true : false = false;
+>a2 : true
+>   : ^^^^
+>true : true
+>     : ^^^^
+>false : false
+>      : ^^^^^
+>false : false
+>      : ^^^^^
+
+// @ts-expect-error
+const b2: void extends B ? true : false = false;
+>b2 : true
+>   : ^^^^
+>true : true
+>     : ^^^^
+>false : false
+>      : ^^^^^
+>false : false
+>      : ^^^^^
+
+// @ts-expect-error
+const c2: void extends C ? true : false = false;
+>c2 : any
+>   : ^^^
+>true : true
+>     : ^^^^
+>false : false
+>      : ^^^^^
+>false : false
+>      : ^^^^^
+
+
