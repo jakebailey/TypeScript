@@ -1,0 +1,21 @@
+issue58960.ts(8,1): error TS2578: Unused '@ts-expect-error' directive.
+issue58960.ts(10,1): error TS2578: Unused '@ts-expect-error' directive.
+
+
+==== issue58960.ts (2 errors) ====
+    type A = any
+    // @ts-ignore
+    type B = DoesNotExist
+    type C = B & any
+    
+    // @ts-expect-error
+    const a: 0 extends 1 & A ? true : false = false;
+    // @ts-expect-error
+    ~~~~~~~~~~~~~~~~~~~
+!!! error TS2578: Unused '@ts-expect-error' directive.
+    const b: 0 extends 1 & B ? true : false = false;
+    // @ts-expect-error
+    ~~~~~~~~~~~~~~~~~~~
+!!! error TS2578: Unused '@ts-expect-error' directive.
+    const c: 0 extends 1 & C ? true : false = false;
+    

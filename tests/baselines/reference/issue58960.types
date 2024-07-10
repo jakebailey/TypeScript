@@ -1,0 +1,49 @@
+//// [tests/cases/compiler/issue58960.ts] ////
+
+=== issue58960.ts ===
+type A = any
+>A : any
+>  : ^^^
+
+// @ts-ignore
+type B = DoesNotExist
+>B : DoesNotExist
+>  : ^^^^^^^^^^^^
+
+type C = B & any
+>C : any
+>  : ^^^
+
+// @ts-expect-error
+const a: 0 extends 1 & A ? true : false = false;
+>a : true
+>  : ^^^^
+>true : true
+>     : ^^^^
+>false : false
+>      : ^^^^^
+>false : false
+>      : ^^^^^
+
+// @ts-expect-error
+const b: 0 extends 1 & B ? true : false = false;
+>b : any
+>  : ^^^
+>true : true
+>     : ^^^^
+>false : false
+>      : ^^^^^
+>false : false
+>      : ^^^^^
+
+// @ts-expect-error
+const c: 0 extends 1 & C ? true : false = false;
+>c : any
+>  : ^^^
+>true : true
+>     : ^^^^
+>false : false
+>      : ^^^^^
+>false : false
+>      : ^^^^^
+

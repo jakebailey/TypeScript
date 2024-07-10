@@ -1,0 +1,30 @@
+//// [tests/cases/compiler/issue58960.ts] ////
+
+=== issue58960.ts ===
+type A = any
+>A : Symbol(A, Decl(issue58960.ts, 0, 0))
+
+// @ts-ignore
+type B = DoesNotExist
+>B : Symbol(B, Decl(issue58960.ts, 0, 12))
+>DoesNotExist : Symbol(DoesNotExist)
+
+type C = B & any
+>C : Symbol(C, Decl(issue58960.ts, 2, 21))
+>B : Symbol(B, Decl(issue58960.ts, 0, 12))
+
+// @ts-expect-error
+const a: 0 extends 1 & A ? true : false = false;
+>a : Symbol(a, Decl(issue58960.ts, 6, 5))
+>A : Symbol(A, Decl(issue58960.ts, 0, 0))
+
+// @ts-expect-error
+const b: 0 extends 1 & B ? true : false = false;
+>b : Symbol(b, Decl(issue58960.ts, 8, 5))
+>B : Symbol(B, Decl(issue58960.ts, 0, 12))
+
+// @ts-expect-error
+const c: 0 extends 1 & C ? true : false = false;
+>c : Symbol(c, Decl(issue58960.ts, 10, 5))
+>C : Symbol(C, Decl(issue58960.ts, 2, 21))
+
