@@ -4,8 +4,8 @@
 // Repros from #53783
 
 type LengthDown<
->LengthDown : LengthDown<Str, Length, It>
->           : ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>LengthDown : any
+>           : ^^^
 
   Str extends string,
   Length extends number | bigint,

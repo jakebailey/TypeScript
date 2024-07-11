@@ -61,8 +61,8 @@ const a2: void extends A ? true : false = false;
 
 // @ts-expect-error
 const b2: void extends B ? true : false = false;
->b2 : true
->   : ^^^^
+>b2 : any
+>   : ^^^
 >true : true
 >     : ^^^^
 >false : false

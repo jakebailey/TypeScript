@@ -19098,7 +19098,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             }
             const checkType = instantiateType(getActualTypeVariable(root.checkType), mapper);
             const extendsType = instantiateType(root.extendsType, mapper);
-            if (checkType === errorType || extendsType === errorType) {
+            if (isErrorType(checkType) || isErrorType(extendsType)) {
                 return errorType;
             }
             if (checkType === wildcardType || extendsType === wildcardType) {
