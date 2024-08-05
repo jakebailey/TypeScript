@@ -4,7 +4,6 @@ const { getConstrainedTypeAtLocation, isTypeArrayTypeOrUnionOfArrayTypes } = req
 
 /**
  * @import { TSESTree } from "@typescript-eslint/utils"
- * @typedef {TSESTree.CallExpression | TSESTree.NewExpression} CallOrNewExpression
  */
 void 0;
 
