@@ -8,13 +8,13 @@ const { getConstrainedTypeAtLocation, isTypeArrayTypeOrUnionOfArrayTypes } = req
 void 0;
 
 module.exports = createRule({
-    name: "no-array-sort-return",
+    name: "no-array-mutation-method-returns",
     meta: {
         docs: {
             description: ``,
         },
         messages: {
-            noArraySortUse: `This call to sort appears to be unintentional as it appears in an expression position. Sort the array in a separate statement, or use slice/toSorted to ensure a copy is made.`,
+            noSideEffectUse: `This call to {{method}} appears to be unintentional as it appears in an expression position. Sort the array in a separate statement, or use slice/{{toMethod}} to ensure a copy is made.`,
         },
         schema: [],
         type: "problem",
@@ -62,7 +62,7 @@ module.exports = createRule({
         };
 
         /** @type {(callee: TSESTree.MemberExpression) => boolean} */
-        const isAllowedSortCall = callee => {
+        const isFreshArray = callee => {
             const object = callee.object;
 
             if (object.type === "ArrayExpression") {
@@ -118,9 +118,9 @@ module.exports = createRule({
             return false;
         };
 
-        /** @type {(callee: TSESTree.MemberExpression) => void} */
-        const checkSortArgument = callee => {
-            if (isAllowedSortCall(callee)) return;
+        /** @type {(callee: TSESTree.MemberExpression, method: string) => void} */
+        const check = (callee, method) => {
+            if (isFreshArray(callee)) return;
 
             const calleeObjType = getConstrainedTypeAtLocation(services, callee.object);
 
@@ -128,11 +128,19 @@ module.exports = createRule({
 
             if (!isReadPosition(callee)) return;
 
-            context.report({ node: callee.property, messageId: "noArraySortUse" });
+            const toMethod = `to${method[0].toUpperCase()}${method.slice(1)}d`;
+
+            context.report({ node: callee.property, messageId: "noSideEffectUse", data: { method, toMethod } });
         };
 
-        return {
-            "CallExpression > MemberExpression[property.name='sort'][computed=false]": checkSortArgument,
-        };
+        // Methods with new copying variants.
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array#copying_methods_and_mutating_methods
+        const mutatingMethods = [
+            "reverse",
+            "sort",
+            "splice",
+        ];
+
+        return Object.fromEntries(mutatingMethods.map(method => [`CallExpression > MemberExpression[property.name='${method}'][computed=false]`, node => check(node, method)]));
     },
 });

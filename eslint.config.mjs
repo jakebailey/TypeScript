@@ -162,7 +162,7 @@ export default tseslint.config(
             "local/no-keywords": "error",
             "local/jsdoc-format": "error",
             "local/js-extensions": "error",
-            "local/no-array-sort-return": "error",
+            "local/no-array-mutation-method-returns": "error",
         },
     },
     {
