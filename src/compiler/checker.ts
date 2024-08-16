@@ -2884,9 +2884,9 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         return nodeLinks[nodeId] || (nodeLinks[nodeId] = new (NodeLinks as any)());
     }
 
-    function getSymbol(symbols: SymbolTable, name: __String, meaning: SymbolFlags): Symbol | undefined {
+    function getSymbol(symbols: SymbolTable, name: __String | JsxName, meaning: SymbolFlags): Symbol | undefined {
         if (meaning) {
-            const symbol = getMergedSymbol(symbols.get(name));
+            const symbol = getMergedSymbol(symbols.get(name as __String));
             if (symbol) {
                 if (symbol.flags & meaning) {
                     return symbol;
@@ -22310,8 +22310,8 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             }
             else if (getObjectFlags(source) & ObjectFlags.JsxAttributes && target.flags & TypeFlags.Intersection) {
                 const targetTypes = (target as IntersectionType).types;
-                const intrinsicAttributes = getJsxType(JsxNames.IntrinsicAttributes, errorNode);
-                const intrinsicClassAttributes = getJsxType(JsxNames.IntrinsicClassAttributes, errorNode);
+                const intrinsicAttributes = getJsxType(JsxName.IntrinsicAttributes, errorNode);
+                const intrinsicClassAttributes = getJsxType(JsxName.IntrinsicClassAttributes, errorNode);
                 if (
                     !isErrorType(intrinsicAttributes) && !isErrorType(intrinsicClassAttributes) &&
                     (contains(targetTypes, intrinsicAttributes) || contains(targetTypes, intrinsicClassAttributes))
@@ -32152,7 +32152,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     function getJsxPropsTypeFromCallSignature(sig: Signature, context: JsxOpeningLikeElement) {
         let propsType = getTypeOfFirstParameterOfSignatureWithFallback(sig, unknownType);
         propsType = getJsxManagedAttributesFromLocatedAttributes(context, getJsxNamespaceAt(context), propsType);
-        const intrinsicAttribs = getJsxType(JsxNames.IntrinsicAttributes, context);
+        const intrinsicAttribs = getJsxType(JsxName.IntrinsicAttributes, context);
         if (!isErrorType(intrinsicAttribs)) {
             propsType = intersectTypes(intrinsicAttribs, propsType);
         }
@@ -32243,7 +32243,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         else {
             // Normal case -- add in IntrinsicClassElements<T> and IntrinsicElements
             let apparentAttributesType = attributesType;
-            const intrinsicClassAttribs = getJsxType(JsxNames.IntrinsicClassAttributes, context);
+            const intrinsicClassAttribs = getJsxType(JsxName.IntrinsicClassAttributes, context);
             if (!isErrorType(intrinsicClassAttribs)) {
                 const typeParams = getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(intrinsicClassAttribs.symbol);
                 const hostClassType = getReturnTypeOfSignature(sig);
@@ -32258,7 +32258,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 apparentAttributesType = intersectTypes(libraryManagedAttributeType, apparentAttributesType);
             }
 
-            const intrinsicAttribs = getJsxType(JsxNames.IntrinsicAttributes, context);
+            const intrinsicAttribs = getJsxType(JsxName.IntrinsicAttributes, context);
             if (!isErrorType(intrinsicAttribs)) {
                 apparentAttributesType = intersectTypes(intrinsicAttribs, apparentAttributesType);
             }
@@ -33151,7 +33151,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         return createJsxAttributesTypeFromAttributesProperty(node.parent, checkMode);
     }
 
-    function getJsxType(name: __String, location: Node | undefined) {
+    function getJsxType(name: JsxName, location: Node | undefined) {
         const namespace = getJsxNamespaceAt(location);
         const exports = namespace && getExportsOfSymbol(namespace);
         const typeSymbol = exports && getSymbol(exports, name, SymbolFlags.Type);
@@ -33167,7 +33167,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     function getIntrinsicTagSymbol(node: JsxOpeningLikeElement | JsxClosingElement): Symbol {
         const links = getNodeLinks(node);
         if (!links.resolvedSymbol) {
-            const intrinsicElementsType = getJsxType(JsxNames.IntrinsicElements, node);
+            const intrinsicElementsType = getJsxType(JsxName.IntrinsicElements, node);
             if (!isErrorType(intrinsicElementsType)) {
                 // Property case
                 if (!isIdentifier(node.tagName) && !isJsxNamespacedName(node.tagName)) return Debug.fail();
@@ -33191,12 +33191,12 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 }
 
                 // Wasn't found
-                error(node, Diagnostics.Property_0_does_not_exist_on_type_1, intrinsicTagNameToString(node.tagName), "JSX." + JsxNames.IntrinsicElements);
+                error(node, Diagnostics.Property_0_does_not_exist_on_type_1, intrinsicTagNameToString(node.tagName), "JSX." + JsxName.IntrinsicElements);
                 return links.resolvedSymbol = unknownSymbol;
             }
             else {
                 if (noImplicitAny) {
-                    error(node, Diagnostics.JSX_element_implicitly_has_type_any_because_no_interface_JSX_0_exists, unescapeLeadingUnderscores(JsxNames.IntrinsicElements));
+                    error(node, Diagnostics.JSX_element_implicitly_has_type_any_because_no_interface_JSX_0_exists, JsxName.IntrinsicElements);
                 }
                 return links.resolvedSymbol = unknownSymbol;
             }
@@ -33244,7 +33244,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             }
 
             if (resolvedNamespace) {
-                const candidate = resolveSymbol(getSymbol(getExportsOfSymbol(resolveSymbol(resolvedNamespace)), JsxNames.JSX, SymbolFlags.Namespace));
+                const candidate = resolveSymbol(getSymbol(getExportsOfSymbol(resolveSymbol(resolvedNamespace)), JsxName.JSX, SymbolFlags.Namespace));
                 if (candidate && candidate !== unknownSymbol) {
                     if (links) {
                         links.jsxNamespace = candidate;
@@ -33257,7 +33257,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             }
         }
         // JSX global fallback
-        const s = resolveSymbol(getGlobalSymbol(JsxNames.JSX, SymbolFlags.Namespace, /*diagnostic*/ undefined));
+        const s = resolveSymbol(getGlobalSymbol(JsxName.JSX as __String, SymbolFlags.Namespace, /*diagnostic*/ undefined));
         if (s === unknownSymbol) {
             return undefined!; // TODO: GH#18217
         }
@@ -33271,7 +33271,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
      * @param nameOfAttribPropContainer a string of value JsxNames.ElementAttributesPropertyNameContainer or JsxNames.ElementChildrenAttributeNameContainer
      *          if other string is given or the container doesn't exist, return undefined.
      */
-    function getNameFromJsxElementAttributesContainer(nameOfAttribPropContainer: __String, jsxNamespace: Symbol): __String | undefined {
+    function getNameFromJsxElementAttributesContainer(nameOfAttribPropContainer: JsxName, jsxNamespace: Symbol): __String | undefined {
         // JSX.ElementAttributesProperty | JSX.ElementChildrenAttribute [symbol]
         const jsxElementAttribPropInterfaceSym = jsxNamespace && getSymbol(jsxNamespace.exports!, nameOfAttribPropContainer, SymbolFlags.Type);
         // JSX.ElementAttributesProperty | JSX.ElementChildrenAttribute [type]
@@ -33290,7 +33290,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             }
             else if (propertiesOfJsxElementAttribPropInterface.length > 1 && jsxElementAttribPropInterfaceSym.declarations) {
                 // More than one property on ElementAttributesProperty is an error
-                error(jsxElementAttribPropInterfaceSym.declarations[0], Diagnostics.The_global_type_JSX_0_may_not_have_more_than_one_property, unescapeLeadingUnderscores(nameOfAttribPropContainer));
+                error(jsxElementAttribPropInterfaceSym.declarations[0], Diagnostics.The_global_type_JSX_0_may_not_have_more_than_one_property, nameOfAttribPropContainer);
             }
         }
         return undefined;
@@ -33298,12 +33298,12 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
 
     function getJsxLibraryManagedAttributes(jsxNamespace: Symbol) {
         // JSX.LibraryManagedAttributes [symbol]
-        return jsxNamespace && getSymbol(jsxNamespace.exports!, JsxNames.LibraryManagedAttributes, SymbolFlags.Type);
+        return jsxNamespace && getSymbol(jsxNamespace.exports!, JsxName.LibraryManagedAttributes, SymbolFlags.Type);
     }
 
     function getJsxElementTypeSymbol(jsxNamespace: Symbol) {
         // JSX.ElementType [symbol]
-        return jsxNamespace && getSymbol(jsxNamespace.exports!, JsxNames.ElementType, SymbolFlags.Type);
+        return jsxNamespace && getSymbol(jsxNamespace.exports!, JsxName.ElementType, SymbolFlags.Type);
     }
 
     /// e.g. "props" for React.d.ts,
@@ -33312,11 +33312,11 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     /// or '' if it has 0 properties (which means every
     ///     non-intrinsic elements' attributes type is the element instance type)
     function getJsxElementPropertiesName(jsxNamespace: Symbol) {
-        return getNameFromJsxElementAttributesContainer(JsxNames.ElementAttributesPropertyNameContainer, jsxNamespace);
+        return getNameFromJsxElementAttributesContainer(JsxName.ElementAttributesPropertyNameContainer, jsxNamespace);
     }
 
     function getJsxElementChildrenPropertyName(jsxNamespace: Symbol): __String | undefined {
-        return getNameFromJsxElementAttributesContainer(JsxNames.ElementChildrenAttributeNameContainer, jsxNamespace);
+        return getNameFromJsxElementAttributesContainer(JsxName.ElementChildrenAttributeNameContainer, jsxNamespace);
     }
 
     function getUninstantiatedJsxSignaturesOfType(elementType: Type, caller: JsxOpeningLikeElement): readonly Signature[] {
@@ -33326,7 +33326,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         else if (elementType.flags & TypeFlags.StringLiteral) {
             const intrinsicType = getIntrinsicAttributesTypeFromStringLiteralType(elementType as StringLiteralType, caller);
             if (!intrinsicType) {
-                error(caller, Diagnostics.Property_0_does_not_exist_on_type_1, (elementType as StringLiteralType).value, "JSX." + JsxNames.IntrinsicElements);
+                error(caller, Diagnostics.Property_0_does_not_exist_on_type_1, (elementType as StringLiteralType).value, "JSX." + JsxName.IntrinsicElements);
                 return emptyArray;
             }
             else {
@@ -33353,7 +33353,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         // For example:
         //      var CustomTag: "h1" = "h1";
         //      <CustomTag> Hello World </CustomTag>
-        const intrinsicElementsType = getJsxType(JsxNames.IntrinsicElements, location);
+        const intrinsicElementsType = getJsxType(JsxName.IntrinsicElements, location);
         if (!isErrorType(intrinsicElementsType)) {
             const stringLiteralTypeName = type.value;
             const intrinsicProp = getPropertyOfType(intrinsicElementsType, escapeLeadingUnderscores(stringLiteralTypeName));
@@ -33415,7 +33415,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             }
             else if (links.jsxFlags & JsxFlags.IntrinsicIndexedElement) {
                 const propName = isJsxNamespacedName(node.tagName) ? getEscapedTextOfJsxNamespacedName(node.tagName) : node.tagName.escapedText;
-                return links.resolvedJsxElementAttributesType = getApplicableIndexInfoForName(getJsxType(JsxNames.IntrinsicElements, node), propName)?.type || errorType;
+                return links.resolvedJsxElementAttributesType = getApplicableIndexInfoForName(getJsxType(JsxName.IntrinsicElements, node), propName)?.type || errorType;
             }
             else {
                 return links.resolvedJsxElementAttributesType = errorType;
@@ -33425,13 +33425,13 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function getJsxElementClassTypeAt(location: Node): Type | undefined {
-        const type = getJsxType(JsxNames.ElementClass, location);
+        const type = getJsxType(JsxName.ElementClass, location);
         if (isErrorType(type)) return undefined;
         return type;
     }
 
     function getJsxElementTypeAt(location: Node): Type {
-        return getJsxType(JsxNames.Element, location);
+        return getJsxType(JsxName.Element, location);
     }
 
     function getJsxStatelessElementTypeAt(location: Node): Type | undefined {
@@ -33471,7 +33471,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
      * Returns all the properties of the Jsx.IntrinsicElements interface
      */
     function getJsxIntrinsicTagNamesAt(location: Node): Symbol[] {
-        const intrinsics = getJsxType(JsxNames.IntrinsicElements, location);
+        const intrinsics = getJsxType(JsxName.IntrinsicElements, location);
         return intrinsics ? getPropertiesOfType(intrinsics) : emptyArray;
     }
 
@@ -36628,7 +36628,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         const exports = namespace && getExportsOfSymbol(namespace);
         // We fake up a SFC signature for each intrinsic, however a more specific per-element signature drawn from the JSX declaration
         // file would probably be preferable.
-        const typeSymbol = exports && getSymbol(exports, JsxNames.Element, SymbolFlags.Type);
+        const typeSymbol = exports && getSymbol(exports, JsxName.Element, SymbolFlags.Type);
         const returnNode = typeSymbol && nodeBuilder.symbolToEntityName(typeSymbol, SymbolFlags.Type, node);
         const declaration = factory.createFunctionTypeNode(/*typeParameters*/ undefined, [factory.createParameterDeclaration(/*modifiers*/ undefined, /*dotDotDotToken*/ undefined, "props", /*questionToken*/ undefined, nodeBuilder.typeToTypeNode(result, node))], returnNode ? factory.createTypeReferenceNode(returnNode, /*typeArguments*/ undefined) : factory.createKeywordTypeNode(SyntaxKind.AnyKeyword));
         const parameterSymbol = createSymbol(SymbolFlags.FunctionScopedVariable, "props" as __String);
@@ -52560,17 +52560,17 @@ function isDeclarationNameOrImportPropertyName(name: Node): boolean {
     }
 }
 
-namespace JsxNames {
-    export const JSX = "JSX" as __String;
-    export const IntrinsicElements = "IntrinsicElements" as __String;
-    export const ElementClass = "ElementClass" as __String;
-    export const ElementAttributesPropertyNameContainer = "ElementAttributesProperty" as __String; // TODO: Deprecate and remove support
-    export const ElementChildrenAttributeNameContainer = "ElementChildrenAttribute" as __String;
-    export const Element = "Element" as __String;
-    export const ElementType = "ElementType" as __String;
-    export const IntrinsicAttributes = "IntrinsicAttributes" as __String;
-    export const IntrinsicClassAttributes = "IntrinsicClassAttributes" as __String;
-    export const LibraryManagedAttributes = "LibraryManagedAttributes" as __String;
+const enum JsxName {
+    JSX = "JSX",
+    IntrinsicElements = "IntrinsicElements",
+    ElementClass = "ElementClass",
+    ElementAttributesPropertyNameContainer = "ElementAttributesProperty", // TODO: Deprecate and remove support
+    ElementChildrenAttributeNameContainer = "ElementChildrenAttribute",
+    Element = "Element",
+    ElementType = "ElementType",
+    IntrinsicAttributes = "IntrinsicAttributes",
+    IntrinsicClassAttributes = "IntrinsicClassAttributes",
+    LibraryManagedAttributes = "LibraryManagedAttributes",
 }
 
 function getIterationTypesKeyFromIterationTypeKind(typeKind: IterationTypeKind) {
