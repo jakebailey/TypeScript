@@ -86,6 +86,10 @@ export default tseslint.config(
                     selector: "TSNullKeyword",
                     message: "Avoid using null; use undefined instead.",
                 },
+                {
+                    selector: "TSModuleDeclaration[kind=namespace] > Identifier",
+                    message: "Namespaces are not allowed.",
+                },
             ],
 
             // Enabled in eslint:recommended, but not applicable here
