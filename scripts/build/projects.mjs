@@ -42,7 +42,13 @@ const tscPath = resolve(
 
 const execTsc = (/** @type {string[]} */ ...args) => exec(process.execPath, [tscPath, "-b", ...args], { hidePrompt: true });
 
-const projectBuilder = new ProjectQueue(projects => execTsc(...(cmdLineOptions.bundle ? [] : ["--emitDeclarationOnly", "false"]), ...projects));
+const projectBuilder = new ProjectQueue(projects =>
+    execTsc(
+        ...(cmdLineOptions.bundle ? [] : ["--emitDeclarationOnly", "false"]),
+        ...(cmdLineOptions.typecheck ? [] : ["--noCheck"]),
+        ...projects,
+    )
+);
 
 /**
  * @param {string} project
