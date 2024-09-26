@@ -6793,6 +6793,9 @@ export interface InstantiableType extends Type {
 // Type parameters (TypeFlags.TypeParameter)
 // dprint-ignore
 export interface TypeParameter extends InstantiableType {
+    /** @internal */
+    __typeParameterBrand: any;
+
     /**
      * Retrieve using getConstraintFromTypeParameter
      *

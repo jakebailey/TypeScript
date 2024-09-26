@@ -6440,7 +6440,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     context.flags & NodeBuilderFlags.GenerateNamesForShadowedTypeParams &&
                     type.flags & TypeFlags.TypeParameter
                 ) {
-                    const name = typeParameterToName(type, context);
+                    const name = typeParameterToName(type as TypeParameter, context);
                     context.approximateLength += idText(name).length;
                     return factory.createTypeReferenceNode(factory.createIdentifier(idText(name)), /*typeArguments*/ undefined);
                 }
@@ -6596,7 +6596,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 const needsModifierPreservingWrapper = !isMappedTypeWithKeyofConstraintDeclaration(type)
                     && !(getModifiersTypeFromMappedType(type).flags & TypeFlags.Unknown)
                     && context.flags & NodeBuilderFlags.GenerateNamesForShadowedTypeParams
-                    && !(getConstraintTypeFromMappedType(type).flags & TypeFlags.TypeParameter && getConstraintOfTypeParameter(getConstraintTypeFromMappedType(type))?.flags! & TypeFlags.Index);
+                    && !(getConstraintTypeFromMappedType(type).flags & TypeFlags.TypeParameter && getConstraintOfTypeParameter(getConstraintTypeFromMappedType(type) as TypeParameter)?.flags! & TypeFlags.Index);
                 if (isMappedTypeWithKeyofConstraintDeclaration(type)) {
                     // We have a { [P in keyof T]: X }
                     // We do this to ensure we retain the toplevel keyof-ness of the type which may be lost due to keyof distribution during `getConstraintTypeFromMappedType`
@@ -8549,7 +8549,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             function attachSymbolToLeftmostIdentifier(node: Node): Node {
                 if (node === leftmost) {
                     const type = getDeclaredTypeOfSymbol(sym!);
-                    const name = sym!.flags & SymbolFlags.TypeParameter ? typeParameterToName(type, context) : factory.cloneNode(node as Identifier);
+                    const name = sym!.flags & SymbolFlags.TypeParameter ? typeParameterToName(type as TypeParameter, context) : factory.cloneNode(node as Identifier);
                     name.symbol = sym!; // for quickinfo, which uses identifier symbol information
                     return setTextRange(context, setEmitFlags(name, EmitFlags.NoAsciiEscaping), node);
                 }
@@ -8919,7 +8919,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                     return factory.updateTypeParameterDeclaration(
                         node,
                         visitNodes(node.modifiers, visitExistingNodeTreeSymbols, isModifier),
-                        setTextRange(context, typeParameterToName(getDeclaredTypeOfSymbol(getSymbolOfDeclaration(node)), context), node),
+                        setTextRange(context, typeParameterToName(getDeclaredTypeOfSymbol(getSymbolOfDeclaration(node)) as TypeParameter, context), node),
                         visitNode(node.constraint, visitExistingNodeTreeSymbols, isTypeNode),
                         visitNode(node.default, visitExistingNodeTreeSymbols, isTypeNode),
                     );
@@ -12819,7 +12819,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
             if (!(baseConstructorType.flags & TypeFlags.Any) && baseConstructorType !== nullWideningType && !isConstructorType(baseConstructorType)) {
                 const err = error(baseTypeNode.expression, Diagnostics.Type_0_is_not_a_constructor_function_type, typeToString(baseConstructorType));
                 if (baseConstructorType.flags & TypeFlags.TypeParameter) {
-                    const constraint = getConstraintFromTypeParameter(baseConstructorType);
+                    const constraint = getConstraintFromTypeParameter(baseConstructorType as TypeParameter);
                     let ctorReturn: Type = unknownType;
                     if (constraint) {
                         const ctorSig = getSignaturesOfType(constraint, SignatureKind.Construct);
@@ -12838,6 +12838,10 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         return type.resolvedBaseConstructorType;
     }
 
+    function isBaseType(type: Type): type is BaseType {
+        return !!(type.flags & TypeFlags.Object || type.flags & TypeFlags.Intersection || type.flags & TypeFlags.TypeParameter || type.flags & TypeFlags.IndexedAccess);
+    }
+
     function getImplementsTypes(type: InterfaceType): BaseType[] {
         let resolvedImplementsTypes: BaseType[] = emptyArray;
         if (type.symbol.declarations) {
@@ -12847,8 +12851,9 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 for (const node of implementsTypeNodes) {
                     const implementsType = getTypeFromTypeNode(node);
                     if (!isErrorType(implementsType)) {
+                        Debug.assert(isBaseType(implementsType));
                         if (resolvedImplementsTypes === emptyArray) {
-                            resolvedImplementsTypes = [implementsType as ObjectType];
+                            resolvedImplementsTypes = [implementsType];
                         }
                         else {
                             resolvedImplementsTypes.push(implementsType);
@@ -13184,7 +13189,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
 
     function getDeclaredTypeOfTypeParameter(symbol: Symbol): TypeParameter {
         const links = getSymbolLinks(symbol);
-        return links.declaredType || (links.declaredType = createTypeParameter(symbol));
+        return links.declaredType as TypeParameter || (links.declaredType = createTypeParameter(symbol));
     }
 
     function getDeclaredTypeOfAlias(symbol: Symbol): Type {
@@ -16157,7 +16162,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     }
 
     function getTypeParametersForMapper(signature: Signature) {
-        return sameMap(signature.typeParameters, tp => tp.mapper ? instantiateType(tp, tp.mapper) : tp);
+        return sameMap(signature.typeParameters, tp => tp.mapper ? instantiateType(tp, tp.mapper) as TypeParameter : tp);
     }
 
     function createSignatureTypeMapper(signature: Signature, typeArguments: readonly Type[] | undefined): TypeMapper {
@@ -16544,7 +16549,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
     function getTypeArguments(type: TypeReference): readonly Type[] {
         if (!type.resolvedTypeArguments) {
             if (!pushTypeResolution(type, TypeSystemPropertyName.ResolvedTypeArguments)) {
-                return concatenate(type.target.outerTypeParameters, type.target.localTypeParameters?.map(() => errorType)) || emptyArray;
+                return concatenate(type.target.outerTypeParameters, type.target.localTypeParameters?.map(() => errorType as Type as TypeParameter)) || emptyArray;
             }
             const node = type.node;
             const typeArguments = !node ? emptyArray :
@@ -16555,7 +16560,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 type.resolvedTypeArguments ??= type.mapper ? instantiateTypes(typeArguments, type.mapper) : typeArguments;
             }
             else {
-                type.resolvedTypeArguments ??= concatenate(type.target.outerTypeParameters, type.target.localTypeParameters?.map(() => errorType) || emptyArray);
+                type.resolvedTypeArguments ??= concatenate(type.target.outerTypeParameters, type.target.localTypeParameters?.map(() => errorType as Type as TypeParameter) || emptyArray);
                 error(
                     type.node || currentNode,
                     type.target.symbol ? Diagnostics.Type_arguments_for_0_circularly_reference_themselves : Diagnostics.Tuple_type_arguments_circularly_reference_themselves,
@@ -19529,7 +19534,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
         if (node.locals) {
             node.locals.forEach(symbol => {
                 if (symbol.flags & SymbolFlags.TypeParameter) {
-                    result = append(result, getDeclaredTypeOfSymbol(symbol));
+                    result = append(result, getDeclaredTypeOfSymbol(symbol) as TypeParameter);
                 }
             });
         }
@@ -23204,13 +23209,13 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                 if (relation === comparableRelation && sourceFlags & TypeFlags.TypeParameter) {
                     // This is a carve-out in comparability to essentially forbid comparing a type parameter
                     // with another type parameter unless one extends the other. (Remember: comparability is mostly bidirectional!)
-                    let constraint = getConstraintOfTypeParameter(source);
+                    let constraint = getConstraintOfTypeParameter(source as TypeParameter);
                     if (constraint) {
                         while (constraint && someType(constraint, c => !!(c.flags & TypeFlags.TypeParameter))) {
                             if (result = isRelatedTo(constraint, target, RecursionFlags.Source, /*reportErrors*/ false)) {
                                 return result;
                             }
-                            constraint = getConstraintOfTypeParameter(constraint);
+                            constraint = getConstraintOfTypeParameter(constraint as TypeParameter);
                         }
                     }
                     return Ternary.False;
