@@ -2,7 +2,7 @@ super_inside-object-literal-getters-and-setters.ts(11,20): error TS2660: 'super'
 
 
 ==== super_inside-object-literal-getters-and-setters.ts (1 errors) ====
-    module ObjectLiteral {
+    namespace ObjectLiteral {
         var ThisInObjectLiteral = {
             _foo: '1',
             get foo(): string {

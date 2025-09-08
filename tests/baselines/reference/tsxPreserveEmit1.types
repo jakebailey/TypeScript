@@ -26,7 +26,7 @@ var routes1 = <Route />;
 >Route : any
 >      : ^^^
 
-module M {
+namespace M {
 >M : typeof M
 >  : ^^^^^^^^
 
@@ -34,7 +34,7 @@ module M {
 >X : any
 >  : ^^^
 }
-module M {
+namespace M {
 >M : typeof M
 >  : ^^^^^^^^
 
@@ -64,7 +64,7 @@ declare module 'react' {
 >  : ^^^
 }
 
-declare module ReactRouter {
+declare namespace ReactRouter {
 >ReactRouter : typeof ReactRouter
 >            : ^^^^^^^^^^^^^^^^^^
 

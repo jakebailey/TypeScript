@@ -4,7 +4,7 @@ export namespace a {
     }
 }
 
-export module c {
+export namespace c {
     import b = a.I;
     export var x: b;
 }

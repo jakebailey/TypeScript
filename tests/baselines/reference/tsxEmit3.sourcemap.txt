@@ -14,17 +14,17 @@ sourceFile:file.tsx
 3 >    ^
 4 >     ^
 5 >      ^^^^^^^^^^->
-1 >declare module JSX {
+1 >declare namespace JSX {
   >	interface Element { }
   >	interface IntrinsicElements { }
   >}
   >
   >
-2 >module 
+2 >namespace 
 3 >    M
 4 >      {
   >     	export class Foo { constructor() { } }
-  >     	export module S {
+  >     	export namespace S {
   >     		export class Bar { }
   >     
   >     		// Emit Foo
@@ -32,8 +32,8 @@ sourceFile:file.tsx
   >     	}
   >     }
 1 >Emitted(1, 1) Source(6, 1) + SourceIndex(0)
-2 >Emitted(1, 5) Source(6, 8) + SourceIndex(0)
-3 >Emitted(1, 6) Source(6, 9) + SourceIndex(0)
+2 >Emitted(1, 5) Source(6, 11) + SourceIndex(0)
+3 >Emitted(1, 6) Source(6, 12) + SourceIndex(0)
 4 >Emitted(1, 7) Source(14, 2) + SourceIndex(0)
 ---
 >>>(function (M) {
@@ -42,11 +42,11 @@ sourceFile:file.tsx
 3 >           ^
 4 >            ^^^^->
 1->
-2 >module 
+2 >namespace 
 3 >           M
 1->Emitted(2, 1) Source(6, 1) + SourceIndex(0)
-2 >Emitted(2, 12) Source(6, 8) + SourceIndex(0)
-3 >Emitted(2, 13) Source(6, 9) + SourceIndex(0)
+2 >Emitted(2, 12) Source(6, 11) + SourceIndex(0)
+3 >Emitted(2, 13) Source(6, 12) + SourceIndex(0)
 ---
 >>>    class Foo {
 1->^^^^
@@ -100,7 +100,7 @@ sourceFile:file.tsx
 5 >          ^^^^^^^^^^->
 1 >
   >	
-2 >    export module 
+2 >    export namespace 
 3 >        S
 4 >          {
   >         		export class Bar { }
@@ -109,8 +109,8 @@ sourceFile:file.tsx
   >         		// Foo, <Foo />;
   >         	}
 1 >Emitted(7, 5) Source(8, 2) + SourceIndex(0)
-2 >Emitted(7, 9) Source(8, 16) + SourceIndex(0)
-3 >Emitted(7, 10) Source(8, 17) + SourceIndex(0)
+2 >Emitted(7, 9) Source(8, 19) + SourceIndex(0)
+3 >Emitted(7, 10) Source(8, 20) + SourceIndex(0)
 4 >Emitted(7, 11) Source(13, 3) + SourceIndex(0)
 ---
 >>>    (function (S) {
@@ -119,11 +119,11 @@ sourceFile:file.tsx
 3 >               ^
 4 >                ^^^^->
 1->
-2 >    export module 
+2 >    export namespace 
 3 >               S
 1->Emitted(8, 5) Source(8, 2) + SourceIndex(0)
-2 >Emitted(8, 16) Source(8, 16) + SourceIndex(0)
-3 >Emitted(8, 17) Source(8, 17) + SourceIndex(0)
+2 >Emitted(8, 16) Source(8, 19) + SourceIndex(0)
+3 >Emitted(8, 17) Source(8, 20) + SourceIndex(0)
 ---
 >>>        class Bar {
 1->^^^^^^^^
@@ -205,12 +205,12 @@ sourceFile:file.tsx
   >                      	}
 1->Emitted(14, 5) Source(13, 2) + SourceIndex(0)
 2 >Emitted(14, 6) Source(13, 3) + SourceIndex(0)
-3 >Emitted(14, 8) Source(8, 16) + SourceIndex(0)
-4 >Emitted(14, 9) Source(8, 17) + SourceIndex(0)
-5 >Emitted(14, 12) Source(8, 16) + SourceIndex(0)
-6 >Emitted(14, 15) Source(8, 17) + SourceIndex(0)
-7 >Emitted(14, 20) Source(8, 16) + SourceIndex(0)
-8 >Emitted(14, 23) Source(8, 17) + SourceIndex(0)
+3 >Emitted(14, 8) Source(8, 19) + SourceIndex(0)
+4 >Emitted(14, 9) Source(8, 20) + SourceIndex(0)
+5 >Emitted(14, 12) Source(8, 19) + SourceIndex(0)
+6 >Emitted(14, 15) Source(8, 20) + SourceIndex(0)
+7 >Emitted(14, 20) Source(8, 19) + SourceIndex(0)
+8 >Emitted(14, 23) Source(8, 20) + SourceIndex(0)
 9 >Emitted(14, 31) Source(13, 3) + SourceIndex(0)
 ---
 >>>})(M || (M = {}));
@@ -230,7 +230,7 @@ sourceFile:file.tsx
 6 >         M
 7 >           {
   >          	export class Foo { constructor() { } }
-  >          	export module S {
+  >          	export namespace S {
   >          		export class Bar { }
   >          
   >          		// Emit Foo
@@ -239,10 +239,10 @@ sourceFile:file.tsx
   >          }
 1 >Emitted(15, 1) Source(14, 1) + SourceIndex(0)
 2 >Emitted(15, 2) Source(14, 2) + SourceIndex(0)
-3 >Emitted(15, 4) Source(6, 8) + SourceIndex(0)
-4 >Emitted(15, 5) Source(6, 9) + SourceIndex(0)
-5 >Emitted(15, 10) Source(6, 8) + SourceIndex(0)
-6 >Emitted(15, 11) Source(6, 9) + SourceIndex(0)
+3 >Emitted(15, 4) Source(6, 11) + SourceIndex(0)
+4 >Emitted(15, 5) Source(6, 12) + SourceIndex(0)
+5 >Emitted(15, 10) Source(6, 11) + SourceIndex(0)
+6 >Emitted(15, 11) Source(6, 12) + SourceIndex(0)
 7 >Emitted(15, 19) Source(14, 2) + SourceIndex(0)
 ---
 >>>(function (M) {
@@ -253,11 +253,11 @@ sourceFile:file.tsx
 1 >
   >
   >
-2 >module 
+2 >namespace 
 3 >           M
 1 >Emitted(16, 1) Source(16, 1) + SourceIndex(0)
-2 >Emitted(16, 12) Source(16, 8) + SourceIndex(0)
-3 >Emitted(16, 13) Source(16, 9) + SourceIndex(0)
+2 >Emitted(16, 12) Source(16, 11) + SourceIndex(0)
+3 >Emitted(16, 13) Source(16, 12) + SourceIndex(0)
 ---
 >>>    // Emit M.Foo
 1->^^^^
@@ -314,7 +314,7 @@ sourceFile:file.tsx
 1 >
   >
   >	
-2 >    export module 
+2 >    export namespace 
 3 >        S
 4 >          {
   >         		// Emit M.Foo
@@ -324,8 +324,8 @@ sourceFile:file.tsx
   >         		Bar, <Bar />;
   >         	}
 1 >Emitted(19, 5) Source(20, 2) + SourceIndex(0)
-2 >Emitted(19, 9) Source(20, 16) + SourceIndex(0)
-3 >Emitted(19, 10) Source(20, 17) + SourceIndex(0)
+2 >Emitted(19, 9) Source(20, 19) + SourceIndex(0)
+3 >Emitted(19, 10) Source(20, 20) + SourceIndex(0)
 4 >Emitted(19, 11) Source(26, 3) + SourceIndex(0)
 ---
 >>>    (function (S) {
@@ -334,11 +334,11 @@ sourceFile:file.tsx
 3 >               ^
 4 >                ^^^^^^->
 1->
-2 >    export module 
+2 >    export namespace 
 3 >               S
 1->Emitted(20, 5) Source(20, 2) + SourceIndex(0)
-2 >Emitted(20, 16) Source(20, 16) + SourceIndex(0)
-3 >Emitted(20, 17) Source(20, 17) + SourceIndex(0)
+2 >Emitted(20, 16) Source(20, 19) + SourceIndex(0)
+3 >Emitted(20, 17) Source(20, 20) + SourceIndex(0)
 ---
 >>>        // Emit M.Foo
 1->^^^^^^^^
@@ -462,12 +462,12 @@ sourceFile:file.tsx
   >                      	}
 1->Emitted(25, 5) Source(26, 2) + SourceIndex(0)
 2 >Emitted(25, 6) Source(26, 3) + SourceIndex(0)
-3 >Emitted(25, 8) Source(20, 16) + SourceIndex(0)
-4 >Emitted(25, 9) Source(20, 17) + SourceIndex(0)
-5 >Emitted(25, 12) Source(20, 16) + SourceIndex(0)
-6 >Emitted(25, 15) Source(20, 17) + SourceIndex(0)
-7 >Emitted(25, 20) Source(20, 16) + SourceIndex(0)
-8 >Emitted(25, 23) Source(20, 17) + SourceIndex(0)
+3 >Emitted(25, 8) Source(20, 19) + SourceIndex(0)
+4 >Emitted(25, 9) Source(20, 20) + SourceIndex(0)
+5 >Emitted(25, 12) Source(20, 19) + SourceIndex(0)
+6 >Emitted(25, 15) Source(20, 20) + SourceIndex(0)
+7 >Emitted(25, 20) Source(20, 19) + SourceIndex(0)
+8 >Emitted(25, 23) Source(20, 20) + SourceIndex(0)
 9 >Emitted(25, 31) Source(26, 3) + SourceIndex(0)
 ---
 >>>})(M || (M = {}));
@@ -490,7 +490,7 @@ sourceFile:file.tsx
   >          	// Emit M.Foo
   >          	Foo, <Foo />;
   >          
-  >          	export module S {
+  >          	export namespace S {
   >          		// Emit M.Foo
   >          		Foo, <Foo />;
   >          
@@ -501,10 +501,10 @@ sourceFile:file.tsx
   >          }
 1 >Emitted(26, 1) Source(28, 1) + SourceIndex(0)
 2 >Emitted(26, 2) Source(28, 2) + SourceIndex(0)
-3 >Emitted(26, 4) Source(16, 8) + SourceIndex(0)
-4 >Emitted(26, 5) Source(16, 9) + SourceIndex(0)
-5 >Emitted(26, 10) Source(16, 8) + SourceIndex(0)
-6 >Emitted(26, 11) Source(16, 9) + SourceIndex(0)
+3 >Emitted(26, 4) Source(16, 11) + SourceIndex(0)
+4 >Emitted(26, 5) Source(16, 12) + SourceIndex(0)
+5 >Emitted(26, 10) Source(16, 11) + SourceIndex(0)
+6 >Emitted(26, 11) Source(16, 12) + SourceIndex(0)
 7 >Emitted(26, 19) Source(28, 2) + SourceIndex(0)
 ---
 >>>(function (M) {
@@ -515,11 +515,11 @@ sourceFile:file.tsx
 1 >
   >
   >
-2 >module 
+2 >namespace 
 3 >           M
 1 >Emitted(27, 1) Source(30, 1) + SourceIndex(0)
-2 >Emitted(27, 12) Source(30, 8) + SourceIndex(0)
-3 >Emitted(27, 13) Source(30, 9) + SourceIndex(0)
+2 >Emitted(27, 12) Source(30, 11) + SourceIndex(0)
+3 >Emitted(27, 13) Source(30, 12) + SourceIndex(0)
 ---
 >>>    // Emit M.S.Bar
 1->^^^^
@@ -600,10 +600,10 @@ sourceFile:file.tsx
   >          }
 1 >Emitted(30, 1) Source(33, 1) + SourceIndex(0)
 2 >Emitted(30, 2) Source(33, 2) + SourceIndex(0)
-3 >Emitted(30, 4) Source(30, 8) + SourceIndex(0)
-4 >Emitted(30, 5) Source(30, 9) + SourceIndex(0)
-5 >Emitted(30, 10) Source(30, 8) + SourceIndex(0)
-6 >Emitted(30, 11) Source(30, 9) + SourceIndex(0)
+3 >Emitted(30, 4) Source(30, 11) + SourceIndex(0)
+4 >Emitted(30, 5) Source(30, 12) + SourceIndex(0)
+5 >Emitted(30, 10) Source(30, 11) + SourceIndex(0)
+6 >Emitted(30, 11) Source(30, 12) + SourceIndex(0)
 7 >Emitted(30, 19) Source(33, 2) + SourceIndex(0)
 ---
 >>>(function (M_1) {
@@ -614,11 +614,11 @@ sourceFile:file.tsx
 1 >
   >
   >
-2 >module 
+2 >namespace 
 3 >           M
 1 >Emitted(31, 1) Source(35, 1) + SourceIndex(0)
-2 >Emitted(31, 12) Source(35, 8) + SourceIndex(0)
-3 >Emitted(31, 15) Source(35, 9) + SourceIndex(0)
+2 >Emitted(31, 12) Source(35, 11) + SourceIndex(0)
+3 >Emitted(31, 15) Source(35, 12) + SourceIndex(0)
 ---
 >>>    var M = 100;
 1->^^^^
@@ -711,10 +711,10 @@ sourceFile:file.tsx
   >          }
 1 >Emitted(35, 1) Source(39, 1) + SourceIndex(0)
 2 >Emitted(35, 2) Source(39, 2) + SourceIndex(0)
-3 >Emitted(35, 4) Source(35, 8) + SourceIndex(0)
-4 >Emitted(35, 5) Source(35, 9) + SourceIndex(0)
-5 >Emitted(35, 10) Source(35, 8) + SourceIndex(0)
-6 >Emitted(35, 11) Source(35, 9) + SourceIndex(0)
+3 >Emitted(35, 4) Source(35, 11) + SourceIndex(0)
+4 >Emitted(35, 5) Source(35, 12) + SourceIndex(0)
+5 >Emitted(35, 10) Source(35, 11) + SourceIndex(0)
+6 >Emitted(35, 11) Source(35, 12) + SourceIndex(0)
 7 >Emitted(35, 19) Source(39, 2) + SourceIndex(0)
 ---
 >>>//# sourceMappingURL=file.jsx.map

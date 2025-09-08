@@ -2,7 +2,7 @@
 //@module: commonjs
 
 //@filename: react.d.ts
-declare module JSX {
+declare namespace JSX {
 	interface Element { }
 	interface IntrinsicElements {
 	}

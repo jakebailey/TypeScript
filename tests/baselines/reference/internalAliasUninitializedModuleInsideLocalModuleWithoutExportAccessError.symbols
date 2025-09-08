@@ -16,17 +16,17 @@ export namespace a {
     }
 }
 
-export module c {
+export namespace c {
 >c : Symbol(c, Decl(internalAliasUninitializedModuleInsideLocalModuleWithoutExportAccessError.ts, 6, 1))
 
     import b = a.b;
->b : Symbol(b, Decl(internalAliasUninitializedModuleInsideLocalModuleWithoutExportAccessError.ts, 8, 17))
+>b : Symbol(b, Decl(internalAliasUninitializedModuleInsideLocalModuleWithoutExportAccessError.ts, 8, 20))
 >a : Symbol(a, Decl(internalAliasUninitializedModuleInsideLocalModuleWithoutExportAccessError.ts, 0, 0))
 >b : Symbol(b, Decl(internalAliasUninitializedModuleInsideLocalModuleWithoutExportAccessError.ts, 0, 20))
 
     export var x: b.I;
 >x : Symbol(x, Decl(internalAliasUninitializedModuleInsideLocalModuleWithoutExportAccessError.ts, 10, 14))
->b : Symbol(b, Decl(internalAliasUninitializedModuleInsideLocalModuleWithoutExportAccessError.ts, 8, 17))
+>b : Symbol(b, Decl(internalAliasUninitializedModuleInsideLocalModuleWithoutExportAccessError.ts, 8, 20))
 >I : Symbol(b.I, Decl(internalAliasUninitializedModuleInsideLocalModuleWithoutExportAccessError.ts, 1, 24))
 
     x.foo();

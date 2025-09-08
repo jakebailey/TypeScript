@@ -36,7 +36,7 @@ sourceFile:recursiveClassReferenceTest.ts
   >
   >
   >
-  >declare module Sample.Thing {
+  >declare namespace Sample.Thing {
   >
   >	export interface IWidget {
   >		getDomNode(): any;
@@ -63,7 +63,7 @@ sourceFile:recursiveClassReferenceTest.ts
   >}
   >
   >
-2 >module 
+2 >namespace 
 3 >    Sample
 4 >          .Actions.Thing.Find {
   >          	export class StartFindAction implements Sample.Thing.IAction {
@@ -77,8 +77,8 @@ sourceFile:recursiveClassReferenceTest.ts
   >          	}
   >          }
 1 >Emitted(3, 1) Source(32, 1) + SourceIndex(0)
-2 >Emitted(3, 5) Source(32, 8) + SourceIndex(0)
-3 >Emitted(3, 11) Source(32, 14) + SourceIndex(0)
+2 >Emitted(3, 5) Source(32, 11) + SourceIndex(0)
+3 >Emitted(3, 11) Source(32, 17) + SourceIndex(0)
 4 >Emitted(3, 12) Source(42, 2) + SourceIndex(0)
 ---
 >>>(function (Sample) {
@@ -86,11 +86,11 @@ sourceFile:recursiveClassReferenceTest.ts
 2 >^^^^^^^^^^^
 3 >           ^^^^^^
 1->
-2 >module 
+2 >namespace 
 3 >           Sample
 1->Emitted(4, 1) Source(32, 1) + SourceIndex(0)
-2 >Emitted(4, 12) Source(32, 8) + SourceIndex(0)
-3 >Emitted(4, 18) Source(32, 14) + SourceIndex(0)
+2 >Emitted(4, 12) Source(32, 11) + SourceIndex(0)
+3 >Emitted(4, 18) Source(32, 17) + SourceIndex(0)
 ---
 >>>    var Actions;
 1 >^^^^
@@ -112,9 +112,9 @@ sourceFile:recursiveClassReferenceTest.ts
   >               		}
   >               	}
   >               }
-1 >Emitted(5, 5) Source(32, 15) + SourceIndex(0)
-2 >Emitted(5, 9) Source(32, 15) + SourceIndex(0)
-3 >Emitted(5, 16) Source(32, 22) + SourceIndex(0)
+1 >Emitted(5, 5) Source(32, 18) + SourceIndex(0)
+2 >Emitted(5, 9) Source(32, 18) + SourceIndex(0)
+3 >Emitted(5, 16) Source(32, 25) + SourceIndex(0)
 4 >Emitted(5, 17) Source(42, 2) + SourceIndex(0)
 ---
 >>>    (function (Actions) {
@@ -124,9 +124,9 @@ sourceFile:recursiveClassReferenceTest.ts
 1->
 2 >    
 3 >               Actions
-1->Emitted(6, 5) Source(32, 15) + SourceIndex(0)
-2 >Emitted(6, 16) Source(32, 15) + SourceIndex(0)
-3 >Emitted(6, 23) Source(32, 22) + SourceIndex(0)
+1->Emitted(6, 5) Source(32, 18) + SourceIndex(0)
+2 >Emitted(6, 16) Source(32, 18) + SourceIndex(0)
+3 >Emitted(6, 23) Source(32, 25) + SourceIndex(0)
 ---
 >>>        var Thing;
 1 >^^^^^^^^
@@ -148,9 +148,9 @@ sourceFile:recursiveClassReferenceTest.ts
   >                 		}
   >                 	}
   >                 }
-1 >Emitted(7, 9) Source(32, 23) + SourceIndex(0)
-2 >Emitted(7, 13) Source(32, 23) + SourceIndex(0)
-3 >Emitted(7, 18) Source(32, 28) + SourceIndex(0)
+1 >Emitted(7, 9) Source(32, 26) + SourceIndex(0)
+2 >Emitted(7, 13) Source(32, 26) + SourceIndex(0)
+3 >Emitted(7, 18) Source(32, 31) + SourceIndex(0)
 4 >Emitted(7, 19) Source(42, 2) + SourceIndex(0)
 ---
 >>>        (function (Thing_1) {
@@ -160,9 +160,9 @@ sourceFile:recursiveClassReferenceTest.ts
 1->
 2 >        
 3 >                   Thing
-1->Emitted(8, 9) Source(32, 23) + SourceIndex(0)
-2 >Emitted(8, 20) Source(32, 23) + SourceIndex(0)
-3 >Emitted(8, 27) Source(32, 28) + SourceIndex(0)
+1->Emitted(8, 9) Source(32, 26) + SourceIndex(0)
+2 >Emitted(8, 20) Source(32, 26) + SourceIndex(0)
+3 >Emitted(8, 27) Source(32, 31) + SourceIndex(0)
 ---
 >>>            var Find;
 1 >^^^^^^^^^^^^
@@ -184,9 +184,9 @@ sourceFile:recursiveClassReferenceTest.ts
   >                    		}
   >                    	}
   >                    }
-1 >Emitted(9, 13) Source(32, 29) + SourceIndex(0)
-2 >Emitted(9, 17) Source(32, 29) + SourceIndex(0)
-3 >Emitted(9, 21) Source(32, 33) + SourceIndex(0)
+1 >Emitted(9, 13) Source(32, 32) + SourceIndex(0)
+2 >Emitted(9, 17) Source(32, 32) + SourceIndex(0)
+3 >Emitted(9, 21) Source(32, 36) + SourceIndex(0)
 4 >Emitted(9, 22) Source(42, 2) + SourceIndex(0)
 ---
 >>>            (function (Find) {
@@ -197,9 +197,9 @@ sourceFile:recursiveClassReferenceTest.ts
 1->
 2 >            
 3 >                       Find
-1->Emitted(10, 13) Source(32, 29) + SourceIndex(0)
-2 >Emitted(10, 24) Source(32, 29) + SourceIndex(0)
-3 >Emitted(10, 28) Source(32, 33) + SourceIndex(0)
+1->Emitted(10, 13) Source(32, 32) + SourceIndex(0)
+2 >Emitted(10, 24) Source(32, 32) + SourceIndex(0)
+3 >Emitted(10, 28) Source(32, 36) + SourceIndex(0)
 ---
 >>>                class StartFindAction {
 1->^^^^^^^^^^^^^^^^
@@ -346,12 +346,12 @@ sourceFile:recursiveClassReferenceTest.ts
   >                                                   }
 1->Emitted(18, 13) Source(42, 1) + SourceIndex(0)
 2 >Emitted(18, 14) Source(42, 2) + SourceIndex(0)
-3 >Emitted(18, 16) Source(32, 29) + SourceIndex(0)
-4 >Emitted(18, 20) Source(32, 33) + SourceIndex(0)
-5 >Emitted(18, 23) Source(32, 29) + SourceIndex(0)
-6 >Emitted(18, 35) Source(32, 33) + SourceIndex(0)
-7 >Emitted(18, 40) Source(32, 29) + SourceIndex(0)
-8 >Emitted(18, 52) Source(32, 33) + SourceIndex(0)
+3 >Emitted(18, 16) Source(32, 32) + SourceIndex(0)
+4 >Emitted(18, 20) Source(32, 36) + SourceIndex(0)
+5 >Emitted(18, 23) Source(32, 32) + SourceIndex(0)
+6 >Emitted(18, 35) Source(32, 36) + SourceIndex(0)
+7 >Emitted(18, 40) Source(32, 32) + SourceIndex(0)
+8 >Emitted(18, 52) Source(32, 36) + SourceIndex(0)
 9 >Emitted(18, 60) Source(42, 2) + SourceIndex(0)
 ---
 >>>        })(Thing = Actions.Thing || (Actions.Thing = {}));
@@ -386,12 +386,12 @@ sourceFile:recursiveClassReferenceTest.ts
   >                                                  }
 1 >Emitted(19, 9) Source(42, 1) + SourceIndex(0)
 2 >Emitted(19, 10) Source(42, 2) + SourceIndex(0)
-3 >Emitted(19, 12) Source(32, 23) + SourceIndex(0)
-4 >Emitted(19, 17) Source(32, 28) + SourceIndex(0)
-5 >Emitted(19, 20) Source(32, 23) + SourceIndex(0)
-6 >Emitted(19, 33) Source(32, 28) + SourceIndex(0)
-7 >Emitted(19, 38) Source(32, 23) + SourceIndex(0)
-8 >Emitted(19, 51) Source(32, 28) + SourceIndex(0)
+3 >Emitted(19, 12) Source(32, 26) + SourceIndex(0)
+4 >Emitted(19, 17) Source(32, 31) + SourceIndex(0)
+5 >Emitted(19, 20) Source(32, 26) + SourceIndex(0)
+6 >Emitted(19, 33) Source(32, 31) + SourceIndex(0)
+7 >Emitted(19, 38) Source(32, 26) + SourceIndex(0)
+8 >Emitted(19, 51) Source(32, 31) + SourceIndex(0)
 9 >Emitted(19, 59) Source(42, 2) + SourceIndex(0)
 ---
 >>>    })(Actions = Sample.Actions || (Sample.Actions = {}));
@@ -425,12 +425,12 @@ sourceFile:recursiveClassReferenceTest.ts
   >                                                  }
 1->Emitted(20, 5) Source(42, 1) + SourceIndex(0)
 2 >Emitted(20, 6) Source(42, 2) + SourceIndex(0)
-3 >Emitted(20, 8) Source(32, 15) + SourceIndex(0)
-4 >Emitted(20, 15) Source(32, 22) + SourceIndex(0)
-5 >Emitted(20, 18) Source(32, 15) + SourceIndex(0)
-6 >Emitted(20, 32) Source(32, 22) + SourceIndex(0)
-7 >Emitted(20, 37) Source(32, 15) + SourceIndex(0)
-8 >Emitted(20, 51) Source(32, 22) + SourceIndex(0)
+3 >Emitted(20, 8) Source(32, 18) + SourceIndex(0)
+4 >Emitted(20, 15) Source(32, 25) + SourceIndex(0)
+5 >Emitted(20, 18) Source(32, 18) + SourceIndex(0)
+6 >Emitted(20, 32) Source(32, 25) + SourceIndex(0)
+7 >Emitted(20, 37) Source(32, 18) + SourceIndex(0)
+8 >Emitted(20, 51) Source(32, 25) + SourceIndex(0)
 9 >Emitted(20, 59) Source(42, 2) + SourceIndex(0)
 ---
 >>>})(Sample || (Sample = {}));
@@ -460,10 +460,10 @@ sourceFile:recursiveClassReferenceTest.ts
   >                    }
 1 >Emitted(21, 1) Source(42, 1) + SourceIndex(0)
 2 >Emitted(21, 2) Source(42, 2) + SourceIndex(0)
-3 >Emitted(21, 4) Source(32, 8) + SourceIndex(0)
-4 >Emitted(21, 10) Source(32, 14) + SourceIndex(0)
-5 >Emitted(21, 15) Source(32, 8) + SourceIndex(0)
-6 >Emitted(21, 21) Source(32, 14) + SourceIndex(0)
+3 >Emitted(21, 4) Source(32, 11) + SourceIndex(0)
+4 >Emitted(21, 10) Source(32, 17) + SourceIndex(0)
+5 >Emitted(21, 15) Source(32, 11) + SourceIndex(0)
+6 >Emitted(21, 21) Source(32, 17) + SourceIndex(0)
 7 >Emitted(21, 29) Source(42, 2) + SourceIndex(0)
 ---
 >>>(function (Sample) {
@@ -473,11 +473,11 @@ sourceFile:recursiveClassReferenceTest.ts
 1 >
   >
   >
-2 >module 
+2 >namespace 
 3 >           Sample
 1 >Emitted(22, 1) Source(44, 1) + SourceIndex(0)
-2 >Emitted(22, 12) Source(44, 8) + SourceIndex(0)
-3 >Emitted(22, 18) Source(44, 14) + SourceIndex(0)
+2 >Emitted(22, 12) Source(44, 11) + SourceIndex(0)
+3 >Emitted(22, 18) Source(44, 17) + SourceIndex(0)
 ---
 >>>    var Thing;
 1 >^^^^
@@ -509,9 +509,9 @@ sourceFile:recursiveClassReferenceTest.ts
   >             
   >             	}
   >             }
-1 >Emitted(23, 5) Source(44, 15) + SourceIndex(0)
-2 >Emitted(23, 9) Source(44, 15) + SourceIndex(0)
-3 >Emitted(23, 14) Source(44, 20) + SourceIndex(0)
+1 >Emitted(23, 5) Source(44, 18) + SourceIndex(0)
+2 >Emitted(23, 9) Source(44, 18) + SourceIndex(0)
+3 >Emitted(23, 14) Source(44, 23) + SourceIndex(0)
 4 >Emitted(23, 15) Source(64, 2) + SourceIndex(0)
 ---
 >>>    (function (Thing) {
@@ -522,9 +522,9 @@ sourceFile:recursiveClassReferenceTest.ts
 1->
 2 >    
 3 >               Thing
-1->Emitted(24, 5) Source(44, 15) + SourceIndex(0)
-2 >Emitted(24, 16) Source(44, 15) + SourceIndex(0)
-3 >Emitted(24, 21) Source(44, 20) + SourceIndex(0)
+1->Emitted(24, 5) Source(44, 18) + SourceIndex(0)
+2 >Emitted(24, 16) Source(44, 18) + SourceIndex(0)
+3 >Emitted(24, 21) Source(44, 23) + SourceIndex(0)
 ---
 >>>        var Widgets;
 1->^^^^^^^^
@@ -556,9 +556,9 @@ sourceFile:recursiveClassReferenceTest.ts
   >                   
   >                   	}
   >                   }
-1->Emitted(25, 9) Source(44, 21) + SourceIndex(0)
-2 >Emitted(25, 13) Source(44, 21) + SourceIndex(0)
-3 >Emitted(25, 20) Source(44, 28) + SourceIndex(0)
+1->Emitted(25, 9) Source(44, 24) + SourceIndex(0)
+2 >Emitted(25, 13) Source(44, 24) + SourceIndex(0)
+3 >Emitted(25, 20) Source(44, 31) + SourceIndex(0)
 4 >Emitted(25, 21) Source(64, 2) + SourceIndex(0)
 ---
 >>>        (function (Widgets) {
@@ -569,9 +569,9 @@ sourceFile:recursiveClassReferenceTest.ts
 1->
 2 >        
 3 >                   Widgets
-1->Emitted(26, 9) Source(44, 21) + SourceIndex(0)
-2 >Emitted(26, 20) Source(44, 21) + SourceIndex(0)
-3 >Emitted(26, 27) Source(44, 28) + SourceIndex(0)
+1->Emitted(26, 9) Source(44, 24) + SourceIndex(0)
+2 >Emitted(26, 20) Source(44, 24) + SourceIndex(0)
+3 >Emitted(26, 27) Source(44, 31) + SourceIndex(0)
 ---
 >>>            class FindWidget {
 1->^^^^^^^^^^^^
@@ -897,12 +897,12 @@ sourceFile:recursiveClassReferenceTest.ts
   >                                                    }
 1->Emitted(44, 9) Source(64, 1) + SourceIndex(0)
 2 >Emitted(44, 10) Source(64, 2) + SourceIndex(0)
-3 >Emitted(44, 12) Source(44, 21) + SourceIndex(0)
-4 >Emitted(44, 19) Source(44, 28) + SourceIndex(0)
-5 >Emitted(44, 22) Source(44, 21) + SourceIndex(0)
-6 >Emitted(44, 35) Source(44, 28) + SourceIndex(0)
-7 >Emitted(44, 40) Source(44, 21) + SourceIndex(0)
-8 >Emitted(44, 53) Source(44, 28) + SourceIndex(0)
+3 >Emitted(44, 12) Source(44, 24) + SourceIndex(0)
+4 >Emitted(44, 19) Source(44, 31) + SourceIndex(0)
+5 >Emitted(44, 22) Source(44, 24) + SourceIndex(0)
+6 >Emitted(44, 35) Source(44, 31) + SourceIndex(0)
+7 >Emitted(44, 40) Source(44, 24) + SourceIndex(0)
+8 >Emitted(44, 53) Source(44, 31) + SourceIndex(0)
 9 >Emitted(44, 61) Source(64, 2) + SourceIndex(0)
 ---
 >>>    })(Thing = Sample.Thing || (Sample.Thing = {}));
@@ -946,12 +946,12 @@ sourceFile:recursiveClassReferenceTest.ts
   >                                            }
 1 >Emitted(45, 5) Source(64, 1) + SourceIndex(0)
 2 >Emitted(45, 6) Source(64, 2) + SourceIndex(0)
-3 >Emitted(45, 8) Source(44, 15) + SourceIndex(0)
-4 >Emitted(45, 13) Source(44, 20) + SourceIndex(0)
-5 >Emitted(45, 16) Source(44, 15) + SourceIndex(0)
-6 >Emitted(45, 28) Source(44, 20) + SourceIndex(0)
-7 >Emitted(45, 33) Source(44, 15) + SourceIndex(0)
-8 >Emitted(45, 45) Source(44, 20) + SourceIndex(0)
+3 >Emitted(45, 8) Source(44, 18) + SourceIndex(0)
+4 >Emitted(45, 13) Source(44, 23) + SourceIndex(0)
+5 >Emitted(45, 16) Source(44, 18) + SourceIndex(0)
+6 >Emitted(45, 28) Source(44, 23) + SourceIndex(0)
+7 >Emitted(45, 33) Source(44, 18) + SourceIndex(0)
+8 >Emitted(45, 45) Source(44, 23) + SourceIndex(0)
 9 >Emitted(45, 53) Source(64, 2) + SourceIndex(0)
 ---
 >>>})(Sample || (Sample = {}));
@@ -991,10 +991,10 @@ sourceFile:recursiveClassReferenceTest.ts
   >                    }
 1 >Emitted(46, 1) Source(64, 1) + SourceIndex(0)
 2 >Emitted(46, 2) Source(64, 2) + SourceIndex(0)
-3 >Emitted(46, 4) Source(44, 8) + SourceIndex(0)
-4 >Emitted(46, 10) Source(44, 14) + SourceIndex(0)
-5 >Emitted(46, 15) Source(44, 8) + SourceIndex(0)
-6 >Emitted(46, 21) Source(44, 14) + SourceIndex(0)
+3 >Emitted(46, 4) Source(44, 11) + SourceIndex(0)
+4 >Emitted(46, 10) Source(44, 17) + SourceIndex(0)
+5 >Emitted(46, 15) Source(44, 11) + SourceIndex(0)
+6 >Emitted(46, 21) Source(44, 17) + SourceIndex(0)
 7 >Emitted(46, 29) Source(64, 2) + SourceIndex(0)
 ---
 >>>class AbstractMode {
@@ -1058,11 +1058,11 @@ sourceFile:recursiveClassReferenceTest.ts
   >declare var self: Window;
   >
   >
-2 >module 
+2 >namespace 
 3 >           Sample
 1->Emitted(50, 1) Source(76, 1) + SourceIndex(0)
-2 >Emitted(50, 12) Source(76, 8) + SourceIndex(0)
-3 >Emitted(50, 18) Source(76, 14) + SourceIndex(0)
+2 >Emitted(50, 12) Source(76, 11) + SourceIndex(0)
+3 >Emitted(50, 18) Source(76, 17) + SourceIndex(0)
 ---
 >>>    var Thing;
 1 >^^^^
@@ -1098,9 +1098,9 @@ sourceFile:recursiveClassReferenceTest.ts
   >             
   >             	}
   >             }
-1 >Emitted(51, 5) Source(76, 15) + SourceIndex(0)
-2 >Emitted(51, 9) Source(76, 15) + SourceIndex(0)
-3 >Emitted(51, 14) Source(76, 20) + SourceIndex(0)
+1 >Emitted(51, 5) Source(76, 18) + SourceIndex(0)
+2 >Emitted(51, 9) Source(76, 18) + SourceIndex(0)
+3 >Emitted(51, 14) Source(76, 23) + SourceIndex(0)
 4 >Emitted(51, 15) Source(100, 2) + SourceIndex(0)
 ---
 >>>    (function (Thing) {
@@ -1111,9 +1111,9 @@ sourceFile:recursiveClassReferenceTest.ts
 1->
 2 >    
 3 >               Thing
-1->Emitted(52, 5) Source(76, 15) + SourceIndex(0)
-2 >Emitted(52, 16) Source(76, 15) + SourceIndex(0)
-3 >Emitted(52, 21) Source(76, 20) + SourceIndex(0)
+1->Emitted(52, 5) Source(76, 18) + SourceIndex(0)
+2 >Emitted(52, 16) Source(76, 18) + SourceIndex(0)
+3 >Emitted(52, 21) Source(76, 23) + SourceIndex(0)
 ---
 >>>        var Languages;
 1->^^^^^^^^
@@ -1149,9 +1149,9 @@ sourceFile:recursiveClassReferenceTest.ts
   >                     
   >                     	}
   >                     }
-1->Emitted(53, 9) Source(76, 21) + SourceIndex(0)
-2 >Emitted(53, 13) Source(76, 21) + SourceIndex(0)
-3 >Emitted(53, 22) Source(76, 30) + SourceIndex(0)
+1->Emitted(53, 9) Source(76, 24) + SourceIndex(0)
+2 >Emitted(53, 13) Source(76, 24) + SourceIndex(0)
+3 >Emitted(53, 22) Source(76, 33) + SourceIndex(0)
 4 >Emitted(53, 23) Source(100, 2) + SourceIndex(0)
 ---
 >>>        (function (Languages) {
@@ -1161,9 +1161,9 @@ sourceFile:recursiveClassReferenceTest.ts
 1->
 2 >        
 3 >                   Languages
-1->Emitted(54, 9) Source(76, 21) + SourceIndex(0)
-2 >Emitted(54, 20) Source(76, 21) + SourceIndex(0)
-3 >Emitted(54, 29) Source(76, 30) + SourceIndex(0)
+1->Emitted(54, 9) Source(76, 24) + SourceIndex(0)
+2 >Emitted(54, 20) Source(76, 24) + SourceIndex(0)
+3 >Emitted(54, 29) Source(76, 33) + SourceIndex(0)
 ---
 >>>            var PlainText;
 1 >^^^^^^^^^^^^
@@ -1199,9 +1199,9 @@ sourceFile:recursiveClassReferenceTest.ts
   >                         
   >                         	}
   >                         }
-1 >Emitted(55, 13) Source(76, 31) + SourceIndex(0)
-2 >Emitted(55, 17) Source(76, 31) + SourceIndex(0)
-3 >Emitted(55, 26) Source(76, 40) + SourceIndex(0)
+1 >Emitted(55, 13) Source(76, 34) + SourceIndex(0)
+2 >Emitted(55, 17) Source(76, 34) + SourceIndex(0)
+3 >Emitted(55, 26) Source(76, 43) + SourceIndex(0)
 4 >Emitted(55, 27) Source(100, 2) + SourceIndex(0)
 ---
 >>>            (function (PlainText) {
@@ -1211,9 +1211,9 @@ sourceFile:recursiveClassReferenceTest.ts
 1->
 2 >            
 3 >                       PlainText
-1->Emitted(56, 13) Source(76, 31) + SourceIndex(0)
-2 >Emitted(56, 24) Source(76, 31) + SourceIndex(0)
-3 >Emitted(56, 33) Source(76, 40) + SourceIndex(0)
+1->Emitted(56, 13) Source(76, 34) + SourceIndex(0)
+2 >Emitted(56, 24) Source(76, 34) + SourceIndex(0)
+3 >Emitted(56, 33) Source(76, 43) + SourceIndex(0)
 ---
 >>>                class State {
 1 >^^^^^^^^^^^^^^^^
@@ -1566,12 +1566,12 @@ sourceFile:recursiveClassReferenceTest.ts
   >                                                                      }
 1->Emitted(77, 13) Source(100, 1) + SourceIndex(0)
 2 >Emitted(77, 14) Source(100, 2) + SourceIndex(0)
-3 >Emitted(77, 16) Source(76, 31) + SourceIndex(0)
-4 >Emitted(77, 25) Source(76, 40) + SourceIndex(0)
-5 >Emitted(77, 28) Source(76, 31) + SourceIndex(0)
-6 >Emitted(77, 47) Source(76, 40) + SourceIndex(0)
-7 >Emitted(77, 52) Source(76, 31) + SourceIndex(0)
-8 >Emitted(77, 71) Source(76, 40) + SourceIndex(0)
+3 >Emitted(77, 16) Source(76, 34) + SourceIndex(0)
+4 >Emitted(77, 25) Source(76, 43) + SourceIndex(0)
+5 >Emitted(77, 28) Source(76, 34) + SourceIndex(0)
+6 >Emitted(77, 47) Source(76, 43) + SourceIndex(0)
+7 >Emitted(77, 52) Source(76, 34) + SourceIndex(0)
+8 >Emitted(77, 71) Source(76, 43) + SourceIndex(0)
 9 >Emitted(77, 79) Source(100, 2) + SourceIndex(0)
 ---
 >>>        })(Languages = Thing.Languages || (Thing.Languages = {}));
@@ -1619,12 +1619,12 @@ sourceFile:recursiveClassReferenceTest.ts
   >                                                          }
 1 >Emitted(78, 9) Source(100, 1) + SourceIndex(0)
 2 >Emitted(78, 10) Source(100, 2) + SourceIndex(0)
-3 >Emitted(78, 12) Source(76, 21) + SourceIndex(0)
-4 >Emitted(78, 21) Source(76, 30) + SourceIndex(0)
-5 >Emitted(78, 24) Source(76, 21) + SourceIndex(0)
-6 >Emitted(78, 39) Source(76, 30) + SourceIndex(0)
-7 >Emitted(78, 44) Source(76, 21) + SourceIndex(0)
-8 >Emitted(78, 59) Source(76, 30) + SourceIndex(0)
+3 >Emitted(78, 12) Source(76, 24) + SourceIndex(0)
+4 >Emitted(78, 21) Source(76, 33) + SourceIndex(0)
+5 >Emitted(78, 24) Source(76, 24) + SourceIndex(0)
+6 >Emitted(78, 39) Source(76, 33) + SourceIndex(0)
+7 >Emitted(78, 44) Source(76, 24) + SourceIndex(0)
+8 >Emitted(78, 59) Source(76, 33) + SourceIndex(0)
 9 >Emitted(78, 67) Source(100, 2) + SourceIndex(0)
 ---
 >>>    })(Thing = Sample.Thing || (Sample.Thing = {}));
@@ -1672,12 +1672,12 @@ sourceFile:recursiveClassReferenceTest.ts
   >                                            }
 1 >Emitted(79, 5) Source(100, 1) + SourceIndex(0)
 2 >Emitted(79, 6) Source(100, 2) + SourceIndex(0)
-3 >Emitted(79, 8) Source(76, 15) + SourceIndex(0)
-4 >Emitted(79, 13) Source(76, 20) + SourceIndex(0)
-5 >Emitted(79, 16) Source(76, 15) + SourceIndex(0)
-6 >Emitted(79, 28) Source(76, 20) + SourceIndex(0)
-7 >Emitted(79, 33) Source(76, 15) + SourceIndex(0)
-8 >Emitted(79, 45) Source(76, 20) + SourceIndex(0)
+3 >Emitted(79, 8) Source(76, 18) + SourceIndex(0)
+4 >Emitted(79, 13) Source(76, 23) + SourceIndex(0)
+5 >Emitted(79, 16) Source(76, 18) + SourceIndex(0)
+6 >Emitted(79, 28) Source(76, 23) + SourceIndex(0)
+7 >Emitted(79, 33) Source(76, 18) + SourceIndex(0)
+8 >Emitted(79, 45) Source(76, 23) + SourceIndex(0)
 9 >Emitted(79, 53) Source(100, 2) + SourceIndex(0)
 ---
 >>>})(Sample || (Sample = {}));
@@ -1722,10 +1722,10 @@ sourceFile:recursiveClassReferenceTest.ts
   >                    }
 1 >Emitted(80, 1) Source(100, 1) + SourceIndex(0)
 2 >Emitted(80, 2) Source(100, 2) + SourceIndex(0)
-3 >Emitted(80, 4) Source(76, 8) + SourceIndex(0)
-4 >Emitted(80, 10) Source(76, 14) + SourceIndex(0)
-5 >Emitted(80, 15) Source(76, 8) + SourceIndex(0)
-6 >Emitted(80, 21) Source(76, 14) + SourceIndex(0)
+3 >Emitted(80, 4) Source(76, 11) + SourceIndex(0)
+4 >Emitted(80, 10) Source(76, 17) + SourceIndex(0)
+5 >Emitted(80, 15) Source(76, 11) + SourceIndex(0)
+6 >Emitted(80, 21) Source(76, 17) + SourceIndex(0)
 7 >Emitted(80, 29) Source(100, 2) + SourceIndex(0)
 ---
 >>>//# sourceMappingURL=recursiveClassReferenceTest.js.map

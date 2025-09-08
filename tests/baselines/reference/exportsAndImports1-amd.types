@@ -41,7 +41,7 @@ const enum D {
 >C : D.C
 >  : ^^^
 }
-module M {
+namespace M {
 >M : typeof M
 >  : ^^^^^^^^
 
@@ -49,7 +49,7 @@ module M {
 >x : any
 >  : ^^^
 }
-module N {
+namespace N {
     export interface I {
     }
 }

@@ -6,7 +6,7 @@ export namespace a {
     }
 }
 
-export module c {
+export namespace c {
 >c : typeof c
 >  : ^^^^^^^^
 
