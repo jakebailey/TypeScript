@@ -5,8 +5,6 @@
  * bundle as namespaces again, even though the project is modules.
  */
 
-import * as dprintFormatter from "@dprint/formatter";
-import * as dprintTypeScript from "@dprint/typescript";
 import assert, { fail } from "assert";
 import fs from "fs";
 import minimist from "minimist";
@@ -492,25 +490,63 @@ if (publicContents.includes("@internal")) {
     console.error("Output includes untrimmed @internal nodes!");
 }
 
-const buffer = fs.readFileSync(dprintTypeScript.getPath());
-const formatter = dprintFormatter.createFromBuffer(buffer);
-formatter.setConfig({
-    indentWidth: 4,
-    lineWidth: 1000,
-    newLineKind: "auto",
-    useTabs: false,
-}, {
-    quoteStyle: "preferDouble",
-});
-
 /**
  * @param {string} contents
  * @returns {string}
  */
-function dprint(contents) {
-    const result = formatter.formatText({ filePath: "dummy.d.ts", fileText: contents });
-    return result.replace(/\r\n/g, "\n");
+function formatWithTypeScript(contents) {
+    const startTime = performance.now();
+
+    const formatOptions = {
+        convertTabsToSpaces: true,
+        tabSize: 4,
+        indentSize: 4,
+        newLineCharacter: newLine,
+        semicolons: ts.SemicolonPreference.Insert,
+        insertSpaceAfterCommaDelimiter: true,
+        insertSpaceAfterSemicolonInForStatements: true,
+        insertSpaceBeforeAndAfterBinaryOperators: true,
+        insertSpaceAfterConstructor: false,
+        insertSpaceAfterKeywordsInControlFlowStatements: true,
+        insertSpaceAfterFunctionKeywordForAnonymousFunctions: true,
+        insertSpaceAfterOpeningAndBeforeClosingNonemptyParenthesis: false,
+        insertSpaceAfterOpeningAndBeforeClosingNonemptyBrackets: false,
+        insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces: true,
+        insertSpaceAfterOpeningAndBeforeClosingTemplateStringBraces: false,
+        insertSpaceAfterOpeningAndBeforeClosingJsxExpressionBraces: false,
+        insertSpaceAfterTypeAssertion: false,
+        insertSpaceBeforeFunctionParenthesis: false,
+        placeOpenBraceOnNewLineForFunctions: false,
+        placeOpenBraceOnNewLineForControlBlocks: false,
+        insertSpaceBeforeTypeAnnotation: false,
+    };
+
+    const formattingHost = { getNewLine: () => newLine };
+
+    // Access internal formatting API
+    const formatting = /** @type {any} */ (ts).formatting;
+    const formatContext = formatting.getFormatContext(formatOptions, formattingHost);
+
+    const sourceFile = ts.createSourceFile("dummy.d.ts", contents, ts.ScriptTarget.Latest, /*setParentNodes*/ true);
+    const edits = formatting.formatDocument(sourceFile, formatContext);
+
+    let formatted = contents;
+    // Apply edits in reverse order to maintain positions
+    for (let i = edits.length - 1; i >= 0; i--) {
+        const edit = edits[i];
+        formatted = formatted.slice(0, edit.span.start) + edit.newText + formatted.slice(edit.span.start + edit.span.length);
+    }
+
+    // Ensure trailing newline
+    if (!formatted.endsWith(newLine)) {
+        formatted += newLine;
+    }
+
+    const endTime = performance.now();
+    console.log(`Formatting took ${(endTime - startTime).toFixed(2)}ms`);
+
+    return formatted;
 }
 
-fs.writeFileSync(output, dprint(publicContents));
-fs.writeFileSync(internalOutput, dprint(internalContents));
+fs.writeFileSync(output, formatWithTypeScript(publicContents));
+fs.writeFileSync(internalOutput, formatWithTypeScript(internalContents));
