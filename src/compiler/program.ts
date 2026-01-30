@@ -4550,6 +4550,9 @@ export function createProgram(_rootNamesOrOptions: readonly string[] | CreatePro
             if (options.module === ModuleKind.None || options.module === ModuleKind.AMD || options.module === ModuleKind.UMD || options.module === ModuleKind.System) {
                 createDeprecatedDiagnostic("module", ModuleKind[options.module], /*useInstead*/ undefined, /*related*/ undefined);
             }
+            if (options.downlevelIteration) {
+                createDeprecatedDiagnostic("downlevelIteration");
+            }
         });
     }
 

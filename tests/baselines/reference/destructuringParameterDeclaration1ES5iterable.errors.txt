@@ -1,3 +1,4 @@
+error TS5101: Option 'downlevelIteration' is deprecated and will stop functioning in TypeScript 7.0. Specify compilerOption '"ignoreDeprecations": "6.0"' to silence this error.
 destructuringParameterDeclaration1ES5iterable.ts(12,4): error TS2345: Argument of type '[number, number, string[][], number]' is not assignable to parameter of type '[number, number, string[][]]'.
   Source has 4 element(s) but target allows only 3.
 destructuringParameterDeclaration1ES5iterable.ts(57,4): error TS2345: Argument of type '[number, number, [[string]], boolean, boolean]' is not assignable to parameter of type '[any, any, [[any]]]'.
@@ -6,6 +7,7 @@ destructuringParameterDeclaration1ES5iterable.ts(62,10): error TS2393: Duplicate
 destructuringParameterDeclaration1ES5iterable.ts(63,10): error TS2393: Duplicate function implementation.
 
 
+!!! error TS5101: Option 'downlevelIteration' is deprecated and will stop functioning in TypeScript 7.0. Specify compilerOption '"ignoreDeprecations": "6.0"' to silence this error.
 ==== destructuringParameterDeclaration1ES5iterable.ts (4 errors) ====
     // A parameter declaration may specify either an identifier or a binding pattern.
     // The identifiers specified in parameter declarations and binding patterns
