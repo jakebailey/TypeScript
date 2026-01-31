@@ -6774,7 +6774,7 @@ export function createTypeChecker(host: TypeCheckerHost): TypeChecker {
                         return parentName;
                     }
                     const memberName = symbolName(type.symbol);
-                    if (isIdentifierText(memberName, ScriptTarget.ES5)) {
+                    if (isIdentifierText(memberName, ScriptTarget.ESNext)) {
                         return appendReferenceToType(
                             parentName as TypeReferenceNode | ImportTypeNode,
                             factory.createTypeReferenceNode(memberName, /*typeArguments*/ undefined),
