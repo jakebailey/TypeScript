@@ -117,3 +117,4 @@ require (
 )
 
 tool github.com/anchore/quill/cmd/quill
+tool github.com/microsoft/TypeScript/tools/cmd/stringer

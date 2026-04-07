@@ -24,7 +24,4 @@ require (
 	golang.org/x/tools v0.47.0 // indirect
 )
 
-tool (
-	github.com/matryer/moq
-	golang.org/x/tools/cmd/stringer
-)
+tool github.com/matryer/moq
