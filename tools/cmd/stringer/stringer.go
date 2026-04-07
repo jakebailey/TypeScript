@@ -104,6 +104,7 @@ var (
 	linecomment = flag.Bool("linecomment", false, "use line comment text as printed text when present")
 	buildTags   = flag.String("tags", "", "comma-separated list of build tags to apply")
 	pkgDir      = flag.String("dir", "", "package directory to analyze (for cross-module invocation)")
+	bitflag     = flag.Bool("bitflag", false, "generate pretty-printing for bitflag/bitmask types using | separator")
 )
 
 // Usage is a replacement usage function for the flags package.
@@ -210,7 +211,11 @@ func main() {
 		for _, typeName := range types {
 			values := findValues(typeName, pkg)
 			if len(values) > 0 {
-				g.generate(typeName, values)
+				if *bitflag {
+					g.generateBitflag(typeName, values)
+				} else {
+					g.generate(typeName, values)
+				}
 				foundTypes = append(foundTypes, typeName)
 			} else {
 				remainingTypes = append(remainingTypes, typeName)
@@ -316,7 +321,7 @@ func loadPackages(
 		Mode: packages.NeedName | packages.NeedTypes | packages.NeedTypesInfo | packages.NeedSyntax | packages.NeedFiles,
 		// Tests are included, let the caller decide how to fold them in.
 		Tests:      true,
-		BuildFlags: []string{fmt.Sprintf("-tags=%s", strings.Join(tags, " "))},
+		BuildFlags: []string{"-tags=" + strings.Join(tags, " ")},
 		Logf:       logf,
 	}
 	// If the pattern is a single directory, set cfg.Dir so that packages.Load
@@ -750,3 +755,108 @@ const stringMap = `func (i %[1]s) String() string {
 	return "%[1]s(" + strconv.FormatInt(int64(i), 10) + ")"
 }
 `
+
+// generateBitflag produces the String method for a bitflag/bitmask type.
+// Instead of a simple lookup, it generates code that iterates through
+// defined bit values and joins the names of set bits with "|".
+// For example, if ReadFlag=1 and WriteFlag=2, then (ReadFlag|WriteFlag).String()
+// returns "ReadFlag|WriteFlag".
+func (g *Generator) generateBitflag(typeName string, values []Value) {
+	// Sort and deduplicate values by their numeric value.
+	sort.Stable(byValue(values))
+	j := 0
+	for i := range values {
+		if i == 0 || values[i].value != values[i-1].value {
+			values[j] = values[i]
+			j++
+		}
+	}
+	values = values[:j]
+
+	// Generate code that will fail if the constants change value.
+	g.Printf("func _() {\n")
+	g.Printf("\t// An \"invalid array index\" compiler error signifies that the constant values have changed.\n")
+	g.Printf("\t// Re-run the stringer command to generate them again.\n")
+	g.Printf("\tvar x [1]struct{}\n")
+	for _, v := range values {
+		g.Printf("\t_ = x[%s - %s]\n", v.originalName, v.str)
+	}
+	g.Printf("}\n")
+
+	// Separate zero value from bit flags.
+	var zeroValue *Value
+	var bitValues []Value
+	for i := range values {
+		if values[i].value == 0 {
+			zeroValue = &values[i]
+		} else {
+			bitValues = append(bitValues, values[i])
+		}
+	}
+
+	// Generate the names and indexes for bit values.
+	g.Printf("\n")
+	if len(bitValues) > 0 {
+		b := new(bytes.Buffer)
+		indexes := make([]int, len(bitValues))
+		for i := range bitValues {
+			b.WriteString(bitValues[i].name)
+			indexes[i] = b.Len()
+		}
+		g.Printf("const _%s_name = %q\n", typeName, b.String())
+		g.Printf("var _%s_index = [...]uint16{0, ", typeName)
+		for i, idx := range indexes {
+			if i > 0 {
+				g.Printf(", ")
+			}
+			g.Printf("%d", idx)
+		}
+		g.Printf("}\n")
+		g.Printf("var _%s_values = [...]%s{", typeName, typeName)
+		for i, v := range bitValues {
+			if i > 0 {
+				g.Printf(", ")
+			}
+			g.Printf("%s", v.str)
+		}
+		g.Printf("}\n")
+	}
+
+	g.Printf("\nfunc (i %s) String() string {\n", typeName)
+
+	// Handle zero value.
+	if zeroValue != nil {
+		g.Printf("\tif i == 0 {\n")
+		g.Printf("\t\treturn %q\n", zeroValue.name)
+		g.Printf("\t}\n")
+	} else {
+		g.Printf("\tif i == 0 {\n")
+		g.Printf("\t\treturn \"%s(0)\"\n", typeName)
+		g.Printf("\t}\n")
+	}
+
+	if len(bitValues) > 0 {
+		g.Printf("\tvar b []byte\n")
+		g.Printf("\trem := i\n")
+		g.Printf("\tfor idx, v := range _%s_values {\n", typeName)
+		g.Printf("\t\tif rem&v == v {\n")
+		g.Printf("\t\t\tif len(b) > 0 {\n")
+		g.Printf("\t\t\t\tb = append(b, '|')\n")
+		g.Printf("\t\t\t}\n")
+		g.Printf("\t\t\tb = append(b, _%s_name[_%s_index[idx]:_%s_index[idx+1]]...)\n", typeName, typeName, typeName)
+		g.Printf("\t\t\trem &^= v\n")
+		g.Printf("\t\t}\n")
+		g.Printf("\t}\n")
+		g.Printf("\tif rem != 0 {\n")
+		g.Printf("\t\tif len(b) > 0 {\n")
+		g.Printf("\t\t\tb = append(b, '|')\n")
+		g.Printf("\t\t}\n")
+		g.Printf("\t\tb = append(b, (\"%s(\" + strconv.FormatInt(int64(rem), 10) + \")\")...)\n", typeName)
+		g.Printf("\t}\n")
+		g.Printf("\treturn string(b)\n")
+	} else {
+		g.Printf("\treturn \"%s(\" + strconv.FormatInt(int64(i), 10) + \")\"\n", typeName)
+	}
+
+	g.Printf("}\n")
+}
