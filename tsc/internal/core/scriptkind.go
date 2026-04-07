@@ -1,6 +1,6 @@
 package core
 
-//go:generate go -C ../../../tools tool stringer -dir=$PWD -type=ScriptKind -output=scriptkind_stringer_generated.go
+//go:generate go -C ../../../tools tool stringer -dir=../tsc/internal/core -type=ScriptKind -output=scriptkind_stringer_generated.go
 //go:generate npx dprint fmt scriptkind_stringer_generated.go
 
 type ScriptKind int32

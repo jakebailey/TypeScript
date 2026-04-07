@@ -1,6 +1,6 @@
 package core
 
-//go:generate go -C ../../../tools tool stringer -dir=$PWD -type=Tristate -output=tristate_stringer_generated.go
+//go:generate go -C ../../../tools tool stringer -dir=../tsc/internal/core -type=Tristate -output=tristate_stringer_generated.go
 //go:generate npx dprint fmt tristate_stringer_generated.go
 
 // Tristate

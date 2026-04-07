@@ -141,7 +141,7 @@ func main() {
 	}
 
 	// If -dir is specified, use it as the package directory and override args.
-	// This allows cross-module invocation (e.g., go run -C _tools ./cmd/stringer -dir=$PWD).
+	// This allows cross-module invocation (e.g., go -C _tools tool stringer -dir=../internal/pkg).
 	if *pkgDir != "" {
 		args = []string{*pkgDir}
 	}

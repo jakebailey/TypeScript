@@ -11,8 +11,9 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/evaluator"
 )
 
-//go:generate go -C ../../../tools tool stringer -dir=$PWD -type=SignatureKind -output=stringer_generated.go
-//go:generate npx dprint fmt stringer_generated.go
+//go:generate go -C ../../../tools tool stringer -dir=../tsc/internal/checker -type=SignatureKind -output=stringer_generated.go
+//go:generate go -C ../../../tools tool stringer -dir=../tsc/internal/checker -type=ObjectFlags,SignatureFlags,NodeCheckFlags -bitflag -output=bitflags_stringer_generated.go
+//go:generate npx dprint fmt stringer_generated.go bitflags_stringer_generated.go
 
 // ParseFlags
 
