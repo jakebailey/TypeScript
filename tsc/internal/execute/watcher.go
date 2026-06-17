@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"reflect"
+	"runtime"
 	"slices"
 	"time"
 
@@ -165,7 +166,11 @@ func (w *Watcher) start(ctx context.Context) {
 
 	if w.testing == nil {
 		// The content mapper host closes itself when ctx is cancelled (see contentmapper.New).
-		w.wm.RunLoop(ctx, w.DoCycle)
+		if w.config.ParsedConfig.WatchOptions != nil && w.config.ParsedConfig.WatchOptions.LowMemoryMode.IsTrue() {
+			w.wm.RunLoopWithIdle(ctx, w.config.ParsedConfig.WatchOptions.LowMemoryModeIdleDuration(), w.DoCycle, w.DoLowMemoryCleanup)
+		} else {
+			w.wm.RunLoop(ctx, w.DoCycle)
+		}
 	}
 }
 
@@ -373,6 +378,22 @@ func (w *Watcher) DoCycle() {
 		// Mid-cycle watch failure; force a full rebuild on the next event
 		w.wm.ForceOverflow()
 	}
+}
+
+func (w *Watcher) DoLowMemoryCleanup() {
+	w.wm.Lock()
+	defer w.wm.Unlock()
+
+	if w.program == nil {
+		return
+	}
+	if w.wm.DebugLog != nil {
+		fmt.Fprintf(w.wm.DebugLog, "[watch] low memory mode: unloading retained program and source file cache\n")
+	}
+	w.program = nil
+	w.sourceFileCache = &collections.SyncMap[tspath.Path, *cachedSourceFile]{}
+	w.extendedConfigCache = &tsc.ExtendedConfigCache{}
+	runtime.GC()
 }
 
 func (w *Watcher) isRelevantChange(changedPaths map[string]fswatch.EventKind) bool {

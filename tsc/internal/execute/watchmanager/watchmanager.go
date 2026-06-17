@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"sync"
+	"time"
 
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/fswatch"
@@ -349,6 +350,43 @@ func (wm *WatchManager) RunLoop(ctx context.Context, doCycle func()) {
 			return
 		case <-wm.doCycleCh:
 			doCycle()
+		}
+	}
+}
+
+func (wm *WatchManager) RunLoopWithIdle(ctx context.Context, idleDelay time.Duration, doCycle func(), onIdle func()) {
+	if idleDelay <= 0 || onIdle == nil {
+		wm.RunLoop(ctx, doCycle)
+		return
+	}
+
+	timer := time.NewTimer(idleDelay)
+	defer timer.Stop()
+	resetTimer := func() {
+		if !timer.Stop() {
+			select {
+			case <-timer.C:
+				timer.Reset(idleDelay)
+				return
+			default:
+				timer.Reset(idleDelay)
+				return
+			}
+		}
+		timer.Reset(idleDelay)
+	}
+
+	for {
+		select {
+		case <-ctx.Done():
+			wm.CloseAllWatches()
+			return
+		case <-wm.doCycleCh:
+			doCycle()
+			resetTimer()
+		case <-timer.C:
+			onIdle()
+			timer.Reset(idleDelay)
 		}
 	}
 }

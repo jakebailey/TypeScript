@@ -210,6 +210,8 @@ export class Client implements vscode.Disposable {
         const pprofDir = readNativePreviewConfig<string | undefined>("server.pprofDir", undefined)
             ?? readNativePreviewConfig<string | undefined>("pprofDir", undefined);
         const pprofArgs = pprofDir ? ["--pprofDir", pprofDir] : [];
+        const lowMemoryMode = readNativePreviewConfig<boolean>("lowMemoryMode.enabled", false);
+        const lowMemoryModeIdleTime = readNativePreviewConfig<number>("lowMemoryMode.idleTime", 300000);
 
         const flakesFlag = vscode.workspace
             .getConfiguration("js/ts")
@@ -249,6 +251,8 @@ export class Client implements vscode.Disposable {
         this.clientOptions.initializationOptions.logVerbosity = this.outputChannel.logLevel;
         this.clientOptions.initializationOptions.runExternalCode = contentMappersEnabled();
         this.clientOptions.initializationOptions.trackFlakyDiagnostics = effectiveflakesFlag !== "never" ? (effectiveflakesFlag === "panic" ? 2 : 1) : 0;
+        this.clientOptions.initializationOptions.lowMemoryMode = lowMemoryMode;
+        this.clientOptions.initializationOptions.lowMemoryModeIdleTime = lowMemoryModeIdleTime;
 
         this.client = new NativePreviewLanguageClient(
             "js/ts",

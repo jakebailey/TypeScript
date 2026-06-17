@@ -7,6 +7,7 @@ import (
 
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/lsp/lsproto"
+	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 // APIUpdate creates a new snapshot incorporating the given file changes and the
@@ -29,6 +30,13 @@ func (s *Session) APIUpdate(ctx context.Context, apiFileChanges FileChangeSummar
 		fileChanges: fileChanges,
 		ataChanges:  ataChanges,
 	})
+	var openedProjects []tspath.Path
+	if apiRequest != nil {
+		for configFileName := range apiRequest.OpenProjects.Keys() {
+			openedProjects = append(openedProjects, s.toPath(configFileName))
+		}
+	}
+	s.recordResourceRequestAccess(newSnapshot, ResourceRequest{Projects: openedProjects})
 	return newSnapshot, newSnapshot.apiError
 }
 
