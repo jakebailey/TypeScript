@@ -32,20 +32,19 @@ type DeclarationFileLinks struct {
 }
 
 type EmitResolver struct {
-	checker                 *Checker
-	checkerMu               *sync.Mutex
-	isValueAliasDeclaration func(node *ast.Node) bool
-	referenceResolver       binder.ReferenceResolver
-	jsxLinks                core.LinkStore[*ast.Node, JSXLinks]
-	declarationLinks        core.LinkStore[*ast.Node, DeclarationLinks]
-	declarationFileLinks    core.LinkStore[*ast.Node, DeclarationFileLinks]
+	checker              *Checker
+	checkerMu            *sync.Mutex
+	referenceResolver    binder.ReferenceResolver
+	jsxLinks             core.LinkStore[*ast.Node, JSXLinks]
+	declarationLinks     core.LinkStore[*ast.Node, DeclarationLinks]
+	declarationFileLinks core.LinkStore[*ast.Node, DeclarationFileLinks]
 }
 
 func newEmitResolver(checker *Checker) *EmitResolver {
-	e := &EmitResolver{checker: checker}
-	e.isValueAliasDeclaration = e.isValueAliasDeclarationWorker
-	e.checkerMu = &checker.mu
-	return e
+	return &EmitResolver{
+		checker:   checker,
+		checkerMu: &checker.mu,
+	}
 }
 
 func (r *EmitResolver) GetJsxFactoryEntity(location *ast.Node) *ast.Node {
@@ -727,10 +726,10 @@ func (r *EmitResolver) IsValueAliasDeclaration(node *ast.Node) bool {
 	r.checkerMu.Lock()
 	defer r.checkerMu.Unlock()
 
-	return r.isValueAliasDeclarationWorker(node)
+	return r.isValueAliasDeclaration(node)
 }
 
-func (r *EmitResolver) isValueAliasDeclarationWorker(node *ast.Node) bool {
+func (r *EmitResolver) isValueAliasDeclaration(node *ast.Node) bool {
 	c := r.checker
 
 	switch node.Kind {

@@ -132,9 +132,6 @@ type classFieldsTransformer struct {
 	arrayAssignmentElementVisitor  *ast.NodeVisitor
 	objectAssignmentElementVisitor *ast.NodeVisitor
 	substitutionVisitor            *ast.NodeVisitor
-
-	// Pre-bound callbacks to avoid repeated closure allocation.
-	isAnonymousClassNeedingAssignedName func(*anonymousFunctionDefinition) bool
 }
 
 func newClassFieldsTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
@@ -187,7 +184,6 @@ func newClassFieldsTransformer(opts *transformers.TransformOptions) *transformer
 	tx.arrayAssignmentElementVisitor = tx.EmitContext().NewNodeVisitor(tx.visitArrayAssignmentElement)
 	tx.objectAssignmentElementVisitor = tx.EmitContext().NewNodeVisitor(tx.visitObjectAssignmentElement)
 	tx.substitutionVisitor = tx.EmitContext().NewNodeVisitor(tx.visitForSubstitution)
-	tx.isAnonymousClassNeedingAssignedName = tx.isAnonymousClassNeedingAssignedNameWorker
 
 	return result
 }
@@ -1429,7 +1425,7 @@ func (tx *classFieldsTransformer) setCurrentClassElementAndVisitStatements(class
 	return result
 }
 
-func (tx *classFieldsTransformer) isAnonymousClassNeedingAssignedNameWorker(node *anonymousFunctionDefinition) bool {
+func (tx *classFieldsTransformer) isAnonymousClassNeedingAssignedName(node *anonymousFunctionDefinition) bool {
 	if ast.IsClassExpression(node) && node.Name() == nil {
 		staticPropertiesOrClassStaticBlocks := tx.getStaticPropertiesAndClassStaticBlock(node)
 		if core.Some(staticPropertiesOrClassStaticBlocks, func(n *ast.Node) bool {

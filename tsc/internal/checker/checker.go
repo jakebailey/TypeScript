@@ -588,8 +588,6 @@ type Checker struct {
 	compilerOptions                             *core.CompilerOptions
 	files                                       []*ast.SourceFile
 	fileIndexMap                                map[*ast.SourceFile]int
-	compareSymbols                              func(*ast.Symbol, *ast.Symbol) int
-	compareSymbolChains                         func([]*ast.Symbol, []*ast.Symbol) int
 	TypeCount                                   uint32
 	SymbolCount                                 uint32
 	SignatureCount                              uint32
@@ -878,10 +876,6 @@ type Checker struct {
 	getGlobalClassFieldDecoratorContextType     func() *Type
 	syncIterationTypesResolver                  *IterationTypesResolver
 	asyncIterationTypesResolver                 *IterationTypesResolver
-	isPrimitiveOrObjectOrEmptyType              func(*Type) bool
-	containsMissingType                         func(*Type) bool
-	couldContainTypeVariables                   func(*Type) bool
-	isStringIndexSignatureOnlyType              func(*Type) bool
 	compareTypesAssignable                      TypeComparer
 	emitResolver                                *EmitResolver
 	emitResolverOnce                            sync.Once
@@ -914,8 +908,6 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.compilerOptions = program.Options()
 	c.files = program.SourceFiles()
 	c.fileIndexMap = createFileIndexMap(c.files)
-	c.compareSymbols = c.compareSymbolsWorker           // Closure optimization
-	c.compareSymbolChains = c.compareSymbolChainsWorker // Closure optimization
 	c.languageVersion = c.compilerOptions.GetEmitScriptTarget()
 	c.moduleKind = c.compilerOptions.GetEmitModuleKind()
 	c.moduleResolutionKind = c.compilerOptions.GetModuleResolutionKind()
@@ -1249,15 +1241,15 @@ func (c *Checker) getGlobalSymbol(name string, meaning ast.SymbolFlags, diagnost
 }
 
 func (c *Checker) initializeClosures() {
-	c.isPrimitiveOrObjectOrEmptyType = func(t *Type) bool {
-		return t.flags&(TypeFlagsPrimitive|TypeFlagsNonPrimitive) != 0 || c.IsEmptyAnonymousObjectType(t)
-	}
-	c.containsMissingType = func(t *Type) bool {
-		return t == c.missingType || t.flags&TypeFlagsUnion != 0 && t.Types()[0] == c.missingType
-	}
-	c.couldContainTypeVariables = c.couldContainTypeVariablesWorker
-	c.isStringIndexSignatureOnlyType = c.isStringIndexSignatureOnlyTypeWorker
 	c.compareTypesAssignable = c.compareTypesAssignableWorker
+}
+
+func (c *Checker) isPrimitiveOrObjectOrEmptyType(t *Type) bool {
+	return t.flags&(TypeFlagsPrimitive|TypeFlagsNonPrimitive) != 0 || c.IsEmptyAnonymousObjectType(t)
+}
+
+func (c *Checker) containsMissingType(t *Type) bool {
+	return t == c.missingType || t.flags&TypeFlagsUnion != 0 && t.Types()[0] == c.missingType
 }
 
 func (c *Checker) initializeIterationResolvers() {
@@ -22295,7 +22287,7 @@ func (c *Checker) clearActiveMapperCaches() {
 // Return true if the given type could possibly reference a type parameter for which
 // we perform type inference (i.e. a type parameter of a generic function). We cache
 // results for union and intersection types for performance reasons.
-func (c *Checker) couldContainTypeVariablesWorker(t *Type) bool {
+func (c *Checker) couldContainTypeVariables(t *Type) bool {
 	if t.flags&TypeFlagsStructuredOrInstantiable == 0 {
 		return false
 	}
@@ -27485,7 +27477,7 @@ func (c *Checker) getPropertyNameFromIndex(indexType *Type, accessNode *ast.Node
 	return ast.InternalSymbolNameMissing
 }
 
-func (c *Checker) isStringIndexSignatureOnlyTypeWorker(t *Type) bool {
+func (c *Checker) isStringIndexSignatureOnlyType(t *Type) bool {
 	return t.flags&TypeFlagsObject != 0 && !c.isGenericMappedType(t) && len(c.getPropertiesOfType(t)) == 0 && len(c.getIndexInfosOfType(t)) == 1 && c.getIndexInfoOfType(t, c.stringType) != nil ||
 		t.flags&TypeFlagsUnionOrIntersection != 0 && core.Every(t.Types(), c.isStringIndexSignatureOnlyType)
 }

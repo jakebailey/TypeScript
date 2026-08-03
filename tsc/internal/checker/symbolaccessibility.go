@@ -592,7 +592,7 @@ func (c *Checker) trySymbolTable(
 	return nil
 }
 
-func (c *Checker) compareSymbolChainsWorker(a []*ast.Symbol, b []*ast.Symbol) int {
+func (c *Checker) compareSymbolChains(a []*ast.Symbol, b []*ast.Symbol) int {
 	chainLen := len(a) - len(b)
 	if chainLen != 0 {
 		return chainLen

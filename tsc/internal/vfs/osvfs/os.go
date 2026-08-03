@@ -118,9 +118,7 @@ func (vfs *osFS) Stat(path string) vfs.FileInfo {
 
 var limitedWalkDirFuncPool = sync.Pool{
 	New: func() any {
-		w := &limitedWalkDirFunc{}
-		w.walk = w.walker
-		return w
+		return &limitedWalkDirFunc{}
 	},
 }
 
@@ -137,7 +135,6 @@ func putLimitedWalkDirFunc(w *limitedWalkDirFunc) {
 
 type limitedWalkDirFunc struct {
 	inner vfs.WalkDirFunc
-	walk  vfs.WalkDirFunc
 }
 
 func (w *limitedWalkDirFunc) walker(path string, d fs.DirEntry, err error) error {
@@ -148,7 +145,7 @@ func (w *limitedWalkDirFunc) walker(path string, d fs.DirEntry, err error) error
 func (vfs *osFS) WalkDir(root string, walkFn vfs.WalkDirFunc) error {
 	walker := getLimitedWalkDirFunc(walkFn)
 	defer putLimitedWalkDirFunc(walker)
-	return vfs.common.WalkDir(root, walker.walk)
+	return vfs.common.WalkDir(root, walker.walker)
 }
 
 func (vfs *osFS) Realpath(path string) string {
