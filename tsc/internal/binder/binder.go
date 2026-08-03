@@ -1302,20 +1302,16 @@ func (b *Binder) checkContextualIdentifier(node *ast.Node) {
 	// Report error only if there are no parse errors in file
 	if len(b.file.Diagnostics()) == 0 && node.Flags&ast.NodeFlagsAmbient == 0 && node.Flags&ast.NodeFlagsJSDoc == 0 && !ast.IsIdentifierName(node) {
 		// strict mode identifiers
-		originalKeywordKind := scanner.GetIdentifierToken(node.Text())
-		if originalKeywordKind == ast.KindIdentifier {
-			return
-		}
-		if originalKeywordKind >= ast.KindFirstFutureReservedWord && originalKeywordKind <= ast.KindLastFutureReservedWord {
+		switch node.Text() {
+		// Keep in sync with KindFirstFutureReservedWord and KindLastFutureReservedWord.
+		case "implements", "interface", "let", "package", "private", "protected", "public", "static", "yield":
 			b.errorOnNode(node, b.getStrictModeIdentifierMessage(node), scanner.DeclarationNameToString(node))
-		} else if originalKeywordKind == ast.KindAwaitKeyword {
+		case "await":
 			if ast.IsExternalModule(b.file) && ast.IsInTopLevelContext(node) {
 				b.errorOnNode(node, diagnostics.Identifier_expected_0_is_a_reserved_word_at_the_top_level_of_a_module, scanner.DeclarationNameToString(node))
 			} else if node.Flags&ast.NodeFlagsAwaitContext != 0 {
 				b.errorOnNode(node, diagnostics.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, scanner.DeclarationNameToString(node))
 			}
-		} else if originalKeywordKind == ast.KindYieldKeyword && node.Flags&ast.NodeFlagsYieldContext != 0 {
-			b.errorOnNode(node, diagnostics.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, scanner.DeclarationNameToString(node))
 		}
 	}
 }
