@@ -1248,18 +1248,15 @@ func (c *Checker) createEmptyObjectTypeFromStringLiteral(t *Type) *Type {
 	return c.newAnonymousType(nil, members, nil, nil, indexInfos)
 }
 
-func (c *Checker) newInferenceContext(typeParameters []*Type, signature *Signature, flags InferenceFlags, compareTypes TypeComparer) *InferenceContext {
-	if compareTypes == nil {
-		compareTypes = c.compareTypesAssignable
-	}
-	return c.newInferenceContextWorker(core.Map(typeParameters, newInferenceInfo), signature, flags, compareTypes)
+func (c *Checker) newInferenceContext(typeParameters []*Type, signature *Signature, flags InferenceFlags, typeComparer inferenceTypeComparer) *InferenceContext {
+	return c.newInferenceContextWorker(core.Map(typeParameters, newInferenceInfo), signature, flags, typeComparer)
 }
 
 func (c *Checker) cloneInferenceContext(n *InferenceContext, extraFlags InferenceFlags) *InferenceContext {
 	if n == nil {
 		return nil
 	}
-	return c.newInferenceContextWorker(core.Map(n.inferences, cloneInferenceInfo), n.signature, n.flags|extraFlags, n.compareTypes)
+	return c.newInferenceContextWorker(core.Map(n.inferences, cloneInferenceInfo), n.signature, n.flags|extraFlags, n.typeComparer)
 }
 
 func (c *Checker) cloneInferredPartOfContext(n *InferenceContext) *InferenceContext {
@@ -1267,19 +1264,26 @@ func (c *Checker) cloneInferredPartOfContext(n *InferenceContext) *InferenceCont
 	if len(inferences) == 0 {
 		return nil
 	}
-	return c.newInferenceContextWorker(core.Map(inferences, cloneInferenceInfo), n.signature, n.flags, n.compareTypes)
+	return c.newInferenceContextWorker(core.Map(inferences, cloneInferenceInfo), n.signature, n.flags, n.typeComparer)
 }
 
-func (c *Checker) newInferenceContextWorker(inferences []*InferenceInfo, signature *Signature, flags InferenceFlags, compareTypes TypeComparer) *InferenceContext {
+func (c *Checker) newInferenceContextWorker(inferences []*InferenceInfo, signature *Signature, flags InferenceFlags, typeComparer inferenceTypeComparer) *InferenceContext {
 	n := &InferenceContext{
 		inferences:   inferences,
 		signature:    signature,
 		flags:        flags,
-		compareTypes: compareTypes,
+		typeComparer: typeComparer,
 	}
 	n.mapper = c.newInferenceTypeMapper(n, true /*fixing*/)
 	n.nonFixingMapper = c.newInferenceTypeMapper(n, false /*fixing*/)
 	return n
+}
+
+func (comparer inferenceTypeComparer) compareTypes(c *Checker, source *Type, target *Type, reportErrors bool) Ternary {
+	if comparer.relater != nil {
+		return comparer.relater.isRelatedToEx(source, target, RecursionFlagsBoth, reportErrors, nil /*headMessage*/, comparer.intersectionState)
+	}
+	return c.compareTypesAssignable(source, target, reportErrors)
 }
 
 func (c *Checker) addIntraExpressionInferenceSite(n *InferenceContext, node *ast.Node, t *Type) {
@@ -1380,13 +1384,13 @@ func (c *Checker) getInferredType(n *InferenceContext, index int) *Type {
 			instantiatedConstraint := c.instantiateType(constraint, n.nonFixingMapper)
 			if inferredType != nil {
 				constraintWithThis := c.getTypeWithThisArgument(instantiatedConstraint, inferredType, false)
-				if n.compareTypes(inferredType, constraintWithThis, false) == TernaryFalse {
+				if n.typeComparer.compareTypes(c, inferredType, constraintWithThis, false) == TernaryFalse {
 					var filteredByConstraint *Type
 					if inference.priority == InferencePriorityReturnType {
 						// If we have a pure return type inference, we may succeed by removing constituents of the inferred type
 						// that aren't assignable to the constraint type (pure return type inferences are speculation anyway).
 						filteredByConstraint = c.mapType(inferredType, func(t *Type) *Type {
-							return core.IfElse(n.compareTypes(t, constraintWithThis, false) != TernaryFalse, t, c.neverType)
+							return core.IfElse(n.typeComparer.compareTypes(c, t, constraintWithThis, false) != TernaryFalse, t, c.neverType)
 						})
 					}
 					inferredType = core.IfElse(filteredByConstraint != nil && filteredByConstraint.flags&TypeFlagsNever == 0, filteredByConstraint, nil)
@@ -1394,7 +1398,7 @@ func (c *Checker) getInferredType(n *InferenceContext, index int) *Type {
 			}
 			if inferredType == nil {
 				// If the fallback type satisfies the constraint, we pick it. Otherwise, we pick the constraint.
-				inferredType = core.IfElse(fallbackType != nil && n.compareTypes(fallbackType, c.getTypeWithThisArgument(instantiatedConstraint, fallbackType, false), false) != TernaryFalse, fallbackType, instantiatedConstraint)
+				inferredType = core.IfElse(fallbackType != nil && n.typeComparer.compareTypes(c, fallbackType, c.getTypeWithThisArgument(instantiatedConstraint, fallbackType, false), false) != TernaryFalse, fallbackType, instantiatedConstraint)
 			}
 			inference.inferredType = inferredType
 		}

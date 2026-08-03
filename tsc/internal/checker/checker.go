@@ -277,13 +277,18 @@ type InferenceContext struct {
 	inferences                    []*InferenceInfo // Inferences made for each type parameter
 	signature                     *Signature       // Generic signature for which inferences are made (if any)
 	flags                         InferenceFlags   // Inference flags
-	compareTypes                  TypeComparer     // Type comparer function
-	mapper                        *TypeMapper      // Mapper that fixes inferences
-	nonFixingMapper               *TypeMapper      // Mapper that doesn't fix inferences
-	returnMapper                  *TypeMapper      // Type mapper for inferences from return types (if any)
-	outerReturnMapper             *TypeMapper      // Type mapper for inferences from return types of outer function (if any)
-	inferredTypeParameters        []*Type          // Inferred type parameters for function result
+	typeComparer                  inferenceTypeComparer
+	mapper                        *TypeMapper // Mapper that fixes inferences
+	nonFixingMapper               *TypeMapper // Mapper that doesn't fix inferences
+	returnMapper                  *TypeMapper // Type mapper for inferences from return types (if any)
+	outerReturnMapper             *TypeMapper // Type mapper for inferences from return types of outer function (if any)
+	inferredTypeParameters        []*Type     // Inferred type parameters for function result
 	intraExpressionInferenceSites []IntraExpressionInferenceSite
+}
+
+type inferenceTypeComparer struct {
+	relater           *Relater
+	intersectionState IntersectionState
 }
 
 type InferenceInfo struct {
@@ -876,7 +881,6 @@ type Checker struct {
 	getGlobalClassFieldDecoratorContextType     func() *Type
 	syncIterationTypesResolver                  *IterationTypesResolver
 	asyncIterationTypesResolver                 *IterationTypesResolver
-	compareTypesAssignable                      TypeComparer
 	emitResolver                                *EmitResolver
 	emitResolverOnce                            sync.Once
 	_jsxNamespace                               string
@@ -1106,7 +1110,6 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.getGlobalClassAccessorDecoratorTargetType = c.getGlobalTypeResolver("ClassAccessorDecoratorTarget", 2 /*arity*/, true /*reportErrors*/)
 	c.getGlobalClassAccessorDecoratorResultType = c.getGlobalTypeResolver("ClassAccessorDecoratorResult", 2 /*arity*/, true /*reportErrors*/)
 	c.getGlobalClassFieldDecoratorContextType = c.getGlobalTypeResolver("ClassFieldDecoratorContext", 2 /*arity*/, true /*reportErrors*/)
-	c.initializeClosures()
 	c.initializeIterationResolvers()
 	c.initializeChecker()
 	return c, &c.mu
@@ -1238,10 +1241,6 @@ func getGlobalTypeDeclaration(symbol *ast.Symbol) *ast.Declaration {
 func (c *Checker) getGlobalSymbol(name string, meaning ast.SymbolFlags, diagnostic *diagnostics.Message) *ast.Symbol {
 	// Don't track references for global symbols anyway, so value if `isReference` is arbitrary
 	return c.resolveName(nil, name, meaning, diagnostic, false /*isUse*/, false /*excludeGlobals*/)
-}
-
-func (c *Checker) initializeClosures() {
-	c.compareTypesAssignable = c.compareTypesAssignableWorker
 }
 
 func (c *Checker) isPrimitiveOrObjectOrEmptyType(t *Type) bool {
@@ -7745,7 +7744,7 @@ func (c *Checker) instantiateTypeWithSingleGenericCallSignature(node *ast.Node, 
 	// and thus get different inferred types. That this is cached on the *first* such attempt is not currently an issue, since expression
 	// types *also* get cached on the first pass. If we ever properly speculate, though, the cached "isolatedSignatureType" signature
 	// field absolutely needs to be included in the list of speculative caches.
-	return c.getOrCreateTypeFromSignature(c.instantiateSignatureInContextOf(signature, contextualSignature, context, nil))
+	return c.getOrCreateTypeFromSignature(c.instantiateSignatureInContextOf(signature, contextualSignature, context, inferenceTypeComparer{}))
 }
 
 func (c *Checker) getOuterInferenceTypeParameters() []*Type {
@@ -9132,7 +9131,7 @@ func (c *Checker) chooseOverload(s *CallState, relation *Relation) *Signature {
 					continue
 				}
 			} else {
-				inferenceContext = c.newInferenceContext(candidate.typeParameters, candidate, core.IfElse(ast.IsInJSFile(s.node), InferenceFlagsAnyDefault, InferenceFlagsNone) /*flags*/, nil)
+				inferenceContext = c.newInferenceContext(candidate.typeParameters, candidate, core.IfElse(ast.IsInJSFile(s.node), InferenceFlagsAnyDefault, InferenceFlagsNone) /*flags*/, inferenceTypeComparer{})
 				typeArgumentTypes = c.inferTypeArguments(s.node, candidate, s.args, s.argCheckMode|CheckModeSkipGenericFunctions, inferenceContext)
 				if inferenceContext.flags&InferenceFlagsSkippedGenericFunction != 0 {
 					s.argCheckMode |= CheckModeSkipGenericFunctions
@@ -9524,7 +9523,7 @@ func (c *Checker) inferTypeArguments(node *ast.Node, signature *Signature, args 
 				// replaced with inferences produced from the outer return type or preceding outer arguments.
 				// This protects against circular inferences, i.e. avoiding situations where inferences reference
 				// type parameters for which the inferences are being made.
-				returnContext := c.newInferenceContext(signature.typeParameters, signature, context.flags, nil)
+				returnContext := c.newInferenceContext(signature.typeParameters, signature, context.flags, inferenceTypeComparer{})
 				var outerReturnMapper *TypeMapper
 				if outerContext != nil {
 					outerReturnMapper = c.createOuterReturnMapper(outerContext)
@@ -9653,7 +9652,7 @@ func (c *Checker) getTypeArgumentsFromNodes(typeArgumentNodes []*ast.Node, typeP
 }
 
 func (c *Checker) inferSignatureInstantiationForOverloadFailure(node *ast.Node, typeParameters []*Type, candidate *Signature, args []*ast.Node, checkMode CheckMode) *Signature {
-	inferenceContext := c.newInferenceContext(typeParameters, candidate, core.IfElse(ast.IsInJSFile(node), InferenceFlagsAnyDefault, InferenceFlagsNone), nil)
+	inferenceContext := c.newInferenceContext(typeParameters, candidate, core.IfElse(ast.IsInJSFile(node), InferenceFlagsAnyDefault, InferenceFlagsNone), inferenceTypeComparer{})
 	typeArgumentTypes := c.inferTypeArguments(node, candidate, args, checkMode|CheckModeSkipContextSensitive|CheckModeSkipGenericFunctions, inferenceContext)
 	return c.createSignatureInstantiation(candidate, typeArgumentTypes)
 }
@@ -19567,8 +19566,8 @@ func (c *Checker) getBaseSignature(signature *Signature) *Signature {
 }
 
 // Instantiate a generic signature in the context of a non-generic signature (section 3.8.5 in TypeScript spec)
-func (c *Checker) instantiateSignatureInContextOf(signature *Signature, contextualSignature *Signature, inferenceContext *InferenceContext, compareTypes TypeComparer) *Signature {
-	context := c.newInferenceContext(c.getTypeParametersForMapper(signature), signature, InferenceFlagsNone, compareTypes)
+func (c *Checker) instantiateSignatureInContextOf(signature *Signature, contextualSignature *Signature, inferenceContext *InferenceContext, typeComparer inferenceTypeComparer) *Signature {
+	context := c.newInferenceContext(c.getTypeParametersForMapper(signature), signature, InferenceFlagsNone, typeComparer)
 	// We clone the inferenceContext to avoid fixing. For example, when the source signature is <T>(x: T) => T[] and
 	// the contextual signature is (...args: A) => B, we want to infer the element type of A's constraint (say 'any')
 	// for T but leave it possible to later infer '[any]' back to A.
@@ -24457,7 +24456,7 @@ func (c *Checker) getConditionalType(root *ConditionalRoot, mapper *TypeMapper, 
 			// This means we have two mappers that need applying:
 			//    * The original `mapper` used to create this conditional
 			//    * The mapper that maps the infer type parameter to its inference result (`context.mapper`)
-			context := c.newInferenceContext(root.inferTypeParameters, nil /*signature*/, InferenceFlagsNone, nil)
+			context := c.newInferenceContext(root.inferTypeParameters, nil /*signature*/, InferenceFlagsNone, inferenceTypeComparer{})
 			if mapper != nil {
 				context.nonFixingMapper = c.combineTypeMappers(context.nonFixingMapper, mapper)
 			}

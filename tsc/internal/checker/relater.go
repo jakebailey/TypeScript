@@ -132,7 +132,7 @@ func (c *Checker) compareTypesAssignableSimple(source *Type, target *Type) Terna
 	return TernaryFalse
 }
 
-func (c *Checker) compareTypesAssignableWorker(source *Type, target *Type, reportErrors bool) Ternary {
+func (c *Checker) compareTypesAssignable(source *Type, target *Type, reportErrors bool) Ternary {
 	if c.isTypeRelatedTo(source, target, c.assignableRelation) {
 		return TernaryTrue
 	}
@@ -1485,10 +1485,10 @@ func (c *Checker) hasCovariantVoidArgument(typeArguments []*Type, variances []Va
 }
 
 func (c *Checker) isSignatureAssignableTo(source *Signature, target *Signature, ignoreReturnTypes bool) bool {
-	return c.compareSignaturesRelated(source, target, core.IfElse(ignoreReturnTypes, SignatureCheckModeIgnoreReturnTypes, SignatureCheckModeNone), false /*reportErrors*/, nil /*errorReporter*/, c.compareTypesAssignable, nil /*reportUnreliableMarkers*/) != TernaryFalse
+	return c.compareSignaturesRelated(source, target, core.IfElse(ignoreReturnTypes, SignatureCheckModeIgnoreReturnTypes, SignatureCheckModeNone), false /*reportErrors*/, nil /*errorReporter*/, inferenceTypeComparer{}, nil /*reportUnreliableMarkers*/) != TernaryFalse
 }
 
-func (c *Checker) compareSignaturesRelated(source *Signature, target *Signature, checkMode SignatureCheckMode, reportErrors bool, errorReporter ErrorReporter, compareTypes TypeComparer, reportUnreliableMarkers *TypeMapper) Ternary {
+func (c *Checker) compareSignaturesRelated(source *Signature, target *Signature, checkMode SignatureCheckMode, reportErrors bool, errorReporter ErrorReporter, typeComparer inferenceTypeComparer, reportUnreliableMarkers *TypeMapper) Ternary {
 	if source == target {
 		return TernaryTrue
 	}
@@ -1517,7 +1517,7 @@ func (c *Checker) compareSignaturesRelated(source *Signature, target *Signature,
 	}
 	if len(source.typeParameters) != 0 && !core.Same(source.typeParameters, target.typeParameters) {
 		target = c.getCanonicalSignature(target)
-		source = c.instantiateSignatureInContextOf(source, target /*inferenceContext*/, nil, compareTypes)
+		source = c.instantiateSignatureInContextOf(source, target /*inferenceContext*/, nil, typeComparer)
 	}
 	sourceCount := c.getParameterCount(source)
 	sourceRestType := c.getNonArrayRestType(source)
@@ -1538,10 +1538,10 @@ func (c *Checker) compareSignaturesRelated(source *Signature, target *Signature,
 			// void sources are assignable to anything.
 			var related Ternary
 			if !strictVariance {
-				related = compareTypes(sourceThisType, targetThisType, false /*reportErrors*/)
+				related = typeComparer.compareTypes(c, sourceThisType, targetThisType, false /*reportErrors*/)
 			}
 			if related == TernaryFalse {
-				related = compareTypes(targetThisType, sourceThisType, reportErrors)
+				related = typeComparer.compareTypes(c, targetThisType, sourceThisType, reportErrors)
 			}
 			if related == TernaryFalse {
 				if reportErrors {
@@ -1598,17 +1598,17 @@ func (c *Checker) compareSignaturesRelated(source *Signature, target *Signature,
 				c.getTypeFacts(sourceType, TypeFactsIsUndefinedOrNull) == c.getTypeFacts(targetType, TypeFactsIsUndefinedOrNull)
 			var related Ternary
 			if callbacks {
-				related = c.compareSignaturesRelated(targetSig, sourceSig, checkMode&SignatureCheckModeStrictArity|core.IfElse(strictVariance, SignatureCheckModeStrictCallback, SignatureCheckModeBivariantCallback), reportErrors, errorReporter, compareTypes, reportUnreliableMarkers)
+				related = c.compareSignaturesRelated(targetSig, sourceSig, checkMode&SignatureCheckModeStrictArity|core.IfElse(strictVariance, SignatureCheckModeStrictCallback, SignatureCheckModeBivariantCallback), reportErrors, errorReporter, typeComparer, reportUnreliableMarkers)
 			} else {
 				if checkMode&SignatureCheckModeCallback == 0 && !strictVariance {
-					related = compareTypes(sourceType, targetType, false /*reportErrors*/)
+					related = typeComparer.compareTypes(c, sourceType, targetType, false /*reportErrors*/)
 				}
 				if related == TernaryFalse {
-					related = compareTypes(targetType, sourceType, reportErrors)
+					related = typeComparer.compareTypes(c, targetType, sourceType, reportErrors)
 				}
 			}
 			// With strict arity, (x: number | undefined) => void is a subtype of (x?: number | undefined) => void
-			if related != TernaryFalse && checkMode&SignatureCheckModeStrictArity != 0 && i >= c.getMinArgumentCount(source) && i < c.getMinArgumentCount(target) && compareTypes(sourceType, targetType, false /*reportErrors*/) != TernaryFalse {
+			if related != TernaryFalse && checkMode&SignatureCheckModeStrictArity != 0 && i >= c.getMinArgumentCount(source) && i < c.getMinArgumentCount(target) && typeComparer.compareTypes(c, sourceType, targetType, false /*reportErrors*/) != TernaryFalse {
 				related = TernaryFalse
 			}
 			if related == TernaryFalse {
@@ -1633,7 +1633,7 @@ func (c *Checker) compareSignaturesRelated(source *Signature, target *Signature,
 		if targetTypePredicate != nil {
 			sourceTypePredicate := c.getTypePredicateOfSignature(source)
 			if sourceTypePredicate != nil {
-				result &= c.compareTypePredicateRelatedTo(sourceTypePredicate, targetTypePredicate, reportErrors, errorReporter, compareTypes)
+				result &= c.compareTypePredicateRelatedTo(sourceTypePredicate, targetTypePredicate, reportErrors, errorReporter, typeComparer)
 			} else if targetTypePredicate.kind == TypePredicateKindIdentifier || targetTypePredicate.kind == TypePredicateKindThis {
 				if reportErrors {
 					errorReporter(diagnostics.Signature_0_must_be_a_type_predicate, c.signatureToString(source))
@@ -1646,10 +1646,10 @@ func (c *Checker) compareSignaturesRelated(source *Signature, target *Signature,
 			// wouldn't be co-variant for T without this rule.
 			var related Ternary
 			if checkMode&SignatureCheckModeBivariantCallback != 0 {
-				related = compareTypes(targetReturnType, sourceReturnType, false /*reportErrors*/)
+				related = typeComparer.compareTypes(c, targetReturnType, sourceReturnType, false /*reportErrors*/)
 			}
 			if related == TernaryFalse {
-				related = compareTypes(sourceReturnType, targetReturnType, reportErrors)
+				related = typeComparer.compareTypes(c, sourceReturnType, targetReturnType, reportErrors)
 			}
 			result &= related
 			if result == TernaryFalse && reportErrors {
@@ -1672,7 +1672,7 @@ func (c *Checker) compareSignaturesRelated(source *Signature, target *Signature,
 	return result
 }
 
-func (c *Checker) compareTypePredicateRelatedTo(source *TypePredicate, target *TypePredicate, reportErrors bool, errorReporter ErrorReporter, compareTypes TypeComparer) Ternary {
+func (c *Checker) compareTypePredicateRelatedTo(source *TypePredicate, target *TypePredicate, reportErrors bool, errorReporter ErrorReporter, typeComparer inferenceTypeComparer) Ternary {
 	if source.kind != target.kind {
 		if reportErrors {
 			errorReporter(diagnostics.A_this_based_type_guard_is_not_compatible_with_a_parameter_based_type_guard)
@@ -1694,7 +1694,7 @@ func (c *Checker) compareTypePredicateRelatedTo(source *TypePredicate, target *T
 	case source.t == target.t:
 		related = TernaryTrue
 	case source.t != nil && target.t != nil:
-		related = compareTypes(source.t, target.t, reportErrors)
+		related = typeComparer.compareTypes(c, source.t, target.t, reportErrors)
 	default:
 		related = TernaryFalse
 	}
@@ -3765,7 +3765,7 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 			var mapper *TypeMapper
 			if len(sourceParams) != 0 {
 				// If the source has infer type parameters, we instantiate them in the context of the target
-				ctx := r.c.newInferenceContext(sourceParams, nil /*signature*/, InferenceFlagsNone, r.isRelatedToWorker)
+				ctx := r.c.newInferenceContext(sourceParams, nil /*signature*/, InferenceFlagsNone, inferenceTypeComparer{relater: r})
 				r.c.inferTypes(ctx.inferences, target.AsConditionalType().extendsType, sourceExtends, InferencePriorityNoConstraints|InferencePriorityAlwaysStrict, false)
 				sourceExtends = r.c.instantiateType(sourceExtends, ctx.mapper)
 				mapper = ctx.mapper
@@ -4584,10 +4584,15 @@ func (r *Relater) signatureRelatedTo(source *Signature, target *Signature, erase
 		source = r.c.getErasedSignature(source)
 		target = r.c.getErasedSignature(target)
 	}
-	isRelatedToWorker := func(source *Type, target *Type, reportErrors bool) Ternary {
-		return r.isRelatedToEx(source, target, RecursionFlagsBoth, reportErrors, nil /*headMessage*/, intersectionState)
-	}
-	return r.c.compareSignaturesRelated(source, target, checkMode, reportErrors, r.reportError, isRelatedToWorker, r.c.reportUnreliableMapper)
+	return r.c.compareSignaturesRelated(
+		source,
+		target,
+		checkMode,
+		reportErrors,
+		r.reportError,
+		inferenceTypeComparer{relater: r, intersectionState: intersectionState},
+		r.c.reportUnreliableMapper,
+	)
 }
 
 func (r *Relater) signaturesIdenticalTo(source *Type, target *Type, kind SignatureKind) Ternary {
