@@ -50,7 +50,6 @@ type ExpandoAssignmentInfo struct {
 
 type Binder struct {
 	file            *ast.SourceFile
-	bindFunc        func(*ast.Node) bool
 	unreachableFlow *ast.FlowNode
 
 	container               *ast.Node
@@ -102,9 +101,7 @@ func BindSourceFile(file *ast.SourceFile) {
 
 var binderPool = sync.Pool{
 	New: func() any {
-		b := &Binder{}
-		b.bindFunc = b.bind // Allocate closure once
-		return b
+		return &Binder{}
 	},
 }
 
@@ -113,7 +110,7 @@ func getBinder() *Binder {
 }
 
 func putBinder(b *Binder) {
-	*b = Binder{bindFunc: b.bindFunc}
+	*b = Binder{}
 	binderPool.Put(b)
 }
 
@@ -1731,7 +1728,7 @@ func (b *Binder) bindChildren(node *ast.Node) {
 }
 
 func (b *Binder) bindEachChild(node *ast.Node) {
-	node.ForEachChild(b.bindFunc)
+	node.ForEachChild(b.bind)
 }
 
 func (b *Binder) bindEach(nodes []*ast.Node) {
