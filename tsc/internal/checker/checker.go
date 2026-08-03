@@ -882,7 +882,6 @@ type Checker struct {
 	containsMissingType                         func(*Type) bool
 	couldContainTypeVariables                   func(*Type) bool
 	isStringIndexSignatureOnlyType              func(*Type) bool
-	markNodeAssignments                         func(*ast.Node) bool
 	compareTypesAssignable                      TypeComparer
 	emitResolver                                *EmitResolver
 	emitResolverOnce                            sync.Once
@@ -1258,7 +1257,6 @@ func (c *Checker) initializeClosures() {
 	}
 	c.couldContainTypeVariables = c.couldContainTypeVariablesWorker
 	c.isStringIndexSignatureOnlyType = c.isStringIndexSignatureOnlyTypeWorker
-	c.markNodeAssignments = c.markNodeAssignmentsWorker
 	c.compareTypesAssignable = c.compareTypesAssignableWorker
 }
 

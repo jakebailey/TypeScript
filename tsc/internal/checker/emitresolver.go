@@ -35,7 +35,6 @@ type EmitResolver struct {
 	checker                 *Checker
 	checkerMu               *sync.Mutex
 	isValueAliasDeclaration func(node *ast.Node) bool
-	aliasMarkingVisitor     func(node *ast.Node) bool
 	referenceResolver       binder.ReferenceResolver
 	jsxLinks                core.LinkStore[*ast.Node, JSXLinks]
 	declarationLinks        core.LinkStore[*ast.Node, DeclarationLinks]
@@ -45,7 +44,6 @@ type EmitResolver struct {
 func newEmitResolver(checker *Checker) *EmitResolver {
 	e := &EmitResolver{checker: checker}
 	e.isValueAliasDeclaration = e.isValueAliasDeclarationWorker
-	e.aliasMarkingVisitor = e.aliasMarkingVisitorWorker
 	e.checkerMu = &checker.mu
 	return e
 }
@@ -257,7 +255,7 @@ func isCommonJSModuleExports(node *ast.Node) bool {
 	return false
 }
 
-func (r *EmitResolver) aliasMarkingVisitorWorker(node *ast.Node) bool {
+func (r *EmitResolver) aliasMarkingVisitor(node *ast.Node) bool {
 	switch node.Kind {
 	case ast.KindBinaryExpression:
 		if isCommonJSModuleExports(node) && ast.IsIdentifier(node.AsBinaryExpression().Right) {

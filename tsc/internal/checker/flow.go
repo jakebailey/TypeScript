@@ -2700,7 +2700,7 @@ func (c *Checker) hasParentWithAssignmentsMarked(node *ast.Node) bool {
 // assignments occur in compound statements, record the ending source position of the compound statement
 // as the assignment position (this is more conservative than full control flow analysis, but requires
 // only a single walk over the AST).
-func (c *Checker) markNodeAssignmentsWorker(node *ast.Node) bool {
+func (c *Checker) markNodeAssignments(node *ast.Node) bool {
 	switch node.Kind {
 	case ast.KindIdentifier:
 		assignmentKind := getAssignmentTargetKind(node)
