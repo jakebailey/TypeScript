@@ -131,7 +131,7 @@ var parseCache = project.NewParseCache(
 )
 
 func NewFourslash(t *testing.T, capabilities *lsproto.ClientCapabilities, content string) (*FourslashTest, func()) {
-	repo.SkipIfNoTypeScriptSubmodule(t)
+	repo.SkipIfNoLegacyReference(t)
 	if !bundled.Embedded {
 		// Without embedding, we'd need to read all of the lib files out from disk into the MapFS.
 		// Just skip this for now.

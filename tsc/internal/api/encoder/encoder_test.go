@@ -86,8 +86,8 @@ func TestBuildNodeIndexTableMatchesEncode(t *testing.T) {
 }
 
 func BenchmarkEncodeSourceFile(b *testing.B) {
-	repo.SkipIfNoTypeScriptSubmodule(b)
-	filePath := filepath.Join(repo.TypeScriptSubmodulePath(), "src/compiler/checker.ts")
+	repo.SkipIfNoLegacyReference(b)
+	filePath := filepath.Join(repo.LegacyReferencePath(), "src/compiler/checker.ts")
 	fileContent, err := os.ReadFile(filePath)
 	assert.NilError(b, err)
 	sourceFile := parser.ParseSourceFile(ast.SourceFileParseOptions{
@@ -102,8 +102,8 @@ func BenchmarkEncodeSourceFile(b *testing.B) {
 }
 
 func BenchmarkBuildNodeIndexTable(b *testing.B) {
-	repo.SkipIfNoTypeScriptSubmodule(b)
-	filePath := filepath.Join(repo.TypeScriptSubmodulePath(), "src/compiler/checker.ts")
+	repo.SkipIfNoLegacyReference(b)
+	filePath := filepath.Join(repo.LegacyReferencePath(), "src/compiler/checker.ts")
 	fileContent, err := os.ReadFile(filePath)
 	assert.NilError(b, err)
 	sourceFile := parser.ParseSourceFile(ast.SourceFileParseOptions{

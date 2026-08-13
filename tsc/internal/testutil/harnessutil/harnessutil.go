@@ -154,7 +154,7 @@ func CompileFilesEx(
 	}
 
 	if includeLibDir {
-		repo.SkipIfNoTypeScriptSubmodule(t)
+		repo.SkipIfNoLegacyReference(t)
 	}
 
 	// !!!
@@ -240,7 +240,7 @@ func CompileFilesEx(
 
 var testLibFolderMap = sync.OnceValue(func() map[string]any {
 	testfs := make(map[string]any)
-	libfs := os.DirFS(filepath.Join(repo.TypeScriptSubmodulePath(), "tests", "lib"))
+	libfs := os.DirFS(filepath.Join(repo.LegacyReferencePath(), "tests", "lib"))
 	err := fs.WalkDir(libfs, ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err

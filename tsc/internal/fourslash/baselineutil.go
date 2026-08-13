@@ -95,7 +95,7 @@ func getBaselineExtension(command baselineCommand) string {
 
 func (f *FourslashTest) getBaselineOptions(command baselineCommand, testPath string) baseline.Options {
 	subfolder := "fourslash/" + normalizeCommandName(string(command))
-	if !isSubmoduleTest(testPath) {
+	if !isLegacyReferenceTest(testPath) {
 		return baseline.Options{
 			Subfolder: subfolder,
 		}
@@ -103,13 +103,12 @@ func (f *FourslashTest) getBaselineOptions(command baselineCommand, testPath str
 	switch command {
 	case smartSelectionCmd:
 		return baseline.Options{
-			Subfolder:   subfolder,
-			IsSubmodule: true,
+			Subfolder: subfolder,
 		}
 	case callHierarchyCmd:
 		return baseline.Options{
-			Subfolder:   subfolder,
-			IsSubmodule: true,
+			Subfolder: subfolder,
+
 			DiffFixupOld: func(s string) string {
 				// TypeScript baselines have "/tests/cases/fourslash/" prefix in file paths
 				// Handle /server/ subdirectory - need to remove both prefixes
@@ -123,8 +122,8 @@ func (f *FourslashTest) getBaselineOptions(command baselineCommand, testPath str
 		}
 	case renameCmd:
 		return baseline.Options{
-			Subfolder:   subfolder,
-			IsSubmodule: true,
+			Subfolder: subfolder,
+
 			DiffFixupOld: func(s string) string {
 				var commandLines []string
 				commandPrefix := regexp.MustCompile(`^// === ([a-z\sA-Z]*) ===`)
@@ -166,8 +165,8 @@ func (f *FourslashTest) getBaselineOptions(command baselineCommand, testPath str
 		}
 	case inlayHintsCmd:
 		return baseline.Options{
-			Subfolder:   subfolder,
-			IsSubmodule: true,
+			Subfolder: subfolder,
+
 			DiffFixupOld: func(s string) string {
 				var commandLines []string
 				commandPrefix := regexp.MustCompile(`^// === ([a-z\sA-Z]*) ===`)
@@ -279,8 +278,8 @@ func (f *FourslashTest) getBaselineOptions(command baselineCommand, testPath str
 		}
 	case goToDefinitionCmd, goToTypeDefinitionCmd, goToImplementationCmd, goToSourceDefinitionCmd:
 		return baseline.Options{
-			Subfolder:   subfolder,
-			IsSubmodule: true,
+			Subfolder: subfolder,
+
 			DiffFixupOld: func(s string) string {
 				var commandLines []string
 				commandPrefix := regexp.MustCompile(`^// === ([a-z\sA-Z]*) ===`)
@@ -335,8 +334,8 @@ func (f *FourslashTest) getBaselineOptions(command baselineCommand, testPath str
 		}
 	case findAllReferencesCmd:
 		return baseline.Options{
-			Subfolder:   subfolder,
-			IsSubmodule: true,
+			Subfolder: subfolder,
+
 			DiffFixupOld: func(s string) string {
 				var commandLines []string
 				commandPrefix := regexp.MustCompile(`^// === ([a-z\sA-Z]*) ===`)
@@ -475,8 +474,8 @@ func (f *FourslashTest) getBaselineOptions(command baselineCommand, testPath str
 			return strings.Join(dropTrailingEmptyLines(commandLines), "\n")
 		}
 		return baseline.Options{
-			Subfolder:    subfolder,
-			IsSubmodule:  true,
+			Subfolder: subfolder,
+
 			DiffFixupOld: deleteInfo,
 			DiffFixupNew: deleteInfo,
 		}
@@ -491,7 +490,7 @@ func dropTrailingEmptyLines(ss []string) []string {
 	return ss[:core.FindLastIndex(ss, func(s string) bool { return s != "" })+1]
 }
 
-func isSubmoduleTest(testPath string) bool {
+func isLegacyReferenceTest(testPath string) bool {
 	return strings.Contains(testPath, "fourslash/tests/gen") || strings.Contains(testPath, "fourslash/tests/manual")
 }
 

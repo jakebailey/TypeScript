@@ -43,12 +43,12 @@ func RootPath() string {
 	return rootPath()
 }
 
-var typeScriptSubmodulePath = sync.OnceValue(func() string {
-	return filepath.Join(rootPath(), "_submodules", "TypeScript")
+var typeScriptLegacyReferencePath = sync.OnceValue(func() string {
+	return filepath.Join(rootPath(), "_legacyReferences", "TypeScript")
 })
 
-func TypeScriptSubmodulePath() string {
-	return typeScriptSubmodulePath()
+func LegacyReferencePath() string {
+	return typeScriptLegacyReferencePath()
 }
 
 var testDataPath = sync.OnceValue(func() string {
@@ -59,8 +59,8 @@ func TestDataPath() string {
 	return testDataPath()
 }
 
-var typeScriptSubmoduleExists = sync.OnceValue(func() bool {
-	p := filepath.Join(typeScriptSubmodulePath(), "package.json")
+var typeScriptLegacyReferenceExists = sync.OnceValue(func() bool {
+	p := filepath.Join(typeScriptLegacyReferencePath(), "package.json")
 	if _, err := os.Stat(p); err != nil {
 		if os.IsNotExist(err) {
 			return false
@@ -70,8 +70,8 @@ var typeScriptSubmoduleExists = sync.OnceValue(func() bool {
 	return true
 })
 
-func TypeScriptSubmoduleExists() bool {
-	return typeScriptSubmoduleExists()
+func LegacyReferenceExists() bool {
+	return typeScriptLegacyReferenceExists()
 }
 
 type SkippableTest interface {
@@ -79,9 +79,9 @@ type SkippableTest interface {
 	Skipf(format string, args ...any)
 }
 
-func SkipIfNoTypeScriptSubmodule(t SkippableTest) {
+func SkipIfNoLegacyReference(t SkippableTest) {
 	t.Helper()
-	if !typeScriptSubmoduleExists() {
-		t.Skipf("TypeScript submodule does not exist")
+	if !typeScriptLegacyReferenceExists() {
+		t.Skipf("TypeScript legacyReference does not exist")
 	}
 }

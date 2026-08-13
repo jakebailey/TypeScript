@@ -76,7 +76,7 @@ func allParsableFiles(tb testing.TB, root string) iter.Seq[parsableFile] {
 }
 
 func FuzzParser(f *testing.F) {
-	repo.SkipIfNoTypeScriptSubmodule(f)
+	repo.SkipIfNoLegacyReference(f)
 
 	tests := []string{
 		"src",
@@ -92,7 +92,7 @@ func FuzzParser(f *testing.F) {
 	}
 
 	for _, test := range tests {
-		root := filepath.Join(repo.TypeScriptSubmodulePath(), test)
+		root := filepath.Join(repo.LegacyReferencePath(), test)
 
 		for file := range allParsableFiles(f, root) {
 			sourceText, err := os.ReadFile(file.path)
@@ -103,8 +103,8 @@ func FuzzParser(f *testing.F) {
 	}
 
 	testDirs := []string{
-		filepath.Join(repo.TypeScriptSubmodulePath(), "tests/cases/compiler"),
-		filepath.Join(repo.TypeScriptSubmodulePath(), "tests/cases/conformance"),
+		filepath.Join(repo.LegacyReferencePath(), "tests/cases/compiler"),
+		filepath.Join(repo.LegacyReferencePath(), "tests/cases/conformance"),
 		filepath.Join(repo.TestDataPath(), "tests/cases/compiler"),
 	}
 

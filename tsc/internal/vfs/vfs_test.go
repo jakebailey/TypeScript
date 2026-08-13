@@ -36,8 +36,8 @@ func BenchmarkReadFile(b *testing.B) {
 		{"OS small", osFS, osSmallDataPath},
 	}
 
-	if repo.TypeScriptSubmoduleExists() {
-		checkerPath := tspath.CombinePaths(tspath.NormalizeSlashes(repo.TypeScriptSubmodulePath()), "src", "compiler", "checker.ts")
+	if repo.LegacyReferenceExists() {
+		checkerPath := tspath.CombinePaths(tspath.NormalizeSlashes(repo.LegacyReferencePath()), "src", "compiler", "checker.ts")
 
 		checkerContents, ok := osFS.ReadFile(checkerPath)
 		assert.Assert(b, ok)

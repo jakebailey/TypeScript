@@ -127,7 +127,7 @@ var parseConfigFileTextToJsonTests = []struct {
 
 func TestParseConfigFileTextToJson(t *testing.T) {
 	t.Parallel()
-	repo.SkipIfNoTypeScriptSubmodule(t)
+	repo.SkipIfNoLegacyReference(t)
 	for _, rec := range parseConfigFileTextToJsonTests {
 		t.Run(rec.title, func(t *testing.T) {
 			t.Parallel()
@@ -153,15 +153,15 @@ func TestParseConfigFileTextToJson(t *testing.T) {
 					baselineContent.WriteString("\n")
 				}
 			}
-			baseline.RunAgainstSubmodule(t, rec.title+" jsonParse.js", baselineContent.String(), baseline.Options{Subfolder: "config/tsconfigParsing"})
+			baseline.Run(t, rec.title+" jsonParse.js", baselineContent.String(), baseline.Options{Subfolder: "config/tsconfigParsing"})
 		})
 	}
 }
 
 type parseJsonConfigTestCase struct {
-	title               string
-	noSubmoduleBaseline bool
-	input               []testConfig
+	title                     string
+	noLegacyReferenceBaseline bool
+	input                     []testConfig
 }
 
 var parseJsonConfigFileTests = []parseJsonConfigTestCase{
@@ -250,8 +250,8 @@ var parseJsonConfigFileTests = []parseJsonConfigTestCase{
 		}},
 	},
 	{
-		title:               "parses tsconfig with compilerOptions, files, include, and exclude",
-		noSubmoduleBaseline: true,
+		title:                     "parses tsconfig with compilerOptions, files, include, and exclude",
+		noLegacyReferenceBaseline: true,
 		input: []testConfig{{
 			jsonText: `{
   "compilerOptions": {
@@ -454,8 +454,8 @@ var parseJsonConfigFileTests = []parseJsonConfigTestCase{
 		}},
 	},
 	{
-		title:               "parses tsconfig with extends, files, include and other options",
-		noSubmoduleBaseline: true,
+		title:                     "parses tsconfig with extends, files, include and other options",
+		noLegacyReferenceBaseline: true,
 		input: []testConfig{{
 			jsonText: `{
 				"extends": "./tsconfigWithExtends.json",
@@ -472,8 +472,8 @@ var parseJsonConfigFileTests = []parseJsonConfigTestCase{
 		}},
 	},
 	{
-		title:               "parses tsconfig with extends and configDir",
-		noSubmoduleBaseline: true,
+		title:                     "parses tsconfig with extends and configDir",
+		noLegacyReferenceBaseline: true,
 		input: []testConfig{{
 			jsonText: `{
 				"extends": "./tsconfig.base.json"
@@ -525,8 +525,8 @@ var parseJsonConfigFileTests = []parseJsonConfigTestCase{
 		}},
 	},
 	{
-		title:               "reports errors for incorrectly cased option names",
-		noSubmoduleBaseline: true,
+		title:                     "reports errors for incorrectly cased option names",
+		noLegacyReferenceBaseline: true,
 		input: []testConfig{{
 			jsonText: `{
 			    "compilerOptions": {
@@ -548,8 +548,8 @@ var parseJsonConfigFileTests = []parseJsonConfigTestCase{
 		}},
 	},
 	{
-		title:               "handles empty types array",
-		noSubmoduleBaseline: true,
+		title:                     "handles empty types array",
+		noLegacyReferenceBaseline: true,
 		input: []testConfig{{
 			jsonText: `{
 			    "compilerOptions": {
@@ -562,8 +562,8 @@ var parseJsonConfigFileTests = []parseJsonConfigTestCase{
 		}},
 	},
 	{
-		title:               "issue 1267 scenario - extended files not picked up",
-		noSubmoduleBaseline: true,
+		title:                     "issue 1267 scenario - extended files not picked up",
+		noLegacyReferenceBaseline: true,
 		input: []testConfig{{
 			jsonText: `{
   "extends": "./tsconfig-base/backend.json",
@@ -632,8 +632,8 @@ export {}`,
 		}},
 	},
 	{
-		title:               "null overrides in extended tsconfig - array fields",
-		noSubmoduleBaseline: true,
+		title:                     "null overrides in extended tsconfig - array fields",
+		noLegacyReferenceBaseline: true,
 		input: []testConfig{{
 			jsonText: `{
   "extends": "./tsconfig-base.json",
@@ -658,8 +658,8 @@ export {}`,
 		}},
 	},
 	{
-		title:               "null overrides in extended tsconfig - string fields",
-		noSubmoduleBaseline: true,
+		title:                     "null overrides in extended tsconfig - string fields",
+		noLegacyReferenceBaseline: true,
 		input: []testConfig{{
 			jsonText: `{
   "extends": "./tsconfig-base.json",
@@ -684,8 +684,8 @@ export {}`,
 		}},
 	},
 	{
-		title:               "null overrides in extended tsconfig - mixed field types",
-		noSubmoduleBaseline: true,
+		title:                     "null overrides in extended tsconfig - mixed field types",
+		noLegacyReferenceBaseline: true,
 		input: []testConfig{{
 			jsonText: `{
   "extends": "./tsconfig-base.json",
@@ -715,8 +715,8 @@ export {}`,
 		}},
 	},
 	{
-		title:               "null overrides with multiple extends levels",
-		noSubmoduleBaseline: true,
+		title:                     "null overrides with multiple extends levels",
+		noLegacyReferenceBaseline: true,
 		input: []testConfig{{
 			jsonText: `{
   "extends": "./tsconfig-middle.json",
@@ -748,8 +748,8 @@ export {}`,
 		}},
 	},
 	{
-		title:               "null overrides in middle level of extends chain",
-		noSubmoduleBaseline: true,
+		title:                     "null overrides in middle level of extends chain",
+		noLegacyReferenceBaseline: true,
 		input: []testConfig{{
 			jsonText: `{
   "extends": "./tsconfig-middle.json",
@@ -819,11 +819,11 @@ var tsconfigWithExtendsAndConfigDir = `{
 
 func TestParseJsonConfigFileContent(t *testing.T) {
 	t.Parallel()
-	repo.SkipIfNoTypeScriptSubmodule(t)
+	repo.SkipIfNoLegacyReference(t)
 	for _, rec := range parseJsonConfigFileTests {
 		t.Run(rec.title+" with json api", func(t *testing.T) {
 			t.Parallel()
-			baselineParseConfigWith(t, rec.title+" with json api.js", rec.noSubmoduleBaseline, rec.input, getParsedWithJsonApi)
+			baselineParseConfigWith(t, rec.title+" with json api.js", rec.noLegacyReferenceBaseline, rec.input, getParsedWithJsonApi)
 		})
 	}
 }
@@ -846,11 +846,11 @@ func getParsedWithJsonApi(config testConfig, host tsoptions.ParseConfigHost, bas
 
 func TestParseJsonSourceFileConfigFileContent(t *testing.T) {
 	t.Parallel()
-	repo.SkipIfNoTypeScriptSubmodule(t)
+	repo.SkipIfNoLegacyReference(t)
 	for _, rec := range parseJsonConfigFileTests {
 		t.Run(rec.title+" with jsonSourceFile api", func(t *testing.T) {
 			t.Parallel()
-			baselineParseConfigWith(t, rec.title+" with jsonSourceFile api.js", rec.noSubmoduleBaseline, rec.input, getParsedWithJsonSourceFileApi)
+			baselineParseConfigWith(t, rec.title+" with jsonSourceFile api.js", rec.noLegacyReferenceBaseline, rec.input, getParsedWithJsonSourceFileApi)
 		})
 	}
 }
@@ -1042,8 +1042,8 @@ func getParsedWithJsonSourceFileApi(config testConfig, host tsoptions.ParseConfi
 	)
 }
 
-func baselineParseConfigWith(t *testing.T, baselineFileName string, noSubmoduleBaseline bool, input []testConfig, getParsed func(config testConfig, host tsoptions.ParseConfigHost, basePath string) *tsoptions.ParsedCommandLine) {
-	noSubmoduleBaseline = true
+func baselineParseConfigWith(t *testing.T, baselineFileName string, noLegacyReferenceBaseline bool, input []testConfig, getParsed func(config testConfig, host tsoptions.ParseConfigHost, basePath string) *tsoptions.ParsedCommandLine) {
+	noLegacyReferenceBaseline = true
 	var baselineContent strings.Builder
 	for i, config := range input {
 		basePath := config.basePath
@@ -1065,7 +1065,7 @@ func baselineParseConfigWith(t *testing.T, baselineFileName string, noSubmoduleB
 		baselineContent.WriteString("configFileName:: ")
 		baselineContent.WriteString(config.configFileName)
 		baselineContent.WriteString("\n")
-		if noSubmoduleBaseline {
+		if noLegacyReferenceBaseline {
 			baselineContent.WriteString("CompilerOptions::\n")
 			assert.NilError(t, json.MarshalIndentWrite(&baselineContent, parsedConfigFileContent.ParsedConfig.CompilerOptions, "", "  "))
 			baselineContent.WriteString("\n")
@@ -1094,10 +1094,10 @@ func baselineParseConfigWith(t *testing.T, baselineFileName string, noSubmoduleB
 			baselineContent.WriteString("\n")
 		}
 	}
-	if noSubmoduleBaseline {
+	if noLegacyReferenceBaseline {
 		baseline.Run(t, baselineFileName, baselineContent.String(), baseline.Options{Subfolder: "config/tsconfigParsing"})
 	} else {
-		baseline.RunAgainstSubmodule(t, baselineFileName, baselineContent.String(), baseline.Options{Subfolder: "config/tsconfigParsing"})
+		baseline.Run(t, baselineFileName, baselineContent.String(), baseline.Options{Subfolder: "config/tsconfigParsing"})
 	}
 }
 
@@ -1107,7 +1107,7 @@ func writeJsonReadableText(output io.Writer, input any) error {
 
 func TestParseTypeAcquisition(t *testing.T) {
 	t.Parallel()
-	// repo.SkipIfNoTypeScriptSubmodule(t)
+	// repo.SkipIfNoLegacyReference(t)
 	cases := []struct {
 		title      string
 		configName string
@@ -1223,9 +1223,9 @@ func printFS(output io.Writer, files vfs.FS, root string) error {
 func TestParseSrcCompiler(t *testing.T) {
 	t.Parallel()
 
-	repo.SkipIfNoTypeScriptSubmodule(t)
+	repo.SkipIfNoLegacyReference(t)
 
-	compilerDir := tspath.NormalizeSlashes(filepath.Join(repo.TypeScriptSubmodulePath(), "src", "compiler"))
+	compilerDir := tspath.NormalizeSlashes(filepath.Join(repo.LegacyReferencePath(), "src", "compiler"))
 	tsconfigFileName := tspath.CombinePaths(compilerDir, "tsconfig.json")
 
 	fs := osvfs.FS()
@@ -1278,7 +1278,7 @@ func TestParseSrcCompiler(t *testing.T) {
 		Module:                     core.ModuleKindNodeNext,
 		ModuleResolution:           core.ModuleResolutionKindNodeNext,
 		NewLine:                    core.NewLineKindLF,
-		OutDir:                     tspath.NormalizeSlashes(filepath.Join(repo.TypeScriptSubmodulePath(), "built", "local")),
+		OutDir:                     tspath.NormalizeSlashes(filepath.Join(repo.LegacyReferencePath(), "built", "local")),
 		Target:                     core.ScriptTargetES2020,
 		Types:                      []string{"node"},
 		ConfigFilePath:             tsconfigFileName,
@@ -1290,7 +1290,7 @@ func TestParseSrcCompiler(t *testing.T) {
 		IsolatedDeclarations:       core.TSTrue,
 		NoImplicitOverride:         core.TSTrue,
 		PreserveConstEnums:         core.TSTrue,
-		RootDir:                    tspath.NormalizeSlashes(filepath.Join(repo.TypeScriptSubmodulePath(), "src")),
+		RootDir:                    tspath.NormalizeSlashes(filepath.Join(repo.LegacyReferencePath(), "src")),
 		SkipLibCheck:               core.TSTrue,
 		Strict:                     core.TSTrue,
 		StrictBindCallApply:        core.TSFalse,
@@ -1394,9 +1394,9 @@ func TestParseSrcCompiler(t *testing.T) {
 }
 
 func BenchmarkParseSrcCompiler(b *testing.B) {
-	repo.SkipIfNoTypeScriptSubmodule(b)
+	repo.SkipIfNoLegacyReference(b)
 
-	compilerDir := tspath.NormalizeSlashes(filepath.Join(repo.TypeScriptSubmodulePath(), "src", "compiler"))
+	compilerDir := tspath.NormalizeSlashes(filepath.Join(repo.LegacyReferencePath(), "src", "compiler"))
 	tsconfigFileName := tspath.CombinePaths(compilerDir, "tsconfig.json")
 
 	fs := osvfs.FS()

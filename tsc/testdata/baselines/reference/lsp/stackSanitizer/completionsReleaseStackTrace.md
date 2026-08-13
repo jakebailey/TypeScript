@@ -38,28 +38,28 @@ created by github.com/microsoft/TypeScript/tsc/internal/lsp.(*Server).dispatchLo
 ````
 (REDACTED FRAME)
 	(REDACTED FRAME)
-typescript-go|>internal|>lsp.(*Server).recover()
-	typescript-go|>internal|>lsp|>server.go:777
+TypeScript|>tsc|>internal|>lsp.(*Server).recover()
+	TypeScript|>tsc|>internal|>lsp|>server.go:777
 (REDACTED FRAME)
 	(REDACTED FRAME)
-typescript-go|>internal|>ls.(*LanguageService).getCompletionData.func15()
-	typescript-go|>internal|>ls|>completions.go:1303
-typescript-go|>internal|>ls.(*LanguageService).getCompletionData.func18()
-	typescript-go|>internal|>ls|>completions.go:1548
-typescript-go|>internal|>ls.(*LanguageService).getCompletionData()
-	typescript-go|>internal|>ls|>completions.go:1581
-typescript-go|>internal|>ls.(*LanguageService).getCompletionsAtPosition()
-	typescript-go|>internal|>ls|>completions.go:347
-typescript-go|>internal|>ls.(*LanguageService).ProvideCompletion()
-	typescript-go|>internal|>ls|>completions.go:47
-typescript-go|>internal|>lsp.(*Server).handleCompletion()
-	typescript-go|>internal|>lsp|>server.go:1105
-typescript-go|>internal|>lsp.init.func1.registerLanguageServiceWithAutoImportsRequestHandler[...].28()
-	typescript-go|>internal|>lsp|>server.go:682
-typescript-go|>internal|>lsp.(*Server).handleRequestOrNotification()
-	typescript-go|>internal|>lsp|>server.go:531
-typescript-go|>internal|>lsp.(*Server).dispatchLoop.func1()
-	typescript-go|>internal|>lsp|>server.go:414
-typescript-go|>internal|>lsp.(*Server).dispatchLoop
-	typescript-go|>internal|>lsp|>server.go:438
+TypeScript|>tsc|>internal|>ls.(*LanguageService).getCompletionData.func15()
+	TypeScript|>tsc|>internal|>ls|>completions.go:1303
+TypeScript|>tsc|>internal|>ls.(*LanguageService).getCompletionData.func18()
+	TypeScript|>tsc|>internal|>ls|>completions.go:1548
+TypeScript|>tsc|>internal|>ls.(*LanguageService).getCompletionData()
+	TypeScript|>tsc|>internal|>ls|>completions.go:1581
+TypeScript|>tsc|>internal|>ls.(*LanguageService).getCompletionsAtPosition()
+	TypeScript|>tsc|>internal|>ls|>completions.go:347
+TypeScript|>tsc|>internal|>ls.(*LanguageService).ProvideCompletion()
+	TypeScript|>tsc|>internal|>ls|>completions.go:47
+TypeScript|>tsc|>internal|>lsp.(*Server).handleCompletion()
+	TypeScript|>tsc|>internal|>lsp|>server.go:1105
+TypeScript|>tsc|>internal|>lsp.init.func1.registerLanguageServiceWithAutoImportsRequestHandler[...].28()
+	TypeScript|>tsc|>internal|>lsp|>server.go:682
+TypeScript|>tsc|>internal|>lsp.(*Server).handleRequestOrNotification()
+	TypeScript|>tsc|>internal|>lsp|>server.go:531
+TypeScript|>tsc|>internal|>lsp.(*Server).dispatchLoop.func1()
+	TypeScript|>tsc|>internal|>lsp|>server.go:414
+TypeScript|>tsc|>internal|>lsp.(*Server).dispatchLoop
+	TypeScript|>tsc|>internal|>lsp|>server.go:438
 ````

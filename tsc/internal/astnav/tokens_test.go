@@ -20,12 +20,12 @@ import (
 )
 
 var testFiles = []string{
-	filepath.Join(repo.TypeScriptSubmodulePath(), "src/services/mapCode.ts"),
+	filepath.Join(repo.LegacyReferencePath(), "src/services/mapCode.ts"),
 }
 
 func TestGetTokenAtPosition(t *testing.T) {
 	t.Parallel()
-	repo.SkipIfNoTypeScriptSubmodule(t)
+	repo.SkipIfNoLegacyReference(t)
 	jstest.SkipIfNoNodeJS(t)
 
 	t.Run("baseline", func(t *testing.T) {
@@ -114,7 +114,7 @@ func TestGetTokenAtPosition(t *testing.T) {
 func TestGetTouchingPropertyName(t *testing.T) {
 	t.Parallel()
 	jstest.SkipIfNoNodeJS(t)
-	repo.SkipIfNoTypeScriptSubmodule(t)
+	repo.SkipIfNoLegacyReference(t)
 
 	baselineTokens(
 		t,
@@ -459,7 +459,7 @@ func writeRangeDiff(output *strings.Builder, file *ast.SourceFile, diff tokenDif
 
 func TestFindPrecedingToken(t *testing.T) {
 	t.Parallel()
-	repo.SkipIfNoTypeScriptSubmodule(t)
+	repo.SkipIfNoLegacyReference(t)
 	jstest.SkipIfNoNodeJS(t)
 
 	t.Run("baseline", func(t *testing.T) {
@@ -487,7 +487,7 @@ func TestFindPrecedingToken(t *testing.T) {
 
 func TestFindNextToken(t *testing.T) {
 	t.Parallel()
-	repo.SkipIfNoTypeScriptSubmodule(t)
+	repo.SkipIfNoLegacyReference(t)
 
 	t.Run("go baseline json", func(t *testing.T) {
 		t.Parallel()

@@ -1,0 +1,18 @@
+# Existing native tests retained instead of overwritten.
+kept-native compiler/allowSyntheticDefaultImports9.ts
+kept-native compiler/checkInheritedProperty.ts
+kept-native compiler/contextuallyTypedJsxChildren2.tsx
+kept-native compiler/errorInUnnamedClassExpression.ts
+kept-native compiler/jsxFunctionTypeChildren.tsx
+kept-native compiler/missingDiscriminants.ts
+kept-native compiler/missingDiscriminants2.ts
+kept-native compiler/noCrashOnMixin2.ts
+kept-native compiler/reachabilityChecks10.ts
+kept-native compiler/reachabilityChecks11.ts
+kept-native compiler/reachabilityChecks9.ts
+kept-native compiler/reachabilityChecksIgnored.ts
+kept-native compiler/subtypeReductionWithAnyFunctionType.ts
+kept-native compiler/symbolLinkDeclarationEmitModuleNamesRootDir.ts
+kept-native compiler/unusedLocalsInForInOrOf1.ts
+kept-native-by-basename conformance/node/nodeModulesPackageImportsRootWildcard.ts
+kept-native-by-basename conformance/node/nodeModulesPackageImportsRootWildcardNode16.ts
