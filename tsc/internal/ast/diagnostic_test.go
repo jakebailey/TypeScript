@@ -3,7 +3,7 @@ package ast
 import (
 	"testing"
 
-	"github.com/microsoft/typescript-go/internal/diagnostics"
+	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 )
 
 func TestDiagnosticsCollectionDeduplicatesExactDiagnosticsOnAdd(t *testing.T) {
