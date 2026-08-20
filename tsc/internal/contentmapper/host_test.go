@@ -68,7 +68,7 @@ func (fakeMapper) HandleRequest(ctx context.Context, method string, params json.
 			return nil, err
 		}
 		return contentmapper.TransformResult{
-			MappedOutput: contentmapper.MappedOutput{Text: p.Content, Extension: ".ts", Mappings: json.Value(mappings)},
+			Text: p.Content, Extension: ".ts", Mappings: json.Value(mappings),
 			Diagnostics: []contentmapper.Diagnostic{{
 				MessageText: "boom",
 				Start:       0,
@@ -121,7 +121,7 @@ func (m unicodeMapper) HandleRequest(ctx context.Context, method string, params 
 		case contentmapper.PositionEncodingUTF16:
 			emojiLength, textLength = 1, 2
 		default:
-			return contentmapper.TransformResult{MappedOutput: contentmapper.MappedOutput{Text: p.Content, Extension: ".ts"}}, nil
+			return contentmapper.TransformResult{Text: p.Content, Extension: ".ts"}, nil
 		}
 		mappings, err := json.Marshal([][5]int{
 			{0, emojiLength, 0, emojiLength, int(spanmap.KindVerbatim)},
@@ -131,18 +131,16 @@ func (m unicodeMapper) HandleRequest(ctx context.Context, method string, params 
 			return nil, err
 		}
 		return contentmapper.TransformResult{
-			MappedOutput: contentmapper.MappedOutput{
-				Text:      p.Content,
-				Extension: ".ts",
-				Mappings:  mappings,
-				DiagnosticDirectives: protocolDiagnosticDirectives([]contentmapper.MappedDiagnosticDirective{{
-					OriginalStart:  emojiLength,
-					OriginalLength: textLength - emojiLength,
-					VirtualStart:   emojiLength,
-					VirtualEnd:     textLength,
-					Policy:         contentmapper.DiagnosticDirectivePolicyIgnore,
-				}}),
-			},
+			Text:      p.Content,
+			Extension: ".ts",
+			Mappings:  mappings,
+			DiagnosticDirectives: protocolDiagnosticDirectives([]contentmapper.MappedDiagnosticDirective{{
+				OriginalStart:  emojiLength,
+				OriginalLength: textLength - emojiLength,
+				VirtualStart:   emojiLength,
+				VirtualEnd:     textLength,
+				Policy:         contentmapper.DiagnosticDirectivePolicyIgnore,
+			}}),
 			Diagnostics: []contentmapper.Diagnostic{{
 				MessageText: "after non-ASCII character",
 				Start:       emojiLength,
@@ -168,7 +166,7 @@ func (m invalidDiagnosticMapper) HandleRequest(ctx context.Context, method strin
 		return contentmapper.InitializeResult{ProtocolVersion: contentmapper.ProtocolVersion, PositionEncoding: m.encoding, DiagnosticSource: "mapper"}, nil
 	case contentmapper.MethodTransform:
 		return contentmapper.TransformResult{
-			MappedOutput: contentmapper.MappedOutput{Extension: ".ts"},
+			Extension: ".ts",
 			Diagnostics: []contentmapper.Diagnostic{{
 				MessageText: "invalid boundary",
 				Start:       1,
@@ -238,7 +236,7 @@ func TestRunnerTransform(t *testing.T) {
 	r := contentmapper.NewHost(t.Context(), &fakeSpawner{}, locale.Default)
 	defer r.Close()
 
-	mapper := &contentmapper.Mapper{Definition: contentmapper.Definition{Extensions: []string{".vue"}}, Manifest: contentmapper.Manifest{Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}}}
+	mapper := &contentmapper.Mapper{Extensions: []string{".vue"}, Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}}
 	result, err := r.Transform(mapper, contentmapper.Request{FileName: "/a.vue", Content: "export const x = 1;"})
 	assert.NilError(t, err)
 	assert.Equal(t, result.Text, "export const x = 1;")
@@ -265,8 +263,8 @@ func TestHostLogging(t *testing.T) {
 	host := contentmapper.NewHostWithOptions(t.Context(), spawner, locale.Default, contentmapper.HostOptions{Logger: logger})
 	defer host.Close()
 	mapper := &contentmapper.Mapper{
-		Definition: contentmapper.Definition{Package: "configured", Extensions: []string{".vue"}},
-		Manifest:   contentmapper.Manifest{Name: "resolved", Version: "1.0.0", Exec: []string{"mapper"}},
+		Package: "configured", Extensions: []string{".vue"},
+		Name: "resolved", Version: "1.0.0", Exec: []string{"mapper"},
 	}
 	_, err := host.Transform(mapper, contentmapper.Request{FileName: "/a.vue", Content: "export const x = 1;"})
 	assert.NilError(t, err)
@@ -288,8 +286,8 @@ func TestHostDiscardsStderrWithoutLogging(t *testing.T) {
 	host := contentmapper.NewHost(t.Context(), spawner, locale.Default)
 	defer host.Close()
 	mapper := &contentmapper.Mapper{
-		Definition: contentmapper.Definition{Package: "configured", Extensions: []string{".vue"}},
-		Manifest:   contentmapper.Manifest{Name: "resolved", Version: "1.0.0", Exec: []string{"mapper"}},
+		Package: "configured", Extensions: []string{".vue"},
+		Name: "resolved", Version: "1.0.0", Exec: []string{"mapper"},
 	}
 	_, err := host.Transform(mapper, contentmapper.Request{FileName: "/a.vue", Content: "export const x = 1;"})
 	assert.NilError(t, err)
@@ -301,8 +299,8 @@ func TestMapperDiagnosticName(t *testing.T) {
 		mapper *contentmapper.Mapper
 		want   string
 	}{
-		{mapper: &contentmapper.Mapper{Definition: contentmapper.Definition{Package: "configured"}, Manifest: contentmapper.Manifest{Name: "resolved"}, ContributionID: "contributed"}, want: "resolved"},
-		{mapper: &contentmapper.Mapper{Definition: contentmapper.Definition{Package: "configured"}, ContributionID: "contributed"}, want: "configured"},
+		{mapper: &contentmapper.Mapper{Package: "configured", Name: "resolved", ContributionID: "contributed"}, want: "resolved"},
+		{mapper: &contentmapper.Mapper{Package: "configured", ContributionID: "contributed"}, want: "configured"},
 		{mapper: &contentmapper.Mapper{ContributionID: "contributed"}, want: "contributed"},
 	}
 	for _, test := range tests {
@@ -313,7 +311,7 @@ func TestMapperDiagnosticName(t *testing.T) {
 func TestRunnerTransformResponseValidation(t *testing.T) {
 	t.Parallel()
 	request := contentmapper.Request{FileName: "/a.vue", Content: "a"}
-	mapper := &contentmapper.Mapper{Definition: contentmapper.Definition{Extensions: []string{".vue"}}, Manifest: contentmapper.Manifest{Name: "mapper", Exec: []string{"mapper"}}}
+	mapper := &contentmapper.Mapper{Extensions: []string{".vue"}, Name: "mapper", Exec: []string{"mapper"}}
 
 	t.Run("malformed result fails the request", func(t *testing.T) {
 		t.Parallel()
@@ -349,7 +347,7 @@ func TestHostClosesProcessWhenReadLoopFails(t *testing.T) {
 	})
 	host := contentmapper.NewHost(t.Context(), spawner, locale.Default)
 	defer host.Close()
-	mapper := &contentmapper.Mapper{Manifest: contentmapper.Manifest{Name: "mapper", Exec: []string{"mapper"}}}
+	mapper := &contentmapper.Mapper{Name: "mapper", Exec: []string{"mapper"}}
 	_, err := host.Transform(mapper, contentmapper.Request{FileName: "/a.vue", Content: ""})
 	assert.Assert(t, err != nil)
 	processClosed := false
@@ -375,7 +373,7 @@ func TestHostReportsInitializationTimeoutBeforeClosingProcess(t *testing.T) {
 	})
 	host := contentmapper.NewHost(t.Context(), spawner, locale.Default)
 	defer host.Close()
-	mapper := &contentmapper.Mapper{Manifest: contentmapper.Manifest{Name: "mapper", Exec: []string{"mapper"}}}
+	mapper := &contentmapper.Mapper{Name: "mapper", Exec: []string{"mapper"}}
 	_, err := host.Transform(mapper, contentmapper.Request{FileName: "/a.vue", Content: ""})
 	initializeError, ok := errors.AsType[*contentmapper.InitializeError](err)
 	assert.Assert(t, ok, "expected InitializeError, got %v", err)
@@ -391,7 +389,7 @@ func TestHostReportsProcessExitBeforeInitialization(t *testing.T) {
 	})
 	host := contentmapper.NewHost(t.Context(), spawner, locale.Default)
 	defer host.Close()
-	mapper := &contentmapper.Mapper{Manifest: contentmapper.Manifest{Name: "mapper", Exec: []string{"mapper"}}}
+	mapper := &contentmapper.Mapper{Name: "mapper", Exec: []string{"mapper"}}
 	_, err := host.Transform(mapper, contentmapper.Request{FileName: "/a.vue", Content: ""})
 	initializeError, ok := errors.AsType[*contentmapper.InitializeError](err)
 	assert.Assert(t, ok, "expected InitializeError, got %v", err)
@@ -437,7 +435,7 @@ func (c *closeSignalReadWriteCloser) Close() error {
 func TestRunnerTransformDiagnosticDirectives(t *testing.T) {
 	t.Parallel()
 	request := contentmapper.Request{FileName: "/a.vue", Content: "directive\nsource"}
-	mapper := &contentmapper.Mapper{Definition: contentmapper.Definition{Extensions: []string{".vue"}}, Manifest: contentmapper.Manifest{Name: "mapper", Exec: []string{"mapper"}}}
+	mapper := &contentmapper.Mapper{Extensions: []string{".vue"}, Name: "mapper", Exec: []string{"mapper"}}
 	transform := func(output contentmapper.MappedOutput) (contentmapper.Result, error) {
 		host := contentmapper.NewHost(t.Context(), &fakeSpawner{handler: responseMapper{response: func(p contentmapper.TransformParams) any {
 			return contentmapper.TransformResult{MappedOutput: output}
@@ -648,21 +646,21 @@ func TestRunnerTransformSupplementalOutputs(t *testing.T) {
 	t.Parallel()
 	host := contentmapper.NewHost(t.Context(), &fakeSpawner{handler: responseMapper{response: func(p contentmapper.TransformParams) any {
 		return contentmapper.TransformResult{
-			MappedOutput: contentmapper.MappedOutput{Text: "export default 1;", Extension: ".ts"},
+			Text: "export default 1;", Extension: ".ts",
 			Supplemental: []contentmapper.SupplementalOutput{
-				{MappedOutput: contentmapper.MappedOutput{
+				{
 					Text: "declare const first: string;", Extension: ".ts",
 					DiagnosticDirectives: protocolDiagnosticDirectives([]contentmapper.MappedDiagnosticDirective{{
 						VirtualEnd: 7,
 						Policy:     contentmapper.DiagnosticDirectivePolicyIgnore,
 					}}),
-				}},
-				{MappedOutput: contentmapper.MappedOutput{Text: "declare const second: number;", Extension: ".mjs"}},
+				},
+				{Text: "declare const second: number;", Extension: ".mjs"},
 			},
 		}
 	}}}, locale.Default)
 	defer host.Close()
-	mapper := &contentmapper.Mapper{Definition: contentmapper.Definition{Extensions: []string{".vue"}}, Manifest: contentmapper.Manifest{Name: "mapper", Exec: []string{"mapper"}}}
+	mapper := &contentmapper.Mapper{Extensions: []string{".vue"}, Name: "mapper", Exec: []string{"mapper"}}
 	result, err := host.Transform(mapper, contentmapper.Request{FileName: "/component.vue", Content: "component"})
 	assert.NilError(t, err)
 	assert.Equal(t, len(result.Supplemental), 2)
@@ -679,22 +677,20 @@ func TestRunnerTransformInvalidSupplementalDiagnosticDirective(t *testing.T) {
 	t.Parallel()
 	host := contentmapper.NewHost(t.Context(), &fakeSpawner{handler: responseMapper{response: func(p contentmapper.TransformParams) any {
 		return contentmapper.TransformResult{
-			MappedOutput: contentmapper.MappedOutput{Text: "export {};", Extension: ".ts"},
+			Text: "export {};", Extension: ".ts",
 			Supplemental: []contentmapper.SupplementalOutput{
-				{MappedOutput: contentmapper.MappedOutput{Text: "export {};", Extension: ".ts"}},
+				{Text: "export {};", Extension: ".ts"},
 				{
-					MappedOutput: contentmapper.MappedOutput{
-						Text: "export {};", Extension: ".ts",
-						DiagnosticDirectives: protocolDiagnosticDirectives([]contentmapper.MappedDiagnosticDirective{{
-							Policy: contentmapper.DiagnosticDirectivePolicyExpect,
-						}}),
-					},
+					Text: "export {};", Extension: ".ts",
+					DiagnosticDirectives: protocolDiagnosticDirectives([]contentmapper.MappedDiagnosticDirective{{
+						Policy: contentmapper.DiagnosticDirectivePolicyExpect,
+					}}),
 				},
 			},
 		}
 	}}}, locale.Default)
 	defer host.Close()
-	mapper := &contentmapper.Mapper{Definition: contentmapper.Definition{Extensions: []string{".vue"}}, Manifest: contentmapper.Manifest{Name: "mapper", Exec: []string{"mapper"}}}
+	mapper := &contentmapper.Mapper{Extensions: []string{".vue"}, Name: "mapper", Exec: []string{"mapper"}}
 	_, err := host.Transform(mapper, contentmapper.Request{FileName: "/component.vue", Content: "component"})
 	directiveError, ok := errors.AsType[*contentmapper.DiagnosticDirectiveError](err)
 	assert.Assert(t, ok)
@@ -714,15 +710,15 @@ func TestRunnerRejectsInvalidVirtualExtension(t *testing.T) {
 					var supplementalOutputs []contentmapper.SupplementalOutput
 					if supplemental {
 						canonicalExtension = ".ts"
-						supplementalOutputs = []contentmapper.SupplementalOutput{{MappedOutput: contentmapper.MappedOutput{Text: "export {};", Extension: extension}}}
+						supplementalOutputs = []contentmapper.SupplementalOutput{{Text: "export {};", Extension: extension}}
 					}
 					return contentmapper.TransformResult{
-						MappedOutput: contentmapper.MappedOutput{Text: "export {};", Extension: canonicalExtension},
+						Text: "export {};", Extension: canonicalExtension,
 						Supplemental: supplementalOutputs,
 					}
 				}}}, locale.Default)
 				defer host.Close()
-				mapper := &contentmapper.Mapper{Definition: contentmapper.Definition{Extensions: []string{".vue"}}, Manifest: contentmapper.Manifest{Name: "mapper", Exec: []string{"mapper"}}}
+				mapper := &contentmapper.Mapper{Extensions: []string{".vue"}, Name: "mapper", Exec: []string{"mapper"}}
 				_, err := host.Transform(mapper, contentmapper.Request{FileName: "/component.vue", Content: "component"})
 				assert.ErrorContains(t, err, "invalid virtual extension")
 			})
@@ -740,7 +736,7 @@ func TestRunnerPositionEncodings(t *testing.T) {
 			t.Parallel()
 			r := contentmapper.NewHost(t.Context(), &fakeSpawner{handler: unicodeMapper{encoding: encoding}}, locale.Default)
 			defer r.Close()
-			mapper := &contentmapper.Mapper{Manifest: contentmapper.Manifest{Name: string(encoding), Exec: []string{"mapper"}}}
+			mapper := &contentmapper.Mapper{Name: string(encoding), Exec: []string{"mapper"}}
 			result, err := r.Transform(mapper, contentmapper.Request{FileName: "/a.vue", Content: "éx"})
 			assert.NilError(t, err)
 			segments := result.Mappings.Segments()
@@ -769,7 +765,7 @@ func TestRunnerRejectsUnsupportedPositionEncoding(t *testing.T) {
 	t.Parallel()
 	r := contentmapper.NewHost(t.Context(), &fakeSpawner{handler: unicodeMapper{encoding: "utf-32"}}, locale.Default)
 	defer r.Close()
-	mapper := &contentmapper.Mapper{Manifest: contentmapper.Manifest{Name: "invalid", Exec: []string{"mapper"}}}
+	mapper := &contentmapper.Mapper{Name: "invalid", Exec: []string{"mapper"}}
 	_, err := r.Transform(mapper, contentmapper.Request{FileName: "/a.vue", Content: "x"})
 	assert.ErrorContains(t, err, "unsupported position encoding")
 }
@@ -782,7 +778,7 @@ func TestRunnerRejectsInvalidDiagnosticSource(t *testing.T) {
 			handler := unicodeMapper{encoding: contentmapper.PositionEncodingUTF8, source: &source}
 			r := contentmapper.NewHost(t.Context(), &fakeSpawner{handler: handler}, locale.Default)
 			defer r.Close()
-			mapper := &contentmapper.Mapper{Manifest: contentmapper.Manifest{Name: "invalid", Exec: []string{"mapper"}}}
+			mapper := &contentmapper.Mapper{Name: "invalid", Exec: []string{"mapper"}}
 			_, err := r.Transform(mapper, contentmapper.Request{FileName: "/a.vue", Content: "x"})
 			if strings.TrimSpace(source) == "" {
 				assert.ErrorContains(t, err, "diagnostic source must not be empty")
@@ -806,7 +802,7 @@ func TestRunnerRejectsPositionsInsideUnicodeCharacters(t *testing.T) {
 			t.Parallel()
 			r := contentmapper.NewHost(t.Context(), &fakeSpawner{handler: invalidDiagnosticMapper{encoding: test.encoding}}, locale.Default)
 			defer r.Close()
-			mapper := &contentmapper.Mapper{Manifest: contentmapper.Manifest{Name: string(test.encoding), Exec: []string{"mapper"}}}
+			mapper := &contentmapper.Mapper{Name: string(test.encoding), Exec: []string{"mapper"}}
 			_, err := r.Transform(mapper, contentmapper.Request{FileName: "/a.vue", Content: test.content})
 			assert.ErrorContains(t, err, "splits a Unicode code point")
 		})
@@ -820,9 +816,9 @@ func TestRunnerConsolidatesByIdentity(t *testing.T) {
 	defer r.Close()
 
 	// Two logically-separate mappers with the same identity share one process.
-	vueA := &contentmapper.Mapper{Definition: contentmapper.Definition{Package: "a"}, Manifest: contentmapper.Manifest{Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}}}
-	vueB := &contentmapper.Mapper{Definition: contentmapper.Definition{Package: "b"}, Manifest: contentmapper.Manifest{Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}}}
-	svelte := &contentmapper.Mapper{Manifest: contentmapper.Manifest{Name: "svelte", Version: "2.0.0", Exec: []string{"svelte-mapper"}}}
+	vueA := &contentmapper.Mapper{Package: "a", Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}}
+	vueB := &contentmapper.Mapper{Package: "b", Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}}
+	svelte := &contentmapper.Mapper{Name: "svelte", Version: "2.0.0", Exec: []string{"svelte-mapper"}}
 	project := r.Project(contentmapper.ProjectSpec{Mappers: []*contentmapper.Mapper{vueA, vueB, svelte}, CompilerOptions: &core.CompilerOptions{}})
 	defer project.Close()
 
@@ -839,9 +835,9 @@ func TestRunnerLeaseLifecycle(t *testing.T) {
 	r := contentmapper.NewHost(t.Context(), &spawner, locale.Default)
 	defer r.Close()
 
-	vueA := &contentmapper.Mapper{Definition: contentmapper.Definition{Package: "a"}, Manifest: contentmapper.Manifest{Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}}}
-	vueB := &contentmapper.Mapper{Definition: contentmapper.Definition{Package: "b"}, Manifest: contentmapper.Manifest{Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}}}
-	svelte := &contentmapper.Mapper{Manifest: contentmapper.Manifest{Name: "svelte", Version: "2.0.0", Exec: []string{"svelte-mapper"}}}
+	vueA := &contentmapper.Mapper{Package: "a", Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}}
+	vueB := &contentmapper.Mapper{Package: "b", Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}}
+	svelte := &contentmapper.Mapper{Name: "svelte", Version: "2.0.0", Exec: []string{"svelte-mapper"}}
 
 	releaseVueA := r.Acquire([]*contentmapper.Mapper{vueA, vueA})
 	releaseVueB := r.Acquire([]*contentmapper.Mapper{vueB})
@@ -965,7 +961,7 @@ func (m *recordingMapper) HandleRequest(ctx context.Context, method string, para
 		m.transformHandle = p.ProjectHandle
 		m.transformParams = string(params)
 		m.mu.Unlock()
-		return contentmapper.TransformResult{MappedOutput: contentmapper.MappedOutput{Text: p.Content, Extension: ".ts"}}, nil
+		return contentmapper.TransformResult{Text: p.Content, Extension: ".ts"}, nil
 	default:
 		return nil, fmt.Errorf("unexpected method %s", method)
 	}
@@ -979,8 +975,8 @@ func TestProjectLifecycle(t *testing.T) {
 	defer host.Close()
 
 	staticMapper := &contentmapper.Mapper{
-		Definition: contentmapper.Definition{Options: []byte(`{"mode":"static"}`)},
-		Manifest:   contentmapper.Manifest{Name: "static", Version: "1.0.0", Exec: []string{"mapper"}},
+		Options: []byte(`{"mode":"static"}`),
+		Name:    "static", Version: "1.0.0", Exec: []string{"mapper"},
 	}
 	staticProject := host.Project(contentmapper.ProjectSpec{
 		ConfigFileName:  "/repo/tsconfig.json",
@@ -994,12 +990,12 @@ func TestProjectLifecycle(t *testing.T) {
 	assert.NilError(t, staticProject.Close())
 
 	dynamicA := &contentmapper.Mapper{
-		Definition: contentmapper.Definition{Options: []byte(`{"mode":"a"}`)},
-		Manifest:   contentmapper.Manifest{Name: "dynamic", Version: "1.0.0", Exec: []string{"mapper"}, CompilerOptions: []string{"jsx"}, DynamicConfig: true},
+		Options: []byte(`{"mode":"a"}`),
+		Name:    "dynamic", Version: "1.0.0", Exec: []string{"mapper"}, CompilerOptions: []string{"jsx"}, DynamicConfig: true,
 	}
 	dynamicB := &contentmapper.Mapper{
-		Definition: contentmapper.Definition{Options: []byte(`{"mode":"b"}`)},
-		Manifest:   contentmapper.Manifest{Name: "dynamic", Version: "1.0.0", Exec: []string{"mapper"}, DynamicConfig: true},
+		Options: []byte(`{"mode":"b"}`),
+		Name:    "dynamic", Version: "1.0.0", Exec: []string{"mapper"}, DynamicConfig: true,
 	}
 	dynamicAOptions := &core.CompilerOptions{}
 	projectA := host.Project(contentmapper.ProjectSpec{
@@ -1079,7 +1075,7 @@ func TestProjectMethodsAfterHostClose(t *testing.T) {
 	mapperProcess := &recordingMapper{dynamicConfig: true}
 	host := contentmapper.NewHost(t.Context(), &fakeSpawner{handler: mapperProcess}, locale.Default)
 	mapper := &contentmapper.Mapper{
-		Manifest: contentmapper.Manifest{Name: "dynamic", Version: "1.0.0", Exec: []string{"mapper"}, DynamicConfig: true},
+		Name: "dynamic", Version: "1.0.0", Exec: []string{"mapper"}, DynamicConfig: true,
 	}
 	project := host.Project(contentmapper.ProjectSpec{
 		ConfigFileName:  "/repo/tsconfig.json",
@@ -1119,8 +1115,8 @@ func TestProjectRejectsRelativeWatchedFiles(t *testing.T) {
 	defer host.Close()
 
 	projectMapper := &contentmapper.Mapper{
-		Definition: contentmapper.Definition{Package: "dynamic"},
-		Manifest:   contentmapper.Manifest{Name: "dynamic", Version: "1.0.0", Exec: []string{"mapper"}, DynamicConfig: true},
+		Package: "dynamic",
+		Name:    "dynamic", Version: "1.0.0", Exec: []string{"mapper"}, DynamicConfig: true,
 	}
 	project := host.Project(contentmapper.ProjectSpec{
 		ConfigFileName:  "/repo/tsconfig.json",
@@ -1143,8 +1139,8 @@ func TestDynamicProjectRequiresConfigIdentity(t *testing.T) {
 	defer host.Close()
 
 	projectMapper := &contentmapper.Mapper{
-		Definition: contentmapper.Definition{Package: "dynamic"},
-		Manifest:   contentmapper.Manifest{Name: "dynamic", Version: "1.0.0", Exec: []string{"mapper"}, DynamicConfig: true},
+		Package: "dynamic",
+		Name:    "dynamic", Version: "1.0.0", Exec: []string{"mapper"}, DynamicConfig: true,
 	}
 	project := host.Project(contentmapper.ProjectSpec{
 		ConfigFileName:  "/repo/tsconfig.json",
@@ -1174,7 +1170,7 @@ func TestStaticMapperRejectsDynamicProjectResponseFields(t *testing.T) {
 			t.Parallel()
 			host := contentmapper.NewHost(t.Context(), &fakeSpawner{handler: test.mapper}, locale.Default)
 			defer host.Close()
-			projectMapper := &contentmapper.Mapper{Manifest: contentmapper.Manifest{Name: "static", Version: "1.0.0", Exec: []string{"mapper"}}}
+			projectMapper := &contentmapper.Mapper{Name: "static", Version: "1.0.0", Exec: []string{"mapper"}}
 			project := host.Project(contentmapper.ProjectSpec{
 				ConfigFileName:  "/repo/tsconfig.json",
 				Mappers:         []*contentmapper.Mapper{projectMapper},
@@ -1199,7 +1195,7 @@ func TestProjectRejectsInvalidOptionDiagnosticPath(t *testing.T) {
 	}}}
 	host := contentmapper.NewHost(t.Context(), &fakeSpawner{handler: mapperProcess}, locale.Default)
 	defer host.Close()
-	projectMapper := &contentmapper.Mapper{Manifest: contentmapper.Manifest{Name: "mapper", Version: "1.0.0", Exec: []string{"mapper"}}}
+	projectMapper := &contentmapper.Mapper{Name: "mapper", Version: "1.0.0", Exec: []string{"mapper"}}
 	project := host.Project(contentmapper.ProjectSpec{Mappers: []*contentmapper.Mapper{projectMapper}, CompilerOptions: &core.CompilerOptions{}})
 	defer project.Close()
 	_, err := project.Transform(projectMapper, contentmapper.Request{FileName: "/repo/file.ext", Content: "x"})
@@ -1222,7 +1218,7 @@ func TestRunnerForwardsProjectOptions(t *testing.T) {
 	r := contentmapper.NewHost(t.Context(), &fakeSpawner{handler: mapper}, diagnosticLocale)
 	defer r.Close()
 
-	mapperDefinition := &contentmapper.Mapper{Definition: contentmapper.Definition{Options: []byte(`{"strictTemplates":true}`)}, Manifest: contentmapper.Manifest{Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}, CompilerOptions: []string{"target", "jsx"}}}
+	mapperDefinition := &contentmapper.Mapper{Options: []byte(`{"strictTemplates":true}`), Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}, CompilerOptions: []string{"target", "jsx"}}
 	compilerOptions := &core.CompilerOptions{Target: core.ScriptTargetES2020, Strict: core.TSTrue}
 	project := r.Project(contentmapper.ProjectSpec{Mappers: []*contentmapper.Mapper{mapperDefinition}, CompilerOptions: compilerOptions})
 	defer project.Close()
@@ -1253,7 +1249,7 @@ func TestHostSetLocaleRestartsMapper(t *testing.T) {
 	r := contentmapper.NewHost(t.Context(), spawner, locale.Default)
 	defer r.Close()
 
-	definition := &contentmapper.Mapper{Manifest: contentmapper.Manifest{Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}}}
+	definition := &contentmapper.Mapper{Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}}
 	release := r.Acquire([]*contentmapper.Mapper{definition})
 	defer release()
 
@@ -1280,7 +1276,7 @@ func TestHostSetLocaleWaitsForTransform(t *testing.T) {
 	spawner := &fakeSpawner{handler: mapper}
 	r := contentmapper.NewHost(t.Context(), spawner, locale.Default)
 	defer r.Close()
-	definition := &contentmapper.Mapper{Manifest: contentmapper.Manifest{Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}}}
+	definition := &contentmapper.Mapper{Name: "vue", Version: "1.0.0", Exec: []string{"vue-mapper"}}
 
 	transformDone := make(chan error)
 	go func() {

@@ -14,12 +14,10 @@ import (
 
 func getFormatOptsOfSys(sys System, locale locale.Locale) *diagnosticwriter.FormattingOptions {
 	return &diagnosticwriter.FormattingOptions{
-		NewLine: "\n",
-		ComparePathsOptions: tspath.ComparePathsOptions{
-			CurrentDirectory:          sys.GetCurrentDirectory(),
-			UseCaseSensitiveFileNames: sys.FS().UseCaseSensitiveFileNames(),
-		},
-		Locale: locale,
+		NewLine:                   "\n",
+		CurrentDirectory:          sys.GetCurrentDirectory(),
+		UseCaseSensitiveFileNames: sys.FS().UseCaseSensitiveFileNames(),
+		Locale:                    locale,
 	}
 }
 
