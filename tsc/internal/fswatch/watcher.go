@@ -270,8 +270,8 @@ func (w *fallbackWatcher) WatchDirectories(requests []WatchDirectoryRequest) ([]
 
 	watches = make([]Watch, 0, len(requests))
 	rollback := func() {
-		for _, watche := range slices.Backward(watches) {
-			_ = watche.Close()
+		for _, watch := range slices.Backward(watches) {
+			_ = watch.Close()
 		}
 	}
 	for _, request := range requests {
