@@ -9,7 +9,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnosticwriter"
 	"github.com/microsoft/TypeScript/tsc/internal/locale"
-	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
 func getFormatOptsOfSys(sys System, locale locale.Locale) *diagnosticwriter.FormattingOptions {
