@@ -197,10 +197,10 @@ export const make = (): Box => ({ value: "ok" });
 	if times.checkTime != 0 {
 		t.Fatalf("check time = %v, want 0", times.checkTime)
 	}
-	if times.emitTime != 2*time.Second {
-		t.Fatalf("emit time = %v, want %v", times.emitTime, 2*time.Second)
+	if times.emitTime != time.Second {
+		t.Fatalf("emit time = %v, want %v", times.emitTime, time.Second)
 	}
-	if calls := clock.NestedEmitCalls(); calls != 4 {
-		t.Fatalf("nested clock calls = %d, want 4", calls)
+	if calls := clock.NestedEmitCalls(); calls != 2 {
+		t.Fatalf("nested clock calls = %d, want 2", calls)
 	}
 }
