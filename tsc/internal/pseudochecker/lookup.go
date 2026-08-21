@@ -252,7 +252,13 @@ func (ch *PseudoChecker) typeFromSingleReturnExpression(fn *ast.Node) *PseudoTyp
 				return NewPseudoTypeDirect(t)
 			}
 		} else {
-			return ch.typeFromExpression(candidateExpr)
+			result := ch.typeFromExpression(candidateExpr)
+			if ast.IsFunctionDeclaration(fn) &&
+				result.Kind == PseudoTypeKindInferred &&
+				len(result.AsPseudoTypeInferred().ErrorNodes) == 0 {
+				return NewPseudoTypeInferred(fn, true)
+			}
+			return result
 		}
 	}
 	return NewPseudoTypeInferred(fn, true)
@@ -427,12 +433,38 @@ func (ch *PseudoChecker) canGetTypeFromObjectLiteral(node *ast.ObjectLiteralExpr
 		}
 		if e.Name().Kind == ast.KindComputedPropertyName {
 			expression := e.Name().Expression()
-			if !ast.IsPrimitiveLiteralValue(expression, false) {
+			if !ast.IsPrimitiveLiteralValue(expression, false) && !ch.isDefinitelyReferenceToGlobalSymbolObject(expression) {
 				errorNodes = append(errorNodes, e.Name())
 			}
 		}
 	}
 	return errorNodes
+}
+
+func (ch *PseudoChecker) isDefinitelyReferenceToGlobalSymbolObject(node *ast.Node) bool {
+	if !ast.IsPropertyAccessExpression(node) ||
+		!ast.IsIdentifier(node.Name()) ||
+		!ast.IsPropertyAccessExpression(node.Expression()) && !ast.IsIdentifier(node.Expression()) {
+		return false
+	}
+	if ast.IsIdentifier(node.Expression()) {
+		return node.Expression().Text() == "Symbol" && ch.isUnshadowedGlobalName(node.Expression())
+	}
+	return ast.IsIdentifier(node.Expression().Expression()) &&
+		node.Expression().Expression().Text() == "globalThis" &&
+		node.Expression().Name().Text() == "Symbol" &&
+		ch.isUnshadowedGlobalName(node.Expression().Expression())
+}
+
+func (ch *PseudoChecker) isUnshadowedGlobalName(identifier *ast.Node) bool {
+	return ch.nameResolver.Resolve(
+		identifier,
+		identifier.Text(),
+		ast.SymbolFlagsValue|ast.SymbolFlagsExportValue|ast.SymbolFlagsAlias,
+		nil,   /*nameNotFoundMessage*/
+		false, /*isUse*/
+		true,  /*excludeGlobals*/
+	) == nil
 }
 
 func (ch *PseudoChecker) typeFromArrayLiteral(node *ast.ArrayLiteralExpression) *PseudoType {
@@ -570,6 +602,41 @@ func typeNodeCouldReferToUndefined(node *ast.Node) bool {
 	case ast.KindUndefinedKeyword:
 		return true
 	default: // all other keywords, literal types, function-y types, array/tuple types, type literals, template types, this types
+		return false
+	}
+}
+
+func CanAddUndefinedToTypeNode(node *ast.Node) bool {
+	if ast.IsKeywordTypeKind(node.Kind) {
+		return true
+	}
+	switch node.Kind {
+	case ast.KindLiteralType,
+		ast.KindFunctionType,
+		ast.KindConstructorType,
+		ast.KindArrayType,
+		ast.KindTupleType,
+		ast.KindTypeLiteral,
+		ast.KindTemplateLiteralType,
+		ast.KindThisType:
+		return true
+	case ast.KindParenthesizedType:
+		return CanAddUndefinedToTypeNode(node.AsParenthesizedTypeNode().Type)
+	case ast.KindUnionType:
+		for _, t := range node.AsUnionTypeNode().Types.Nodes {
+			if !CanAddUndefinedToTypeNode(t) {
+				return false
+			}
+		}
+		return true
+	case ast.KindIntersectionType:
+		for _, t := range node.AsIntersectionTypeNode().Types.Nodes {
+			if !CanAddUndefinedToTypeNode(t) {
+				return false
+			}
+		}
+		return true
+	default:
 		return false
 	}
 }
