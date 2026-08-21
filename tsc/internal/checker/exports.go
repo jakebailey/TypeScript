@@ -94,7 +94,7 @@ func IsTypeUsableAsPropertyName(t *Type) bool {
 }
 
 func GetPropertyNameFromType(t *Type) string {
-	return getPropertyNameFromType(t)
+	return ast.UnescapeLeadingUnderscores(getPropertyNameFromType(t))
 }
 
 func (c *Checker) GetGlobalSymbol(name string, meaning ast.SymbolFlags, diagnostic *diagnostics.Message) *ast.Symbol {
@@ -138,7 +138,7 @@ func (c *Checker) GetPropertiesOfType(t *Type) []*ast.Symbol {
 }
 
 func (c *Checker) GetPropertyOfType(t *Type, name string) *ast.Symbol {
-	return c.getPropertyOfType(t, name)
+	return c.getPropertyOfType(t, ast.EscapeLeadingUnderscores(name))
 }
 
 func (c *Checker) TypeHasCallOrConstructSignatures(t *Type) bool {
@@ -158,7 +158,7 @@ func (c *Checker) IsPropertyAccessible(node *ast.Node, isSuper bool, isWrite boo
 }
 
 func (c *Checker) GetTypeOfPropertyOfContextualType(t *Type, name string) *Type {
-	return c.getTypeOfPropertyOfContextualType(t, name)
+	return c.getTypeOfPropertyOfContextualType(t, ast.EscapeLeadingUnderscores(name))
 }
 
 func GetDeclarationModifierFlagsFromSymbol(s *ast.Symbol) ast.ModifierFlags {
@@ -251,7 +251,7 @@ func (c *Checker) GetResolvedSignature(node *ast.Node) *Signature {
 
 // Return the type of the given property in the given type, or nil if no such property exists
 func (c *Checker) GetTypeOfPropertyOfType(t *Type, name string) *Type {
-	return c.getTypeOfPropertyOfType(t, name)
+	return c.getTypeOfPropertyOfType(t, ast.EscapeLeadingUnderscores(name))
 }
 
 func (c *Checker) GetContextualTypeForArgumentAtIndex(node *ast.Node, argIndex int) *Type {

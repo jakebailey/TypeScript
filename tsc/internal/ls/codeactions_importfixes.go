@@ -260,7 +260,7 @@ func getFixesInfoForUMDImport(ctx context.Context, fixContext *CodeFixContext, t
 		}
 		result = append(result, &fixInfo{
 			fix:                 fix,
-			symbolName:          umdSymbol.Name,
+			symbolName:          ast.UnescapeLeadingUnderscores(umdSymbol.Name),
 			errorIdentifierText: errorIdentifierText,
 		})
 	}
