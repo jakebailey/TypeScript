@@ -88,7 +88,7 @@ type resolvedLocation struct {
 // virtual range mapped back to the original; if it falls entirely within synthesized code, there is no
 // original location, so it is shown against the virtual text and flagged as synthesized.
 func (d *ASTDiagnostic) resolve() resolvedLocation {
-	loc := d.Diagnostic.Loc()
+	loc := d.Loc()
 	file := d.Diagnostic.File()
 	switch {
 	case file == nil:

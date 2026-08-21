@@ -53,7 +53,7 @@ func TestParseContentMapperContributions(t *testing.T) {
 	mapper := contributions.Mappers[0]
 	assert.Equal(t, mapper.Identity(), "publisher.extension[0] (Vue mapper@2.3.4)")
 	assert.Equal(t, mapper.PackageDirectory, cwd)
-	assert.Equal(t, string(mapper.Definition.Options), `{"mode":"embedded"}`)
+	assert.Equal(t, string(mapper.Options), `{"mode":"embedded"}`)
 }
 
 func TestParseContentMapperContributionsRejectsConflictingInlineMappers(t *testing.T) {
@@ -78,5 +78,5 @@ func TestParseContentMapperContributionsDefaultsOptionsToObject(t *testing.T) {
 		},
 	}})
 	assert.NilError(t, err)
-	assert.Equal(t, string(contributions.Mappers[0].Definition.Options), `{}`)
+	assert.Equal(t, string(contributions.Mappers[0].Options), `{}`)
 }

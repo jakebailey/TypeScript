@@ -1170,7 +1170,7 @@ func TestContentMappers(t *testing.T) {
 			mappers := parsed.ContentMappers()
 			assert.Equal(t, len(mappers), 1)
 			assert.Equal(t, mappers[0].Package, "vue-mapper")
-			assert.DeepEqual(t, mappers[0].Definition.Extensions, []string{".vue"})
+			assert.DeepEqual(t, mappers[0].Extensions, []string{".vue"})
 			assert.Equal(t, string(mappers[0].Options), `{"strictTemplates":true}`)
 			assert.DeepEqual(t, parsed.ContentMapperExtensions(), []string{".vue"})
 
@@ -1392,8 +1392,8 @@ func TestContentMappersValidation(t *testing.T) {
 						assert.Equal(t, len(parsed.ContentMapperExtensions()), 0)
 					case "duplicate extension across mappers":
 						assert.Equal(t, len(parsed.ContentMappers()), 2)
-						assert.DeepEqual(t, parsed.ContentMappers()[0].Definition.Extensions, []string{".vue"})
-						assert.Equal(t, len(parsed.ContentMappers()[1].Definition.Extensions), 0)
+						assert.DeepEqual(t, parsed.ContentMappers()[0].Extensions, []string{".vue"})
+						assert.Equal(t, len(parsed.ContentMappers()[1].Extensions), 0)
 						assert.DeepEqual(t, parsed.ContentMapperExtensions(), []string{".vue"})
 					case "missing extensions", "extensions is not an array", "extensions contains a non-string", "package is not a string", "missing package", "options is not an object":
 						assert.Equal(t, len(parsed.ContentMappers()), 0)

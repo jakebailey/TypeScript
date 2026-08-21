@@ -135,7 +135,7 @@ func newTestSys(tscInput *tscInput, forIncrementalCorrectness bool) *TestSys {
 	sys.env = tscInput.env
 	sys.forIncrementalCorrectness = forIncrementalCorrectness
 	sys.mockWatchBackend = NewMockWatchBackend()
-	sys.mockWatchBackend.DirectoryExists = sys.fs.FS.DirectoryExists
+	sys.mockWatchBackend.DirectoryExists = sys.fs.DirectoryExists
 	sys.mockWatchBackend.UseCaseSensitiveFileNames = !tscInput.ignoreCase
 	sys.fsDiffer = &fsbaselineutil.FSDiffer{
 		FS:           sys.fs.FS.(iovfs.FsWithSys),

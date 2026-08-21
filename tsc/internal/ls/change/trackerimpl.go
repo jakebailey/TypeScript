@@ -31,7 +31,7 @@ func (t *Tracker) getTextChangesFromChanges() map[string][]*lsproto.TextEdit {
 		slices.SortStableFunc(changesInFile, func(a, b *trackerEdit) int { return lsproto.CompareRanges(a.Range, b.Range) })
 		// verify that change intervals do not overlap, except possibly at end points.
 		for i := range len(changesInFile) - 1 {
-			if lsproto.ComparePositions(changesInFile[i].Range.End, changesInFile[i+1].Range.Start) > 0 {
+			if lsproto.ComparePositions(changesInFile[i].Range.End, changesInFile[i+1].Start) > 0 {
 				// assert change[i].End <= change[i + 1].Start
 				panic(fmt.Sprintf("changes overlap: %v and %v", changesInFile[i].Range, changesInFile[i+1].Range))
 			}
@@ -71,7 +71,7 @@ func (t *Tracker) computeNewText(change *trackerEdit, targetSourceFile *ast.Sour
 		return change.NewText
 	}
 
-	positions := lsconv.FromLSPPositionForSourceFile(t.converters, sourceFile, change.Range.Start, spanmap.FeatureAll)
+	positions := lsconv.FromLSPPositionForSourceFile(t.converters, sourceFile, change.Start, spanmap.FeatureAll)
 	var result string
 	found := false
 	// The original range may have multiple verbatim copies; it is safe to lose their identity only when
@@ -297,7 +297,7 @@ func (t *Tracker) getAdjustedEndPosition(sourceFile *ast.SourceFile, node *ast.N
 // ============= utilities =============
 
 func hasCommentsBeforeLineBreak(text string, start int) bool {
-	for _, ch := range []rune(text[start:]) {
+	for _, ch := range text[start:] {
 		if !stringutil.IsWhiteSpaceSingleLine(ch) {
 			return ch == '/'
 		}

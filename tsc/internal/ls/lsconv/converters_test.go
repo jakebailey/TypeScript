@@ -143,7 +143,7 @@ func TestConvertersSourceFileProjectionExpansion(t *testing.T) {
 
 	positions := lsconv.FromLSPPositionForSourceFile(converters, canonical, lsproto.Position{}, spanmap.FeatureHover)
 	assert.Equal(t, len(positions), 2)
-	var projectedFile *ast.SourceFile = positions[0].Script
+	projectedFile := positions[0].Script
 	assert.Assert(t, projectedFile == canonical)
 	assert.Assert(t, positions[0].Script == canonical)
 	assert.Equal(t, positions[0].Position, core.TextPos(1))

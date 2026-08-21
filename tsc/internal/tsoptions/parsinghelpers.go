@@ -120,7 +120,7 @@ func parseContentMapper(value any) (*contentmapper.Mapper, []*ast.Diagnostic) {
 	}
 	if extensions, ok := v.Get("extensions"); ok {
 		if strs, isStringArray := parseStringArrayStrict(extensions); isStringArray {
-			mapper.Definition.Extensions = strs
+			mapper.Extensions = strs
 		} else {
 			errors = append(errors, ast.NewCompilerDiagnostic(diagnostics.Compiler_option_0_requires_a_value_of_type_1, "contentMapper.extensions", "string[]"))
 		}

@@ -355,7 +355,7 @@ func (p *ParsedCommandLine) ContentMappers() []*contentmapper.Mapper {
 // config's content mappers.
 func (p *ParsedCommandLine) ContentMapperExtensions() []string {
 	return core.FlatMap(p.ContentMappers(), func(m *contentmapper.Mapper) []string {
-		return m.Definition.Extensions
+		return m.Extensions
 	})
 }
 
@@ -365,7 +365,7 @@ func (p *ParsedCommandLine) GetContentMapperForFileName(fileName string) *conten
 	ignoreCase := !p.UseCaseSensitiveFileNames()
 	extension := tspath.GetLongestExtensionFromPath(fileName, p.ContentMapperExtensions(), ignoreCase)
 	for _, mapper := range p.ContentMappers() {
-		if slices.ContainsFunc(mapper.Definition.Extensions, func(mapperExtension string) bool {
+		if slices.ContainsFunc(mapper.Extensions, func(mapperExtension string) bool {
 			return extension == mapperExtension || ignoreCase && strings.EqualFold(extension, mapperExtension)
 		}) {
 			return mapper

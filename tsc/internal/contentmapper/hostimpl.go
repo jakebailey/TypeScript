@@ -504,7 +504,7 @@ func NewHostWithOptions(ctx context.Context, spawner Spawner, diagnosticLocale l
 		mapperTiming := timing.mapper(mapper.Identity())
 		diagnosticName := mapper.DiagnosticName()
 		spawnStart := time.Now()
-		var stderr io.Writer = io.Discard
+		stderr := io.Discard
 		var stderrLog *stderrLogger
 		if logger != nil {
 			stderrLog = &stderrLogger{mapperName: diagnosticName, logger: logger}
@@ -875,7 +875,7 @@ func (p *projectLease) retainLocked() Project {
 }
 
 func (p *retainedProject) Close() (err error) {
-	p.once.Do(func() { err = p.projectLease.release() })
+	p.once.Do(func() { err = p.release() })
 	return err
 }
 

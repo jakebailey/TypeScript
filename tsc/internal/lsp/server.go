@@ -1900,10 +1900,10 @@ func (s *Server) handleDocumentDiagnostic(ctx context.Context, languageService *
 func generateDiagnosticDiffString(missingFromPre []*lsproto.Diagnostic, missingFromPost []*lsproto.Diagnostic, stringifier func(*lsproto.Diagnostic) string) string {
 	var b strings.Builder
 	for _, elem := range missingFromPre {
-		b.WriteString(fmt.Sprintf("Diagnostic %v was present after emit but not before emit\n", stringifier(elem)))
+		fmt.Fprintf(&b, "Diagnostic %v was present after emit but not before emit\n", stringifier(elem))
 	}
 	for _, elem := range missingFromPost {
-		b.WriteString(fmt.Sprintf("Diagnostic %v was present before emit but not after emit\n", stringifier(elem)))
+		fmt.Fprintf(&b, "Diagnostic %v was present before emit but not after emit\n", stringifier(elem))
 	}
 	return b.String()
 }
@@ -2289,8 +2289,7 @@ func (s *Server) handleInitializeAPISession(ctx context.Context, params *lsproto
 		s.apiSessions = make(map[string]*api.Session)
 	}
 
-	var apiSession *api.Session
-	apiSession = api.NewSession(s.session, nil)
+	apiSession := api.NewSession(s.session, nil)
 
 	// Use provided pipe path or generate a unique one
 	var pipePath string

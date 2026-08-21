@@ -298,7 +298,6 @@ func addOutliningForLeadingCommentsForPos(ctx context.Context, pos int, sourceFi
 			}
 			lastSingleLineCommentEnd = commentEnd
 			singleLineCommentCount++
-			break
 		case ast.KindMultiLineCommentTrivia:
 			comments := combineAndAddMultipleSingleLineComments()
 			if comments != nil {
@@ -309,7 +308,6 @@ func addOutliningForLeadingCommentsForPos(ctx context.Context, pos int, sourceFi
 				foldingRange = append(foldingRange, comment)
 			}
 			singleLineCommentCount = 0
-			break
 		default:
 			debug.AssertNever(comment.Kind)
 		}

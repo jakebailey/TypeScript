@@ -598,7 +598,7 @@ type CommandLineOptionNameMap map[string]*CommandLineOption
 func (m CommandLineOptionNameMap) Get(name string) *CommandLineOption {
 	opt, ok := m[name]
 	if !ok {
-		opt, _ = m[strings.ToLower(name)]
+		opt = m[strings.ToLower(name)]
 	}
 	return opt
 }
@@ -1181,7 +1181,7 @@ func parseConfig(
 	if ownConfig.extendedConfigPath != nil {
 		// copy the resolution stack so it is never reused between branches in potential diamond-problem scenarios.
 		resolutionStack = append(resolutionStack, resolvedPath)
-		var result *extendsResult = &extendsResult{
+		result := &extendsResult{
 			options: &core.CompilerOptions{},
 		}
 		if reflect.TypeOf(ownConfig.extendedConfigPath).Kind() == reflect.String {
@@ -1395,14 +1395,14 @@ func parseJsonConfigFileContentWorker(
 	}
 	totalContentMapperExtensions := 0
 	for _, mapper := range contentMappers {
-		totalContentMapperExtensions += len(mapper.Definition.Extensions)
+		totalContentMapperExtensions += len(mapper.Extensions)
 	}
 	seenContentMapperExtensions := make(map[string]struct{}, totalContentMapperExtensions)
 	contentMapperExtensions := make([]string, 0, totalContentMapperExtensions)
 	nativeExtensions := core.Flatten(tspath.AllSupportedExtensionsWithJson)
 	for j, mapper := range contentMappers {
-		validExtensions := make([]string, 0, len(mapper.Definition.Extensions))
-		for _, ext := range mapper.Definition.Extensions {
+		validExtensions := make([]string, 0, len(mapper.Extensions))
+		for _, ext := range mapper.Extensions {
 			extNode := getContentMapperExtensionSyntax(contentMapperSourceFile, contentMapperIndices[j], ext)
 			switch {
 			case !strings.HasPrefix(ext, "."):
@@ -1419,7 +1419,7 @@ func parseJsonConfigFileContentWorker(
 				}
 			}
 		}
-		mapper.Definition.Extensions = validExtensions
+		mapper.Extensions = validExtensions
 	}
 	if len(contentMappers) > 0 && !(parsedConfig.options != nil && parsedConfig.options.RunExternalCode.IsTrue()) {
 		errors = append(errors, setContentMapperDiagnosticLocation(ast.NewCompilerDiagnostic(diagnostics.Content_mappers_require_the_runExternalCode_command_line_flag_to_be_enabled), contentMapperSourceFile, getContentMappersKeySyntax(contentMapperSourceFile)))
@@ -1447,7 +1447,7 @@ func parseJsonConfigFileContentWorker(
 		}
 		contentMappers = resolvedContentMappers
 		contentMapperExtensions = core.FlatMap(contentMappers, func(mapper *contentmapper.Mapper) []string {
-			return mapper.Definition.Extensions
+			return mapper.Extensions
 		})
 	}
 
@@ -1969,7 +1969,7 @@ func getFileNamesFromConfigSpecs(
 					includes := core.Filter(validatedIncludeSpecs, func(include string) bool { return strings.HasSuffix(include, tspath.ExtensionJson) })
 					jsonOnlyIncludeMatchers = vfsmatch.NewSpecMatcher(includes, basePath, vfsmatch.UsageFiles, host.UseCaseSensitiveFileNames())
 				}
-				var includeIndex int = -1
+				includeIndex := -1
 				if jsonOnlyIncludeMatchers != nil {
 					includeIndex = jsonOnlyIncludeMatchers.MatchIndex(file)
 				}

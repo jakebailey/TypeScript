@@ -2107,7 +2107,7 @@ func (l *LanguageService) getCompletionEntriesFromSymbols(
 
 		entry.Data.IsImportStatementCompletion = data.importStatementCompletion != nil
 
-		if isShadowed, _ := uniques[autoImport.Fix.Name]; !isShadowed {
+		if isShadowed := uniques[autoImport.Fix.Name]; !isShadowed {
 			uniques[autoImport.Fix.Name] = false
 			sortedEntries = append(sortedEntries, &CompletionItem{CompletionItem: entry})
 		}
@@ -2653,7 +2653,7 @@ func (l *LanguageService) getEntryForMemberCompletion(ctx context.Context, typeC
 	presentModifiers := l.getPresentMemberModifiers(contextToken, file, position)
 	abstract := presentModifiers.modifiers&ast.ModifierFlagsAbstract != 0 && classLikeDeclaration.ModifierFlags()&ast.ModifierFlagsAbstract != 0
 	isSnippet := clientSupportsItemSnippet(ctx)
-	body := changeTracker.NodeFactory.NewBlock(changeTracker.NodeFactory.NewNodeList(nil), true /*multiLine*/)
+	body := changeTracker.NewBlock(changeTracker.NewNodeList(nil), true /*multiLine*/)
 	if isSnippet {
 		body = createSnippetTabStopBody(changeTracker.NodeFactory, changeTracker.EmitContext)
 	}

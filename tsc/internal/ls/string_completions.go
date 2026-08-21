@@ -1211,7 +1211,7 @@ func deduplicateModuleCompletions(completions []moduleCompletionNameAndKind) []m
 	seen := make(map[key]bool)
 	var result []moduleCompletionNameAndKind
 	for _, c := range completions {
-		k := key{name: c.name, kind: c.kind, extension: c.extension}
+		k := key(c)
 		if !seen[k] {
 			seen[k] = true
 			result = append(result, c)
