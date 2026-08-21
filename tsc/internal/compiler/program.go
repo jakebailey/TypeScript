@@ -1816,7 +1816,8 @@ func (p *Program) Emit(ctx context.Context, options EmitOptions) *EmitResult {
 			return printer.NewTextWriter(newLine, 0)
 		},
 	}
-	wg := core.NewWorkGroup(p.SingleThreaded())
+	// Emit on a fixed-size pool to bound peak grown-stack memory; see GoroutinePool.
+	emitPool := core.NewGOMAXPROCSPool(p.SingleThreaded())
 	var emitters []*emitter
 	forceDtsEmit := options.EmitOnly == EmitOnlyBuilderSignature || options.ForceEmit && options.EmitOnly == EmitOnlyDts
 	forceJsEmit := options.ForceEmit && options.EmitOnly == EmitOnlyJs
@@ -1832,7 +1833,7 @@ func (p *Program) Emit(ctx context.Context, options EmitOptions) *EmitResult {
 			tr:         p.opts.Tracing,
 		}
 		emitters = append(emitters, emitter)
-		wg.Queue(func() {
+		emitPool.Queue(func() {
 			host, done := newEmitHost(ctx, p, sourceFile)
 			defer done()
 			emitter.host = host
@@ -1856,8 +1857,8 @@ func (p *Program) Emit(ctx context.Context, options EmitOptions) *EmitResult {
 		})
 	}
 
-	// wait for emit to complete
-	wg.RunAndWait()
+	// wait for emit to complete and tear down the pool
+	emitPool.Close()
 
 	// collect results from emit, preserving input order
 	return CombineEmitResults(core.Map(emitters, func(e *emitter) *EmitResult {
