@@ -5,6 +5,14 @@ import { fileURLToPath } from "node:url";
 
 // NOTE: Keep VS Code extension's resolveTsdkPathToExe in sync with this function.
 export default function getExePath() {
+    return getRuntimePath(process.platform, process.arch);
+}
+
+export function getWasmPath() {
+    return getRuntimePath("wasip1", "wasm");
+}
+
+function getRuntimePath(platform, arch) {
     const __dirname = path.dirname(fileURLToPath(import.meta.url));
     const normalizedDirname = __dirname.replace(/\\/g, "/");
 
@@ -19,7 +27,7 @@ export default function getExePath() {
     let binName = expectedBinName;
     let exeDir;
 
-    const expectedPackage = baseName + "-" + process.platform + "-" + process.arch;
+    const expectedPackage = baseName + "-" + platform + "-" + arch;
 
     if (normalizedDirname.endsWith("/packages/" + baseName + "/lib")) {
         // We're running directly from source in the repo.
@@ -55,11 +63,14 @@ export default function getExePath() {
     }
 
     let exe = path.join(exeDir, binName);
-    if (process.platform === "win32") {
+    if (platform === "win32") {
         exe += ".exe";
-        if (exe.length >= 248) {
-            exe = "\\\\?\\" + exe;
-        }
+    }
+    else if (platform === "wasip1") {
+        exe += ".wasm";
+    }
+    if (process.platform === "win32" && exe.length >= 248) {
+        exe = "\\\\?\\" + exe;
     }
 
     if (!fs.existsSync(exe)) {

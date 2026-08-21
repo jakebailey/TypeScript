@@ -4,6 +4,8 @@ package bundled
 
 import (
 	"fmt"
+	"os"
+	"runtime"
 	"sync"
 	"testing"
 
@@ -20,9 +22,22 @@ func wrapFS(fs vfs.FS) vfs.FS {
 }
 
 var executableDir = sync.OnceValue(func() string {
-	exe, err := osutil.Executable()
-	if err != nil {
-		panic(fmt.Sprintf("bundled: failed to get executable path: %v", err))
+	exe := os.Args[0]
+	if runtime.GOOS == "wasip1" {
+		exe = tspath.NormalizeSlashes(exe)
+		if !tspath.IsRootedDiskPath(exe) {
+			cwd, err := os.Getwd()
+			if err != nil {
+				panic(fmt.Sprintf("bundled: failed to get current directory: %v", err))
+			}
+			exe = tspath.CombinePaths(tspath.NormalizeSlashes(cwd), exe)
+		}
+	} else {
+		var err error
+		exe, err = osutil.Executable()
+		if err != nil {
+			panic(fmt.Sprintf("bundled: failed to get executable path: %v", err))
+		}
 	}
 	exe = tspath.NormalizeSlashes(exe)
 	exe = osvfs.FS().Realpath(exe)
