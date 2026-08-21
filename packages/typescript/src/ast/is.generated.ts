@@ -53,6 +53,7 @@ import type {
     ClassLikeDeclaration,
     ClassStaticBlockDeclaration,
     ColonToken,
+    CommaListExpression,
     CompoundAssignmentOperator,
     ComputedPropertyName,
     ConditionalExpression,
@@ -1521,6 +1522,15 @@ export declare namespace isPartiallyEmittedExpression {
     function Handle<T extends NodeHandleLike<Node>>(node: T): node is SpecializeNodeHandle<T, PartiallyEmittedExpression>;
 }
 isPartiallyEmittedExpression.Handle = isPartiallyEmittedExpression as any;
+
+export function isCommaListExpression(node: Node): node is CommaListExpression {
+    return node.kind === SyntaxKind.CommaListExpression;
+}
+
+export declare namespace isCommaListExpression {
+    function Handle<T extends NodeHandleLike<Node>>(node: T): node is SpecializeNodeHandle<T, CommaListExpression>;
+}
+isCommaListExpression.Handle = isCommaListExpression as any;
 
 export function isJsxElement(node: Node): node is JsxElement {
     return node.kind === SyntaxKind.JsxElement;

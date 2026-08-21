@@ -2622,3 +2622,30 @@ func TestOmitTrailingSemicolon(t *testing.T) {
 		t.Fatalf("omit EmitSourceFile(for) = %q, want %q", got, "for (;;) { }")
 	}
 }
+
+func TestInlineExpressionsUsesCommaListExpression(t *testing.T) {
+	t.Parallel()
+
+	factory := printer.NewNodeFactory(printer.NewEmitContext())
+	expressions := make([]*ast.Expression, 11)
+	for i := range expressions {
+		expressions[i] = factory.NewIdentifier(string(rune('a' + i)))
+	}
+
+	expression := factory.InlineExpressions(expressions)
+	if expression.Kind != ast.KindCommaListExpression {
+		t.Fatalf("InlineExpressions() kind = %v, want %v", expression.Kind, ast.KindCommaListExpression)
+	}
+	if got := len(expression.AsCommaListExpression().Elements.Nodes); got != len(expressions) {
+		t.Fatalf("InlineExpressions() element count = %d, want %d", got, len(expressions))
+	}
+
+	file := factory.NewSourceFile(
+		ast.SourceFileParseOptions{FileName: "/file.ts", Path: "/file.ts"},
+		"",
+		factory.NewNodeList([]*ast.Node{factory.NewExpressionStatement(expression)}),
+		factory.NewToken(ast.KindEndOfFile),
+	)
+	parsetestutil.MarkSyntheticRecursive(file)
+	emittestutil.CheckEmit(t, nil, file.AsSourceFile(), "a, b, c, d, e, f, g, h, i, j, k;")
+}

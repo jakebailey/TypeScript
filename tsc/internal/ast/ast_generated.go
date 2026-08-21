@@ -383,6 +383,7 @@ type (
 	TemplateLiteralTypeSpanNode       = Node
 	SyntheticExpressionNode           = Node
 	PartiallyEmittedExpressionNode    = Node
+	CommaListExpressionNode           = Node
 	JsxElementNode                    = Node
 	JsxAttributesNode                 = Node
 	JsxNamespacedNameNode             = Node
@@ -6341,6 +6342,48 @@ func IsPartiallyEmittedExpression(node *Node) bool {
 }
 
 // ──────────────────────────────────────────────────────────────────────
+// CommaListExpression
+// ──────────────────────────────────────────────────────────────────────
+
+type CommaListExpression struct {
+	ExpressionBase
+	Elements *ElementList
+}
+
+func (f *NodeFactory) NewCommaListExpression(elements *ElementList) *Node {
+	data := &CommaListExpression{}
+	data.Elements = elements
+	return f.newNode(KindCommaListExpression, data)
+}
+
+func (f *NodeFactory) UpdateCommaListExpression(node *CommaListExpression, elements *ElementList) *Node {
+	if elements != node.Elements {
+		return updateNode(f.NewCommaListExpression(elements), node.AsNode(), f.hooks)
+	}
+	return node.AsNode()
+}
+
+func (node *CommaListExpression) ForEachChild(v Visitor) bool {
+	return visitNodeList(v, node.Elements)
+}
+
+func (node *CommaListExpression) VisitEachChild(v *NodeVisitor) *Node {
+	return v.Factory.UpdateCommaListExpression(node, v.visitNodes(node.Elements))
+}
+
+func (node *CommaListExpression) Clone(f NodeFactoryCoercible) *Node {
+	return cloneNode(f.AsNodeFactory().NewCommaListExpression(node.Elements), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *CommaListExpression) computeSubtreeFacts() SubtreeFacts {
+	return propagateNodeListSubtreeFacts(node.Elements, propagateSubtreeFacts)
+}
+
+func IsCommaListExpression(node *Node) bool {
+	return node.Kind == KindCommaListExpression
+}
+
+// ──────────────────────────────────────────────────────────────────────
 // JsxElement
 // ──────────────────────────────────────────────────────────────────────
 
@@ -8913,6 +8956,8 @@ func (n *Node) ForEachChild(v Visitor) bool {
 		return n.data.(*SyntheticExpression).ForEachChild(v)
 	case KindPartiallyEmittedExpression:
 		return n.data.(*PartiallyEmittedExpression).ForEachChild(v)
+	case KindCommaListExpression:
+		return n.data.(*CommaListExpression).ForEachChild(v)
 	case KindJsxElement:
 		return n.data.(*JsxElement).ForEachChild(v)
 	case KindJsxAttributes:
@@ -9562,6 +9607,10 @@ func (n *Node) AsSyntheticExpression() *SyntheticExpression {
 
 func (n *Node) AsPartiallyEmittedExpression() *PartiallyEmittedExpression {
 	return n.data.(*PartiallyEmittedExpression)
+}
+
+func (n *Node) AsCommaListExpression() *CommaListExpression {
+	return n.data.(*CommaListExpression)
 }
 
 func (n *Node) AsJsxElement() *JsxElement {
