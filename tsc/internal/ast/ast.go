@@ -99,6 +99,18 @@ func (f *NodeFactory) AsNodeFactory() *NodeFactory {
 	return f
 }
 
+func (f *NodeFactory) NewNodeSlice(size int) []*Node {
+	return f.nodeSliceArena.NewSlice(size)
+}
+
+func (f *NodeFactory) NewNodeSlice1(node *Node) []*Node {
+	return f.nodeSliceArena.NewSlice1(node)
+}
+
+func (f *NodeFactory) CloneNodeSlice(nodes []*Node) []*Node {
+	return f.nodeSliceArena.Clone(nodes)
+}
+
 func updateNode(updated *Node, original *Node, hooks NodeFactoryHooks) *Node {
 	if updated != original {
 		updated.Flags = original.Flags

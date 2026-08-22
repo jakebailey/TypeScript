@@ -47,6 +47,7 @@ type NodeFactory struct {
 	methodSignatureDeclarationArena    core.Arena[MethodSignatureDeclaration]
 	modifierListArena                  core.Arena[ModifierList]
 	nodeListArena                      core.Arena[NodeList]
+	nodeSliceArena                     core.Arena[*Node]
 	numericLiteralArena                core.Arena[NumericLiteral]
 	parameterDeclarationArena          core.Arena[ParameterDeclaration]
 	parenthesizedExpressionArena       core.Arena[ParenthesizedExpression]

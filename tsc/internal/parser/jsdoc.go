@@ -78,7 +78,7 @@ func (p *Parser) withJSDoc(node *ast.Node, info jsdocScannerInfo) []*ast.Node {
 
 	// Should only be called once per node
 	p.hasDeprecatedTag = false
-	jsdoc := p.nodeSliceArena.NewSlice(len(ranges))[:0]
+	jsdoc := p.factory.NewNodeSlice(len(ranges))[:0]
 	pos := node.Pos()
 	for _, comment := range ranges {
 		if parsed := p.parseJSDocComment(node, comment.Pos(), comment.End(), pos); parsed != nil {
@@ -193,13 +193,13 @@ func (p *Parser) parseJSDocComment(parent *ast.Node, start int, end int, fullSta
 func (p *Parser) parseJSDocCommentWorker(start int, end int, fullStart int, indent int) *ast.Node {
 	// Initially we can parse out a tag.  We also have seen a starting asterisk.
 	// This is so that /** * @type */ doesn't parse.
-	tags := p.nodeSliceArena.NewSlice(1)[:0]
+	tags := p.factory.NewNodeSlice(1)[:0]
 	tagsPos := -1
 	tagsEnd := -1
 	state := jsdocStateSawAsterisk
 	backtickCount := 0
 	inFencedCodeBlock := false
-	commentParts := p.nodeSliceArena.NewSlice(1)[:0]
+	commentParts := p.factory.NewNodeSlice(1)[:0]
 	comments := p.jsdocCommentsSpace
 	commentsPos := -1
 	linkEnd := start
@@ -706,7 +706,7 @@ loop:
 	p.jsdocTagCommentsPartsSpace = parts[:0]
 
 	if len(parts) > 0 {
-		return p.newNodeList(core.NewTextRange(commentsPos, p.scanner.TokenEnd()), p.nodeSliceArena.Clone(parts))
+		return p.newNodeList(core.NewTextRange(commentsPos, p.scanner.TokenEnd()), p.factory.CloneNodeSlice(parts))
 	}
 	return nil
 }

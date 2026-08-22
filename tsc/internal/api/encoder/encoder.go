@@ -484,45 +484,43 @@ func encodeTree(rootNode *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIn
 		}
 	}
 
-	visitor := &ast.NodeVisitor{
-		Hooks: ast.NodeVisitorHooks{
-			VisitNodes: func(nodeList *ast.NodeList, visitor *ast.NodeVisitor) *ast.NodeList {
-				if nodeList == nil {
-					return nodeList
-				}
-
-				nodeCount++
-				nodeTable = append(nodeTable, nil) // NodeLists are not *ast.Node
-				if prevIndex != 0 {
-					// this is the next sibling of `prevNode`
-					b0, b1, b2, b3 := uint8(nodeCount), uint8(nodeCount>>8), uint8(nodeCount>>16), uint8(nodeCount>>24)
-					nodes[prevIndex*NodeSize+NodeOffsetNext+0] = b0
-					nodes[prevIndex*NodeSize+NodeOffsetNext+1] = b1
-					nodes[prevIndex*NodeSize+NodeOffsetNext+2] = b2
-					nodes[prevIndex*NodeSize+NodeOffsetNext+3] = b3
-				}
-
-				nodes = appendUint32s(nodes, SyntaxKindNodeList, utf16(nodeList.Pos()), utf16(nodeList.End()), 0, parentIndex, uint32(len(nodeList.Nodes)), 0)
-
-				saveParentIndex := parentIndex
-
-				currentIndex := nodeCount
-				prevIndex = 0
-				parentIndex = currentIndex
-				visitor.VisitSlice(nodeList.Nodes)
-				prevIndex = currentIndex
-				parentIndex = saveParentIndex
-
+	visitor := ast.NewNodeVisitor(nil, nil, ast.NodeVisitorHooks{
+		VisitNodes: func(nodeList *ast.NodeList, visitor *ast.NodeVisitor) *ast.NodeList {
+			if nodeList == nil {
 				return nodeList
-			},
-			VisitModifiers: func(modifiers *ast.ModifierList, visitor *ast.NodeVisitor) *ast.ModifierList {
-				if modifiers != nil && len(modifiers.Nodes) > 0 {
-					visitor.Hooks.VisitNodes(&modifiers.NodeList, visitor)
-				}
-				return modifiers
-			},
+			}
+
+			nodeCount++
+			nodeTable = append(nodeTable, nil) // NodeLists are not *ast.Node
+			if prevIndex != 0 {
+				// this is the next sibling of `prevNode`
+				b0, b1, b2, b3 := uint8(nodeCount), uint8(nodeCount>>8), uint8(nodeCount>>16), uint8(nodeCount>>24)
+				nodes[prevIndex*NodeSize+NodeOffsetNext+0] = b0
+				nodes[prevIndex*NodeSize+NodeOffsetNext+1] = b1
+				nodes[prevIndex*NodeSize+NodeOffsetNext+2] = b2
+				nodes[prevIndex*NodeSize+NodeOffsetNext+3] = b3
+			}
+
+			nodes = appendUint32s(nodes, SyntaxKindNodeList, utf16(nodeList.Pos()), utf16(nodeList.End()), 0, parentIndex, uint32(len(nodeList.Nodes)), 0)
+
+			saveParentIndex := parentIndex
+
+			currentIndex := nodeCount
+			prevIndex = 0
+			parentIndex = currentIndex
+			visitor.VisitSlice(nodeList.Nodes)
+			prevIndex = currentIndex
+			parentIndex = saveParentIndex
+
+			return nodeList
 		},
-	}
+		VisitModifiers: func(modifiers *ast.ModifierList, visitor *ast.NodeVisitor) *ast.ModifierList {
+			if modifiers != nil && len(modifiers.Nodes) > 0 {
+				visitor.Hooks.VisitNodes(&modifiers.NodeList, visitor)
+			}
+			return modifiers
+		},
+	})
 	visitor.Visit = func(node *ast.Node) *ast.Node {
 		nodeCount++
 		nodeTable = append(nodeTable, node)

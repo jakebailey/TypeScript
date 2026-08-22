@@ -99,6 +99,7 @@ function generateNodeFactoryStruct(w: CodeWriter) {
     }
     arenaFields.push({ fieldName: "modifierListArena", typeName: "ModifierList" });
     arenaFields.push({ fieldName: "nodeListArena", typeName: "NodeList" });
+    arenaFields.push({ fieldName: "nodeSliceArena", typeName: "*Node" });
     arenaFields.sort((a, b) => a.fieldName.localeCompare(b.fieldName));
 
     w.write("// ──────────────────────────────────────────────────────────────────────");
