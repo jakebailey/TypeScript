@@ -1,7 +1,6 @@
 package core
 
 import (
-	"reflect"
 	"slices"
 	"strings"
 
@@ -172,25 +171,6 @@ func (*noCopy) Lock()   {}
 func (*noCopy) Unlock() {}
 
 var EmptyCompilerOptions = &CompilerOptions{}
-
-var optionsType = reflect.TypeFor[CompilerOptions]()
-
-// Clone creates a shallow copy of the CompilerOptions.
-func (options *CompilerOptions) Clone() *CompilerOptions {
-	// TODO: this could be generated code instead of reflection.
-	target := &CompilerOptions{}
-
-	sourceValue := reflect.ValueOf(options).Elem()
-	targetValue := reflect.ValueOf(target).Elem()
-
-	for i := range sourceValue.NumField() {
-		if optionsType.Field(i).IsExported() {
-			targetValue.Field(i).Set(sourceValue.Field(i))
-		}
-	}
-
-	return target
-}
 
 func (options *CompilerOptions) GetEmitScriptTarget() ScriptTarget {
 	if options.Target != ScriptTargetNone {

@@ -12,8 +12,10 @@
 package contentmapper
 
 import (
+	"bytes"
 	"errors"
 	"reflect"
+	"slices"
 	"strings"
 	"sync"
 
@@ -93,6 +95,25 @@ func (m *Mapper) manifestIdentity() string {
 	default:
 		return m.Name + "@" + m.Version
 	}
+}
+
+func (m *Mapper) Equals(other *Mapper) bool {
+	if m == other {
+		return true
+	}
+	if m == nil || other == nil {
+		return false
+	}
+	return m.Package == other.Package &&
+		slices.Equal(m.Extensions, other.Extensions) &&
+		bytes.Equal(m.Options, other.Options) &&
+		m.Name == other.Name &&
+		m.Version == other.Version &&
+		slices.Equal(m.Exec, other.Exec) &&
+		slices.Equal(m.CompilerOptions, other.CompilerOptions) &&
+		m.DynamicConfig == other.DynamicConfig &&
+		m.PackageDirectory == other.PackageDirectory &&
+		m.ContributionID == other.ContributionID
 }
 
 // TransformIdentity returns a fingerprint of everything besides a file's content that determines the
