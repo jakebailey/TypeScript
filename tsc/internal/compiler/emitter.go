@@ -52,8 +52,8 @@ func (e *emitter) emit(ctx context.Context) {
 	if e.tr != nil {
 		defer e.tr.Push(tracing.PhaseEmit, "emit", map[string]any{"path": string(e.sourceFile.Path())}, true)()
 	}
-	e.emitJSFile(e.sourceFile, e.paths.JsFilePath(), e.paths.SourceMapFilePath())
-	e.emitDeclarationFile(e.sourceFile, e.paths.DeclarationFilePath(), e.paths.DeclarationMapPath())
+	e.emitJSFile(ctx, e.sourceFile, e.paths.JsFilePath(), e.paths.SourceMapFilePath())
+	e.emitDeclarationFile(ctx, e.sourceFile, e.paths.DeclarationFilePath(), e.paths.DeclarationMapPath())
 	e.emitResult.Diagnostics = e.emitterDiagnostics.GetDiagnostics()
 }
 
@@ -70,8 +70,8 @@ func (e *emitter) getDeclarationTransformers(emitContext *printer.EmitContext, s
 	}
 }
 
-func (e *emitter) runScriptTransformers(emitContext *printer.EmitContext, sourceFile *ast.SourceFile) *ast.SourceFile {
-	defer runtimetrace.Region(context.TODO(), "emitter.runScriptTransformers")()
+func (e *emitter) runScriptTransformers(ctx context.Context, emitContext *printer.EmitContext, sourceFile *ast.SourceFile) *ast.SourceFile {
+	defer runtimetrace.Region(ctx, "emitter.runScriptTransformers")()
 	if e.tr != nil {
 		defer e.tr.Push(tracing.PhaseEmit, "transformNodes", map[string]any{"path": string(sourceFile.Path())}, false)()
 	}
@@ -81,8 +81,8 @@ func (e *emitter) runScriptTransformers(emitContext *printer.EmitContext, source
 	return sourceFile
 }
 
-func (e *emitter) runDeclarationTransformers(emitContext *printer.EmitContext, sourceFile *ast.SourceFile, declarationFilePath, declarationMapPath string) (*ast.SourceFile, []*ast.Diagnostic) {
-	defer runtimetrace.Region(context.TODO(), "emitter.runDeclarationTransformers")()
+func (e *emitter) runDeclarationTransformers(ctx context.Context, emitContext *printer.EmitContext, sourceFile *ast.SourceFile, declarationFilePath, declarationMapPath string) (*ast.SourceFile, []*ast.Diagnostic) {
+	defer runtimetrace.Region(ctx, "emitter.runDeclarationTransformers")()
 	if e.tr != nil {
 		defer e.tr.Push(tracing.PhaseEmit, "transformNodes", map[string]any{"path": string(sourceFile.Path())}, false)()
 	}
@@ -185,7 +185,7 @@ func getScriptTransformers(emitContext *printer.EmitContext, host printer.EmitHo
 	return tx
 }
 
-func (e *emitter) emitJSFile(sourceFile *ast.SourceFile, jsFilePath string, sourceMapFilePath string) {
+func (e *emitter) emitJSFile(ctx context.Context, sourceFile *ast.SourceFile, jsFilePath string, sourceMapFilePath string) {
 	options := e.host.Options()
 
 	if sourceFile == nil || e.emitOnly != EmitAll && e.emitOnly != EmitOnlyJs || len(jsFilePath) == 0 {
@@ -204,7 +204,7 @@ func (e *emitter) emitJSFile(sourceFile *ast.SourceFile, jsFilePath string, sour
 	emitContext, putEmitContext := printer.GetEmitContext()
 	defer putEmitContext()
 
-	sourceFile = e.runScriptTransformers(emitContext, sourceFile)
+	sourceFile = e.runScriptTransformers(ctx, emitContext, sourceFile)
 
 	printerOptions := printer.PrinterOptions{
 		RemoveComments:  options.RemoveComments.IsTrue(),
@@ -225,7 +225,7 @@ func (e *emitter) emitJSFile(sourceFile *ast.SourceFile, jsFilePath string, sour
 	e.printSourceFile(jsFilePath, sourceMapFilePath, sourceFile, printer, options, shouldEmitSourceMaps(options, sourceFile))
 }
 
-func (e *emitter) emitDeclarationFile(sourceFile *ast.SourceFile, declarationFilePath string, declarationMapPath string) {
+func (e *emitter) emitDeclarationFile(ctx context.Context, sourceFile *ast.SourceFile, declarationFilePath string, declarationMapPath string) {
 	options := e.host.Options()
 
 	if sourceFile == nil || e.emitOnly == EmitOnlyJs || len(declarationFilePath) == 0 {
@@ -240,7 +240,7 @@ func (e *emitter) emitDeclarationFile(sourceFile *ast.SourceFile, declarationFil
 
 	emitContext, putEmitContext := printer.GetEmitContext()
 	defer putEmitContext()
-	sourceFile, diags := e.runDeclarationTransformers(emitContext, sourceFile, declarationFilePath, declarationMapPath)
+	sourceFile, diags := e.runDeclarationTransformers(ctx, emitContext, sourceFile, declarationFilePath, declarationMapPath)
 
 	for _, elem := range diags {
 		// Add declaration transform diagnostics to emit diagnostics
