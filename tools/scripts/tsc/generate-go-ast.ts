@@ -256,6 +256,11 @@ function buildFieldComment(m: MemberInfo): string {
 
 function goSubtreeFactsTerm(m: MemberInfo): string {
     const access = `node.${m.name}`;
+    if (m.erasable) {
+        return m.type.kind === "list"
+            ? `propagateEraseableSyntaxListSubtreeFacts(${access})`
+            : `propagateEraseableSyntaxSubtreeFacts(${access})`;
+    }
     if (m.listKind === "ModifierList") {
         return `propagateModifierListSubtreeFacts(${access})`;
     }
@@ -268,24 +273,21 @@ function goSubtreeFactsTerm(m: MemberInfo): string {
 function generateSubtreeFacts(w: CodeWriter, node: NodeType) {
     if (!node.generateSubtreeFacts) return;
 
-    const childMembers = schemaMembers(node).filter(m => m.isChild());
+    const terms = schemaMembers(node).filter(m => m.isChild()).map(goSubtreeFactsTerm);
+    for (const fact of node.subtreeFacts) {
+        terms.push(`SubtreeContains${fact}`);
+    }
+
     const structName = node.name;
     w.write(`func (node *${structName}) computeSubtreeFacts() SubtreeFacts {`);
     w.push();
-    if (childMembers.length === 0) {
+    if (terms.length === 0) {
         w.write("return SubtreeFactsNone");
     }
     else {
-        for (let index = 0; index < childMembers.length; index++) {
-            const term = goSubtreeFactsTerm(childMembers[index]);
-            if (index === 0) {
-                const suffix = childMembers.length > 1 ? " |" : "";
-                w.write(`return ${term}${suffix}`);
-            }
-            else {
-                const suffix = index < childMembers.length - 1 ? " |" : "";
-                w.write(`${term}${suffix}`);
-            }
+        for (let index = 0; index < terms.length; index++) {
+            const suffix = index < terms.length - 1 ? " |" : "";
+            w.write(`${index === 0 ? "return " : ""}${terms[index]}${suffix}`);
         }
     }
     w.pop();

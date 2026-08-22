@@ -640,6 +640,10 @@ func (node *Identifier) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewIdentifier(node.Text), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *Identifier) computeSubtreeFacts() SubtreeFacts {
+	return SubtreeContainsIdentifier
+}
+
 func IsIdentifier(node *Node) bool {
 	return node.Kind == KindIdentifier
 }
@@ -662,6 +666,10 @@ func (f *NodeFactory) NewPrivateIdentifier(text string) *Node {
 
 func (node *PrivateIdentifier) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewPrivateIdentifier(node.Text), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *PrivateIdentifier) computeSubtreeFacts() SubtreeFacts {
+	return SubtreeContainsClassFields
 }
 
 func IsPrivateIdentifier(node *Node) bool {
@@ -791,6 +799,12 @@ func (node *Decorator) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *Decorator) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewDecorator(node.Expression), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *Decorator) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.Expression) |
+		SubtreeContainsTypeScript |
+		SubtreeContainsDecorators
 }
 
 func IsDecorator(node *Node) bool {
@@ -1746,6 +1760,13 @@ func (node *VariableDeclaration) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewVariableDeclaration(node.name, node.ExclamationToken, node.Type, node.Initializer), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *VariableDeclaration) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.name) |
+		propagateEraseableSyntaxSubtreeFacts(node.ExclamationToken) |
+		propagateEraseableSyntaxSubtreeFacts(node.Type) |
+		propagateSubtreeFacts(node.Initializer)
+}
+
 func (node *VariableDeclaration) Name() *DeclarationName {
 	return node.name
 }
@@ -2395,6 +2416,12 @@ func (node *EnumMember) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *EnumMember) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewEnumMember(node.name, node.Initializer), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *EnumMember) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.name) |
+		propagateSubtreeFacts(node.Initializer) |
+		SubtreeContainsTypeScript
 }
 
 func (node *EnumMember) Name() *DeclarationName {
@@ -3179,11 +3206,6 @@ func (node *GetAccessorDeclaration) Name() *DeclarationName {
 	return node.name
 }
 
-func (node *GetAccessorDeclaration) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsMethod |
-		propagateSubtreeFacts(node.name)
-}
-
 func IsGetAccessorDeclaration(node *Node) bool {
 	return node.Kind == KindGetAccessor
 }
@@ -3402,6 +3424,11 @@ func (node *MethodDeclaration) Name() *DeclarationName {
 	return node.name
 }
 
+func (node *MethodDeclaration) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsMethod |
+		propagateSubtreeFacts(node.name)
+}
+
 func IsMethodDeclaration(node *Node) bool {
 	return node.Kind == KindMethodDeclaration
 }
@@ -3508,6 +3535,15 @@ func (node *PropertyDeclaration) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewPropertyDeclaration(node.Modifiers(), node.name, node.PostfixToken, node.Type, node.Initializer), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *PropertyDeclaration) computeSubtreeFacts() SubtreeFacts {
+	return propagateModifierListSubtreeFacts(node.modifiers) |
+		propagateSubtreeFacts(node.name) |
+		propagateEraseableSyntaxSubtreeFacts(node.PostfixToken) |
+		propagateEraseableSyntaxSubtreeFacts(node.Type) |
+		propagateSubtreeFacts(node.Initializer) |
+		SubtreeContainsClassFields
+}
+
 func (node *PropertyDeclaration) Name() *DeclarationName {
 	return node.name
 }
@@ -3583,6 +3619,12 @@ func (node *ClassStaticBlockDeclaration) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *ClassStaticBlockDeclaration) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewClassStaticBlockDeclaration(node.Modifiers(), node.Body), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *ClassStaticBlockDeclaration) computeSubtreeFacts() SubtreeFacts {
+	return propagateModifierListSubtreeFacts(node.modifiers) |
+		propagateSubtreeFacts(node.Body) |
+		SubtreeContainsClassFields
 }
 
 func IsClassStaticBlockDeclaration(node *Node) bool {
@@ -3934,6 +3976,12 @@ func (node *YieldExpression) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewYieldExpression(node.AsteriskToken, node.Expression), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *YieldExpression) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.AsteriskToken) |
+		propagateSubtreeFacts(node.Expression) |
+		SubtreeContainsForAwaitOrAsyncGenerator
+}
+
 func IsYieldExpression(node *Node) bool {
 	return node.Kind == KindYieldExpression
 }
@@ -4099,6 +4147,12 @@ func (node *AsExpression) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewAsExpression(node.Expression, node.Type), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *AsExpression) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.Expression) |
+		propagateEraseableSyntaxSubtreeFacts(node.Type) |
+		SubtreeContainsTypeScript
+}
+
 func (node *AsExpression) propagateSubtreeFacts() SubtreeFacts {
 	return node.SubtreeFacts() & ^SubtreeExclusionsOuterExpression
 }
@@ -4141,6 +4195,12 @@ func (node *SatisfiesExpression) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *SatisfiesExpression) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewSatisfiesExpression(node.Expression, node.Type), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *SatisfiesExpression) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.Expression) |
+		propagateEraseableSyntaxSubtreeFacts(node.Type) |
+		SubtreeContainsTypeScript
 }
 
 func (node *SatisfiesExpression) propagateSubtreeFacts() SubtreeFacts {
@@ -4414,6 +4474,12 @@ func (node *NewExpression) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewNewExpression(node.Expression, node.TypeArguments, node.Arguments), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *NewExpression) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.Expression) |
+		propagateEraseableSyntaxListSubtreeFacts(node.TypeArguments) |
+		propagateNodeListSubtreeFacts(node.Arguments, propagateSubtreeFacts)
+}
+
 func (node *NewExpression) propagateSubtreeFacts() SubtreeFacts {
 	return node.SubtreeFacts() & ^SubtreeExclusionsNew
 }
@@ -4504,6 +4570,11 @@ func (node *NonNullExpression) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewNonNullExpression(node.Expression, node.Flags), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *NonNullExpression) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.Expression) |
+		SubtreeContainsTypeScript
+}
+
 func IsNonNullExpression(node *Node) bool {
 	return node.Kind == KindNonNullExpression
 }
@@ -4540,6 +4611,11 @@ func (node *SpreadElement) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *SpreadElement) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewSpreadElement(node.Expression), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *SpreadElement) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.Expression) |
+		SubtreeContainsRestOrSpread
 }
 
 func IsSpreadElement(node *Node) bool {
@@ -4681,6 +4757,13 @@ func (node *TaggedTemplateExpression) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *TaggedTemplateExpression) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewTaggedTemplateExpression(node.Tag, node.QuestionDotToken, node.TypeArguments, node.Template, node.Flags), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *TaggedTemplateExpression) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.Tag) |
+		propagateSubtreeFacts(node.QuestionDotToken) |
+		propagateEraseableSyntaxListSubtreeFacts(node.TypeArguments) |
+		propagateSubtreeFacts(node.Template)
 }
 
 func IsTaggedTemplateExpression(node *Node) bool {
@@ -4864,8 +4947,10 @@ func (node *SpreadAssignment) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewSpreadAssignment(node.Expression), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
-func (node *SpreadAssignment) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsOuterExpression
+func (node *SpreadAssignment) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.Expression) |
+		SubtreeContainsESObjectRestOrSpread |
+		SubtreeContainsObjectRestOrSpread
 }
 
 func IsSpreadAssignment(node *Node) bool {
@@ -5183,6 +5268,16 @@ func (node *TypeAssertion) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *TypeAssertion) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewTypeAssertion(node.Type, node.Expression), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *TypeAssertion) computeSubtreeFacts() SubtreeFacts {
+	return propagateEraseableSyntaxSubtreeFacts(node.Type) |
+		propagateSubtreeFacts(node.Expression) |
+		SubtreeContainsTypeScript
+}
+
+func (node *TypeAssertion) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsOuterExpression
 }
 
 func IsTypeAssertion(node *Node) bool {
@@ -5566,6 +5661,11 @@ func (node *ExpressionWithTypeArguments) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *ExpressionWithTypeArguments) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewExpressionWithTypeArguments(node.Expression, node.TypeArguments), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *ExpressionWithTypeArguments) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.Expression) |
+		propagateEraseableSyntaxListSubtreeFacts(node.TypeArguments)
 }
 
 func IsExpressionWithTypeArguments(node *Node) bool {
@@ -6470,6 +6570,13 @@ func (node *JsxElement) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewJsxElement(node.OpeningElement, node.Children, node.ClosingElement), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *JsxElement) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.OpeningElement) |
+		propagateNodeListSubtreeFacts(node.Children, propagateSubtreeFacts) |
+		propagateSubtreeFacts(node.ClosingElement) |
+		SubtreeContainsJsx
+}
+
 func IsJsxElement(node *Node) bool {
 	return node.Kind == KindJsxElement
 }
@@ -6508,6 +6615,11 @@ func (node *JsxAttributes) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *JsxAttributes) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewJsxAttributes(node.Properties), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *JsxAttributes) computeSubtreeFacts() SubtreeFacts {
+	return propagateNodeListSubtreeFacts(node.Properties, propagateSubtreeFacts) |
+		SubtreeContainsJsx
 }
 
 func IsJsxAttributes(node *Node) bool {
@@ -6549,6 +6661,12 @@ func (node *JsxNamespacedName) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *JsxNamespacedName) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewJsxNamespacedName(node.Namespace, node.name), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *JsxNamespacedName) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.Namespace) |
+		propagateSubtreeFacts(node.name) |
+		SubtreeContainsJsx
 }
 
 func (node *JsxNamespacedName) Name() *DeclarationName {
@@ -6598,6 +6716,13 @@ func (node *JsxOpeningElement) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewJsxOpeningElement(node.TagName, node.TypeArguments, node.Attributes), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *JsxOpeningElement) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.TagName) |
+		propagateEraseableSyntaxListSubtreeFacts(node.TypeArguments) |
+		propagateSubtreeFacts(node.Attributes) |
+		SubtreeContainsJsx
+}
+
 func IsJsxOpeningElement(node *Node) bool {
 	return node.Kind == KindJsxOpeningElement
 }
@@ -6639,6 +6764,13 @@ func (node *JsxSelfClosingElement) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *JsxSelfClosingElement) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewJsxSelfClosingElement(node.TagName, node.TypeArguments, node.Attributes), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *JsxSelfClosingElement) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.TagName) |
+		propagateEraseableSyntaxListSubtreeFacts(node.TypeArguments) |
+		propagateSubtreeFacts(node.Attributes) |
+		SubtreeContainsJsx
 }
 
 func IsJsxSelfClosingElement(node *Node) bool {
@@ -6684,6 +6816,13 @@ func (node *JsxFragment) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewJsxFragment(node.OpeningFragment, node.Children, node.ClosingFragment), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *JsxFragment) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.OpeningFragment) |
+		propagateNodeListSubtreeFacts(node.Children, propagateSubtreeFacts) |
+		propagateSubtreeFacts(node.ClosingFragment) |
+		SubtreeContainsJsx
+}
+
 func IsJsxFragment(node *Node) bool {
 	return node.Kind == KindJsxFragment
 }
@@ -6705,6 +6844,10 @@ func (node *JsxOpeningFragment) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewJsxOpeningFragment(), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *JsxOpeningFragment) computeSubtreeFacts() SubtreeFacts {
+	return SubtreeContainsJsx
+}
+
 func IsJsxOpeningFragment(node *Node) bool {
 	return node.Kind == KindJsxOpeningFragment
 }
@@ -6724,6 +6867,10 @@ func (f *NodeFactory) NewJsxClosingFragment() *Node {
 
 func (node *JsxClosingFragment) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewJsxClosingFragment(), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *JsxClosingFragment) computeSubtreeFacts() SubtreeFacts {
+	return SubtreeContainsJsx
 }
 
 func IsJsxClosingFragment(node *Node) bool {
@@ -6766,6 +6913,12 @@ func (node *JsxAttribute) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *JsxAttribute) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewJsxAttribute(node.name, node.Initializer), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *JsxAttribute) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.name) |
+		propagateSubtreeFacts(node.Initializer) |
+		SubtreeContainsJsx
 }
 
 func (node *JsxAttribute) Name() *DeclarationName {
@@ -6811,6 +6964,11 @@ func (node *JsxSpreadAttribute) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewJsxSpreadAttribute(node.Expression), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *JsxSpreadAttribute) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.Expression) |
+		SubtreeContainsJsx
+}
+
 func IsJsxSpreadAttribute(node *Node) bool {
 	return node.Kind == KindJsxSpreadAttribute
 }
@@ -6847,6 +7005,11 @@ func (node *JsxClosingElement) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *JsxClosingElement) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewJsxClosingElement(node.TagName), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *JsxClosingElement) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.TagName) |
+		SubtreeContainsJsx
 }
 
 func IsJsxClosingElement(node *Node) bool {
@@ -6889,6 +7052,12 @@ func (node *JsxExpression) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewJsxExpression(node.DotDotDotToken, node.Expression), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *JsxExpression) computeSubtreeFacts() SubtreeFacts {
+	return propagateSubtreeFacts(node.DotDotDotToken) |
+		propagateSubtreeFacts(node.Expression) |
+		SubtreeContainsJsx
+}
+
 func IsJsxExpression(node *Node) bool {
 	return node.Kind == KindJsxExpression
 }
@@ -6913,6 +7082,10 @@ func (f *NodeFactory) NewJsxText(text string, containsOnlyTriviaWhiteSpaces bool
 
 func (node *JsxText) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewJsxText(node.Text, node.ContainsOnlyTriviaWhiteSpaces), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *JsxText) computeSubtreeFacts() SubtreeFacts {
+	return SubtreeContainsJsx
 }
 
 func IsJsxText(node *Node) bool {

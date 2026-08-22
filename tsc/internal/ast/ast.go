@@ -1664,18 +1664,8 @@ func (node *Token) computeSubtreeFacts() SubtreeFacts {
 	return SubtreeFactsNone
 }
 
-func (node *PrivateIdentifier) computeSubtreeFacts() SubtreeFacts {
-	return SubtreeContainsClassFields
-}
-
 func (f *NodeFactory) NewModifier(kind Kind) *Node {
 	return f.NewToken(kind)
-}
-
-func (node *Decorator) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.Expression) |
-		SubtreeContainsTypeScript |
-		SubtreeContainsDecorators
 }
 
 func (node *ForInOrOfStatement) computeSubtreeFacts() SubtreeFacts {
@@ -1706,13 +1696,6 @@ func (node *VariableStatement) computeSubtreeFacts() SubtreeFacts {
 		return propagateModifierListSubtreeFacts(node.modifiers) |
 			propagateSubtreeFacts(node.DeclarationList)
 	}
-}
-
-func (node *VariableDeclaration) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.name) |
-		propagateEraseableSyntaxSubtreeFacts(node.ExclamationToken) |
-		propagateEraseableSyntaxSubtreeFacts(node.Type) |
-		propagateSubtreeFacts(node.Initializer)
 }
 
 func (node *VariableDeclarationList) computeSubtreeFacts() SubtreeFacts {
@@ -1800,12 +1783,6 @@ func (node *HeritageClause) computeSubtreeFacts() SubtreeFacts {
 
 func IsTypeOrJSTypeAliasDeclaration(node *Node) bool {
 	return node.Kind == KindTypeAliasDeclaration || node.Kind == KindJSTypeAliasDeclaration
-}
-
-func (node *EnumMember) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.name) |
-		propagateSubtreeFacts(node.Initializer) |
-		SubtreeContainsTypeScript
 }
 
 func (node *EnumDeclaration) computeSubtreeFacts() SubtreeFacts {
@@ -1942,21 +1919,6 @@ func (node *MethodDeclaration) computeSubtreeFacts() SubtreeFacts {
 	}
 }
 
-func (node *PropertyDeclaration) computeSubtreeFacts() SubtreeFacts {
-	return propagateModifierListSubtreeFacts(node.modifiers) |
-		propagateSubtreeFacts(node.name) |
-		propagateEraseableSyntaxSubtreeFacts(node.PostfixToken) |
-		propagateEraseableSyntaxSubtreeFacts(node.Type) |
-		propagateSubtreeFacts(node.Initializer) |
-		SubtreeContainsClassFields
-}
-
-func (node *ClassStaticBlockDeclaration) computeSubtreeFacts() SubtreeFacts {
-	return propagateModifierListSubtreeFacts(node.modifiers) |
-		propagateSubtreeFacts(node.Body) |
-		SubtreeContainsClassFields
-}
-
 func (node *KeywordExpression) computeSubtreeFacts() SubtreeFacts {
 	switch node.Kind {
 	case KindThisKeyword:
@@ -1973,10 +1935,6 @@ func (node *LiteralLikeNodeBase) LiteralLikeData() *LiteralLikeNodeBase { return
 
 func (node *BigIntLiteral) computeSubtreeFacts() SubtreeFacts {
 	return SubtreeFactsNone // `bigint` is not downleveled in any way
-}
-
-func (node *Identifier) computeSubtreeFacts() SubtreeFacts {
-	return SubtreeContainsIdentifier
 }
 
 func (node *NoSubstitutionTemplateLiteral) computeSubtreeFacts() SubtreeFacts {
@@ -2003,10 +1961,6 @@ func (node *BinaryExpression) computeSubtreeFacts() SubtreeFacts {
 
 func (node *BinaryExpression) setModifiers(modifiers *ModifierList) { node.modifiers = modifiers }
 
-func (node *YieldExpression) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.Expression) | SubtreeContainsForAwaitOrAsyncGenerator
-}
-
 func (node *ArrowFunction) computeSubtreeFacts() SubtreeFacts {
 	return propagateModifierListSubtreeFacts(node.modifiers) |
 		propagateEraseableSyntaxListSubtreeFacts(node.TypeParameters) |
@@ -2032,14 +1986,6 @@ func (node *FunctionExpression) computeSubtreeFacts() SubtreeFacts {
 		core.IfElse(isAsync && !isGenerator, SubtreeContainsAnyAwait, SubtreeFactsNone)
 }
 
-func (node *AsExpression) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.Expression) | SubtreeContainsTypeScript
-}
-
-func (node *SatisfiesExpression) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.Expression) | SubtreeContainsTypeScript
-}
-
 func (node *PropertyAccessExpression) computeSubtreeFacts() SubtreeFacts {
 	privateName := SubtreeFactsNone
 	if !IsIdentifier(node.name) {
@@ -2058,36 +2004,11 @@ func (node *CallExpression) computeSubtreeFacts() SubtreeFacts {
 		core.IfElse(node.Expression.Kind == KindImportKeyword, SubtreeContainsDynamicImport, SubtreeFactsNone)
 }
 
-func (node *NewExpression) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.Expression) |
-		propagateEraseableSyntaxListSubtreeFacts(node.TypeArguments) |
-		propagateNodeListSubtreeFacts(node.Arguments, propagateSubtreeFacts)
-}
-
 func (node *MetaProperty) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.name) &^ SubtreeContainsIdentifier
 }
 
-func (node *NonNullExpression) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.Expression) | SubtreeContainsTypeScript
-}
-
-func (node *SpreadElement) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.Expression) | SubtreeContainsRestOrSpread
-}
-
-func (node *TaggedTemplateExpression) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.Tag) |
-		propagateSubtreeFacts(node.QuestionDotToken) |
-		propagateEraseableSyntaxListSubtreeFacts(node.TypeArguments) |
-		propagateSubtreeFacts(node.Template)
-}
-
 // Hand-written subtree facts for nontrivial generated nodes.
-
-func (node *SpreadAssignment) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.Expression) | SubtreeContainsESObjectRestOrSpread | SubtreeContainsObjectRestOrSpread
-}
 
 func (node *PropertyAssignment) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.name) |
@@ -2105,15 +2026,6 @@ func (node *ShorthandPropertyAssignment) computeSubtreeFacts() SubtreeFacts {
 func (node *AwaitExpression) computeSubtreeFacts() SubtreeFacts {
 	// await in an ES2018 async generator must use `yield __await(expr)`
 	return propagateSubtreeFacts(node.Expression) | SubtreeContainsAwait | SubtreeContainsAnyAwait | SubtreeContainsForAwaitOrAsyncGenerator
-}
-
-func (node *TypeAssertion) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.Expression) | SubtreeContainsTypeScript
-}
-
-func (node *ExpressionWithTypeArguments) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.Expression) |
-		propagateEraseableSyntaxListSubtreeFacts(node.TypeArguments)
 }
 
 func (node *ImportAttributesNode) GetResolutionModeOverride( /* !!! grammarErrorOnNode?: (node: Node, diagnostic: DiagnosticMessage) => void*/ ) (core.ResolutionMode, bool) {
@@ -2192,73 +2104,6 @@ func (node *TemplateTail) computeSubtreeFacts() SubtreeFacts {
 		return SubtreeContainsInvalidTemplateEscape
 	}
 	return SubtreeFactsNone
-}
-
-func (node *JsxElement) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.OpeningElement) |
-		propagateNodeListSubtreeFacts(node.Children, propagateSubtreeFacts) |
-		propagateSubtreeFacts(node.ClosingElement) |
-		SubtreeContainsJsx
-}
-
-func (node *JsxAttributes) computeSubtreeFacts() SubtreeFacts {
-	return propagateNodeListSubtreeFacts(node.Properties, propagateSubtreeFacts) |
-		SubtreeContainsJsx
-}
-
-func (node *JsxNamespacedName) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.Namespace) |
-		propagateSubtreeFacts(node.name) |
-		SubtreeContainsJsx
-}
-
-func (node *JsxOpeningElement) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.TagName) |
-		propagateEraseableSyntaxListSubtreeFacts(node.TypeArguments) |
-		propagateSubtreeFacts(node.Attributes) |
-		SubtreeContainsJsx
-}
-
-func (node *JsxSelfClosingElement) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.TagName) |
-		propagateEraseableSyntaxListSubtreeFacts(node.TypeArguments) |
-		propagateSubtreeFacts(node.Attributes) |
-		SubtreeContainsJsx
-}
-
-func (node *JsxFragment) computeSubtreeFacts() SubtreeFacts {
-	return propagateNodeListSubtreeFacts(node.Children, propagateSubtreeFacts) |
-		SubtreeContainsJsx
-}
-
-func (node *JsxOpeningFragment) computeSubtreeFacts() SubtreeFacts {
-	return SubtreeContainsJsx
-}
-
-func (node *JsxClosingFragment) computeSubtreeFacts() SubtreeFacts {
-	return SubtreeContainsJsx
-}
-
-func (node *JsxAttribute) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.name) |
-		propagateSubtreeFacts(node.Initializer) |
-		SubtreeContainsJsx
-}
-
-func (node *JsxSpreadAttribute) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.Expression) | SubtreeContainsJsx
-}
-
-func (node *JsxClosingElement) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.TagName) | SubtreeContainsJsx
-}
-
-func (node *JsxExpression) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.Expression) | SubtreeContainsJsx
-}
-
-func (node *JsxText) computeSubtreeFacts() SubtreeFacts {
-	return SubtreeContainsJsx
 }
 
 /// JSDoc nodes ///

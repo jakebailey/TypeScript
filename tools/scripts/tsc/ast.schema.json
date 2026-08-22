@@ -229,6 +229,10 @@
                 "noFactory": {
                     "type": "boolean",
                     "description": "If true, this field is excluded from factory functions, visitor, and clone"
+                },
+                "erasable": {
+                    "type": "boolean",
+                    "description": "TypeScript-only syntax erased on emit. Its presence alone implies SubtreeContainsTypeScript, and its subtree is not walked when computing subtree facts."
                 }
             }
         },
@@ -305,6 +309,13 @@
                 "generateSubtreeFacts": {
                     "type": "boolean",
                     "description": "Whether this node's Go computeSubtreeFacts method is a trivial child-propagation implementation that can be generated from schema."
+                },
+                "subtreeFacts": {
+                    "type": "array",
+                    "description": "Constant SubtreeContains* facts (without the prefix) this node always contributes, OR'd in after child propagation.",
+                    "items": {
+                        "type": "string"
+                    }
                 },
                 "subtreeExclusions": {
                     "type": "string",
@@ -422,6 +433,10 @@
                 "bitmask": {
                     "type": "string",
                     "description": "Bitmask constant to AND with the value in factory functions"
+                },
+                "erasable": {
+                    "type": "boolean",
+                    "description": "TypeScript-only syntax erased on emit. Its presence alone implies SubtreeContainsTypeScript, and its subtree is not walked when computing subtree facts."
                 }
             }
         }

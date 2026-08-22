@@ -21,6 +21,7 @@ export interface Member {
     noTS?: boolean;
     noFactory?: boolean;
     bitmask?: string;
+    erasable?: boolean;
 }
 
 export interface NodeDef {
@@ -28,6 +29,7 @@ export interface NodeDef {
     extends: string[];
     members?: Member[];
     generateSubtreeFacts?: boolean;
+    subtreeFacts?: string[];
     subtreeExclusions?: string;
     arena?: boolean;
     handWritten?: boolean;
@@ -47,6 +49,7 @@ export interface BaseField {
     noGo?: boolean;
     noTS?: boolean;
     noFactory?: boolean;
+    erasable?: boolean;
 }
 
 export interface BaseEntry {
@@ -251,6 +254,10 @@ export class NodeType extends TypeBase {
 
     get generateSubtreeFacts(): boolean {
         return this.def?.generateSubtreeFacts || false;
+    }
+
+    get subtreeFacts(): string[] {
+        return this.def?.subtreeFacts || [];
     }
 
     /**
@@ -690,6 +697,15 @@ export class MemberInfo {
 
     get bitmask(): string | undefined {
         return this.member?.bitmask;
+    }
+
+    /**
+     * Whether this member is TypeScript-only syntax that is erased on emit. Its
+     * mere presence implies SubtreeContainsTypeScript and its subtree is not
+     * walked when computing facts.
+     */
+    get erasable(): boolean {
+        return this.field?.erasable ?? this.member?.erasable ?? this.inheritedField?.erasable ?? false;
     }
 
     get inheritedField(): MemberInfo | undefined {
