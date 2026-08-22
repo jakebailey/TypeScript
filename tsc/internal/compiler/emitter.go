@@ -1,12 +1,15 @@
 package compiler
 
 import (
+	"context"
+
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/binder"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/outputpaths"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
+	"github.com/microsoft/TypeScript/tsc/internal/runtimetrace"
 	"github.com/microsoft/TypeScript/tsc/internal/sourcemap"
 	"github.com/microsoft/TypeScript/tsc/internal/stringutil"
 	"github.com/microsoft/TypeScript/tsc/internal/tracing"
@@ -43,7 +46,8 @@ type emitter struct {
 	tr                 *tracing.Tracing
 }
 
-func (e *emitter) emit() {
+func (e *emitter) emit(ctx context.Context) {
+	defer runtimetrace.Region(ctx, "emitter.emit")()
 	if e.tr != nil {
 		defer e.tr.Push(tracing.PhaseEmit, "emit", map[string]any{"path": string(e.sourceFile.Path())}, true)()
 	}

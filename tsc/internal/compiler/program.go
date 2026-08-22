@@ -25,6 +25,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/packagejson"
 	"github.com/microsoft/TypeScript/tsc/internal/parser"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
+	"github.com/microsoft/TypeScript/tsc/internal/runtimetrace"
 	"github.com/microsoft/TypeScript/tsc/internal/scanner"
 	"github.com/microsoft/TypeScript/tsc/internal/sourcemap"
 	"github.com/microsoft/TypeScript/tsc/internal/spanmap"
@@ -279,6 +280,7 @@ func (p *Program) GetSourceFileFromReference(origin *ast.SourceFile, ref *ast.Fi
 }
 
 func NewProgram(opts ProgramOptions) *Program {
+	defer runtimetrace.Region(context.TODO(), "compiler.NewProgram")()
 	p := &Program{opts: opts}
 	if p.opts.Tracing != nil {
 		defer p.opts.Tracing.Push(tracing.PhaseProgram, "createProgram", map[string]any{"configFilePath": opts.Config.CompilerOptions().ConfigFilePath}, true)()
@@ -552,10 +554,12 @@ func (p *Program) SingleThreaded() bool {
 }
 
 func (p *Program) BindSourceFiles() {
+	defer runtimetrace.Region(context.TODO(), "compiler.BindSourceFiles")()
 	wg := core.NewWorkGroup(p.SingleThreaded())
 	for _, file := range p.files {
 		if !file.IsBound() {
 			wg.Queue(func() {
+				defer runtimetrace.Region(context.TODO(), "binder.BindSourceFile")()
 				if p.opts.Tracing != nil {
 					defer p.opts.Tracing.Push(tracing.PhaseBind, "bindSourceFile", map[string]any{"path": string(file.Path())}, true)()
 				}
@@ -1794,6 +1798,7 @@ type SourceMapEmitResult struct {
 }
 
 func (p *Program) Emit(ctx context.Context, options EmitOptions) *EmitResult {
+	defer runtimetrace.Region(ctx, "compiler.Emit")()
 	if tr := p.opts.Tracing; tr != nil {
 		defer tr.Push(tracing.PhaseEmit, "emit", nil, true)()
 	}
@@ -1848,7 +1853,7 @@ func (p *Program) Emit(ctx context.Context, options EmitOptions) *EmitResult {
 				Js:             forceJsEmit,
 				DeclarationMap: options.ForceEmit && options.EmitOnly == EmitOnlyDts,
 			})
-			emitter.emit()
+			emitter.emit(ctx)
 			emitter.writer = nil
 
 			// put the writer back in the pool
