@@ -16,39 +16,38 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
-type ParsingContext int
+type ParsingContext uint32
+
+const PCNone ParsingContext = 0
 
 const (
-	PCSourceElements           ParsingContext = iota // Elements in source file
-	PCBlockStatements                                // Statements in block
-	PCSwitchClauses                                  // Clauses in switch statement
-	PCSwitchClauseStatements                         // Statements in switch clause
-	PCTypeMembers                                    // Members in interface or type literal
-	PCClassMembers                                   // Members in class declaration
-	PCEnumMembers                                    // Members in enum declaration
-	PCHeritageClauseElement                          // Elements in a heritage clause
-	PCVariableDeclarations                           // Variable declarations in variable statement
-	PCObjectBindingElements                          // Binding elements in object binding list
-	PCArrayBindingElements                           // Binding elements in array binding list
-	PCArgumentExpressions                            // Expressions in argument list
-	PCObjectLiteralMembers                           // Members in object literal
-	PCJsxAttributes                                  // Attributes in jsx element
-	PCJsxChildren                                    // Things between opening and closing JSX tags
-	PCArrayLiteralMembers                            // Members in array literal
-	PCParameters                                     // Parameters in parameter list
-	PCJSDocParameters                                // JSDoc parameters in parameter list of JSDoc function type
-	PCRestProperties                                 // Property names in a rest type list
-	PCTypeParameters                                 // Type parameters in type parameter list
-	PCTypeArguments                                  // Type arguments in type argument list
-	PCTupleElementTypes                              // Element types in tuple element type list
-	PCHeritageClauses                                // Heritage clauses for a class or interface declaration.
-	PCImportOrExportSpecifiers                       // Named import clause's import specifier list
-	PCImportAttributes                               // Import attributes
-	PCJSDocComment                                   // Parsing via JSDocParser
-	PCCount                                          // Number of parsing contexts
+	PCSourceElements           ParsingContext = 1 << iota // Elements in source file
+	PCBlockStatements                                     // Statements in block
+	PCSwitchClauses                                       // Clauses in switch statement
+	PCSwitchClauseStatements                              // Statements in switch clause
+	PCTypeMembers                                         // Members in interface or type literal
+	PCClassMembers                                        // Members in class declaration
+	PCEnumMembers                                         // Members in enum declaration
+	PCHeritageClauseElement                               // Elements in a heritage clause
+	PCVariableDeclarations                                // Variable declarations in variable statement
+	PCObjectBindingElements                               // Binding elements in object binding list
+	PCArrayBindingElements                                // Binding elements in array binding list
+	PCArgumentExpressions                                 // Expressions in argument list
+	PCObjectLiteralMembers                                // Members in object literal
+	PCJsxAttributes                                       // Attributes in jsx element
+	PCJsxChildren                                         // Things between opening and closing JSX tags
+	PCArrayLiteralMembers                                 // Members in array literal
+	PCParameters                                          // Parameters in parameter list
+	PCJSDocParameters                                     // JSDoc parameters in parameter list of JSDoc function type
+	PCRestProperties                                      // Property names in a rest type list
+	PCTypeParameters                                      // Type parameters in type parameter list
+	PCTypeArguments                                       // Type arguments in type argument list
+	PCTupleElementTypes                                   // Element types in tuple element type list
+	PCHeritageClauses                                     // Heritage clauses for a class or interface declaration.
+	PCImportOrExportSpecifiers                            // Named import clause's import specifier list
+	PCImportAttributes                                    // Import attributes
+	PCJSDocComment                                        // Parsing via JSDocParser
 )
-
-type ParsingContexts int
 
 type JSDocInfo struct {
 	parent *ast.Node
@@ -79,7 +78,7 @@ type Parser struct {
 	token                       ast.Kind
 	sourceFlags                 ast.NodeFlags
 	contextFlags                ast.NodeFlags
-	parsingContexts             ParsingContexts
+	parsingContexts             ParsingContext
 	statementHasAwaitIdentifier bool
 	hasDeprecatedTag            bool
 	hasParseError               bool
@@ -612,7 +611,7 @@ func (p *Parser) reparseTopLevelAwait(sourceFile *ast.SourceFile) *ast.Node {
 
 func (p *Parser) parseListIndex(kind ParsingContext, parseElement func(p *Parser, index int) *ast.Node) []*ast.Node {
 	saveParsingContexts := p.parsingContexts
-	p.parsingContexts |= 1 << kind
+	p.parsingContexts |= kind
 	outerReparseList := p.reparseList
 	p.reparseList = nil
 	list := make([]*ast.Node, 0, 16)
@@ -652,7 +651,7 @@ func (p *Parser) parseList(kind ParsingContext, parseElement func(p *Parser) *as
 func (p *Parser) parseDelimitedList(kind ParsingContext, parseElement func(p *Parser) *ast.Node) *ast.NodeList {
 	pos := p.nodePos()
 	saveParsingContexts := p.parsingContexts
-	p.parsingContexts |= 1 << kind
+	p.parsingContexts |= kind
 	list := make([]*ast.Node, 0, 16)
 	for {
 		if p.isListElement(kind, false /*inErrorRecovery*/) {
@@ -742,11 +741,10 @@ func (p *Parser) isInSomeParsingContext() bool {
 	// We should be in at least one parsing context, be it SourceElements while parsing
 	// a SourceFile, or JSDocComment when lazily parsing JSDoc.
 	debug.Assert(p.parsingContexts != 0, "Missing parsing context")
-	for kind := range PCCount {
-		if p.parsingContexts&(1<<kind) != 0 {
-			if p.isListElement(kind, true /*inErrorRecovery*/) || p.isListTerminator(kind) {
-				return true
-			}
+	for contexts := p.parsingContexts; contexts != PCNone; contexts &= contexts - 1 {
+		kind := contexts & -contexts
+		if p.isListElement(kind, true /*inErrorRecovery*/) || p.isListTerminator(kind) {
+			return true
 		}
 	}
 	return false
@@ -1752,8 +1750,8 @@ func (p *Parser) parseClassDeclarationOrExpression(pos int, jsdoc jsdocScannerIn
 	name := p.parseNameOfClassDeclarationOrExpression()
 	typeParameters := p.parseTypeParameters()
 	if modifiers != nil &&
-		p.parsingContexts&(1<<PCSourceElements) != 0 &&
-		p.parsingContexts&((1<<PCBlockStatements)|(1<<PCSwitchClauseStatements)) == 0 &&
+		p.parsingContexts&PCSourceElements != 0 &&
+		p.parsingContexts&(PCBlockStatements|PCSwitchClauseStatements) == 0 &&
 		core.Some(modifiers.Nodes, isExportModifier) {
 		p.setContextFlags(ast.NodeFlagsAwaitContext, true /*value*/)
 	}
@@ -4869,7 +4867,7 @@ func (p *Parser) parseJsxElementOrSelfClosingElementOrFragment(inExpressionConte
 func (p *Parser) parseJsxChildren(openingTag *ast.Expression) *ast.NodeList {
 	pos := p.nodePos()
 	saveParsingContexts := p.parsingContexts
-	p.parsingContexts |= 1 << PCJsxChildren
+	p.parsingContexts |= PCJsxChildren
 	var list []*ast.Node
 	for {
 		currentToken := p.scanner.ReScanJsxToken(true /*allowMultilineJsxText*/)
