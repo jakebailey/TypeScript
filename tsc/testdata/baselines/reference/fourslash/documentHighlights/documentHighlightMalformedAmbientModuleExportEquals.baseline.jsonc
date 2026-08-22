@@ -3,5 +3,5 @@
 // declare moduleu "m" {
 //   interface A { x: 1 }
 //   function f(): A[];
-//   /*HIGHLIGHTS*/export = f;
+//   /*HIGHLIGHTS*/[|export|] = f;
 // }

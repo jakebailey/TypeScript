@@ -239,3 +239,8 @@ func (r *aliasResolver) GetPackagesMap() map[string]bool {
 }
 
 var _ checker.Program = (*aliasResolver)(nil)
+
+// GetExternalModuleIndicator implements checker.Program.
+func (r *aliasResolver) GetExternalModuleIndicator(file *ast.SourceFile) *ast.Node {
+	return ast.IsFileProbablyExternalModule(file)
+}

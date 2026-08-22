@@ -19,18 +19,16 @@ export interface CachedSourceFile {
     file: SourceFile;
     /** The content hash from the server */
     contentHash: string;
-    /** The parse options key that was used to create this file */
-    parseOptionsKey: string;
     /** Set of (snapshot, project) ref keys that reference this entry */
     refs: Set<string>;
 }
 
 /**
- * Client-side cache for source files keyed by (path, parseOptionsKey, contentHash).
+ * Client-side cache for source files keyed by (path, contentHash).
  *
  * Supports multiple versions of the same file at the same path (e.g., from
  * different snapshots with different file contents). Each version is identified
- * by its content hash and parse options key.
+ * by its content hash.
  *
  * Entries are ref-counted by (snapshot, project) pairs. When a snapshot is
  * disposed, all refs for that snapshot across all projects are released,
@@ -48,7 +46,7 @@ export class SourceFileCache {
 
     /**
      * Get a cached source file already retained for the given (snapshot, project) pair.
-     * This does not require a content hash or parse options key — it returns the entry
+     * This does not require a content hash — it returns the entry
      * if one exists with a matching ref. Used to skip the server request entirely when
      * retainForSnapshot has already carried over the ref.
      *
@@ -67,7 +65,7 @@ export class SourceFileCache {
      * Store a source file in the cache and retain it for the given (snapshot, project) pair.
      * Returns the cached file — which may be an existing entry if the hash matches.
      */
-    set(path: Path, file: SourceFile, parseOptionsKey: string, contentHash: string, snapshotId: number, projectId: string): SourceFile {
+    set(path: Path, file: SourceFile, contentHash: string, snapshotId: number, projectId: string): SourceFile {
         let entries = this.cache.get(path);
         if (!entries) {
             entries = [];
@@ -75,13 +73,13 @@ export class SourceFileCache {
         }
         const ref = refKey(snapshotId, projectId);
         // Check if we already have this exact version
-        const existing = entries.find(e => e.parseOptionsKey === parseOptionsKey && e.contentHash === contentHash);
+        const existing = entries.find(e => e.contentHash === contentHash);
         if (existing) {
             existing.refs.add(ref);
             this.trackPath(snapshotId, projectId, path);
             return existing.file;
         }
-        entries.push({ file, contentHash, parseOptionsKey, refs: new Set([ref]) });
+        entries.push({ file, contentHash, refs: new Set([ref]) });
         this.trackPath(snapshotId, projectId, path);
         return file;
     }

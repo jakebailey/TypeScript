@@ -1579,7 +1579,7 @@ describe("Source file cache keying across projects", () => {
         }),
     };
 
-    test("different parse modes produce separate cached objects; same parse modes share", async () => {
+    test("different module detection modes share cached source files", async () => {
         const api = spawnAPI(multiProjectFiles);
         try {
             // Open all three projects
@@ -1602,12 +1602,8 @@ describe("Source file cache keying across projects", () => {
             assert.ok(sfB, "sfB should exist");
             assert.ok(sfC, "sfC should exist");
 
-            // A should differ from B and C (script vs module parse)
-            assert.notStrictEqual(sfA, sfB, "projectA (script) and projectB (module) should have different cached source files");
-            assert.notStrictEqual(sfA, sfC, "projectA (script) and projectC (module) should have different cached source files");
-
-            // B and C should share the same cached object (both module parse, same content hash)
-            assert.strictEqual(sfB, sfC, "projectB and projectC (both module parse) should share the same cached source file");
+            assert.strictEqual(sfA, sfB, "projectA and projectB should share the same cached source file");
+            assert.strictEqual(sfA, sfC, "projectA and projectC should share the same cached source file");
         }
         finally {
             await api.close();

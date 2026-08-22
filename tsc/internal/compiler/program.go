@@ -408,6 +408,24 @@ func (p *Program) ReuseProgram(changedFilePath tspath.Path, newHost CompilerHost
 			result.filesByPath[newSupplemental.Path()] = newSupplemental
 		}
 	}
+	result.sourceFileMetaDatas = maps.Clone(result.sourceFileMetaDatas)
+	result.externalModuleIndicators = maps.Clone(result.externalModuleIndicators)
+	options := result.projectReferenceFileMapper.getCompilerOptionsForFile(newFile)
+	metadata := result.sourceFileMetaDatas[changedFilePath]
+	if virtualFileName := newFile.VirtualFileName(); virtualFileName != "" {
+		metadata.ImpliedNodeFormat = ast.GetImpliedNodeFormatForFile(virtualFileName, metadata.PackageJsonType)
+		result.sourceFileMetaDatas[changedFilePath] = metadata
+	}
+	result.externalModuleIndicators[newFile.Path()] = ast.GetExternalModuleIndicator(newFile, options, metadata)
+	for _, supplemental := range newSupplementalFiles {
+		options := result.projectReferenceFileMapper.getCompilerOptionsForFile(supplemental)
+		metadata := result.sourceFileMetaDatas[supplemental.Path()]
+		if virtualFileName := supplemental.VirtualFileName(); virtualFileName != "" {
+			metadata.ImpliedNodeFormat = ast.GetImpliedNodeFormatForFile(virtualFileName, metadata.PackageJsonType)
+			result.sourceFileMetaDatas[supplemental.Path()] = metadata
+		}
+		result.externalModuleIndicators[supplemental.Path()] = ast.GetExternalModuleIndicator(supplemental, options, metadata)
+	}
 	updateFileIncludeProcessor(result)
 	return result, newFile, true
 }
@@ -1684,6 +1702,26 @@ func (p *Program) Program() *Program {
 
 func (p *Program) GetSourceFileMetaData(path tspath.Path) ast.SourceFileMetaData {
 	return p.sourceFileMetaDatas[path]
+}
+
+// GetExternalModuleIndicator returns the full external module indicator for a file,
+// combining syntax-based detection (from the parser) with compiler-options-dependent
+// checks (JSX, forced module format). This is the options-aware version that should be
+// used by the checker and transformers.
+func (p *Program) GetExternalModuleIndicator(file *ast.SourceFile) *ast.Node {
+	return p.externalModuleIndicators[file.Path()]
+}
+
+// IsExternalModule returns true if the file is an external module considering
+// both syntax and compiler options.
+func (p *Program) IsExternalModule(file *ast.SourceFile) bool {
+	return p.GetExternalModuleIndicator(file) != nil
+}
+
+// IsExternalOrCommonJSModule returns true if the file is an external module or CJS module
+// considering both syntax and compiler options.
+func (p *Program) IsExternalOrCommonJSModule(file *ast.SourceFile) bool {
+	return p.IsExternalModule(file) || file.CommonJSModuleIndicator != nil
 }
 
 func (p *Program) GetEmitModuleFormatOfFile(sourceFile ast.HasFileName) core.ModuleKind {

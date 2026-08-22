@@ -123,6 +123,7 @@ type processedFiles struct {
 	resolvedModules               map[tspath.Path]module.ModeAwareCache[*module.ResolvedModule]
 	typeResolutionsInFile         map[tspath.Path]module.ModeAwareCache[*module.ResolvedTypeReferenceDirective]
 	sourceFileMetaDatas           map[tspath.Path]ast.SourceFileMetaData
+	externalModuleIndicators      map[tspath.Path]*ast.Node
 	jsxRuntimeImportSpecifiers    map[tspath.Path]*jsxRuntimeImportSpecifier
 	importHelpersImportSpecifiers map[tspath.Path]*ast.StringLiteralNode
 	libFiles                      map[tspath.Path]*LibFile
@@ -395,11 +396,9 @@ func (p *fileLoader) parseSourceFile(t *parseTask) *ast.SourceFile {
 		defer p.opts.Tracing.Push(tracing.PhaseParse, "createSourceFile", map[string]any{"path": t.normalizedFilePath}, true)()
 	}
 	path := p.toPath(t.normalizedFilePath)
-	options := p.projectReferenceFileMapper.getCompilerOptionsForFile(t)
 	parseOptions := ast.SourceFileParseOptions{
-		FileName:                       t.normalizedFilePath,
-		Path:                           path,
-		ExternalModuleIndicatorOptions: ast.GetExternalModuleIndicatorOptions(t.normalizedFilePath, options, t.metadata),
+		FileName: t.normalizedFilePath,
+		Path:     path,
 	}
 	if tspath.FileExtensionIsOneOf(t.normalizedFilePath, p.contentMapperExtensions) {
 		return p.parseContentMappedFile(parseOptions)
@@ -817,7 +816,7 @@ func (p *fileLoader) resolveImportsAndModuleAugmentations(t *parseTask) {
 	moduleNames := make([]*ast.Node, 0, len(file.Imports())+len(file.ModuleAugmentations)+2)
 
 	isJavaScriptFile := ast.IsSourceFileJS(file)
-	isExternalModuleFile := ast.IsExternalModule(file)
+	isExternalModuleFile := t.externalModuleIndicator != nil
 
 	redirect, fileName := p.projectReferenceFileMapper.getRedirectForResolution(file)
 	optionsForFile := module.GetCompilerOptionsWithRedirect(p.opts.Config.CompilerOptions(), redirect)

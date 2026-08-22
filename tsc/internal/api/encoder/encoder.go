@@ -53,7 +53,7 @@ const (
 	HeaderOffsetHashLo1
 	HeaderOffsetHashHi0
 	HeaderOffsetHashHi1
-	HeaderOffsetParseOptions
+	HeaderOffsetReserved
 	HeaderOffsetStringOffsets
 	HeaderOffsetStringData
 	HeaderOffsetExtendedData
@@ -79,7 +79,7 @@ const (
 //
 // | Section            | Length             | Description                                                                                     |
 // | ------------------ | ------------------ | ----------------------------------------------------------------------------------------------- |
-// | Header             | 44 bytes           | Contains the content hash, parse options, flags, and byte offsets to the start of each section. |
+// | Header             | 44 bytes           | Contains the content hash and byte offsets to the start of each section. |
 // | String offsets     | 8 bytes per string | Pairs of starting byte offsets and ending byte offsets into the **string data** section.        |
 // | String data        | variable           | UTF-8 encoded string data.                                                                      |
 // | Extended node data | variable           | Extra data for some kinds of nodes.                                                             |
@@ -292,7 +292,7 @@ const (
 // encoding a non-SourceFile node, the format is identical with the following differences:
 //
 // - The content hash fields in the header (bytes 4-19) are zero.
-// - The parse options field in the header (bytes 20-23) is zero.
+// - The reserved field in the header (bytes 20-23) is zero.
 // - The root node in the nodes section uses its actual node kind and data encoding (via getNodeData) rather than the
 //   SourceFile-specific extended data format.
 //
@@ -303,18 +303,6 @@ const (
 func SourceFileHash(sourceFile *ast.SourceFile) string {
 	h := sourceFile.Hash
 	return fmt.Sprintf("%016x%016x", h.Hi, h.Lo)
-}
-
-// encodeParseOptions encodes the per-file ExternalModuleIndicatorOptions as a uint32 bitmask.
-func encodeParseOptions(opts ast.ExternalModuleIndicatorOptions) uint32 {
-	var bits uint32
-	if opts.JSX {
-		bits |= 1
-	}
-	if opts.Force {
-		bits |= 2
-	}
-	return bits
 }
 
 // NodeIndexTable maps between AST nodes and their encoder indices for O(1) node handle resolution.
@@ -423,7 +411,7 @@ func EncodeSourceFile(sourceFile *ast.SourceFile) ([]byte, *NodeIndexTable, erro
 
 // EncodeNode encodes an arbitrary AST node and its descendants into the binary format.
 // The sourceFile is needed to provide the source text for efficient string encoding.
-// When encoding a non-SourceFile node, the header hash and parse options fields will be zero.
+// When encoding a non-SourceFile node, the header hash fields will be zero.
 // Returns the encoded bytes and a NodeIndexTable mapping encoder indices to AST nodes.
 func EncodeNode(node *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIndexTable, error) {
 	return encodeTree(node, sourceFile)
@@ -467,7 +455,7 @@ func encodeTree(rootNode *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIn
 	if rootNode.Kind == ast.KindSourceFile {
 		sf := rootNode.AsSourceFile()
 		total := len(sf.Imports()) + len(sf.ModuleAugmentations)
-		if sf.ExternalModuleIndicator != nil && sf.ExternalModuleIndicator != rootNode {
+		if sf.SyntacticExternalModuleIndicator != nil && sf.SyntacticExternalModuleIndicator != rootNode {
 			total++
 		}
 		if total > 0 {
@@ -478,8 +466,8 @@ func encodeTree(rootNode *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIn
 			for _, aug := range sf.ModuleAugmentations {
 				nodeIndexMap[aug.AsNode()] = 0
 			}
-			if sf.ExternalModuleIndicator != nil && sf.ExternalModuleIndicator != rootNode {
-				nodeIndexMap[sf.ExternalModuleIndicator] = 0
+			if sf.SyntacticExternalModuleIndicator != nil && sf.SyntacticExternalModuleIndicator != rootNode {
+				nodeIndexMap[sf.SyntacticExternalModuleIndicator] = 0
 			}
 		}
 	}
@@ -576,10 +564,8 @@ func encodeTree(rootNode *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIn
 	}
 
 	var hash xxh3.Uint128
-	var parseOpts uint32
 	if rootNode.Kind == ast.KindSourceFile {
 		hash = sourceFile.Hash
-		parseOpts = encodeParseOptions(sourceFile.ParseOptions().ExternalModuleIndicatorOptions)
 
 		// Encode imports, moduleAugmentations, and ambientModuleNames into structured data,
 		// and patch the placeholder offsets in the SourceFile extended data.
@@ -593,11 +579,11 @@ func encodeTree(rootNode *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIn
 		binary.LittleEndian.PutUint32(extendedData[sfExtendedDataOffset+40:], ambientModuleNamesOffset)
 		// Patch externalModuleIndicator node index at offset 44
 		var externalModuleIndicatorIndex uint32
-		if sf.ExternalModuleIndicator != nil {
-			if sf.ExternalModuleIndicator == rootNode {
+		if sf.SyntacticExternalModuleIndicator != nil {
+			if sf.SyntacticExternalModuleIndicator == rootNode {
 				externalModuleIndicatorIndex = 1 // root node index
 			} else {
-				externalModuleIndicatorIndex = nodeIndexMap[sf.ExternalModuleIndicator]
+				externalModuleIndicatorIndex = nodeIndexMap[sf.SyntacticExternalModuleIndicator]
 			}
 		}
 		binary.LittleEndian.PutUint32(extendedData[sfExtendedDataOffset+44:], externalModuleIndicatorIndex)
@@ -614,7 +600,7 @@ func encodeTree(rootNode *ast.Node, sourceFile *ast.SourceFile) ([]byte, *NodeIn
 		metadata,
 		uint32(hash.Lo), uint32(hash.Lo >> 32),
 		uint32(hash.Hi), uint32(hash.Hi >> 32),
-		parseOpts,
+		0,
 		uint32(offsetStringTableOffsets),
 		uint32(offsetStringTableData),
 		uint32(offsetExtendedData),

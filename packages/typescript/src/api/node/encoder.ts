@@ -200,7 +200,7 @@ export function encodeSourceFile(sourceFile: SourceFile): Uint8Array {
 
 /**
  * Encode an arbitrary AST node into the binary format.
- * When encoding a non-SourceFile node, the header hash and parse options fields will be zero.
+ * When encoding a non-SourceFile node, the header hash fields will be zero.
  */
 export function encodeNode(node: Node): Uint8Array {
     const strs = new StringTable();
@@ -354,7 +354,7 @@ export function encodeNode(node: Node): Uint8Array {
     const metadata = PROTOCOL_VERSION << 24;
     headerView.setUint32(HEADER_OFFSET_METADATA, metadata, true);
     // bytes 4-19: hash (zero for non-SourceFile, we don't have access to xxh3 here)
-    // byte 20-23: parse options (zero for non-SourceFile)
+    // byte 20-23: reserved
     headerView.setUint32(HEADER_OFFSET_STRING_TABLE_OFFSETS, offsetStringTableOffsets, true);
     headerView.setUint32(HEADER_OFFSET_STRING_TABLE, offsetStringTableData, true);
     headerView.setUint32(HEADER_OFFSET_EXTENDED_DATA, offsetExtendedData, true);

@@ -32,6 +32,7 @@ type parseTask struct {
 	packageId                   module.PackageId
 
 	metadata                     ast.SourceFileMetaData
+	externalModuleIndicator      *ast.Node
 	resolutionsInFile            module.ModeAwareCache[*module.ResolvedModule]
 	resolutionsTrace             []module.DiagAndArgs
 	typeResolutionsInFile        module.ModeAwareCache[*module.ResolvedTypeReferenceDirective]
@@ -128,6 +129,8 @@ func (t *parseTask) load(loader *fileLoader) {
 	if virtualFileName := file.VirtualFileName(); virtualFileName != "" {
 		t.metadata.ImpliedNodeFormat = ast.GetImpliedNodeFormatForFile(virtualFileName, t.metadata.PackageJsonType)
 	}
+	options := loader.projectReferenceFileMapper.getCompilerOptionsForFile(t)
+	t.externalModuleIndicator = ast.GetExternalModuleIndicator(file, options, t.metadata)
 	t.subTasks = make([]*parseTask, 0, len(file.ReferencedFiles)+len(file.Imports())+len(file.ModuleAugmentations))
 
 	compilerOptions := loader.opts.Config.CompilerOptions()
@@ -354,6 +357,7 @@ func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 	resolvedModules := make(map[tspath.Path]module.ModeAwareCache[*module.ResolvedModule], totalFileCount+1)
 	typeResolutionsInFile := make(map[tspath.Path]module.ModeAwareCache[*module.ResolvedTypeReferenceDirective], totalFileCount)
 	sourceFileMetaDatas := make(map[tspath.Path]ast.SourceFileMetaData, totalFileCount)
+	externalModuleIndicators := make(map[tspath.Path]*ast.Node, totalFileCount)
 	var jsxRuntimeImportSpecifiers map[tspath.Path]*jsxRuntimeImportSpecifier
 	var importHelpersImportSpecifiers map[tspath.Path]*ast.StringLiteralNode
 	var sourceFilesFoundSearchingNodeModules collections.Set[tspath.Path]
@@ -523,6 +527,7 @@ func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 			resolvedModules[path] = task.resolutionsInFile
 			typeResolutionsInFile[path] = task.typeResolutionsInFile
 			sourceFileMetaDatas[path] = task.metadata
+			externalModuleIndicators[path] = task.externalModuleIndicator
 
 			if task.jsxRuntimeImportSpecifier != nil {
 				if jsxRuntimeImportSpecifiers == nil {
@@ -572,6 +577,7 @@ func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 		resolvedModules:                      resolvedModules,
 		typeResolutionsInFile:                typeResolutionsInFile,
 		sourceFileMetaDatas:                  sourceFileMetaDatas,
+		externalModuleIndicators:             externalModuleIndicators,
 		jsxRuntimeImportSpecifiers:           jsxRuntimeImportSpecifiers,
 		importHelpersImportSpecifiers:        importHelpersImportSpecifiers,
 		sourceFilesFoundSearchingNodeModules: sourceFilesFoundSearchingNodeModules,

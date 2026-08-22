@@ -104,7 +104,7 @@ func (e *symbolExtractor) getModuleIDForSymbol(symbol *ast.Symbol) (ModuleID, bo
 }
 
 func (e *exportExtractor) extractFromFile(file *ast.SourceFile) []*Export {
-	if file.Symbol != nil {
+	if ast.IsExternalOrCommonJSModule(file) {
 		return e.extractFromModule(file)
 	}
 	if len(file.AmbientModuleNames) > 0 {

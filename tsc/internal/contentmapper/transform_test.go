@@ -85,7 +85,7 @@ func TestParseResultAllowsSupplementalModules(t *testing.T) {
 	assert.Assert(t, ast.IsExternalModule(files.Supplemental[0]))
 }
 
-func TestParseResultDoesNotLeakCanonicalModuleForcingToSupplementals(t *testing.T) {
+func TestParseResultPreservesVirtualExtensions(t *testing.T) {
 	t.Parallel()
 	mappings := spanmap.New(nil)
 	files, err := contentmapper.ParseResult(
@@ -105,6 +105,6 @@ func TestParseResultDoesNotLeakCanonicalModuleForcingToSupplementals(t *testing.
 		},
 	)
 	assert.NilError(t, err)
-	assert.Assert(t, files.Canonical.ParseOptions().ExternalModuleIndicatorOptions.Force)
-	assert.Assert(t, !files.Supplemental[0].ParseOptions().ExternalModuleIndicatorOptions.Force)
+	assert.Equal(t, files.Canonical.VirtualFileName(), "/component.astro.mts")
+	assert.Equal(t, files.Supplemental[0].VirtualFileName(), "/component.astro.0.ts")
 }

@@ -1,7 +1,6 @@
 package contentmapper
 
 import (
-	"slices"
 	"strconv"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
@@ -57,11 +56,7 @@ func ParseResult(parseOptions ast.SourceFileParseOptions, content string, mapper
 	}
 	baseParseOptions := parseOptions
 	virtualFileName := baseParseOptions.FileName + virtualExtension
-	parseOptions = baseParseOptions
-	if isModuleVirtualExtension(virtualExtension) {
-		parseOptions.ExternalModuleIndicatorOptions.Force = true
-	}
-	sourceFile := parser.ParseSourceFile(parseOptions, result.Text, core.GetScriptKindFromFileName(virtualFileName))
+	sourceFile := parser.ParseSourceFile(baseParseOptions, result.Text, core.GetScriptKindFromFileName(virtualFileName))
 	if len(result.Diagnostics) > 0 {
 		// The runner produces diagnostics without a source file (it doesn't have one yet); associate
 		// them with the file now so they are reported against it.
@@ -85,10 +80,6 @@ func ParseResult(parseOptions ast.SourceFileParseOptions, content string, mapper
 		suffix := "." + strconv.Itoa(i) + supplemental.VirtualExtension
 		supplementalOptions.FileName += suffix
 		supplementalOptions.Path = tspath.Path(string(parseOptions.Path) + suffix)
-		if isModuleVirtualExtension(supplemental.VirtualExtension) {
-			supplementalOptions.ExternalModuleIndicatorOptions.Force = true
-		}
-
 		file := parser.ParseSourceFile(supplementalOptions, supplemental.Text, core.GetScriptKindFromFileName(supplementalOptions.FileName))
 
 		files.Supplemental = append(files.Supplemental, file)
@@ -118,10 +109,6 @@ func ParseResult(parseOptions ast.SourceFileParseOptions, content string, mapper
 		})
 	}
 	return files, nil
-}
-
-func isModuleVirtualExtension(extension string) bool {
-	return slices.Contains([]string{tspath.ExtensionMts, tspath.ExtensionCts, tspath.ExtensionMjs, tspath.ExtensionCjs}, extension)
 }
 
 // CheckSupplementalFileNameCollisions rejects compiler-assigned virtual filenames that name physical files.

@@ -35,7 +35,6 @@ import {
     decodeNode,
     getNodeId,
     parseNodeHandle,
-    readParseOptionsKey,
     readSourceFileHash,
     RemoteSourceFile,
 } from "../node/node.ts";
@@ -995,11 +994,10 @@ export class Program {
 
         const view = new DataView(binaryData.buffer, binaryData.byteOffset, binaryData.byteLength);
         const contentHash = readSourceFileHash(view);
-        const parseOptionsKey = readParseOptionsKey(view);
 
         // Create a new RemoteSourceFile and cache it (set returns existing if hash matches)
         const sourceFile = new RemoteSourceFile(binaryData, this.decoder, this.client.getTimingCollector()) as unknown as SourceFile;
-        return this.sourceFileCache.set(path, sourceFile, parseOptionsKey, contentHash, this.snapshotId, this.project.id);
+        return this.sourceFileCache.set(path, sourceFile, contentHash, this.snapshotId, this.project.id);
     }
 
     async getSourceFileNames(): Promise<readonly string[]> {

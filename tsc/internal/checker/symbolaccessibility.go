@@ -209,10 +209,13 @@ func (c *Checker) getAlternativeContainingModules(symbol *ast.Symbol, enclosingD
 	// No results from files already being imported by this file - expand search (expensive, but not location-specific, so cached)
 	otherFiles := c.program.SourceFiles()
 	for _, file := range otherFiles {
-		if !ast.IsExternalModule(file) {
+		if !c.isExternalModule(file) {
 			continue
 		}
 		sym := c.getSymbolOfDeclaration(file.AsNode())
+		if sym == nil {
+			continue
+		}
 		ref := c.getAliasForSymbolInContainer(sym, symbol)
 		if ref == nil {
 			continue
@@ -563,7 +566,7 @@ func (c *Checker) trySymbolTable(
 		// for every non-default, non-export= alias symbol in scope, check if it refers to or can chain to the target symbol
 		if symbolFromSymbolTable.Name != ast.InternalSymbolNameExportEquals &&
 			symbolFromSymbolTable.Name != ast.InternalSymbolNameDefault &&
-			!(isUMDExportSymbol(symbolFromSymbolTable) && ctx.enclosingDeclaration != nil && ast.IsExternalModule(ast.GetSourceFileOfNode(ctx.enclosingDeclaration))) &&
+			!(isUMDExportSymbol(symbolFromSymbolTable) && ctx.enclosingDeclaration != nil && c.isExternalModule(ast.GetSourceFileOfNode(ctx.enclosingDeclaration))) &&
 			// If `!useOnlyExternalAliasing`, we can use any type of alias to get the name
 			(!ctx.useOnlyExternalAliasing || core.Some(symbolFromSymbolTable.Declarations, ast.IsExternalModuleImportEqualsDeclaration)) &&
 			// If we're looking up a local name to reference directly, omit namespace reexports, otherwise when we're trawling through an export list to make a dotted name, we can keep it
@@ -749,18 +752,18 @@ func (c *Checker) someSymbolTableInScope(
 ) bool {
 	for location := enclosingDeclaration; location != nil; location = location.Parent {
 		// Locals of a source file are not in scope (because they get merged into the global symbol table)
-		if canHaveLocals(location) && location.Locals() != nil && !ast.IsGlobalSourceFile(location) {
+		if canHaveLocals(location) && location.Locals() != nil && !c.isGlobalSourceFile(location) {
 			if callback(location.Locals(), symbolTableIDFromLocals(location.AsNode()), false, true, location) {
 				return true
 			}
 		}
 		switch location.Kind {
 		case ast.KindSourceFile, ast.KindModuleDeclaration:
-			if ast.IsSourceFile(location) && !ast.IsExternalOrCommonJSModule(location.AsSourceFile()) {
+			if ast.IsSourceFile(location) && !c.isExternalOrCommonJSModule(location.AsSourceFile()) {
 				break
 			}
 			sym := c.getSymbolOfDeclaration(ast.GetReparsedNodeForNode(location))
-			if callback(sym.Exports, symbolTableIDFromExports(sym), false, true, location) {
+			if sym != nil && callback(sym.Exports, symbolTableIDFromExports(sym), false, true, location) {
 				return true
 			}
 		case ast.KindClassDeclaration, ast.KindClassExpression, ast.KindInterfaceDeclaration:

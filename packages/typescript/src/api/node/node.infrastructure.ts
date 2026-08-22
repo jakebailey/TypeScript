@@ -10,7 +10,6 @@ import {
     HEADER_OFFSET_HASH_HI1,
     HEADER_OFFSET_HASH_LO0,
     HEADER_OFFSET_HASH_LO1,
-    HEADER_OFFSET_PARSE_OPTIONS,
     NODE_DATA_TYPE_CHILDREN,
     NODE_DATA_TYPE_EXTENDED,
     NODE_DATA_TYPE_STRING,
@@ -79,15 +78,6 @@ export function readSourceFileHash(data: DataView): string {
     const hi0 = data.getUint32(HEADER_OFFSET_HASH_HI0, true);
     const hi1 = data.getUint32(HEADER_OFFSET_HASH_HI1, true);
     return hex8(hi1) + hex8(hi0) + hex8(lo1) + hex8(lo0);
-}
-
-/**
- * Read the per-file parse options key from a source file binary response.
- * This encodes the ExternalModuleIndicatorOptions bitmask as a string,
- * allowing the client to distinguish files parsed with different options.
- */
-export function readParseOptionsKey(data: DataView): string {
-    return data.getUint32(HEADER_OFFSET_PARSE_OPTIONS, true).toString();
 }
 
 function hex8(n: number): string {

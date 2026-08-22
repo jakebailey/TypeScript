@@ -449,7 +449,7 @@ func (p *Parser) parseSourceFileWorker() *ast.SourceFile {
 	node := p.finishNode(p.factory.NewSourceFile(p.opts, p.sourceText, p.newNodeList(core.NewTextRange(pos, end), statements), eof), pos)
 	result := node.AsSourceFile()
 	p.finishSourceFile(result, isDeclarationFile)
-	if !result.IsDeclarationFile && result.ExternalModuleIndicator != nil && len(p.possibleAwaitSpans) > 0 {
+	if !result.IsDeclarationFile && ast.IsExternalModule(result) && len(p.possibleAwaitSpans) > 0 {
 		reparse := p.finishNode(p.reparseTopLevelAwait(result), pos)
 		if node != reparse {
 			result = reparse.AsSourceFile()
@@ -469,10 +469,11 @@ func (p *Parser) finishSourceFile(result *ast.SourceFile, isDeclarationFile bool
 	p.processPragmasIntoFields(result)
 	result.SetDiagnostics(attachFileToDiagnostics(p.diagnostics, result))
 	result.SetJSDocDiagnostics(attachFileToDiagnostics(p.jsdocDiagnostics, result))
+	result.Flags |= p.sourceFlags
+	result.SyntacticExternalModuleIndicator = ast.IsFileProbablyExternalModule(result)
 	result.IsDeclarationFile = isDeclarationFile
 	result.LanguageVariant = p.languageVariant
 	result.ScriptKind = p.scriptKind
-	result.Flags |= p.sourceFlags
 	result.NodeCount = p.factory.NodeCount()
 	result.TextCount = p.factory.TextCount()
 	result.IdentifierCount = p.identifierCount
@@ -483,7 +484,6 @@ func (p *Parser) finishSourceFile(result *ast.SourceFile, isDeclarationFile bool
 	}
 	slices.SortFunc(p.reparsedClones, ast.CompareNodePositions)
 	result.ReparsedClones = slices.Clone(p.reparsedClones)
-	ast.SetExternalModuleIndicator(result, p.opts.ExternalModuleIndicatorOptions)
 }
 
 func (p *Parser) createJSDocCache() map[*ast.Node][]*ast.Node {
