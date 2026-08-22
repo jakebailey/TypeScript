@@ -4,6 +4,9 @@
 
 import getExePath from "#getExePath";
 import type { FileSystem } from "./fs.ts";
+import type { SyncTransport } from "./syncChannel.ts";
+
+export type { SyncTransport };
 
 export interface ClientSocketOptions {
     /** Path to the Unix domain socket or Windows named pipe for API communication */
@@ -17,6 +20,8 @@ export interface ClientSpawnOptions {
     cwd?: string;
     /** Virtual filesystem callbacks */
     fs?: FileSystem;
+    /** Transport mechanism: "stdio" (default on Unix), "pipe" (default on Windows), or "fifo". */
+    transport?: SyncTransport;
     /** Allow trusted projects to execute configured external content mapper processes. */
     runExternalCode?: boolean;
     /**

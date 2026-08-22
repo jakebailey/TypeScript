@@ -43,6 +43,7 @@ import { Wtf8Decoder } from "../node/wtf8.ts";
 import type {
     APIOptions,
     LSPConnectionOptions,
+    SyncTransport,
 } from "../options.ts";
 import {
     createGetCanonicalFileName,
@@ -177,6 +178,7 @@ export type {
     StringMappingType,
     StructuredType,
     SubstitutionType,
+    SyncTransport,
     TemplateLiteralType,
     TextEdit,
     ThisTypePredicate,

@@ -3,6 +3,7 @@
 package ipc
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/Microsoft/go-winio"
@@ -16,4 +17,9 @@ func newPipeListener(path string) (net.Listener, error) {
 // GeneratePipePath returns a platform-appropriate pipe path for the given name.
 func GeneratePipePath(name string) string {
 	return `\\.\pipe\` + name
+}
+
+// NewFIFOTransport returns an error on Windows; FIFOs are not supported.
+func NewFIFOTransport(_ string) (Transport, error) {
+	return nil, fmt.Errorf("FIFO transport is not supported on Windows")
 }

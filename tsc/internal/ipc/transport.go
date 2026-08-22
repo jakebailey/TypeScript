@@ -3,6 +3,7 @@ package ipc
 import (
 	"io"
 	"net"
+	"sync"
 )
 
 // Transport is an interface for accepting connections from API clients.
@@ -16,6 +17,8 @@ type Transport interface {
 // PipeTransport accepts connections on a Unix domain socket or Windows named pipe.
 type PipeTransport struct {
 	listener net.Listener
+	once     sync.Once
+	closeErr error
 }
 
 // NewPipeTransport creates a new transport listening on the given path.
@@ -30,12 +33,26 @@ func NewPipeTransport(path string) (*PipeTransport, error) {
 
 // Accept implements Transport.
 func (t *PipeTransport) Accept() (io.ReadWriteCloser, error) {
-	return t.listener.Accept()
+	conn, err := t.listener.Accept()
+	if closeErr := t.close(); err != nil {
+		return nil, err
+	} else if closeErr != nil {
+		conn.Close()
+		return nil, closeErr
+	}
+	return conn, nil
 }
 
 // Close implements Transport.
 func (t *PipeTransport) Close() error {
-	return t.listener.Close()
+	return t.close()
+}
+
+func (t *PipeTransport) close() error {
+	t.once.Do(func() {
+		t.closeErr = t.listener.Close()
+	})
+	return t.closeErr
 }
 
 // Path returns the path of the pipe/socket.

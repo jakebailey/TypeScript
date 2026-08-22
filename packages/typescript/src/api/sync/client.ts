@@ -52,7 +52,7 @@ export class Client {
             this.timing = new TimingCollector();
         }
 
-        const channel = new SyncRpcChannel(resolveExePath(options), args, collectTiming);
+        const channel = new SyncRpcChannel(resolveExePath(options), args, options.transport, collectTiming);
         this.channel = channel;
 
         if (options.fs) {
