@@ -14,10 +14,10 @@ import (
 
 type CommonJSModuleTransformer struct {
 	transformers.Transformer
-	topLevelVisitor           *ast.NodeVisitor // visits statements at top level of a module
-	topLevelNestedVisitor     *ast.NodeVisitor // visits nested statements at top level of a module
-	discardedValueVisitor     *ast.NodeVisitor // visits expressions whose values would be discarded at runtime
-	assignmentPatternVisitor  *ast.NodeVisitor // visits assignment patterns in a destructuring assignment
+	topLevelVisitor           ast.NodeVisitor // visits statements at top level of a module
+	topLevelNestedVisitor     ast.NodeVisitor // visits nested statements at top level of a module
+	discardedValueVisitor     ast.NodeVisitor // visits expressions whose values would be discarded at runtime
+	assignmentPatternVisitor  ast.NodeVisitor // visits assignment patterns in a destructuring assignment
 	compilerOptions           *core.CompilerOptions
 	resolver                  binder.ReferenceResolver
 	getEmitModuleFormatOfFile func(file ast.HasFileName) core.ModuleKind
@@ -33,10 +33,10 @@ func NewCommonJSModuleTransformer(opts *transformers.TransformOptions) *transfor
 	compilerOptions := opts.CompilerOptions
 	emitContext := opts.Context
 	tx := &CommonJSModuleTransformer{compilerOptions: compilerOptions, resolver: opts.Resolver, getEmitModuleFormatOfFile: opts.GetEmitModuleFormatOfFile}
-	tx.topLevelVisitor = emitContext.NewNodeVisitor(tx.visitTopLevel)
-	tx.topLevelNestedVisitor = emitContext.NewNodeVisitor(tx.visitTopLevelNested)
-	tx.discardedValueVisitor = emitContext.NewNodeVisitor(tx.visitDiscardedValue)
-	tx.assignmentPatternVisitor = emitContext.NewNodeVisitor(tx.visitAssignmentPattern)
+	emitContext.InitNodeVisitor(&tx.topLevelVisitor, tx.visitTopLevel)
+	emitContext.InitNodeVisitor(&tx.topLevelNestedVisitor, tx.visitTopLevelNested)
+	emitContext.InitNodeVisitor(&tx.discardedValueVisitor, tx.visitDiscardedValue)
+	emitContext.InitNodeVisitor(&tx.assignmentPatternVisitor, tx.visitAssignmentPattern)
 	tx.languageVersion = compilerOptions.GetEmitScriptTarget()
 	tx.moduleKind = compilerOptions.GetEmitModuleKind()
 	return tx.NewTransformer(tx.visit, emitContext)
@@ -1165,7 +1165,7 @@ func (tx *CommonJSModuleTransformer) visitTopLevelNestedForStatement(node *ast.F
 
 			condition := tx.Visitor().VisitNode(node.Condition)
 			incrementor := tx.discardedValueVisitor.VisitNode(node.Incrementor)
-			body := tx.EmitContext().VisitIterationBody(node.Statement, tx.topLevelNestedVisitor)
+			body := tx.EmitContext().VisitIterationBody(node.Statement, &tx.topLevelNestedVisitor)
 			statements = append(statements, tx.Factory().UpdateForStatement(
 				node,
 				nil, /*initializer*/
@@ -1181,7 +1181,7 @@ func (tx *CommonJSModuleTransformer) visitTopLevelNestedForStatement(node *ast.F
 		tx.discardedValueVisitor.VisitNode(node.Initializer),
 		tx.Visitor().VisitNode(node.Condition),
 		tx.discardedValueVisitor.VisitNode(node.Incrementor),
-		tx.EmitContext().VisitIterationBody(node.Statement, tx.topLevelNestedVisitor),
+		tx.EmitContext().VisitIterationBody(node.Statement, &tx.topLevelNestedVisitor),
 	)
 }
 
@@ -1204,7 +1204,7 @@ func (tx *CommonJSModuleTransformer) visitTopLevelNestedForInOrOfStatement(node 
 
 			initializer := tx.discardedValueVisitor.VisitNode(node.Initializer)
 			expression := tx.Visitor().VisitNode(node.Expression)
-			body := tx.EmitContext().VisitIterationBody(node.Statement, tx.topLevelNestedVisitor)
+			body := tx.EmitContext().VisitIterationBody(node.Statement, &tx.topLevelNestedVisitor)
 			if ast.IsBlock(body) {
 				block := body.AsBlock()
 				bodyStatements := append(exportStatements, block.Statements.Nodes...)
@@ -1223,7 +1223,7 @@ func (tx *CommonJSModuleTransformer) visitTopLevelNestedForInOrOfStatement(node 
 		node.AwaitModifier,
 		tx.discardedValueVisitor.VisitNode(node.Initializer),
 		tx.Visitor().VisitNode(node.Expression),
-		tx.EmitContext().VisitIterationBody(node.Statement, tx.topLevelNestedVisitor),
+		tx.EmitContext().VisitIterationBody(node.Statement, &tx.topLevelNestedVisitor),
 	)
 }
 
@@ -1232,7 +1232,7 @@ func (tx *CommonJSModuleTransformer) visitTopLevelNestedForInOrOfStatement(node 
 func (tx *CommonJSModuleTransformer) visitTopLevelNestedDoStatement(node *ast.DoStatement) *ast.Node {
 	return tx.Factory().UpdateDoStatement(
 		node,
-		tx.EmitContext().VisitIterationBody(node.Statement, tx.topLevelNestedVisitor),
+		tx.EmitContext().VisitIterationBody(node.Statement, &tx.topLevelNestedVisitor),
 		tx.Visitor().VisitNode(node.Expression),
 	)
 }
@@ -1243,7 +1243,7 @@ func (tx *CommonJSModuleTransformer) visitTopLevelNestedWhileStatement(node *ast
 	return tx.Factory().UpdateWhileStatement(
 		node,
 		tx.Visitor().VisitNode(node.Expression),
-		tx.EmitContext().VisitIterationBody(node.Statement, tx.topLevelNestedVisitor),
+		tx.EmitContext().VisitIterationBody(node.Statement, &tx.topLevelNestedVisitor),
 	)
 }
 
@@ -1333,7 +1333,7 @@ func (tx *CommonJSModuleTransformer) visitForStatement(node *ast.ForStatement) *
 		tx.discardedValueVisitor.VisitNode(node.Initializer),
 		tx.Visitor().VisitNode(node.Condition),
 		tx.discardedValueVisitor.VisitNode(node.Incrementor),
-		tx.EmitContext().VisitIterationBody(node.Statement, tx.topLevelNestedVisitor),
+		tx.EmitContext().VisitIterationBody(node.Statement, &tx.topLevelNestedVisitor),
 	)
 }
 
@@ -1343,7 +1343,7 @@ func (tx *CommonJSModuleTransformer) visitForInOrOfStatement(node *ast.ForInOrOf
 		node.AwaitModifier,
 		tx.discardedValueVisitor.VisitNode(node.Initializer),
 		tx.Visitor().VisitNode(node.Expression),
-		tx.EmitContext().VisitIterationBody(node.Statement, tx.topLevelNestedVisitor),
+		tx.EmitContext().VisitIterationBody(node.Statement, &tx.topLevelNestedVisitor),
 	)
 }
 
@@ -1359,13 +1359,13 @@ func (tx *CommonJSModuleTransformer) visitVoidExpression(node *ast.VoidExpressio
 
 // Visits a parenthesized expression whose value may be discarded at runtime.
 func (tx *CommonJSModuleTransformer) visitParenthesizedExpression(node *ast.ParenthesizedExpression, resultIsDiscarded bool) *ast.Node {
-	expression := core.IfElse(resultIsDiscarded, tx.discardedValueVisitor, tx.Visitor()).VisitNode(node.Expression)
+	expression := core.IfElse(resultIsDiscarded, &tx.discardedValueVisitor, tx.Visitor()).VisitNode(node.Expression)
 	return tx.Factory().UpdateParenthesizedExpression(node, expression)
 }
 
 // Visits a partially emitted expression whose value may be discarded at runtime.
 func (tx *CommonJSModuleTransformer) visitPartiallyEmittedExpression(node *ast.PartiallyEmittedExpression, resultIsDiscarded bool) *ast.Node {
-	expression := core.IfElse(resultIsDiscarded, tx.discardedValueVisitor, tx.Visitor()).VisitNode(node.Expression)
+	expression := core.IfElse(resultIsDiscarded, &tx.discardedValueVisitor, tx.Visitor()).VisitNode(node.Expression)
 	return tx.Factory().UpdatePartiallyEmittedExpression(node, expression)
 }
 
@@ -1685,7 +1685,7 @@ func (tx *CommonJSModuleTransformer) visitDestructuringAssignmentTargetNoStack(n
 // Visits a comma expression whose left-hand value is always discard, and whose right-hand value may be discarded at runtime.
 func (tx *CommonJSModuleTransformer) visitCommaExpression(node *ast.BinaryExpression, resultIsDiscarded bool) *ast.Node {
 	left := tx.discardedValueVisitor.VisitNode(node.Left)
-	right := core.IfElse(resultIsDiscarded, tx.discardedValueVisitor, tx.Visitor()).VisitNode(node.Right)
+	right := core.IfElse(resultIsDiscarded, &tx.discardedValueVisitor, tx.Visitor()).VisitNode(node.Right)
 	return tx.Factory().UpdateBinaryExpression(node, nil /*modifiers*/, left, nil /*typeNode*/, node.OperatorToken, right)
 }
 

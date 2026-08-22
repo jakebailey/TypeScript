@@ -30,16 +30,17 @@ type asyncTransformer struct {
 	enclosingFunctionParameterNames *collections.Set[string]
 	lexicalArguments                lexicalArgumentsInfo
 
-	asyncBodyVisitor    *ast.NodeVisitor
-	fallbackNodeVisitor *ast.NodeVisitor
+	asyncBodyVisitor    ast.NodeVisitor
+	fallbackNodeVisitor ast.NodeVisitor
 }
 
 func newAsyncTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
 	tx := &asyncTransformer{}
 	result := tx.NewTransformer(tx.visit, opts.Context)
 	tx.initSuperAccessVisitor(tx.EmitContext(), tx.Factory())
-	tx.asyncBodyVisitor = tx.EmitContext().NewNodeVisitor(tx.visitAsyncBodyNode)
-	tx.fallbackNodeVisitor = tx.EmitContext().NewNodeVisitor(tx.visitFallback)
+	ec := tx.EmitContext()
+	ec.InitNodeVisitor(&tx.asyncBodyVisitor, tx.visitAsyncBodyNode)
+	ec.InitNodeVisitor(&tx.fallbackNodeVisitor, tx.visitFallback)
 	return result
 }
 
