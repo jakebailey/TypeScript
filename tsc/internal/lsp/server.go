@@ -33,6 +33,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/pprof"
 	"github.com/microsoft/TypeScript/tsc/internal/project"
 	"github.com/microsoft/TypeScript/tsc/internal/project/ata"
+	"github.com/microsoft/TypeScript/tsc/internal/runtimetrace"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs"
@@ -242,7 +243,8 @@ type Server struct {
 	npmInstall func(cwd string, args []string) ([]byte, error)
 	spawn      func(command []string, dir string, stderr io.Writer) (io.ReadWriteCloser, error)
 
-	cpuProfiler pprof.CPUProfiler
+	cpuProfiler    pprof.CPUProfiler
+	flightRecorder runtimetrace.FlightRecorder
 
 	progressDelay   time.Duration
 	projectProgress *projectLoadingProgress
@@ -1286,6 +1288,9 @@ var handlers = sync.OnceValue(func() handlerMap {
 	registerRequestHandler(handlers, lsproto.CustomSaveAllocProfileInfo, (*Server).handleSaveAllocProfile)
 	registerRequestHandler(handlers, lsproto.CustomStartCPUProfileInfo, (*Server).handleStartCPUProfile)
 	registerRequestHandler(handlers, lsproto.CustomStopCPUProfileInfo, (*Server).handleStopCPUProfile)
+	registerRequestHandler(handlers, lsproto.CustomStartFlightRecorderInfo, (*Server).handleStartFlightRecorder)
+	registerRequestHandler(handlers, lsproto.CustomSnapshotFlightRecorderInfo, (*Server).handleSnapshotFlightRecorder)
+	registerRequestHandler(handlers, lsproto.CustomStopFlightRecorderInfo, (*Server).handleStopFlightRecorder)
 
 	registerRequestHandler(handlers, lsproto.CustomInitializeAPISessionInfo, (*Server).handleInitializeAPISession)
 	registerRequestHandler(handlers, lsproto.CustomProjectInfoInfo, (*Server).handleProjectInfo)
@@ -2434,6 +2439,44 @@ func (s *Server) handleStopCPUProfile(_ context.Context, _ lsproto.NoParams, _ *
 	}
 	s.logger.Info("CPU profile saved to: ", filePath)
 	return &lsproto.ProfileResult{File: filePath}, nil
+}
+
+func (s *Server) handleStartFlightRecorder(_ context.Context, params *lsproto.FlightRecorderStartParams, _ *lsproto.RequestMessage) (lsproto.StartFlightRecorderResponse, error) {
+	cfg := runtimetrace.FlightRecorderConfig{}
+	if params != nil {
+		minAge := ""
+		if params.MinAge != nil {
+			minAge = *params.MinAge
+		}
+		if err := cfg.SetMinAgeString(minAge); err != nil {
+			return lsproto.Null{}, err
+		}
+		if params.MaxBytes != nil {
+			cfg.MaxBytes = uint64(*params.MaxBytes)
+		}
+	}
+	if err := s.flightRecorder.Start(cfg); err != nil {
+		return lsproto.Null{}, err
+	}
+	s.logger.Info("Flight recorder started")
+	return lsproto.Null{}, nil
+}
+
+func (s *Server) handleSnapshotFlightRecorder(_ context.Context, params *lsproto.ProfileParams, _ *lsproto.RequestMessage) (*lsproto.ProfileResult, error) {
+	filePath, err := s.flightRecorder.Snapshot(params.Dir)
+	if err != nil {
+		return nil, err
+	}
+	s.logger.Info("Flight recorder snapshot saved to: ", filePath)
+	return &lsproto.ProfileResult{File: filePath}, nil
+}
+
+func (s *Server) handleStopFlightRecorder(_ context.Context, _ lsproto.NoParams, _ *lsproto.RequestMessage) (lsproto.StopFlightRecorderResponse, error) {
+	if err := s.flightRecorder.Stop(); err != nil {
+		return lsproto.Null{}, err
+	}
+	s.logger.Info("Flight recorder stopped")
+	return lsproto.Null{}, nil
 }
 
 func (s *Server) handleProjectInfo(ctx context.Context, params *lsproto.ProjectInfoParams, _ *lsproto.RequestMessage) (lsproto.CustomProjectInfoResponse, error) {

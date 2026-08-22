@@ -9,6 +9,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/execute"
 	"github.com/microsoft/TypeScript/tsc/internal/osutil"
+	"github.com/microsoft/TypeScript/tsc/internal/runtimetrace"
 )
 
 func main() {
@@ -17,6 +18,9 @@ func main() {
 
 func runMain() int {
 	core.ApplyDebugStackLimit()
+	tracing := runtimetrace.Start(os.Stderr)
+	defer tracing.Stop()
+
 	args := osutil.Args()[1:]
 	if len(args) > 0 {
 		switch args[0] {
