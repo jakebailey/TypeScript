@@ -29,6 +29,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/project/ata"
 	"github.com/microsoft/TypeScript/tsc/internal/project/background"
 	"github.com/microsoft/TypeScript/tsc/internal/project/logging"
+	"github.com/microsoft/TypeScript/tsc/internal/runtimetrace"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs"
 )
@@ -1439,6 +1440,7 @@ func (s *Session) updateSnapshotRef(ctx context.Context, overlays map[tspath.Pat
 }
 
 func (s *Session) updateSnapshot(ctx context.Context, overlays map[tspath.Path]*Overlay, change SnapshotChange, callerRef bool) *Snapshot {
+	defer runtimetrace.Region(ctx, "project.Session.updateSnapshot")()
 	s.snapshotMu.Lock()
 	oldSnapshot := s.snapshot
 	newSnapshot := oldSnapshot.Clone(ctx, change, overlays, s)

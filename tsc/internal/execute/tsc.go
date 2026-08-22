@@ -20,6 +20,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ls/lsutil"
 	"github.com/microsoft/TypeScript/tsc/internal/parser"
 	"github.com/microsoft/TypeScript/tsc/internal/pprof"
+	"github.com/microsoft/TypeScript/tsc/internal/runtimetrace"
 	"github.com/microsoft/TypeScript/tsc/internal/tracing"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
@@ -294,6 +295,7 @@ func performIncrementalCompilation(
 	compileTimes *tsc.CompileTimes,
 	testing tsc.CommandLineTesting,
 ) tsc.CommandLineResult {
+	defer runtimetrace.Region(context.TODO(), "tsc.performIncrementalCompilation")()
 	contentMapperHost := tsc.NewContentMapperHost(ctx, sys, config.CompilerOptions())
 	contentMapperProject := getContentMapperProject(contentMapperHost, config)
 	if contentMapperProject != nil {
@@ -352,6 +354,7 @@ func performCompilation(
 	compileTimes *tsc.CompileTimes,
 	testing tsc.CommandLineTesting,
 ) tsc.CommandLineResult {
+	defer runtimetrace.Region(context.TODO(), "tsc.performCompilation")()
 	contentMapperHost := tsc.NewContentMapperHost(ctx, sys, config.CompilerOptions())
 	contentMapperProject := getContentMapperProject(contentMapperHost, config)
 	if contentMapperProject != nil {

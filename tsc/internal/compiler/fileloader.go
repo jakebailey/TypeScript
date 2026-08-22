@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"cmp"
+	"context"
 	"errors"
 	"fmt"
 	"slices"
@@ -16,6 +17,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/module"
 	"github.com/microsoft/TypeScript/tsc/internal/parser"
+	"github.com/microsoft/TypeScript/tsc/internal/runtimetrace"
 	"github.com/microsoft/TypeScript/tsc/internal/spanmap"
 	"github.com/microsoft/TypeScript/tsc/internal/tracing"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
@@ -150,6 +152,7 @@ func processAllProgramFiles(
 	opts ProgramOptions,
 	singleThreaded bool,
 ) processedFiles {
+	defer runtimetrace.Region(context.TODO(), "compiler.processAllProgramFiles")()
 	compilerOptions := opts.Config.CompilerOptions()
 	rootFiles := opts.Config.FileNames()
 	supportedExtensions := tsoptions.GetSupportedExtensions(compilerOptions, opts.Config.ContentMapperExtensions())

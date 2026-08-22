@@ -907,6 +907,7 @@ type Checker struct {
 }
 
 func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
+	defer runtimetrace.Region(context.TODO(), "checker.NewChecker")()
 	program.BindSourceFiles()
 
 	c := &Checker{}

@@ -71,6 +71,7 @@ func (e *emitter) getDeclarationTransformers(emitContext *printer.EmitContext, s
 }
 
 func (e *emitter) runScriptTransformers(emitContext *printer.EmitContext, sourceFile *ast.SourceFile) *ast.SourceFile {
+	defer runtimetrace.Region(context.TODO(), "emitter.runScriptTransformers")()
 	if e.tr != nil {
 		defer e.tr.Push(tracing.PhaseEmit, "transformNodes", map[string]any{"path": string(sourceFile.Path())}, false)()
 	}
@@ -81,6 +82,7 @@ func (e *emitter) runScriptTransformers(emitContext *printer.EmitContext, source
 }
 
 func (e *emitter) runDeclarationTransformers(emitContext *printer.EmitContext, sourceFile *ast.SourceFile, declarationFilePath, declarationMapPath string) (*ast.SourceFile, []*ast.Diagnostic) {
+	defer runtimetrace.Region(context.TODO(), "emitter.runDeclarationTransformers")()
 	if e.tr != nil {
 		defer e.tr.Push(tracing.PhaseEmit, "transformNodes", map[string]any{"path": string(sourceFile.Path())}, false)()
 	}

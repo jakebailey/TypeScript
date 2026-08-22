@@ -10,6 +10,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
+	"github.com/microsoft/TypeScript/tsc/internal/runtimetrace"
 	"github.com/microsoft/TypeScript/tsc/internal/tracing"
 )
 
@@ -362,6 +363,10 @@ func (p *checkerPool) getCheckerNonExclusive() (*checker.Checker, func()) {
 
 func (p *checkerPool) createCheckers() {
 	p.createCheckersOnce.Do(func() {
+		defer runtimetrace.Region(context.TODO(), "compiler.createCheckers")()
+		if runtimetrace.IsEnabled() {
+			runtimetrace.LogSafef(context.TODO(), "checker", "count=%d", len(p.checkers))
+		}
 		checkerCount := len(p.checkers)
 		wg := core.NewWorkGroup(p.program.SingleThreaded())
 		for i := range checkerCount {

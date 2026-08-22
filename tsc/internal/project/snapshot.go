@@ -20,6 +20,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/project/ata"
 	"github.com/microsoft/TypeScript/tsc/internal/project/dirty"
 	"github.com/microsoft/TypeScript/tsc/internal/project/logging"
+	"github.com/microsoft/TypeScript/tsc/internal/runtimetrace"
 	"github.com/microsoft/TypeScript/tsc/internal/sourcemap"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs/vfsmatch"
@@ -268,6 +269,7 @@ func (s *Snapshot) Clone(
 	overlays map[tspath.Path]*Overlay,
 	session *Session,
 ) *Snapshot {
+	defer runtimetrace.Region(ctx, "project.Snapshot.Clone")()
 	var logger *logging.LogTree
 
 	// Print in-progress logs immediately if cloning fails
