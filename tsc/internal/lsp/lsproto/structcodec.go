@@ -130,7 +130,8 @@ func marshalUnion(v any, enc *json.Encoder, name string, nullable bool) error {
 	rv := reflect.ValueOf(v).Elem()
 	var set reflect.Value
 	count := 0
-	for _, f := range rv.Fields() {
+	for i := range rv.NumField() {
+		f := rv.Field(i)
 		if !f.IsNil() {
 			count++
 			if !set.IsValid() {
@@ -155,7 +156,8 @@ func marshalUnion(v any, enc *json.Encoder, name string, nullable bool) error {
 func countNonNil(v any) int {
 	rv := reflect.ValueOf(v).Elem()
 	count := 0
-	for _, f := range rv.Fields() {
+	for i := range rv.NumField() {
+		f := rv.Field(i)
 		if !f.IsNil() {
 			count++
 		}
