@@ -134,6 +134,9 @@ Generate pprof CPU/memory profiles to the given directory.
 [94m--checkers[39m
 Set the number of checkers per project.
 
+[94m--checkerAssociationSeed[39m
+Randomly reorder files before assigning them to checkers using the specified seed.
+
 [94m--runExternalCode[39m
 Allow loading external content mapper plugins that execute code during compilation.
 
