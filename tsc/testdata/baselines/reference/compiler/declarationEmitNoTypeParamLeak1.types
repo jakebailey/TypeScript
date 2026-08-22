@@ -1,0 +1,19 @@
+//// [tests/cases/compiler/declarationEmitNoTypeParamLeak1.ts] ////
+
+=== declarationEmitNoTypeParamLeak1.ts ===
+type BrokenType<T> = "a" | "b";
+>BrokenType : BrokenType<T>
+
+class MyClass {
+>MyClass : MyClass
+
+    constructor(readonly arg?: BrokenType<any>, prop = [null as any as BrokenType<any>][0]) {}
+>arg : BrokenType<any> | undefined
+>prop : BrokenType<any>
+>[null as any as BrokenType<any>][0] : BrokenType<any>
+>[null as any as BrokenType<any>] : BrokenType<any>[]
+>null as any as BrokenType<any> : BrokenType<any>
+>null as any : any
+>0 : 0
+}
+
