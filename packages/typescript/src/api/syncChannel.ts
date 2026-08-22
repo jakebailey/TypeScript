@@ -15,6 +15,7 @@ const STATE_ERROR = 3;
 const STATE_SHUTDOWN = 4;
 const STATE_CALLBACK = 5;
 const STATE_CLOSED = 6;
+const STATE_RESPONSE_ACKNOWLEDGED = 7;
 
 const CONTROL_STATE = 0;
 const CONTROL_REQUEST_TYPE = 1;
@@ -97,9 +98,11 @@ export class SyncRpcChannel {
         if (this.closed) return;
         this.closed = true;
 
-        Atomics.store(this.control, CONTROL_STATE, STATE_SHUTDOWN);
+        const previousState = Atomics.exchange(this.control, CONTROL_STATE, STATE_SHUTDOWN);
         Atomics.notify(this.control, CONTROL_STATE);
-        Atomics.wait(this.control, CONTROL_STATE, STATE_SHUTDOWN, 5_000);
+        if (previousState !== STATE_ERROR && previousState !== STATE_CLOSED) {
+            Atomics.wait(this.control, CONTROL_STATE, STATE_SHUTDOWN, 5_000);
+        }
         void this.worker.terminate();
     }
 
@@ -136,8 +139,12 @@ export class SyncRpcChannel {
                 const responseType = this.control[CONTROL_RESPONSE_TYPE];
                 const responseName = this.readResponseName();
                 const responsePayload = this.readResponsePayload();
-                Atomics.store(this.control, CONTROL_STATE, STATE_IDLE);
+                Atomics.store(this.control, CONTROL_STATE, STATE_RESPONSE_ACKNOWLEDGED);
                 Atomics.notify(this.control, CONTROL_STATE);
+                const waitResult = Atomics.wait(this.control, CONTROL_STATE, STATE_RESPONSE_ACKNOWLEDGED, 30_000);
+                if (waitResult === "timed-out" || Atomics.load(this.control, CONTROL_STATE) !== STATE_IDLE) {
+                    throw new Error("Synchronous API worker did not acknowledge the response");
+                }
 
                 if (responseState === STATE_ERROR || responseType === MSG_ERROR) {
                     throw new Error(this.decoder.decode(responsePayload));

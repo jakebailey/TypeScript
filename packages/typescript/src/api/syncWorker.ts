@@ -28,6 +28,7 @@ const STATE_ERROR = 3;
 const STATE_SHUTDOWN = 4;
 const STATE_CALLBACK = 5;
 const STATE_CLOSED = 6;
+const STATE_RESPONSE_ACKNOWLEDGED = 7;
 
 const CONTROL_STATE = 0;
 const CONTROL_REQUEST_TYPE = 1;
@@ -288,9 +289,7 @@ async function spawnChild(): Promise<void> {
     child.stdout!.on("error", rejectMessage);
     child.on("error", rejectMessage);
     child.on("exit", (code, signal) => {
-        if (code !== 0 || signal !== null) {
-            rejectMessage(new Error(signal === null ? `API subprocess exited with code ${code}` : `API subprocess was killed by signal ${signal}`));
-        }
+        rejectMessage(new Error(signal === null ? `API subprocess exited with code ${code}` : `API subprocess was killed by signal ${signal}`));
     });
 
     await new Promise<void>((resolve, reject) => {
@@ -314,12 +313,16 @@ async function main(): Promise<void> {
 
         await handleRequest();
         state = Atomics.load(control, CONTROL_STATE);
-        Atomics.wait(control, CONTROL_STATE, state);
+        if (state === STATE_RESPONSE_READY || state === STATE_ERROR) {
+            Atomics.wait(control, CONTROL_STATE, state);
+        }
         state = Atomics.load(control, CONTROL_STATE);
         if (state === STATE_SHUTDOWN) break;
-        if (state !== STATE_IDLE) {
+        if (state !== STATE_RESPONSE_ACKNOWLEDGED) {
             throw new Error(`Unexpected synchronous API channel state after response: ${state}`);
         }
+        Atomics.store(control, CONTROL_STATE, STATE_IDLE);
+        Atomics.notify(control, CONTROL_STATE);
     }
 
     child?.stdin?.end();
