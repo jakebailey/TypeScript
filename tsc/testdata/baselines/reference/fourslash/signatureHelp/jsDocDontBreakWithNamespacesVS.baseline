@@ -25,7 +25,7 @@
 // zee('');
 //       ^
 // | ----------------------------------------------------------------------
-// | zee(): void
+// | zee(**: module**): xxxx
 // | ----------------------------------------------------------------------
 [
   {
@@ -141,8 +141,13 @@
     "item": {
       "signatures": [
         {
-          "label": "zee(): void",
-          "parameters": [],
+          "label": "zee(: module): xxxx",
+          "parameters": [
+            {
+              "label": ": module"
+            }
+          ],
+          "activeParameter": 0,
           "_vs_colorizedLabel": {
             "Runs": [
               {
@@ -157,6 +162,21 @@
               },
               {
                 "ClassificationTypeName": "punctuation",
+                "Text": ":",
+                "_vs_type": "ClassifiedTextRun"
+              },
+              {
+                "ClassificationTypeName": "whitespace",
+                "Text": " ",
+                "_vs_type": "ClassifiedTextRun"
+              },
+              {
+                "ClassificationTypeName": "text",
+                "Text": "module",
+                "_vs_type": "ClassifiedTextRun"
+              },
+              {
+                "ClassificationTypeName": "punctuation",
                 "Text": ")",
                 "_vs_type": "ClassifiedTextRun"
               },
@@ -166,8 +186,8 @@
                 "_vs_type": "ClassifiedTextRun"
               },
               {
-                "ClassificationTypeName": "keyword",
-                "Text": "void",
+                "ClassificationTypeName": "text",
+                "Text": "xxxx",
                 "_vs_type": "ClassifiedTextRun"
               }
             ],

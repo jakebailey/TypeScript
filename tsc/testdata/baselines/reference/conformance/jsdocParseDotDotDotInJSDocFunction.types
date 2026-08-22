@@ -4,12 +4,12 @@
 // from bcryptjs
 /** @param {function(...[*])} callback */
 function g(callback) {
->g : (callback: Function) => void
->callback : Function
+>g : (callback: (: [any][]) => any) => void
+>callback : (: [any][]) => any
 
     callback([1], [2], [3])
 >callback([1], [2], [3]) : any
->callback : Function
+>callback : (: [any][]) => any
 >[1] : number[]
 >1 : 1
 >[2] : number[]
@@ -23,7 +23,7 @@ function g(callback) {
  * @inner
  */
 var stringFromCharCode = String.fromCharCode;
->stringFromCharCode : Function
+>stringFromCharCode : (: number[]) => string
 >String.fromCharCode : (...codes: number[]) => string
 >String : StringConstructor
 >fromCharCode : (...codes: number[]) => string

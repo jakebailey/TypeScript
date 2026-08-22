@@ -2860,6 +2860,8 @@ func (p *Parser) parseNonArrayType() *ast.Node {
 			return p.parseAssertsTypePredicate()
 		}
 		return p.parseTypeReference()
+	case ast.KindFunctionKeyword:
+		return p.parseJSDocFunctionType()
 	case ast.KindTemplateHead:
 		return p.parseTemplateType()
 	default:
@@ -2902,6 +2904,36 @@ func (p *Parser) parseJSDocNullableType() *ast.Node {
 	// skip the ?
 	p.nextToken()
 	return p.finishNode(p.factory.NewJSDocNullableType(p.parseTypeOperatorOrHigher()), pos)
+}
+
+func (p *Parser) parseJSDocFunctionType() *ast.TypeNode {
+	pos := p.nodePos()
+	if p.lookAhead((*Parser).nextTokenIsOpenParen) {
+		p.nextToken() // skip 'function'
+		parameters := p.parseParameters(ParseFlagsType | ParseFlagsJSDoc)
+		returnType := p.parseReturnType(ast.KindColonToken, false /*isType*/)
+		return p.finishNode(p.factory.NewFunctionTypeNode(nil /*typeParameters*/, parameters, returnType), pos)
+	}
+	return p.finishNode(p.factory.NewTypeReferenceNode(p.parseIdentifierName(), nil /*typeArguments*/), pos)
+}
+
+func (p *Parser) parseJSDocParameter() *ast.Node {
+	pos := p.nodePos()
+	var name *ast.Node
+	if p.token == ast.KindThisKeyword || p.token == ast.KindNewKeyword {
+		name = p.parseIdentifierName()
+		p.parseExpected(ast.KindColonToken)
+	} else {
+		name = p.createMissingIdentifier()
+	}
+	return p.finishNode(p.factory.NewParameterDeclaration(
+		nil, /*modifiers*/
+		nil, /*dotDotDotToken*/
+		name,
+		nil, /*questionToken*/
+		p.parseJSDocType(),
+		nil, /*initializer*/
+	), pos)
 }
 
 func (p *Parser) parseJSDocType() *ast.TypeNode {
@@ -3346,13 +3378,18 @@ func (p *Parser) parseParametersWorker(flags ParseFlags, allowAmbiguity bool) *a
 	saveContextFlags := p.contextFlags
 	p.setContextFlags(ast.NodeFlagsYieldContext, flags&ParseFlagsYield != 0)
 	p.setContextFlags(ast.NodeFlagsAwaitContext, flags&ParseFlagsAwait != 0)
-	parameters := p.parseDelimitedList(PCParameters, func(p *Parser) *ast.Node {
-		parameter := p.parseParameterEx(inAwaitContext, allowAmbiguity)
-		if parameter != nil && flags&ParseFlagsType == 0 {
-			p.checkJSSyntax(parameter)
-		}
-		return parameter
-	})
+	var parameters *ast.NodeList
+	if flags&ParseFlagsJSDoc != 0 {
+		parameters = p.parseDelimitedList(PCJSDocParameters, (*Parser).parseJSDocParameter)
+	} else {
+		parameters = p.parseDelimitedList(PCParameters, func(p *Parser) *ast.Node {
+			parameter := p.parseParameterEx(inAwaitContext, allowAmbiguity)
+			if parameter != nil && flags&ParseFlagsType == 0 {
+				p.checkJSSyntax(parameter)
+			}
+			return parameter
+		})
+	}
 	p.contextFlags = saveContextFlags
 	return parameters
 }
@@ -4501,7 +4538,7 @@ func typeHasArrowFunctionBlockingParseError(node *ast.TypeNode) bool {
 	case ast.KindTypeReference:
 		return ast.NodeIsMissing(node.AsTypeReferenceNode().TypeName)
 	case ast.KindFunctionType, ast.KindConstructorType:
-		return isMissingNodeList(node.FunctionLikeData().Parameters) || typeHasArrowFunctionBlockingParseError(node.Type())
+		return isMissingNodeList(node.FunctionLikeData().Parameters) || (node.Type() != nil && typeHasArrowFunctionBlockingParseError(node.Type()))
 	case ast.KindParenthesizedType:
 		return typeHasArrowFunctionBlockingParseError(node.Type())
 	}

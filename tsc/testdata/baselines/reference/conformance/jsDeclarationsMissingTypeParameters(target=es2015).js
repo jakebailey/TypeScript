@@ -50,7 +50,7 @@ function w() { return null; }
 declare function x(y?: any[] | undefined): void;
 /** @param {function (Array)} func Invoked
  */
-declare function y(func: Function): void;
+declare function y(func: (: any[]) => any): void;
 /**
  * @return {(Array.<> | null)} list of devices
  */

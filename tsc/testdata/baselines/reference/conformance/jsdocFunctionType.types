@@ -6,35 +6,35 @@
  * @return {function(this: string, number): number}
  */
 function id1(c) {
->id1 : (c: Function) => Function
->c : Function
+>id1 : (c: (this: string, : number) => number) => (this: string, : number) => number
+>c : (this: string, : number) => number
 
     return c
->c : Function
+>c : (this: string, : number) => number
 }
 
 var x = id1(function (n) { return this.length + n });
->x : Function
->id1(function (n) { return this.length + n }) : Function
->id1 : (c: Function) => Function
->function (n) { return this.length + n } : (n: any) => any
->n : any
->this.length + n : any
->this.length : any
->this : any
->length : any
->n : any
+>x : (this: string, : number) => number
+>id1(function (n) { return this.length + n }) : (this: string, : number) => number
+>id1 : (c: (this: string, : number) => number) => (this: string, : number) => number
+>function (n) { return this.length + n } : (this: string, n: number) => number
+>n : number
+>this.length + n : number
+>this.length : number
+>this : string
+>length : number
+>n : number
 
 /**
  * @param {function(new: { length: number }, number): number} c is just passing on through
  * @return {function(new: { length: number }, number): number}
  */
 function id2(c) {
->id2 : (c: Function) => Function
->c : Function
+>id2 : (c: (new: { length: number; }, : number) => number) => (new: { length: number; }, : number) => number
+>c : (new: { length: number; }, : number) => number
 
     return c
->c : Function
+>c : (new: { length: number; }, : number) => number
 }
 
 class C {
@@ -54,15 +54,15 @@ class C {
 }
 
 var y = id2(C);
->y : Function
->id2(C) : Function
->id2 : (c: Function) => Function
+>y : (new: { length: number; }, : number) => number
+>id2(C) : (new: { length: number; }, : number) => number
+>id2 : (c: (new: { length: number; }, : number) => number) => (new: { length: number; }, : number) => number
 >C : typeof C
 
 var z = new y(12);
 >z : any
 >new y(12) : any
->y : Function
+>y : (new: { length: number; }, : number) => number
 >12 : 12
 
 z.length;
@@ -72,13 +72,13 @@ z.length;
 
 /** @type {function ("a" | "b", 1 | 2): 3 | 4} */
 var f = function (ab, onetwo) { return ab === "a" ? 3 : 4;  }
->f : Function
->function (ab, onetwo) { return ab === "a" ? 3 : 4;  } : (ab: any, onetwo: any) => 3 | 4
->ab : any
->onetwo : any
+>f : (: "a" | "b", : 1 | 2) => 3 | 4
+>function (ab, onetwo) { return ab === "a" ? 3 : 4;  } : (ab: "a" | "b", onetwo: 1 | 2) => 3 | 4
+>ab : "a" | "b"
+>onetwo : 1 | 2
 >ab === "a" ? 3 : 4 : 3 | 4
 >ab === "a" : boolean
->ab : any
+>ab : "a" | "b"
 >"a" : "a"
 >3 : 3
 >4 : 4
@@ -101,15 +101,15 @@ function D(n) {
 }
 
 var y2 = id2(D);
->y2 : Function
->id2(D) : Function
->id2 : (c: Function) => Function
+>y2 : (new: { length: number; }, : number) => number
+>id2(D) : (new: { length: number; }, : number) => number
+>id2 : (c: (new: { length: number; }, : number) => number) => (new: { length: number; }, : number) => number
 >D : (n: number) => void
 
 var z2 = new y2(33);
 >z2 : any
 >new y2(33) : any
->y2 : Function
+>y2 : (new: { length: number; }, : number) => number
 >33 : 33
 
 z2.length;
@@ -123,17 +123,17 @@ z2.length;
  * @return {D}
  */
 var construct = function(dref) { return new dref(33); }
->construct : (dref: Function) => D
->function(dref) { return new dref(33); } : (dref: Function) => D
->dref : Function
+>construct : (dref: (new: D, : number) => any) => D
+>function(dref) { return new dref(33); } : (dref: (new: D, : number) => any) => D
+>dref : (new: D, : number) => any
 >new dref(33) : any
->dref : Function
+>dref : (new: D, : number) => any
 >33 : 33
 
 var z3 = construct(D);
 >z3 : D
 >construct(D) : D
->construct : (dref: Function) => D
+>construct : (dref: (new: D, : number) => any) => D
 >D : (n: number) => void
 
 z3.length;
@@ -162,9 +162,9 @@ var E = function(n) {
 
 
 var y3 = id2(E);
->y3 : Function
->id2(E) : Function
->id2 : (c: Function) => Function
+>y3 : (new: { length: number; }, : number) => number
+>id2(E) : (new: { length: number; }, : number) => number
+>id2 : (c: (new: { length: number; }, : number) => number) => (new: { length: number; }, : number) => number
 >E : (n: number) => void
 
 // Repro from #39229

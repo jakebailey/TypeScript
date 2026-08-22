@@ -1,14 +1,16 @@
 index.js(1,13): error TS1110: Type expected.
 index.js(11,14): error TS2322: Type 'null' is not assignable to type 'string | undefined'.
 index.js(14,14): error TS2322: Type 'null' is not assignable to type 'string'.
-index.js(16,20): error TS1005: '}' expected.
-index.js(17,14): error TS2322: Type 'null' is not assignable to type 'Function'.
-index.js(19,20): error TS1005: '}' expected.
-index.js(20,14): error TS2322: Type 'null' is not assignable to type 'Function'.
+index.js(16,21): error TS2300: Duplicate identifier '(Missing)'.
+index.js(16,28): error TS2300: Duplicate identifier '(Missing)'.
+index.js(17,14): error TS2322: Type 'null' is not assignable to type '(: string, : number) => object'.
+index.js(19,33): error TS2300: Duplicate identifier '(Missing)'.
+index.js(19,41): error TS2300: Duplicate identifier '(Missing)'.
+index.js(20,14): error TS2322: Type 'null' is not assignable to type '(new: object, : string, : number) => any'.
 index.js(23,14): error TS2322: Type 'null' is not assignable to type 'Record<string, number>'.
 
 
-==== index.js (8 errors) ====
+==== index.js (10 errors) ====
     /** @type {?} */
                 ~
 !!! error TS1110: Type expected.
@@ -31,18 +33,22 @@ index.js(23,14): error TS2322: Type 'null' is not assignable to type 'Record<str
 !!! error TS2322: Type 'null' is not assignable to type 'string'.
     
     /** @type {function(string, number): object} */
-                       ~
-!!! error TS1005: '}' expected.
+                        
+!!! error TS2300: Duplicate identifier '(Missing)'.
+                               
+!!! error TS2300: Duplicate identifier '(Missing)'.
     export const f = null;
                  ~
-!!! error TS2322: Type 'null' is not assignable to type 'Function'.
+!!! error TS2322: Type 'null' is not assignable to type '(: string, : number) => object'.
     
     /** @type {function(new: object, string, number)} */
-                       ~
-!!! error TS1005: '}' expected.
+                                    
+!!! error TS2300: Duplicate identifier '(Missing)'.
+                                            
+!!! error TS2300: Duplicate identifier '(Missing)'.
     export const g = null;
                  ~
-!!! error TS2322: Type 'null' is not assignable to type 'Function'.
+!!! error TS2322: Type 'null' is not assignable to type '(new: object, : string, : number) => any'.
     
     /** @type {Object.<string, number>} */
     export const h = null;

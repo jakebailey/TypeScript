@@ -23,11 +23,11 @@ export const e = null;
 
 /** @type {function(string, number): object} */
 export const f = null;
->f : Function
+>f : (: string, : number) => object
 
 /** @type {function(new: object, string, number)} */
 export const g = null;
->g : Function
+>g : (new: object, : string, : number) => any
 
 /** @type {Object.<string, number>} */
 export const h = null;

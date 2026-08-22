@@ -1,21 +1,25 @@
-a.js(2,21): error TS1005: '}' expected.
-a.js(8,20): error TS1005: '}' expected.
+a.js(4,19): error TS2554: Expected 1 arguments, but got 3.
+a.js(11,5): error TS2322: Type '(...codes: number[]) => string' is not assignable to type '(: number[]) => string'.
+  Types of parameters 'codes' and '' are incompatible.
+    Type 'number[]' is not assignable to type 'number'.
 
 
 ==== a.js (2 errors) ====
     // from bcryptjs
     /** @param {function(...[*])} callback */
-                        ~
-!!! error TS1005: '}' expected.
     function g(callback) {
         callback([1], [2], [3])
+                      ~~~~~~~~
+!!! error TS2554: Expected 1 arguments, but got 3.
     }
     
     /**
      * @type {!function(...number):string}
-                       ~
-!!! error TS1005: '}' expected.
      * @inner
      */
     var stringFromCharCode = String.fromCharCode;
+        ~~~~~~~~~~~~~~~~~~
+!!! error TS2322: Type '(...codes: number[]) => string' is not assignable to type '(: number[]) => string'.
+!!! error TS2322:   Types of parameters 'codes' and '' are incompatible.
+!!! error TS2322:     Type 'number[]' is not assignable to type 'number'.
     

@@ -5,16 +5,16 @@
  * @type {function(boolean, string, ...*):void}
  */
 const foo = function (a, b, ...r) { };
->foo : Function
->function (a, b, ...r) { } : (a: any, b: any, ...r: any[]) => void
->a : any
->b : any
->r : any[]
+>foo : (: boolean, : string, : any[]) => void
+>function (a, b, ...r) { } : (a: boolean, b: string, : any[]) => void
+>a : boolean
+>b : string
+>r : [: any[]]
 
 === b.ts ===
 foo(false, '');
->foo(false, '') : any
->foo : Function
+>foo(false, '') : void
+>foo : (: boolean, : string, : any[]) => void
 >false : false
 >'' : ""
 

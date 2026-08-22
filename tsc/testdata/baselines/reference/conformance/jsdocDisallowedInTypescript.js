@@ -33,20 +33,15 @@ var ara = [1, 2, 3];
 function f(x, y) {
     return x ? x + y[1] : y[0];
 }
-(new );
-number, string;
-{
+function hof(ctor) {
     return new ctor('hi');
 }
-(string) => ;
-{
+function hof2(f) {
     return f(12, 'hullo');
 }
 var whatevs = 1001;
 var ques = 'what';
-var g;
-(number, number);
-number = (n, m) => n + m;
+var g = (n, m) => n + m;
 var most = 'definite';
 var postfixdef = 101;
 var postfixopt = undefined;

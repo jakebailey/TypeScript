@@ -59,24 +59,24 @@ export function f4() {
 
 /** @type {function(this: import('./types').Foo): void} */
 export const f5 = function() {
->f5 : Function
->function() {    this.test();} : () => void
+>f5 : (this: import('./types').Foo) => void
+>function() {    this.test();} : (this: import('./types').Foo) => void
 
     this.test();
 >this.test() : any
 >this.test : any
->this : any
+>this : import("./types").Foo
 >test : any
 }
 
 /** @type {function(this: import('./types').Foo): void} */
 export function f6() {
->f6 : () => void
+>f6 : (this: import('./types').Foo) => void
 
     this.test();
 >this.test() : any
 >this.test : any
->this : any
+>this : import("./types").Foo
 >test : any
 }
 

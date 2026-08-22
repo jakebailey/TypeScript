@@ -26,7 +26,7 @@ let n = f(1)()
  * @returns {function(): T}
  */
 function g(a) {
->g : <T>(a: T) => Function
+>g : <T>(a: T) => () => T
 >a : T
 
     return () => a
@@ -34,10 +34,10 @@ function g(a) {
 >a : T
 }
 let s = g('hi')()
->s : any
->g('hi')() : any
->g('hi') : Function
->g : <T>(a: T) => Function
+>s : string
+>g('hi')() : string
+>g('hi') : () => string
+>g : <T>(a: T) => () => T
 >'hi' : "hi"
 
 /**

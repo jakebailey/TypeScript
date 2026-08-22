@@ -3,13 +3,13 @@
 === a.js ===
 /** @type {function(string): void} */
 const f = (value) => {
->f : Function
->(value) => {    value = 1 // should error} : (value: any) => void
->value : any
+>f : (: string) => void
+>(value) => {    value = 1 // should error} : (value: string) => void
+>value : string
 
     value = 1 // should error
 >value = 1 : 1
->value : any
+>value : string
 >1 : 1
 
 };

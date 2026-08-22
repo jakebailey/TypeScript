@@ -1,50 +1,39 @@
-functions.js(2,20): error TS1005: '}' expected.
-functions.js(3,21): error TS1005: '}' expected.
-functions.js(9,23): error TS7006: Parameter 'n' implicitly has an 'any' type.
-functions.js(9,35): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-functions.js(12,20): error TS1005: '}' expected.
-functions.js(13,21): error TS1005: '}' expected.
-functions.js(27,13): error TS2351: This expression is not constructable.
-  Type 'Function' has no construct signatures.
-functions.js(30,21): error TS1005: '}' expected.
-functions.js(31,19): error TS7006: Parameter 'ab' implicitly has an 'any' type.
-functions.js(31,23): error TS7006: Parameter 'onetwo' implicitly has an 'any' type.
+functions.js(26,13): error TS2345: Argument of type 'typeof C' is not assignable to parameter of type '(new: { length: number; }, : number) => number'.
+  Type 'typeof C' provides no match for the signature '(new: { length: number; }, : number): number'.
+functions.js(27,9): error TS2554: Expected 2 arguments, but got 1.
+functions.js(27,9): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+functions.js(30,22): error TS2300: Duplicate identifier '(Missing)'.
+functions.js(30,32): error TS2300: Duplicate identifier '(Missing)'.
 functions.js(39,3): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
-functions.js(43,14): error TS2351: This expression is not constructable.
-  Type 'Function' has no construct signatures.
-functions.js(48,20): error TS1005: '}' expected.
+functions.js(42,14): error TS2345: Argument of type '(n: number) => void' is not assignable to parameter of type '(new: { length: number; }, : number) => number'.
+  Types of parameters 'n' and 'new' are incompatible.
+    Type '{ length: number; }' is not assignable to type 'number'.
+functions.js(43,10): error TS2554: Expected 2 arguments, but got 1.
+functions.js(43,10): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
+functions.js(48,26): error TS2749: 'D' refers to a value, but is being used as a type here. Did you mean 'typeof D'?
 functions.js(49,13): error TS2749: 'D' refers to a value, but is being used as a type here. Did you mean 'typeof D'?
-functions.js(51,45): error TS2351: This expression is not constructable.
-  Type 'Function' has no construct signatures.
+functions.js(51,41): error TS2554: Expected 2 arguments, but got 1.
+functions.js(51,41): error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
 functions.js(61,3): error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
+functions.js(65,14): error TS2345: Argument of type '(n: number) => void' is not assignable to parameter of type '(new: { length: number; }, : number) => number'.
+  Types of parameters 'n' and 'new' are incompatible.
+    Type '{ length: number; }' is not assignable to type 'number'.
 
 
-==== functions.js (16 errors) ====
+==== functions.js (15 errors) ====
     /**
      * @param {function(this: string, number): number} c is just passing on through
-                       ~
-!!! error TS1005: '}' expected.
      * @return {function(this: string, number): number}
-                        ~
-!!! error TS1005: '}' expected.
      */
     function id1(c) {
         return c
     }
     
     var x = id1(function (n) { return this.length + n });
-                          ~
-!!! error TS7006: Parameter 'n' implicitly has an 'any' type.
-                                      ~~~~
-!!! error TS2683: 'this' implicitly has type 'any' because it does not have a type annotation.
     
     /**
      * @param {function(new: { length: number }, number): number} c is just passing on through
-                       ~
-!!! error TS1005: '}' expected.
      * @return {function(new: { length: number }, number): number}
-                        ~
-!!! error TS1005: '}' expected.
      */
     function id2(c) {
         return c
@@ -58,20 +47,23 @@ functions.js(61,3): error TS2683: 'this' implicitly has type 'any' because it do
     }
     
     var y = id2(C);
-    var z = new y(12);
                 ~
-!!! error TS2351: This expression is not constructable.
-!!! error TS2351:   Type 'Function' has no construct signatures.
+!!! error TS2345: Argument of type 'typeof C' is not assignable to parameter of type '(new: { length: number; }, : number) => number'.
+!!! error TS2345:   Type 'typeof C' provides no match for the signature '(new: { length: number; }, : number): number'.
+    var z = new y(12);
+            ~~~~~~~~~
+!!! error TS2554: Expected 2 arguments, but got 1.
+!!! related TS6210 functions.js:13:47: An argument for '' was not provided.
+            ~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
     z.length;
     
     /** @type {function ("a" | "b", 1 | 2): 3 | 4} */
-                        ~
-!!! error TS1005: '}' expected.
+                         
+!!! error TS2300: Duplicate identifier '(Missing)'.
+                                   
+!!! error TS2300: Duplicate identifier '(Missing)'.
     var f = function (ab, onetwo) { return ab === "a" ? 3 : 4;  }
-                      ~~
-!!! error TS7006: Parameter 'ab' implicitly has an 'any' type.
-                          ~~~~~~
-!!! error TS7006: Parameter 'onetwo' implicitly has an 'any' type.
     
     
     /** 
@@ -85,25 +77,33 @@ functions.js(61,3): error TS2683: 'this' implicitly has type 'any' because it do
     }
     
     var y2 = id2(D);
+                 ~
+!!! error TS2345: Argument of type '(n: number) => void' is not assignable to parameter of type '(new: { length: number; }, : number) => number'.
+!!! error TS2345:   Types of parameters 'n' and 'new' are incompatible.
+!!! error TS2345:     Type '{ length: number; }' is not assignable to type 'number'.
     var z2 = new y2(33);
-                 ~~
-!!! error TS2351: This expression is not constructable.
-!!! error TS2351:   Type 'Function' has no construct signatures.
+             ~~~~~~~~~~
+!!! error TS2554: Expected 2 arguments, but got 1.
+!!! related TS6210 functions.js:13:47: An argument for '' was not provided.
+             ~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
     z2.length;
     
     
     /** 
      * @param {function(new: D, number)} dref
-                       ~
-!!! error TS1005: '}' expected.
+                             ~
+!!! error TS2749: 'D' refers to a value, but is being used as a type here. Did you mean 'typeof D'?
      * @return {D}
                 ~
 !!! error TS2749: 'D' refers to a value, but is being used as a type here. Did you mean 'typeof D'?
      */
     var construct = function(dref) { return new dref(33); }
-                                                ~~~~
-!!! error TS2351: This expression is not constructable.
-!!! error TS2351:   Type 'Function' has no construct signatures.
+                                            ~~~~~~~~~~~~
+!!! error TS2554: Expected 2 arguments, but got 1.
+!!! related TS6210 functions.js:48:29: An argument for '' was not provided.
+                                            ~~~~~~~~~~~~
+!!! error TS7009: 'new' expression, whose target lacks a construct signature, implicitly has an 'any' type.
     var z3 = construct(D);
     z3.length;
     
@@ -120,6 +120,10 @@ functions.js(61,3): error TS2683: 'this' implicitly has type 'any' because it do
     
     
     var y3 = id2(E);
+                 ~
+!!! error TS2345: Argument of type '(n: number) => void' is not assignable to parameter of type '(new: { length: number; }, : number) => number'.
+!!! error TS2345:   Types of parameters 'n' and 'new' are incompatible.
+!!! error TS2345:     Type '{ length: number; }' is not assignable to type 'number'.
     
     // Repro from #39229
     

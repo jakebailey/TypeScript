@@ -25,7 +25,7 @@
 // zee('');
 //       ^
 // | ----------------------------------------------------------------------
-// | zee(): void
+// | zee(**: module**): xxxx
 // | ----------------------------------------------------------------------
 [
   {
@@ -81,8 +81,13 @@
     "item": {
       "signatures": [
         {
-          "label": "zee(): void",
-          "parameters": []
+          "label": "zee(: module): xxxx",
+          "parameters": [
+            {
+              "label": ": module"
+            }
+          ],
+          "activeParameter": 0
         }
       ],
       "activeSignature": 0

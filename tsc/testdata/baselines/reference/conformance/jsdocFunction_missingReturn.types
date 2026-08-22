@@ -3,5 +3,5 @@
 === /a.js ===
 /** @type {function(): number} */
 function f() {}
->f : () => void
+>f : () => number
 

@@ -51,6 +51,7 @@ export const f5 = function() {
 >f5 : Symbol(f5, Decl(a.js, 21, 12))
 
     this.test();
+>this : Symbol(this, Decl(a.js, 20, 20))
 }
 
 /** @type {function(this: import('./types').Foo): void} */
@@ -58,5 +59,6 @@ export function f6() {
 >f6 : Symbol(f6, Decl(a.js, 23, 1))
 
     this.test();
+>this : Symbol(Foo, Decl(types.d.ts, 0, 0))
 }
 

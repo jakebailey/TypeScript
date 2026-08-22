@@ -60,8 +60,8 @@ export declare const d: string | undefined;
 /** @type {string!} */
 export declare const e: string;
 /** @type {function(string, number): object} */
-export declare const f: Function;
+export declare const f: (: string, : number) => object;
 /** @type {function(new: object, string, number)} */
-export declare const g: Function;
+export declare const g: (new: object, : string, : number) => any;
 /** @type {Object.<string, number>} */
 export declare const h: Record<string, number>;

@@ -3,9 +3,9 @@
 === a.js ===
 /** @type {function(string): void} */
 const f = (value) => {
->f : Function
->(value) => {} : (value: any) => void
->value : any
+>f : (: string) => void
+>(value) => {} : (value: string) => void
+>value : string
 
 };
 /** @type {(s: string) => void} */
@@ -20,8 +20,8 @@ function h(s) {
 }
 
 f() // should error
->f() : any
->f : Function
+>f() : void
+>f : (: string) => void
 
 g() // should error
 >g() : void

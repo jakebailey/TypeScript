@@ -17,7 +17,7 @@ var x;
 
 /** @param {function():*=} f */
 function cbf(f) {
->cbf : (f: Function) => void
->f : Function
+>cbf : (f?: (() => any) | undefined) => void
+>f : (() => any) | undefined
 }
 
