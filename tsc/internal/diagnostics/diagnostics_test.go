@@ -143,3 +143,18 @@ func TestLocalize_ByKey(t *testing.T) {
 		})
 	}
 }
+
+func TestKeyToMessage(t *testing.T) {
+	t.Parallel()
+
+	for i := range messages {
+		message := &messages[i]
+		if got := keyToMessage(message.key); got != message {
+			t.Fatalf("keyToMessage(%q) = %p, want %p", message.key, got, message)
+		}
+	}
+
+	if got := keyToMessage("wrong_key_1003"); got != nil {
+		t.Fatalf("keyToMessage with a valid code and wrong key = %p, want nil", got)
+	}
+}
