@@ -17,6 +17,8 @@ func main() {
 
 func runMain() int {
 	core.ApplyDebugStackLimit()
+	core.ApplyDefaultGOGC()
+
 	args := osutil.Args()[1:]
 	if len(args) > 0 {
 		switch args[0] {
