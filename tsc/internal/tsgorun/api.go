@@ -1,4 +1,4 @@
-package main
+package tsgorun
 
 import (
 	"context"
@@ -38,7 +38,7 @@ func parseAPIFlags(args []string) (apiFlags, error) {
 	return result, nil
 }
 
-func runAPI(args []string) int {
+func RunAPI(args []string) int {
 	flags, err := parseAPIFlags(args)
 	if err != nil {
 		return 2
@@ -60,7 +60,7 @@ func runAPI(args []string) int {
 		Async:                flags.async,
 		CollectTiming:        flags.timing,
 		RunExternalCode:      flags.runExternalCode,
-		ContentMapperSpawner: newSystem(),
+		ContentMapperSpawner: NewSystem(""),
 	}
 	if flags.pipePath != "" {
 		options.PipePath = flags.pipePath

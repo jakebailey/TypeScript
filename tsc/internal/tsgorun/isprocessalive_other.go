@@ -1,6 +1,6 @@
 //go:build !unix && !windows
 
-package main
+package tsgorun
 
 const processAliveSupported = false
 
