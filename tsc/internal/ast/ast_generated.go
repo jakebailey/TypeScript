@@ -181,6 +181,17 @@ type ClassLikeBase struct {
 	Members         *ClassElementList
 }
 
+func (node *ClassLikeBase) computeSubtreeFacts() SubtreeFacts {
+	if node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAmbient != 0 {
+		return SubtreeContainsTypeScript
+	}
+	return propagateModifierListSubtreeFacts(node.modifiers) |
+		propagateSubtreeFacts(node.name) |
+		propagateEraseableSyntaxListSubtreeFacts(node.TypeParameters) |
+		propagateNodeListSubtreeFacts(node.HeritageClauses, propagateSubtreeFacts) |
+		propagateNodeListSubtreeFacts(node.Members, propagateSubtreeFacts)
+}
+
 type LiteralLikeNodeBase struct {
 	Text       string
 	TokenFlags TokenFlags
@@ -1710,6 +1721,14 @@ func (node *VariableStatement) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewVariableStatement(node.Modifiers(), node.DeclarationList), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *VariableStatement) computeSubtreeFacts() SubtreeFacts {
+	if node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAmbient != 0 {
+		return SubtreeContainsTypeScript
+	}
+	return propagateModifierListSubtreeFacts(node.modifiers) |
+		propagateSubtreeFacts(node.DeclarationList)
+}
+
 func IsVariableStatement(node *Node) bool {
 	return node.Kind == KindVariableStatement
 }
@@ -2473,6 +2492,16 @@ func (node *EnumDeclaration) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewEnumDeclaration(node.Modifiers(), node.name, node.Members), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *EnumDeclaration) computeSubtreeFacts() SubtreeFacts {
+	if node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAmbient != 0 {
+		return SubtreeContainsTypeScript
+	}
+	return propagateModifierListSubtreeFacts(node.modifiers) |
+		propagateSubtreeFacts(node.name) |
+		propagateNodeListSubtreeFacts(node.Members, propagateSubtreeFacts) |
+		SubtreeContainsTypeScript
+}
+
 func (node *EnumDeclaration) Name() *DeclarationName {
 	return node.name
 }
@@ -3006,6 +3035,14 @@ func (node *ExportSpecifier) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewExportSpecifier(node.IsTypeOnly, node.PropertyName, node.name), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *ExportSpecifier) computeSubtreeFacts() SubtreeFacts {
+	if node.IsTypeOnly {
+		return SubtreeContainsTypeScript
+	}
+	return propagateSubtreeFacts(node.PropertyName) |
+		propagateSubtreeFacts(node.name)
+}
+
 func (node *ExportSpecifier) Name() *DeclarationName {
 	return node.name
 }
@@ -3147,6 +3184,18 @@ func (node *ConstructorDeclaration) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *ConstructorDeclaration) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewConstructorDeclaration(node.Modifiers(), node.TypeParameters, node.Parameters, node.Type, node.FullSignature, node.Body), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *ConstructorDeclaration) computeSubtreeFacts() SubtreeFacts {
+	if node.Body == nil {
+		return SubtreeContainsTypeScript
+	}
+	return propagateModifierListSubtreeFacts(node.modifiers) |
+		propagateEraseableSyntaxListSubtreeFacts(node.TypeParameters) |
+		propagateNodeListSubtreeFacts(node.Parameters, propagateSubtreeFacts) |
+		propagateEraseableSyntaxSubtreeFacts(node.Type) |
+		propagateEraseableSyntaxSubtreeFacts(node.FullSignature) |
+		propagateSubtreeFacts(node.Body)
 }
 
 func (node *ConstructorDeclaration) propagateSubtreeFacts() SubtreeFacts {
@@ -8353,6 +8402,16 @@ func (node *ModuleDeclaration) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewModuleDeclaration(node.Modifiers(), node.Keyword, node.name, node.Body), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *ModuleDeclaration) computeSubtreeFacts() SubtreeFacts {
+	if node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAmbient != 0 {
+		return SubtreeContainsTypeScript
+	}
+	return propagateModifierListSubtreeFacts(node.modifiers) |
+		propagateSubtreeFacts(node.name) |
+		propagateSubtreeFacts(node.Body) |
+		SubtreeContainsTypeScript
+}
+
 func (node *ModuleDeclaration) Name() *DeclarationName {
 	return node.name
 }
@@ -8556,6 +8615,14 @@ func (node *ImportClause) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewImportClause(node.PhaseModifier, node.name, node.NamedBindings), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *ImportClause) computeSubtreeFacts() SubtreeFacts {
+	if node.PhaseModifier == KindTypeKeyword {
+		return SubtreeContainsTypeScript
+	}
+	return propagateSubtreeFacts(node.name) |
+		propagateSubtreeFacts(node.NamedBindings)
+}
+
 func (node *ImportClause) Name() *DeclarationName {
 	return node.name
 }
@@ -8603,6 +8670,14 @@ func (node *ImportSpecifier) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *ImportSpecifier) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewImportSpecifier(node.IsTypeOnly, node.PropertyName, node.name), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *ImportSpecifier) computeSubtreeFacts() SubtreeFacts {
+	if node.IsTypeOnly {
+		return SubtreeContainsTypeScript
+	}
+	return propagateSubtreeFacts(node.PropertyName) |
+		propagateSubtreeFacts(node.name)
 }
 
 func (node *ImportSpecifier) Name() *DeclarationName {

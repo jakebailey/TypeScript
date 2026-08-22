@@ -30,6 +30,7 @@ export interface NodeDef {
     members?: Member[];
     generateSubtreeFacts?: boolean;
     subtreeFacts?: string[];
+    erasedWhen?: string[];
     subtreeExclusions?: string;
     arena?: boolean;
     handWritten?: boolean;
@@ -56,6 +57,9 @@ export interface BaseEntry {
     brand?: string;
     extends?: string[];
     fields?: Record<string, BaseField>;
+    generateSubtreeFacts?: boolean;
+    subtreeFacts?: string[];
+    erasedWhen?: string[];
     subtreeExclusions?: string;
 }
 
@@ -253,11 +257,21 @@ export class NodeType extends TypeBase {
     }
 
     get generateSubtreeFacts(): boolean {
-        return this.def?.generateSubtreeFacts || false;
+        return this.def?.generateSubtreeFacts ?? this.entry?.generateSubtreeFacts ?? false;
     }
 
     get subtreeFacts(): string[] {
-        return this.def?.subtreeFacts || [];
+        return this.def?.subtreeFacts ?? this.entry?.subtreeFacts ?? [];
+    }
+
+    /**
+     * Conditions under which this node is entirely erased on emit. When any
+     * holds, the node contributes only SubtreeContainsTypeScript and its
+     * children are *not* walked — the subtree cannot influence the JS output,
+     * so letting child facts escape would defeat elision.
+     */
+    get erasedWhen(): string[] {
+        return this.def?.erasedWhen ?? this.entry?.erasedWhen ?? [];
     }
 
     /**

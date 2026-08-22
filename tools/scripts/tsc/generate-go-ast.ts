@@ -270,10 +270,45 @@ function goSubtreeFactsTerm(m: MemberInfo): string {
     return `propagateSubtreeFacts(${access})`;
 }
 
+/**
+ * Predicates under which a node is fully erased on emit. Kept as a closed
+ * vocabulary so the schema stays declarative rather than embedding Go.
+ */
+const ERASURE_PREDICATES: Record<string, string> = {
+    TypeOnly: "node.IsTypeOnly",
+    TypePhase: "node.PhaseModifier == KindTypeKeyword",
+    Ambient: "node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAmbient != 0",
+    NoBody: "node.Body == nil",
+};
+
+/**
+ * Child fields a base contributes to its own subtree facts: those it declares
+ * plus those it inherits, since a base's `computeSubtreeFacts` is the whole
+ * implementation for every node that embeds it.
+ */
+function baseChildFields(base: NodeType): MemberInfo[] {
+    const seen = new Set<string>();
+    const result: MemberInfo[] = [];
+    const visit = (type: NodeType) => {
+        for (const ext of type.extends) visit(ext);
+        for (const field of type.fields) {
+            if (field.noGo || seen.has(field.name)) continue;
+            seen.add(field.name);
+            if (field.type.baseKind() !== "node" && field.type.baseKind() !== "list") continue;
+            result.push(field);
+        }
+    };
+    visit(base);
+    return result;
+}
+
 function generateSubtreeFacts(w: CodeWriter, node: NodeType) {
     if (!node.generateSubtreeFacts) return;
 
-    const terms = schemaMembers(node).filter(m => m.isChild()).map(goSubtreeFactsTerm);
+    // Concrete nodes declare every member they own, inherited ones included;
+    // bases must gather theirs across the extends chain.
+    const own = node.isConcrete ? schemaMembers(node).filter(m => m.isChild()) : baseChildFields(node);
+    const terms = own.map(goSubtreeFactsTerm);
     for (const fact of node.subtreeFacts) {
         terms.push(`SubtreeContains${fact}`);
     }
@@ -281,6 +316,24 @@ function generateSubtreeFacts(w: CodeWriter, node: NodeType) {
     const structName = node.name;
     w.write(`func (node *${structName}) computeSubtreeFacts() SubtreeFacts {`);
     w.push();
+
+    // An erased node contributes nothing but its own TypeScript-ness; walking
+    // its children would leak facts that must not reach the emitter.
+    const erasureConditions = node.erasedWhen.map(name => {
+        const predicate = ERASURE_PREDICATES[name];
+        if (!predicate) {
+            throw new Error(`${structName}: unknown erasedWhen predicate ${JSON.stringify(name)}. Known: ${Object.keys(ERASURE_PREDICATES).join(", ")}`);
+        }
+        return predicate;
+    });
+    if (erasureConditions.length > 0) {
+        w.write(`if ${erasureConditions.join(" || ")} {`);
+        w.push();
+        w.write("return SubtreeContainsTypeScript");
+        w.pop();
+        w.write("}");
+    }
+
     if (terms.length === 0) {
         w.write("return SubtreeFactsNone");
     }
@@ -336,6 +389,7 @@ function generateBaseStructDefs(w: CodeWriter) {
         w.write("");
 
         generatePropagateSubtreeFacts(w, base);
+        generateSubtreeFacts(w, base);
     }
 }
 

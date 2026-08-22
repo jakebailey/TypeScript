@@ -1043,7 +1043,11 @@
                     "type": "ClassElement",
                     "list": "NodeList"
                 }
-            }
+            },
+            "generateSubtreeFacts": true,
+            "erasedWhen": [
+                "Ambient"
+            ]
         },
         "LiteralLikeNodeBase": {
             "fields": {
@@ -1671,6 +1675,10 @@
                 "arena": true
             },
             "VariableStatement": {
+                "generateSubtreeFacts": true,
+                "erasedWhen": [
+                    "Ambient"
+                ],
                 "extends": [
                     "StatementBase",
                     "ModifiersBase",
@@ -2089,6 +2097,13 @@
                 ]
             },
             "EnumDeclaration": {
+                "generateSubtreeFacts": true,
+                "subtreeFacts": [
+                    "TypeScript"
+                ],
+                "erasedWhen": [
+                    "Ambient"
+                ],
                 "extends": [
                     "StatementBase",
                     "DeclarationBase",
@@ -2286,6 +2301,10 @@
                 ]
             },
             "ExportSpecifier": {
+                "generateSubtreeFacts": true,
+                "erasedWhen": [
+                    "TypeOnly"
+                ],
                 "extends": [
                     "NodeBase",
                     "DeclarationBase",
@@ -2359,6 +2378,10 @@
                 "arena": true
             },
             "ConstructorDeclaration": {
+                "generateSubtreeFacts": true,
+                "erasedWhen": [
+                    "NoBody"
+                ],
                 "kind": "Constructor",
                 "extends": [
                     "NodeBase",
@@ -4938,6 +4961,13 @@
                 "handWritten": true
             },
             "ModuleDeclaration": {
+                "generateSubtreeFacts": true,
+                "subtreeFacts": [
+                    "TypeScript"
+                ],
+                "erasedWhen": [
+                    "Ambient"
+                ],
                 "extends": [
                     "StatementBase",
                     "DeclarationBase",
@@ -5064,6 +5094,10 @@
                 ]
             },
             "ImportClause": {
+                "generateSubtreeFacts": true,
+                "erasedWhen": [
+                    "TypePhase"
+                ],
                 "extends": [
                     "NodeBase",
                     "DeclarationBase",
@@ -5090,6 +5124,10 @@
                 ]
             },
             "ImportSpecifier": {
+                "generateSubtreeFacts": true,
+                "erasedWhen": [
+                    "TypeOnly"
+                ],
                 "extends": [
                     "NodeBase",
                     "DeclarationBase",

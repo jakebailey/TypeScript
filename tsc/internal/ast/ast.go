@@ -1689,15 +1689,6 @@ func (node *CatchClause) computeSubtreeFacts() SubtreeFacts {
 	return res
 }
 
-func (node *VariableStatement) computeSubtreeFacts() SubtreeFacts {
-	if node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAmbient != 0 {
-		return SubtreeContainsTypeScript
-	} else {
-		return propagateModifierListSubtreeFacts(node.modifiers) |
-			propagateSubtreeFacts(node.DeclarationList)
-	}
-}
-
 func (node *VariableDeclarationList) computeSubtreeFacts() SubtreeFacts {
 	return propagateNodeListSubtreeFacts(node.Declarations, propagateSubtreeFacts) |
 		core.IfElse(node.Flags&NodeFlagsUsing != 0, SubtreeContainsUsing, SubtreeFactsNone)
@@ -1758,18 +1749,6 @@ func (node *ClassLikeBase) Name() *DeclarationName { return node.name }
 
 func (node *ClassLikeBase) ClassLikeData() *ClassLikeBase { return node }
 
-func (node *ClassLikeBase) computeSubtreeFacts() SubtreeFacts {
-	if node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAmbient != 0 {
-		return SubtreeContainsTypeScript
-	} else {
-		return propagateModifierListSubtreeFacts(node.modifiers) |
-			propagateSubtreeFacts(node.name) |
-			propagateEraseableSyntaxListSubtreeFacts(node.TypeParameters) |
-			propagateNodeListSubtreeFacts(node.HeritageClauses, propagateSubtreeFacts) |
-			propagateNodeListSubtreeFacts(node.Members, propagateSubtreeFacts)
-	}
-}
-
 func (node *HeritageClause) computeSubtreeFacts() SubtreeFacts {
 	switch node.Token {
 	case KindExtendsKeyword:
@@ -1785,28 +1764,6 @@ func IsTypeOrJSTypeAliasDeclaration(node *Node) bool {
 	return node.Kind == KindTypeAliasDeclaration || node.Kind == KindJSTypeAliasDeclaration
 }
 
-func (node *EnumDeclaration) computeSubtreeFacts() SubtreeFacts {
-	if node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAmbient != 0 {
-		return SubtreeContainsTypeScript
-	} else {
-		return propagateModifierListSubtreeFacts(node.modifiers) |
-			propagateSubtreeFacts(node.name) |
-			propagateNodeListSubtreeFacts(node.Members, propagateSubtreeFacts) |
-			SubtreeContainsTypeScript
-	}
-}
-
-func (node *ModuleDeclaration) computeSubtreeFacts() SubtreeFacts {
-	if node.ModifierFlags()&ModifierFlagsAmbient != 0 {
-		return SubtreeContainsTypeScript
-	} else {
-		return propagateModifierListSubtreeFacts(node.modifiers) |
-			propagateSubtreeFacts(node.name) |
-			propagateSubtreeFacts(node.Body) |
-			SubtreeContainsTypeScript
-	}
-}
-
 func (node *ImportEqualsDeclaration) computeSubtreeFacts() SubtreeFacts {
 	if node.IsTypeOnly || !IsExternalModuleReference(node.ModuleReference) {
 		return SubtreeContainsTypeScript
@@ -1819,24 +1776,6 @@ func (node *ImportEqualsDeclaration) computeSubtreeFacts() SubtreeFacts {
 
 func IsImportDeclarationOrJSImportDeclaration(node *Node) bool {
 	return node.Kind == KindImportDeclaration || node.Kind == KindJSImportDeclaration
-}
-
-func (node *ImportSpecifier) computeSubtreeFacts() SubtreeFacts {
-	if node.IsTypeOnly {
-		return SubtreeContainsTypeScript
-	} else {
-		return propagateSubtreeFacts(node.PropertyName) |
-			propagateSubtreeFacts(node.name)
-	}
-}
-
-func (node *ImportClause) computeSubtreeFacts() SubtreeFacts {
-	if node.PhaseModifier == KindTypeKeyword {
-		return SubtreeContainsTypeScript
-	} else {
-		return propagateSubtreeFacts(node.name) |
-			propagateSubtreeFacts(node.NamedBindings)
-	}
 }
 
 func (node *ExportAssignment) computeSubtreeFacts() SubtreeFacts {
@@ -1855,33 +1794,11 @@ func (node *ExportDeclaration) computeSubtreeFacts() SubtreeFacts {
 		core.IfElse(node.IsTypeOnly, SubtreeContainsTypeScript, SubtreeFactsNone)
 }
 
-func (node *ExportSpecifier) computeSubtreeFacts() SubtreeFacts {
-	if node.IsTypeOnly {
-		return SubtreeContainsTypeScript
-	} else {
-		return propagateSubtreeFacts(node.PropertyName) |
-			propagateSubtreeFacts(node.name)
-	}
-}
-
 // NamedMemberBase
 
 func (node *NamedMemberBase) Modifiers() *ModifierList             { return node.modifiers }
 func (node *NamedMemberBase) setModifiers(modifiers *ModifierList) { node.modifiers = modifiers }
 func (node *NamedMemberBase) Name() *DeclarationName               { return node.name }
-
-func (node *ConstructorDeclaration) computeSubtreeFacts() SubtreeFacts {
-	if node.Body == nil {
-		return SubtreeContainsTypeScript
-	} else {
-		return propagateModifierListSubtreeFacts(node.modifiers) |
-			propagateEraseableSyntaxListSubtreeFacts(node.TypeParameters) |
-			propagateNodeListSubtreeFacts(node.Parameters, propagateSubtreeFacts) |
-			propagateEraseableSyntaxSubtreeFacts(node.Type) |
-			propagateEraseableSyntaxSubtreeFacts(node.FullSignature) |
-			propagateSubtreeFacts(node.Body)
-	}
-}
 
 func (node *AccessorDeclarationBase) IsAccessorDeclaration() {}
 

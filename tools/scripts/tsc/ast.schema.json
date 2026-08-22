@@ -155,6 +155,25 @@
                     "type": "string",
                     "description": "Name of the SubtreeExclusions* mask (without the prefix) cleared when this base's subtree facts propagate to its parent. When present, Go propagateSubtreeFacts is generated."
                 },
+                "generateSubtreeFacts": {
+                    "type": "boolean",
+                    "description": "Whether this base's Go computeSubtreeFacts method is a trivial child-propagation implementation that can be generated from schema."
+                },
+                "subtreeFacts": {
+                    "type": "array",
+                    "description": "Constant SubtreeContains* facts (without the prefix) every node embedding this base always contributes, OR'd in after child propagation.",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "erasedWhen": {
+                    "type": "array",
+                    "description": "Predicates under which this node is fully erased on emit. When any holds, computeSubtreeFacts short-circuits to SubtreeContainsTypeScript and children are not walked. One of: TypeOnly, TypePhase, Ambient, NoBody.",
+                    "items": {
+                        "type": "string",
+                        "enum": ["TypeOnly", "TypePhase", "Ambient", "NoBody"]
+                    }
+                },
                 "extends": {
                     "type": "array",
                     "description": "Other bases transitively included by this one.",
@@ -309,6 +328,14 @@
                 "generateSubtreeFacts": {
                     "type": "boolean",
                     "description": "Whether this node's Go computeSubtreeFacts method is a trivial child-propagation implementation that can be generated from schema."
+                },
+                "erasedWhen": {
+                    "type": "array",
+                    "description": "Predicates under which this node is fully erased on emit. When any holds, computeSubtreeFacts short-circuits to SubtreeContainsTypeScript and children are not walked. One of: TypeOnly, TypePhase, Ambient, NoBody.",
+                    "items": {
+                        "type": "string",
+                        "enum": ["TypeOnly", "TypePhase", "Ambient", "NoBody"]
+                    }
                 },
                 "subtreeFacts": {
                     "type": "array",
