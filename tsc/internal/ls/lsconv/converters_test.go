@@ -109,13 +109,56 @@ func (s *testScript) OriginalText() string {
 }
 func (s *testScript) SpanMap() *spanmap.SpanMap { return s.spanMap }
 
-func newTestConverters(text string) (*lsconv.Converters, *testScript) {
+func newTestConvertersForEncoding(text string, encoding lsproto.PositionEncodingKind) (*lsconv.Converters, *testScript) {
 	script := &testScript{name: "test.ts", text: text}
 	lineMap := lsconv.ComputeLSPLineStarts(text)
-	conv := lsconv.NewConverters(lsproto.PositionEncodingKindUTF16, func(_ string) *lsconv.LSPLineMap {
+	conv := lsconv.NewConverters(encoding, func(_ string) *lsconv.LSPLineMap {
 		return lineMap
 	})
 	return conv, script
+}
+
+func newTestConverters(text string) (*lsconv.Converters, *testScript) {
+	return newTestConvertersForEncoding(text, lsproto.PositionEncodingKindUTF16)
+}
+
+func TestConvertersPositionEncodings(t *testing.T) {
+	t.Parallel()
+
+	text := "\uFEFFaα\U0001F600\uFFFE\nx"
+	tests := []struct {
+		encoding   lsproto.PositionEncodingKind
+		characters []uint32
+	}{
+		{lsproto.PositionEncodingKindUTF8, []uint32{0, 3, 4, 6, 10, 13}},
+		{lsproto.PositionEncodingKindUTF16, []uint32{0, 1, 2, 3, 5, 6}},
+		{lsproto.PositionEncodingKindUTF32, []uint32{0, 1, 2, 3, 4, 5}},
+	}
+	bytePositions := []core.TextPos{0, 3, 4, 6, 10, 13}
+
+	for _, test := range tests {
+		t.Run(string(test.encoding), func(t *testing.T) {
+			t.Parallel()
+			conv, script := newTestConvertersForEncoding(text, test.encoding)
+			for i, bytePos := range bytePositions {
+				lspPosition := lsproto.Position{Line: 0, Character: test.characters[i]}
+				got, _ := conv.ToLSPPosition(script, bytePos)
+				assert.Equal(t, got, lspPosition)
+				positions := lsconv.FromLSPPosition(conv, script, lspPosition, spanmap.FeatureAll)
+				assert.Equal(t, len(positions), 1)
+				assert.Equal(t, positions[0].Position, bytePos)
+			}
+
+			lineOne := lsproto.Position{Line: 1, Character: 0}
+			got, _ := conv.ToLSPPosition(script, 14)
+			assert.Equal(t, got, lineOne)
+			positions := lsconv.FromLSPPosition(conv, script, lineOne, spanmap.FeatureAll)
+			assert.Equal(t, positions[0].Position, core.TextPos(14))
+
+			pastEnd := lsconv.FromLSPPosition(conv, script, lsproto.Position{Line: 2}, spanmap.FeatureAll)
+			assert.Equal(t, pastEnd[0].Position, core.TextPos(len(text)))
+		})
+	}
 }
 
 func TestConvertersSourceFileProjectionExpansion(t *testing.T) {
@@ -195,6 +238,35 @@ func TestConvertersInvalidUTF8(t *testing.T) {
 		positions := lsconv.FromLSPPosition(conv, script, lc, spanmap.FeatureAll)
 		assert.Equal(t, len(positions), 1)
 		assert.Equal(t, positions[0].Position, bytePos, fmt.Sprintf("round-trip byte %d", bytePos))
+	}
+}
+
+func TestConvertersInvalidUTF8PositionEncodings(t *testing.T) {
+	t.Parallel()
+
+	text := "a\x80\U0001F600b"
+	tests := []struct {
+		encoding   lsproto.PositionEncodingKind
+		characters []uint32
+	}{
+		{lsproto.PositionEncodingKindUTF8, []uint32{0, 1, 2, 6, 7}},
+		{lsproto.PositionEncodingKindUTF16, []uint32{0, 1, 2, 4, 5}},
+		{lsproto.PositionEncodingKindUTF32, []uint32{0, 1, 2, 3, 4}},
+	}
+	bytePositions := []core.TextPos{0, 1, 2, 6, 7}
+	for _, test := range tests {
+		t.Run(string(test.encoding), func(t *testing.T) {
+			t.Parallel()
+			conv, script := newTestConvertersForEncoding(text, test.encoding)
+			for i, bytePos := range bytePositions {
+				lspPosition := lsproto.Position{Character: test.characters[i]}
+				got, _ := conv.ToLSPPosition(script, bytePos)
+				assert.Equal(t, got, lspPosition)
+				positions := lsconv.FromLSPPosition(conv, script, lspPosition, spanmap.FeatureAll)
+				assert.Equal(t, len(positions), 1)
+				assert.Equal(t, positions[0].Position, bytePos)
+			}
+		})
 	}
 }
 

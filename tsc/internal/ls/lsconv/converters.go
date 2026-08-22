@@ -366,7 +366,7 @@ func FileNameToDocumentURI(fileName string) lsproto.DocumentUri {
 }
 
 func (c *Converters) lineAndCharacterToPosition(script Script, lineAndCharacter lsproto.Position) core.TextPos {
-	// UTF-8/16 0-indexed line and character to UTF-8 offset
+	// UTF-8/16/32 0-indexed line and character to UTF-8 offset
 	debug.Assert(script.SpanMap() == nil, "raw coordinate conversion requires a non-content-mapped script")
 
 	lineMap := c.getLineMap(script.FileName())
@@ -395,21 +395,24 @@ func (c *Converters) lineAndCharacterToPosition(script Script, lineAndCharacter 
 		return max(start, min(start+char, lineEnd))
 	}
 
-	// Scan from line start counting UTF-16 code units to find the byte position.
+	// Scan from line start counting encoded code units to find the byte position.
 	// Uses DecodeRuneInString (not range + RuneLen) so that invalid UTF-8 bytes
 	// advance by their actual size (1) rather than RuneLen(RuneError) == 3.
 	// This matches the approach in scanner.ComputePositionOfLineAndUTF16Character.
-	var utf16Char core.TextPos
+	var encodedChar core.TextPos
 	pos := int(start)
 	end := int(lineEnd)
 	text := script.Text()
 	for pos < end {
 		r, size := utf8.DecodeRuneInString(text[pos:])
-		u16Len := core.TextPos(utf16.RuneLen(r))
-		if utf16Char+u16Len > char {
+		encodedLen := core.TextPos(1)
+		if c.positionEncoding == lsproto.PositionEncodingKindUTF16 {
+			encodedLen = core.TextPos(utf16.RuneLen(r))
+		}
+		if encodedChar+encodedLen > char {
 			break
 		}
-		utf16Char += u16Len
+		encodedChar += encodedLen
 		pos += size
 	}
 
@@ -417,7 +420,7 @@ func (c *Converters) lineAndCharacterToPosition(script Script, lineAndCharacter 
 }
 
 func (c *Converters) positionToLineAndCharacter(script Script, position core.TextPos) lsproto.Position {
-	// UTF-8 offset to UTF-8/16 0-indexed line and character
+	// UTF-8 offset to UTF-8/16/32 0-indexed line and character
 	debug.Assert(script.SpanMap() == nil, "raw coordinate conversion requires a non-content-mapped script")
 
 	position = max(0, min(position, core.TextPos(len(script.Text()))))
@@ -437,6 +440,8 @@ func (c *Converters) positionToLineAndCharacter(script Script, position core.Tex
 	var character core.TextPos
 	if lineMap.AsciiOnly || c.positionEncoding == lsproto.PositionEncodingKindUTF8 {
 		character = position - start
+	} else if c.positionEncoding == lsproto.PositionEncodingKindUTF32 {
+		character = core.TextPos(utf8.RuneCountInString(script.Text()[start:position]))
 	} else {
 		// We need to rescan the text as UTF-16 to find the character offset.
 		for _, r := range script.Text()[start:position] {
