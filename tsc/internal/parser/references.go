@@ -52,7 +52,9 @@ func collectModuleReferences(file *ast.SourceFile, node *ast.Statement, inAmbien
 		// - if current file is external module then module augmentation is a ambient module declaration defined in the top level scope
 		// - if current file is not external module then module augmentation is an ambient module declaration with non-relative module name
 		//   immediately nested in top level ambient module declaration .
-		if ast.IsExternalModule(file) || (inAmbientModule && !tspath.IsExternalModuleNameRelative(nameText)) {
+		// We use the syntactic check here (rather than file.ExternalModuleIndicator) so that
+		// this classification does not depend on compiler options.
+		if ast.IsFileProbablyExternalModule(file) != nil || (inAmbientModule && !tspath.IsExternalModuleNameRelative(nameText)) {
 			file.ModuleAugmentations = append(file.ModuleAugmentations, node.AsModuleDeclaration().Name())
 		} else if !inAmbientModule {
 			file.AmbientModuleNames = append(file.AmbientModuleNames, nameText)

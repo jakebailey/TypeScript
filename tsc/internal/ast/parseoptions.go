@@ -62,7 +62,7 @@ func getExternalModuleIndicator(file *SourceFile, opts ExternalModuleIndicatorOp
 		return nil
 	}
 
-	if node := isFileProbablyExternalModule(file); node != nil {
+	if node := IsFileProbablyExternalModule(file); node != nil {
 		return node
 	}
 
@@ -83,7 +83,7 @@ func getExternalModuleIndicator(file *SourceFile, opts ExternalModuleIndicatorOp
 	return nil
 }
 
-func isFileProbablyExternalModule(sourceFile *SourceFile) *Node {
+func IsFileProbablyExternalModule(sourceFile *SourceFile) *Node {
 	for _, statement := range sourceFile.Statements.Nodes {
 		if isAnExternalModuleIndicatorNode(statement) {
 			return statement
