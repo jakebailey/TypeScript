@@ -1,13 +1,13 @@
 import {
-    API,
-    type Project,
-    type Snapshot,
-} from "@typescript/api/napi";
-import {
     type Node,
     type SourceFile,
     SyntaxKind,
-} from "@typescript/ast";
+} from "@typescript/typescript/unstable/ast";
+import {
+    API,
+    type Project,
+    type Snapshot,
+} from "@typescript/typescript/unstable/napi";
 import {
     existsSync,
     writeFileSync,
@@ -17,7 +17,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 import { Bench } from "tinybench";
-import { RemoteSourceFile } from "../../src/node/node.ts";
+import { RemoteSourceFile } from "../../src/api/node/node.ts";
 
 const isMain = process.argv[1] === fileURLToPath(import.meta.url);
 if (isMain) {
@@ -34,8 +34,8 @@ if (isMain) {
 export function runBenchmarks(options?: { filter?: string; singleIteration?: boolean; cpuprofile?: boolean; }) {
     const { filter, singleIteration, cpuprofile } = options ?? {};
     const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url).toString());
-    if (!existsSync(path.join(repoRoot, "_submodules/TypeScript/src/compiler"))) {
-        console.warn("Warning: TypeScript submodule is not cloned; skipping benchmarks.");
+    if (!existsSync(path.join(repoRoot, "tsc/testdata/fixtures/compiler/tsconfig.json"))) {
+        console.warn("Warning: The full compiler fixture is unavailable; skipping benchmarks.");
         return;
     }
 
@@ -178,7 +178,7 @@ export function runBenchmarks(options?: { filter?: string; singleIteration?: boo
     }
 
     function loadSnapshot() {
-        snapshot = api.updateSnapshot({ openProject: "_submodules/TypeScript/src/compiler/tsconfig.json" });
+        snapshot = api.updateSnapshot({ openProject: "tsc/testdata/fixtures/compiler/tsconfig.json" });
         project = snapshot.getProjects()[0];
     }
 

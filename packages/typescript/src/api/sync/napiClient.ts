@@ -8,20 +8,29 @@
 import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import type { FileSystem } from "../fs.ts";
 import type {
     APIMethodInfo,
     SourceFileResponseMethod,
 } from "../proto.ts";
 import {
     combineTimingInfo,
+    disabledServerTimingInfo,
     disabledTimingInfo,
-    type ServerTimingInfo,
     TimingCollector,
     type TimingInfo,
 } from "../timing.ts";
 
+interface NapiCallbacks {
+    readFile?: (path: string) => string | null | undefined;
+    fileExists?: (path: string) => boolean | undefined;
+    directoryExists?: (path: string) => boolean | undefined;
+    getAccessibleEntries?: (path: string) => string | undefined;
+    realpath?: (path: string) => string | undefined;
+}
+
 interface NapiModule {
-    createSession(cwd: string, defaultLibraryPath?: string): void;
+    createSession(cwd: string, defaultLibraryPath?: string, fsCallbacks?: NapiCallbacks): void;
     request(method: string, payload: string): string;
     requestBinary(method: string, payload: Uint8Array): Uint8Array;
     close(): void;
@@ -52,6 +61,8 @@ export interface NapiClientOptions {
      * Required for noembed builds.
      */
     defaultLibraryPath?: string;
+    /** Virtual filesystem callbacks. */
+    fs?: FileSystem;
     /** Collect request and server timing information. */
     collectTiming?: boolean;
 }
@@ -70,7 +81,37 @@ export class NapiClient {
         if (options.collectTiming) {
             this.timing = new TimingCollector();
         }
-        this.module.createSession(cwd, defaultLibraryPath);
+
+        let fsCallbacks: NapiCallbacks | undefined;
+        if (options.fs) {
+            const fs = options.fs;
+            fsCallbacks = {};
+            if (fs.readFile) {
+                const readFile = fs.readFile;
+                fsCallbacks.readFile = p => readFile(p);
+            }
+            if (fs.fileExists) {
+                const fileExists = fs.fileExists;
+                fsCallbacks.fileExists = p => fileExists(p);
+            }
+            if (fs.directoryExists) {
+                const directoryExists = fs.directoryExists;
+                fsCallbacks.directoryExists = p => directoryExists(p);
+            }
+            if (fs.getAccessibleEntries) {
+                const getAccessibleEntries = fs.getAccessibleEntries;
+                fsCallbacks.getAccessibleEntries = p => {
+                    const result = getAccessibleEntries(p);
+                    return result === undefined ? undefined : JSON.stringify(result);
+                };
+            }
+            if (fs.realpath) {
+                const realpath = fs.realpath;
+                fsCallbacks.realpath = p => realpath(p);
+            }
+        }
+
+        this.module.createSession(cwd, defaultLibraryPath, fsCallbacks);
     }
 
     apiRequest<K extends keyof APIMethodInfo>(method: K, params?: APIMethodInfo[K]["params"]): APIMethodInfo[K]["result"] {
@@ -97,15 +138,12 @@ export class NapiClient {
         if (!this.timing) {
             return disabledTimingInfo();
         }
-        const local = this.timing.getInfo();
-        const result = this.module.request("getServerTiming", "");
-        return combineTimingInfo(local, JSON.parse(result) as ServerTimingInfo);
+        return combineTimingInfo(this.timing.getInfo(), disabledServerTimingInfo());
     }
 
     resetTimingInfo(): void {
         if (!this.timing) return;
         this.timing.reset();
-        this.module.request("resetServerTiming", "");
     }
 
     getTimingCollector(): TimingCollector | undefined {
