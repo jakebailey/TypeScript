@@ -2010,19 +2010,6 @@ func (node *MetaProperty) computeSubtreeFacts() SubtreeFacts {
 
 // Hand-written subtree facts for nontrivial generated nodes.
 
-func (node *PropertyAssignment) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.name) |
-		propagateSubtreeFacts(node.Type) |
-		propagateSubtreeFacts(node.Initializer)
-}
-
-func (node *ShorthandPropertyAssignment) computeSubtreeFacts() SubtreeFacts {
-	return propagateSubtreeFacts(node.name) |
-		propagateSubtreeFacts(node.Type) |
-		propagateSubtreeFacts(node.ObjectAssignmentInitializer) |
-		SubtreeContainsTypeScript
-}
-
 func (node *AwaitExpression) computeSubtreeFacts() SubtreeFacts {
 	// await in an ES2018 async generator must use `yield __await(expr)`
 	return propagateSubtreeFacts(node.Expression) | SubtreeContainsAwait | SubtreeContainsAnyAwait | SubtreeContainsForAwaitOrAsyncGenerator

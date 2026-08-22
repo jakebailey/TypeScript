@@ -3424,6 +3424,7 @@
                 ]
             },
             "PropertyAssignment": {
+                "generateSubtreeFacts": true,
                 "extends": [
                     "NodeBase",
                     "DeclarationBase",
@@ -3456,6 +3457,10 @@
                 "arena": true
             },
             "ShorthandPropertyAssignment": {
+                "generateSubtreeFacts": true,
+                "subtreeFacts": [
+                    "TypeScript"
+                ],
                 "extends": [
                     "NodeBase",
                     "DeclarationBase",

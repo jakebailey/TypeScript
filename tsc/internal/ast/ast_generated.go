@@ -5004,6 +5004,14 @@ func (node *PropertyAssignment) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewPropertyAssignment(node.Modifiers(), node.name, node.PostfixToken, node.Type, node.Initializer), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *PropertyAssignment) computeSubtreeFacts() SubtreeFacts {
+	return propagateModifierListSubtreeFacts(node.modifiers) |
+		propagateSubtreeFacts(node.name) |
+		propagateEraseableSyntaxSubtreeFacts(node.PostfixToken) |
+		propagateSubtreeFacts(node.Type) |
+		propagateSubtreeFacts(node.Initializer)
+}
+
 func (node *PropertyAssignment) Name() *DeclarationName {
 	return node.name
 }
@@ -5060,6 +5068,16 @@ func (node *ShorthandPropertyAssignment) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *ShorthandPropertyAssignment) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewShorthandPropertyAssignment(node.Modifiers(), node.name, node.PostfixToken, node.Type, node.EqualsToken, node.ObjectAssignmentInitializer), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *ShorthandPropertyAssignment) computeSubtreeFacts() SubtreeFacts {
+	return propagateModifierListSubtreeFacts(node.modifiers) |
+		propagateSubtreeFacts(node.name) |
+		propagateEraseableSyntaxSubtreeFacts(node.PostfixToken) |
+		propagateSubtreeFacts(node.Type) |
+		propagateSubtreeFacts(node.EqualsToken) |
+		propagateSubtreeFacts(node.ObjectAssignmentInitializer) |
+		SubtreeContainsTypeScript
 }
 
 func (node *ShorthandPropertyAssignment) Name() *DeclarationName {
