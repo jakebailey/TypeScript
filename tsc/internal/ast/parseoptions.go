@@ -57,8 +57,9 @@ func GetExternalModuleIndicator(file *SourceFile, opts ExternalModuleIndicatorOp
 		return nil
 	}
 
-	if node := IsFileProbablyExternalModule(file); node != nil {
-		return node
+	// Binding can mutate node flags concurrently, so don't walk the tree here.
+	if file.SyntacticExternalModuleIndicator != nil {
+		return file.SyntacticExternalModuleIndicator
 	}
 
 	if file.IsDeclarationFile {
