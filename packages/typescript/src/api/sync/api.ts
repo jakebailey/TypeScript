@@ -94,7 +94,8 @@ import type {
     TimingInfo,
 } from "../timing.ts";
 import {
-    Client,
+    type APIClient,
+    Client as SyncClient,
     type ClientSocketOptions,
     type ClientSpawnOptions,
 } from "./client.ts";
@@ -143,6 +144,7 @@ import type {
 export { documentURIToFileName, fileNameToDocumentURI } from "../path.ts";
 export { CheckFlags, CompletionItemKind, DiagnosticCategory, ElementFlags, EmitOnly, ModifierFlags, ModuleKind, NodeBuilderFlags, ObjectFlags, SignatureFlags, SignatureKind, SymbolFlags, TypeFlags, TypeFormatFlags, TypePredicateKind };
 export type {
+    APIClient,
     APIImportAdderAction as ImportAdderAction,
     APIOptions,
     AssertsIdentifierTypePredicate,
@@ -213,6 +215,8 @@ export interface TranspileOutput {
     sourceMapText?: string;
 }
 
+type Client = APIClient;
+
 export class API<FromLSP extends boolean = false> {
     private client: Client;
     private sourceFileCache: SourceFileCache;
@@ -223,9 +227,13 @@ export class API<FromLSP extends boolean = false> {
     readonly internal: InternalAPI;
 
     constructor(options: APIOptions | LSPConnectionOptions = {}) {
-        this.client = new Client(options);
+        this.client = this.createClient(options);
         this.sourceFileCache = new SourceFileCache();
         this.internal = new InternalAPI(this.client, () => this.ensureInitialized());
+    }
+
+    protected createClient(options: APIOptions | LSPConnectionOptions): APIClient {
+        return new SyncClient(options);
     }
 
     /**

@@ -217,6 +217,39 @@ export const tsgo = task({
     dependencies: [lib, tscBuild],
 });
 
+/**
+ * Build the tsgo NAPI native addon (.node file).
+ * This builds a C-shared library that can be loaded directly by Node.js,
+ * providing in-process access to the TypeScript compiler without IPC.
+ *
+ * @param {object} [opts]
+ * @param {string} [opts.out]
+ * @param {AbortSignal} [opts.abortSignal]
+ * @param {Record<string, string | undefined>} [opts.env]
+ * @param {string[]} [opts.extraFlags]
+ */
+function buildTscNapi(opts) {
+    opts ||= {};
+    const out = opts.out ?? path.resolve("./built/local/tsgo.node");
+    const env = { ...goBuildEnv, ...opts.env, CGO_ENABLED: "1" };
+    const tags = options.debug || options.assert ? goBuildTags("noembed") : goBuildTags("noembed", "noassert");
+    return $({ cancelSignal: opts.abortSignal, env, cwd: "./tsc" })`go build -buildmode=c-shared ${goBuildFlags} ${opts.extraFlags ?? []} ${tags} -o ${out} ./cmd/tsgo-napi`;
+}
+
+export const tsgoNapiBuild = task({
+    name: "tsgo-napi:build",
+    description: "Builds the tsgo NAPI native addon.",
+    run: async () => {
+        await buildTscNapi({ extraFlags: options.release ? getReleaseBuildFlags() : [] });
+    },
+});
+
+export const tsgoNapi = task({
+    name: "tsgo-napi",
+    description: "Builds the tsgo.node NAPI native addon for in-process API access.",
+    dependencies: [tsgoNapiBuild],
+});
+
 export const local = task({
     name: "local",
     dependencies: [tsgo],

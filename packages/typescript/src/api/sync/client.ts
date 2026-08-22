@@ -22,7 +22,16 @@ import {
 
 export type { ClientOptions, ClientSocketOptions, ClientSpawnOptions };
 
-export class Client {
+export interface APIClient {
+    apiRequest<K extends keyof APIMethodInfo>(method: K, params?: APIMethodInfo[K]["params"]): APIMethodInfo[K]["result"];
+    apiRequestBinary<K extends SourceFileResponseMethod>(method: K, params?: APIMethodInfo[K]["params"]): Uint8Array | undefined;
+    getTimingInfo(): TimingInfo;
+    resetTimingInfo(): void;
+    getTimingCollector(): TimingCollector | undefined;
+    close(): void;
+}
+
+export class Client implements APIClient {
     private channel: SyncRpcChannel;
     private encoder = new TextEncoder();
     private timing: TimingCollector | undefined;

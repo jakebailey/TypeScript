@@ -42,6 +42,10 @@
             "@typescript/source": "./src/api/sync/api.ts",
             "default": "./dist/api/sync/api.js"
         },
+        "./unstable/napi": {
+            "@typescript/source": "./src/api/sync/napiApi.ts",
+            "default": "./dist/api/sync/napiApi.js"
+        },
         "./unstable/async": {
             "@typescript/source": "./src/api/async/api.ts",
             "default": "./dist/api/async/api.js"
