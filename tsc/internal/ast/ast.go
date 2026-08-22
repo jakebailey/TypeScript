@@ -1699,10 +1699,6 @@ func (node *CatchClause) computeSubtreeFacts() SubtreeFacts {
 	return res
 }
 
-func (node *CatchClause) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsCatchClause
-}
-
 func (node *VariableStatement) computeSubtreeFacts() SubtreeFacts {
 	if node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAmbient != 0 {
 		return SubtreeContainsTypeScript
@@ -1724,10 +1720,6 @@ func (node *VariableDeclarationList) computeSubtreeFacts() SubtreeFacts {
 		core.IfElse(node.Flags&NodeFlagsUsing != 0, SubtreeContainsUsing, SubtreeFactsNone)
 }
 
-func (node *VariableDeclarationList) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsVariableDeclarationList
-}
-
 func (node *BindingPattern) computeSubtreeFacts() SubtreeFacts {
 	switch node.Kind {
 	case KindObjectBindingPattern:
@@ -1737,10 +1729,6 @@ func (node *BindingPattern) computeSubtreeFacts() SubtreeFacts {
 	default:
 		return SubtreeFactsNone
 	}
-}
-
-func (node *BindingPattern) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsBindingPattern
 }
 
 func (node *ParameterDeclaration) computeSubtreeFacts() SubtreeFacts {
@@ -1753,10 +1741,6 @@ func (node *ParameterDeclaration) computeSubtreeFacts() SubtreeFacts {
 			propagateEraseableSyntaxSubtreeFacts(node.Type) |
 			propagateSubtreeFacts(node.Initializer)
 	}
-}
-
-func (node *ParameterDeclaration) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsParameter
 }
 
 func (node *BindingElement) computeSubtreeFacts() SubtreeFacts {
@@ -1785,10 +1769,6 @@ func (node *FunctionDeclaration) computeSubtreeFacts() SubtreeFacts {
 	}
 }
 
-func (node *FunctionDeclaration) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsFunction
-}
-
 // ClassLikeBase
 
 func (node *ClassLikeBase) Name() *DeclarationName { return node.name }
@@ -1805,14 +1785,6 @@ func (node *ClassLikeBase) computeSubtreeFacts() SubtreeFacts {
 			propagateNodeListSubtreeFacts(node.HeritageClauses, propagateSubtreeFacts) |
 			propagateNodeListSubtreeFacts(node.Members, propagateSubtreeFacts)
 	}
-}
-
-func (node *ClassDeclaration) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsClass
-}
-
-func (node *ClassExpression) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsClass
 }
 
 func (node *HeritageClause) computeSubtreeFacts() SubtreeFacts {
@@ -1856,10 +1828,6 @@ func (node *ModuleDeclaration) computeSubtreeFacts() SubtreeFacts {
 			propagateSubtreeFacts(node.Body) |
 			SubtreeContainsTypeScript
 	}
-}
-
-func (node *ModuleDeclaration) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsModule
 }
 
 func (node *ImportEqualsDeclaration) computeSubtreeFacts() SubtreeFacts {
@@ -1938,10 +1906,6 @@ func (node *ConstructorDeclaration) computeSubtreeFacts() SubtreeFacts {
 	}
 }
 
-func (node *ConstructorDeclaration) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsConstructor
-}
-
 func (node *AccessorDeclarationBase) IsAccessorDeclaration() {}
 
 func (node *AccessorDeclarationBase) computeSubtreeFacts() SubtreeFacts {
@@ -1956,11 +1920,6 @@ func (node *AccessorDeclarationBase) computeSubtreeFacts() SubtreeFacts {
 			propagateEraseableSyntaxSubtreeFacts(node.FullSignature) |
 			propagateSubtreeFacts(node.Body)
 	}
-}
-
-func (node *AccessorDeclarationBase) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsAccessor |
-		propagateSubtreeFacts(node.name)
 }
 
 func (node *MethodDeclaration) computeSubtreeFacts() SubtreeFacts {
@@ -1983,11 +1942,6 @@ func (node *MethodDeclaration) computeSubtreeFacts() SubtreeFacts {
 	}
 }
 
-func (node *MethodDeclaration) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsMethod |
-		propagateSubtreeFacts(node.name)
-}
-
 func (node *PropertyDeclaration) computeSubtreeFacts() SubtreeFacts {
 	return propagateModifierListSubtreeFacts(node.modifiers) |
 		propagateSubtreeFacts(node.name) |
@@ -1995,11 +1949,6 @@ func (node *PropertyDeclaration) computeSubtreeFacts() SubtreeFacts {
 		propagateEraseableSyntaxSubtreeFacts(node.Type) |
 		propagateSubtreeFacts(node.Initializer) |
 		SubtreeContainsClassFields
-}
-
-func (node *PropertyDeclaration) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsProperty |
-		propagateSubtreeFacts(node.name)
 }
 
 func (node *ClassStaticBlockDeclaration) computeSubtreeFacts() SubtreeFacts {
@@ -2068,10 +2017,6 @@ func (node *ArrowFunction) computeSubtreeFacts() SubtreeFacts {
 		core.IfElse(node.ModifierFlags()&ModifierFlagsAsync != 0, SubtreeContainsAnyAwait, SubtreeFactsNone)
 }
 
-func (node *ArrowFunction) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsArrowFunction
-}
-
 func (node *FunctionExpression) computeSubtreeFacts() SubtreeFacts {
 	isAsync := node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAsync != 0
 	isGenerator := node.AsteriskToken != nil
@@ -2087,24 +2032,12 @@ func (node *FunctionExpression) computeSubtreeFacts() SubtreeFacts {
 		core.IfElse(isAsync && !isGenerator, SubtreeContainsAnyAwait, SubtreeFactsNone)
 }
 
-func (node *FunctionExpression) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsFunction
-}
-
 func (node *AsExpression) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) | SubtreeContainsTypeScript
 }
 
-func (node *AsExpression) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsOuterExpression
-}
-
 func (node *SatisfiesExpression) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) | SubtreeContainsTypeScript
-}
-
-func (node *SatisfiesExpression) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsOuterExpression
 }
 
 func (node *PropertyAccessExpression) computeSubtreeFacts() SubtreeFacts {
@@ -2117,14 +2050,6 @@ func (node *PropertyAccessExpression) computeSubtreeFacts() SubtreeFacts {
 		propagateSubtreeFacts(node.name) | privateName
 }
 
-func (node *PropertyAccessExpression) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsPropertyAccess
-}
-
-func (node *ElementAccessExpression) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsElementAccess
-}
-
 func (node *CallExpression) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) |
 		propagateSubtreeFacts(node.QuestionDotToken) |
@@ -2133,18 +2058,10 @@ func (node *CallExpression) computeSubtreeFacts() SubtreeFacts {
 		core.IfElse(node.Expression.Kind == KindImportKeyword, SubtreeContainsDynamicImport, SubtreeFactsNone)
 }
 
-func (node *CallExpression) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsCall
-}
-
 func (node *NewExpression) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) |
 		propagateEraseableSyntaxListSubtreeFacts(node.TypeArguments) |
 		propagateNodeListSubtreeFacts(node.Arguments, propagateSubtreeFacts)
-}
-
-func (node *NewExpression) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsNew
 }
 
 func (node *MetaProperty) computeSubtreeFacts() SubtreeFacts {
@@ -2167,14 +2084,6 @@ func (node *TaggedTemplateExpression) computeSubtreeFacts() SubtreeFacts {
 }
 
 // Hand-written subtree facts for nontrivial generated nodes.
-
-func (node *ArrayLiteralExpression) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsArrayLiteral
-}
-
-func (node *ObjectLiteralExpression) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsObjectLiteral
-}
 
 func (node *SpreadAssignment) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) | SubtreeContainsESObjectRestOrSpread | SubtreeContainsObjectRestOrSpread
@@ -2200,10 +2109,6 @@ func (node *AwaitExpression) computeSubtreeFacts() SubtreeFacts {
 
 func (node *TypeAssertion) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) | SubtreeContainsTypeScript
-}
-
-func (node *TypeAssertion) propagateSubtreeFacts() SubtreeFacts {
-	return node.SubtreeFacts() & ^SubtreeExclusionsOuterExpression
 }
 
 func (node *ExpressionWithTypeArguments) computeSubtreeFacts() SubtreeFacts {

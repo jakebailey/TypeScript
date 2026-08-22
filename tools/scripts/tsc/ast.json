@@ -1114,7 +1114,8 @@
                 "ClassElementBase",
                 "ObjectLiteralElementBase",
                 "CompositeBase"
-            ]
+            ],
+            "subtreeExclusions": "Accessor"
         },
         "FunctionOrConstructorTypeNodeBase": {
             "extends": [
@@ -1592,7 +1593,8 @@
                         "name": "Block",
                         "type": "Block"
                     }
-                ]
+                ],
+                "subtreeExclusions": "CatchClause"
             },
             "DebuggerStatement": {
                 "extends": [
@@ -1714,7 +1716,8 @@
                         "inherited": true
                     }
                 ],
-                "arena": true
+                "arena": true,
+                "subtreeExclusions": "VariableDeclarationList"
             },
             "BindingPattern": {
                 "extends": [
@@ -1735,7 +1738,8 @@
                         "type": "BindingElement",
                         "list": "NodeList"
                     }
-                ]
+                ],
+                "subtreeExclusions": "BindingPattern"
             },
             "ParameterDeclaration": {
                 "kind": "Parameter",
@@ -1776,7 +1780,8 @@
                         "optional": true
                     }
                 ],
-                "arena": true
+                "arena": true,
+                "subtreeExclusions": "Parameter"
             },
             "BindingElement": {
                 "extends": [
@@ -1878,7 +1883,8 @@
                         "goOnly": true
                     }
                 ],
-                "arena": true
+                "arena": true,
+                "subtreeExclusions": "Function"
             },
             "ClassDeclaration": {
                 "extends": [
@@ -1907,7 +1913,8 @@
                         "name": "Members",
                         "inherited": true
                     }
-                ]
+                ],
+                "subtreeExclusions": "Class"
             },
             "ClassExpression": {
                 "extends": [
@@ -1936,7 +1943,8 @@
                         "name": "Members",
                         "inherited": true
                     }
-                ]
+                ],
+                "subtreeExclusions": "Class"
             },
             "HeritageClause": {
                 "extends": [
@@ -2367,7 +2375,8 @@
                         "type": "*FlowNode",
                         "goOnly": true
                     }
-                ]
+                ],
+                "subtreeExclusions": "Constructor"
             },
             "GetAccessorDeclaration": {
                 "kind": "GetAccessor",
@@ -2408,7 +2417,8 @@
                         "optional": true,
                         "visit": "functionBody"
                     }
-                ]
+                ],
+                "subtreeExclusions": "Method"
             },
             "SetAccessorDeclaration": {
                 "kind": "SetAccessor",
@@ -2635,7 +2645,8 @@
                         "type": "Expression",
                         "optional": true
                     }
-                ]
+                ],
+                "subtreeExclusions": "Property"
             },
             "SemicolonClassElement": {
                 "extends": [
@@ -2922,7 +2933,8 @@
                         "type": "ConciseBody",
                         "visit": "functionBody"
                     }
-                ]
+                ],
+                "subtreeExclusions": "ArrowFunction"
             },
             "FunctionExpression": {
                 "extends": [
@@ -2978,7 +2990,8 @@
                         "type": "*FlowNode",
                         "goOnly": true
                     }
-                ]
+                ],
+                "subtreeExclusions": "Function"
             },
             "AsExpression": {
                 "extends": [
@@ -2993,7 +3006,8 @@
                         "name": "Type",
                         "type": "TypeNode"
                     }
-                ]
+                ],
+                "subtreeExclusions": "OuterExpression"
             },
             "SatisfiesExpression": {
                 "extends": [
@@ -3008,7 +3022,8 @@
                         "name": "Type",
                         "type": "TypeNode"
                     }
-                ]
+                ],
+                "subtreeExclusions": "OuterExpression"
             },
             "ConditionalExpression": {
                 "generateSubtreeFacts": true,
@@ -3067,7 +3082,8 @@
                         "bitmask": "NodeFlagsOptionalChain"
                     }
                 ],
-                "arena": true
+                "arena": true,
+                "subtreeExclusions": "PropertyAccess"
             },
             "ElementAccessExpression": {
                 "generateSubtreeFacts": true,
@@ -3096,7 +3112,8 @@
                         "bitmask": "NodeFlagsOptionalChain"
                     }
                 ],
-                "arena": true
+                "arena": true,
+                "subtreeExclusions": "ElementAccess"
             },
             "CallExpression": {
                 "extends": [
@@ -3131,7 +3148,8 @@
                         "bitmask": "NodeFlagsOptionalChain"
                     }
                 ],
-                "arena": true
+                "arena": true,
+                "subtreeExclusions": "Call"
             },
             "NewExpression": {
                 "extends": [
@@ -3155,7 +3173,8 @@
                         "optional": true,
                         "list": "NodeList"
                     }
-                ]
+                ],
+                "subtreeExclusions": "New"
             },
             "MetaProperty": {
                 "extends": [
@@ -3299,7 +3318,8 @@
                         "name": "MultiLine",
                         "type": "bool"
                     }
-                ]
+                ],
+                "subtreeExclusions": "ArrayLiteral"
             },
             "ObjectLiteralExpression": {
                 "generateSubtreeFacts": true,
@@ -3318,7 +3338,8 @@
                         "name": "MultiLine",
                         "type": "bool"
                     }
-                ]
+                ],
+                "subtreeExclusions": "ObjectLiteral"
             },
             "SpreadAssignment": {
                 "extends": [
@@ -3331,7 +3352,8 @@
                         "name": "Expression",
                         "type": "Expression"
                     }
-                ]
+                ],
+                "subtreeExclusions": "OuterExpression"
             },
             "PropertyAssignment": {
                 "extends": [
@@ -4812,7 +4834,8 @@
                         "inherited": true,
                         "type": "ModuleBody"
                     }
-                ]
+                ],
+                "subtreeExclusions": "Module"
             },
             "ImportEqualsDeclaration": {
                 "extends": [

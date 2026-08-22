@@ -28,6 +28,7 @@ export interface NodeDef {
     extends: string[];
     members?: Member[];
     generateSubtreeFacts?: boolean;
+    subtreeExclusions?: string;
     arena?: boolean;
     handWritten?: boolean;
     handWrittenVisitor?: boolean;
@@ -52,6 +53,7 @@ export interface BaseEntry {
     brand?: string;
     extends?: string[];
     fields?: Record<string, BaseField>;
+    subtreeExclusions?: string;
 }
 
 export interface KindElement {
@@ -249,6 +251,15 @@ export class NodeType extends TypeBase {
 
     get generateSubtreeFacts(): boolean {
         return this.def?.generateSubtreeFacts || false;
+    }
+
+    /**
+     * Name of the `SubtreeExclusions*` mask cleared when this node's facts are
+     * propagated to its parent, i.e. the facts this node handles itself. When
+     * set, `propagateSubtreeFacts` is generated for it.
+     */
+    get subtreeExclusions(): string | undefined {
+        return this.def?.subtreeExclusions ?? this.entry?.subtreeExclusions;
     }
 
     get typeParameters(): TypeParameterInfo[] {

@@ -332,6 +332,8 @@ function generateBaseStructDefs(w: CodeWriter) {
         w.pop();
         w.write("}");
         w.write("");
+
+        generatePropagateSubtreeFacts(w, base);
     }
 }
 
@@ -821,6 +823,49 @@ function generateKindAliasGuards(w: CodeWriter) {
 
 // ── Generate Name() accessor ───────────────────────────────────────────────
 
+/** Whether `type` can be a `target` node, expanding aliases and unions. */
+function typeCanBe(type: Type, target: string): boolean {
+    switch (type.kind) {
+        case "node":
+            return type.name === target;
+        case "union":
+            return type.types.some(t => typeCanBe(t, target));
+        case "alias":
+            if (type.name === target) return true;
+            if (type.isUnion) {
+                return type.unionMemberTypes.some(t => typeCanBe(t, target));
+            }
+            return typeCanBe(type.resolved, target);
+        default:
+            return false;
+    }
+}
+
+function generatePropagateSubtreeFacts(w: CodeWriter, type: NodeType) {
+    const exclusions = type.subtreeExclusions;
+    if (!exclusions) return;
+
+    // A computed property name holds an arbitrary expression evaluated in the
+    // enclosing scope, so its facts must survive this node's exclusion mask.
+    const name = type.inheritedField("name") ?? type.field("name");
+    const computable = name && typeCanBe(name.type, "ComputedPropertyName");
+
+    w.write(`func (node *${type.key}) propagateSubtreeFacts() SubtreeFacts {`);
+    w.push();
+    if (computable) {
+        w.write(`return node.SubtreeFacts() & ^SubtreeExclusions${exclusions} |`);
+        w.push();
+        w.write(`propagateSubtreeFacts(node.${name!.name})`);
+        w.pop();
+    }
+    else {
+        w.write(`return node.SubtreeFacts() & ^SubtreeExclusions${exclusions}`);
+    }
+    w.pop();
+    w.write("}");
+    w.write("");
+}
+
 function generateNameAccessor(w: CodeWriter, node: NodeType) {
     const members = schemaMembers(node);
     const nameMember = members.find(m => m.name === "name");
@@ -937,6 +982,7 @@ function generate(): string {
             generateSubtreeFacts(w, node);
             generateNameAccessor(w, node);
         }
+        generatePropagateSubtreeFacts(w, node);
         generateIsFunction(w, node);
         if (node.handWritten) {
             w.write("");

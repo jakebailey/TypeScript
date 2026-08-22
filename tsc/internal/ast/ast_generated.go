@@ -221,6 +221,11 @@ type AccessorDeclarationBase struct {
 	CompositeBase
 }
 
+func (node *AccessorDeclarationBase) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsAccessor |
+		propagateSubtreeFacts(node.name)
+}
+
 type FunctionOrConstructorTypeNodeBase struct {
 	TypeNodeBase
 	DeclarationBase
@@ -1492,6 +1497,10 @@ func (node *CatchClause) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewCatchClause(node.VariableDeclaration, node.Block), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *CatchClause) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsCatchClause
+}
+
 func IsCatchClause(node *Node) bool {
 	return node.Kind == KindCatchClause
 }
@@ -1782,6 +1791,10 @@ func (node *VariableDeclarationList) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewVariableDeclarationList(node.Declarations, node.Flags), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *VariableDeclarationList) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsVariableDeclarationList
+}
+
 func IsVariableDeclarationList(node *Node) bool {
 	return node.Kind == KindVariableDeclarationList
 }
@@ -1819,6 +1832,10 @@ func (node *BindingPattern) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *BindingPattern) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewBindingPattern(node.Kind, node.Elements), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *BindingPattern) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsBindingPattern
 }
 
 func IsObjectBindingPattern(node *Node) bool {
@@ -1882,6 +1899,10 @@ func (node *ParameterDeclaration) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *ParameterDeclaration) Name() *DeclarationName {
 	return node.name
+}
+
+func (node *ParameterDeclaration) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsParameter
 }
 
 func IsParameterDeclaration(node *Node) bool {
@@ -2040,6 +2061,10 @@ func (node *FunctionDeclaration) Name() *DeclarationName {
 	return node.name
 }
 
+func (node *FunctionDeclaration) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsFunction
+}
+
 func IsFunctionDeclaration(node *Node) bool {
 	return node.Kind == KindFunctionDeclaration
 }
@@ -2091,6 +2116,10 @@ func (node *ClassDeclaration) Name() *DeclarationName {
 	return node.name
 }
 
+func (node *ClassDeclaration) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsClass
+}
+
 func IsClassDeclaration(node *Node) bool {
 	return node.Kind == KindClassDeclaration
 }
@@ -2140,6 +2169,10 @@ func (node *ClassExpression) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *ClassExpression) Name() *DeclarationName {
 	return node.name
+}
+
+func (node *ClassExpression) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsClass
 }
 
 func IsClassExpression(node *Node) bool {
@@ -3089,6 +3122,10 @@ func (node *ConstructorDeclaration) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewConstructorDeclaration(node.Modifiers(), node.TypeParameters, node.Parameters, node.Type, node.FullSignature, node.Body), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *ConstructorDeclaration) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsConstructor
+}
+
 func IsConstructorDeclaration(node *Node) bool {
 	return node.Kind == KindConstructor
 }
@@ -3140,6 +3177,11 @@ func (node *GetAccessorDeclaration) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *GetAccessorDeclaration) Name() *DeclarationName {
 	return node.name
+}
+
+func (node *GetAccessorDeclaration) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsMethod |
+		propagateSubtreeFacts(node.name)
 }
 
 func IsGetAccessorDeclaration(node *Node) bool {
@@ -3468,6 +3510,11 @@ func (node *PropertyDeclaration) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *PropertyDeclaration) Name() *DeclarationName {
 	return node.name
+}
+
+func (node *PropertyDeclaration) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsProperty |
+		propagateSubtreeFacts(node.name)
 }
 
 func IsPropertyDeclaration(node *Node) bool {
@@ -3942,6 +3989,10 @@ func (node *ArrowFunction) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewArrowFunction(node.Modifiers(), node.TypeParameters, node.Parameters, node.Type, node.FullSignature, node.EqualsGreaterThanToken, node.Body), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *ArrowFunction) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsArrowFunction
+}
+
 func IsArrowFunction(node *Node) bool {
 	return node.Kind == KindArrowFunction
 }
@@ -4004,6 +4055,10 @@ func (node *FunctionExpression) Name() *DeclarationName {
 	return node.name
 }
 
+func (node *FunctionExpression) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsFunction
+}
+
 func IsFunctionExpression(node *Node) bool {
 	return node.Kind == KindFunctionExpression
 }
@@ -4044,6 +4099,10 @@ func (node *AsExpression) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewAsExpression(node.Expression, node.Type), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *AsExpression) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsOuterExpression
+}
+
 func IsAsExpression(node *Node) bool {
 	return node.Kind == KindAsExpression
 }
@@ -4082,6 +4141,10 @@ func (node *SatisfiesExpression) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *SatisfiesExpression) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewSatisfiesExpression(node.Expression, node.Type), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *SatisfiesExpression) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsOuterExpression
 }
 
 func IsSatisfiesExpression(node *Node) bool {
@@ -4193,6 +4256,10 @@ func (node *PropertyAccessExpression) Name() *DeclarationName {
 	return node.name
 }
 
+func (node *PropertyAccessExpression) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsPropertyAccess
+}
+
 func IsPropertyAccessExpression(node *Node) bool {
 	return node.Kind == KindPropertyAccessExpression
 }
@@ -4243,6 +4310,10 @@ func (node *ElementAccessExpression) computeSubtreeFacts() SubtreeFacts {
 	return propagateSubtreeFacts(node.Expression) |
 		propagateSubtreeFacts(node.QuestionDotToken) |
 		propagateSubtreeFacts(node.ArgumentExpression)
+}
+
+func (node *ElementAccessExpression) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsElementAccess
 }
 
 func IsElementAccessExpression(node *Node) bool {
@@ -4296,6 +4367,10 @@ func (node *CallExpression) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewCallExpression(node.Expression, node.QuestionDotToken, node.TypeArguments, node.Arguments, node.Flags), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *CallExpression) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsCall
+}
+
 func IsCallExpression(node *Node) bool {
 	return node.Kind == KindCallExpression
 }
@@ -4337,6 +4412,10 @@ func (node *NewExpression) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *NewExpression) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewNewExpression(node.Expression, node.TypeArguments, node.Arguments), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *NewExpression) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsNew
 }
 
 func IsNewExpression(node *Node) bool {
@@ -4691,6 +4770,10 @@ func (node *ArrayLiteralExpression) computeSubtreeFacts() SubtreeFacts {
 	return propagateNodeListSubtreeFacts(node.Elements, propagateSubtreeFacts)
 }
 
+func (node *ArrayLiteralExpression) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsArrayLiteral
+}
+
 func IsArrayLiteralExpression(node *Node) bool {
 	return node.Kind == KindArrayLiteralExpression
 }
@@ -4737,6 +4820,10 @@ func (node *ObjectLiteralExpression) computeSubtreeFacts() SubtreeFacts {
 	return propagateNodeListSubtreeFacts(node.Properties, propagateSubtreeFacts)
 }
 
+func (node *ObjectLiteralExpression) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsObjectLiteral
+}
+
 func IsObjectLiteralExpression(node *Node) bool {
 	return node.Kind == KindObjectLiteralExpression
 }
@@ -4775,6 +4862,10 @@ func (node *SpreadAssignment) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *SpreadAssignment) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewSpreadAssignment(node.Expression), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *SpreadAssignment) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsOuterExpression
 }
 
 func IsSpreadAssignment(node *Node) bool {
@@ -8073,6 +8164,10 @@ func (node *ModuleDeclaration) Clone(f NodeFactoryCoercible) *Node {
 
 func (node *ModuleDeclaration) Name() *DeclarationName {
 	return node.name
+}
+
+func (node *ModuleDeclaration) propagateSubtreeFacts() SubtreeFacts {
+	return node.SubtreeFacts() & ^SubtreeExclusionsModule
 }
 
 func IsModuleDeclaration(node *Node) bool {

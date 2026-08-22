@@ -151,6 +151,10 @@
                     "type": "string",
                     "description": "TypeScript brand property name (e.g., '_expressionBrand'). When present, the generated TS interface includes this brand."
                 },
+                "subtreeExclusions": {
+                    "type": "string",
+                    "description": "Name of the SubtreeExclusions* mask (without the prefix) cleared when this base's subtree facts propagate to its parent. When present, Go propagateSubtreeFacts is generated."
+                },
                 "extends": {
                     "type": "array",
                     "description": "Other bases transitively included by this one.",
@@ -301,6 +305,10 @@
                 "generateSubtreeFacts": {
                     "type": "boolean",
                     "description": "Whether this node's Go computeSubtreeFacts method is a trivial child-propagation implementation that can be generated from schema."
+                },
+                "subtreeExclusions": {
+                    "type": "string",
+                    "description": "Name of the SubtreeExclusions* mask (without the prefix) cleared when this node's subtree facts propagate to its parent. When present, Go propagateSubtreeFacts is generated."
                 },
                 "tsName": {
                     "type": "string",
