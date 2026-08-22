@@ -96,7 +96,9 @@ type Program struct {
 	commonSourceDirectory     string
 	commonSourceDirectoryOnce sync.Once
 
-	declarationDiagnosticCache collections.SyncMap[*ast.SourceFile, []*ast.Diagnostic]
+	declarationDiagnosticCache    collections.SyncMap[*ast.SourceFile, []*ast.Diagnostic]
+	declarationTransformCache     collections.SyncMap[*ast.SourceFile, *cachedDeclarationTransform]
+	preserveDeclarationTransforms bool
 
 	programDiagnostics             []*ast.Diagnostic
 	hasEmitBlockingDiagnostics     collections.Set[tspath.Path]
@@ -854,6 +856,33 @@ func (p *Program) getSourceFilesToEmit(targetSourceFiles []*ast.SourceFile, forc
 	return getSourceFilesToEmit(p, targetSourceFiles, forceDtsEmit, forceJsEmit)
 }
 
+// clearDeclarationTransformCache cleans up any cached declaration transform results
+// that were not consumed by emit.
+func (p *Program) clearDeclarationTransformCache() {
+	p.declarationTransformCache.Range(func(_ *ast.SourceFile, cached *cachedDeclarationTransform) bool {
+		cached.putEmitContext()
+		return true
+	})
+	p.declarationTransformCache.Clear()
+}
+
+// BeginCacheDeclarationTransforms tells getDeclarationDiagnosticsForFile to preserve
+// declaration transform results (transformed AST + EmitContext) so that a subsequent
+// emitDeclarationFile call can reuse them instead of re-running the transform.
+// Must be paired with EndCacheDeclarationTransforms to clean up.
+// The caller must ensure all concurrent work between Begin and End completes before
+// End is called (e.g., via a WaitGroup), providing the happens-before guarantee.
+func (p *Program) BeginCacheDeclarationTransforms() {
+	p.preserveDeclarationTransforms = true
+}
+
+// EndCacheDeclarationTransforms clears the preservation flag and releases any cached
+// declaration transform results that were not consumed by emit.
+func (p *Program) EndCacheDeclarationTransforms() {
+	p.preserveDeclarationTransforms = false
+	p.clearDeclarationTransformCache()
+}
+
 func (p *Program) verifyCompilerOptions() {
 	options := p.Options()
 
@@ -1572,8 +1601,40 @@ func (p *Program) getDeclarationDiagnosticsForFile(ctx context.Context, sourceFi
 
 	host, done := newEmitHost(ctx, p, sourceFile)
 	defer done()
-	diagnostics := getDeclarationDiagnostics(host, sourceFile)
-	diagnostics, _ = p.declarationDiagnosticCache.LoadOrStore(sourceFile, diagnostics)
+
+	fullFiles := core.Filter(getSourceFilesToEmit(p, core.SingleElementSlice(sourceFile), false, false), isSourceFileNotJson)
+	if !core.Some(fullFiles, func(f *ast.SourceFile) bool { return f == sourceFile }) {
+		diagnostics, _ := p.declarationDiagnosticCache.LoadOrStore(sourceFile, []*ast.Diagnostic{})
+		return diagnostics
+	}
+
+	paths := outputpaths.GetOutputPathsFor(sourceFile, host.Options(), host, outputpaths.ForceEmitPaths{})
+	declarationFilePath := paths.DeclarationFilePath()
+	declarationMapPath := paths.DeclarationMapPath()
+	if declarationFilePath == "" {
+		diagnostics, _ := p.declarationDiagnosticCache.LoadOrStore(sourceFile, []*ast.Diagnostic{})
+		return diagnostics
+	}
+
+	emitContext, putEmitContext := printer.GetEmitContext()
+	emitter := &emitter{host: host, tr: p.opts.Tracing}
+	transformedFile, diags := emitter.runDeclarationTransformers(emitContext, sourceFile, declarationFilePath, declarationMapPath)
+
+	if p.preserveDeclarationTransforms {
+		_, loaded := p.declarationTransformCache.LoadOrStore(sourceFile, &cachedDeclarationTransform{
+			sourceFile:     transformedFile,
+			diagnostics:    diags,
+			emitContext:    emitContext,
+			putEmitContext: putEmitContext,
+		})
+		if loaded {
+			putEmitContext()
+		}
+	} else {
+		putEmitContext()
+	}
+
+	diagnostics, _ := p.declarationDiagnosticCache.LoadOrStore(sourceFile, diags)
 	return diagnostics
 }
 
@@ -1798,6 +1859,14 @@ func (p *Program) Emit(ctx context.Context, options EmitOptions) *EmitResult {
 		defer tr.Push(tracing.PhaseEmit, "emit", nil, true)()
 	}
 
+	if !p.preserveDeclarationTransforms {
+		p.preserveDeclarationTransforms = true
+		defer func() {
+			p.preserveDeclarationTransforms = false
+			p.clearDeclarationTransformCache()
+		}()
+	}
+
 	if !options.ForceEmit && options.EmitOnly != EmitOnlyBuilderSignature {
 		result := HandleNoEmitOptions(
 			ctx,
@@ -1848,6 +1917,12 @@ func (p *Program) Emit(ctx context.Context, options EmitOptions) *EmitResult {
 				Js:             forceJsEmit,
 				DeclarationMap: options.ForceEmit && options.EmitOnly == EmitOnlyDts,
 			})
+			if options.EmitOnly != EmitOnlyJs && emitter.paths.DeclarationFilePath() != "" {
+				if cached, ok := p.declarationTransformCache.Load(sourceFile); ok {
+					p.declarationTransformCache.Delete(sourceFile)
+					emitter.cachedDtsTransform = cached
+				}
+			}
 			emitter.emit()
 			emitter.writer = nil
 
@@ -1858,6 +1933,12 @@ func (p *Program) Emit(ctx context.Context, options EmitOptions) *EmitResult {
 
 	// wait for emit to complete
 	wg.RunAndWait()
+
+	for _, emitter := range emitters {
+		if emitter.hasDeclarationDiagnostics {
+			p.declarationDiagnosticCache.LoadOrStore(emitter.sourceFile, emitter.declarationDiagnostics)
+		}
+	}
 
 	// collect results from emit, preserving input order
 	return CombineEmitResults(core.Map(emitters, func(e *emitter) *EmitResult {

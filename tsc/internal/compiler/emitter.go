@@ -30,6 +30,15 @@ const (
 	EmitOnlyBuilderSignature
 )
 
+// cachedDeclarationTransform holds the result of a prior declaration transform,
+// allowing emitDeclarationFile to skip re-running the transform.
+type cachedDeclarationTransform struct {
+	sourceFile     *ast.SourceFile
+	diagnostics    []*ast.Diagnostic
+	emitContext    *printer.EmitContext
+	putEmitContext func()
+}
+
 type emitter struct {
 	host               EmitHost
 	emitOnly           EmitOnly
@@ -41,6 +50,14 @@ type emitter struct {
 	forceEmit          bool
 	writeFile          func(fileName string, text string, data *WriteFileData) error
 	tr                 *tracing.Tracing
+
+	// Populated from the program's declarationTransformCache when available.
+	cachedDtsTransform *cachedDeclarationTransform
+
+	// Set during emitDeclarationFile when the declaration transform runs.
+	// Used to populate the declaration diagnostic cache in Program.Emit.
+	declarationDiagnostics    []*ast.Diagnostic
+	hasDeclarationDiagnostics bool
 }
 
 func (e *emitter) emit() {
@@ -231,9 +248,22 @@ func (e *emitter) emitDeclarationFile(sourceFile *ast.SourceFile, declarationFil
 		defer e.tr.Push(tracing.PhaseEmit, "emitDeclarationFileOrBundle", map[string]any{"declarationFilePath": declarationFilePath}, true)()
 	}
 
-	emitContext, putEmitContext := printer.GetEmitContext()
+	var diags []*ast.Diagnostic
+	var emitContext *printer.EmitContext
+	var putEmitContext func()
+	if e.cachedDtsTransform != nil {
+		sourceFile = e.cachedDtsTransform.sourceFile
+		diags = e.cachedDtsTransform.diagnostics
+		emitContext = e.cachedDtsTransform.emitContext
+		putEmitContext = e.cachedDtsTransform.putEmitContext
+		e.cachedDtsTransform = nil
+	} else {
+		emitContext, putEmitContext = printer.GetEmitContext()
+		sourceFile, diags = e.runDeclarationTransformers(emitContext, sourceFile, declarationFilePath, declarationMapPath)
+	}
 	defer putEmitContext()
-	sourceFile, diags := e.runDeclarationTransformers(emitContext, sourceFile, declarationFilePath, declarationMapPath)
+	e.declarationDiagnostics = diags
+	e.hasDeclarationDiagnostics = true
 
 	for _, elem := range diags {
 		// Add declaration transform diagnostics to emit diagnostics
@@ -561,16 +591,4 @@ func getSourceFilesToEmit(host SourceFileMayBeEmittedHost, targetSourceFiles []*
 
 func isSourceFileNotJson(file *ast.SourceFile) bool {
 	return !ast.IsJsonSourceFile(file)
-}
-
-func getDeclarationDiagnostics(host EmitHost, file *ast.SourceFile) []*ast.Diagnostic {
-	// TODO: use p.getSourceFilesToEmit cache
-	fullFiles := core.Filter(getSourceFilesToEmit(host, core.SingleElementSlice(file), false, false), isSourceFileNotJson)
-	if !core.Some(fullFiles, func(f *ast.SourceFile) bool { return f == file }) {
-		return []*ast.Diagnostic{}
-	}
-	options := host.Options()
-	transform := declarations.NewDeclarationTransformer(host, nil, options, "", "")
-	transform.TransformSourceFile(file)
-	return transform.GetDiagnostics()
 }
