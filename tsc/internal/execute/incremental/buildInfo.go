@@ -121,9 +121,10 @@ func (b *BuildInfoFileInfo) GetFileInfo() *FileInfo {
 	}
 	if b.signature != "" {
 		return &FileInfo{
-			version:           b.signature,
-			signature:         b.signature,
-			impliedNodeFormat: core.ResolutionModeCommonJS,
+			version:            b.signature,
+			signature:          b.signature,
+			signatureIsVersion: true,
+			impliedNodeFormat:  core.ResolutionModeCommonJS,
 		}
 	}
 	if b.noSignature != nil {
@@ -136,6 +137,7 @@ func (b *BuildInfoFileInfo) GetFileInfo() *FileInfo {
 	return &FileInfo{
 		version:            b.fileInfo.Version,
 		signature:          core.IfElse(b.fileInfo.Signature == "", b.fileInfo.Version, b.fileInfo.Signature),
+		signatureIsVersion: b.fileInfo.Signature == "",
 		affectsGlobalScope: b.fileInfo.AffectsGlobalScope,
 		impliedNodeFormat:  b.fileInfo.ImpliedNodeFormat,
 	}
@@ -477,6 +479,7 @@ type BuildInfo struct {
 	// IncrementalProgram info
 	FileNames                  []string                             `json:"fileNames,omitzero"`
 	FileInfos                  []*BuildInfoFileInfo                 `json:"fileInfos,omitzero"`
+	DeclarationInputSignatures []string                             `json:"declarationInputSignatures,omitzero"`
 	FileIdsList                [][]BuildInfoFileId                  `json:"fileIdsList,omitzero"`
 	Options                    *collections.OrderedMap[string, any] `json:"options,omitzero"`
 	ReferencedMap              []*BuildInfoReferenceMapEntry        `json:"referencedMap,omitzero"`
