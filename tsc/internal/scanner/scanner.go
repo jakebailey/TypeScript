@@ -6,6 +6,7 @@ import (
 	"maps"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode"
 	"unicode/utf16"
 	"unicode/utf8"
@@ -2272,7 +2273,7 @@ func StringToToken(s string) ast.Kind {
 	return ast.KindUnknown
 }
 
-func GetViableKeywordSuggestions() []string {
+var getViableKeywordSuggestions = sync.OnceValue(func() []string {
 	result := make([]string, 0, len(textToKeyword))
 	for text := range textToKeyword {
 		if len(text) > 2 {
@@ -2280,6 +2281,10 @@ func GetViableKeywordSuggestions() []string {
 		}
 	}
 	return result
+})
+
+func GetViableKeywordSuggestions() []string {
+	return getViableKeywordSuggestions()
 }
 
 func couldStartTrivia(text string, pos int) bool {

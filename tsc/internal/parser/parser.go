@@ -107,8 +107,6 @@ func newParser() *Parser {
 	return res
 }
 
-var viableKeywordSuggestions = scanner.GetViableKeywordSuggestions()
-
 // missingListNodes is a sentinel backing array used to distinguish "missing" node lists
 // (where the expected opening token was not found) from ordinary empty node lists.
 var missingListNodes = make([]*ast.Node, 0, 1)
@@ -2094,7 +2092,7 @@ func (p *Parser) parseErrorForMissingSemicolonAfter(node *ast.Node) {
 		return
 	}
 	// The user alternatively might have misspelled or forgotten to add a space after a common keyword.
-	suggestion := core.GetSpellingSuggestionForStrings(expressionText, slices.Values(viableKeywordSuggestions))
+	suggestion := core.GetSpellingSuggestionForStrings(expressionText, slices.Values(scanner.GetViableKeywordSuggestions()))
 	if suggestion == "" {
 		suggestion = getSpaceSuggestion(expressionText)
 	}
@@ -2111,7 +2109,7 @@ func (p *Parser) parseErrorForMissingSemicolonAfter(node *ast.Node) {
 }
 
 func getSpaceSuggestion(expressionText string) string {
-	for _, keyword := range viableKeywordSuggestions {
+	for _, keyword := range scanner.GetViableKeywordSuggestions() {
 		if len(expressionText) > len(keyword)+2 && strings.HasPrefix(expressionText, keyword) {
 			return keyword + " " + expressionText[len(keyword):]
 		}
