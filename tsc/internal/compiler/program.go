@@ -552,7 +552,7 @@ func (p *Program) SingleThreaded() bool {
 }
 
 func (p *Program) BindSourceFiles() {
-	wg := core.NewWorkGroup(p.SingleThreaded())
+	wg := core.NewBoundedWorkGroup(p.SingleThreaded())
 	for _, file := range p.files {
 		if !file.IsBound() {
 			wg.Queue(func() {
@@ -700,7 +700,7 @@ func (p *Program) collectCheckerDiagnosticsFromFiles(ctx context.Context, source
 			diagnostics[fileIndex] = collect(ctx, c, file)
 		})
 	} else {
-		wg := core.NewWorkGroup(p.SingleThreaded())
+		wg := core.NewBoundedWorkGroup(p.SingleThreaded())
 		for i, file := range sourceFiles {
 			if p.SkipTypeChecking(file, false) {
 				continue
