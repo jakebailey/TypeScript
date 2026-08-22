@@ -1,15 +1,32 @@
 package estransforms
 
 import (
+	"sync"
+
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/transformers"
 )
 
+var useStrictPool = sync.Pool{New: func() any { return &useStrictTransformer{} }}
+
+func getUseStrictTransformer() *useStrictTransformer {
+	return useStrictPool.Get().(*useStrictTransformer)
+}
+
+func putUseStrictTransformer(tx *useStrictTransformer) {
+	dispose, visit := tx.SaveState()
+	*tx = useStrictTransformer{}
+	tx.RestoreState(dispose, visit)
+	useStrictPool.Put(tx)
+}
+
 func NewUseStrictTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
-	tx := &useStrictTransformer{
-		compilerOptions:           opts.CompilerOptions,
-		getEmitModuleFormatOfFile: opts.GetEmitModuleFormatOfFile,
+	tx := getUseStrictTransformer()
+	tx.compilerOptions = opts.CompilerOptions
+	tx.getEmitModuleFormatOfFile = opts.GetEmitModuleFormatOfFile
+	if tx.GetDispose() == nil {
+		tx.SetDispose(func() { putUseStrictTransformer(tx) })
 	}
 	return tx.NewTransformer(tx.visit, opts.Context)
 }

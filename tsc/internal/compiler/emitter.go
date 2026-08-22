@@ -69,8 +69,12 @@ func (e *emitter) runScriptTransformers(emitContext *printer.EmitContext, source
 	if e.tr != nil {
 		defer e.tr.Push(tracing.PhaseEmit, "transformNodes", map[string]any{"path": string(sourceFile.Path())}, false)()
 	}
-	for _, transformer := range getScriptTransformers(emitContext, e.host, sourceFile) {
+	scriptTransformers := getScriptTransformers(emitContext, e.host, sourceFile)
+	for _, transformer := range scriptTransformers {
 		sourceFile = transformer.TransformSourceFile(sourceFile)
+	}
+	for _, transformer := range scriptTransformers {
+		transformer.Dispose()
 	}
 	return sourceFile
 }
@@ -80,9 +84,15 @@ func (e *emitter) runDeclarationTransformers(emitContext *printer.EmitContext, s
 		defer e.tr.Push(tracing.PhaseEmit, "transformNodes", map[string]any{"path": string(sourceFile.Path())}, false)()
 	}
 	var diags []*ast.Diagnostic
-	for _, transformer := range e.getDeclarationTransformers(emitContext, sourceFile, declarationFilePath, declarationMapPath) {
+	declarationTransformers := e.getDeclarationTransformers(emitContext, sourceFile, declarationFilePath, declarationMapPath)
+	for _, transformer := range declarationTransformers {
 		sourceFile = transformer.TransformSourceFile(sourceFile)
 		diags = append(diags, transformer.GetDiagnostics()...)
+	}
+	for _, transformer := range declarationTransformers {
+		if disposable, ok := transformer.(interface{ Dispose() }); ok {
+			disposable.Dispose()
+		}
 	}
 	return sourceFile, diags
 }

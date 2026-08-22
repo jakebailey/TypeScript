@@ -1,6 +1,8 @@
 package moduletransforms
 
 import (
+	"sync"
+
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/binder"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
@@ -16,8 +18,27 @@ type ImpliedModuleTransformer struct {
 	esmTransformer            *transformers.Transformer
 }
 
+var impliedModulePool = sync.Pool{New: func() any { return &ImpliedModuleTransformer{} }}
+
+func getImpliedModuleTransformer() *ImpliedModuleTransformer {
+	return impliedModulePool.Get().(*ImpliedModuleTransformer)
+}
+
+func putImpliedModuleTransformer(tx *ImpliedModuleTransformer) {
+	dispose, visit := tx.SaveState()
+	*tx = ImpliedModuleTransformer{}
+	tx.RestoreState(dispose, visit)
+	impliedModulePool.Put(tx)
+}
+
 func NewImpliedModuleTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
-	tx := &ImpliedModuleTransformer{opts: opts, resolver: opts.Resolver, getEmitModuleFormatOfFile: opts.GetEmitModuleFormatOfFile}
+	tx := getImpliedModuleTransformer()
+	tx.opts = opts
+	tx.resolver = opts.Resolver
+	tx.getEmitModuleFormatOfFile = opts.GetEmitModuleFormatOfFile
+	if tx.GetDispose() == nil {
+		tx.SetDispose(func() { putImpliedModuleTransformer(tx) })
+	}
 	return tx.NewTransformer(tx.visit, opts.Context)
 }
 

@@ -1,6 +1,8 @@
 package estransforms
 
 import (
+	"sync"
+
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/transformers"
 )
@@ -43,7 +45,23 @@ func (ch *nullishCoalescingTransformer) visitBinaryExpression(node *ast.BinaryEx
 	}
 }
 
+var nullishCoalescingTransformerPool = sync.Pool{New: func() any { return &nullishCoalescingTransformer{} }}
+
+func getNullishCoalescingTransformer() *nullishCoalescingTransformer {
+	return nullishCoalescingTransformerPool.Get().(*nullishCoalescingTransformer)
+}
+
+func putNullishCoalescingTransformer(tx *nullishCoalescingTransformer) {
+	dispose, visit := tx.SaveState()
+	*tx = nullishCoalescingTransformer{}
+	tx.RestoreState(dispose, visit)
+	nullishCoalescingTransformerPool.Put(tx)
+}
+
 func newNullishCoalescingTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
-	tx := &nullishCoalescingTransformer{}
+	tx := getNullishCoalescingTransformer()
+	if tx.GetDispose() == nil {
+		tx.SetDispose(func() { putNullishCoalescingTransformer(tx) })
+	}
 	return tx.NewTransformer(tx.visit, opts.Context)
 }

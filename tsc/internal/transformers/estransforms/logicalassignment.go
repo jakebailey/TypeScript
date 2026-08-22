@@ -1,6 +1,8 @@
 package estransforms
 
 import (
+	"sync"
+
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/transformers"
 )
@@ -107,7 +109,23 @@ func (ch *logicalAssignmentTransformer) visitBinaryExpression(node *ast.BinaryEx
 	)
 }
 
+var logicalAssignmentTransformerPool = sync.Pool{New: func() any { return &logicalAssignmentTransformer{} }}
+
+func getLogicalAssignmentTransformer() *logicalAssignmentTransformer {
+	return logicalAssignmentTransformerPool.Get().(*logicalAssignmentTransformer)
+}
+
+func putLogicalAssignmentTransformer(tx *logicalAssignmentTransformer) {
+	dispose, visit := tx.SaveState()
+	*tx = logicalAssignmentTransformer{}
+	tx.RestoreState(dispose, visit)
+	logicalAssignmentTransformerPool.Put(tx)
+}
+
 func newLogicalAssignmentTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
-	tx := &logicalAssignmentTransformer{}
+	tx := getLogicalAssignmentTransformer()
+	if tx.GetDispose() == nil {
+		tx.SetDispose(func() { putLogicalAssignmentTransformer(tx) })
+	}
 	return tx.NewTransformer(tx.visit, opts.Context)
 }

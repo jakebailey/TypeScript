@@ -1,6 +1,8 @@
 package estransforms
 
 import (
+	"sync"
+
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
@@ -18,8 +20,24 @@ type usingDeclarationTransformer struct {
 	exportEqualsBinding  *ast.IdentifierNode
 }
 
+var usingDeclarationTransformerPool = sync.Pool{New: func() any { return &usingDeclarationTransformer{} }}
+
+func getUsingDeclarationTransformer() *usingDeclarationTransformer {
+	return usingDeclarationTransformerPool.Get().(*usingDeclarationTransformer)
+}
+
+func putUsingDeclarationTransformer(tx *usingDeclarationTransformer) {
+	dispose, visit := tx.SaveState()
+	*tx = usingDeclarationTransformer{}
+	tx.RestoreState(dispose, visit)
+	usingDeclarationTransformerPool.Put(tx)
+}
+
 func newUsingDeclarationTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
-	tx := &usingDeclarationTransformer{}
+	tx := getUsingDeclarationTransformer()
+	if tx.GetDispose() == nil {
+		tx.SetDispose(func() { putUsingDeclarationTransformer(tx) })
+	}
 	return tx.NewTransformer(tx.visit, opts.Context)
 }
 
