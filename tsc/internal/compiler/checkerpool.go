@@ -329,7 +329,7 @@ func (p *checkerPool) GetChecker(ctx context.Context, file *ast.SourceFile) (*ch
 	if file != nil {
 		return p.getCheckerForFileExclusive(ctx, file)
 	}
-	p.createCheckers()
+	p.createCheckers(ctx)
 	c := p.checkers[0]
 	p.locks[0].Lock()
 	return c, sync.OnceFunc(func() {
@@ -340,13 +340,13 @@ func (p *checkerPool) GetChecker(ctx context.Context, file *ast.SourceFile) (*ch
 // getCheckerForFileNonExclusive returns the checker for the given file without locking.
 // This is only safe when the caller guarantees no concurrent access to the same checker,
 // e.g. for read-only operations like obtaining an emit resolver.
-func (p *checkerPool) getCheckerForFileNonExclusive(file *ast.SourceFile) (*checker.Checker, func()) {
-	p.createCheckers()
+func (p *checkerPool) getCheckerForFileNonExclusive(ctx context.Context, file *ast.SourceFile) (*checker.Checker, func()) {
+	p.createCheckers(ctx)
 	return p.fileAssociations[file], noop
 }
 
 func (p *checkerPool) getCheckerForFileExclusive(ctx context.Context, file *ast.SourceFile) (*checker.Checker, func()) {
-	p.createCheckers()
+	p.createCheckers(ctx)
 	c := p.fileAssociations[file]
 	idx := slices.Index(p.checkers, c)
 	p.locks[idx].Lock()
@@ -356,16 +356,16 @@ func (p *checkerPool) getCheckerForFileExclusive(ctx context.Context, file *ast.
 }
 
 // getCheckerNonExclusive returns the first checker without locking.
-func (p *checkerPool) getCheckerNonExclusive() (*checker.Checker, func()) {
-	p.createCheckers()
+func (p *checkerPool) getCheckerNonExclusive(ctx context.Context) (*checker.Checker, func()) {
+	p.createCheckers(ctx)
 	return p.checkers[0], noop
 }
 
-func (p *checkerPool) createCheckers() {
+func (p *checkerPool) createCheckers(ctx context.Context) {
 	p.createCheckersOnce.Do(func() {
-		defer runtimetrace.Region(context.TODO(), "compiler.createCheckers")()
+		defer runtimetrace.Region(ctx, "compiler.createCheckers")()
 		if runtimetrace.IsEnabled() {
-			runtimetrace.LogSafef(context.TODO(), "checker", "count=%d", len(p.checkers))
+			runtimetrace.LogSafef(ctx, "checker", "count=%d", len(p.checkers))
 		}
 		checkerCount := len(p.checkers)
 		wg := core.NewWorkGroup(p.program.SingleThreaded())
@@ -375,7 +375,7 @@ func (p *checkerPool) createCheckers() {
 				if p.tracing != nil {
 					tracer = checker.NewTracer(p.tracing, i)
 				}
-				p.checkers[i], p.locks[i] = checker.NewChecker(p.program, tracer)
+				p.checkers[i], p.locks[i] = checker.NewChecker(ctx, p.program, tracer)
 			})
 		}
 
@@ -449,8 +449,8 @@ func (p *checkerPool) getImportAdjacency() [][]int {
 
 // Runs `cb` for each checker in the pool concurrently, locking and unlocking checker mutexes as it goes,
 // making it safe to call `forEachCheckerParallel` from many threads simultaneously.
-func (p *checkerPool) forEachCheckerParallel(cb func(idx int, c *checker.Checker)) {
-	p.createCheckers()
+func (p *checkerPool) forEachCheckerParallel(ctx context.Context, cb func(idx int, c *checker.Checker)) {
+	p.createCheckers(ctx)
 	wg := core.NewWorkGroup(p.program.SingleThreaded())
 	for idx, checker := range p.checkers {
 		wg.Queue(func() {
@@ -462,10 +462,10 @@ func (p *checkerPool) forEachCheckerParallel(cb func(idx int, c *checker.Checker
 	wg.RunAndWait()
 }
 
-func (p *checkerPool) GetGlobalDiagnostics() []*ast.Diagnostic {
-	p.createCheckers()
+func (p *checkerPool) GetGlobalDiagnostics(ctx context.Context) []*ast.Diagnostic {
+	p.createCheckers(ctx)
 	globalDiagnostics := make([][]*ast.Diagnostic, len(p.checkers))
-	p.forEachCheckerParallel(func(idx int, checker *checker.Checker) {
+	p.forEachCheckerParallel(ctx, func(idx int, checker *checker.Checker) {
 		globalDiagnostics[idx] = checker.GetGlobalDiagnostics()
 	})
 	return SortAndDeduplicateDiagnostics(slices.Concat(globalDiagnostics...))
@@ -475,7 +475,7 @@ func (p *checkerPool) GetGlobalDiagnostics() []*ast.Diagnostic {
 // the provided files, processing only those assigned to its checker. Within each
 // checker's set, files are visited in their original order.
 func (p *checkerPool) forEachCheckerGroupDo(ctx context.Context, files []*ast.SourceFile, singleThreaded bool, cb func(c *checker.Checker, fileIndex int, file *ast.SourceFile)) {
-	p.createCheckers()
+	p.createCheckers(ctx)
 
 	checkerCount := len(p.checkers)
 	wg := core.NewWorkGroup(singleThreaded)

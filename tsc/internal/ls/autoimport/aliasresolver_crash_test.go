@@ -66,7 +66,7 @@ func TestAliasResolverGetDiagnosticsDoesNotPanic(t *testing.T) {
 		func(ast.HasFileName, string) {},
 	)
 
-	ch, _ := checker.NewChecker(r, nil)
+	ch, _ := checker.NewChecker(t.Context(), r, nil)
 
 	// Type-checking this file's diagnostics must not panic.
 	ch.GetDiagnostics(context.Background(), sourceFile)

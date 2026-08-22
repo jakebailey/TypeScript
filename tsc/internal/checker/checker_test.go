@@ -41,7 +41,7 @@ foo.bar;`
 		Config: parsed,
 		Host:   host,
 	})
-	p.BindSourceFiles()
+	p.BindSourceFiles(t.Context())
 	c, done := p.GetTypeChecker(t.Context())
 	defer done()
 	file := p.GetSourceFile("/foo.ts")

@@ -555,7 +555,7 @@ type Program interface {
 	Host
 	Options() *core.CompilerOptions
 	SourceFiles() []*ast.SourceFile
-	BindSourceFiles()
+	BindSourceFiles(ctx context.Context)
 	FileExists(fileName string) bool
 	GetSourceFile(fileName string) *ast.SourceFile
 	GetSourceFileForResolvedModule(fileName string) *ast.SourceFile
@@ -906,9 +906,9 @@ type Checker struct {
 	tracer *Tracer // Optional tracer for trace events and type recording (for --generateTrace)
 }
 
-func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
-	defer runtimetrace.Region(context.TODO(), "checker.NewChecker")()
-	program.BindSourceFiles()
+func NewChecker(ctx context.Context, program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
+	defer runtimetrace.Region(ctx, "checker.NewChecker")()
+	program.BindSourceFiles(ctx)
 
 	c := &Checker{}
 	c.id = nextCheckerID.Add(1)

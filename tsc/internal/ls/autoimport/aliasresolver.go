@@ -1,6 +1,8 @@
 package autoimport
 
 import (
+	"context"
+
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/binder"
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
@@ -50,7 +52,7 @@ func newAliasResolver(
 }
 
 // BindSourceFiles implements checker.Program.
-func (r *aliasResolver) BindSourceFiles() {
+func (r *aliasResolver) BindSourceFiles(ctx context.Context) {
 	// We will bind as we parse
 }
 

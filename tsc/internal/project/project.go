@@ -437,7 +437,7 @@ func (p *Project) CreateProgram() CreateProgramResult {
 		updateKind = ProgramUpdateKindSameFileNames
 	}
 
-	newProgram.BindSourceFiles()
+	newProgram.BindSourceFiles(context.TODO())
 
 	return CreateProgramResult{
 		Program:    newProgram,

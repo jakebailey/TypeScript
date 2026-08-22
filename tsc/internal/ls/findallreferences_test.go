@@ -54,7 +54,7 @@ func TestImplementationsWorklistDoesNotBlowUp(t *testing.T) {
 		parsed, errors := tsoptions.GetParsedCommandLineOfConfigFile("/tsconfig.json", &core.CompilerOptions{}, nil, host, nil)
 		assert.Equal(t, len(errors), 0)
 		program := compiler.NewProgram(compiler.ProgramOptions{Config: parsed, Host: host})
-		program.BindSourceFiles()
+		program.BindSourceFiles(t.Context())
 		program.GetSemanticDiagnostics(context.Background(), program.GetSourceFile("/repro.ts"))
 
 		sourceFile := program.GetSourceFile("/repro.ts")
