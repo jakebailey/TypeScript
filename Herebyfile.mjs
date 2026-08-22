@@ -275,9 +275,84 @@ export const cleanBuilt = task({
     run: () => rimraf("built"),
 });
 
+export const depaware = task({
+    name: "depaware",
+    hiddenFromTaskList: true,
+    run: async () => {
+        /** @param {string} p */
+        function vendorlessPath(p) {
+            const i = p.lastIndexOf("/vendor/");
+            if (i >= 0) return p.slice(i + "/vendor/".length);
+            return p.startsWith("vendor/") ? p.slice("vendor/".length) : p;
+        }
+
+        /** @param {string} p */
+        function isGoPackage(p) {
+            return !p.includes(".") || p.includes("golang.org/x");
+        }
+
+        /** @param {string} p */
+        function isInternalPackage(p) {
+            return p.startsWith("internal/") || p.startsWith("runtime/internal/")
+                || p === "runtime" || p === "runtime/cgo" || p === "unsafe"
+                || (p.includes("/internal/") && isGoPackage(p));
+        }
+
+        const module = "github.com/microsoft/TypeScript/tsc";
+        const root = `${module}/cmd/tsc`;
+        const geese = ["linux", "darwin", "windows"];
+        const format = `{{.ImportPath}}{{range .Imports}}{{if or (eq . "unsafe") (eq . "C")}} unsafe{{end}}{{end}}`;
+
+        /** @type {string[]} */
+        const order = [];
+        /** @type {Map<string, Set<string>>} */
+        const onOS = new Map();
+        /** @type {Set<string>} */
+        const unsafe = new Set();
+
+        for (const goos of geese) {
+            const { stdout } = await $pipe({
+                cwd: "./tsc",
+                env: { GOOS: goos, GOARCH: "amd64", CGO_ENABLED: "0" },
+            })`go list -deps -f ${format} ./cmd/tsc`;
+            for (const line of stdout.split("\n")) {
+                if (!line) continue;
+                const [raw, marker] = line.split(" ");
+                const pkg = vendorlessPath(raw);
+                if (marker) unsafe.add(pkg);
+                if (pkg === root || isInternalPackage(pkg)) continue;
+                let set = onOS.get(pkg);
+                if (!set) onOS.set(pkg, set = (order.push(pkg), new Set()));
+                set.add(goos);
+            }
+        }
+
+        // Sort like depaware: non-stdlib first, golang.org/x after other third-party, stdlib last; each lexical.
+        order.sort((a, b) => {
+            if (a.includes(".") !== b.includes(".")) return a.includes(".") ? -1 : 1;
+            const xa = a.includes("golang.org/x/"), xb = b.includes("golang.org/x/");
+            if (xa !== xb) return xb ? -1 : 1;
+            return a < b ? -1 : a > b ? 1 : 0;
+        });
+
+        const lines = [`${root} dependencies:`, ""];
+        for (const pkg of order) {
+            const icon = unsafe.has(pkg) && !isGoPackage(pkg) ? "💣" : "  ";
+            const importedOn = onOS.get(pkg) ?? new Set();
+            let os = geese.filter(g => importedOn.has(g)).map(g => g[0].toUpperCase()).join("");
+            if (os.length === geese.length) os = "";
+            lines.push(` ${os.padStart(3)} ${icon} ${pkg}`);
+        }
+
+        const stdout = lines.filter(l => !l.startsWith(" ") || !l.trimStart().startsWith(`${module}/`)).join("\n").trim() + "\n";
+        await fs.promises.writeFile(path.join(__dirname, "tsc", "cmd", "tsc", "depaware.txt"), stdout);
+    },
+});
+
 export const generate = task({
     name: "generate",
-    description: "Runs go generate on the project.",
+    description: "Generates all generated code.",
+    dependencies: [depaware],
     run: async () => {
         await $({ cwd: "./tsc" })`go generate -v ./...`;
     },
