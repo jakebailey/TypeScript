@@ -48,6 +48,7 @@ type emitter struct {
 
 func (e *emitter) emit(ctx context.Context) {
 	defer runtimetrace.Region(ctx, "emitter.emit")()
+	runtimetrace.LogUnsafef(ctx, "emit", "file=%s", e.sourceFile.FileName())
 	if e.tr != nil {
 		defer e.tr.Push(tracing.PhaseEmit, "emit", map[string]any{"path": string(e.sourceFile.Path())}, true)()
 	}

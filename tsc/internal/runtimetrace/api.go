@@ -3,6 +3,7 @@ package runtimetrace
 import (
 	"context"
 	"runtime/trace"
+	"sync/atomic"
 )
 
 // IsEnabled reports whether the runtime execution tracer is enabled. It is
@@ -36,13 +37,54 @@ func NewTask(ctx context.Context, name string) (context.Context, func()) {
 	return ctx, task.End
 }
 
-// Log emits a one-off event to the execution trace, attached to the task in
-// ctx (if any). Category may be empty.
-func Log(ctx context.Context, category, message string) {
+// --- Logging --------------------------------------------------------------
+//
+// Two logging variants are provided to make it explicit at the call site
+// whether the payload is safe to share:
+//
+//   - LogSafe / LogSafef: for payloads known to contain no user data.
+//     Examples: counts, sizes, durations, protocol method names, JSON-RPC
+//     request IDs, enum values. Always emitted when tracing is on.
+//
+//   - LogUnsafe / LogUnsafef: for payloads that may contain user data such
+//     as file paths, module specifiers, or identifier names. Only emitted
+//     when the user has opted in via TSGO_RUNTIME_TRACE_DETAIL.
+//
+// Use UnsafeLoggingEnabled to short-circuit expensive payload construction
+// before calling the LogUnsafe* helpers.
+
+// unsafeLogging is set by Start when TSGO_RUNTIME_TRACE_DETAIL is truthy.
+var unsafeLogging atomic.Bool
+
+// UnsafeLoggingEnabled reports whether unsafe (potentially user-data-bearing)
+// trace logging has been enabled by the user.
+func UnsafeLoggingEnabled() bool { return unsafeLogging.Load() }
+
+// LogSafe emits a one-off event to the execution trace, attached to the task
+// in ctx (if any). The payload must not contain user data.
+func LogSafe(ctx context.Context, category, message string) {
 	trace.Log(ctx, category, message)
 }
 
-// Logf is like Log but formats the message with fmt.Sprintf-style arguments.
-func Logf(ctx context.Context, category, format string, args ...any) {
+// LogSafef is like LogSafe but formats the message with fmt.Sprintf-style
+// arguments. The formatted payload must not contain user data.
+func LogSafef(ctx context.Context, category, format string, args ...any) {
 	trace.Logf(ctx, category, format, args...)
+}
+
+// LogUnsafe emits a one-off event to the execution trace only when the user
+// has opted in via TSGO_RUNTIME_TRACE_DETAIL. Use it for payloads that may
+// include file paths, identifier names, or other user data.
+func LogUnsafe(ctx context.Context, category, message string) {
+	if unsafeLogging.Load() {
+		trace.Log(ctx, category, message)
+	}
+}
+
+// LogUnsafef is like LogUnsafe but formats the message with fmt.Sprintf-style
+// arguments.
+func LogUnsafef(ctx context.Context, category, format string, args ...any) {
+	if unsafeLogging.Load() {
+		trace.Logf(ctx, category, format, args...)
+	}
 }

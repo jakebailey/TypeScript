@@ -1144,6 +1144,9 @@ func (s *Server) handleRequestOrNotification(ctx context.Context, req *lsproto.R
 
 	if handler := handlers()[req.Method]; handler != nil {
 		ctx, endTask := runtimetrace.NewTask(ctx, "lsp."+string(req.Method))
+		if req.ID != nil {
+			runtimetrace.LogSafe(ctx, "lsp", req.ID.String())
+		}
 		start := time.Now()
 		doAsyncWork, err := handler(s, ctx, req)
 		idStr := ""

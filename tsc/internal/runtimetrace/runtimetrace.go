@@ -22,6 +22,13 @@
 //
 //	TSGO_RUNTIME_TRACE_FLIGHT_MAX_BYTES
 //	    Optional unsigned integer used as MaxBytes for the flight recorder.
+//
+//	TSGO_RUNTIME_TRACE_DETAIL
+//	    If set to a truthy value (1, true, yes, on), instrumentation may emit
+//	    additional log events that include potentially sensitive information
+//	    such as file paths or identifier names. Defaults to off so that
+//	    captured traces are safe to share. Use UnsafeLoggingEnabled() /
+//	    LogUnsafe* to gate such events.
 package runtimetrace
 
 import (
@@ -39,6 +46,7 @@ const (
 	envRuntimeTraceFlight        = "TSGO_RUNTIME_TRACE_FLIGHT"
 	envRuntimeTraceFlightMinAge  = "TSGO_RUNTIME_TRACE_FLIGHT_MIN_AGE"
 	envRuntimeTraceFlightMaxByte = "TSGO_RUNTIME_TRACE_FLIGHT_MAX_BYTES"
+	envRuntimeTraceDetail        = "TSGO_RUNTIME_TRACE_DETAIL"
 )
 
 // Session represents an active runtime tracing setup (regular trace and/or
@@ -61,6 +69,13 @@ type Session struct {
 // traces are flushed. Errors are logged to logWriter but not fatal.
 func Start(logWriter io.Writer) *Session {
 	s := &Session{logWriter: logWriter}
+
+	switch os.Getenv(envRuntimeTraceDetail) {
+	case "", "0", "false", "no", "off":
+		// detail logging disabled
+	default:
+		unsafeLogging.Store(true)
+	}
 
 	if path := os.Getenv(envRuntimeTrace); path != "" {
 		if err := s.startTrace(path); err != nil {
