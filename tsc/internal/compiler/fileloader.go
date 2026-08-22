@@ -823,11 +823,11 @@ func (p *fileLoader) resolveImportsAndModuleAugmentations(t *parseTask) {
 	// Use the full options-dependent check for module detection, since the fileloader
 	// has access to compiler options and metadata.
 	if !isExternalModuleFile {
-		fileName := file.FileName()
+		moduleIndicatorFileName := file.FileName()
 		if virtualFileName := file.VirtualFileName(); virtualFileName != "" {
-			fileName = virtualFileName
+			moduleIndicatorFileName = virtualFileName
 		}
-		isExternalModuleFile = ast.GetExternalModuleIndicator(file, ast.GetExternalModuleIndicatorOptions(fileName, optionsForFile, meta)) != nil
+		isExternalModuleFile = ast.GetExternalModuleIndicator(file, ast.GetExternalModuleIndicatorOptions(moduleIndicatorFileName, optionsForFile, meta)) != nil
 	}
 	if isJavaScriptFile || (!file.IsDeclarationFile && (optionsForFile.GetIsolatedModules() || isExternalModuleFile)) {
 		if optionsForFile.ImportHelpers.IsTrue() {
