@@ -2,8 +2,6 @@ package lsutil
 
 import (
 	"maps"
-	"reflect"
-	"slices"
 	"strings"
 	"sync"
 
@@ -294,231 +292,7 @@ const (
 	OrganizeImportsTypeOrderFirst  OrganizeImportsTypeOrder = 3
 )
 
-// --- Reflection-based parsing infrastructure ---
-
-// typeParsers maps reflect.Type to a function that parses a value into that type.
-var typeParsers = map[reflect.Type]func(any) any{
-	reflect.TypeFor[core.Tristate](): func(val any) any {
-		if b, ok := val.(bool); ok {
-			if b {
-				return core.TSTrue
-			}
-			return core.TSFalse
-		}
-		return core.TSUnknown
-	},
-	reflect.TypeFor[IndentStyle](): func(val any) any {
-		return parseIndentStyle(val)
-	},
-	reflect.TypeFor[SemicolonPreference](): func(val any) any {
-		return parseSemicolonPreference(val)
-	},
-	reflect.TypeFor[QuotePreference](): func(val any) any {
-		if s, ok := val.(string); ok {
-			switch strings.ToLower(s) {
-			case "auto":
-				return QuotePreferenceAuto
-			case "double":
-				return QuotePreferenceDouble
-			case "single":
-				return QuotePreferenceSingle
-			}
-		}
-		return QuotePreferenceUnknown
-	},
-	reflect.TypeFor[JsxAttributeCompletionStyle](): func(val any) any {
-		if s, ok := val.(string); ok {
-			switch strings.ToLower(s) {
-			case "braces":
-				return JsxAttributeCompletionStyleBraces
-			case "none":
-				return JsxAttributeCompletionStyleNone
-			}
-		}
-		return JsxAttributeCompletionStyleAuto
-	},
-	reflect.TypeFor[IncludeInlayParameterNameHints](): func(val any) any {
-		if s, ok := val.(string); ok {
-			switch s {
-			case "all":
-				return IncludeInlayParameterNameHintsAll
-			case "literals":
-				return IncludeInlayParameterNameHintsLiterals
-			}
-		}
-		return IncludeInlayParameterNameHintsNone
-	},
-	reflect.TypeFor[OrganizeImportsSort](): func(val any) any {
-		if s, ok := val.(string); ok {
-			switch strings.ToLower(s) {
-			case "ordinal":
-				return OrganizeImportsSortOrdinal
-			case "ordinalignorecase":
-				return OrganizeImportsSortOrdinalIgnoreCase
-			case "natural":
-				return OrganizeImportsSortNatural
-			case "naturalignorecase":
-				return OrganizeImportsSortNaturalIgnoreCase
-			}
-		}
-		return OrganizeImportsSortAuto
-	},
-	reflect.TypeFor[OrganizeImportsCollation](): func(val any) any {
-		if s, ok := val.(string); ok && strings.ToLower(s) == "unicode" {
-			return OrganizeImportsCollationUnicode
-		}
-		return OrganizeImportsCollationOrdinal
-	},
-	reflect.TypeFor[OrganizeImportsCaseFirst](): func(val any) any {
-		if s, ok := val.(string); ok {
-			switch s {
-			case "lower":
-				return OrganizeImportsCaseFirstLower
-			case "upper":
-				return OrganizeImportsCaseFirstUpper
-			}
-		}
-		return OrganizeImportsCaseFirstFalse
-	},
-	reflect.TypeFor[OrganizeImportsTypeOrder](): func(val any) any {
-		if s, ok := val.(string); ok {
-			switch s {
-			case "last":
-				return OrganizeImportsTypeOrderLast
-			case "inline":
-				return OrganizeImportsTypeOrderInline
-			case "first":
-				return OrganizeImportsTypeOrderFirst
-			}
-		}
-		return OrganizeImportsTypeOrderAuto
-	},
-	reflect.TypeFor[modulespecifiers.ImportModuleSpecifierPreference](): func(val any) any {
-		if s, ok := val.(string); ok {
-			switch strings.ToLower(s) {
-			case "project-relative":
-				return modulespecifiers.ImportModuleSpecifierPreferenceProjectRelative
-			case "relative":
-				return modulespecifiers.ImportModuleSpecifierPreferenceRelative
-			case "non-relative":
-				return modulespecifiers.ImportModuleSpecifierPreferenceNonRelative
-			}
-		}
-		return modulespecifiers.ImportModuleSpecifierPreferenceShortest
-	},
-	reflect.TypeFor[modulespecifiers.ImportModuleSpecifierEndingPreference](): func(val any) any {
-		if s, ok := val.(string); ok {
-			switch strings.ToLower(s) {
-			case "minimal":
-				return modulespecifiers.ImportModuleSpecifierEndingPreferenceMinimal
-			case "index":
-				return modulespecifiers.ImportModuleSpecifierEndingPreferenceIndex
-			case "js":
-				return modulespecifiers.ImportModuleSpecifierEndingPreferenceJs
-			}
-		}
-		return modulespecifiers.ImportModuleSpecifierEndingPreferenceAuto
-	},
-}
-
-// typeSerializers maps reflect.Type to a function that serializes a value of that type.
-// For types which do not serialize as-is (tristate, enums, etc).
-var typeSerializers = map[reflect.Type]func(any) any{
-	reflect.TypeFor[core.Tristate](): func(val any) any {
-		switch val.(core.Tristate) {
-		case core.TSTrue:
-			return true
-		case core.TSFalse:
-			return false
-		default:
-			return nil
-		}
-	},
-	reflect.TypeFor[OrganizeImportsSort](): func(val any) any {
-		switch val.(OrganizeImportsSort) {
-		case OrganizeImportsSortOrdinal:
-			return "ordinal"
-		case OrganizeImportsSortOrdinalIgnoreCase:
-			return "ordinalIgnoreCase"
-		case OrganizeImportsSortNatural:
-			return "natural"
-		case OrganizeImportsSortNaturalIgnoreCase:
-			return "naturalIgnoreCase"
-		default:
-			return "auto"
-		}
-	},
-	reflect.TypeFor[OrganizeImportsCollation](): func(val any) any {
-		if val.(OrganizeImportsCollation) == OrganizeImportsCollationUnicode {
-			return "unicode"
-		}
-		return "ordinal"
-	},
-	reflect.TypeFor[OrganizeImportsCaseFirst](): func(val any) any {
-		switch val.(OrganizeImportsCaseFirst) {
-		case OrganizeImportsCaseFirstLower:
-			return "lower"
-		case OrganizeImportsCaseFirstUpper:
-			return "upper"
-		default:
-			return "default"
-		}
-	},
-	reflect.TypeFor[OrganizeImportsTypeOrder](): func(val any) any {
-		switch val.(OrganizeImportsTypeOrder) {
-		case OrganizeImportsTypeOrderLast:
-			return "last"
-		case OrganizeImportsTypeOrderInline:
-			return "inline"
-		case OrganizeImportsTypeOrderFirst:
-			return "first"
-		default:
-			return "auto"
-		}
-	},
-	// These enums distinguish an unset zero value (e.g. "") from their effective
-	// default (e.g. "auto"): the parser promotes unset/unknown input to the
-	// non-zero default. Plain string serialization would therefore write "" for
-	// an unset field and the parser would read it back as the non-zero default,
-	// breaking round-tripping. Mirror the core.Tristate serializer above and omit
-	// the unset value (return nil) so it decodes back to the zero value. (Enums
-	// whose default already is their zero value, like the OrganizeImports* ones,
-	// round-trip without this.)
-	//
-	// TODO: These three are the only parsers whose fallback is a non-zero value;
-	// every other parser returns its zero value as the fallback. They should be
-	// made consistent: change the parser fallback to return the zero value and
-	// remove this serializer (relying on the default string serialization, which
-	// already omits ""). The consumer must then treat the zero value as the
-	// effective default. The two module-specifier enums are safe to convert (all
-	// read sites already treat the "" zero identically to the promoted default).
-	reflect.TypeFor[JsxAttributeCompletionStyle](): func(val any) any {
-		// TODO: make consistent with other enums (see note above). Unlike the
-		// module-specifier enums, the consumer in completions.go distinguishes
-		// JsxAttributeCompletionStyleUnknown from ...Auto, so converting this one
-		// requires updating that consumer to treat the zero value as "auto".
-		if v := val.(JsxAttributeCompletionStyle); v != JsxAttributeCompletionStyleUnknown {
-			return string(v)
-		}
-		return nil
-	},
-	reflect.TypeFor[modulespecifiers.ImportModuleSpecifierPreference](): func(val any) any {
-		// TODO: make consistent with other enums (see note above): have the parser
-		// return the zero value (None) as its fallback and drop this serializer.
-		if v := val.(modulespecifiers.ImportModuleSpecifierPreference); v != "" {
-			return string(v)
-		}
-		return nil
-	},
-	reflect.TypeFor[modulespecifiers.ImportModuleSpecifierEndingPreference](): func(val any) any {
-		// TODO: make consistent with other enums (see note above): have the parser
-		// return the zero value (None) as its fallback and drop this serializer.
-		if v := val.(modulespecifiers.ImportModuleSpecifierEndingPreference); v != "" {
-			return string(v)
-		}
-		return nil
-	},
-}
+// --- Generated preference parsing infrastructure ---
 
 // configPathParsers provides field-specific config value parsers that override the default
 // type-based parser when the VS Code config value format differs from the Go field type.
@@ -548,9 +322,11 @@ type fieldInfo struct {
 	rawName             string // raw name for unstable section lookup (e.g., "quotePreference")
 	configPath          string // dotted path for config (e.g., "preferences.quoteStyle")
 	fallbackConfigPaths []configPathInfo
-	fieldPath           []int // index path to field in struct
-	rawInvert           bool  // whether to invert boolean values for raw name
-	configInvert        bool  // whether to invert boolean values for config path
+	rawInvert           bool // whether to invert boolean values for raw name
+	configInvert        bool // whether to invert boolean values for config path
+	set                 func(*UserPreferences, any)
+	serialize           func(*UserPreferences) any
+	merge               func(*UserPreferences, UserPreferences)
 }
 
 type configPathInfo struct {
@@ -559,7 +335,7 @@ type configPathInfo struct {
 }
 
 var fieldInfoCache = sync.OnceValue(func() []fieldInfo {
-	return collectFieldInfos(reflect.TypeFor[UserPreferences](), nil)
+	return generatedUserPreferenceFieldInfos()
 })
 
 // unstableNameIndex maps raw names to fieldInfo index for unstable section lookup.
@@ -573,68 +349,6 @@ var unstableNameIndex = sync.OnceValue(func() map[string]int {
 	}
 	return index
 })
-
-func collectFieldInfos(t reflect.Type, indexPath []int) []fieldInfo {
-	var infos []fieldInfo
-	for i := range t.NumField() {
-		field := t.Field(i)
-		currentPath := append(slices.Clone(indexPath), i)
-
-		rawTag := field.Tag.Get("raw")
-		configTag := field.Tag.Get("config")
-		fallbackConfigTag := field.Tag.Get("fallbackConfig")
-
-		if rawTag == "" && configTag == "" {
-			// Embedded struct without tags - recurse into it
-			if field.Type.Kind() == reflect.Struct {
-				infos = append(infos, collectFieldInfos(field.Type, currentPath)...)
-				continue
-			}
-			panic("raw or config tag required for field " + field.Name)
-		}
-
-		info := fieldInfo{
-			fieldPath: currentPath,
-		}
-
-		// Parse raw tag: "name" or "name,invert"
-		if rawTag != "" {
-			parts := strings.Split(rawTag, ",")
-			info.rawName = parts[0]
-			for _, part := range parts[1:] {
-				if part == "invert" {
-					info.rawInvert = true
-				}
-			}
-		}
-
-		// Parse config tag: "path.to.setting" or "path.to.setting,invert"
-		if configTag != "" {
-			configPath := parseConfigPathTag(configTag)
-			info.configPath = configPath.path
-			info.configInvert = configPath.invert
-		}
-		if fallbackConfigTag != "" {
-			for tag := range strings.SplitSeq(fallbackConfigTag, ";") {
-				info.fallbackConfigPaths = append(info.fallbackConfigPaths, parseConfigPathTag(tag))
-			}
-		}
-
-		infos = append(infos, info)
-	}
-	return infos
-}
-
-func parseConfigPathTag(tag string) configPathInfo {
-	parts := strings.Split(tag, ",")
-	info := configPathInfo{path: parts[0]}
-	for _, part := range parts[1:] {
-		if part == "invert" {
-			info.invert = true
-		}
-	}
-	return info
-}
 
 func getNestedValue(config map[string]any, path string) (any, bool) {
 	parts := strings.Split(path, ".")
@@ -666,34 +380,32 @@ func setNestedValue(config map[string]any, path string, value any) {
 	current[parts[len(parts)-1]] = value
 }
 
-func setRawFieldsFromConfig(v reflect.Value, infos []fieldInfo, settings map[string]any) {
+func setRawFieldsFromConfig(p *UserPreferences, infos []fieldInfo, settings map[string]any) {
 	index := unstableNameIndex()
 	for name, value := range settings {
 		if idx, found := index[name]; found {
 			info := infos[idx]
-			field := getFieldByPath(v, info.fieldPath)
 			if info.rawInvert {
 				if b, ok := value.(bool); ok {
 					value = !b
 				}
 			}
-			setFieldFromValue(field, value)
+			info.set(p, value)
 		}
 	}
 }
 
 func (p UserPreferences) withConfig(config map[string]any) UserPreferences {
-	v := reflect.ValueOf(&p).Elem()
 	infos := fieldInfoCache()
 
 	// Raw UserPreferences can be provided directly, notably via LSP initializationOptions.
-	setRawFieldsFromConfig(v, infos, config)
+	setRawFieldsFromConfig(&p, infos, config)
 
 	// Process "unstable" section first - allows any field to be set by raw name.
 	// This mirrors VS Code's behavior: { ...config.get('unstable'), ...stableOptions }
 	// where stable options are spread after and take precedence.
 	if unstable, ok := config["unstable"].(map[string]any); ok {
-		setRawFieldsFromConfig(v, infos, unstable)
+		setRawFieldsFromConfig(&p, infos, unstable)
 	}
 
 	// Process path-based config (VS Code style nested paths).
@@ -717,17 +429,15 @@ func (p UserPreferences) withConfig(config map[string]any) UserPreferences {
 			continue
 		}
 
-		field := getFieldByPath(v, info.fieldPath)
 		if configPath.invert {
 			if b, ok := val.(bool); ok {
 				val = !b
 			}
 		}
 		if parser, ok := configPathParsers[configPath.path]; ok {
-			field.Set(reflect.ValueOf(parser(val)))
-			continue
+			val = parser(val)
 		}
-		setFieldFromValue(field, val)
+		info.set(&p, val)
 	}
 
 	// Validate CustomConfigFileName for path traversal
@@ -743,61 +453,11 @@ func (p UserPreferences) withConfig(config map[string]any) UserPreferences {
 	return p
 }
 
-func getFieldByPath(v reflect.Value, path []int) reflect.Value {
-	for _, idx := range path {
-		v = v.Field(idx)
-	}
-	return v
-}
-
-func setFieldFromValue(field reflect.Value, val any) {
-	if val == nil {
-		return
-	}
-
-	// Check custom parsers first (for types like Tristate, enums, etc.)
-	if parser, ok := typeParsers[field.Type()]; ok {
-		field.Set(reflect.ValueOf(parser(val)))
-		return
-	}
-
-	switch field.Kind() {
-	case reflect.Bool:
-		if b, ok := val.(bool); ok {
-			field.SetBool(b)
-		}
-	case reflect.Int:
-		switch v := val.(type) {
-		case int:
-			field.SetInt(int64(v))
-		case float64:
-			field.SetInt(int64(v))
-		}
-	case reflect.String:
-		if s, ok := val.(string); ok {
-			field.SetString(s)
-		}
-	case reflect.Slice:
-		if arr, ok := val.([]any); ok {
-			result := reflect.MakeSlice(field.Type(), 0, len(arr))
-			for _, item := range arr {
-				if s, ok := item.(string); ok {
-					result = reflect.Append(result, reflect.ValueOf(s))
-				}
-			}
-			field.Set(result)
-		}
-	}
-}
-
 func (p *UserPreferences) MarshalJSONTo(enc *json.Encoder) error {
 	config := make(map[string]any)
-	v := reflect.ValueOf(p).Elem()
 
 	for _, info := range fieldInfoCache() {
-		field := getFieldByPath(v, info.fieldPath)
-
-		val := serializeField(field)
+		val := info.serialize(p)
 		if val == nil {
 			continue
 		}
@@ -823,45 +483,6 @@ func (p *UserPreferences) MarshalJSONTo(enc *json.Encoder) error {
 	return json.MarshalEncode(enc, config, json.Deterministic(true))
 }
 
-func serializeField(field reflect.Value) any {
-	// Check custom serializers first (for types like Tristate, enums, etc.)
-	if serializer, ok := typeSerializers[field.Type()]; ok {
-		return serializer(field.Interface())
-	}
-
-	switch field.Kind() {
-	case reflect.Bool:
-		return field.Bool()
-	case reflect.Int:
-		// Zero means "unset" for these preference fields. Omit it so a partial
-		// config does not clobber defaults with zeros when round-tripped through
-		// withConfig.
-		i := field.Int()
-		if i == 0 {
-			return nil
-		}
-		return int(i)
-	case reflect.String:
-		// Zero ("") means "unset"; omit it for the same reason as int above.
-		s := field.String()
-		if s == "" {
-			return nil
-		}
-		return s
-	case reflect.Slice:
-		if field.IsNil() {
-			return nil
-		}
-		result := make([]string, field.Len())
-		for i := range field.Len() {
-			result[i] = field.Index(i).String()
-		}
-		return result
-	default:
-		return field.Interface()
-	}
-}
-
 func (p *UserPreferences) UnmarshalJSONFrom(dec *json.Decoder) error {
 	var config map[string]any
 	if err := json.UnmarshalDecode(dec, &config); err != nil {
@@ -873,6 +494,16 @@ func (p *UserPreferences) UnmarshalJSONFrom(dec *json.Decoder) error {
 }
 
 // --- Helper methods ---
+
+// WithOverrides returns a copy of p with non-zero fields from overrides applied on top.
+// This is safe because all preference fields use types where zero = "not set":
+// Tristate (TSUnknown=0), int (0), string (""), slice (nil).
+func (p UserPreferences) WithOverrides(overrides UserPreferences) UserPreferences {
+	for _, info := range fieldInfoCache() {
+		info.merge(&p, overrides)
+	}
+	return p
+}
 
 func (p UserPreferences) ModuleSpecifierPreferences() modulespecifiers.UserPreferences {
 	return modulespecifiers.UserPreferences{
