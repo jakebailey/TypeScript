@@ -40,6 +40,8 @@ func TestTripleSlashRefPathCompletionExtensionsAllowJSFalse(t *testing.T) {
 		Items: &fourslash.CompletionsExpectedItems{
 			Exact: []fourslash.CompletionsExpectedItem{
 				"f1.d.ts",
+				"f1.js",
+				"f1.jsx",
 				"f1.ts",
 				"f1.tsx",
 			},

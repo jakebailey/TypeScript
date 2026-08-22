@@ -42,6 +42,7 @@ declare module "fake-module/other"`
 		Items: &fourslash.CompletionsExpectedItems{
 			Exact: []fourslash.CompletionsExpectedItem{
 				"other",
+				"other2",
 				"repeated",
 			},
 		},
