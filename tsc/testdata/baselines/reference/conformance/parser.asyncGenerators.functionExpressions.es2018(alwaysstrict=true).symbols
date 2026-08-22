@@ -124,14 +124,12 @@ const f18 = async function * () {
 };
 === awaitAsTypeIsOk.ts ===
 interface await {}
->await : Symbol(await, Decl(awaitAsTypeIsOk.ts, 0, 0))
-
 const f19 = async function * () {
 >f19 : Symbol(f19, Decl(awaitAsTypeIsOk.ts, 1, 5))
 
     let x: await;
 >x : Symbol(x, Decl(awaitAsTypeIsOk.ts, 2, 7))
->await : Symbol(await, Decl(awaitAsTypeIsOk.ts, 0, 0))
+>await : Symbol(await)
 
 };
 === yieldAsTypeIsOk.ts ===

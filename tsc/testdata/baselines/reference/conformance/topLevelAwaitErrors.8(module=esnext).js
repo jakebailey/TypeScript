@@ -9,7 +9,9 @@ declare const _await: any;
 export default _await;
 
 
+//// [index.js]
+// await disallowed in default import
+import await from;
+"./other";
 //// [other.js]
 export default _await;
-//// [index.js]
-export {};

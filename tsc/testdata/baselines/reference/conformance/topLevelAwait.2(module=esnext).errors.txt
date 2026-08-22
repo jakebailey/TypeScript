@@ -1,0 +1,14 @@
+topLevelAwait.2.ts(4,8): error TS1141: String literal expected.
+topLevelAwait.2.ts(4,14): error TS1109: Expression expected.
+
+
+==== topLevelAwait.2.ts (2 errors) ====
+    declare namespace foo { const await: any; }
+    
+    // await allowed in import=namespace when not a module
+    import await = foo.await;
+           ~~~~~
+!!! error TS1141: String literal expected.
+                 ~
+!!! error TS1109: Expression expected.
+    

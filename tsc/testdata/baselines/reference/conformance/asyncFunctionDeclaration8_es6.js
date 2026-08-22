@@ -5,4 +5,4 @@ var v = { [await]: foo }
 
 //// [asyncFunctionDeclaration8_es6.js]
 "use strict";
-var v = { [await]: foo };
+var v = { [await ]: foo };

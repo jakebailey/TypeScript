@@ -6,7 +6,7 @@ declare var require: any;
 >require : Symbol(require, Decl(index.ts, 1, 11))
 
 import await = require("./other");
->await : Symbol(await, Decl(index.ts, 1, 25))
+>require : Symbol(require, Decl(index.ts, 1, 11))
 
 === other.ts ===
 declare const _await: any;

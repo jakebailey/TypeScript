@@ -53,8 +53,9 @@ await , string > (1);
 // reparse tagged template as invalid await should error
 await , string > ``;
 // reparse class extends clause should fail
-class C extends string {
+class C extends  {
 }
+await {};
 // await in class decorators should fail
 let C1 = class C1 {
 };

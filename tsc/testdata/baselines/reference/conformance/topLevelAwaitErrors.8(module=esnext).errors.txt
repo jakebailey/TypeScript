@@ -1,11 +1,14 @@
-index.ts(2,8): error TS1262: Identifier expected. 'await' is a reserved word at the top-level of a module.
+index.ts(2,8): error TS1141: String literal expected.
+index.ts(2,19): error TS1005: ';' expected.
 
 
-==== index.ts (1 errors) ====
+==== index.ts (2 errors) ====
     // await disallowed in default import
     import await from "./other";
-           ~~~~~
-!!! error TS1262: Identifier expected. 'await' is a reserved word at the top-level of a module.
+           ~~~~~~~~~~
+!!! error TS1141: String literal expected.
+                      ~~~~~~~~~
+!!! error TS1005: ';' expected.
     
 ==== other.ts (0 errors) ====
     declare const _await: any;

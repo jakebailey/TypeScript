@@ -1,3 +1,4 @@
+classStaticBlock22.ts(1,5): error TS1359: Identifier expected. 'await' is a reserved word that cannot be used here.
 classStaticBlock22.ts(4,9): error TS1359: Identifier expected. 'await' is a reserved word that cannot be used here.
 classStaticBlock22.ts(7,11): error TS1359: Identifier expected. 'await' is a reserved word that cannot be used here.
 classStaticBlock22.ts(13,9): error TS1359: Identifier expected. 'await' is a reserved word that cannot be used here.
@@ -7,8 +8,10 @@ classStaticBlock22.ts(29,15): error TS1359: Identifier expected. 'await' is a re
 classStaticBlock22.ts(32,12): error TS1359: Identifier expected. 'await' is a reserved word that cannot be used here.
 
 
-==== classStaticBlock22.ts (7 errors) ====
+==== classStaticBlock22.ts (8 errors) ====
     let await: "any";
+        ~~~~~
+!!! error TS1359: Identifier expected. 'await' is a reserved word that cannot be used here.
     class C {
       static {
         let await: any; // illegal, cannot declare a new binding for await

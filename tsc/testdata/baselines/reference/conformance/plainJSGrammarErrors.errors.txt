@@ -78,7 +78,6 @@ plainJSGrammarErrors.js(122,5): error TS1214: Identifier expected. 'let' is a re
 plainJSGrammarErrors.js(122,5): error TS2480: 'let' is not allowed to be used as a name in 'let' or 'const' declarations.
 plainJSGrammarErrors.js(124,5): error TS1156: 'let' declarations can only be declared inside a block.
 plainJSGrammarErrors.js(126,5): error TS1156: 'const' declarations can only be declared inside a block.
-plainJSGrammarErrors.js(131,6): error TS1106: The left-hand side of a 'for...of' statement may not be 'async'.
 plainJSGrammarErrors.js(134,12): error TS1190: The variable declaration of a 'for...of' statement cannot have an initializer.
 plainJSGrammarErrors.js(137,12): error TS1189: The variable declaration of a 'for...in' statement cannot have an initializer.
 plainJSGrammarErrors.js(140,13): error TS1188: Only a single variable declaration is allowed in a 'for...of' statement.
@@ -101,7 +100,7 @@ plainJSGrammarErrors.js(204,30): message TS1450: Dynamic imports can only accept
 plainJSGrammarErrors.js(205,36): error TS1325: Argument of dynamic import cannot be spread element.
 
 
-==== plainJSGrammarErrors.js (101 errors) ====
+==== plainJSGrammarErrors.js (100 errors) ====
     class C {
         // #private mistakes
         q = #unbound
@@ -393,8 +392,6 @@ plainJSGrammarErrors.js(205,36): error TS1325: Argument of dynamic import cannot
     let async
     export const l = [1,2,3]
     for (async of l) {
-         ~~~~~
-!!! error TS1106: The left-hand side of a 'for...of' statement may not be 'async'.
         console.log(x)
     }
     for (const cantHaveInit = 1 of [1,2,3]) {

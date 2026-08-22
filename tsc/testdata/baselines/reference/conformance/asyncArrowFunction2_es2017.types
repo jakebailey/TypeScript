@@ -2,7 +2,8 @@
 
 === asyncArrowFunction2_es2017.ts ===
 var f = (await) => {
->f : (await: any) => void
->(await) => {} : (await: any) => void
+>f : any
+>(await) : any
 >await : any
+> : any
 }

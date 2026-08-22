@@ -186,8 +186,6 @@ const o18 = {
 };
 === awaitAsTypeIsOk.ts ===
 interface await {}
->await : Symbol(await, Decl(awaitAsTypeIsOk.ts, 0, 0))
-
 const o19 = {
 >o19 : Symbol(o19, Decl(awaitAsTypeIsOk.ts, 1, 5))
 
@@ -196,7 +194,7 @@ const o19 = {
 
         let x: await;
 >x : Symbol(x, Decl(awaitAsTypeIsOk.ts, 3, 11))
->await : Symbol(await, Decl(awaitAsTypeIsOk.ts, 0, 0))
+>await : Symbol(await)
     }
 };
 === yieldAsTypeIsOk.ts ===

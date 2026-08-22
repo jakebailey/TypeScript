@@ -1,0 +1,8 @@
+asyncArrowFunction4_es6.ts(1,5): error TS1359: Identifier expected. 'await' is a reserved word that cannot be used here.
+
+
+==== asyncArrowFunction4_es6.ts (1 errors) ====
+    var await = () => {
+        ~~~~~
+!!! error TS1359: Identifier expected. 'await' is a reserved word that cannot be used here.
+    }

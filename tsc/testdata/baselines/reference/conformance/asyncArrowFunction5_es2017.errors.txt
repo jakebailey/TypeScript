@@ -1,8 +1,24 @@
-asyncArrowFunction5_es2017.ts(1,18): error TS1359: Identifier expected. 'await' is a reserved word that cannot be used here.
+asyncArrowFunction5_es2017.ts(1,11): error TS2304: Cannot find name 'async'.
+asyncArrowFunction5_es2017.ts(1,23): error TS1109: Expression expected.
+asyncArrowFunction5_es2017.ts(1,24): error TS1005: ',' expected.
+asyncArrowFunction5_es2017.ts(1,26): error TS2403: Subsequent variable declarations must have the same type.  Variable 'Promise' must be of type 'PromiseConstructor', but here has type 'any'.
+asyncArrowFunction5_es2017.ts(1,33): error TS1005: ',' expected.
+asyncArrowFunction5_es2017.ts(1,40): error TS1109: Expression expected.
 
 
-==== asyncArrowFunction5_es2017.ts (1 errors) ====
+==== asyncArrowFunction5_es2017.ts (6 errors) ====
     var foo = async (await): Promise<void> => {
-                     ~~~~~
-!!! error TS1359: Identifier expected. 'await' is a reserved word that cannot be used here.
+              ~~~~~
+!!! error TS2304: Cannot find name 'async'.
+                          ~
+!!! error TS1109: Expression expected.
+                           ~
+!!! error TS1005: ',' expected.
+                             ~~~~~~~
+!!! error TS2403: Subsequent variable declarations must have the same type.  Variable 'Promise' must be of type 'PromiseConstructor', but here has type 'any'.
+!!! related TS6203 lib.es2015.promise.d.ts:--:--: 'Promise' was also declared here.
+                                    ~
+!!! error TS1005: ',' expected.
+                                           ~~
+!!! error TS1109: Expression expected.
     }

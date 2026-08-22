@@ -164,6 +164,10 @@ const f18 = async function * () {
 };
 === awaitAsTypeIsOk.ts ===
 interface await {}
+>interface : any
+>await {} : {}
+>{} : {}
+
 const f19 = async function * () {
 >f19 : () => AsyncGenerator<never, void, unknown>
 >async function * () {    let x: await;} : () => AsyncGenerator<never, void, unknown>

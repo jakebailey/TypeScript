@@ -6,7 +6,7 @@ async function * f1() {
 }
 === awaitNameIsOk.ts ===
 async function * await() {
->await : Symbol(await, Decl(awaitNameIsOk.ts, 0, 0), Decl(awaitAsTypeIsOk.ts, 0, 0))
+>await : Symbol(await, Decl(awaitNameIsOk.ts, 0, 0))
 }
 === yieldNameIsOk.ts ===
 async function * yield() {
@@ -114,14 +114,12 @@ async function * f18() {
 }
 === awaitAsTypeIsOk.ts ===
 interface await {}
->await : Symbol(await, Decl(awaitNameIsOk.ts, 0, 0), Decl(awaitAsTypeIsOk.ts, 0, 0))
-
 async function * f19() {
 >f19 : Symbol(f19, Decl(awaitAsTypeIsOk.ts, 0, 18))
 
     let x: await;
 >x : Symbol(x, Decl(awaitAsTypeIsOk.ts, 2, 7))
->await : Symbol(await, Decl(awaitNameIsOk.ts, 0, 0), Decl(awaitAsTypeIsOk.ts, 0, 0))
+>await : Symbol(await)
 }
 === yieldAsTypeIsOk.ts ===
 interface yield {}

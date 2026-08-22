@@ -6,5 +6,6 @@ var v = { [await]: foo }
 >{ [await]: foo } : { [x: number]: any; }
 >[await] : any
 >await : any
+> : any
 >foo : any
 

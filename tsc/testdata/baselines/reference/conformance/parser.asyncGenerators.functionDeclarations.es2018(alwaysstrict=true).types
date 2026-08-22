@@ -130,6 +130,10 @@ async function * f18() {
 }
 === awaitAsTypeIsOk.ts ===
 interface await {}
+>interface : any
+>await {} : {}
+>{} : {}
+
 async function * f19() {
 >f19 : () => AsyncGenerator<never, void, unknown>
 

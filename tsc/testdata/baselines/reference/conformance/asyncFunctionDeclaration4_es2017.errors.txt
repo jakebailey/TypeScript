@@ -1,0 +1,8 @@
+asyncFunctionDeclaration4_es2017.ts(1,10): error TS1359: Identifier expected. 'await' is a reserved word that cannot be used here.
+
+
+==== asyncFunctionDeclaration4_es2017.ts (1 errors) ====
+    function await() {
+             ~~~~~
+!!! error TS1359: Identifier expected. 'await' is a reserved word that cannot be used here.
+    }

@@ -3,5 +3,4 @@
 === asyncArrowFunction2_es2017.ts ===
 var f = (await) => {
 >f : Symbol(f, Decl(asyncArrowFunction2_es2017.ts, 0, 3))
->await : Symbol(await, Decl(asyncArrowFunction2_es2017.ts, 0, 9))
 }

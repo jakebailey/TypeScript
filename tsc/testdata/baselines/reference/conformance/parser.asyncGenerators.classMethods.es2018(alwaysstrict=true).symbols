@@ -186,8 +186,6 @@ class C18 {
 }
 === awaitAsTypeIsOk.ts ===
 interface await {}
->await : Symbol(await, Decl(awaitAsTypeIsOk.ts, 0, 0))
-
 class C19 {
 >C19 : Symbol(C19, Decl(awaitAsTypeIsOk.ts, 0, 18))
 
@@ -196,7 +194,7 @@ class C19 {
 
         let x: await;
 >x : Symbol(x, Decl(awaitAsTypeIsOk.ts, 3, 11))
->await : Symbol(await, Decl(awaitAsTypeIsOk.ts, 0, 0))
+>await : Symbol(await)
     }
 }
 === yieldAsTypeIsStrictError.ts ===

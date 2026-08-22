@@ -1,0 +1,11 @@
+asyncArrowFunction2_es5.ts(1,15): error TS1109: Expression expected.
+asyncArrowFunction2_es5.ts(1,17): error TS1005: ';' expected.
+
+
+==== asyncArrowFunction2_es5.ts (2 errors) ====
+    var f = (await) => {
+                  ~
+!!! error TS1109: Expression expected.
+                    ~~
+!!! error TS1005: ';' expected.
+    }

@@ -220,6 +220,10 @@ const o18 = {
 };
 === awaitAsTypeIsOk.ts ===
 interface await {}
+>interface : any
+>await {} : {}
+>{} : {}
+
 const o19 = {
 >o19 : { f(): AsyncGenerator<never, void, unknown>; }
 >{    async * f() {        let x: await;    }} : { f(): AsyncGenerator<never, void, unknown>; }

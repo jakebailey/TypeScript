@@ -2,7 +2,12 @@
 
 === asyncArrowFunction5_es5.ts ===
 var foo = async (await): Promise<void> => {
->foo : (await: any) => Promise<void>
->async (await): Promise<void> => {} : (await: any) => Promise<void>
+>foo : any
+>async (await) : any
+>async : any
 >await : any
+> : any
+>Promise : PromiseConstructor
+><void> : void
+> : any
 }

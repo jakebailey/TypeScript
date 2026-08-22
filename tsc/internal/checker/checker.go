@@ -4162,11 +4162,10 @@ func (c *Checker) checkReturnExpression(container *ast.Node, unwrappedReturnType
 }
 
 func (c *Checker) checkWithStatement(node *ast.Node) {
-	if !c.checkGrammarStatementInAmbientContext(node) {
-		if node.Flags&ast.NodeFlagsAwaitContext != 0 {
-			c.grammarErrorOnFirstToken(node, diagnostics.X_with_statements_are_not_allowed_in_an_async_function_block)
-		}
-	}
+	// `with` is always a strict mode error (reported by the binder), so we don't
+	// need to additionally report "'with' statements are not allowed in an async
+	// function block" — the strict mode error already covers it.
+	c.checkGrammarStatementInAmbientContext(node)
 	c.checkExpression(node.Expression())
 	sourceFile := ast.GetSourceFileOfNode(node)
 	if !c.hasParseDiagnostics(sourceFile) {

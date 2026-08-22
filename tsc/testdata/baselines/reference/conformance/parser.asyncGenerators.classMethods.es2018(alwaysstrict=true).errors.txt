@@ -1,6 +1,9 @@
 asyncGeneratorGetAccessorIsError.ts(2,17): error TS1005: '(' expected.
 asyncGeneratorPropertyIsError.ts(2,15): error TS1005: '(' expected.
 asyncGeneratorSetAccessorIsError.ts(2,17): error TS1005: '(' expected.
+awaitAsTypeIsOk.ts(1,1): error TS2304: Cannot find name 'interface'.
+awaitAsTypeIsOk.ts(1,11): error TS2427: Interface name cannot be 'await'.
+awaitAsTypeIsOk.ts(4,16): error TS2552: Cannot find name 'await'. Did you mean 'Awaited'?
 awaitInParameterInitializerIsError.ts(2,19): error TS2524: 'await' expressions cannot be used in a parameter initializer.
 awaitMissingValueIsError.ts(3,14): error TS1109: Expression expected.
 awaitParameterIsError.ts(2,15): error TS1359: Identifier expected. 'await' is a reserved word that cannot be used here.
@@ -143,11 +146,17 @@ yieldStarMissingValueIsError.ts(3,16): error TS1109: Expression expected.
 !!! error TS1109: Expression expected.
         }
     }
-==== awaitAsTypeIsOk.ts (0 errors) ====
+==== awaitAsTypeIsOk.ts (3 errors) ====
     interface await {}
+    ~~~~~~~~~
+!!! error TS2304: Cannot find name 'interface'.
+              ~~~~~
+!!! error TS2427: Interface name cannot be 'await'.
     class C19 {
         async * f() {
             let x: await;
+                   ~~~~~
+!!! error TS2552: Cannot find name 'await'. Did you mean 'Awaited'?
         }
     }
 ==== yieldAsTypeIsStrictError.ts (2 errors) ====

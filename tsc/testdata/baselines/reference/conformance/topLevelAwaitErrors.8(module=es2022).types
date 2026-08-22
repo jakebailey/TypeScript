@@ -3,7 +3,9 @@
 === index.ts ===
 // await disallowed in default import
 import await from "./other";
->await : any
+>await from : any
+>from : any
+>"./other" : "./other"
 
 === other.ts ===
 declare const _await: any;

@@ -34,7 +34,9 @@ await <number, string> ``;
 // reparse class extends clause should fail
 class C extends await<string> {
 >C : C
->string : any
+>await<string> {} : string
+><string> {} : string
+>{} : {}
 }
 
 // await in class decorators should fail

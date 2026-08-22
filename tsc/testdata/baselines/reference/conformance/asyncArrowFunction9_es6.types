@@ -3,14 +3,14 @@
 === asyncArrowFunction9_es6.ts ===
 var foo = async (a = await => await): Promise<void> => {
 >foo : any
->async (a = await => await) : any
+>async (a = await : any
 >async : any
->a = await => await : (await: any) => any
+>a = await : any
 >a : any
->await => await : (await: any) => any
 >await : any
->await : any
->Promise : PromiseConstructor
-><void> : void
 > : any
+>await : any
+> : any
+>Promise<void> : { new (executor: (resolve: (value: void | PromiseLike<void>) => void, reject: (reason?: any) => void) => void): Promise<void>; all<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>[]>; all<T extends readonly unknown[] | []>(values: T): Promise<{ -readonly [P in keyof T]: Awaited<T[P]>; }>; race<T>(values: Iterable<T | PromiseLike<T>>): Promise<Awaited<T>>; race<T extends readonly unknown[] | []>(values: T): Promise<Awaited<T[number]>>; readonly prototype: Promise<any>; reject<T = never>(reason?: any): Promise<T>; resolve(): Promise<void>; resolve<T>(value: T): Promise<Awaited<T>>; resolve<T>(value: T | PromiseLike<T>): Promise<Awaited<T>>; readonly [Symbol.species]: PromiseConstructor; }
+>Promise : PromiseConstructor
 }

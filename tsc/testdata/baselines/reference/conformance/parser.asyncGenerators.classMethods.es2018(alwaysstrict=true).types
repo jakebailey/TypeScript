@@ -202,6 +202,10 @@ class C18 {
 }
 === awaitAsTypeIsOk.ts ===
 interface await {}
+>interface : any
+>await {} : {}
+>{} : {}
+
 class C19 {
 >C19 : C19
 

@@ -21,8 +21,6 @@ export async function arrayFromAsync<T>(asyncIterable!: AsyncIterable<T>): Promi
 >asyncIterable : Symbol(asyncIterable, Decl(reachabilityChecksNoCrash1.ts, 2, 25))
 
         out.push(await v);
->out : Symbol(out, Decl(reachabilityChecksNoCrash1.ts, 2, 42))
-> : Symbol((Missing), Decl(reachabilityChecksNoCrash1.ts, 3, 11))
     }
     return out;
 }

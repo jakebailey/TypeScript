@@ -1,12 +1,15 @@
-topLevelAwaitErrors.12.ts(5,8): error TS1262: Identifier expected. 'await' is a reserved word at the top-level of a module.
+topLevelAwaitErrors.12.ts(5,8): error TS1141: String literal expected.
+topLevelAwaitErrors.12.ts(5,14): error TS1109: Expression expected.
 
 
-==== topLevelAwaitErrors.12.ts (1 errors) ====
+==== topLevelAwaitErrors.12.ts (2 errors) ====
     export {};
     declare namespace foo { const await: any; }
     
     // await disallowed in import=namespace when in a module
     import await = foo.await;
            ~~~~~
-!!! error TS1262: Identifier expected. 'await' is a reserved word at the top-level of a module.
+!!! error TS1141: String literal expected.
+                 ~
+!!! error TS1109: Expression expected.
     

@@ -10,10 +10,12 @@ declare const _await: any;
 export { _await as await };
 
 
+//// [index.js]
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+require();
+require("./other");
 //// [other.js]
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.await = void 0;
-//// [index.js]
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
