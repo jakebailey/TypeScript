@@ -52,12 +52,14 @@ type NodeFactory struct {
 	parameterDeclarationArena          core.Arena[ParameterDeclaration]
 	parenthesizedExpressionArena       core.Arena[ParenthesizedExpression]
 	parenthesizedTypeNodeArena         core.Arena[ParenthesizedTypeNode]
+	partiallyEmittedExpressionArena    core.Arena[PartiallyEmittedExpression]
 	prefixUnaryExpressionArena         core.Arena[PrefixUnaryExpression]
 	propertyAccessExpressionArena      core.Arena[PropertyAccessExpression]
 	propertyAssignmentArena            core.Arena[PropertyAssignment]
 	propertySignatureDeclarationArena  core.Arena[PropertySignatureDeclaration]
 	returnStatementArena               core.Arena[ReturnStatement]
 	stringLiteralArena                 core.Arena[StringLiteral]
+	syntheticExpressionArena           core.Arena[SyntheticExpression]
 	tokenArena                         core.Arena[Token]
 	typeAliasDeclarationArena          core.Arena[TypeAliasDeclaration]
 	typeLiteralNodeArena               core.Arena[TypeLiteralNode]
@@ -6269,7 +6271,7 @@ type SyntheticExpression struct {
 }
 
 func (f *NodeFactory) NewSyntheticExpression(typeNode any, isSpread bool, tupleNameSource *Node) *Node {
-	data := &SyntheticExpression{}
+	data := f.syntheticExpressionArena.New()
 	data.Type = typeNode
 	data.IsSpread = isSpread
 	data.TupleNameSource = tupleNameSource
@@ -6309,7 +6311,7 @@ type PartiallyEmittedExpression struct {
 }
 
 func (f *NodeFactory) NewPartiallyEmittedExpression(expression *Expression) *Node {
-	data := &PartiallyEmittedExpression{}
+	data := f.partiallyEmittedExpressionArena.New()
 	data.Expression = expression
 	return f.newNode(KindPartiallyEmittedExpression, data)
 }

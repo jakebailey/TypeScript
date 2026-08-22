@@ -99,6 +99,12 @@ func (f *NodeFactory) AsNodeFactory() *NodeFactory {
 	return f
 }
 
+// Reset clears all factory state while preserving hooks.
+func (f *NodeFactory) Reset() {
+	hooks := f.hooks
+	*f = NodeFactory{hooks: hooks}
+}
+
 func (f *NodeFactory) NewNodeSlice(size int) []*Node {
 	return f.nodeSliceArena.NewSlice(size)
 }

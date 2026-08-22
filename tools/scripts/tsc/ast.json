@@ -4018,6 +4018,7 @@
                 ]
             },
             "SyntheticExpression": {
+                "arena": true,
                 "extends": [
                     "ExpressionBase"
                 ],
@@ -4038,6 +4039,7 @@
                 ]
             },
             "PartiallyEmittedExpression": {
+                "arena": true,
                 "generateSubtreeFacts": true,
                 "extends": [
                     "LeftHandSideExpressionBase"
