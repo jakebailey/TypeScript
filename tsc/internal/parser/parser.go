@@ -135,9 +135,11 @@ func putParser(p *Parser) {
 }
 
 func ParseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptKind core.ScriptKind) *ast.SourceFile {
-	defer runtimetrace.Region(context.TODO(), "parser.ParseSourceFile")()
-	runtimetrace.LogSafef(context.TODO(), "parser", "size=%d kind=%d", len(sourceText), int(scriptKind))
-	runtimetrace.LogUnsafef(context.TODO(), "parser", "file=%s", opts.FileName)
+	if runtimetrace.IsEnabled() {
+		defer runtimetrace.Region(context.TODO(), "parser.ParseSourceFile")()
+		runtimetrace.LogSafef(context.TODO(), "parser", "size=%d kind=%d", len(sourceText), int(scriptKind))
+		runtimetrace.LogUnsafef(context.TODO(), "parser", "file=%s", opts.FileName)
+	}
 	p := getParser()
 	defer putParser(p)
 	p.initializeState(opts, sourceText, scriptKind)

@@ -1154,6 +1154,10 @@ func (s *Server) handleRequestOrNotification(ctx context.Context, req *lsproto.R
 			idStr = " (" + req.ID.String() + ")"
 		}
 		if err != nil {
+			if !errors.Is(err, context.Canceled) {
+				runtimetrace.LogSafe(ctx, "error", string(req.Method))
+				runtimetrace.LogUnsafef(ctx, "error", "%v", err)
+			}
 			endTask()
 			if resp, ok := contentMapperFallbackResponse(req.Method, err); ok {
 				if !s.logger.IsTracing() {
@@ -1175,6 +1179,10 @@ func (s *Server) handleRequestOrNotification(ctx context.Context, req *lsproto.R
 				asyncWorkErr := doAsyncWork()
 				_, isUserFacing := errors.AsType[userFacingRequestFailedError](asyncWorkErr)
 				isRealError := asyncWorkErr != nil && !isUserFacing
+				if asyncWorkErr != nil && !errors.Is(asyncWorkErr, context.Canceled) {
+					runtimetrace.LogSafe(ctx, "error", string(req.Method))
+					runtimetrace.LogUnsafef(ctx, "error", "%v", asyncWorkErr)
+				}
 				if isRealError {
 					s.logger.Info("error handling method '", req.Method, "'", idStr, " in ", time.Since(start))
 				} else if !s.logger.IsTracing() {

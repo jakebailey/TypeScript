@@ -77,6 +77,8 @@ linters:
               desc: 'Use "github.com/microsoft/TypeScript/tsc/internal/json" instead.'
             - pkg: 'github.com/go-json-experiment/json'
               desc: 'Use "github.com/microsoft/TypeScript/tsc/internal/json" instead.'
+            - pkg: 'runtime/trace$'
+              desc: 'Use "github.com/microsoft/TypeScript/tsc/internal/runtimetrace" instead.'
 
     forbidigo:
       analyze-types: true

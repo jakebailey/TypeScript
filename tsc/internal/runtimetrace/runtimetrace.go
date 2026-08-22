@@ -27,8 +27,10 @@
 //	    If set to a truthy value (1, true, yes, on), instrumentation may emit
 //	    additional log events that include potentially sensitive information
 //	    such as file paths or identifier names. Defaults to off so that
-//	    captured traces are safe to share. Use UnsafeLoggingEnabled() /
-//	    LogUnsafe* to gate such events.
+//	    captured traces are safe to share. Use LogUnsafe* to
+//	    gate such events.
+//
+//nolint:depguard
 package runtimetrace
 
 import (

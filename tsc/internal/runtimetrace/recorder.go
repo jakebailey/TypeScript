@@ -1,3 +1,4 @@
+//nolint:depguard
 package runtimetrace
 
 import (
