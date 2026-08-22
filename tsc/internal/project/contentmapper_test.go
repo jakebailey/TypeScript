@@ -387,7 +387,7 @@ func TestContentMapperModuleExtensionClonedOnUnrelatedEdit(t *testing.T) {
 	mappedFile := languageService.GetProgram().GetSourceFile("/home/project/app.box")
 	assert.Assert(t, mappedFile != nil)
 	assert.Equal(t, mappedFile.VirtualFileName(), "/home/project/app.box.mts")
-	assert.Assert(t, mappedFile.ParseOptions().ExternalModuleIndicatorOptions.Force)
+	assert.Assert(t, languageService.GetProgram().IsExternalModule(mappedFile))
 
 	session.DidChangeFile(ctx, mainURI, 2, []lsproto.TextDocumentContentChangePartialOrWholeDocument{{
 		WholeDocument: &lsproto.TextDocumentContentChangeWholeDocument{Text: `import { value } from "./app.box"; value + 1;`},

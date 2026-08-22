@@ -669,7 +669,7 @@ func compareDeclarationInfos(d1, d2 DeclarationInfo) int {
 func getSymbolKindFromNode(node *ast.Node) lsproto.SymbolKind {
 	switch node.Kind {
 	case ast.KindSourceFile:
-		if ast.IsExternalModule(node.AsSourceFile()) {
+		if node.AsSourceFile().SyntacticExternalModuleIndicator != nil {
 			return lsproto.SymbolKindModule
 		}
 		return lsproto.SymbolKindFile

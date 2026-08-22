@@ -622,7 +622,7 @@ interface I extends Parent<boolean> {}
             assert.strictEqual(clone.imports, sf.imports);
             assert.strictEqual(clone.moduleAugmentations, sf.moduleAugmentations);
             assert.strictEqual(clone.ambientModuleNames, sf.ambientModuleNames);
-            assert.strictEqual(clone.externalModuleIndicator, sf.externalModuleIndicator);
+            assert.strictEqual(clone.syntacticExternalModuleIndicator, sf.syntacticExternalModuleIndicator);
 
             assert.strictEqual(clone.kind, sf.kind);
             assert.strictEqual(clone.pos, sf.pos);
@@ -810,7 +810,7 @@ describe("RemoteNode + getSynthesizedDeepClone", () => {
             assert.strictEqual(clone.imports, imports);
             assert.strictEqual(clone.moduleAugmentations, moduleAugmentations);
             assert.strictEqual(clone.ambientModuleNames, ambientModuleNames);
-            assert.strictEqual(clone.externalModuleIndicator, sf.externalModuleIndicator);
+            assert.strictEqual(clone.syntacticExternalModuleIndicator, sf.syntacticExternalModuleIndicator);
             assert.strictEqual(clone.originalText, sf.originalText);
             assert.strictEqual(clone.spanMap, sf.spanMap);
             assert.strictEqual(clone.contentMapper, sf.contentMapper);

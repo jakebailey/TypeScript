@@ -18,8 +18,10 @@ import (
 
 type JSXTransformer struct {
 	transformers.Transformer
-	compilerOptions *core.CompilerOptions
-	emitResolver    printer.EmitResolver
+	compilerOptions            *core.CompilerOptions
+	emitResolver               printer.EmitResolver
+	getExternalModuleIndicator func(file *ast.SourceFile) *ast.Node
+	isExternalOrCommonJSModule func(file *ast.SourceFile) bool
 
 	importSpecifier                string
 	filenameDeclaration            *ast.Node
@@ -33,8 +35,10 @@ func NewJSXTransformer(opts *transformers.TransformOptions) *transformers.Transf
 	compilerOptions := opts.CompilerOptions
 	emitContext := opts.Context
 	tx := &JSXTransformer{
-		compilerOptions: compilerOptions,
-		emitResolver:    opts.EmitResolver,
+		compilerOptions:            compilerOptions,
+		emitResolver:               opts.EmitResolver,
+		getExternalModuleIndicator: opts.GetExternalModuleIndicator,
+		isExternalOrCommonJSModule: opts.IsExternalOrCommonJSModule,
 	}
 	return tx.NewTransformer(tx.visit, emitContext)
 }
@@ -217,7 +221,7 @@ func (tx *JSXTransformer) visitSourceFile(file *ast.SourceFile) *ast.Node {
 	}
 
 	if tx.utilizedImplicitRuntimeImports.Size() > 0 {
-		if ast.IsExternalModule(file) {
+		if tx.getExternalModuleIndicator != nil && tx.getExternalModuleIndicator(file) != nil {
 			statementsUpdated = true
 			newStatements := make([]*ast.Node, 0, tx.utilizedImplicitRuntimeImports.Size())
 			for importSource, importSpecifiersMap := range tx.utilizedImplicitRuntimeImports.Entries() {
@@ -234,7 +238,7 @@ func (tx *JSXTransformer) visitSourceFile(file *ast.SourceFile) *ast.Node {
 			for _, e := range newStatements {
 				statements = tx.insertStatementAfterCustomPrologue(statements, e)
 			}
-		} else if ast.IsExternalOrCommonJSModule(file) {
+		} else if tx.isExternalOrCommonJSModule != nil && tx.isExternalOrCommonJSModule(file) {
 			statementsUpdated = true
 			newStatements := make([]*ast.Node, 0, tx.utilizedImplicitRuntimeImports.Size())
 			for importSource, importSpecifiersMap := range tx.utilizedImplicitRuntimeImports.Entries() {

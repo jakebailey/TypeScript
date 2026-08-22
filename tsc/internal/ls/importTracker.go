@@ -107,7 +107,7 @@ func forEachImport(program *compiler.Program, sourceFile *ast.SourceFile, action
 	if importHelpersSpecifier != nil {
 		implicitImports = append(implicitImports, importHelpersSpecifier)
 	}
-	if sourceFile.ExternalModuleIndicator != nil || len(sourceFile.Imports())+len(implicitImports) != 0 {
+	if sourceFile.SyntacticExternalModuleIndicator != nil || len(sourceFile.Imports())+len(implicitImports) != 0 {
 		for _, i := range sourceFile.Imports() {
 			action(ast.ImportFromModuleSpecifier(i), i)
 		}

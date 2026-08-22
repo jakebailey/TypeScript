@@ -48,10 +48,8 @@ func TestContentMappedParseCacheBundleLifetime(t *testing.T) {
 func TestContentMappedParseCacheKeyReconstruction(t *testing.T) {
 	t.Parallel()
 	acquireOptions := ast.SourceFileParseOptions{FileName: "/component.box", Path: "/component.box"}
-	mappedOptions := acquireOptions
-	mappedOptions.ExternalModuleIndicatorOptions.Force = true
 	hash := xxh3.Hash128([]byte("cache key"))
-	file := parser.ParseSourceFile(mappedOptions, "export {};", core.ScriptKindTS)
+	file := parser.ParseSourceFile(acquireOptions, "export {};", core.ScriptKindTS)
 	file.Hash = hash
 	file.SetContentMapperInfo(ast.ContentMapperSourceFileInfo{
 		ContentMapper: "mapper",
@@ -61,7 +59,7 @@ func TestContentMappedParseCacheKeyReconstruction(t *testing.T) {
 	assert.DeepEqual(t, contentMappedParseCacheKeyForFile(file), expected)
 
 	duplicate := &compiler.DuplicateSourceFile{
-		ParseOptions:              mappedOptions,
+		ParseOptions:              acquireOptions,
 		ContentMapperParseOptions: acquireOptions,
 		Hash:                      hash,
 		ContentMapper:             "mapper",

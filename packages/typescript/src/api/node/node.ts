@@ -38,7 +38,7 @@ import { Wtf8Decoder } from "./wtf8.ts";
 
 // Re-export everything consumers need from the other two files.
 export { RemoteNode, RemoteNodeList } from "./node.generated.ts";
-export { readParseOptionsKey, readSourceFileHash, RemoteNodeBase } from "./node.infrastructure.ts";
+export { readSourceFileHash, RemoteNodeBase } from "./node.infrastructure.ts";
 
 const sourceFileExtendedDataOffsets = {
     Text: 0,
@@ -262,7 +262,7 @@ export class RemoteSourceFile extends RemoteNode implements SourceFileInfo {
         return names;
     }
 
-    get externalModuleIndicator(): Node | true | undefined {
+    get syntacticExternalModuleIndicator(): Node | true | undefined {
         const nodeIndex = this.view.getUint32(this.extendedDataOffset + sourceFileExtendedDataOffsets.ExternalModuleIndicator, true);
         if (nodeIndex === 0) return undefined;
         if (nodeIndex === this.index) return true;

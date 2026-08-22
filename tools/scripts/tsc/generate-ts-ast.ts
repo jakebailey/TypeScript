@@ -597,7 +597,7 @@ function generateFactory(): string {
             "imports",
             "moduleAugmentations",
             "ambientModuleNames",
-            "externalModuleIndicator",
+            "syntacticExternalModuleIndicator",
             "tokenCache",
         ]
     ) {

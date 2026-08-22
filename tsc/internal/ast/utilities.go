@@ -1663,20 +1663,7 @@ func IsAmbientModuleSymbolName(s string) bool {
 	return strings.HasPrefix(s, "\"") && strings.HasSuffix(s, "\"")
 }
 
-func IsExternalModule(file *SourceFile) bool {
-	return file.ExternalModuleIndicator != nil
-}
-
-func IsExternalOrCommonJSModule(file *SourceFile) bool {
-	return file.ExternalModuleIndicator != nil || file.CommonJSModuleIndicator != nil
-}
-
-// TODO: Should we deprecate `IsExternalOrCommonJSModule` in favor of this function?
-func IsEffectiveExternalModule(node *SourceFile, compilerOptions *core.CompilerOptions) bool {
-	return IsExternalModule(node) || (isCommonJSContainingModuleKind(compilerOptions.GetEmitModuleKind()) && node.CommonJSModuleIndicator != nil)
-}
-
-func isCommonJSContainingModuleKind(kind core.ModuleKind) bool {
+func IsCommonJSContainingModuleKind(kind core.ModuleKind) bool {
 	return kind == core.ModuleKindCommonJS || core.ModuleKindNode16 <= kind && kind <= core.ModuleKindNodeNext
 }
 
@@ -1701,12 +1688,13 @@ func IsModuleAugmentationExternal(node *Node) bool {
 	// external module augmentation is a ambient module declaration that is either:
 	// - defined in the top level scope and source file is an external module
 	// - defined inside ambient module declaration located in the top level scope and source file not an external module
+	// Uses the syntactic indicator since augmentations only appear in files with import/export syntax.
 	switch node.Parent.Kind {
 	case KindSourceFile:
-		return IsExternalModule(node.Parent.AsSourceFile())
+		return node.Parent.AsSourceFile().SyntacticExternalModuleIndicator != nil
 	case KindModuleBlock:
 		grandParent := node.Parent.Parent
-		return IsAmbientModule(grandParent) && IsSourceFile(grandParent.Parent) && !IsExternalModule(grandParent.Parent.AsSourceFile())
+		return IsAmbientModule(grandParent) && IsSourceFile(grandParent.Parent) && grandParent.Parent.AsSourceFile().SyntacticExternalModuleIndicator == nil
 	}
 	return false
 }
@@ -2493,8 +2481,14 @@ func IsConstTypeReference(node *Node) bool {
 	return IsTypeReferenceNode(node) && len(node.TypeArguments()) == 0 && IsIdentifier(node.AsTypeReferenceNode().TypeName) && node.AsTypeReferenceNode().TypeName.Text() == "const"
 }
 
+// IsGlobalSourceFile checks if a source file is a global script (not a module) using
+// only syntactic information. For options-dependent module classification, use Program methods.
 func IsGlobalSourceFile(node *Node) bool {
-	return node.Kind == KindSourceFile && !IsExternalOrCommonJSModule(node.AsSourceFile())
+	if node.Kind != KindSourceFile {
+		return false
+	}
+	sf := node.AsSourceFile()
+	return sf.SyntacticExternalModuleIndicator == nil && sf.CommonJSModuleIndicator == nil
 }
 
 func IsParameterLike(node *Node) bool {
@@ -4197,7 +4191,11 @@ func TryGetImportFromModuleSpecifier(node *StringLiteralLike) *Node {
 }
 
 func IsImplicitlyExportedJSDocDeclaration(node *Node) bool {
-	if !IsSourceFile(node.Parent) || !IsExternalOrCommonJSModule(node.Parent.AsSourceFile()) {
+	if !IsSourceFile(node.Parent) {
+		return false
+	}
+	sourceFile := node.Parent.AsSourceFile()
+	if sourceFile.SyntacticExternalModuleIndicator == nil && sourceFile.CommonJSModuleIndicator == nil {
 		return false
 	}
 	if IsJSTypeAliasDeclaration(node) {

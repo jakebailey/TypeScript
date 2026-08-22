@@ -647,7 +647,7 @@ func (b *NodeBuilderImpl) symbolToTypeNode(symbol *ast.Symbol, mask ast.SymbolFl
 		return nil // TODO: shouldn't be possible, `lookupSymbolChain` should always at least return the input symbol and issue an error
 	}
 	isTypeOf := mask == ast.SymbolFlagsValue
-	if core.Some(chain[0].Declarations, hasNonGlobalAugmentationExternalModuleSymbol) {
+	if core.Some(chain[0].Declarations, b.ch.hasNonGlobalAugmentationExternalModuleSymbol) {
 		// module is root, must use `ImportTypeNode`
 		var nonRootParts *ast.Node
 		if len(chain) > 1 {
@@ -867,7 +867,7 @@ func (b *NodeBuilderImpl) createExpressionFromSymbolChain(chain []*ast.Symbol, i
 		b.ctx.flags ^= nodebuilder.FlagsInInitialEntityName
 	}
 
-	if startsWithSingleOrDoubleQuote(symbolName) && core.Some(symbol.Declarations, hasNonGlobalAugmentationExternalModuleSymbol) {
+	if startsWithSingleOrDoubleQuote(symbolName) && core.Some(symbol.Declarations, b.ch.hasNonGlobalAugmentationExternalModuleSymbol) {
 		specifier := b.getSpecifierForModuleSymbol(symbol, core.ResolutionModeNone)
 		b.ctx.approximateLength += 2 + len(specifier)
 		return b.newStringLiteral(specifier)
@@ -1100,7 +1100,7 @@ func (b *NodeBuilderImpl) getSymbolChain(symbol *ast.Symbol, meaning ast.SymbolF
 		parents := b.ch.getContainersOfSymbol(root, b.ctx.enclosingDeclaration, meaning)
 		if len(parents) > 0 {
 			parentSpecifiers := core.Map(parents, func(symbol *ast.Symbol) sortedSymbolNamePair {
-				if core.Some(symbol.Declarations, hasNonGlobalAugmentationExternalModuleSymbol) {
+				if core.Some(symbol.Declarations, b.ch.hasNonGlobalAugmentationExternalModuleSymbol) {
 					return sortedSymbolNamePair{symbol, b.getSpecifierForModuleSymbol(symbol, core.ResolutionModeNone)}
 				}
 				return sortedSymbolNamePair{symbol, ""}
@@ -1142,7 +1142,7 @@ func (b *NodeBuilderImpl) getSymbolChain(symbol *ast.Symbol, meaning ast.SymbolF
 		// If a parent symbol is an anonymous type, don't write it.
 		(symbol.Flags&(ast.SymbolFlagsTypeLiteral|ast.SymbolFlagsObjectLiteral) == 0) {
 		// If a parent symbol is an external module, don't write it. (We prefer just `x` vs `"foo/bar".x`.)
-		if !endOfChain && !yieldModuleSymbol && core.Some(symbol.Declarations, hasNonGlobalAugmentationExternalModuleSymbol) {
+		if !endOfChain && !yieldModuleSymbol && core.Some(symbol.Declarations, b.ch.hasNonGlobalAugmentationExternalModuleSymbol) {
 			return nil
 		}
 		return []*ast.Symbol{symbol}

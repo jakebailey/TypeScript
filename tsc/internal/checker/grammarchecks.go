@@ -1186,46 +1186,45 @@ func (c *Checker) checkGrammarForInOrForOfStatement(forInOrOfStatement *ast.ForI
 	}
 
 	if forInOrOfStatement.Kind == ast.KindForOfStatement && forInOrOfStatement.AwaitModifier != nil {
-		if forInOrOfStatement.Flags&ast.NodeFlagsAwaitContext == 0 {
+		if ast.IsInTopLevelContext(asNode) {
 			sourceFile := ast.GetSourceFileOfNode(asNode)
-			if ast.IsInTopLevelContext(asNode) {
-				if !c.hasParseDiagnostics(sourceFile) {
-					if !ast.IsEffectiveExternalModule(sourceFile, c.compilerOptions) {
-						c.addDiagnostic(createDiagnosticForNode(forInOrOfStatement.AwaitModifier, diagnostics.X_for_await_loops_are_only_allowed_at_the_top_level_of_a_file_when_that_file_is_a_module_but_this_file_has_no_imports_or_exports_Consider_adding_an_empty_export_to_make_this_file_a_module))
-					}
-					switch c.moduleKind {
-					case core.ModuleKindNode16, core.ModuleKindNode18, core.ModuleKindNode20, core.ModuleKindNodeNext:
-						sourceFileMetaData := c.program.GetSourceFileMetaData(sourceFile.Path())
-						if sourceFileMetaData.ImpliedNodeFormat == core.ModuleKindCommonJS {
-							c.addDiagnostic(createDiagnosticForNode(forInOrOfStatement.AwaitModifier, diagnostics.The_current_file_is_a_CommonJS_module_and_cannot_use_await_at_the_top_level))
-							break
-						}
-						fallthrough
-					case core.ModuleKindES2022,
-						core.ModuleKindESNext,
-						core.ModuleKindPreserve,
-						core.ModuleKindSystem:
-						if c.languageVersion >= core.ScriptTargetES2017 {
-							break
-						}
-						fallthrough
-					default:
-						c.addDiagnostic(createDiagnosticForNode(forInOrOfStatement.AwaitModifier, diagnostics.Top_level_for_await_loops_are_only_allowed_when_the_module_option_is_set_to_es2022_esnext_system_node16_node18_node20_nodenext_or_preserve_and_the_target_option_is_set_to_es2017_or_higher))
-					}
+			if !c.hasParseDiagnostics(sourceFile) {
+				if !c.isEffectiveExternalModule(sourceFile) {
+					c.addDiagnostic(createDiagnosticForNode(forInOrOfStatement.AwaitModifier, diagnostics.X_for_await_loops_are_only_allowed_at_the_top_level_of_a_file_when_that_file_is_a_module_but_this_file_has_no_imports_or_exports_Consider_adding_an_empty_export_to_make_this_file_a_module))
 				}
-			} else {
-				// use of 'for-await-of' in non-async function
-				if !c.hasParseDiagnostics(sourceFile) {
-					diagnostic := createDiagnosticForNode(forInOrOfStatement.AwaitModifier, diagnostics.X_for_await_loops_are_only_allowed_within_async_functions_and_at_the_top_levels_of_modules)
-					containingFunc := ast.GetContainingFunction(forInOrOfStatement.AsNode())
-					if containingFunc != nil && containingFunc.Kind != ast.KindConstructor {
-						debug.Assert((ast.GetFunctionFlags(containingFunc)&ast.FunctionFlagsAsync) == 0, "Enclosing function should never be an async function.")
-						relatedInfo := createDiagnosticForNode(containingFunc, diagnostics.Did_you_mean_to_mark_this_function_as_async)
-						diagnostic.AddRelatedInfo(relatedInfo)
+				switch c.moduleKind {
+				case core.ModuleKindNode16, core.ModuleKindNode18, core.ModuleKindNode20, core.ModuleKindNodeNext:
+					sourceFileMetaData := c.program.GetSourceFileMetaData(sourceFile.Path())
+					if sourceFileMetaData.ImpliedNodeFormat == core.ModuleKindCommonJS {
+						c.addDiagnostic(createDiagnosticForNode(forInOrOfStatement.AwaitModifier, diagnostics.The_current_file_is_a_CommonJS_module_and_cannot_use_await_at_the_top_level))
+						break
 					}
-					c.addDiagnostic(diagnostic)
-					return true
+					fallthrough
+				case core.ModuleKindES2022,
+					core.ModuleKindESNext,
+					core.ModuleKindPreserve,
+					core.ModuleKindSystem:
+					if c.languageVersion >= core.ScriptTargetES2017 {
+						break
+					}
+					fallthrough
+				default:
+					c.addDiagnostic(createDiagnosticForNode(forInOrOfStatement.AwaitModifier, diagnostics.Top_level_for_await_loops_are_only_allowed_when_the_module_option_is_set_to_es2022_esnext_system_node16_node18_node20_nodenext_or_preserve_and_the_target_option_is_set_to_es2017_or_higher))
 				}
+			}
+		} else if forInOrOfStatement.Flags&ast.NodeFlagsAwaitContext == 0 {
+			sourceFile := ast.GetSourceFileOfNode(asNode)
+			// use of 'for-await-of' in non-async function
+			if !c.hasParseDiagnostics(sourceFile) {
+				diagnostic := createDiagnosticForNode(forInOrOfStatement.AwaitModifier, diagnostics.X_for_await_loops_are_only_allowed_within_async_functions_and_at_the_top_levels_of_modules)
+				containingFunc := ast.GetContainingFunction(forInOrOfStatement.AsNode())
+				if containingFunc != nil && containingFunc.Kind != ast.KindConstructor {
+					debug.Assert((ast.GetFunctionFlags(containingFunc)&ast.FunctionFlagsAsync) == 0, "Enclosing function should never be an async function.")
+					relatedInfo := createDiagnosticForNode(containingFunc, diagnostics.Did_you_mean_to_mark_this_function_as_async)
+					diagnostic.AddRelatedInfo(relatedInfo)
+				}
+				c.addDiagnostic(diagnostic)
+				return true
 			}
 		}
 	}
@@ -1669,81 +1668,79 @@ func (c *Checker) checkGrammarAwaitOrAwaitUsing(node *ast.Node) bool {
 		}
 		c.error(node, message)
 		hasError = true
-	} else if node.Flags&ast.NodeFlagsAwaitContext == 0 {
-		if ast.IsInTopLevelContext(node) {
-			sourceFile := ast.GetSourceFileOfNode(node)
-			if !c.hasParseDiagnostics(sourceFile) {
-				var span core.TextRange
-				var spanCalculated bool
-				if !ast.IsEffectiveExternalModule(sourceFile, c.compilerOptions) {
-					span = scanner.GetRangeOfTokenAtPosition(sourceFile, node.Pos())
-					spanCalculated = true
-					var message *diagnostics.Message
-					if ast.IsAwaitExpression(node) {
-						message = diagnostics.X_await_expressions_are_only_allowed_at_the_top_level_of_a_file_when_that_file_is_a_module_but_this_file_has_no_imports_or_exports_Consider_adding_an_empty_export_to_make_this_file_a_module
-					} else {
-						message = diagnostics.X_await_using_statements_are_only_allowed_at_the_top_level_of_a_file_when_that_file_is_a_module_but_this_file_has_no_imports_or_exports_Consider_adding_an_empty_export_to_make_this_file_a_module
-					}
-					diagnostic := ast.NewDiagnostic(sourceFile, span, message)
-					c.addDiagnostic(diagnostic)
-					hasError = true
-				}
-				switch c.moduleKind {
-				case core.ModuleKindNode16,
-					core.ModuleKindNode18,
-					core.ModuleKindNode20,
-					core.ModuleKindNodeNext:
-					sourceFileMetaData := c.program.GetSourceFileMetaData(sourceFile.Path())
-					if sourceFileMetaData.ImpliedNodeFormat == core.ModuleKindCommonJS {
-						if !spanCalculated {
-							span = scanner.GetRangeOfTokenAtPosition(sourceFile, node.Pos())
-						}
-						c.addDiagnostic(ast.NewDiagnostic(sourceFile, span, diagnostics.The_current_file_is_a_CommonJS_module_and_cannot_use_await_at_the_top_level))
-						hasError = true
-						break
-					}
-					fallthrough
-				case core.ModuleKindES2022,
-					core.ModuleKindESNext,
-					core.ModuleKindPreserve,
-					core.ModuleKindSystem:
-					if c.languageVersion >= core.ScriptTargetES2017 {
-						break
-					}
-					fallthrough
-				default:
-					if !spanCalculated {
-						span = scanner.GetRangeOfTokenAtPosition(sourceFile, node.Pos())
-					}
-					var message *diagnostics.Message
-					if ast.IsAwaitExpression(node) {
-						message = diagnostics.Top_level_await_expressions_are_only_allowed_when_the_module_option_is_set_to_es2022_esnext_system_node16_node18_node20_nodenext_or_preserve_and_the_target_option_is_set_to_es2017_or_higher
-					} else {
-						message = diagnostics.Top_level_await_using_statements_are_only_allowed_when_the_module_option_is_set_to_es2022_esnext_system_node16_node18_node20_nodenext_or_preserve_and_the_target_option_is_set_to_es2017_or_higher
-					}
-					c.addDiagnostic(ast.NewDiagnostic(sourceFile, span, message))
-					hasError = true
-				}
-			}
-		} else {
-			// use of 'await' in non-async function
-			sourceFile := ast.GetSourceFileOfNode(node)
-			if !c.hasParseDiagnostics(sourceFile) {
-				span := scanner.GetRangeOfTokenAtPosition(sourceFile, node.Pos())
+	} else if ast.IsInTopLevelContext(node) {
+		sourceFile := ast.GetSourceFileOfNode(node)
+		if !c.hasParseDiagnostics(sourceFile) {
+			var span core.TextRange
+			var spanCalculated bool
+			if !c.isEffectiveExternalModule(sourceFile) {
+				span = scanner.GetRangeOfTokenAtPosition(sourceFile, node.Pos())
+				spanCalculated = true
 				var message *diagnostics.Message
 				if ast.IsAwaitExpression(node) {
-					message = diagnostics.X_await_expressions_are_only_allowed_within_async_functions_and_at_the_top_levels_of_modules
+					message = diagnostics.X_await_expressions_are_only_allowed_at_the_top_level_of_a_file_when_that_file_is_a_module_but_this_file_has_no_imports_or_exports_Consider_adding_an_empty_export_to_make_this_file_a_module
 				} else {
-					message = diagnostics.X_await_using_statements_are_only_allowed_within_async_functions_and_at_the_top_levels_of_modules
+					message = diagnostics.X_await_using_statements_are_only_allowed_at_the_top_level_of_a_file_when_that_file_is_a_module_but_this_file_has_no_imports_or_exports_Consider_adding_an_empty_export_to_make_this_file_a_module
 				}
 				diagnostic := ast.NewDiagnostic(sourceFile, span, message)
-				if container != nil && container.Kind != ast.KindConstructor && !hasAsyncModifier(container) {
-					relatedInfo := NewDiagnosticForNode(container, diagnostics.Did_you_mean_to_mark_this_function_as_async)
-					diagnostic.AddRelatedInfo(relatedInfo)
-				}
 				c.addDiagnostic(diagnostic)
 				hasError = true
 			}
+			switch c.moduleKind {
+			case core.ModuleKindNode16,
+				core.ModuleKindNode18,
+				core.ModuleKindNode20,
+				core.ModuleKindNodeNext:
+				sourceFileMetaData := c.program.GetSourceFileMetaData(sourceFile.Path())
+				if sourceFileMetaData.ImpliedNodeFormat == core.ModuleKindCommonJS {
+					if !spanCalculated {
+						span = scanner.GetRangeOfTokenAtPosition(sourceFile, node.Pos())
+					}
+					c.addDiagnostic(ast.NewDiagnostic(sourceFile, span, diagnostics.The_current_file_is_a_CommonJS_module_and_cannot_use_await_at_the_top_level))
+					hasError = true
+					break
+				}
+				fallthrough
+			case core.ModuleKindES2022,
+				core.ModuleKindESNext,
+				core.ModuleKindPreserve,
+				core.ModuleKindSystem:
+				if c.languageVersion >= core.ScriptTargetES2017 {
+					break
+				}
+				fallthrough
+			default:
+				if !spanCalculated {
+					span = scanner.GetRangeOfTokenAtPosition(sourceFile, node.Pos())
+				}
+				var message *diagnostics.Message
+				if ast.IsAwaitExpression(node) {
+					message = diagnostics.Top_level_await_expressions_are_only_allowed_when_the_module_option_is_set_to_es2022_esnext_system_node16_node18_node20_nodenext_or_preserve_and_the_target_option_is_set_to_es2017_or_higher
+				} else {
+					message = diagnostics.Top_level_await_using_statements_are_only_allowed_when_the_module_option_is_set_to_es2022_esnext_system_node16_node18_node20_nodenext_or_preserve_and_the_target_option_is_set_to_es2017_or_higher
+				}
+				c.addDiagnostic(ast.NewDiagnostic(sourceFile, span, message))
+				hasError = true
+			}
+		}
+	} else if node.Flags&ast.NodeFlagsAwaitContext == 0 {
+		// use of 'await' in non-async function
+		sourceFile := ast.GetSourceFileOfNode(node)
+		if !c.hasParseDiagnostics(sourceFile) {
+			span := scanner.GetRangeOfTokenAtPosition(sourceFile, node.Pos())
+			var message *diagnostics.Message
+			if ast.IsAwaitExpression(node) {
+				message = diagnostics.X_await_expressions_are_only_allowed_within_async_functions_and_at_the_top_levels_of_modules
+			} else {
+				message = diagnostics.X_await_using_statements_are_only_allowed_within_async_functions_and_at_the_top_levels_of_modules
+			}
+			diagnostic := ast.NewDiagnostic(sourceFile, span, message)
+			if container != nil && container.Kind != ast.KindConstructor && !hasAsyncModifier(container) {
+				relatedInfo := NewDiagnosticForNode(container, diagnostics.Did_you_mean_to_mark_this_function_as_async)
+				diagnostic.AddRelatedInfo(relatedInfo)
+			}
+			c.addDiagnostic(diagnostic)
+			hasError = true
 		}
 	}
 

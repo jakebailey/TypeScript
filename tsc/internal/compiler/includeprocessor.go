@@ -156,7 +156,7 @@ func (i *includeProcessor) explainRedirectAndImpliedFormat(
 		))
 	}
 
-	if sourceFile != nil && ast.IsExternalOrCommonJSModule(sourceFile) {
+	if sourceFile != nil && program.IsExternalOrCommonJSModule(sourceFile) {
 		metaData := program.GetSourceFileMetaData(file.Path())
 		switch program.GetImpliedNodeFormatForEmit(file) {
 		case core.ModuleKindESNext:

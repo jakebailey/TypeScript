@@ -42,6 +42,7 @@ type DeclarationEmitHost interface {
 	GetResolutionModeOverride(node *ast.Node) core.ResolutionMode
 	GetEffectiveDeclarationFlags(node *ast.Node, flags ast.ModifierFlags) ast.ModifierFlags
 	GetEmitResolver() printer.EmitResolver
+	IsExternalOrCommonJSModule(file *ast.SourceFile) bool
 }
 
 type thisPropertyAssignmentKey struct {
@@ -355,8 +356,8 @@ func (tx *DeclarationTransformer) transformSourceFile(node *ast.SourceFile) *ast
 	combinedStatements = tx.transformAndReplaceLatePaintedStatements(statements)
 	combinedStatements = tx.appendCjsExports(combinedStatements)
 	combinedStatements.Loc = statements.Loc // setTextRange
-	if ast.IsExternalOrCommonJSModule(node) {
-		if ast.IsInJSFile(node.AsNode()) {
+	if tx.host.IsExternalOrCommonJSModule(node) {
+		if ast.IsInJSFile(node.AsNode()) && node.Symbol != nil && node.Symbol.Exports != nil {
 			if exportEquals := node.Symbol.Exports[ast.InternalSymbolNameExportEquals]; exportEquals != nil && len(exportEquals.Declarations) > 1 {
 				for _, node := range exportEquals.Declarations {
 					tx.state.addDiagnostic(createDiagnosticForNode(node, diagnostics.Multiple_module_exports_assignments_cannot_be_serialized_for_declaration_emit))
@@ -2344,7 +2345,9 @@ func (tx *DeclarationTransformer) ensureModifierFlags(node *ast.Node) ast.Modifi
 		mask ^= ast.ModifierFlagsAmbient
 		additions = ast.ModifierFlagsNone
 	}
-	if ast.IsImplicitlyExportedJSDocDeclaration(node) {
+	if ast.IsSourceFile(node.Parent) &&
+		tx.host.IsExternalOrCommonJSModule(node.Parent.AsSourceFile()) &&
+		(ast.IsJSTypeAliasDeclaration(node) || ast.IsModuleDeclaration(node) && node.Flags&ast.NodeFlagsReparsed != 0) {
 		additions |= ast.ModifierFlagsExport
 	}
 	return maskModifierFlags(node, mask, additions)

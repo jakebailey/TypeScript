@@ -1041,6 +1041,31 @@ func (c *Checker) isConstantVariable(symbol *ast.Symbol) bool {
 	return symbol.Flags&ast.SymbolFlagsVariable != 0 && (c.getDeclarationNodeFlagsFromSymbol(symbol)&ast.NodeFlagsConstant) != 0
 }
 
+// isEffectiveExternalModule returns true if the file is an external module or a CommonJS
+// module under a CommonJS-containing module kind, using the program's sidecar indicator.
+func (c *Checker) isEffectiveExternalModule(file *ast.SourceFile) bool {
+	return c.program.IsExternalModule(file) || (ast.IsCommonJSContainingModuleKind(c.compilerOptions.GetEmitModuleKind()) && file.CommonJSModuleIndicator != nil)
+}
+
+// isImplicitlyExportedJSDocDeclaration checks if a reparsed JSDoc declaration is
+// implicitly exported because it's at the top level of an external module.
+// Uses the program's options-aware module check.
+func (c *Checker) isImplicitlyExportedJSDocDeclaration(node *ast.Node) bool {
+	if !ast.IsSourceFile(node.Parent) || !c.program.IsExternalOrCommonJSModule(node.Parent.AsSourceFile()) {
+		return false
+	}
+	return ast.IsJSTypeAliasDeclaration(node) || ast.IsModuleDeclaration(node) && node.Flags&ast.NodeFlagsReparsed != 0
+}
+
+// isGlobalSourceFile returns true if the file is a global script (not a module) using
+// the program's options-aware check.
+func (c *Checker) isGlobalSourceFile(node *ast.Node) bool {
+	if node.Kind != ast.KindSourceFile {
+		return false
+	}
+	return !c.program.IsExternalOrCommonJSModule(node.AsSourceFile())
+}
+
 func (c *Checker) isParameterOrMutableLocalVariable(symbol *ast.Symbol) bool {
 	// Return true if symbol is a parameter, a catch clause variable, or a mutable local variable
 	if symbol.ValueDeclaration != nil {

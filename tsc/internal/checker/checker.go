@@ -572,6 +572,9 @@ type Program interface {
 	GetProjectReferenceFromOutputDts(path tspath.Path) *tsoptions.SourceOutputAndProjectReference
 	GetRedirectForResolution(file ast.HasFileName) *tsoptions.ParsedCommandLine
 	CommonSourceDirectory() string
+	GetExternalModuleIndicator(file *ast.SourceFile) *ast.Node
+	IsExternalModule(file *ast.SourceFile) bool
+	IsExternalOrCommonJSModule(file *ast.SourceFile) bool
 }
 
 type Host interface {
@@ -933,7 +936,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.exactOptionalPropertyTypes = c.compilerOptions.ExactOptionalPropertyTypes == core.TSTrue
 	c.canCollectSymbolAliasAccessibilityData = c.compilerOptions.VerbatimModuleSyntax.IsFalseOrUnknown()
 	c.arrayVariances = []VarianceFlags{VarianceFlagsCovariant}
-	c.globals = make(ast.SymbolTable, countGlobalSymbols(c.files))
+	c.globals = make(ast.SymbolTable, c.countGlobalSymbols())
 	c.evaluate = evaluator.NewEvaluator(c.evaluateEntity, ast.OEKParentheses)
 	c.stringLiteralTypes = make(map[string]*Type)
 	c.numberLiteralTypes = make(map[jsnum.Number]*Type)
@@ -1129,10 +1132,10 @@ func createFileIndexMap(files []*ast.SourceFile) map[*ast.SourceFile]int {
 	return result
 }
 
-func countGlobalSymbols(files []*ast.SourceFile) int {
+func (c *Checker) countGlobalSymbols() int {
 	count := 0
-	for _, file := range files {
-		if !ast.IsExternalOrCommonJSModule(file) {
+	for _, file := range c.files {
+		if !c.program.IsExternalOrCommonJSModule(file) {
 			count += len(file.Locals)
 		}
 	}
@@ -1304,7 +1307,7 @@ func (c *Checker) initializeChecker() {
 	var ambientModuleSymbols []*ast.Symbol
 	augmentations := make([][]*ast.Node, 0, len(c.files))
 	for _, file := range c.files {
-		if !ast.IsExternalOrCommonJSModule(file) {
+		if !c.program.IsExternalOrCommonJSModule(file) {
 			// It is an error for a non-external-module (i.e. script) to declare its own `globalThis`.
 			if fileGlobalThisSymbol := file.Locals["globalThis"]; fileGlobalThisSymbol != nil {
 				for _, d := range fileGlobalThisSymbol.Declarations {
@@ -1484,6 +1487,7 @@ func (c *Checker) createNameResolver() *binder.NameResolver {
 		OnPropertyWithInvalidInitializer: c.checkAndReportErrorForInvalidInitializer,
 		OnFailedToResolveSymbol:          c.onFailedToResolveSymbol,
 		OnSuccessfullyResolvedSymbol:     c.onSuccessfullyResolvedSymbol,
+		IsGlobalSourceFile:               c.isGlobalSourceFile,
 	}
 }
 
@@ -1499,6 +1503,7 @@ func (c *Checker) createNameResolverForSuggestion() *binder.NameResolver {
 		SymbolReferenced:            c.symbolReferenced,
 		SetRequiresScopeChangeCache: c.setRequiresScopeChangeCache,
 		GetRequiresScopeChangeCache: c.getRequiresScopeChangeCache,
+		IsGlobalSourceFile:          c.isGlobalSourceFile,
 	}
 }
 
@@ -1825,7 +1830,7 @@ func (c *Checker) getSpellingSuggestionForName(name string, symbols iter.Seq[*as
 
 func (c *Checker) onSuccessfullyResolvedSymbol(errorLocation *ast.Node, result *ast.Symbol, meaning ast.SymbolFlags, lastLocation *ast.Node, associatedDeclarationForContainingInitializerOrBindingName *ast.Node, withinDeferredContext bool) {
 	name := result.Name
-	isInExternalModule := lastLocation != nil && ast.IsSourceFile(lastLocation) && ast.IsExternalOrCommonJSModule(lastLocation.AsSourceFile())
+	isInExternalModule := lastLocation != nil && ast.IsSourceFile(lastLocation) && c.program.IsExternalOrCommonJSModule(lastLocation.AsSourceFile())
 	// Only check for block-scoped variable if we have an error location and are looking for the
 	// name with variable meaning
 	//      For example,
@@ -2211,7 +2216,7 @@ func (c *Checker) checkSourceFile(ctx context.Context, sourceFile *ast.SourceFil
 		c.renamedBindingElementsInTypes = nil
 		c.checkSourceElements(sourceFile.Statements.Nodes)
 		c.checkDeferredNodes(sourceFile)
-		if ast.IsExternalOrCommonJSModule(sourceFile) {
+		if c.program.IsExternalOrCommonJSModule(sourceFile) {
 			c.checkExternalModuleExports(sourceFile.AsNode())
 			c.registerForUnusedIdentifiersCheck(sourceFile.AsNode())
 		}
@@ -5242,7 +5247,7 @@ func (c *Checker) checkModuleDeclaration(node *ast.Node) {
 		if c.shouldCheckErasableSyntax(node) {
 			c.error(node, diagnostics.This_syntax_is_not_allowed_when_erasableSyntaxOnly_is_enabled)
 		}
-		if c.compilerOptions.GetIsolatedModules() && ast.GetSourceFileOfNode(node).ExternalModuleIndicator == nil {
+		if c.compilerOptions.GetIsolatedModules() && !c.program.IsExternalModule(ast.GetSourceFileOfNode(node)) {
 			// This could be loosened a little if needed. The only problem we are trying to avoid is unqualified
 			// references to namespace members declared in other files. But use of namespaces is discouraged anyway,
 			// so for now we will just not allow them in scripts, which is the only place they can merge cross-file.
@@ -5781,6 +5786,11 @@ func getVerbatimModuleSyntaxErrorMessage(node *ast.Node) *diagnostics.Message {
 
 func (c *Checker) checkExternalModuleExports(node *ast.Node) {
 	moduleSymbol := c.getSymbolOfDeclaration(node)
+	if moduleSymbol == nil || moduleSymbol.Exports == nil {
+		// File is considered a module by compiler options (e.g. moduleDetection: force)
+		// but has no import/export syntax, so the binder treated it as a script.
+		return
+	}
 	links := c.moduleSymbolLinks.Get(moduleSymbol)
 	if !links.exportsChecked {
 		exportEqualsSymbol := moduleSymbol.Exports[ast.InternalSymbolNameExportEquals]
@@ -8040,7 +8050,7 @@ func (c *Checker) checkSuperExpression(node *ast.Node) *Type {
 			// block scope containers so that we can report potential collisions with
 			// `Reflect`.
 			for current := ast.GetEnclosingBlockScopeContainer(node.Parent); current != nil; current = ast.GetEnclosingBlockScopeContainer(current) {
-				if !ast.IsSourceFile(current) || ast.IsExternalOrCommonJSModule(current.AsSourceFile()) {
+				if !ast.IsSourceFile(current) || c.program.IsExternalOrCommonJSModule(current.AsSourceFile()) {
 					c.nodeLinks.Get(current).flags |= NodeCheckFlagsContainsSuperPropertyInStaticInitializer
 				}
 			}
@@ -10563,7 +10573,7 @@ func (c *Checker) checkCollisionWithRequireExportsInGeneratedCode(node *ast.Node
 	}
 	// In case of variable declaration, node.parent is variable statement so look at the variable statement's parent
 	parent := ast.GetDeclarationContainer(node)
-	if ast.IsSourceFile(parent) && ast.IsExternalOrCommonJSModule(parent.AsSourceFile()) {
+	if ast.IsSourceFile(parent) && c.program.IsExternalOrCommonJSModule(parent.AsSourceFile()) {
 		// If the declaration happens to be in external module, report error that require and exports are reserved keywords
 		c.errorSkippedOnNoEmit(name, diagnostics.Duplicate_identifier_0_Compiler_reserves_name_1_in_top_level_scope_of_a_module, scanner.DeclarationNameToString(name), scanner.DeclarationNameToString(name))
 	}
@@ -10579,7 +10589,7 @@ func (c *Checker) checkCollisionWithGlobalObjectInGeneratedCode(node *ast.Node, 
 	}
 	// In case of variable declaration, node.parent is variable statement so look at the variable statement's parent
 	parent := ast.GetDeclarationContainer(node)
-	if ast.IsSourceFile(parent) && ast.IsExternalOrCommonJSModule(parent.AsSourceFile()) && c.program.GetEmitModuleFormatOfFile(parent.AsSourceFile()) == core.ModuleKindCommonJS {
+	if ast.IsSourceFile(parent) && c.program.IsExternalOrCommonJSModule(parent.AsSourceFile()) && c.program.GetEmitModuleFormatOfFile(parent.AsSourceFile()) == core.ModuleKindCommonJS {
 		// If the declaration happens to be in external module, report error that Object is a reserved identifier.
 		c.errorSkippedOnNoEmit(name, diagnostics.Duplicate_identifier_0_Compiler_reserves_name_1_in_top_level_scope_of_a_module, scanner.DeclarationNameToString(name), scanner.DeclarationNameToString(name))
 	}
@@ -10654,7 +10664,7 @@ func (c *Checker) checkCollisionWithGlobalPromiseInGeneratedCode(node *ast.Node,
 	}
 	// In case of variable declaration, node.parent is variable statement so look at the variable statement's parent
 	parent := ast.GetDeclarationContainer(node)
-	if ast.IsSourceFile(parent) && ast.IsExternalOrCommonJSModule(parent.AsSourceFile()) && parent.Flags&ast.NodeFlagsHasAsyncFunctions != 0 {
+	if ast.IsSourceFile(parent) && c.program.IsExternalOrCommonJSModule(parent.AsSourceFile()) && parent.Flags&ast.NodeFlagsHasAsyncFunctions != 0 {
 		// If the declaration happens to be in external module, report error that Promise is a reserved identifier.
 		c.errorSkippedOnNoEmit(name, diagnostics.Duplicate_identifier_0_Compiler_reserves_name_1_in_top_level_scope_of_a_module_containing_async_functions, scanner.DeclarationNameToString(name), scanner.DeclarationNameToString(name))
 	}
@@ -12264,7 +12274,7 @@ func (c *Checker) tryGetThisTypeAtEx(node *ast.Node, includeGlobalThis bool, con
 	}
 	if ast.IsSourceFile(container) {
 		// look up in the source file's locals or exports
-		if container.AsSourceFile().ExternalModuleIndicator != nil {
+		if c.program.IsExternalModule(container.AsSourceFile()) {
 			// TODO: Maybe issue a better error than 'object is possibly undefined'
 			return c.undefinedType
 		}
@@ -14964,7 +14974,8 @@ func (c *Checker) canHaveSyntheticDefault(file *ast.Node, moduleSymbol *ast.Symb
 	}
 
 	// JS files have a synthetic default if they do not contain ES2015+ module syntax (export = is not valid in js) _and_ do not have an __esModule marker
-	return (file.AsSourceFile().ExternalModuleIndicator == nil || file.AsSourceFile().ExternalModuleIndicator == file) && c.resolveExportByName(moduleSymbol, "__esModule", nil /*sourceNode*/, dontResolveAlias) == nil
+	indicator := c.program.GetExternalModuleIndicator(file.AsSourceFile())
+	return (indicator == nil || indicator == file) && c.resolveExportByName(moduleSymbol, "__esModule", nil /*sourceNode*/, dontResolveAlias) == nil
 }
 
 func (c *Checker) getEmitSyntaxForModuleSpecifierExpression(usage *ast.Node) core.ResolutionMode {
@@ -28702,7 +28713,7 @@ func (c *Checker) checkExternalEmitHelpers(location *ast.Node, helpers ExternalE
 		return
 	}
 	sourceFile := ast.GetSourceFileOfNode(location)
-	if !ast.IsEffectiveExternalModule(sourceFile, c.compilerOptions) || location.Flags&ast.NodeFlagsAmbient != 0 {
+	if !c.isEffectiveExternalModule(sourceFile) || location.Flags&ast.NodeFlagsAmbient != 0 {
 		return
 	}
 	helpersModule := c.resolveHelpersModule(sourceFile, location)
@@ -31717,7 +31728,7 @@ func (c *Checker) GetSymbolAtLocation(node *ast.Node) *ast.Symbol {
 // `getSymbolOfDeclaration` for a declaration, etc.
 func (c *Checker) getSymbolAtLocation(node *ast.Node, ignoreErrors bool) *ast.Symbol {
 	if ast.IsSourceFile(node) {
-		if ast.IsExternalOrCommonJSModule(node.AsSourceFile()) {
+		if c.program.IsExternalOrCommonJSModule(node.AsSourceFile()) {
 			return c.getMergedSymbol(node.Symbol())
 		}
 		return nil
@@ -32052,7 +32063,7 @@ func (c *Checker) isThisPropertyAndThisTyped(node *ast.Node) bool {
 }
 
 func (c *Checker) getTypeOfNode(node *ast.Node) *Type {
-	if ast.IsSourceFile(node) && !ast.IsExternalOrCommonJSModule(node.AsSourceFile()) {
+	if ast.IsSourceFile(node) && !c.program.IsExternalOrCommonJSModule(node.AsSourceFile()) {
 		return c.errorType
 	}
 

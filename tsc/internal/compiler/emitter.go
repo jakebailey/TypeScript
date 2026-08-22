@@ -127,11 +127,13 @@ func getScriptTransformers(emitContext *printer.EmitContext, host printer.EmitHo
 	}
 
 	opts := transformers.TransformOptions{
-		Context:                   emitContext,
-		CompilerOptions:           options,
-		Resolver:                  referenceResolver,
-		EmitResolver:              emitResolver,
-		GetEmitModuleFormatOfFile: host.GetEmitModuleFormatOfFile,
+		Context:                    emitContext,
+		CompilerOptions:            options,
+		Resolver:                   referenceResolver,
+		EmitResolver:               emitResolver,
+		GetEmitModuleFormatOfFile:  host.GetEmitModuleFormatOfFile,
+		GetExternalModuleIndicator: host.GetExternalModuleIndicator,
+		IsExternalOrCommonJSModule: host.IsExternalOrCommonJSModule,
 	}
 
 	// transform TypeScript syntax

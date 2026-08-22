@@ -70,12 +70,15 @@ func (c *Checker) getSymbolsInScope(location *ast.Node, meaning ast.SymbolFlags)
 
 			switch location.Kind {
 			case ast.KindSourceFile:
-				if !ast.IsExternalModule(location.AsSourceFile()) {
+				if !c.program.IsExternalModule(location.AsSourceFile()) {
 					break
 				}
 				fallthrough
 			case ast.KindModuleDeclaration:
-				copyLocallyVisibleExportSymbols(c.getSymbolOfDeclaration(location).Exports, meaning&ast.SymbolFlagsModuleMember)
+				sym := c.getSymbolOfDeclaration(location)
+				if sym != nil && sym.Exports != nil {
+					copyLocallyVisibleExportSymbols(sym.Exports, meaning&ast.SymbolFlagsModuleMember)
+				}
 			case ast.KindEnumDeclaration:
 				copySymbols(c.getSymbolOfDeclaration(location).Exports, meaning&ast.SymbolFlagsEnumMember)
 			case ast.KindClassExpression:

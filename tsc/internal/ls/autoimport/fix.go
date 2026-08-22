@@ -829,7 +829,7 @@ func getImportKind(importingFile *ast.SourceFile, export *Export, program *compi
 		//     a require or an es6 import. The latter, compiled to CJS, has interop built in that will
 		//     avoid accessing .default, but if we write a require directly and call it a default import,
 		//     we emit an unconditional .default access.
-		if importingFile.ExternalModuleIndicator != nil || forceImportKeyword || !ast.IsSourceFileJS(importingFile) {
+		if program.IsExternalModule(importingFile) || forceImportKeyword || !ast.IsSourceFileJS(importingFile) {
 			return lsproto.ImportKindDefault
 		}
 		return lsproto.ImportKindCommonJS
@@ -894,9 +894,6 @@ const (
 )
 
 // detectSyntax returns whether a source file has unambiguous ESM or CJS syntax.
-// When moduleDetection is "force", ExternalModuleIndicator may be set to the
-// source file node itself rather than a genuine syntax indicator, so we fall back
-// to inspecting the file's Imports() to find actual import/export declarations.
 func detectSyntax(file *ast.SourceFile, options *core.CompilerOptions) fileSyntaxKind {
 	hasESM, hasCJS := detectSyntaxIndicators(file, options)
 	switch {
@@ -910,41 +907,9 @@ func detectSyntax(file *ast.SourceFile, options *core.CompilerOptions) fileSynta
 }
 
 // detectSyntaxIndicators checks whether a source file contains genuine ESM
-// and/or CJS syntax. Under moduleDetection "force", the cached
-// ExternalModuleIndicator may be the source file itself rather than a real
-// statement, so we look at Imports() for actual import/export declarations.
-func detectSyntaxIndicators(file *ast.SourceFile, options *core.CompilerOptions) (hasESM bool, hasCJS bool) {
-	hasCJS = file.CommonJSModuleIndicator != nil
-	if options.GetEmitModuleDetectionKind() != core.ModuleDetectionKindForce {
-		// ExternalModuleIndicator is reliable when moduleDetection is not "force"
-		hasESM = file.ExternalModuleIndicator != nil
-		return hasESM, hasCJS
-	}
-	// Under moduleDetection "force", ExternalModuleIndicator is set to
-	// file.AsNode() when there is no genuine ESM syntax, so only trust it
-	// when it points to a real statement node.
-	if file.ExternalModuleIndicator != nil && file.ExternalModuleIndicator != file.AsNode() {
-		return true, hasCJS
-	}
-	// Fall back to scanning Imports() for actual import/export declarations
-	// (not require() calls or dynamic imports).
-	for _, imp := range file.Imports() {
-		if imp.Flags&ast.NodeFlagsSynthesized != 0 {
-			continue
-		}
-		parent := imp.Parent
-		if parent == nil {
-			continue
-		}
-		switch parent.Kind {
-		case ast.KindImportDeclaration, ast.KindJSImportDeclaration, ast.KindExportDeclaration:
-			return true, hasCJS
-		case ast.KindExternalModuleReference:
-			// import x = require("...") — this is ESM-ish syntax
-			return true, hasCJS
-		}
-	}
-	return hasESM, hasCJS
+// and/or CJS syntax.
+func detectSyntaxIndicators(file *ast.SourceFile, _ *core.CompilerOptions) (hasESM bool, hasCJS bool) {
+	return file.SyntacticExternalModuleIndicator != nil, file.CommonJSModuleIndicator != nil
 }
 
 func (v *View) computeShouldUseRequire() bool {

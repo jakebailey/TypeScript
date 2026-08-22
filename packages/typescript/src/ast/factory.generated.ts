@@ -401,9 +401,6 @@ export class NodeObject {
     get extendsType(): any {
         return this._data?.extendsType;
     }
-    get externalModuleIndicator(): any {
-        return this._data?.externalModuleIndicator;
-    }
     get falseType(): any {
         return this._data?.falseType;
     }
@@ -595,6 +592,9 @@ export class NodeObject {
     }
     get supplementalSourceFileNames(): any {
         return this._data?.supplementalSourceFileNames;
+    }
+    get syntacticExternalModuleIndicator(): any {
+        return this._data?.syntacticExternalModuleIndicator;
     }
     get tag(): any {
         return this._data?.tag;

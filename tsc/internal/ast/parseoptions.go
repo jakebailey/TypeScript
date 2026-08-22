@@ -6,9 +6,8 @@ import (
 )
 
 type SourceFileParseOptions struct {
-	FileName                       string
-	Path                           tspath.Path
-	ExternalModuleIndicatorOptions ExternalModuleIndicatorOptions
+	FileName string
+	Path     tspath.Path
 }
 
 type ExternalModuleIndicatorOptions struct {
@@ -53,11 +52,7 @@ func isFileForcedToBeModuleByFormat(fileName string, options *core.CompilerOptio
 	return false
 }
 
-func SetExternalModuleIndicator(file *SourceFile, opts ExternalModuleIndicatorOptions) {
-	file.ExternalModuleIndicator = getExternalModuleIndicator(file, opts)
-}
-
-func getExternalModuleIndicator(file *SourceFile, opts ExternalModuleIndicatorOptions) *Node {
+func GetExternalModuleIndicator(file *SourceFile, opts ExternalModuleIndicatorOptions) *Node {
 	if file.ScriptKind == core.ScriptKindJSON {
 		return nil
 	}
@@ -89,7 +84,14 @@ func IsFileProbablyExternalModule(sourceFile *SourceFile) *Node {
 			return statement
 		}
 	}
-	return getImportMetaIfNecessary(sourceFile)
+	if node := getImportMetaIfNecessary(sourceFile); node != nil {
+		return node
+	}
+	// Files with .mts/.mjs/.cts/.cjs extensions are always modules regardless of content.
+	if tspath.FileExtensionIsOneOf(sourceFile.FileName(), isFileForcedToBeModuleByFormatExtensions) {
+		return sourceFile.AsNode()
+	}
+	return nil
 }
 
 func isAnExternalModuleIndicatorNode(node *Node) bool {

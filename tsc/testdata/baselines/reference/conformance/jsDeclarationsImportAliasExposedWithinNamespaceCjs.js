@@ -86,12 +86,6 @@ declare const _exports: {
 };
 export = _exports;
 import { myTypes } from './file.js';
-/**
- * @namespace testFnTypes
- * @global
- * @type {Object<string,*>}
- */
-declare const testFnTypes: Record<string, any>;
 export declare namespace testFnTypes {
     export type input = boolean | myTypes.typeC;
 }

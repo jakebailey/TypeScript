@@ -42,7 +42,7 @@ func (c *Checker) IsAnySymbolAccessible(symbols []*ast.Symbol, enclosingDeclarat
 			}
 		}
 		if allowModules {
-			if core.Some(symbol.Declarations, hasNonGlobalAugmentationExternalModuleSymbol) {
+			if core.Some(symbol.Declarations, c.hasNonGlobalAugmentationExternalModuleSymbol) {
 				if shouldComputeAliasesToMakeVisible {
 					earlyModuleBail = true
 					// Generally speaking, we want to use the aliases that already exist to refer to a module, if present
@@ -102,8 +102,14 @@ func (c *Checker) IsAnySymbolAccessible(symbols []*ast.Symbol, enclosingDeclarat
 	return nil
 }
 
-func hasNonGlobalAugmentationExternalModuleSymbol(declaration *ast.Node) bool {
-	return ast.IsModuleWithStringLiteralName(declaration) || (declaration.Kind == ast.KindSourceFile && ast.IsExternalOrCommonJSModule(declaration.AsSourceFile()))
+func (c *Checker) hasNonGlobalAugmentationExternalModuleSymbol(declaration *ast.Node) bool {
+	if ast.IsModuleWithStringLiteralName(declaration) {
+		return true
+	}
+	if declaration.Kind == ast.KindSourceFile {
+		return c.program.IsExternalOrCommonJSModule(declaration.AsSourceFile())
+	}
+	return false
 }
 
 func getQualifiedLeftMeaning(rightMeaning ast.SymbolFlags) ast.SymbolFlags {
@@ -209,10 +215,13 @@ func (c *Checker) getAlternativeContainingModules(symbol *ast.Symbol, enclosingD
 	// No results from files already being imported by this file - expand search (expensive, but not location-specific, so cached)
 	otherFiles := c.program.SourceFiles()
 	for _, file := range otherFiles {
-		if !ast.IsExternalModule(file) {
+		if !c.program.IsExternalModule(file) {
 			continue
 		}
 		sym := c.getSymbolOfDeclaration(file.AsNode())
+		if sym == nil {
+			continue
+		}
 		ref := c.getAliasForSymbolInContainer(sym, symbol)
 		if ref == nil {
 			continue
@@ -246,12 +255,18 @@ func (c *Checker) getVariableDeclarationOfObjectLiteral(symbol *ast.Symbol, mean
 	return nil
 }
 
-func hasExternalModuleSymbol(declaration *ast.Node) bool {
-	return ast.IsAmbientModule(declaration) || (declaration.Kind == ast.KindSourceFile && ast.IsExternalOrCommonJSModule(declaration.AsSourceFile()))
+func (c *Checker) hasExternalModuleSymbol(declaration *ast.Node) bool {
+	if ast.IsAmbientModule(declaration) {
+		return true
+	}
+	if declaration.Kind == ast.KindSourceFile {
+		return c.program.IsExternalOrCommonJSModule(declaration.AsSourceFile())
+	}
+	return false
 }
 
 func (c *Checker) getExternalModuleContainer(declaration *ast.Node) *ast.Symbol {
-	node := ast.FindAncestor(declaration, hasExternalModuleSymbol)
+	node := ast.FindAncestor(declaration, c.hasExternalModuleSymbol)
 	if node == nil {
 		return nil
 	}
@@ -287,7 +302,7 @@ func (c *Checker) getContainersOfSymbol(symbol *ast.Symbol, enclosingDeclaration
 	for _, d := range symbol.Declarations {
 		if !ast.IsAmbientModule(d) && d.Parent != nil {
 			// direct children of a module
-			if hasNonGlobalAugmentationExternalModuleSymbol(d.Parent) {
+			if c.hasNonGlobalAugmentationExternalModuleSymbol(d.Parent) {
 				sym := c.getSymbolOfDeclaration(d.Parent)
 				if sym != nil && !slices.Contains(candidates, sym) {
 					candidates = append(candidates, sym)
@@ -563,7 +578,7 @@ func (c *Checker) trySymbolTable(
 		// for every non-default, non-export= alias symbol in scope, check if it refers to or can chain to the target symbol
 		if symbolFromSymbolTable.Name != ast.InternalSymbolNameExportEquals &&
 			symbolFromSymbolTable.Name != ast.InternalSymbolNameDefault &&
-			!(isUMDExportSymbol(symbolFromSymbolTable) && ctx.enclosingDeclaration != nil && ast.IsExternalModule(ast.GetSourceFileOfNode(ctx.enclosingDeclaration))) &&
+			!(isUMDExportSymbol(symbolFromSymbolTable) && ctx.enclosingDeclaration != nil && c.program.IsExternalModule(ast.GetSourceFileOfNode(ctx.enclosingDeclaration))) &&
 			// If `!useOnlyExternalAliasing`, we can use any type of alias to get the name
 			(!ctx.useOnlyExternalAliasing || core.Some(symbolFromSymbolTable.Declarations, ast.IsExternalModuleImportEqualsDeclaration)) &&
 			// If we're looking up a local name to reference directly, omit namespace reexports, otherwise when we're trawling through an export list to make a dotted name, we can keep it
@@ -670,7 +685,7 @@ func (c *Checker) isAccessible(
 	// if the symbolFromSymbolTable is not external module (it could be if it was determined as ambient external module and would be in globals table)
 	// and if symbolFromSymbolTable or alias resolution matches the symbol,
 	// check the symbol can be qualified, it is only then this symbol is accessible
-	return !core.Some(symbolFromSymbolTable.Declarations, hasNonGlobalAugmentationExternalModuleSymbol) &&
+	return !core.Some(symbolFromSymbolTable.Declarations, c.hasNonGlobalAugmentationExternalModuleSymbol) &&
 		(ignoreQualification || c.canQualifySymbol(ctx, c.getMergedSymbol(symbolFromSymbolTable), ctx.meaning))
 }
 
@@ -749,17 +764,20 @@ func (c *Checker) someSymbolTableInScope(
 ) bool {
 	for location := enclosingDeclaration; location != nil; location = location.Parent {
 		// Locals of a source file are not in scope (because they get merged into the global symbol table)
-		if canHaveLocals(location) && location.Locals() != nil && !ast.IsGlobalSourceFile(location) {
+		if canHaveLocals(location) && location.Locals() != nil && !c.isGlobalSourceFile(location) {
 			if callback(location.Locals(), symbolTableIDFromLocals(location.AsNode()), false, true, location) {
 				return true
 			}
 		}
 		switch location.Kind {
 		case ast.KindSourceFile, ast.KindModuleDeclaration:
-			if ast.IsSourceFile(location) && !ast.IsExternalOrCommonJSModule(location.AsSourceFile()) {
+			if ast.IsSourceFile(location) && !c.program.IsExternalOrCommonJSModule(location.AsSourceFile()) {
 				break
 			}
 			sym := c.getSymbolOfDeclaration(ast.GetReparsedNodeForNode(location))
+			if sym == nil || sym.Exports == nil {
+				break
+			}
 			if callback(sym.Exports, symbolTableIDFromExports(sym), false, true, location) {
 				return true
 			}

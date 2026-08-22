@@ -13,13 +13,14 @@ var newlineNormalizer = strings.NewReplacer("\r\n", "\n", "\r", "\n")
 
 type taggedTemplateTransformer struct {
 	transformers.Transformer
-	currentSourceFile *ast.SourceFile
+	currentSourceFile          *ast.SourceFile
+	getExternalModuleIndicator func(file *ast.SourceFile) *ast.Node
 
 	taggedTemplateStringDeclarations []*ast.Node
 }
 
 func newTaggedTemplateLiftRestrictionTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
-	tx := &taggedTemplateTransformer{}
+	tx := &taggedTemplateTransformer{getExternalModuleIndicator: opts.GetExternalModuleIndicator}
 	return tx.NewTransformer(tx.visit, opts.Context)
 }
 
@@ -105,7 +106,7 @@ func (tx *taggedTemplateTransformer) processTaggedTemplateExpression(node *ast.T
 	// Create a variable to cache the template object if we're in a module.
 	// Do not do this in the global scope, as any variable we currently generate could conflict with
 	// variables from outside of the current compilation. In the future, we can revisit this behavior.
-	if ast.IsExternalModule(tx.currentSourceFile) {
+	if tx.getExternalModuleIndicator != nil && tx.getExternalModuleIndicator(tx.currentSourceFile) != nil {
 		tempVar := f.NewUniqueName("templateObject")
 		tx.taggedTemplateStringDeclarations = append(
 			tx.taggedTemplateStringDeclarations,

@@ -566,7 +566,7 @@ func TestSession(t *testing.T) {
 			)
 		})
 
-		t.Run("projects with different options do not share source files", func(t *testing.T) {
+		t.Run("projects with different options share source files", func(t *testing.T) {
 			t.Parallel()
 			files := maps.Clone(defaultFiles)
 			files["/home/projects/TS/p2/tsconfig.json"] = `{
@@ -598,7 +598,9 @@ func TestSession(t *testing.T) {
 			x1 := program1.GetSourceFile("/home/projects/TS/p1/src/x.ts")
 			x2 := program2.GetSourceFile("/home/projects/TS/p1/src/x.ts")
 			assert.Assert(t, x1 != nil && x2 != nil)
-			assert.Assert(t, x1 != x2)
+			// Source files are now shared across programs regardless of compiler options,
+			// since ExternalModuleIndicatorOptions are no longer part of the parse cache key.
+			assert.Assert(t, x1 == x2)
 		})
 	})
 

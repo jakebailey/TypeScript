@@ -20,4 +20,6 @@ type EmitHost interface {
 	GetEmitResolver() EmitResolver
 	GetProjectReferenceFromSource(path tspath.Path) *tsoptions.SourceOutputAndProjectReference
 	IsSourceFileFromExternalLibrary(file *ast.SourceFile) bool
+	GetExternalModuleIndicator(file *ast.SourceFile) *ast.Node
+	IsExternalOrCommonJSModule(file *ast.SourceFile) bool
 }

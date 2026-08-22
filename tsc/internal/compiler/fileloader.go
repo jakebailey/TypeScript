@@ -395,11 +395,9 @@ func (p *fileLoader) parseSourceFile(t *parseTask) *ast.SourceFile {
 		defer p.opts.Tracing.Push(tracing.PhaseParse, "createSourceFile", map[string]any{"path": t.normalizedFilePath}, true)()
 	}
 	path := p.toPath(t.normalizedFilePath)
-	options := p.projectReferenceFileMapper.getCompilerOptionsForFile(t)
 	parseOptions := ast.SourceFileParseOptions{
-		FileName:                       t.normalizedFilePath,
-		Path:                           path,
-		ExternalModuleIndicatorOptions: ast.GetExternalModuleIndicatorOptions(t.normalizedFilePath, options, t.metadata),
+		FileName: t.normalizedFilePath,
+		Path:     path,
 	}
 	if tspath.FileExtensionIsOneOf(t.normalizedFilePath, p.contentMapperExtensions) {
 		return p.parseContentMappedFile(parseOptions)
@@ -817,10 +815,20 @@ func (p *fileLoader) resolveImportsAndModuleAugmentations(t *parseTask) {
 	moduleNames := make([]*ast.Node, 0, len(file.Imports())+len(file.ModuleAugmentations)+2)
 
 	isJavaScriptFile := ast.IsSourceFileJS(file)
-	isExternalModuleFile := ast.IsExternalModule(file)
+	isExternalModuleFile := file.SyntacticExternalModuleIndicator != nil
 
 	redirect, fileName := p.projectReferenceFileMapper.getRedirectForResolution(file)
 	optionsForFile := module.GetCompilerOptionsWithRedirect(p.opts.Config.CompilerOptions(), redirect)
+
+	// Use the full options-dependent check for module detection, since the fileloader
+	// has access to compiler options and metadata.
+	if !isExternalModuleFile {
+		fileName := file.FileName()
+		if virtualFileName := file.VirtualFileName(); virtualFileName != "" {
+			fileName = virtualFileName
+		}
+		isExternalModuleFile = ast.GetExternalModuleIndicator(file, ast.GetExternalModuleIndicatorOptions(fileName, optionsForFile, meta)) != nil
+	}
 	if isJavaScriptFile || (!file.IsDeclarationFile && (optionsForFile.GetIsolatedModules() || isExternalModuleFile)) {
 		if optionsForFile.ImportHelpers.IsTrue() {
 			specifier := p.createSyntheticImport(externalHelpersModuleNameText, file)

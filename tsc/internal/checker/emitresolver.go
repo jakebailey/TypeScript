@@ -157,7 +157,7 @@ func (r *EmitResolver) determineIfDeclarationIsVisible(node *ast.Node) bool {
 		}
 		// External module augmentation is always visible
 		// A @typedef at top-level in an external module is always visible
-		if ast.IsExternalModuleAugmentation(node) || ast.IsImplicitlyExportedJSDocDeclaration(node) {
+		if ast.IsExternalModuleAugmentation(node) || r.checker.isImplicitlyExportedJSDocDeclaration(node) {
 			return true
 		}
 		parent := ast.GetDeclarationContainer(node)

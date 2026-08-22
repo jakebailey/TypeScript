@@ -59,6 +59,21 @@ func (r *aliasResolver) SourceFiles() []*ast.SourceFile {
 	return r.rootFiles
 }
 
+// GetExternalModuleIndicator implements checker.Program.
+func (r *aliasResolver) GetExternalModuleIndicator(file *ast.SourceFile) *ast.Node {
+	return file.SyntacticExternalModuleIndicator
+}
+
+// IsExternalModule implements checker.Program.
+func (r *aliasResolver) IsExternalModule(file *ast.SourceFile) bool {
+	return file.SyntacticExternalModuleIndicator != nil
+}
+
+// IsExternalOrCommonJSModule implements checker.Program.
+func (r *aliasResolver) IsExternalOrCommonJSModule(file *ast.SourceFile) bool {
+	return file.SyntacticExternalModuleIndicator != nil || file.CommonJSModuleIndicator != nil
+}
+
 // Options implements checker.Program.
 func (r *aliasResolver) Options() *core.CompilerOptions {
 	return &core.CompilerOptions{

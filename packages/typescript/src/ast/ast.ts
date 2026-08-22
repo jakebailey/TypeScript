@@ -150,7 +150,7 @@ export interface SourceFile extends Node {
     readonly imports: readonly Node[];
     readonly moduleAugmentations: readonly Node[];
     readonly ambientModuleNames: readonly string[];
-    readonly externalModuleIndicator: Node | true | undefined;
+    readonly syntacticExternalModuleIndicator: Node | true | undefined;
     /** Returns the UTF-16 code unit offset of the start of each line. */
     getLineStarts(): readonly number[];
     /** Converts a UTF-16 code unit position into a 0-based line and character. */

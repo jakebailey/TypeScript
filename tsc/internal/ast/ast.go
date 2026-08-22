@@ -2501,9 +2501,12 @@ type SourceFile struct {
 	NodeCount                   int
 	TextCount                   int
 	CommonJSModuleIndicator     *Node
-	// If this is the SourceFile itself, then this module was "forced"
-	// to be an external module (previously "true").
-	ExternalModuleIndicator *Node
+	// SyntacticExternalModuleIndicator is the first import/export/import.meta statement
+	// found in the file, or nil if the file has no such syntax. This is set by the parser
+	// and reflects only syntactic information — it does NOT incorporate compiler options
+	// like moduleDetection or jsx. Use Program.GetExternalModuleIndicator() for the full
+	// options-dependent indicator.
+	SyntacticExternalModuleIndicator *Node
 
 	// Fields set by binder
 
@@ -2820,7 +2823,7 @@ func (node *SourceFile) copyFrom(other *SourceFile) {
 	node.TypeReferenceDirectives = other.TypeReferenceDirectives
 	node.LibReferenceDirectives = other.LibReferenceDirectives
 	node.CommonJSModuleIndicator = other.CommonJSModuleIndicator
-	node.ExternalModuleIndicator = other.ExternalModuleIndicator
+	node.SyntacticExternalModuleIndicator = other.SyntacticExternalModuleIndicator
 	node.Flags |= other.Flags
 }
 

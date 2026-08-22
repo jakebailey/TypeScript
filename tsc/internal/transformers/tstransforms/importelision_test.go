@@ -62,6 +62,18 @@ func (p *fakeProgram) FileExists(path string) bool {
 	return false
 }
 
+func (p *fakeProgram) GetExternalModuleIndicator(file *ast.SourceFile) *ast.Node {
+	return file.SyntacticExternalModuleIndicator
+}
+
+func (p *fakeProgram) IsExternalModule(file *ast.SourceFile) bool {
+	return file.SyntacticExternalModuleIndicator != nil
+}
+
+func (p *fakeProgram) IsExternalOrCommonJSModule(file *ast.SourceFile) bool {
+	return file.SyntacticExternalModuleIndicator != nil || file.CommonJSModuleIndicator != nil
+}
+
 func (p *fakeProgram) GetCurrentDirectory() string {
 	return ""
 }

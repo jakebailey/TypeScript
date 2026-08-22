@@ -456,7 +456,7 @@ func getSymbolScope(symbol *ast.Symbol) *ast.Node {
 			return nil
 		}
 
-		if container == nil || (container.Kind == ast.KindSourceFile && !ast.IsExternalOrCommonJSModule(container.AsSourceFile())) {
+		if container == nil || (container.Kind == ast.KindSourceFile && !(container.AsSourceFile().SyntacticExternalModuleIndicator != nil || container.AsSourceFile().CommonJSModuleIndicator != nil)) {
 			// This is a global variable and not an external module, any declaration defined
 			// within this scope is visible outside the file
 			return nil
@@ -1515,7 +1515,7 @@ func getReferencesForThisKeyword(thisOrSuperKeyword *ast.Node, sourceFiles []*as
 		staticFlag &= searchSpaceNode.ModifierFlags()
 		searchSpaceNode = searchSpaceNode.Parent // re-assign to be the owning class
 	case ast.KindSourceFile:
-		if ast.IsExternalModule(searchSpaceNode.AsSourceFile()) || isParameterName(thisOrSuperKeyword) {
+		if searchSpaceNode.AsSourceFile().SyntacticExternalModuleIndicator != nil || isParameterName(thisOrSuperKeyword) {
 			return nil
 		}
 	case ast.KindFunctionDeclaration, ast.KindFunctionExpression:
@@ -1552,7 +1552,7 @@ func getReferencesForThisKeyword(thisOrSuperKeyword *ast.Node, sourceFiles []*as
 						// and has the appropriate static modifier from the original container.
 						return container.Parent != nil && ast.CanHaveSymbol(container.Parent) && searchSpaceNode.Symbol() == container.Parent.Symbol() && ast.IsStatic(container) == (staticFlag != ast.ModifierFlagsNone)
 					case ast.KindSourceFile:
-						return container.Kind == ast.KindSourceFile && !ast.IsExternalModule(container.AsSourceFile()) && !isParameterName(node)
+						return container.Kind == ast.KindSourceFile && container.AsSourceFile().SyntacticExternalModuleIndicator == nil && !isParameterName(node)
 					}
 					return false
 				},

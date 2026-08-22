@@ -94,7 +94,7 @@ export function cloneSourceFileData(sourceFile: SourceFile): Record<string, unkn
         imports: sourceFile.imports,
         moduleAugmentations: sourceFile.moduleAugmentations,
         ambientModuleNames: sourceFile.ambientModuleNames,
-        externalModuleIndicator: sourceFile.externalModuleIndicator,
+        syntacticExternalModuleIndicator: sourceFile.syntacticExternalModuleIndicator,
         tokenCache: undefined,
     };
 }

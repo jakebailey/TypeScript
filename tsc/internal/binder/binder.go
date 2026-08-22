@@ -419,7 +419,7 @@ func (b *Binder) declareClassMember(node *ast.Node, symbolFlags ast.SymbolFlags,
 }
 
 func (b *Binder) declareSourceFileMember(node *ast.Node, symbolFlags ast.SymbolFlags, symbolExcludes ast.SymbolFlags) *ast.Symbol {
-	if ast.IsExternalModule(b.file) {
+	if b.file.SyntacticExternalModuleIndicator != nil || b.file.CommonJSModuleIndicator != nil {
 		return b.declareModuleMember(node, symbolFlags, symbolExcludes)
 	}
 	return b.declareSymbol(ast.GetLocals(b.file.AsNode()), nil /*parent*/, node, symbolFlags, symbolExcludes)
@@ -753,7 +753,7 @@ func (b *Binder) bindPropertyWorker(node *ast.Node) {
 
 func (b *Binder) bindSourceFileIfExternalModule() {
 	b.setExportContextFlag(b.file.AsNode())
-	if ast.IsExternalOrCommonJSModule(b.file) {
+	if b.file.SyntacticExternalModuleIndicator != nil || b.file.CommonJSModuleIndicator != nil {
 		b.bindSourceFileAsExternalModule()
 	} else if ast.IsJsonSourceFile(b.file) {
 		b.bindSourceFileAsExternalModule()
@@ -824,7 +824,7 @@ func (b *Binder) bindNamespaceExportDeclaration(node *ast.Node) {
 	switch {
 	case !ast.IsSourceFile(node.Parent):
 		b.errorOnNode(node, diagnostics.Global_module_exports_may_only_appear_at_top_level)
-	case !ast.IsExternalModule(node.Parent.AsSourceFile()):
+	case node.Parent.AsSourceFile().SyntacticExternalModuleIndicator == nil:
 		b.errorOnNode(node, diagnostics.Global_module_exports_may_only_appear_in_module_files)
 	case !node.Parent.AsSourceFile().IsDeclarationFile:
 		b.errorOnNode(node, diagnostics.Global_module_exports_may_only_appear_in_declaration_files)
@@ -925,12 +925,12 @@ func (b *Binder) bindCallExpression(node *ast.Node) {
 }
 
 func (b *Binder) setCommonJSModuleIndicator(node *ast.Node) bool {
-	if b.file.ExternalModuleIndicator != nil && b.file.ExternalModuleIndicator != b.file.AsNode() {
+	if b.file.SyntacticExternalModuleIndicator != nil && b.file.SyntacticExternalModuleIndicator != b.file.AsNode() {
 		return false
 	}
 	if b.file.CommonJSModuleIndicator == nil {
 		b.file.CommonJSModuleIndicator = node
-		if b.file.ExternalModuleIndicator == nil {
+		if b.file.SyntacticExternalModuleIndicator == nil {
 			b.bindSourceFileAsExternalModule()
 		}
 	}
@@ -1240,7 +1240,7 @@ func (b *Binder) bindBlockScopedDeclaration(node *ast.Node, symbolFlags ast.Symb
 	case ast.KindModuleDeclaration:
 		b.declareModuleMember(node, symbolFlags, symbolExcludes)
 	case ast.KindSourceFile:
-		if ast.IsExternalOrCommonJSModule(b.container.AsSourceFile()) {
+		if b.container.AsSourceFile().SyntacticExternalModuleIndicator != nil || b.container.AsSourceFile().CommonJSModuleIndicator != nil {
 			b.declareModuleMember(node, symbolFlags, symbolExcludes)
 			break
 		}
@@ -1309,7 +1309,7 @@ func (b *Binder) checkContextualIdentifier(node *ast.Node) {
 		if originalKeywordKind >= ast.KindFirstFutureReservedWord && originalKeywordKind <= ast.KindLastFutureReservedWord {
 			b.errorOnNode(node, b.getStrictModeIdentifierMessage(node), scanner.DeclarationNameToString(node))
 		} else if originalKeywordKind == ast.KindAwaitKeyword {
-			if ast.IsExternalModule(b.file) && ast.IsInTopLevelContext(node) {
+			if b.file.SyntacticExternalModuleIndicator != nil && ast.IsInTopLevelContext(node) {
 				b.errorOnNode(node, diagnostics.Identifier_expected_0_is_a_reserved_word_at_the_top_level_of_a_module, scanner.DeclarationNameToString(node))
 			} else if node.Flags&ast.NodeFlagsAwaitContext != 0 {
 				b.errorOnNode(node, diagnostics.Identifier_expected_0_is_a_reserved_word_that_cannot_be_used_here, scanner.DeclarationNameToString(node))
@@ -1335,7 +1335,7 @@ func (b *Binder) getStrictModeIdentifierMessage(node *ast.Node) *diagnostics.Mes
 	if ast.GetContainingClass(node) != nil {
 		return diagnostics.Identifier_expected_0_is_a_reserved_word_in_strict_mode_Class_definitions_are_automatically_in_strict_mode
 	}
-	if b.file.ExternalModuleIndicator != nil {
+	if b.file.SyntacticExternalModuleIndicator != nil {
 		return diagnostics.Identifier_expected_0_is_a_reserved_word_in_strict_mode_Modules_are_automatically_in_strict_mode
 	}
 	return diagnostics.Identifier_expected_0_is_a_reserved_word_in_strict_mode
@@ -1375,7 +1375,7 @@ func (b *Binder) getStrictModeBlockScopeFunctionDeclarationMessage(node *ast.Nod
 	if ast.GetContainingClass(node) != nil {
 		return diagnostics.Function_declarations_are_not_allowed_inside_blocks_in_strict_mode_when_targeting_ES5_Class_definitions_are_automatically_in_strict_mode
 	}
-	if b.file.ExternalModuleIndicator != nil {
+	if b.file.SyntacticExternalModuleIndicator != nil {
 		return diagnostics.Function_declarations_are_not_allowed_inside_blocks_in_strict_mode_when_targeting_ES5_Modules_are_automatically_in_strict_mode
 	}
 	return diagnostics.Function_declarations_are_not_allowed_inside_blocks_in_strict_mode_when_targeting_ES5
@@ -1459,7 +1459,7 @@ func (b *Binder) getStrictModeEvalOrArgumentsMessage(node *ast.Node) *diagnostic
 	if ast.GetContainingClass(node) != nil {
 		return diagnostics.Code_contained_in_a_class_is_evaluated_in_JavaScript_s_strict_mode_which_does_not_allow_this_use_of_0_For_more_information_see_https_Colon_Slash_Slashdeveloper_mozilla_org_Slashen_US_Slashdocs_SlashWeb_SlashJavaScript_SlashReference_SlashStrict_mode
 	}
-	if b.file.ExternalModuleIndicator != nil {
+	if b.file.SyntacticExternalModuleIndicator != nil {
 		return diagnostics.Invalid_use_of_0_Modules_are_automatically_in_strict_mode
 	}
 	return diagnostics.Invalid_use_of_0_in_strict_mode
@@ -1609,7 +1609,7 @@ func (b *Binder) bindContainer(node *ast.Node, containerFlags ContainerFlags) {
 			b.declareCommonJSVariable("exports")
 		}
 	}
-	if ast.IsSourceFile(node) && ast.IsExternalOrCommonJSModule(node.AsSourceFile()) || ast.IsAmbientModule(node) {
+	if ast.IsSourceFile(node) && (node.AsSourceFile().SyntacticExternalModuleIndicator != nil || node.AsSourceFile().CommonJSModuleIndicator != nil) || ast.IsAmbientModule(node) {
 		b.bindCommonJSTypeExports(node.Symbol())
 	}
 	b.container = saveContainer

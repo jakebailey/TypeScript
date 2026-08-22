@@ -14,25 +14,27 @@ import (
 
 type CommonJSModuleTransformer struct {
 	transformers.Transformer
-	topLevelVisitor           *ast.NodeVisitor // visits statements at top level of a module
-	topLevelNestedVisitor     *ast.NodeVisitor // visits nested statements at top level of a module
-	discardedValueVisitor     *ast.NodeVisitor // visits expressions whose values would be discarded at runtime
-	assignmentPatternVisitor  *ast.NodeVisitor // visits assignment patterns in a destructuring assignment
-	compilerOptions           *core.CompilerOptions
-	resolver                  binder.ReferenceResolver
-	getEmitModuleFormatOfFile func(file ast.HasFileName) core.ModuleKind
-	moduleKind                core.ModuleKind
-	languageVersion           core.ScriptTarget
-	currentSourceFile         *ast.SourceFile
-	currentModuleInfo         *externalModuleInfo
-	parentNode                *ast.Node // used for ancestor tracking via pushNode/popNode to detect expression identifiers
-	currentNode               *ast.Node // used for ancestor tracking via pushNode/popNode to detect expression identifiers
+	topLevelVisitor            *ast.NodeVisitor // visits statements at top level of a module
+	topLevelNestedVisitor      *ast.NodeVisitor // visits nested statements at top level of a module
+	discardedValueVisitor      *ast.NodeVisitor // visits expressions whose values would be discarded at runtime
+	assignmentPatternVisitor   *ast.NodeVisitor // visits assignment patterns in a destructuring assignment
+	compilerOptions            *core.CompilerOptions
+	resolver                   binder.ReferenceResolver
+	getEmitModuleFormatOfFile  func(file ast.HasFileName) core.ModuleKind
+	getExternalModuleIndicator func(file *ast.SourceFile) *ast.Node
+	isExternalOrCommonJSModule func(file *ast.SourceFile) bool
+	moduleKind                 core.ModuleKind
+	languageVersion            core.ScriptTarget
+	currentSourceFile          *ast.SourceFile
+	currentModuleInfo          *externalModuleInfo
+	parentNode                 *ast.Node // used for ancestor tracking via pushNode/popNode to detect expression identifiers
+	currentNode                *ast.Node // used for ancestor tracking via pushNode/popNode to detect expression identifiers
 }
 
 func NewCommonJSModuleTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
 	compilerOptions := opts.CompilerOptions
 	emitContext := opts.Context
-	tx := &CommonJSModuleTransformer{compilerOptions: compilerOptions, resolver: opts.Resolver, getEmitModuleFormatOfFile: opts.GetEmitModuleFormatOfFile}
+	tx := &CommonJSModuleTransformer{compilerOptions: compilerOptions, resolver: opts.Resolver, getEmitModuleFormatOfFile: opts.GetEmitModuleFormatOfFile, getExternalModuleIndicator: opts.GetExternalModuleIndicator, isExternalOrCommonJSModule: opts.IsExternalOrCommonJSModule}
 	tx.topLevelVisitor = emitContext.NewNodeVisitor(tx.visitTopLevel)
 	tx.topLevelNestedVisitor = emitContext.NewNodeVisitor(tx.visitTopLevelNested)
 	tx.discardedValueVisitor = emitContext.NewNodeVisitor(tx.visitDiscardedValue)
@@ -40,6 +42,10 @@ func NewCommonJSModuleTransformer(opts *transformers.TransformOptions) *transfor
 	tx.languageVersion = compilerOptions.GetEmitScriptTarget()
 	tx.moduleKind = compilerOptions.GetEmitModuleKind()
 	return tx.NewTransformer(tx.visit, emitContext)
+}
+
+func (tx *CommonJSModuleTransformer) isEffectiveExternalModule(file *ast.SourceFile) bool {
+	return tx.getExternalModuleIndicator(file) != nil || (ast.IsCommonJSContainingModuleKind(tx.compilerOptions.GetEmitModuleKind()) && file.CommonJSModuleIndicator != nil)
 }
 
 // Pushes a new child node onto the ancestor tracking stack, returning the grandparent node to be restored later via `popNode`.
@@ -227,7 +233,7 @@ func (tx *CommonJSModuleTransformer) visitAssignmentPatternNoStack(node *ast.Nod
 
 func (tx *CommonJSModuleTransformer) visitSourceFile(node *ast.SourceFile) *ast.Node {
 	if node.IsDeclarationFile ||
-		!(ast.IsEffectiveExternalModule(node, tx.compilerOptions) ||
+		!(tx.isEffectiveExternalModule(node) ||
 			node.SubtreeFacts()&ast.SubtreeContainsDynamicImport != 0) {
 		return node.AsNode()
 	}
@@ -242,11 +248,13 @@ func (tx *CommonJSModuleTransformer) visitSourceFile(node *ast.SourceFile) *ast.
 
 func (tx *CommonJSModuleTransformer) shouldEmitUnderscoreUnderscoreESModule() bool {
 	if tspath.FileExtensionIsOneOf(tx.currentSourceFile.FileName(), tspath.SupportedJSExtensionsFlat) &&
-		tx.currentSourceFile.CommonJSModuleIndicator != nil &&
-		(tx.currentSourceFile.ExternalModuleIndicator == nil || tx.currentSourceFile.ExternalModuleIndicator.Kind == ast.KindSourceFile) {
-		return false
+		tx.currentSourceFile.CommonJSModuleIndicator != nil {
+		indicator := tx.getExternalModuleIndicator(tx.currentSourceFile)
+		if indicator == nil || indicator.Kind == ast.KindSourceFile {
+			return false
+		}
 	}
-	if tx.currentModuleInfo.exportEquals == nil && ast.IsExternalModule(tx.currentSourceFile) {
+	if tx.currentModuleInfo.exportEquals == nil && tx.getExternalModuleIndicator(tx.currentSourceFile) != nil {
 		return true
 	}
 	return false
@@ -364,7 +372,7 @@ func (tx *CommonJSModuleTransformer) transformCommonJSModule(node *ast.SourceFil
 	result := tx.Factory().UpdateSourceFile(node, statementList, node.EndOfFileToken).AsSourceFile()
 	tx.EmitContext().AddEmitHelper(result.AsNode(), tx.EmitContext().ReadEmitHelpers()...)
 
-	externalHelpersImportDeclaration := createExternalHelpersImportDeclarationIfNeeded(tx.EmitContext(), result, tx.compilerOptions, tx.getEmitModuleFormatOfFile(node), false /*hasExportStarsToExportValues*/, false /*hasImportStar*/, false /*hasImportDefault*/)
+	externalHelpersImportDeclaration := createExternalHelpersImportDeclarationIfNeeded(tx.EmitContext(), result, tx.compilerOptions, tx.getEmitModuleFormatOfFile(node), false /*hasExportStarsToExportValues*/, false /*hasImportStar*/, false /*hasImportDefault*/, tx.isEffectiveExternalModule(node))
 	if externalHelpersImportDeclaration != nil {
 		prologue, rest := tx.Factory().SplitStandardPrologue(result.Statements.Nodes)
 		custom, rest := tx.Factory().SplitCustomPrologue(rest)

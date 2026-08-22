@@ -8,16 +8,18 @@ import (
 
 func NewUseStrictTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
 	tx := &useStrictTransformer{
-		compilerOptions:           opts.CompilerOptions,
-		getEmitModuleFormatOfFile: opts.GetEmitModuleFormatOfFile,
+		compilerOptions:            opts.CompilerOptions,
+		getEmitModuleFormatOfFile:  opts.GetEmitModuleFormatOfFile,
+		getExternalModuleIndicator: opts.GetExternalModuleIndicator,
 	}
 	return tx.NewTransformer(tx.visit, opts.Context)
 }
 
 type useStrictTransformer struct {
 	transformers.Transformer
-	compilerOptions           *core.CompilerOptions
-	getEmitModuleFormatOfFile func(file ast.HasFileName) core.ModuleKind
+	compilerOptions            *core.CompilerOptions
+	getEmitModuleFormatOfFile  func(file ast.HasFileName) core.ModuleKind
+	getExternalModuleIndicator func(file *ast.SourceFile) *ast.Node
 }
 
 func (tx *useStrictTransformer) visit(node *ast.Node) *ast.Node {
@@ -32,7 +34,7 @@ func (tx *useStrictTransformer) visitSourceFile(node *ast.SourceFile) *ast.Node 
 		return node.AsNode()
 	}
 
-	isExternalModule := ast.IsExternalModule(node)
+	isExternalModule := tx.getExternalModuleIndicator != nil && tx.getExternalModuleIndicator(node) != nil
 	moduleKind := tx.compilerOptions.GetEmitModuleKind()
 	format := tx.getEmitModuleFormatOfFile(node)
 

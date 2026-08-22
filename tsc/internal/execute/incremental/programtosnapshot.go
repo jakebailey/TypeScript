@@ -97,7 +97,7 @@ func (t *toProgramSnapshot) computeProgramFileChanges() {
 			}
 			version := t.snapshot.computeHash(versionText)
 			impliedNodeFormat := t.program.GetSourceFileMetaData(file.Path()).ImpliedNodeFormat
-			affectsGlobalScope := fileAffectsGlobalScope(file)
+			affectsGlobalScope := fileAffectsGlobalScope(t.program, file)
 			var signature string
 			newReferences := getReferencedFiles(t.program, file)
 			if newReferences != nil {
@@ -232,7 +232,7 @@ func (t *toProgramSnapshot) handlePendingCheck() {
 	}
 }
 
-func fileAffectsGlobalScope(file *ast.SourceFile) bool {
+func fileAffectsGlobalScope(program *compiler.Program, file *ast.SourceFile) bool {
 	binder.BindSourceFile(file)
 	// if file contains anything that augments to global scope we need to build them as if
 	// they are global files as well as module
@@ -242,7 +242,7 @@ func fileAffectsGlobalScope(file *ast.SourceFile) bool {
 		return true
 	}
 
-	if ast.IsExternalOrCommonJSModule(file) || ast.IsJsonSourceFile(file) {
+	if program.IsExternalOrCommonJSModule(file) || ast.IsJsonSourceFile(file) {
 		return false
 	}
 

@@ -119,6 +119,13 @@ type Program struct {
 	// Cached map of package names to whether they bundle types
 	packagesMapOnce sync.Once
 	packagesMap     map[string]bool
+
+	// Options-dependent external module indicator per file.
+	// The parser sets a syntactic-only indicator on SourceFile; the Program
+	// computes the full indicator incorporating compiler options (moduleDetection,
+	// jsx, file format). Consumers should query this sidecar instead of reading
+	// the source file's syntactic indicator directly.
+	externalModuleIndicators map[tspath.Path]*ast.Node
 }
 
 // FileExists implements checker.Program.
@@ -284,6 +291,7 @@ func NewProgram(opts ProgramOptions) *Program {
 		defer p.opts.Tracing.Push(tracing.PhaseProgram, "createProgram", map[string]any{"configFilePath": opts.Config.CompilerOptions().ConfigFilePath}, true)()
 	}
 	p.processedFiles = processAllProgramFiles(p.opts, p.SingleThreaded())
+	p.computeExternalModuleIndicators()
 	p.initCheckerPool()
 	p.verifyCompilerOptions()
 	p.collectContentMapperOptionDiagnostics()
@@ -408,6 +416,7 @@ func (p *Program) ReuseProgram(changedFilePath tspath.Path, newHost CompilerHost
 			result.filesByPath[newSupplemental.Path()] = newSupplemental
 		}
 	}
+	result.computeExternalModuleIndicators()
 	updateFileIncludeProcessor(result)
 	return result, newFile, true
 }
@@ -435,7 +444,7 @@ func (p *Program) canReplaceFileInProgram(file1 *ast.SourceFile, file2 *ast.Sour
 	return file2 != nil &&
 		file1.ParseOptions() == file2.ParseOptions() &&
 		file1.ScriptKind == file2.ScriptKind &&
-		ast.IsExternalOrCommonJSModule(file1) == ast.IsExternalOrCommonJSModule(file2) &&
+		p.IsExternalOrCommonJSModule(file1) == p.isExternalOrCommonJSModuleUncached(file2) &&
 		file1.UsesUriStyleNodeCoreModules == file2.UsesUriStyleNodeCoreModules &&
 		slices.EqualFunc(file1.Imports(), file2.Imports(), func(n1 *ast.Node, n2 *ast.Node) bool {
 			return equalModuleSpecifiers(n1, n2) &&
@@ -456,7 +465,7 @@ func (p *Program) needsImportHelpersImportSpecifier(file *ast.SourceFile) bool {
 		return false
 	}
 	isJavaScriptFile := ast.IsSourceFileJS(file)
-	isExternalModuleFile := ast.IsExternalModule(file)
+	isExternalModuleFile := p.IsExternalModule(file)
 	if !isJavaScriptFile && (file.IsDeclarationFile || (!optionsForFile.GetIsolatedModules() && !isExternalModuleFile)) {
 		return false
 	}
@@ -1684,6 +1693,57 @@ func (p *Program) Program() *Program {
 
 func (p *Program) GetSourceFileMetaData(path tspath.Path) ast.SourceFileMetaData {
 	return p.sourceFileMetaDatas[path]
+}
+
+// computeExternalModuleIndicators computes the full options-dependent external module
+// indicator for each source file and stores it in the sidecar map. The parser only sets
+// a syntactic indicator on SourceFile (from import/export syntax); this method applies
+// the compiler-options-dependent logic (moduleDetection, jsx, file format).
+func (p *Program) computeExternalModuleIndicators() {
+	p.externalModuleIndicators = make(map[tspath.Path]*ast.Node, len(p.files))
+	for _, file := range p.files {
+		indicator := p.getExternalModuleIndicatorUncached(file)
+		if indicator != nil {
+			p.externalModuleIndicators[file.Path()] = indicator
+		}
+	}
+}
+
+func (p *Program) externalModuleIndicatorFileName(file *ast.SourceFile) string {
+	if virtualFileName := file.VirtualFileName(); virtualFileName != "" {
+		return virtualFileName
+	}
+	return file.FileName()
+}
+
+func (p *Program) getExternalModuleIndicatorUncached(file *ast.SourceFile) *ast.Node {
+	options := p.projectReferenceFileMapper.getCompilerOptionsForFile(file)
+	metadata := p.sourceFileMetaDatas[file.Path()]
+	opts := ast.GetExternalModuleIndicatorOptions(p.externalModuleIndicatorFileName(file), options, metadata)
+	return ast.GetExternalModuleIndicator(file, opts)
+}
+
+func (p *Program) isExternalOrCommonJSModuleUncached(file *ast.SourceFile) bool {
+	return p.getExternalModuleIndicatorUncached(file) != nil || file.CommonJSModuleIndicator != nil
+}
+
+// GetExternalModuleIndicator returns the full options-dependent external module indicator
+// for the given file. Returns nil if the file is not a module, the file's own node if it's
+// a forced module, or the first import/export statement if the file has module syntax.
+func (p *Program) GetExternalModuleIndicator(file *ast.SourceFile) *ast.Node {
+	return p.externalModuleIndicators[file.Path()]
+}
+
+// IsExternalModule returns true if the file is an external module according to
+// the compiler options in effect for this program.
+func (p *Program) IsExternalModule(file *ast.SourceFile) bool {
+	return p.externalModuleIndicators[file.Path()] != nil
+}
+
+// IsExternalOrCommonJSModule returns true if the file is an external module or
+// a CommonJS module according to the compiler options in effect for this program.
+func (p *Program) IsExternalOrCommonJSModule(file *ast.SourceFile) bool {
+	return p.externalModuleIndicators[file.Path()] != nil || file.CommonJSModuleIndicator != nil
 }
 
 func (p *Program) GetEmitModuleFormatOfFile(sourceFile ast.HasFileName) core.ModuleKind {

@@ -20,6 +20,18 @@ type NameResolver struct {
 	OnPropertyWithInvalidInitializer func(location *ast.Node, name string, declaration *ast.Node, result *ast.Symbol) bool
 	OnFailedToResolveSymbol          func(location *ast.Node, name string, meaning ast.SymbolFlags, nameNotFoundMessage *diagnostics.Message)
 	OnSuccessfullyResolvedSymbol     func(location *ast.Node, result *ast.Symbol, meaning ast.SymbolFlags, lastLocation *ast.Node, associatedDeclarationForContainingInitializerOrBindingName *ast.Node, withinDeferredContext bool)
+	// IsGlobalSourceFile overrides the default ast.IsGlobalSourceFile check. When set, the
+	// name resolver uses this to determine whether a source file's locals were merged into
+	// globals (and should therefore be skipped during local lookup). This allows the checker
+	// to provide an options-aware check.
+	IsGlobalSourceFile func(node *ast.Node) bool
+}
+
+func (r *NameResolver) isGlobalSourceFile(node *ast.Node) bool {
+	if r.IsGlobalSourceFile != nil {
+		return r.IsGlobalSourceFile(node)
+	}
+	return ast.IsGlobalSourceFile(node)
 }
 
 func (r *NameResolver) Resolve(location *ast.Node, name string, meaning ast.SymbolFlags, nameNotFoundMessage *diagnostics.Message, isUse bool, excludeGlobals bool) *ast.Symbol {
@@ -47,7 +59,7 @@ loop:
 		}
 		locals := location.Locals()
 		// Locals of a source file are not in scope (because they get merged into the global symbol table)
-		if locals != nil && !ast.IsGlobalSourceFile(location) {
+		if locals != nil && !r.isGlobalSourceFile(location) {
 			result = r.lookup(locals, name, meaning)
 			if result != nil {
 				useResult := true
@@ -97,7 +109,7 @@ loop:
 		withinDeferredContext = withinDeferredContext || getIsDeferredContext(location, lastLocation)
 		switch location.Kind {
 		case ast.KindSourceFile:
-			if !ast.IsExternalOrCommonJSModule(location.AsSourceFile()) {
+			if !(location.AsSourceFile().SyntacticExternalModuleIndicator != nil || location.AsSourceFile().CommonJSModuleIndicator != nil) {
 				break
 			}
 			fallthrough

@@ -473,7 +473,7 @@ func (p *Parser) finishSourceFile(result *ast.SourceFile, isDeclarationFile bool
 	}
 	slices.SortFunc(p.reparsedClones, ast.CompareNodePositions)
 	result.ReparsedClones = slices.Clone(p.reparsedClones)
-	ast.SetExternalModuleIndicator(result, p.opts.ExternalModuleIndicatorOptions)
+	result.SyntacticExternalModuleIndicator = ast.IsFileProbablyExternalModule(result)
 }
 
 func (p *Parser) createJSDocCache() map[*ast.Node][]*ast.Node {
