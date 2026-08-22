@@ -1,10 +1,6 @@
 package packagejson
 
-import (
-	"reflect"
-
-	"github.com/microsoft/TypeScript/tsc/internal/json"
-)
+import "github.com/microsoft/TypeScript/tsc/internal/json"
 
 type Expected[T any] struct {
 	actualJSONType string
@@ -49,17 +45,17 @@ func (e *Expected[T]) IsValid() bool {
 }
 
 func (e *Expected[T]) ExpectedJSONType() string {
-	switch reflect.TypeFor[T]().Kind() {
-	case reflect.String:
+	var zero T
+	switch any(zero).(type) {
+	case string:
 		return "string"
-	case reflect.Bool:
+	case bool:
 		return "boolean"
-	case reflect.Slice, reflect.Array:
+	case []any, []string:
 		return "array"
-	case reflect.Map:
+	case map[string]any, map[string]string:
 		return "object"
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
-		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+	case int, int8, int16, int32, int64, uint, uint8, uint16, uint32, uint64:
 		return "number"
 	default:
 		return "unknown"

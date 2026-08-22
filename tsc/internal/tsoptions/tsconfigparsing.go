@@ -336,36 +336,36 @@ func convertConfigFileToObject(
 	return convertToJson(sourceFile, rootExpression, true, jsonConversionNotifier)
 }
 
-var orderedMapType = reflect.TypeFor[*collections.OrderedMap[string, any]]()
-
 func isCompilerOptionsValue(option *CommandLineOption, value any) bool {
 	if option != nil {
 		if value == nil {
 			return !option.DisallowNullOrUndefined()
 		}
 		if option.Kind == "list" {
-			return reflect.TypeOf(value).Kind() == reflect.Slice
+			return isSliceValue(value)
 		}
 		if option.Kind == "listOrElement" {
-			if reflect.TypeOf(value).Kind() == reflect.Slice {
+			if isSliceValue(value) {
 				return true
 			} else {
 				return isCompilerOptionsValue(option.Elements(), value)
 			}
 		}
 		if option.Kind == "string" {
-			return reflect.TypeOf(value).Kind() == reflect.String
+			return isStringValue(value)
 		}
 		if option.Kind == "boolean" {
-			return reflect.TypeOf(value).Kind() == reflect.Bool
+			_, ok := value.(bool)
+			return ok
 		}
 		if option.Kind == "number" {
-			return reflect.TypeOf(value).Kind() == reflect.Float64
+			_, ok := value.(float64)
+			return ok
 		}
 		if option.Kind == "object" {
-			return reflect.TypeOf(value) == orderedMapType
+			return isOrderedMapValue(value)
 		}
-		if option.Kind == "enum" && reflect.TypeOf(value).Kind() == reflect.String {
+		if option.Kind == "enum" && isStringValue(value) {
 			return true
 		}
 	}
@@ -478,7 +478,7 @@ func convertJsonOption(
 		case CommandLineOptionTypeList:
 			return convertJsonOptionOfListType(opt, value, basePath, propertyAssignment, valueExpression, sourceFile) // as ArrayLiteralExpression | undefined
 		case CommandLineOptionTypeListOrElement:
-			if reflect.TypeOf(value).Kind() == reflect.Slice {
+			if isSliceValue(value) {
 				return convertJsonOptionOfListType(opt, value, basePath, propertyAssignment, valueExpression, sourceFile)
 			} else {
 				return convertJsonOption(opt.Elements(), value, basePath, propertyAssignment, valueExpression, sourceFile)
@@ -519,7 +519,7 @@ func getExtendsConfigPathOrArray(
 		_, errors := convertJsonOption(extendsOptionDeclaration, value, basePath, propertyAssignment, valueExpression, sourceFile)
 		return extendedConfigPathArray, errors
 	}
-	if reflect.TypeOf(value).Kind() == reflect.String {
+	if isStringValue(value) {
 		val, err := getExtendsConfigPath(value.(string), host, newBase, valueExpression, sourceFile)
 		if val != "" {
 			extendedConfigPathArray = append(extendedConfigPathArray, val)
@@ -527,13 +527,13 @@ func getExtendsConfigPathOrArray(
 		return extendedConfigPathArray, err
 	}
 	var errors []*ast.Diagnostic
-	if reflect.TypeOf(value).Kind() == reflect.Slice {
+	if isSliceValue(value) {
 		for index, fileName := range value.([]any) {
 			var expression *ast.Expression = nil
 			if valueExpression != nil {
 				expression = valueExpression.Elements()[index]
 			}
-			if reflect.TypeOf(fileName).Kind() == reflect.String {
+			if isStringValue(fileName) {
 				val, err := getExtendsConfigPath(fileName.(string), host, newBase, expression, sourceFile)
 				if val != "" {
 					extendedConfigPathArray = append(extendedConfigPathArray, val)
@@ -1184,7 +1184,7 @@ func parseConfig(
 		var result *extendsResult = &extendsResult{
 			options: &core.CompilerOptions{},
 		}
-		if reflect.TypeOf(ownConfig.extendedConfigPath).Kind() == reflect.String {
+		if isStringValue(ownConfig.extendedConfigPath) {
 			applyExtendedConfig(result, ownConfig.extendedConfigPath.(string))
 		} else if configPath, ok := ownConfig.extendedConfigPath.([]string); ok {
 			for _, extendedConfigPath := range configPath {
@@ -1228,6 +1228,16 @@ func isStringValue(value any) bool {
 	return ok
 }
 
+func isSliceValue(value any) bool {
+	_, ok := value.([]any)
+	return ok
+}
+
+func isOrderedMapValue(value any) bool {
+	_, ok := value.(*collections.OrderedMap[string, any])
+	return ok
+}
+
 // parseJsonConfigFileContentWorker parses the contents of a config file from json or json source file (tsconfig.json).
 // json: The contents of the config file to parse
 // sourceFile: sourceFile corresponding to the Json
@@ -1265,7 +1275,7 @@ func parseJsonConfigFileContentWorker(
 	getPropFromRaw := func(prop string, validateElement func(value any) bool, elementTypeName string) propOfRaw {
 		value, exists := rawConfig.Get(prop)
 		if exists && value != nil {
-			if reflect.TypeOf(value).Kind() == reflect.Slice {
+			if isSliceValue(value) {
 				result := rawConfig.GetOrZero(prop)
 				if _, ok := result.([]any); ok {
 					if sourceFile == nil && !core.Every(result.([]any), validateElement) {
@@ -1280,7 +1290,7 @@ func parseJsonConfigFileContentWorker(
 		}
 		return propOfRaw{sliceValue: nil, wrongValue: "no-prop"}
 	}
-	referencesOfRaw := getPropFromRaw("references", func(element any) bool { return reflect.TypeOf(element) == orderedMapType }, "object")
+	referencesOfRaw := getPropFromRaw("references", isOrderedMapValue, "object")
 	fileSpecs := getPropFromRaw("files", isStringValue, "string")
 	if fileSpecs.sliceValue != nil || fileSpecs.wrongValue == "" {
 		hasZeroOrNoReferences := false
@@ -1382,7 +1392,7 @@ func parseJsonConfigFileContentWorker(
 	}
 	var contentMappers []*contentmapper.Mapper
 	var contentMapperIndices []int
-	contentMappersOfRaw := getPropFromRaw("contentMappers", func(element any) bool { return reflect.TypeOf(element) == orderedMapType }, "object")
+	contentMappersOfRaw := getPropFromRaw("contentMappers", isOrderedMapValue, "object")
 	for i, element := range contentMappersOfRaw.sliceValue {
 		mapper, mapperErrors := parseContentMapper(element)
 		for _, mapperError := range mapperErrors {
@@ -1476,7 +1486,7 @@ func parseJsonConfigFileContentWorker(
 
 	getProjectReferences := func(basePath string) []*core.ProjectReference {
 		var projectReferences []*core.ProjectReference
-		newReferencesOfRaw := getPropFromRaw("references", func(element any) bool { return reflect.TypeOf(element) == orderedMapType }, "object")
+		newReferencesOfRaw := getPropFromRaw("references", isOrderedMapValue, "object")
 		if newReferencesOfRaw.sliceValue != nil {
 			projectReferences = []*core.ProjectReference{}
 			for index, reference := range newReferencesOfRaw.sliceValue {

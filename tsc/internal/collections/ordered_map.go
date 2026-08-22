@@ -5,7 +5,6 @@ import (
 	"errors"
 	"iter"
 	"maps"
-	"reflect"
 	"slices"
 	"strconv"
 
@@ -221,7 +220,7 @@ func (m *OrderedMap[K, V]) MarshalJSONTo(enc *json.Encoder) error {
 
 	for _, k := range m.keys {
 		// TODO: is this needed? Can we just MarshalEncode k directly?
-		keyString, err := resolveKeyName(reflect.ValueOf(k))
+		keyString, err := resolveKeyName(k)
 		if err != nil {
 			return err
 		}
@@ -238,22 +237,35 @@ func (m *OrderedMap[K, V]) MarshalJSONTo(enc *json.Encoder) error {
 	return enc.WriteToken(json.EndObject)
 }
 
-func resolveKeyName(k reflect.Value) (string, error) {
-	if k.Kind() == reflect.String {
-		return k.String(), nil
-	}
-	if tm, ok := reflect.TypeAssert[encoding.TextMarshaler](k); ok {
-		if k.Kind() == reflect.Pointer && k.IsNil() {
-			return "", nil
-		}
-		buf, err := tm.MarshalText()
+func resolveKeyName[K comparable](k K) (string, error) {
+	switch k := any(k).(type) {
+	case string:
+		return k, nil
+	case encoding.TextMarshaler:
+		buf, err := k.MarshalText()
 		return string(buf), err
-	}
-	switch k.Kind() {
-	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		return strconv.FormatInt(k.Int(), 10), nil
-	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
-		return strconv.FormatUint(k.Uint(), 10), nil
+	case int:
+		return strconv.FormatInt(int64(k), 10), nil
+	case int8:
+		return strconv.FormatInt(int64(k), 10), nil
+	case int16:
+		return strconv.FormatInt(int64(k), 10), nil
+	case int32:
+		return strconv.FormatInt(int64(k), 10), nil
+	case int64:
+		return strconv.FormatInt(k, 10), nil
+	case uint:
+		return strconv.FormatUint(uint64(k), 10), nil
+	case uint8:
+		return strconv.FormatUint(uint64(k), 10), nil
+	case uint16:
+		return strconv.FormatUint(uint64(k), 10), nil
+	case uint32:
+		return strconv.FormatUint(uint64(k), 10), nil
+	case uint64:
+		return strconv.FormatUint(k, 10), nil
+	case uintptr:
+		return strconv.FormatUint(uint64(k), 10), nil
 	}
 	panic("unexpected map key type")
 }

@@ -2,7 +2,6 @@ package tsc
 
 import (
 	"fmt"
-	"reflect"
 	"slices"
 	"strings"
 
@@ -84,16 +83,26 @@ func generateTSConfig(options *collections.OrderedMap[string, any], locale local
 			panic(`No option named ` + settingName)
 		}
 
-		rval := reflect.ValueOf(value)
-		if rval.Kind() == reflect.Slice {
+		if values, ok := value.([]any); ok {
 			var enumMap *collections.OrderedMap[string, any]
 			if elemOption := option.Elements(); elemOption != nil {
 				enumMap = elemOption.EnumMap()
 			}
 
 			var elems []string
-			for i := range rval.Len() {
-				elems = append(elems, formatSingleValue(rval.Index(i).Interface(), enumMap))
+			for _, value := range values {
+				elems = append(elems, formatSingleValue(value, enumMap))
+			}
+			return `[` + strings.Join(elems, ", ") + `]`
+		} else if values, ok := value.([]string); ok {
+			var enumMap *collections.OrderedMap[string, any]
+			if elemOption := option.Elements(); elemOption != nil {
+				enumMap = elemOption.EnumMap()
+			}
+
+			var elems []string
+			for _, value := range values {
+				elems = append(elems, formatSingleValue(value, enumMap))
 			}
 			return `[` + strings.Join(elems, ", ") + `]`
 		} else {
