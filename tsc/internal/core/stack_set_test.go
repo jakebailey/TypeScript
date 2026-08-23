@@ -70,8 +70,8 @@ func TestStackSetShallowAllocations(t *testing.T) { //nolint:paralleltest
 }
 
 type maybeStack interface {
-	Has(int) bool
-	Push(int)
+	Has(value int) bool
+	Push(value int)
 	Pop() int
 }
 
