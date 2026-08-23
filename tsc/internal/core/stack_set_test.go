@@ -11,13 +11,14 @@ func TestStackSet(t *testing.T) {
 	t.Parallel()
 
 	var stack core.StackSet[int]
-	for i := range 10 {
+	const depth = 128
+	for i := range depth {
 		stack.Push(i)
 		assert.Equal(t, stack.Len(), i+1)
 		assert.Assert(t, stack.Has(i))
 	}
 
-	for i := 9; i >= 0; i-- {
+	for i := depth - 1; i >= 0; i-- {
 		assert.Equal(t, stack.Pop(), i)
 		assert.Assert(t, !stack.Has(i))
 		assert.Equal(t, stack.Len(), i)
