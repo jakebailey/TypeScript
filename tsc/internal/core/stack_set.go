@@ -21,7 +21,9 @@ func (s *StackSet[T]) Has(value T) bool {
 
 func (s *StackSet[T]) Push(value T) {
 	s.values = append(s.values, value)
-	if s.set == nil && len(s.values) > stackSetMapThreshold {
+	if s.set != nil {
+		s.set[value] = struct{}{}
+	} else if len(s.values) > stackSetMapThreshold {
 		s.set = make(map[T]struct{}, len(s.values))
 		for _, value := range s.values {
 			s.set[value] = struct{}{}
