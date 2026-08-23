@@ -1,7 +1,6 @@
 package scanner
 
 import (
-	"fmt"
 	"strings"
 	"testing"
 
@@ -16,10 +15,10 @@ func TestScanNotEqualsEqualsEquals(t *testing.T) {
 	t.Parallel()
 
 	type scanError struct {
-		message string
-		start   int
-		length  int
-		args    []any
+		Message string
+		Start   int
+		Length  int
+		Args    []any
 	}
 
 	const text = "!== !=== != == === = !==="
@@ -50,8 +49,8 @@ func TestScanNotEqualsEqualsEquals(t *testing.T) {
 
 	assert.DeepEqual(t, errors, []scanError{
 		{"Unexpected token. Did you mean '{0}'?", 4, 4, []any{"!=="}},
-		{"Unexpected token. Did you mean '{0}'?", 22, 4, []any{"!=="}},
-	}, fmt.Sprintf("%+v", errors))
+		{"Unexpected token. Did you mean '{0}'?", 21, 4, []any{"!=="}},
+	})
 }
 
 func TestScanStringPreservesLoneSurrogates(t *testing.T) {

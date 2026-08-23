@@ -205,10 +205,17 @@ a !=== b !=== a;
 	assert.Equal(t, len(file.Statements.Nodes), 7)
 	diagnostics := file.Diagnostics()
 	assert.Equal(t, len(diagnostics), 3)
-	first := strings.Index(sourceText, "!===")
-	second := strings.LastIndex(sourceText, "!===")
-	for i, start := range []int{first, second, second + len("!=== b ")} {
-		assert.Equal(t, diagnostics[i].Code(), int32(18062))
+	var starts []int
+	for offset := 0; ; {
+		index := strings.Index(sourceText[offset:], "!===")
+		if index == -1 {
+			break
+		}
+		starts = append(starts, offset+index)
+		offset += index + len("!===")
+	}
+	for i, start := range starts {
+		assert.Equal(t, diagnostics[i].Code(), int32(18064))
 		assert.Equal(t, diagnostics[i].Pos(), start)
 		assert.Equal(t, diagnostics[i].Len(), len("!==="))
 		assert.DeepEqual(t, diagnostics[i].MessageArgs(), []string{"!=="})

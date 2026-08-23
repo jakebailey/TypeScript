@@ -3762,6 +3762,8 @@ var Regular_expression_pattern_modifiers_are_only_available_when_targeting_0_or_
 
 var Duplicate_named_capturing_groups_are_only_available_when_targeting_0_or_later = &Message{code: 18063, category: CategoryError, key: "Duplicate_named_capturing_groups_are_only_available_when_targeting_0_or_later_18063", text: "Duplicate named capturing groups are only available when targeting '{0}' or later."}
 
+var Unexpected_token_Did_you_mean_0 = &Message{code: 18064, category: CategoryError, key: "Unexpected_token_Did_you_mean_0_18064", text: "Unexpected token. Did you mean '{0}'?"}
+
 var X_nodenext_if_module_is_nodenext_node16_if_module_is_node16_or_node18_otherwise_bundler = &Message{code: 69010, category: CategoryMessage, key: "nodenext_if_module_is_nodenext_node16_if_module_is_node16_or_node18_otherwise_bundler_69010", text: "`nodenext` if `module` is `nodenext`; `node16` if `module` is `node16` or `node18`; otherwise, `bundler`."}
 
 var File_is_a_CommonJS_module_it_may_be_converted_to_an_ES_module = &Message{code: 80001, category: CategorySuggestion, key: "File_is_a_CommonJS_module_it_may_be_converted_to_an_ES_module_80001", text: "File is a CommonJS module; it may be converted to an ES module."}
@@ -8172,6 +8174,8 @@ func keyToMessage(key Key) *Message {
 		return Regular_expression_pattern_modifiers_are_only_available_when_targeting_0_or_later
 	case "Duplicate_named_capturing_groups_are_only_available_when_targeting_0_or_later_18063":
 		return Duplicate_named_capturing_groups_are_only_available_when_targeting_0_or_later
+	case "Unexpected_token_Did_you_mean_0_18064":
+		return Unexpected_token_Did_you_mean_0
 	case "nodenext_if_module_is_nodenext_node16_if_module_is_node16_or_node18_otherwise_bundler_69010":
 		return X_nodenext_if_module_is_nodenext_node16_if_module_is_node16_or_node18_otherwise_bundler
 	case "File_is_a_CommonJS_module_it_may_be_converted_to_an_ES_module_80001":

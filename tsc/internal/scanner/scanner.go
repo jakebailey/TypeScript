@@ -505,7 +505,12 @@ func (s *Scanner) Scan() ast.Kind {
 		case '!':
 			if s.charAt(1) == '=' {
 				if s.charAt(2) == '=' {
-					s.pos += 3
+					if s.charAt(3) == '=' {
+						s.errorAt(diagnostics.Unexpected_token_Did_you_mean_0, s.pos, 4, "!==")
+						s.pos += 4
+					} else {
+						s.pos += 3
+					}
 					s.token = ast.KindExclamationEqualsEqualsToken
 				} else {
 					s.pos += 2
