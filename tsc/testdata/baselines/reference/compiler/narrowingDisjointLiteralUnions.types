@@ -1,0 +1,160 @@
+//// [tests/cases/compiler/narrowingDisjointLiteralUnions.ts] ////
+
+=== narrowingDisjointLiteralUnions.ts ===
+type StringsA = "a" | "b";
+>StringsA : StringsA
+
+type StringsB = "c" | "d";
+>StringsB : StringsB
+
+declare function isStringsB(value: string): value is StringsB;
+>isStringsB : (value: string) => value is StringsB
+>value : string
+
+function narrowStrings(value: StringsA | StringsB) {
+>narrowStrings : (value: StringsA | StringsB) => void
+>value : StringsA | StringsB
+
+    if (isStringsB(value)) {
+>isStringsB(value) : boolean
+>isStringsB : (value: string) => value is StringsB
+>value : StringsA | StringsB
+
+        const narrowed: StringsB = value;
+>narrowed : StringsB
+>value : StringsB
+    }
+    else {
+        const narrowed: StringsA = value;
+>narrowed : StringsA
+>value : "a" | "b"
+    }
+}
+
+type NumbersA = 0 | 1;
+>NumbersA : NumbersA
+
+type NumbersB = 2 | 3;
+>NumbersB : NumbersB
+
+declare function isNumbersB(value: number): value is NumbersB;
+>isNumbersB : (value: number) => value is NumbersB
+>value : number
+
+function narrowNumbers(value: NumbersA | NumbersB) {
+>narrowNumbers : (value: NumbersA | NumbersB) => void
+>value : NumbersA | NumbersB
+
+    if (isNumbersB(value)) {
+>isNumbersB(value) : boolean
+>isNumbersB : (value: number) => value is NumbersB
+>value : NumbersA | NumbersB
+
+        const narrowed: NumbersB = value;
+>narrowed : NumbersB
+>value : NumbersB
+    }
+    else {
+        const narrowed: NumbersA = value;
+>narrowed : NumbersA
+>value : 0 | 1
+    }
+}
+
+type BigIntsA = 0n | 1n;
+>BigIntsA : BigIntsA
+
+type BigIntsB = 2n | 3n;
+>BigIntsB : BigIntsB
+
+declare function isBigIntsB(value: bigint): value is BigIntsB;
+>isBigIntsB : (value: bigint) => value is BigIntsB
+>value : bigint
+
+function narrowBigInts(value: BigIntsA | BigIntsB) {
+>narrowBigInts : (value: BigIntsA | BigIntsB) => void
+>value : BigIntsA | BigIntsB
+
+    if (isBigIntsB(value)) {
+>isBigIntsB(value) : boolean
+>isBigIntsB : (value: bigint) => value is BigIntsB
+>value : BigIntsA | BigIntsB
+
+        const narrowed: BigIntsB = value;
+>narrowed : BigIntsB
+>value : BigIntsB
+    }
+    else {
+        const narrowed: BigIntsA = value;
+>narrowed : BigIntsA
+>value : 0n | 1n
+    }
+}
+
+declare function isTrue(value: boolean): value is true;
+>isTrue : (value: boolean) => value is true
+>value : boolean
+>true : true
+
+function narrowBooleans(value: boolean) {
+>narrowBooleans : (value: boolean) => void
+>value : boolean
+
+    if (isTrue(value)) {
+>isTrue(value) : boolean
+>isTrue : (value: boolean) => value is true
+>value : boolean
+
+        const narrowed: true = value;
+>narrowed : true
+>true : true
+>value : true
+    }
+    else {
+        const narrowed: false = value;
+>narrowed : false
+>false : false
+>value : false
+    }
+}
+
+enum A {
+>A : A
+
+    Value = "same",
+>Value : A.Value
+>"same" : "same"
+}
+
+enum B {
+>B : B
+
+    Value = "same",
+>Value : B.Value
+>"same" : "same"
+}
+
+declare function isB(value: A | B): value is B;
+>isB : (value: A | B) => value is B
+>value : A | B
+
+function preserveEnumRelations(value: A | B) {
+>preserveEnumRelations : (value: A | B) => void
+>value : A | B
+
+    if (isB(value)) {
+>isB(value) : boolean
+>isB : (value: A | B) => value is B
+>value : A | B
+
+        const narrowed: B = value;
+>narrowed : B
+>value : B
+    }
+    else {
+        const narrowed: A = value;
+>narrowed : A
+>value : A
+    }
+}
+

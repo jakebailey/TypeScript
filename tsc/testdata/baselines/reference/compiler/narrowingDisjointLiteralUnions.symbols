@@ -1,0 +1,177 @@
+//// [tests/cases/compiler/narrowingDisjointLiteralUnions.ts] ////
+
+=== narrowingDisjointLiteralUnions.ts ===
+type StringsA = "a" | "b";
+>StringsA : Symbol(StringsA, Decl(narrowingDisjointLiteralUnions.ts, 0, 0))
+
+type StringsB = "c" | "d";
+>StringsB : Symbol(StringsB, Decl(narrowingDisjointLiteralUnions.ts, 0, 26))
+
+declare function isStringsB(value: string): value is StringsB;
+>isStringsB : Symbol(isStringsB, Decl(narrowingDisjointLiteralUnions.ts, 1, 26))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 2, 28))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 2, 28))
+>StringsB : Symbol(StringsB, Decl(narrowingDisjointLiteralUnions.ts, 0, 26))
+
+function narrowStrings(value: StringsA | StringsB) {
+>narrowStrings : Symbol(narrowStrings, Decl(narrowingDisjointLiteralUnions.ts, 2, 62))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 4, 23))
+>StringsA : Symbol(StringsA, Decl(narrowingDisjointLiteralUnions.ts, 0, 0))
+>StringsB : Symbol(StringsB, Decl(narrowingDisjointLiteralUnions.ts, 0, 26))
+
+    if (isStringsB(value)) {
+>isStringsB : Symbol(isStringsB, Decl(narrowingDisjointLiteralUnions.ts, 1, 26))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 4, 23))
+
+        const narrowed: StringsB = value;
+>narrowed : Symbol(narrowed, Decl(narrowingDisjointLiteralUnions.ts, 6, 13))
+>StringsB : Symbol(StringsB, Decl(narrowingDisjointLiteralUnions.ts, 0, 26))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 4, 23))
+    }
+    else {
+        const narrowed: StringsA = value;
+>narrowed : Symbol(narrowed, Decl(narrowingDisjointLiteralUnions.ts, 9, 13))
+>StringsA : Symbol(StringsA, Decl(narrowingDisjointLiteralUnions.ts, 0, 0))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 4, 23))
+    }
+}
+
+type NumbersA = 0 | 1;
+>NumbersA : Symbol(NumbersA, Decl(narrowingDisjointLiteralUnions.ts, 11, 1))
+
+type NumbersB = 2 | 3;
+>NumbersB : Symbol(NumbersB, Decl(narrowingDisjointLiteralUnions.ts, 13, 22))
+
+declare function isNumbersB(value: number): value is NumbersB;
+>isNumbersB : Symbol(isNumbersB, Decl(narrowingDisjointLiteralUnions.ts, 14, 22))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 15, 28))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 15, 28))
+>NumbersB : Symbol(NumbersB, Decl(narrowingDisjointLiteralUnions.ts, 13, 22))
+
+function narrowNumbers(value: NumbersA | NumbersB) {
+>narrowNumbers : Symbol(narrowNumbers, Decl(narrowingDisjointLiteralUnions.ts, 15, 62))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 17, 23))
+>NumbersA : Symbol(NumbersA, Decl(narrowingDisjointLiteralUnions.ts, 11, 1))
+>NumbersB : Symbol(NumbersB, Decl(narrowingDisjointLiteralUnions.ts, 13, 22))
+
+    if (isNumbersB(value)) {
+>isNumbersB : Symbol(isNumbersB, Decl(narrowingDisjointLiteralUnions.ts, 14, 22))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 17, 23))
+
+        const narrowed: NumbersB = value;
+>narrowed : Symbol(narrowed, Decl(narrowingDisjointLiteralUnions.ts, 19, 13))
+>NumbersB : Symbol(NumbersB, Decl(narrowingDisjointLiteralUnions.ts, 13, 22))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 17, 23))
+    }
+    else {
+        const narrowed: NumbersA = value;
+>narrowed : Symbol(narrowed, Decl(narrowingDisjointLiteralUnions.ts, 22, 13))
+>NumbersA : Symbol(NumbersA, Decl(narrowingDisjointLiteralUnions.ts, 11, 1))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 17, 23))
+    }
+}
+
+type BigIntsA = 0n | 1n;
+>BigIntsA : Symbol(BigIntsA, Decl(narrowingDisjointLiteralUnions.ts, 24, 1))
+
+type BigIntsB = 2n | 3n;
+>BigIntsB : Symbol(BigIntsB, Decl(narrowingDisjointLiteralUnions.ts, 26, 24))
+
+declare function isBigIntsB(value: bigint): value is BigIntsB;
+>isBigIntsB : Symbol(isBigIntsB, Decl(narrowingDisjointLiteralUnions.ts, 27, 24))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 28, 28))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 28, 28))
+>BigIntsB : Symbol(BigIntsB, Decl(narrowingDisjointLiteralUnions.ts, 26, 24))
+
+function narrowBigInts(value: BigIntsA | BigIntsB) {
+>narrowBigInts : Symbol(narrowBigInts, Decl(narrowingDisjointLiteralUnions.ts, 28, 62))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 30, 23))
+>BigIntsA : Symbol(BigIntsA, Decl(narrowingDisjointLiteralUnions.ts, 24, 1))
+>BigIntsB : Symbol(BigIntsB, Decl(narrowingDisjointLiteralUnions.ts, 26, 24))
+
+    if (isBigIntsB(value)) {
+>isBigIntsB : Symbol(isBigIntsB, Decl(narrowingDisjointLiteralUnions.ts, 27, 24))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 30, 23))
+
+        const narrowed: BigIntsB = value;
+>narrowed : Symbol(narrowed, Decl(narrowingDisjointLiteralUnions.ts, 32, 13))
+>BigIntsB : Symbol(BigIntsB, Decl(narrowingDisjointLiteralUnions.ts, 26, 24))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 30, 23))
+    }
+    else {
+        const narrowed: BigIntsA = value;
+>narrowed : Symbol(narrowed, Decl(narrowingDisjointLiteralUnions.ts, 35, 13))
+>BigIntsA : Symbol(BigIntsA, Decl(narrowingDisjointLiteralUnions.ts, 24, 1))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 30, 23))
+    }
+}
+
+declare function isTrue(value: boolean): value is true;
+>isTrue : Symbol(isTrue, Decl(narrowingDisjointLiteralUnions.ts, 37, 1))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 39, 24))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 39, 24))
+
+function narrowBooleans(value: boolean) {
+>narrowBooleans : Symbol(narrowBooleans, Decl(narrowingDisjointLiteralUnions.ts, 39, 55))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 41, 24))
+
+    if (isTrue(value)) {
+>isTrue : Symbol(isTrue, Decl(narrowingDisjointLiteralUnions.ts, 37, 1))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 41, 24))
+
+        const narrowed: true = value;
+>narrowed : Symbol(narrowed, Decl(narrowingDisjointLiteralUnions.ts, 43, 13))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 41, 24))
+    }
+    else {
+        const narrowed: false = value;
+>narrowed : Symbol(narrowed, Decl(narrowingDisjointLiteralUnions.ts, 46, 13))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 41, 24))
+    }
+}
+
+enum A {
+>A : Symbol(A, Decl(narrowingDisjointLiteralUnions.ts, 48, 1))
+
+    Value = "same",
+>Value : Symbol(A.Value, Decl(narrowingDisjointLiteralUnions.ts, 50, 8))
+}
+
+enum B {
+>B : Symbol(B, Decl(narrowingDisjointLiteralUnions.ts, 52, 1))
+
+    Value = "same",
+>Value : Symbol(B.Value, Decl(narrowingDisjointLiteralUnions.ts, 54, 8))
+}
+
+declare function isB(value: A | B): value is B;
+>isB : Symbol(isB, Decl(narrowingDisjointLiteralUnions.ts, 56, 1))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 58, 21))
+>A : Symbol(A, Decl(narrowingDisjointLiteralUnions.ts, 48, 1))
+>B : Symbol(B, Decl(narrowingDisjointLiteralUnions.ts, 52, 1))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 58, 21))
+>B : Symbol(B, Decl(narrowingDisjointLiteralUnions.ts, 52, 1))
+
+function preserveEnumRelations(value: A | B) {
+>preserveEnumRelations : Symbol(preserveEnumRelations, Decl(narrowingDisjointLiteralUnions.ts, 58, 47))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 60, 31))
+>A : Symbol(A, Decl(narrowingDisjointLiteralUnions.ts, 48, 1))
+>B : Symbol(B, Decl(narrowingDisjointLiteralUnions.ts, 52, 1))
+
+    if (isB(value)) {
+>isB : Symbol(isB, Decl(narrowingDisjointLiteralUnions.ts, 56, 1))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 60, 31))
+
+        const narrowed: B = value;
+>narrowed : Symbol(narrowed, Decl(narrowingDisjointLiteralUnions.ts, 62, 13))
+>B : Symbol(B, Decl(narrowingDisjointLiteralUnions.ts, 52, 1))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 60, 31))
+    }
+    else {
+        const narrowed: A = value;
+>narrowed : Symbol(narrowed, Decl(narrowingDisjointLiteralUnions.ts, 65, 13))
+>A : Symbol(A, Decl(narrowingDisjointLiteralUnions.ts, 48, 1))
+>value : Symbol(value, Decl(narrowingDisjointLiteralUnions.ts, 60, 31))
+    }
+}
+

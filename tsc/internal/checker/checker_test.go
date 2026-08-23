@@ -1,6 +1,8 @@
 package checker_test
 
 import (
+	"fmt"
+	"strings"
 	"testing"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
@@ -11,6 +13,35 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/vfs/vfstest"
 	"gotest.tools/v3/assert"
 )
+
+func makeDisjointLiteralNarrowingSource(smallCount int, largeCount int) string {
+	var source strings.Builder
+	writeUnion := func(name string, prefix string, count int) {
+		fmt.Fprintf(&source, "type %s = ", name)
+		for i := range count {
+			if i != 0 {
+				source.WriteString(" | ")
+			}
+			fmt.Fprintf(&source, "%q", fmt.Sprintf("%s%d", prefix, i))
+		}
+		source.WriteString(";\n")
+	}
+	writeUnion("Small", "small", smallCount)
+	writeUnion("Large", "large", largeCount)
+	source.WriteString(`
+type Value = Small | Large;
+declare function isLarge(value: string): value is Large;
+function narrow(value: Value) {
+    if (isLarge(value)) {
+        const large: Large = value;
+        return large;
+    }
+    const small: Small = value;
+    return small;
+}
+`)
+	return source.String()
+}
 
 func TestGetSymbolAtLocation(t *testing.T) {
 	t.Parallel()
@@ -53,6 +84,37 @@ foo.bar;`
 		symbol := c.GetSymbolAtLocation(node)
 		if symbol == nil {
 			t.Fatalf("Expected symbol to be non-nil")
+		}
+	}
+}
+
+func BenchmarkDisjointLiteralUnionNarrowing(b *testing.B) {
+	const fileName = "/index.ts"
+	fs := vfstest.FromMap(map[string]string{
+		fileName: makeDisjointLiteralNarrowingSource(334, 11_346),
+	}, true /*useCaseSensitiveFileNames*/)
+	options := &core.CompilerOptions{
+		NoLib:            core.TSTrue,
+		StrictNullChecks: core.TSTrue,
+	}
+	config := &tsoptions.ParsedCommandLine{
+		ParsedConfig: &tsoptions.ParsedOptions{
+			FileNames:       []string{fileName},
+			CompilerOptions: options,
+		},
+	}
+	host := compiler.NewCompilerHost("/", fs, "", nil, nil, nil)
+
+	b.ReportAllocs()
+	for b.Loop() {
+		program := compiler.NewProgram(compiler.ProgramOptions{
+			Config:         config,
+			Host:           host,
+			SingleThreaded: core.TSTrue,
+		})
+		diagnostics := program.GetSemanticDiagnostics(b.Context(), program.GetSourceFile(fileName))
+		if len(diagnostics) != 0 {
+			b.Fatalf("unexpected diagnostics: %v", diagnostics)
 		}
 	}
 }
