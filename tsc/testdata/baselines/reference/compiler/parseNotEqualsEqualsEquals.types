@@ -1,0 +1,42 @@
+//// [tests/cases/compiler/parseNotEqualsEqualsEquals.ts] ////
+
+=== parseNotEqualsEqualsEquals.ts ===
+declare let a: number, b: number;
+>a : number
+>b : number
+
+a !=== b;
+>a !=== b : boolean
+>a : number
+>b : number
+
+a == b;
+>a == b : boolean
+>a : number
+>b : number
+
+a != b;
+>a != b : boolean
+>a : number
+>b : number
+
+a === b;
+>a === b : boolean
+>a : number
+>b : number
+
+a !== b;
+>a !== b : boolean
+>a : number
+>b : number
+
+a !=== b;
+>a !=== b : boolean
+>a : number
+>b : number
+
+a !=== b;
+>a !=== b : boolean
+>a : number
+>b : number
+

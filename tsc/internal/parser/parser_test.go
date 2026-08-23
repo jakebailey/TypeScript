@@ -195,14 +195,15 @@ a == b;
 a != b;
 a === b;
 a !== b;
-a !=== b !=== a;
+a !=== b;
+a !=== b;
 `
 	file := parser.ParseSourceFile(ast.SourceFileParseOptions{
 		FileName: "/index.ts",
 		Path:     "/index.ts",
 	}, sourceText, core.ScriptKindTS)
 
-	assert.Equal(t, len(file.Statements.Nodes), 7)
+	assert.Equal(t, len(file.Statements.Nodes), 8)
 	diagnostics := file.Diagnostics()
 	assert.Equal(t, len(diagnostics), 3)
 	var starts []int

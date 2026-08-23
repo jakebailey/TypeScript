@@ -1,0 +1,35 @@
+//// [tests/cases/compiler/parseNotEqualsEqualsEquals.ts] ////
+
+=== parseNotEqualsEqualsEquals.ts ===
+declare let a: number, b: number;
+>a : Symbol(a, Decl(parseNotEqualsEqualsEquals.ts, 0, 11))
+>b : Symbol(b, Decl(parseNotEqualsEqualsEquals.ts, 0, 22))
+
+a !=== b;
+>a : Symbol(a, Decl(parseNotEqualsEqualsEquals.ts, 0, 11))
+>b : Symbol(b, Decl(parseNotEqualsEqualsEquals.ts, 0, 22))
+
+a == b;
+>a : Symbol(a, Decl(parseNotEqualsEqualsEquals.ts, 0, 11))
+>b : Symbol(b, Decl(parseNotEqualsEqualsEquals.ts, 0, 22))
+
+a != b;
+>a : Symbol(a, Decl(parseNotEqualsEqualsEquals.ts, 0, 11))
+>b : Symbol(b, Decl(parseNotEqualsEqualsEquals.ts, 0, 22))
+
+a === b;
+>a : Symbol(a, Decl(parseNotEqualsEqualsEquals.ts, 0, 11))
+>b : Symbol(b, Decl(parseNotEqualsEqualsEquals.ts, 0, 22))
+
+a !== b;
+>a : Symbol(a, Decl(parseNotEqualsEqualsEquals.ts, 0, 11))
+>b : Symbol(b, Decl(parseNotEqualsEqualsEquals.ts, 0, 22))
+
+a !=== b;
+>a : Symbol(a, Decl(parseNotEqualsEqualsEquals.ts, 0, 11))
+>b : Symbol(b, Decl(parseNotEqualsEqualsEquals.ts, 0, 22))
+
+a !=== b;
+>a : Symbol(a, Decl(parseNotEqualsEqualsEquals.ts, 0, 11))
+>b : Symbol(b, Decl(parseNotEqualsEqualsEquals.ts, 0, 22))
+

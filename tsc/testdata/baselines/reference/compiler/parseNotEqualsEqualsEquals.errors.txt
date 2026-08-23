@@ -1,0 +1,24 @@
+parseNotEqualsEqualsEquals.ts(3,3): error TS18064: Unexpected token. Did you mean '!=='?
+parseNotEqualsEqualsEquals.ts(10,3): error TS18064: Unexpected token. Did you mean '!=='?
+parseNotEqualsEqualsEquals.ts(11,3): error TS18064: Unexpected token. Did you mean '!=='?
+
+
+==== parseNotEqualsEqualsEquals.ts (3 errors) ====
+    declare let a: number, b: number;
+    
+    a !=== b;
+      ~~~~
+!!! error TS18064: Unexpected token. Did you mean '!=='?
+    
+    a == b;
+    a != b;
+    a === b;
+    a !== b;
+    
+    a !=== b;
+      ~~~~
+!!! error TS18064: Unexpected token. Did you mean '!=='?
+    a !=== b;
+      ~~~~
+!!! error TS18064: Unexpected token. Did you mean '!=='?
+    
