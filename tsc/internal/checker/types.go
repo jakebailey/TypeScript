@@ -1135,6 +1135,15 @@ type UnionOrIntersectionType struct {
 	propertyCache                               ast.SymbolTable
 	propertyCacheWithoutFunctionPropertyAugment ast.SymbolTable
 	resolvedProperties                          []*ast.Symbol
+	partiallyResolvedProperties                 []*ast.Symbol
+	propertyIterator                            *unionOrIntersectionPropertyIterator
+}
+
+type unionOrIntersectionPropertyIterator struct {
+	seen          collections.Set[string]
+	properties    []*ast.Symbol
+	typeIndex     int
+	propertyIndex int
 }
 
 func (t *UnionOrIntersectionType) AsUnionOrIntersectionType() *UnionOrIntersectionType { return t }

@@ -1,6 +1,7 @@
 package checker
 
 import (
+	"iter"
 	"slices"
 	"strconv"
 	"strings"
@@ -4666,13 +4667,13 @@ func (c *Checker) isObjectTypeWithInferableIndex(t *Type) bool {
 func (r *Relater) membersRelatedToIndexInfo(source *Type, targetInfo *IndexInfo, reportErrors bool, intersectionState IntersectionState) Ternary {
 	result := TernaryTrue
 	keyType := targetInfo.keyType
-	var props []*ast.Symbol
+	var props iter.Seq[*ast.Symbol]
 	if source.flags&TypeFlagsIntersection != 0 {
-		props = r.c.getPropertiesOfUnionOrIntersectionType(source)
+		props = r.c.iteratePropertiesOfUnionOrIntersectionType(source, false /*skipYield*/)
 	} else {
-		props = r.c.getPropertiesOfObjectType(source)
+		props = slices.Values(r.c.getPropertiesOfObjectType(source))
 	}
-	for _, prop := range props {
+	for prop := range props {
 		// Skip over ignored JSX and symbol-named members
 		if isIgnoredJsxProperty(source, prop) {
 			continue
@@ -4760,10 +4761,10 @@ func (r *Relater) reportErrorResults(originalSource *Type, originalTarget *Type,
 		}
 	case originalTarget.flags&TypeFlagsIntersection != 0 && originalTarget.objectFlags&ObjectFlagsIsNeverIntersection != 0:
 		message := diagnostics.The_intersection_0_was_reduced_to_never_because_property_1_has_conflicting_types_in_some_constituents
-		prop := core.Find(r.c.getPropertiesOfUnionOrIntersectionType(originalTarget), r.c.isDiscriminantWithNeverType)
+		prop := core.FindSeq(r.c.iteratePropertiesOfUnionOrIntersectionType(originalTarget, false /*skipYield*/), r.c.isDiscriminantWithNeverType)
 		if prop == nil {
 			message = diagnostics.The_intersection_0_was_reduced_to_never_because_property_1_exists_in_multiple_constituents_and_is_private_in_some
-			prop = core.Find(r.c.getPropertiesOfUnionOrIntersectionType(originalTarget), isConflictingPrivateProperty)
+			prop = core.FindSeq(r.c.iteratePropertiesOfUnionOrIntersectionType(originalTarget, false /*skipYield*/), isConflictingPrivateProperty)
 		}
 		if prop != nil {
 			r.reportError(message, r.c.typeToStringEx(originalTarget, nil /*enclosingDeclaration*/, TypeFormatFlagsNoTypeReduction, nil), r.c.symbolToString(prop))

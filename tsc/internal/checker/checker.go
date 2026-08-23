@@ -64,6 +64,7 @@ const (
 	TypeSystemPropertyNameWriteType
 	TypeSystemPropertyNameInitializerIsUndefined
 	TypeSystemPropertyNameAliasTarget
+	TypeSystemPropertyNameResolvedProperties
 )
 
 type TypeResolution struct {
@@ -18929,6 +18930,8 @@ func (c *Checker) typeResolutionHasProperty(r *TypeResolution) bool {
 		return c.valueSymbolLinks.Get(r.target.(*ast.Symbol)).writeType != nil
 	case TypeSystemPropertyNameAliasTarget:
 		return c.aliasSymbolLinks.Get(r.target.(*ast.Symbol)).aliasTarget != nil
+	case TypeSystemPropertyNameResolvedProperties:
+		return r.target.(*Type).AsUnionOrIntersectionType().resolvedProperties != nil
 	}
 	panic("Unhandled case in typeResolutionHasProperty")
 }
@@ -18974,28 +18977,92 @@ func (c *Checker) getPropertiesOfObjectType(t *Type) []*ast.Symbol {
 
 func (c *Checker) getPropertiesOfUnionOrIntersectionType(t *Type) []*ast.Symbol {
 	d := t.AsUnionOrIntersectionType()
-	if d.resolvedProperties == nil {
-		var checked collections.Set[string]
-		props := []*ast.Symbol{}
-		for _, current := range d.types {
-			for _, prop := range c.getPropertiesOfType(current) {
-				if !checked.Has(prop.Name) {
-					checked.Add(prop.Name)
-					combinedProp := c.getPropertyOfUnionOrIntersectionType(t, prop.Name, t.flags&TypeFlagsIntersection != 0 /*skipObjectFunctionPropertyAugment*/)
-					if combinedProp != nil {
-						props = append(props, combinedProp)
+	for range c.iteratePropertiesOfUnionOrIntersectionType(t, true /*skipYield*/) {
+		panic("property iterator yielded while materializing properties")
+	}
+	return d.resolvedProperties
+}
+
+func (c *Checker) iteratePropertiesOfUnionOrIntersectionType(t *Type, skipYield bool) iter.Seq[*ast.Symbol] {
+	return func(yield func(*ast.Symbol) bool) {
+		d := t.AsUnionOrIntersectionType()
+		if d.resolvedProperties != nil {
+			if !skipYield {
+				for _, prop := range d.resolvedProperties {
+					if !yield(prop) {
+						return
 					}
 				}
 			}
-			// The properties of a union type are those that are present in all constituent types, so
-			// we only need to check the properties of the first type without index signature
-			if t.flags&TypeFlagsUnion != 0 && len(c.getIndexInfosOfType(current)) == 0 {
-				break
+			return
+		}
+
+		if !skipYield {
+			for _, prop := range d.partiallyResolvedProperties {
+				if !yield(prop) {
+					return
+				}
 			}
 		}
-		d.resolvedProperties = props
+
+		if !c.pushTypeResolution(t, TypeSystemPropertyNameResolvedProperties) {
+			return
+		}
+		defer c.popTypeResolution()
+
+		if d.propertyIterator == nil {
+			d.propertyIterator = &unionOrIntersectionPropertyIterator{}
+		}
+		for {
+			prop := c.nextPropertyOfUnionOrIntersectionType(t, d.propertyIterator)
+			if prop == nil {
+				d.resolvedProperties = d.partiallyResolvedProperties
+				if d.resolvedProperties == nil {
+					d.resolvedProperties = []*ast.Symbol{}
+				}
+				d.partiallyResolvedProperties = nil
+				d.propertyIterator = nil
+				return
+			}
+			d.partiallyResolvedProperties = append(d.partiallyResolvedProperties, prop)
+			if !skipYield && !yield(prop) {
+				return
+			}
+		}
 	}
-	return d.resolvedProperties
+}
+
+func (c *Checker) nextPropertyOfUnionOrIntersectionType(t *Type, state *unionOrIntersectionPropertyIterator) *ast.Symbol {
+	d := t.AsUnionOrIntersectionType()
+	for state.typeIndex < len(d.types) {
+		current := d.types[state.typeIndex]
+		if state.properties == nil {
+			state.properties = c.getPropertiesOfType(current)
+		}
+		for state.propertyIndex < len(state.properties) {
+			prop := state.properties[state.propertyIndex]
+			state.propertyIndex++
+			if state.seen.Has(prop.Name) {
+				continue
+			}
+			combinedProp := c.getPropertyOfUnionOrIntersectionType(t, prop.Name, t.flags&TypeFlagsIntersection != 0 /*skipObjectFunctionPropertyAugment*/)
+			if combinedProp != nil {
+				state.seen.Add(prop.Name)
+				if c.isNamedMember(combinedProp, prop.Name) {
+					return combinedProp
+				}
+			}
+		}
+		state.properties = nil
+		state.propertyIndex = 0
+		state.typeIndex++
+		// The properties of a union type are those that are present in all constituent types, so
+		// we only need to check the properties of the first type without index signature.
+		if t.flags&TypeFlagsUnion != 0 && len(c.getIndexInfosOfType(current)) == 0 {
+			break
+		}
+	}
+	return nil
 }
 
 func (c *Checker) getPropertyOfType(t *Type, name string) *ast.Symbol {
@@ -21946,7 +22013,7 @@ func (c *Checker) getReducedType(t *Type) *Type {
 	case t.flags&TypeFlagsIntersection != 0:
 		if t.objectFlags&ObjectFlagsIsNeverIntersectionComputed == 0 {
 			t.objectFlags |= ObjectFlagsIsNeverIntersectionComputed
-			if core.Some(c.getPropertiesOfUnionOrIntersectionType(t), c.isNeverReducedProperty) {
+			if core.SomeSeq(c.iteratePropertiesOfUnionOrIntersectionType(t, false /*skipYield*/), c.isNeverReducedProperty) {
 				t.objectFlags |= ObjectFlagsIsNeverIntersection
 			}
 		}
@@ -21983,11 +22050,11 @@ func (c *Checker) getReducedApparentType(t *Type) *Type {
 
 func (c *Checker) elaborateNeverIntersection(chain *ast.Diagnostic, node *ast.Node, t *Type) *ast.Diagnostic {
 	if t.flags&TypeFlagsIntersection != 0 && t.objectFlags&ObjectFlagsIsNeverIntersection != 0 {
-		neverProp := core.Find(c.getPropertiesOfUnionOrIntersectionType(t), c.isDiscriminantWithNeverType)
+		neverProp := core.FindSeq(c.iteratePropertiesOfUnionOrIntersectionType(t, false /*skipYield*/), c.isDiscriminantWithNeverType)
 		if neverProp != nil {
 			return NewDiagnosticChainForNode(chain, node, diagnostics.The_intersection_0_was_reduced_to_never_because_property_1_has_conflicting_types_in_some_constituents, c.typeToStringEx(t, nil, TypeFormatFlagsNoTypeReduction, nil), c.symbolToString(neverProp))
 		}
-		privateProp := core.Find(c.getPropertiesOfUnionOrIntersectionType(t), isConflictingPrivateProperty)
+		privateProp := core.FindSeq(c.iteratePropertiesOfUnionOrIntersectionType(t, false /*skipYield*/), isConflictingPrivateProperty)
 		if privateProp != nil {
 			return NewDiagnosticChainForNode(chain, node, diagnostics.The_intersection_0_was_reduced_to_never_because_property_1_exists_in_multiple_constituents_and_is_private_in_some, c.typeToStringEx(t, nil, TypeFormatFlagsNoTypeReduction, nil), c.symbolToString(privateProp))
 		}
