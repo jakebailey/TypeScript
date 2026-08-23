@@ -1567,13 +1567,13 @@ func (c *Checker) compareSignaturesRelated(source *Signature, target *Signature,
 	for i := range paramCount {
 		var sourceType *Type
 		if i == restIndex {
-			sourceType = c.getRestOrAnyTypeAtPosition(source, i)
+			sourceType = c.getMutableArrayOrTupleType(c.getRestOrAnyTypeAtPosition(source, i), false /*forceVariadic*/)
 		} else {
 			sourceType = c.tryGetTypeAtPosition(source, i)
 		}
 		var targetType *Type
 		if i == restIndex {
-			targetType = c.getRestOrAnyTypeAtPosition(target, i)
+			targetType = c.getMutableArrayOrTupleType(c.getRestOrAnyTypeAtPosition(target, i), false /*forceVariadic*/)
 		} else {
 			targetType = c.tryGetTypeAtPosition(target, i)
 		}

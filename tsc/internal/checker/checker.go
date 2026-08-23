@@ -29636,7 +29636,7 @@ func (c *Checker) getSpreadArgumentType(args []*ast.Node, index int, argCount in
 				spreadType = c.checkExpressionWithContextualType(arg.Expression(), restType, context, checkMode)
 			}
 			if c.isArrayLikeType(spreadType) {
-				return c.getMutableArrayOrTupleType(spreadType)
+				return c.getMutableArrayOrTupleType(spreadType, true /*forceVariadic*/)
 			}
 			if ast.IsSpreadElement(arg) {
 				arg = arg.Expression()
@@ -29693,14 +29693,18 @@ func (c *Checker) getSpreadArgumentType(args []*ast.Node, index int, argCount in
 	return c.createTupleTypeEx(types, infos, inConstContext && !someType(restType, c.isMutableArrayLikeType))
 }
 
-func (c *Checker) getMutableArrayOrTupleType(t *Type) *Type {
+func (c *Checker) getMutableArrayOrTupleType(t *Type, forceVariadic bool) *Type {
 	switch {
 	case t.flags&TypeFlagsUnion != 0:
-		return c.mapType(t, c.getMutableArrayOrTupleType)
+		return c.mapType(t, func(t *Type) *Type {
+			return c.getMutableArrayOrTupleType(t, forceVariadic)
+		})
 	case t.flags&TypeFlagsAny != 0 || c.isMutableArrayOrTuple(c.getBaseConstraintOrType(t)):
 		return t
 	case isTupleType(t):
 		return c.createTupleTypeEx(c.getElementTypes(t), t.TargetTupleType().elementInfos, false /*readonly*/)
+	case !forceVariadic:
+		return t
 	}
 	return c.createTupleTypeEx([]*Type{t}, []TupleElementInfo{{flags: ElementFlagsVariadic}}, false)
 }
