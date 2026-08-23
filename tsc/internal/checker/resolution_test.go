@@ -3,6 +3,8 @@ package checker
 import "testing"
 
 func TestResolutionStackQueryIgnoresResolutionStart(t *testing.T) {
+	t.Parallel()
+
 	signature := &Signature{}
 	c := &Checker{
 		typeResolutions: []TypeResolution{{
