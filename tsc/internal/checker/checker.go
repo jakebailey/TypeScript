@@ -16396,7 +16396,7 @@ func (c *Checker) resolveIndirectionAlias(source *ast.Symbol, target *ast.Symbol
 
 func (c *Checker) tryResolveAlias(symbol *ast.Symbol) *ast.Symbol {
 	links := c.aliasSymbolLinks.Get(symbol)
-	if links.aliasTarget != nil || c.findResolutionCycleStartIndex(symbol, TypeSystemPropertyNameAliasTarget) < 0 {
+	if links.aliasTarget != nil || c.findResolutionCycleStartIndex(symbol, TypeSystemPropertyNameAliasTarget, 0) < 0 {
 		return c.resolveAlias(symbol)
 	}
 	return nil
@@ -18870,7 +18870,7 @@ func (c *Checker) getCombinedModifierFlagsCached(node *ast.Node) ast.ModifierFla
  * @param propertyName The property name that should be used to query the target for its type
  */
 func (c *Checker) pushTypeResolution(target TypeSystemEntity, propertyName TypeSystemPropertyName) bool {
-	resolutionCycleStartIndex := c.findResolutionCycleStartIndex(target, propertyName)
+	resolutionCycleStartIndex := c.findResolutionCycleStartIndex(target, propertyName, c.resolutionStart)
 	if resolutionCycleStartIndex >= 0 {
 		// A cycle was found
 		for i := resolutionCycleStartIndex; i < len(c.typeResolutions); i++ {
@@ -18894,8 +18894,8 @@ func (c *Checker) popTypeResolution() bool {
 	return result
 }
 
-func (c *Checker) findResolutionCycleStartIndex(target TypeSystemEntity, propertyName TypeSystemPropertyName) int {
-	for i := len(c.typeResolutions) - 1; i >= c.resolutionStart; i-- {
+func (c *Checker) findResolutionCycleStartIndex(target TypeSystemEntity, propertyName TypeSystemPropertyName, start int) int {
+	for i := len(c.typeResolutions) - 1; i >= start; i-- {
 		resolution := &c.typeResolutions[i]
 		if c.typeResolutionHasProperty(resolution) {
 			return -1
@@ -22668,7 +22668,7 @@ func (c *Checker) instantiateMappedType(t *Type, m *TypeMapper, alias *TypeAlias
 			return s
 		}
 		if d.declaration.NameType == nil {
-			if c.isArrayType(s) || s.flags&TypeFlagsAny != 0 && c.findResolutionCycleStartIndex(typeVariable, TypeSystemPropertyNameResolvedBaseConstraint) < 0 && c.hasArrayOrTypeTypeConstraint(typeVariable) {
+			if c.isArrayType(s) || s.flags&TypeFlagsAny != 0 && c.findResolutionCycleStartIndex(typeVariable, TypeSystemPropertyNameResolvedBaseConstraint, 0) < 0 && c.hasArrayOrTypeTypeConstraint(typeVariable) {
 				return c.instantiateMappedArrayType(s, t, prependTypeMapping(typeVariable, s, m))
 			}
 			if isTupleType(s) {
@@ -30788,7 +30788,7 @@ func (c *Checker) getTypeFromIndexInfosOfContextualType(t *Type, name string, na
 func (c *Checker) isCircularMappedProperty(symbol *ast.Symbol) bool {
 	if symbol.CheckFlags&ast.CheckFlagsMapped != 0 {
 		links := c.valueSymbolLinks.Get(symbol)
-		return links.resolvedType == nil && c.findResolutionCycleStartIndex(symbol, TypeSystemPropertyNameType) >= 0
+		return links.resolvedType == nil && c.findResolutionCycleStartIndex(symbol, TypeSystemPropertyNameType, 0) >= 0
 	}
 	return false
 }

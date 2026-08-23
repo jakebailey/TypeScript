@@ -2146,7 +2146,7 @@ func (c *Checker) isResolvingReturnTypeOfSignature(signature *Signature) bool {
 	if signature.composite != nil && core.Some(signature.composite.signatures, c.isResolvingReturnTypeOfSignature) {
 		return true
 	}
-	return signature.resolvedReturnType == nil && c.findResolutionCycleStartIndex(signature, TypeSystemPropertyNameResolvedReturnType) >= 0
+	return signature.resolvedReturnType == nil && c.findResolutionCycleStartIndex(signature, TypeSystemPropertyNameResolvedReturnType, 0) >= 0
 }
 
 func (c *Checker) findMatchingSignatures(signatureLists [][]*Signature, signature *Signature, listIndex int) []*Signature {
