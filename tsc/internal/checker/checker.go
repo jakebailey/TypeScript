@@ -16396,7 +16396,7 @@ func (c *Checker) resolveIndirectionAlias(source *ast.Symbol, target *ast.Symbol
 
 func (c *Checker) tryResolveAlias(symbol *ast.Symbol) *ast.Symbol {
 	links := c.aliasSymbolLinks.Get(symbol)
-	if links.aliasTarget != nil || c.findResolutionCycleStartIndex(symbol, TypeSystemPropertyNameAliasTarget, 0) < 0 {
+	if links.aliasTarget != nil || !c.isInResolutionStack(symbol, TypeSystemPropertyNameAliasTarget) {
 		return c.resolveAlias(symbol)
 	}
 	return nil
@@ -18892,6 +18892,10 @@ func (c *Checker) popTypeResolution() bool {
 	c.typeResolutions[lastIndex] = TypeResolution{} // Clear the last entry to avoid memory leaks
 	c.typeResolutions = c.typeResolutions[:lastIndex]
 	return result
+}
+
+func (c *Checker) isInResolutionStack(target TypeSystemEntity, propertyName TypeSystemPropertyName) bool {
+	return c.findResolutionCycleStartIndex(target, propertyName, 0) >= 0
 }
 
 func (c *Checker) findResolutionCycleStartIndex(target TypeSystemEntity, propertyName TypeSystemPropertyName, start int) int {
@@ -22668,7 +22672,7 @@ func (c *Checker) instantiateMappedType(t *Type, m *TypeMapper, alias *TypeAlias
 			return s
 		}
 		if d.declaration.NameType == nil {
-			if c.isArrayType(s) || s.flags&TypeFlagsAny != 0 && c.findResolutionCycleStartIndex(typeVariable, TypeSystemPropertyNameResolvedBaseConstraint, 0) < 0 && c.hasArrayOrTypeTypeConstraint(typeVariable) {
+			if c.isArrayType(s) || s.flags&TypeFlagsAny != 0 && !c.isInResolutionStack(typeVariable, TypeSystemPropertyNameResolvedBaseConstraint) && c.hasArrayOrTypeTypeConstraint(typeVariable) {
 				return c.instantiateMappedArrayType(s, t, prependTypeMapping(typeVariable, s, m))
 			}
 			if isTupleType(s) {
@@ -30788,7 +30792,7 @@ func (c *Checker) getTypeFromIndexInfosOfContextualType(t *Type, name string, na
 func (c *Checker) isCircularMappedProperty(symbol *ast.Symbol) bool {
 	if symbol.CheckFlags&ast.CheckFlagsMapped != 0 {
 		links := c.valueSymbolLinks.Get(symbol)
-		return links.resolvedType == nil && c.findResolutionCycleStartIndex(symbol, TypeSystemPropertyNameType, 0) >= 0
+		return links.resolvedType == nil && c.isInResolutionStack(symbol, TypeSystemPropertyNameType)
 	}
 	return false
 }

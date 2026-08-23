@@ -13,8 +13,8 @@ func TestResolutionStackQueryIgnoresResolutionStart(t *testing.T) {
 		resolutionStart: 1,
 	}
 
-	if got := c.findResolutionCycleStartIndex(signature, TypeSystemPropertyNameResolvedReturnType, 0); got != 0 {
-		t.Fatalf("findResolutionCycleStartIndex() = %d, want 0", got)
+	if !c.isInResolutionStack(signature, TypeSystemPropertyNameResolvedReturnType) {
+		t.Fatal("isInResolutionStack() missed an entry below resolutionStart")
 	}
 	if !c.isResolvingReturnTypeOfSignature(signature) {
 		t.Fatal("isResolvingReturnTypeOfSignature() missed an entry below resolutionStart")
@@ -43,7 +43,7 @@ func BenchmarkResolutionStackQueryAcrossReset(b *testing.B) {
 
 	b.ResetTimer()
 	for b.Loop() {
-		if c.findResolutionCycleStartIndex(target, TypeSystemPropertyNameResolvedReturnType, 0) != 0 {
+		if !c.isInResolutionStack(target, TypeSystemPropertyNameResolvedReturnType) {
 			b.Fatal("resolution stack query missed an entry below resolutionStart")
 		}
 	}
