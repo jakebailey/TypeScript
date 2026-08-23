@@ -1,14 +1,58 @@
 package scanner
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
+	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/stringutil"
 	"gotest.tools/v3/assert"
 )
+
+func TestScanNotEqualsEqualsEquals(t *testing.T) {
+	t.Parallel()
+
+	type scanError struct {
+		message string
+		start   int
+		length  int
+		args    []any
+	}
+
+	const text = "!== !=== != == === = !==="
+	s := NewScanner()
+	s.SetText(text)
+	var errors []scanError
+	s.SetOnError(func(diagnostic *diagnostics.Message, start, length int, args ...any) {
+		errors = append(errors, scanError{diagnostic.String(), start, length, args})
+	})
+
+	expected := []struct {
+		kind ast.Kind
+		text string
+	}{
+		{ast.KindExclamationEqualsEqualsToken, "!=="},
+		{ast.KindExclamationEqualsEqualsToken, "!==="},
+		{ast.KindExclamationEqualsToken, "!="},
+		{ast.KindEqualsEqualsToken, "=="},
+		{ast.KindEqualsEqualsEqualsToken, "==="},
+		{ast.KindEqualsToken, "="},
+		{ast.KindExclamationEqualsEqualsToken, "!==="},
+		{ast.KindEndOfFile, ""},
+	}
+	for _, want := range expected {
+		assert.Equal(t, s.Scan(), want.kind)
+		assert.Equal(t, s.TokenText(), want.text)
+	}
+
+	assert.DeepEqual(t, errors, []scanError{
+		{"Unexpected token. Did you mean '{0}'?", 4, 4, []any{"!=="}},
+		{"Unexpected token. Did you mean '{0}'?", 22, 4, []any{"!=="}},
+	}, fmt.Sprintf("%+v", errors))
+}
 
 func TestScanStringPreservesLoneSurrogates(t *testing.T) {
 	t.Parallel()

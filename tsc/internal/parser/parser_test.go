@@ -186,6 +186,35 @@ class MissingImplements implements B. {}
 	assert.Equal(t, missingImplementsDecl.HeritageClauses.Nodes[0].AsHeritageClause().Types.Nodes[0].Kind, ast.KindExpressionWithTypeArguments)
 }
 
+func TestParseNotEqualsEqualsEqualsRecovery(t *testing.T) {
+	t.Parallel()
+
+	const sourceText = `declare let a: number, b: number;
+a !=== b;
+a == b;
+a != b;
+a === b;
+a !== b;
+a !=== b !=== a;
+`
+	file := parser.ParseSourceFile(ast.SourceFileParseOptions{
+		FileName: "/index.ts",
+		Path:     "/index.ts",
+	}, sourceText, core.ScriptKindTS)
+
+	assert.Equal(t, len(file.Statements.Nodes), 7)
+	diagnostics := file.Diagnostics()
+	assert.Equal(t, len(diagnostics), 3)
+	first := strings.Index(sourceText, "!===")
+	second := strings.LastIndex(sourceText, "!===")
+	for i, start := range []int{first, second, second + len("!=== b ")} {
+		assert.Equal(t, diagnostics[i].Code(), int32(18062))
+		assert.Equal(t, diagnostics[i].Pos(), start)
+		assert.Equal(t, diagnostics[i].Len(), len("!==="))
+		assert.DeepEqual(t, diagnostics[i].MessageArgs(), []string{"!=="})
+	}
+}
+
 func TestJSDocImportTypeParentChain(t *testing.T) {
 	t.Parallel()
 	sourceText := `test("", async function () {
