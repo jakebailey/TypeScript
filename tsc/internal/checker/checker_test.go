@@ -60,7 +60,7 @@ func TestGetSymbolAtLocation(t *testing.T) {
 }
 
 func BenchmarkTemplateLiteralUnionReduction(b *testing.B) {
-	const count = 500
+	const count = 2000
 	var source strings.Builder
 	source.WriteString("type T =\n")
 	for i := range count {
@@ -69,6 +69,7 @@ func BenchmarkTemplateLiteralUnionReduction(b *testing.B) {
 	for i := range count {
 		fmt.Fprintf(&source, "    | `common-prefix-%03d-${string}-common-suffix-%03d`\n", i, i)
 	}
+	source.WriteString("declare const value: T;\nconst forceCheck: never = value;\n")
 
 	fs := vfstest.FromMap(map[string]string{"/index.ts": source.String()}, true)
 	options := core.CompilerOptions{NoLib: core.TSTrue}

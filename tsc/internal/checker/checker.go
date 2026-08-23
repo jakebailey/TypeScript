@@ -25980,14 +25980,52 @@ func (c *Checker) removeRedundantLiteralTypes(types []*Type, includes TypeFlags,
 }
 
 func (c *Checker) removeStringLiteralsMatchedByTemplateLiterals(types []*Type) []*Type {
-	templates := core.Filter(types, c.isPatternLiteralType)
-	if len(templates) != 0 {
+	patterns := core.Filter(types, c.isPatternLiteralType)
+	templateLiterals := core.Filter(patterns, func(t *Type) bool {
+		return t.flags&TypeFlagsTemplateLiteral != 0
+	})
+	if len(templateLiterals) != 0 {
+		// Checking every string literal against every template literal can become
+		// quadratic. Index the fixed prefix and suffix of each template so the
+		// full matcher only sees templates that could match a given string.
+		var trie core.PrefixSuffixTrie[[]*Type]
+		for _, template := range templateLiterals {
+			texts := template.AsTemplateLiteralType().texts
+			trie.Set(texts[0], texts[len(texts)-1], func(templates []*Type, _ bool) []*Type {
+				return append(templates, template)
+			})
+		}
+
+		i := len(types)
+	outer:
+		for i > 0 {
+			i--
+			t := types[i]
+			if t.flags&TypeFlagsStringLiteral == 0 {
+				continue
+			}
+			for templates := range trie.IterateAllMatches(t.AsLiteralType().value.(string)) {
+				if core.Some(templates, func(template *Type) bool {
+					return c.isTypeMatchedByTemplateLiteralOrStringMapping(t, template)
+				}) {
+					types = slices.Delete(types, i, i+1)
+					continue outer
+				}
+			}
+		}
+
+		patterns = core.Filter(patterns, func(t *Type) bool {
+			return t.flags&TypeFlagsStringMapping != 0
+		})
+	}
+
+	if len(patterns) != 0 {
 		i := len(types)
 		for i > 0 {
 			i--
 			t := types[i]
-			if t.flags&TypeFlagsStringLiteral != 0 && core.Some(templates, func(template *Type) bool {
-				return c.isTypeMatchedByTemplateLiteralOrStringMapping(t, template)
+			if t.flags&TypeFlagsStringLiteral != 0 && core.Some(patterns, func(pattern *Type) bool {
+				return c.isTypeMatchedByTemplateLiteralOrStringMapping(t, pattern)
 			}) {
 				types = slices.Delete(types, i, i+1)
 			}

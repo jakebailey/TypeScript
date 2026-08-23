@@ -1,0 +1,70 @@
+//// [tests/cases/compiler/templateLiteralUnionReduction.ts] ////
+
+=== templateLiteralUnionReduction.ts ===
+type Union =
+>Union : Union
+
+    | ""
+    | "prefix"
+    | "suffix"
+    | "prefix1"
+    | "1suffix"
+    | "prefix1suffix"
+    | "same"
+    | "same1same"
+    | "🔥middle✅"
+    | "*middle?"
+    | `${number}suffix`
+    | `prefix${number}`
+    | `prefix${number}suffix`
+    | `same${number}same`
+    | `🔥${string}✅`
+    | `*${string}?`;
+
+type Includes<T, U> = U extends T ? true : false;
+>Includes : Includes<T, U>
+>true : true
+>false : false
+
+// Covered literals remain members after their redundant literal type is removed.
+const coveredByEmptyPrefix: Includes<Union, "1suffix"> = true;
+>coveredByEmptyPrefix : true
+>true : true
+
+const coveredByEmptySuffix: Includes<Union, "prefix1"> = true;
+>coveredByEmptySuffix : true
+>true : true
+
+const coveredByPrefixAndSuffix: Includes<Union, "prefix1suffix"> = true;
+>coveredByPrefixAndSuffix : true
+>true : true
+
+const coveredByOverlappingText: Includes<Union, "same1same"> = true;
+>coveredByOverlappingText : true
+>true : true
+
+const coveredUnicode: Includes<Union, "🔥middle✅"> = true;
+>coveredUnicode : true
+>true : true
+
+const coveredLiteralMetacharacters: Includes<Union, "*middle?"> = true;
+>coveredLiteralMetacharacters : true
+>true : true
+
+// Candidate selection must not remove literals that fail the full template matcher.
+const keepEmpty: Includes<Union, ""> = true;
+>keepEmpty : true
+>true : true
+
+const keepPrefix: Includes<Union, "prefix"> = true;
+>keepPrefix : true
+>true : true
+
+const keepSuffix: Includes<Union, "suffix"> = true;
+>keepSuffix : true
+>true : true
+
+const keepOverlappingPrefixAndSuffix: Includes<Union, "same"> = true;
+>keepOverlappingPrefixAndSuffix : true
+>true : true
+

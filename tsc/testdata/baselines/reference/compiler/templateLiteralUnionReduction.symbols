@@ -1,0 +1,82 @@
+//// [tests/cases/compiler/templateLiteralUnionReduction.ts] ////
+
+=== templateLiteralUnionReduction.ts ===
+type Union =
+>Union : Symbol(Union, Decl(templateLiteralUnionReduction.ts, 0, 0))
+
+    | ""
+    | "prefix"
+    | "suffix"
+    | "prefix1"
+    | "1suffix"
+    | "prefix1suffix"
+    | "same"
+    | "same1same"
+    | "🔥middle✅"
+    | "*middle?"
+    | `${number}suffix`
+    | `prefix${number}`
+    | `prefix${number}suffix`
+    | `same${number}same`
+    | `🔥${string}✅`
+    | `*${string}?`;
+
+type Includes<T, U> = U extends T ? true : false;
+>Includes : Symbol(Includes, Decl(templateLiteralUnionReduction.ts, 16, 20))
+>T : Symbol(T, Decl(templateLiteralUnionReduction.ts, 18, 14))
+>U : Symbol(U, Decl(templateLiteralUnionReduction.ts, 18, 16))
+>U : Symbol(U, Decl(templateLiteralUnionReduction.ts, 18, 16))
+>T : Symbol(T, Decl(templateLiteralUnionReduction.ts, 18, 14))
+
+// Covered literals remain members after their redundant literal type is removed.
+const coveredByEmptyPrefix: Includes<Union, "1suffix"> = true;
+>coveredByEmptyPrefix : Symbol(coveredByEmptyPrefix, Decl(templateLiteralUnionReduction.ts, 21, 5))
+>Includes : Symbol(Includes, Decl(templateLiteralUnionReduction.ts, 16, 20))
+>Union : Symbol(Union, Decl(templateLiteralUnionReduction.ts, 0, 0))
+
+const coveredByEmptySuffix: Includes<Union, "prefix1"> = true;
+>coveredByEmptySuffix : Symbol(coveredByEmptySuffix, Decl(templateLiteralUnionReduction.ts, 22, 5))
+>Includes : Symbol(Includes, Decl(templateLiteralUnionReduction.ts, 16, 20))
+>Union : Symbol(Union, Decl(templateLiteralUnionReduction.ts, 0, 0))
+
+const coveredByPrefixAndSuffix: Includes<Union, "prefix1suffix"> = true;
+>coveredByPrefixAndSuffix : Symbol(coveredByPrefixAndSuffix, Decl(templateLiteralUnionReduction.ts, 23, 5))
+>Includes : Symbol(Includes, Decl(templateLiteralUnionReduction.ts, 16, 20))
+>Union : Symbol(Union, Decl(templateLiteralUnionReduction.ts, 0, 0))
+
+const coveredByOverlappingText: Includes<Union, "same1same"> = true;
+>coveredByOverlappingText : Symbol(coveredByOverlappingText, Decl(templateLiteralUnionReduction.ts, 24, 5))
+>Includes : Symbol(Includes, Decl(templateLiteralUnionReduction.ts, 16, 20))
+>Union : Symbol(Union, Decl(templateLiteralUnionReduction.ts, 0, 0))
+
+const coveredUnicode: Includes<Union, "🔥middle✅"> = true;
+>coveredUnicode : Symbol(coveredUnicode, Decl(templateLiteralUnionReduction.ts, 25, 5))
+>Includes : Symbol(Includes, Decl(templateLiteralUnionReduction.ts, 16, 20))
+>Union : Symbol(Union, Decl(templateLiteralUnionReduction.ts, 0, 0))
+
+const coveredLiteralMetacharacters: Includes<Union, "*middle?"> = true;
+>coveredLiteralMetacharacters : Symbol(coveredLiteralMetacharacters, Decl(templateLiteralUnionReduction.ts, 26, 5))
+>Includes : Symbol(Includes, Decl(templateLiteralUnionReduction.ts, 16, 20))
+>Union : Symbol(Union, Decl(templateLiteralUnionReduction.ts, 0, 0))
+
+// Candidate selection must not remove literals that fail the full template matcher.
+const keepEmpty: Includes<Union, ""> = true;
+>keepEmpty : Symbol(keepEmpty, Decl(templateLiteralUnionReduction.ts, 29, 5))
+>Includes : Symbol(Includes, Decl(templateLiteralUnionReduction.ts, 16, 20))
+>Union : Symbol(Union, Decl(templateLiteralUnionReduction.ts, 0, 0))
+
+const keepPrefix: Includes<Union, "prefix"> = true;
+>keepPrefix : Symbol(keepPrefix, Decl(templateLiteralUnionReduction.ts, 30, 5))
+>Includes : Symbol(Includes, Decl(templateLiteralUnionReduction.ts, 16, 20))
+>Union : Symbol(Union, Decl(templateLiteralUnionReduction.ts, 0, 0))
+
+const keepSuffix: Includes<Union, "suffix"> = true;
+>keepSuffix : Symbol(keepSuffix, Decl(templateLiteralUnionReduction.ts, 31, 5))
+>Includes : Symbol(Includes, Decl(templateLiteralUnionReduction.ts, 16, 20))
+>Union : Symbol(Union, Decl(templateLiteralUnionReduction.ts, 0, 0))
+
+const keepOverlappingPrefixAndSuffix: Includes<Union, "same"> = true;
+>keepOverlappingPrefixAndSuffix : Symbol(keepOverlappingPrefixAndSuffix, Decl(templateLiteralUnionReduction.ts, 32, 5))
+>Includes : Symbol(Includes, Decl(templateLiteralUnionReduction.ts, 16, 20))
+>Union : Symbol(Union, Decl(templateLiteralUnionReduction.ts, 0, 0))
+
