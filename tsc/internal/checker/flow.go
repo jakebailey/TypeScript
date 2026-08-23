@@ -913,14 +913,30 @@ func (c *Checker) getNarrowedTypeWorker(t *Type, candidate *Type, assumeTrue boo
 			}
 		} else {
 			mapType = func(t *Type) *Type {
+				// Distinct non-enum literals of the same kind cannot be related. Comparing their
+				// values directly avoids the much more expensive relation checks.
+				if t.flags&TypeFlagsLiteral != 0 &&
+					t.flags&TypeFlagsLiteral == n.flags&TypeFlagsLiteral &&
+					!(t.flags&TypeFlagsEnumLiteral != 0 && n.flags&TypeFlagsEnumLiteral != 0) {
+					if t.AsLiteralType().value == n.AsLiteralType().value {
+						return t
+					}
+					return c.neverType
+				}
 				switch {
 				case c.isTypeStrictSubtypeOf(t, n):
 					return t
 				case c.isTypeStrictSubtypeOf(n, t):
 					return n
-				case c.isTypeSubtypeOf(t, n):
+				}
+				// Strict subtyping and subtyping are equivalent for unrelated unit types.
+				if t.flags&TypeFlagsUnit != 0 && n.flags&TypeFlagsUnit != 0 {
+					return c.neverType
+				}
+				if c.isTypeSubtypeOf(t, n) {
 					return t
-				case c.isTypeSubtypeOf(n, t):
+				}
+				if c.isTypeSubtypeOf(n, t) {
 					return n
 				}
 				return c.neverType
