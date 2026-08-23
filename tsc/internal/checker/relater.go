@@ -3324,9 +3324,8 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 			// types are invariant, if any of the type parameters are invariant we reset the reported
 			// errors and instead force a structural comparison (which will include elaborations that
 			// reveal the reason).
-			// We can switch on `reportErrors` here, since varianceCheckFailed guarantees we return `False`,
 			// we can return `False` early here to skip calculating the structural error message we don't need.
-			if varianceCheckFailed && !(reportErrors && core.Some(variances, func(v VarianceFlags) bool { return (v & VarianceFlagsVarianceMask) == VarianceFlagsInvariant })) {
+			if varianceCheckFailed && !core.Some(variances, func(v VarianceFlags) bool { return (v & VarianceFlagsVarianceMask) == VarianceFlagsInvariant }) {
 				return TernaryFalse, true
 			}
 			// We remember the original error information so we can restore it in case the structural
