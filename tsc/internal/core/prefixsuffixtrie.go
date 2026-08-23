@@ -15,7 +15,7 @@ type prefixSuffixTrieNode[T any] struct {
 
 func (t *PrefixSuffixTrie[T]) Set(prefix string, suffix string, update func(value T, exists bool) T) {
 	prefixNode := &t.root
-	for i := 0; i < len(prefix); i++ {
+	for i := range len(prefix) {
 		prefixNode = prefixNode.child(prefix[i])
 	}
 
@@ -37,7 +37,7 @@ func (t *PrefixSuffixTrie[T]) IterateAllMatches(input string) iter.Seq[T] {
 		if prefixNode.suffix != nil && !iterateSuffixMatches(prefixNode.suffix, input, 0, yield) {
 			return
 		}
-		for i := 0; i < len(input); i++ {
+		for i := range len(input) {
 			prefixNode = prefixNode.children[input[i]]
 			if prefixNode == nil {
 				return

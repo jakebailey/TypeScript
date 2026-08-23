@@ -40,6 +40,8 @@ func TestPrefixSuffixTrie(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.input, func(t *testing.T) {
+			t.Parallel()
+
 			var got []string
 			for values := range trie.IterateAllMatches(test.input) {
 				got = append(got, values...)
