@@ -3,6 +3,7 @@ package declarations
 import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
+	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
@@ -198,9 +199,9 @@ func (s *SymbolTrackerImpl) TrackSymbol(symbol *ast.Symbol, enclosingDeclaration
 func (s *SymbolTrackerImpl) handleSymbolAccessibilityError(symbolAccessibilityResult printer.SymbolAccessibilityResult) bool {
 	if symbolAccessibilityResult.Accessibility == printer.SymbolAccessibilityAccessible {
 		// Add aliases back onto the possible imports list if they're not there so we can try them again with updated visibility info
-		if len(symbolAccessibilityResult.AliasesToMakeVisible) > 0 {
-			for _, ref := range symbolAccessibilityResult.AliasesToMakeVisible {
-				s.state.lateMarkedStatements = core.AppendIfUnique(s.state.lateMarkedStatements, ref)
+		if symbolAccessibilityResult.AliasesToMakeVisible != nil {
+			for ref := range symbolAccessibilityResult.AliasesToMakeVisible.Values() {
+				s.state.lateMarkedStatements.Add(ref)
 			}
 		}
 		// TODO: Do all these accessibility checks inside/after the first pass in the checker when declarations are enabled, if possible
@@ -231,7 +232,7 @@ func createDiagnosticForNode(node *ast.Node, message *diagnostics.Message, args 
 }
 
 type SymbolTrackerSharedState struct {
-	lateMarkedStatements             []*ast.Node
+	lateMarkedStatements             collections.OrderedSet[*ast.Node]
 	diagnostics                      []*ast.Diagnostic
 	getSymbolAccessibilityDiagnostic GetSymbolAccessibilityDiagnostic
 	errorNameNode                    *ast.Node

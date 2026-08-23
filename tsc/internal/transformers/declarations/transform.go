@@ -291,7 +291,7 @@ func (tx *DeclarationTransformer) visitSourceFile(node *ast.SourceFile) *ast.Nod
 	tx.state.getSymbolAccessibilityDiagnostic = throwDiagnostic
 	tx.resultHasExternalModuleIndicator = false
 	tx.suppressNewDiagnosticContexts = false
-	tx.state.lateMarkedStatements = make([]*ast.Node, 0)
+	tx.state.lateMarkedStatements.Clear()
 	tx.lateStatementReplacementMap = make(map[ast.NodeId]*ast.Node)
 	tx.expandoHosts = make(map[ast.NodeId]*ast.Node)
 	tx.expandoMembers = make(map[ast.NodeId][]*ast.Node)
@@ -399,13 +399,13 @@ func (tx *DeclarationTransformer) transformAndReplaceLatePaintedStatements(state
 	// In such a scenario, only Q and D are initially visible, but we don't consider imports as private names - instead we say they if they are referenced they must
 	// be recorded. So while checking D's visibility we mark C as visible, then we must check C which in turn marks B, completing the chain of
 	// dependent imports and allowing a valid declaration file output. Today, this dependent alias marking only happens for internal import aliases.
-	for true {
-		if len(tx.state.lateMarkedStatements) == 0 {
+	for tx.state.lateMarkedStatements.Size() > 0 {
+		var next *ast.Node
+		for statement := range tx.state.lateMarkedStatements.Values() {
+			next = statement
 			break
 		}
-
-		next := tx.state.lateMarkedStatements[0]
-		tx.state.lateMarkedStatements = tx.state.lateMarkedStatements[1:]
+		tx.state.lateMarkedStatements.Delete(next)
 
 		saveNeedsDeclare := tx.needsDeclare
 		tx.needsDeclare = next.Parent != nil && ast.IsSourceFile(next.Parent)
@@ -1708,10 +1708,7 @@ func (tx *DeclarationTransformer) checkEntityNameVisibility(entityName *ast.Node
 
 // Transforms the direct child of a source file into zero or more replacement statements
 func (tx *DeclarationTransformer) transformTopLevelDeclaration(input *ast.Node) *ast.Node {
-	if len(tx.state.lateMarkedStatements) > 0 {
-		// Remove duplicates of the current statement from the deferred work queue (this was done via orderedRemoveItem in strada - why? to ensure the same backing array? microop?)
-		tx.state.lateMarkedStatements = core.Filter(tx.state.lateMarkedStatements, func(node *ast.Node) bool { return node != input })
-	}
+	tx.state.lateMarkedStatements.Delete(input)
 	if tx.shouldStripInternal(input) {
 		return nil
 	}

@@ -3,6 +3,7 @@ package printer
 import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/binder"
+	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/evaluator"
 	"github.com/microsoft/TypeScript/tsc/internal/nodebuilder"
@@ -19,10 +20,10 @@ const (
 
 type SymbolAccessibilityResult struct {
 	Accessibility        SymbolAccessibility
-	AliasesToMakeVisible []*ast.Node // aliases that need to have this symbol visible
-	ErrorSymbolName      string      // Optional - symbol name that results in error
-	ErrorNode            *ast.Node   // Optional - node that results in error
-	ErrorModuleName      string      // Optional - If the symbol is not visible from module, module's name
+	AliasesToMakeVisible *collections.OrderedSet[*ast.Node] // aliases that need to have this symbol visible
+	ErrorSymbolName      string                             // Optional - symbol name that results in error
+	ErrorNode            *ast.Node                          // Optional - node that results in error
+	ErrorModuleName      string                             // Optional - If the symbol is not visible from module, module's name
 }
 
 /**

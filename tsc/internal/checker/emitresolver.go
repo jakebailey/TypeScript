@@ -7,6 +7,7 @@ import (
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/binder"
+	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/evaluator"
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
@@ -382,16 +383,16 @@ func (r *EmitResolver) isEntityNameVisible(entityName *ast.Node, enclosingDeclar
 func noopAddVisibleAlias(declaration *ast.Node, aliasingStatement *ast.Node) {}
 
 func (r *EmitResolver) hasVisibleDeclarations(symbol *ast.Symbol, shouldComputeAliasToMakeVisible bool) *printer.SymbolAccessibilityResult {
-	var aliasesToMakeVisibleSet map[ast.NodeId]*ast.Node
+	var aliasesToMakeVisible *collections.OrderedSet[*ast.Node]
 
 	var addVisibleAlias func(declaration *ast.Node, aliasingStatement *ast.Node)
 	if shouldComputeAliasToMakeVisible {
 		addVisibleAlias = func(declaration *ast.Node, aliasingStatement *ast.Node) {
 			r.declarationLinks.Get(declaration).isVisible = core.TSTrue
-			if aliasesToMakeVisibleSet == nil {
-				aliasesToMakeVisibleSet = make(map[ast.NodeId]*ast.Node)
+			if aliasesToMakeVisible == nil {
+				aliasesToMakeVisible = &collections.OrderedSet[*ast.Node]{}
 			}
-			aliasesToMakeVisibleSet[ast.GetNodeId(declaration)] = aliasingStatement
+			aliasesToMakeVisible.Add(aliasingStatement)
 		}
 	} else {
 		addVisibleAlias = noopAddVisibleAlias
@@ -460,7 +461,7 @@ func (r *EmitResolver) hasVisibleDeclarations(symbol *ast.Symbol, shouldComputeA
 
 	return &printer.SymbolAccessibilityResult{
 		Accessibility:        printer.SymbolAccessibilityAccessible,
-		AliasesToMakeVisible: slices.Collect(maps.Values(aliasesToMakeVisibleSet)),
+		AliasesToMakeVisible: aliasesToMakeVisible,
 	}
 }
 
