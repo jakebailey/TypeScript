@@ -196,6 +196,15 @@ func Some[T any](slice []T, f func(T) bool) bool {
 	return false
 }
 
+func SomeSeq[T any](seq iter.Seq[T], f func(T) bool) bool {
+	for value := range seq {
+		if f(value) {
+			return true
+		}
+	}
+	return false
+}
+
 func Every[T any](slice []T, f func(T) bool) bool {
 	for _, value := range slice {
 		if !f(value) {
@@ -218,6 +227,15 @@ func Or[T any](funcs ...func(T) bool) func(T) bool {
 
 func Find[T any](slice []T, f func(T) bool) T {
 	for _, value := range slice {
+		if f(value) {
+			return value
+		}
+	}
+	return *new(T)
+}
+
+func FindSeq[T any](seq iter.Seq[T], f func(T) bool) T {
+	for value := range seq {
 		if f(value) {
 			return value
 		}
