@@ -11,6 +11,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnosticwriter"
 	"github.com/microsoft/TypeScript/tsc/internal/outputpaths"
+	"github.com/microsoft/TypeScript/tsc/internal/repo"
 	"github.com/microsoft/TypeScript/tsc/internal/testutil/baseline"
 	"github.com/microsoft/TypeScript/tsc/internal/testutil/harnessutil"
 	"github.com/microsoft/TypeScript/tsc/internal/testutil/tsbaseline"
@@ -36,7 +37,7 @@ var _ Runner = (*TranspileBaselineRunner)(nil)
 
 func NewTranspileBaselineRunner() *TranspileBaselineRunner {
 	return &TranspileBaselineRunner{
-		basePath: "../testdata/tests/cases/transpile",
+		basePath: "tests/cases/transpile",
 	}
 }
 
@@ -182,6 +183,9 @@ func cleanTranspileBaselines() {
 }
 
 func RunTranspileTests(t *testing.T) {
+	if !repo.TestDataExists() {
+		t.Skipf("testdata directory %q does not exist", repo.TestDataPath())
+	}
 	cleanTranspileBaselines()
 	NewTranspileBaselineRunner().RunTests(t)
 }

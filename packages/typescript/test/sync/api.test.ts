@@ -5629,7 +5629,7 @@ test("Factory ModifierList auto-conversion", () => {
 });
 
 test("Parse-clone-emit roundtrip", () => {
-    const tsSource = fileURLToPath(new URL("../../../../tsc/testdata/fixtures", import.meta.url).toString());
+    const tsSource = fileURLToPath(new URL("../../../../testdata/fixtures", import.meta.url).toString());
     const api = new API({
         cwd: tsSource,
     });

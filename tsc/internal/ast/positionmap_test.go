@@ -2,10 +2,12 @@ package ast_test
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/repo"
 	"github.com/microsoft/TypeScript/tsc/internal/stringutil"
 )
 
@@ -213,7 +215,7 @@ func BenchmarkUTF16ToUTF8_NonASCII(b *testing.B) {
 }
 
 func BenchmarkComputePositionMap_CheckerTS(b *testing.B) {
-	data, err := os.ReadFile("../../tsc/testdata/fixtures/compiler/checker.ts")
+	data, err := os.ReadFile(filepath.Join(repo.TestDataPath(), "fixtures/compiler/checker.ts"))
 	if err != nil {
 		b.Skip("checker.ts not available:", err)
 	}

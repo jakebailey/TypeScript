@@ -1015,8 +1015,8 @@ function baselineAcceptTask(localBaseline, refBaseline) {
     };
 }
 
-const localBaseline = "tsc/testdata/baselines/local/";
-const refBaseline = "tsc/testdata/baselines/reference/";
+const localBaseline = "testdata/baselines/local/";
+const refBaseline = "testdata/baselines/reference/";
 
 export const baselineAccept = task({
     name: "baseline-accept",

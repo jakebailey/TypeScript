@@ -35,7 +35,7 @@ if (isMain) {
 export async function runBenchmarks(options?: { filter?: string; singleIteration?: boolean; cpuprofile?: boolean; }) {
     const { filter, singleIteration, cpuprofile } = options ?? {};
     const repoRoot = fileURLToPath(new URL("../../../../", import.meta.url).toString());
-    if (!existsSync(path.join(repoRoot, "tsc/testdata/fixtures/compiler/tsconfig.json"))) {
+    if (!existsSync(path.join(repoRoot, "testdata/fixtures/compiler/tsconfig.json"))) {
         console.warn("Warning: The full compiler fixture is unavailable; skipping benchmarks.");
         return;
     }
@@ -202,12 +202,12 @@ export async function runBenchmarks(options?: { filter?: string; singleIteration
     }
 
     async function loadSnapshot() {
-        snapshot = await api.updateSnapshot({ openProject: "tsc/testdata/fixtures/compiler/tsconfig.json" });
+        snapshot = await api.updateSnapshot({ openProject: "testdata/fixtures/compiler/tsconfig.json" });
         project = snapshot.getProjects()[0];
     }
 
     function tsCreateProgram() {
-        const configFileName = fileURLToPath(new URL("../../../../tsc/testdata/fixtures/compiler/tsconfig.json", import.meta.url).toString());
+        const configFileName = fileURLToPath(new URL("../../../../testdata/fixtures/compiler/tsconfig.json", import.meta.url).toString());
         const configFile = ts.readConfigFile(configFileName, ts.sys.readFile);
         const parsedCommandLine = ts.parseJsonConfigFileContent(configFile.config, ts.sys, path.dirname(configFileName));
         const host = ts.createCompilerHost(parsedCommandLine.options);
@@ -237,7 +237,7 @@ export async function runBenchmarks(options?: { filter?: string; singleIteration
     }
 
     function tsGetProgramTS() {
-        tsFile = tsProgram.getSourceFile(fileURLToPath(new URL("../../../../tsc/testdata/fixtures/compiler/program.ts", import.meta.url).toString()))!;
+        tsFile = tsProgram.getSourceFile(fileURLToPath(new URL("../../../../testdata/fixtures/compiler/program.ts", import.meta.url).toString()))!;
     }
 
     async function getCheckerTS() {

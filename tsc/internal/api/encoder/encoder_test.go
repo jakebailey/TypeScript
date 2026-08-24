@@ -142,6 +142,9 @@ func TestBuildNodeIndexTableMatchesEncode(t *testing.T) {
 }
 
 func BenchmarkEncodeSourceFile(b *testing.B) {
+	if !repo.TestDataExists() {
+		b.Skipf("testdata directory %q does not exist", repo.TestDataPath())
+	}
 	filePath := filepath.Join(repo.TestDataPath(), "fixtures/compiler/checker.ts")
 	fileContent, err := os.ReadFile(filePath)
 	assert.NilError(b, err)
@@ -157,6 +160,9 @@ func BenchmarkEncodeSourceFile(b *testing.B) {
 }
 
 func BenchmarkBuildNodeIndexTable(b *testing.B) {
+	if !repo.TestDataExists() {
+		b.Skipf("testdata directory %q does not exist", repo.TestDataPath())
+	}
 	filePath := filepath.Join(repo.TestDataPath(), "fixtures/compiler/checker.ts")
 	fileContent, err := os.ReadFile(filePath)
 	assert.NilError(b, err)

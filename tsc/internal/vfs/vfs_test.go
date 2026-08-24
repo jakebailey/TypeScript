@@ -13,6 +13,9 @@ import (
 )
 
 func BenchmarkReadFile(b *testing.B) {
+	if !repo.TestDataExists() {
+		b.Skipf("testdata directory %q does not exist", repo.TestDataPath())
+	}
 	type bench struct {
 		name string
 		fs   vfs.FS

@@ -362,6 +362,7 @@ func formatNewBaseline(
 
 func (f commandLineSubScenario) assertBuildParseResult(t *testing.T) {
 	t.Helper()
+	f.baseline.SkipIfNotExist(t)
 	f.assertBuildParseResultWithTsBaseline(t, func() *TestCommandLineParserBuild {
 		originalBaseline := f.baseline.ReadFile(t)
 		return parseExistingCompilerBaselineBuild(t, originalBaseline)

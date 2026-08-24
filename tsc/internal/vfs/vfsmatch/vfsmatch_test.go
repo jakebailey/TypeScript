@@ -10,7 +10,7 @@ import (
 )
 
 // Test cases modeled after TypeScript's matchFiles tests in
-// tsc/testdata/fixtures/testRunner/unittests/config/matchFiles.ts
+// testdata/fixtures/testRunner/unittests/config/matchFiles.ts
 
 // caseInsensitiveHost simulates a Windows-like file system
 func caseInsensitiveHost() vfs.FS {

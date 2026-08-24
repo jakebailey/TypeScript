@@ -419,6 +419,9 @@ func TestDecodeSourceFile_PostfixDecrement(t *testing.T) {
 }
 
 func BenchmarkDecodeSourceFile(b *testing.B) {
+	if !repo.TestDataExists() {
+		b.Skipf("testdata directory %q does not exist", repo.TestDataPath())
+	}
 	filePath := filepath.Join(repo.TestDataPath(), "fixtures/compiler/checker.ts")
 	fileContent, err := os.ReadFile(filePath)
 	assert.NilError(b, err)

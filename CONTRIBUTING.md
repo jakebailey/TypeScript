@@ -119,9 +119,9 @@ npm run -w vscode-typescript build
 
 ## Compiler tests
 
-New compiler tests live in `tsc/testdata/tests/cases/compiler/`. Generated
-baselines are written below `tsc/testdata/baselines/local/`; accepted
-baselines live below `tsc/testdata/baselines/reference/`.
+New compiler tests live in `testdata/tests/cases/compiler/`. Generated
+baselines are written below `testdata/baselines/local/`; accepted
+baselines live below `testdata/baselines/reference/`.
 
 Run a focused Go test with:
 

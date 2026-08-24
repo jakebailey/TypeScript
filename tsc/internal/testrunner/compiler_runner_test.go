@@ -5,6 +5,7 @@ import (
 
 	"github.com/microsoft/TypeScript/tsc/internal/bundled"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
+	"github.com/microsoft/TypeScript/tsc/internal/repo"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 	"gotest.tools/v3/assert"
 )
@@ -15,6 +16,9 @@ func runCompilerTests(t *testing.T) {
 	t.Parallel()
 	if !bundled.Embedded {
 		t.Skip("bundled files are not embedded")
+	}
+	if !repo.TestDataExists() {
+		t.Skipf("testdata directory %q does not exist", repo.TestDataPath())
 	}
 	runners := []*CompilerBaselineRunner{
 		NewCompilerBaselineRunner(TestTypeRegression),

@@ -46,6 +46,9 @@ func (f *fromFile) ReadFile(tb testing.TB) string {
 	tb.Helper()
 
 	contents, err := f.contents()
+	if os.IsNotExist(err) {
+		tb.Skipf("Test fixture %q does not exist", f.path)
+	}
 	if err != nil {
 		tb.Fatalf("Failed to read test fixture %q: %v", f.path, err)
 	}

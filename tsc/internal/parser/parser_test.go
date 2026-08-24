@@ -77,6 +77,9 @@ func allParsableFiles(tb testing.TB, root string) iter.Seq[parsableFile] {
 }
 
 func FuzzParser(f *testing.F) {
+	if !repo.TestDataExists() {
+		f.Skipf("testdata directory %q does not exist", repo.TestDataPath())
+	}
 	var extensions collections.Set[string]
 	for _, es := range tspath.AllSupportedExtensionsWithJson {
 		for _, e := range es {

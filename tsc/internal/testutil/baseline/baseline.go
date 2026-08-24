@@ -21,6 +21,9 @@ type Options struct {
 const NoContent = "<no content>"
 
 func Run(t *testing.T, fileName string, actual string, opts Options) {
+	if !repo.TestDataExists() {
+		t.Skipf("testdata directory %q does not exist", repo.TestDataPath())
+	}
 	subfolder := opts.Subfolder
 	localPath := filepath.Join(localRoot, subfolder, fileName)
 	referencePath := filepath.Join(referenceRoot, subfolder, fileName)

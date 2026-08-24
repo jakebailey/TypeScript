@@ -69,8 +69,8 @@ function toTokenInfo(node: Node): { kind: string; pos: number; end: number; } {
 // ---------------------------------------------------------------------------
 
 const repoRoot = resolve(import.meta.dirname!, "..", "..", "..", "..");
-const testFile = resolve(repoRoot, "tsc/testdata/fixtures/services/mapCode.ts");
-const baselineDir = resolve(repoRoot, "tsc/testdata/baselines/reference/astnav");
+const testFile = resolve(repoRoot, "testdata/fixtures/services/mapCode.ts");
+const baselineDir = resolve(repoRoot, "testdata/baselines/reference/astnav");
 
 // ---------------------------------------------------------------------------
 // Tests

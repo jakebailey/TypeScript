@@ -79,6 +79,8 @@ __debug_bin*
 .idea
 
 # Local compiler baselines and test output
+testdata/baselines/local
+testdata/baselines/tmp
 tsc/testdata/baselines/local
 tsc/testdata/baselines/tmp
 
@@ -130,7 +132,7 @@ tools/custom-gcl.exe
 tools/custom-gcl.hash
 
 # Keep tracked text assets that overlap broad output patterns
-!tsc/testdata/baselines/reference/**/*.txt
+!testdata/baselines/reference/**/*.txt
 !packages/typescript/vendor/**/*.txt
-!tsc/testdata/submoduleAccepted.txt
-!tsc/testdata/submoduleTriaged.txt
+!testdata/submoduleAccepted.txt
+!testdata/submoduleTriaged.txt

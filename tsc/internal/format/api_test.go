@@ -39,6 +39,9 @@ func TestFormat(t *testing.T) {
 
 	t.Run("format checker.ts", func(t *testing.T) {
 		t.Parallel()
+		if !repo.TestDataExists() {
+			t.Skipf("testdata directory %q does not exist", repo.TestDataPath())
+		}
 		ctx := format.WithFormatCodeSettings(t.Context(), lsutil.FormatCodeSettings{
 			EditorSettings: lsutil.EditorSettings{
 				TabSize:                4,
@@ -67,6 +70,9 @@ func TestFormat(t *testing.T) {
 }
 
 func BenchmarkFormat(b *testing.B) {
+	if !repo.TestDataExists() {
+		b.Skipf("testdata directory %q does not exist", repo.TestDataPath())
+	}
 	ctx := format.WithFormatCodeSettings(b.Context(), lsutil.FormatCodeSettings{
 		EditorSettings: lsutil.EditorSettings{
 			TabSize:                4,

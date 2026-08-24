@@ -44,9 +44,14 @@ func RootPath() string {
 }
 
 var testDataPath = sync.OnceValue(func() string {
-	return filepath.Join(rootPath(), "testdata")
+	return filepath.Join(filepath.Dir(rootPath()), "testdata")
 })
 
 func TestDataPath() string {
 	return testDataPath()
+}
+
+func TestDataExists() bool {
+	info, err := os.Stat(TestDataPath())
+	return err == nil && info.IsDir()
 }

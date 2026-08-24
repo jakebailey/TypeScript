@@ -135,6 +135,9 @@ func TestGetTouchingPropertyName(t *testing.T) {
 }
 
 func baselineTokens(t *testing.T, testName string, includeEOF bool, getTSTokens func(fileText string, positions []int) []*tokenInfo, getGoToken func(file *ast.SourceFile, pos int) *tokenInfo) {
+	if !repo.TestDataExists() {
+		t.Skipf("testdata directory %q does not exist", repo.TestDataPath())
+	}
 	for _, fileName := range testFiles {
 		t.Run(filepath.Base(fileName), func(t *testing.T) {
 			t.Parallel()
@@ -194,6 +197,9 @@ type tokenRun struct {
 }
 
 func baselineGoTokensJSON(t *testing.T, testName string, getGoToken func(file *ast.SourceFile, pos int) *tokenInfo) {
+	if !repo.TestDataExists() {
+		t.Skipf("testdata directory %q does not exist", repo.TestDataPath())
+	}
 	for _, fileName := range testFiles {
 		t.Run(filepath.Base(fileName), func(t *testing.T) {
 			t.Parallel()
