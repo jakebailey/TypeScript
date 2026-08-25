@@ -1,0 +1,42 @@
+//// [tests/cases/compiler/jsUncheckedObjectBindingPatternDefault.ts] ////
+
+=== /unchecked.js ===
+export const unchecked = ({
+>unchecked : Symbol(unchecked, Decl(unchecked.js, 0, 12))
+
+    required,
+>required : Symbol(required, Decl(unchecked.js, 0, 27))
+
+    optional = false,
+>optional : Symbol(optional, Decl(unchecked.js, 1, 13))
+
+} = {}) => {};
+
+=== /checked.js ===
+// @ts-check
+export const checked = ({
+>checked : Symbol(checked, Decl(checked.js, 1, 12))
+
+    required,
+>required : Symbol(required, Decl(checked.js, 1, 25))
+
+    optional = false,
+>optional : Symbol(optional, Decl(checked.js, 2, 13))
+
+} = {}) => {};
+
+=== /main.ts ===
+import { checked } from "./checked";
+>checked : Symbol(checked, Decl(main.ts, 0, 8))
+
+import { unchecked } from "./unchecked";
+>unchecked : Symbol(unchecked, Decl(main.ts, 1, 8))
+
+unchecked({ required: "value" });
+>unchecked : Symbol(unchecked, Decl(main.ts, 1, 8))
+>required : Symbol(required, Decl(main.ts, 3, 11))
+
+checked({ required: "value" });
+>checked : Symbol(checked, Decl(main.ts, 0, 8))
+>required : Symbol(required, Decl(main.ts, 4, 9))
+

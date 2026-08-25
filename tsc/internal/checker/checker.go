@@ -16904,7 +16904,9 @@ func (c *Checker) checkDeclarationInitializer(declaration *ast.Node, checkMode C
 		switch name.Kind {
 		case ast.KindObjectBindingPattern:
 			if isObjectLiteralType(t) {
-				return c.padObjectLiteralType(t, name)
+				sourceFile := ast.GetSourceFileOfNode(declaration)
+				includeAllMissingElements := ast.IsInJSFile(declaration) && !ast.IsCheckJSEnabledForFile(sourceFile, c.compilerOptions)
+				return c.padObjectLiteralType(t, name, includeAllMissingElements)
 			}
 		case ast.KindArrayBindingPattern:
 			if isTupleType(t) {
@@ -16915,10 +16917,10 @@ func (c *Checker) checkDeclarationInitializer(declaration *ast.Node, checkMode C
 	return t
 }
 
-func (c *Checker) padObjectLiteralType(t *Type, pattern *ast.Node) *Type {
+func (c *Checker) padObjectLiteralType(t *Type, pattern *ast.Node, includeAllMissingElements bool) *Type {
 	var missingElements []*ast.Node
 	for _, e := range pattern.Elements() {
-		if e.Initializer() != nil {
+		if includeAllMissingElements || e.Initializer() != nil {
 			name := c.getPropertyNameFromBindingElement(e)
 			if name != ast.InternalSymbolNameMissing && c.getPropertyOfType(t, name) == nil {
 				missingElements = append(missingElements, e)

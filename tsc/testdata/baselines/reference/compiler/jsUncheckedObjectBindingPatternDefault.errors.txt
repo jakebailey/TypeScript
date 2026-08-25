@@ -1,0 +1,28 @@
+/checked.js(3,5): error TS2339: Property 'required' does not exist on type '{ optional?: boolean | undefined; }'.
+/main.ts(5,11): error TS2353: Object literal may only specify known properties, and 'required' does not exist in type '{ optional?: boolean | undefined; }'.
+
+
+==== /unchecked.js (0 errors) ====
+    export const unchecked = ({
+        required,
+        optional = false,
+    } = {}) => {};
+    
+==== /checked.js (1 errors) ====
+    // @ts-check
+    export const checked = ({
+        required,
+        ~~~~~~~~
+!!! error TS2339: Property 'required' does not exist on type '{ optional?: boolean | undefined; }'.
+        optional = false,
+    } = {}) => {};
+    
+==== /main.ts (1 errors) ====
+    import { checked } from "./checked";
+    import { unchecked } from "./unchecked";
+    
+    unchecked({ required: "value" });
+    checked({ required: "value" });
+              ~~~~~~~~
+!!! error TS2353: Object literal may only specify known properties, and 'required' does not exist in type '{ optional?: boolean | undefined; }'.
+    

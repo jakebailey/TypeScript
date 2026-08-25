@@ -1,0 +1,54 @@
+//// [tests/cases/compiler/jsUncheckedObjectBindingPatternDefault.ts] ////
+
+=== /unchecked.js ===
+export const unchecked = ({
+>unchecked : ({ required, optional, }?: { optional?: boolean | undefined; required?: any; }) => void
+>({    required,    optional = false,} = {}) => {} : ({ required, optional, }?: { optional?: boolean | undefined; required?: any; }) => void
+
+    required,
+>required : any
+
+    optional = false,
+>optional : boolean
+>false : false
+
+} = {}) => {};
+>{} : {}
+
+=== /checked.js ===
+// @ts-check
+export const checked = ({
+>checked : ({ required, optional, }?: { optional?: boolean | undefined; }) => void
+>({    required,    optional = false,} = {}) => {} : ({ required, optional, }?: { optional?: boolean | undefined; }) => void
+
+    required,
+>required : any
+
+    optional = false,
+>optional : boolean
+>false : false
+
+} = {}) => {};
+>{} : {}
+
+=== /main.ts ===
+import { checked } from "./checked";
+>checked : ({ required, optional, }?: { optional?: boolean | undefined; }) => void
+
+import { unchecked } from "./unchecked";
+>unchecked : ({ required, optional, }?: { optional?: boolean | undefined; required?: any; }) => void
+
+unchecked({ required: "value" });
+>unchecked({ required: "value" }) : void
+>unchecked : ({ required, optional, }?: { optional?: boolean | undefined; required?: any; }) => void
+>{ required: "value" } : { required: string; }
+>required : string
+>"value" : "value"
+
+checked({ required: "value" });
+>checked({ required: "value" }) : void
+>checked : ({ required, optional, }?: { optional?: boolean | undefined; }) => void
+>{ required: "value" } : { required: string; }
+>required : string
+>"value" : "value"
+
