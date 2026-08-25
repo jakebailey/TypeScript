@@ -38,7 +38,7 @@ eacher((a, b) => {
 
 });
 
-// TODO: https://github.com/microsoft/TypeScript/issues/53255
+// TODO: https://github.com/microsoft/TypeScript/issues/53398
 eacher((...args) => {
 >eacher : Symbol(eacher, Decl(contextualTupleTypeParameterReadonly.ts, 7, 5))
 >args : Symbol(args, Decl(contextualTupleTypeParameterReadonly.ts, 15, 8))

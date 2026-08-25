@@ -1819,11 +1819,25 @@ func (c *Checker) tryGetTypeAtPosition(signature *Signature, pos int) *Type {
 func (c *Checker) getRestOrAnyTypeAtPosition(source *Signature, pos int) *Type {
 	restType := c.getRestTypeAtPosition(source, pos, false)
 	if restType != nil {
+		restType = c.getMutableArgumentListType(restType)
 		if elementType := c.getElementTypeOfArrayType(restType); elementType != nil && IsTypeAny(elementType) {
 			return c.anyType
 		}
 	}
 	return restType
+}
+
+func (c *Checker) getMutableArgumentListType(t *Type) *Type {
+	// A rest parameter describes a newly allocated argument list, so readonly does not affect compatibility.
+	return c.mapType(t, func(t *Type) *Type {
+		if isTupleType(t) && t.TargetTupleType().readonly {
+			return c.createTupleTypeEx(c.getElementTypes(t), t.TargetTupleType().elementInfos, false /*readonly*/)
+		}
+		if c.isReadonlyArrayType(t) {
+			return c.createArrayType(c.getElementTypeOfArrayType(t))
+		}
+		return t
+	})
 }
 
 func (c *Checker) getRestTypeAtPosition(source *Signature, pos int, readonly bool) *Type {
