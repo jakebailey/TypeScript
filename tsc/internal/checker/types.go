@@ -175,6 +175,7 @@ type SymbolReferenceLinks struct {
 
 type ValueSymbolLinks struct {
 	resolvedType                 *Type // Type of value symbol
+	contextualTypeForInference   *Type // Original rest type when the function body observes a mutable argument list
 	writeType                    *Type
 	target                       *ast.Symbol
 	mapper                       *TypeMapper

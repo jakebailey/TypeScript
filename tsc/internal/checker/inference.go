@@ -889,8 +889,22 @@ func (c *Checker) applyToParameterTypes(source *Signature, target *Signature, ca
 		callback(c.getTypeAtPosition(source, i), c.getTypeAtPosition(target, i))
 	}
 	if targetRestType != nil {
-		callback(c.getRestTypeAtPosition(source, paramCount, c.isConstTypeVariable(targetRestType, 0) && !someType(targetRestType, c.isMutableArrayLikeType) /*readonly*/), targetRestType)
+		callback(c.getRestTypeAtPositionForInference(source, paramCount, c.isConstTypeVariable(targetRestType, 0) && !someType(targetRestType, c.isMutableArrayLikeType) /*readonly*/), targetRestType)
 	}
+}
+
+func (c *Checker) getRestTypeAtPositionForInference(signature *Signature, pos int, readonly bool) *Type {
+	if signatureHasRestParameter(signature) {
+		restIndex := len(signature.parameters) - 1
+		restParameter := signature.parameters[restIndex]
+		if contextualType := c.valueSymbolLinks.Get(restParameter).contextualTypeForInference; contextualType != nil {
+			clonedSignature := *signature
+			signature = &clonedSignature
+			signature.parameters = slices.Clone(signature.parameters)
+			signature.parameters[restIndex] = c.createSymbolWithType(restParameter, contextualType)
+		}
+	}
+	return c.getRestTypeAtPosition(signature, pos, readonly)
 }
 
 func (c *Checker) applyToReturnTypes(source *Signature, target *Signature, callback func(s *Type, t *Type)) {

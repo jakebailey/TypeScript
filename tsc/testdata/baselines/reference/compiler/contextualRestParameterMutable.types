@@ -1,0 +1,93 @@
+//// [tests/cases/compiler/contextualRestParameterMutable.ts] ////
+
+=== contextualRestParameterMutable.ts ===
+declare function callFn<T extends readonly any[]>(args: T, fn: (...args: T) => void): void;
+>callFn : <T extends readonly any[]>(args: T, fn: (...args: T) => void) => void
+>args : T
+>fn : (...args: T) => void
+>args : T
+
+declare function callFnNonGeneric(args: readonly string[], fn: (...args: readonly string[]) => void): void;
+>callFnNonGeneric : (args: readonly string[], fn: (...args: readonly string[]) => void) => void
+>args : readonly string[]
+>fn : (...args: readonly string[]) => void
+>args : readonly string[]
+
+declare function mapArgs<T extends readonly any[]>(args: T, fn: (...args: T) => T): T;
+>mapArgs : <T extends readonly any[]>(args: T, fn: (...args: T) => T) => T
+>args : T
+>fn : (...args: T) => T
+>args : T
+
+declare const input: readonly string[];
+>input : readonly string[]
+
+callFn(input, (...args) => {
+>callFn(input, (...args) => {    args.push("value");    args[0] = "value";}) : void
+>callFn : <T extends readonly any[]>(args: T, fn: (...args: T) => void) => void
+>input : readonly string[]
+>(...args) => {    args.push("value");    args[0] = "value";} : (...args: string[]) => void
+>args : string[]
+
+    args.push("value");
+>args.push("value") : number
+>args.push : (...items: string[]) => number
+>args : string[]
+>push : (...items: string[]) => number
+>"value" : "value"
+
+    args[0] = "value";
+>args[0] = "value" : "value"
+>args[0] : string
+>args : string[]
+>0 : 0
+>"value" : "value"
+
+});
+
+callFnNonGeneric(input, (...args) => {
+>callFnNonGeneric(input, (...args) => {    args.push("value");    args[0] = "value";}) : void
+>callFnNonGeneric : (args: readonly string[], fn: (...args: readonly string[]) => void) => void
+>input : readonly string[]
+>(...args) => {    args.push("value");    args[0] = "value";} : (...args: string[]) => void
+>args : string[]
+
+    args.push("value");
+>args.push("value") : number
+>args.push : (...items: string[]) => number
+>args : string[]
+>push : (...items: string[]) => number
+>"value" : "value"
+
+    args[0] = "value";
+>args[0] = "value" : "value"
+>args[0] : string
+>args : string[]
+>0 : 0
+>"value" : "value"
+
+});
+
+const mapped = mapArgs(input, (...args) => {
+>mapped : readonly string[]
+>mapArgs(input, (...args) => {    args.push("value");    return args;}) : readonly string[]
+>mapArgs : <T extends readonly any[]>(args: T, fn: (...args: T) => T) => T
+>input : readonly string[]
+>(...args) => {    args.push("value");    return args;} : (...args: string[]) => string[]
+>args : string[]
+
+    args.push("value");
+>args.push("value") : number
+>args.push : (...items: string[]) => number
+>args : string[]
+>push : (...items: string[]) => number
+>"value" : "value"
+
+    return args;
+>args : string[]
+
+});
+
+mapped;
+>mapped : readonly string[]
+

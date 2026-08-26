@@ -15,8 +15,8 @@ eacher((a, b) => {
     b;
 });
 
-// TODO: https://github.com/microsoft/TypeScript/issues/53398
 eacher((...args) => {
+    args.pop();
     const [a, b] = args;
     a;
     b;
@@ -34,8 +34,8 @@ eacher((a, b) => {
     a;
     b;
 });
-// TODO: https://github.com/microsoft/TypeScript/issues/53398
 eacher((...args) => {
+    args.pop();
     const [a, b] = args;
     a;
     b;

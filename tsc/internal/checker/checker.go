@@ -10477,7 +10477,11 @@ func (c *Checker) assignContextualParameterTypes(sig *Signature, context *Signat
 		if parameter.ValueDeclaration != nil && parameter.ValueDeclaration.Type() == nil ||
 			parameter.ValueDeclaration == nil && parameter.CheckFlags&ast.CheckFlagsDeferredType != 0 {
 			contextualParameterType := c.getRestTypeAtPosition(context, length, false)
-			c.assignParameterType(parameter, contextualParameterType)
+			mutableParameterType := c.getMutableArrayOrTupleType(contextualParameterType)
+			if mutableParameterType != contextualParameterType {
+				c.valueSymbolLinks.Get(parameter).contextualTypeForInference = contextualParameterType
+			}
+			c.assignParameterType(parameter, mutableParameterType)
 		}
 	}
 }

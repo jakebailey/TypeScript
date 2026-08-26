@@ -1,0 +1,81 @@
+//// [tests/cases/compiler/contextualRestParameterMutable.ts] ////
+
+=== contextualRestParameterMutable.ts ===
+declare function callFn<T extends readonly any[]>(args: T, fn: (...args: T) => void): void;
+>callFn : Symbol(callFn, Decl(contextualRestParameterMutable.ts, 0, 0))
+>T : Symbol(T, Decl(contextualRestParameterMutable.ts, 0, 24))
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 0, 50))
+>T : Symbol(T, Decl(contextualRestParameterMutable.ts, 0, 24))
+>fn : Symbol(fn, Decl(contextualRestParameterMutable.ts, 0, 58))
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 0, 64))
+>T : Symbol(T, Decl(contextualRestParameterMutable.ts, 0, 24))
+
+declare function callFnNonGeneric(args: readonly string[], fn: (...args: readonly string[]) => void): void;
+>callFnNonGeneric : Symbol(callFnNonGeneric, Decl(contextualRestParameterMutable.ts, 0, 91))
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 1, 34))
+>fn : Symbol(fn, Decl(contextualRestParameterMutable.ts, 1, 58))
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 1, 64))
+
+declare function mapArgs<T extends readonly any[]>(args: T, fn: (...args: T) => T): T;
+>mapArgs : Symbol(mapArgs, Decl(contextualRestParameterMutable.ts, 1, 107))
+>T : Symbol(T, Decl(contextualRestParameterMutable.ts, 2, 25))
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 2, 51))
+>T : Symbol(T, Decl(contextualRestParameterMutable.ts, 2, 25))
+>fn : Symbol(fn, Decl(contextualRestParameterMutable.ts, 2, 59))
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 2, 65))
+>T : Symbol(T, Decl(contextualRestParameterMutable.ts, 2, 25))
+>T : Symbol(T, Decl(contextualRestParameterMutable.ts, 2, 25))
+>T : Symbol(T, Decl(contextualRestParameterMutable.ts, 2, 25))
+
+declare const input: readonly string[];
+>input : Symbol(input, Decl(contextualRestParameterMutable.ts, 4, 13))
+
+callFn(input, (...args) => {
+>callFn : Symbol(callFn, Decl(contextualRestParameterMutable.ts, 0, 0))
+>input : Symbol(input, Decl(contextualRestParameterMutable.ts, 4, 13))
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 6, 15))
+
+    args.push("value");
+>args.push : Symbol(Array.push, Decl(lib.es5.d.ts, --, --))
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 6, 15))
+>push : Symbol(Array.push, Decl(lib.es5.d.ts, --, --))
+
+    args[0] = "value";
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 6, 15))
+
+});
+
+callFnNonGeneric(input, (...args) => {
+>callFnNonGeneric : Symbol(callFnNonGeneric, Decl(contextualRestParameterMutable.ts, 0, 91))
+>input : Symbol(input, Decl(contextualRestParameterMutable.ts, 4, 13))
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 11, 25))
+
+    args.push("value");
+>args.push : Symbol(Array.push, Decl(lib.es5.d.ts, --, --))
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 11, 25))
+>push : Symbol(Array.push, Decl(lib.es5.d.ts, --, --))
+
+    args[0] = "value";
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 11, 25))
+
+});
+
+const mapped = mapArgs(input, (...args) => {
+>mapped : Symbol(mapped, Decl(contextualRestParameterMutable.ts, 16, 5))
+>mapArgs : Symbol(mapArgs, Decl(contextualRestParameterMutable.ts, 1, 107))
+>input : Symbol(input, Decl(contextualRestParameterMutable.ts, 4, 13))
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 16, 31))
+
+    args.push("value");
+>args.push : Symbol(Array.push, Decl(lib.es5.d.ts, --, --))
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 16, 31))
+>push : Symbol(Array.push, Decl(lib.es5.d.ts, --, --))
+
+    return args;
+>args : Symbol(args, Decl(contextualRestParameterMutable.ts, 16, 31))
+
+});
+
+mapped;
+>mapped : Symbol(mapped, Decl(contextualRestParameterMutable.ts, 16, 5))
+

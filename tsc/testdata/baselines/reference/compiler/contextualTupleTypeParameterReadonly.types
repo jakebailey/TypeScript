@@ -45,17 +45,22 @@ eacher((a, b) => {
 
 });
 
-// TODO: https://github.com/microsoft/TypeScript/issues/53398
 eacher((...args) => {
->eacher((...args) => {    const [a, b] = args;    a;    b;}) : void
+>eacher((...args) => {    args.pop();    const [a, b] = args;    a;    b;}) : void
 >eacher : (fn: (...args: readonly [1, "1"] | readonly [2, "2"]) => any) => void
->(...args) => {    const [a, b] = args;    a;    b;} : (...args: readonly [1, "1"] | readonly [2, "2"]) => void
->args : readonly [1, "1"] | readonly [2, "2"]
+>(...args) => {    args.pop();    const [a, b] = args;    a;    b;} : (...args: [1, "1"] | [2, "2"]) => void
+>args : [1, "1"] | [2, "2"]
+
+    args.pop();
+>args.pop() : "1" | "2" | 1 | 2 | undefined
+>args.pop : (() => "1" | 1 | undefined) | (() => "2" | 2 | undefined)
+>args : [1, "1"] | [2, "2"]
+>pop : (() => "1" | 1 | undefined) | (() => "2" | 2 | undefined)
 
     const [a, b] = args;
 >a : 1 | 2
 >b : "1" | "2"
->args : readonly [1, "1"] | readonly [2, "2"]
+>args : [1, "1"] | [2, "2"]
 
     a;
 >a : 1 | 2
