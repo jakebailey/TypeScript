@@ -2578,22 +2578,24 @@ type ErrorChain struct {
 }
 
 type Relater struct {
-	c              *Checker
-	relation       *Relation
-	errorNode      *ast.Node
-	errorChain     *ErrorChain
-	relatedInfo    []*ast.Diagnostic
-	maybeKeys      []CacheHashKey
-	maybeKeysSet   collections.Set[CacheHashKey]
-	sourceStack    []*Type
-	targetStack    []*Type
-	maybeCount     int
-	sourceDepth    int
-	targetDepth    int
-	expandingFlags ExpandingFlags
-	overflow       bool
-	relationCount  int
-	next           *Relater
+	c                               *Checker
+	relation                        *Relation
+	errorNode                       *ast.Node
+	errorChain                      *ErrorChain
+	relatedInfo                     []*ast.Diagnostic
+	maybeKeys                       []CacheHashKey
+	maybeKeysSet                    collections.Set[CacheHashKey]
+	sourceStack                     []*Type
+	targetStack                     []*Type
+	maybeCount                      int
+	sourceDepth                     int
+	targetDepth                     int
+	expandingFlags                  ExpandingFlags
+	overflow                        bool
+	relationCount                   int
+	intersectionPropertySourceStack []*Type
+	intersectionPropertyTargetStack []*Type
+	next                            *Relater
 }
 
 func (c *Checker) getRelater() *Relater {
@@ -2608,12 +2610,14 @@ func (c *Checker) getRelater() *Relater {
 func (c *Checker) putRelater(r *Relater) {
 	r.maybeKeysSet.Clear()
 	*r = Relater{
-		c:            c,
-		maybeKeys:    r.maybeKeys[:0],
-		maybeKeysSet: r.maybeKeysSet,
-		sourceStack:  r.sourceStack[:0],
-		targetStack:  r.targetStack[:0],
-		next:         c.freeRelater,
+		c:                               c,
+		maybeKeys:                       r.maybeKeys[:0],
+		maybeKeysSet:                    r.maybeKeysSet,
+		sourceStack:                     r.sourceStack[:0],
+		targetStack:                     r.targetStack[:0],
+		intersectionPropertySourceStack: r.intersectionPropertySourceStack[:0],
+		intersectionPropertyTargetStack: r.intersectionPropertyTargetStack[:0],
+		next:                            c.freeRelater,
 	}
 	c.freeRelater = r
 }
@@ -3261,11 +3265,15 @@ func (r *Relater) structuredTypeRelatedTo(source *Type, target *Type, reportErro
 		//   declare let wrong: { a: { y: string } };
 		//   let weak: { a?: { x?: number } } & { c?: string } = wrong;  // Nested weak object type
 		//
-		case result != TernaryFalse && intersectionState&IntersectionStateTarget == 0 && target.flags&TypeFlagsIntersection != 0 && !r.c.isGenericObjectType(target) && source.flags&(TypeFlagsObject|TypeFlagsIntersection) != 0:
+		case result != TernaryFalse && intersectionState&IntersectionStateTarget == 0 && target.flags&TypeFlagsIntersection != 0 && !r.c.isGenericObjectType(target) && source.flags&(TypeFlagsObject|TypeFlagsIntersection) != 0 && !r.isDeeplyNestedIntersectionPropertyCheck(source, target):
+			r.intersectionPropertySourceStack = append(r.intersectionPropertySourceStack, source)
+			r.intersectionPropertyTargetStack = append(r.intersectionPropertyTargetStack, target)
 			result &= r.propertiesRelatedTo(source, target, reportErrors, collections.Set[string]{} /*excludedProperties*/, false /*optionalsOnly*/, IntersectionStateNone)
 			if result != 0 && isObjectLiteralType(source) && source.objectFlags&ObjectFlagsFreshLiteral != 0 {
 				result &= r.indexSignaturesRelatedTo(source, target, false /*sourceIsPrimitive*/, reportErrors, IntersectionStateNone)
 			}
+			r.intersectionPropertySourceStack = r.intersectionPropertySourceStack[:len(r.intersectionPropertySourceStack)-1]
+			r.intersectionPropertyTargetStack = r.intersectionPropertyTargetStack[:len(r.intersectionPropertyTargetStack)-1]
 		// When the source is an intersection we need an extra check of any optional properties in the target to
 		// detect possible mismatched property types. For example:
 		//
@@ -3281,6 +3289,16 @@ func (r *Relater) structuredTypeRelatedTo(source *Type, target *Type, reportErro
 		r.restoreErrorState(saveErrorState)
 	}
 	return result
+}
+
+func (r *Relater) isDeeplyNestedIntersectionPropertyCheck(source *Type, target *Type) bool {
+	r.intersectionPropertySourceStack = append(r.intersectionPropertySourceStack, source)
+	r.intersectionPropertyTargetStack = append(r.intersectionPropertyTargetStack, target)
+	deeplyNested := r.c.isDeeplyNestedType(source, r.intersectionPropertySourceStack, 2) &&
+		r.c.isDeeplyNestedType(target, r.intersectionPropertyTargetStack, 2)
+	r.intersectionPropertySourceStack = r.intersectionPropertySourceStack[:len(r.intersectionPropertySourceStack)-1]
+	r.intersectionPropertyTargetStack = r.intersectionPropertyTargetStack[:len(r.intersectionPropertyTargetStack)-1]
+	return deeplyNested
 }
 
 func (r *Relater) isSourceIntersectionNeedingExtraCheck(source *Type, target *Type) bool {
