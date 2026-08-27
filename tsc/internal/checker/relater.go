@@ -373,7 +373,7 @@ func (c *Checker) checkTypeRelatedToEx(
 		id, _ := getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
 		relation.set(id, RelationComparisonResultFailed|RelationComparisonResultComplexityOverflow)
 		if tr := c.tracer; tr != nil {
-			tr.Instant(tracing.PhaseCheckTypes, "checkTypeRelatedTo_DepthLimit", map[string]any{"sourceId": source.id, "targetId": target.id, "depth": len(r.sourceStack), "targetDepth": len(r.targetStack)})
+			tr.Instant(tracing.PhaseCheckTypes, "checkTypeRelatedTo_DepthLimit", map[string]any{"sourceId": source.id, "targetId": target.id, "depth": len(r.recursion.sourceStack), "targetDepth": len(r.recursion.targetStack)})
 		}
 		if errorNode == nil {
 			errorNode = c.currentNode
@@ -2577,25 +2577,51 @@ type ErrorChain struct {
 	args    []any
 }
 
+type typePairRecursionTracker struct {
+	sourceStack []*Type
+	targetStack []*Type
+}
+
+func (t *typePairRecursionTracker) push(source *Type, target *Type, recursionFlags RecursionFlags) {
+	if recursionFlags&RecursionFlagsSource != 0 {
+		t.sourceStack = append(t.sourceStack, source)
+	}
+	if recursionFlags&RecursionFlagsTarget != 0 {
+		t.targetStack = append(t.targetStack, target)
+	}
+}
+
+func (t *typePairRecursionTracker) pop(recursionFlags RecursionFlags) {
+	if recursionFlags&RecursionFlagsSource != 0 {
+		t.sourceStack = t.sourceStack[:len(t.sourceStack)-1]
+	}
+	if recursionFlags&RecursionFlagsTarget != 0 {
+		t.targetStack = t.targetStack[:len(t.targetStack)-1]
+	}
+}
+
+func (t *typePairRecursionTracker) reset() {
+	t.sourceStack = t.sourceStack[:0]
+	t.targetStack = t.targetStack[:0]
+}
+
 type Relater struct {
-	c                               *Checker
-	relation                        *Relation
-	errorNode                       *ast.Node
-	errorChain                      *ErrorChain
-	relatedInfo                     []*ast.Diagnostic
-	maybeKeys                       []CacheHashKey
-	maybeKeysSet                    collections.Set[CacheHashKey]
-	sourceStack                     []*Type
-	targetStack                     []*Type
-	maybeCount                      int
-	sourceDepth                     int
-	targetDepth                     int
-	expandingFlags                  ExpandingFlags
-	overflow                        bool
-	relationCount                   int
-	intersectionPropertySourceStack []*Type
-	intersectionPropertyTargetStack []*Type
-	next                            *Relater
+	c                             *Checker
+	relation                      *Relation
+	errorNode                     *ast.Node
+	errorChain                    *ErrorChain
+	relatedInfo                   []*ast.Diagnostic
+	maybeKeys                     []CacheHashKey
+	maybeKeysSet                  collections.Set[CacheHashKey]
+	recursion                     typePairRecursionTracker
+	maybeCount                    int
+	sourceDepth                   int
+	targetDepth                   int
+	expandingFlags                ExpandingFlags
+	overflow                      bool
+	relationCount                 int
+	intersectionPropertyRecursion typePairRecursionTracker
+	next                          *Relater
 }
 
 func (c *Checker) getRelater() *Relater {
@@ -2609,15 +2635,15 @@ func (c *Checker) getRelater() *Relater {
 
 func (c *Checker) putRelater(r *Relater) {
 	r.maybeKeysSet.Clear()
+	r.recursion.reset()
+	r.intersectionPropertyRecursion.reset()
 	*r = Relater{
-		c:                               c,
-		maybeKeys:                       r.maybeKeys[:0],
-		maybeKeysSet:                    r.maybeKeysSet,
-		sourceStack:                     r.sourceStack[:0],
-		targetStack:                     r.targetStack[:0],
-		intersectionPropertySourceStack: r.intersectionPropertySourceStack[:0],
-		intersectionPropertyTargetStack: r.intersectionPropertyTargetStack[:0],
-		next:                            c.freeRelater,
+		c:                             c,
+		maybeKeys:                     r.maybeKeys[:0],
+		maybeKeysSet:                  r.maybeKeysSet,
+		recursion:                     r.recursion,
+		intersectionPropertyRecursion: r.intersectionPropertyRecursion,
+		next:                          c.freeRelater,
 	}
 	c.freeRelater = r
 }
@@ -3134,7 +3160,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 			return TernaryMaybe
 		}
 	}
-	if len(r.sourceStack) == 100 || len(r.targetStack) == 100 {
+	if len(r.recursion.sourceStack) == 100 || len(r.recursion.targetStack) == 100 {
 		// We stop relating if we reach 100 levels of nesting. This is a backstop to catch infinite recursion
 		// that wasn't caught by isDeeplyNestedType. It will also stop relating types that truly are over 100
 		// levels deep, but those are exceedingly rare.
@@ -3144,15 +3170,14 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	r.maybeKeys = append(r.maybeKeys, id)
 	r.maybeKeysSet.Add(id)
 	saveExpandingFlags := r.expandingFlags
+	r.recursion.push(source, target, recursionFlags)
 	if recursionFlags&RecursionFlagsSource != 0 {
-		r.sourceStack = append(r.sourceStack, source)
-		if r.expandingFlags&ExpandingFlagsSource == 0 && r.c.isDeeplyNestedType(source, r.sourceStack, 3) {
+		if r.expandingFlags&ExpandingFlagsSource == 0 && r.c.isDeeplyNestedType(source, r.recursion.sourceStack, 3) {
 			r.expandingFlags |= ExpandingFlagsSource
 		}
 	}
 	if recursionFlags&RecursionFlagsTarget != 0 {
-		r.targetStack = append(r.targetStack, target)
-		if r.expandingFlags&ExpandingFlagsTarget == 0 && r.c.isDeeplyNestedType(target, r.targetStack, 3) {
+		if r.expandingFlags&ExpandingFlagsTarget == 0 && r.c.isDeeplyNestedType(target, r.recursion.targetStack, 3) {
 			r.expandingFlags |= ExpandingFlagsTarget
 		}
 	}
@@ -3161,7 +3186,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	var result Ternary
 	if r.expandingFlags == ExpandingFlagsBoth {
 		if tr := r.c.tracer; tr != nil {
-			tr.Instant(tracing.PhaseCheckTypes, "recursiveTypeRelatedTo_DepthLimit", map[string]any{"sourceId": source.id, "targetId": target.id, "depth": len(r.sourceStack), "targetDepth": len(r.targetStack)})
+			tr.Instant(tracing.PhaseCheckTypes, "recursiveTypeRelatedTo_DepthLimit", map[string]any{"sourceId": source.id, "targetId": target.id, "depth": len(r.recursion.sourceStack), "targetDepth": len(r.recursion.targetStack)})
 		}
 		result = TernaryMaybe
 	} else {
@@ -3172,15 +3197,10 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	}
 	propagatingVarianceFlags := r.c.reliabilityFlags
 	r.c.reliabilityFlags |= saveReliabilityFlags
-	if recursionFlags&RecursionFlagsSource != 0 {
-		r.sourceStack = r.sourceStack[:len(r.sourceStack)-1]
-	}
-	if recursionFlags&RecursionFlagsTarget != 0 {
-		r.targetStack = r.targetStack[:len(r.targetStack)-1]
-	}
+	r.recursion.pop(recursionFlags)
 	r.expandingFlags = saveExpandingFlags
 	if result != TernaryFalse {
-		if result == TernaryTrue || (len(r.sourceStack) == 0 && len(r.targetStack) == 0) {
+		if result == TernaryTrue || (len(r.recursion.sourceStack) == 0 && len(r.recursion.targetStack) == 0) {
 			if result == TernaryTrue || result == TernaryMaybe {
 				// If result is definitely true, record all maybe keys as having succeeded. Also, record Ternary.Maybe
 				// results as having succeeded once we reach depth 0, but never record Ternary.Unknown results.
@@ -3266,14 +3286,12 @@ func (r *Relater) structuredTypeRelatedTo(source *Type, target *Type, reportErro
 		//   let weak: { a?: { x?: number } } & { c?: string } = wrong;  // Nested weak object type
 		//
 		case result != TernaryFalse && intersectionState&IntersectionStateTarget == 0 && target.flags&TypeFlagsIntersection != 0 && !r.c.isGenericObjectType(target) && source.flags&(TypeFlagsObject|TypeFlagsIntersection) != 0 && !r.isDeeplyNestedIntersectionPropertyCheck(source, target):
-			r.intersectionPropertySourceStack = append(r.intersectionPropertySourceStack, source)
-			r.intersectionPropertyTargetStack = append(r.intersectionPropertyTargetStack, target)
+			r.intersectionPropertyRecursion.push(source, target, RecursionFlagsBoth)
 			result &= r.propertiesRelatedTo(source, target, reportErrors, collections.Set[string]{} /*excludedProperties*/, false /*optionalsOnly*/, IntersectionStateNone)
 			if result != 0 && isObjectLiteralType(source) && source.objectFlags&ObjectFlagsFreshLiteral != 0 {
 				result &= r.indexSignaturesRelatedTo(source, target, false /*sourceIsPrimitive*/, reportErrors, IntersectionStateNone)
 			}
-			r.intersectionPropertySourceStack = r.intersectionPropertySourceStack[:len(r.intersectionPropertySourceStack)-1]
-			r.intersectionPropertyTargetStack = r.intersectionPropertyTargetStack[:len(r.intersectionPropertyTargetStack)-1]
+			r.intersectionPropertyRecursion.pop(RecursionFlagsBoth)
 		// When the source is an intersection we need an extra check of any optional properties in the target to
 		// detect possible mismatched property types. For example:
 		//
@@ -3292,12 +3310,10 @@ func (r *Relater) structuredTypeRelatedTo(source *Type, target *Type, reportErro
 }
 
 func (r *Relater) isDeeplyNestedIntersectionPropertyCheck(source *Type, target *Type) bool {
-	r.intersectionPropertySourceStack = append(r.intersectionPropertySourceStack, source)
-	r.intersectionPropertyTargetStack = append(r.intersectionPropertyTargetStack, target)
-	deeplyNested := r.c.isDeeplyNestedType(source, r.intersectionPropertySourceStack, 2) &&
-		r.c.isDeeplyNestedType(target, r.intersectionPropertyTargetStack, 2)
-	r.intersectionPropertySourceStack = r.intersectionPropertySourceStack[:len(r.intersectionPropertySourceStack)-1]
-	r.intersectionPropertyTargetStack = r.intersectionPropertyTargetStack[:len(r.intersectionPropertyTargetStack)-1]
+	r.intersectionPropertyRecursion.push(source, target, RecursionFlagsBoth)
+	deeplyNested := r.c.isDeeplyNestedType(source, r.intersectionPropertyRecursion.sourceStack, 2) &&
+		r.c.isDeeplyNestedType(target, r.intersectionPropertyRecursion.targetStack, 2)
+	r.intersectionPropertyRecursion.pop(RecursionFlagsBoth)
 	return deeplyNested
 }
 
@@ -3590,7 +3606,7 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 	case target.flags&TypeFlagsConditional != 0:
 		// If we reach 10 levels of nesting for the same conditional type, assume it is an infinitely expanding recursive
 		// conditional type and bail out with a Ternary.Maybe result.
-		if r.c.isDeeplyNestedType(target, r.targetStack, 10) {
+		if r.c.isDeeplyNestedType(target, r.recursion.targetStack, 10) {
 			return TernaryMaybe
 		}
 		c := target.AsConditionalType()
@@ -3771,7 +3787,7 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 	case source.flags&TypeFlagsConditional != 0:
 		// If we reach 10 levels of nesting for the same conditional type, assume it is an infinitely expanding recursive
 		// conditional type and bail out with a Ternary.Maybe result.
-		if r.c.isDeeplyNestedType(source, r.sourceStack, 10) {
+		if r.c.isDeeplyNestedType(source, r.recursion.sourceStack, 10) {
 			return TernaryMaybe
 		}
 		if target.flags&TypeFlagsConditional != 0 {
