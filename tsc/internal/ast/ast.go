@@ -1724,25 +1724,6 @@ func (node *BindingElement) computeSubtreeFacts() SubtreeFacts {
 		core.IfElse(node.DotDotDotToken != nil, SubtreeContainsRestOrSpread, SubtreeFactsNone)
 }
 
-func (node *FunctionDeclaration) computeSubtreeFacts() SubtreeFacts {
-	if node.Body == nil || node.ModifierFlags()&ModifierFlagsAmbient != 0 {
-		return SubtreeContainsTypeScript
-	} else {
-		isAsync := node.ModifierFlags()&ModifierFlagsAsync != 0
-		isGenerator := node.AsteriskToken != nil
-		return propagateModifierListSubtreeFacts(node.modifiers) |
-			propagateSubtreeFacts(node.AsteriskToken) |
-			propagateSubtreeFacts(node.name) |
-			propagateEraseableSyntaxListSubtreeFacts(node.TypeParameters) |
-			propagateNodeListSubtreeFacts(node.Parameters, propagateSubtreeFacts) |
-			propagateEraseableSyntaxSubtreeFacts(node.Type) |
-			propagateEraseableSyntaxSubtreeFacts(node.FullSignature) |
-			propagateSubtreeFacts(node.Body) |
-			core.IfElse(isAsync && isGenerator, SubtreeContainsForAwaitOrAsyncGenerator, SubtreeFactsNone) |
-			core.IfElse(isAsync && !isGenerator, SubtreeContainsAnyAwait, SubtreeFactsNone)
-	}
-}
-
 // ClassLikeBase
 
 func (node *ClassLikeBase) Name() *DeclarationName { return node.name }
@@ -1816,26 +1797,6 @@ func (node *AccessorDeclarationBase) computeSubtreeFacts() SubtreeFacts {
 	}
 }
 
-func (node *MethodDeclaration) computeSubtreeFacts() SubtreeFacts {
-	if node.Body == nil {
-		return SubtreeContainsTypeScript
-	} else {
-		isAsync := node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAsync != 0
-		isGenerator := node.AsteriskToken != nil
-		return propagateModifierListSubtreeFacts(node.modifiers) |
-			propagateSubtreeFacts(node.AsteriskToken) |
-			propagateSubtreeFacts(node.name) |
-			propagateEraseableSyntaxSubtreeFacts(node.PostfixToken) |
-			propagateEraseableSyntaxListSubtreeFacts(node.TypeParameters) |
-			propagateNodeListSubtreeFacts(node.Parameters, propagateSubtreeFacts) |
-			propagateSubtreeFacts(node.Body) |
-			propagateEraseableSyntaxSubtreeFacts(node.Type) |
-			propagateEraseableSyntaxSubtreeFacts(node.FullSignature) |
-			core.IfElse(isAsync && isGenerator, SubtreeContainsForAwaitOrAsyncGenerator, SubtreeFactsNone) |
-			core.IfElse(isAsync && !isGenerator, SubtreeContainsAnyAwait, SubtreeFactsNone)
-	}
-}
-
 func (node *KeywordExpression) computeSubtreeFacts() SubtreeFacts {
 	switch node.Kind {
 	case KindThisKeyword:
@@ -1877,31 +1838,6 @@ func (node *BinaryExpression) computeSubtreeFacts() SubtreeFacts {
 }
 
 func (node *BinaryExpression) setModifiers(modifiers *ModifierList) { node.modifiers = modifiers }
-
-func (node *ArrowFunction) computeSubtreeFacts() SubtreeFacts {
-	return propagateModifierListSubtreeFacts(node.modifiers) |
-		propagateEraseableSyntaxListSubtreeFacts(node.TypeParameters) |
-		propagateNodeListSubtreeFacts(node.Parameters, propagateSubtreeFacts) |
-		propagateEraseableSyntaxSubtreeFacts(node.Type) |
-		propagateEraseableSyntaxSubtreeFacts(node.FullSignature) |
-		propagateSubtreeFacts(node.Body) |
-		core.IfElse(node.ModifierFlags()&ModifierFlagsAsync != 0, SubtreeContainsAnyAwait, SubtreeFactsNone)
-}
-
-func (node *FunctionExpression) computeSubtreeFacts() SubtreeFacts {
-	isAsync := node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAsync != 0
-	isGenerator := node.AsteriskToken != nil
-	return propagateModifierListSubtreeFacts(node.modifiers) |
-		propagateSubtreeFacts(node.AsteriskToken) |
-		propagateSubtreeFacts(node.name) |
-		propagateEraseableSyntaxListSubtreeFacts(node.TypeParameters) |
-		propagateNodeListSubtreeFacts(node.Parameters, propagateSubtreeFacts) |
-		propagateEraseableSyntaxSubtreeFacts(node.Type) |
-		propagateEraseableSyntaxSubtreeFacts(node.FullSignature) |
-		propagateSubtreeFacts(node.Body) |
-		core.IfElse(isAsync && isGenerator, SubtreeContainsForAwaitOrAsyncGenerator, SubtreeFactsNone) |
-		core.IfElse(isAsync && !isGenerator, SubtreeContainsAnyAwait, SubtreeFactsNone)
-}
 
 func (node *PropertyAccessExpression) computeSubtreeFacts() SubtreeFacts {
 	privateName := SubtreeFactsNone

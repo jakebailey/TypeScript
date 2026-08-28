@@ -1861,6 +1861,12 @@
                 ]
             },
             "FunctionDeclaration": {
+                "generateSubtreeFacts": true,
+                "asyncFacts": true,
+                "erasedWhen": [
+                    "NoBody",
+                    "Ambient"
+                ],
                 "extends": [
                     "StatementBase",
                     "DeclarationBase",
@@ -2577,6 +2583,11 @@
                 "arena": true
             },
             "MethodDeclaration": {
+                "generateSubtreeFacts": true,
+                "asyncFacts": true,
+                "erasedWhen": [
+                    "NoBody"
+                ],
                 "extends": [
                     "NodeBase",
                     "DeclarationBase",
@@ -2955,6 +2966,8 @@
                 ]
             },
             "ArrowFunction": {
+                "generateSubtreeFacts": true,
+                "asyncFacts": true,
                 "extends": [
                     "ExpressionBase",
                     "DeclarationBase",
@@ -3001,6 +3014,8 @@
                 "subtreeExclusions": "ArrowFunction"
             },
             "FunctionExpression": {
+                "generateSubtreeFacts": true,
+                "asyncFacts": true,
                 "extends": [
                     "PrimaryExpressionBase",
                     "DeclarationBase",

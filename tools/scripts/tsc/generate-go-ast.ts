@@ -312,6 +312,19 @@ function generateSubtreeFacts(w: CodeWriter, node: NodeType) {
     for (const fact of node.subtreeFacts) {
         terms.push(`SubtreeContains${fact}`);
     }
+    // `async` on a function-like contributes an await fact, but which one
+    // depends on whether it is also a generator — so the shape follows from
+    // whether the node can carry an asterisk at all.
+    if (node.asyncFacts) {
+        const isAsync = "node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAsync != 0";
+        if (own.some(m => m.name === "AsteriskToken")) {
+            terms.push("core.IfElse(isAsync && isGenerator, SubtreeContainsForAwaitOrAsyncGenerator, SubtreeFactsNone)");
+            terms.push("core.IfElse(isAsync && !isGenerator, SubtreeContainsAnyAwait, SubtreeFactsNone)");
+        }
+        else {
+            terms.push(`core.IfElse(${isAsync}, SubtreeContainsAnyAwait, SubtreeFactsNone)`);
+        }
+    }
 
     const structName = node.name;
     w.write(`func (node *${structName}) computeSubtreeFacts() SubtreeFacts {`);
@@ -332,6 +345,11 @@ function generateSubtreeFacts(w: CodeWriter, node: NodeType) {
         w.write("return SubtreeContainsTypeScript");
         w.pop();
         w.write("}");
+    }
+
+    if (node.asyncFacts && own.some(m => m.name === "AsteriskToken")) {
+        w.write("isAsync := node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAsync != 0");
+        w.write("isGenerator := node.AsteriskToken != nil");
     }
 
     if (terms.length === 0) {

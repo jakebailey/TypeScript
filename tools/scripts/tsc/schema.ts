@@ -30,6 +30,7 @@ export interface NodeDef {
     members?: Member[];
     generateSubtreeFacts?: boolean;
     subtreeFacts?: string[];
+    asyncFacts?: boolean;
     erasedWhen?: string[];
     subtreeExclusions?: string;
     arena?: boolean;
@@ -59,6 +60,7 @@ export interface BaseEntry {
     fields?: Record<string, BaseField>;
     generateSubtreeFacts?: boolean;
     subtreeFacts?: string[];
+    asyncFacts?: boolean;
     erasedWhen?: string[];
     subtreeExclusions?: string;
 }
@@ -258,6 +260,10 @@ export class NodeType extends TypeBase {
 
     get generateSubtreeFacts(): boolean {
         return this.def?.generateSubtreeFacts ?? this.entry?.generateSubtreeFacts ?? false;
+    }
+
+    get asyncFacts(): boolean {
+        return this.def?.asyncFacts ?? this.entry?.asyncFacts ?? false;
     }
 
     get subtreeFacts(): string[] {

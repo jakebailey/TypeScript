@@ -2097,6 +2097,24 @@ func (node *FunctionDeclaration) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewFunctionDeclaration(node.Modifiers(), node.AsteriskToken, node.name, node.TypeParameters, node.Parameters, node.Type, node.FullSignature, node.Body), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *FunctionDeclaration) computeSubtreeFacts() SubtreeFacts {
+	if node.Body == nil || node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAmbient != 0 {
+		return SubtreeContainsTypeScript
+	}
+	isAsync := node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAsync != 0
+	isGenerator := node.AsteriskToken != nil
+	return propagateModifierListSubtreeFacts(node.modifiers) |
+		propagateSubtreeFacts(node.AsteriskToken) |
+		propagateSubtreeFacts(node.name) |
+		propagateEraseableSyntaxListSubtreeFacts(node.TypeParameters) |
+		propagateNodeListSubtreeFacts(node.Parameters, propagateSubtreeFacts) |
+		propagateEraseableSyntaxSubtreeFacts(node.Type) |
+		propagateEraseableSyntaxSubtreeFacts(node.FullSignature) |
+		propagateSubtreeFacts(node.Body) |
+		core.IfElse(isAsync && isGenerator, SubtreeContainsForAwaitOrAsyncGenerator, SubtreeFactsNone) |
+		core.IfElse(isAsync && !isGenerator, SubtreeContainsAnyAwait, SubtreeFactsNone)
+}
+
 func (node *FunctionDeclaration) Name() *DeclarationName {
 	return node.name
 }
@@ -3469,6 +3487,25 @@ func (node *MethodDeclaration) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewMethodDeclaration(node.Modifiers(), node.AsteriskToken, node.name, node.PostfixToken, node.TypeParameters, node.Parameters, node.Type, node.FullSignature, node.Body), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *MethodDeclaration) computeSubtreeFacts() SubtreeFacts {
+	if node.Body == nil {
+		return SubtreeContainsTypeScript
+	}
+	isAsync := node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAsync != 0
+	isGenerator := node.AsteriskToken != nil
+	return propagateModifierListSubtreeFacts(node.modifiers) |
+		propagateSubtreeFacts(node.AsteriskToken) |
+		propagateSubtreeFacts(node.name) |
+		propagateEraseableSyntaxSubtreeFacts(node.PostfixToken) |
+		propagateEraseableSyntaxListSubtreeFacts(node.TypeParameters) |
+		propagateNodeListSubtreeFacts(node.Parameters, propagateSubtreeFacts) |
+		propagateEraseableSyntaxSubtreeFacts(node.Type) |
+		propagateEraseableSyntaxSubtreeFacts(node.FullSignature) |
+		propagateSubtreeFacts(node.Body) |
+		core.IfElse(isAsync && isGenerator, SubtreeContainsForAwaitOrAsyncGenerator, SubtreeFactsNone) |
+		core.IfElse(isAsync && !isGenerator, SubtreeContainsAnyAwait, SubtreeFactsNone)
+}
+
 func (node *MethodDeclaration) Name() *DeclarationName {
 	return node.name
 }
@@ -4086,6 +4123,17 @@ func (node *ArrowFunction) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewArrowFunction(node.Modifiers(), node.TypeParameters, node.Parameters, node.Type, node.FullSignature, node.EqualsGreaterThanToken, node.Body), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
+func (node *ArrowFunction) computeSubtreeFacts() SubtreeFacts {
+	return propagateModifierListSubtreeFacts(node.modifiers) |
+		propagateEraseableSyntaxListSubtreeFacts(node.TypeParameters) |
+		propagateNodeListSubtreeFacts(node.Parameters, propagateSubtreeFacts) |
+		propagateEraseableSyntaxSubtreeFacts(node.Type) |
+		propagateEraseableSyntaxSubtreeFacts(node.FullSignature) |
+		propagateSubtreeFacts(node.EqualsGreaterThanToken) |
+		propagateSubtreeFacts(node.Body) |
+		core.IfElse(node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAsync != 0, SubtreeContainsAnyAwait, SubtreeFactsNone)
+}
+
 func (node *ArrowFunction) propagateSubtreeFacts() SubtreeFacts {
 	return node.SubtreeFacts() & ^SubtreeExclusionsArrowFunction
 }
@@ -4146,6 +4194,21 @@ func (node *FunctionExpression) VisitEachChild(v *NodeVisitor) *Node {
 
 func (node *FunctionExpression) Clone(f NodeFactoryCoercible) *Node {
 	return cloneNode(f.AsNodeFactory().NewFunctionExpression(node.Modifiers(), node.AsteriskToken, node.name, node.TypeParameters, node.Parameters, node.Type, node.FullSignature, node.Body), node.AsNode(), f.AsNodeFactory().hooks)
+}
+
+func (node *FunctionExpression) computeSubtreeFacts() SubtreeFacts {
+	isAsync := node.modifiers != nil && node.modifiers.ModifierFlags&ModifierFlagsAsync != 0
+	isGenerator := node.AsteriskToken != nil
+	return propagateModifierListSubtreeFacts(node.modifiers) |
+		propagateSubtreeFacts(node.AsteriskToken) |
+		propagateSubtreeFacts(node.name) |
+		propagateEraseableSyntaxListSubtreeFacts(node.TypeParameters) |
+		propagateNodeListSubtreeFacts(node.Parameters, propagateSubtreeFacts) |
+		propagateEraseableSyntaxSubtreeFacts(node.Type) |
+		propagateEraseableSyntaxSubtreeFacts(node.FullSignature) |
+		propagateSubtreeFacts(node.Body) |
+		core.IfElse(isAsync && isGenerator, SubtreeContainsForAwaitOrAsyncGenerator, SubtreeFactsNone) |
+		core.IfElse(isAsync && !isGenerator, SubtreeContainsAnyAwait, SubtreeFactsNone)
 }
 
 func (node *FunctionExpression) Name() *DeclarationName {
