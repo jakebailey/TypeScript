@@ -47,6 +47,6 @@ declare namespace B {
     };
 }
 export declare const values: (A.Alias<string> | A.Alias<number> | B.Alias<Middle>)[];
-export declare const reversed: (A.Alias<number> | B.Alias<Middle> | A.Alias<string>)[];
+export declare const reversed: (A.Alias<string> | A.Alias<number> | B.Alias<Middle>)[];
 export declare const shuffled: (A.Alias<string> | A.Alias<number> | B.Alias<Middle>)[];
 export {};

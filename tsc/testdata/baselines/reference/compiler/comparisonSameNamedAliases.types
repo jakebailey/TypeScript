@@ -41,8 +41,8 @@ export const values = [a, b, c];
 >c : B.Alias<Middle>
 
 export const reversed = [c, b, a];
->reversed : (A.Alias<number> | B.Alias<Middle> | A.Alias<string>)[]
->[c, b, a] : (A.Alias<number> | B.Alias<Middle> | A.Alias<string>)[]
+>reversed : (A.Alias<string> | A.Alias<number> | B.Alias<Middle>)[]
+>[c, b, a] : (A.Alias<string> | A.Alias<number> | B.Alias<Middle>)[]
 >c : B.Alias<Middle>
 >b : A.Alias<number>
 >a : A.Alias<string>

@@ -606,10 +606,7 @@ func compareTypeNames(t1, t2 *Type) int {
 	s1 := getTypeNameSymbol(t1)
 	s2 := getTypeNameSymbol(t2)
 	if s1 == s2 {
-		if t1.alias != nil {
-			return compareTypeLists(t1.alias.typeArguments, t2.alias.typeArguments)
-		}
-		return 0
+		return compareTypeLists(t1.alias.TypeArguments(), t2.alias.TypeArguments())
 	}
 	if s1 == nil {
 		return 1
@@ -617,7 +614,11 @@ func compareTypeNames(t1, t2 *Type) int {
 	if s2 == nil {
 		return -1
 	}
-	return strings.Compare(s1.Name, s2.Name)
+	if c := strings.Compare(s1.Name, s2.Name); c != 0 {
+		return c
+	}
+	// Keep distinct same-named declarations together before comparing alias arguments or structure.
+	return t1.checker.compareSymbols(s1, s2)
 }
 
 func getTypeNameSymbol(t *Type) *ast.Symbol {
