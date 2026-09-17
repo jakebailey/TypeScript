@@ -426,6 +426,28 @@ describe("API - generator batching", () => {
             ["initialize"],
             ["createSourceFile", "createSourceFileFromFile"],
         ]);
+        const options = { compilerOptions: { noLib: true }, sourceFiles: [fromText, fromFile] };
+        const [[first, second]] = api.batch(all(
+            api.createProgram.gen(["/generated.ts", "/src/index.ts"], options),
+            api.createProgram.gen(["/generated.ts", "/src/index.ts"], options),
+        ));
+        const [[adoptedText, adoptedFile]] = api.batch(all(
+            first.getSourceFile.gen("/generated.ts"),
+            second.getSourceFile.gen("/src/index.ts"),
+        ));
+        assert.equal(adoptedText!.text, fromText.text);
+        assert.equal(adoptedFile!.text, fromFile.text);
+        assert.notEqual(adoptedText, fromText);
+        const name = cast(fromText.statements[0], isVariableStatement).declarationList.declarations[0].name;
+        const [type, isDefaultLibrary, isExternalLibrary] = api.batch(
+            first.getProject().checker.getTypeAtLocation.gen(name),
+            first.isSourceFileDefaultLibrary.gen(fromText),
+            first.isSourceFileFromExternalLibrary.gen(fromText),
+        );
+        assert.ok(type.flags & TypeFlags.BooleanLiteral);
+        assert.equal(isDefaultLibrary, false);
+        assert.equal(isExternalLibrary, false);
+        api.batch(first.dispose.gen(), second.dispose.gen());
     });
 
     test("all and defer yield discriminated host messages without starting children", () => {

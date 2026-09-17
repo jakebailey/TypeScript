@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"maps"
 	"runtime/debug"
 	"slices"
 	"strconv"
@@ -48,9 +49,10 @@ var sessionIDCounter atomic.Uint64
 // Multiple clients may hold references to the same snapshot via ref counting;
 // the registries are cleaned up when refCount reaches zero.
 type snapshotData struct {
-	snapshot   *project.Snapshot
-	fileSystem vfs.FS
-	refCount   int
+	sourceFiles map[tspath.Path]*ast.SourceFile
+	snapshot    *project.Snapshot
+	fileSystem  vfs.FS
+	refCount    int
 
 	// Symbol IDs come from ast.GetSymbolId, a global atomic counter, so the same
 	// *ast.Symbol pointer always has the same unique ID across all projects in the
@@ -385,6 +387,8 @@ func (sd *snapshotData) registerSignature(projectID ProjectID, sig *checker.Sign
 // The session supports multiple active snapshots, each with their own
 // symbol and type registries for maintaining object identity.
 type Session struct {
+	sourceFiles    map[uint64]*ast.SourceFile
+	sourceFilesMu  sync.Mutex
 	id             string
 	snapshotHost   *project.SnapshotHost
 	withLocale     func(context.Context) context.Context
@@ -1447,6 +1451,7 @@ func (s *Session) handleCreateProgram(ctx context.Context, params *CreateProgram
 	var oldSnapshot *project.Snapshot
 	var oldProject *project.Project
 	var oldFileSystem vfs.FS
+	var inheritedSourceFiles map[tspath.Path]*ast.SourceFile
 	if params.OldProgram != nil {
 		oldSnapshotID := params.OldProgram.Snapshot
 		oldSD, err := s.retainSnapshotData(oldSnapshotID)
@@ -1457,6 +1462,7 @@ func (s *Session) handleCreateProgram(ctx context.Context, params *CreateProgram
 
 		oldSnapshot = oldSD.snapshot
 		oldFileSystem = oldSD.fileSystem
+		inheritedSourceFiles = oldSD.sourceFiles
 		oldProject, err = oldSD.getProject(params.OldProgram.Project)
 		if err != nil {
 			return nil, err
@@ -1464,6 +1470,17 @@ func (s *Session) handleCreateProgram(ctx context.Context, params *CreateProgram
 	}
 	sd := newSnapshotData()
 	sd.fileSystem = oldFileSystem
+	sd.sourceFiles = maps.Clone(inheritedSourceFiles)
+	if sd.sourceFiles == nil {
+		sd.sourceFiles = make(map[tspath.Path]*ast.SourceFile)
+	}
+	sourceFiles, err := s.getSourceFilesForProgram(params.SourceFiles)
+	if err != nil {
+		return nil, err
+	}
+	for _, file := range sourceFiles {
+		sd.sourceFiles[file.Path()] = file
+	}
 
 	baseSnapshot := oldSnapshot
 	fileChanges := s.toFileChangeSummary(params.FileChanges)
@@ -1487,11 +1504,18 @@ func (s *Session) handleCreateProgram(ctx context.Context, params *CreateProgram
 		core.Map(params.CreateProgramOptions.ConfigFileParsingDiagnostics, func(d *DiagnosticResponse) *ast.Diagnostic { return d.ToDiagnostic() }),
 		oldProject,
 		fileChanges,
+		sourceFiles...,
 	)
 	project := snapshot.ProjectCollection.InferredProject()
 	if project == nil {
 		snapshot.Deref()
 		return nil, fmt.Errorf("%w: failed to create synthetic project", ErrClientError)
+	}
+	for path, file := range sd.sourceFiles {
+		if adopted := project.GetProgram().GetSourceFileByPath(path); adopted != nil && adopted != file {
+			snapshot.Deref()
+			return nil, fmt.Errorf("%w: incompatible parse options for source file %q", ErrClientError, file.FileName())
+		}
 	}
 	sd.snapshot = snapshot
 
@@ -1630,7 +1654,7 @@ func (s *Session) handleCreateSourceFile(ctx context.Context, params *CreateSour
 	if err != nil {
 		return nil, err
 	}
-	return s.encodeSourceFileResponseWithFileName(sourceFile, params.FileName)
+	return s.encodeCreatedSourceFile(sourceFile, params.FileName, params.SourceFileID)
 }
 
 // @gen-proto-result: SourceFileResponse
@@ -1644,7 +1668,48 @@ func (s *Session) handleCreateSourceFileFromFile(ctx context.Context, params *Cr
 	if err != nil {
 		return nil, err
 	}
-	return s.encodeSourceFileResponseWithFileName(sourceFile, params.FileName)
+	return s.encodeCreatedSourceFile(sourceFile, params.FileName, params.SourceFileID)
+}
+
+func (s *Session) encodeCreatedSourceFile(file *ast.SourceFile, fileName string, id uint64) (any, error) {
+	if id == 0 {
+		return s.encodeSourceFileResponseWithFileName(file, fileName)
+	}
+	s.sourceFilesMu.Lock()
+	defer s.sourceFilesMu.Unlock()
+	if s.sourceFiles[id] != nil {
+		return nil, fmt.Errorf("%w: duplicate source file handle", ErrClientError)
+	}
+	file = s.snapshotHost.RetainSourceFile(file)
+	result, err := s.encodeSourceFileResponseWithFileName(file, fileName)
+	if err != nil {
+		s.snapshotHost.ReleaseSourceFile(file)
+		return nil, err
+	}
+	if s.sourceFiles == nil {
+		s.sourceFiles = make(map[uint64]*ast.SourceFile)
+	}
+	s.sourceFiles[id] = file
+	return result, nil
+}
+
+func (s *Session) getSourceFilesForProgram(ids []uint64) ([]*ast.SourceFile, error) {
+	s.sourceFilesMu.Lock()
+	defer s.sourceFilesMu.Unlock()
+	files := make([]*ast.SourceFile, 0, len(ids))
+	paths := make(map[tspath.Path]bool, len(ids))
+	for _, id := range ids {
+		file := s.sourceFiles[id]
+		if file == nil {
+			return nil, fmt.Errorf("%w: unknown source file handle %d", ErrClientError, id)
+		}
+		if paths[file.Path()] {
+			return nil, fmt.Errorf("%w: duplicate source file %q", ErrClientError, file.FileName())
+		}
+		paths[file.Path()] = true
+		files = append(files, file)
+	}
+	return files, nil
 }
 
 func (s *Session) createSourceFile(fileName string, sourceText string, options CreateSourceFileOptions) (*ast.SourceFile, error) {
@@ -4357,6 +4422,13 @@ func (s *Session) Close() {
 			delete(s.snapshots, handle)
 		}
 		s.snapshotsMu.Unlock()
+
+		s.sourceFilesMu.Lock()
+		for id, file := range s.sourceFiles {
+			s.snapshotHost.ReleaseSourceFile(file)
+			delete(s.sourceFiles, id)
+		}
+		s.sourceFilesMu.Unlock()
 
 		if s.projectSession == nil {
 			if s.compatibilitySnapshot != nil {

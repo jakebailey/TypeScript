@@ -358,8 +358,6 @@ describe("API", () => {
         const snapshot = await api.updateSnapshot({ openFiles: ["/input.ts"] });
         const project = snapshot.getProjects()[0];
         assert.equal((await project.emitter.printNode(sourceFile)).trimEnd(), sourceText); // @sync: assert.equal(project.emitter.printNode(sourceFile).trimEnd(), sourceText);
-        await assert.rejects(project.checker.getTypeAtLocation(sourceFile.statements[0]), /without program identity/); // @sync: assert.throws(() => project.checker.getTypeAtLocation(sourceFile.statements[0]), /without program identity/);
-        await assert.rejects(project.program.isSourceFileDefaultLibrary(sourceFile), /does not belong to this program/); // @sync: assert.throws(() => project.program.isSourceFileDefaultLibrary(sourceFile), /does not belong to this program/);
         await snapshot.dispose();
     });
 
@@ -373,6 +371,63 @@ describe("API", () => {
         assert.equal(fromFile.scriptKind, ScriptKind.TS);
 
         await assert.rejects(api.createSourceFileFromFile("/missing.ts"), /could not read file "\/missing\.ts"/); // @sync: assert.throws(() => api.createSourceFileFromFile("/missing.ts"), /could not read file "\/missing\.ts"/);
+    });
+
+    test("createProgram adopts native source files", async () => {
+        await using api = spawnAPI({});
+        const a = await api.createSourceFile("/virtual/a.ts", `import { b } from "./b"; export const a: number = b;`);
+        const b = await api.createSourceFile("/virtual/b.ts", "export const b = 1;");
+        const options = { compilerOptions: { noLib: true }, sourceFiles: [a, b] };
+        const first = await api.createProgram(["/virtual/a.ts"], options);
+        const second = await api.createProgram(["/virtual/a.ts"], options);
+        assert.equal((await first.getSemanticDiagnostics()).length, 0);
+        assert.deepEqual(await first.getSourceFileNames(), ["/virtual/b.ts", "/virtual/a.ts"]);
+        const adopted = (await first.getSourceFile("/virtual/a.ts"))!;
+        assert.notEqual(adopted, a);
+        assert.equal(adopted.text, a.text);
+        const name = cast(a.statements[1], isVariableStatement).declarationList.declarations[0].name;
+        const type = await first.getProject().checker.getTypeAtLocation(name);
+        assert.ok(type.flags & TypeFlags.Number);
+        assert.equal(await first.isSourceFileDefaultLibrary(a), false);
+        assert.equal(await first.isSourceFileFromExternalLibrary(a), false);
+        assert.ok((await second.getProject().checker.getTypeAtLocation(name)).flags & TypeFlags.Number);
+        const rebuilt = await api.createProgram(["/virtual/a.ts"], { compilerOptions: { noLib: true } }, first);
+        await first.dispose();
+        assert.equal((await rebuilt.getSemanticDiagnostics()).length, 0);
+        assert.ok((await rebuilt.getProject().checker.getTypeAtLocation(name)).flags & TypeFlags.Number);
+        const replacement = await api.createSourceFile("/virtual/b.ts", "export const b = 'changed';");
+        const updated = await api.createProgram(["/virtual/a.ts"], { compilerOptions: { noLib: true }, sourceFiles: [replacement] }, rebuilt);
+        assert.equal((await updated.getSemanticDiagnostics()).length, 1);
+        assert.equal((await second.getSemanticDiagnostics()).length, 0);
+        await second.dispose();
+        await rebuilt.dispose();
+        await updated.dispose();
+    });
+
+    test("createProgram rejects unsupported source files", async () => {
+        await using api = spawnAPI({});
+        await using other = spawnAPI({});
+        const foreign = await other.createSourceFile("/input.ts", "export const a = 1;");
+        await assert.rejects(api.createProgram(["/input.ts"], { compilerOptions: { noLib: true }, sourceFiles: [foreign] }), /native source files created by this API/); // @sync: assert.throws(() => api.createProgram(["/input.ts"], { compilerOptions: { noLib: true }, sourceFiles: [foreign] }), /native source files created by this API/);
+        const local = await api.createSourceFile("/input.ts", "export const a = 1;");
+        Object.defineProperty(local, "text", { value: "modified" });
+        await assert.rejects(api.createProgram(["/input.ts"], { compilerOptions: { noLib: true }, sourceFiles: [local] }), /modified source file/); // @sync: assert.throws(() => api.createProgram(["/input.ts"], { compilerOptions: { noLib: true }, sourceFiles: [local] }), /modified source file/);
+    });
+
+    test("createProgram checks source file parse compatibility", async () => {
+        await using api = spawnAPI({ "/input.ts": "export const value = 1;" });
+        const fromFile = await api.createSourceFileFromFile("/input.ts");
+        const jsx = await api.createSourceFile("/component.ts", "export const element = <div />;", { scriptKind: ScriptKind.TSX });
+        const sourceFiles = [fromFile, jsx];
+        const program = await api.createProgram(["/input.ts", "/component.ts"], { compilerOptions: { noLib: true }, sourceFiles });
+        assert.equal((await program.getSourceFile("/component.ts"))!.scriptKind, ScriptKind.TSX);
+        assert.equal((await program.getSyntacticDiagnostics()).length, 0);
+        await assert.rejects(api.createProgram(["/component.ts"], { compilerOptions: { noLib: true, jsx: JsxEmit.ReactJSX }, sourceFiles }), /incompatible parse options/); // @sync: assert.throws(() => api.createProgram(["/component.ts"], { compilerOptions: { noLib: true, jsx: JsxEmit.ReactJSX }, sourceFiles }), /incompatible parse options/);
+        await assert.rejects(api.createProgram(["/component.ts"], { compilerOptions: { noLib: true, jsx: JsxEmit.ReactJSX } }, program), /incompatible parse options/); // @sync: assert.throws(() => api.createProgram(["/component.ts"], { compilerOptions: { noLib: true, jsx: JsxEmit.ReactJSX } }, program), /incompatible parse options/);
+        await program.dispose();
+        const reused = await api.createProgram(["/input.ts"], { compilerOptions: { noLib: true }, sourceFiles: [fromFile] });
+        assert.equal((await reused.getSemanticDiagnostics()).length, 0);
+        await reused.dispose();
     });
 
     test("createProgram", async () => {

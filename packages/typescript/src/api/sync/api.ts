@@ -81,7 +81,7 @@ import {
 import type {
     APIFileChanges,
     CompilerOptions,
-    CreateProgramOptions,
+    CreateProgramOptions as ProtocolCreateProgramOptions,
     CreateProgramResponse,
     CreateSourceFileOptions,
     Diagnostic,
@@ -190,7 +190,6 @@ export type {
     CompletionInfo,
     CompletionOptions,
     ConditionalType,
-    CreateProgramOptions,
     CreateSourceFileOptions,
     Diagnostic,
     DocumentIdentifier,
@@ -263,7 +262,22 @@ import {
     executeRequestGenerators,
 } from "./generatorSupport.ts";
 
+export interface CreateProgramOptions extends ProtocolCreateProgramOptions {
+    /**
+     * Unmodified native source files created by this API instance. They override
+     * filesystem contents and are inherited by programs derived using oldProgram.
+     * Files with incompatible parse settings are rejected rather than adopted
+     * with a different parse.
+     * Nodes from these files can be used directly with the resulting program's
+     * checker. Using nodes with a program that does not contain their native
+     * source file is undefined behavior.
+     */
+    sourceFiles?: readonly SourceFile[];
+}
+
 export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHost {
+    private nextSourceFileId = 0;
+    private readonly nativeSourceFiles = new WeakMap<SourceFile, { id: number; data: Uint8Array; encoded?: Uint8Array; }>();
     private client: Client;
     private sourceFileCache: SourceFileCache;
     private toPath: ((fileName: string) => Path) | undefined;
@@ -495,21 +509,23 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
             "createSourceFile",
             function (fileName: string, sourceText: string, options: CreateSourceFileOptions = {}): SourceFile {
                 owner.ensureInitialized();
+                const sourceFileId = ++owner.nextSourceFileId;
                 const sourceTextBase64 = uint8ArrayToBase64(encodeWtf8(sourceText));
-                const data = owner.client.apiRequestBinary("createSourceFile", { fileName, sourceTextBase64, options });
+                const data = owner.client.apiRequestBinary("createSourceFile", { fileName, sourceTextBase64, options, sourceFileId });
                 if (!data) {
                     throw new Error("createSourceFile returned no source file");
                 }
-                return new RemoteSourceFile(data, owner.decoder, owner.client.getTimingCollector()) as unknown as SourceFile;
+                return owner.registerNativeSourceFile(sourceFileId, data);
             },
             function* (fileName: string, sourceText: string, options: CreateSourceFileOptions = {}): Generator<ProtocolRequest, SourceFile, ProtocolResponse["result"]> {
                 yield* owner.ensureInitialized.gen();
+                const sourceFileId = ++owner.nextSourceFileId;
                 const sourceTextBase64 = uint8ArrayToBase64(encodeWtf8(sourceText));
-                const data = sourceFileResponseToUint8Array(yield* apiRequest("createSourceFile", { fileName, sourceTextBase64, options }));
+                const data = sourceFileResponseToUint8Array(yield* apiRequest("createSourceFile", { fileName, sourceTextBase64, options, sourceFileId }));
                 if (!data) {
                     throw new Error("createSourceFile returned no source file");
                 }
-                return new RemoteSourceFile(data, owner.decoder, owner.client.getTimingCollector()) as unknown as SourceFile;
+                return owner.registerNativeSourceFile(sourceFileId, data);
             },
         );
     }
@@ -524,21 +540,42 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
             "createSourceFileFromFile",
             function (file: DocumentIdentifier, options: CreateSourceFileOptions = {}): SourceFile {
                 owner.ensureInitialized();
-                const data = owner.client.apiRequestBinary("createSourceFileFromFile", { fileName: resolveFileName(file), options });
+                const sourceFileId = ++owner.nextSourceFileId;
+                const data = owner.client.apiRequestBinary("createSourceFileFromFile", { fileName: resolveFileName(file), options, sourceFileId });
                 if (!data) {
                     throw new Error("createSourceFileFromFile returned no source file");
                 }
-                return new RemoteSourceFile(data, owner.decoder, owner.client.getTimingCollector()) as unknown as SourceFile;
+                return owner.registerNativeSourceFile(sourceFileId, data);
             },
             function* (file: DocumentIdentifier, options: CreateSourceFileOptions = {}): Generator<ProtocolRequest, SourceFile, ProtocolResponse["result"]> {
                 yield* owner.ensureInitialized.gen();
-                const data = sourceFileResponseToUint8Array(yield* apiRequest("createSourceFileFromFile", { fileName: resolveFileName(file), options }));
+                const sourceFileId = ++owner.nextSourceFileId;
+                const data = sourceFileResponseToUint8Array(yield* apiRequest("createSourceFileFromFile", { fileName: resolveFileName(file), options, sourceFileId }));
                 if (!data) {
                     throw new Error("createSourceFileFromFile returned no source file");
                 }
-                return new RemoteSourceFile(data, owner.decoder, owner.client.getTimingCollector()) as unknown as SourceFile;
+                return owner.registerNativeSourceFile(sourceFileId, data);
             },
         );
+    }
+
+    private registerNativeSourceFile(id: number, data: Uint8Array): SourceFile {
+        const file = new RemoteSourceFile(data, this.decoder, this.client.getTimingCollector()) as unknown as SourceFile;
+        this.nativeSourceFiles.set(file, { id, data: data.slice() });
+        return file;
+    }
+
+    private getNativeSourceFileId(file: SourceFile): number {
+        const entry = this.nativeSourceFiles.get(file);
+        if (!entry) {
+            throw new Error("sourceFiles must contain native source files created by this API instance");
+        }
+        entry.encoded ??= encodeNode(new RemoteSourceFile(entry.data, this.decoder) as unknown as SourceFile);
+        const encoded = encodeNode(file);
+        if (encoded.length !== entry.encoded.length || encoded.some((value, index) => value !== entry.encoded![index])) {
+            throw new Error("Cannot adopt a modified source file");
+        }
+        return entry.id;
     }
 
     get transpileModule(): {
@@ -950,9 +987,12 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
                     throw new Error("oldProgram must belong to this API instance and reference an active snapshot");
                 }
 
+                const { sourceFiles, ...protocolOptions } = createProgramOptions;
+                const sourceFileIds = sourceFiles?.map(file => owner.getNativeSourceFileId(file));
                 const data: CreateProgramResponse = owner.client.apiRequest("createProgram", {
                     rootFiles,
-                    createProgramOptions,
+                    createProgramOptions: protocolOptions,
+                    sourceFiles: sourceFileIds,
                     oldProgram: oldProgram ? { snapshot: oldProgram.snapshotId, project: oldProgram.getProject().id } : undefined,
                     fileChanges,
                 });
@@ -985,9 +1025,12 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
                     throw new Error("oldProgram must belong to this API instance and reference an active snapshot");
                 }
 
+                const { sourceFiles, ...protocolOptions } = createProgramOptions;
+                const sourceFileIds = sourceFiles?.map(file => owner.getNativeSourceFileId(file));
                 const data: CreateProgramResponse = yield* apiRequest("createProgram", {
                     rootFiles,
-                    createProgramOptions,
+                    createProgramOptions: protocolOptions,
+                    sourceFiles: sourceFileIds,
                     oldProgram: oldProgram ? { snapshot: oldProgram.snapshotId, project: oldProgram.getProject().id } : undefined,
                     fileChanges,
                 });
@@ -2321,7 +2364,7 @@ export class Program implements FormatDiagnosticsHost {
                 const parseOptionsKey = readParseOptionsKey(view);
 
                 // Create a new RemoteSourceFile and cache it (set returns existing if hash matches)
-                const sourceFile = new RemoteSourceFile(binaryData, owner.decoder, owner.client.getTimingCollector(), true) as unknown as SourceFile;
+                const sourceFile = new RemoteSourceFile(binaryData, owner.decoder, owner.client.getTimingCollector()) as unknown as SourceFile;
                 return owner.sourceFileCache.set(path, sourceFile, parseOptionsKey, contentHash, owner.snapshotId, owner.project.id);
             },
             function* (file: DocumentIdentifier): Generator<ProtocolRequest, SourceFile | undefined, ProtocolResponse["result"]> {
@@ -2351,7 +2394,7 @@ export class Program implements FormatDiagnosticsHost {
                 const parseOptionsKey = readParseOptionsKey(view);
 
                 // Create a new RemoteSourceFile and cache it (set returns existing if hash matches)
-                const sourceFile = new RemoteSourceFile(binaryData, owner.decoder, owner.client.getTimingCollector(), true) as unknown as SourceFile;
+                const sourceFile = new RemoteSourceFile(binaryData, owner.decoder, owner.client.getTimingCollector()) as unknown as SourceFile;
                 return owner.sourceFileCache.set(path, sourceFile, parseOptionsKey, contentHash, owner.snapshotId, owner.project.id);
             },
         );
@@ -2654,18 +2697,10 @@ export class Program implements FormatDiagnosticsHost {
             owner,
             "isSourceFileFromExternalLibrary",
             function (file: SourceFile): boolean {
-                const remote = file as unknown as RemoteSourceFile;
-                if (!(remote instanceof RemoteSourceFile) || !remote.hasProgramIdentity || owner.getSourceFile(file.path) !== file) {
-                    throw new Error("Source file does not belong to this program");
-                }
                 const metadata = owner.getSourceFileMetadataByPath(file.path);
                 return metadata?.isFromExternalLibrary ?? false;
             },
             function* (file: SourceFile): Generator<ProtocolRequest, boolean, ProtocolResponse["result"]> {
-                const remote = file as unknown as RemoteSourceFile;
-                if (!(remote instanceof RemoteSourceFile) || !remote.hasProgramIdentity || (yield* owner.getSourceFile.gen(file.path)) !== file) {
-                    throw new Error("Source file does not belong to this program");
-                }
                 const metadata = yield* owner.getSourceFileMetadataByPath.gen(file.path);
                 return metadata?.isFromExternalLibrary ?? false;
             },
@@ -2686,18 +2721,10 @@ export class Program implements FormatDiagnosticsHost {
             owner,
             "isSourceFileDefaultLibrary",
             function (file: SourceFile): boolean {
-                const remote = file as unknown as RemoteSourceFile;
-                if (!(remote instanceof RemoteSourceFile) || !remote.hasProgramIdentity || owner.getSourceFile(file.path) !== file) {
-                    throw new Error("Source file does not belong to this program");
-                }
                 const metadata = owner.getSourceFileMetadataByPath(file.path);
                 return metadata?.isDefaultLibrary ?? false;
             },
             function* (file: SourceFile): Generator<ProtocolRequest, boolean, ProtocolResponse["result"]> {
-                const remote = file as unknown as RemoteSourceFile;
-                if (!(remote instanceof RemoteSourceFile) || !remote.hasProgramIdentity || (yield* owner.getSourceFile.gen(file.path)) !== file) {
-                    throw new Error("Source file does not belong to this program");
-                }
                 const metadata = yield* owner.getSourceFileMetadataByPath.gen(file.path);
                 return metadata?.isDefaultLibrary ?? false;
             },

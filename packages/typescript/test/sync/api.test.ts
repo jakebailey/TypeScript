@@ -347,8 +347,6 @@ describe("API", () => {
         const snapshot = api.updateSnapshot({ openFiles: ["/input.ts"] });
         const project = snapshot.getProjects()[0];
         assert.equal(project.emitter.printNode(sourceFile).trimEnd(), sourceText);
-        assert.throws(() => project.checker.getTypeAtLocation(sourceFile.statements[0]), /without program identity/);
-        assert.throws(() => project.program.isSourceFileDefaultLibrary(sourceFile), /does not belong to this program/);
         snapshot.dispose();
     });
 
@@ -362,6 +360,63 @@ describe("API", () => {
         assert.equal(fromFile.scriptKind, ScriptKind.TS);
 
         assert.throws(() => api.createSourceFileFromFile("/missing.ts"), /could not read file "\/missing\.ts"/);
+    });
+
+    test("createProgram adopts native source files", () => {
+        using api = spawnAPI({});
+        const a = api.createSourceFile("/virtual/a.ts", `import { b } from "./b"; export const a: number = b;`);
+        const b = api.createSourceFile("/virtual/b.ts", "export const b = 1;");
+        const options = { compilerOptions: { noLib: true }, sourceFiles: [a, b] };
+        const first = api.createProgram(["/virtual/a.ts"], options);
+        const second = api.createProgram(["/virtual/a.ts"], options);
+        assert.equal((first.getSemanticDiagnostics()).length, 0);
+        assert.deepEqual(first.getSourceFileNames(), ["/virtual/b.ts", "/virtual/a.ts"]);
+        const adopted = (first.getSourceFile("/virtual/a.ts"))!;
+        assert.notEqual(adopted, a);
+        assert.equal(adopted.text, a.text);
+        const name = cast(a.statements[1], isVariableStatement).declarationList.declarations[0].name;
+        const type = first.getProject().checker.getTypeAtLocation(name);
+        assert.ok(type.flags & TypeFlags.Number);
+        assert.equal(first.isSourceFileDefaultLibrary(a), false);
+        assert.equal(first.isSourceFileFromExternalLibrary(a), false);
+        assert.ok((second.getProject().checker.getTypeAtLocation(name)).flags & TypeFlags.Number);
+        const rebuilt = api.createProgram(["/virtual/a.ts"], { compilerOptions: { noLib: true } }, first);
+        first.dispose();
+        assert.equal((rebuilt.getSemanticDiagnostics()).length, 0);
+        assert.ok((rebuilt.getProject().checker.getTypeAtLocation(name)).flags & TypeFlags.Number);
+        const replacement = api.createSourceFile("/virtual/b.ts", "export const b = 'changed';");
+        const updated = api.createProgram(["/virtual/a.ts"], { compilerOptions: { noLib: true }, sourceFiles: [replacement] }, rebuilt);
+        assert.equal((updated.getSemanticDiagnostics()).length, 1);
+        assert.equal((second.getSemanticDiagnostics()).length, 0);
+        second.dispose();
+        rebuilt.dispose();
+        updated.dispose();
+    });
+
+    test("createProgram rejects unsupported source files", () => {
+        using api = spawnAPI({});
+        using other = spawnAPI({});
+        const foreign = other.createSourceFile("/input.ts", "export const a = 1;");
+        assert.throws(() => api.createProgram(["/input.ts"], { compilerOptions: { noLib: true }, sourceFiles: [foreign] }), /native source files created by this API/);
+        const local = api.createSourceFile("/input.ts", "export const a = 1;");
+        Object.defineProperty(local, "text", { value: "modified" });
+        assert.throws(() => api.createProgram(["/input.ts"], { compilerOptions: { noLib: true }, sourceFiles: [local] }), /modified source file/);
+    });
+
+    test("createProgram checks source file parse compatibility", () => {
+        using api = spawnAPI({ "/input.ts": "export const value = 1;" });
+        const fromFile = api.createSourceFileFromFile("/input.ts");
+        const jsx = api.createSourceFile("/component.ts", "export const element = <div />;", { scriptKind: ScriptKind.TSX });
+        const sourceFiles = [fromFile, jsx];
+        const program = api.createProgram(["/input.ts", "/component.ts"], { compilerOptions: { noLib: true }, sourceFiles });
+        assert.equal((program.getSourceFile("/component.ts"))!.scriptKind, ScriptKind.TSX);
+        assert.equal((program.getSyntacticDiagnostics()).length, 0);
+        assert.throws(() => api.createProgram(["/component.ts"], { compilerOptions: { noLib: true, jsx: JsxEmit.ReactJSX }, sourceFiles }), /incompatible parse options/);
+        assert.throws(() => api.createProgram(["/component.ts"], { compilerOptions: { noLib: true, jsx: JsxEmit.ReactJSX } }, program), /incompatible parse options/);
+        program.dispose();
+        const reused = api.createProgram(["/input.ts"], { compilerOptions: { noLib: true }, sourceFiles: [fromFile] });
+        assert.equal((reused.getSemanticDiagnostics()).length, 0);
+        reused.dispose();
     });
 
     test("createProgram", () => {

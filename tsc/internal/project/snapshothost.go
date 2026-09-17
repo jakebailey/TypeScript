@@ -6,6 +6,7 @@ import (
 	"sync/atomic"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/binder"
 	"github.com/microsoft/TypeScript/tsc/internal/contentmapper"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/ls/lsutil"
@@ -121,6 +122,7 @@ func (s *SnapshotHost) CloneSnapshotForProgram(
 	configFileParsingDiagnostics []*ast.Diagnostic,
 	oldProject *Project,
 	fileChanges FileChangeSummary,
+	sourceFiles ...*ast.SourceFile,
 ) *Snapshot {
 	return baseSnapshot.cloneForProgram(
 		ctx,
@@ -132,7 +134,28 @@ func (s *SnapshotHost) CloneSnapshotForProgram(
 		oldProject,
 		fileChanges,
 		nil,
+		sourceFiles,
 	)
+}
+
+// RetainSourceFile adopts a native parse into the shared bound-file cache.
+// The returned canonical file must be released with ReleaseSourceFile.
+func (s *SnapshotHost) RetainSourceFile(file *ast.SourceFile) *ast.SourceFile {
+	fh := NewCachedFileHandle(file.FileName(), file.Text())
+	file.Hash = fh.Hash()
+	key := NewParseCacheKey(file.ParseOptions(), file.Hash, file.ScriptKind)
+	canonical, err := s.parseCache.AcquireOrError(key, func() (*ast.SourceFile, error) {
+		binder.BindSourceFile(file)
+		return file, nil
+	})
+	if err != nil {
+		panic(err)
+	}
+	return canonical
+}
+
+func (s *SnapshotHost) ReleaseSourceFile(file *ast.SourceFile) {
+	s.parseCache.Deref(parseCacheKeyForFile(file))
 }
 
 // CloneSnapshotWithAutoImports derives a snapshot with auto-import preparation without

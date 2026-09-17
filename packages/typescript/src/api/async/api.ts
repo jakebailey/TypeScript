@@ -64,7 +64,7 @@ import {
 import type {
     APIFileChanges,
     CompilerOptions,
-    CreateProgramOptions,
+    CreateProgramOptions as ProtocolCreateProgramOptions,
     CreateProgramResponse,
     CreateSourceFileOptions,
     Diagnostic,
@@ -173,7 +173,6 @@ export type {
     CompletionInfo,
     CompletionOptions,
     ConditionalType,
-    CreateProgramOptions,
     CreateSourceFileOptions,
     Diagnostic,
     DocumentIdentifier,
@@ -244,7 +243,22 @@ export interface TranspileOutput {
 // import { sourceFileResponseToUint8Array } from "../node/encoder.ts";
 // @sync-only-end
 
+export interface CreateProgramOptions extends ProtocolCreateProgramOptions {
+    /**
+     * Unmodified native source files created by this API instance. They override
+     * filesystem contents and are inherited by programs derived using oldProgram.
+     * Files with incompatible parse settings are rejected rather than adopted
+     * with a different parse.
+     * Nodes from these files can be used directly with the resulting program's
+     * checker. Using nodes with a program that does not contain their native
+     * source file is undefined behavior.
+     */
+    sourceFiles?: readonly SourceFile[];
+}
+
 export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHost {
+    private nextSourceFileId = 0;
+    private readonly nativeSourceFiles = new WeakMap<SourceFile, { id: number; data: Uint8Array; encoded?: Uint8Array; }>();
     private client: Client;
     private sourceFileCache: SourceFileCache;
     private toPath: ((fileName: string) => Path) | undefined;
@@ -350,21 +364,42 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
 
     async createSourceFile(fileName: string, sourceText: string, options: CreateSourceFileOptions = {}): Promise<SourceFile> {
         await this.ensureInitialized();
+        const sourceFileId = ++this.nextSourceFileId;
         const sourceTextBase64 = uint8ArrayToBase64(encodeWtf8(sourceText));
-        const data = await this.client.apiRequestBinary("createSourceFile", { fileName, sourceTextBase64, options });
+        const data = await this.client.apiRequestBinary("createSourceFile", { fileName, sourceTextBase64, options, sourceFileId });
         if (!data) {
             throw new Error("createSourceFile returned no source file");
         }
-        return new RemoteSourceFile(data, this.decoder, this.client.getTimingCollector()) as unknown as SourceFile;
+        return this.registerNativeSourceFile(sourceFileId, data);
     }
 
     async createSourceFileFromFile(file: DocumentIdentifier, options: CreateSourceFileOptions = {}): Promise<SourceFile> {
         await this.ensureInitialized();
-        const data = await this.client.apiRequestBinary("createSourceFileFromFile", { fileName: resolveFileName(file), options });
+        const sourceFileId = ++this.nextSourceFileId;
+        const data = await this.client.apiRequestBinary("createSourceFileFromFile", { fileName: resolveFileName(file), options, sourceFileId });
         if (!data) {
             throw new Error("createSourceFileFromFile returned no source file");
         }
-        return new RemoteSourceFile(data, this.decoder, this.client.getTimingCollector()) as unknown as SourceFile;
+        return this.registerNativeSourceFile(sourceFileId, data);
+    }
+
+    private registerNativeSourceFile(id: number, data: Uint8Array): SourceFile {
+        const file = new RemoteSourceFile(data, this.decoder, this.client.getTimingCollector()) as unknown as SourceFile;
+        this.nativeSourceFiles.set(file, { id, data: data.slice() });
+        return file;
+    }
+
+    private getNativeSourceFileId(file: SourceFile): number {
+        const entry = this.nativeSourceFiles.get(file);
+        if (!entry) {
+            throw new Error("sourceFiles must contain native source files created by this API instance");
+        }
+        entry.encoded ??= encodeNode(new RemoteSourceFile(entry.data, this.decoder) as unknown as SourceFile);
+        const encoded = encodeNode(file);
+        if (encoded.length !== entry.encoded.length || encoded.some((value, index) => value !== entry.encoded![index])) {
+            throw new Error("Cannot adopt a modified source file");
+        }
+        return entry.id;
     }
 
     async transpileModule(input: string, options: TranspileOptions = {}): Promise<TranspileOutput> {
@@ -549,9 +584,12 @@ export class API<FromLSP extends boolean = false> implements FormatDiagnosticsHo
             throw new Error("oldProgram must belong to this API instance and reference an active snapshot");
         }
 
+        const { sourceFiles, ...protocolOptions } = createProgramOptions;
+        const sourceFileIds = sourceFiles?.map(file => this.getNativeSourceFileId(file));
         const data: CreateProgramResponse = await this.client.apiRequest("createProgram", {
             rootFiles,
-            createProgramOptions,
+            createProgramOptions: protocolOptions,
+            sourceFiles: sourceFileIds,
             oldProgram: oldProgram ? { snapshot: oldProgram.snapshotId, project: oldProgram.getProject().id } : undefined,
             fileChanges,
         });
@@ -1256,7 +1294,7 @@ export class Program implements FormatDiagnosticsHost {
         const parseOptionsKey = readParseOptionsKey(view);
 
         // Create a new RemoteSourceFile and cache it (set returns existing if hash matches)
-        const sourceFile = new RemoteSourceFile(binaryData, this.decoder, this.client.getTimingCollector(), true) as unknown as SourceFile;
+        const sourceFile = new RemoteSourceFile(binaryData, this.decoder, this.client.getTimingCollector()) as unknown as SourceFile;
         return this.sourceFileCache.set(path, sourceFile, parseOptionsKey, contentHash, this.snapshotId, this.project.id);
     }
 
@@ -1382,10 +1420,6 @@ export class Program implements FormatDiagnosticsHost {
      * fetched lazily per file and cached on this `Program` instance.
      */
     async isSourceFileFromExternalLibrary(file: SourceFile): Promise<boolean> {
-        const remote = file as unknown as RemoteSourceFile;
-        if (!(remote instanceof RemoteSourceFile) || !remote.hasProgramIdentity || await this.getSourceFile(file.path) !== file) {
-            throw new Error("Source file does not belong to this program");
-        }
         const metadata = await this.getSourceFileMetadataByPath(file.path);
         return metadata?.isFromExternalLibrary ?? false;
     }
@@ -1396,10 +1430,6 @@ export class Program implements FormatDiagnosticsHost {
      * `Program` instance.
      */
     async isSourceFileDefaultLibrary(file: SourceFile): Promise<boolean> {
-        const remote = file as unknown as RemoteSourceFile;
-        if (!(remote instanceof RemoteSourceFile) || !remote.hasProgramIdentity || await this.getSourceFile(file.path) !== file) {
-            throw new Error("Source file does not belong to this program");
-        }
         const metadata = await this.getSourceFileMetadataByPath(file.path);
         return metadata?.isDefaultLibrary ?? false;
     }

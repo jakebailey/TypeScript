@@ -400,6 +400,7 @@ type UpdateTemporarySnapshotParams struct {
 }
 
 type CreateProgramParams struct {
+	SourceFiles          []uint64                       `json:"sourceFiles,omitempty"`
 	RootFiles            []DocumentIdentifier           `json:"rootFiles"`
 	CreateProgramOptions CreateProgramOptions           `json:"createProgramOptions"`
 	OldProgram           *CreateProgramOldProgramParams `json:"oldProgram,omitempty"`
@@ -671,14 +672,18 @@ type CreateSourceFileOptions struct {
 }
 
 type CreateSourceFileParams struct {
+	// SourceFileID is an optional client-allocated, session-local retention handle.
+	// A nonzero handle must be unique and remains valid until the session closes.
+	SourceFileID     uint64                  `json:"sourceFileId,omitempty"`
 	FileName         string                  `json:"fileName"`
 	SourceTextBase64 string                  `json:"sourceTextBase64"`
 	Options          CreateSourceFileOptions `json:"options"`
 }
 
 type CreateSourceFileFromFileParams struct {
-	FileName string                  `json:"fileName"`
-	Options  CreateSourceFileOptions `json:"options"`
+	SourceFileID uint64                  `json:"sourceFileId,omitempty"`
+	FileName     string                  `json:"fileName"`
+	Options      CreateSourceFileOptions `json:"options"`
 }
 
 type TranspileParams struct {

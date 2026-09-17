@@ -125,6 +125,7 @@ func (s *Snapshot) cloneForProgram(
 	oldProject *Project,
 	fileChanges FileChangeSummary,
 	sessionLogger logging.Logger,
+	sourceFiles []*ast.SourceFile,
 ) *Snapshot {
 	store := s.host
 	var logger *logging.LogTree
@@ -144,10 +145,25 @@ func (s *Snapshot) cloneForProgram(
 		fileSystem = store.fs
 	}
 	previousOverlays := s.overlays()
-	layeredFS := layerOverlayFileSystem(fileSystem, previousOverlays, store.options.PositionEncoding, store.toPath)
+	programOverlays := previousOverlays
+	if len(sourceFiles) > 0 {
+		programOverlays = maps.Clone(previousOverlays)
+		if programOverlays == nil {
+			programOverlays = make(map[tspath.Path]*Overlay)
+		}
+		for _, file := range sourceFiles {
+			programOverlays[file.Path()] = newOverlay(file.FileName(), file.Text(), 0, file.ScriptKind)
+		}
+	}
+	layeredFS := layerOverlayFileSystem(fileSystem, programOverlays, store.options.PositionEncoding, store.toPath)
 	overlays := layeredFS.Overlays()
 	fs := newSnapshotFSBuilderFromSource(layeredFS, s.fs.cacheFiles, s.fs.cacheDirectories, s.fs.nodeModulesRealpathAliases, store.toPath)
 	fileChanges = s.processFileChanges(fs, fileChanges, logger, nil, previousOverlays, overlays)
+	for _, file := range sourceFiles {
+		uri := lsconv.FileNameToDocumentURI(file.FileName())
+		fileChanges.Created.Add(uri)
+		fileChanges.Changed.Add(uri)
+	}
 
 	newSnapshotID := store.nextSnapshotID()
 	projectCollectionBuilder := newProjectCollectionBuilder(

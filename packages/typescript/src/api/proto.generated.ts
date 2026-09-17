@@ -275,6 +275,7 @@ export interface UpdateTemporarySnapshotParams {
 }
 
 export interface CreateProgramParams {
+    sourceFiles?: readonly number[] | undefined;
     rootFiles: readonly DocumentIdentifier[] | null;
     createProgramOptions: CreateProgramOptions;
     oldProgram?: CreateProgramOldProgramParams | undefined;
@@ -320,6 +321,11 @@ export interface ParseConfigFileParams {
 }
 
 export interface CreateSourceFileParams {
+    /**
+     * SourceFileID is an optional client-allocated, session-local retention handle.
+     * A nonzero handle must be unique and remains valid until the session closes.
+     */
+    sourceFileId?: number | undefined;
     fileName: string;
     sourceTextBase64: string;
     options: CreateSourceFileOptions;
@@ -335,6 +341,7 @@ export interface SourceFileResponse {
 }
 
 export interface CreateSourceFileFromFileParams {
+    sourceFileId?: number | undefined;
     fileName: string;
     options: CreateSourceFileOptions;
 }
