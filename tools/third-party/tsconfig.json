@@ -1,0 +1,7 @@
+{
+    "extends": "../scripts/tsc/tsconfig.json",
+    "compilerOptions": {
+        "strict": true
+    },
+    "include": ["*.mts"]
+}

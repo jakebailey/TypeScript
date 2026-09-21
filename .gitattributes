@@ -2,3 +2,4 @@
 **/*.json linguist-language=jsonc
 * -text
 *.go text eol=lf
+tools/third-party/generated/** linguist-generated=true

@@ -289,6 +289,7 @@ jobs:
       - run: node ./tsc/internal/lsp/lsproto/_generate/fetchModel.mts
       - run: node ./tsc/internal/lsp/lsproto/_generate/generate.mts
       - run: npx hereby generate:extension
+      - run: npx hereby generate:third-party
       - run: npx hereby check:scripts
       - run: git add .
       - run: git diff --staged --exit-code --stat

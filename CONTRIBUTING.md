@@ -117,6 +117,16 @@ npm run -w @typescript/typescript test
 npm run -w native-preview build
 ```
 
+## Third-party attribution
+
+```bash
+npx hereby update:third-party    # Refresh the inventory and both outputs (requires network access and uv)
+npx hereby generate:third-party  # Generate NOTICE and the manifest from that inventory (offline)
+```
+
+Commit the inventory and generated outputs together.
+See the [third-party attribution guide](tools/third-party/README.md) for inputs and discovery rules.
+
 ## Compiler tests
 
 New compiler tests live in `tsc/testdata/tests/cases/compiler/`. Generated

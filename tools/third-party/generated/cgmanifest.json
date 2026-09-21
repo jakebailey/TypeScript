@@ -1,0 +1,234 @@
+{
+    "$schema": "https://json.schemastore.org/component-detection-manifest.json",
+    "version": 1,
+    "registrations": [
+        {
+            "component": {
+                "type": "git",
+                "git": {
+                    "repositoryUrl": "https://github.com/microsoft/TypeScript-DOM-lib-generator",
+                    "commitHash": "1d230d1fe6df91dcbf880163748ef161040c400a"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "Apache-2.0",
+                "CC-BY-SA-2.5 AND (LicenseRef-scancode-public-domain AND CC0-1.0) AND MIT"
+            ]
+        },
+        {
+            "component": {
+                "type": "git",
+                "git": {
+                    "repositoryUrl": "https://github.com/parcel-bundler/watcher",
+                    "commitHash": "8926bb8b281733bbfcaf69bb4e62ab7a1431c42a",
+                    "tag": "v2.5.6"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "MIT"
+            ]
+        },
+        {
+            "component": {
+                "type": "go",
+                "go": {
+                    "name": "github.com/Microsoft/go-winio",
+                    "version": "v0.6.2"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "MIT"
+            ]
+        },
+        {
+            "component": {
+                "type": "go",
+                "go": {
+                    "name": "github.com/klauspost/cpuid/v2",
+                    "version": "v2.2.10"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "MIT"
+            ]
+        },
+        {
+            "component": {
+                "type": "go",
+                "go": {
+                    "name": "github.com/mackerelio/go-osstat",
+                    "version": "v0.2.8"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "Apache-2.0"
+            ]
+        },
+        {
+            "component": {
+                "type": "go",
+                "go": {
+                    "name": "github.com/zeebo/xxh3",
+                    "version": "v1.1.0"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "BSD-2-Clause"
+            ]
+        },
+        {
+            "component": {
+                "type": "go",
+                "go": {
+                    "name": "golang.org/x/sync",
+                    "version": "v0.23.0"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "BSD-3-Clause",
+                "LicenseRef-scancode-google-patent-license-golang"
+            ]
+        },
+        {
+            "component": {
+                "type": "go",
+                "go": {
+                    "name": "golang.org/x/sys",
+                    "version": "v0.48.0"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "BSD-3-Clause",
+                "LicenseRef-scancode-google-patent-license-golang"
+            ]
+        },
+        {
+            "component": {
+                "type": "go",
+                "go": {
+                    "name": "golang.org/x/term",
+                    "version": "v0.46.0"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "BSD-3-Clause",
+                "LicenseRef-scancode-google-patent-license-golang"
+            ]
+        },
+        {
+            "component": {
+                "type": "go",
+                "go": {
+                    "name": "golang.org/x/text",
+                    "version": "v0.42.0"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "BSD-3-Clause",
+                "LicenseRef-scancode-google-patent-license-golang"
+            ]
+        },
+        {
+            "component": {
+                "type": "npm",
+                "npm": {
+                    "name": "@mdn/browser-compat-data",
+                    "version": "7.3.2"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "CC0-1.0"
+            ]
+        },
+        {
+            "component": {
+                "type": "npm",
+                "npm": {
+                    "name": "@unicode/unicode-15.1.0",
+                    "version": "1.6.17"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "MIT",
+                "Unicode-3.0"
+            ]
+        },
+        {
+            "component": {
+                "type": "npm",
+                "npm": {
+                    "name": "@webref/css",
+                    "version": "8.2.6"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "MIT"
+            ]
+        },
+        {
+            "component": {
+                "type": "npm",
+                "npm": {
+                    "name": "@webref/elements",
+                    "version": "2.6.1"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "MIT"
+            ]
+        },
+        {
+            "component": {
+                "type": "npm",
+                "npm": {
+                    "name": "@webref/events",
+                    "version": "1.20.2"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "MIT"
+            ]
+        },
+        {
+            "component": {
+                "type": "npm",
+                "npm": {
+                    "name": "@webref/idl",
+                    "version": "3.73.0"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "MIT"
+            ]
+        },
+        {
+            "component": {
+                "type": "npm",
+                "npm": {
+                    "name": "vscode-jsonrpc",
+                    "version": "9.0.2"
+                }
+            },
+            "developmentDependency": false,
+            "licensesConcluded": [
+                "MIT"
+            ]
+        }
+    ]
+}

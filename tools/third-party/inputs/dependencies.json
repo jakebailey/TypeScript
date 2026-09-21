@@ -1,0 +1,10 @@
+{
+    "domGenerator": "1d230d1fe6df91dcbf880163748ef161040c400a",
+    "copied": [
+        {
+            "repositoryUrl": "https://github.com/parcel-bundler/watcher",
+            "commitHash": "8926bb8b281733bbfcaf69bb4e62ab7a1431c42a",
+            "tag": "v2.5.6"
+        }
+    ]
+}

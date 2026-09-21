@@ -378,6 +378,29 @@ export const generate = task({
     run: runGenerate,
 });
 
+async function runGenerateThirdParty() {
+    await run("node", ["./tools/third-party/update.mts", "--check"]);
+    await run("node", ["./tools/third-party/generate.mts"]);
+}
+
+export const generateThirdParty = task({
+    name: "generate:third-party",
+    description: "Generates NOTICE and the dependency manifest from the checked-in inventory, offline.",
+    run: runGenerateThirdParty,
+});
+
+export const updateThirdParty = task({
+    name: "update:third-party",
+    description: "Refreshes the third-party inventory and regenerates NOTICE and the dependency manifest.",
+    run: async () => {
+        await run("node", [
+            "./tools/third-party/update.mts",
+            ...platforms.map(({ os, arch }) => `--target=${nodeToGOOS(os)}/${nodeToGOARCH(arch, os)}`),
+        ]);
+        await runGenerateThirdParty();
+    },
+});
+
 async function runGenerateExtension() {
     return await run("npm", ["run", "-w", "native-preview", "generateLocBundle"]);
 }
@@ -1429,6 +1452,7 @@ export const validate = task({
         if (options.all) {
             await runGenerateExtension();
             await runGenerateVendor();
+            await runGenerateThirdParty();
             await runValidation("test:benchmarks", runTestBenchmarks);
             await runValidation("test:tools", runTestTools);
             await runValidation("test:smoke", runSmokeTest); // in CI this is run with `--race`
@@ -1529,6 +1553,7 @@ export const checkVsceVersion = task({
 const scriptTsconfigs = [
     "./tools/scripts/tsc/tsconfig.json",
     "./tsc/internal/lsp/lsproto/_generate/tsconfig.json",
+    "./tools/third-party/tsconfig.json",
 ];
 
 export const checkScripts = task({
@@ -2448,7 +2473,7 @@ async function runBuildNativePreviewPackages() {
     const inputPackageJson = JSON.parse(fs.readFileSync(path.join(inputDir, "package.json"), "utf8"));
     inputPackageJson.version = getVersion();
     delete inputPackageJson.private;
-    inputPackageJson.files = [...new Set([...(inputPackageJson.files ?? []), "NOTICE.txt"])];
+    inputPackageJson.files = [...new Set([...(inputPackageJson.files ?? []), "NOTICE.txt", "cgmanifest.json"])];
     if (publishAsTypescript) {
         inputPackageJson.bin = {
             tsc: "./bin/tsc",
@@ -2504,7 +2529,8 @@ async function runBuildNativePreviewPackages() {
 
     await fs.promises.writeFile(path.join(mainPackageDir, "package.json"), JSON.stringify(mainPackage, undefined, 4));
     await fs.promises.copyFile("LICENSE.txt", path.join(mainPackageDir, "LICENSE"));
-    await fs.promises.copyFile("NOTICE.txt", path.join(mainPackageDir, "NOTICE.txt"));
+    await fs.promises.copyFile("tools/third-party/generated/NOTICE.txt", path.join(mainPackageDir, "NOTICE.txt"));
+    await fs.promises.copyFile("tools/third-party/generated/cgmanifest.json", path.join(mainPackageDir, "cgmanifest.json"));
 
     // Build JS API and copy dist into the package.
     await run("npm", ["run", "-w", "@typescript/typescript", "build"]);
@@ -2542,7 +2568,7 @@ async function runBuildNativePreviewPackages() {
         const packageJson = {
             ...inputPackageJson,
             bin: undefined,
-            files: ["lib", "NOTICE.txt"],
+            files: ["lib", "NOTICE.txt", "cgmanifest.json"],
             imports: undefined,
             dependencies: undefined,
             name: npmPackageName,
@@ -2557,7 +2583,8 @@ async function runBuildNativePreviewPackages() {
         await fs.promises.mkdir(out, { recursive: true });
         await fs.promises.writeFile(path.join(npmDir, "package.json"), JSON.stringify(packageJson, undefined, 4));
         await fs.promises.copyFile("LICENSE.txt", path.join(npmDir, "LICENSE"));
-        await fs.promises.copyFile("NOTICE.txt", path.join(npmDir, "NOTICE.txt"));
+        await fs.promises.copyFile("tools/third-party/generated/NOTICE.txt", path.join(npmDir, "NOTICE.txt"));
+        await fs.promises.copyFile("tools/third-party/generated/cgmanifest.json", path.join(npmDir, "cgmanifest.json"));
 
         const readme = [
             `# \`${npmPackageName}\``,
@@ -3012,7 +3039,7 @@ async function runPackVsixExtensions() {
         packageJson.bundledTypeScriptVersion = usePublishedPlatformPackagesForVsix ? getPublishedTypeScriptVersion() : getVersion();
         fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, undefined, 4));
 
-        await fs.promises.copyFile("NOTICE.txt", path.join(thisExtensionDir, "NOTICE.txt"));
+        await fs.promises.copyFile("tools/third-party/generated/NOTICE.txt", path.join(thisExtensionDir, "NOTICE.txt"));
 
         await run("vsce", ["package", version, "--no-update-package-json", "--no-dependencies", "--out", vsixPath, "--target", vscodeTarget], {
             cwd: thisExtensionDir,

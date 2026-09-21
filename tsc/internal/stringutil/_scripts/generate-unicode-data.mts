@@ -8,8 +8,8 @@ import * as path from "path";
 // runtime used to run `go generate`. Bumping this constant (and the matching
 // devDependency in package.json) is the only step needed to move to a newer
 // Unicode version.
-const UNICODE_VERSION = "15.1.0";
-const PACKAGE = `@unicode/unicode-${UNICODE_VERSION}`;
+export const UNICODE_VERSION = "15.1.0";
+export const PACKAGE = `@unicode/unicode-${UNICODE_VERSION}`;
 
 const scriptDir = import.meta.dirname;
 const CASE_OUTPUT_PATH = path.join(scriptDir, "..", "js_case_generated.go");
@@ -244,4 +244,4 @@ async function main() {
     fs.writeFileSync(IDENTIFIER_OUTPUT_PATH, renderIdentifierFile(startTable, partTable));
 }
 
-await main();
+if (process.argv[1] === import.meta.filename) await main();
