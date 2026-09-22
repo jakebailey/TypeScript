@@ -252,6 +252,11 @@ type benchmarkWatchFS struct {
 	comparerQueries int
 }
 
+func (f *benchmarkWatchFS) RealpathWithParent(path string, realpath func(string) string) string {
+	f.leafResolves++
+	return vfs.RealpathWithParent(f.FS, path, realpath)
+}
+
 func (f *benchmarkWatchFS) Realpath(path string) string {
 	f.resolves++
 	return f.FS.Realpath(path)

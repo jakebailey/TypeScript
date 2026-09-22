@@ -126,7 +126,8 @@ func (wm *WatchManager) DrainEvents() Changes {
 }
 
 // Realpath shares watch resolution between computing subscription directories
-// and registering aliases.
+// and registering aliases. Filesystems may authoritatively resolve a leaf using
+// its cached parent; others retain their full resolver.
 func (wm *WatchManager) Realpath(name string, filesystem vfs.FS) string {
 	return wm.realpath(name, filesystem, nil)
 }
@@ -145,7 +146,9 @@ func (wm *WatchManager) realpath(name string, filesystem vfs.FS, retargeted *boo
 	if wm.resolvedPaths == nil {
 		wm.resolvedPaths = make(map[string]*resolution)
 	}
-	resolved := filesystem.Realpath(name)
+	resolved := vfs.RealpathWithParent(filesystem, name, func(parent string) string {
+		return wm.realpath(parent, filesystem, retargeted)
+	})
 	if previous == nil {
 		wm.resolvedPaths[name] = &resolution{path: resolved}
 	} else {
