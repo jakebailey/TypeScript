@@ -186,6 +186,16 @@ func (s *Snapshot) processFileChanges(
 			fs.deleteCacheEntry(entry)
 		}
 	}
+	// Request symlinks can expose an overlay under a name that is not itself
+	// open. Evict those cached handles even after full invalidation.
+	for uri := range fileChanges.Changed.Keys() {
+		path := fs.toPath(uri.FileName())
+		if entry, ok := fs.cacheFiles.Load(path); ok {
+			if file := fs.fs.GetFileByPath(uri.FileName(), path); file != nil && file.IsOverlay() {
+				fs.deleteCacheEntry(entry)
+			}
+		}
+	}
 	return fileChanges
 }
 

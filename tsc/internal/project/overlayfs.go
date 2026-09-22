@@ -223,6 +223,13 @@ func (fs *overlayFS) Overlays() map[tspath.Path]*Overlay {
 	return fs.overlays
 }
 
+func (fs *overlayFS) ExpandFileChanges(change FileChangeSummary) FileChangeSummary {
+	if expander, ok := fs.host.(FileChangeExpander); ok {
+		return expander.ExpandFileChanges(change)
+	}
+	return change
+}
+
 func layerOverlayFileSystem(fileSystem vfs.FS, overlays map[tspath.Path]*Overlay, positionEncoding lsproto.PositionEncodingKind, toPath func(string) tspath.Path) LayeredFileSystem {
 	base := fileSystem
 	var layer RebasableFileSystem
