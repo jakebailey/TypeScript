@@ -25,6 +25,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs/vfsmatch"
+	"github.com/microsoft/TypeScript/tsc/internal/watchalias"
 )
 
 type Snapshot struct {
@@ -48,6 +49,8 @@ type Snapshot struct {
 	contentMapperWatchStateOnce            sync.Once
 	contentMapperExtensions                []string
 	contentMapperWatchedFiles              *collections.Set[tspath.Path]
+	watchAliases                           *watchalias.Index
+	watchAliasesError                      error
 
 	builderLogs *logging.LogTree
 	apiError    error
@@ -138,19 +141,41 @@ func (s *Snapshot) processFileChanges(
 	previousOverlays map[tspath.Path]*Overlay,
 	overlays map[tspath.Path]*Overlay,
 ) FileChangeSummary {
+	contentOnly := s.watchAliasChangesAreContentOnly(fileChanges, overlays)
 	if expander, ok := fs.fs.(FileChangeExpander); ok {
 		fileChanges = expander.ExpandFileChanges(fileChanges)
+	}
+	var affected []string
+	fileChanges, affected = s.matchWatchChanges(fileChanges)
+	if !contentOnly {
+		for _, name := range affected {
+			path := s.host.toPath(name)
+			if entry, ok := fs.cacheFiles.Load(path); ok && entry.Value() != nil {
+				if fs.recordRealpathAlias(entry, name, path) {
+					// A new target may contain identical text but resolve its
+					// imports or configuration differently.
+					fileChanges.InvalidateAll = true
+				}
+			}
+		}
 	}
 	previousOpenFiles := overlayFileHandles(previousOverlays)
 	openFiles := overlayFileHandles(overlays)
 	if fileChanges.HasExcessiveWatchEvents() {
 		invalidateStart := time.Now()
 		if fileChanges.InvalidateAll {
+			fs.cacheFiles.Range(func(entry *dirty.SyncMapEntry[tspath.Path, *cachedFile]) bool {
+				file := entry.Value()
+				if file != nil && (file.realpathName != "" || isNodeModulesPath(entry.Key())) {
+					fs.recordRealpathAlias(entry, file.FileName(), entry.Key())
+				}
+				return true
+			})
 			fs.invalidateCache()
 			if logger != nil {
 				logger.Logf("InvalidateAll: invalidated file cache in %v", time.Since(invalidateStart))
 			}
-		} else if !fs.watchChangesOverlapCache(fileChanges, previousOpenFiles, openFiles) {
+		} else if !fs.watchChangesOverlapCache(fileChanges, previousOpenFiles, openFiles) && !s.watchChangesOverlapProjectState(fileChanges) {
 			// All watch changes/deletes are files we haven't seen; should be irrelevant to us (probably an external tool's build or something)
 			fileChanges.Changed = collections.Set[lsproto.DocumentUri]{}
 			fileChanges.Deleted = collections.Set[lsproto.DocumentUri]{}
@@ -177,7 +202,6 @@ func (s *Snapshot) processFileChanges(
 		}
 		_, contentMapperWatchedFiles := s.contentMapperWatchState()
 		fileChanges = fs.expandAndFilterWatchEvents(fileChanges, contentMapperExtensions, contentMapperWatchedFiles, previousOpenFiles, openFiles)
-		fileChanges = s.fs.expandRealpathAliases(fileChanges)
 		fileChanges = fs.markDirtyFiles(fileChanges)
 		fileChanges = fs.convertOpenAndCloseToChanges(fileChanges, previousOpenFiles, openFiles)
 	}
@@ -186,6 +210,7 @@ func (s *Snapshot) processFileChanges(
 			fs.deleteCacheEntry(entry)
 		}
 	}
+	fileChanges.preparedWatchChanges = nil
 	return fileChanges
 }
 
@@ -494,7 +519,7 @@ func (s *Snapshot) Clone(
 	}
 	layeredFS := layerOverlayFileSystem(baseFS, overlays, store.options.PositionEncoding, store.toPath)
 	overlays = layeredFS.Overlays()
-	fs := newSnapshotFSBuilderFromSource(layeredFS, s.fs.cacheFiles, s.fs.cacheDirectories, s.fs.nodeModulesRealpathAliases, store.toPath)
+	fs := newSnapshotFSBuilderFromSource(layeredFS, s.fs.cacheFiles, s.fs.cacheDirectories, s.fs.realpathFiles, store.toPath)
 	change.fileChanges = s.processFileChanges(fs, change.fileChanges, logger, change.contentMapperContributions, s.overlays(), overlays)
 
 	compilerOptionsForInferredProjects := s.compilerOptionsForInferredProjects
@@ -703,6 +728,7 @@ func (s *Snapshot) Clone(
 	autoImportHost.Dispose()
 
 	logger.Logf("Finished cloning snapshot %d into snapshot %d in %v", s.id, newSnapshot.id, time.Since(start))
+	newSnapshot.initializeWatchAliases(sessionLogger)
 	return newSnapshot
 }
 
