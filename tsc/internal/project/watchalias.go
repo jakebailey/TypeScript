@@ -39,7 +39,7 @@ func (s *Snapshot) initializeWatchAliases(logger logging.Logger) {
 		}
 		return true
 	}
-	for registration := range s.watchRegistrations() {
+	for registration := range s.watchRegistrations(nil) {
 		registration.Name = s.normalizeWatchAliasName(registration.Name)
 		if registration.Name == "" {
 			continue
@@ -92,7 +92,9 @@ func (s *Snapshot) normalizeWatchAliasName(name string) string {
 	return name
 }
 
-func (s *Snapshot) watchRegistrations() iter.Seq[watchalias.Registration] {
+// Registration and reuse observe the same facts. Already-shared source lookup
+// collections need not be traversed again during an overlay-only edit.
+func (s *Snapshot) watchRegistrations(previous *Snapshot) iter.Seq[watchalias.Registration] {
 	return func(yield func(watchalias.Registration) bool) {
 		native := s.nativeWatchAliasesEnabled()
 		for _, file := range s.fs.cacheFiles {
@@ -129,12 +131,18 @@ func (s *Snapshot) watchRegistrations() iter.Seq[watchalias.Registration] {
 			}
 		}
 		for _, project := range s.ProjectCollection.Projects() {
+			var old *sourceFS
+			if previous != nil {
+				if p := previous.ProjectCollection.GetProject(project.ID()); p != nil && p.host != nil {
+					old = p.host.sourceFS
+				}
+			}
 			if project.host != nil {
 				for _, names := range []*collections.SyncMap[tspath.Path, string]{
 					project.host.sourceFS.seenFiles,
 					project.host.sourceFS.missingDirectories,
 				} {
-					if names != nil {
+					if names != nil && (old == nil || names != old.seenFiles && names != old.missingDirectories) {
 						more := true
 						names.Range(func(_ tspath.Path, value string) bool {
 							more = name(value)
@@ -182,6 +190,31 @@ func (s *Snapshot) watchAliasChangesAreContentOnly(change FileChangeSummary, ove
 		previous, next := s.overlays()[path], overlays[path]
 		if previous == nil || next == nil || previous == next {
 			return false
+		}
+	}
+	return true
+}
+
+func (s *Snapshot) initializeWatchAliasesFrom(previous *Snapshot, contentOnly bool, logger logging.Logger) {
+	if !s.nativeWatchAliasesEnabled() && s.fs.realpathFiles == 0 {
+		return
+	}
+	if contentOnly && previous.watchAliasesError == nil && previous.watchAliases != nil &&
+		s.nativeWatchAliasesEnabled() == previous.nativeWatchAliasesEnabled() && s.canReuseWatchAliases(previous) {
+		s.watchAliases = previous.watchAliases
+		return
+	}
+	s.initializeWatchAliases(logger)
+}
+
+// Surplus immutable coverage supplies candidates, never live project membership.
+func (s *Snapshot) canReuseWatchAliases(previous *Snapshot) bool {
+	for registration := range s.watchRegistrations(previous) {
+		if !previous.watchAliases.Covers(registration) {
+			registration.Name = s.normalizeWatchAliasName(registration.Name)
+			if registration.Name != "" && !previous.watchAliases.Covers(registration) {
+				return false
+			}
 		}
 	}
 	return true

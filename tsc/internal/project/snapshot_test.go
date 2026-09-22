@@ -585,6 +585,118 @@ func cloneSnapshotWithOverlay(base *Snapshot, uri lsproto.DocumentUri, text stri
 	return snapshot, snapshot.apiError
 }
 
+func TestWatchAliasSnapshotReuse(t *testing.T) {
+	t.Parallel()
+	disk := vfstest.FromMap(map[string]string{
+		"/src/tsconfig.json": `{"compilerOptions":{"noLib":true,"types":[]},"files":["main.ts"]}`,
+		"/src/main.ts":       "export const value = 1;",
+		"/src/other.ts":      "export const other = 1;",
+	}, true)
+	fs := &failingWatchComparerFS{FS: disk}
+	host := NewSnapshotHost(&SessionInit{FS: fs, Options: &SessionOptions{CurrentDirectory: "/src", WatchEnabled: true}})
+	defer host.Close()
+	root := host.NewRootSnapshot()
+	defer root.Deref()
+	snapshot, err := host.CloneSnapshot(context.Background(), root, FileChangeSummary{}, &APISnapshotRequest{
+		OpenProjects: collections.NewSetFromItems("/src/tsconfig.json"),
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer func() { snapshot.Deref() }()
+	opened, err := cloneSnapshotWithOverlay(snapshot, "file:///src/main.ts", "export const value = 1;")
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshot.Deref()
+	snapshot = opened
+	for range 3 {
+		calls, aliases := fs.calls, snapshot.watchAliases
+		next, cloneErr := cloneSnapshotWithOverlay(snapshot, "file:///src/main.ts", "export const value = 2;")
+		if cloneErr != nil {
+			t.Fatal(cloneErr)
+		}
+		snapshot.Deref()
+		snapshot = next
+		if fs.calls != calls || snapshot.watchAliases != aliases {
+			t.Fatalf("content edit rebuilt immutable aliases: comparer queries %d -> %d", calls, fs.calls)
+		}
+	}
+	for _, name := range []lsproto.DocumentUri{"file:///unrelated/ignored", "file:///src/main.ts", "file:///src/node_modules/ignored"} {
+		calls, aliases := fs.calls, snapshot.watchAliases
+		var changes FileChangeSummary
+		changes.Changed.Add(name)
+		next, cloneErr := host.CloneSnapshot(context.Background(), snapshot, changes, nil)
+		if cloneErr != nil {
+			t.Fatal(cloneErr)
+		}
+		snapshot.Deref()
+		snapshot = next
+		if fs.calls == calls || snapshot.watchAliases == aliases {
+			t.Fatalf("filesystem change %s reused aliases after filtering", name)
+		}
+	}
+	calls, aliases := fs.calls, snapshot.watchAliases
+	next, err := cloneSnapshotWithOverlay(snapshot, "file:///src/main.ts", `import "./other"; export const value = 3;`)
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshot.Deref()
+	snapshot = next
+	if fs.calls == calls || aliases == snapshot.watchAliases {
+		t.Fatal("new import names reused aliases")
+	}
+	if snapshot.ProjectCollection.ConfiguredProject(host.toPath("/src/tsconfig.json")).Program.GetSourceFile("/src/other.ts") == nil {
+		t.Fatal("new import was not loaded")
+	}
+	calls, aliases = fs.calls, snapshot.watchAliases
+	next, err = cloneSnapshotWithOverlay(snapshot, "file:///src/main.ts", "export const value = 4;")
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshot.Deref()
+	snapshot = next
+	if fs.calls != calls || aliases != snapshot.watchAliases {
+		t.Fatal("removing an import needlessly rebuilt immutable alias coverage")
+	}
+	if snapshot.ProjectCollection.ConfiguredProject(host.toPath("/src/tsconfig.json")).Program.GetSourceFile("/src/other.ts") != nil {
+		t.Fatal("alias reuse retained a removed import in the program")
+	}
+	if err = disk.WriteFile("/src/other.ts", "export const other = 2;"); err != nil {
+		t.Fatal(err)
+	}
+	var removedDependencyChange FileChangeSummary
+	removedDependencyChange.Changed.Add("file:///src/other.ts")
+	next, err = host.CloneSnapshot(context.Background(), snapshot, removedDependencyChange, &APISnapshotRequest{EnsureAllPrograms: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshot.Deref()
+	snapshot = next
+	program := snapshot.ProjectCollection.ConfiguredProject(host.toPath("/src/tsconfig.json")).Program
+	if program.GetSourceFile("/src/other.ts") != nil || program.GetSourceFile("/src/main.ts").Text() != "export const value = 4;" {
+		t.Fatal("notification for surplus alias coverage changed live sources")
+	}
+	if snapshot.watchAliases == aliases {
+		t.Fatal("filesystem notification did not rebuild alias coverage")
+	}
+	calls, aliases = fs.calls, snapshot.watchAliases
+	if err = disk.WriteFile("/src/tsconfig.json", `{"compilerOptions":{"noLib":true,"types":[]},"include":["*.ts"]}`); err != nil {
+		t.Fatal(err)
+	}
+	var configChange FileChangeSummary
+	configChange.Changed.Add("file:///src/tsconfig.json")
+	next, err = host.CloneSnapshot(context.Background(), snapshot, configChange, &APISnapshotRequest{EnsureAllPrograms: true})
+	if err != nil {
+		t.Fatal(err)
+	}
+	snapshot.Deref()
+	snapshot = next
+	if fs.calls == calls || aliases == snapshot.watchAliases {
+		t.Fatal("config change reused aliases")
+	}
+}
+
 func TestWatchAliasesSnapshotFilesystem(t *testing.T) {
 	t.Parallel()
 	for _, program := range []bool{false, true} {
@@ -641,6 +753,50 @@ func TestWatchAliasesSnapshotFilesystem(t *testing.T) {
 				assert.Equal(t, file.realpathName, "/host/node_modules/pkg/index.d.ts")
 			})
 		}
+	}
+}
+
+func TestWatchAliasProgramCloneReuse(t *testing.T) {
+	t.Parallel()
+	fs := &failingWatchComparerFS{FS: vfstest.FromMap(map[string]string{
+		"/src/s.ts": "export const s = 1;",
+		"/src/ſ.ts": "export const longS = 1;",
+	}, true)}
+	host := NewSnapshotHost(&SessionInit{FS: fs, Options: &SessionOptions{CurrentDirectory: "/src", WatchEnabled: true}})
+	defer host.Close()
+	root := host.NewRootSnapshot()
+	defer root.Deref()
+	options := &core.CompilerOptions{NoLib: core.TSTrue, Types: []string{}}
+	snapshot, err := host.CloneSnapshot(context.Background(), root, FileChangeSummary{}, &APISnapshotRequest{
+		CreatePrograms: []*APICreateProgramRequest{{RootFileNames: []string{"/src/s.ts"}, CompilerOptions: options}},
+	})
+	assert.NilError(t, err)
+	defer snapshot.Deref()
+	programID, ok := snapshot.CreatedPrograms()[0].ID().Synthetic()
+	assert.Assert(t, ok)
+	calls := fs.calls
+	next, err := host.CloneSnapshot(context.Background(), snapshot, FileChangeSummary{}, &APISnapshotRequest{
+		ReconfigurePrograms: []*APIReconfigureProgramRequest{{
+			ProgramID: programID, RootFileNames: []string{"/src/s.ts"}, CompilerOptions: options,
+		}},
+	})
+	assert.NilError(t, err)
+	defer next.Deref()
+	if snapshot.watchAliases != next.watchAliases || calls != fs.calls {
+		t.Fatal("unchanged createProgram rebuilt alias inputs")
+	}
+	last, err := host.CloneSnapshot(context.Background(), next, FileChangeSummary{}, &APISnapshotRequest{
+		ReconfigurePrograms: []*APIReconfigureProgramRequest{{
+			ProgramID: programID, RootFileNames: []string{"/src/s.ts", "/src/ſ.ts"}, CompilerOptions: options,
+		}},
+	})
+	assert.NilError(t, err)
+	defer last.Deref()
+	if last.watchAliases == next.watchAliases || calls == fs.calls {
+		t.Fatal("new original root name reused aliases")
+	}
+	if len(last.ProjectCollection.SyntheticProjects()[0].Program.GetSourceFiles()) != 2 {
+		t.Fatal("distinct s and long-s root identities collapsed")
 	}
 }
 
@@ -752,11 +908,18 @@ func TestWatchAliasRealpathStateReuseAndRefresh(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer opened.Deref()
+	calls := fs.realpaths.Load()
 	edited, err := cloneSnapshotWithOverlay(opened, "file:///var/project/main.ts", `import { value } from "pkg"; export { value }; // edited`)
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer edited.Deref()
+	if calls != fs.realpaths.Load() {
+		t.Fatalf("content edit repeated realpath queries: %d -> %d", calls, fs.realpaths.Load())
+	}
+	if edited.watchAliases != opened.watchAliases {
+		t.Fatal("content edit rebuilt immutable physical aliases")
+	}
 	if !slices.Contains(edited.watchNames("/var/project/node_modules/pkg"), "/packages/one") {
 		t.Fatal("edit lost known package realpath")
 	}

@@ -517,6 +517,7 @@ func (s *Snapshot) Clone(
 	if change.replaceFileSystem || s.fileSystemOverride && !change.fileSystemOverride {
 		change.fileChanges.InvalidateAll = true
 	}
+	reuseWatchAliases := !change.fileSystemOverride && !s.fileSystemOverride && s.watchAliasChangesAreContentOnly(change.fileChanges, overlays)
 	layeredFS := layerOverlayFileSystem(baseFS, overlays, store.options.PositionEncoding, store.toPath)
 	overlays = layeredFS.Overlays()
 	fs := newSnapshotFSBuilderFromSource(layeredFS, s.fs.cacheFiles, s.fs.cacheDirectories, s.fs.realpathFiles, store.toPath)
@@ -728,7 +729,7 @@ func (s *Snapshot) Clone(
 	autoImportHost.Dispose()
 
 	logger.Logf("Finished cloning snapshot %d into snapshot %d in %v", s.id, newSnapshot.id, time.Since(start))
-	newSnapshot.initializeWatchAliases(sessionLogger)
+	newSnapshot.initializeWatchAliasesFrom(s, reuseWatchAliases, sessionLogger)
 	return newSnapshot
 }
 
