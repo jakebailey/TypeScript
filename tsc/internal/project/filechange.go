@@ -53,6 +53,8 @@ type FileChangeSummary struct {
 	IncludesWatchChangeOutsideNodeModules bool
 	// InvalidateAll indicates that all cached file state should be discarded.
 	InvalidateAll bool
+	// hasWatchChanges marks Session summaries with watch spellings expanded before coalescing.
+	hasWatchChanges bool
 }
 
 func (f FileChangeSummary) Clone() FileChangeSummary {
@@ -95,4 +97,5 @@ func mergeFileChangeSummary(dst *FileChangeSummary, src FileChangeSummary) {
 	if src.IncludesWatchChangeOutsideNodeModules {
 		dst.IncludesWatchChangeOutsideNodeModules = true
 	}
+	dst.hasWatchChanges = dst.hasWatchChanges || src.hasWatchChanges
 }

@@ -157,7 +157,7 @@ type Project struct {
 	// Only set before actually loading config file to get actual project references
 	potentialProjectReferences *collections.Set[tspath.Path]
 
-	programFilesWatch         *WatchedFiles[*collections.SyncSet[tspath.Path]]
+	programFilesWatch         *WatchedFiles[*collections.SyncMap[tspath.Path, string]]
 	typingsWatch              *WatchedFiles[PatternsAndIgnored]
 	contentMapperWatch        *WatchedFiles[[]string]
 	contentMapperWatchedFiles *collections.Set[tspath.Path]
@@ -568,7 +568,7 @@ func (p *Project) CreateProgram() CreateProgramResult {
 	}
 }
 
-func (p *Project) CloneWatchers() *WatchedFiles[*collections.SyncSet[tspath.Path]] {
+func (p *Project) CloneWatchers() *WatchedFiles[*collections.SyncMap[tspath.Path, string]] {
 	return p.programFilesWatch.Clone(p.host.sourceFS.seenFiles)
 }
 

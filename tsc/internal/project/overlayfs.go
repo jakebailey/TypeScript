@@ -77,6 +77,7 @@ type cachedFile struct {
 	fileBase
 	needsReload  bool
 	realpathPath tspath.Path
+	realpathName string
 }
 
 func newCachedFile(fileName string, content string) *cachedFile {
@@ -112,6 +113,7 @@ func (f *cachedFile) Kind() core.ScriptKind {
 func (f *cachedFile) Clone() *cachedFile {
 	return &cachedFile{
 		realpathPath: f.realpathPath,
+		realpathName: f.realpathName,
 		fileName:     f.fileName,
 		content:      f.content,
 		hash:         f.hash,

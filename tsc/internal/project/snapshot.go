@@ -25,6 +25,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs"
 	"github.com/microsoft/TypeScript/tsc/internal/vfs/vfsmatch"
+	"github.com/microsoft/TypeScript/tsc/internal/watchalias"
 )
 
 type Snapshot struct {
@@ -48,6 +49,9 @@ type Snapshot struct {
 	contentMapperWatchStateOnce            sync.Once
 	contentMapperExtensions                []string
 	contentMapperWatchedFiles              *collections.Set[tspath.Path]
+	nativeWatchIndexOnce                   sync.Once
+	nativeWatchIndex                       *watchalias.Index
+	nativeWatchIndexError                  error
 
 	builderLogs *logging.LogTree
 	apiError    error
@@ -141,6 +145,7 @@ func (s *Snapshot) processFileChanges(
 	if expander, ok := fs.fs.(FileChangeExpander); ok {
 		fileChanges = expander.ExpandFileChanges(fileChanges)
 	}
+	fileChanges = s.expandNativeWatchSummary(fileChanges, logger)
 	previousOpenFiles := overlayFileHandles(previousOverlays)
 	openFiles := overlayFileHandles(overlays)
 	if fileChanges.HasExcessiveWatchEvents() {
@@ -150,7 +155,7 @@ func (s *Snapshot) processFileChanges(
 			if logger != nil {
 				logger.Logf("InvalidateAll: invalidated file cache in %v", time.Since(invalidateStart))
 			}
-		} else if !fs.watchChangesOverlapCache(fileChanges, previousOpenFiles, openFiles) {
+		} else if !fs.watchChangesOverlapCache(fileChanges, previousOpenFiles, openFiles) && !s.watchChangesOverlapProjectState(fileChanges) {
 			// All watch changes/deletes are files we haven't seen; should be irrelevant to us (probably an external tool's build or something)
 			fileChanges.Changed = collections.Set[lsproto.DocumentUri]{}
 			fileChanges.Deleted = collections.Set[lsproto.DocumentUri]{}
@@ -176,8 +181,8 @@ func (s *Snapshot) processFileChanges(
 			contentMapperExtensions = append(contentMapperExtensions, contentMapperContributions.Extensions...)
 		}
 		_, contentMapperWatchedFiles := s.contentMapperWatchState()
-		fileChanges = fs.expandAndFilterWatchEvents(fileChanges, contentMapperExtensions, contentMapperWatchedFiles, previousOpenFiles, openFiles)
 		fileChanges = s.fs.expandRealpathAliases(fileChanges)
+		fileChanges = fs.expandAndFilterWatchEvents(fileChanges, contentMapperExtensions, contentMapperWatchedFiles, previousOpenFiles, openFiles)
 		fileChanges = fs.markDirtyFiles(fileChanges)
 		fileChanges = fs.convertOpenAndCloseToChanges(fileChanges, previousOpenFiles, openFiles)
 	}
