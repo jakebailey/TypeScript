@@ -440,13 +440,19 @@ func (s *Session) DidChangeWatchedFiles(ctx context.Context, changes []*lsproto.
 			Kind: kind,
 			URI:  change.Uri,
 		})
-
-		if !hasConfigChange && configFileRegistry.isTracked(s.toPath(change.Uri.FileName())) {
+	}
+	preview, err := snapshot.expandNativeWatchNotifications(fileChanges)
+	if err != nil {
+		hasRelevantChange = true
+		hasConfigChange = true
+	}
+	for _, change := range preview {
+		if !hasConfigChange && configFileRegistry.isTracked(s.toPath(change.URI.FileName())) {
 			hasConfigChange = true
 		}
 
 		if !hasRelevantChange {
-			fileName := change.Uri.FileName()
+			fileName := change.URI.FileName()
 			path := s.toPath(fileName).RemoveTrailingDirectorySeparator()
 			pathStr := string(path)
 			if contentMapperWatchedFiles.Has(path) {
@@ -458,12 +464,9 @@ func (s *Session) DidChangeWatchedFiles(ctx context.Context, changes []*lsproto.
 				// Extensionless paths might be directories.
 				// For creations/changes, we can check the file system.
 				// For deletions, consult the current snapshot cache to avoid treating extensionless file deletions as relevant.
-				if kind != FileChangeKindWatchDelete {
+				if change.Kind != FileChangeKindWatchDelete {
 					hasRelevantChange = s.fs.DirectoryExists(fileName)
 				} else {
-					s.snapshotMu.RLock()
-					snapshot := s.snapshot
-					s.snapshotMu.RUnlock()
 					if _, ok := snapshot.fs.cacheDirectories[path]; ok || snapshot.hasOverlayWithin(path) || isNodeModulesPath(path) {
 						hasRelevantChange = true
 					}
@@ -497,6 +500,8 @@ func (s *Session) DidChangeWatchedFiles(ctx context.Context, changes []*lsproto.
 }
 
 func (s *Session) DidChangeCompilerOptionsForInferredProjects(ctx context.Context, options *core.CompilerOptions) {
+	s.snapshotUpdateMu.Lock()
+	defer s.snapshotUpdateMu.Unlock()
 	s.compilerOptionsForInferredProjects = options
 	s.UpdateSnapshot(ctx, s.fs.Overlays(), SnapshotChange{
 		reason:                             UpdateReasonDidChangeCompilerOptionsForInferredProjects,
@@ -1306,6 +1311,8 @@ func (s *Session) tryAdoptSnapshotChangeInBackground(baseSnapshot, newSnapshot *
 // session has moved on, the snapshot is discarded; the next request needing
 // auto-imports will redo the work on the latest snapshot.
 func (s *Session) adoptSnapshotChange(baseSnapshot, newSnapshot *Snapshot) {
+	s.snapshotUpdateMu.Lock()
+	defer s.snapshotUpdateMu.Unlock()
 	s.snapshotMu.Lock()
 	oldSnapshot := s.snapshot
 	if oldSnapshot == baseSnapshot {
@@ -1721,7 +1728,13 @@ func (s *Session) flushChangesLocked(ctx context.Context) (FileChangeSummary, ma
 	}
 
 	start := time.Now()
-	changes, overlays := s.fs.processChanges(s.pendingFileChanges)
+	notifications, err := s.Snapshot().expandNativeWatchNotifications(s.pendingFileChanges)
+	changes, overlays := s.fs.processChanges(notifications)
+	changes.hasWatchChanges = slices.ContainsFunc(s.pendingFileChanges, func(change FileChange) bool { return change.Kind.IsWatchKind() })
+	if err != nil {
+		s.logger.Warnf("Native watch names unavailable; invalidating cached project state: %v", err)
+		changes.InvalidateAll = true
+	}
 	if s.options.LoggingEnabled {
 		s.logger.Log(fmt.Sprintf("Processed %d file changes in %v", len(s.pendingFileChanges), time.Since(start)))
 	}

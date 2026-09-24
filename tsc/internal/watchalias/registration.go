@@ -2,6 +2,7 @@ package watchalias
 
 import (
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
@@ -166,6 +167,16 @@ func (i *Index) Match(events map[string]fswatch.EventKind) Matches {
 			}
 			result.NamespaceChanged = result.NamespaceChanged || i.isDirectory(name)
 		}
+	}
+	return i.matchSubtrees(result)
+}
+
+// MatchExpanded matches subtree effects after expanded notifications have been
+// coalesced. Expanding again would resurrect canceled alias notifications.
+func (i *Index) MatchExpanded(events map[string]fswatch.EventKind) Matches {
+	result := Matches{Changes: maps.Clone(events)}
+	for name := range events {
+		result.NamespaceChanged = result.NamespaceChanged || i.isDirectory(name)
 	}
 	return i.matchSubtrees(result)
 }

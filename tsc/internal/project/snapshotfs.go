@@ -381,6 +381,7 @@ func (s *snapshotFSBuilder) recordRealpathAlias(cachedFileEntry *dirty.SyncMapEn
 	if realpathPath != symlinkPath {
 		cachedFileEntry.Change(func(file *cachedFile) {
 			file.realpathPath = realpathPath
+			file.realpathName = realpath
 		})
 		entry, _ := s.nodeModulesRealpathAliases.LoadOrStore(realpathPath, &realpathAliasSet{})
 		entry.Change(func(aliasSet *realpathAliasSet) {
@@ -769,8 +770,8 @@ func (s *snapshotFSBuilder) convertOpenAndCloseToChanges(change FileChangeSummar
 type sourceFS struct {
 	tracking           bool
 	toPath             func(fileName string) tspath.Path
-	missingDirectories *collections.SyncSet[tspath.Path]
-	seenFiles          *collections.SyncSet[tspath.Path]
+	missingDirectories *collections.SyncMap[tspath.Path, string]
+	seenFiles          *collections.SyncMap[tspath.Path, string]
 	source             FileSource
 }
 
@@ -781,8 +782,8 @@ func newSourceFS(tracking bool, source FileSource, toPath func(fileName string) 
 		source:   source,
 	}
 	if tracking {
-		fs.seenFiles = &collections.SyncSet[tspath.Path]{}
-		fs.missingDirectories = &collections.SyncSet[tspath.Path]{}
+		fs.seenFiles = &collections.SyncMap[tspath.Path, string]{}
+		fs.missingDirectories = &collections.SyncMap[tspath.Path, string]{}
 	}
 	return fs
 }
@@ -797,23 +798,24 @@ func (fs *sourceFS) Track(fileName string) {
 	if !fs.tracking {
 		return
 	}
-	fs.seenFiles.Add(fs.toPath(fileName))
+	fs.seenFiles.LoadOrStore(fs.toPath(fileName), fileName)
 }
 
 func (fs *sourceFS) SeenFile(path tspath.Path) bool {
 	if fs.seenFiles == nil {
 		return false
 	}
-	return fs.seenFiles.Has(path)
+	_, ok := fs.seenFiles.Load(path)
+	return ok
 }
 
 func (fs *sourceFS) SeenFileOrMissingParentDirectory(path tspath.Path) bool {
-	if fs.seenFiles != nil && fs.seenFiles.Has(path) {
+	if fs.SeenFile(path) {
 		return true
 	}
-	if fs.missingDirectories != nil && !fs.missingDirectories.IsEmpty() {
+	if fs.missingDirectories != nil {
 		for {
-			if fs.missingDirectories.Has(path) {
+			if _, ok := fs.missingDirectories.Load(path); ok {
 				return true
 			}
 
@@ -841,7 +843,7 @@ func (fs *sourceFS) GetFileByPath(fileName string, path tspath.Path) FileHandle 
 func (fs *sourceFS) DirectoryExists(path string) bool {
 	exists := fs.source.FS().DirectoryExists(path)
 	if !exists && fs.tracking {
-		fs.missingDirectories.Add(fs.toPath(path))
+		fs.missingDirectories.LoadOrStore(fs.toPath(path), path)
 	}
 	return exists
 }
