@@ -2995,15 +2995,19 @@ func (b *NodeBuilderImpl) getTypeFromTypeNode(node *ast.TypeNode, noMappedTypes 
 func (b *NodeBuilderImpl) typeToTypeNodeOrCircularityElision(t *Type) *ast.TypeNode {
 	if t.flags&TypeFlagsUnion != 0 {
 		if b.ctx.visitedTypes.Has(t.id) {
-			if b.ctx.flags&nodebuilder.FlagsAllowAnonymousIdentifier == 0 {
-				b.ctx.encounteredError = true
-				b.ctx.tracker.ReportCyclicStructureError()
-			}
-			return b.createElidedInformationPlaceholder()
+			return b.createCyclicStructurePlaceholder()
 		}
 		return b.visitAndTransformType(t, (*NodeBuilderImpl).typeToTypeNode)
 	}
 	return b.typeToTypeNode(t)
+}
+
+func (b *NodeBuilderImpl) createCyclicStructurePlaceholder() *ast.TypeNode {
+	if b.ctx.flags&nodebuilder.FlagsAllowAnonymousIdentifier == 0 {
+		b.ctx.encounteredError = true
+		b.ctx.tracker.ReportCyclicStructureError()
+	}
+	return b.createElidedInformationPlaceholder()
 }
 
 func (b *NodeBuilderImpl) conditionalTypeToTypeNode(_t *Type) *ast.TypeNode {
@@ -3069,6 +3073,16 @@ func (b *NodeBuilderImpl) getParentSymbolOfTypeParameter(typeParameter *TypePara
 
 func (b *NodeBuilderImpl) typeReferenceToTypeNode(t *Type) *ast.TypeNode {
 	var typeArguments []*Type = b.ch.getTypeArguments(t)
+	if b.ch.isArrayOrTupleType(t) {
+		// Use the regular type reference to detect cycles through both deferred and regular
+		// type references when expanding arrays and tuples.
+		typeId := b.ch.createTypeReference(t.Target(), typeArguments).id
+		if b.ctx.visitedTypes.Has(typeId) {
+			return b.createCyclicStructurePlaceholder()
+		}
+		b.ctx.visitedTypes.Add(typeId)
+		defer b.ctx.visitedTypes.Delete(typeId)
+	}
 	if t.Target() == b.ch.globalArrayType || t.Target() == b.ch.globalReadonlyArrayType {
 		if b.ctx.flags&nodebuilder.FlagsWriteArrayAsGenericType != 0 {
 			typeArgumentNode := b.typeToTypeNode(typeArguments[0])
