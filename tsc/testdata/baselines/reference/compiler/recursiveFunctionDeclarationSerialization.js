@@ -68,12 +68,12 @@ const invalid = arrow()()();
 
 
 //// [script.d.ts]
-declare const scriptArrow: () => () => /*elided*/ any;
-declare const scriptExpression: () => () => /*elided*/ any;
+declare const scriptArrow: () => typeof scriptArrow;
+declare const scriptExpression: () => typeof scriptExpression;
 declare function scriptDeclaration(): typeof scriptDeclaration;
 //// [exported.d.ts]
-export declare const arrow: () => () => /*elided*/ any;
-export declare const expression: () => () => /*elided*/ any;
+export declare const arrow: () => typeof arrow;
+export declare const expression: () => typeof expression;
 export declare function declaration(): typeof declaration;
 export declare const annotated: () => typeof annotated;
 export declare const first: () => typeof second;
@@ -84,7 +84,7 @@ export declare const wrapped: {
     arrow: typeof arrow;
 };
 export declare const tuple: readonly [typeof arrow];
-export declare const named: () => () => /*elided*/ any;
+export declare const named: () => typeof named;
 export declare const broad: unknown;
 export declare const contextual: () => unknown;
 export declare const specialized: (value: number) => typeof generic;

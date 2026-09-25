@@ -31,13 +31,18 @@ export const generic = <T>(value: T) => generic;
 tsgo --build consumer
 ExitStatus:: DiagnosticsPresent_OutputsGenerated
 Output::
-[96mconsumer/index.ts[0m:[93m8[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType 'true' is not assignable to type 'false'.
+[96mconsumer/index.ts[0m:[93m9[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '() => ...' is not assignable to type 'number'.
 
-[7m8[0m const notAny: false = null as unknown as IsAny<typeof result>;
-[7m [0m [91m      ~~~~~~[0m
+[7m9[0m const invalid: number = arrow()()();
+[7m [0m [91m      ~~~~~~~[0m
+
+[96mconsumer/index.ts[0m:[93m10[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '() => ...' is not assignable to type 'number'.
+
+[7m10[0m const invalidExpression: number = expression()()();
+[7m  [0m [91m      ~~~~~~~~~~~~~~~~~[0m
 
 
-Found 1 error in consumer/index.ts[90m:8[0m
+Found 2 errors in the same file, starting at: consumer/index.ts[90m:9[0m
 
 //// [/home/src/tslibs/TS/Lib/lib.es2025.full.d.ts] *Lib*
 /// <reference no-default-lib="true"/>
@@ -79,8 +84,8 @@ declare const console: { log(msg: any): void; };
   "semanticErrors": true
 }
 //// [/home/src/workspaces/project/producer/dist/index.d.ts] *new* 
-export declare const arrow: () => () => /*elided*/ any;
-export declare const expression: () => () => /*elided*/ any;
+export declare const arrow: () => typeof arrow;
+export declare const expression: () => typeof expression;
 export declare const first: () => typeof second;
 export declare const second: () => typeof first;
 export declare const generic: <T>(value: T) => typeof generic;
@@ -93,7 +98,7 @@ export const second = () => first;
 export const generic = (value) => generic;
 
 //// [/home/src/workspaces/project/producer/dist/tsconfig.tsbuildinfo] *new* 
-{"version":"FakeTSVersion","root":[2],"fileNames":["lib.es2025.full.d.ts","../index.ts"],"fileInfos":[{"version":"8859c12c614ce56ba9a18e58384a198f-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }\ninterface ReadonlyArray<T> {}\ninterface SymbolConstructor {\n    (desc?: string | number): symbol;\n    for(name: string): symbol;\n    readonly toStringTag: symbol;\n}\ndeclare var Symbol: SymbolConstructor;\ninterface Symbol {\n    readonly [Symbol.toStringTag]: string;\n}\ndeclare const console: { log(msg: any): void; };","affectsGlobalScope":true,"impliedNodeFormat":1},{"version":"9088ac80180a8a97094330bdf300e155-export const arrow = () => arrow;\nexport const expression = function self() { return self; };\nexport const first = () => second;\nexport const second = () => first;\nexport const generic = <T>(value: T) => generic;","signature":"1574ae3bf7ae10c00e30f471458aed7d-export declare const arrow: () => () => /*elided*/ any;\nexport declare const expression: () => () => /*elided*/ any;\nexport declare const first: () => typeof second;\nexport declare const second: () => typeof first;\nexport declare const generic: <T>(value: T) => typeof generic;\n","impliedNodeFormat":1}],"options":{"composite":true,"outDir":"./","strict":true},"latestChangedDtsFile":"./index.d.ts"}
+{"version":"FakeTSVersion","root":[2],"fileNames":["lib.es2025.full.d.ts","../index.ts"],"fileInfos":[{"version":"8859c12c614ce56ba9a18e58384a198f-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }\ninterface ReadonlyArray<T> {}\ninterface SymbolConstructor {\n    (desc?: string | number): symbol;\n    for(name: string): symbol;\n    readonly toStringTag: symbol;\n}\ndeclare var Symbol: SymbolConstructor;\ninterface Symbol {\n    readonly [Symbol.toStringTag]: string;\n}\ndeclare const console: { log(msg: any): void; };","affectsGlobalScope":true,"impliedNodeFormat":1},{"version":"9088ac80180a8a97094330bdf300e155-export const arrow = () => arrow;\nexport const expression = function self() { return self; };\nexport const first = () => second;\nexport const second = () => first;\nexport const generic = <T>(value: T) => generic;","signature":"616f12ff6b22d59d18c699da7c6242be-export declare const arrow: () => typeof arrow;\nexport declare const expression: () => typeof expression;\nexport declare const first: () => typeof second;\nexport declare const second: () => typeof first;\nexport declare const generic: <T>(value: T) => typeof generic;\n","impliedNodeFormat":1}],"options":{"composite":true,"outDir":"./","strict":true},"latestChangedDtsFile":"./index.d.ts"}
 //// [/home/src/workspaces/project/producer/dist/tsconfig.tsbuildinfo.readable.baseline.txt] *new* 
 {
   "version": "FakeTSVersion",
@@ -125,11 +130,11 @@ export const generic = (value) => generic;
     {
       "fileName": "../index.ts",
       "version": "9088ac80180a8a97094330bdf300e155-export const arrow = () => arrow;\nexport const expression = function self() { return self; };\nexport const first = () => second;\nexport const second = () => first;\nexport const generic = <T>(value: T) => generic;",
-      "signature": "1574ae3bf7ae10c00e30f471458aed7d-export declare const arrow: () => () => /*elided*/ any;\nexport declare const expression: () => () => /*elided*/ any;\nexport declare const first: () => typeof second;\nexport declare const second: () => typeof first;\nexport declare const generic: <T>(value: T) => typeof generic;\n",
+      "signature": "616f12ff6b22d59d18c699da7c6242be-export declare const arrow: () => typeof arrow;\nexport declare const expression: () => typeof expression;\nexport declare const first: () => typeof second;\nexport declare const second: () => typeof first;\nexport declare const generic: <T>(value: T) => typeof generic;\n",
       "impliedNodeFormat": "CommonJS",
       "original": {
         "version": "9088ac80180a8a97094330bdf300e155-export const arrow = () => arrow;\nexport const expression = function self() { return self; };\nexport const first = () => second;\nexport const second = () => first;\nexport const generic = <T>(value: T) => generic;",
-        "signature": "1574ae3bf7ae10c00e30f471458aed7d-export declare const arrow: () => () => /*elided*/ any;\nexport declare const expression: () => () => /*elided*/ any;\nexport declare const first: () => typeof second;\nexport declare const second: () => typeof first;\nexport declare const generic: <T>(value: T) => typeof generic;\n",
+        "signature": "616f12ff6b22d59d18c699da7c6242be-export declare const arrow: () => typeof arrow;\nexport declare const expression: () => typeof expression;\nexport declare const first: () => typeof second;\nexport declare const second: () => typeof first;\nexport declare const generic: <T>(value: T) => typeof generic;\n",
         "impliedNodeFormat": 1
       }
     }
@@ -140,7 +145,7 @@ export const generic = (value) => generic;
     "strict": true
   },
   "latestChangedDtsFile": "./index.d.ts",
-  "size": 1585
+  "size": 1574
 }
 
 producer/tsconfig.json::
@@ -163,13 +168,18 @@ Edit [0]:: no change
 tsgo --build consumer
 ExitStatus:: DiagnosticsPresent_OutputsGenerated
 Output::
-[96mconsumer/index.ts[0m:[93m8[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType 'true' is not assignable to type 'false'.
+[96mconsumer/index.ts[0m:[93m9[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '() => ...' is not assignable to type 'number'.
 
-[7m8[0m const notAny: false = null as unknown as IsAny<typeof result>;
-[7m [0m [91m      ~~~~~~[0m
+[7m9[0m const invalid: number = arrow()()();
+[7m [0m [91m      ~~~~~~~[0m
+
+[96mconsumer/index.ts[0m:[93m10[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '() => ...' is not assignable to type 'number'.
+
+[7m10[0m const invalidExpression: number = expression()()();
+[7m  [0m [91m      ~~~~~~~~~~~~~~~~~[0m
 
 
-Found 1 error in consumer/index.ts[90m:8[0m
+Found 2 errors in the same file, starting at: consumer/index.ts[90m:9[0m
 
 //// [/home/src/workspaces/project/consumer/tsconfig.tsbuildinfo] *rewrite with same content*
 //// [/home/src/workspaces/project/consumer/tsconfig.tsbuildinfo.readable.baseline.txt] *rewrite with same content*
@@ -195,13 +205,18 @@ export const generic = <T>(value: T) => generic;
 tsgo --build consumer
 ExitStatus:: DiagnosticsPresent_OutputsGenerated
 Output::
-[96mconsumer/index.ts[0m:[93m8[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType 'true' is not assignable to type 'false'.
+[96mconsumer/index.ts[0m:[93m9[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '() => ...' is not assignable to type 'number'.
 
-[7m8[0m const notAny: false = null as unknown as IsAny<typeof result>;
-[7m [0m [91m      ~~~~~~[0m
+[7m9[0m const invalid: number = arrow()()();
+[7m [0m [91m      ~~~~~~~[0m
+
+[96mconsumer/index.ts[0m:[93m10[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '() => ...' is not assignable to type 'number'.
+
+[7m10[0m const invalidExpression: number = expression()()();
+[7m  [0m [91m      ~~~~~~~~~~~~~~~~~[0m
 
 
-Found 1 error in consumer/index.ts[90m:8[0m
+Found 2 errors in the same file, starting at: consumer/index.ts[90m:9[0m
 
 //// [/home/src/workspaces/project/consumer/tsconfig.tsbuildinfo] *rewrite with same content*
 //// [/home/src/workspaces/project/consumer/tsconfig.tsbuildinfo.readable.baseline.txt] *rewrite with same content*
@@ -214,7 +229,7 @@ export const generic = (value) => generic;
 // comment-only edit
 
 //// [/home/src/workspaces/project/producer/dist/tsconfig.tsbuildinfo] *modified* 
-{"version":"FakeTSVersion","root":[2],"fileNames":["lib.es2025.full.d.ts","../index.ts"],"fileInfos":[{"version":"8859c12c614ce56ba9a18e58384a198f-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }\ninterface ReadonlyArray<T> {}\ninterface SymbolConstructor {\n    (desc?: string | number): symbol;\n    for(name: string): symbol;\n    readonly toStringTag: symbol;\n}\ndeclare var Symbol: SymbolConstructor;\ninterface Symbol {\n    readonly [Symbol.toStringTag]: string;\n}\ndeclare const console: { log(msg: any): void; };","affectsGlobalScope":true,"impliedNodeFormat":1},{"version":"1518eacddeda8b529b863685f5a73bfd-export const arrow = () => arrow;\nexport const expression = function self() { return self; };\nexport const first = () => second;\nexport const second = () => first;\nexport const generic = <T>(value: T) => generic;\n// comment-only edit\n","signature":"1574ae3bf7ae10c00e30f471458aed7d-export declare const arrow: () => () => /*elided*/ any;\nexport declare const expression: () => () => /*elided*/ any;\nexport declare const first: () => typeof second;\nexport declare const second: () => typeof first;\nexport declare const generic: <T>(value: T) => typeof generic;\n","impliedNodeFormat":1}],"options":{"composite":true,"outDir":"./","strict":true},"latestChangedDtsFile":"./index.d.ts"}
+{"version":"FakeTSVersion","root":[2],"fileNames":["lib.es2025.full.d.ts","../index.ts"],"fileInfos":[{"version":"8859c12c614ce56ba9a18e58384a198f-/// <reference no-default-lib=\"true\"/>\ninterface Boolean {}\ninterface Function {}\ninterface CallableFunction {}\ninterface NewableFunction {}\ninterface IArguments {}\ninterface Number { toExponential: any; }\ninterface Object {}\ninterface RegExp {}\ninterface String { charAt: any; }\ninterface Array<T> { length: number; [n: number]: T; }\ninterface ReadonlyArray<T> {}\ninterface SymbolConstructor {\n    (desc?: string | number): symbol;\n    for(name: string): symbol;\n    readonly toStringTag: symbol;\n}\ndeclare var Symbol: SymbolConstructor;\ninterface Symbol {\n    readonly [Symbol.toStringTag]: string;\n}\ndeclare const console: { log(msg: any): void; };","affectsGlobalScope":true,"impliedNodeFormat":1},{"version":"1518eacddeda8b529b863685f5a73bfd-export const arrow = () => arrow;\nexport const expression = function self() { return self; };\nexport const first = () => second;\nexport const second = () => first;\nexport const generic = <T>(value: T) => generic;\n// comment-only edit\n","signature":"616f12ff6b22d59d18c699da7c6242be-export declare const arrow: () => typeof arrow;\nexport declare const expression: () => typeof expression;\nexport declare const first: () => typeof second;\nexport declare const second: () => typeof first;\nexport declare const generic: <T>(value: T) => typeof generic;\n","impliedNodeFormat":1}],"options":{"composite":true,"outDir":"./","strict":true},"latestChangedDtsFile":"./index.d.ts"}
 //// [/home/src/workspaces/project/producer/dist/tsconfig.tsbuildinfo.readable.baseline.txt] *modified* 
 {
   "version": "FakeTSVersion",
@@ -246,11 +261,11 @@ export const generic = (value) => generic;
     {
       "fileName": "../index.ts",
       "version": "1518eacddeda8b529b863685f5a73bfd-export const arrow = () => arrow;\nexport const expression = function self() { return self; };\nexport const first = () => second;\nexport const second = () => first;\nexport const generic = <T>(value: T) => generic;\n// comment-only edit\n",
-      "signature": "1574ae3bf7ae10c00e30f471458aed7d-export declare const arrow: () => () => /*elided*/ any;\nexport declare const expression: () => () => /*elided*/ any;\nexport declare const first: () => typeof second;\nexport declare const second: () => typeof first;\nexport declare const generic: <T>(value: T) => typeof generic;\n",
+      "signature": "616f12ff6b22d59d18c699da7c6242be-export declare const arrow: () => typeof arrow;\nexport declare const expression: () => typeof expression;\nexport declare const first: () => typeof second;\nexport declare const second: () => typeof first;\nexport declare const generic: <T>(value: T) => typeof generic;\n",
       "impliedNodeFormat": "CommonJS",
       "original": {
         "version": "1518eacddeda8b529b863685f5a73bfd-export const arrow = () => arrow;\nexport const expression = function self() { return self; };\nexport const first = () => second;\nexport const second = () => first;\nexport const generic = <T>(value: T) => generic;\n// comment-only edit\n",
-        "signature": "1574ae3bf7ae10c00e30f471458aed7d-export declare const arrow: () => () => /*elided*/ any;\nexport declare const expression: () => () => /*elided*/ any;\nexport declare const first: () => typeof second;\nexport declare const second: () => typeof first;\nexport declare const generic: <T>(value: T) => typeof generic;\n",
+        "signature": "616f12ff6b22d59d18c699da7c6242be-export declare const arrow: () => typeof arrow;\nexport declare const expression: () => typeof expression;\nexport declare const first: () => typeof second;\nexport declare const second: () => typeof first;\nexport declare const generic: <T>(value: T) => typeof generic;\n",
         "impliedNodeFormat": 1
       }
     }
@@ -261,7 +276,7 @@ export const generic = (value) => generic;
     "strict": true
   },
   "latestChangedDtsFile": "./index.d.ts",
-  "size": 1609
+  "size": 1598
 }
 
 producer/tsconfig.json::
@@ -283,13 +298,18 @@ Edit [2]:: no change
 tsgo --build consumer
 ExitStatus:: DiagnosticsPresent_OutputsGenerated
 Output::
-[96mconsumer/index.ts[0m:[93m8[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType 'true' is not assignable to type 'false'.
+[96mconsumer/index.ts[0m:[93m9[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '() => ...' is not assignable to type 'number'.
 
-[7m8[0m const notAny: false = null as unknown as IsAny<typeof result>;
-[7m [0m [91m      ~~~~~~[0m
+[7m9[0m const invalid: number = arrow()()();
+[7m [0m [91m      ~~~~~~~[0m
+
+[96mconsumer/index.ts[0m:[93m10[0m:[93m7[0m - [91merror[0m[90m TS2322: [0mType '() => ...' is not assignable to type 'number'.
+
+[7m10[0m const invalidExpression: number = expression()()();
+[7m  [0m [91m      ~~~~~~~~~~~~~~~~~[0m
 
 
-Found 1 error in consumer/index.ts[90m:8[0m
+Found 2 errors in the same file, starting at: consumer/index.ts[90m:9[0m
 
 //// [/home/src/workspaces/project/consumer/tsconfig.tsbuildinfo] *rewrite with same content*
 //// [/home/src/workspaces/project/consumer/tsconfig.tsbuildinfo.readable.baseline.txt] *rewrite with same content*
