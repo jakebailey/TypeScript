@@ -168,14 +168,26 @@ func (tx *usingDeclarationTransformer) visitSourceFilePipeline(node *ast.SourceF
 			envBinding = tx.createEnvBinding()
 		}
 		var hoisted []*ast.Node
-		statements := tx.transformUsingDeclarations([]*ast.Node{statement}, envBinding, &hoisted)
+		result := tx.transformUsingDeclaration(statement, envBinding, &hoisted)
+		var statements []*ast.Node
+		if result != nil {
+			if result.Kind == ast.KindSyntaxList {
+				statements = result.AsSyntaxList().Children
+			} else {
+				statements = []*ast.Node{result}
+			}
+		}
 		for _, statement := range statements {
 			bodyRoots[statement] = struct{}{}
+		}
+		if len(hoisted) == 0 {
+			return result
 		}
 		return transformers.SingleOrMany(append(hoisted, statements...), tx.Factory())
 	})
 	tx.AfterSourceElement = func(statement *ast.Node, output []*ast.Node) []*ast.Node {
 		if _, inBody := bodyRoots[statement]; inBody {
+			delete(bodyRoots, statement)
 			body = append(body, output...)
 			return nil
 		}
@@ -346,7 +358,19 @@ func (tx *usingDeclarationTransformer) visitForOfStatement(node *ast.ForInOrOfSt
 
 func (tx *usingDeclarationTransformer) transformUsingDeclarations(statementsIn []*ast.Statement, envBinding *ast.IdentifierNode, topLevelStatements *[]*ast.Statement) []*ast.Node {
 	var statements []*ast.Statement
+	for _, statement := range statementsIn {
+		if result := tx.transformUsingDeclaration(statement, envBinding, topLevelStatements); result != nil {
+			if result.Kind == ast.KindSyntaxList {
+				statements = append(statements, result.AsSyntaxList().Children...)
+			} else {
+				statements = append(statements, result)
+			}
+		}
+	}
+	return statements
+}
 
+func (tx *usingDeclarationTransformer) transformUsingDeclaration(statement *ast.Statement, envBinding *ast.IdentifierNode, topLevelStatements *[]*ast.Statement) *ast.Node {
 	hoist := func(node *ast.Statement) *ast.Statement {
 		if topLevelStatements == nil {
 			return node
@@ -370,69 +394,63 @@ func (tx *usingDeclarationTransformer) transformUsingDeclarations(statementsIn [
 		return node
 	}
 
-	hoistOrAppendNode := func(node *ast.Node) {
-		node = hoist(node)
-		if node != nil {
-			statements = append(statements, node)
+	usingKind := getUsingKind(statement)
+	if usingKind != usingKindNone {
+		varStatement := statement.AsVariableStatement()
+		declarationList := varStatement.DeclarationList
+		var declarations []*ast.VariableDeclarationNode
+		for _, declaration := range declarationList.AsVariableDeclarationList().Declarations.Nodes {
+			if !ast.IsIdentifier(declaration.Name()) {
+				// Since binding patterns are a grammar error, we reset `declarations` so we don't process this as a `using`.
+				declarations = nil
+				break
+			}
+
+			// perform a shallow transform for any named evaluation
+			if isNamedEvaluation(tx.EmitContext(), declaration) {
+				declaration = transformNamedEvaluation(tx.EmitContext(), declaration, false /*ignoreEmptyStringLiteral*/, "" /*assignedName*/)
+			}
+
+			initializer := tx.Visitor().VisitNode(declaration.Initializer())
+			if initializer == nil {
+				initializer = tx.Factory().NewVoidZeroExpression()
+			}
+			declarations = append(declarations, tx.Factory().UpdateVariableDeclaration(
+				declaration.AsVariableDeclaration(),
+				declaration.Name(),
+				nil, /*exclamationToken*/
+				nil, /*type*/
+				tx.Factory().NewAddDisposableResourceHelper(
+					envBinding,
+					initializer,
+					usingKind == usingKindAsync,
+				),
+			))
+		}
+
+		// Only replace the statement if it was valid.
+		if len(declarations) > 0 {
+			varList := tx.Factory().NewVariableDeclarationList(tx.Factory().NewNodeList(declarations), ast.NodeFlagsConst)
+			tx.EmitContext().SetOriginal(varList, declarationList)
+			varList.Loc = declarationList.Loc
+			return hoist(tx.Factory().UpdateVariableStatement(varStatement, nil /*modifiers*/, varList))
 		}
 	}
 
-	for _, statement := range statementsIn {
-		usingKind := getUsingKind(statement)
-		if usingKind != usingKindNone {
-			varStatement := statement.AsVariableStatement()
-			declarationList := varStatement.DeclarationList
-			var declarations []*ast.VariableDeclarationNode
-			for _, declaration := range declarationList.AsVariableDeclarationList().Declarations.Nodes {
-				if !ast.IsIdentifier(declaration.Name()) {
-					// Since binding patterns are a grammar error, we reset `declarations` so we don't process this as a `using`.
-					declarations = nil
-					break
-				}
-
-				// perform a shallow transform for any named evaluation
-				if isNamedEvaluation(tx.EmitContext(), declaration) {
-					declaration = transformNamedEvaluation(tx.EmitContext(), declaration, false /*ignoreEmptyStringLiteral*/, "" /*assignedName*/)
-				}
-
-				initializer := tx.Visitor().VisitNode(declaration.Initializer())
-				if initializer == nil {
-					initializer = tx.Factory().NewVoidZeroExpression()
-				}
-				declarations = append(declarations, tx.Factory().UpdateVariableDeclaration(
-					declaration.AsVariableDeclaration(),
-					declaration.Name(),
-					nil, /*exclamationToken*/
-					nil, /*type*/
-					tx.Factory().NewAddDisposableResourceHelper(
-						envBinding,
-						initializer,
-						usingKind == usingKindAsync,
-					),
-				))
-			}
-
-			// Only replace the statement if it was valid.
-			if len(declarations) > 0 {
-				varList := tx.Factory().NewVariableDeclarationList(tx.Factory().NewNodeList(declarations), ast.NodeFlagsConst)
-				tx.EmitContext().SetOriginal(varList, declarationList)
-				varList.Loc = declarationList.Loc
-				hoistOrAppendNode(tx.Factory().UpdateVariableStatement(varStatement, nil /*modifiers*/, varList))
-				continue
-			}
-		}
-
-		if result := tx.visit(statement); result != nil {
-			if result.Kind == ast.KindSyntaxList {
-				for _, node := range result.AsSyntaxList().Children {
-					hoistOrAppendNode(node)
-				}
-			} else {
-				hoistOrAppendNode(result)
-			}
-		}
+	result := tx.visit(statement)
+	if result == nil || topLevelStatements == nil {
+		return result
 	}
-	return statements
+	if result.Kind == ast.KindSyntaxList {
+		var statements []*ast.Node
+		for _, node := range result.AsSyntaxList().Children {
+			if node = hoist(node); node != nil {
+				statements = append(statements, node)
+			}
+		}
+		return transformers.SingleOrMany(statements, tx.Factory())
+	}
+	return hoist(result)
 }
 
 func (tx *usingDeclarationTransformer) hoistImportOrExportOrHoistedDeclaration(node *ast.Statement, topLevelStatements *[]*ast.Statement) {
