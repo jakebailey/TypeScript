@@ -16,17 +16,18 @@ import (
 // NOTE: EmitContext is not guaranteed to be thread-safe.
 type EmitContext struct {
 	*EmitEnvironment
-	Factory          *NodeFactory // Required. The NodeFactory to use to create new nodes
-	autoGenerate     map[*ast.MemberName]*AutoGenerateInfo
-	generatedExports map[AutoGenerateId]*ast.ModuleExportName
-	textSource       map[*ast.StringLiteralNode]*ast.Node
-	original         map[*ast.Node]*ast.Node
-	emitNodes        core.LinkStore[*ast.Node, emitNode]
-	assignedName     map[*ast.Node]*ast.Expression
-	classThis        map[*ast.Node]*ast.IdentifierNode
-	nodeVisitors     []*ast.NodeVisitor
-	skippedSubtrees  map[*ast.Node]struct{}
-	skippedVisitors  []skippedVisitor
+	Factory                   *NodeFactory // Required. The NodeFactory to use to create new nodes
+	autoGenerate              map[*ast.MemberName]*AutoGenerateInfo
+	generatedExports          map[AutoGenerateId]*ast.ModuleExportName
+	textSource                map[*ast.StringLiteralNode]*ast.Node
+	original                  map[*ast.Node]*ast.Node
+	emitNodes                 core.LinkStore[*ast.Node, emitNode]
+	assignedName              map[*ast.Node]*ast.Expression
+	classThis                 map[*ast.Node]*ast.IdentifierNode
+	nodeVisitors              []*ast.NodeVisitor
+	skippedSubtrees           map[*ast.Node]struct{}
+	skippedVisitors           []skippedVisitor
+	linkedReferenceSourceFile *ast.SourceFile
 }
 
 type skippedVisitor struct {
@@ -153,6 +154,13 @@ func (c *EmitContext) NewNodeVisitor(visit func(node *ast.Node) *ast.Node) *ast.
 		c.skipSubtreesInVisitor(visitor)
 	}
 	return visitor
+}
+
+func (c *EmitContext) MarkLinkedReferences(file *ast.SourceFile, resolver EmitResolver) {
+	if c.linkedReferenceSourceFile != file {
+		resolver.MarkLinkedReferencesRecursively(file)
+		c.linkedReferenceSourceFile = file
+	}
 }
 
 //

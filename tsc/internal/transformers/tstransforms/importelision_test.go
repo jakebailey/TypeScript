@@ -19,6 +19,35 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
+type countingReferenceResolver struct {
+	printer.EmitResolver
+	marked []*ast.SourceFile
+}
+
+func (r *countingReferenceResolver) MarkLinkedReferencesRecursively(file *ast.SourceFile) {
+	r.marked = append(r.marked, file)
+}
+
+func TestImportElisionMarksReferencesOncePerEmit(t *testing.T) {
+	t.Parallel()
+	file := parsetestutil.ParseTypeScript("const value = 1;", false)
+	context := printer.NewEmitContext()
+	resolver := &countingReferenceResolver{}
+	options := &transformers.TransformOptions{
+		Context: context, CompilerOptions: &core.CompilerOptions{}, EmitResolver: resolver,
+	}
+	tstransforms.NewImportElisionTransformer(options).TransformSourceFile(file)
+	tstransforms.NewImportElisionTransformer(options).TransformSourceFile(file)
+	if len(resolver.marked) != 1 || resolver.marked[0] != file {
+		t.Fatalf("marked references %d times, want once for the original file", len(resolver.marked))
+	}
+	context.Reset()
+	tstransforms.NewImportElisionTransformer(options).TransformSourceFile(file)
+	if len(resolver.marked) != 2 {
+		t.Fatalf("marked references %d times after reset, want twice", len(resolver.marked))
+	}
+}
+
 type fakeProgram struct {
 	singleThreaded                 bool
 	compilerOptions                *core.CompilerOptions
