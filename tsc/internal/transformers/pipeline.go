@@ -1,6 +1,8 @@
 package transformers
 
 import (
+	"slices"
+
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 )
@@ -35,15 +37,7 @@ func Pipeline(file *ast.SourceFile, transforms []*Transformer) *ast.SourceFile {
 			panic("Pipeline transforms must share an emit context")
 		}
 	}
-	start := 0
-	for i := range stages {
-		if barrier := stages[i].transformer.SourceFileBarrier; barrier != nil && barrier(file) {
-			file = runSourcePipeline(file, stages[start:i])
-			file = stages[i].transformer.TransformSourceFile(file)
-			start = i + 1
-		}
-	}
-	return runSourcePipeline(file, stages[start:])
+	return runSourcePipeline(file, stages)
 }
 
 func runSourcePipeline(file *ast.SourceFile, stages []pipelineStage) *ast.SourceFile {
@@ -58,34 +52,52 @@ func runSourcePipeline(file *ast.SourceFile, stages []pipelineStage) *ast.Source
 }
 
 type sourcePipeline struct {
-	stages    []pipelineStage
-	context   *printer.EmitContext
-	completed map[*ast.Node]struct{}
+	stages           []pipelineStage
+	context          *printer.EmitContext
+	completed        map[*ast.Node]struct{}
+	capturesElements bool
 }
 
-func (p *sourcePipeline) visit(node *ast.Node, start int) []*ast.Node {
-	nodes := []*ast.Node{node}
+func (p *sourcePipeline) visit(node *ast.Node, start int, output []*ast.Node) []*ast.Node {
 	for i := start; i < len(p.stages); i++ {
 		stage := &p.stages[i]
-		if stage.visitor == nil {
+		if stage.visitor == nil || stage.visitor.Visit == nil {
 			continue
 		}
-		saved := p.context.SwapEnvironment(stage.environment)
-		nodes, _ = stage.visitor.VisitSlice(nodes)
-		stage.environment = p.context.SwapEnvironment(saved)
+		saved := p.context.SwapEnvironment(&stage.environment)
+		node = stage.visitor.Visit(node)
+		p.context.SwapEnvironment(saved)
+		if node == nil {
+			return output
+		}
+		if node.Kind == ast.KindSyntaxList {
+			for _, child := range node.AsSyntaxList().Children {
+				output = p.visitOutput(child, i, output)
+			}
+			return output
+		}
+		if after := stage.transformer.AfterSourceElement; after != nil {
+			return p.visitOutput(node, i, output)
+		}
 	}
-	for _, node := range nodes {
-		p.completed[node] = struct{}{}
+	p.completed[node] = struct{}{}
+	return append(output, node)
+}
+
+func (p *sourcePipeline) visitOutput(node *ast.Node, index int, output []*ast.Node) []*ast.Node {
+	if after := p.stages[index].transformer.AfterSourceElement; after != nil {
+		p.capturesElements = true
+		return append(output, after(node, p.visit(node, index+1, nil))...)
 	}
-	return nodes
+	return p.visit(node, index+1, output)
 }
 
 func (p *sourcePipeline) transform(file *ast.SourceFile, index int) *ast.SourceFile {
 	if index < 0 {
 		p.completed = make(map[*ast.Node]struct{}, len(file.Statements.Nodes))
-		var statements []*ast.Node
+		statements := make([]*ast.Node, 0, len(file.Statements.Nodes))
 		for _, node := range file.Statements.Nodes {
-			statements = append(statements, p.visit(node, 0)...)
+			statements = p.visit(node, 0, statements)
 		}
 		list := p.context.Factory.NewNodeList(statements)
 		list.Loc = file.Statements.Loc
@@ -93,7 +105,7 @@ func (p *sourcePipeline) transform(file *ast.SourceFile, index int) *ast.SourceF
 	}
 	stage := &p.stages[index]
 	tx := stage.transformer
-	saved := p.context.SwapEnvironment(printer.EmitEnvironment{})
+	saved := p.context.SwapEnvironment(&stage.environment)
 	defer func() {
 		p.context.SwapEnvironment(saved)
 		tx.sourceStatements = nil
@@ -102,23 +114,31 @@ func (p *sourcePipeline) transform(file *ast.SourceFile, index int) *ast.SourceF
 	tx.sourceStatements = func(nodes *ast.StatementList, visitor *ast.NodeVisitor) *ast.StatementList {
 		p.context.StartVariableEnvironment()
 		stage.visitor = visitor
-		stage.environment = p.context.SwapEnvironment(printer.EmitEnvironment{})
 		inner = p.transform(file, index-1)
-		p.context.SwapEnvironment(stage.environment)
 		// Earlier source-file epilogues may have introduced imports or hoisted
 		// statements after the main stream was consumed.
 		var statements []*ast.Node
-		for _, node := range inner.Statements.Nodes {
-			if _, done := p.completed[node]; done {
+		changed := false
+		for i, node := range inner.Statements.Nodes {
+			if _, done := p.completed[node]; !done {
+				if !changed {
+					statements = slices.Clone(inner.Statements.Nodes[:i])
+					changed = true
+					if p.capturesElements {
+						restore := p.context.SkipSubtrees(p.completed)
+						defer restore()
+					}
+				}
+				statements = p.visit(node, index, statements)
+			} else if changed {
 				statements = append(statements, node)
-			} else {
-				stage.environment = p.context.SwapEnvironment(printer.EmitEnvironment{})
-				statements = append(statements, p.visit(node, index)...)
-				p.context.SwapEnvironment(stage.environment)
 			}
 		}
-		list := p.context.Factory.NewNodeList(statements)
-		list.Loc = inner.Statements.Loc
+		list := inner.Statements
+		if changed {
+			list = p.context.Factory.NewNodeList(statements)
+			list.Loc = inner.Statements.Loc
+		}
 		list = p.context.EndAndMergeVariableEnvironmentList(list)
 		// Propagate source metadata before this stage's epilogue consumes it.
 		p.context.AddEmitHelper(file.AsNode(), p.context.GetEmitHelpers(inner.AsNode())...)

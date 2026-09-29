@@ -15,31 +15,66 @@ import (
 //
 // NOTE: EmitContext is not guaranteed to be thread-safe.
 type EmitContext struct {
-	Factory       *NodeFactory // Required. The NodeFactory to use to create new nodes
-	autoGenerate  map[*ast.MemberName]*AutoGenerateInfo
-	textSource    map[*ast.StringLiteralNode]*ast.Node
-	original      map[*ast.Node]*ast.Node
-	emitNodes     core.LinkStore[*ast.Node, emitNode]
-	assignedName  map[*ast.Node]*ast.Expression
-	classThis     map[*ast.Node]*ast.IdentifierNode
-	varScopeStack core.Stack[*varScope]
-	letScopeStack core.Stack[*varScope]
-	emitHelpers   *collections.OrderedSet[*EmitHelper]
+	*EmitEnvironment
+	Factory          *NodeFactory // Required. The NodeFactory to use to create new nodes
+	autoGenerate     map[*ast.MemberName]*AutoGenerateInfo
+	generatedExports map[AutoGenerateId]*ast.ModuleExportName
+	textSource       map[*ast.StringLiteralNode]*ast.Node
+	original         map[*ast.Node]*ast.Node
+	emitNodes        core.LinkStore[*ast.Node, emitNode]
+	assignedName     map[*ast.Node]*ast.Expression
+	classThis        map[*ast.Node]*ast.IdentifierNode
+	nodeVisitors     []*ast.NodeVisitor
+	skippedSubtrees  map[*ast.Node]struct{}
+	skippedVisitors  []skippedVisitor
+}
+
+type skippedVisitor struct {
+	visitor *ast.NodeVisitor
+	visit   func(*ast.Node) *ast.Node
+}
+
+// SkipSubtrees lets a source-file epilogue wrap completed source elements without
+// lowering them again. Newly synthesized surrounding syntax is still visited.
+func (c *EmitContext) SkipSubtrees(nodes map[*ast.Node]struct{}) func() {
+	if c.skippedSubtrees != nil {
+		panic("Subtree skipping is already active")
+	}
+	c.skippedSubtrees = nodes
+	for _, visitor := range c.nodeVisitors {
+		c.skipSubtreesInVisitor(visitor)
+	}
+	return func() {
+		for _, saved := range c.skippedVisitors {
+			saved.visitor.Visit = saved.visit
+		}
+		c.skippedVisitors = nil
+		c.skippedSubtrees = nil
+	}
+}
+
+func (c *EmitContext) skipSubtreesInVisitor(visitor *ast.NodeVisitor) {
+	visit := visitor.Visit
+	c.skippedVisitors = append(c.skippedVisitors, skippedVisitor{visitor, visit})
+	visitor.Visit = func(node *ast.Node) *ast.Node {
+		if _, completed := c.skippedSubtrees[node]; completed {
+			return node
+		}
+		return visit(node)
+	}
 }
 
 // EmitEnvironment keeps a transform's hoisting scopes separate while source
 // elements are passed between transforms sharing the same factory and metadata.
 type EmitEnvironment struct {
-	varScopes core.Stack[*varScope]
-	letScopes core.Stack[*varScope]
-	helpers   *collections.OrderedSet[*EmitHelper]
+	varScopeStack core.Stack[*varScope]
+	letScopeStack core.Stack[*varScope]
+	emitHelpers   *collections.OrderedSet[*EmitHelper]
 }
 
-func (c *EmitContext) SwapEnvironment(environment EmitEnvironment) EmitEnvironment {
-	previous := EmitEnvironment{c.varScopeStack, c.letScopeStack, c.emitHelpers}
-	c.varScopeStack = environment.varScopes
-	c.letScopeStack = environment.letScopes
-	c.emitHelpers = environment.helpers
+func (c *EmitContext) SwapEnvironment(environment *EmitEnvironment) *EmitEnvironment {
+	previous := c.EmitEnvironment
+	c.EmitEnvironment = environment
 	return previous
 }
 
@@ -59,7 +94,7 @@ type varScope struct {
 }
 
 func NewEmitContext() *EmitContext {
-	c := &EmitContext{}
+	c := &EmitContext{EmitEnvironment: &EmitEnvironment{}}
 	c.Factory = NewNodeFactory(c)
 	return c
 }
@@ -79,8 +114,10 @@ func GetEmitContext() (*EmitContext, func()) {
 }
 
 func (c *EmitContext) Reset() {
+	*c.EmitEnvironment = EmitEnvironment{}
 	*c = EmitContext{
-		Factory: c.Factory,
+		Factory:         c.Factory,
+		EmitEnvironment: c.EmitEnvironment,
 	}
 }
 
@@ -104,13 +141,18 @@ func (c *EmitContext) onClone(updated *ast.Node, original *ast.Node) {
 
 // Creates a new NodeVisitor attached to this EmitContext
 func (c *EmitContext) NewNodeVisitor(visit func(node *ast.Node) *ast.Node) *ast.NodeVisitor {
-	return ast.NewNodeVisitor(visit, c.Factory.AsNodeFactory(), ast.NodeVisitorHooks{
+	visitor := ast.NewNodeVisitor(visit, c.Factory.AsNodeFactory(), ast.NodeVisitorHooks{
 		VisitParameters:         c.VisitParameters,
 		VisitFunctionBody:       c.VisitFunctionBody,
 		VisitIterationBody:      c.VisitIterationBody,
 		VisitTopLevelStatements: c.VisitVariableEnvironment,
 		VisitEmbeddedStatement:  c.VisitEmbeddedStatement,
 	})
+	c.nodeVisitors = append(c.nodeVisitors, visitor)
+	if c.skippedSubtrees != nil {
+		c.skipSubtreesInVisitor(visitor)
+	}
+	return visitor
 }
 
 //
@@ -404,6 +446,26 @@ func (c *EmitContext) GetAutoGenerateInfo(name *ast.MemberName) *AutoGenerateInf
 		return nil
 	}
 	return c.autoGenerate[name]
+}
+
+// Generated export bindings must be visible before a source-file epilogue emits
+// their export declarations. Key by generated identity so clones share the binding.
+func (c *EmitContext) SetGeneratedExportName(name *ast.IdentifierNode, exportName *ast.ModuleExportName) {
+	info := c.GetAutoGenerateInfo(name)
+	if info == nil {
+		panic("Expected a generated export binding")
+	}
+	if c.generatedExports == nil {
+		c.generatedExports = make(map[AutoGenerateId]*ast.ModuleExportName)
+	}
+	c.generatedExports[info.Id] = exportName
+}
+
+func (c *EmitContext) GeneratedExportName(name *ast.IdentifierNode) *ast.ModuleExportName {
+	if info := c.GetAutoGenerateInfo(name); info != nil {
+		return c.generatedExports[info.Id]
+	}
+	return nil
 }
 
 // Walks the associated AutoGenerateInfo entries of a name to find the root Nopde from which the name should be generated.

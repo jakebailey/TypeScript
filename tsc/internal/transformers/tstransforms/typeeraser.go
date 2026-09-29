@@ -41,7 +41,7 @@ func (tx *TypeEraserTransformer) elide(node *ast.Statement) *ast.Statement {
 }
 
 func (tx *TypeEraserTransformer) visit(node *ast.Node) *ast.Node {
-	if node.Kind != ast.KindSourceFile && node.SubtreeFacts()&ast.SubtreeContainsTypeScript == 0 {
+	if node.SubtreeFacts()&ast.SubtreeContainsTypeScript == 0 {
 		return node
 	}
 

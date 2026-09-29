@@ -258,7 +258,7 @@ func (tx *CommonJSModuleTransformer) visitSourceFile(node *ast.SourceFile) *ast.
 		if ast.IsClassDeclaration(statement) && statement.Name() != nil &&
 			ast.HasSyntacticModifier(statement, ast.ModifierFlagsExport) &&
 			!ast.HasSyntacticModifier(statement, ast.ModifierFlagsDefault) {
-			name := statement.Name()
+			name := tx.Factory().GetLocalName(statement)
 			tx.currentModuleInfo.exportSpecifiers.Add(name.Text(), tx.Factory().NewExportSpecifier(false, nil, name).AsExportSpecifier())
 		}
 	}
@@ -2189,6 +2189,9 @@ func (tx *CommonJSModuleTransformer) getExports(name *ast.IdentifierNode) []*ast
 			return bindings
 		}
 	} else if isFileLevelReservedGeneratedIdentifier(tx.EmitContext(), name) {
+		if exportName := tx.EmitContext().GeneratedExportName(name); exportName != nil {
+			return []*ast.ModuleExportName{exportName}
+		}
 		exportSpecifiers := tx.currentModuleInfo.exportSpecifiers.Get(name.Text())
 		if exportSpecifiers != nil {
 			var exportedNames []*ast.ModuleExportName

@@ -15,11 +15,7 @@ func (ch *chainedTransformer) visit(node *ast.Node) *ast.Node {
 	if node.Kind != ast.KindSourceFile {
 		panic("Chained transform passed non-sourcefile initial node")
 	}
-	result := node.AsSourceFile()
-	for _, t := range ch.components {
-		result = t.TransformSourceFile(result)
-	}
-	return result.AsNode()
+	return Pipeline(node.AsSourceFile(), ch.components).AsNode()
 }
 
 type TransformOptions struct {
@@ -33,8 +29,8 @@ type TransformOptions struct {
 
 type TransformerFactory = func(opt *TransformOptions) *Transformer
 
-// Chains transforms in left-to-right order, running them one at a time in order (as opposed to interleaved at each node)
-// - the resulting combined transform only operates on SourceFile nodes
+// Chain composes transforms in left-to-right order using the source-element
+// pipeline. The resulting transform only operates on SourceFile nodes.
 func Chain(transforms ...TransformerFactory) TransformerFactory {
 	if len(transforms) < 2 {
 		if len(transforms) == 0 {
@@ -45,7 +41,6 @@ func Chain(transforms ...TransformerFactory) TransformerFactory {
 	return func(opt *TransformOptions) *Transformer {
 		constructed := make([]*Transformer, 0, len(transforms))
 		for _, t := range transforms {
-			// TODO: flatten nested chains?
 			if result := t(opt); result != nil {
 				constructed = append(constructed, result)
 			}

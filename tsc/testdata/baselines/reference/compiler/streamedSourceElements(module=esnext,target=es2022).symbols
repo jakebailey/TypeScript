@@ -1,0 +1,108 @@
+//// [tests/cases/compiler/streamedSourceElements.ts] ////
+
+=== streamedSourceElements.ts ===
+export function read() {
+>read : Symbol(read, Decl(streamedSourceElements.ts, 0, 0))
+
+    return [counter, M.value, C.value];
+>counter : Symbol(counter, Decl(streamedSourceElements.ts, 4, 10))
+>M.value : Symbol(M.value, Decl(streamedSourceElements.ts, 10, 16))
+>M : Symbol(M, Decl(streamedSourceElements.ts, 4, 23), Decl(streamedSourceElements.ts, 8, 1))
+>value : Symbol(M.value, Decl(streamedSourceElements.ts, 10, 16))
+>C.value : Symbol(C.value, Decl(streamedSourceElements.ts, 20, 16))
+>C : Symbol(C, Decl(streamedSourceElements.ts, 17, 58))
+>value : Symbol(C.value, Decl(streamedSourceElements.ts, 20, 16))
+}
+export { counter as alias };
+>counter : Symbol(counter, Decl(streamedSourceElements.ts, 4, 10))
+>alias : Symbol(alias, Decl(streamedSourceElements.ts, 3, 8))
+
+export let counter = 0;
+>counter : Symbol(counter, Decl(streamedSourceElements.ts, 4, 10))
+
+export namespace M {
+>M : Symbol(M, Decl(streamedSourceElements.ts, 4, 23), Decl(streamedSourceElements.ts, 8, 1))
+
+    export interface TypeOnly {}
+>TypeOnly : Symbol(TypeOnly, Decl(streamedSourceElements.ts, 6, 20))
+}
+export namespace M {
+>M : Symbol(M, Decl(streamedSourceElements.ts, 4, 23), Decl(streamedSourceElements.ts, 8, 1))
+
+    export const value = 1;
+>value : Symbol(value, Decl(streamedSourceElements.ts, 10, 16))
+}
+
+function decorate<T extends new (...args: any[]) => any>(value: T) {
+>decorate : Symbol(decorate, Decl(streamedSourceElements.ts, 11, 1))
+>T : Symbol(T, Decl(streamedSourceElements.ts, 13, 18))
+>args : Symbol(args, Decl(streamedSourceElements.ts, 13, 33))
+>value : Symbol(value, Decl(streamedSourceElements.ts, 13, 57))
+>T : Symbol(T, Decl(streamedSourceElements.ts, 13, 18))
+
+    return value;
+>value : Symbol(value, Decl(streamedSourceElements.ts, 13, 57))
+}
+
+using resource = { [Symbol.dispose]() { counter += 1; } };
+>resource : Symbol(resource, Decl(streamedSourceElements.ts, 17, 5))
+>[Symbol.dispose] : Symbol([Symbol.dispose], Decl(streamedSourceElements.ts, 17, 18))
+>Symbol.dispose : Symbol(SymbolConstructor.dispose, Decl(lib.esnext.disposable.d.ts, --, --))
+>Symbol : Symbol(Symbol, Decl(lib.es5.d.ts, --, --), Decl(lib.es2015.symbol.d.ts, --, --), Decl(lib.es2015.symbol.wellknown.d.ts, --, --), Decl(lib.es2019.symbol.d.ts, --, --))
+>dispose : Symbol(SymbolConstructor.dispose, Decl(lib.esnext.disposable.d.ts, --, --))
+>counter : Symbol(counter, Decl(streamedSourceElements.ts, 4, 10))
+
+@decorate
+>decorate : Symbol(decorate, Decl(streamedSourceElements.ts, 11, 1))
+
+export class C {
+>C : Symbol(C, Decl(streamedSourceElements.ts, 17, 58))
+
+    static value = counter ||= 2;
+>value : Symbol(C.value, Decl(streamedSourceElements.ts, 20, 16))
+>counter : Symbol(counter, Decl(streamedSourceElements.ts, 4, 10))
+
+    #value = M.value;
+>#value : Symbol(C.#value, Decl(streamedSourceElements.ts, 21, 33))
+>M.value : Symbol(M.value, Decl(streamedSourceElements.ts, 10, 16))
+>M : Symbol(M, Decl(streamedSourceElements.ts, 4, 23), Decl(streamedSourceElements.ts, 8, 1))
+>value : Symbol(M.value, Decl(streamedSourceElements.ts, 10, 16))
+
+    async run(input?: { value?: number }) {
+>run : Symbol(C.run, Decl(streamedSourceElements.ts, 22, 21))
+>input : Symbol(input, Decl(streamedSourceElements.ts, 23, 14))
+>value : Symbol(value, Decl(streamedSourceElements.ts, 23, 23))
+
+        const { value, ...rest } = input ?? {};
+>value : Symbol(value, Decl(streamedSourceElements.ts, 24, 15))
+>rest : Symbol(rest, Decl(streamedSourceElements.ts, 24, 22))
+>input : Symbol(input, Decl(streamedSourceElements.ts, 23, 14))
+
+        await Promise.resolve(rest);
+>Promise.resolve : Symbol(PromiseConstructor.resolve, Decl(lib.es2015.promise.d.ts, --, --), Decl(lib.es2015.promise.d.ts, --, --), Decl(lib.es2015.promise.d.ts, --, --))
+>Promise : Symbol(Promise, Decl(lib.es5.d.ts, --, --), Decl(lib.es2015.iterable.d.ts, --, --), Decl(lib.es2015.promise.d.ts, --, --), Decl(lib.es2015.symbol.wellknown.d.ts, --, --), Decl(lib.es2018.promise.d.ts, --, --))
+>resolve : Symbol(PromiseConstructor.resolve, Decl(lib.es2015.promise.d.ts, --, --), Decl(lib.es2015.promise.d.ts, --, --), Decl(lib.es2015.promise.d.ts, --, --))
+>rest : Symbol(rest, Decl(streamedSourceElements.ts, 24, 22))
+
+        return value ?? this.#value;
+>value : Symbol(value, Decl(streamedSourceElements.ts, 24, 15))
+>this.#value : Symbol(C.#value, Decl(streamedSourceElements.ts, 21, 33))
+>this : Symbol(C, Decl(streamedSourceElements.ts, 17, 58))
+    }
+}
+
+@decorate
+>decorate : Symbol(decorate, Decl(streamedSourceElements.ts, 11, 1))
+
+export default class {
+    value = C.value;
+>value : Symbol(default.value, Decl(streamedSourceElements.ts, 31, 22))
+>C.value : Symbol(C.value, Decl(streamedSourceElements.ts, 20, 16))
+>C : Symbol(C, Decl(streamedSourceElements.ts, 17, 58))
+>value : Symbol(C.value, Decl(streamedSourceElements.ts, 20, 16))
+}
+
+export const result = read();
+>result : Symbol(result, Decl(streamedSourceElements.ts, 35, 12))
+>read : Symbol(read, Decl(streamedSourceElements.ts, 0, 0))
+

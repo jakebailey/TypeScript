@@ -1,0 +1,117 @@
+//// [tests/cases/compiler/streamedSourceElements.ts] ////
+
+=== streamedSourceElements.ts ===
+export function read() {
+>read : () => number[]
+
+    return [counter, M.value, C.value];
+>[counter, M.value, C.value] : number[]
+>counter : number
+>M.value : 1
+>M : typeof M
+>value : 1
+>C.value : number
+>C : typeof C
+>value : number
+}
+export { counter as alias };
+>counter : number
+>alias : number
+
+export let counter = 0;
+>counter : number
+>0 : 0
+
+export namespace M {
+    export interface TypeOnly {}
+}
+export namespace M {
+>M : typeof M
+
+    export const value = 1;
+>value : 1
+>1 : 1
+}
+
+function decorate<T extends new (...args: any[]) => any>(value: T) {
+>decorate : <T extends new (...args: any[]) => any>(value: T) => T
+>args : any[]
+>value : T
+
+    return value;
+>value : T
+}
+
+using resource = { [Symbol.dispose]() { counter += 1; } };
+>resource : { [Symbol.dispose](): void; }
+>{ [Symbol.dispose]() { counter += 1; } } : { [Symbol.dispose](): void; }
+>[Symbol.dispose] : () => void
+>Symbol.dispose : unique symbol
+>Symbol : SymbolConstructor
+>dispose : unique symbol
+>counter += 1 : number
+>counter : number
+>1 : 1
+
+@decorate
+>decorate : <T extends new (...args: any[]) => any>(value: T) => T
+
+export class C {
+>C : C
+
+    static value = counter ||= 2;
+>value : number
+>counter ||= 2 : number
+>counter : number
+>2 : 2
+
+    #value = M.value;
+>#value : number
+>M.value : 1
+>M : typeof M
+>value : 1
+
+    async run(input?: { value?: number }) {
+>run : (input?: { value?: number; }) => Promise<number>
+>input : { value?: number; } | undefined
+>value : number | undefined
+
+        const { value, ...rest } = input ?? {};
+>value : number | undefined
+>rest : {}
+>input ?? {} : { value?: number; }
+>input : { value?: number; } | undefined
+>{} : {}
+
+        await Promise.resolve(rest);
+>await Promise.resolve(rest) : {}
+>Promise.resolve(rest) : Promise<{}>
+>Promise.resolve : { (): Promise<void>; <T>(value: T): Promise<Awaited<T>>; <T>(value: T | PromiseLike<T>): Promise<Awaited<T>>; }
+>Promise : PromiseConstructor
+>resolve : { (): Promise<void>; <T>(value: T): Promise<Awaited<T>>; <T>(value: T | PromiseLike<T>): Promise<Awaited<T>>; }
+>rest : {}
+
+        return value ?? this.#value;
+>value ?? this.#value : number
+>value : number | undefined
+>this.#value : number
+>this : this
+    }
+}
+
+@decorate
+>decorate : <T extends new (...args: any[]) => any>(value: T) => T
+
+export default class {
+    value = C.value;
+>value : number
+>C.value : number
+>C : typeof C
+>value : number
+}
+
+export const result = read();
+>result : number[]
+>read() : number[]
+>read : () => number[]
+

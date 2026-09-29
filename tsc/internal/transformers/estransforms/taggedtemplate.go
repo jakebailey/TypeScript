@@ -25,7 +25,7 @@ func newTaggedTemplateLiftRestrictionTransformer(opts *transformers.TransformOpt
 }
 
 func (tx *taggedTemplateTransformer) visit(node *ast.Node) *ast.Node {
-	if node.Kind != ast.KindSourceFile && node.SubtreeFacts()&ast.SubtreeContainsInvalidTemplateEscape == 0 {
+	if node.SubtreeFacts()&ast.SubtreeContainsInvalidTemplateEscape == 0 {
 		return node
 	}
 	switch node.Kind {

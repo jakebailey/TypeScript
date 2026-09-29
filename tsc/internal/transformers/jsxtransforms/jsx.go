@@ -129,7 +129,7 @@ func (tx *JSXTransformer) visit(node *ast.Node) *ast.Node {
 	if node == nil {
 		return nil
 	}
-	if node.Kind != ast.KindSourceFile && node.SubtreeFacts()&ast.SubtreeContainsJsx == 0 {
+	if node.SubtreeFacts()&ast.SubtreeContainsJsx == 0 {
 		return node
 	}
 	switch node.Kind {

@@ -140,6 +140,10 @@ func getScriptTransformers(emitContext *printer.EmitContext, host printer.EmitHo
 		var bindings []*ast.Node
 		declared := make(map[string]bool)
 		for _, statement := range file.Statements.Nodes {
+			if ast.IsModuleDeclaration(statement) && !ast.IsInstantiatedModule(statement, options.ShouldPreserveConstEnums()) ||
+				ast.IsEnumDeclaration(statement) && ast.IsEnumConst(statement) && !options.ShouldPreserveConstEnums() {
+				continue
+			}
 			firstDeclaration := true
 			if !ast.HasSyntacticModifier(statement, ast.ModifierFlagsAmbient) {
 				switch statement.Kind {

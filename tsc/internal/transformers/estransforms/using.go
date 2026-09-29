@@ -16,13 +16,12 @@ type usingDeclarationTransformer struct {
 	exportVars           []*ast.VariableDeclarationNode
 	defaultExportBinding *ast.IdentifierNode
 	exportEqualsBinding  *ast.IdentifierNode
+	streamingSource      bool
+	sourceHoists         []*ast.Node
 }
 
 func newUsingDeclarationTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
 	tx := &usingDeclarationTransformer{}
-	tx.SourceFileBarrier = func(file *ast.SourceFile) bool {
-		return getUsingKindOfStatements(file.Statements.Nodes) != usingKindNone
-	}
 	return tx.NewTransformer(tx.visit, opts.Context)
 }
 
@@ -35,7 +34,7 @@ const (
 )
 
 func (tx *usingDeclarationTransformer) visit(node *ast.Node) *ast.Node {
-	if node.Kind != ast.KindSourceFile && node.SubtreeFacts()&ast.SubtreeContainsUsing == 0 {
+	if node.SubtreeFacts()&ast.SubtreeContainsUsing == 0 {
 		return node
 	}
 
@@ -61,7 +60,9 @@ func (tx *usingDeclarationTransformer) visitSourceFile(node *ast.SourceFile) *as
 
 	var visited *ast.SourceFileNode
 	usingKind := getUsingKindOfStatements(node.Statements.Nodes)
-	if usingKind != usingKindNone {
+	if usingKind != usingKindNone && tx.InSourcePipeline() {
+		visited = tx.visitSourceFilePipeline(node)
+	} else if usingKind != usingKindNone {
 		// Imports and exports must stay at the top level. This means we must hoist all imports, exports, and
 		// top-level function declarations and bindings out of the `try` statements we generate. For example:
 		//
@@ -132,53 +133,7 @@ func (tx *usingDeclarationTransformer) visitSourceFile(node *ast.SourceFile) *as
 		envBinding := tx.createEnvBinding()
 		bodyStatements := tx.transformUsingDeclarations(rest[pos:], envBinding, &topLevelStatements)
 
-		// add `export {}` declarations for any hoisted bindings.
-		if len(tx.exportBindings) > 0 {
-			exportSpecifiers := make([]*ast.ExportSpecifierNode, 0, len(tx.exportBindingNames))
-			for _, name := range tx.exportBindingNames {
-				specifier := tx.exportBindings[name]
-				debug.Assert(specifier != nil, "Missing export binding for hoisted export name")
-				exportSpecifiers = append(exportSpecifiers, specifier)
-			}
-			topLevelStatements = append(
-				topLevelStatements,
-				tx.Factory().NewExportDeclaration(
-					nil,   /*modifiers*/
-					false, /*isTypeOnly*/
-					tx.Factory().NewNamedExports(
-						tx.Factory().NewNodeList(
-							exportSpecifiers,
-						),
-					),
-					nil, /*moduleSpecifier*/
-					nil, /*attributes*/
-				),
-			)
-		}
-
-		topLevelStatements = append(topLevelStatements, tx.EmitContext().EndVariableEnvironment()...)
-		if len(tx.exportVars) > 0 {
-			topLevelStatements = append(topLevelStatements, tx.Factory().NewVariableStatement(
-				tx.Factory().NewModifierList([]*ast.Node{
-					tx.Factory().NewModifier(ast.KindExportKeyword),
-				}),
-				tx.Factory().NewVariableDeclarationList(
-					tx.Factory().NewNodeList(tx.exportVars),
-					ast.NodeFlagsLet,
-				),
-			))
-		}
-		topLevelStatements = append(topLevelStatements, tx.createDownlevelUsingStatements(bodyStatements, envBinding, usingKind == usingKindAsync)...)
-
-		if tx.exportEqualsBinding != nil {
-			topLevelStatements = append(topLevelStatements, tx.Factory().NewExportAssignment(
-				nil,  /*modifiers*/
-				true, /*isExportEquals*/
-				nil,  /*typeNode*/
-				tx.exportEqualsBinding,
-			))
-		}
-
+		topLevelStatements = tx.finishSourceStatements(topLevelStatements, bodyStatements, tx.EmitContext().EndVariableEnvironment(), envBinding, usingKind)
 		visited = tx.Factory().UpdateSourceFile(node, tx.Factory().NewNodeList(topLevelStatements), node.EndOfFileToken)
 	} else {
 		visited = tx.Visitor().VisitEachChild(node.AsNode())
@@ -190,6 +145,89 @@ func (tx *usingDeclarationTransformer) visitSourceFile(node *ast.SourceFile) *as
 	tx.defaultExportBinding = nil
 	tx.exportEqualsBinding = nil
 	return visited
+}
+
+func (tx *usingDeclarationTransformer) visitSourceFilePipeline(node *ast.SourceFile) *ast.Node {
+	tx.streamingSource = true
+	defer func() {
+		tx.streamingSource = false
+		tx.sourceHoists = nil
+		tx.AfterSourceElement = nil
+	}()
+	var envBinding *ast.Node
+	kind := usingKindNone
+	var body []*ast.Node
+	bodyRoots := make(map[*ast.Node]struct{})
+	visitor := tx.EmitContext().NewNodeVisitor(func(statement *ast.Node) *ast.Node {
+		statementKind := getUsingKind(statement)
+		kind = max(kind, statementKind)
+		if envBinding == nil {
+			if statementKind == usingKindNone {
+				return tx.visit(statement)
+			}
+			envBinding = tx.createEnvBinding()
+		}
+		var hoisted []*ast.Node
+		statements := tx.transformUsingDeclarations([]*ast.Node{statement}, envBinding, &hoisted)
+		for _, statement := range statements {
+			bodyRoots[statement] = struct{}{}
+		}
+		return transformers.SingleOrMany(append(hoisted, statements...), tx.Factory())
+	})
+	tx.AfterSourceElement = func(statement *ast.Node, output []*ast.Node) []*ast.Node {
+		if _, inBody := bodyRoots[statement]; inBody {
+			body = append(body, output...)
+			return nil
+		}
+		return output
+	}
+	statements := tx.VisitSourceFileStatements(node.Statements, visitor)
+	if envBinding == nil {
+		return tx.Factory().UpdateSourceFile(node, statements, node.EndOfFileToken)
+	}
+	var declarations []*ast.Node
+	if len(tx.sourceHoists) != 0 {
+		statement := tx.Factory().NewVariableStatement(nil,
+			tx.Factory().NewVariableDeclarationList(tx.Factory().NewNodeList(tx.sourceHoists), ast.NodeFlagsNone))
+		tx.EmitContext().SetEmitFlags(statement, printer.EFCustomPrologue)
+		declarations = append(declarations, statement)
+	}
+	result := tx.finishSourceStatements(statements.Nodes, body, declarations, envBinding, kind)
+	return tx.Factory().UpdateSourceFile(node, tx.Factory().NewNodeList(result), node.EndOfFileToken)
+}
+
+func (tx *usingDeclarationTransformer) finishSourceStatements(topLevelStatements, bodyStatements, declarations []*ast.Node, envBinding *ast.Node, kind usingKind) []*ast.Node {
+	if len(tx.exportBindings) > 0 {
+		exportSpecifiers := make([]*ast.Node, 0, len(tx.exportBindingNames))
+		for _, name := range tx.exportBindingNames {
+			specifier := tx.exportBindings[name]
+			debug.Assert(specifier != nil, "Missing export binding for hoisted export name")
+			exportSpecifiers = append(exportSpecifiers, specifier)
+		}
+		topLevelStatements = append(topLevelStatements, tx.Factory().NewExportDeclaration(
+			nil, false, tx.Factory().NewNamedExports(tx.Factory().NewNodeList(exportSpecifiers)), nil, nil))
+	}
+	topLevelStatements = append(topLevelStatements, declarations...)
+	if len(tx.exportVars) > 0 {
+		topLevelStatements = append(topLevelStatements, tx.Factory().NewVariableStatement(
+			tx.Factory().NewModifierList([]*ast.Node{tx.Factory().NewModifier(ast.KindExportKeyword)}),
+			tx.Factory().NewVariableDeclarationList(tx.Factory().NewNodeList(tx.exportVars), ast.NodeFlagsLet)))
+	}
+	topLevelStatements = append(topLevelStatements, tx.createDownlevelUsingStatements(bodyStatements, envBinding, kind == usingKindAsync)...)
+	if tx.exportEqualsBinding != nil {
+		topLevelStatements = append(topLevelStatements, tx.Factory().NewExportAssignment(nil, true, nil, tx.exportEqualsBinding))
+	}
+	return topLevelStatements
+}
+
+func (tx *usingDeclarationTransformer) hoistSourceVariable(name *ast.Node) {
+	if tx.streamingSource {
+		declaration := tx.Factory().NewVariableDeclaration(name, nil, nil, nil)
+		tx.EmitContext().SetEmitFlags(declaration, printer.EFNoNestedSourceMaps)
+		tx.sourceHoists = append(tx.sourceHoists, declaration)
+	} else {
+		tx.EmitContext().AddVariableDeclaration(name)
+	}
 }
 
 func (tx *usingDeclarationTransformer) visitBlock(node *ast.Block) *ast.Node {
@@ -470,7 +508,7 @@ func (tx *usingDeclarationTransformer) hoistExportEquals(node *ast.ExportAssignm
 	//   export = default_1;
 
 	tx.exportEqualsBinding = tx.Factory().NewUniqueNameEx("_default", printer.AutoGenerateOptions{Flags: printer.GeneratedIdentifierFlagsReservedInNestedScopes | printer.GeneratedIdentifierFlagsFileLevel | printer.GeneratedIdentifierFlagsOptimistic})
-	tx.EmitContext().AddVariableDeclaration(tx.exportEqualsBinding)
+	tx.hoistSourceVariable(tx.exportEqualsBinding)
 
 	// give a class or function expression an assigned name, if needed.
 	assignment := tx.Factory().NewAssignmentExpression(tx.exportEqualsBinding, node.Expression)
@@ -636,6 +674,9 @@ func (tx *usingDeclarationTransformer) hoistBindingIdentifier(node *ast.Identifi
 		if exportAlias != nil {
 			localName = name
 			exportName = exportAlias
+			if transformers.IsGeneratedIdentifier(tx.EmitContext(), name) {
+				tx.EmitContext().SetGeneratedExportName(name, exportName)
+			}
 		} else {
 			exportName = name
 		}
@@ -651,7 +692,7 @@ func (tx *usingDeclarationTransformer) hoistBindingIdentifier(node *ast.Identifi
 		}
 		tx.exportBindings[name.Text()] = specifier
 	}
-	tx.EmitContext().AddVariableDeclaration(name)
+	tx.hoistSourceVariable(name)
 }
 
 func (tx *usingDeclarationTransformer) createEnvBinding() *ast.IdentifierNode {

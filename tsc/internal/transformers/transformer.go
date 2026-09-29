@@ -6,12 +6,16 @@ import (
 )
 
 type Transformer struct {
-	SourceFileBarrier func(*ast.SourceFile) bool
-	emitContext       *printer.EmitContext
-	factory           *printer.NodeFactory
-	visitor           *ast.NodeVisitor
-	components        []*Transformer
-	sourceStatements  func(*ast.StatementList, *ast.NodeVisitor) *ast.StatementList
+	AfterSourceElement func(*ast.Node, []*ast.Node) []*ast.Node
+	emitContext        *printer.EmitContext
+	factory            *printer.NodeFactory
+	visitor            *ast.NodeVisitor
+	components         []*Transformer
+	sourceStatements   func(*ast.StatementList, *ast.NodeVisitor) *ast.StatementList
+}
+
+func (tx *Transformer) InSourcePipeline() bool {
+	return tx.sourceStatements != nil
 }
 
 func (tx *Transformer) NewTransformer(visit func(node *ast.Node) *ast.Node, emitContext *printer.EmitContext) *Transformer {

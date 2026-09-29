@@ -103,3 +103,38 @@ func TestPipelineEpilogue(t *testing.T) {
 		t.Fatalf("visits = %v", seen)
 	}
 }
+
+func TestPipelineWrappedEpilogue(t *testing.T) {
+	t.Parallel()
+	file := parsetestutil.ParseTypeScript("one; two;", false)
+	context := printer.NewEmitContext()
+	first := &transformers.Transformer{}
+	var body []*ast.Node
+	first.AfterSourceElement = func(_ *ast.Node, output []*ast.Node) []*ast.Node {
+		body = append(body, output...)
+		return nil
+	}
+	first.NewTransformer(func(node *ast.Node) *ast.Node {
+		if ast.IsSourceFile(node) {
+			visited := first.Visitor().VisitEachChild(node).AsSourceFile()
+			nodes := []*ast.Node{first.Factory().NewBlock(first.Factory().NewNodeList(append(body,
+				first.Factory().NewExpressionStatement(first.Factory().NewIdentifier("generated")))), true)}
+			return first.Factory().UpdateSourceFile(visited, first.Factory().NewNodeList(nodes), visited.EndOfFileToken)
+		}
+		return node
+	}, context)
+	second := &transformers.Transformer{}
+	var seen []string
+	second.NewTransformer(func(node *ast.Node) *ast.Node {
+		if ast.IsIdentifier(node) {
+			seen = append(seen, node.Text())
+			return second.Factory().NewIdentifier(node.Text() + "_visited")
+		}
+		return second.Visitor().VisitEachChild(node)
+	}, context)
+	result := transformers.Pipeline(file, []*transformers.Transformer{first, second})
+	emittestutil.CheckEmit(t, context, result, "{\n    one_visited;\n    two_visited;\n    generated_visited;\n}")
+	if !slices.Equal(seen, []string{"one", "two", "generated"}) {
+		t.Fatalf("visits = %v", seen)
+	}
+}

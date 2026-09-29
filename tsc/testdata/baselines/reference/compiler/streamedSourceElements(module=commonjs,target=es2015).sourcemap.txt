@@ -1,0 +1,904 @@
+===================================================================
+JsFile: streamedSourceElements.js
+mapUrl: streamedSourceElements.js.map
+sourceRoot: 
+sources: streamedSourceElements.ts
+===================================================================
+-------------------------------------------------------------------
+emittedFile:streamedSourceElements.js
+sourceFile:streamedSourceElements.ts
+-------------------------------------------------------------------
+>>>"use strict";
+>>>var __esDecorate = (this && this.__esDecorate) || function (ctor, descriptorIn, decorators, contextIn, initializers, extraInitializers) {
+>>>    function accept(f) { if (f !== void 0 && typeof f !== "function") throw new TypeError("Function expected"); return f; }
+>>>    var kind = contextIn.kind, key = kind === "getter" ? "get" : kind === "setter" ? "set" : "value";
+>>>    var target = !descriptorIn && ctor ? contextIn["static"] ? ctor : ctor.prototype : null;
+>>>    var descriptor = descriptorIn || (target ? Object.getOwnPropertyDescriptor(target, contextIn.name) : {});
+>>>    var _, done = false;
+>>>    for (var i = decorators.length - 1; i >= 0; i--) {
+>>>        var context = {};
+>>>        for (var p in contextIn) context[p] = p === "access" ? {} : contextIn[p];
+>>>        for (var p in contextIn.access) context.access[p] = contextIn.access[p];
+>>>        context.addInitializer = function (f) { if (done) throw new TypeError("Cannot add initializers after decoration has completed"); extraInitializers.push(accept(f || null)); };
+>>>        var result = (0, decorators[i])(kind === "accessor" ? { get: descriptor.get, set: descriptor.set } : descriptor[key], context);
+>>>        if (kind === "accessor") {
+>>>            if (result === void 0) continue;
+>>>            if (result === null || typeof result !== "object") throw new TypeError("Object expected");
+>>>            if (_ = accept(result.get)) descriptor.get = _;
+>>>            if (_ = accept(result.set)) descriptor.set = _;
+>>>            if (_ = accept(result.init)) initializers.unshift(_);
+>>>        }
+>>>        else if (_ = accept(result)) {
+>>>            if (kind === "field") initializers.unshift(_);
+>>>            else descriptor[key] = _;
+>>>        }
+>>>    }
+>>>    if (target) Object.defineProperty(target, contextIn.name, descriptor);
+>>>    done = true;
+>>>};
+>>>var __runInitializers = (this && this.__runInitializers) || function (thisArg, initializers, value) {
+>>>    var useValue = arguments.length > 2;
+>>>    for (var i = 0; i < initializers.length; i++) {
+>>>        value = useValue ? initializers[i].call(thisArg, value) : initializers[i].call(thisArg);
+>>>    }
+>>>    return useValue ? value : void 0;
+>>>};
+>>>var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+>>>    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+>>>    return new (P || (P = Promise))(function (resolve, reject) {
+>>>        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+>>>        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+>>>        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+>>>        step((generator = generator.apply(thisArg, _arguments || [])).next());
+>>>    });
+>>>};
+>>>var __addDisposableResource = (this && this.__addDisposableResource) || function (env, value, async) {
+>>>    if (value !== null && value !== void 0) {
+>>>        if (typeof value !== "object" && typeof value !== "function") throw new TypeError("Object expected.");
+>>>        var dispose, inner;
+>>>        if (async) {
+>>>            if (!Symbol.asyncDispose) throw new TypeError("Symbol.asyncDispose is not defined.");
+>>>            dispose = value[Symbol.asyncDispose];
+>>>        }
+>>>        if (dispose === void 0) {
+>>>            if (!Symbol.dispose) throw new TypeError("Symbol.dispose is not defined.");
+>>>            dispose = value[Symbol.dispose];
+>>>            if (async) inner = dispose;
+>>>        }
+>>>        if (typeof dispose !== "function") throw new TypeError("Object not disposable.");
+>>>        if (inner) dispose = function() { try { inner.call(this); } catch (e) { return Promise.reject(e); } };
+>>>        env.stack.push({ value: value, dispose: dispose, async: async });
+>>>    }
+>>>    else if (async) {
+>>>        env.stack.push({ async: true });
+>>>    }
+>>>    return value;
+>>>};
+>>>var __setFunctionName = (this && this.__setFunctionName) || function (f, name, prefix) {
+>>>    if (typeof name === "symbol") name = name.description ? "[".concat(name.description, "]") : "";
+>>>    return Object.defineProperty(f, "name", { configurable: true, value: prefix ? "".concat(prefix, " ", name) : name });
+>>>};
+>>>var __disposeResources = (this && this.__disposeResources) || (function (SuppressedError) {
+>>>    return function (env) {
+>>>        function fail(e) {
+>>>            env.error = env.hasError ? new SuppressedError(e, env.error, "An error was suppressed during disposal.") : e;
+>>>            env.hasError = true;
+>>>        }
+>>>        var r, s = 0;
+>>>        function next() {
+>>>            while (r = env.stack.pop()) {
+>>>                try {
+>>>                    if (!r.async && s === 1) return s = 0, env.stack.push(r), Promise.resolve().then(next);
+>>>                    if (r.dispose) {
+>>>                        var result = r.dispose.call(r.value);
+>>>                        if (r.async) return s |= 2, Promise.resolve(result).then(next, function(e) { fail(e); return next(); });
+>>>                    }
+>>>                    else s |= 1;
+>>>                }
+>>>                catch (e) {
+>>>                    fail(e);
+>>>                }
+>>>            }
+>>>            if (s === 1) return env.hasError ? Promise.reject(env.error) : Promise.resolve();
+>>>            if (env.hasError) throw env.error;
+>>>        }
+>>>        return next();
+>>>    };
+>>>})(typeof SuppressedError === "function" ? SuppressedError : function (error, suppressed, message) {
+>>>    var e = new Error(message);
+>>>    return e.name = "SuppressedError", e.error = error, e.suppressed = suppressed, e;
+>>>});
+>>>var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (receiver, state, kind, f) {
+>>>    if (kind === "a" && !f) throw new TypeError("Private accessor was defined without a getter");
+>>>    if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+>>>    return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+>>>};
+>>>var __rest = (this && this.__rest) || function (s, e) {
+>>>    var t = {};
+>>>    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+>>>        t[p] = s[p];
+>>>    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+>>>        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+>>>            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+>>>                t[p[i]] = s[p[i]];
+>>>        }
+>>>    return t;
+>>>};
+>>>Object.defineProperty(exports, "__esModule", { value: true });
+>>>exports.result = exports.default = exports.C = exports.M = exports.counter = exports.alias = void 0;
+>>>exports.read = read;
+>>>function read() {
+1 >
+2 >^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^->
+1 >
+1 >Emitted(120, 1) Source(1, 1) + SourceIndex(0)
+---
+>>>    return [exports.counter, M.value, C.value];
+1->^^^^
+2 >    ^^^^^^^
+3 >           ^
+4 >            ^^^^^^^^
+5 >                    ^^^^^^^
+6 >                           ^^
+7 >                             ^
+8 >                              ^
+9 >                               ^^^^^
+10>                                    ^^
+11>                                      ^
+12>                                       ^
+13>                                        ^^^^^
+14>                                             ^
+15>                                              ^
+1->export function read() {
+  >    
+2 >    return 
+3 >           [
+4 >            
+5 >                    counter
+6 >                           , 
+7 >                             M
+8 >                              .
+9 >                               value
+10>                                    , 
+11>                                      C
+12>                                       .
+13>                                        value
+14>                                             ]
+15>                                              ;
+1->Emitted(121, 5) Source(2, 5) + SourceIndex(0)
+2 >Emitted(121, 12) Source(2, 12) + SourceIndex(0)
+3 >Emitted(121, 13) Source(2, 13) + SourceIndex(0)
+4 >Emitted(121, 21) Source(2, 13) + SourceIndex(0)
+5 >Emitted(121, 28) Source(2, 20) + SourceIndex(0)
+6 >Emitted(121, 30) Source(2, 22) + SourceIndex(0)
+7 >Emitted(121, 31) Source(2, 23) + SourceIndex(0)
+8 >Emitted(121, 32) Source(2, 24) + SourceIndex(0)
+9 >Emitted(121, 37) Source(2, 29) + SourceIndex(0)
+10>Emitted(121, 39) Source(2, 31) + SourceIndex(0)
+11>Emitted(121, 40) Source(2, 32) + SourceIndex(0)
+12>Emitted(121, 41) Source(2, 33) + SourceIndex(0)
+13>Emitted(121, 46) Source(2, 38) + SourceIndex(0)
+14>Emitted(121, 47) Source(2, 39) + SourceIndex(0)
+15>Emitted(121, 48) Source(2, 40) + SourceIndex(0)
+---
+>>>}
+1 >
+2 >^
+3 > ^^^^^^^^^^^^^^^^^^^^->
+1 >
+  >
+2 >}
+1 >Emitted(122, 1) Source(3, 1) + SourceIndex(0)
+2 >Emitted(122, 2) Source(3, 2) + SourceIndex(0)
+---
+>>>exports.counter = 0;
+1->
+2 >^^^^^^^^
+3 >        ^^^^^^^
+4 >               ^^^
+5 >                  ^
+6 >                   ^
+7 >                    ^^^^^^^^^^^^^->
+1->
+  >export { counter as alias };
+  >export let 
+2 >
+3 >        counter
+4 >                = 
+5 >                  0
+6 >                   ;
+1->Emitted(123, 1) Source(5, 12) + SourceIndex(0)
+2 >Emitted(123, 9) Source(5, 12) + SourceIndex(0)
+3 >Emitted(123, 16) Source(5, 19) + SourceIndex(0)
+4 >Emitted(123, 19) Source(5, 22) + SourceIndex(0)
+5 >Emitted(123, 20) Source(5, 23) + SourceIndex(0)
+6 >Emitted(123, 21) Source(5, 24) + SourceIndex(0)
+---
+>>>exports.alias = exports.counter;
+1->^^^^^^^^
+2 >        ^^^^^
+3 >             ^^^
+4 >                ^^^^^^^^^^^^^^^
+1->
+2 >        alias
+3 >              };
+  >             export let 
+4 >                counter
+1->Emitted(124, 9) Source(4, 21) + SourceIndex(0)
+2 >Emitted(124, 14) Source(4, 26) + SourceIndex(0)
+3 >Emitted(124, 17) Source(5, 12) + SourceIndex(0)
+4 >Emitted(124, 32) Source(5, 19) + SourceIndex(0)
+---
+>>>var M;
+1 >
+2 >^^^^
+3 >    ^
+4 >     ^
+5 >      ^^^^^^^^^^->
+1 > = 0;
+  >
+  >export namespace M {
+  >    export interface TypeOnly {}
+  >}
+  >
+2 >export namespace 
+3 >    M
+4 >      {
+  >         export const value = 1;
+  >     }
+1 >Emitted(125, 1) Source(10, 1) + SourceIndex(0)
+2 >Emitted(125, 5) Source(10, 18) + SourceIndex(0)
+3 >Emitted(125, 6) Source(10, 19) + SourceIndex(0)
+4 >Emitted(125, 7) Source(12, 2) + SourceIndex(0)
+---
+>>>(function (M) {
+1->
+2 >^^^^^^^^^^^
+3 >           ^
+4 >            ^^^^^->
+1->
+2 >export namespace 
+3 >           M
+1->Emitted(126, 1) Source(10, 1) + SourceIndex(0)
+2 >Emitted(126, 12) Source(10, 18) + SourceIndex(0)
+3 >Emitted(126, 13) Source(10, 19) + SourceIndex(0)
+---
+>>>    M.value = 1;
+1->^^^^
+2 >    ^^^^^^^
+3 >           ^^^
+4 >              ^
+5 >               ^
+6 >                ^^^^^^^^^^^^^^^->
+1-> {
+  >    export const 
+2 >    value
+3 >            = 
+4 >              1
+5 >               ;
+1->Emitted(127, 5) Source(11, 18) + SourceIndex(0)
+2 >Emitted(127, 12) Source(11, 23) + SourceIndex(0)
+3 >Emitted(127, 15) Source(11, 26) + SourceIndex(0)
+4 >Emitted(127, 16) Source(11, 27) + SourceIndex(0)
+5 >Emitted(127, 17) Source(11, 28) + SourceIndex(0)
+---
+>>>})(M || (exports.M = M = {}));
+1->
+2 >^
+3 > ^^
+4 >   ^
+5 >    ^^^^^^^^^^^^^
+6 >                 ^
+7 >                  ^^^
+8 >                     ^
+9 >                      ^^^^^^^^
+1->
+  >
+2 >}
+3 > 
+4 >   M
+5 >    
+6 >                 M
+7 >                  
+8 >                     M
+9 >                       {
+  >                          export const value = 1;
+  >                      }
+1->Emitted(128, 1) Source(12, 1) + SourceIndex(0)
+2 >Emitted(128, 2) Source(12, 2) + SourceIndex(0)
+3 >Emitted(128, 4) Source(10, 18) + SourceIndex(0)
+4 >Emitted(128, 5) Source(10, 19) + SourceIndex(0)
+5 >Emitted(128, 18) Source(10, 18) + SourceIndex(0)
+6 >Emitted(128, 19) Source(10, 19) + SourceIndex(0)
+7 >Emitted(128, 22) Source(10, 18) + SourceIndex(0)
+8 >Emitted(128, 23) Source(10, 19) + SourceIndex(0)
+9 >Emitted(128, 31) Source(12, 2) + SourceIndex(0)
+---
+>>>function decorate(value) {
+1 >
+2 >^^^^^^^^^
+3 >         ^^^^^^^^
+4 >                 ^
+5 >                  ^^^^^
+1 >
+  >
+  >
+2 >function 
+3 >         decorate
+4 >                 <T extends new (...args: any[]) => any>(
+5 >                  value: T
+1 >Emitted(129, 1) Source(14, 1) + SourceIndex(0)
+2 >Emitted(129, 10) Source(14, 10) + SourceIndex(0)
+3 >Emitted(129, 18) Source(14, 18) + SourceIndex(0)
+4 >Emitted(129, 19) Source(14, 58) + SourceIndex(0)
+5 >Emitted(129, 24) Source(14, 66) + SourceIndex(0)
+---
+>>>    return value;
+1 >^^^^
+2 >    ^^^^^^^
+3 >           ^^^^^
+4 >                ^
+1 >) {
+  >    
+2 >    return 
+3 >           value
+4 >                ;
+1 >Emitted(130, 5) Source(15, 5) + SourceIndex(0)
+2 >Emitted(130, 12) Source(15, 12) + SourceIndex(0)
+3 >Emitted(130, 17) Source(15, 17) + SourceIndex(0)
+4 >Emitted(130, 18) Source(15, 18) + SourceIndex(0)
+---
+>>>}
+1 >
+2 >^
+3 > ^^^^^^^^^^^^^^^^^^^^^^^^^^->
+1 >
+  >
+2 >}
+1 >Emitted(131, 1) Source(16, 1) + SourceIndex(0)
+2 >Emitted(131, 2) Source(16, 2) + SourceIndex(0)
+---
+>>>var resource, C, _default;
+>>>const env_1 = { stack: [], error: void 0, hasError: false };
+>>>try {
+>>>    resource = __addDisposableResource(env_1, { [Symbol.dispose]() { exports.alias = exports.counter += 1; } }, false);
+1->^^^^
+2 >    ^^^^^^^^
+3 >            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 >                                              ^^
+5 >                                                ^
+6 >                                                 ^^^^^^
+7 >                                                       ^
+8 >                                                        ^^^^^^^
+9 >                                                               ^
+10>                                                                ^^^^^
+11>                                                                     ^^^^^^^^
+12>                                                                             ^^^^^
+13>                                                                                  ^^^
+14>                                                                                     ^^^^^^^^
+15>                                                                                             ^^^^^^^
+16>                                                                                                    ^^^^
+17>                                                                                                        ^
+18>                                                                                                         ^
+19>                                                                                                          ^
+20>                                                                                                           ^
+21>                                                                                                            ^^
+22>                                                                                                              ^^^^^^^^
+23>                                                                                                                      ^
+1->
+  >
+  >using 
+2 >    resource
+3 >             = 
+4 >                                              { 
+5 >                                                [
+6 >                                                 Symbol
+7 >                                                       .
+8 >                                                        dispose
+9 >                                                               ]
+10>                                                                () { 
+11>                                                                     
+12>                                                                             alias
+13>                                                                                   };
+  >                                                                                  export let counter = 0;
+  >                                                                                  
+  >                                                                                  export namespace M {
+  >                                                                                      export interface TypeOnly {}
+  >                                                                                  }
+  >                                                                                  export namespace M {
+  >                                                                                      export const value = 1;
+  >                                                                                  }
+  >                                                                                  
+  >                                                                                  function decorate<T extends new (...args: any[]) => any>(value: T) {
+  >                                                                                      return value;
+  >                                                                                  }
+  >                                                                                  
+  >                                                                                  using resource = { [Symbol.dispose]() { 
+14>                                                                                     
+15>                                                                                             counter
+16>                                                                                                     += 
+17>                                                                                                        1
+18>                                                                                                         ;
+19>                                                                                                           
+20>                                                                                                           }
+21>                                                                                                             }
+22>                                                                                                              
+23>                                                                                                                      ;
+1->Emitted(135, 5) Source(18, 7) + SourceIndex(0)
+2 >Emitted(135, 13) Source(18, 15) + SourceIndex(0)
+3 >Emitted(135, 47) Source(18, 18) + SourceIndex(0)
+4 >Emitted(135, 49) Source(18, 20) + SourceIndex(0)
+5 >Emitted(135, 50) Source(18, 21) + SourceIndex(0)
+6 >Emitted(135, 56) Source(18, 27) + SourceIndex(0)
+7 >Emitted(135, 57) Source(18, 28) + SourceIndex(0)
+8 >Emitted(135, 64) Source(18, 35) + SourceIndex(0)
+9 >Emitted(135, 65) Source(18, 36) + SourceIndex(0)
+10>Emitted(135, 70) Source(18, 41) + SourceIndex(0)
+11>Emitted(135, 78) Source(4, 21) + SourceIndex(0)
+12>Emitted(135, 83) Source(4, 26) + SourceIndex(0)
+13>Emitted(135, 86) Source(18, 41) + SourceIndex(0)
+14>Emitted(135, 94) Source(18, 41) + SourceIndex(0)
+15>Emitted(135, 101) Source(18, 48) + SourceIndex(0)
+16>Emitted(135, 105) Source(18, 52) + SourceIndex(0)
+17>Emitted(135, 106) Source(18, 53) + SourceIndex(0)
+18>Emitted(135, 107) Source(18, 54) + SourceIndex(0)
+19>Emitted(135, 108) Source(18, 55) + SourceIndex(0)
+20>Emitted(135, 109) Source(18, 56) + SourceIndex(0)
+21>Emitted(135, 111) Source(18, 58) + SourceIndex(0)
+22>Emitted(135, 119) Source(18, 58) + SourceIndex(0)
+23>Emitted(135, 120) Source(18, 59) + SourceIndex(0)
+---
+>>>    exports.C = C = (() => {
+1 >^^^^^^^^^^^^
+2 >            ^
+3 >             ^^^
+4 >                ^^^^^^->
+1 >
+  >
+  >@decorate
+  >export class 
+2 >            C
+3 >             
+1 >Emitted(136, 13) Source(21, 14) + SourceIndex(0)
+2 >Emitted(136, 14) Source(21, 15) + SourceIndex(0)
+3 >Emitted(136, 17) Source(20, 1) + SourceIndex(0)
+---
+>>>        var _C_value;
+>>>        let _classDecorators = [decorate];
+1->^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2 >                                ^^^^^^^^
+1->@
+2 >                                decorate
+1->Emitted(138, 33) Source(20, 2) + SourceIndex(0)
+2 >Emitted(138, 41) Source(20, 10) + SourceIndex(0)
+---
+>>>        let _classDescriptor;
+>>>        let _classExtraInitializers = [];
+>>>        let _classThis;
+>>>        var C = _classThis = class {
+>>>            constructor() {
+>>>                _C_value.set(this, M.value);
+1 >^^^^^^^^^^^^^^^^
+2 >                ^^^^^^^^^^^^^^^^^^^
+3 >                                   ^
+4 >                                    ^
+5 >                                     ^^^^^
+6 >                                          ^^
+1 >
+  >export class C {
+  >    static value = counter ||= 2;
+  >    
+2 >                #value = 
+3 >                                   M
+4 >                                    .
+5 >                                     value
+6 >                                          ;
+1 >Emitted(144, 17) Source(23, 5) + SourceIndex(0)
+2 >Emitted(144, 36) Source(23, 14) + SourceIndex(0)
+3 >Emitted(144, 37) Source(23, 15) + SourceIndex(0)
+4 >Emitted(144, 38) Source(23, 16) + SourceIndex(0)
+5 >Emitted(144, 43) Source(23, 21) + SourceIndex(0)
+6 >Emitted(144, 45) Source(23, 22) + SourceIndex(0)
+---
+>>>            }
+1 >^^^^^^^^^^^^
+2 >            ^
+3 >             ^^^^^^^^^^^^->
+1 >
+  >    async run(input?: { value?: number }) {
+  >        const { value, ...rest } = input ?? {};
+  >        await Promise.resolve(rest);
+  >        return value ?? this.#value;
+  >    }
+  >
+2 >            }
+1 >Emitted(145, 13) Source(29, 1) + SourceIndex(0)
+2 >Emitted(145, 14) Source(29, 2) + SourceIndex(0)
+---
+>>>            run(input) {
+1->^^^^^^^^^^^^
+2 >            ^^^
+3 >               ^
+4 >                ^^^^^
+5 >                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^->
+1->
+2 >            run
+3 >               (
+4 >                input?: { value?: number }
+1->Emitted(146, 13) Source(24, 11) + SourceIndex(0)
+2 >Emitted(146, 16) Source(24, 14) + SourceIndex(0)
+3 >Emitted(146, 17) Source(24, 15) + SourceIndex(0)
+4 >Emitted(146, 22) Source(24, 41) + SourceIndex(0)
+---
+>>>                return __awaiter(this, void 0, void 0, function* () {
+>>>                    const _a = input !== null && input !== void 0 ? input : {}, { value } = _a, rest = __rest(_a, ["value"]);
+1->^^^^^^^^^^^^^^^^^^^^
+2 >                    ^^^^^^
+3 >                          ^^^^^
+4 >                               ^^^^^
+5 >                                    ^^^^^^^^^^^^^
+6 >                                                 ^^^^^
+7 >                                                      ^^^^^^^^^^^^^^
+8 >                                                                    ^^^^^
+9 >                                                                         ^^^
+10>                                                                            ^^
+11>                                                                              ^^
+12>                                                                                ^^
+13>                                                                                  ^^^^^
+14>                                                                                       ^^^^^^^
+15>                                                                                              ^^
+16>                                                                                                ^^^^
+17>                                                                                                    ^^^^^^^^^^^^^^
+18>                                                                                                                  ^^^^^^^^^
+19>                                                                                                                           ^
+20>                                                                                                                            ^
+1->) {
+  >        
+2 >                    const 
+3 >                          { value, ...rest } = 
+4 >                               input
+5 >                                    
+6 >                                                 input
+7 >                                                      
+8 >                                                                    input
+9 >                                                                          ?? 
+10>                                                                            {}
+11>                                                                              
+12>                                                                                { 
+13>                                                                                  value
+14>                                                                                       , ...rest } = input ?? {}
+15>                                                                                              
+16>                                                                                                rest
+17>                                                                                                    
+18>                                                                                                                  { value, ...rest }
+19>                                                                                                                            = input ?? {}
+20>                                                                                                                            ;
+1->Emitted(148, 21) Source(25, 9) + SourceIndex(0)
+2 >Emitted(148, 27) Source(25, 15) + SourceIndex(0)
+3 >Emitted(148, 32) Source(25, 36) + SourceIndex(0)
+4 >Emitted(148, 37) Source(25, 41) + SourceIndex(0)
+5 >Emitted(148, 50) Source(25, 36) + SourceIndex(0)
+6 >Emitted(148, 55) Source(25, 41) + SourceIndex(0)
+7 >Emitted(148, 69) Source(25, 36) + SourceIndex(0)
+8 >Emitted(148, 74) Source(25, 41) + SourceIndex(0)
+9 >Emitted(148, 77) Source(25, 45) + SourceIndex(0)
+10>Emitted(148, 79) Source(25, 47) + SourceIndex(0)
+11>Emitted(148, 81) Source(25, 15) + SourceIndex(0)
+12>Emitted(148, 83) Source(25, 17) + SourceIndex(0)
+13>Emitted(148, 88) Source(25, 22) + SourceIndex(0)
+14>Emitted(148, 95) Source(25, 47) + SourceIndex(0)
+15>Emitted(148, 97) Source(25, 27) + SourceIndex(0)
+16>Emitted(148, 101) Source(25, 31) + SourceIndex(0)
+17>Emitted(148, 115) Source(25, 15) + SourceIndex(0)
+18>Emitted(148, 124) Source(25, 33) + SourceIndex(0)
+19>Emitted(148, 125) Source(25, 47) + SourceIndex(0)
+20>Emitted(148, 126) Source(25, 48) + SourceIndex(0)
+---
+>>>                    yield Promise.resolve(rest);
+1 >^^^^^^^^^^^^^^^^^^^^
+2 >                    ^^^^^^
+3 >                          ^^^^^^^
+4 >                                 ^
+5 >                                  ^^^^^^^
+6 >                                         ^
+7 >                                          ^^^^
+8 >                                              ^
+9 >                                               ^
+10>                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^->
+1 >
+  >        
+2 >                    await 
+3 >                          Promise
+4 >                                 .
+5 >                                  resolve
+6 >                                         (
+7 >                                          rest
+8 >                                              )
+9 >                                               ;
+1 >Emitted(149, 21) Source(26, 9) + SourceIndex(0)
+2 >Emitted(149, 27) Source(26, 15) + SourceIndex(0)
+3 >Emitted(149, 34) Source(26, 22) + SourceIndex(0)
+4 >Emitted(149, 35) Source(26, 23) + SourceIndex(0)
+5 >Emitted(149, 42) Source(26, 30) + SourceIndex(0)
+6 >Emitted(149, 43) Source(26, 31) + SourceIndex(0)
+7 >Emitted(149, 47) Source(26, 35) + SourceIndex(0)
+8 >Emitted(149, 48) Source(26, 36) + SourceIndex(0)
+9 >Emitted(149, 49) Source(26, 37) + SourceIndex(0)
+---
+>>>                    return value !== null && value !== void 0 ? value : __classPrivateFieldGet(this, _C_value, "f");
+1->^^^^^^^^^^^^^^^^^^^^
+2 >                    ^^^^^^^
+3 >                           ^^^^^
+4 >                                ^^^^^^^^^^^^^
+5 >                                             ^^^^^
+6 >                                                  ^^^^^^^^^^^^^^
+7 >                                                                ^^^^^
+8 >                                                                     ^^^
+9 >                                                                        ^^^^^^^^^^^^^^^^^^^^^^^
+10>                                                                                               ^^^^
+11>                                                                                                   ^^^^^^^^^^^^^^^^
+12>                                                                                                                   ^
+1->
+  >        
+2 >                    return 
+3 >                           value
+4 >                                
+5 >                                             value
+6 >                                                  
+7 >                                                                value
+8 >                                                                      ?? 
+9 >                                                                        
+10>                                                                                               this
+11>                                                                                                   .#value
+12>                                                                                                                   ;
+1->Emitted(150, 21) Source(27, 9) + SourceIndex(0)
+2 >Emitted(150, 28) Source(27, 16) + SourceIndex(0)
+3 >Emitted(150, 33) Source(27, 21) + SourceIndex(0)
+4 >Emitted(150, 46) Source(27, 16) + SourceIndex(0)
+5 >Emitted(150, 51) Source(27, 21) + SourceIndex(0)
+6 >Emitted(150, 65) Source(27, 16) + SourceIndex(0)
+7 >Emitted(150, 70) Source(27, 21) + SourceIndex(0)
+8 >Emitted(150, 73) Source(27, 25) + SourceIndex(0)
+9 >Emitted(150, 96) Source(27, 25) + SourceIndex(0)
+10>Emitted(150, 100) Source(27, 29) + SourceIndex(0)
+11>Emitted(150, 116) Source(27, 36) + SourceIndex(0)
+12>Emitted(150, 117) Source(27, 37) + SourceIndex(0)
+---
+>>>                });
+1 >^^^^^^^^^^^^^^^^
+2 >                ^
+1 >
+  >    
+2 >                }
+1 >Emitted(151, 17) Source(28, 5) + SourceIndex(0)
+2 >Emitted(151, 18) Source(28, 6) + SourceIndex(0)
+---
+>>>            }
+1 >^^^^^^^^^^^^^
+1 >
+1 >Emitted(152, 14) Source(28, 6) + SourceIndex(0)
+---
+>>>        };
+>>>        _C_value = new WeakMap();
+>>>        __setFunctionName(_classThis, "C");
+>>>        (() => {
+>>>            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+>>>            __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+1 >^^^^^^^^^^^^
+2 >            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1 >
+2 >            export class C {
+  >                static value = counter ||= 2;
+  >                #value = M.value;
+  >                async run(input?: { value?: number }) {
+  >                    const { value, ...rest } = input ?? {};
+  >                    await Promise.resolve(rest);
+  >                    return value ?? this.#value;
+  >                }
+  >            }
+1 >Emitted(158, 13) Source(21, 1) + SourceIndex(0)
+2 >Emitted(158, 186) Source(29, 2) + SourceIndex(0)
+---
+>>>            C = _classThis = _classDescriptor.value;
+>>>            if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+>>>        })();
+>>>        _classThis.value = exports.counter || (exports.alias = exports.counter = 2);
+1 >^^^^^^^^
+2 >        ^^^^^^^^^^^^^^^^
+3 >                        ^^^
+4 >                           ^^^^^^^^
+5 >                                   ^^^^^^^
+6 >                                          ^^^^^^^^^^^^^
+7 >                                                       ^^^^^
+8 >                                                            ^^^
+9 >                                                               ^^^^^^^^
+10>                                                                       ^^^^^^^
+11>                                                                              ^^^
+12>                                                                                 ^
+13>                                                                                  ^
+14>                                                                                   ^
+1 >
+2 >        value
+3 >                         = 
+4 >                           
+5 >                                   counter
+6 >                                          
+7 >                                                       alias
+8 >                                                             };
+  >                                                            export let counter = 0;
+  >                                                            
+  >                                                            export namespace M {
+  >                                                                export interface TypeOnly {}
+  >                                                            }
+  >                                                            export namespace M {
+  >                                                                export const value = 1;
+  >                                                            }
+  >                                                            
+  >                                                            function decorate<T extends new (...args: any[]) => any>(value: T) {
+  >                                                                return value;
+  >                                                            }
+  >                                                            
+  >                                                            using resource = { [Symbol.dispose]() { counter += 1; } };
+  >                                                            
+  >                                                            @decorate
+  >                                                            export class C {
+  >                                                                static value = 
+9 >                                                               
+10>                                                                       counter
+11>                                                                               ||= 
+12>                                                                                 2
+13>                                                                                  
+14>                                                                                    = counter ||= 2;
+1 >Emitted(162, 9) Source(22, 12) + SourceIndex(0)
+2 >Emitted(162, 25) Source(22, 17) + SourceIndex(0)
+3 >Emitted(162, 28) Source(22, 20) + SourceIndex(0)
+4 >Emitted(162, 36) Source(22, 20) + SourceIndex(0)
+5 >Emitted(162, 43) Source(22, 27) + SourceIndex(0)
+6 >Emitted(162, 56) Source(4, 21) + SourceIndex(0)
+7 >Emitted(162, 61) Source(4, 26) + SourceIndex(0)
+8 >Emitted(162, 64) Source(22, 20) + SourceIndex(0)
+9 >Emitted(162, 72) Source(22, 20) + SourceIndex(0)
+10>Emitted(162, 79) Source(22, 27) + SourceIndex(0)
+11>Emitted(162, 82) Source(22, 32) + SourceIndex(0)
+12>Emitted(162, 83) Source(22, 33) + SourceIndex(0)
+13>Emitted(162, 84) Source(22, 17) + SourceIndex(0)
+14>Emitted(162, 85) Source(22, 34) + SourceIndex(0)
+---
+>>>        (() => {
+>>>            __runInitializers(_classThis, _classExtraInitializers);
+1 >^^^^^^^^^^^^
+2 >            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1 >
+2 >            C
+1 >Emitted(164, 13) Source(21, 14) + SourceIndex(0)
+2 >Emitted(164, 68) Source(21, 15) + SourceIndex(0)
+---
+>>>        })();
+>>>        return C = _classThis;
+>>>    })();
+1 >^^^^^^^^
+2 >        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^->
+1 > {
+  >    static value = counter ||= 2;
+  >    #value = M.value;
+  >    async run(input?: { value?: number }) {
+  >        const { value, ...rest } = input ?? {};
+  >        await Promise.resolve(rest);
+  >        return value ?? this.#value;
+  >    }
+  >}
+1 >Emitted(167, 9) Source(29, 2) + SourceIndex(0)
+---
+>>>    exports.default = _default = (() => {
+>>>        let _classDecorators = [decorate];
+1->^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+2 >                                ^^^^^^^^
+1->
+  >
+  >@
+2 >                                decorate
+1->Emitted(169, 33) Source(31, 2) + SourceIndex(0)
+2 >Emitted(169, 41) Source(31, 10) + SourceIndex(0)
+---
+>>>        let _classDescriptor;
+>>>        let _classExtraInitializers = [];
+>>>        let _classThis;
+>>>        var default_1 = _classThis = class {
+>>>            constructor() {
+>>>                this.value = C.value;
+1 >^^^^^^^^^^^^^^^^
+2 >                ^^^^^^^^^^
+3 >                          ^^^
+4 >                             ^
+5 >                              ^
+6 >                               ^^^^^
+7 >                                    ^
+1 >
+  >export default class {
+  >    
+2 >                value
+3 >                           = 
+4 >                             C
+5 >                              .
+6 >                               value
+7 >                                    ;
+1 >Emitted(175, 17) Source(33, 5) + SourceIndex(0)
+2 >Emitted(175, 27) Source(33, 10) + SourceIndex(0)
+3 >Emitted(175, 30) Source(33, 13) + SourceIndex(0)
+4 >Emitted(175, 31) Source(33, 14) + SourceIndex(0)
+5 >Emitted(175, 32) Source(33, 15) + SourceIndex(0)
+6 >Emitted(175, 37) Source(33, 20) + SourceIndex(0)
+7 >Emitted(175, 38) Source(33, 21) + SourceIndex(0)
+---
+>>>            }
+1 >^^^^^^^^^^^^
+2 >            ^
+1 >
+  >
+2 >            }
+1 >Emitted(176, 13) Source(34, 1) + SourceIndex(0)
+2 >Emitted(176, 14) Source(34, 2) + SourceIndex(0)
+---
+>>>        };
+>>>        __setFunctionName(_classThis, "default");
+>>>        (() => {
+>>>            const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(null) : void 0;
+>>>            __esDecorate(null, _classDescriptor = { value: _classThis }, _classDecorators, { kind: "class", name: _classThis.name, metadata: _metadata }, null, _classExtraInitializers);
+1 >^^^^^^^^^^^^
+2 >            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1 >
+2 >            export default class {
+  >                value = C.value;
+  >            }
+1 >Emitted(181, 13) Source(32, 1) + SourceIndex(0)
+2 >Emitted(181, 186) Source(34, 2) + SourceIndex(0)
+---
+>>>            default_1 = _classThis = _classDescriptor.value;
+>>>            if (_metadata) Object.defineProperty(_classThis, Symbol.metadata, { enumerable: true, configurable: true, writable: true, value: _metadata });
+>>>            __runInitializers(_classThis, _classExtraInitializers);
+1 >^^^^^^^^^^^^
+2 >            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+1 >
+2 >            export default class {
+  >                value = C.value;
+  >            }
+1 >Emitted(184, 13) Source(32, 1) + SourceIndex(0)
+2 >Emitted(184, 68) Source(34, 2) + SourceIndex(0)
+---
+>>>        })();
+>>>        return default_1 = _classThis;
+>>>    })();
+>>>    exports.result = read();
+1 >^^^^
+2 >    ^^^^^^^^
+3 >            ^^^^^^
+4 >                  ^^^
+5 >                     ^^^^
+6 >                         ^^
+7 >                           ^
+1 >
+  >
+  >export const 
+2 >    
+3 >            result
+4 >                   = 
+5 >                     read
+6 >                         ()
+7 >                           ;
+1 >Emitted(188, 5) Source(36, 14) + SourceIndex(0)
+2 >Emitted(188, 13) Source(36, 14) + SourceIndex(0)
+3 >Emitted(188, 19) Source(36, 20) + SourceIndex(0)
+4 >Emitted(188, 22) Source(36, 23) + SourceIndex(0)
+5 >Emitted(188, 26) Source(36, 27) + SourceIndex(0)
+6 >Emitted(188, 28) Source(36, 29) + SourceIndex(0)
+7 >Emitted(188, 29) Source(36, 30) + SourceIndex(0)
+---
+>>>}
+>>>catch (e_1) {
+>>>    env_1.error = e_1;
+>>>    env_1.hasError = true;
+>>>}
+>>>finally {
+>>>    __disposeResources(env_1);
+>>>}
+>>>//# sourceMappingURL=streamedSourceElements.js.map
