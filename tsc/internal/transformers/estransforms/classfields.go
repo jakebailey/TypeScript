@@ -218,7 +218,8 @@ func (tx *classFieldsTransformer) classExpressionNeedsBlockScopedTemp() bool {
 }
 
 func (tx *classFieldsTransformer) visitSourceFile(node *ast.SourceFile) *ast.Node {
-	if node.IsDeclarationFile {
+	if node.IsDeclarationFile ||
+		node.SubtreeFacts()&(ast.SubtreeContainsClassFields|ast.SubtreeContainsLexicalThisOrSuper|ast.SubtreeContainsDecorators) == 0 {
 		return node.AsNode()
 	}
 	tx.lexicalEnvironment = nil

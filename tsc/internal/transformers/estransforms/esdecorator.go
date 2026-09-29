@@ -269,6 +269,9 @@ func (tx *esDecoratorTransformer) exitOther() {
 }
 
 func (tx *esDecoratorTransformer) visitSourceFile(node *ast.SourceFile) *ast.Node {
+	if node.SubtreeFacts()&ast.SubtreeContainsDecorators == 0 {
+		return node.AsNode()
+	}
 	tx.top = nil
 	tx.shouldTransformPrivateStaticElementsInFile = false
 	visited := tx.Visitor().VisitEachChild(node.AsNode())

@@ -1724,7 +1724,8 @@ func (node *VariableDeclaration) computeSubtreeFacts() SubtreeFacts {
 
 func (node *VariableDeclarationList) computeSubtreeFacts() SubtreeFacts {
 	return propagateNodeListSubtreeFacts(node.Declarations, propagateSubtreeFacts) |
-		core.IfElse(node.Flags&NodeFlagsUsing != 0, SubtreeContainsUsing, SubtreeFactsNone)
+		core.IfElse(node.Flags&NodeFlagsUsing != 0, SubtreeContainsUsing, SubtreeFactsNone) |
+		core.IfElse(node.Flags&NodeFlagsAwaitUsing == NodeFlagsAwaitUsing, SubtreeContainsAnyAwait, SubtreeFactsNone)
 }
 
 func (node *VariableDeclarationList) propagateSubtreeFacts() SubtreeFacts {
@@ -1754,7 +1755,8 @@ func (node *ParameterDeclaration) computeSubtreeFacts() SubtreeFacts {
 			propagateSubtreeFacts(node.name) |
 			propagateEraseableSyntaxSubtreeFacts(node.QuestionToken) |
 			propagateEraseableSyntaxSubtreeFacts(node.Type) |
-			propagateSubtreeFacts(node.Initializer)
+			propagateSubtreeFacts(node.Initializer) |
+			core.IfElse(node.ModifierFlags()&ModifierFlagsParameterPropertyModifier != 0, SubtreeContainsClassFields, SubtreeFactsNone)
 	}
 }
 

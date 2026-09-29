@@ -44,7 +44,8 @@ func newAsyncTransformer(opts *transformers.TransformOptions) *transformers.Tran
 }
 
 func (tx *asyncTransformer) visitSourceFile(node *ast.SourceFile) *ast.Node {
-	if node.IsDeclarationFile {
+	if node.IsDeclarationFile ||
+		node.SubtreeFacts()&(ast.SubtreeContainsAnyAwait|ast.SubtreeContainsAwait|ast.SubtreeContainsForAwaitOrAsyncGenerator) == 0 {
 		return node.AsNode()
 	}
 

@@ -28,7 +28,6 @@ func (tx *useStrictTransformer) visit(node *ast.Node) *ast.Node {
 }
 
 func (tx *useStrictTransformer) visitSourceFile(node *ast.SourceFile) *ast.Node {
-	node = tx.Visitor().VisitEachChild(node.AsNode()).AsSourceFile()
 	if node.ScriptKind == core.ScriptKindJSON {
 		return node.AsNode()
 	}
@@ -44,6 +43,7 @@ func (tx *useStrictTransformer) visitSourceFile(node *ast.SourceFile) *ast.Node 
 		return node.AsNode()
 	}
 
+	node = tx.Visitor().VisitEachChild(node.AsNode()).AsSourceFile()
 	statements := tx.Factory().EnsureUseStrict(node.Statements.Nodes)
 	statementList := tx.Factory().NewNodeList(statements)
 	statementList.Loc = node.Statements.Loc
