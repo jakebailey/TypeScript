@@ -31,6 +31,55 @@ func generateLongLineTS(numProperties int) string {
 	return b.String()
 }
 
+func BenchmarkEmitPipeline(b *testing.B) {
+	if !bundled.Embedded {
+		b.Skip("bundled files are not embedded")
+	}
+	for _, test := range []struct {
+		name   string
+		source string
+		module core.ModuleKind
+		target core.ScriptTarget
+	}{
+		{"Plain", `export function f%d(x: number) { return x + 1; }`, core.ModuleKindESNext, core.ScriptTargetESNext},
+		{"Syntax", `export function f%d(x: any) { x.value ??= x?.other ** 2; return x.value; }`, core.ModuleKindESNext, core.ScriptTargetES2015},
+		{"Classes", `export class C%d { #x = 1; async run(x: any) { const { a, ...rest } = x; return this.#x + (await x?.run?.(rest) ?? a); } }`, core.ModuleKindESNext, core.ScriptTargetES2015},
+		{"CommonJS", `export let x%d = 0; export async function f%[1]d(x: any) { x%[1]d ||= await x?.run(); return { ...x, x%[1]d }; }`, core.ModuleKindCommonJS, core.ScriptTargetES2015},
+		{"JSX", `export const C%d = (props: any) => <div {...props}>{props.value ?? "default"}</div>;`, core.ModuleKindCommonJS, core.ScriptTargetES2015},
+		{"Using", `using resource%d = acquire(); export const x%[1]d = resource%[1]d?.value ?? 0;`, core.ModuleKindCommonJS, core.ScriptTargetES2015},
+	} {
+		b.Run(test.name, func(b *testing.B) {
+			var source strings.Builder
+			source.WriteString("declare function acquire(): any;\n")
+			for i := range 200 {
+				fmt.Fprintf(&source, test.source+"\n", i)
+			}
+			fs := bundled.WrapFS(vfstest.FromMap(map[string]string{"/src/index.tsx": source.String()}, true))
+			opts := core.CompilerOptions{
+				Target: test.target, Module: test.module, Jsx: core.JsxEmitReactJSX,
+				SourceMap: core.TSTrue, OutDir: "/out",
+			}
+			p := compiler.NewProgram(compiler.ProgramOptions{
+				Config: &tsoptions.ParsedCommandLine{ParsedConfig: &tsoptions.ParsedOptions{
+					FileNames: []string{"/src/index.tsx"}, CompilerOptions: &opts,
+				}},
+				Host: compiler.NewCompilerHost("/src", fs, bundled.LibPath(), nil, nil, nil),
+			})
+			emit := func() {
+				p.Emit(context.Background(), compiler.EmitOptions{
+					WriteFile: func(string, string, *compiler.WriteFileData) error { return nil },
+				})
+			}
+			emit()
+			b.ReportAllocs()
+			b.ResetTimer()
+			for b.Loop() {
+				emit()
+			}
+		})
+	}
+}
+
 func BenchmarkEmitLongLines(b *testing.B) {
 	if !bundled.Embedded {
 		b.Skip("bundled files are not embedded")
