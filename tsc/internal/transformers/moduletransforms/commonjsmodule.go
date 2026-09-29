@@ -9,6 +9,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 	"github.com/microsoft/TypeScript/tsc/internal/transformers"
+	"github.com/microsoft/TypeScript/tsc/internal/transformers/inliners"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 )
 
@@ -31,12 +32,16 @@ type CommonJSModuleTransformer struct {
 	sourceStatementVisitor    *ast.NodeVisitor
 	inputStatements           []*ast.Node
 	exportEqualsStatement     *ast.Node
+	constEnums                *inliners.ConstEnumInliningTransformer
 }
 
 func NewCommonJSModuleTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
 	compilerOptions := opts.CompilerOptions
 	emitContext := opts.Context
 	tx := &CommonJSModuleTransformer{compilerOptions: compilerOptions, resolver: opts.Resolver, getEmitModuleFormatOfFile: opts.GetEmitModuleFormatOfFile}
+	if !compilerOptions.GetIsolatedModules() {
+		tx.constEnums = inliners.NewConstEnumInliningTransformer(opts)
+	}
 	tx.prepareModuleBindings = opts.PrepareModuleBindings
 	tx.sourceStatementVisitor = emitContext.NewNodeVisitor(tx.visitSourceStatement)
 	tx.topLevelVisitor = emitContext.NewNodeVisitor(tx.visitTopLevel)
@@ -159,6 +164,13 @@ func (tx *CommonJSModuleTransformer) visitNoStack(node *ast.Node, resultIsDiscar
 	}
 
 	switch node.Kind {
+	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
+		if tx.constEnums != nil {
+			if replacement := tx.constEnums.Inline(node); replacement != node {
+				return replacement
+			}
+		}
+		return tx.Visitor().VisitEachChild(node)
 	case ast.KindSourceFile:
 		node = tx.visitSourceFile(node.AsSourceFile())
 	case ast.KindForStatement:
@@ -242,9 +254,15 @@ func (tx *CommonJSModuleTransformer) visitAssignmentPatternNoStack(node *ast.Nod
 }
 
 func (tx *CommonJSModuleTransformer) visitSourceFile(node *ast.SourceFile) *ast.Node {
-	if node.IsDeclarationFile ||
-		!(ast.IsEffectiveExternalModule(node, tx.compilerOptions) ||
-			node.SubtreeFacts()&ast.SubtreeContainsDynamicImport != 0) {
+	if node.IsDeclarationFile {
+		return node.AsNode()
+	}
+	if !(ast.IsEffectiveExternalModule(node, tx.compilerOptions) ||
+		node.SubtreeFacts()&ast.SubtreeContainsDynamicImport != 0) {
+		if tx.constEnums != nil {
+			statements := tx.VisitSourceFileStatements(node.Statements, tx.constEnums.Visitor())
+			return tx.Factory().UpdateSourceFile(node, statements, node.EndOfFileToken)
+		}
 		return node.AsNode()
 	}
 

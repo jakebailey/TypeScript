@@ -8,6 +8,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 	"github.com/microsoft/TypeScript/tsc/internal/transformers"
+	"github.com/microsoft/TypeScript/tsc/internal/transformers/inliners"
 )
 
 type ESModuleTransformer struct {
@@ -18,6 +19,7 @@ type ESModuleTransformer struct {
 	currentSourceFile         *ast.SourceFile
 	importRequireStatements   *importRequireStatements
 	helperNameSubstitutions   map[string]*ast.IdentifierNode
+	constEnums                *inliners.ConstEnumInliningTransformer
 }
 
 type importRequireStatements struct {
@@ -28,12 +30,22 @@ type importRequireStatements struct {
 func NewESModuleTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
 	compilerOptions := opts.CompilerOptions
 	tx := &ESModuleTransformer{compilerOptions: compilerOptions, resolver: opts.Resolver, getEmitModuleFormatOfFile: opts.GetEmitModuleFormatOfFile}
+	if !compilerOptions.GetIsolatedModules() {
+		tx.constEnums = inliners.NewConstEnumInliningTransformer(opts)
+	}
 	return tx.NewTransformer(tx.visit, opts.Context)
 }
 
 // Visits source elements that are not top-level or top-level nested statements.
 func (tx *ESModuleTransformer) visit(node *ast.Node) *ast.Node {
 	switch node.Kind {
+	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
+		if tx.constEnums != nil {
+			if replacement := tx.constEnums.Inline(node); replacement != node {
+				return replacement
+			}
+		}
+		node = tx.Visitor().VisitEachChild(node)
 	case ast.KindSourceFile:
 		node = tx.visitSourceFile(node.AsSourceFile())
 	case ast.KindImportDeclaration:
@@ -53,8 +65,14 @@ func (tx *ESModuleTransformer) visit(node *ast.Node) *ast.Node {
 }
 
 func (tx *ESModuleTransformer) visitSourceFile(node *ast.SourceFile) *ast.Node {
-	if node.IsDeclarationFile ||
-		!(ast.IsExternalModule(node) || tx.compilerOptions.GetIsolatedModules()) {
+	if node.IsDeclarationFile {
+		return node.AsNode()
+	}
+	if !(ast.IsExternalModule(node) || tx.compilerOptions.GetIsolatedModules()) {
+		if tx.constEnums != nil {
+			statements := tx.VisitSourceFileStatements(node.Statements, tx.constEnums.Visitor())
+			return tx.Factory().UpdateSourceFile(node, statements, node.EndOfFileToken)
+		}
 		return node.AsNode()
 	}
 

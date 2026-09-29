@@ -1,0 +1,75 @@
+//// [tests/cases/compiler/fusedModuleConstEnums.ts] ////
+
+=== constants.ts ===
+export const enum Values {
+>Values : Symbol(Values, Decl(constants.ts, 0, 0))
+
+    First = 1,
+>First : Symbol(Values.First, Decl(constants.ts, 0, 26))
+
+    Last = First + 2,
+>Last : Symbol(Values.Last, Decl(constants.ts, 1, 14))
+>First : Symbol(Values.First, Decl(constants.ts, 0, 26))
+
+    Name = "value"
+>Name : Symbol(Values.Name, Decl(constants.ts, 2, 21))
+}
+export { Values as Alias };
+>Values : Symbol(Values, Decl(constants.ts, 0, 0))
+>Alias : Symbol(Alias, Decl(constants.ts, 5, 8))
+
+=== main.ts ===
+import { Alias, Values } from "./constants";
+>Alias : Symbol(Alias, Decl(main.ts, 0, 8))
+>Values : Symbol(Values, Decl(main.ts, 0, 15))
+
+export const first = Values.First;
+>first : Symbol(first, Decl(main.ts, 1, 12))
+>Values.First : Symbol(Alias.First, Decl(constants.ts, 0, 26))
+>Values : Symbol(Values, Decl(main.ts, 0, 15))
+>First : Symbol(Alias.First, Decl(constants.ts, 0, 26))
+
+export const record = { [Alias.Name]: Alias["Last"] };
+>record : Symbol(record, Decl(main.ts, 2, 12))
+>[Alias.Name] : Symbol([Alias.Name], Decl(main.ts, 2, 23))
+>Alias.Name : Symbol(Alias.Name, Decl(constants.ts, 2, 21))
+>Alias : Symbol(Alias, Decl(main.ts, 0, 8))
+>Name : Symbol(Alias.Name, Decl(constants.ts, 2, 21))
+>Alias : Symbol(Alias, Decl(main.ts, 0, 8))
+>"Last" : Symbol(Alias.Last, Decl(constants.ts, 1, 14))
+
+export async function read() {
+>read : Symbol(read, Decl(main.ts, 2, 54))
+
+    return [Values.First, Alias.Last, Values.Name];
+>Values.First : Symbol(Alias.First, Decl(constants.ts, 0, 26))
+>Values : Symbol(Values, Decl(main.ts, 0, 15))
+>First : Symbol(Alias.First, Decl(constants.ts, 0, 26))
+>Alias.Last : Symbol(Alias.Last, Decl(constants.ts, 1, 14))
+>Alias : Symbol(Alias, Decl(main.ts, 0, 8))
+>Last : Symbol(Alias.Last, Decl(constants.ts, 1, 14))
+>Values.Name : Symbol(Alias.Name, Decl(constants.ts, 2, 21))
+>Values : Symbol(Values, Decl(main.ts, 0, 15))
+>Name : Symbol(Alias.Name, Decl(constants.ts, 2, 21))
+}
+export const access = record?.[Values.Name] ?? Values.Last;
+>access : Symbol(access, Decl(main.ts, 6, 12))
+>record : Symbol(record, Decl(main.ts, 2, 12))
+>Values.Name : Symbol(Alias.Name, Decl(constants.ts, 2, 21))
+>Values : Symbol(Values, Decl(main.ts, 0, 15))
+>Name : Symbol(Alias.Name, Decl(constants.ts, 2, 21))
+>Values.Last : Symbol(Alias.Last, Decl(constants.ts, 1, 14))
+>Values : Symbol(Values, Decl(main.ts, 0, 15))
+>Last : Symbol(Alias.Last, Decl(constants.ts, 1, 14))
+
+=== script.ts ===
+const enum ScriptValues { Value = 42 }
+>ScriptValues : Symbol(ScriptValues, Decl(script.ts, 0, 0))
+>Value : Symbol(ScriptValues.Value, Decl(script.ts, 0, 25))
+
+const scriptResult = ScriptValues.Value;
+>scriptResult : Symbol(scriptResult, Decl(script.ts, 1, 5))
+>ScriptValues.Value : Symbol(ScriptValues.Value, Decl(script.ts, 0, 25))
+>ScriptValues : Symbol(ScriptValues, Decl(script.ts, 0, 0))
+>Value : Symbol(ScriptValues.Value, Decl(script.ts, 0, 25))
+

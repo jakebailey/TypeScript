@@ -1,0 +1,85 @@
+//// [tests/cases/compiler/fusedModuleConstEnums.ts] ////
+
+=== constants.ts ===
+export const enum Values {
+>Values : Values
+
+    First = 1,
+>First : Values.First
+>1 : 1
+
+    Last = First + 2,
+>Last : Values.Last
+>First + 2 : number
+>First : Values.First
+>2 : 2
+
+    Name = "value"
+>Name : Values.Name
+>"value" : "value"
+}
+export { Values as Alias };
+>Values : typeof Values
+>Alias : typeof Values
+
+=== main.ts ===
+import { Alias, Values } from "./constants";
+>Alias : typeof Alias
+>Values : typeof Alias
+
+export const first = Values.First;
+>first : Alias.First
+>Values.First : Alias.First
+>Values : typeof Alias
+>First : Alias.First
+
+export const record = { [Alias.Name]: Alias["Last"] };
+>record : { [Alias.Name]: Alias; }
+>{ [Alias.Name]: Alias["Last"] } : { [Alias.Name]: Alias; }
+>[Alias.Name] : Alias
+>Alias.Name : Alias.Name
+>Alias : typeof Alias
+>Name : Alias.Name
+>Alias["Last"] : Alias.Last
+>Alias : typeof Alias
+>"Last" : "Last"
+
+export async function read() {
+>read : () => Promise<Alias[]>
+
+    return [Values.First, Alias.Last, Values.Name];
+>[Values.First, Alias.Last, Values.Name] : Alias[]
+>Values.First : Alias.First
+>Values : typeof Alias
+>First : Alias.First
+>Alias.Last : Alias.Last
+>Alias : typeof Alias
+>Last : Alias.Last
+>Values.Name : Alias.Name
+>Values : typeof Alias
+>Name : Alias.Name
+}
+export const access = record?.[Values.Name] ?? Values.Last;
+>access : Alias
+>record?.[Values.Name] ?? Values.Last : Alias
+>record?.[Values.Name] : Alias
+>record : { [Alias.Name]: Alias; }
+>Values.Name : Alias.Name
+>Values : typeof Alias
+>Name : Alias.Name
+>Values.Last : Alias.Last
+>Values : typeof Alias
+>Last : Alias.Last
+
+=== script.ts ===
+const enum ScriptValues { Value = 42 }
+>ScriptValues : ScriptValues
+>Value : ScriptValues.Value
+>42 : 42
+
+const scriptResult = ScriptValues.Value;
+>scriptResult : ScriptValues.Value
+>ScriptValues.Value : ScriptValues
+>ScriptValues : typeof ScriptValues
+>Value : ScriptValues
+

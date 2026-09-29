@@ -19,23 +19,33 @@ type ConstEnumInliningTransformer struct {
 	emitResolver      printer.EmitResolver
 }
 
-func NewConstEnumInliningTransformer(opt *transformers.TransformOptions) *transformers.Transformer {
+func NewConstEnumInliningTransformer(opt *transformers.TransformOptions) *ConstEnumInliningTransformer {
 	compilerOptions := opt.CompilerOptions
 	emitContext := opt.Context
 	if compilerOptions.GetIsolatedModules() {
 		debug.Fail("const enums are not inlined under isolated modules")
 	}
 	tx := &ConstEnumInliningTransformer{compilerOptions: compilerOptions, emitResolver: opt.EmitResolver}
-	return tx.NewTransformer(tx.visit, emitContext)
+	tx.NewTransformer(tx.visit, emitContext)
+	return tx
 }
 
 func (tx *ConstEnumInliningTransformer) visit(node *ast.Node) *ast.Node {
+	if replacement := tx.Inline(node); replacement != node {
+		return replacement
+	}
+	return tx.Visitor().VisitEachChild(node)
+}
+
+// Inline lowers a constant access without walking its children, so another
+// lowering can share its traversal with constant enum substitution.
+func (tx *ConstEnumInliningTransformer) Inline(node *ast.Node) *ast.Node {
 	switch node.Kind {
 	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
 		{
 			parse := tx.EmitContext().ParseNode(node)
 			if parse == nil {
-				return tx.Visitor().VisitEachChild(node)
+				return node
 			}
 			value := tx.emitResolver.GetConstantValue(parse)
 			if value != nil {
@@ -77,10 +87,10 @@ func (tx *ConstEnumInliningTransformer) visit(node *ast.Node) *ast.Node {
 				}
 				return replacement
 			}
-			return tx.Visitor().VisitEachChild(node)
+			return node
 		}
 	}
-	return tx.Visitor().VisitEachChild(node)
+	return node
 }
 
 func safeMultiLineComment(text string) string {

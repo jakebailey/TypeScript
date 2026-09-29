@@ -1,0 +1,191 @@
+===================================================================
+JsFile: constants.js
+mapUrl: constants.js.map
+sourceRoot: 
+sources: constants.ts
+===================================================================
+>>>export {};
+>>>//# sourceMappingURL=constants.js.map===================================================================
+JsFile: main.js
+mapUrl: main.js.map
+sourceRoot: 
+sources: main.ts
+===================================================================
+-------------------------------------------------------------------
+emittedFile:main.js
+sourceFile:main.ts
+-------------------------------------------------------------------
+>>>export const first = 1 /* Values.First */;
+1 >
+2 >^^^^^^
+3 >      ^
+4 >       ^^^^^^
+5 >             ^^^^^
+6 >                  ^^^^^^^^^^^^^^^^^^^^^^^
+7 >                                         ^
+8 >                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^->
+1 >import { Alias, Values } from "./constants";
+  >
+2 >export
+3 >       
+4 >       const 
+5 >             first
+6 >                   = Values.First
+7 >                                         ;
+1 >Emitted(1, 1) Source(2, 1) + SourceIndex(0)
+2 >Emitted(1, 7) Source(2, 7) + SourceIndex(0)
+3 >Emitted(1, 8) Source(2, 8) + SourceIndex(0)
+4 >Emitted(1, 14) Source(2, 14) + SourceIndex(0)
+5 >Emitted(1, 19) Source(2, 19) + SourceIndex(0)
+6 >Emitted(1, 42) Source(2, 34) + SourceIndex(0)
+7 >Emitted(1, 43) Source(2, 35) + SourceIndex(0)
+---
+>>>export const record = { ["value" /* Alias.Name */]: 3 /* Alias["Last"] */ };
+1->
+2 >^^^^^^
+3 >      ^
+4 >       ^^^^^^
+5 >             ^^^^^^
+6 >                   ^^^
+7 >                      ^^
+8 >                        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+9 >                                                  ^^^^^^^^^^^^^^^^^^^^^^^
+10>                                                                         ^^
+11>                                                                           ^
+1->
+  >
+2 >export
+3 >       
+4 >       const 
+5 >             record
+6 >                    = 
+7 >                      { 
+8 >                        [Alias.Name]
+9 >                                                  : Alias["Last"]
+10>                                                                          }
+11>                                                                           ;
+1->Emitted(2, 1) Source(3, 1) + SourceIndex(0)
+2 >Emitted(2, 7) Source(3, 7) + SourceIndex(0)
+3 >Emitted(2, 8) Source(3, 8) + SourceIndex(0)
+4 >Emitted(2, 14) Source(3, 14) + SourceIndex(0)
+5 >Emitted(2, 20) Source(3, 20) + SourceIndex(0)
+6 >Emitted(2, 23) Source(3, 23) + SourceIndex(0)
+7 >Emitted(2, 25) Source(3, 25) + SourceIndex(0)
+8 >Emitted(2, 51) Source(3, 37) + SourceIndex(0)
+9 >Emitted(2, 74) Source(3, 52) + SourceIndex(0)
+10>Emitted(2, 76) Source(3, 54) + SourceIndex(0)
+11>Emitted(2, 77) Source(3, 55) + SourceIndex(0)
+---
+>>>export async function read() {
+1 >
+2 >^^^^^^
+3 >      ^
+4 >       ^^^^^
+5 >            ^^^^^^^^^^
+6 >                      ^^^^
+7 >                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^->
+1 >
+  >
+2 >export
+3 >       
+4 >       async
+5 >             function 
+6 >                      read
+1 >Emitted(3, 1) Source(4, 1) + SourceIndex(0)
+2 >Emitted(3, 7) Source(4, 7) + SourceIndex(0)
+3 >Emitted(3, 8) Source(4, 8) + SourceIndex(0)
+4 >Emitted(3, 13) Source(4, 13) + SourceIndex(0)
+5 >Emitted(3, 23) Source(4, 23) + SourceIndex(0)
+6 >Emitted(3, 27) Source(4, 27) + SourceIndex(0)
+---
+>>>    return [1 /* Values.First */, 3 /* Alias.Last */, "value" /* Values.Name */];
+1->^^^^
+2 >    ^^^^^^^
+3 >           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+4 >                                                                                ^
+1->() {
+  >    
+2 >    return 
+3 >           [Values.First, Alias.Last, Values.Name]
+4 >                                                                                ;
+1->Emitted(4, 5) Source(5, 5) + SourceIndex(0)
+2 >Emitted(4, 12) Source(5, 12) + SourceIndex(0)
+3 >Emitted(4, 81) Source(5, 51) + SourceIndex(0)
+4 >Emitted(4, 82) Source(5, 52) + SourceIndex(0)
+---
+>>>}
+1 >
+2 >^
+3 > ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^->
+1 >
+  >
+2 >}
+1 >Emitted(5, 1) Source(6, 1) + SourceIndex(0)
+2 >Emitted(5, 2) Source(6, 2) + SourceIndex(0)
+---
+>>>export const access = record?.["value" /* Values.Name */] ?? 3 /* Values.Last */;
+1->
+2 >^^^^^^
+3 >      ^
+4 >       ^^^^^^
+5 >             ^^^^^^
+6 >                   ^^^
+7 >                      ^^^^^^
+8 >                            ^^
+9 >                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+10>                                                         ^^^^^^^^^^^^^^^^^^^^^^^
+11>                                                                                ^
+1->
+  >
+2 >export
+3 >       
+4 >       const 
+5 >             access
+6 >                    = 
+7 >                      record
+8 >                            ?.
+9 >                              [Values.Name]
+10>                                                          ?? Values.Last
+11>                                                                                ;
+1->Emitted(6, 1) Source(7, 1) + SourceIndex(0)
+2 >Emitted(6, 7) Source(7, 7) + SourceIndex(0)
+3 >Emitted(6, 8) Source(7, 8) + SourceIndex(0)
+4 >Emitted(6, 14) Source(7, 14) + SourceIndex(0)
+5 >Emitted(6, 20) Source(7, 20) + SourceIndex(0)
+6 >Emitted(6, 23) Source(7, 23) + SourceIndex(0)
+7 >Emitted(6, 29) Source(7, 29) + SourceIndex(0)
+8 >Emitted(6, 31) Source(7, 31) + SourceIndex(0)
+9 >Emitted(6, 58) Source(7, 44) + SourceIndex(0)
+10>Emitted(6, 81) Source(7, 59) + SourceIndex(0)
+11>Emitted(6, 82) Source(7, 60) + SourceIndex(0)
+---
+>>>//# sourceMappingURL=main.js.map===================================================================
+JsFile: script.js
+mapUrl: script.js.map
+sourceRoot: 
+sources: script.ts
+===================================================================
+-------------------------------------------------------------------
+emittedFile:script.js
+sourceFile:script.ts
+-------------------------------------------------------------------
+>>>"use strict";
+>>>const scriptResult = 42 /* ScriptValues.Value */;
+1 >
+2 >^^^^^^
+3 >      ^^^^^^^^^^^^
+4 >                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+5 >                                                ^
+1 >const enum ScriptValues { Value = 42 }
+  >
+2 >const 
+3 >      scriptResult
+4 >                   = ScriptValues.Value
+5 >                                                ;
+1 >Emitted(2, 1) Source(2, 1) + SourceIndex(0)
+2 >Emitted(2, 7) Source(2, 7) + SourceIndex(0)
+3 >Emitted(2, 19) Source(2, 19) + SourceIndex(0)
+4 >Emitted(2, 49) Source(2, 40) + SourceIndex(0)
+5 >Emitted(2, 50) Source(2, 41) + SourceIndex(0)
+---
+>>>//# sourceMappingURL=script.js.map

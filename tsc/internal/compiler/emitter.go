@@ -13,7 +13,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/transformers"
 	"github.com/microsoft/TypeScript/tsc/internal/transformers/declarations"
 	"github.com/microsoft/TypeScript/tsc/internal/transformers/estransforms"
-	"github.com/microsoft/TypeScript/tsc/internal/transformers/inliners"
 	"github.com/microsoft/TypeScript/tsc/internal/transformers/jsxtransforms"
 	"github.com/microsoft/TypeScript/tsc/internal/transformers/moduletransforms"
 	"github.com/microsoft/TypeScript/tsc/internal/transformers/tstransforms"
@@ -242,10 +241,6 @@ func getScriptTransformers(emitContext *printer.EmitContext, host printer.EmitHo
 	// transform module syntax
 	tx = append(tx, getModuleTransformer(&opts, sourceFile))
 
-	// inlining (formerly done via substitutions)
-	if !options.GetIsolatedModules() {
-		tx = append(tx, inliners.NewConstEnumInliningTransformer(&opts))
-	}
 	return tx
 }
 
