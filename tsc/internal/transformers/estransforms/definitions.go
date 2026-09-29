@@ -16,7 +16,7 @@ var (
 	// Local syntax lowerings share one target-aware traversal. Decorators and class
 	// fields must run first because they can generate syntax that needs lowering.
 	NewES2021Transformer = transformers.Chain(NewESNextTransformer, newSyntaxTransformer)
-	NewES2018Transformer = transformers.Chain(NewES2021Transformer, newObjectRestSpreadTransformer, newforawaitTransformer, newTaggedTemplateLiftRestrictionTransformer)
+	NewES2018Transformer = transformers.Chain(NewES2021Transformer, newforawaitTransformer, newTaggedTemplateLiftRestrictionTransformer)
 	NewES2017Transformer = transformers.Chain(NewES2018Transformer, newAsyncTransformer)
 )
 

@@ -11,7 +11,8 @@ import (
 // walk for its own language version.
 type syntaxTransformer struct {
 	transformers.Transformer
-	facts ast.SubtreeFacts
+	facts            ast.SubtreeFacts
+	objectRestSpread *objectRestSpreadTransformer
 }
 
 func newSyntaxTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
@@ -29,17 +30,55 @@ func newSyntaxTransformer(opts *transformers.TransformOptions) *transformers.Tra
 	if target < core.ScriptTargetES2016 {
 		facts |= ast.SubtreeContainsExponentiationOperator
 	}
+	if target < core.ScriptTargetES2018 {
+		facts |= ast.SubtreeContainsESObjectRestOrSpread
+	}
 	if facts == 0 {
 		return nil
 	}
 	tx := &syntaxTransformer{facts: facts}
-	return tx.NewTransformer(tx.visit, opts.Context)
+	result := tx.NewTransformer(tx.visit, opts.Context)
+	if target < core.ScriptTargetES2018 {
+		tx.objectRestSpread = &objectRestSpreadTransformer{Transformer: result, compilerOptions: opts.CompilerOptions}
+	}
+	return result
 }
 
 func (tx *syntaxTransformer) visit(node *ast.Node) *ast.Node {
-	if node.Kind != ast.KindSourceFile && node.SubtreeFacts()&tx.facts == 0 {
+	if node.Kind == ast.KindSourceFile {
+		// Decorators can introduce ??, and JSX can introduce object spread.
+		sourceFacts := tx.facts | ast.SubtreeContainsDecorators
+		if tx.objectRestSpread != nil {
+			sourceFacts |= ast.SubtreeContainsJsx
+		}
+		if node.SubtreeFacts()&sourceFacts == 0 {
+			return node
+		}
+	}
+	rest := tx.objectRestSpread
+	activeParameters := rest != nil && rest.parametersWithPrecedingObjectRestOrSpread != nil
+	if node.Kind != ast.KindSourceFile && node.SubtreeFacts()&tx.facts == 0 && !activeParameters {
 		return node
 	}
+	var result *ast.Node
+	if rest != nil {
+		unused := rest.expressionResultIsUnused
+		rest.expressionResultIsUnused = false
+		result = tx.visitLocalSyntax(node)
+		rest.expressionResultIsUnused = unused
+	} else {
+		result = tx.visitLocalSyntax(node)
+	}
+	if result != nil {
+		return result
+	}
+	if rest != nil && (node.Kind == ast.KindSourceFile || node.SubtreeFacts()&ast.SubtreeContainsESObjectRestOrSpread != 0 || activeParameters) {
+		return rest.visit(node)
+	}
+	return tx.Visitor().VisitEachChild(node)
+}
+
+func (tx *syntaxTransformer) visitLocalSyntax(node *ast.Node) *ast.Node {
 	switch node.Kind {
 	case ast.KindBinaryExpression:
 		switch node.AsBinaryExpression().OperatorToken.Kind {
@@ -81,9 +120,9 @@ func (tx *syntaxTransformer) visit(node *ast.Node) *ast.Node {
 			return tx.visitDeleteExpression(node.AsDeleteExpression())
 		}
 	case ast.KindCatchClause:
-		if tx.facts&ast.SubtreeContainsMissingCatchClauseVariable != 0 {
+		if tx.facts&ast.SubtreeContainsMissingCatchClauseVariable != 0 && node.AsCatchClause().VariableDeclaration == nil {
 			return tx.visitCatchClause(node.AsCatchClause())
 		}
 	}
-	return tx.Visitor().VisitEachChild(node)
+	return nil
 }

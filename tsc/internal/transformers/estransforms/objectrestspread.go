@@ -8,7 +8,7 @@ import (
 )
 
 type objectRestSpreadTransformer struct {
-	transformers.Transformer
+	*transformers.Transformer
 	compilerOptions *core.CompilerOptions
 
 	inExportedVariableStatement bool
@@ -296,7 +296,7 @@ func (ch *objectRestSpreadTransformer) collectObjectRestAssignments(node *ast.No
 				// of an initializer, we must emit that expression to preserve side effects.
 				if len(parameter.Name().Elements()) > 0 {
 					declarations := transformers.FlattenDestructuringBinding(
-						&ch.Transformer,
+						ch.Transformer,
 						parameter, ch.Factory().NewGeneratedNameForNode(parameter),
 						transformers.FlattenLevelAll, false, false,
 					)
@@ -354,7 +354,7 @@ func (ch *objectRestSpreadTransformer) collectObjectRestAssignments(node *ast.No
 		} else if parameter.SubtreeFacts()&ast.SubtreeContainsObjectRestOrSpread != 0 {
 			containsPrecedingObjectRestOrSpread = true
 			declarations := transformers.FlattenDestructuringBinding(
-				&ch.Transformer,
+				ch.Transformer,
 				parameter, ch.Factory().NewGeneratedNameForNode(parameter),
 				transformers.FlattenLevelObjectRest, false, true,
 			)
@@ -380,7 +380,7 @@ func (ch *objectRestSpreadTransformer) visitCatchClause(node *ast.CatchClause) *
 		name := ch.Factory().NewGeneratedNameForNode(node.VariableDeclaration.Name())
 		updatedDecl := ch.Factory().UpdateVariableDeclaration(node.VariableDeclaration.AsVariableDeclaration(), node.VariableDeclaration.Name(), nil, nil, name)
 		visitedBindings := transformers.FlattenDestructuringBinding(
-			&ch.Transformer,
+			ch.Transformer,
 			updatedDecl, nil,
 			transformers.FlattenLevelObjectRest, false, false,
 		)
@@ -434,7 +434,7 @@ func (ch *objectRestSpreadTransformer) visitVariableDeclarationWorker(node *ast.
 	// If we are here it is because the name contains a binding pattern with a rest somewhere in it.
 	if ast.IsBindingPattern(node.Name()) && node.SubtreeFacts()&ast.SubtreeContainsObjectRestOrSpread != 0 {
 		return transformers.FlattenDestructuringBinding(
-			&ch.Transformer,
+			ch.Transformer,
 			node.AsNode(), nil,
 			transformers.FlattenLevelObjectRest, exported, false,
 		)
@@ -498,7 +498,7 @@ func (ch *objectRestSpreadTransformer) visitForOftatement(node *ast.ForInOrOfSta
 func (ch *objectRestSpreadTransformer) visitBinaryExpression(node *ast.BinaryExpression, expressionResultIsUnused bool) *ast.Node {
 	if ast.IsDestructuringAssignment(node.AsNode()) && ast.ContainsObjectRestOrSpread(node.Left) {
 		return transformers.FlattenDestructuringAssignment(
-			&ch.Transformer,
+			ch.Transformer,
 			node.AsNode(), !expressionResultIsUnused,
 			transformers.FlattenLevelObjectRest, nil,
 		)
@@ -585,9 +585,4 @@ func (ch *objectRestSpreadTransformer) chunkObjectLiteralElements(list *ast.Node
 		objects = append(objects, ch.Factory().NewObjectLiteralExpression(ch.Factory().NewNodeList(chunkObject), false))
 	}
 	return objects
-}
-
-func newObjectRestSpreadTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
-	tx := &objectRestSpreadTransformer{compilerOptions: opts.CompilerOptions}
-	return tx.NewTransformer(tx.visit, opts.Context)
 }

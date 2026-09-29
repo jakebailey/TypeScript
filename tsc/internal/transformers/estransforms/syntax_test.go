@@ -90,6 +90,41 @@ func TestSyntaxTransformsSingleTraversal(t *testing.T) {
 	}
 }
 
+func TestSyntaxObjectRestSingleTraversal(t *testing.T) {
+	t.Parallel()
+	file := parsetestutil.ParseTypeScript(`
+		function f(value) {
+			const { x = fallback()?.value ?? 1, ...rest } = value;
+			return { ...rest, x: x ** 2 };
+		}
+	`, false)
+	parsetestutil.CheckDiagnostics(t, file)
+	tx := newSyntaxTransformer(&transformers.TransformOptions{
+		Context:         printer.NewEmitContext(),
+		CompilerOptions: &core.CompilerOptions{Target: core.ScriptTargetES2015},
+	})
+	visit := tx.Visitor().Visit
+	counts := make(map[*ast.Node]int)
+	tx.Visitor().Visit = func(node *ast.Node) *ast.Node {
+		if ast.IsIdentifier(node) && node.Text() == "fallback" {
+			counts[node]++
+		}
+		return visit(node)
+	}
+	result := tx.TransformSourceFile(file)
+	if result.SubtreeFacts()&(localSyntaxFacts|ast.SubtreeContainsESObjectRestOrSpread) != 0 {
+		t.Fatal("local syntax or object rest was not lowered")
+	}
+	if len(counts) != 1 {
+		t.Fatalf("visited %d fallback identifiers, want one", len(counts))
+	}
+	for _, count := range counts {
+		if count != 1 {
+			t.Fatalf("fallback identifier visited %d times, want one", count)
+		}
+	}
+}
+
 func BenchmarkSyntaxTransforms(b *testing.B) {
 	for _, source := range []struct {
 		name string
