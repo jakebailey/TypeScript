@@ -13,9 +13,12 @@ type pipelineStage struct {
 	environment printer.EmitEnvironment
 }
 
-// Pipeline completes the ordered transforms for each source element before
-// advancing to the next element. Source-file visitors are entered in reverse
-// order and completed in forward order, retaining their file-level state.
+const sourceElementBatchSize = 16
+
+// Pipeline completes the ordered transforms for a bounded window of source
+// elements before advancing. This keeps the working set local without switching
+// between large visitors for every statement. Source-file visitors retain their
+// file-level state and complete in forward phase order.
 func Pipeline(file *ast.SourceFile, transforms []*Transformer) *ast.SourceFile {
 	var stages []pipelineStage
 	var appendStages func([]*Transformer)
@@ -92,12 +95,96 @@ func (p *sourcePipeline) visitOutput(node *ast.Node, index int, output []*ast.No
 	return p.visit(node, index+1, output)
 }
 
+func (p *sourcePipeline) visitBatch(nodes []*ast.Node) []*ast.Node {
+	for i := range p.stages {
+		stage := &p.stages[i]
+		if stage.visitor == nil || stage.visitor.Visit == nil {
+			continue
+		}
+		saved := p.context.SwapEnvironment(&stage.environment)
+		nodes, _ = stage.visitor.VisitSlice(nodes)
+		p.context.SwapEnvironment(saved)
+		if stage.transformer.AfterSourceElement != nil {
+			return p.visitCapturedBatch(nodes, i)
+		}
+	}
+	for _, node := range nodes {
+		p.completed[node] = struct{}{}
+	}
+	return nodes
+}
+
+type pipelineElement struct {
+	node   *ast.Node
+	origin int
+}
+
+func (p *sourcePipeline) visitCapturedBatch(roots []*ast.Node, index int) []*ast.Node {
+	// Preserve ownership across elision and expansion so each callback receives
+	// exactly its source element's fully transformed output.
+	p.capturesElements = true
+	elements := make([]pipelineElement, len(roots))
+	for i, node := range roots {
+		elements[i] = pipelineElement{node, i}
+	}
+	spare := make([]pipelineElement, 0, len(roots))
+	for i := index + 1; i < len(p.stages); i++ {
+		stage := &p.stages[i]
+		if stage.visitor == nil || stage.visitor.Visit == nil {
+			continue
+		}
+		saved := p.context.SwapEnvironment(&stage.environment)
+		for _, element := range elements {
+			result := stage.visitor.Visit(element.node)
+			if result == nil {
+				continue
+			}
+			var nodes []*ast.Node
+			if result.Kind == ast.KindSyntaxList {
+				nodes = result.AsSyntaxList().Children
+			} else {
+				nodes = []*ast.Node{result}
+			}
+			for _, node := range nodes {
+				if stage.transformer.AfterSourceElement != nil {
+					for _, output := range p.visitOutput(node, i, nil) {
+						spare = append(spare, pipelineElement{output, element.origin})
+					}
+				} else {
+					spare = append(spare, pipelineElement{node, element.origin})
+				}
+			}
+		}
+		p.context.SwapEnvironment(saved)
+		elements, spare = spare, elements[:0]
+		if stage.transformer.AfterSourceElement != nil {
+			break
+		}
+	}
+	completed := make([]*ast.Node, len(elements))
+	for i, element := range elements {
+		completed[i] = element.node
+		p.completed[element.node] = struct{}{}
+	}
+	var output []*ast.Node
+	pos := 0
+	after := p.stages[index].transformer.AfterSourceElement
+	for i, root := range roots {
+		start := pos
+		for pos < len(elements) && elements[pos].origin == i {
+			pos++
+		}
+		output = append(output, after(root, completed[start:pos])...)
+	}
+	return output
+}
+
 func (p *sourcePipeline) transform(file *ast.SourceFile, index int) *ast.SourceFile {
 	if index < 0 {
 		p.completed = make(map[*ast.Node]struct{}, len(file.Statements.Nodes))
 		statements := make([]*ast.Node, 0, len(file.Statements.Nodes))
-		for _, node := range file.Statements.Nodes {
-			statements = p.visit(node, 0, statements)
+		for i := 0; i < len(file.Statements.Nodes); i += sourceElementBatchSize {
+			statements = append(statements, p.visitBatch(file.Statements.Nodes[i:min(i+sourceElementBatchSize, len(file.Statements.Nodes))])...)
 		}
 		list := p.context.Factory.NewNodeList(statements)
 		list.Loc = file.Statements.Loc
