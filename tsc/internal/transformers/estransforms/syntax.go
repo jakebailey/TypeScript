@@ -37,7 +37,7 @@ func newSyntaxTransformer(opts *transformers.TransformOptions) *transformers.Tra
 }
 
 func (tx *syntaxTransformer) visit(node *ast.Node) *ast.Node {
-	if node.SubtreeFacts()&tx.facts == 0 {
+	if node.Kind != ast.KindSourceFile && node.SubtreeFacts()&tx.facts == 0 {
 		return node
 	}
 	switch node.Kind {

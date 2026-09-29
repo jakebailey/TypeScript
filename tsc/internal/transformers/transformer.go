@@ -6,9 +6,12 @@ import (
 )
 
 type Transformer struct {
-	emitContext *printer.EmitContext
-	factory     *printer.NodeFactory
-	visitor     *ast.NodeVisitor
+	SourceFileBarrier func(*ast.SourceFile) bool
+	emitContext       *printer.EmitContext
+	factory           *printer.NodeFactory
+	visitor           *ast.NodeVisitor
+	components        []*Transformer
+	sourceStatements  func(*ast.StatementList, *ast.NodeVisitor) *ast.StatementList
 }
 
 func (tx *Transformer) NewTransformer(visit func(node *ast.Node) *ast.Node, emitContext *printer.EmitContext) *Transformer {
@@ -21,7 +24,15 @@ func (tx *Transformer) NewTransformer(visit func(node *ast.Node) *ast.Node, emit
 	tx.emitContext = emitContext
 	tx.factory = emitContext.Factory
 	tx.visitor = emitContext.NewNodeVisitor(visit)
+	tx.visitor.Hooks.VisitTopLevelStatements = tx.VisitSourceFileStatements
 	return tx
+}
+
+func (tx *Transformer) VisitSourceFileStatements(nodes *ast.StatementList, visitor *ast.NodeVisitor) *ast.StatementList {
+	if tx.sourceStatements != nil {
+		return tx.sourceStatements(nodes, visitor)
+	}
+	return tx.emitContext.VisitVariableEnvironment(nodes, visitor)
 }
 
 func (tx *Transformer) EmitContext() *printer.EmitContext {

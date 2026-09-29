@@ -9,7 +9,6 @@ import (
 
 type chainedTransformer struct {
 	Transformer
-	components []*Transformer
 }
 
 func (ch *chainedTransformer) visit(node *ast.Node) *ast.Node {
@@ -29,6 +28,7 @@ type TransformOptions struct {
 	Resolver                  binder.ReferenceResolver
 	EmitResolver              printer.EmitResolver
 	GetEmitModuleFormatOfFile func(file ast.HasFileName) core.ModuleKind
+	PrepareModuleBindings     func(file *ast.SourceFile) *ast.SourceFile
 }
 
 type TransformerFactory = func(opt *TransformOptions) *Transformer
@@ -56,7 +56,8 @@ func Chain(transforms ...TransformerFactory) TransformerFactory {
 		case 1:
 			return constructed[0]
 		}
-		ch := &chainedTransformer{components: constructed}
+		ch := &chainedTransformer{}
+		ch.components = constructed
 		return ch.NewTransformer(ch.visit, opt.Context)
 	}
 }

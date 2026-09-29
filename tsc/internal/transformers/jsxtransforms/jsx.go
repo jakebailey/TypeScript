@@ -23,10 +23,15 @@ type JSXTransformer struct {
 
 	importSpecifier                string
 	filenameDeclaration            *ast.Node
-	utilizedImplicitRuntimeImports collections.OrderedMap[string, map[string]*ast.Node]
+	utilizedImplicitRuntimeImports collections.OrderedMap[string, *implicitRuntimeImport]
 	inJsxChild                     bool
 
 	currentSourceFile *ast.SourceFile
+}
+
+type implicitRuntimeImport struct {
+	specifiers  map[string]*ast.Node
+	declaration *ast.Node
 }
 
 func NewJSXTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
@@ -81,12 +86,18 @@ func (tx *JSXTransformer) getImplicitImportForName(name string) *ast.Node {
 	}
 	existing, ok := tx.utilizedImplicitRuntimeImports.Get(importSource)
 	if ok {
-		elem, ok := existing[name]
+		elem, ok := existing.specifiers[name]
 		if ok {
 			return elem.AsImportSpecifier().Name()
 		}
 	} else {
-		existing = make(map[string]*ast.Node)
+		existing = &implicitRuntimeImport{specifiers: make(map[string]*ast.Node)}
+		existing.declaration = tx.Factory().NewImportDeclaration(
+			nil,
+			tx.Factory().NewImportClause(ast.KindUnknown, nil, tx.Factory().NewNamedImports(tx.Factory().NewNodeList(nil))),
+			tx.Factory().NewStringLiteral(importSource, ast.TokenFlagsNone),
+			nil,
+		)
 		tx.utilizedImplicitRuntimeImports.Set(importSource, existing)
 	}
 
@@ -95,7 +106,18 @@ func (tx *JSXTransformer) getImplicitImportForName(name string) *ast.Node {
 	})
 	specifier := tx.Factory().NewImportSpecifier(false, tx.Factory().NewIdentifier(name), generatedName)
 	tx.emitResolver.SetReferencedImportDeclaration(generatedName, specifier)
-	existing[name] = specifier
+	existing.specifiers[name] = specifier
+	declaration := existing.declaration.AsImportDeclaration()
+	clause := declaration.ImportClause.AsImportClause()
+	bindings := clause.NamedBindings.AsNamedImports()
+	elements := append(slices.Clone(bindings.Elements.Nodes), specifier)
+	existing.declaration = tx.Factory().UpdateImportDeclaration(declaration, nil,
+		tx.Factory().UpdateImportClause(clause, ast.KindUnknown, nil,
+			tx.Factory().UpdateNamedImports(bindings, tx.Factory().NewNodeList(elements))),
+		declaration.ModuleSpecifier, nil)
+	// Module lowering can consume a JSX call before the file's imports are
+	// finalized, so its synthetic binding must already have a stable owner.
+	ast.SetParentInChildren(existing.declaration)
 	return specifier.Name()
 }
 
@@ -107,7 +129,7 @@ func (tx *JSXTransformer) visit(node *ast.Node) *ast.Node {
 	if node == nil {
 		return nil
 	}
-	if node.SubtreeFacts()&ast.SubtreeContainsJsx == 0 {
+	if node.Kind != ast.KindSourceFile && node.SubtreeFacts()&ast.SubtreeContainsJsx == 0 {
 		return node
 	}
 	switch node.Kind {
@@ -220,11 +242,12 @@ func (tx *JSXTransformer) visitSourceFile(file *ast.SourceFile) *ast.Node {
 		if ast.IsExternalModule(file) {
 			statementsUpdated = true
 			newStatements := make([]*ast.Node, 0, tx.utilizedImplicitRuntimeImports.Size())
-			for importSource, importSpecifiersMap := range tx.utilizedImplicitRuntimeImports.Entries() {
-				s := tx.Factory().NewImportDeclaration(
+			for _, runtimeImport := range tx.utilizedImplicitRuntimeImports.Entries() {
+				s := tx.Factory().UpdateImportDeclaration(
+					runtimeImport.declaration.AsImportDeclaration(),
 					nil,
-					tx.Factory().NewImportClause(ast.KindUnknown, nil, tx.Factory().NewNamedImports(tx.Factory().NewNodeList(getSortedSpecifiers(importSpecifiersMap)))),
-					tx.Factory().NewStringLiteral(importSource, ast.TokenFlagsNone),
+					tx.Factory().NewImportClause(ast.KindUnknown, nil, tx.Factory().NewNamedImports(tx.Factory().NewNodeList(getSortedSpecifiers(runtimeImport.specifiers)))),
+					runtimeImport.declaration.AsImportDeclaration().ModuleSpecifier,
 					nil,
 				)
 				ast.SetParentInChildren(s)
@@ -237,8 +260,8 @@ func (tx *JSXTransformer) visitSourceFile(file *ast.SourceFile) *ast.Node {
 		} else if ast.IsExternalOrCommonJSModule(file) {
 			statementsUpdated = true
 			newStatements := make([]*ast.Node, 0, tx.utilizedImplicitRuntimeImports.Size())
-			for importSource, importSpecifiersMap := range tx.utilizedImplicitRuntimeImports.Entries() {
-				sorted := getSortedSpecifiers(importSpecifiersMap)
+			for importSource, runtimeImport := range tx.utilizedImplicitRuntimeImports.Entries() {
+				sorted := getSortedSpecifiers(runtimeImport.specifiers)
 				asBindingElems := make([]*ast.Node, 0, len(sorted))
 				for _, elem := range sorted {
 					asBindingElems = append(asBindingElems, tx.Factory().NewBindingElement(nil, elem.PropertyName(), elem.AsImportSpecifier().Name(), nil))

@@ -222,7 +222,8 @@ func (tx *classFieldsTransformer) visitSourceFile(node *ast.SourceFile) *ast.Nod
 		return node.AsNode()
 	}
 	tx.lexicalEnvironment = nil
-	tx.shouldTransformPrivateStaticElementsInFile = tx.EmitContext().EmitFlags(node.AsNode())&printer.EFTransformPrivateStaticElements != 0
+	tx.shouldTransformPrivateStaticElementsInFile = tx.EmitContext().EmitFlags(node.AsNode())&printer.EFTransformPrivateStaticElements != 0 ||
+		!tx.legacyDecorators && node.SubtreeFacts()&ast.SubtreeContainsDecorators != 0
 	tx.classAliases = make(map[*ast.Node]*ast.IdentifierNode)
 	tx.enclosingClassDeclarations.Clear()
 	visited := tx.Visitor().VisitEachChild(node.AsNode())
@@ -277,7 +278,7 @@ func (tx *classFieldsTransformer) visit(node *ast.Node) *ast.Node {
 	grandparentNode := tx.pushNode(node)
 	defer tx.popNode(grandparentNode)
 
-	if node.SubtreeFacts()&(ast.SubtreeContainsClassFields|ast.SubtreeContainsLexicalThisOrSuper) == 0 {
+	if node.Kind != ast.KindSourceFile && node.SubtreeFacts()&(ast.SubtreeContainsClassFields|ast.SubtreeContainsLexicalThisOrSuper) == 0 {
 		if tx.currentClassContainer != nil && len(tx.classAliases) > 0 {
 			// Continue visiting for alias substitution even in non-class-field subtrees.
 			return tx.visitForSubstitution(node)

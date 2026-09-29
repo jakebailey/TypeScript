@@ -124,7 +124,7 @@ func (tx *forawaitTransformer) visitFallback(node *ast.Node) *ast.Node {
 }
 
 func (tx *forawaitTransformer) visit(node *ast.Node) *ast.Node {
-	if node.SubtreeFacts()&ast.SubtreeContainsForAwaitOrAsyncGenerator == 0 {
+	if node.Kind != ast.KindSourceFile && node.SubtreeFacts()&ast.SubtreeContainsForAwaitOrAsyncGenerator == 0 {
 		return tx.fallbackVisitor(node)
 	}
 	tx.trackSuperAccess(node)

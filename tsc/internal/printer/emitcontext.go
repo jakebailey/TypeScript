@@ -24,7 +24,23 @@ type EmitContext struct {
 	classThis     map[*ast.Node]*ast.IdentifierNode
 	varScopeStack core.Stack[*varScope]
 	letScopeStack core.Stack[*varScope]
-	emitHelpers   collections.OrderedSet[*EmitHelper]
+	emitHelpers   *collections.OrderedSet[*EmitHelper]
+}
+
+// EmitEnvironment keeps a transform's hoisting scopes separate while source
+// elements are passed between transforms sharing the same factory and metadata.
+type EmitEnvironment struct {
+	varScopes core.Stack[*varScope]
+	letScopes core.Stack[*varScope]
+	helpers   *collections.OrderedSet[*EmitHelper]
+}
+
+func (c *EmitContext) SwapEnvironment(environment EmitEnvironment) EmitEnvironment {
+	previous := EmitEnvironment{c.varScopeStack, c.letScopeStack, c.emitHelpers}
+	c.varScopeStack = environment.varScopes
+	c.letScopeStack = environment.letScopes
+	c.emitHelpers = environment.helpers
+	return previous
 }
 
 type environmentFlags int
@@ -701,10 +717,16 @@ func (c *EmitContext) RequestEmitHelper(helper *EmitHelper) {
 	for _, h := range helper.Dependencies {
 		c.RequestEmitHelper(h)
 	}
+	if c.emitHelpers == nil {
+		c.emitHelpers = &collections.OrderedSet[*EmitHelper]{}
+	}
 	c.emitHelpers.Add(helper)
 }
 
 func (c *EmitContext) ReadEmitHelpers() []*EmitHelper {
+	if c.emitHelpers == nil {
+		return nil
+	}
 	helpers := slices.Collect(c.emitHelpers.Values())
 	c.emitHelpers.Clear()
 	return helpers

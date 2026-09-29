@@ -69,10 +69,7 @@ func (e *emitter) runScriptTransformers(emitContext *printer.EmitContext, source
 	if e.tr != nil {
 		defer e.tr.Push(tracing.PhaseEmit, "transformNodes", map[string]any{"path": string(sourceFile.Path())}, false)()
 	}
-	for _, transformer := range getScriptTransformers(emitContext, e.host, sourceFile) {
-		sourceFile = transformer.TransformSourceFile(sourceFile)
-	}
-	return sourceFile
+	return transformers.Pipeline(sourceFile, getScriptTransformers(emitContext, e.host, sourceFile))
 }
 
 func (e *emitter) runDeclarationTransformers(emitContext *printer.EmitContext, sourceFile *ast.SourceFile, declarationFilePath, declarationMapPath string) (*ast.SourceFile, []*ast.Diagnostic) {
@@ -87,11 +84,12 @@ func (e *emitter) runDeclarationTransformers(emitContext *printer.EmitContext, s
 	return sourceFile, diags
 }
 
-func getModuleTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
+func getModuleTransformer(opts *transformers.TransformOptions, sourceFile *ast.SourceFile) *transformers.Transformer {
+	var result *transformers.Transformer
 	switch opts.CompilerOptions.GetEmitModuleKind() {
 	case core.ModuleKindPreserve:
 		// `ESModuleTransformer` contains logic for preserving CJS input syntax in `--module preserve`
-		return moduletransforms.NewESModuleTransformer(opts)
+		result = moduletransforms.NewESModuleTransformer(opts)
 
 	case core.ModuleKindESNext,
 		core.ModuleKindES2022,
@@ -102,11 +100,16 @@ func getModuleTransformer(opts *transformers.TransformOptions) *transformers.Tra
 		core.ModuleKindNode16,
 		core.ModuleKindNodeNext,
 		core.ModuleKindCommonJS:
-		return moduletransforms.NewImpliedModuleTransformer(opts)
+		if opts.GetEmitModuleFormatOfFile(sourceFile) >= core.ModuleKindES2015 {
+			result = moduletransforms.NewESModuleTransformer(opts)
+		} else {
+			result = moduletransforms.NewCommonJSModuleTransformer(opts)
+		}
 
 	default:
-		return moduletransforms.NewCommonJSModuleTransformer(opts)
+		result = moduletransforms.NewCommonJSModuleTransformer(opts)
 	}
+	return result
 }
 
 func getScriptTransformers(emitContext *printer.EmitContext, host printer.EmitHost, sourceFile *ast.SourceFile) []*transformers.Transformer {
@@ -132,6 +135,70 @@ func getScriptTransformers(emitContext *printer.EmitContext, host printer.EmitHo
 		Resolver:                  referenceResolver,
 		EmitResolver:              emitResolver,
 		GetEmitModuleFormatOfFile: host.GetEmitModuleFormatOfFile,
+	}
+	opts.PrepareModuleBindings = func(file *ast.SourceFile) *ast.SourceFile {
+		var bindings []*ast.Node
+		declared := make(map[string]bool)
+		for _, statement := range file.Statements.Nodes {
+			firstDeclaration := true
+			if !ast.HasSyntacticModifier(statement, ast.ModifierFlagsAmbient) {
+				switch statement.Kind {
+				case ast.KindFunctionDeclaration, ast.KindClassDeclaration, ast.KindEnumDeclaration, ast.KindModuleDeclaration:
+					if name := statement.Name(); name != nil && ast.IsIdentifier(name) {
+						firstDeclaration = !declared[name.Text()]
+						declared[name.Text()] = true
+					}
+				}
+			}
+			if ast.IsExportDeclaration(statement) && statement.AsExportDeclaration().ModuleSpecifier == nil ||
+				ast.IsExportAssignment(statement) && statement.AsExportAssignment().IsExportEquals {
+				bindings = append(bindings, statement)
+			} else if ast.HasSyntacticModifier(statement, ast.ModifierFlagsExport) &&
+				!ast.HasSyntacticModifier(statement, ast.ModifierFlagsAmbient) {
+				switch statement.Kind {
+				case ast.KindFunctionDeclaration, ast.KindClassDeclaration:
+					if !ast.HasSyntacticModifier(statement, ast.ModifierFlagsDefault) {
+						bindings = append(bindings, statement)
+					}
+				case ast.KindEnumDeclaration, ast.KindModuleDeclaration:
+					if !firstDeclaration {
+						continue
+					}
+					name := emitContext.Factory.GetLocalNameEx(statement, printer.AssignedNameOptions{AllowSourceMaps: true})
+					declaration := emitContext.Factory.NewVariableDeclaration(name, nil, nil, nil)
+					emitContext.SetOriginal(declaration, statement)
+					bindings = append(bindings, emitContext.Factory.NewVariableStatement(
+						emitContext.Factory.NewModifierList([]*ast.Node{emitContext.Factory.NewModifier(ast.KindExportKeyword)}),
+						emitContext.Factory.NewVariableDeclarationList(emitContext.Factory.NewNodeList([]*ast.Node{declaration}), ast.NodeFlagsNone),
+					))
+				case ast.KindVariableStatement:
+					bindings = append(bindings, statement)
+				}
+			}
+		}
+		bindingFile := emitContext.Factory.UpdateSourceFile(file, emitContext.Factory.NewNodeList(bindings), file.EndOfFileToken).AsSourceFile()
+		eraser := tstransforms.NewTypeEraserTransformer(&opts)
+		erase := eraser.Visitor().Visit
+		eraser.Visitor().Visit = func(node *ast.Node) *ast.Node {
+			if ast.IsFunctionDeclaration(node) || ast.IsClassDeclaration(node) || ast.IsVariableStatement(node) ||
+				ast.IsExportDeclaration(node) && !ast.IsParseTreeNode(node) {
+				return node
+			}
+			return erase(node)
+		}
+		bindingFile = eraser.TransformSourceFile(bindingFile)
+		if importElisionEnabled {
+			elision := tstransforms.NewImportElisionTransformer(&opts)
+			elide := elision.Visitor().Visit
+			elision.Visitor().Visit = func(node *ast.Node) *ast.Node {
+				if ast.IsExportDeclaration(node) && !ast.IsParseTreeNode(emitContext.MostOriginal(node)) {
+					return node
+				}
+				return elide(node)
+			}
+			bindingFile = elision.TransformSourceFile(bindingFile)
+		}
+		return bindingFile
 	}
 
 	// transform TypeScript syntax
@@ -169,7 +236,7 @@ func getScriptTransformers(emitContext *printer.EmitContext, host printer.EmitHo
 	tx = append(tx, estransforms.NewUseStrictTransformer(&opts))
 
 	// transform module syntax
-	tx = append(tx, getModuleTransformer(&opts))
+	tx = append(tx, getModuleTransformer(&opts, sourceFile))
 
 	// inlining (formerly done via substitutions)
 	if !options.GetIsolatedModules() {

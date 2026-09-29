@@ -29,7 +29,7 @@ func NewLegacyDecoratorsTransformer(opt *transformers.TransformOptions) *transfo
 
 func (tx *LegacyDecoratorsTransformer) visit(node *ast.Node) *ast.Node {
 	// we have to visit all identifiers in classes, just in case they require substitution
-	if (node.SubtreeFacts()&ast.SubtreeContainsDecorators) == 0 && len(tx.enclosingClasses) == 0 {
+	if node.Kind != ast.KindSourceFile && (node.SubtreeFacts()&ast.SubtreeContainsDecorators) == 0 && len(tx.enclosingClasses) == 0 {
 		return node
 	}
 

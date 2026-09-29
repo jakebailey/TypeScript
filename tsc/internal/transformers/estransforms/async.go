@@ -129,7 +129,7 @@ func (tx *asyncTransformer) visit(node *ast.Node) *ast.Node {
 		defer tx.setContextFlag(asyncContextHasLexicalThis, true)
 	}
 
-	if node.SubtreeFacts()&(ast.SubtreeContainsAnyAwait|ast.SubtreeContainsAwait) == 0 {
+	if node.Kind != ast.KindSourceFile && node.SubtreeFacts()&(ast.SubtreeContainsAnyAwait|ast.SubtreeContainsAwait) == 0 {
 		return tx.fallbackVisitor(node)
 	}
 	tx.trackSuperAccess(node)

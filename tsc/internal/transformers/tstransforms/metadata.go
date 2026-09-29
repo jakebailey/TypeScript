@@ -32,7 +32,7 @@ func NewMetadataTransformer(opt *transformers.TransformOptions) *transformers.Tr
 }
 
 func (tx *MetadataTransformer) visit(node *ast.Node) *ast.Node {
-	if (node.SubtreeFacts() & ast.SubtreeContainsDecorators) == 0 {
+	if node.Kind != ast.KindSourceFile && (node.SubtreeFacts()&ast.SubtreeContainsDecorators) == 0 {
 		return node
 	}
 

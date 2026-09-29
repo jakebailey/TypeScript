@@ -27,12 +27,18 @@ type CommonJSModuleTransformer struct {
 	currentModuleInfo         *externalModuleInfo
 	parentNode                *ast.Node // used for ancestor tracking via pushNode/popNode to detect expression identifiers
 	currentNode               *ast.Node // used for ancestor tracking via pushNode/popNode to detect expression identifiers
+	prepareModuleBindings     func(*ast.SourceFile) *ast.SourceFile
+	sourceStatementVisitor    *ast.NodeVisitor
+	inputStatements           []*ast.Node
+	exportEqualsStatement     *ast.Node
 }
 
 func NewCommonJSModuleTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
 	compilerOptions := opts.CompilerOptions
 	emitContext := opts.Context
 	tx := &CommonJSModuleTransformer{compilerOptions: compilerOptions, resolver: opts.Resolver, getEmitModuleFormatOfFile: opts.GetEmitModuleFormatOfFile}
+	tx.prepareModuleBindings = opts.PrepareModuleBindings
+	tx.sourceStatementVisitor = emitContext.NewNodeVisitor(tx.visitSourceStatement)
 	tx.topLevelVisitor = emitContext.NewNodeVisitor(tx.visitTopLevel)
 	tx.topLevelNestedVisitor = emitContext.NewNodeVisitor(tx.visitTopLevelNested)
 	tx.discardedValueVisitor = emitContext.NewNodeVisitor(tx.visitDiscardedValue)
@@ -40,6 +46,16 @@ func NewCommonJSModuleTransformer(opts *transformers.TransformOptions) *transfor
 	tx.languageVersion = compilerOptions.GetEmitScriptTarget()
 	tx.moduleKind = compilerOptions.GetEmitModuleKind()
 	return tx.NewTransformer(tx.visit, emitContext)
+}
+
+func (tx *CommonJSModuleTransformer) visitSourceStatement(node *ast.Node) *ast.Node {
+	tx.inputStatements = append(tx.inputStatements, node)
+	if ast.IsNotEmittedStatement(node) {
+		if original := tx.EmitContext().MostOriginal(node); ast.IsExportAssignment(original) && original.AsExportAssignment().IsExportEquals {
+			tx.visitTopLevelExportAssignment(original.AsExportAssignment())
+		}
+	}
+	return tx.visitTopLevel(node)
 }
 
 // Pushes a new child node onto the ancestor tracking stack, returning the grandparent node to be restored later via `popNode`.
@@ -233,10 +249,26 @@ func (tx *CommonJSModuleTransformer) visitSourceFile(node *ast.SourceFile) *ast.
 	}
 
 	tx.currentSourceFile = node
-	tx.currentModuleInfo = collectExternalModuleInfo(node, tx.compilerOptions, tx.EmitContext(), tx.resolver)
+	bindings := node
+	if tx.prepareModuleBindings != nil {
+		bindings = tx.prepareModuleBindings(node)
+	}
+	tx.currentModuleInfo = collectExternalModuleInfo(bindings, tx.compilerOptions, tx.EmitContext(), tx.resolver)
+	for _, statement := range bindings.Statements.Nodes {
+		if ast.IsClassDeclaration(statement) && statement.Name() != nil &&
+			ast.HasSyntacticModifier(statement, ast.ModifierFlagsExport) &&
+			!ast.HasSyntacticModifier(statement, ast.ModifierFlagsDefault) {
+			name := statement.Name()
+			tx.currentModuleInfo.exportSpecifiers.Add(name.Text(), tx.Factory().NewExportSpecifier(false, nil, name).AsExportSpecifier())
+		}
+	}
+	tx.inputStatements = nil
+	tx.exportEqualsStatement = nil
 	updated := tx.transformCommonJSModule(node)
 	tx.currentSourceFile = nil
 	tx.currentModuleInfo = nil
+	tx.inputStatements = nil
+	tx.exportEqualsStatement = nil
 	return updated
 }
 
@@ -287,15 +319,17 @@ func (tx *CommonJSModuleTransformer) createUnderscoreUnderscoreESModule() *ast.S
 }
 
 func (tx *CommonJSModuleTransformer) transformCommonJSModule(node *ast.SourceFile) *ast.Node {
-	tx.EmitContext().StartVariableEnvironment()
+	visited := tx.VisitSourceFileStatements(node.Statements, tx.sourceStatementVisitor)
+	input := tx.Factory().UpdateSourceFile(node, tx.Factory().NewNodeList(tx.inputStatements), node.EndOfFileToken).AsSourceFile()
+	tx.currentModuleInfo = collectExternalModuleInfo(input, tx.compilerOptions, tx.EmitContext(), tx.resolver)
 
 	// emit standard prologue directives (e.g. "use strict")
-	prologue, rest := tx.Factory().SplitStandardPrologue(node.Statements.Nodes)
+	prologue, rest := tx.Factory().SplitStandardPrologue(visited.Nodes)
 	statements := slices.Clone(prologue)
 
 	// emit custom prologues from other transformations
 	custom, rest := tx.Factory().SplitCustomPrologue(rest)
-	statements = append(statements, core.FirstResult(tx.topLevelVisitor.VisitSlice(custom))...)
+	statements = append(statements, custom...)
 
 	// emits `Object.defineProperty(exports, "__esModule", { value: true });` at the top of the file
 	if tx.shouldEmitUnderscoreUnderscoreESModule() {
@@ -349,18 +383,15 @@ func (tx *CommonJSModuleTransformer) transformCommonJSModule(node *ast.SourceFil
 		tx.EmitContext().AddEmitFlags(s, printer.EFCustomPrologue)
 	}
 
-	// visit the remaining statements in the source file
-	rest, _ = tx.topLevelVisitor.VisitSlice(rest)
 	statements = append(statements, rest...)
 
 	// emit `module.exports = ...` if needd
-	statements = tx.appendExportEqualsIfNeeded(statements)
-
-	// merge temp variables into the statement list
-	statements = tx.EmitContext().EndAndMergeVariableEnvironment(statements)
+	if tx.exportEqualsStatement != nil {
+		statements = append(statements, tx.exportEqualsStatement)
+	}
 
 	statementList := tx.Factory().NewNodeList(statements)
-	statementList.Loc = node.Statements.Loc
+	statementList.Loc = visited.Loc
 	result := tx.Factory().UpdateSourceFile(node, statementList, node.EndOfFileToken).AsSourceFile()
 	tx.EmitContext().AddEmitHelper(result.AsNode(), tx.EmitContext().ReadEmitHelpers()...)
 
@@ -925,6 +956,15 @@ func (tx *CommonJSModuleTransformer) visitTopLevelExportDeclaration(node *ast.Ex
 
 func (tx *CommonJSModuleTransformer) visitTopLevelExportAssignment(node *ast.ExportAssignment) *ast.Node {
 	if node.IsExportEquals {
+		if tx.exportEqualsStatement == nil {
+			saved := tx.currentModuleInfo.exportEquals
+			tx.currentModuleInfo.exportEquals = node
+			statements := tx.appendExportEqualsIfNeeded(nil)
+			if len(statements) != 0 {
+				tx.exportEqualsStatement = statements[0]
+			}
+			tx.currentModuleInfo.exportEquals = saved
+		}
 		return nil
 	}
 

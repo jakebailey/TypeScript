@@ -18,7 +18,7 @@ type objectRestSpreadTransformer struct {
 }
 
 func (ch *objectRestSpreadTransformer) visit(node *ast.Node) *ast.Node {
-	if node.SubtreeFacts()&ast.SubtreeContainsESObjectRestOrSpread == 0 && ch.parametersWithPrecedingObjectRestOrSpread == nil {
+	if node.Kind != ast.KindSourceFile && node.SubtreeFacts()&ast.SubtreeContainsESObjectRestOrSpread == 0 && ch.parametersWithPrecedingObjectRestOrSpread == nil {
 		return node
 	}
 	// Save the expressionResultIsUnused flag set by the parent for this node,

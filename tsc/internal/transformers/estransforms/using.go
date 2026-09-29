@@ -20,6 +20,9 @@ type usingDeclarationTransformer struct {
 
 func newUsingDeclarationTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
 	tx := &usingDeclarationTransformer{}
+	tx.SourceFileBarrier = func(file *ast.SourceFile) bool {
+		return getUsingKindOfStatements(file.Statements.Nodes) != usingKindNone
+	}
 	return tx.NewTransformer(tx.visit, opts.Context)
 }
 
@@ -32,7 +35,7 @@ const (
 )
 
 func (tx *usingDeclarationTransformer) visit(node *ast.Node) *ast.Node {
-	if node.SubtreeFacts()&ast.SubtreeContainsUsing == 0 {
+	if node.Kind != ast.KindSourceFile && node.SubtreeFacts()&ast.SubtreeContainsUsing == 0 {
 		return node
 	}
 

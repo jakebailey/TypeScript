@@ -28,6 +28,7 @@ func (tx *useStrictTransformer) visit(node *ast.Node) *ast.Node {
 }
 
 func (tx *useStrictTransformer) visitSourceFile(node *ast.SourceFile) *ast.Node {
+	node = tx.Visitor().VisitEachChild(node.AsNode()).AsSourceFile()
 	if node.ScriptKind == core.ScriptKindJSON {
 		return node.AsNode()
 	}
