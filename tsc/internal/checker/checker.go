@@ -5091,15 +5091,17 @@ func (c *Checker) checkInterfaceDeclaration(node *ast.Node) {
 	c.checkExportsOnMergedDeclarations(node)
 	symbol := c.getSymbolOfDeclaration(node)
 	c.checkTypeParameterListsIdentical(symbol)
-	// Only check this symbol once
+	// Check once per checker, but report on the first interface declaration,
+	// independently of which declaration is checked first.
 	if links := c.declaredTypeLinks.Get(symbol); !links.interfaceChecked {
 		links.interfaceChecked = true
+		firstInterfaceDeclaration := ast.GetDeclarationOfKind(symbol, ast.KindInterfaceDeclaration)
 		t := c.getDeclaredTypeOfSymbol(symbol)
 		typeWithThis := c.getTypeWithThisArgument(t, nil, false)
 		// run subsequent checks only if first set succeeded
-		if c.checkInheritedPropertiesAreIdentical(t, node.Name()) {
+		if c.checkInheritedPropertiesAreIdentical(t, firstInterfaceDeclaration.Name()) {
 			for _, baseType := range c.getBaseTypes(t) {
-				c.checkTypeAssignableTo(typeWithThis, c.getTypeWithThisArgument(baseType, t.AsInterfaceType().thisType, false), node.Name(), diagnostics.Interface_0_incorrectly_extends_interface_1)
+				c.checkTypeAssignableTo(typeWithThis, c.getTypeWithThisArgument(baseType, t.AsInterfaceType().thisType, false), firstInterfaceDeclaration.Name(), diagnostics.Interface_0_incorrectly_extends_interface_1)
 			}
 			c.checkIndexConstraints(t, symbol /*isStaticIndex*/, false)
 		}
@@ -5181,7 +5183,8 @@ func (c *Checker) checkEnumDeclaration(node *ast.Node) {
 	if links := c.declaredTypeLinks.Get(enumSymbol); !links.enumChecked {
 		links.enumChecked = true
 		if len(enumSymbol.Declarations) > 1 {
-			enumIsConst := ast.IsEnumConst(node)
+			firstEnumDeclaration := ast.GetDeclarationOfKind(enumSymbol, ast.KindEnumDeclaration)
+			enumIsConst := ast.IsEnumConst(firstEnumDeclaration)
 			// check that const is placed\omitted on all enum declarations
 			for _, decl := range enumSymbol.Declarations {
 				if ast.IsEnumDeclaration(decl) && ast.IsEnumConst(decl) != enumIsConst {
