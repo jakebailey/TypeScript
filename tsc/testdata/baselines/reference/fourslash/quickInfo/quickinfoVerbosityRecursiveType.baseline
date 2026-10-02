@@ -291,7 +291,7 @@
 // | ----------------------------------------------------------------------
 // | ```typescript
 // | const object: {
-// |     next: () => ...;
+// |     next: () => typeof object;
 // | }
 // | ```
 // | 
@@ -301,7 +301,7 @@
 // | ----------------------------------------------------------------------
 // | ```typescript
 // | const object: {
-// |     next: () => ...;
+// |     next: () => typeof object;
 // | }
 // | ```
 // | 
@@ -311,7 +311,7 @@
 // | ----------------------------------------------------------------------
 // | ```typescript
 // | const object: {
-// |     next: () => ...;
+// |     next: () => typeof object;
 // | }
 // | ```
 // | 
@@ -321,7 +321,7 @@
 //                                     ^^^^
 // | ----------------------------------------------------------------------
 // | ```typescript
-// | function self(): () => ...
+// | function self(): () => typeof self
 // | ```
 // | 
 // | (verbosity level: 2)
@@ -329,7 +329,7 @@
 //                                     ^^^^
 // | ----------------------------------------------------------------------
 // | ```typescript
-// | function self(): () => ...
+// | function self(): () => typeof self
 // | ```
 // | 
 // | (verbosity level: 1)
@@ -337,7 +337,7 @@
 //                                     ^^^^
 // | ----------------------------------------------------------------------
 // | ```typescript
-// | function self(): () => ...
+// | function self(): () => typeof self
 // | ```
 // | 
 // | (verbosity level: 0)
@@ -1056,7 +1056,7 @@
       "hover": {
         "contents": {
           "kind": "markdown",
-          "value": "```typescript\nconst object: {\n    next: () => ...;\n}\n```\n"
+          "value": "```typescript\nconst object: {\n    next: () => typeof object;\n}\n```\n"
         },
         "range": {
           "start": {
@@ -1086,7 +1086,7 @@
       "hover": {
         "contents": {
           "kind": "markdown",
-          "value": "```typescript\nconst object: {\n    next: () => ...;\n}\n```\n"
+          "value": "```typescript\nconst object: {\n    next: () => typeof object;\n}\n```\n"
         },
         "range": {
           "start": {
@@ -1116,7 +1116,7 @@
       "hover": {
         "contents": {
           "kind": "markdown",
-          "value": "```typescript\nconst object: {\n    next: () => ...;\n}\n```\n"
+          "value": "```typescript\nconst object: {\n    next: () => typeof object;\n}\n```\n"
         },
         "range": {
           "start": {
@@ -1146,7 +1146,7 @@
       "hover": {
         "contents": {
           "kind": "markdown",
-          "value": "```typescript\nfunction self(): () => ...\n```\n"
+          "value": "```typescript\nfunction self(): () => typeof self\n```\n"
         },
         "range": {
           "start": {
@@ -1176,7 +1176,7 @@
       "hover": {
         "contents": {
           "kind": "markdown",
-          "value": "```typescript\nfunction self(): () => ...\n```\n"
+          "value": "```typescript\nfunction self(): () => typeof self\n```\n"
         },
         "range": {
           "start": {
@@ -1206,7 +1206,7 @@
       "hover": {
         "contents": {
           "kind": "markdown",
-          "value": "```typescript\nfunction self(): () => ...\n```\n"
+          "value": "```typescript\nfunction self(): () => typeof self\n```\n"
         },
         "range": {
           "start": {
