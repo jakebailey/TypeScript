@@ -29,4 +29,10 @@ jobs:
           languages: go, javascript-typescript
           config-file: ./.github/codeql/codeql-configuration.yml
       - run: npx hereby build
+      - name: Compile compiler and language server tests
+        working-directory: tsc
+        run: go test -c -o /dev/null ./...
+      - name: Compile tooling tests
+        working-directory: tools
+        run: go test -c -o /dev/null ./...
       - uses: github/codeql-action/analyze@1c5b675653bb5c22dbe9b12b556ec555138e09fd # v4.38.1
