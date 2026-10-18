@@ -587,18 +587,14 @@ type Host interface {
 
 var nextCheckerID atomic.Uint32
 
+// Checker is an activation: the per-computation state (resolution stacks,
+// scratch buffers, allocation arenas, and closures bound to this activation)
+// layered over a checkerStore that holds all memoized, shareable state.
+// Multiple activations may share one store; see Clone.
 type Checker struct {
-	id                                          uint32
-	program                                     Program
-	compilerOptions                             *core.CompilerOptions
-	files                                       []*ast.SourceFile
-	fileIndexMap                                map[*ast.SourceFile]int
+	*checkerStore
 	compareSymbols                              func(*ast.Symbol, *ast.Symbol) int
 	compareSymbolChains                         func([]*ast.Symbol, []*ast.Symbol) int
-	TypeCount                                   uint32
-	SymbolCount                                 uint32
-	SignatureCount                              uint32
-	TotalInstantiationCount                     uint32
 	instantiationCount                          uint32
 	instantiationStack                          []*Type
 	conditionalConstraintDepth                  uint32
@@ -606,80 +602,11 @@ type Checker struct {
 	serializationLevel                          int
 	currentNode                                 *ast.Node
 	varianceTypeParameter                       *Type
-	languageVersion                             core.ScriptTarget
-	moduleKind                                  core.ModuleKind
-	moduleResolutionKind                        core.ModuleResolutionKind
 	isInferencePartiallyBlocked                 bool
-	legacyDecorators                            bool
-	emitStandardClassFields                     bool
-	strictNullChecks                            bool
-	strictFunctionTypes                         bool
-	strictBindCallApply                         bool
-	strictPropertyInitialization                bool
-	strictBuiltinIteratorReturn                 bool
-	noImplicitAny                               bool
-	noImplicitThis                              bool
-	useUnknownInCatchVariables                  bool
-	exactOptionalPropertyTypes                  bool
-	canCollectSymbolAliasAccessibilityData      bool
 	wasCanceled                                 bool
-	arrayVariances                              []VarianceFlags
-	globals                                     ast.SymbolTable
 	evaluate                                    evaluator.Evaluator
-	stringLiteralTypes                          map[string]*Type
-	numberLiteralTypes                          map[jsnum.Number]*Type
-	nanType                                     *Type
-	bigintLiteralTypes                          map[jsnum.PseudoBigInt]*Type
-	enumLiteralTypes                            map[EnumLiteralKey]*Type
-	enumNaNLiteralTypes                         map[*ast.Symbol]*Type
-	indexedAccessTypes                          map[CacheHashKey]*Type
-	templateLiteralTypes                        map[CacheHashKey]*Type
-	stringMappingTypes                          map[StringMappingKey]*Type
-	uniqueESSymbolTypes                         map[*ast.Symbol]*Type
-	thisExpandoKinds                            map[*ast.Symbol]thisAssignmentDeclarationKind
-	thisExpandoLocations                        map[*ast.Symbol]*ast.Node
-	subtypeReductionCache                       map[CacheHashKey][]*Type
-	cachedTypes                                 map[CachedTypeKey]*Type
-	cachedSignatures                            map[CachedSignatureKey]*Signature
-	undefinedProperties                         map[*ast.Symbol]*ast.Symbol
-	narrowedTypes                               map[NarrowedTypeKey]*Type
-	assignmentReducedTypes                      map[AssignmentReducedKey]*Type
-	discriminatedContextualTypes                map[DiscriminatedContextualTypeKey]*Type
-	instantiationExpressionTypes                map[InstantiationExpressionKey]*Type
-	substitutionTypes                           map[SubstitutionTypeKey]*Type
-	reverseMappedCache                          map[ReverseMappedTypeKey]*Type
-	reverseHomomorphicMappedCache               map[ReverseMappedTypeKey]*Type
-	iterationTypesCache                         map[IterationTypesKey]IterationTypes
-	markerTypes                                 collections.Set[*Type]
-	resolvingExplicitTypeOfSymbol               collections.Set[*ast.Symbol]
-	constructorOrFunctionChecked                collections.Set[*ast.Symbol]
-	undefinedSymbol                             *ast.Symbol
-	argumentsSymbol                             *ast.Symbol
-	requireSymbol                               *ast.Symbol
-	unknownSymbol                               *ast.Symbol
-	unresolvedSymbols                           map[string]*ast.Symbol
-	errorTypes                                  map[CacheHashKey]*Type
-	moduleSymbols                               map[*ast.Node]*ast.Symbol
-	globalThisSymbol                            *ast.Symbol
-	symbolTableAliasCache                       map[symbolTableID][]*ast.Symbol
-	classExpressionNameTables                   map[ast.NodeId]ast.SymbolTable
 	resolveName                                 func(location *ast.Node, name string, meaning ast.SymbolFlags, nameNotFoundMessage *diagnostics.Message, isUse bool, excludeGlobals bool) *ast.Symbol
 	resolveNameForSymbolSuggestion              func(location *ast.Node, name string, meaning ast.SymbolFlags, nameNotFoundMessage *diagnostics.Message, isUse bool, excludeGlobals bool) *ast.Symbol
-	tupleTypes                                  map[CacheHashKey]*Type
-	unionTypes                                  map[CacheHashKey]*Type
-	objectLiteralTypes                          map[CacheHashKey]*Type
-	spreadTypes                                 map[CacheHashKey]*Type
-	objectContentTypes                          map[CacheHashKey]*Type
-	spreadSymbols                               map[spreadSymbolKey]*ast.Symbol
-	symbolsWithType                             map[symbolWithTypeKey]*ast.Symbol
-	paddedProperties                            map[symbolWithTypeKey]*ast.Symbol
-	bindingPatternTypes                         map[CacheHashKey]*Type
-	unionOfUnionTypes                           map[UnionOfUnionKey]*Type
-	intersectionTypes                           map[CacheHashKey]*Type
-	intersectionContentTypes                    map[CacheHashKey]*Type
-	propertiesTypes                             map[PropertiesTypesKey]*Type
-	diagnostics                                 ast.DiagnosticsCollection
-	suggestionDiagnostics                       ast.DiagnosticsCollection
 	symbolArena                                 core.Arena[ast.Symbol]
 	symbolWithDataArena                         core.Arena[ast.SymbolWithData]
 	symbolExtraArena                            ast.SymbolExtraArena
@@ -702,130 +629,15 @@ type Checker struct {
 	structuredTypeExtraArena                    core.Arena[structuredTypeExtra]
 	freeTypeSets                                *temporaryTypeSet
 	freePropertyCounts                          *temporaryPropertyCounts
-	mergedSymbols                               map[*ast.Symbol]*ast.Symbol
-	mergedExportsChecked                        collections.Set[*ast.Symbol]
 	factory                                     ast.NodeFactory
-	nodeLinks                                   core.LinkStore[*ast.Node, NodeLinks]
-	signatureLinks                              nodeLinkStore[SignatureLinks]
-	symbolNodeLinks                             nodeLinkStore[SymbolNodeLinks]
-	typeNodeLinks                               nodeLinkStore[TypeNodeLinks]
-	enumMemberLinks                             core.LinkStore[*ast.Node, EnumMemberLinks]
-	arrayLiteralLinks                           core.LinkStore[*ast.Node, ArrayLiteralLinks]
-	switchStatementLinks                        core.LinkStore[*ast.Node, SwitchStatementLinks]
-	jsxElementLinks                             core.LinkStore[*ast.Node, JsxElementLinks]
-	computedNameLinks                           core.LinkStore[*ast.Node, ComputedNameNodeLinks]
-	symbolReferenceLinks                        core.LinkStore[*ast.Symbol, SymbolReferenceLinks]
-	valueSymbolLinks                            symbolLinkStore[ValueSymbolLinks]
-	mappedSymbolLinks                           core.LinkStore[*ast.Symbol, MappedSymbolLinks]
-	deferredSymbolLinks                         core.LinkStore[*ast.Symbol, DeferredSymbolLinks]
-	aliasSymbolLinks                            core.LinkStore[*ast.Symbol, AliasSymbolLinks]
-	moduleSymbolLinks                           core.LinkStore[*ast.Symbol, ModuleSymbolLinks]
-	lateBoundLinks                              core.LinkStore[*ast.Symbol, LateBoundLinks]
-	exportTypeLinks                             core.LinkStore[*ast.Symbol, ExportTypeLinks]
-	membersAndExportsLinks                      core.LinkStore[*ast.Symbol, MembersAndExportsLinks]
-	typeAliasLinks                              core.LinkStore[*ast.Symbol, TypeAliasLinks]
-	declaredTypeLinks                           core.LinkStore[*ast.Symbol, DeclaredTypeLinks]
-	spreadLinks                                 core.LinkStore[*ast.Symbol, SpreadLinks]
-	varianceLinks                               core.LinkStore[*ast.Symbol, VarianceLinks]
-	ReverseMappedSymbolLinks                    core.LinkStore[*ast.Symbol, ReverseMappedSymbolLinks]
-	markedAssignmentSymbolLinks                 core.LinkStore[*ast.Symbol, MarkedAssignmentSymbolLinks]
-	symbolContainerLinks                        core.LinkStore[*ast.Symbol, ContainingSymbolLinks]
-	externalModuleContainers                    *externalModuleContainerIndex
-	sourceFileLinks                             core.LinkStore[*ast.SourceFile, SourceFileLinks]
 	regExpScanner                               *scanner.Scanner
-	patternForType                              map[*Type]*ast.Node
-	contextFreeTypes                            map[*ast.Node]*Type
-	anyType                                     *Type
-	autoType                                    *Type
-	wildcardType                                *Type
-	blockedStringType                           *Type
-	errorType                                   *Type
-	unresolvedType                              *Type
-	nonInferrableAnyType                        *Type
-	intrinsicMarkerType                         *Type
-	unknownType                                 *Type
-	undefinedType                               *Type
-	undefinedWideningType                       *Type
-	missingType                                 *Type
-	undefinedOrMissingType                      *Type
-	optionalType                                *Type
-	nullType                                    *Type
-	nullWideningType                            *Type
-	stringType                                  *Type
-	numberType                                  *Type
-	bigintType                                  *Type
-	regularFalseType                            *Type
-	falseType                                   *Type
-	regularTrueType                             *Type
-	trueType                                    *Type
-	booleanType                                 *Type
-	esSymbolType                                *Type
-	voidType                                    *Type
-	neverType                                   *Type
-	silentNeverType                             *Type
-	implicitNeverType                           *Type
-	unreachableNeverType                        *Type
-	nonPrimitiveType                            *Type
-	stringOrNumberType                          *Type
-	stringNumberSymbolType                      *Type
-	numberOrBigIntType                          *Type
-	templateConstraintType                      *Type
-	numericStringType                           *Type
-	uniqueLiteralType                           *Type
 	uniqueLiteralMapper                         *TypeMapper
 	reliabilityFlags                            RelationComparisonResult
 	reportUnreliableMapper                      *TypeMapper
 	reportUnmeasurableMapper                    *TypeMapper
 	restrictiveMapper                           *TypeMapper
 	permissiveMapper                            *TypeMapper
-	emptyObjectType                             *Type
-	emptyJsxObjectType                          *Type
-	emptyFreshJsxObjectType                     *Type
-	emptyTypeLiteralType                        *Type
-	unknownEmptyObjectType                      *Type
-	unknownUnionType                            *Type
-	emptyGenericType                            *Type
-	anyFunctionType                             *Type
-	noConstraintType                            *Type
-	circularConstraintType                      *Type
-	resolvingDefaultType                        *Type
-	markerSuperType                             *Type
-	markerSubType                               *Type
-	markerOtherType                             *Type
-	markerSuperTypeForCheck                     *Type
-	markerSubTypeForCheck                       *Type
-	noTypePredicate                             *TypePredicate
-	anySignature                                *Signature
-	unknownSignature                            *Signature
-	resolvingSignature                          *Signature
-	silentNeverSignature                        *Signature
-	cachedArgumentsReferenced                   map[*ast.Node]bool
-	enumNumberIndexInfo                         *IndexInfo
-	anyBaseTypeIndexInfo                        *IndexInfo
-	patternAmbientModules                       []*ast.PatternAmbientModule
-	patternAmbientModuleAugmentations           ast.SymbolTable
-	patternAmbientModuleAugmentationTargets     ast.SymbolTable
-	moduleImportAttributesTypes                 map[*ast.Symbol]*Type
-	globalObjectType                            *Type
-	globalFunctionType                          *Type
-	globalCallableFunctionType                  *Type
-	globalNewableFunctionType                   *Type
-	globalArrayType                             *Type
-	globalReadonlyArrayType                     *Type
-	globalStringType                            *Type
-	globalNumberType                            *Type
-	globalBooleanType                           *Type
-	globalRegExpType                            *Type
-	globalThisType                              *Type
-	anyArrayType                                *Type
-	autoArrayType                               *Type
-	anyReadonlyArrayType                        *Type
-	deferredGlobalImportMetaExpressionType      *Type
 	contextualBindingPatterns                   []*ast.Node
-	emptyStringType                             *Type
-	zeroType                                    *Type
-	zeroBigIntType                              *Type
-	typeofType                                  *Type
 	typeResolutions                             []TypeResolution
 	resolutionStart                             int
 	varianceStack                               []VarianceStackEntry
@@ -837,7 +649,6 @@ type Checker struct {
 	lastGetCombinedModifierFlagsResult          ast.ModifierFlags
 	freeinferenceState                          *InferenceState
 	freeFlowState                               *FlowState
-	flowLoopCache                               map[FlowLoopKey]*Type
 	flowLoopStack                               []FlowLoopInfo
 	sharedFlows                                 []SharedFlow
 	flowLoopFrameCount                          uint64
@@ -846,8 +657,6 @@ type Checker struct {
 	flowTypeCache                               map[*ast.Node]*Type
 	lastFlowNode                                *ast.FlowNode
 	lastFlowNodeReachable                       bool
-	flowNodeReachable                           map[*ast.FlowNode]bool
-	flowNodePostSuper                           map[*ast.FlowNode]bool
 	renamedBindingElementsInTypes               []*ast.Node
 	contextualInfos                             []ContextualInfo
 	inferenceContextInfos                       []InferenceContextInfo
@@ -856,12 +665,6 @@ type Checker struct {
 	reverseMappedTargetStack                    []*Type
 	reverseExpandingFlags                       ExpandingFlags
 	freeRelater                                 *Relater
-	subtypeRelation                             *Relation
-	strictSubtypeRelation                       *Relation
-	assignableRelation                          *Relation
-	comparableRelation                          *Relation
-	identityRelation                            *Relation
-	enumRelation                                map[EnumRelationKey]RelationComparisonResult
 	getGlobalESSymbolType                       func() *Type
 	getGlobalBigIntType                         func() *Type
 	getGlobalImportMetaType                     func() *Type
@@ -922,38 +725,246 @@ type Checker struct {
 	isStringIndexSignatureOnlyType              func(*Type) bool
 	markNodeAssignments                         func(*ast.Node) bool
 	compareTypesAssignable                      TypeComparer
-	emitResolverLinks                           EmitResolverLinks
-	_jsxNamespace                               string
-	_jsxFactoryEntity                           *ast.Node
 	skipDirectInferenceNodes                    collections.Set[*ast.Node]
 	ctx                                         context.Context
-	packagesMap                                 map[string]bool
 	activeMappers                               []*TypeMapper
 	activeTypeMappersCaches                     []map[CacheHashKey]*Type
-	ambientModulesOnce                          sync.Once
-	ambientModules                              []*ast.Symbol
 	withinUnreachableCode                       bool
-	reportedUnreachableNodes                    collections.Set[*ast.Node]
-	nonExistentProperties                       collections.Set[NonExistentPropertyKey]
-	deferredDiagnosticCallbacks                 []func()
 	typeToStringNodebuilder                     *NodeBuilder
+	tracer                                      *Tracer // Optional tracer for trace events and type recording (for --generateTrace)
+}
 
-	mu     sync.Mutex
-	tracer *Tracer // Optional tracer for trace events and type recording (for --generateTrace)
+// checkerStore holds the memoized state of a checker: interned types, links,
+// relation caches, and collected diagnostics. Every activation sharing a store
+// observes the same results.
+type checkerStore struct {
+	root                                    *Checker // The activation that created this store; owns type back-pointers.
+	id                                      uint32
+	program                                 Program
+	compilerOptions                         *core.CompilerOptions
+	files                                   []*ast.SourceFile
+	fileIndexMap                            map[*ast.SourceFile]int
+	TypeCount                               uint32
+	SymbolCount                             uint32
+	SignatureCount                          uint32
+	TotalInstantiationCount                 uint32
+	languageVersion                         core.ScriptTarget
+	moduleKind                              core.ModuleKind
+	moduleResolutionKind                    core.ModuleResolutionKind
+	legacyDecorators                        bool
+	emitStandardClassFields                 bool
+	strictNullChecks                        bool
+	strictFunctionTypes                     bool
+	strictBindCallApply                     bool
+	strictPropertyInitialization            bool
+	strictBuiltinIteratorReturn             bool
+	noImplicitAny                           bool
+	noImplicitThis                          bool
+	useUnknownInCatchVariables              bool
+	exactOptionalPropertyTypes              bool
+	canCollectSymbolAliasAccessibilityData  bool
+	arrayVariances                          []VarianceFlags
+	globals                                 ast.SymbolTable
+	stringLiteralTypes                      map[string]*Type
+	numberLiteralTypes                      map[jsnum.Number]*Type
+	nanType                                 *Type
+	bigintLiteralTypes                      map[jsnum.PseudoBigInt]*Type
+	enumLiteralTypes                        map[EnumLiteralKey]*Type
+	enumNaNLiteralTypes                     map[*ast.Symbol]*Type
+	indexedAccessTypes                      map[CacheHashKey]*Type
+	templateLiteralTypes                    map[CacheHashKey]*Type
+	stringMappingTypes                      map[StringMappingKey]*Type
+	uniqueESSymbolTypes                     map[*ast.Symbol]*Type
+	thisExpandoKinds                        map[*ast.Symbol]thisAssignmentDeclarationKind
+	thisExpandoLocations                    map[*ast.Symbol]*ast.Node
+	subtypeReductionCache                   map[CacheHashKey][]*Type
+	cachedTypes                             map[CachedTypeKey]*Type
+	cachedSignatures                        map[CachedSignatureKey]*Signature
+	undefinedProperties                     map[*ast.Symbol]*ast.Symbol
+	narrowedTypes                           map[NarrowedTypeKey]*Type
+	assignmentReducedTypes                  map[AssignmentReducedKey]*Type
+	discriminatedContextualTypes            map[DiscriminatedContextualTypeKey]*Type
+	instantiationExpressionTypes            map[InstantiationExpressionKey]*Type
+	substitutionTypes                       map[SubstitutionTypeKey]*Type
+	reverseMappedCache                      map[ReverseMappedTypeKey]*Type
+	reverseHomomorphicMappedCache           map[ReverseMappedTypeKey]*Type
+	iterationTypesCache                     map[IterationTypesKey]IterationTypes
+	markerTypes                             collections.Set[*Type]
+	resolvingExplicitTypeOfSymbol           collections.Set[*ast.Symbol]
+	constructorOrFunctionChecked            collections.Set[*ast.Symbol]
+	undefinedSymbol                         *ast.Symbol
+	argumentsSymbol                         *ast.Symbol
+	requireSymbol                           *ast.Symbol
+	unknownSymbol                           *ast.Symbol
+	unresolvedSymbols                       map[string]*ast.Symbol
+	errorTypes                              map[CacheHashKey]*Type
+	moduleSymbols                           map[*ast.Node]*ast.Symbol
+	globalThisSymbol                        *ast.Symbol
+	symbolTableAliasCache                   map[symbolTableID][]*ast.Symbol
+	classExpressionNameTables               map[ast.NodeId]ast.SymbolTable
+	tupleTypes                              map[CacheHashKey]*Type
+	unionTypes                              map[CacheHashKey]*Type
+	objectLiteralTypes                      map[CacheHashKey]*Type
+	spreadTypes                             map[CacheHashKey]*Type
+	objectContentTypes                      map[CacheHashKey]*Type
+	spreadSymbols                           map[spreadSymbolKey]*ast.Symbol
+	symbolsWithType                         map[symbolWithTypeKey]*ast.Symbol
+	paddedProperties                        map[symbolWithTypeKey]*ast.Symbol
+	bindingPatternTypes                     map[CacheHashKey]*Type
+	unionOfUnionTypes                       map[UnionOfUnionKey]*Type
+	intersectionTypes                       map[CacheHashKey]*Type
+	intersectionContentTypes                map[CacheHashKey]*Type
+	propertiesTypes                         map[PropertiesTypesKey]*Type
+	diagnostics                             ast.DiagnosticsCollection
+	suggestionDiagnostics                   ast.DiagnosticsCollection
+	mergedSymbols                           map[*ast.Symbol]*ast.Symbol
+	mergedExportsChecked                    collections.Set[*ast.Symbol]
+	nodeLinks                               core.LinkStore[*ast.Node, NodeLinks]
+	signatureLinks                          nodeLinkStore[SignatureLinks]
+	symbolNodeLinks                         nodeLinkStore[SymbolNodeLinks]
+	typeNodeLinks                           nodeLinkStore[TypeNodeLinks]
+	enumMemberLinks                         core.LinkStore[*ast.Node, EnumMemberLinks]
+	arrayLiteralLinks                       core.LinkStore[*ast.Node, ArrayLiteralLinks]
+	switchStatementLinks                    core.LinkStore[*ast.Node, SwitchStatementLinks]
+	jsxElementLinks                         core.LinkStore[*ast.Node, JsxElementLinks]
+	computedNameLinks                       core.LinkStore[*ast.Node, ComputedNameNodeLinks]
+	symbolReferenceLinks                    core.LinkStore[*ast.Symbol, SymbolReferenceLinks]
+	valueSymbolLinks                        symbolLinkStore[ValueSymbolLinks]
+	mappedSymbolLinks                       core.LinkStore[*ast.Symbol, MappedSymbolLinks]
+	deferredSymbolLinks                     core.LinkStore[*ast.Symbol, DeferredSymbolLinks]
+	aliasSymbolLinks                        core.LinkStore[*ast.Symbol, AliasSymbolLinks]
+	moduleSymbolLinks                       core.LinkStore[*ast.Symbol, ModuleSymbolLinks]
+	lateBoundLinks                          core.LinkStore[*ast.Symbol, LateBoundLinks]
+	exportTypeLinks                         core.LinkStore[*ast.Symbol, ExportTypeLinks]
+	membersAndExportsLinks                  core.LinkStore[*ast.Symbol, MembersAndExportsLinks]
+	typeAliasLinks                          core.LinkStore[*ast.Symbol, TypeAliasLinks]
+	declaredTypeLinks                       core.LinkStore[*ast.Symbol, DeclaredTypeLinks]
+	spreadLinks                             core.LinkStore[*ast.Symbol, SpreadLinks]
+	varianceLinks                           core.LinkStore[*ast.Symbol, VarianceLinks]
+	ReverseMappedSymbolLinks                core.LinkStore[*ast.Symbol, ReverseMappedSymbolLinks]
+	markedAssignmentSymbolLinks             core.LinkStore[*ast.Symbol, MarkedAssignmentSymbolLinks]
+	symbolContainerLinks                    core.LinkStore[*ast.Symbol, ContainingSymbolLinks]
+	externalModuleContainers                *externalModuleContainerIndex
+	sourceFileLinks                         core.LinkStore[*ast.SourceFile, SourceFileLinks]
+	patternForType                          map[*Type]*ast.Node
+	contextFreeTypes                        map[*ast.Node]*Type
+	anyType                                 *Type
+	autoType                                *Type
+	wildcardType                            *Type
+	blockedStringType                       *Type
+	errorType                               *Type
+	unresolvedType                          *Type
+	nonInferrableAnyType                    *Type
+	intrinsicMarkerType                     *Type
+	unknownType                             *Type
+	undefinedType                           *Type
+	undefinedWideningType                   *Type
+	missingType                             *Type
+	undefinedOrMissingType                  *Type
+	optionalType                            *Type
+	nullType                                *Type
+	nullWideningType                        *Type
+	stringType                              *Type
+	numberType                              *Type
+	bigintType                              *Type
+	regularFalseType                        *Type
+	falseType                               *Type
+	regularTrueType                         *Type
+	trueType                                *Type
+	booleanType                             *Type
+	esSymbolType                            *Type
+	voidType                                *Type
+	neverType                               *Type
+	silentNeverType                         *Type
+	implicitNeverType                       *Type
+	unreachableNeverType                    *Type
+	nonPrimitiveType                        *Type
+	stringOrNumberType                      *Type
+	stringNumberSymbolType                  *Type
+	numberOrBigIntType                      *Type
+	templateConstraintType                  *Type
+	numericStringType                       *Type
+	uniqueLiteralType                       *Type
+	emptyObjectType                         *Type
+	emptyJsxObjectType                      *Type
+	emptyFreshJsxObjectType                 *Type
+	emptyTypeLiteralType                    *Type
+	unknownEmptyObjectType                  *Type
+	unknownUnionType                        *Type
+	emptyGenericType                        *Type
+	anyFunctionType                         *Type
+	noConstraintType                        *Type
+	circularConstraintType                  *Type
+	resolvingDefaultType                    *Type
+	markerSuperType                         *Type
+	markerSubType                           *Type
+	markerOtherType                         *Type
+	markerSuperTypeForCheck                 *Type
+	markerSubTypeForCheck                   *Type
+	noTypePredicate                         *TypePredicate
+	anySignature                            *Signature
+	unknownSignature                        *Signature
+	resolvingSignature                      *Signature
+	silentNeverSignature                    *Signature
+	cachedArgumentsReferenced               map[*ast.Node]bool
+	enumNumberIndexInfo                     *IndexInfo
+	anyBaseTypeIndexInfo                    *IndexInfo
+	patternAmbientModules                   []*ast.PatternAmbientModule
+	patternAmbientModuleAugmentations       ast.SymbolTable
+	patternAmbientModuleAugmentationTargets ast.SymbolTable
+	moduleImportAttributesTypes             map[*ast.Symbol]*Type
+	globalObjectType                        *Type
+	globalFunctionType                      *Type
+	globalCallableFunctionType              *Type
+	globalNewableFunctionType               *Type
+	globalArrayType                         *Type
+	globalReadonlyArrayType                 *Type
+	globalStringType                        *Type
+	globalNumberType                        *Type
+	globalBooleanType                       *Type
+	globalRegExpType                        *Type
+	globalThisType                          *Type
+	anyArrayType                            *Type
+	autoArrayType                           *Type
+	anyReadonlyArrayType                    *Type
+	deferredGlobalImportMetaExpressionType  *Type
+	emptyStringType                         *Type
+	zeroType                                *Type
+	zeroBigIntType                          *Type
+	typeofType                              *Type
+	flowLoopCache                           map[FlowLoopKey]*Type
+	flowNodeReachable                       map[*ast.FlowNode]bool
+	flowNodePostSuper                       map[*ast.FlowNode]bool
+	subtypeRelation                         *Relation
+	strictSubtypeRelation                   *Relation
+	assignableRelation                      *Relation
+	comparableRelation                      *Relation
+	identityRelation                        *Relation
+	enumRelation                            map[EnumRelationKey]RelationComparisonResult
+	emitResolverLinks                       EmitResolverLinks
+	_jsxNamespace                           string
+	_jsxFactoryEntity                       *ast.Node
+	packagesMap                             map[string]bool
+	ambientModulesOnce                      sync.Once
+	ambientModules                          []*ast.Symbol
+	reportedUnreachableNodes                collections.Set[*ast.Node]
+	nonExistentProperties                   collections.Set[NonExistentPropertyKey]
+	deferredDiagnosticCallbacks             []func()
+
+	mu sync.Mutex
 }
 
 func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	program.BindSourceFiles()
 
-	c := &Checker{}
+	c := &Checker{checkerStore: &checkerStore{}}
+	c.root = c
 	c.id = nextCheckerID.Add(1)
 	c.tracer = tracer
 	c.program = program
 	c.compilerOptions = program.Options()
 	c.files = program.SourceFiles()
 	c.fileIndexMap = createFileIndexMap(c.files)
-	c.compareSymbols = c.compareSymbolsWorker           // Closure optimization
-	c.compareSymbolChains = c.compareSymbolChainsWorker // Closure optimization
 	c.languageVersion = c.compilerOptions.GetEmitScriptTarget()
 	c.moduleKind = c.compilerOptions.GetEmitModuleKind()
 	c.moduleResolutionKind = c.compilerOptions.GetModuleResolutionKind()
@@ -971,7 +982,6 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.canCollectSymbolAliasAccessibilityData = c.compilerOptions.VerbatimModuleSyntax.IsFalseOrUnknown()
 	c.arrayVariances = []VarianceFlags{VarianceFlagsCovariant}
 	c.globals = make(ast.SymbolTable, countGlobalSymbols(c.files))
-	c.evaluate = evaluator.NewEvaluator(c.evaluateEntity, ast.OEKParentheses)
 	c.stringLiteralTypes = make(map[string]*Type)
 	c.numberLiteralTypes = make(map[jsnum.Number]*Type)
 	c.bigintLiteralTypes = make(map[jsnum.PseudoBigInt]*Type)
@@ -1005,8 +1015,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.globalThisSymbol = c.newSymbolEx(ast.SymbolFlagsModule, "globalThis", ast.CheckFlagsReadonly)
 	c.globalThisSymbol.SetExports(c.globals, &c.symbolExtraArena)
 	c.globals[c.globalThisSymbol.Name()] = c.globalThisSymbol
-	c.resolveName = c.createNameResolver().Resolve
-	c.resolveNameForSymbolSuggestion = c.createNameResolverForSuggestion().Resolve
+	c.initActivation()
 	c.tupleTypes = make(map[CacheHashKey]*Type)
 	c.unionTypes = make(map[CacheHashKey]*Type)
 	c.objectLiteralTypes = make(map[CacheHashKey]*Type)
@@ -1064,11 +1073,6 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.numericStringType = c.getTemplateLiteralType([]string{"", ""}, []*Type{c.numberType}) // The `${number}` type
 	c.templateConstraintType = c.getUnionType([]*Type{c.stringType, c.numberType, c.booleanType, c.bigintType, c.nullType, c.undefinedType})
 	c.uniqueLiteralType = c.newIntrinsicType(TypeFlagsNever, "never") // Special `never` flagged by union reduction to behave as a literal
-	c.uniqueLiteralMapper = newFunctionTypeMapper(c.getUniqueLiteralTypeForTypeParameter)
-	c.reportUnreliableMapper = newFunctionTypeMapper(c.reportUnreliableWorker)
-	c.reportUnmeasurableMapper = newFunctionTypeMapper(c.reportUnmeasurableWorker)
-	c.restrictiveMapper = newFunctionTypeMapper(c.restrictiveMapperWorker)
-	c.permissiveMapper = newFunctionTypeMapper(c.permissiveMapperWorker)
 	c.emptyObjectType = c.newAnonymousType(nil /*symbol*/, nil, nil, nil, nil)
 	c.emptyJsxObjectType = c.newAnonymousType(nil /*symbol*/, nil, nil, nil, nil)
 	c.emptyFreshJsxObjectType = c.newAnonymousType(nil /*symbol*/, nil, nil, nil, nil)
@@ -1111,6 +1115,23 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.identityRelation = &Relation{}
 	c.enumRelation = make(map[EnumRelationKey]RelationComparisonResult)
 	c.moduleImportAttributesTypes = make(map[*ast.Symbol]*Type)
+	c.initializeChecker()
+	return c, &c.mu
+}
+
+// initActivation initializes the activation-local state of c, including
+// closures that must be bound to this activation rather than the store.
+func (c *Checker) initActivation() {
+	c.compareSymbols = c.compareSymbolsWorker           // Closure optimization
+	c.compareSymbolChains = c.compareSymbolChainsWorker // Closure optimization
+	c.evaluate = evaluator.NewEvaluator(c.evaluateEntity, ast.OEKParentheses)
+	c.resolveName = c.createNameResolver().Resolve
+	c.resolveNameForSymbolSuggestion = c.createNameResolverForSuggestion().Resolve
+	c.uniqueLiteralMapper = newFunctionTypeMapper(c.getUniqueLiteralTypeForTypeParameter)
+	c.reportUnreliableMapper = newFunctionTypeMapper(c.reportUnreliableWorker)
+	c.reportUnmeasurableMapper = newFunctionTypeMapper(c.reportUnmeasurableWorker)
+	c.restrictiveMapper = newFunctionTypeMapper(c.restrictiveMapperWorker)
+	c.permissiveMapper = newFunctionTypeMapper(c.permissiveMapperWorker)
 	c.getGlobalESSymbolType = c.getGlobalTypeResolver("Symbol", 0 /*arity*/, false /*reportErrors*/)
 	c.getGlobalBigIntType = c.getGlobalTypeResolver("BigInt", 0 /*arity*/, false /*reportErrors*/)
 	c.getGlobalImportMetaType = c.getGlobalTypeResolver("ImportMeta", 0 /*arity*/, true /*reportErrors*/)
@@ -1164,8 +1185,16 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.getGlobalClassFieldDecoratorContextType = c.getGlobalTypeResolver("ClassFieldDecoratorContext", 2 /*arity*/, true /*reportErrors*/)
 	c.initializeClosures()
 	c.initializeIterationResolvers()
-	c.initializeChecker()
-	return c, &c.mu
+}
+
+// Clone returns a new activation sharing c's store. The clone observes and
+// contributes to the same memoized state, but has its own resolution stacks.
+// Activations sharing a store must not be used concurrently; acquire the
+// store's lock (returned by NewChecker) before use.
+func (c *Checker) Clone() *Checker {
+	clone := &Checker{checkerStore: c.checkerStore, tracer: c.tracer}
+	clone.initActivation()
+	return clone
 }
 
 func createFileIndexMap(files []*ast.SourceFile) map[*ast.SourceFile]int {
@@ -8641,8 +8670,6 @@ func isContextuallyTypedByEnclosingCall(node *ast.Node) bool {
 			return node != parent.Expression()
 		case ast.KindParenthesizedExpression, ast.KindSpreadElement, ast.KindArrayLiteralExpression,
 			ast.KindObjectLiteralExpression, ast.KindPropertyAssignment, ast.KindAwaitExpression:
-			node = parent
-			continue
 		case ast.KindConditionalExpression:
 			if node == parent.AsConditionalExpression().Condition {
 				return false
@@ -25935,7 +25962,7 @@ func (c *Checker) newType(flags TypeFlags, objectFlags ObjectFlags, t *Type, kin
 	t.objectFlags = objectFlags &^ (ObjectFlagsCouldContainTypeVariablesComputed | ObjectFlagsCouldContainTypeVariables | ObjectFlagsMembersResolved)
 	t.id = TypeId(c.TypeCount)
 	t.kind = kind
-	t.checker = c
+	t.checker = c.root
 	if c.tracer != nil {
 		c.tracer.RecordType(t)
 	}
