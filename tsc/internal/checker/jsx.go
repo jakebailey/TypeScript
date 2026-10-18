@@ -1212,6 +1212,16 @@ func (c *Checker) getIntrinsicAttributesTypeFromJsxOpeningLikeElement(node *ast.
 // string index signature (in which case nodeLinks.jsxFlags will be IntrinsicIndexedElement).
 // May also return unknownSymbol if both of these lookups fail.
 func (c *Checker) getIntrinsicTagSymbol(node *ast.Node) *ast.Symbol {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(node, memoResolvedSymbol))
+		result := c.getIntrinsicTagSymbolUncached(node)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getIntrinsicTagSymbolUncached(node)
+}
+
+func (c *Checker) getIntrinsicTagSymbolUncached(node *ast.Node) *ast.Symbol {
 	links := c.symbolNodeLinks.Get(node)
 	if links.resolvedSymbol != nil {
 		return links.resolvedSymbol
@@ -1449,6 +1459,16 @@ func markAsSynthetic(node *ast.Node) bool {
 func (c *Checker) getJsxNamespaceContainerForImplicitImport(location *ast.Node) *ast.Symbol {
 	file := ast.GetSourceFileOfNode(location)
 	links := c.jsxElementLinks.Get(file.AsNode())
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(links, memoJsxImplicitImportContainer))
+		result := c.getJsxNamespaceContainerForImplicitImportCached(file, links)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getJsxNamespaceContainerForImplicitImportCached(file, links)
+}
+
+func (c *Checker) getJsxNamespaceContainerForImplicitImportCached(file *ast.SourceFile, links *JsxElementLinks) *ast.Symbol {
 	if links.jsxImplicitImportContainer != nil {
 		return core.IfElse(links.jsxImplicitImportContainer == c.unknownSymbol, nil, links.jsxImplicitImportContainer)
 	}

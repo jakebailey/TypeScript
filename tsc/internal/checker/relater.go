@@ -97,7 +97,34 @@ func asRecursionId[T *ast.Node | *ast.Symbol | *Type](value T) RecursionId {
 }
 
 type Relation struct {
-	results map[CacheHashKey]RelationComparisonResult
+	results   map[CacheHashKey]RelationComparisonResult
+	overflows map[CacheHashKey]*relationOverflow
+}
+
+// relationOverflow identifies the computation that found a relation to be
+// too complex, whose errors are replayed wherever the cached result is used.
+type relationOverflow struct {
+	_ byte // ensure distinct addresses
+}
+
+func (r *Relation) overflowCell(key CacheHashKey) *relationOverflow {
+	if r.overflows == nil {
+		r.overflows = make(map[CacheHashKey]*relationOverflow)
+	}
+	cell := r.overflows[key]
+	if cell == nil {
+		cell = &relationOverflow{}
+		r.overflows[key] = cell
+	}
+	return cell
+}
+
+func (c *Checker) observeRelationOverflow(relation *Relation, key CacheHashKey) {
+	if c.memoActive() {
+		if cell := relation.overflows[key]; cell != nil {
+			c.exitMemo(c.enterMemo(memoKeyOf(cell, memoRelationOverflow)))
+		}
+	}
 }
 
 func (r *Relation) get(key CacheHashKey) RelationComparisonResult {
@@ -194,6 +221,9 @@ func (c *Checker) isTypeRelatedTo(source *Type, target *Type, relation *Relation
 		id, _ := getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false)
 		related := relation.get(id)
 		if related != RelationComparisonResultNone {
+			if related&RelationComparisonResultOverflow != 0 {
+				c.observeRelationOverflow(relation, id)
+			}
 			return related&RelationComparisonResultSucceeded != 0
 		}
 	}
@@ -373,13 +403,20 @@ func (c *Checker) checkTypeRelatedToEx(
 		// Record this relation as having failed such that we don't attempt the overflowing operation again.
 		id, _ := getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
 		relation.set(id, RelationComparisonResultFailed|RelationComparisonResultComplexityOverflow)
+		pushed := c.memoActive() && c.enterMemo(memoKeyOf(relation.overflowCell(id), memoRelationOverflow))
 		if tr := c.tracer; tr != nil {
 			tr.Instant(tracing.PhaseCheckTypes, "checkTypeRelatedTo_DepthLimit", map[string]any{"sourceId": source.id, "targetId": target.id, "depth": len(r.sourceStack), "targetDepth": len(r.targetStack)})
 		}
-		if errorNode == nil {
-			errorNode = c.currentNode
+		message, sourceString, targetString := diagnostics.Excessive_complexity_comparing_types_0_and_1, c.TypeToString(source), c.TypeToString(target)
+		switch {
+		case errorNode != nil:
+			c.reportDiagnostic(NewDiagnosticForNode(errorNode, message, sourceString, targetString), diagnosticOutput)
+		case diagnosticOutput != nil:
+			c.reportDiagnostic(NewDiagnosticForNode(c.currentNode, message, sourceString, targetString), diagnosticOutput)
+		default:
+			c.errorAtCurrentNode(message, sourceString, targetString)
 		}
-		c.reportDiagnostic(NewDiagnosticForNode(errorNode, diagnostics.Excessive_complexity_comparing_types_0_and_1, c.TypeToString(source), c.TypeToString(target)), diagnosticOutput)
+		c.exitMemo(pushed)
 	} else if r.errorChain != nil {
 		// Check if we should issue an extra diagnostic to produce a quickfix for a slightly incorrect import statement
 		if headMessage != nil && errorNode != nil && result == TernaryFalse && source.symbol != nil && c.exportTypeLinks.Has(source.symbol) {
@@ -3235,6 +3272,9 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 			// so we will do the comparison again to generate an error message.
 		} else {
 			r.c.reliabilityFlags |= entry & (RelationComparisonResultReportsUnmeasurable | RelationComparisonResultReportsUnreliable)
+			if entry&RelationComparisonResultOverflow != 0 {
+				r.c.observeRelationOverflow(r.relation, id)
+			}
 			if reportErrors && entry&RelationComparisonResultOverflow != 0 {
 				r.reportError(diagnostics.Excessive_complexity_comparing_types_0_and_1, r.c.TypeToString(source), r.c.TypeToString(target))
 			}

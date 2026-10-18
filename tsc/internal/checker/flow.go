@@ -1346,10 +1346,25 @@ func (c *Checker) getTypeAtFlowLoopLabel(f *FlowState, flow *ast.FlowNode) FlowT
 		return FlowType{t: f.declaredType}
 	}
 	key := FlowLoopKey{flowNode: flow, refKey: f.refKey}
+	entry := c.flowLoopCache[key]
+	if entry == nil {
+		entry = &flowLoopCacheEntry{}
+		c.flowLoopCache[key] = entry
+	}
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(entry, memoFlowLoopType))
+		result := c.getTypeAtFlowLoopLabelCached(f, flow, key, entry)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getTypeAtFlowLoopLabelCached(f, flow, key, entry)
+}
+
+func (c *Checker) getTypeAtFlowLoopLabelCached(f *FlowState, flow *ast.FlowNode, key FlowLoopKey, entry *flowLoopCacheEntry) FlowType {
 	// If we have previously computed the control flow type for the reference at
 	// this flow loop junction, return the cached type.
-	if cached := c.flowLoopCache[key]; cached != nil {
-		return FlowType{t: cached}
+	if entry.t != nil {
+		return FlowType{t: entry.t}
 	}
 	// If this flow loop junction and reference are already being processed, return
 	// the union of the types computed for each branch so far, marked as incomplete.
@@ -1389,8 +1404,8 @@ func (c *Checker) getTypeAtFlowLoopLabel(f *FlowState, flow *ast.FlowNode) FlowT
 			// If we see a value appear in the cache it is a sign that control flow analysis
 			// was restarted and completed by checkExpressionCached. We can simply pick up
 			// the resulting type and bail out.
-			if cached := c.flowLoopCache[key]; cached != nil {
-				return FlowType{t: cached}
+			if entry.t != nil {
+				return FlowType{t: entry.t}
 			}
 		}
 		antecedentTypes = core.AppendIfUnique(antecedentTypes, flowType.t)
@@ -1413,7 +1428,7 @@ func (c *Checker) getTypeAtFlowLoopLabel(f *FlowState, flow *ast.FlowNode) FlowT
 	if firstAntecedentType.incomplete {
 		return c.newFlowType(result, true /*incomplete*/)
 	}
-	c.flowLoopCache[key] = result
+	entry.t = result
 	return FlowType{t: result}
 }
 

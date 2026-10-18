@@ -72,6 +72,7 @@ type TypeResolution struct {
 	target       TypeSystemEntity
 	propertyName TypeSystemPropertyName
 	result       bool
+	memoDepth    int // len(memoFrames) when pushed; see memo.go
 }
 
 // ContextualInfo
@@ -256,6 +257,10 @@ type NonExistentPropertyKey struct {
 type FlowLoopKey struct {
 	flowNode *ast.FlowNode
 	refKey   CacheHashKey
+}
+
+type flowLoopCacheEntry struct {
+	t *Type
 }
 
 type FlowLoopInfo struct {
@@ -731,7 +736,9 @@ type Checker struct {
 	activeTypeMappersCaches                     []map[CacheHashKey]*Type
 	withinUnreachableCode                       bool
 	typeToStringNodebuilder                     *NodeBuilder
-	tracer                                      *Tracer // Optional tracer for trace events and type recording (for --generateTrace)
+	tracer                                      *Tracer     // Optional tracer for trace events and type recording (for --generateTrace)
+	reporting                                   bool        // Whether side effects such as diagnostics are applied; see memo.go
+	memoFrames                                  []memoFrame // Memoized computations in progress when not reporting; see memo.go
 }
 
 // checkerStore holds the memoized state of a checker: interned types, links,
@@ -784,7 +791,7 @@ type checkerStore struct {
 	narrowedTypes                           map[NarrowedTypeKey]*Type
 	assignmentReducedTypes                  map[AssignmentReducedKey]*Type
 	discriminatedContextualTypes            map[DiscriminatedContextualTypeKey]*Type
-	instantiationExpressionTypes            map[InstantiationExpressionKey]*Type
+	instantiationExpressionTypes            map[InstantiationExpressionKey]*instantiationExpressionEntry
 	substitutionTypes                       map[SubstitutionTypeKey]*Type
 	reverseMappedCache                      map[ReverseMappedTypeKey]*Type
 	reverseHomomorphicMappedCache           map[ReverseMappedTypeKey]*Type
@@ -932,7 +939,7 @@ type checkerStore struct {
 	zeroType                                *Type
 	zeroBigIntType                          *Type
 	typeofType                              *Type
-	flowLoopCache                           map[FlowLoopKey]*Type
+	flowLoopCache                           map[FlowLoopKey]*flowLoopCacheEntry
 	flowNodeReachable                       map[*ast.FlowNode]bool
 	flowNodePostSuper                       map[*ast.FlowNode]bool
 	subtypeRelation                         *Relation
@@ -950,6 +957,8 @@ type checkerStore struct {
 	reportedUnreachableNodes                collections.Set[*ast.Node]
 	nonExistentProperties                   collections.Set[NonExistentPropertyKey]
 	deferredDiagnosticCallbacks             []func()
+	memoSlots                               map[memoKey]*memoSlot // Memo state of results computed when not reporting; see memo.go
+	memoPendingCount                        int                   // Number of memoSlots with unreplayed effects
 
 	mu sync.Mutex
 }
@@ -957,7 +966,7 @@ type checkerStore struct {
 func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	program.BindSourceFiles()
 
-	c := &Checker{checkerStore: &checkerStore{}}
+	c := &Checker{checkerStore: &checkerStore{}, reporting: true}
 	c.root = c
 	c.id = nextCheckerID.Add(1)
 	c.tracer = tracer
@@ -1000,7 +1009,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.narrowedTypes = make(map[NarrowedTypeKey]*Type)
 	c.assignmentReducedTypes = make(map[AssignmentReducedKey]*Type)
 	c.discriminatedContextualTypes = make(map[DiscriminatedContextualTypeKey]*Type)
-	c.instantiationExpressionTypes = make(map[InstantiationExpressionKey]*Type)
+	c.instantiationExpressionTypes = make(map[InstantiationExpressionKey]*instantiationExpressionEntry)
 	c.substitutionTypes = make(map[SubstitutionTypeKey]*Type)
 	c.reverseMappedCache = make(map[ReverseMappedTypeKey]*Type)
 	c.reverseHomomorphicMappedCache = make(map[ReverseMappedTypeKey]*Type)
@@ -1105,7 +1114,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.zeroType = c.getNumberLiteralType(0)
 	c.zeroBigIntType = c.getBigIntLiteralType(jsnum.PseudoBigInt{})
 	c.typeofType = c.getUnionType(core.Map(slices.Sorted(maps.Keys(typeofNEFacts)), c.getStringLiteralType))
-	c.flowLoopCache = make(map[FlowLoopKey]*Type)
+	c.flowLoopCache = make(map[FlowLoopKey]*flowLoopCacheEntry)
 	c.flowNodeReachable = make(map[*ast.FlowNode]bool)
 	c.flowNodePostSuper = make(map[*ast.FlowNode]bool)
 	c.subtypeRelation = &Relation{}
@@ -1116,6 +1125,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.enumRelation = make(map[EnumRelationKey]RelationComparisonResult)
 	c.moduleImportAttributesTypes = make(map[*ast.Symbol]*Type)
 	c.initializeChecker()
+	c.reporting = false
 	return c, &c.mu
 }
 
@@ -1231,33 +1241,33 @@ func (c *Checker) reportUnmeasurableWorker(t *Type) *Type {
 
 // Resolve to the global class or interface by the given name and arity, or emptyObjectType/emptyGenericType otherwise
 func (c *Checker) getGlobalTypeResolver(name string, arity int, reportErrors bool) func() *Type {
-	return core.Memoize(func() *Type {
+	return memoizeGlobal(c, func() *Type {
 		return c.getGlobalType(name, arity, reportErrors)
 	})
 }
 
 // Resolve to the global type alias symbol by the given name and arity, or nil otherwise
 func (c *Checker) getGlobalTypeAliasResolver(name string, arity int, reportErrors bool) func() *ast.Symbol {
-	return core.Memoize(func() *ast.Symbol {
+	return memoizeGlobal(c, func() *ast.Symbol {
 		return c.getGlobalTypeAliasSymbol(name, arity, reportErrors)
 	})
 }
 
 // Resolve to the global value symbol by the given name, or nil otherwise
 func (c *Checker) getGlobalValueSymbolResolver(name string, reportErrors bool) func() *ast.Symbol {
-	return core.Memoize(func() *ast.Symbol {
+	return memoizeGlobal(c, func() *ast.Symbol {
 		return c.getGlobalSymbol(name, ast.SymbolFlagsValue, core.IfElse(reportErrors, diagnostics.Cannot_find_global_value_0, nil))
 	})
 }
 
 func (c *Checker) getGlobalTypeSymbolResolver(name string, reportErrors bool) func() *ast.Symbol {
-	return core.Memoize(func() *ast.Symbol {
+	return memoizeGlobal(c, func() *ast.Symbol {
 		return c.getGlobalSymbol(name, ast.SymbolFlagsType, core.IfElse(reportErrors, diagnostics.Cannot_find_global_type_0, nil))
 	})
 }
 
 func (c *Checker) getGlobalTypesResolver(names []string, arity int, reportErrors bool) func() []*Type {
-	return core.Memoize(func() []*Type {
+	return memoizeGlobal(c, func() []*Type {
 		return core.Map(names, func(name string) *Type {
 			return c.getGlobalType(name, arity, reportErrors)
 		})
@@ -1616,6 +1626,10 @@ func (c *Checker) createNameResolverForSuggestion() *binder.NameResolver {
 }
 
 func (c *Checker) symbolReferenced(symbol *ast.Symbol, meaning ast.SymbolFlags) {
+	if !c.reporting {
+		c.recordEffect(func(c *Checker) { c.symbolReferenced(symbol, meaning) })
+		return
+	}
 	c.symbolReferenceLinks.Get(symbol).referenceKinds |= meaning
 }
 
@@ -2324,6 +2338,10 @@ func (c *Checker) getSymbol(symbols ast.SymbolTable, name string, meaning ast.Sy
 }
 
 func (c *Checker) checkSourceFile(ctx context.Context, sourceFile *ast.SourceFile, checkUnused bool) {
+	c.withReporting(func() { c.checkSourceFileWorker(ctx, sourceFile, checkUnused) })
+}
+
+func (c *Checker) checkSourceFileWorker(ctx context.Context, sourceFile *ast.SourceFile, checkUnused bool) {
 	c.ctx = ctx
 	links := c.sourceFileLinks.Get(sourceFile)
 	if !links.typeChecked {
@@ -2612,6 +2630,10 @@ func (c *Checker) isSourceElementUnreachable(node *ast.Node) bool {
 // determining the type of foo would cause foo to be given type any because of the recursive reference.
 // Delaying the type check of the body ensures foo has been assigned a type.
 func (c *Checker) checkNodeDeferred(node *ast.Node) {
+	if !c.reporting {
+		c.recordEffect(func(c *Checker) { c.checkNodeDeferred(node) })
+		return
+	}
 	enclosingFile := ast.GetSourceFileOfNode(node)
 	links := c.sourceFileLinks.Get(enclosingFile)
 	if !links.typeChecked {
@@ -3264,12 +3286,12 @@ func (c *Checker) checkIfTypePredicateVariableIsDeclaredInBindingPattern(pattern
 }
 
 func (c *Checker) checkTypeQuery(node *ast.Node) {
-	c.getTypeFromTypeQueryNode(node)
+	memoTypeNode(c, node, (*Checker).getTypeFromTypeQueryNode)
 }
 
 func (c *Checker) checkTypeLiteral(node *ast.Node) {
 	c.checkSourceElements(node.Members())
-	t := c.getTypeFromTypeLiteralOrFunctionOrConstructorTypeNode(node)
+	t := memoTypeNode(c, node, (*Checker).getTypeFromTypeLiteralOrFunctionOrConstructorTypeNode)
 	c.checkIndexConstraints(t, t.symbol, false /*isStaticIndex*/)
 	c.checkTypeForDuplicateIndexSignatures(node)
 	c.checkObjectTypeForDuplicateDeclarations(node, false /*checkPrivateNames*/)
@@ -3409,7 +3431,7 @@ func (c *Checker) checkUnionOrIntersectionType(node *ast.Node) {
 }
 
 func (c *Checker) checkThisType(node *ast.Node) {
-	c.getTypeFromThisTypeNode(node)
+	memoTypeNode(c, node, (*Checker).getTypeFromThisTypeNode)
 }
 
 func (c *Checker) checkTypeOperator(node *ast.Node) {
@@ -3494,7 +3516,7 @@ func (c *Checker) checkNamedTupleMember(node *ast.Node) {
 
 func (c *Checker) checkIndexedAccessType(node *ast.Node) {
 	node.ForEachChild(c.checkSourceElement)
-	c.checkIndexedAccessIndexType(c.getTypeFromIndexedAccessTypeNode(node), node)
+	c.checkIndexedAccessIndexType(memoTypeNode(c, node, (*Checker).getTypeFromIndexedAccessTypeNode), node)
 }
 
 func (c *Checker) checkMappedType(node *ast.Node) {
@@ -3506,7 +3528,7 @@ func (c *Checker) checkMappedType(node *ast.Node) {
 	if mappedTypeNode.Type == nil {
 		c.reportImplicitAny(node, c.anyType, WideningKindNormal)
 	}
-	t := c.getTypeFromMappedTypeNode(node)
+	t := memoTypeNode(c, node, (*Checker).getTypeFromMappedTypeNode)
 	nameType := c.getNameTypeFromMappedType(t)
 	if nameType != nil {
 		c.checkTypeAssignableTo(nameType, c.stringNumberSymbolType, mappedTypeNode.NameType, nil)
@@ -6059,6 +6081,10 @@ func (c *Checker) checkVariableLikeDeclaration(node *ast.Node) {
 			//               ^^^^^^
 			// variable renaming in function type notation is confusing,
 			// so we forbid it even if noUnusedLocals is not enabled
+			if !c.reporting {
+				c.recordEffect(func(c *Checker) { c.renamedBindingElementsInTypes = append(c.renamedBindingElementsInTypes, node) })
+				return
+			}
 			c.renamedBindingElementsInTypes = append(c.renamedBindingElementsInTypes, node)
 			return
 		}
@@ -6520,6 +6546,17 @@ func (c *Checker) getIterationTypesOfIterable(t *Type, use IterationUse, errorNo
 	if IsTypeAny(t) {
 		return IterationTypes{c.anyType, c.anyType, c.anyType}
 	}
+	if c.memoActive() {
+		memoKey := memoKeyOf(t, memoIterationTypes+memoField(use&IterationUseCacheFlags))
+		pushed := c.enterMemo(memoKey)
+		result := c.getIterationTypesOfIterableCached(t, use, errorNode)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getIterationTypesOfIterableCached(t, use, errorNode)
+}
+
+func (c *Checker) getIterationTypesOfIterableCached(t *Type, use IterationUse, errorNode *ast.Node) IterationTypes {
 	key := IterationTypesKey{typeId: t.id, use: use & IterationUseCacheFlags}
 	// If we are reporting errors and encounter a cached `noIterationTypes`, we should ignore the cached value and continue as if nothing was cached.
 	// In addition, we should not cache any new results for this call.
@@ -7292,6 +7329,10 @@ func (c *Checker) checkTypeParametersNotReferenced(root *ast.Node, typeParameter
 }
 
 func (c *Checker) registerForUnusedIdentifiersCheck(node *ast.Node) {
+	if !c.reporting {
+		c.recordEffect(func(c *Checker) { c.registerForUnusedIdentifiersCheck(node) })
+		return
+	}
 	sourceFile := ast.GetSourceFileOfNode(node)
 	links := c.sourceFileLinks.Get(sourceFile)
 	links.identifierCheckNodes = append(links.identifierCheckNodes, node)
@@ -7594,6 +7635,16 @@ func (c *Checker) getTypeOfExpression(node *ast.Node) *Type {
 	if quickType != nil {
 		return quickType
 	}
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(node, memoFlowExpressionType))
+		result := c.getTypeOfExpressionCached(node)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getTypeOfExpressionCached(node)
+}
+
+func (c *Checker) getTypeOfExpressionCached(node *ast.Node) *Type {
 	// If a type has been cached for the node, return it.
 	if cachedType := c.flowTypeCache[node]; cachedType != nil {
 		return cachedType
@@ -7769,6 +7820,16 @@ func (c *Checker) checkExpressionCached(node *ast.Node) *Type {
 }
 
 func (c *Checker) checkExpressionCachedEx(node *ast.Node, checkMode CheckMode) *Type {
+	if c.memoActive() && checkMode == CheckModeNormal {
+		pushed := c.enterMemo(memoKeyOf(node, memoExpressionType))
+		result := c.checkExpressionCachedExUncached(node, checkMode)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.checkExpressionCachedExUncached(node, checkMode)
+}
+
+func (c *Checker) checkExpressionCachedExUncached(node *ast.Node, checkMode CheckMode) *Type {
 	if checkMode != CheckModeNormal {
 		return c.checkExpressionEx(node, checkMode)
 	}
@@ -8264,6 +8325,16 @@ func (c *Checker) isTemplateLiteralContextualType(t *Type) bool {
 }
 
 func (c *Checker) checkRegularExpressionLiteral(node *ast.Node) *Type {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(node, memoRegularExpression))
+		result := c.checkRegularExpressionLiteralUncached(node)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.checkRegularExpressionLiteralUncached(node)
+}
+
+func (c *Checker) checkRegularExpressionLiteralUncached(node *ast.Node) *Type {
 	nodeLinks := c.nodeLinks.Get(node)
 	if nodeLinks.flags&NodeCheckFlagsTypeChecked == 0 {
 		nodeLinks.flags |= NodeCheckFlagsTypeChecked
@@ -8712,12 +8783,19 @@ func (c *Checker) getResolvedSignature(node *ast.Node, candidatesOutArray *[]*Si
 	// current node do not depend on which was checked first.
 	saveCurrentNode := c.currentNode
 	c.currentNode = node
-	result := c.resolveSignatureOfCall(node, candidatesOutArray, checkMode)
+	var result *Signature
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(node, memoResolvedSignature))
+		result = c.getResolvedSignatureUncached(node, candidatesOutArray, checkMode)
+		c.exitMemo(pushed)
+	} else {
+		result = c.getResolvedSignatureUncached(node, candidatesOutArray, checkMode)
+	}
 	c.currentNode = saveCurrentNode
 	return result
 }
 
-func (c *Checker) resolveSignatureOfCall(node *ast.Node, candidatesOutArray *[]*Signature, checkMode CheckMode) *Signature {
+func (c *Checker) getResolvedSignatureUncached(node *ast.Node, candidatesOutArray *[]*Signature, checkMode CheckMode) *Signature {
 	links := c.signatureLinks.Get(node)
 	// If getResolvedSignature has already been called, we will have cached the resolvedSignature.
 	// However, it is possible that either candidatesOutArray was not passed in the first time,
@@ -10499,6 +10577,16 @@ func (c *Checker) checkFunctionExpressionOrObjectLiteralMethod(node *ast.Node, c
 }
 
 func (c *Checker) contextuallyCheckFunctionExpressionOrObjectLiteralMethod(node *ast.Node, checkMode CheckMode) {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(node, memoContextChecked))
+		c.contextuallyCheckFunctionExpressionOrObjectLiteralMethodUncached(node, checkMode)
+		c.exitMemo(pushed)
+		return
+	}
+	c.contextuallyCheckFunctionExpressionOrObjectLiteralMethodUncached(node, checkMode)
+}
+
+func (c *Checker) contextuallyCheckFunctionExpressionOrObjectLiteralMethodUncached(node *ast.Node, checkMode CheckMode) {
 	links := c.nodeLinks.Get(node)
 	// Check if function expression is contextually typed and assign parameter types if so.
 	if links.flags&NodeCheckFlagsContextChecked == 0 {
@@ -11021,8 +11109,27 @@ func (c *Checker) getInstantiationExpressionType(exprType *Type, node *ast.Node)
 		return exprType
 	}
 	key := InstantiationExpressionKey{nodeId: ast.GetNodeId(node), typeId: exprType.id}
-	if cached := c.instantiationExpressionTypes[key]; cached != nil {
-		return cached
+	entry := c.instantiationExpressionTypes[key]
+	if entry == nil {
+		entry = &instantiationExpressionEntry{}
+		c.instantiationExpressionTypes[key] = entry
+	}
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(entry, memoInstantiationExpressionType))
+		result := c.getInstantiationExpressionTypeCached(exprType, node, typeArguments, entry)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getInstantiationExpressionTypeCached(exprType, node, typeArguments, entry)
+}
+
+type instantiationExpressionEntry struct {
+	t *Type
+}
+
+func (c *Checker) getInstantiationExpressionTypeCached(exprType *Type, node *ast.Node, typeArguments *ast.NodeList, entry *instantiationExpressionEntry) *Type {
+	if entry.t != nil {
+		return entry.t
 	}
 	hasSomeApplicableSignature := false
 	var nonApplicableType *Type
@@ -11084,7 +11191,7 @@ func (c *Checker) getInstantiationExpressionType(exprType *Type, node *ast.Node)
 		return result
 	}
 	result := getInstantiatedType(exprType)
-	c.instantiationExpressionTypes[key] = result
+	entry.t = result
 	var errorType *Type
 	if hasSomeApplicableSignature {
 		errorType = nonApplicableType
@@ -11580,6 +11687,16 @@ func (c *Checker) removeOptionalityFromDeclaredType(declaredType *Type, declarat
 }
 
 func (c *Checker) parameterInitializerContainsUndefined(declaration *ast.Node) bool {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(declaration, memoInitializerIsUndefined))
+		result := c.parameterInitializerContainsUndefinedUncached(declaration)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.parameterInitializerContainsUndefinedUncached(declaration)
+}
+
+func (c *Checker) parameterInitializerContainsUndefinedUncached(declaration *ast.Node) bool {
 	links := c.nodeLinks.Get(declaration)
 	if links.flags&NodeCheckFlagsInitializerIsUndefinedComputed == 0 {
 		if !c.pushTypeResolution(declaration, TypeSystemPropertyNameInitializerIsUndefined) {
@@ -11892,6 +12009,10 @@ func (c *Checker) checkPrivateIdentifierPropertyAccess(leftType *Type, right *as
 }
 
 func (c *Checker) reportNonexistentProperty(propNode *ast.Node, containingType *Type, isUncheckedJS bool) {
+	if !c.reporting {
+		c.recordEffect(func(c *Checker) { c.reportNonexistentProperty(propNode, containingType, isUncheckedJS) })
+		return
+	}
 	key := NonExistentPropertyKey{propNode, containingType, isUncheckedJS}
 	if c.nonExistentProperties.Has(key) {
 		return
@@ -14396,6 +14517,16 @@ func (c *Checker) checkExpressionForMutableLocation(node *ast.Node, checkMode Ch
 }
 
 func (c *Checker) getResolvedSymbol(node *ast.Node) *ast.Symbol {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(node, memoResolvedSymbol))
+		result := c.getResolvedSymbolUncached(node)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getResolvedSymbolUncached(node)
+}
+
+func (c *Checker) getResolvedSymbolUncached(node *ast.Node) *ast.Symbol {
 	links := c.symbolNodeLinks.Get(node)
 	if links.resolvedSymbol == nil {
 		var symbol *ast.Symbol
@@ -14476,11 +14607,15 @@ func (c *Checker) getDiagnostics(ctx context.Context, sourceFile *ast.SourceFile
 
 func (c *Checker) GetGlobalDiagnostics() []*ast.Diagnostic {
 	c.checkNotCanceled()
-	c.produceDeferredDiagnostics()
+	c.withReporting(c.produceDeferredDiagnostics)
 	return c.diagnostics.GetGlobalDiagnostics()
 }
 
 func (c *Checker) addDeferredDiagnostic(callback func()) {
+	if !c.reporting {
+		c.recordEffect(func(c *Checker) { c.addDeferredDiagnostic(callback) })
+		return
+	}
 	c.deferredDiagnosticCallbacks = append(c.deferredDiagnosticCallbacks, callback)
 }
 
@@ -14494,6 +14629,10 @@ func (c *Checker) produceDeferredDiagnostics() {
 func (c *Checker) addDiagnostic(diagnostic *ast.Diagnostic) *ast.Diagnostic {
 	// Discard diagnostics created while at the maximum number of recursive TypeToString invocations.
 	if c.serializationLevel < maxSerializationLevel {
+		if !c.reporting {
+			c.recordEffect(func(c *Checker) { c.diagnostics.Add(diagnostic) })
+			return diagnostic
+		}
 		return c.diagnostics.Add(diagnostic)
 	}
 	return diagnostic
@@ -14502,6 +14641,10 @@ func (c *Checker) addDiagnostic(diagnostic *ast.Diagnostic) *ast.Diagnostic {
 func (c *Checker) addSuggestionDiagnostic(diagnostic *ast.Diagnostic) *ast.Diagnostic {
 	// Discard diagnostics created while at the maximum number of recursive TypeToString invocations.
 	if c.serializationLevel < maxSerializationLevel {
+		if !c.reporting {
+			c.recordEffect(func(c *Checker) { c.suggestionDiagnostics.Add(diagnostic) })
+			return diagnostic
+		}
 		return c.suggestionDiagnostics.Add(diagnostic)
 	}
 	return diagnostic
@@ -14509,6 +14652,23 @@ func (c *Checker) addSuggestionDiagnostic(diagnostic *ast.Diagnostic) *ast.Diagn
 
 func (c *Checker) error(location *ast.Node, message *diagnostics.Message, args ...any) *ast.Diagnostic {
 	return c.addDiagnostic(NewDiagnosticForNode(location, message, args...))
+}
+
+// errorAtCurrentNode reports an error at the node currently being checked.
+// When a result is computed outside of checking, there is no such node; the
+// location is then resolved when checking first observes the result, which
+// is where the error would have been reported had checking computed it.
+func (c *Checker) errorAtCurrentNode(message *diagnostics.Message, args ...any) {
+	c.reportAtCurrentNode(func(c *Checker, node *ast.Node) { c.error(node, message, args...) })
+}
+
+func (c *Checker) reportAtCurrentNode(report func(c *Checker, node *ast.Node)) {
+	if !c.reporting {
+		node := c.currentNode
+		c.recordEffect(func(c *Checker) { report(c, core.OrElse(node, c.currentNode)) })
+		return
+	}
+	report(c, c.currentNode)
 }
 
 func (c *Checker) errorSkippedOnNoEmit(location *ast.Node, message *diagnostics.Message, args ...any) *ast.Diagnostic {
@@ -16576,6 +16736,16 @@ func (c *Checker) getExportsOfSymbol(symbol *ast.Symbol) ast.SymbolTable {
 }
 
 func (c *Checker) getResolvedMembersOrExportsOfSymbol(symbol *ast.Symbol, resolutionKind MembersOrExportsResolutionKind) ast.SymbolTable {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(symbol, memoResolvedMembers+memoField(resolutionKind)))
+		result := c.getResolvedMembersOrExportsOfSymbolUncached(symbol, resolutionKind)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getResolvedMembersOrExportsOfSymbolUncached(symbol, resolutionKind)
+}
+
+func (c *Checker) getResolvedMembersOrExportsOfSymbolUncached(symbol *ast.Symbol, resolutionKind MembersOrExportsResolutionKind) ast.SymbolTable {
 	links := c.membersAndExportsLinks.Get(symbol)
 	if links[resolutionKind] == nil {
 		isStatic := resolutionKind == MembersOrExportsResolutionKindResolvedExports
@@ -16778,6 +16948,16 @@ func (c *Checker) getMembersOfSymbol(symbol *ast.Symbol) ast.SymbolTable {
 
 func (c *Checker) getExportsOfModule(moduleSymbol *ast.Symbol) ast.SymbolTable {
 	links := c.moduleSymbolLinks.Get(moduleSymbol)
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(links, memoModuleExports))
+		result := c.getExportsOfModuleCached(moduleSymbol, links)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getExportsOfModuleCached(moduleSymbol, links)
+}
+
+func (c *Checker) getExportsOfModuleCached(moduleSymbol *ast.Symbol, links *ModuleSymbolLinks) ast.SymbolTable {
 	if links.resolvedExports == nil {
 		exports, typeOnlyExportStarMap := c.getExportsOfModuleWorker(moduleSymbol)
 		links.resolvedExports = exports
@@ -16912,6 +17092,16 @@ func (c *Checker) ResolveAlias(symbol *ast.Symbol) (*ast.Symbol, bool) {
 // meaning. Pure aliases are eagerly resolved and any type-only markers are back-propagated to the original
 // symbol. The function panics if the argument is not a symbol with an alias meaning.
 func (c *Checker) resolveAlias(symbol *ast.Symbol) *ast.Symbol {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(symbol, memoAliasTarget))
+		result := c.resolveAliasUncached(symbol)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.resolveAliasUncached(symbol)
+}
+
+func (c *Checker) resolveAliasUncached(symbol *ast.Symbol) *ast.Symbol {
 	if symbol.Flags()&ast.SymbolFlagsAlias == 0 {
 		panic("Should only get alias here")
 	}
@@ -17080,6 +17270,16 @@ func (c *Checker) getWriteTypeOfSymbolWithDeferredType(symbol *ast.Symbol) *Type
 // properties deriving from set accessors will either pre-compute or defer the union or
 // intersection of the writeTypes of their constituents.
 func (c *Checker) getWriteTypeOfSymbol(symbol *ast.Symbol) *Type {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(symbol, memoWriteType))
+		result := c.getWriteTypeOfSymbolUncached(symbol)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getWriteTypeOfSymbolUncached(symbol)
+}
+
+func (c *Checker) getWriteTypeOfSymbolUncached(symbol *ast.Symbol) *Type {
 	if symbol.CheckFlags()&ast.CheckFlagsSyntheticProperty != 0 {
 		if symbol.CheckFlags()&ast.CheckFlagsDeferredType != 0 {
 			return c.getWriteTypeOfSymbolWithDeferredType(symbol)
@@ -17139,6 +17339,16 @@ func (c *Checker) GetTypeOfSymbolAtLocation(symbol *ast.Symbol, location *ast.No
 }
 
 func (c *Checker) getTypeOfSymbol(symbol *ast.Symbol) *Type {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(symbol, memoValueType))
+		result := c.getTypeOfSymbolUncached(symbol)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getTypeOfSymbolUncached(symbol)
+}
+
+func (c *Checker) getTypeOfSymbolUncached(symbol *ast.Symbol) *Type {
 	if symbol.CheckFlags()&ast.CheckFlagsDeferredType != 0 {
 		return c.getTypeOfSymbolWithDeferredType(symbol)
 	}
@@ -17617,6 +17827,16 @@ func (c *Checker) getBaseTypeVariableOfClass(symbol *ast.Symbol) *Type {
  * * an object type with at least one construct signature.
  */
 func (c *Checker) getBaseConstructorTypeOfClass(t *Type) *Type {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(t, memoBaseConstructorType))
+		result := c.getBaseConstructorTypeOfClassUncached(t)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getBaseConstructorTypeOfClassUncached(t)
+}
+
+func (c *Checker) getBaseConstructorTypeOfClassUncached(t *Type) *Type {
 	data := t.AsInterfaceType()
 	if data.resolvedBaseConstructorType != nil {
 		return data.resolvedBaseConstructorType
@@ -17719,6 +17939,16 @@ func (c *Checker) getConstraintOfType(t *Type) *Type {
 }
 
 func (c *Checker) getConstraintOfTypeParameter(typeParameter *Type) *Type {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(typeParameter, memoTypeParameterConstraint))
+		result := c.getConstraintOfTypeParameterUncached(typeParameter)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getConstraintOfTypeParameterUncached(typeParameter)
+}
+
+func (c *Checker) getConstraintOfTypeParameterUncached(typeParameter *Type) *Type {
 	if c.hasNonCircularBaseConstraint(typeParameter) {
 		return c.getConstraintFromTypeParameter(typeParameter)
 	}
@@ -19285,6 +19515,16 @@ func (c *Checker) getTypeOfEnumMember(symbol *ast.Symbol) *Type {
 }
 
 func (c *Checker) getTypeOfAccessors(symbol *ast.Symbol) *Type {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(symbol, memoAccessorType))
+		result := c.getTypeOfAccessorsUncached(symbol)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getTypeOfAccessorsUncached(symbol)
+}
+
+func (c *Checker) getTypeOfAccessorsUncached(symbol *ast.Symbol) *Type {
 	links := c.valueSymbolLinks.Get(symbol)
 	if links.resolvedType == nil {
 		if !c.pushTypeResolution(symbol, TypeSystemPropertyNameType) {
@@ -19538,9 +19778,12 @@ func (c *Checker) pushTypeResolution(target TypeSystemEntity, propertyName TypeS
 		for i := resolutionCycleStartIndex; i < len(c.typeResolutions); i++ {
 			c.typeResolutions[i].result = false
 		}
+		if !c.reporting {
+			c.memoCycle(c.typeResolutions[resolutionCycleStartIndex].memoDepth)
+		}
 		return false
 	}
-	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: target, propertyName: propertyName, result: true})
+	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: target, propertyName: propertyName, result: true, memoDepth: len(c.memoFrames)})
 	return true
 }
 
@@ -19841,6 +20084,16 @@ func (c *Checker) isApplicableIndexType(source *Type, target *Type) bool {
 }
 
 func (c *Checker) resolveStructuredTypeMembers(t *Type) *StructuredType {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(t, memoStructuredMembers))
+		result := c.resolveStructuredTypeMembersUncached(t)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.resolveStructuredTypeMembersUncached(t)
+}
+
+func (c *Checker) resolveStructuredTypeMembersUncached(t *Type) *StructuredType {
 	if t.objectFlags&ObjectFlagsMembersResolved == 0 {
 		switch {
 		case t.flags&TypeFlagsObject != 0:
@@ -19943,6 +20196,16 @@ func findIndexInfo(indexInfos []*IndexInfo, keyType *Type) *IndexInfo {
 }
 
 func (c *Checker) getBaseTypes(t *Type) []*Type {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(t, memoBaseTypes))
+		result := c.getBaseTypesUncached(t)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getBaseTypesUncached(t)
+}
+
+func (c *Checker) getBaseTypesUncached(t *Type) []*Type {
 	if t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsTuple) == 0 {
 		return nil
 	}
@@ -20777,6 +21040,16 @@ func isLateBindableAST(node *ast.Node) bool {
 }
 
 func (c *Checker) getReturnTypeOfSignature(sig *Signature) *Type {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(sig, memoReturnType))
+		result := c.getReturnTypeOfSignatureUncached(sig)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getReturnTypeOfSignatureUncached(sig)
+}
+
+func (c *Checker) getReturnTypeOfSignatureUncached(sig *Signature) *Type {
 	if sig.resolvedReturnType != nil {
 		return sig.resolvedReturnType
 	}
@@ -21792,7 +22065,7 @@ func (c *Checker) getTypeOfMappedSymbol(symbol *ast.Symbol) *Type {
 			if links.resolvedType == nil {
 				links.resolvedType = c.errorType
 			}
-			c.error(c.currentNode, diagnostics.Type_of_property_0_circularly_references_itself_in_mapped_type_1, c.symbolToString(symbol), c.TypeToString(mappedType))
+			c.errorAtCurrentNode(diagnostics.Type_of_property_0_circularly_references_itself_in_mapped_type_1, c.symbolToString(symbol), c.TypeToString(mappedType))
 		}
 	}
 	return links.resolvedType
@@ -22788,11 +23061,16 @@ func (c *Checker) getTypeArguments(t *Type) []*Type {
 			if d.resolvedTypeArguments == nil {
 				d.resolvedTypeArguments = slices.Repeat([]*Type{c.errorType}, len(n.TypeParameters()))
 			}
-			errorNode := core.IfElse(node != nil, node, c.currentNode)
+			message := diagnostics.Tuple_type_arguments_circularly_reference_themselves
+			var args []any
 			if d.target.symbol != nil {
-				c.error(errorNode, diagnostics.Type_arguments_for_0_circularly_reference_themselves, c.symbolToString(d.target.symbol))
+				message = diagnostics.Type_arguments_for_0_circularly_reference_themselves
+				args = []any{c.symbolToString(d.target.symbol)}
+			}
+			if node != nil {
+				c.error(node, message, args...)
 			} else {
-				c.error(errorNode, diagnostics.Tuple_type_arguments_circularly_reference_themselves)
+				c.errorAtCurrentNode(message, args...)
 			}
 		}
 	}
@@ -22863,6 +23141,16 @@ func (c *Checker) getDefaultTypeArgumentType(isInJavaScriptFile bool) *Type {
 // this gets the instantiated default type of its target. If the type parameter has no default type or
 // the default is circular, `undefined` is returned.
 func (c *Checker) getDefaultFromTypeParameter(t *Type) *Type {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(t, memoTypeParameterDefault))
+		result := c.getDefaultFromTypeParameterUncached(t)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getDefaultFromTypeParameterUncached(t)
+}
+
+func (c *Checker) getDefaultFromTypeParameterUncached(t *Type) *Type {
 	if t.flags&TypeFlagsTypeParameter == 0 {
 		return nil
 	}
@@ -22987,11 +23275,11 @@ func (c *Checker) instantiateTypeWithAlias(t *Type, m *TypeMapper, alias *TypeAl
 		circularTypeNames := c.getCircularTypeNames()
 		switch {
 		case len(circularTypeNames) == 1:
-			c.error(c.currentNode, diagnostics.Instantiations_of_type_0_appear_infinitely_circular, circularTypeNames[0])
+			c.errorAtCurrentNode(diagnostics.Instantiations_of_type_0_appear_infinitely_circular, circularTypeNames[0])
 		case len(circularTypeNames) > 1:
-			c.error(c.currentNode, diagnostics.Instantiations_of_the_following_types_appear_infinitely_circular_Colon_0, quotedAndCommaSeparated(circularTypeNames))
+			c.errorAtCurrentNode(diagnostics.Instantiations_of_the_following_types_appear_infinitely_circular_Colon_0, quotedAndCommaSeparated(circularTypeNames))
 		default:
-			c.error(c.currentNode, diagnostics.Type_instantiation_is_excessively_deep_and_possibly_infinite)
+			c.errorAtCurrentNode(diagnostics.Type_instantiation_is_excessively_deep_and_possibly_infinite)
 		}
 		return c.errorType
 	}
@@ -23708,6 +23996,28 @@ func (c *Checker) tryGetTypeFromTypeNode(node *ast.Node) *Type {
 }
 
 func (c *Checker) getTypeFromTypeNode(node *ast.Node) *Type {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(node, memoTypeNodeType))
+		result := c.getTypeFromTypeNodeUncached(node)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getTypeFromTypeNodeUncached(node)
+}
+
+// memoTypeNode calls a getTypeFromXXXNode worker that caches its result on the
+// type node directly, under the same memo key as getTypeFromTypeNode.
+func memoTypeNode(c *Checker, node *ast.Node, worker func(*Checker, *ast.Node) *Type) *Type {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(node, memoTypeNodeType))
+		result := worker(c, node)
+		c.exitMemo(pushed)
+		return result
+	}
+	return worker(c, node)
+}
+
+func (c *Checker) getTypeFromTypeNodeUncached(node *ast.Node) *Type {
 	return c.getConditionalFlowTypeOfType(c.getTypeFromTypeNodeWorker(node), node)
 }
 
@@ -24014,6 +24324,16 @@ func (c *Checker) getIntendedTypeFromJSDocTypeReference(node *ast.Node) *Type {
 }
 
 func (c *Checker) getSymbolFromTypeReference(node *ast.Node) *ast.Symbol {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(node, memoResolvedSymbol))
+		result := c.getSymbolFromTypeReferenceCached(node)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getSymbolFromTypeReferenceCached(node)
+}
+
+func (c *Checker) getSymbolFromTypeReferenceCached(node *ast.Node) *ast.Symbol {
 	links := c.symbolNodeLinks.Get(node)
 	if links.resolvedSymbol == nil {
 		// The `const` in a `const` assertion resolves to nothing; resolveName knows not to
@@ -24316,10 +24636,11 @@ func (n *TupleNormalizer) normalize(c *Checker, elementTypes []*Type, elementInf
 			} else if isTupleType(t) {
 				spreadTypes := c.getElementTypes(t)
 				if len(spreadTypes)+len(n.types) >= 10_000 {
-					message := core.IfElse(ast.IsPartOfTypeNode(c.currentNode),
-						diagnostics.Type_produces_a_tuple_type_that_is_too_large_to_represent,
-						diagnostics.Expression_produces_a_tuple_type_that_is_too_large_to_represent)
-					c.error(c.currentNode, message)
+					c.reportAtCurrentNode(func(c *Checker, node *ast.Node) {
+						c.error(node, core.IfElse(node != nil && ast.IsPartOfTypeNode(node),
+							diagnostics.Type_produces_a_tuple_type_that_is_too_large_to_represent,
+							diagnostics.Expression_produces_a_tuple_type_that_is_too_large_to_represent))
+					})
 					return false
 				}
 				// Spread variadic elements with tuple types into the resulting tuple.
@@ -24607,6 +24928,16 @@ func isLocalTypeAlias(symbol *ast.Symbol) bool {
 }
 
 func (c *Checker) getDeclaredTypeOfSymbol(symbol *ast.Symbol) *Type {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(symbol, memoDeclaredType))
+		result := c.getDeclaredTypeOfSymbolUncached(symbol)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getDeclaredTypeOfSymbolUncached(symbol)
+}
+
+func (c *Checker) getDeclaredTypeOfSymbolUncached(symbol *ast.Symbol) *Type {
 	result := c.tryGetDeclaredTypeOfSymbol(symbol)
 	if result == nil {
 		result = c.errorType
@@ -24888,6 +25219,16 @@ func (c *Checker) getDeclaredTypeOfEnumMember(symbol *ast.Symbol) *Type {
 }
 
 func (c *Checker) computeEnumMemberValues(node *ast.Node) {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(node, memoEnumMemberValue))
+		c.computeEnumMemberValuesUncached(node)
+		c.exitMemo(pushed)
+		return
+	}
+	c.computeEnumMemberValuesUncached(node)
+}
+
+func (c *Checker) computeEnumMemberValuesUncached(node *ast.Node) {
 	nodeLinks := c.nodeLinks.Get(node)
 	if !(nodeLinks.flags&NodeCheckFlagsEnumValuesComputed != 0) {
 		nodeLinks.flags |= NodeCheckFlagsEnumValuesComputed
@@ -25260,7 +25601,7 @@ func (c *Checker) getConditionalType(root *ConditionalRoot, mapper *TypeMapper, 
 	// cases we increment the tail recursion counter and stop after 1000 iterations.
 	for {
 		if tailCount == 1000 {
-			c.error(c.currentNode, diagnostics.Type_instantiation_is_excessively_deep_and_possibly_infinite)
+			c.errorAtCurrentNode(diagnostics.Type_instantiation_is_excessively_deep_and_possibly_infinite)
 			return c.errorType
 		}
 		checkType := c.instantiateType(c.getActualTypeVariable(root.checkType), mapper)
@@ -26977,7 +27318,7 @@ func (c *Checker) removeSubtypes(types []*Type, hasObjectTypes bool) []*Type {
 							if tr := c.tracer; tr != nil {
 								tr.Instant(tracing.PhaseCheckTypes, "removeSubtypes_DepthLimit", map[string]any{"estimatedCount": estimatedCount})
 							}
-							c.error(c.currentNode, diagnostics.Expression_produces_a_union_type_that_is_too_complex_to_represent)
+							c.errorAtCurrentNode(diagnostics.Expression_produces_a_union_type_that_is_too_complex_to_represent)
 							return nil
 						}
 					}
@@ -27657,7 +27998,7 @@ func (c *Checker) checkCrossProductUnion(types []*Type) bool {
 		if tr := c.tracer; tr != nil {
 			tr.Instant(tracing.PhaseCheckTypes, "checkCrossProductUnion_DepthLimit", map[string]any{"size": size})
 		}
-		c.error(c.currentNode, diagnostics.Expression_produces_a_union_type_that_is_too_complex_to_represent)
+		c.errorAtCurrentNode(diagnostics.Expression_produces_a_union_type_that_is_too_complex_to_represent)
 		return false
 	}
 	return true
@@ -27806,6 +28147,16 @@ func isInvalidComputedPropertyName(node *ast.Node) bool {
 }
 
 func (c *Checker) checkComputedPropertyName(node *ast.Node) *Type {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(node, memoComputedPropertyName))
+		result := c.checkComputedPropertyNameUncached(node)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.checkComputedPropertyNameUncached(node)
+}
+
+func (c *Checker) checkComputedPropertyNameUncached(node *ast.Node) *Type {
 	links := c.typeNodeLinks.Get(node)
 	if links.resolvedType == nil {
 		if isInvalidComputedPropertyName(node) {
@@ -28458,6 +28809,16 @@ func (c *Checker) getBaseConstraintOfType(t *Type) *Type {
 }
 
 func (c *Checker) getResolvedBaseConstraint(t *Type, stack []RecursionId) *Type {
+	if c.memoActive() {
+		pushed := c.enterMemo(memoKeyOf(t, memoBaseConstraint))
+		result := c.getResolvedBaseConstraintUncached(t, stack)
+		c.exitMemo(pushed)
+		return result
+	}
+	return c.getResolvedBaseConstraintUncached(t, stack)
+}
+
+func (c *Checker) getResolvedBaseConstraintUncached(t *Type, stack []RecursionId) *Type {
 	constrained := t.AsConstrainedType()
 	if constrained == nil {
 		return t
@@ -28483,10 +28844,13 @@ func (c *Checker) getResolvedBaseConstraint(t *Type, stack []RecursionId) *Type 
 		if t.flags&TypeFlagsTypeParameter != 0 {
 			errorNode := c.getConstraintDeclaration(t)
 			if errorNode != nil {
-				diagnostic := c.error(errorNode, diagnostics.Type_parameter_0_has_a_circular_constraint, c.TypeToString(t))
-				if c.currentNode != nil && !isNodeDescendantOf(errorNode, c.currentNode) && !isNodeDescendantOf(c.currentNode, errorNode) {
-					diagnostic.AddRelatedInfo(NewDiagnosticForNode(c.currentNode, diagnostics.Circularity_originates_in_type_at_this_location))
-				}
+				typeString := c.TypeToString(t)
+				c.reportAtCurrentNode(func(c *Checker, node *ast.Node) {
+					diagnostic := c.error(errorNode, diagnostics.Type_parameter_0_has_a_circular_constraint, typeString)
+					if node != nil && !isNodeDescendantOf(errorNode, node) && !isNodeDescendantOf(node, errorNode) {
+						diagnostic.AddRelatedInfo(NewDiagnosticForNode(node, diagnostics.Circularity_originates_in_type_at_this_location))
+					}
+				})
 			}
 		}
 		constraint = c.circularConstraintType
@@ -28739,7 +29103,7 @@ func (c *Checker) markPropertyAsReferenced(prop *ast.Symbol, nodeForCheckWriteOn
 	if prop.CheckFlags()&ast.CheckFlagsInstantiated != 0 {
 		target = c.valueSymbolLinks.Get(prop).target
 	}
-	c.symbolReferenceLinks.Get(target).referenceKinds |= ast.SymbolFlagsAll
+	c.symbolReferenced(target, ast.SymbolFlagsAll)
 }
 
 func (c *Checker) expandSignatureParametersWithTupleMembers(signature *Signature, restType *TypeReference, restIndex int, restSymbol *ast.Symbol) []*ast.Symbol {
@@ -29169,7 +29533,7 @@ func (c *Checker) getModifiersTypeFromMappedType(t *Type) *Type {
 			// Otherwise, get the declared constraint type, and if the constraint type is a type parameter,
 			// get the constraint of that type parameter. If the resulting type is an indexed type 'keyof T',
 			// the modifiers type is T. Otherwise, the modifiers type is unknown.
-			declaredType := c.getTypeFromMappedTypeNode(m.declaration.AsNode())
+			declaredType := memoTypeNode(c, m.declaration.AsNode(), (*Checker).getTypeFromMappedTypeNode)
 			constraint := c.getConstraintTypeFromMappedType(declaredType)
 			extendedConstraint := constraint
 			if constraint != nil && constraint.flags&TypeFlagsTypeParameter != 0 {
@@ -29618,6 +29982,12 @@ func (c *Checker) checkExternalEmitHelpers(location *ast.Node, helpers ExternalE
 	if !ast.IsEffectiveExternalModule(sourceFile, c.compilerOptions) || location.Flags&ast.NodeFlagsAmbient != 0 {
 		return
 	}
+	if !c.reporting {
+		// Helper errors are reported once per file at the first requesting
+		// location, so the check must happen in checking order.
+		c.recordEffect(func(c *Checker) { c.checkExternalEmitHelpers(location, helpers) })
+		return
+	}
 	helpersModule := c.resolveHelpersModule(sourceFile, location)
 	if helpersModule == c.unknownSymbol {
 		return
@@ -29863,6 +30233,10 @@ func (c *Checker) markAliasReferenced(symbol *ast.Symbol, location *ast.Node) {
 // we reach a non-alias or an exported entity (which is always considered referenced). We do this by checking the target of
 // the alias as an expression (which recursively takes us back here if the target references another alias).
 func (c *Checker) markAliasSymbolAsReferenced(symbol *ast.Symbol) {
+	if !c.reporting {
+		c.recordEffect(func(c *Checker) { c.markAliasSymbolAsReferenced(symbol) })
+		return
+	}
 	links := c.aliasSymbolLinks.Get(symbol)
 	if !links.referenced {
 		links.referenced = true
@@ -30243,7 +30617,7 @@ func (c *Checker) getTemplateLiteralType(texts []string, types []*Type) *Type {
 	}
 	if !addSpans(texts, types) {
 		if tooLarge {
-			c.error(c.currentNode, diagnostics.Type_instantiation_is_excessively_deep_and_possibly_infinite)
+			c.errorAtCurrentNode(diagnostics.Type_instantiation_is_excessively_deep_and_possibly_infinite)
 			return c.errorType
 		}
 		return c.stringType
@@ -32735,7 +33109,7 @@ func (c *Checker) getSymbolAtLocation(node *ast.Node, ignoreErrors bool) *ast.Sy
 		}
 		fallthrough
 	case ast.KindThisType:
-		return c.getTypeFromThisTypeNode(node).symbol
+		return memoTypeNode(c, node, (*Checker).getTypeFromThisTypeNode).symbol
 	case ast.KindSuperKeyword:
 		return c.checkExpression(node).symbol
 	case ast.KindConstructorKeyword:
