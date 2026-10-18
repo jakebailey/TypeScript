@@ -17751,8 +17751,7 @@ func (c *Checker) getDeclaredTypeOfClassOrInterface(symbol *ast.Symbol) *Type {
 			d.allTypeParameters = append(typeParameters, d.thisType)
 			d.outerTypeParameterCount = len(outerTypeParameters)
 			d.resolvedTypeArguments = d.TypeParameters()
-			d.instantiations = make(map[CacheHashKey]*Type)
-			d.instantiations[getTypeListKey(d.resolvedTypeArguments)] = t
+			d.references.add(t)
 			d.target = t
 		}
 	}
@@ -25657,10 +25656,9 @@ func (c *Checker) createTupleTargetType(elementInfos []TupleElementInfo, readonl
 	d.thisType.AsTypeParameter().isThisType = true
 	d.thisType.AsTypeParameter().constraint = t
 	d.allTypeParameters = append(typeParameters, d.thisType)
-	d.instantiations = make(map[CacheHashKey]*Type)
-	d.instantiations[getTypeListKey(d.TypeParameters())] = t
 	d.target = t
 	d.resolvedTypeArguments = d.TypeParameters()
+	d.references.add(t)
 	d.declaredMembersResolved = true
 	d.declaredMembers = members
 	d.elementInfos = elementInfos
@@ -25957,16 +25955,16 @@ func (c *Checker) createTypeReference(target *Type, typeArguments []*Type) *Type
 }
 
 func (c *Checker) createTypeReferenceEx(target *Type, typeArguments []*Type, objectFlags ObjectFlags) *Type {
-	id := getTypeListKey(typeArguments)
 	intf := target.AsInterfaceType()
-	if t, ok := intf.instantiations[id]; ok {
+	hash := hashTypeList(typeArguments)
+	if t := intf.references.find(typeArguments, hash); t != nil {
 		return t
 	}
 	t := c.newObjectType(ObjectFlagsReference|objectFlags|c.getPropagatingFlagsOfTypes(typeArguments, TypeFlagsNone), target.symbol)
 	d := t.AsTypeReference()
 	d.target = target
 	d.resolvedTypeArguments = typeArguments
-	intf.instantiations[id] = t
+	intf.references.insert(t, hash)
 	return t
 }
 

@@ -1270,6 +1270,7 @@ type InterfaceType struct {
 	declaredConstructSignatures []*Signature    // Declared construct signatures
 	declaredIndexInfos          []*IndexInfo    // Declared index signatures
 	memberLayout                *memberLayout   // Member layout shared by all instantiations, if possible
+	references                  referenceTable  // Type references to this target, keyed by their type arguments
 }
 
 func (t *InterfaceType) AsInterfaceType() *InterfaceType { return t }
