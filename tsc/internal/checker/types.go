@@ -181,23 +181,23 @@ type SymbolReferenceLinks struct {
 // Links for value symbols
 
 type ValueSymbolLinks struct {
-	resolvedType *Type // Type of value symbol
+	resolvedType memo[*Type] // Type of value symbol
 	target       *ast.Symbol
 	mapper       *TypeMapper
 	extra        *valueSymbolExtra
 }
 
 type valueSymbolExtra struct {
-	writeType      *Type
+	writeType      memo[*Type]
 	nameType       *Type
 	containingType *Type // Mapped type for mapped type property, containing union or intersection type for synthetic property
 }
 
-func (links *ValueSymbolLinks) getWriteType() *Type {
+func (links *ValueSymbolLinks) getWriteType(c *Checker) *Type {
 	if links.extra == nil {
 		return nil
 	}
-	return links.extra.writeType
+	return links.extra.writeType.get(c)
 }
 
 func (links *ValueSymbolLinks) getNameType() *Type {
@@ -221,7 +221,7 @@ func (links *ValueSymbolLinks) setWriteType(c *Checker, typ *Type) {
 		}
 		links.extra = c.valueSymbolExtraArena.New()
 	}
-	links.extra.writeType = typ
+	links.extra.writeType.set(c, typ)
 }
 
 func (links *ValueSymbolLinks) setNameType(c *Checker, typ *Type) {
@@ -262,10 +262,10 @@ type DeferredSymbolLinks struct {
 // Links for alias symbols
 
 type AliasSymbolLinks struct {
-	immediateTarget     *ast.Symbol // Immediate target of an alias. May be another alias. Do not access directly, use `checker.getImmediateAliasedSymbol` instead.
-	aliasTarget         *ast.Symbol // Resolved (non-alias) target of an alias
-	referenced          bool        // True if alias symbol has been referenced as a value that can be emitted
-	typeOnlyDeclaration *ast.Node   // First resolved alias declaration that makes the symbol only usable in type constructs
+	immediateTarget     *ast.Symbol       // Immediate target of an alias. May be another alias. Do not access directly, use `checker.getImmediateAliasedSymbol` instead.
+	aliasTarget         memo[*ast.Symbol] // Resolved (non-alias) target of an alias
+	referenced          bool              // True if alias symbol has been referenced as a value that can be emitted
+	typeOnlyDeclaration *ast.Node         // First resolved alias declaration that makes the symbol only usable in type constructs
 }
 
 // Links for module symbols
@@ -298,7 +298,7 @@ type ExportTypeLinks struct {
 // Links for type aliases
 
 type TypeAliasLinks struct {
-	declaredType   *Type
+	declaredType   memo[*Type]
 	typeParameters []*Type                // Type parameters of type alias (undefined if non-generic)
 	instantiations map[CacheHashKey]*Type // Instantiations of generic type alias (undefined if non-generic)
 }
@@ -306,7 +306,7 @@ type TypeAliasLinks struct {
 // Links for declared types (type parameters, class types, interface types, enums)
 
 type DeclaredTypeLinks struct {
-	declaredType           *Type
+	declaredType           memo[*Type]
 	interfaceChecked       bool
 	indexSignaturesChecked bool
 	typeParametersChecked  bool
@@ -433,12 +433,12 @@ type NodeLinks struct {
 }
 
 type SymbolNodeLinks struct {
-	resolvedSymbol *ast.Symbol // Resolved symbol associated with node
+	resolvedSymbol memo[*ast.Symbol] // Resolved symbol associated with node
 }
 
 type TypeNodeLinks struct {
-	resolvedType        *Type    // Resolved type associated with node
-	outerTypeParameters *[]*Type // Outer type parameters of anonymous object type
+	resolvedType        memo[*Type] // Resolved type associated with node
+	outerTypeParameters *[]*Type    // Outer type parameters of anonymous object type
 }
 
 func (links *TypeNodeLinks) getOuterTypeParameters() []*Type {
@@ -489,9 +489,9 @@ type SourceFileLinks struct {
 // Signature specific links
 
 type SignatureLinks struct {
-	resolvedSignature  *Signature // Cached signature of signature node or call expression
-	effectsSignature   *Signature // Signature with possible control flow effects
-	decoratorSignature *Signature // Signature for decorator as if invoked by the runtime
+	resolvedSignature  memo[*Signature] // Cached signature of signature node or call expression
+	effectsSignature   *Signature       // Signature with possible control flow effects
+	decoratorSignature *Signature       // Signature for decorator as if invoked by the runtime
 }
 
 type TypeFlags uint32
@@ -1099,7 +1099,7 @@ type UniqueESSymbolType struct {
 
 type ConstrainedType struct {
 	TypeBase
-	resolvedBaseConstraint *Type
+	resolvedBaseConstraint memo[*Type]
 }
 
 func (t *ConstrainedType) AsConstrainedType() *ConstrainedType { return t }
@@ -1223,8 +1223,8 @@ type InterfaceType struct {
 	thisType                    *Type   // The "this" type (nil if none)
 	baseTypesResolved           bool
 	declaredMembersResolved     bool
-	resolvedBaseConstructorType *Type
-	resolvedBaseTypes           []*Type
+	resolvedBaseConstructorType memo[*Type]
+	resolvedBaseTypes           memo[[]*Type]
 	declaredMembers             ast.SymbolTable // Declared members
 	declaredCallSignatures      []*Signature    // Declared call signatures
 	declaredConstructSignatures []*Signature    // Declared construct signatures
@@ -1390,13 +1390,13 @@ type IntersectionType struct {
 
 type TypeParameter struct {
 	ConstrainedType
-	constraint          *Type
+	constraint          memo[*Type]
 	target              *Type
 	mapper              *TypeMapper
 	isThisType          bool
 	isDistributed       bool
-	resolvedDefaultType *Type
-	distributedType     *Type
+	resolvedDefaultType memo[*Type]
+	distributedType     *Type // The distributed counterpart, or for a distributed type parameter, its original
 	origin              *Type // The type parameter a restrictive type parameter was made from, or the tuple target of a tuple element type parameter
 }
 
@@ -1522,7 +1522,7 @@ type Signature struct {
 	resolvedMinArgumentCount int32
 	declaration              *ast.Node
 	parameters               []*ast.Symbol
-	resolvedReturnType       *Type
+	resolvedReturnType       memo[*Type]
 	target                   *Signature
 	mapper                   *TypeMapper
 	extra                    *signatureExtra

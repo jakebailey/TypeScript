@@ -2293,7 +2293,7 @@ func (c *Checker) getTypeOfInitializer(node *ast.Node) *Type {
 	// from its initializer, we'll already have cached the type. Otherwise we compute it now
 	// without caching such that transient types are reflected.
 	if c.typeNodeLinks.Has(node) {
-		t := c.typeNodeLinks.Get(node).resolvedType
+		t := c.typeNodeLinks.Get(node).resolvedType.get(c)
 		if t != nil {
 			return t
 		}

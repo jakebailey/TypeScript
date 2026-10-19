@@ -1155,11 +1155,11 @@ func (c *Checker) resolveReverseMappedTypeMembers(t *Type) {
 
 func (c *Checker) getTypeOfReverseMappedSymbol(symbol *ast.Symbol) *Type {
 	links := c.valueSymbolLinks.Get(symbol)
-	if links.resolvedType == nil {
+	if links.resolvedType.get(c) == nil {
 		reverseLinks := c.ReverseMappedSymbolLinks.Get(symbol)
-		links.resolvedType = core.OrElse(c.inferReverseMappedType(reverseLinks.propertyType, reverseLinks.mappedType, reverseLinks.constraintType), c.unknownType)
+		links.resolvedType.set(c, core.OrElse(c.inferReverseMappedType(reverseLinks.propertyType, reverseLinks.mappedType, reverseLinks.constraintType), c.unknownType))
 	}
-	return links.resolvedType
+	return links.resolvedType.get(c)
 }
 
 // If the original mapped type had an intersection constraint we extract its components,
@@ -1245,7 +1245,7 @@ func (c *Checker) createEmptyObjectTypeFromStringLiteral(t *Type) *Type {
 		}
 		name := getStringLiteralValue(t)
 		literalProp := c.newSymbol(ast.SymbolFlagsProperty, name)
-		c.valueSymbolLinks.Get(literalProp).resolvedType = c.anyType
+		c.valueSymbolLinks.Get(literalProp).resolvedType.set(c, c.anyType)
 		if t.symbol != nil {
 			literalProp.SetDeclarations(t.symbol.Declarations())
 			literalProp.SetValueDeclaration(t.symbol.ValueDeclaration())

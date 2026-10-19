@@ -30,17 +30,11 @@ import (
 type memoField uint8
 
 const (
-	memoResolvedSymbol memoField = iota
-	memoValueType
+	memoCell memoField = iota // A memo[T], keyed by its own address
 	memoWriteType
 	memoDeclaredType
-	memoAliasTarget
-	memoReturnType
-	memoResolvedSignature
-	memoExpressionType
 	memoTypeNodeType
 	memoBaseTypes
-	memoBaseConstructorType
 	memoStructuredMembers
 	memoGlobal
 	memoTypeParameterConstraint
@@ -49,7 +43,6 @@ const (
 	memoEnumMemberValue
 	memoBaseConstraint
 	memoAccessorType
-	memoComputedPropertyName
 	memoRegularExpression
 	memoContextChecked
 	memoInitializerIsUndefined
@@ -95,6 +88,71 @@ type memoSlot struct {
 	depth   int          // 1-based index in memoFrames of the outermost computation in progress, or 0
 }
 
+// memo is a cached result. Cached checker state must live in a memo so that
+// every read accounts for the effects of the computation that produced it;
+// see the package comment above. The value is only accessible through
+// methods. The memo state of a result is kept in the store's slot map, keyed
+// by the address of the memo, so a memo costs nothing beyond its value.
+type memo[T any] struct {
+	_         memoNoCopy
+	memoValue T
+}
+
+// memoNoCopy makes go vet reject copies of a memo, which would bypass it.
+type memoNoCopy struct{}
+
+func (*memoNoCopy) Lock()   {}
+func (*memoNoCopy) Unlock() {}
+
+func (m *memo[T]) key() memoKey {
+	return memoKeyOf(m, memoCell)
+}
+
+// get returns the cached result, accounting for the effects of computing it.
+func (m *memo[T]) get(c *Checker) T {
+	if c.memoActive() {
+		c.observeMemo(m.key())
+	}
+	return m.memoValue
+}
+
+// set caches a result. When set outside the result's own computation (for
+// example, the types of binding elements assigned while resolving the type of
+// their declaration), the result depends on the computation setting it.
+func (m *memo[T]) set(c *Checker, v T) {
+	m.memoValue = v
+	if !c.reporting {
+		c.memoAttach(m.key())
+	}
+}
+
+// peek returns the cached result without accounting for effects. It is only
+// for a result whose computation is in progress, where reading it does not
+// observe it.
+func (m *memo[T]) peek() T {
+	return m.memoValue
+}
+
+// exchange replaces the cached result without accounting for effects. It is
+// only for speculative computations that restore the previous result after.
+func (m *memo[T]) exchange(v T) T {
+	old := m.memoValue
+	m.memoValue = v
+	return old
+}
+
+// init sets the result of a cell whose owner is being created. Nothing can
+// observe the owner before its creator returns it, so the result needs no
+// dependency of its own.
+func (m *memo[T]) init(v T) {
+	m.memoValue = v
+}
+
+// enter starts the computation of the result; see enterMemo.
+func (m *memo[T]) enter(c *Checker) bool {
+	return c.enterMemo(m.key())
+}
+
 type memoFrame struct {
 	effects *memoEffects // Allocated on first use
 	slot    *memoSlot
@@ -115,23 +173,12 @@ func (c *Checker) memoActive() bool {
 func (c *Checker) enterMemo(key memoKey) bool {
 	if c.reporting {
 		if c.memoPendingCount != 0 {
-			if slot := c.memoSlots[key]; slot != nil && slot.pending != nil {
-				f := slot.pending
-				slot.pending = nil
-				c.memoPendingCount--
-				c.replayMemo(f)
-			}
+			c.replayPending(c.memoSlots[key])
 		}
 		return false
 	}
-	slot := c.memoSlots[key]
-	if slot == nil {
-		if c.memoSlots == nil {
-			c.memoSlots = make(map[memoKey]*memoSlot)
-		}
-		slot = &memoSlot{}
-		c.memoSlots[key] = slot
-	} else if slot.pending != nil {
+	slot := c.memoSlot(key)
+	if slot.pending != nil {
 		if parent := c.currentMemoFrame(); parent != nil {
 			parent.addDep(slot.pending)
 		}
@@ -145,6 +192,66 @@ func (c *Checker) enterMemo(key memoKey) bool {
 		slot.depth = len(c.memoFrames)
 	}
 	return true
+}
+
+func (c *Checker) memoSlot(key memoKey) *memoSlot {
+	slot := c.memoSlots[key]
+	if slot == nil {
+		if c.memoSlots == nil {
+			c.memoSlots = make(map[memoKey]*memoSlot)
+		}
+		slot = &memoSlot{}
+		c.memoSlots[key] = slot
+	}
+	return slot
+}
+
+// memoAttach makes the result identified by key depend on the innermost
+// computation in progress, unless that computation is the result's own.
+func (c *Checker) memoAttach(key memoKey) {
+	n := len(c.memoFrames) - 1
+	if n < 0 {
+		return
+	}
+	slot := c.memoSlot(key)
+	if c.memoFrames[n].slot == slot {
+		return
+	}
+	f := c.memoFrameAt(n)
+	if slot.pending == nil {
+		slot.pending = &memoEffects{}
+		c.memoPendingCount++
+	}
+	slot.pending.addDep(f)
+}
+
+// observeMemo accounts for reading a memoized result without computing it.
+func (c *Checker) observeMemo(key memoKey) {
+	slot := c.memoSlots[key]
+	if slot == nil {
+		return
+	}
+	if c.reporting {
+		c.replayPending(slot)
+		return
+	}
+	if slot.pending != nil {
+		if parent := c.currentMemoFrame(); parent != nil {
+			parent.addDep(slot.pending)
+		}
+	}
+	if slot.depth != 0 {
+		c.memoCycle(slot.depth)
+	}
+}
+
+func (c *Checker) replayPending(slot *memoSlot) {
+	if slot != nil && slot.pending != nil {
+		f := slot.pending
+		slot.pending = nil
+		c.memoPendingCount--
+		c.replayMemo(f)
+	}
 }
 
 // exitMemo finishes a computation started by enterMemo, retaining its effects
