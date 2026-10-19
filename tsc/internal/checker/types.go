@@ -224,6 +224,18 @@ func (links *ValueSymbolLinks) setWriteType(c *Checker, typ *Type) {
 	links.extra.writeType.set(c, typ)
 }
 
+// setNewWriteType sets the write type of a symbol being created; see
+// memo.setStable.
+func (links *ValueSymbolLinks) setNewWriteType(c *Checker, typ *Type) {
+	if links.extra == nil {
+		if typ == nil {
+			return
+		}
+		links.extra = c.valueSymbolExtraArena.New()
+	}
+	links.extra.writeType.setStable(c, typ)
+}
+
 func (links *ValueSymbolLinks) setNameType(c *Checker, typ *Type) {
 	if links.extra == nil {
 		if typ == nil {

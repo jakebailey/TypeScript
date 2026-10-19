@@ -5,6 +5,8 @@ import (
 	"maps"
 	"unsafe"
 
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
+
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
 )
@@ -122,6 +124,9 @@ func (m *memo[T]) get(c *Checker) T {
 // example, the types of binding elements assigned while resolving the type of
 // their declaration), the result depends on the computation setting it.
 func (m *memo[T]) set(c *Checker, v T) {
+	if c.cycleHead != 0 {
+		m.logUndo(c)
+	}
 	m.memoValue = v
 	if !c.reporting {
 		c.attachCell(unsafe.Pointer(m))
@@ -133,6 +138,25 @@ func (m *memo[T]) set(c *Checker, v T) {
 // observe it.
 func (m *memo[T]) peek() T {
 	return m.memoValue
+}
+
+// setStable is set for a result that defines the identity of what it
+// caches, such as a declared type, or that is part of an entity being
+// created, such as the type of a synthetic property. It is never discarded at
+// the end of a cycle: discarding an identity would let a second, distinct
+// result exist, and an entity can outlive the cycle in caches that are kept
+// while having no way to compute its parts again.
+func (m *memo[T]) setStable(c *Checker, v T) {
+	m.memoValue = v
+	if !c.reporting {
+		c.attachCell(unsafe.Pointer(m))
+	}
+}
+
+//go:noinline
+func (m *memo[T]) logUndo(c *Checker) {
+	old := m.memoValue
+	c.cycleUndo = append(c.cycleUndo, cycleUndo{unsafe.Pointer(m), func() { m.memoValue = old }})
 }
 
 // exchange replaces the cached result without accounting for effects. It is
@@ -211,6 +235,27 @@ func (m *memoMap[K, V]) values() iter.Seq[V] {
 
 // set caches the result for k; see memo.set.
 func (m *memoMap[K, V]) set(c *Checker, k K, v V) {
+	if c.cycleHead != 0 {
+		m.logUndo(c, k)
+	}
+	m.setStable(c, k, v)
+}
+
+//go:noinline
+func (m *memoMap[K, V]) logUndo(c *Checker, k K) {
+	old, ok := m.memoEntries[k]
+	c.cycleUndo = append(c.cycleUndo, cycleUndo{nil, func() {
+		if ok {
+			m.memoEntries[k] = old
+		} else {
+			delete(m.memoEntries, k)
+		}
+	}})
+}
+
+// setStable is set for a result that defines the identity of what it
+// caches; see memo.setStable.
+func (m *memoMap[K, V]) setStable(c *Checker, k K, v V) {
 	if m.memoEntries == nil {
 		m.memoEntries = make(map[K]V)
 	}
@@ -532,6 +577,77 @@ func (c *Checker) memoFrameAt(i int) *memoEffects {
 		c.memoFrames[i].effects = f
 	}
 	return f
+}
+
+// Cycles
+//
+// A cached result must be the result of computing it from scratch, so that
+// it does not depend on which computation happened to request it first. A
+// computation that observes another computation still in progress (a
+// circularity) sees a provisional state, so results cached from the moment
+// the cycle is detected until the outermost computation of the cycle (its
+// head) finishes may differ from computing them from scratch. Those results
+// are discarded when the head finishes, and are recomputed when next
+// requested. The computations that were in progress when the cycle was
+// detected (its participants) are kept: each of them reaches the cycle when
+// computed from scratch too, so each result is the fallback for a circularity
+// whichever participant is computed first.
+
+type cycleUndo struct {
+	memo    unsafe.Pointer // The memo restored, or nil
+	restore func()
+}
+
+// endCycle discards the results cached since the outermost cycle in progress
+// was detected, except those of its participants.
+func (c *Checker) endCycle() {
+	undo := c.cycleUndo
+	participants := c.cycleParticipants
+	c.cycleHead = 0
+	c.cycleUndo = nil
+	c.cycleParticipants = nil
+	keep := make(map[unsafe.Pointer]struct{}, len(participants))
+	for i := range participants {
+		if p := c.typeResolutionMemo(&participants[i]); p != nil {
+			keep[p] = struct{}{}
+		}
+	}
+	for i := len(undo) - 1; i >= 0; i-- {
+		if _, ok := keep[undo[i].memo]; ok && undo[i].memo != nil {
+			continue
+		}
+		undo[i].restore()
+	}
+}
+
+// typeResolutionMemo returns the address of the memo caching the result of
+// a type resolution, or nil if it is not cached in a memo.
+func (c *Checker) typeResolutionMemo(r *TypeResolution) unsafe.Pointer {
+	switch r.propertyName {
+	case TypeSystemPropertyNameType:
+		return unsafe.Pointer(&c.valueSymbolLinks.Get(r.target.(*ast.Symbol)).resolvedType)
+	case TypeSystemPropertyNameDeclaredType:
+		return unsafe.Pointer(&c.typeAliasLinks.Get(r.target.(*ast.Symbol)).declaredType)
+	case TypeSystemPropertyNameResolvedBaseTypes:
+		return unsafe.Pointer(&r.target.(*Type).AsInterfaceType().resolvedBaseTypes)
+	case TypeSystemPropertyNameResolvedBaseConstructorType:
+		return unsafe.Pointer(&r.target.(*Type).AsInterfaceType().resolvedBaseConstructorType)
+	case TypeSystemPropertyNameResolvedReturnType:
+		return unsafe.Pointer(&r.target.(*Signature).resolvedReturnType)
+	case TypeSystemPropertyNameResolvedBaseConstraint:
+		return unsafe.Pointer(&r.target.(*Type).AsConstrainedType().resolvedBaseConstraint)
+	case TypeSystemPropertyNameWriteType:
+		if extra := c.valueSymbolLinks.Get(r.target.(*ast.Symbol)).extra; extra != nil {
+			return unsafe.Pointer(&extra.writeType)
+		}
+	case TypeSystemPropertyNameAliasTarget:
+		return unsafe.Pointer(&c.aliasSymbolLinks.Get(r.target.(*ast.Symbol)).aliasTarget)
+	case TypeSystemPropertyNameComputedPropertyName:
+		return unsafe.Pointer(&c.typeNodeLinks.Get(r.target.(*ast.Node)).resolvedType)
+	case TypeSystemPropertyNameVariances:
+		return unsafe.Pointer(&c.varianceLinks.Get(r.target.(*ast.Symbol)).variances)
+	}
+	return nil
 }
 
 // memoizeGlobal memoizes the resolution of a global, replaying effects of
