@@ -745,84 +745,89 @@ type Checker struct {
 // relation caches, and collected diagnostics. Every activation sharing a store
 // observes the same results.
 type checkerStore struct {
-	root                                    *Checker // The activation that created this store; owns type back-pointers.
-	id                                      uint32
-	program                                 Program
-	compilerOptions                         *core.CompilerOptions
-	files                                   []*ast.SourceFile
-	fileIndexMap                            map[*ast.SourceFile]int
-	TypeCount                               uint32
-	SymbolCount                             uint32
-	SignatureCount                          uint32
-	TotalInstantiationCount                 uint32
-	languageVersion                         core.ScriptTarget
-	moduleKind                              core.ModuleKind
-	moduleResolutionKind                    core.ModuleResolutionKind
-	legacyDecorators                        bool
-	emitStandardClassFields                 bool
-	strictNullChecks                        bool
-	strictFunctionTypes                     bool
-	strictBindCallApply                     bool
-	strictPropertyInitialization            bool
-	strictBuiltinIteratorReturn             bool
-	noImplicitAny                           bool
-	noImplicitThis                          bool
-	useUnknownInCatchVariables              bool
-	exactOptionalPropertyTypes              bool
-	canCollectSymbolAliasAccessibilityData  bool
-	arrayVariances                          []VarianceFlags
-	globals                                 ast.SymbolTable
-	stringLiteralTypes                      memoMap[string, *Type]
-	numberLiteralTypes                      memoMap[jsnum.Number, *Type]
-	nanType                                 *Type
-	bigintLiteralTypes                      memoMap[jsnum.PseudoBigInt, *Type]
-	enumLiteralTypes                        memoMap[EnumLiteralKey, *Type]
-	enumNaNLiteralTypes                     memoMap[*ast.Symbol, *Type]
-	indexedAccessTypes                      memoMap[CacheHashKey, *Type]
-	templateLiteralTypes                    memoMap[CacheHashKey, *Type]
-	stringMappingTypes                      memoMap[StringMappingKey, *Type]
-	uniqueESSymbolTypes                     memoMap[*ast.Symbol, *Type]
-	thisExpandos                            memoMap[*ast.Symbol, thisExpando]
-	subtypeReductionCache                   memoMap[CacheHashKey, []*Type]
-	cachedTypes                             memoMap[CachedTypeKey, *Type]
-	cachedSignatures                        memoMap[CachedSignatureKey, *Signature]
-	undefinedProperties                     memoMap[*ast.Symbol, *ast.Symbol]
-	narrowedTypes                           memoMap[NarrowedTypeKey, *Type]
-	assignmentReducedTypes                  memoMap[AssignmentReducedKey, *Type]
-	discriminatedContextualTypes            memoMap[DiscriminatedContextualTypeKey, *Type]
-	instantiationExpressionTypes            memoMap[InstantiationExpressionKey, *instantiationExpressionEntry]
-	substitutionTypes                       memoMap[SubstitutionTypeKey, *Type]
-	reverseMappedCache                      memoMap[ReverseMappedTypeKey, *Type]
-	reverseHomomorphicMappedCache           memoMap[ReverseMappedTypeKey, *Type]
-	iterationTypesCache                     memoMap[IterationTypesKey, IterationTypes]
-	markerTypes                             collections.Set[*Type]
-	resolvingExplicitTypeOfSymbol           collections.Set[*ast.Symbol]
-	constructorOrFunctionChecked            collections.Set[*ast.Symbol]
-	undefinedSymbol                         *ast.Symbol
-	argumentsSymbol                         *ast.Symbol
-	requireSymbol                           *ast.Symbol
-	unknownSymbol                           *ast.Symbol
-	unresolvedSymbols                       memoMap[string, *ast.Symbol]
-	errorTypes                              memoMap[CacheHashKey, *Type]
-	globalThisSymbol                        *ast.Symbol
-	symbolTableAliasCache                   memoMap[symbolTableID, []*ast.Symbol]
-	classExpressionNameTables               memoMap[ast.NodeId, ast.SymbolTable]
-	tupleTypes                              memoMap[CacheHashKey, *Type]
-	unionTypes                              memoMap[CacheHashKey, *Type]
-	unionOfUnionTypes                       memoMap[UnionOfUnionKey, *Type]
-	intersectionTypes                       memoMap[CacheHashKey, *Type]
-	objectLiteralTypes                      memoMap[CacheHashKey, *Type]
-	spreadTypes                             memoMap[CacheHashKey, *Type]
-	objectContentTypes                      memoMap[CacheHashKey, *Type]
-	spreadSymbols                           memoMap[spreadSymbolKey, *ast.Symbol]
-	symbolsWithType                         memoMap[symbolWithTypeKey, *ast.Symbol]
-	paddedProperties                        memoMap[symbolWithTypeKey, *ast.Symbol]
-	bindingPatternTypes                     memoMap[CacheHashKey, *Type]
-	intersectionContentTypes                memoMap[CacheHashKey, *Type]
-	propertiesTypes                         memoMap[PropertiesTypesKey, *Type]
-	diagnostics                             ast.DiagnosticsCollection
-	suggestionDiagnostics                   ast.DiagnosticsCollection
-	mergedSymbols                           map[*ast.Symbol]*ast.Symbol
+	root                                   *Checker // The activation that created this store; owns type back-pointers.
+	id                                     uint32
+	program                                Program
+	compilerOptions                        *core.CompilerOptions
+	files                                  []*ast.SourceFile
+	fileIndexMap                           map[*ast.SourceFile]int
+	TypeCount                              uint32
+	SymbolCount                            uint32
+	SignatureCount                         uint32
+	TotalInstantiationCount                uint32
+	languageVersion                        core.ScriptTarget
+	moduleKind                             core.ModuleKind
+	moduleResolutionKind                   core.ModuleResolutionKind
+	legacyDecorators                       bool
+	emitStandardClassFields                bool
+	strictNullChecks                       bool
+	strictFunctionTypes                    bool
+	strictBindCallApply                    bool
+	strictPropertyInitialization           bool
+	strictBuiltinIteratorReturn            bool
+	noImplicitAny                          bool
+	noImplicitThis                         bool
+	useUnknownInCatchVariables             bool
+	exactOptionalPropertyTypes             bool
+	canCollectSymbolAliasAccessibilityData bool
+	arrayVariances                         []VarianceFlags
+	globals                                ast.SymbolTable
+	stringLiteralTypes                     memoMap[string, *Type]
+	numberLiteralTypes                     memoMap[jsnum.Number, *Type]
+	nanType                                *Type
+	bigintLiteralTypes                     memoMap[jsnum.PseudoBigInt, *Type]
+	enumLiteralTypes                       memoMap[EnumLiteralKey, *Type]
+	enumNaNLiteralTypes                    memoMap[*ast.Symbol, *Type]
+	indexedAccessTypes                     memoMap[CacheHashKey, *Type]
+	templateLiteralTypes                   memoMap[CacheHashKey, *Type]
+	stringMappingTypes                     memoMap[StringMappingKey, *Type]
+	uniqueESSymbolTypes                    memoMap[*ast.Symbol, *Type]
+	thisExpandos                           memoMap[*ast.Symbol, thisExpando]
+	subtypeReductionCache                  memoMap[CacheHashKey, []*Type]
+	cachedTypes                            memoMap[CachedTypeKey, *Type]
+	cachedSignatures                       memoMap[CachedSignatureKey, *Signature]
+	undefinedProperties                    memoMap[*ast.Symbol, *ast.Symbol]
+	narrowedTypes                          memoMap[NarrowedTypeKey, *Type]
+	assignmentReducedTypes                 memoMap[AssignmentReducedKey, *Type]
+	discriminatedContextualTypes           memoMap[DiscriminatedContextualTypeKey, *Type]
+	instantiationExpressionTypes           memoMap[InstantiationExpressionKey, *instantiationExpressionEntry]
+	substitutionTypes                      memoMap[SubstitutionTypeKey, *Type]
+	reverseMappedCache                     memoMap[ReverseMappedTypeKey, *Type]
+	reverseHomomorphicMappedCache          memoMap[ReverseMappedTypeKey, *Type]
+	iterationTypesCache                    memoMap[IterationTypesKey, IterationTypes]
+	markerTypes                            collections.Set[*Type]
+	resolvingExplicitTypeOfSymbol          collections.Set[*ast.Symbol]
+	constructorOrFunctionChecked           collections.Set[*ast.Symbol]
+	undefinedSymbol                        *ast.Symbol
+	argumentsSymbol                        *ast.Symbol
+	requireSymbol                          *ast.Symbol
+	unknownSymbol                          *ast.Symbol
+	unresolvedSymbols                      memoMap[string, *ast.Symbol]
+	errorTypes                             memoMap[CacheHashKey, *Type]
+	globalThisSymbol                       *ast.Symbol
+	symbolTableAliasCache                  memoMap[symbolTableID, []*ast.Symbol]
+	classExpressionNameTables              memoMap[ast.NodeId, ast.SymbolTable]
+	tupleTypes                             memoMap[CacheHashKey, *Type]
+	unionTypes                             memoMap[CacheHashKey, *Type]
+	unionOfUnionTypes                      memoMap[UnionOfUnionKey, *Type]
+	intersectionTypes                      memoMap[CacheHashKey, *Type]
+	objectLiteralTypes                     memoMap[CacheHashKey, *Type]
+	spreadTypes                            memoMap[CacheHashKey, *Type]
+	objectContentTypes                     memoMap[CacheHashKey, *Type]
+	spreadSymbols                          memoMap[spreadSymbolKey, *ast.Symbol]
+	symbolsWithType                        memoMap[symbolWithTypeKey, *ast.Symbol]
+	paddedProperties                       memoMap[symbolWithTypeKey, *ast.Symbol]
+	bindingPatternTypes                    memoMap[CacheHashKey, *Type]
+	intersectionContentTypes               memoMap[CacheHashKey, *Type]
+	propertiesTypes                        memoMap[PropertiesTypesKey, *Type]
+	diagnostics                            ast.DiagnosticsCollection
+	suggestionDiagnostics                  ast.DiagnosticsCollection
+	mergedSymbols                          map[*ast.Symbol]*ast.Symbol
+	lateMergedSymbols                      memoMap[*ast.Symbol, *ast.Symbol]
+	lateBindableKinds                      memoMap[*ast.Symbol, uint8]
+	// mergesFrozen is set once global merging is done; mergedSymbols is
+	// immutable from then on.
+	mergesFrozen                            bool
 	mergedExportsChecked                    collections.Set[*ast.Symbol]
 	nodeLinks                               core.LinkStore[*ast.Node, NodeLinks]
 	signatureLinks                          nodeLinkStore[SignatureLinks]
@@ -1076,6 +1081,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.comparableRelation = &Relation{}
 	c.identityRelation = &Relation{}
 	c.initializeChecker()
+	c.mergesFrozen = true
 	c.reporting = false
 	return c, &c.mu
 }
@@ -14983,13 +14989,86 @@ func (c *Checker) cloneSymbol(symbol *ast.Symbol) *ast.Symbol {
 }
 
 func (c *Checker) getMergedSymbol(symbol *ast.Symbol) *ast.Symbol {
-	if symbol != nil {
-		merged := c.mergedSymbols[symbol]
-		if merged != nil {
-			return merged
-		}
+	if symbol == nil {
+		return nil
+	}
+	if merged := c.mergedSymbols[symbol]; merged != nil {
+		symbol = merged
+	}
+	if symbol.Flags()&(ast.SymbolFlagsClassMember|ast.SymbolFlagsSignature) != 0 {
+		return c.getLateMergedSymbol(symbol)
 	}
 	return symbol
+}
+
+// getLateMergedSymbol returns the symbol a member is merged into when its
+// parent's late-bound members are resolved, resolving them if they could
+// merge with the member. The answer is thus the same whether or not anything
+// has resolved the parent's members yet.
+func (c *Checker) getLateMergedSymbol(symbol *ast.Symbol) *ast.Symbol {
+	if !c.mergesFrozen || symbol.Parent() == nil {
+		return symbol
+	}
+	parent := c.getMergedSymbol(symbol.Parent())
+	late := symbol.CheckFlags()&ast.CheckFlagsLate != 0
+	lateBindable := c.getLateBindableKinds(parent)
+	if !late && lateBindable == 0 {
+		return symbol
+	}
+	var kind MembersOrExportsResolutionKind
+	switch symbol {
+	case parent.Members()[symbol.Name()]:
+		kind = MembersOrExportsResolutionKindResolvedMembers
+	case parent.Exports()[symbol.Name()]:
+		kind = MembersOrExportsResolutionKindResolvedExports
+	default:
+		if !late {
+			return symbol
+		}
+		// Late-bound symbols are created by resolving their parent's members.
+	}
+	if !late {
+		if lateBindable&(1<<kind) == 0 {
+			return symbol
+		}
+		c.getResolvedMembersOrExportsOfSymbol(parent, kind)
+	}
+	if merged, _ := c.lateMergedSymbols.get(c, symbol); merged != nil {
+		return merged
+	}
+	return symbol
+}
+
+// getLateBindableKinds reports, judging from syntax alone, which of the
+// members and exports of symbol could late-bind any when resolved, as a set
+// of 1<<MembersOrExportsResolutionKind bits.
+func (c *Checker) getLateBindableKinds(symbol *ast.Symbol) uint8 {
+	if result, ok := c.lateBindableKinds.get(c, symbol); ok {
+		return result
+	}
+	isLateBindable := func(member *ast.Node) bool {
+		name := ast.GetNameOfDeclaration(member)
+		return name != nil && isLateBindableAST(name)
+	}
+	var result uint8
+	for _, decl := range symbol.Declarations() {
+		for _, member := range getMembersOfDeclaration(decl) {
+			if isLateBindable(member) {
+				if ast.HasStaticModifier(member) {
+					result |= 1 << MembersOrExportsResolutionKindResolvedExports
+				} else {
+					result |= 1 << MembersOrExportsResolutionKindResolvedMembers
+		}
+	}
+		}
+	}
+	if result&(1<<MembersOrExportsResolutionKindResolvedExports) == 0 {
+		if assignmentSymbol := symbol.Exports()[ast.InternalSymbolNameAssignmentDeclaration]; assignmentSymbol != nil && slices.ContainsFunc(assignmentSymbol.Declarations(), isLateBindable) {
+			result |= 1 << MembersOrExportsResolutionKindResolvedExports
+		}
+	}
+	c.lateBindableKinds.intern(symbol, result)
+	return result
 }
 
 func (c *Checker) getParentOfSymbol(symbol *ast.Symbol) *ast.Symbol {
@@ -15000,6 +15079,12 @@ func (c *Checker) getParentOfSymbol(symbol *ast.Symbol) *ast.Symbol {
 }
 
 func (c *Checker) recordMergedSymbol(target *ast.Symbol, source *ast.Symbol) {
+	if c.mergesFrozen {
+		// Only resolving late-bound members merges after initialization;
+		// see getLateMergedSymbol.
+		c.lateMergedSymbols.set(c, source, target)
+		return
+	}
 	c.mergedSymbols[source] = target
 }
 
