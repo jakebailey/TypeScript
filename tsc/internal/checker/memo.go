@@ -113,7 +113,7 @@ func (m *memo[T]) key() memoKey {
 // get returns the cached result, accounting for the effects of computing it.
 func (m *memo[T]) get(c *Checker) T {
 	if c.memoActive() {
-		c.observeMemo(m.key())
+		c.observeCell(unsafe.Pointer(m))
 	}
 	return m.memoValue
 }
@@ -124,7 +124,7 @@ func (m *memo[T]) get(c *Checker) T {
 func (m *memo[T]) set(c *Checker, v T) {
 	m.memoValue = v
 	if !c.reporting {
-		c.memoAttach(m.key())
+		c.attachCell(unsafe.Pointer(m))
 	}
 }
 
@@ -172,7 +172,7 @@ type memoMap[K comparable, V any] struct {
 // computing it.
 func (m *memoMap[K, V]) get(c *Checker, k K) (V, bool) {
 	if m.memoSlots != nil && c.memoActive() {
-		c.observeSlot(m.memoSlots[k])
+		m.observe(c, k)
 	}
 	v, ok := m.memoEntries[k]
 	return v, ok
@@ -183,6 +183,13 @@ func (m *memoMap[K, V]) get(c *Checker, k K) (V, bool) {
 func (m *memoMap[K, V]) peek(k K) (V, bool) {
 	v, ok := m.memoEntries[k]
 	return v, ok
+}
+
+// observe is the out of line part of get, keeping get cheap enough to inline.
+//
+//go:noinline
+func (m *memoMap[K, V]) observe(c *Checker, k K) {
+	c.observeSlot(m.memoSlots[k])
 }
 
 // has reports whether a result is cached for k; see get.
@@ -377,6 +384,20 @@ func (c *Checker) attachSlot(slot *memoSlot) {
 		c.memoPendingCount++
 	}
 	slot.pending.addDep(f)
+}
+
+// observeCell and attachCell are observeMemo and memoAttach for a memo at
+// address p. They are kept out of line so that memo reads and writes are
+// cheap enough to inline.
+//
+//go:noinline
+func (c *Checker) observeCell(p unsafe.Pointer) {
+	c.observeMemo(memoKeyOf((*byte)(p), memoCell))
+}
+
+//go:noinline
+func (c *Checker) attachCell(p unsafe.Pointer) {
+	c.memoAttach(memoKeyOf((*byte)(p), memoCell))
 }
 
 // observeMemo accounts for reading a memoized result without computing it.

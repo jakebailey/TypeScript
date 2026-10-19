@@ -410,10 +410,20 @@ func (c *Checker) checkTypeRelatedToEx(
 	// The comparison is a computation of its own, so that reusing any result it
 	// caches accounts for the effects of the whole comparison. Errors are
 	// reported after it, since they belong to the caller rather than the result.
-	id, _ := getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
-	pushedComparison := c.memoActive() && relation.results.enter(c, id)
+	// The key is only needed when tracking effects or on overflow, so it is
+	// not hashed on the common path.
+	var id CacheHashKey
+	hasID := c.memoActive()
+	pushedComparison := false
+	if hasID {
+		id, _ = getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
+		pushedComparison = relation.results.enter(c, id)
+	}
 	result := r.isRelatedToEx(source, target, RecursionFlagsBoth, errorNode != nil /*reportErrors*/, headMessage, IntersectionStateNone)
 	if r.overflow {
+		if !hasID {
+			id, _ = getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
+		}
 		// Record this relation as having failed such that we don't attempt the overflowing operation again.
 		relation.set(c, id, RelationComparisonResultFailed|RelationComparisonResultComplexityOverflow)
 	}

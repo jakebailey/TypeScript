@@ -2521,16 +2521,16 @@ func (c *Checker) checkSourceElementUnreachable(node *ast.Node) bool {
 			last := offset
 			for last < len(statements)-1 && isUnreachable(statements[last+1]) {
 				last++
-				}
+			}
 			startNode = statements[first]
 			endNode = statements[last]
 		}
 	}
 	c.reportedUnreachableNodes.once(c, startNode, func() {
 		sourceFile := ast.GetSourceFileOfNode(node)
-	start := scanner.GetTokenPosOfNode(startNode, sourceFile, false /*includeJSDoc*/)
-	diagnostic := ast.NewDiagnostic(sourceFile, core.NewTextRange(start, endNode.End()), diagnostics.Unreachable_code_detected)
-	c.addErrorOrSuggestion(c.compilerOptions.AllowUnreachableCode == core.TSFalse, diagnostic)
+		start := scanner.GetTokenPosOfNode(startNode, sourceFile, false /*includeJSDoc*/)
+		diagnostic := ast.NewDiagnostic(sourceFile, core.NewTextRange(start, endNode.End()), diagnostics.Unreachable_code_detected)
+		c.addErrorOrSuggestion(c.compilerOptions.AllowUnreachableCode == core.TSFalse, diagnostic)
 	})
 	return true
 }
@@ -7571,12 +7571,12 @@ func (c *Checker) getTypeOfExpression(node *ast.Node) *Type {
 		// progress, so it is cached in the store.
 		if t, ok := c.flowExpressionTypes.get(c, node); ok {
 			return t
-	}
+		}
 		pushed := c.memoActive() && c.flowExpressionTypes.enter(c, node)
-	startInvocationCount := c.flowInvocationCount
-	t := c.checkExpressionEx(node, CheckModeTypeOnly)
-	// If control flow analysis was required to determine the type, it is worth caching.
-	if c.flowInvocationCount != startInvocationCount {
+		startInvocationCount := c.flowInvocationCount
+		t := c.checkExpressionEx(node, CheckModeTypeOnly)
+		// If control flow analysis was required to determine the type, it is worth caching.
+		if c.flowInvocationCount != startInvocationCount {
 			c.flowExpressionTypes.set(c, node, t)
 		}
 		c.exitMemo(pushed)
@@ -7763,8 +7763,15 @@ func (c *Checker) checkExpressionCached(node *ast.Node) *Type {
 }
 
 func (c *Checker) checkExpressionCachedEx(node *ast.Node, checkMode CheckMode) *Type {
-	if c.memoActive() && checkMode == CheckModeNormal {
-		pushed := c.typeNodeLinks.Get(node).resolvedType.enter(c)
+	if checkMode != CheckModeNormal {
+		return c.checkExpressionEx(node, checkMode)
+	}
+	links := c.typeNodeLinks.Get(node)
+	if t := links.resolvedType.get(c); t != nil {
+		return t
+	}
+	if c.memoActive() {
+		pushed := links.resolvedType.enter(c)
 		result := c.checkExpressionCachedExUncached(node, checkMode)
 		c.exitMemo(pushed)
 		return result
@@ -14467,8 +14474,12 @@ func (c *Checker) checkExpressionForMutableLocation(node *ast.Node, checkMode Ch
 }
 
 func (c *Checker) getResolvedSymbol(node *ast.Node) *ast.Symbol {
+	links := c.symbolNodeLinks.Get(node)
+	if symbol := links.resolvedSymbol.get(c); symbol != nil {
+		return symbol
+	}
 	if c.memoActive() {
-		pushed := c.symbolNodeLinks.Get(node).resolvedSymbol.enter(c)
+		pushed := links.resolvedSymbol.enter(c)
 		result := c.getResolvedSymbolUncached(node)
 		c.exitMemo(pushed)
 		return result
@@ -15042,8 +15053,8 @@ func (c *Checker) getLateBindableKinds(symbol *ast.Symbol) uint8 {
 					result |= 1 << MembersOrExportsResolutionKindResolvedExports
 				} else {
 					result |= 1 << MembersOrExportsResolutionKindResolvedMembers
-		}
-	}
+				}
+			}
 		}
 	}
 	if result&(1<<MembersOrExportsResolutionKindResolvedExports) == 0 {
@@ -17127,8 +17138,12 @@ func (c *Checker) ResolveAlias(symbol *ast.Symbol) (*ast.Symbol, bool) {
 // meaning. Pure aliases are eagerly resolved and any type-only markers are back-propagated to the original
 // symbol. The function panics if the argument is not a symbol with an alias meaning.
 func (c *Checker) resolveAlias(symbol *ast.Symbol) *ast.Symbol {
+	links := c.aliasSymbolLinks.Get(symbol)
+	if target := links.aliasTarget.get(c); target != nil {
+		return target
+	}
 	if c.memoActive() {
-		pushed := c.aliasSymbolLinks.Get(symbol).aliasTarget.enter(c)
+		pushed := links.aliasTarget.enter(c)
 		result := c.resolveAliasUncached(symbol)
 		c.exitMemo(pushed)
 		return result
@@ -17374,8 +17389,12 @@ func (c *Checker) GetTypeOfSymbolAtLocation(symbol *ast.Symbol, location *ast.No
 }
 
 func (c *Checker) getTypeOfSymbol(symbol *ast.Symbol) *Type {
+	links := c.valueSymbolLinks.Get(symbol)
+	if t := links.resolvedType.get(c); t != nil {
+		return t
+	}
 	if c.memoActive() {
-		pushed := c.valueSymbolLinks.Get(symbol).resolvedType.enter(c)
+		pushed := links.resolvedType.enter(c)
 		result := c.getTypeOfSymbolUncached(symbol)
 		c.exitMemo(pushed)
 		return result
@@ -20236,6 +20255,18 @@ func findIndexInfo(indexInfos []*IndexInfo, keyType *Type) *IndexInfo {
 }
 
 func (c *Checker) getBaseTypes(t *Type) []*Type {
+	if t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsTuple) == 0 {
+		return nil
+	}
+	if data := t.AsInterfaceType(); data.baseTypesResolved {
+		// Observing the result is what re-entering its computation amounts
+		// to, without the frame. Walks over base types such as hasBaseType
+		// revisit shared bases many times.
+		if c.memoActive() {
+			c.observeMemo(memoKeyOf(t, memoBaseTypes))
+		}
+		return data.resolvedBaseTypes.get(c)
+	}
 	if c.memoActive() {
 		pushed := c.enterMemo(memoKeyOf(t, memoBaseTypes))
 		result := c.getBaseTypesUncached(t)
@@ -21088,6 +21119,9 @@ func isLateBindableAST(node *ast.Node) bool {
 }
 
 func (c *Checker) getReturnTypeOfSignature(sig *Signature) *Type {
+	if t := sig.resolvedReturnType.get(c); t != nil {
+		return t
+	}
 	if c.memoActive() {
 		pushed := sig.resolvedReturnType.enter(c)
 		result := c.getReturnTypeOfSignatureUncached(sig)
@@ -24971,7 +25005,7 @@ func (c *Checker) getTypeAliasInstantiation(symbol *ast.Symbol, typeArguments []
 	typeParameters := links.typeParameters
 	key := getTypeAliasInstantiationKey(typeArguments, alias)
 	if instantiation, _ := links.instantiations.get(c, key); instantiation != nil {
-	return instantiation
+		return instantiation
 	}
 	return links.instantiations.compute(c, key, func() *Type {
 		mapper := newTypeMapper(typeParameters, c.fillMissingTypeArguments(typeArguments, typeParameters, c.getMinTypeArgumentCount(typeParameters), ast.IsInJSFile(symbol.ValueDeclaration())))
@@ -26043,14 +26077,14 @@ func (c *Checker) getGlobalImportMetaExpressionType() *Type {
 		return t
 	}
 	pushed := c.memoActive() && c.deferredGlobalImportMetaExpressionType.enter(c)
-		// Create a synthetic type `ImportMetaExpression { meta: MetaProperty }`
-		symbol := c.newSymbol(ast.SymbolFlagsNone, "ImportMetaExpression")
-		importMetaType := c.getGlobalImportMetaType()
-		metaPropertySymbol := c.newSymbolEx(ast.SymbolFlagsProperty, "meta", ast.CheckFlagsReadonly)
-		metaPropertySymbol.SetParent(symbol)
+	// Create a synthetic type `ImportMetaExpression { meta: MetaProperty }`
+	symbol := c.newSymbol(ast.SymbolFlagsNone, "ImportMetaExpression")
+	importMetaType := c.getGlobalImportMetaType()
+	metaPropertySymbol := c.newSymbolEx(ast.SymbolFlagsProperty, "meta", ast.CheckFlagsReadonly)
+	metaPropertySymbol.SetParent(symbol)
 	c.valueSymbolLinks.Get(metaPropertySymbol).resolvedType.init(importMetaType)
-		members := createSymbolTable([]*ast.Symbol{metaPropertySymbol})
-		symbol.SetMembers(members, &c.symbolExtraArena)
+	members := createSymbolTable([]*ast.Symbol{metaPropertySymbol})
+	symbol.SetMembers(members, &c.symbolExtraArena)
 	t := c.newAnonymousType(symbol, members, nil, nil, nil)
 	c.deferredGlobalImportMetaExpressionType.set(c, t)
 	c.exitMemo(pushed)
