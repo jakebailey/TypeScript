@@ -16979,7 +16979,10 @@ func (c *Checker) getTypeOfVariableOrParameterOrProperty(symbol *ast.Symbol) *Ty
 		// to preserve this type. In fact, we need to _prefer_ that type, but it won't
 		// be assigned until contextual typing is complete, so we need to defer in
 		// cases where contextual typing may take place.
-		if links.resolvedType == nil && !c.isParameterOfContextSensitiveSignature(symbol) {
+		if assigned := links.resolvedType; assigned != nil {
+			return assigned
+		}
+		if !c.isParameterOfContextSensitiveSignature(symbol) {
 			links.resolvedType = t
 		}
 		return t
