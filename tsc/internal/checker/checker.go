@@ -560,7 +560,9 @@ type WideningContext struct {
 type VarianceStackEntry struct {
 	symbol         *ast.Symbol
 	typeParameters []*Type
-	resolution     int // Index of the entry in typeResolutions
+	resolution     int  // Index of the entry in typeResolutions
+	cycleStart     int  // Lowest index of an entry whose guessed variances this measurement used, or MaxInt
+	guessChanged   bool // Whether a measurement in the circularity found stricter variances than guessed
 }
 
 const maxSerializationLevel = 2
@@ -652,8 +654,12 @@ type Checker struct {
 	cycleHead                                   int              // 1-based index in typeResolutions of the outermost cycle in progress, or 0; see memo.go
 	cycleUndo                                   []cycleUndo      // Restores results cached while a cycle is in progress
 	cycleParticipants                           []TypeResolution // Computations that observed a cycle in progress
+	effectsMarkDepth                            int              // 1 + memo frame index of the innermost effects mark that may be rolled back, or 0
 	varianceStack                               []VarianceStackEntry
-	varianceMeasuring                           map[*ast.Symbol]int // Symbols whose variances are being measured, including by suspended computations
+	varianceMeasuring                           map[*ast.Symbol]int             // Symbols whose variances are being measured
+	varianceGuesses                             map[*ast.Symbol][]VarianceFlags // Variances assumed for measurements in progress; see getVariancesWorker
+	varianceGuessed                             []*ast.Symbol                   // Keys of varianceGuesses in order of addition
+	flushSlots                                  *[]*memoSlot                    // Collects slots given effects to replay, if non-nil; see withoutReporting
 	callResolutionStack                         []*ast.Node
 	resolvingExplicitTypeOfSymbol               collections.Set[*ast.Symbol]
 	resolvingBindingElementParents              collections.Set[*ast.Node] // Binding element parents whose types are being resolved to narrow a reference
@@ -18651,7 +18657,14 @@ func getRelationKey(source *Type, target *Type, intersectionState IntersectionSt
 	var b keyBuilder
 	var constrained bool
 	if isTypeReferenceWithGenericArguments(source) && isTypeReferenceWithGenericArguments(target) {
-		b.writeByte('g')
+		// Marker types are compared structurally while their variances are being
+		// measured, and other instantiations with the same key by those variances,
+		// which may be guesses until the measurement finishes.
+		if source.checker.isMarkerType(source) || source.checker.isMarkerType(target) {
+			b.writeByte('m')
+		} else {
+			b.writeByte('g')
+		}
 		constrained = b.writeGenericTypeReferences(source, target, ignoreConstraints)
 	} else {
 		b.writeByte('s')
@@ -20383,7 +20396,7 @@ func (c *Checker) getBaseTypesUncached(t *Type) []*Type {
 		t.objectFlags &^= ObjectFlagsMembersResolved
 		data.baseTypesResolved = true
 		if c.cycleHead != 0 {
-			c.cycleUndo = append(c.cycleUndo, cycleUndo{unsafe.Pointer(&data.resolvedBaseTypes), func() { data.baseTypesResolved = false }})
+			c.cycleUndo = append(c.cycleUndo, cycleUndo{unsafe.Pointer(&data.resolvedBaseTypes), func() { data.baseTypesResolved = false }, false})
 		}
 	}
 	return data.resolvedBaseTypes.get(c)
@@ -21245,19 +21258,19 @@ func (c *Checker) getReturnTypeOfSignatureUncached(sig *Signature) *Type {
 // circularReturnType reports a return type that depends on itself and returns
 // the type it resolves to instead.
 func (c *Checker) circularReturnType(sig *Signature) *Type {
-		if sig.declaration != nil {
-			typeNode := sig.declaration.Type()
-			if typeNode != nil {
-				c.error(typeNode, diagnostics.Return_type_annotation_circularly_references_itself)
-			} else if c.noImplicitAny {
-				name := ast.GetNameOfDeclaration(sig.declaration)
-				if name != nil {
-					c.error(name, diagnostics.X_0_implicitly_has_return_type_any_because_it_does_not_have_a_return_type_annotation_and_is_referenced_directly_or_indirectly_in_one_of_its_return_expressions, scanner.DeclarationNameToString(name))
-				} else {
-					c.error(sig.declaration, diagnostics.Function_implicitly_has_return_type_any_because_it_does_not_have_a_return_type_annotation_and_is_referenced_directly_or_indirectly_in_one_of_its_return_expressions)
-				}
+	if sig.declaration != nil {
+		typeNode := sig.declaration.Type()
+		if typeNode != nil {
+			c.error(typeNode, diagnostics.Return_type_annotation_circularly_references_itself)
+		} else if c.noImplicitAny {
+			name := ast.GetNameOfDeclaration(sig.declaration)
+			if name != nil {
+				c.error(name, diagnostics.X_0_implicitly_has_return_type_any_because_it_does_not_have_a_return_type_annotation_and_is_referenced_directly_or_indirectly_in_one_of_its_return_expressions, scanner.DeclarationNameToString(name))
+			} else {
+				c.error(sig.declaration, diagnostics.Function_implicitly_has_return_type_any_because_it_does_not_have_a_return_type_annotation_and_is_referenced_directly_or_indirectly_in_one_of_its_return_expressions)
 			}
 		}
+	}
 	return c.anyType
 }
 

@@ -3,6 +3,7 @@ package checker
 import (
 	"iter"
 	"maps"
+	"slices"
 	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
@@ -156,7 +157,7 @@ func (m *memo[T]) setStable(c *Checker, v T) {
 //go:noinline
 func (m *memo[T]) logUndo(c *Checker) {
 	old := m.memoValue
-	c.cycleUndo = append(c.cycleUndo, cycleUndo{unsafe.Pointer(m), func() { m.memoValue = old }})
+	c.cycleUndo = append(c.cycleUndo, cycleUndo{unsafe.Pointer(m), func() { m.memoValue = old }, false})
 }
 
 // exchange replaces the cached result without accounting for effects. It is
@@ -250,7 +251,7 @@ func (m *memoMap[K, V]) logUndo(c *Checker, k K) {
 		} else {
 			delete(m.memoEntries, k)
 		}
-	}})
+	}, false})
 }
 
 // setStable is set for a result that defines the identity of what it
@@ -424,9 +425,15 @@ func (c *Checker) attachSlot(slot *memoSlot) {
 		return
 	}
 	f := c.memoFrameAt(n)
+	if c.cycleHead != 0 {
+		c.logPendingUndo(slot)
+	}
 	if slot.pending == nil {
 		slot.pending = &memoEffects{}
 		c.memoPendingCount++
+		if c.flushSlots != nil {
+			*c.flushSlots = append(*c.flushSlots, slot)
+		}
 	}
 	slot.pending.addDep(f)
 }
@@ -497,10 +504,16 @@ func (c *Checker) exitMemo(pushed bool) {
 	if f == nil {
 		return
 	}
+	if c.cycleHead != 0 || c.effectsMarkDepth != 0 {
+		c.logPendingUndo(slot)
+	}
 	if slot.pending != nil {
 		f.addDep(slot.pending)
 	} else {
 		c.memoPendingCount++
+		if c.flushSlots != nil {
+			*c.flushSlots = append(*c.flushSlots, slot)
+		}
 	}
 	slot.pending = f
 	if parent := c.currentMemoFrame(); parent != nil {
@@ -540,6 +553,28 @@ func (c *Checker) recordEffect(effect func(c *Checker)) {
 	}
 }
 
+// withoutReporting runs fn in a non-reporting activation from a reporting
+// one, then replays the effects of everything fn computed, as if fn had run
+// in the reporting activation. Unlike effects applied directly, recorded
+// effects can be discarded with the results they belong to.
+func (c *Checker) withoutReporting(fn func()) {
+	debug.Assert(c.reporting && c.flushSlots == nil, "withoutReporting outside a reporting activation")
+	saveFrames := c.memoFrames
+	var slots []*memoSlot
+	c.reporting = false
+	c.memoFrames = nil
+	c.flushSlots = &slots
+	fn()
+	c.flushSlots = nil
+	c.reporting = true
+	c.memoFrames = saveFrames
+	// Replaying is in order of computation, so effects apply in the order
+	// they would have in the reporting activation.
+	for _, slot := range slots {
+		c.replayPending(slot)
+	}
+}
+
 // withReporting runs fn in a reporting activation.
 func (c *Checker) withReporting(fn func()) {
 	// Reporting starts only from top-level requests, so any frame left at
@@ -566,8 +601,27 @@ func (c *Checker) memoCycle(depth int) {
 	outer := c.memoFrameAt(depth - 1)
 	for i := depth; i < len(c.memoFrames); i++ {
 		f := c.memoFrameAt(i)
+		if i < c.effectsMarkDepth-1 && f != outer && outer.parent != f {
+			// The frame is in progress below the mark, so rolling back to
+			// the mark must also roll back this dependency.
+			c.logDepsUndo(f)
+		}
 		f.addDep(outer)
 	}
+}
+
+// logDepsUndo logs the dependencies of a computation in progress below the
+// innermost effects mark, which are about to grow, so discardCycleSince can
+// restore them.
+//
+//go:noinline
+func (c *Checker) logDepsUndo(f *memoEffects) {
+	n := len(f.deps)
+	c.cycleUndo = append(c.cycleUndo, cycleUndo{effects: true, restore: func() {
+		if len(f.deps) > n {
+			f.truncateDeps(n)
+		}
+	}})
 }
 
 func (c *Checker) memoFrameAt(i int) *memoEffects {
@@ -596,6 +650,7 @@ func (c *Checker) memoFrameAt(i int) *memoEffects {
 type cycleUndo struct {
 	memo    unsafe.Pointer // The memo restored, or nil
 	restore func()
+	effects bool // Restores the effects of a result rather than the result
 }
 
 // endCycle discards the results cached since the outermost cycle in progress
@@ -612,12 +667,93 @@ func (c *Checker) endCycle() {
 			keep[p] = struct{}{}
 		}
 	}
-	for i := len(undo) - 1; i >= 0; i-- {
-		if _, ok := keep[undo[i].memo]; ok && undo[i].memo != nil {
+	for _, u := range slices.Backward(undo) {
+		if u.effects {
+			// A result recomputed after the cycle also replays the effects
+			// of the computation discarded here.
 			continue
 		}
-		undo[i].restore()
+		if _, ok := keep[u.memo]; ok && u.memo != nil {
+			continue
+		}
+		u.restore()
 	}
+}
+
+// discardCycleSince discards the results cached since the given positions
+// of the cycle undo log and participants, restoring the cycle head in effect
+// then, so a computation in a cycle can run again from the same state. The
+// effects of computing the discarded results are discarded with them, and
+// those recorded by the computation in progress are rolled back to the given
+// mark, as if the discarded computations had never run.
+func (c *Checker) discardCycleSince(undoStart int, participantsStart int, cycleHead int, mark memoEffectsMark) {
+	undoStart = min(undoStart, len(c.cycleUndo))
+	for i := len(c.cycleUndo) - 1; i >= undoStart; i-- {
+		c.cycleUndo[i].restore()
+	}
+	c.cycleUndo = c.cycleUndo[:undoStart]
+	c.cycleParticipants = c.cycleParticipants[:min(participantsStart, len(c.cycleParticipants))]
+	c.cycleHead = cycleHead
+	c.discardEffectsSince(mark)
+}
+
+// memoEffectsMark is a position in the effects recorded by a computation in
+// progress, to which they can be rolled back.
+type memoEffectsMark struct {
+	frame      *memoEffects
+	effects    int
+	deps       int
+	frameIndex int
+}
+
+// markEffects returns the position of the effects recorded so far by the
+// innermost computation in progress, which must have a memo frame.
+func (c *Checker) markEffects() memoEffectsMark {
+	n := len(c.memoFrames) - 1
+	f := c.memoFrameAt(n)
+	return memoEffectsMark{frame: f, effects: len(f.effects), deps: len(f.deps), frameIndex: n}
+}
+
+func (c *Checker) discardEffectsSince(m memoEffectsMark) {
+	debug.Assert(len(c.memoFrames)-1 == m.frameIndex && c.memoFrames[m.frameIndex].effects == m.frame, "effects discarded outside their computation")
+	f := m.frame
+	clear(f.effects[m.effects:])
+	f.effects = f.effects[:m.effects]
+	f.truncateDeps(m.deps)
+}
+
+func (f *memoEffects) truncateDeps(n int) {
+	for _, d := range f.deps[n:] {
+		if d.parent == f {
+			d.parent = nil
+		}
+	}
+	clear(f.deps[n:])
+	f.deps = f.deps[:n]
+}
+
+// logPendingUndo logs the effects of the result in the slot, which are about
+// to change, so discardCycleSince can restore them.
+//
+//go:noinline
+func (c *Checker) logPendingUndo(slot *memoSlot) {
+	old := slot.pending
+	n := 0
+	if old != nil {
+		n = len(old.deps)
+	}
+	c.cycleUndo = append(c.cycleUndo, cycleUndo{effects: true, restore: func() {
+		switch {
+		case old == nil && slot.pending != nil:
+			c.memoPendingCount--
+		case old != nil && slot.pending == nil:
+			c.memoPendingCount++
+		}
+		slot.pending = old
+		if old != nil && len(old.deps) > n {
+			old.truncateDeps(n)
+		}
+	}})
 }
 
 // typeResolutionMemo returns the address of the memo caching the result of
