@@ -191,6 +191,11 @@ func (m *memoMap[K, V]) has(c *Checker, k K) bool {
 	return ok
 }
 
+// isEmpty reports whether no result is cached, without observing any.
+func (m *memoMap[K, V]) isEmpty() bool {
+	return len(m.memoEntries) == 0
+}
+
 // values iterates the cached results without observing them, for
 // inspection outside of checking.
 func (m *memoMap[K, V]) values() iter.Seq[V] {
@@ -247,6 +252,47 @@ func (m *memoMap[K, V]) slot(k K) *memoSlot {
 		m.memoSlots[k] = slot
 	}
 	return slot
+}
+
+// memoSet tracks computations that run at most once per key, such as checks
+// whose only results are diagnostics. Each run is a computation of its own, so
+// skipping a key that already ran accounts for the effects of that run.
+type memoSet[K comparable] struct {
+	m memoMap[K, struct{}]
+}
+
+// has reports whether k has run; see memoMap.get.
+func (s *memoSet[K]) has(c *Checker, k K) bool {
+	return s.m.has(c, k)
+}
+
+// once runs fn unless k has run already. k is marked before fn runs, so fn
+// does not run again if it re-enters.
+func (s *memoSet[K]) once(c *Checker, k K, fn func()) {
+	if s.m.has(c, k) {
+		return
+	}
+	pushed := c.memoActive() && s.m.enter(c, k)
+	s.m.set(c, k, struct{}{})
+	fn()
+	c.exitMemo(pushed)
+}
+
+// memoOnce is a memoSet for a single key, kept in the links of the entity it
+// guards.
+type memoOnce struct {
+	done memo[bool]
+}
+
+// once runs fn unless it has run already; see memoSet.once.
+func (o *memoOnce) once(c *Checker, fn func()) {
+	if o.done.get(c) {
+		return
+	}
+	pushed := c.memoActive() && o.done.enter(c)
+	o.done.set(c, true)
+	fn()
+	c.exitMemo(pushed)
 }
 
 type memoFrame struct {

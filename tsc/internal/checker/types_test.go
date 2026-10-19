@@ -565,28 +565,26 @@ func TestCompactTypeNodeLinksLayout(t *testing.T) {
 	c, types := newCompositeTestChecker()
 	var links TypeNodeLinks
 	links.resolvedType.init(types[0])
-	assert.Assert(t, links.getOuterTypeParameters() == nil)
+	assert.Assert(t, links.getOuterTypeParameters(c) == nil)
 	links.setOuterTypeParameters(c, nil)
-	assert.Assert(t, links.outerTypeParameters == nil)
+	assert.Assert(t, links.outerTypeParameters.memoValue == nil)
 	links.setOuterTypeParameters(c, []*Type{})
-	assert.Assert(t, links.getOuterTypeParameters() != nil)
-	assert.Equal(t, len(links.getOuterTypeParameters()), 0)
-	entry := links.outerTypeParameters
+	assert.Assert(t, links.getOuterTypeParameters(c) != nil)
+	assert.Equal(t, len(links.getOuterTypeParameters(c)), 0)
 	list := slices.Clone(types)
 	links.setOuterTypeParameters(c, list)
-	assert.Equal(t, links.outerTypeParameters, entry)
-	assert.Equal(t, links.getOuterTypeParameters()[0], types[0])
+	assert.Equal(t, links.getOuterTypeParameters(c)[0], types[0])
 	list[0] = types[1]
-	assert.Equal(t, links.getOuterTypeParameters()[0], types[1])
+	assert.Equal(t, links.getOuterTypeParameters(c)[0], types[1])
 	for range 1024 {
 		var other TypeNodeLinks
 		other.setOuterTypeParameters(c, types)
 	}
 	runtime.GC()
-	assert.Equal(t, links.getOuterTypeParameters()[0], types[1])
+	assert.Equal(t, links.getOuterTypeParameters(c)[0], types[1])
 	assert.Equal(t, links.resolvedType.get(c), types[0])
 	links.setOuterTypeParameters(c, nil)
-	assert.Assert(t, links.getOuterTypeParameters() == nil)
+	assert.Assert(t, links.getOuterTypeParameters(c) == nil)
 	assert.Equal(t, links.resolvedType.get(c), types[0])
 	runtime.KeepAlive(c)
 }

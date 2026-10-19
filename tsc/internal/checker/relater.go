@@ -96,8 +96,12 @@ func asRecursionId[T *ast.Node | *ast.Symbol | *Type](value T) RecursionId {
 	return RecursionId{value: value}
 }
 
+// relationCountLimit is the number of results a single comparison may add to
+// a relation before it is considered too complex.
+const relationCountLimit = 16_000_000 / 8
+
 type Relation struct {
-	results   map[CacheHashKey]RelationComparisonResult
+	results   memoMap[CacheHashKey, RelationComparisonResult]
 	overflows map[CacheHashKey]*relationOverflow
 }
 
@@ -127,19 +131,13 @@ func (c *Checker) observeRelationOverflow(relation *Relation, key CacheHashKey) 
 	}
 }
 
-func (r *Relation) get(key CacheHashKey) RelationComparisonResult {
-	return r.results[key]
+func (r *Relation) get(c *Checker, key CacheHashKey) RelationComparisonResult {
+	result, _ := r.results.get(c, key)
+	return result
 }
 
-func (r *Relation) set(key CacheHashKey, result RelationComparisonResult) {
-	if r.results == nil {
-		r.results = make(map[CacheHashKey]RelationComparisonResult)
-	}
-	r.results[key] = result
-}
-
-func (r *Relation) size() int {
-	return len(r.results)
+func (r *Relation) set(c *Checker, key CacheHashKey, result RelationComparisonResult) {
+	r.results.set(c, key, result)
 }
 
 func (c *Checker) isTypeIdenticalTo(source *Type, target *Type) bool {
@@ -219,7 +217,7 @@ func (c *Checker) isTypeRelatedTo(source *Type, target *Type, relation *Relation
 	}
 	if source.flags&TypeFlagsObject != 0 && target.flags&TypeFlagsObject != 0 {
 		id, _ := getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false)
-		related := relation.get(id)
+		related := relation.get(c, id)
 		if related != RelationComparisonResultNone {
 			if related&RelationComparisonResultOverflow != 0 {
 				c.observeRelationOverflow(relation, id)
@@ -406,12 +404,21 @@ func (c *Checker) checkTypeRelatedToEx(
 	r := c.getRelater()
 	r.relation = relation
 	r.errorNode = errorNode
-	r.relationCount = (16_000_000 - relation.size()) / 8
+	// The budget does not depend on how many results are cached, so that whether
+	// a comparison overflows does not depend on what was compared before it.
+	r.relationCount = relationCountLimit
+	// The comparison is a computation of its own, so that reusing any result it
+	// caches accounts for the effects of the whole comparison. Errors are
+	// reported after it, since they belong to the caller rather than the result.
+	id, _ := getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
+	pushedComparison := c.memoActive() && relation.results.enter(c, id)
 	result := r.isRelatedToEx(source, target, RecursionFlagsBoth, errorNode != nil /*reportErrors*/, headMessage, IntersectionStateNone)
 	if r.overflow {
 		// Record this relation as having failed such that we don't attempt the overflowing operation again.
-		id, _ := getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
-		relation.set(id, RelationComparisonResultFailed|RelationComparisonResultComplexityOverflow)
+		relation.set(c, id, RelationComparisonResultFailed|RelationComparisonResultComplexityOverflow)
+	}
+	c.exitMemo(pushedComparison)
+	if r.overflow {
 		pushed := c.memoActive() && c.enterMemo(memoKeyOf(relation.overflowCell(id), memoRelationOverflow))
 		if tr := c.tracer; tr != nil {
 			tr.Instant(tracing.PhaseCheckTypes, "checkTypeRelatedTo_DepthLimit", map[string]any{"sourceId": source.id, "targetId": target.id, "depth": len(r.sourceStack), "targetDepth": len(r.targetStack)})
@@ -1480,14 +1487,15 @@ func (c *Checker) getAliasVariances(symbol *ast.Symbol) []VarianceFlags {
 // returns an empty slice when invoked recursively for the given generic type.
 func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type) []VarianceFlags {
 	links := c.varianceLinks.Get(symbol)
-	if links.variances == nil {
+	if links.variances.get(c) == nil {
 		var traceArgs map[string]any
 		if tr := c.tracer; tr != nil {
 			traceArgs = map[string]any{"arity": len(typeParameters), "id": c.getDeclaredTypeOfSymbol(symbol).id}
 			popFn := tr.Push(tracing.PhaseCheckTypes, "getVariancesWorker", traceArgs, true)
 			defer func() {
-				formatted := make([]string, len(links.variances))
-				for i, v := range links.variances {
+				variances := links.variances.get(c)
+				formatted := make([]string, len(variances))
+				for i, v := range variances {
 					formatted[i] = v.String()
 				}
 				traceArgs["variances"] = formatted
@@ -1496,11 +1504,16 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 		}
 		stackIndex := c.getVarianceStackIndex(symbol)
 		if stackIndex < 0 {
+			pushed := c.memoActive() && links.variances.enter(c)
 			saveResolutionStart := c.resolutionStart
 			if len(c.varianceStack) == 0 {
 				c.resolutionStart = len(c.typeResolutions)
 			}
 			c.varianceStack = append(c.varianceStack, VarianceStackEntry{symbol, typeParameters})
+			if c.varianceMeasuring == nil {
+				c.varianceMeasuring = make(map[*ast.Symbol]int)
+			}
+			c.varianceMeasuring[symbol]++
 			variances := make([]VarianceFlags, len(typeParameters))
 			for i, tp := range typeParameters {
 				modifiers := c.getTypeParameterModifiers(tp)
@@ -1541,19 +1554,23 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 				}
 				// If variance computation was restarted due to a circularity we may have already
 				// computed variances for this generic type. If so, we exit early.
-				if len(links.variances) != 0 {
+				if len(links.variances.get(c)) != 0 {
 					break
 				}
 				variances[i] = variance
 			}
 			// Store the results unless a restarted computation has already stored them.
-			if len(links.variances) == 0 {
-				links.variances = variances
+			if len(links.variances.get(c)) == 0 {
+				links.variances.set(c, variances)
 			}
 			c.varianceStack = c.varianceStack[:len(c.varianceStack)-1]
+			if c.varianceMeasuring[symbol]--; c.varianceMeasuring[symbol] == 0 {
+				delete(c.varianceMeasuring, symbol)
+			}
 			if len(c.varianceStack) == 0 {
 				c.resolutionStart = saveResolutionStart
 			}
+			c.exitMemo(pushed)
 		} else {
 			// We've detected a circularity. Since we may compute different variances depending on where
 			// we enter a circularity, we find the generic type with the "smallest" symbol in the circular
@@ -1573,12 +1590,12 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 			}
 			// Store an empty slice to mark that we can't compute variances for this type. We treat type
 			// parameters as co-variant in this case.
-			if len(links.variances) == 0 {
-				links.variances = []VarianceFlags{}
+			if len(links.variances.get(c)) == 0 {
+				links.variances.set(c, []VarianceFlags{})
 			}
 		}
 	}
-	return links.variances
+	return links.variances.get(c)
 }
 
 func (c *Checker) getVarianceStackIndex(symbol *ast.Symbol) int {
@@ -1602,12 +1619,61 @@ func (c *Checker) createMarkerType(symbol *ast.Symbol, source *Type, target *Typ
 	} else {
 		result = c.createTypeReference(t, c.instantiateTypes(t.AsInterfaceType().TypeParameters(), mapper))
 	}
-	c.markerTypes.Add(result)
 	return result
 }
 
+// isMarkerType reports whether t is a marker type of a variance computation
+// or variance annotation check in progress (including computations suspended
+// by a restart from a circularity): an instantiation of the generic
+// type or type alias being measured with one of its type parameters replaced
+// by a variance marker. Instantiations of other types with markers, such as
+// those nested in the type being measured, are not marker types, whether or
+// not their own variances have been measured before.
 func (c *Checker) isMarkerType(t *Type) bool {
-	return c.markerTypes.Has(t)
+	if len(c.varianceMeasuring) == 0 && c.varianceTypeParameter == nil {
+		return false
+	}
+	if t.alias != nil && t.alias.symbol.Flags()&ast.SymbolFlagsTypeAlias != 0 &&
+		c.isMarkerInstantiation(t.alias.symbol, c.typeAliasLinks.Get(t.alias.symbol).typeParameters, t.alias.typeArguments) {
+		return true
+	}
+	if t.objectFlags&ObjectFlagsReference != 0 && t.AsTypeReference().node == nil {
+		target := t.Target()
+		if target != nil && target != t && target.objectFlags&ObjectFlagsClassOrInterface != 0 {
+			return c.isMarkerInstantiation(target.symbol, target.AsInterfaceType().TypeParameters(), t.AsTypeReference().resolvedTypeArguments)
+		}
+	}
+	return false
+}
+
+func (c *Checker) isMarkerInstantiation(symbol *ast.Symbol, typeParameters []*Type, typeArguments []*Type) bool {
+	if len(typeParameters) == 0 || len(typeParameters) != len(typeArguments) {
+		return false
+	}
+	replaced := -1
+	for i, tp := range typeParameters {
+		if typeArguments[i] == tp {
+			continue
+		}
+		if replaced >= 0 || !c.isVarianceMarker(typeArguments[i]) {
+			return false
+		}
+		replaced = i
+	}
+	if replaced < 0 {
+		return false
+	}
+	switch typeArguments[replaced] {
+	case c.markerSuperTypeForCheck, c.markerSubTypeForCheck:
+		return typeParameters[replaced] == c.varianceTypeParameter
+	default:
+		return c.varianceMeasuring[symbol] != 0
+	}
+}
+
+func (c *Checker) isVarianceMarker(t *Type) bool {
+	return t == c.markerSuperType || t == c.markerSubType || t == c.markerOtherType ||
+		t == c.markerSuperTypeForCheck || t == c.markerSubTypeForCheck
 }
 
 func (c *Checker) getTypeParameterModifiers(tp *Type) ast.ModifierFlags {
@@ -3275,7 +3341,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		return TernaryFalse
 	}
 	id, constrained := getRelationKey(source, target, intersectionState, r.relation == r.c.identityRelation, false /*ignoreConstraints*/)
-	if entry := r.relation.get(id); entry != RelationComparisonResultNone {
+	if entry := r.relation.get(r.c, id); entry != RelationComparisonResultNone {
 		if reportErrors && entry&RelationComparisonResultFailed != 0 && entry&RelationComparisonResultOverflow == 0 {
 			// We are elaborating errors and the cached result is a failure not due to a comparison overflow,
 			// so we will do the comparison again to generate an error message.
@@ -3311,7 +3377,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		}
 		// What relates with unconstrained type parameters also relates with
 		// constrained ones.
-		if entry := r.relation.get(broadestEquivalentId); entry&RelationComparisonResultSucceeded != 0 {
+		if entry := r.relation.get(r.c, broadestEquivalentId); entry&RelationComparisonResultSucceeded != 0 {
 			r.c.reliabilityFlags |= entry & (RelationComparisonResultReportsUnmeasurable | RelationComparisonResultReportsUnreliable)
 			return TernaryTrue
 		}
@@ -3394,7 +3460,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	case result == TernaryFalse:
 		// A false result goes straight into global cache (when something is false under
 		// assumptions it will also be false without assumptions)
-		r.relation.set(id, RelationComparisonResultFailed|propagatingVarianceFlags)
+		r.relation.set(r.c, id, RelationComparisonResultFailed|propagatingVarianceFlags)
 		r.relationCount--
 		r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false)
 	case low >= frame:
@@ -3407,7 +3473,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false)
 		case truncated:
 			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false)
-			r.relation.set(id, RelationComparisonResultSucceeded|propagatingVarianceFlags)
+			r.relation.set(r.c, id, RelationComparisonResultSucceeded|propagatingVarianceFlags)
 			r.relationCount--
 		default:
 			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, true)
@@ -3456,7 +3522,7 @@ func (r *Relater) resetMaybeStack(maybeStart int, propagatingVarianceFlags Relat
 		key := r.maybeKeys[i].key
 		delete(r.maybeKeysSet, key)
 		if markAllAsSucceeded {
-			r.relation.set(key, RelationComparisonResultSucceeded|propagatingVarianceFlags)
+			r.relation.set(r.c, key, RelationComparisonResultSucceeded|propagatingVarianceFlags)
 			r.relationCount--
 		}
 	}

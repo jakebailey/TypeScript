@@ -233,3 +233,293 @@ func TestMemoValueOnlyAccessedThroughMethods(t *testing.T) {
 		})
 	}
 }
+
+// Mutable cached state must live in memos, which account for the effects of
+// computing it. Fields that are not memos must be listed in
+// unmemoizedCacheFields with the reason they need not be.
+func TestCachedStateIsMemoized(t *testing.T) {
+	t.Parallel()
+	fset := token.NewFileSet()
+	files, err := filepath.Glob("*.go")
+	assert.NilError(t, err)
+	seen := make(map[string]bool)
+	for _, name := range files {
+		if strings.HasSuffix(name, "_test.go") {
+			continue
+		}
+		file, err := parser.ParseFile(fset, name, nil, parser.SkipObjectResolution)
+		assert.NilError(t, err)
+		goast.Inspect(file, func(n goast.Node) bool {
+			spec, ok := n.(*goast.TypeSpec)
+			if !ok {
+				return true
+			}
+			st, ok := spec.Type.(*goast.StructType)
+			if !ok || !strings.HasSuffix(spec.Name.Name, "Links") && spec.Name.Name != "checkerStore" {
+				return true
+			}
+			for _, field := range st.Fields.List {
+				if isMemoType(field.Type) {
+					continue
+				}
+				for _, fieldName := range field.Names {
+					key := spec.Name.Name + "." + fieldName.Name
+					seen[key] = true
+					if _, ok := unmemoizedCacheFields[key]; !ok {
+						t.Errorf("%s: %s is not a memo; make it one or list it in unmemoizedCacheFields", fset.Position(fieldName.Pos()), key)
+					}
+				}
+			}
+			return false
+		})
+	}
+	for key := range unmemoizedCacheFields {
+		if !seen[key] {
+			t.Errorf("unmemoizedCacheFields lists %s, which is not an unmemoized field", key)
+		}
+	}
+}
+
+func isMemoType(expr goast.Expr) bool {
+	switch e := expr.(type) {
+	case *goast.IndexExpr:
+		expr = e.X
+	case *goast.IndexListExpr:
+		expr = e.X
+	}
+	ident, ok := expr.(*goast.Ident)
+	return ok && strings.HasPrefix(ident.Name, "memo")
+}
+
+const (
+	unmemoizedImmutable   = "Set when the store is created"
+	unmemoizedContainer   = "Holds links, whose fields are checked separately"
+	unmemoizedCounter     = "Allocation counter for IDs and statistics"
+	unmemoizedInterned    = "Interned type whose creation has no effects"
+	unmemoizedProgram     = "Derived from the program only; computing it has no effects"
+	unmemoizedMemoState   = "State of the memos themselves"
+	unmemoizedReporting   = "Written only by reporting activations"
+	unmemoizedCreated     = "Set when the entity owning the links is created"
+	unmemoizedSyntax      = "Derived from syntax and options only; computing it has no effects"
+	unmemoizedGuarded     = "Written only within the memoized computation it is part of"
+	unmemoizedEmit        = "Emit resolver state, written only while resolving for emit"
+	unmemoizedNodeBuilder = "Node builder state, scoped to one node builder"
+	unmemoizedNodeFlags   = "Each flag is memo-guarded, reporting-only, or set whenever a node is checked and read only by deferred diagnostics, after the whole file is checked"
+)
+
+var unmemoizedCacheFields = map[string]string{
+	"checkerStore.root":                                    unmemoizedImmutable,
+	"checkerStore.id":                                      unmemoizedImmutable,
+	"checkerStore.program":                                 unmemoizedImmutable,
+	"checkerStore.compilerOptions":                         unmemoizedImmutable,
+	"checkerStore.files":                                   unmemoizedImmutable,
+	"checkerStore.fileIndexMap":                            unmemoizedImmutable,
+	"checkerStore.languageVersion":                         unmemoizedImmutable,
+	"checkerStore.moduleKind":                              unmemoizedImmutable,
+	"checkerStore.moduleResolutionKind":                    unmemoizedImmutable,
+	"checkerStore.legacyDecorators":                        unmemoizedImmutable,
+	"checkerStore.emitStandardClassFields":                 unmemoizedImmutable,
+	"checkerStore.strictNullChecks":                        unmemoizedImmutable,
+	"checkerStore.strictFunctionTypes":                     unmemoizedImmutable,
+	"checkerStore.strictBindCallApply":                     unmemoizedImmutable,
+	"checkerStore.strictPropertyInitialization":            unmemoizedImmutable,
+	"checkerStore.strictBuiltinIteratorReturn":             unmemoizedImmutable,
+	"checkerStore.noImplicitAny":                           unmemoizedImmutable,
+	"checkerStore.noImplicitThis":                          unmemoizedImmutable,
+	"checkerStore.useUnknownInCatchVariables":              unmemoizedImmutable,
+	"checkerStore.exactOptionalPropertyTypes":              unmemoizedImmutable,
+	"checkerStore.canCollectSymbolAliasAccessibilityData":  unmemoizedImmutable,
+	"checkerStore.arrayVariances":                          unmemoizedImmutable,
+	"checkerStore.globals":                                 unmemoizedImmutable,
+	"checkerStore.undefinedSymbol":                         unmemoizedImmutable,
+	"checkerStore.argumentsSymbol":                         unmemoizedImmutable,
+	"checkerStore.requireSymbol":                           unmemoizedImmutable,
+	"checkerStore.unknownSymbol":                           unmemoizedImmutable,
+	"checkerStore.globalThisSymbol":                        unmemoizedImmutable,
+	"checkerStore.mergedSymbols":                           unmemoizedImmutable,
+	"checkerStore.mergesFrozen":                            unmemoizedImmutable,
+	"checkerStore.anyType":                                 unmemoizedImmutable,
+	"checkerStore.autoType":                                unmemoizedImmutable,
+	"checkerStore.wildcardType":                            unmemoizedImmutable,
+	"checkerStore.blockedStringType":                       unmemoizedImmutable,
+	"checkerStore.errorType":                               unmemoizedImmutable,
+	"checkerStore.unresolvedType":                          unmemoizedImmutable,
+	"checkerStore.nonInferrableAnyType":                    unmemoizedImmutable,
+	"checkerStore.intrinsicMarkerType":                     unmemoizedImmutable,
+	"checkerStore.unknownType":                             unmemoizedImmutable,
+	"checkerStore.undefinedType":                           unmemoizedImmutable,
+	"checkerStore.undefinedWideningType":                   unmemoizedImmutable,
+	"checkerStore.missingType":                             unmemoizedImmutable,
+	"checkerStore.undefinedOrMissingType":                  unmemoizedImmutable,
+	"checkerStore.optionalType":                            unmemoizedImmutable,
+	"checkerStore.nullType":                                unmemoizedImmutable,
+	"checkerStore.nullWideningType":                        unmemoizedImmutable,
+	"checkerStore.stringType":                              unmemoizedImmutable,
+	"checkerStore.numberType":                              unmemoizedImmutable,
+	"checkerStore.bigintType":                              unmemoizedImmutable,
+	"checkerStore.regularFalseType":                        unmemoizedImmutable,
+	"checkerStore.falseType":                               unmemoizedImmutable,
+	"checkerStore.regularTrueType":                         unmemoizedImmutable,
+	"checkerStore.trueType":                                unmemoizedImmutable,
+	"checkerStore.booleanType":                             unmemoizedImmutable,
+	"checkerStore.esSymbolType":                            unmemoizedImmutable,
+	"checkerStore.voidType":                                unmemoizedImmutable,
+	"checkerStore.neverType":                               unmemoizedImmutable,
+	"checkerStore.silentNeverType":                         unmemoizedImmutable,
+	"checkerStore.implicitNeverType":                       unmemoizedImmutable,
+	"checkerStore.unreachableNeverType":                    unmemoizedImmutable,
+	"checkerStore.nonPrimitiveType":                        unmemoizedImmutable,
+	"checkerStore.stringOrNumberType":                      unmemoizedImmutable,
+	"checkerStore.stringNumberSymbolType":                  unmemoizedImmutable,
+	"checkerStore.numberOrBigIntType":                      unmemoizedImmutable,
+	"checkerStore.templateConstraintType":                  unmemoizedImmutable,
+	"checkerStore.numericStringType":                       unmemoizedImmutable,
+	"checkerStore.uniqueLiteralType":                       unmemoizedImmutable,
+	"checkerStore.emptyObjectType":                         unmemoizedImmutable,
+	"checkerStore.emptyJsxObjectType":                      unmemoizedImmutable,
+	"checkerStore.emptyFreshJsxObjectType":                 unmemoizedImmutable,
+	"checkerStore.emptyTypeLiteralType":                    unmemoizedImmutable,
+	"checkerStore.unknownEmptyObjectType":                  unmemoizedImmutable,
+	"checkerStore.unknownUnionType":                        unmemoizedImmutable,
+	"checkerStore.emptyGenericType":                        unmemoizedImmutable,
+	"checkerStore.anyFunctionType":                         unmemoizedImmutable,
+	"checkerStore.noConstraintType":                        unmemoizedImmutable,
+	"checkerStore.circularConstraintType":                  unmemoizedImmutable,
+	"checkerStore.resolvingDefaultType":                    unmemoizedImmutable,
+	"checkerStore.markerSuperType":                         unmemoizedImmutable,
+	"checkerStore.markerSubType":                           unmemoizedImmutable,
+	"checkerStore.markerOtherType":                         unmemoizedImmutable,
+	"checkerStore.markerSuperTypeForCheck":                 unmemoizedImmutable,
+	"checkerStore.markerSubTypeForCheck":                   unmemoizedImmutable,
+	"checkerStore.noTypePredicate":                         unmemoizedImmutable,
+	"checkerStore.anySignature":                            unmemoizedImmutable,
+	"checkerStore.unknownSignature":                        unmemoizedImmutable,
+	"checkerStore.resolvingSignature":                      unmemoizedImmutable,
+	"checkerStore.silentNeverSignature":                    unmemoizedImmutable,
+	"checkerStore.enumNumberIndexInfo":                     unmemoizedImmutable,
+	"checkerStore.anyBaseTypeIndexInfo":                    unmemoizedImmutable,
+	"checkerStore.patternAmbientModules":                   unmemoizedImmutable,
+	"checkerStore.patternAmbientModuleAugmentations":       unmemoizedImmutable,
+	"checkerStore.patternAmbientModuleAugmentationTargets": unmemoizedImmutable,
+	"checkerStore.globalObjectType":                        unmemoizedImmutable,
+	"checkerStore.globalFunctionType":                      unmemoizedImmutable,
+	"checkerStore.globalCallableFunctionType":              unmemoizedImmutable,
+	"checkerStore.globalNewableFunctionType":               unmemoizedImmutable,
+	"checkerStore.globalArrayType":                         unmemoizedImmutable,
+	"checkerStore.globalReadonlyArrayType":                 unmemoizedImmutable,
+	"checkerStore.globalStringType":                        unmemoizedImmutable,
+	"checkerStore.globalNumberType":                        unmemoizedImmutable,
+	"checkerStore.globalBooleanType":                       unmemoizedImmutable,
+	"checkerStore.globalRegExpType":                        unmemoizedImmutable,
+	"checkerStore.globalThisType":                          unmemoizedImmutable,
+	"checkerStore.anyArrayType":                            unmemoizedImmutable,
+	"checkerStore.autoArrayType":                           unmemoizedImmutable,
+	"checkerStore.anyReadonlyArrayType":                    unmemoizedImmutable,
+	"checkerStore.emptyStringType":                         unmemoizedImmutable,
+	"checkerStore.zeroType":                                unmemoizedImmutable,
+	"checkerStore.zeroBigIntType":                          unmemoizedImmutable,
+	"checkerStore.typeofType":                              unmemoizedImmutable,
+	"checkerStore.subtypeRelation":                         unmemoizedImmutable,
+	"checkerStore.strictSubtypeRelation":                   unmemoizedImmutable,
+	"checkerStore.assignableRelation":                      unmemoizedImmutable,
+	"checkerStore.comparableRelation":                      unmemoizedImmutable,
+	"checkerStore.identityRelation":                        unmemoizedImmutable,
+	"checkerStore.nodeLinks":                               unmemoizedContainer,
+	"checkerStore.signatureLinks":                          unmemoizedContainer,
+	"checkerStore.symbolNodeLinks":                         unmemoizedContainer,
+	"checkerStore.typeNodeLinks":                           unmemoizedContainer,
+	"checkerStore.enumMemberLinks":                         unmemoizedContainer,
+	"checkerStore.arrayLiteralLinks":                       unmemoizedContainer,
+	"checkerStore.switchStatementLinks":                    unmemoizedContainer,
+	"checkerStore.jsxElementLinks":                         unmemoizedContainer,
+	"checkerStore.computedNameLinks":                       unmemoizedContainer,
+	"checkerStore.symbolReferenceLinks":                    unmemoizedContainer,
+	"checkerStore.valueSymbolLinks":                        unmemoizedContainer,
+	"checkerStore.mappedSymbolLinks":                       unmemoizedContainer,
+	"checkerStore.deferredSymbolLinks":                     unmemoizedContainer,
+	"checkerStore.aliasSymbolLinks":                        unmemoizedContainer,
+	"checkerStore.moduleSymbolLinks":                       unmemoizedContainer,
+	"checkerStore.lateBoundLinks":                          unmemoizedContainer,
+	"checkerStore.exportTypeLinks":                         unmemoizedContainer,
+	"checkerStore.membersAndExportsLinks":                  unmemoizedContainer,
+	"checkerStore.typeAliasLinks":                          unmemoizedContainer,
+	"checkerStore.declaredTypeLinks":                       unmemoizedContainer,
+	"checkerStore.spreadLinks":                             unmemoizedContainer,
+	"checkerStore.varianceLinks":                           unmemoizedContainer,
+	"checkerStore.ReverseMappedSymbolLinks":                unmemoizedContainer,
+	"checkerStore.markedAssignmentSymbolLinks":             unmemoizedContainer,
+	"checkerStore.sourceFileLinks":                         unmemoizedContainer,
+	"checkerStore.emitResolverLinks":                       unmemoizedContainer,
+	"EmitResolverLinks.jsxLinks":                           unmemoizedContainer,
+	"EmitResolverLinks.declarationLinks":                   unmemoizedContainer,
+	"EmitResolverLinks.declarationFileLinks":               unmemoizedContainer,
+	"checkerStore.TypeCount":                               unmemoizedCounter,
+	"checkerStore.SymbolCount":                             unmemoizedCounter,
+	"checkerStore.SignatureCount":                          unmemoizedCounter,
+	"checkerStore.TotalInstantiationCount":                 unmemoizedCounter,
+	"checkerStore.nanType":                                 unmemoizedInterned,
+	"checkerStore.externalModuleContainers":                unmemoizedProgram,
+	"checkerStore.packagesMap":                             unmemoizedProgram,
+	"checkerStore.ambientModulesOnce":                      unmemoizedProgram,
+	"checkerStore.ambientModules":                          unmemoizedProgram,
+	"checkerStore.memoSlots":                               unmemoizedMemoState,
+	"checkerStore.memoPendingCount":                        unmemoizedMemoState,
+	"checkerStore.mu":                                      unmemoizedMemoState,
+	"checkerStore.diagnostics":                             unmemoizedReporting,
+	"checkerStore.suggestionDiagnostics":                   unmemoizedReporting,
+	"checkerStore.nonExistentProperties":                   unmemoizedReporting,
+	"checkerStore.deferredDiagnosticCallbacks":             unmemoizedReporting,
+	"SymbolReferenceLinks.referenceKinds":                  unmemoizedReporting,
+	"AliasSymbolLinks.referenced":                          unmemoizedReporting,
+	"SourceFileLinks.typeChecked":                          unmemoizedReporting,
+	"SourceFileLinks.unusedChecked":                        unmemoizedReporting,
+	"SourceFileLinks.deferredNodes":                        unmemoizedReporting,
+	"SourceFileLinks.identifierCheckNodes":                 unmemoizedReporting,
+	"ValueSymbolLinks.target":                              unmemoizedCreated,
+	"ValueSymbolLinks.mapper":                              unmemoizedCreated,
+	"ValueSymbolLinks.extra":                               unmemoizedCreated,
+	"MappedSymbolLinks.keyType":                            unmemoizedCreated,
+	"MappedSymbolLinks.syntheticOrigin":                    unmemoizedCreated,
+	"DeferredSymbolLinks.parent":                           unmemoizedCreated,
+	"DeferredSymbolLinks.constituents":                     unmemoizedCreated,
+	"DeferredSymbolLinks.writeConstituents":                unmemoizedCreated,
+	"ReverseMappedSymbolLinks.propertyType":                unmemoizedCreated,
+	"ReverseMappedSymbolLinks.mappedType":                  unmemoizedCreated,
+	"ReverseMappedSymbolLinks.constraintType":              unmemoizedCreated,
+	"ExportTypeLinks.target":                               unmemoizedCreated,
+	"ExportTypeLinks.originatingImport":                    unmemoizedCreated,
+	"SpreadLinks.leftSpread":                               unmemoizedCreated,
+	"SpreadLinks.rightSpread":                              unmemoizedCreated,
+	"JsxElementLinks.firstJSXTagInFile":                    unmemoizedSyntax,
+	"checkerStore._jsxNamespace":                           unmemoizedSyntax,
+	"checkerStore._jsxFactoryEntity":                       unmemoizedSyntax,
+	"SwitchStatementLinks.witnessesComputed":               unmemoizedSyntax,
+	"SwitchStatementLinks.witnesses":                       unmemoizedSyntax,
+	"ArrayLiteralLinks.indicesComputed":                    unmemoizedSyntax,
+	"ArrayLiteralLinks.firstSpreadIndex":                   unmemoizedSyntax,
+	"ArrayLiteralLinks.lastSpreadIndex":                    unmemoizedSyntax,
+	"NodeLinks.declarationRequiresScopeChange":             unmemoizedSyntax,
+	"SourceFileLinks.localJsxNamespace":                    unmemoizedSyntax,
+	"SourceFileLinks.localJsxFragmentNamespace":            unmemoizedSyntax,
+	"SourceFileLinks.localJsxFactory":                      unmemoizedSyntax,
+	"SourceFileLinks.localJsxFragmentFactory":              unmemoizedSyntax,
+	"JsxElementLinks.jsxFlags":                             unmemoizedGuarded,
+	"JsxElementLinks.jsxImplicitImportContainer":           unmemoizedGuarded,
+	"ModuleSymbolLinks.resolvedExports":                    unmemoizedGuarded,
+	"ModuleSymbolLinks.typeOnlyExportStarMap":              unmemoizedGuarded,
+	"LateBoundLinks.lateSymbol":                            unmemoizedGuarded,
+	"TypeAliasLinks.typeParameters":                        unmemoizedGuarded,
+	"MarkedAssignmentSymbolLinks.lastAssignmentPos":        unmemoizedGuarded,
+	"MarkedAssignmentSymbolLinks.hasDefiniteAssignment":    unmemoizedGuarded,
+	"EnumMemberLinks.value":                                unmemoizedGuarded,
+	"JSXLinks.importRef":                                   unmemoizedEmit,
+	"DeclarationLinks.isVisible":                           unmemoizedEmit,
+	"DeclarationFileLinks.aliasesMarked":                   unmemoizedEmit,
+	"NodeBuilderLinks.serializedTypes":                     unmemoizedNodeBuilder,
+	"NodeBuilderLinks.fakeScopeForSignatureDeclaration":    unmemoizedNodeBuilder,
+	"NodeBuilderSymbolLinks.specifierCache":                unmemoizedNodeBuilder,
+	"SourceFileLinks.externalHelpersModule":                unmemoizedReporting,
+	"SourceFileLinks.requestedExternalEmitHelpers":         unmemoizedReporting,
+	"AliasSymbolLinks.typeOnlyDeclaration":                 unmemoizedGuarded,
+	"NodeLinks.flags":                                      unmemoizedNodeFlags,
+}

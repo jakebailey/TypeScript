@@ -262,7 +262,7 @@ type DeferredSymbolLinks struct {
 // Links for alias symbols
 
 type AliasSymbolLinks struct {
-	immediateTarget     *ast.Symbol       // Immediate target of an alias. May be another alias. Do not access directly, use `checker.getImmediateAliasedSymbol` instead.
+	immediateTarget     memo[*ast.Symbol] // Immediate target of an alias. May be another alias. Do not access directly, use `checker.getImmediateAliasedSymbol` instead.
 	aliasTarget         memo[*ast.Symbol] // Resolved (non-alias) target of an alias
 	referenced          bool              // True if alias symbol has been referenced as a value that can be emitted
 	typeOnlyDeclaration *ast.Node         // First resolved alias declaration that makes the symbol only usable in type constructs
@@ -273,7 +273,7 @@ type AliasSymbolLinks struct {
 type ModuleSymbolLinks struct {
 	resolvedExports       ast.SymbolTable      // Resolved exports of module or combined early- and late-bound static members of a class.
 	typeOnlyExportStarMap map[string]*ast.Node // Set on a module symbol when some of its exports were resolved through a 'export type * from "mod"' declaration
-	exportsChecked        bool
+	exportsChecked        memoOnce
 }
 
 type ReverseMappedSymbolLinks struct {
@@ -299,18 +299,18 @@ type ExportTypeLinks struct {
 
 type TypeAliasLinks struct {
 	declaredType   memo[*Type]
-	typeParameters []*Type                // Type parameters of type alias (undefined if non-generic)
-	instantiations map[CacheHashKey]*Type // Instantiations of generic type alias (undefined if non-generic)
+	typeParameters []*Type                      // Type parameters of type alias (undefined if non-generic)
+	instantiations memoMap[CacheHashKey, *Type] // Instantiations of generic type alias (undefined if non-generic)
 }
 
 // Links for declared types (type parameters, class types, interface types, enums)
 
 type DeclaredTypeLinks struct {
 	declaredType           memo[*Type]
-	interfaceChecked       bool
-	indexSignaturesChecked bool
-	typeParametersChecked  bool
-	enumChecked            bool
+	interfaceChecked       memoOnce
+	indexSignaturesChecked memoOnce
+	typeParametersChecked  memoOnce
+	enumChecked            memoOnce
 }
 
 // Links for switch clauses
@@ -325,11 +325,10 @@ const (
 )
 
 type SwitchStatementLinks struct {
-	exhaustiveState     ExhaustiveState // Switch statement exhaustiveness
-	switchTypesComputed bool
-	witnessesComputed   bool
-	switchTypes         []*Type
-	witnesses           []string
+	exhaustiveState   memo[ExhaustiveState] // Switch statement exhaustiveness
+	witnessesComputed bool
+	switchTypes       memo[[]*Type]
+	witnesses         []string // Syntactic, so needs no memo
 }
 
 type ArrayLiteralLinks struct {
@@ -359,7 +358,7 @@ type SpreadLinks struct {
 // Links for variances of type aliases and interface types
 
 type VarianceLinks struct {
-	variances []VarianceFlags
+	variances memo[[]VarianceFlags]
 }
 
 type VarianceFlags uint32
@@ -382,15 +381,10 @@ type MarkedAssignmentSymbolLinks struct {
 }
 
 type accessibleChainCacheKey struct {
+	symbol                  *ast.Symbol
 	useOnlyExternalAliasing bool
 	location                *ast.Node
 	meaning                 ast.SymbolFlags
-}
-
-type ContainingSymbolLinks struct {
-	extendedContainersByFile map[ast.NodeId][]*ast.Symbol // Symbols of nodes which which logically contain this one, cached by file the request is made within
-	extendedContainers       *[]*ast.Symbol               // Containers (other than the parent) which this symbol is aliased in
-	accessibleChainCache     map[accessibleChainCacheKey][]*ast.Symbol
 }
 
 type AccessFlags uint32
@@ -416,10 +410,8 @@ const (
 	NodeCheckFlagsTypeChecked                              NodeCheckFlags = 1 << 0  // Node has been type checked
 	NodeCheckFlagsContextChecked                           NodeCheckFlags = 1 << 6  // Contextual types have been assigned
 	NodeCheckFlagsEnumValuesComputed                       NodeCheckFlags = 1 << 10 // Values for enum members have been computed, and any errors have been reported for them.
-	NodeCheckFlagsAssignmentsMarked                        NodeCheckFlags = 1 << 17 // Parameter assignments have been marked
 	NodeCheckFlagsContainsClassWithPrivateIdentifiers      NodeCheckFlags = 1 << 20 // Marked on all block-scoped containers containing a class with private identifiers.
 	NodeCheckFlagsContainsSuperPropertyInStaticInitializer NodeCheckFlags = 1 << 21 // Marked on all block-scoped containers containing a static initializer with 'super.x' or 'super[x]'.
-	NodeCheckFlagsInCheckIdentifier                        NodeCheckFlags = 1 << 22
 	NodeCheckFlagsInitializerIsUndefined                   NodeCheckFlags = 1 << 24
 	NodeCheckFlagsInitializerIsUndefinedComputed           NodeCheckFlags = 1 << 25
 )
@@ -429,7 +421,7 @@ const (
 type NodeLinks struct {
 	flags                                NodeCheckFlags // Set of flags specific to Node
 	declarationRequiresScopeChange       core.Tristate  // Set by `useOuterVariableScopeInParameter` in checker when downlevel emit would change the name resolution scope inside of a parameter.
-	hasReportedStatementInAmbientContext bool           // Cache boolean if we report statements in ambient context
+	hasReportedStatementInAmbientContext memo[bool]     // Cache boolean if we report statements in ambient context
 }
 
 type SymbolNodeLinks struct {
@@ -437,31 +429,34 @@ type SymbolNodeLinks struct {
 }
 
 type TypeNodeLinks struct {
-	resolvedType        memo[*Type] // Resolved type associated with node
-	outerTypeParameters *[]*Type    // Outer type parameters of anonymous object type
+	resolvedType        memo[*Type]    // Resolved type associated with node
+	outerTypeParameters memo[*[]*Type] // Outer type parameters of anonymous object type
 }
 
-func (links *TypeNodeLinks) getOuterTypeParameters() []*Type {
-	if links.outerTypeParameters == nil {
-		return nil
+func (links *TypeNodeLinks) getOuterTypeParameters(c *Checker) []*Type {
+	if p := links.outerTypeParameters.get(c); p != nil {
+		return *p
 	}
-	return *links.outerTypeParameters
+	return nil
 }
 
 func (links *TypeNodeLinks) setOuterTypeParameters(c *Checker, types []*Type) {
 	if types == nil {
-		links.outerTypeParameters = nil
+		links.outerTypeParameters.set(c, nil)
 		return
 	}
-	if links.outerTypeParameters == nil {
-		links.outerTypeParameters = c.outerTypeParameterListArena.New()
-	}
-	*links.outerTypeParameters = types
+	p := c.outerTypeParameterListArena.New()
+	*p = types
+	links.outerTypeParameters.set(c, p)
 }
 
 type ComputedNameNodeLinks struct {
-	hasName *bool  // If the node has a computable name
-	name    string // Resolved name associated with the type of the node
+	name memo[*computedName] // Resolved name associated with the type of the node
+}
+
+type computedName struct {
+	name   string
+	exists bool // If the node has a computable name
 }
 
 // Links for enum members
@@ -483,15 +478,15 @@ type SourceFileLinks struct {
 	localJsxFragmentNamespace    string
 	localJsxFactory              *ast.EntityName
 	localJsxFragmentFactory      *ast.EntityName
-	jsxFragmentType              *Type
+	jsxFragmentType              memo[*Type]
 }
 
 // Signature specific links
 
 type SignatureLinks struct {
 	resolvedSignature  memo[*Signature] // Cached signature of signature node or call expression
-	effectsSignature   *Signature       // Signature with possible control flow effects
-	decoratorSignature *Signature       // Signature for decorator as if invoked by the runtime
+	effectsSignature   memo[*Signature] // Signature with possible control flow effects
+	decoratorSignature memo[*Signature] // Signature for decorator as if invoked by the runtime
 }
 
 type TypeFlags uint32
@@ -1196,9 +1191,9 @@ func (t *StructuredType) Properties() []*ast.Symbol {
 
 type ObjectType struct {
 	StructuredType
-	target         *Type                  // Target of instantiated type
-	mapper         *TypeMapper            // Type mapper for instantiated type
-	instantiations map[CacheHashKey]*Type // Map of type instantiations
+	target         *Type                        // Target of instantiated type
+	mapper         *TypeMapper                  // Type mapper for instantiated type
+	instantiations memoMap[CacheHashKey, *Type] // Map of type instantiations
 }
 
 func (t *ObjectType) AsObjectType() *ObjectType { return t }
@@ -1466,7 +1461,7 @@ type ConditionalRoot struct {
 	isDistributive      bool
 	inferTypeParameters []*Type
 	outerTypeParameters []*Type
-	instantiations      map[CacheHashKey]*Type
+	instantiations      memoMap[CacheHashKey, *Type]
 	alias               *TypeAlias
 }
 
