@@ -1,9 +1,12 @@
 package checker
 
 import (
+	"iter"
+	"maps"
 	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/core"
+	"github.com/microsoft/TypeScript/tsc/internal/debug"
 )
 
 // Checker side effects and memoization
@@ -52,8 +55,7 @@ const (
 	memoModuleExports
 	memoInstantiationExpressionType
 	memoRelationOverflow
-	memoIterationTypes                                                               // followed by one field per IterationUseCacheFlags combination
-	memoResolvedMembers = memoIterationTypes + memoField(IterationUseCacheFlags) + 1 // followed by one field per MembersOrExportsResolutionKind
+	memoResolvedMembers // followed by one field per MembersOrExportsResolutionKind
 )
 
 // memoKey identifies a memoized result: the address of the entity owning the
@@ -153,6 +155,100 @@ func (m *memo[T]) enter(c *Checker) bool {
 	return c.enterMemo(m.key())
 }
 
+// memoMap is a map of cached results, each accounted for like a memo. The
+// entries are only accessible through methods. Memo state is kept per entry in
+// a side map allocated on first use by a non-reporting activation.
+//
+// An entry should be computed between enter and exitMemo, so that reusing it
+// replays the effects of computing that entry alone. An entry set outside its
+// own computation depends on the whole enclosing computation instead.
+type memoMap[K comparable, V any] struct {
+	_           memoNoCopy
+	memoEntries map[K]V
+	memoSlots   map[K]*memoSlot
+}
+
+// get returns the cached result for k, accounting for the effects of
+// computing it.
+func (m *memoMap[K, V]) get(c *Checker, k K) (V, bool) {
+	if m.memoSlots != nil && c.memoActive() {
+		c.observeSlot(m.memoSlots[k])
+	}
+	v, ok := m.memoEntries[k]
+	return v, ok
+}
+
+// peek returns the cached result for k without observing it, for results
+// that are interned and never change.
+func (m *memoMap[K, V]) peek(k K) (V, bool) {
+	v, ok := m.memoEntries[k]
+	return v, ok
+}
+
+// has reports whether a result is cached for k; see get.
+func (m *memoMap[K, V]) has(c *Checker, k K) bool {
+	_, ok := m.get(c, k)
+	return ok
+}
+
+// values iterates the cached results without observing them, for
+// inspection outside of checking.
+func (m *memoMap[K, V]) values() iter.Seq[V] {
+	return maps.Values(m.memoEntries)
+}
+
+// set caches the result for k; see memo.set.
+func (m *memoMap[K, V]) set(c *Checker, k K, v V) {
+	if m.memoEntries == nil {
+		m.memoEntries = make(map[K]V)
+	}
+	m.memoEntries[k] = v
+	if !c.reporting && len(c.memoFrames) != 0 {
+		c.attachSlot(m.slot(k))
+	}
+}
+
+// intern caches a result constructed from the inputs in k alone, without
+// consulting any cached result, so computing it has no effects to account for.
+func (m *memoMap[K, V]) intern(k K, v V) {
+	if m.memoEntries == nil {
+		m.memoEntries = make(map[K]V)
+	}
+	m.memoEntries[k] = v
+}
+
+// compute computes and caches the result for k in a computation of its own.
+func (m *memoMap[K, V]) compute(c *Checker, k K, fn func() V) V {
+	pushed := c.memoActive() && m.enter(c, k)
+	v := fn()
+	m.set(c, k, v)
+	c.exitMemo(pushed)
+	return v
+}
+
+// enter starts the computation of the result for k; see enterMemo.
+func (m *memoMap[K, V]) enter(c *Checker, k K) bool {
+	if c.reporting {
+		if c.memoPendingCount != 0 && m.memoSlots != nil {
+			c.replayPending(m.memoSlots[k])
+		}
+		return false
+	}
+	return c.enterSlot(m.slot(k))
+}
+
+func (m *memoMap[K, V]) slot(k K) *memoSlot {
+	slot := m.memoSlots[k]
+	if slot == nil {
+		if m.memoSlots == nil {
+			m.memoSlots = make(map[K]*memoSlot)
+		}
+		slot = &memoSlot{}
+		m.memoSlots[k] = slot
+	}
+	return slot
+}
+
 type memoFrame struct {
 	effects *memoEffects // Allocated on first use
 	slot    *memoSlot
@@ -177,7 +273,12 @@ func (c *Checker) enterMemo(key memoKey) bool {
 		}
 		return false
 	}
-	slot := c.memoSlot(key)
+	return c.enterSlot(c.memoSlot(key))
+}
+
+// enterSlot is enterMemo for the slot of a result, in a non-reporting
+// activation.
+func (c *Checker) enterSlot(slot *memoSlot) bool {
 	if slot.pending != nil {
 		if parent := c.currentMemoFrame(); parent != nil {
 			parent.addDep(slot.pending)
@@ -209,11 +310,18 @@ func (c *Checker) memoSlot(key memoKey) *memoSlot {
 // memoAttach makes the result identified by key depend on the innermost
 // computation in progress, unless that computation is the result's own.
 func (c *Checker) memoAttach(key memoKey) {
+	if len(c.memoFrames) == 0 {
+		return
+	}
+	c.attachSlot(c.memoSlot(key))
+}
+
+// attachSlot is memoAttach for the slot of a result.
+func (c *Checker) attachSlot(slot *memoSlot) {
 	n := len(c.memoFrames) - 1
 	if n < 0 {
 		return
 	}
-	slot := c.memoSlot(key)
 	if c.memoFrames[n].slot == slot {
 		return
 	}
@@ -227,7 +335,11 @@ func (c *Checker) memoAttach(key memoKey) {
 
 // observeMemo accounts for reading a memoized result without computing it.
 func (c *Checker) observeMemo(key memoKey) {
-	slot := c.memoSlots[key]
+	c.observeSlot(c.memoSlots[key])
+}
+
+// observeSlot is observeMemo for the slot of a result, if it has one.
+func (c *Checker) observeSlot(slot *memoSlot) {
 	if slot == nil {
 		return
 	}
@@ -318,6 +430,9 @@ func (c *Checker) recordEffect(effect func(c *Checker)) {
 
 // withReporting runs fn in a reporting activation.
 func (c *Checker) withReporting(fn func()) {
+	// Reporting starts only from top-level requests, so any frame left at
+	// this point was never exited and would absorb unrelated effects.
+	debug.Assert(len(c.memoFrames) == 0, "memo frame leaked")
 	saveReporting := c.reporting
 	saveFrames := c.memoFrames
 	c.reporting = true

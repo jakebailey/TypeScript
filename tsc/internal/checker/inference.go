@@ -984,7 +984,7 @@ func (c *Checker) inferToMappedType(n *InferenceState, source *Type, target *Typ
 	if constraintType.flags&TypeFlagsTypeParameter != 0 {
 		// We're inferring from some source type S to a mapped type { [P in K]: X }, where K is a type
 		// parameter. First infer from 'keyof S' to K.
-		c.inferWithPriority(n, c.getIndexTypeEx(source, core.IfElse(c.patternForType[source] != nil, IndexFlagsNoIndexSignatures, IndexFlagsNone)), constraintType, InferencePriorityMappedTypeConstraint)
+		c.inferWithPriority(n, c.getIndexTypeEx(source, core.IfElse(c.patternForType.has(c, source), IndexFlagsNoIndexSignatures, IndexFlagsNone)), constraintType, InferencePriorityMappedTypeConstraint)
 		// If K is constrained to a type C, also infer to C. Thus, for a mapped type { [P in K]: X },
 		// where K extends keyof T, we make the same inferences as for a homomorphic mapped type
 		// { [P in keyof T]: X }. This enables us to make meaningful inferences when the target is a
@@ -1014,11 +1014,13 @@ func (c *Checker) inferToMappedType(n *InferenceState, source *Type, target *Typ
 // variable T[P] (i.e. we treat the type T[P] as the type variable we're inferring for).
 func (c *Checker) inferTypeForHomomorphicMappedType(source *Type, target *Type, constraint *Type) *Type {
 	key := ReverseMappedTypeKey{sourceId: source.id, targetId: target.id, constraintId: constraint.id}
-	if cached := c.reverseHomomorphicMappedCache[key]; cached != nil {
+	if cached, _ := c.reverseHomomorphicMappedCache.get(c, key); cached != nil {
 		return cached
 	}
+	pushed := c.memoActive() && c.reverseHomomorphicMappedCache.enter(c, key)
 	t := c.createReverseMappedType(source, target, constraint)
-	c.reverseHomomorphicMappedCache[key] = t
+	c.reverseHomomorphicMappedCache.set(c, key, t)
+	c.exitMemo(pushed)
 	return t
 }
 
@@ -1076,9 +1078,10 @@ func (c *Checker) isPartiallyInferableType(t *Type) bool {
 
 func (c *Checker) inferReverseMappedType(source *Type, target *Type, constraint *Type) *Type {
 	key := ReverseMappedTypeKey{sourceId: source.id, targetId: target.id, constraintId: constraint.id}
-	if cached, ok := c.reverseMappedCache[key]; ok {
+	if cached, ok := c.reverseMappedCache.get(c, key); ok {
 		return core.OrElse(cached, c.unknownType)
 	}
+	pushed := c.memoActive() && c.reverseMappedCache.enter(c, key)
 	c.reverseMappedSourceStack = append(c.reverseMappedSourceStack, source)
 	c.reverseMappedTargetStack = append(c.reverseMappedTargetStack, target)
 	saveExpandingFlags := c.reverseExpandingFlags
@@ -1095,7 +1098,8 @@ func (c *Checker) inferReverseMappedType(source *Type, target *Type, constraint 
 	c.reverseMappedSourceStack = c.reverseMappedSourceStack[:len(c.reverseMappedSourceStack)-1]
 	c.reverseMappedTargetStack = c.reverseMappedTargetStack[:len(c.reverseMappedTargetStack)-1]
 	c.reverseExpandingFlags = saveExpandingFlags
-	c.reverseMappedCache[key] = t
+	c.reverseMappedCache.set(c, key, t)
+	c.exitMemo(pushed)
 	return t
 }
 

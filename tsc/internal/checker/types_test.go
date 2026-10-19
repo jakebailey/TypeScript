@@ -185,10 +185,6 @@ func newBareTestChecker() *Checker {
 func newCompositeTestChecker() (*Checker, []*Type) {
 	c := newBareTestChecker()
 	c.strictNullChecks = true
-	c.unionTypes = make(map[CacheHashKey]*Type)
-	c.unionOfUnionTypes = make(map[UnionOfUnionKey]*Type)
-	c.intersectionTypes = make(map[CacheHashKey]*Type)
-	c.subtypeReductionCache = make(map[CacheHashKey][]*Type)
 	c.compareSymbols = c.compareSymbolsWorker
 	c.neverType = c.newIntrinsicType(TypeFlagsNever, "never")
 	c.unknownType = c.newIntrinsicType(TypeFlagsUnknown, "unknown")

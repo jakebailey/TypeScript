@@ -705,9 +705,8 @@ const (
 	ObjectFlagsSingleSignatureType         = 1 << 25 // A single signature type extracted from a potentially broader type
 	ObjectFlagsIsClassInstanceClone        = 1 << 26 // Type is a clone of a class instance type
 	// Flags that require TypeFlags.Object and ObjectFlags.Reference
-	ObjectFlagsIdenticalBaseTypeCalculated = 1 << 27 // has had `getSingleBaseForNonAugmentingSubtype` invoked on it already
-	ObjectFlagsIdenticalBaseTypeExists     = 1 << 28 // has a defined cachedEquivalentBaseType member
-	ObjectFlagsFromTypeNode                = 1 << 29 // Originates in resolution of AST type node
+	ObjectFlagsIdenticalBaseTypeExists = 1 << 28 // has a defined cachedEquivalentBaseType member
+	ObjectFlagsFromTypeNode            = 1 << 29 // Originates in resolution of AST type node
 	// Flags that require TypeFlags.UnionOrIntersection or TypeFlags.Substitution
 	ObjectFlagsIsGenericTypeComputed = 1 << 22 // IsGenericObjectType flag has been computed
 	ObjectFlagsIsGenericObjectType   = 1 << 23 // Union or intersection contains generic object type

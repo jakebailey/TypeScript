@@ -573,10 +573,8 @@ func (c *Checker) getSymbolTableAliases(symbols ast.SymbolTable, tableId symbolT
 	// Cache globals and exports tables (which are large and revisited often).
 	// Locals tables are small and per-scope, so they are filtered but not cached.
 	if kind == stKindGlobals || kind == stKindExports || kind == stKindResolvedExports {
-		if c.symbolTableAliasCache != nil {
-			if aliases, ok := c.symbolTableAliasCache[tableId]; ok {
-				return aliases
-			}
+		if aliases, ok := c.symbolTableAliasCache.get(c, tableId); ok {
+			return aliases
 		}
 	}
 	var aliases []*ast.Symbol
@@ -586,10 +584,7 @@ func (c *Checker) getSymbolTableAliases(symbols ast.SymbolTable, tableId symbolT
 		}
 	}
 	if kind == stKindGlobals || kind == stKindExports || kind == stKindResolvedExports {
-		if c.symbolTableAliasCache == nil {
-			c.symbolTableAliasCache = make(map[symbolTableID][]*ast.Symbol)
-		}
-		c.symbolTableAliasCache[tableId] = aliases
+		c.symbolTableAliasCache.intern(tableId, aliases)
 	}
 	return aliases
 }
@@ -882,10 +877,8 @@ func (c *Checker) someSymbolTableInScope(
 // synthesized table lets someSymbolTableInScope expose them during accessibility checks.
 func (c *Checker) getClassExpressionNameTable(location *ast.Node) ast.SymbolTable {
 	nodeId := ast.GetNodeId(location)
-	if c.classExpressionNameTables != nil {
-		if table, ok := c.classExpressionNameTables[nodeId]; ok {
-			return table
-		}
+	if table, ok := c.classExpressionNameTables.get(c, nodeId); ok {
+		return table
 	}
 	classSymbol := c.getSymbolOfDeclaration(location)
 	nameText := location.AsClassExpression().Name().Text()
@@ -893,10 +886,7 @@ func (c *Checker) getClassExpressionNameTable(location *ast.Node) ast.SymbolTabl
 		return nil
 	}
 	table := ast.SymbolTable{nameText: classSymbol}
-	if c.classExpressionNameTables == nil {
-		c.classExpressionNameTables = make(map[ast.NodeId]ast.SymbolTable)
-	}
-	c.classExpressionNameTables[nodeId] = table
+	c.classExpressionNameTables.intern(nodeId, table)
 	return table
 }
 

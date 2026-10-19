@@ -319,9 +319,22 @@ func (c *Checker) isEnumTypeRelatedTo(source *ast.Symbol, target *ast.Symbol, er
 		return false
 	}
 	key := EnumRelationKey{sourceId: ast.GetSymbolId(sourceSymbol), targetId: ast.GetSymbolId(targetSymbol)}
-	if entry := c.enumRelation[key]; entry != RelationComparisonResultNone && !(entry&RelationComparisonResultFailed != 0 && errorReporter != nil) {
-		return entry&RelationComparisonResultSucceeded != 0
+	entry, _ := c.enumRelation.get(c, key)
+	if entry != RelationComparisonResultNone {
+		if entry&RelationComparisonResultFailed == 0 || errorReporter == nil {
+			return entry&RelationComparisonResultSucceeded != 0
+		}
+		// Recompute a cached failure only to elaborate it.
+		return c.isEnumTypeRelatedToWorker(sourceSymbol, targetSymbol, errorReporter)
 	}
+	pushed := c.memoActive() && c.enumRelation.enter(c, key)
+	related := c.isEnumTypeRelatedToWorker(sourceSymbol, targetSymbol, errorReporter)
+	c.enumRelation.set(c, key, core.IfElse(related, RelationComparisonResultSucceeded, RelationComparisonResultFailed))
+	c.exitMemo(pushed)
+	return related
+}
+
+func (c *Checker) isEnumTypeRelatedToWorker(sourceSymbol *ast.Symbol, targetSymbol *ast.Symbol, errorReporter ErrorReporter) bool {
 	targetEnumType := c.getTypeOfSymbol(targetSymbol)
 	for _, sourceProperty := range c.getPropertiesOfType(c.getTypeOfSymbol(sourceSymbol)) {
 		if sourceProperty.Flags()&ast.SymbolFlagsEnumMember != 0 {
@@ -330,7 +343,6 @@ func (c *Checker) isEnumTypeRelatedTo(source *ast.Symbol, target *ast.Symbol, er
 				if errorReporter != nil {
 					errorReporter(diagnostics.Property_0_is_missing_in_type_1, c.symbolToString(sourceProperty), c.TypeToStringEx(c.getDeclaredTypeOfSymbol(targetSymbol), nil /*enclosingDeclaration*/, TypeFormatFlagsUseFullyQualifiedType, nil))
 				}
-				c.enumRelation[key] = RelationComparisonResultFailed
 				return false
 			}
 			sourceValue := c.getEnumMemberValue(ast.GetDeclarationOfKind(sourceProperty, ast.KindEnumMember)).Value
@@ -341,7 +353,6 @@ func (c *Checker) isEnumTypeRelatedTo(source *ast.Symbol, target *ast.Symbol, er
 					if errorReporter != nil {
 						errorReporter(diagnostics.Each_declaration_of_0_1_differs_in_its_value_where_2_was_expected_but_3_was_given, c.symbolToString(targetSymbol), c.symbolToString(targetProperty), c.valueToString(targetValue), c.valueToString(sourceValue))
 					}
-					c.enumRelation[key] = RelationComparisonResultFailed
 					return false
 				}
 				// At this point we know that at least one of the values is 'undefined'.
@@ -357,13 +368,11 @@ func (c *Checker) isEnumTypeRelatedTo(source *ast.Symbol, target *ast.Symbol, er
 						knownStringValue := core.OrElse(sourceValue, targetValue)
 						errorReporter(diagnostics.One_value_of_0_1_is_the_string_2_and_the_other_is_assumed_to_be_an_unknown_numeric_value, c.symbolToString(targetSymbol), c.symbolToString(targetProperty), c.valueToString(knownStringValue))
 					}
-					c.enumRelation[key] = RelationComparisonResultFailed
 					return false
 				}
 			}
 		}
 	}
-	c.enumRelation[key] = RelationComparisonResultSucceeded
 	return true
 }
 

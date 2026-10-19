@@ -852,11 +852,13 @@ func (c *Checker) getNarrowedType(t *Type, candidate *Type, assumeTrue bool, che
 		return c.getNarrowedTypeWorker(t, candidate, assumeTrue, checkDerived)
 	}
 	key := NarrowedTypeKey{t, candidate, assumeTrue, checkDerived}
-	if narrowedType, ok := c.narrowedTypes[key]; ok {
+	if narrowedType, ok := c.narrowedTypes.get(c, key); ok {
 		return narrowedType
 	}
+	pushed := c.memoActive() && c.narrowedTypes.enter(c, key)
 	narrowedType := c.getNarrowedTypeWorker(t, candidate, assumeTrue, checkDerived)
-	c.narrowedTypes[key] = narrowedType
+	c.narrowedTypes.set(c, key, narrowedType)
+	c.exitMemo(pushed)
 	return narrowedType
 }
 
@@ -1346,10 +1348,10 @@ func (c *Checker) getTypeAtFlowLoopLabel(f *FlowState, flow *ast.FlowNode) FlowT
 		return FlowType{t: f.declaredType}
 	}
 	key := FlowLoopKey{flowNode: flow, refKey: f.refKey}
-	entry := c.flowLoopCache[key]
+	entry, _ := c.flowLoopCache.get(c, key)
 	if entry == nil {
 		entry = &flowLoopCacheEntry{}
-		c.flowLoopCache[key] = entry
+		c.flowLoopCache.intern(key, entry)
 	}
 	if c.memoActive() {
 		pushed := c.enterMemo(memoKeyOf(entry, memoFlowLoopType))
@@ -1539,11 +1541,11 @@ func getCandidateVariableDeclarationInitializer(node *ast.Node) *ast.Node {
 // and never escape the getFlowTypeOfReference function.
 func (c *Checker) getEvolvingArrayType(elementType *Type) *Type {
 	key := CachedTypeKey{kind: CachedTypeKindEvolvingArrayType, typeId: elementType.id}
-	result := c.cachedTypes[key]
+	result, _ := c.cachedTypes.get(c, key)
 	if result == nil {
 		result = c.newObjectType(ObjectFlagsEvolvingArray, nil)
 		result.AsEvolvingArrayType().elementType = elementType
-		c.cachedTypes[key] = result
+		c.cachedTypes.intern(key, result)
 	}
 	return result
 }
@@ -2435,10 +2437,12 @@ func (c *Checker) getAssignmentReducedType(declaredType *Type, assignedType *Typ
 		return assignedType
 	}
 	key := AssignmentReducedKey{id1: declaredType.id, id2: assignedType.id}
-	result := c.assignmentReducedTypes[key]
+	result, _ := c.assignmentReducedTypes.get(c, key)
 	if result == nil {
+		pushed := c.memoActive() && c.assignmentReducedTypes.enter(c, key)
 		result = c.getAssignmentReducedTypeWorker(declaredType, assignedType)
-		c.assignmentReducedTypes[key] = result
+		c.assignmentReducedTypes.set(c, key, result)
+		c.exitMemo(pushed)
 	}
 	return result
 }
@@ -2558,11 +2562,13 @@ func (c *Checker) isReachableFlowNodeWorker(f *FlowState, flow *ast.FlowNode, no
 		flags := flow.Flags
 		if flags&ast.FlowFlagsShared != 0 {
 			if !noCacheCheck && len(f.reduceLabels) == 0 {
-				if reachable, ok := c.flowNodeReachable[flow]; ok {
+				if reachable, ok := c.flowNodeReachable.get(c, flow); ok {
 					return reachable
 				}
+				pushed := c.memoActive() && c.flowNodeReachable.enter(c, flow)
 				reachable := c.isReachableFlowNodeWorker(f, flow, true /*noCacheCheck*/)
-				c.flowNodeReachable[flow] = reachable
+				c.flowNodeReachable.set(c, flow, reachable)
+				c.exitMemo(pushed)
 				return reachable
 			}
 			noCacheCheck = false
@@ -2644,11 +2650,13 @@ func (c *Checker) isPostSuperFlowNodeWorker(f *FlowState, flow *ast.FlowNode, no
 		flags := flow.Flags
 		if flags&ast.FlowFlagsShared != 0 {
 			if !noCacheCheck {
-				if postSuper, ok := c.flowNodePostSuper[flow]; ok {
+				if postSuper, ok := c.flowNodePostSuper.get(c, flow); ok {
 					return postSuper
 				}
+				pushed := c.memoActive() && c.flowNodePostSuper.enter(c, flow)
 				postSuper := c.isPostSuperFlowNodeWorker(f, flow, true /*noCacheCheck*/)
-				c.flowNodePostSuper[flow] = postSuper
+				c.flowNodePostSuper.set(c, flow, postSuper)
+				c.exitMemo(pushed)
 			}
 			noCacheCheck = false
 		}

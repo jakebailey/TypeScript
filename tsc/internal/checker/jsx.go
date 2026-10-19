@@ -265,9 +265,10 @@ func (c *Checker) getContextualTypeForChildJsxExpression(node *ast.Node, child *
 
 func (c *Checker) discriminateContextualTypeByJSXAttributes(node *ast.Node, contextualType *Type) *Type {
 	key := DiscriminatedContextualTypeKey{nodeId: ast.GetNodeId(node), typeId: contextualType.id}
-	if discriminated := c.discriminatedContextualTypes[key]; discriminated != nil {
+	if discriminated, _ := c.discriminatedContextualTypes.get(c, key); discriminated != nil {
 		return discriminated
 	}
+	pushed := c.memoActive() && c.discriminatedContextualTypes.enter(c, key)
 	jsxChildrenPropertyName := c.getJsxElementChildrenPropertyName(c.getJsxNamespaceAt(node))
 	discriminantProperties := core.Filter(node.Properties(), func(p *ast.Node) bool {
 		symbol := p.Symbol()
@@ -289,7 +290,8 @@ func (c *Checker) discriminateContextualTypeByJSXAttributes(node *ast.Node, cont
 	})
 	discriminator := &ObjectLiteralDiscriminator{c: c, props: discriminantProperties, members: discriminantMembers}
 	discriminated := c.discriminateTypeByDiscriminableItems(contextualType, discriminator)
-	c.discriminatedContextualTypes[key] = discriminated
+	c.discriminatedContextualTypes.set(c, key, discriminated)
+	c.exitMemo(pushed)
 	return discriminated
 }
 
