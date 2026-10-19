@@ -10391,6 +10391,10 @@ func (c *Checker) contextuallyCheckFunctionExpressionOrObjectLiteralMethod(node 
 			links.flags |= NodeCheckFlagsContextChecked
 			signature := core.FirstOrNil(c.getSignaturesOfType(c.getTypeOfSymbol(c.getSymbolOfDeclaration(node)), SignatureKindCall))
 			if signature == nil {
+				// The members of the function's type are being resolved, which
+				// can contextually check the function through its enclosing call.
+				// Leave the check to whoever asks once they are resolved.
+				links.flags &^= NodeCheckFlagsContextChecked
 				return
 			}
 			if c.isContextSensitive(node) {
@@ -10436,6 +10440,9 @@ func (c *Checker) contextuallyCheckFunctionExpressionOrObjectLiteralMethod(node 
 }
 
 func (c *Checker) checkFunctionExpressionOrObjectLiteralMethodDeferred(node *ast.Node) {
+	// Account for the contextual check of the function, which may have been
+	// performed by a query rather than by resolving the enclosing call.
+	c.contextuallyCheckFunctionExpressionOrObjectLiteralMethod(node, CheckModeNormal)
 	functionFlags := ast.GetFunctionFlags(node)
 	returnType := c.getReturnTypeFromAnnotation(node)
 	c.checkAllCodePathsInNonVoidFunctionReturnOrThrow(node, returnType)
