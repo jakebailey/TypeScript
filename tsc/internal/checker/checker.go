@@ -260,6 +260,7 @@ type FlowLoopKey struct {
 type FlowLoopInfo struct {
 	key   FlowLoopKey
 	types []*Type
+	id    uint64
 }
 
 // InferenceFlags
@@ -844,8 +845,8 @@ type Checker struct {
 	flowLoopCache                               map[FlowLoopKey]*Type
 	flowLoopStack                               []FlowLoopInfo
 	sharedFlows                                 []SharedFlow
+	flowLoopFrameCount                          uint64
 	antecedentTypes                             []*Type
-	flowAnalysisDisabled                        bool
 	flowInvocationCount                         int
 	flowTypeCache                               map[*ast.Node]*Type
 	lastFlowNode                                *ast.FlowNode
@@ -3866,13 +3867,7 @@ func (c *Checker) checkBlock(node *ast.Node) {
 	if node.Kind == ast.KindBlock {
 		c.checkGrammarStatementInAmbientContext(node)
 	}
-	if ast.IsFunctionOrModuleBlock(node) {
-		saveFlowAnalysisDisabled := c.flowAnalysisDisabled
-		c.checkSourceElements(node.Statements())
-		c.flowAnalysisDisabled = saveFlowAnalysisDisabled
-	} else {
-		c.checkSourceElements(node.Statements())
-	}
+	c.checkSourceElements(node.Statements())
 	if node.Locals().Len() != 0 {
 		c.registerForUnusedIdentifiersCheck(node)
 	}
