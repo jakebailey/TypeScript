@@ -24424,6 +24424,9 @@ func (c *Checker) getOuterTypeParameters(node *ast.Node, includeThisTypes bool) 
 			ast.KindConditionalType:
 			outerTypeParameters := c.getOuterTypeParameters(node, includeThisTypes)
 			if (kind == ast.KindFunctionExpression || kind == ast.KindArrowFunction || ast.IsObjectLiteralMethod(node)) && c.isContextSensitive(node) {
+				// The signature takes the type parameters of a generic contextual
+				// signature when the function is contextually checked.
+				c.contextuallyCheckFunctionExpressionOrObjectLiteralMethod(node, CheckModeNormal)
 				signature := core.FirstOrNil(c.getSignaturesOfType(c.getTypeOfSymbol(c.getSymbolOfDeclaration(node)), SignatureKindCall))
 				if signature != nil && len(signature.TypeParameters()) != 0 {
 					return append(outerTypeParameters, signature.TypeParameters()...)
