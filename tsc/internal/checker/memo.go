@@ -279,7 +279,7 @@ func (m *memoMap[K, V]) intern(k K, v V) {
 
 // compute computes and caches the result for k in a computation of its own.
 func (m *memoMap[K, V]) compute(c *Checker, k K, fn func() V) V {
-	pushed := c.memoActive() && m.enter(c, k)
+	pushed := c.memoEnterActive() && m.enter(c, k)
 	v := fn()
 	m.set(c, k, v)
 	c.exitMemo(pushed)
@@ -288,6 +288,7 @@ func (m *memoMap[K, V]) compute(c *Checker, k K, fn func() V) V {
 
 // enter starts the computation of the result for k; see enterMemo.
 func (m *memoMap[K, V]) enter(c *Checker, k K) bool {
+	c.enterInstantiationBudget()
 	if c.reporting {
 		if c.memoPendingCount != 0 && m.memoSlots != nil {
 			c.replayPending(m.memoSlots[k])
@@ -327,7 +328,7 @@ func (s *memoSet[K]) once(c *Checker, k K, fn func()) {
 	if s.m.has(c, k) {
 		return
 	}
-	pushed := c.memoActive() && s.m.enter(c, k)
+	pushed := c.memoEnterActive() && s.m.enter(c, k)
 	s.m.set(c, k, struct{}{})
 	fn()
 	c.exitMemo(pushed)
@@ -344,7 +345,7 @@ func (o *memoOnce) once(c *Checker, fn func()) {
 	if o.done.get(c) {
 		return
 	}
-	pushed := c.memoActive() && o.done.enter(c)
+	pushed := c.memoEnterActive() && o.done.enter(c)
 	o.done.set(c, true)
 	fn()
 	c.exitMemo(pushed)
@@ -363,12 +364,21 @@ func (c *Checker) memoActive() bool {
 	return !c.reporting || c.memoPendingCount != 0
 }
 
+// memoEnterActive reports whether memoized entry points must call enterMemo
+// and exitMemo: when tracking effects, or when an instantiation is in
+// progress, whose limits each memoized computation starts afresh (see
+// enterInstantiationBudget).
+func (c *Checker) memoEnterActive() bool {
+	return c.memoActive() || len(c.instantiationStack) != 0
+}
+
 // enterMemo is called on entry to a memoized function whose result for this
 // input is cached in the slot identified by key. It accounts for effects
 // recorded by a previous computation of that result, and in a non-reporting
 // activation starts a frame recording effects of this computation. The result
 // must be passed to exitMemo.
 func (c *Checker) enterMemo(key memoKey) bool {
+	c.enterInstantiationBudget()
 	if c.reporting {
 		if c.memoPendingCount != 0 {
 			c.replayPending(c.memoSlots[key])
@@ -492,6 +502,7 @@ func (c *Checker) replayPending(slot *memoSlot) {
 // for replay by later reuse of the result. The effects also become part of the
 // enclosing computation, since it observed the result.
 func (c *Checker) exitMemo(pushed bool) {
+	c.exitInstantiationBudget()
 	if !pushed {
 		return
 	}
@@ -828,7 +839,7 @@ func (c *Checker) typeResolutionMemo(r *TypeResolution) unsafe.Pointer {
 func memoizeGlobal[T any](c *Checker, fn func() T) func() T {
 	cell := &struct{ resolve func() T }{resolve: core.Memoize(fn)}
 	return func() T {
-		if c.memoActive() {
+		if c.memoEnterActive() {
 			pushed := c.enterMemo(memoKeyOf(cell, memoGlobal))
 			result := cell.resolve()
 			c.exitMemo(pushed)
@@ -836,4 +847,60 @@ func memoizeGlobal[T any](c *Checker, fn func() T) func() T {
 		}
 		return cell.resolve()
 	}
+}
+
+// Instantiation limits
+//
+// Instantiation stops with an error when nested too deeply or after too
+// many instantiations, as the instantiation is then very likely infinite.
+// For the result not to depend on what was cached before, each memoized
+// computation measures depth from where it started, and a reused result
+// adds no depth. Chains that start a new memoized computation at every
+// level are only stopped by a much larger limit on the whole outermost
+// instantiation, which is only reached by runaway instantiations, and which
+// does depend on what was cached before.
+//
+// TODO: The limit on the number of instantiations still counts the work of
+// the current statement or expression rather than of the result, so whether
+// it is reached depends on what was cached before. Counting per memoized
+// computation is pure, but most runaway instantiations cross a new memoized
+// computation at every level and so are then only stopped by a far larger
+// limit on the whole outermost instantiation. Instead, each cached result
+// could store a mergeable distinct-count sketch (e.g. HyperLogLog) of the
+// computations it needed, merged into the current sketch on reuse,
+// approximating the work to compute a result from scratch. Summing stored
+// costs instead overcounts shared results exponentially. Sketches need
+// computation IDs that do not depend on creation order, which type IDs
+// currently do.
+
+const (
+	instantiationDepthLimit      = 100
+	instantiationTotalDepthLimit = 1000
+	instantiationCountLimit      = 5_000_000
+)
+
+// enterInstantiationBudget starts the depth limit of a memoized computation.
+// It is called on entry to every memoized computation, and must be matched
+// by exitInstantiationBudget at the same instantiation depth.
+func (c *Checker) enterInstantiationBudget() {
+	if len(c.instantiationStack) != 0 {
+		c.instantiationDepthBases = append(c.instantiationDepthBases, c.instantiationDepthBase)
+		c.instantiationDepthBase = len(c.instantiationStack)
+	}
+}
+
+func (c *Checker) exitInstantiationBudget() {
+	if len(c.instantiationStack) != 0 {
+		n := len(c.instantiationDepthBases) - 1
+		c.instantiationDepthBase = c.instantiationDepthBases[n]
+		c.instantiationDepthBases = c.instantiationDepthBases[:n]
+	}
+}
+
+// instantiationLimitReached reports whether a further instantiation would
+// exceed a limit.
+func (c *Checker) instantiationLimitReached() bool {
+	depth := len(c.instantiationStack)
+	return depth-c.instantiationDepthBase == instantiationDepthLimit || depth == instantiationTotalDepthLimit ||
+		c.instantiationCount >= instantiationCountLimit
 }

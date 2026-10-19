@@ -525,7 +525,7 @@ func (c *Checker) getAccessibleSymbolChainEx(ctx accessibleSymbolChainContext) [
 	if existing, ok := c.accessibleChains.get(c, key); ok {
 		return existing
 	}
-	pushed := c.memoActive() && c.accessibleChains.enter(c, key)
+	pushed := c.memoEnterActive() && c.accessibleChains.enter(c, key)
 
 	var result []*ast.Symbol
 

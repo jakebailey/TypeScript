@@ -268,7 +268,7 @@ func (c *Checker) discriminateContextualTypeByJSXAttributes(node *ast.Node, cont
 	if discriminated, _ := c.discriminatedContextualTypes.get(c, key); discriminated != nil {
 		return discriminated
 	}
-	pushed := c.memoActive() && c.discriminatedContextualTypes.enter(c, key)
+	pushed := c.memoEnterActive() && c.discriminatedContextualTypes.enter(c, key)
 	jsxChildrenPropertyName := c.getJsxElementChildrenPropertyName(c.getJsxNamespaceAt(node))
 	discriminantProperties := core.Filter(node.Properties(), func(p *ast.Node) bool {
 		symbol := p.Symbol()
@@ -505,7 +505,7 @@ func (c *Checker) getJSXFragmentType(node *ast.Node) *Type {
 	if t := links.jsxFragmentType.get(c); t != nil {
 		return t
 	}
-	pushed := c.memoActive() && links.jsxFragmentType.enter(c)
+	pushed := c.memoEnterActive() && links.jsxFragmentType.enter(c)
 	t := c.getJSXFragmentTypeWorker(node)
 	links.jsxFragmentType.set(c, t)
 	c.exitMemo(pushed)

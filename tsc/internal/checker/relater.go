@@ -326,7 +326,7 @@ func (c *Checker) isEnumTypeRelatedTo(source *ast.Symbol, target *ast.Symbol, er
 		// Recompute a cached failure only to elaborate it.
 		return c.isEnumTypeRelatedToWorker(sourceSymbol, targetSymbol, errorReporter)
 	}
-	pushed := c.memoActive() && c.enumRelation.enter(c, key)
+	pushed := c.memoEnterActive() && c.enumRelation.enter(c, key)
 	related := c.isEnumTypeRelatedToWorker(sourceSymbol, targetSymbol, errorReporter)
 	c.enumRelation.set(c, key, core.IfElse(related, RelationComparisonResultSucceeded, RelationComparisonResultFailed))
 	c.exitMemo(pushed)
@@ -414,7 +414,7 @@ func (c *Checker) checkTypeRelatedToEx(
 	// The key is only needed when tracking effects or on overflow, so it is
 	// not hashed on the common path.
 	var id CacheHashKey
-	hasID := c.memoActive()
+	hasID := c.memoEnterActive()
 	pushedComparison := false
 	if hasID {
 		id, _ = c.getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
@@ -430,7 +430,7 @@ func (c *Checker) checkTypeRelatedToEx(
 	}
 	c.exitMemo(pushedComparison)
 	if r.overflow {
-		pushed := c.memoActive() && c.enterMemo(memoKeyOf(relation.overflowCell(id), memoRelationOverflow))
+		pushed := c.memoEnterActive() && c.enterMemo(memoKeyOf(relation.overflowCell(id), memoRelationOverflow))
 		if tr := c.tracer; tr != nil {
 			tr.Instant(tracing.PhaseCheckTypes, "checkTypeRelatedTo_DepthLimit", map[string]any{"sourceId": source.id, "targetId": target.id, "depth": len(r.sourceStack), "targetDepth": len(r.targetStack)})
 		}
@@ -1535,7 +1535,7 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 			popFn()
 		}()
 	}
-	pushed := c.memoActive() && links.variances.enter(c)
+	pushed := c.memoEnterActive() && links.variances.enter(c)
 	saveResolutionStart := c.resolutionStart
 	if len(c.varianceStack) == 0 {
 		c.resolutionStart = len(c.typeResolutions)

@@ -2027,7 +2027,7 @@ func (c *Checker) checkGrammarSourceFile(node *ast.SourceFile) bool {
 }
 
 func (c *Checker) reportStatementInAmbientContext(links *NodeLinks, node *ast.Node, message *diagnostics.Message) bool {
-	pushed := c.memoActive() && links.hasReportedStatementInAmbientContext.enter(c)
+	pushed := c.memoEnterActive() && links.hasReportedStatementInAmbientContext.enter(c)
 	reported := c.grammarErrorOnFirstToken(node, message)
 	links.hasReportedStatementInAmbientContext.set(c, reported)
 	c.exitMemo(pushed)

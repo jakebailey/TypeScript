@@ -1017,7 +1017,7 @@ func (c *Checker) inferTypeForHomomorphicMappedType(source *Type, target *Type, 
 	if cached, _ := c.reverseHomomorphicMappedCache.get(c, key); cached != nil {
 		return cached
 	}
-	pushed := c.memoActive() && c.reverseHomomorphicMappedCache.enter(c, key)
+	pushed := c.memoEnterActive() && c.reverseHomomorphicMappedCache.enter(c, key)
 	t := c.createReverseMappedType(source, target, constraint)
 	c.reverseHomomorphicMappedCache.set(c, key, t)
 	c.exitMemo(pushed)
@@ -1081,7 +1081,7 @@ func (c *Checker) inferReverseMappedType(source *Type, target *Type, constraint 
 	if cached, ok := c.reverseMappedCache.get(c, key); ok {
 		return core.OrElse(cached, c.unknownType)
 	}
-	pushed := c.memoActive() && c.reverseMappedCache.enter(c, key)
+	pushed := c.memoEnterActive() && c.reverseMappedCache.enter(c, key)
 	c.reverseMappedSourceStack = append(c.reverseMappedSourceStack, source)
 	c.reverseMappedTargetStack = append(c.reverseMappedTargetStack, target)
 	saveExpandingFlags := c.reverseExpandingFlags

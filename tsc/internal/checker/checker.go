@@ -607,6 +607,8 @@ type Checker struct {
 	compareSymbols                              func(*ast.Symbol, *ast.Symbol) int
 	compareSymbolChains                         func([]*ast.Symbol, []*ast.Symbol) int
 	instantiationCount                          uint32
+	instantiationDepthBase                      int
+	instantiationDepthBases                     []int
 	instantiationStack                          []*Type
 	conditionalConstraintDepth                  uint32
 	inlineLevel                                 int
@@ -2278,7 +2280,7 @@ func (c *Checker) getImmediateAliasedSymbol(symbol *ast.Symbol) *ast.Symbol {
 		if node == nil {
 			panic("Unexpected nil in getImmediateAliasedSymbol")
 		}
-		pushed := c.memoActive() && links.immediateTarget.enter(c)
+		pushed := c.memoEnterActive() && links.immediateTarget.enter(c)
 		links.immediateTarget.set(c, c.getTargetOfAliasDeclaration(node))
 		c.exitMemo(pushed)
 	}
@@ -5375,7 +5377,7 @@ func (c *Checker) getTypeOfModuleImportAttributes(symbol *ast.Symbol) *Type {
 	if t, ok := c.moduleImportAttributesTypes.get(c, symbol); ok {
 		return t
 	}
-	pushed := c.memoActive() && c.moduleImportAttributesTypes.enter(c, symbol)
+	pushed := c.memoEnterActive() && c.moduleImportAttributesTypes.enter(c, symbol)
 	var result *Type
 	moduleDecl := core.Find(symbol.Declarations(), ast.IsModuleWithStringLiteralName)
 	if moduleDecl == nil {
@@ -7585,7 +7587,7 @@ func (c *Checker) getTypeOfExpression(node *ast.Node) *Type {
 		if t, ok := c.flowExpressionTypes.get(c, node); ok {
 			return t
 		}
-		pushed := c.memoActive() && c.flowExpressionTypes.enter(c, node)
+		pushed := c.memoEnterActive() && c.flowExpressionTypes.enter(c, node)
 		startInvocationCount := c.flowInvocationCount
 		t := c.checkExpressionEx(node, CheckModeTypeOnly)
 		// If control flow analysis was required to determine the type, it is worth caching.
@@ -7604,7 +7606,7 @@ func (c *Checker) getTypeOfExpression(node *ast.Node) *Type {
 		}
 		return cachedType
 	}
-	pushed := c.memoActive() && c.enterMemo(key)
+	pushed := c.memoEnterActive() && c.enterMemo(key)
 	startInvocationCount := c.flowInvocationCount
 	t := c.checkExpressionEx(node, CheckModeTypeOnly)
 	if c.flowInvocationCount != startInvocationCount {
@@ -7821,7 +7823,7 @@ func (c *Checker) getContextFreeTypeOfExpression(node *ast.Node) *Type {
 	if cached, _ := c.contextFreeTypes.get(c, node); cached != nil {
 		return cached
 	}
-	pushed := c.memoActive() && c.contextFreeTypes.enter(c, node)
+	pushed := c.memoEnterActive() && c.contextFreeTypes.enter(c, node)
 	c.pushContextualType(node, c.anyType, false /*isCache*/)
 	t := c.checkExpressionEx(node, CheckModeSkipContextSensitive)
 	c.contextFreeTypes.set(c, node, t)
@@ -9402,7 +9404,7 @@ func (c *Checker) getOptionalCallSignature(signature *Signature, callChainFlags 
 	if cached, _ := c.cachedSignatures.get(c, key); cached != nil {
 		return cached
 	}
-	pushed := c.memoActive() && c.cachedSignatures.enter(c, key)
+	pushed := c.memoEnterActive() && c.cachedSignatures.enter(c, key)
 	result := c.cloneSignature(signature)
 	result.flags |= callChainFlags
 	c.cachedSignatures.set(c, key, result)
@@ -10521,7 +10523,7 @@ func (c *Checker) checkFunctionExpressionOrObjectLiteralMethod(node *ast.Node, c
 				if cached, ok := c.contextFreeTypes.get(c, node); ok {
 					return cached
 				}
-				pushed := c.memoActive() && c.contextFreeTypes.enter(c, node)
+				pushed := c.memoEnterActive() && c.contextFreeTypes.enter(c, node)
 				returnType := c.getReturnTypeFromBody(node, checkMode)
 				returnOnlySignature := c.newSignature(SignatureFlagsIsNonInferrable, nil, nil /*typeParameters*/, nil /*thisParameter*/, nil, returnType, nil /*resolvedTypePredicate*/, 0)
 				returnOnlyType := c.newAnonymousType(node.Symbol(), nil, []*Signature{returnOnlySignature}, nil, nil)
@@ -15275,7 +15277,7 @@ func (c *Checker) getTargetOfImportClause(node *ast.Node) *ast.Symbol {
 		alias := c.getSymbolOfDeclaration(node)
 		links := c.aliasSymbolLinks.Get(alias)
 		if links.immediateTarget.get(c) == nil {
-			pushed := c.memoActive() && links.immediateTarget.enter(c)
+			pushed := c.memoEnterActive() && links.immediateTarget.enter(c)
 			symbol := c.newSymbol(ast.SymbolFlagsFunctionScopedVariable, node.Name().Text())
 			symbol.SetDeclarations(alias.Declarations())
 			c.valueSymbolLinks.Get(symbol).resolvedType.init(c.getGlobalAbstractModuleSourceType())
@@ -16517,7 +16519,7 @@ func (c *Checker) getTypeWithSyntheticDefaultOnly(t *Type, symbol *ast.Symbol, o
 		if cached, _ := c.cachedTypes.get(c, key); cached != nil {
 			return cached
 		}
-		pushed := c.memoActive() && c.cachedTypes.enter(c, key)
+		pushed := c.memoEnterActive() && c.cachedTypes.enter(c, key)
 		result := c.createDefaultPropertyWrapperForModule(symbol, originalSymbol, nil)
 		c.cachedTypes.set(c, key, result)
 		c.exitMemo(pushed)
@@ -16532,7 +16534,7 @@ func (c *Checker) getTypeWithSyntheticDefaultImportType(t *Type, symbol *ast.Sym
 		if cached, _ := c.cachedTypes.get(c, key); cached != nil {
 			return cached
 		}
-		pushed := c.memoActive() && c.cachedTypes.enter(c, key)
+		pushed := c.memoEnterActive() && c.cachedTypes.enter(c, key)
 		defer c.exitMemo(pushed)
 		file := core.Find(originalSymbol.Declarations(), ast.IsSourceFile)
 		hasSyntheticDefault := c.canHaveSyntheticDefault(file, originalSymbol, false /*dontResolveAlias*/, moduleSpecifier)
@@ -19455,7 +19457,7 @@ func (c *Checker) getWidenedTypeWithContext(t *Type, context *WideningContext) *
 			if cached, _ := c.cachedTypes.get(c, key); cached != nil {
 				return cached
 			}
-			pushed := c.memoActive() && c.cachedTypes.enter(c, key)
+			pushed := c.memoEnterActive() && c.cachedTypes.enter(c, key)
 			defer c.exitMemo(pushed)
 		}
 		var result *Type
@@ -19594,7 +19596,7 @@ func (c *Checker) getUndefinedProperty(prop *ast.Symbol) *ast.Symbol {
 	if cached, _ := c.undefinedProperties.get(c, prop); cached != nil {
 		return cached
 	}
-	pushed := c.memoActive() && c.undefinedProperties.enter(c, prop)
+	pushed := c.memoEnterActive() && c.undefinedProperties.enter(c, prop)
 	result := c.createSymbolWithType(prop, c.undefinedOrMissingType)
 	result.SetFlags(result.Flags() | ast.SymbolFlagsOptional)
 	c.undefinedProperties.set(c, prop, result)
@@ -19823,7 +19825,7 @@ func (c *Checker) getEffectivePropertyNameForPropertyNameNode(node *ast.Property
 		if result := links.name.get(c); result != nil {
 			return result.name, result.exists
 		}
-		pushed := c.memoActive() && links.name.enter(c)
+		pushed := c.memoEnterActive() && links.name.enter(c)
 		name, exists := c.tryGetNameFromType(c.getTypeOfExpression(node.Expression()))
 		links.name.set(c, &computedName{name: name, exists: exists})
 		c.exitMemo(pushed)
@@ -20536,7 +20538,7 @@ func (c *Checker) getSignatureInstantiationWithoutFillingInTypeArguments(sig *Si
 	key := CachedSignatureKey{sig: sig, key: getTypeListKey(typeArguments)}
 	instantiation, _ := c.cachedSignatures.get(c, key)
 	if instantiation == nil {
-		pushed := c.memoActive() && c.cachedSignatures.enter(c, key)
+		pushed := c.memoEnterActive() && c.cachedSignatures.enter(c, key)
 		instantiation = c.createSignatureInstantiation(sig, typeArguments)
 		c.cachedSignatures.set(c, key, instantiation)
 		c.exitMemo(pushed)
@@ -20619,7 +20621,7 @@ func (c *Checker) getErasedSignature(signature *Signature) *Signature {
 	key := CachedSignatureKey{sig: signature, key: SignatureKeyErased}
 	erased, _ := c.cachedSignatures.get(c, key)
 	if erased == nil {
-		pushed := c.memoActive() && c.cachedSignatures.enter(c, key)
+		pushed := c.memoEnterActive() && c.cachedSignatures.enter(c, key)
 		erased = c.instantiateSignatureEx(signature, newArrayToSingleTypeMapper(signature.TypeParameters(), c.anyType), true /*eraseTypeParameters*/)
 		c.cachedSignatures.set(c, key, erased)
 		c.exitMemo(pushed)
@@ -20634,7 +20636,7 @@ func (c *Checker) getCanonicalSignature(signature *Signature) *Signature {
 	key := CachedSignatureKey{sig: signature, key: SignatureKeyCanonical}
 	canonical, _ := c.cachedSignatures.get(c, key)
 	if canonical == nil {
-		pushed := c.memoActive() && c.cachedSignatures.enter(c, key)
+		pushed := c.memoEnterActive() && c.cachedSignatures.enter(c, key)
 		canonical = c.createCanonicalSignature(signature)
 		c.cachedSignatures.set(c, key, canonical)
 		c.exitMemo(pushed)
@@ -20667,7 +20669,7 @@ func (c *Checker) getBaseSignature(signature *Signature) *Signature {
 	if cached, _ := c.cachedSignatures.get(c, key); cached != nil {
 		return cached
 	}
-	pushed := c.memoActive() && c.cachedSignatures.enter(c, key)
+	pushed := c.memoEnterActive() && c.cachedSignatures.enter(c, key)
 	baseConstraintMapper := newTypeMapper(typeParameters, core.Map(typeParameters, func(tp *Type) *Type {
 		return core.OrElse(c.getConstraintOfTypeParameter(tp), c.unknownType)
 	}))
@@ -23104,7 +23106,7 @@ func (c *Checker) getApparentTypeOfIntersectionType(t *Type, thisArgument *Type)
 	key := CachedTypeKey{kind: CachedTypeKindApparentType, typeId: thisArgument.id}
 	result, _ := c.cachedTypes.get(c, key)
 	if result == nil {
-		pushed := c.memoActive() && c.cachedTypes.enter(c, key)
+		pushed := c.memoEnterActive() && c.cachedTypes.enter(c, key)
 		result = c.getTypeWithThisArgument(t, thisArgument, true /*needApparentType*/)
 		c.cachedTypes.set(c, key, result)
 		c.exitMemo(pushed)
@@ -23460,9 +23462,10 @@ func (c *Checker) instantiateTypeWithAlias(t *Type, m *TypeMapper, alias *TypeAl
 	if t == nil || m == nil || !(c.couldContainTypeVariables(t) || (t.alias != nil && len(t.alias.typeArguments) > 0 && core.Some(t.alias.typeArguments, c.couldContainTypeVariables))) {
 		return t
 	}
-	if len(c.instantiationStack) == 100 || c.instantiationCount >= 5_000_000 {
-		// We have reached 100 recursive type instantiations, or 5M type instantiations caused by the same statement
-		// or expression. There is a very high likelihood we're dealing with a combination of infinite generic types
+	// See "Instantiation limits" in memo.go.
+	if c.instantiationLimitReached() {
+		// We have reached 100 recursive type instantiations in one computation, or 5M type instantiations caused by
+		// the same statement or expression. There is a very high likelihood we're dealing with a combination of infinite generic types
 		// that perpetually generate new type identities, so we stop the recursion here by yielding the error type.
 		if tr := c.tracer; tr != nil {
 			tr.Instant(tracing.PhaseCheckTypes, "instantiateType_DepthLimit", map[string]any{"typeId": t.id, "instantiationDepth": len(c.instantiationStack), "instantiationCount": c.instantiationCount})
@@ -23705,7 +23708,7 @@ func (c *Checker) getObjectTypeInstantiation(t *Type, m *TypeMapper, alias *Type
 	}
 	typeParameters = links.getOuterTypeParameters(c)
 	if typeParameters == nil {
-		pushed := c.memoActive() && links.outerTypeParameters.enter(c)
+		pushed := c.memoEnterActive() && links.outerTypeParameters.enter(c)
 		// The first time an anonymous type is instantiated we compute and store a list of the type
 		// parameters that are in scope (and therefore potentially referenced). For type literals that
 		// aren't the right hand side of a generic type alias declaration we optimize by reducing the
@@ -23767,7 +23770,7 @@ func (c *Checker) getObjectTypeInstantiation(t *Type, m *TypeMapper, alias *Type
 	}
 	result, _ := data.instantiations.get(c, key)
 	if result == nil {
-		pushed := c.memoActive() && data.instantiations.enter(c, key)
+		pushed := c.memoEnterActive() && data.instantiations.enter(c, key)
 		result = instantiate(newTypeMapper(typeParameters, typeArguments))
 		data.instantiations.setStable(c, key, result)
 		c.exitMemo(pushed)
@@ -23881,7 +23884,7 @@ func (c *Checker) getConditionalTypeInstantiation(t *Type, mapper *TypeMapper, f
 		key := getConditionalTypeKey(typeArguments, alias, forConstraint)
 		result, _ := root.instantiations.get(c, key)
 		if result == nil {
-			pushed := c.memoActive() && root.instantiations.enter(c, key)
+			pushed := c.memoEnterActive() && root.instantiations.enter(c, key)
 			newMapper := newTypeMapper(root.outerTypeParameters, typeArguments)
 			checkType := root.checkType
 			var distributionType *Type
@@ -25983,7 +25986,7 @@ func (c *Checker) getPermissiveInstantiation(t *Type) *Type {
 	if cached, _ := c.cachedTypes.get(c, key); cached != nil {
 		return cached
 	}
-	pushed := c.memoActive() && c.cachedTypes.enter(c, key)
+	pushed := c.memoEnterActive() && c.cachedTypes.enter(c, key)
 	result := c.instantiateType(t, c.permissiveMapper)
 	c.cachedTypes.set(c, key, result)
 	c.exitMemo(pushed)
@@ -25998,7 +26001,7 @@ func (c *Checker) getRestrictiveInstantiation(t *Type) *Type {
 	if cached, _ := c.cachedTypes.get(c, key); cached != nil {
 		return cached
 	}
-	pushed := c.memoActive() && c.cachedTypes.enter(c, key)
+	pushed := c.memoEnterActive() && c.cachedTypes.enter(c, key)
 	result := c.instantiateType(t, c.restrictiveMapper)
 	c.cachedTypes.set(c, key, result)
 	c.exitMemo(pushed)
@@ -26194,7 +26197,7 @@ func (c *Checker) getGlobalImportMetaExpressionType() *Type {
 	if t := c.deferredGlobalImportMetaExpressionType.get(c); t != nil {
 		return t
 	}
-	pushed := c.memoActive() && c.deferredGlobalImportMetaExpressionType.enter(c)
+	pushed := c.memoEnterActive() && c.deferredGlobalImportMetaExpressionType.enter(c)
 	// Create a synthetic type `ImportMetaExpression { meta: MetaProperty }`
 	symbol := c.newSymbol(ast.SymbolFlagsNone, "ImportMetaExpression")
 	importMetaType := c.getGlobalImportMetaType()
@@ -27012,7 +27015,7 @@ func (c *Checker) getBaseTypeOfLiteralTypeUnion(t *Type) *Type {
 	if cached, ok := c.cachedTypes.get(c, key); ok {
 		return cached
 	}
-	pushed := c.memoActive() && c.cachedTypes.enter(c, key)
+	pushed := c.memoEnterActive() && c.cachedTypes.enter(c, key)
 	result := c.mapType(t, c.getBaseTypeOfLiteralType)
 	c.cachedTypes.set(c, key, result)
 	c.exitMemo(pushed)
@@ -27187,7 +27190,7 @@ func (c *Checker) getUnionTypeEx(types []*Type, unionReduction UnionReduction, a
 		key := UnionOfUnionKey{id1: id1, id2: id2, r: unionReduction, a: getAliasKey(alias)}
 		t, _ := c.unionOfUnionTypes.get(c, key)
 		if t == nil {
-			pushed := c.memoActive() && c.unionOfUnionTypes.enter(c, key)
+			pushed := c.memoEnterActive() && c.unionOfUnionTypes.enter(c, key)
 			t = c.getUnionTypeWorker(types, unionReduction, alias, nil /*origin*/)
 			c.unionOfUnionTypes.set(c, key, t)
 			c.exitMemo(pushed)
@@ -27489,7 +27492,7 @@ func (c *Checker) removeSubtypes(types []*Type, hasObjectTypes bool) []*Type {
 	if cached, _ := c.subtypeReductionCache.get(c, key); cached != nil {
 		return cached
 	}
-	pushed := c.memoActive() && c.subtypeReductionCache.enter(c, key)
+	pushed := c.memoEnterActive() && c.subtypeReductionCache.enter(c, key)
 	// We assume that redundant primitive types have already been removed from the types array and that there
 	// are no any and unknown types in the array. Thus, the only possible supertypes for primitive types are empty
 	// object types, and if none of those are present we can exclude primitive types from the subtype check.
@@ -27719,7 +27722,7 @@ func (c *Checker) getIntersectionTypeEx(types []*Type, flags IntersectionFlags, 
 	key := getIntersectionKey(typeSet, flags, alias)
 	result, _ := c.intersectionTypes.get(c, key)
 	if result == nil {
-		pushed := c.memoActive() && c.intersectionTypes.enter(c, key)
+		pushed := c.memoEnterActive() && c.intersectionTypes.enter(c, key)
 		if includes&TypeFlagsUnion != 0 {
 			var reduced bool
 			typeSet, reduced = c.intersectUnionsOfPrimitiveTypes(typeSet)
@@ -28296,7 +28299,7 @@ func (c *Checker) getLiteralTypeFromProperties(t *Type, include TypeFlags, inclu
 	if cached, ok := c.propertiesTypes.get(c, key); ok {
 		return cached
 	}
-	pushed := c.memoActive() && c.propertiesTypes.enter(c, key)
+	pushed := c.memoEnterActive() && c.propertiesTypes.enter(c, key)
 	var origin *Type
 	if includeOrigin && t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsReference) != 0 || t.alias != nil {
 		origin = c.newIndexType(t, IndexFlagsNone)
@@ -29536,7 +29539,7 @@ func (c *Checker) getSimplifiedIndexedAccessType(t *Type, writing bool) *Type {
 	if cached, _ := c.cachedTypes.get(c, key); cached != nil {
 		return core.IfElse(cached == c.circularConstraintType, t, cached)
 	}
-	pushed := c.memoActive() && c.cachedTypes.enter(c, key)
+	pushed := c.memoEnterActive() && c.cachedTypes.enter(c, key)
 	// Resolve circular references to t itself while simplifying.
 	c.cachedTypes.intern(key, t)
 	result := c.getSimplifiedIndexedAccessTypeWorker(t, writing)
@@ -29630,7 +29633,7 @@ func (c *Checker) getSimplifiedConditionalType(t *Type, writing bool) *Type {
 	if cached, ok := c.cachedTypes.get(c, key); ok {
 		return cached
 	}
-	pushed := c.memoActive() && c.cachedTypes.enter(c, key)
+	pushed := c.memoEnterActive() && c.cachedTypes.enter(c, key)
 	result := c.getSimplifiedConditionalTypeWorker(t, writing)
 	c.cachedTypes.set(c, key, result)
 	c.exitMemo(pushed)
@@ -29726,7 +29729,7 @@ func (c *Checker) getSingleBaseForNonAugmentingSubtype(t *Type) *Type {
 	if cached, ok := c.cachedTypes.get(c, key); ok {
 		return cached
 	}
-	pushed := c.memoActive() && c.cachedTypes.enter(c, key)
+	pushed := c.memoEnterActive() && c.cachedTypes.enter(c, key)
 	result := c.getSingleBaseForNonAugmentingSubtypeWorker(t)
 	c.cachedTypes.set(c, key, result)
 	c.exitMemo(pushed)
@@ -29804,7 +29807,7 @@ func (c *Checker) getRegularTypeOfObjectLiteral(t *Type) *Type {
 	if cached, _ := c.cachedTypes.get(c, key); cached != nil {
 		return cached
 	}
-	pushed := c.memoActive() && c.cachedTypes.enter(c, key)
+	pushed := c.memoEnterActive() && c.cachedTypes.enter(c, key)
 	resolved := c.resolveStructuredTypeMembers(t)
 	members := c.transformTypeOfMembers(t, c.getRegularTypeOfObjectLiteral)
 	create := func() *Type {
@@ -30598,7 +30601,7 @@ func (c *Checker) getPromisedTypeOfPromiseEx(t *Type, errorNode *ast.Node, thisT
 	if cached, _ := c.cachedTypes.get(c, key); cached != nil {
 		return cached
 	}
-	pushed := c.memoActive() && c.cachedTypes.enter(c, key)
+	pushed := c.memoEnterActive() && c.cachedTypes.enter(c, key)
 	defer c.exitMemo(pushed)
 	if c.isReferenceToType(t, c.getGlobalPromiseType()) {
 		result := c.getTypeArguments(t)[0]
@@ -31844,7 +31847,7 @@ func (c *Checker) getLegacyDecoratorCallSignature(decorator *ast.Node) *Signatur
 	node := decorator.Parent
 	links := c.signatureLinks.Get(node)
 	if links.decoratorSignature.get(c) == nil {
-		pushed := c.memoActive() && links.decoratorSignature.enter(c)
+		pushed := c.memoEnterActive() && links.decoratorSignature.enter(c)
 		links.decoratorSignature.set(c, c.anySignature)
 		switch node.Kind {
 		case ast.KindClassDeclaration, ast.KindClassExpression:
@@ -31993,7 +31996,7 @@ func (c *Checker) getESDecoratorCallSignature(decorator *ast.Node) *Signature {
 	node := decorator.Parent
 	links := c.signatureLinks.Get(node)
 	if links.decoratorSignature.get(c) == nil {
-		pushed := c.memoActive() && links.decoratorSignature.enter(c)
+		pushed := c.memoEnterActive() && links.decoratorSignature.enter(c)
 		links.decoratorSignature.set(c, c.anySignature)
 		switch node.Kind {
 		case ast.KindClassDeclaration, ast.KindClassExpression:
@@ -32442,7 +32445,7 @@ func (c *Checker) discriminateContextualTypeByObjectMembers(node *ast.Node, cont
 	if discriminated, _ := c.discriminatedContextualTypes.get(c, key); discriminated != nil {
 		return discriminated
 	}
-	pushed := c.memoActive() && c.discriminatedContextualTypes.enter(c, key)
+	pushed := c.memoEnterActive() && c.discriminatedContextualTypes.enter(c, key)
 	discriminated := c.getMatchingUnionConstituentForObjectLiteral(contextualType, node)
 	if discriminated == nil {
 		discriminantProperties := core.Filter(node.Properties(), func(p *ast.Node) bool {
@@ -32967,7 +32970,7 @@ func (c *Checker) getAwaitedTypeNoAliasEx(t *Type, errorNode *ast.Node, diagnost
 	if awaitedType, _ := c.cachedTypes.get(c, key); awaitedType != nil {
 		return awaitedType
 	}
-	pushed := c.memoActive() && c.cachedTypes.enter(c, key)
+	pushed := c.memoEnterActive() && c.cachedTypes.enter(c, key)
 	defer c.exitMemo(pushed)
 	// For a union, get a union of the awaited types of each constituent.
 	if t.flags&TypeFlagsUnion != 0 {
@@ -33822,7 +33825,7 @@ func (c *Checker) containsArgumentsReference(node *ast.Node) bool {
 	if containsArguments, ok := c.cachedArgumentsReferenced.get(c, node); ok {
 		return containsArguments
 	}
-	pushed := c.memoActive() && c.cachedArgumentsReferenced.enter(c, node)
+	pushed := c.memoEnterActive() && c.cachedArgumentsReferenced.enter(c, node)
 
 	var visit func(node *ast.Node) bool
 	visit = func(node *ast.Node) bool {
