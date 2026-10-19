@@ -32609,7 +32609,9 @@ func (c *Checker) getSymbolOfNameOrPropertyAccessExpression(name *ast.Node) *ast
 			if ast.IsPropertyAccessExpression(name) {
 				c.checkPropertyAccessExpression(name, CheckModeNormal, false /*writeOnly*/)
 				if links.resolvedSymbol == nil && !ast.IsPrivateIdentifier(name.Name()) {
-					links.resolvedSymbol = c.getApplicableIndexSymbol(
+					// Not cached in links, where checking would observe it as the
+					// property the access resolved to.
+					return c.getApplicableIndexSymbol(
 						c.checkExpressionCached(name.Expression()),
 						c.getLiteralTypeFromPropertyName(name.Name()),
 					)
