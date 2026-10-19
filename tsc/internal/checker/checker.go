@@ -700,7 +700,6 @@ type Checker struct {
 	symbolNodeLinks                             nodeLinkStore[SymbolNodeLinks]
 	typeNodeLinks                               nodeLinkStore[TypeNodeLinks]
 	enumMemberLinks                             core.LinkStore[*ast.Node, EnumMemberLinks]
-	assertionLinks                              core.LinkStore[*ast.Node, AssertionLinks]
 	arrayLiteralLinks                           core.LinkStore[*ast.Node, ArrayLiteralLinks]
 	switchStatementLinks                        core.LinkStore[*ast.Node, SwitchStatementLinks]
 	jsxElementLinks                             core.LinkStore[*ast.Node, JsxElementLinks]
@@ -12536,26 +12535,40 @@ func (c *Checker) checkAssertion(node *ast.Node, checkMode CheckMode) *Type {
 		}
 	}
 	typeNode := node.Type()
-	exprType := c.checkExpressionEx(node.Expression(), checkMode)
+	isConst := isConstTypeReference(typeNode)
+	var exprType *Type
+	if isConst {
+		exprType = c.checkExpressionEx(node.Expression(), checkMode)
+	} else {
+		// Only the deferred check uses the operand type, and it uses the
+		// cached one, so compute that here rather than checking twice. The
+		// operand is contextually typed by the asserted type alone; hiding
+		// any inference in progress for an enclosing call keeps the cached
+		// type the same as when the deferred check computes it.
+		c.pushInferenceContext(node.Expression(), nil)
+		c.checkExpressionCached(node.Expression())
+		c.popInferenceContext()
+	}
 	// Always check the type node so its identifiers are resolved. resolveName knows not
 	// to resolve (or report an error for) the `const` in a `const` assertion, so this is
 	// safe even for `x as const` and keeps diagnostics stable regardless of traversal order.
 	c.checkSourceElement(typeNode)
-	if isConstTypeReference(typeNode) {
+	if isConst {
 		if !c.isValidConstAssertionArgument(node.Expression()) {
 			c.error(node.Expression(), diagnostics.A_const_assertion_can_only_be_applied_to_references_to_enum_members_or_string_number_boolean_array_or_object_literals)
 		}
 		return c.getRegularTypeOfLiteralType(exprType)
 	}
-	links := c.assertionLinks.Get(node)
-	links.exprType = exprType
 	c.checkNodeDeferred(node)
 	return c.getTypeFromTypeNode(typeNode)
 }
 
 func (c *Checker) checkAssertionDeferred(node *ast.Node) {
 	typeNode := node.Type()
-	exprType := c.getRegularTypeOfObjectLiteral(c.getBaseTypeOfLiteralType(c.assertionLinks.Get(node).exprType))
+	// The operand is checked in whatever mode the assertion was, so the
+	// deferred check uses its type in normal mode, which does not depend on
+	// which of those checks happened last.
+	exprType := c.getRegularTypeOfObjectLiteral(c.getBaseTypeOfLiteralType(c.checkExpressionCached(node.Expression())))
 	targetType := c.getTypeFromTypeNode(typeNode)
 	if !c.isErrorType(targetType) {
 		widenedType := c.getWidenedType(exprType)
