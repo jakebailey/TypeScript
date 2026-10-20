@@ -76,6 +76,8 @@ type memoEffects struct {
 	effects  []func(c *Checker)
 	deps     []*memoEffects
 	parent   *memoEffects // Frame d was most recently added to; avoids duplicate deps
+	entry    *ast.Node    // Current node when the computation started, if entered
+	entered  bool         // Whether this is the frame of a computation, not just a set of deps
 	replayed bool
 }
 
@@ -134,13 +136,6 @@ func (m *memo[T]) set(c *Checker, v T) {
 	}
 }
 
-// peek returns the cached result without accounting for effects. It is only
-// for a result whose computation is in progress, where reading it does not
-// observe it.
-func (m *memo[T]) peek() T {
-	return m.memoValue
-}
-
 // setStable is set for a result that defines the identity of what it
 // caches, such as a declared type, or that is part of an entity being
 // created, such as the type of a synthetic property. It is never discarded at
@@ -158,6 +153,13 @@ func (m *memo[T]) setStable(c *Checker, v T) {
 func (m *memo[T]) logUndo(c *Checker) {
 	old := m.memoValue
 	c.cycleUndo = append(c.cycleUndo, cycleUndo{unsafe.Pointer(m), func() { m.memoValue = old }, false})
+}
+
+// peek returns the cached result without accounting for effects. It is only
+// for a result whose computation is in progress, where reading it does not
+// observe it.
+func (m *memo[T]) peek() T {
+	return m.memoValue
 }
 
 // exchange replaces the cached result without accounting for effects. It is
@@ -351,6 +353,7 @@ func (o *memoOnce) once(c *Checker, fn func()) {
 type memoFrame struct {
 	effects *memoEffects // Allocated on first use
 	slot    *memoSlot
+	entry   *ast.Node // Current node when the computation started
 }
 
 // memoActive reports whether memoized entry points must track effects. When
@@ -383,7 +386,7 @@ func (c *Checker) enterSlot(slot *memoSlot) bool {
 			parent.addDep(slot.pending)
 		}
 	}
-	c.memoFrames = append(c.memoFrames, memoFrame{slot: slot})
+	c.memoFrames = append(c.memoFrames, memoFrame{slot: slot, entry: c.currentNode})
 	if slot.depth != 0 {
 		// Re-entering a computation in progress: the inner result is derived
 		// from whatever in-progress marker the outer computation left behind.
@@ -522,18 +525,45 @@ func (c *Checker) exitMemo(pushed bool) {
 }
 
 func (c *Checker) replayMemo(f *memoEffects) {
+	c.replayFrame(f, nil, false)
+}
+
+// replayFrame replays the effects of f and its dependencies. Effects located
+// at the current node that a computation started with (see
+// reportAtCurrentNode) are located at the node the reuse happens at instead,
+// as they would be had the computation happened there, unless the
+// computation started at a different node than the computation replaying it,
+// which then fixes its location.
+func (c *Checker) replayFrame(f *memoEffects, outerEntry *ast.Node, outerEntered bool) {
 	if f.replayed {
 		return
 	}
 	f.replayed = true
+	saveCurrentNode := c.currentNode
+	if f.entered {
+		// A computation that started at no node can be located anywhere,
+		// like one started at the node it is reused at.
+		if outerEntered && f.entry != outerEntry && f.entry != nil {
+			c.currentNode = f.entry
+		}
+		outerEntry, outerEntered = f.entry, true
+	}
 	for _, e := range f.effects {
 		e(c)
 	}
 	for _, d := range f.deps {
-		c.replayMemo(d)
+		c.replayFrame(d, outerEntry, outerEntered)
 	}
+	c.currentNode = saveCurrentNode
 	f.effects = nil
 	f.deps = nil
+}
+
+// currentNodeIsAmbient reports whether the current node is the one the
+// innermost computation in progress started with.
+func (c *Checker) currentNodeIsAmbient() bool {
+	n := len(c.memoFrames) - 1
+	return n >= 0 && c.memoFrames[n].entry == c.currentNode
 }
 
 func (c *Checker) currentMemoFrame() *memoEffects {
@@ -570,8 +600,15 @@ func (c *Checker) withoutReporting(fn func()) {
 	c.memoFrames = saveFrames
 	// Replaying is in order of computation, so effects apply in the order
 	// they would have in the reporting activation.
+	// They also happened at the current node, so only the effects of
+	// computations started there are located at it.
 	for _, slot := range slots {
-		c.replayPending(slot)
+		if slot.pending != nil {
+			f := slot.pending
+			slot.pending = nil
+			c.memoPendingCount--
+			c.replayFrame(f, c.currentNode, true)
+		}
 	}
 }
 
@@ -627,7 +664,7 @@ func (c *Checker) logDepsUndo(f *memoEffects) {
 func (c *Checker) memoFrameAt(i int) *memoEffects {
 	f := c.memoFrames[i].effects
 	if f == nil {
-		f = &memoEffects{}
+		f = &memoEffects{entry: c.memoFrames[i].entry, entered: true}
 		c.memoFrames[i].effects = f
 	}
 	return f

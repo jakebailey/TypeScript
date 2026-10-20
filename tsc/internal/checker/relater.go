@@ -217,7 +217,7 @@ func (c *Checker) isTypeRelatedTo(source *Type, target *Type, relation *Relation
 		}
 	}
 	if source.flags&TypeFlagsObject != 0 && target.flags&TypeFlagsObject != 0 {
-		id, _ := getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false)
+		id, _ := c.getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false)
 		related := relation.get(c, id)
 		if related != RelationComparisonResultNone {
 			if related&RelationComparisonResultOverflow != 0 {
@@ -417,13 +417,13 @@ func (c *Checker) checkTypeRelatedToEx(
 	hasID := c.memoActive()
 	pushedComparison := false
 	if hasID {
-		id, _ = getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
+		id, _ = c.getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
 		pushedComparison = relation.results.enter(c, id)
 	}
 	result := r.isRelatedToEx(source, target, RecursionFlagsBoth, errorNode != nil /*reportErrors*/, headMessage, IntersectionStateNone)
 	if r.overflow {
 		if !hasID {
-			id, _ = getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
+			id, _ = c.getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
 		}
 		// Record this relation as having failed such that we don't attempt the overflowing operation again.
 		relation.set(c, id, RelationComparisonResultFailed|RelationComparisonResultComplexityOverflow)
@@ -830,7 +830,7 @@ func isExcessPropertyCheckTarget(t *Type) bool {
 // structurally equal to at least maxDepth levels, but unequal at some level beyond that.
 func (c *Checker) isDeeplyNestedType(t *Type, stack []*Type, maxDepth int) bool {
 	if len(stack) >= maxDepth {
-		target := getRecursionIdentityTarget(t)
+		target := c.getRecursionIdentityTarget(t)
 		if target.flags&TypeFlagsIntersection != 0 {
 			for _, t := range target.Types() {
 				if c.isDeeplyNestedType(t, stack, maxDepth) {
@@ -842,7 +842,7 @@ func (c *Checker) isDeeplyNestedType(t *Type, stack []*Type, maxDepth int) bool 
 			count := 0
 			lastGeneration := 0
 			for _, t := range stack {
-				if hasMatchingRecursionIdentity(t, identity) {
+				if c.hasMatchingRecursionIdentity(t, identity) {
 					// We only count occurrences of a generation at least that of the previous occurrence, since
 					// newer instantiations caused by recursion are built from the previous ones, whereas nested
 					// type arguments are older than the types they are arguments of.
@@ -959,11 +959,11 @@ func (c *Checker) deeplyNestedStart(t *Type, stack []*Type, maxDepth int) int {
 	return 0
 }
 
-func hasMatchingRecursionIdentity(t *Type, identity RecursionId) bool {
-	target := getRecursionIdentityTarget(t)
+func (c *Checker) hasMatchingRecursionIdentity(t *Type, identity RecursionId) bool {
+	target := c.getRecursionIdentityTarget(t)
 	if target.flags&TypeFlagsIntersection != 0 {
 		for _, t := range target.Types() {
-			if hasMatchingRecursionIdentity(t, identity) {
+			if c.hasMatchingRecursionIdentity(t, identity) {
 				return true
 			}
 		}
@@ -972,8 +972,8 @@ func hasMatchingRecursionIdentity(t *Type, identity RecursionId) bool {
 	return getRecursionIdentityFromTarget(target) == identity
 }
 
-func getRecursionIdentity(t *Type) RecursionId {
-	return getRecursionIdentityFromTarget(getRecursionIdentityTarget(t))
+func (c *Checker) getRecursionIdentity(t *Type) RecursionId {
+	return getRecursionIdentityFromTarget(c.getRecursionIdentityTarget(t))
 }
 
 // Get the recursion identity target type from a type. Recursively (a) obtain the target object type of an
@@ -982,15 +982,15 @@ func getRecursionIdentity(t *Type) RecursionId {
 // to explicitly written object literals. For example in `Mapped<{ x: Mapped<{ x: Mapped<{ x: string }>}>}>`,
 // each of the mapped type applications will have a unique recursion identity (that of their target object type
 // literal) and thus avoid appearing deeply nested.
-func getRecursionIdentityTarget(t *Type) *Type {
+func (c *Checker) getRecursionIdentityTarget(t *Type) *Type {
 	if t.flags&TypeFlagsIndexedAccess != 0 {
-		return getRecursionIdentityTarget(t.AsIndexedAccessType().objectType)
+		return c.getRecursionIdentityTarget(t.AsIndexedAccessType().objectType)
 	}
 	if t.objectFlags&ObjectFlagsInstantiatedMapped == ObjectFlagsInstantiatedMapped {
-		target := t.checker.getModifiersTypeFromMappedType(t)
+		target := c.getModifiersTypeFromMappedType(t)
 		if target != nil && (target.symbol != nil || target.flags&TypeFlagsIntersection != 0 &&
 			core.Some(target.Types(), func(t *Type) bool { return t.symbol != nil })) {
-			return getRecursionIdentityTarget(target)
+			return c.getRecursionIdentityTarget(target)
 		}
 	}
 	return t
@@ -3442,7 +3442,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		// important to have well-defined behavior even in cases that shouldn't normally occur.
 		return TernaryFalse
 	}
-	id, constrained := getRelationKey(source, target, intersectionState, r.relation == r.c.identityRelation, false /*ignoreConstraints*/)
+	id, constrained := r.c.getRelationKey(source, target, intersectionState, r.relation == r.c.identityRelation, false /*ignoreConstraints*/)
 	if entry := r.relation.get(r.c, id); entry != RelationComparisonResultNone {
 		if reportErrors && entry&RelationComparisonResultFailed != 0 && entry&RelationComparisonResultOverflow == 0 {
 			// We are elaborating errors and the cached result is a failure not due to a comparison overflow,
@@ -3473,7 +3473,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	// type parameters. For such keys we also check against the key we would have gotten if all type parameters
 	// were unconstrained.
 	if constrained {
-		broadestEquivalentId, _ := getRelationKey(source, target, intersectionState, r.relation == r.c.identityRelation, true /*ignoreConstraints*/)
+		broadestEquivalentId, _ := r.c.getRelationKey(source, target, intersectionState, r.relation == r.c.identityRelation, true /*ignoreConstraints*/)
 		if i, ok := r.maybeKeysSet[broadestEquivalentId]; ok {
 			return r.assume(i)
 		}

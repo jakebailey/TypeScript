@@ -977,7 +977,7 @@ type checkerStore struct {
 	ambientModules                          []*ast.Symbol
 	reportedUnreachableNodes                memoSet[*ast.Node]
 	nonExistentProperties                   collections.Set[NonExistentPropertyKey]
-	deferredDiagnosticCallbacks             []func()
+	deferredDiagnosticCallbacks             []func(c *Checker)
 	memoSlots                               map[memoKey]*memoSlot // Memo state of results computed when not reporting; see memo.go
 	memoPendingCount                        int                   // Number of memoSlots with unreplayed effects
 
@@ -1674,7 +1674,7 @@ func (c *Checker) onFailedToResolveSymbol(errorLocation *ast.Node, name string, 
 	// resolution that failed would make the explanation, and any circularity
 	// errors it causes, depend on what else happened to be in progress. Defer
 	// it until no resolution is in progress, so it only observes results.
-	c.addDeferredDiagnostic(func() {
+	c.addDeferredDiagnostic(func(c *Checker) {
 		c.reportFailedToResolveSymbol(errorLocation, name, meaning, nameNotFoundMessage)
 	})
 }
@@ -6521,7 +6521,7 @@ func (c *Checker) getIterationTypesOfIterableWorker(t *Type, use IterationUse, e
 			iterationTypes := c.getIterationTypesOfIterableWorker(constituent, use, nil, noCache)
 			if !iterationTypes.hasTypes() {
 				if errorNode != nil {
-					c.addDeferredDiagnostic(func() {
+					c.addDeferredDiagnostic(func(c *Checker) {
 						c.reportTypeNotIterableError(errorNode, t, use&IterationUseAllowsAsyncIterablesFlag != 0)
 					})
 				}
@@ -6574,7 +6574,7 @@ func (c *Checker) getIterationTypesOfIterableWorker(t *Type, use IterationUse, e
 	if errorNode != nil {
 		// We defer the diagnostic because TypeToString may attempt to resolve symbols that are already being
 		// resolved, possibly causing circularities.
-		c.addDeferredDiagnostic(func() {
+		c.addDeferredDiagnostic(func(c *Checker) {
 			diagnostic := c.reportTypeNotIterableError(errorNode, t, use&IterationUseAllowsAsyncIterablesFlag != 0)
 			for _, d := range diags {
 				diagnostic.AddRelatedInfo(d)
@@ -10967,7 +10967,7 @@ func (c *Checker) setNodeLinksForPrivateIdentifierScope(node *ast.Node) {
 func (c *Checker) recordPotentialCollisionWithWeakMapSetInGeneratedCode(node *ast.Node, name *ast.Node) {
 	if c.languageVersion <= core.ScriptTargetES2021 &&
 		(c.needCollisionCheckForIdentifier(node, name, "WeakMap") || c.needCollisionCheckForIdentifier(node, name, "WeakSet")) {
-		c.addDeferredDiagnostic(func() {
+		c.addDeferredDiagnostic(func(c *Checker) {
 			c.checkWeakMapSetCollision(node)
 		})
 	}
@@ -11001,7 +11001,7 @@ func (c *Checker) checkCollisionWithGlobalPromiseInGeneratedCode(node *ast.Node,
 
 func (c *Checker) recordPotentialCollisionWithReflectInGeneratedCode(node *ast.Node, name *ast.Node) {
 	if name != nil && c.languageVersion <= core.ScriptTargetES2021 && c.needCollisionCheckForIdentifier(node, name, "Reflect") {
-		c.addDeferredDiagnostic(func() {
+		c.addDeferredDiagnostic(func(c *Checker) {
 			c.checkReflectCollision(node)
 		})
 	}
@@ -11806,7 +11806,7 @@ func (c *Checker) checkPropertyAccessExpressionOrQualifiedName(node *ast.Node, l
 				return c.anyType
 			}
 			if right.Text() != "" && !c.checkAndReportErrorForExtendingInterface(node) {
-				c.addDeferredDiagnostic(func() {
+				c.addDeferredDiagnostic(func(c *Checker) {
 					// must be deferred because reporting this error can cause us to materialize the containing type completely (to print it), leading to erroneous circularity errors
 					c.reportNonexistentProperty(right, core.IfElse(isThisTypeParameter(leftType), apparentType, leftType), isUncheckedJS)
 				})
@@ -14596,7 +14596,9 @@ func (c *Checker) GetGlobalDiagnostics() []*ast.Diagnostic {
 	return c.diagnostics.GetGlobalDiagnostics()
 }
 
-func (c *Checker) addDeferredDiagnostic(callback func()) {
+// Deferred callbacks receive the activation that produces them, since the one
+// that queued them may be a non-reporting clone sharing this store.
+func (c *Checker) addDeferredDiagnostic(callback func(c *Checker)) {
 	if !c.reporting {
 		c.recordEffect(func(c *Checker) { c.addDeferredDiagnostic(callback) })
 		return
@@ -14606,7 +14608,7 @@ func (c *Checker) addDeferredDiagnostic(callback func()) {
 
 func (c *Checker) produceDeferredDiagnostics() {
 	for _, cb := range c.deferredDiagnosticCallbacks {
-		cb()
+		cb(c)
 	}
 	c.deferredDiagnosticCallbacks = nil
 }
@@ -14649,7 +14651,12 @@ func (c *Checker) errorAtCurrentNode(message *diagnostics.Message, args ...any) 
 
 func (c *Checker) reportAtCurrentNode(report func(c *Checker, node *ast.Node)) {
 	if !c.reporting {
+		// A node the computation started at is where the computation was
+		// requested from, so it is located wherever the result is reused.
 		node := c.currentNode
+		if c.currentNodeIsAmbient() {
+			node = nil
+		}
 		c.recordEffect(func(c *Checker) { report(c, core.OrElse(node, c.currentNode)) })
 		return
 	}
@@ -18440,7 +18447,7 @@ func (b *keyBuilder) writeAlias(alias *TypeAlias) {
 	}
 }
 
-func (b *keyBuilder) writeGenericTypeReferences(source *Type, target *Type, ignoreConstraints bool) bool {
+func (b *keyBuilder) writeGenericTypeReferences(c *Checker, source *Type, target *Type, ignoreConstraints bool) bool {
 	var constrained bool
 	typeParameters := make([]*Type, 0, 8)
 	var writeTypeReference func(*Type, int)
@@ -18448,7 +18455,7 @@ func (b *keyBuilder) writeGenericTypeReferences(source *Type, target *Type, igno
 		b.writeType(ref.Target())
 		for _, t := range ref.AsTypeReference().resolvedTypeArguments {
 			if t.flags&TypeFlagsTypeParameter != 0 {
-				if ignoreConstraints || t.checker.getConstraintOfTypeParameter(t) == nil {
+				if ignoreConstraints || c.getConstraintOfTypeParameter(t) == nil {
 					index := slices.Index(typeParameters, t)
 					if index < 0 {
 						index = len(typeParameters)
@@ -18459,7 +18466,7 @@ func (b *keyBuilder) writeGenericTypeReferences(source *Type, target *Type, igno
 					continue
 				}
 				constrained = true
-			} else if depth < 4 && isTypeReferenceWithGenericArguments(t) {
+			} else if depth < 4 && c.isTypeReferenceWithGenericArguments(t) {
 				b.writeByte('<')
 				writeTypeReference(t, depth+1)
 				b.writeByte('>')
@@ -18650,22 +18657,22 @@ func getConditionalTypeKey(typeArguments []*Type, alias *TypeAlias, forConstrain
 	return b.hash()
 }
 
-func getRelationKey(source *Type, target *Type, intersectionState IntersectionState, isIdentity bool, ignoreConstraints bool) (CacheHashKey, bool) {
+func (c *Checker) getRelationKey(source *Type, target *Type, intersectionState IntersectionState, isIdentity bool, ignoreConstraints bool) (CacheHashKey, bool) {
 	if isIdentity && source.id > target.id {
 		source, target = target, source
 	}
 	var b keyBuilder
 	var constrained bool
-	if isTypeReferenceWithGenericArguments(source) && isTypeReferenceWithGenericArguments(target) {
+	if c.isTypeReferenceWithGenericArguments(source) && c.isTypeReferenceWithGenericArguments(target) {
 		// Marker types are compared structurally while their variances are being
 		// measured, and other instantiations with the same key by those variances,
 		// which may be guesses until the measurement finishes.
-		if source.checker.isMarkerType(source) || source.checker.isMarkerType(target) {
+		if c.isMarkerType(source) || c.isMarkerType(target) {
 			b.writeByte('m')
 		} else {
 			b.writeByte('g')
 		}
-		constrained = b.writeGenericTypeReferences(source, target, ignoreConstraints)
+		constrained = b.writeGenericTypeReferences(c, source, target, ignoreConstraints)
 	} else {
 		b.writeByte('s')
 		b.writeType(source)
@@ -18684,9 +18691,9 @@ func getNodeListKey(nodes []*ast.Node) CacheHashKey {
 	return b.hash()
 }
 
-func isTypeReferenceWithGenericArguments(t *Type) bool {
-	return isNonDeferredTypeReference(t) && core.Some(t.checker.getTypeArguments(t), func(t *Type) bool {
-		return t.flags&TypeFlagsTypeParameter != 0 || isTypeReferenceWithGenericArguments(t)
+func (c *Checker) isTypeReferenceWithGenericArguments(t *Type) bool {
+	return isNonDeferredTypeReference(t) && core.Some(c.getTypeArguments(t), func(t *Type) bool {
+		return t.flags&TypeFlagsTypeParameter != 0 || c.isTypeReferenceWithGenericArguments(t)
 	})
 }
 
@@ -19941,6 +19948,13 @@ func (c *Checker) findResolutionCycleStartIndex(target TypeSystemEntity, propert
 	for i := len(c.typeResolutions) - 1; i >= c.resolutionStart; i-- {
 		resolution := &c.typeResolutions[i]
 		if c.typeResolutionHasProperty(resolution) {
+			// Only now does the search depend on the result, which was set
+			// before its computation finished.
+			if c.memoActive() {
+				if p := c.typeResolutionMemo(resolution); p != nil {
+					c.observeCell(p)
+				}
+			}
 			return -1
 		}
 		if resolution.target == target && resolution.propertyName == propertyName {
@@ -19950,35 +19964,39 @@ func (c *Checker) findResolutionCycleStartIndex(target TypeSystemEntity, propert
 	return -1
 }
 
+// typeResolutionHasProperty reports whether a resolution on the stack already
+// has a result. Its computation is in progress, so the result is read without
+// observing it; see findResolutionCycleStartIndex.
 func (c *Checker) typeResolutionHasProperty(r *TypeResolution) bool {
 	switch r.propertyName {
 	case TypeSystemPropertyNameType:
-		return c.valueSymbolLinks.Get(r.target.(*ast.Symbol)).resolvedType.get(c) != nil
+		return c.valueSymbolLinks.Get(r.target.(*ast.Symbol)).resolvedType.peek() != nil
 	case TypeSystemPropertyNameDeclaredType:
-		return c.typeAliasLinks.Get(r.target.(*ast.Symbol)).declaredType.get(c) != nil
+		return c.typeAliasLinks.Get(r.target.(*ast.Symbol)).declaredType.peek() != nil
 	case TypeSystemPropertyNameResolvedTypeArguments:
 		return r.target.(*Type).AsTypeReference().resolvedTypeArguments != nil
 	case TypeSystemPropertyNameResolvedBaseTypes:
 		return r.target.(*Type).AsInterfaceType().baseTypesResolved
 	case TypeSystemPropertyNameResolvedBaseConstructorType:
-		return r.target.(*Type).AsInterfaceType().resolvedBaseConstructorType.get(c) != nil
+		return r.target.(*Type).AsInterfaceType().resolvedBaseConstructorType.peek() != nil
 	case TypeSystemPropertyNameResolvedReturnType:
-		return r.target.(*Signature).resolvedReturnType.get(c) != nil
+		return r.target.(*Signature).resolvedReturnType.peek() != nil
 	case TypeSystemPropertyNameResolvedBaseConstraint:
-		return r.target.(*Type).AsConstrainedType().resolvedBaseConstraint.get(c) != nil
+		return r.target.(*Type).AsConstrainedType().resolvedBaseConstraint.peek() != nil
 	case TypeSystemPropertyNameInitializerIsUndefined:
 		return c.nodeLinks.Get(r.target.(*ast.Node)).flags&NodeCheckFlagsInitializerIsUndefinedComputed != 0
 	case TypeSystemPropertyNameWriteType:
-		return c.valueSymbolLinks.Get(r.target.(*ast.Symbol)).getWriteType(c) != nil
+		extra := c.valueSymbolLinks.Get(r.target.(*ast.Symbol)).extra
+		return extra != nil && extra.writeType.peek() != nil
 	case TypeSystemPropertyNameAliasTarget:
-		return c.aliasSymbolLinks.Get(r.target.(*ast.Symbol)).aliasTarget.get(c) != nil
-	case TypeSystemPropertyNameComputedPropertyName:
-		return c.typeNodeLinks.Get(r.target.(*ast.Node)).resolvedType.peek() != nil
+		return c.aliasSymbolLinks.Get(r.target.(*ast.Symbol)).aliasTarget.peek() != nil
 	case TypeSystemPropertyNameContextChecked:
 		// Marked as checked on entry, so it is only on the stack while in progress.
 		return false
+	case TypeSystemPropertyNameComputedPropertyName:
+		return c.typeNodeLinks.Get(r.target.(*ast.Node)).resolvedType.peek() != nil
 	case TypeSystemPropertyNameVariances:
-		return c.varianceLinks.Get(r.target.(*ast.Symbol)).variances.get(c) != nil
+		return c.varianceLinks.Get(r.target.(*ast.Symbol)).variances.peek() != nil
 	}
 	panic("Unhandled case in typeResolutionHasProperty")
 }
@@ -29050,7 +29068,7 @@ func (c *Checker) getResolvedBaseConstraintUncached(t *Type, stack []RecursionId
 	// levels of nesting, we are presumably exploring a repeating pattern with a long cycle that hasn't
 	// yet triggered the deeply nested limiter. We have no test cases that actually get to 50 levels of
 	// nesting, so it is effectively just a safety stop.
-	identity := getRecursionIdentity(t)
+	identity := c.getRecursionIdentity(t)
 	if len(stack) < 10 || len(stack) < 50 && !slices.Contains(stack, identity) {
 		constraint = c.computeBaseConstraint(c.getSimplifiedType(t /*writing*/, false), append(stack, identity))
 	}
