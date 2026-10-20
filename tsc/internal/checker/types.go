@@ -781,6 +781,7 @@ type Type struct {
 	objectFlags ObjectFlags
 	id          TypeId
 	kind        typeKind
+	generation  uint16 // see Checker.typeGeneration; zero until computed
 	symbol      *ast.Symbol
 	alias       *TypeAlias
 	checker     *Checker
