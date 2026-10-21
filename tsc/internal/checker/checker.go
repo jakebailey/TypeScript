@@ -25204,6 +25204,7 @@ func (c *Checker) getRestrictiveTypeParameter(t *Type) *Type {
 	}
 	result := c.newTypeParameter(t.symbol)
 	result.AsTypeParameter().constraint = c.noConstraintType
+	result.AsTypeParameter().origin = t
 	c.cachedTypes[key] = result
 	return result
 }
@@ -25498,6 +25499,9 @@ func (c *Checker) createTupleTargetType(elementInfos []TupleElementInfo, readonl
 	d.thisType = c.newTypeParameter(nil)
 	d.thisType.AsTypeParameter().isThisType = true
 	d.thisType.AsTypeParameter().constraint = t
+	for _, tp := range typeParameters {
+		tp.AsTypeParameter().origin = t
+	}
 	d.allTypeParameters = append(typeParameters, d.thisType)
 	d.instantiations = make(map[CacheHashKey]*Type)
 	d.instantiations[getTypeListKey(d.TypeParameters())] = t
