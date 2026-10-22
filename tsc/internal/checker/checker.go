@@ -73,6 +73,7 @@ const (
 	TypeSystemPropertyNameCurrentNode
 	TypeSystemPropertyNameSimplifiedForReading
 	TypeSystemPropertyNameSimplifiedForWriting
+	TypeSystemPropertyNameDefaultType
 )
 
 type TypeResolution struct {
@@ -80,6 +81,9 @@ type TypeResolution struct {
 	propertyName TypeSystemPropertyName
 	result       bool
 	memoDepth    int // len(memoFrames) when pushed; see memo.go
+	// canonical is the member of a cycle headed by this resolution that is
+	// resolved first; see observeCircularHead.
+	canonical TypeSystemEntity
 }
 
 // ContextualInfo
@@ -19946,6 +19950,44 @@ func (c *Checker) isResolutionInProgress(target TypeSystemEntity, propertyName T
 	return true
 }
 
+// observeCircularHead is for computations where re-entering one in progress
+// fails only that computation, while the others complete from its failed
+// result. Which member fails then depends on which was entered first, so the
+// cycle records its canonical member, the first in program order, and the
+// head resolves that member first when it finishes; see popCircularHead.
+// Everything else cached during the cycle is discarded like for
+// isResolutionInProgress.
+func (c *Checker) observeCircularHead(target TypeSystemEntity, propertyName TypeSystemPropertyName, compare func(a, b TypeSystemEntity) int) {
+	start := c.findResolutionCycleStartIndex(target, propertyName)
+	if start < 0 {
+		return
+	}
+	c.taintResolutionCycle(start)
+	head := &c.typeResolutions[start]
+	canonical := core.OrElse(head.canonical, head.target)
+	for i := start + 1; i < len(c.typeResolutions); i++ {
+		if r := &c.typeResolutions[i]; r.propertyName == propertyName && compare(r.target, canonical) < 0 {
+			canonical = r.target
+		}
+	}
+	head.canonical = canonical
+}
+
+// popCircularHead pops a resolution that may head a cycle observed by
+// observeCircularHead. It returns the cycle's canonical member when that is
+// not the head itself, in which case everything cached during the cycle has
+// been discarded and the caller must resolve the canonical member before
+// resolving the head again.
+func (c *Checker) popCircularHead() TypeSystemEntity {
+	r := &c.typeResolutions[len(c.typeResolutions)-1]
+	canonical := r.canonical
+	if canonical == r.target {
+		canonical = nil
+	}
+	c.popTypeResolution()
+	return canonical
+}
+
 // enterCurrentNode makes node the node being checked, until the matching
 // exitCurrentNode. Its entry on the type resolution stack delimits the
 // results that errors located at node (see reportAtCurrentNode) depend on.
@@ -20068,7 +20110,7 @@ func (c *Checker) typeResolutionHasProperty(r *TypeResolution) bool {
 	case TypeSystemPropertyNameAliasTarget:
 		return c.aliasSymbolLinks.Get(r.target.(*ast.Symbol)).aliasTarget.peek() != nil
 	case TypeSystemPropertyNameContextChecked, TypeSystemPropertyNameStructuredMembers, TypeSystemPropertyNameCurrentNode,
-		TypeSystemPropertyNameSimplifiedForReading, TypeSystemPropertyNameSimplifiedForWriting:
+		TypeSystemPropertyNameSimplifiedForReading, TypeSystemPropertyNameSimplifiedForWriting, TypeSystemPropertyNameDefaultType:
 		// Marked as checked or resolved on entry, so it is only on the stack
 		// while in progress.
 		return false
@@ -23506,30 +23548,79 @@ func (c *Checker) getResolvedTypeParameterDefault(t *Type) *Type {
 				d.resolvedDefaultType.set(c, c.noConstraintType)
 			}
 		} else {
-			// To block recursion, set the initial value to the resolvingDefaultType.
-			d.resolvedDefaultType.set(c, c.resolvingDefaultType)
-			defaultType := c.noConstraintType
-			if t.symbol != nil {
-				defaultDeclaration := core.FirstNonNil(t.symbol.Declarations(), func(decl *ast.Node) *ast.Node {
-					if ast.IsTypeParameterDeclaration(decl) {
-						return decl.AsTypeParameterDeclaration().DefaultType
-					}
-					return nil
-				})
-				if defaultDeclaration != nil {
-					defaultType = c.getTypeFromTypeNode(defaultDeclaration)
-				}
-			}
-			if d.resolvedDefaultType.get(c) == c.resolvingDefaultType {
-				// If we have not been called recursively, set the correct default type.
-				d.resolvedDefaultType.set(c, defaultType)
-			}
+			c.resolveTypeParameterDefault(t)
 		}
 	} else if d.resolvedDefaultType.get(c) == c.resolvingDefaultType {
 		// If we are called recursively for this type parameter, mark the default as circular.
-		d.resolvedDefaultType.set(c, c.circularConstraintType)
+		c.observeCircularHead(t, TypeSystemPropertyNameDefaultType, c.compareTypeParameterDeclarations)
+		d.resolvedDefaultType.exchange(c.circularConstraintType)
+		return c.circularConstraintType
 	}
 	return d.resolvedDefaultType.get(c)
+}
+
+// resolveTypeParameterDefault resolves the default of a declared type
+// parameter. When defaults form a cycle, the first default resolved is the
+// one found to be circular, so the default first in program order is always
+// resolved first, discarding whatever was computed starting from another.
+func (c *Checker) resolveTypeParameterDefault(t *Type) {
+	d := t.AsTypeParameter()
+	if c.reporting {
+		// Results computed starting from another default are discarded
+		// along with their effects, so resolve while recording effects.
+		c.withoutReporting(func() {
+			c.resolveTypeParameterDefault(t)
+		})
+		return
+	}
+	pushed := d.resolvedDefaultType.enter(c)
+	saveCycleHead := c.cycleHead
+	undoStart := len(c.cycleUndo)
+	participantsStart := len(c.cycleParticipants)
+	mark := c.markEffects()
+	saveEffectsMarkDepth := c.effectsMarkDepth
+	c.effectsMarkDepth = mark.frameIndex + 1
+	for {
+		// To block recursion, set the initial value to the resolvingDefaultType.
+		// Markers of a resolution in progress are never observed once it
+		// finishes, so they are not results to discard.
+		d.resolvedDefaultType.exchange(c.resolvingDefaultType)
+		c.pushTypeResolution(t, TypeSystemPropertyNameDefaultType)
+		defaultType := c.noConstraintType
+		if t.symbol != nil {
+			defaultDeclaration := core.FirstNonNil(t.symbol.Declarations(), func(decl *ast.Node) *ast.Node {
+				if ast.IsTypeParameterDeclaration(decl) {
+					return decl.AsTypeParameterDeclaration().DefaultType
+				}
+				return nil
+			})
+			if defaultDeclaration != nil {
+				defaultType = c.getTypeFromTypeNode(defaultDeclaration)
+			}
+		}
+		if d.resolvedDefaultType.exchange(nil) != c.resolvingDefaultType {
+			// We were called recursively, so the default is circular.
+			defaultType = c.circularConstraintType
+		}
+		canonical := c.popCircularHead()
+		if canonical == nil {
+			d.resolvedDefaultType.set(c, defaultType)
+			break
+		}
+		c.discardCycleSince(undoStart, participantsStart, saveCycleHead, mark)
+		c.getResolvedTypeParameterDefault(canonical.(*Type))
+	}
+	c.effectsMarkDepth = saveEffectsMarkDepth
+	if c.effectsMarkDepth == 0 && c.cycleHead == 0 {
+		// Only dependency undo entries can remain, which nothing can roll
+		// back once no cycle or effects mark is in progress.
+		c.cycleUndo = nil
+	}
+	c.exitMemo(pushed)
+}
+
+func (c *Checker) compareTypeParameterDeclarations(a, b TypeSystemEntity) int {
+	return c.compareSymbols(a.(*Type).symbol, b.(*Type).symbol)
 }
 
 func (c *Checker) getDefaultOrUnknownFromTypeParameter(t *Type) *Type {
