@@ -23363,10 +23363,12 @@ func (c *Checker) getTypeArguments(t *Type) []*Type {
 		if c.popTypeResolution() {
 			if d.resolvedTypeArguments == nil {
 				d.resolvedTypeArguments = c.instantiateTypes(typeArguments, d.mapper)
+				c.logTypeArgumentsUndo(d)
 			}
 		} else {
 			if d.resolvedTypeArguments == nil {
 				d.resolvedTypeArguments = slices.Repeat([]*Type{c.errorType}, len(n.TypeParameters()))
+				c.logTypeArgumentsUndo(d)
 			}
 			message := diagnostics.Tuple_type_arguments_circularly_reference_themselves
 			var args []any
@@ -23382,6 +23384,15 @@ func (c *Checker) getTypeArguments(t *Type) []*Type {
 		}
 	}
 	return d.resolvedTypeArguments
+}
+
+// logTypeArgumentsUndo discards the resolved type arguments of a deferred
+// type reference when the cycle in progress ends, like any other result
+// cached during the cycle.
+func (c *Checker) logTypeArgumentsUndo(d *TypeReference) {
+	if c.cycleHead != 0 {
+		c.cycleUndo = append(c.cycleUndo, cycleUndo{nil, func() { d.resolvedTypeArguments = nil }, false})
+	}
 }
 
 func (c *Checker) getEffectiveTypeArguments(node *ast.Node, typeParameters []*Type) []*Type {
