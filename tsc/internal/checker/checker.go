@@ -11760,7 +11760,7 @@ func (c *Checker) parameterInitializerContainsUndefinedUncached(declaration *ast
 			return true
 		}
 		if links.flags&NodeCheckFlagsInitializerIsUndefinedComputed == 0 {
-			links.flags |= NodeCheckFlagsInitializerIsUndefinedComputed | core.IfElse(containsUndefined, NodeCheckFlagsInitializerIsUndefined, 0)
+			setKeyedBits(c, memoKeyOf(declaration, memoInitializerIsUndefined), &links.flags, NodeCheckFlagsInitializerIsUndefinedComputed|NodeCheckFlagsInitializerIsUndefined, NodeCheckFlagsInitializerIsUndefinedComputed|core.IfElse(containsUndefined, NodeCheckFlagsInitializerIsUndefined, 0))
 		}
 	}
 	return links.flags&NodeCheckFlagsInitializerIsUndefined != 0
@@ -25793,8 +25793,8 @@ func (c *Checker) computeEnumMemberValues(node *ast.Node) {
 
 func (c *Checker) computeEnumMemberValuesUncached(node *ast.Node) {
 	nodeLinks := c.nodeLinks.Get(node)
-	if !(nodeLinks.flags&NodeCheckFlagsEnumValuesComputed != 0) {
-		nodeLinks.flags |= NodeCheckFlagsEnumValuesComputed
+	if nodeLinks.flags&NodeCheckFlagsEnumValuesComputed == 0 {
+		setKeyedBits(c, memoKeyOf(node, memoEnumMemberValue), &nodeLinks.flags, NodeCheckFlagsEnumValuesComputed, NodeCheckFlagsEnumValuesComputed)
 		autoValue := new(jsnum.Number)
 		var previous *ast.Node
 		for _, member := range node.Members() {

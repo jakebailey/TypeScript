@@ -62,6 +62,7 @@ const (
 	memoGenericObjectFlags
 	memoUnknownLikeUnion
 	memoNeverIntersection
+	memoDiscriminant
 	memoResolvedMembers // followed by one field per MembersOrExportsResolutionKind
 )
 

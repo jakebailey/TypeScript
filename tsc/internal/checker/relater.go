@@ -1246,16 +1246,33 @@ func (c *Checker) isDiscriminantProperty(t *Type, name string) bool {
 	if t != nil && t.flags&TypeFlagsUnion != 0 {
 		prop := c.getUnionOrIntersectionProperty(t, name, false /*skipObjectFunctionPropertyAugment*/)
 		if prop != nil && prop.CheckFlags()&ast.CheckFlagsSyntheticProperty != 0 {
-			if prop.CheckFlags()&ast.CheckFlagsIsDiscriminantComputed == 0 {
-				prop.SetCheckFlags(prop.CheckFlags() | ast.CheckFlagsIsDiscriminantComputed)
-				if prop.CheckFlags()&ast.CheckFlagsNonUniformAndLiteral == ast.CheckFlagsNonUniformAndLiteral && !c.isGenericType(c.getTypeOfSymbol(prop)) {
-					prop.SetCheckFlags(prop.CheckFlags() | ast.CheckFlagsIsDiscriminant)
-				}
+			key := memoKeyOf(prop, memoDiscriminant)
+			if prop.CheckFlags()&ast.CheckFlagsIsDiscriminantComputed != 0 {
+				c.observeKeyed(key)
+				return prop.CheckFlags()&ast.CheckFlagsIsDiscriminant != 0
 			}
+			pushed := c.memoEnterActive() && c.enterMemo(key)
+			c.setDiscriminantFlags(prop, ast.CheckFlagsIsDiscriminantComputed)
+			if prop.CheckFlags()&ast.CheckFlagsNonUniformAndLiteral == ast.CheckFlagsNonUniformAndLiteral && !c.isGenericType(c.getTypeOfSymbol(prop)) {
+				c.setDiscriminantFlags(prop, ast.CheckFlagsIsDiscriminantComputed|ast.CheckFlagsIsDiscriminant)
+			}
+			c.exitMemo(pushed)
 			return prop.CheckFlags()&ast.CheckFlagsIsDiscriminant != 0
 		}
 	}
 	return false
+}
+
+// setDiscriminantFlags caches whether the synthetic property prop is a
+// discriminant, a keyed cell.
+func (c *Checker) setDiscriminantFlags(prop *ast.Symbol, flags ast.CheckFlags) {
+	const mask = ast.CheckFlagsIsDiscriminantComputed | ast.CheckFlagsIsDiscriminant
+	if c.cycleHead != 0 {
+		old := prop.CheckFlags() & mask
+		c.logKeyedUndo(func() { prop.SetCheckFlags(prop.CheckFlags()&^mask | old) })
+	}
+	prop.SetCheckFlags(prop.CheckFlags()&^mask | flags)
+	c.setKeyed(memoKeyOf(prop, memoDiscriminant))
 }
 
 func (c *Checker) getMatchingUnionConstituentForType(unionType *Type, t *Type) *Type {
