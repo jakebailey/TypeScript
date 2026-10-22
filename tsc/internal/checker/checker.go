@@ -30763,11 +30763,22 @@ func (c *Checker) markAliasReferenced(symbol *ast.Symbol, location *ast.Node) {
 // the alias as an expression (which recursively takes us back here if the target references another alias).
 func (c *Checker) markAliasSymbolAsReferenced(symbol *ast.Symbol) {
 	if !c.reporting {
-		c.recordEffect(func(c *Checker) { c.markAliasSymbolAsReferenced(symbol) })
+		c.recordReferenceMark(symbol)
 		return
 	}
+	c.referenceAliasSymbol(symbol)
+}
+
+func (c *Checker) referenceAliasSymbol(symbol *ast.Symbol) {
 	links := c.aliasSymbolLinks.Get(symbol)
-	if !links.referenced {
+	// Emit marks references too (see withReferenceMarks), but reports
+	// nothing, so checking must still follow them once to report errors.
+	followed := links.referenced
+	if c.reporting {
+		followed = links.referenceChecked
+		links.referenceChecked = true
+	}
+	if !followed {
 		links.referenced = true
 		node := c.getDeclarationOfAliasSymbol(symbol)
 		if node == nil {

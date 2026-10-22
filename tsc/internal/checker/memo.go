@@ -74,6 +74,7 @@ func memoKeyOf[T any](entity *T, field memoField) memoKey {
 
 type memoEffects struct {
 	effects  []func(c *Checker)
+	marks    []*ast.Symbol // Aliases marked referenced, also among effects; see withReferenceMarks
 	deps     []*memoEffects
 	parent   *memoEffects // Frame d was most recently added to; avoids duplicate deps
 	entry    *ast.Node    // Current node when the computation started, if entered
@@ -679,6 +680,52 @@ func (c *Checker) currentMemoFrame() *memoEffects {
 func (c *Checker) recordEffect(effect func(c *Checker)) {
 	if f := c.currentMemoFrame(); f != nil {
 		f.effects = append(f.effects, effect)
+	}
+}
+
+// recordReferenceMark records marking an alias referenced, an effect that
+// emit applies itself (see withReferenceMarks).
+func (c *Checker) recordReferenceMark(symbol *ast.Symbol) {
+	if f := c.currentMemoFrame(); f != nil {
+		f.effects = append(f.effects, func(c *Checker) { c.markAliasSymbolAsReferenced(symbol) })
+		f.marks = append(f.marks, symbol)
+	}
+}
+
+// withReferenceMarks runs fn as a query, then marks referenced the aliases
+// that everything fn computed would mark, which emit relies on to elide
+// imports. Unlike checking, it reports nothing, so diagnostics do not depend
+// on whether a file was emitted before it was checked. Other effects stay
+// pending for checking to replay.
+func (c *Checker) withReferenceMarks(fn func()) {
+	debug.Assert(!c.reporting && len(c.memoFrames) == 0, "withReferenceMarks inside a computation")
+	frame := memoFrame{slot: &memoSlot{}, entry: c.currentNode}
+	if c.currentNodeResolution == 0 {
+		frame.query = c.enterCurrentNode(c.currentNode)
+		frame.isQuery = true
+	}
+	c.memoFrames = append(c.memoFrames, frame)
+	fn()
+	_, f := c.popMemoFrame()
+	if f == nil {
+		return
+	}
+	var marks []*ast.Symbol
+	visited := make(map[*memoEffects]struct{})
+	var collect func(f *memoEffects)
+	collect = func(f *memoEffects) {
+		if _, ok := visited[f]; ok {
+			return
+		}
+		visited[f] = struct{}{}
+		marks = append(marks, f.marks...)
+		for _, d := range f.deps {
+			collect(d)
+		}
+	}
+	collect(f)
+	for _, symbol := range marks {
+		c.withReferenceMarks(func() { c.referenceAliasSymbol(symbol) })
 	}
 }
 

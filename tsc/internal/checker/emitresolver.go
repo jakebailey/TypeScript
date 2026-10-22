@@ -503,7 +503,7 @@ func (r *EmitResolver) MarkLinkedReferencesRecursively(file *ast.SourceFile) {
 	defer r.checkerMu.Unlock()
 
 	if file != nil {
-		r.checker.withReporting(func() { r.markLinkedReferencesRecursively(file) })
+		r.checker.withReferenceMarks(func() { r.markLinkedReferencesRecursively(file) })
 	}
 }
 

@@ -303,6 +303,7 @@ const (
 	unmemoizedSyntax      = "Derived from syntax and options only; computing it has no effects"
 	unmemoizedGuarded     = "Written only within the memoized computation it is part of"
 	unmemoizedEmit        = "Emit resolver state, written only while resolving for emit"
+	unmemoizedMark        = "Written only by reporting activations and emit marking, and read only by emit"
 	unmemoizedNodeBuilder = "Node builder state, scoped to one node builder"
 	unmemoizedNodeFlags   = "Each flag is memo-guarded, reporting-only, or set whenever a node is checked and read only by deferred diagnostics, after the whole file is checked"
 )
@@ -470,7 +471,8 @@ var unmemoizedCacheFields = map[string]string{
 	"checkerStore.nonExistentProperties":                   unmemoizedReporting,
 	"checkerStore.deferredDiagnosticCallbacks":             unmemoizedReporting,
 	"SymbolReferenceLinks.referenceKinds":                  unmemoizedReporting,
-	"AliasSymbolLinks.referenced":                          unmemoizedReporting,
+	"AliasSymbolLinks.referenced":                          unmemoizedMark,
+	"AliasSymbolLinks.referenceChecked":                    unmemoizedReporting,
 	"SourceFileLinks.typeChecked":                          unmemoizedReporting,
 	"SourceFileLinks.unusedChecked":                        unmemoizedReporting,
 	"SourceFileLinks.deferredNodes":                        unmemoizedReporting,
