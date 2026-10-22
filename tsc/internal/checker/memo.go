@@ -789,6 +789,13 @@ type cycleUndo struct {
 	effects bool // Restores the effects of a result rather than the result
 }
 
+// logFieldUndo records how to discard a result cached in a plain field while
+// a cycle is in progress. Callers check cycleHead first so that the closure
+// is only allocated when needed.
+func (c *Checker) logFieldUndo(reset func()) {
+	c.cycleUndo = append(c.cycleUndo, cycleUndo{nil, reset, false})
+}
+
 // endCycle discards the results cached since the outermost cycle in progress
 // was detected, except those of its participants.
 func (c *Checker) endCycle() {

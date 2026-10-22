@@ -18274,6 +18274,9 @@ func (c *Checker) getDefaultConstraintOfConditionalType(t *Type) *Type {
 		default:
 			d.resolvedDefaultConstraint = c.getUnionType([]*Type{trueConstraint, falseConstraint})
 		}
+		if c.cycleHead != 0 {
+			c.logFieldUndo(func() { d.resolvedDefaultConstraint = nil })
+		}
 	}
 	return d.resolvedDefaultConstraint
 }
@@ -18301,11 +18304,17 @@ func (c *Checker) getConstraintOfDistributiveConditionalType(t *Type) *Type {
 				instantiated := c.getConditionalTypeInstantiation(t, prependTypeMapping(d.root.checkType, constraint, d.mapper), true /*forConstraint*/, nil)
 				if instantiated.flags&TypeFlagsNever == 0 {
 					d.resolvedConstraintOfDistributive = instantiated
+					if c.cycleHead != 0 {
+						c.logFieldUndo(func() { d.resolvedConstraintOfDistributive = nil })
+					}
 					return instantiated
 				}
 			}
 		}
 		d.resolvedConstraintOfDistributive = c.noConstraintType
+		if c.cycleHead != 0 {
+			c.logFieldUndo(func() { d.resolvedConstraintOfDistributive = nil })
+		}
 	}
 	if d.resolvedConstraintOfDistributive != c.noConstraintType {
 		return d.resolvedConstraintOfDistributive
@@ -20132,6 +20141,9 @@ func (c *Checker) getPropertiesOfUnionOrIntersectionType(t *Type) []*ast.Symbol 
 			}
 		}
 		d.resolvedProperties = props
+		if c.cycleHead != 0 {
+			c.logFieldUndo(func() { d.resolvedProperties = nil })
+		}
 	}
 	return d.resolvedProperties
 }
@@ -23177,6 +23189,9 @@ func (c *Checker) getApparentTypeOfMappedType(t *Type) *Type {
 	m := t.AsMappedType()
 	if m.resolvedApparentType == nil {
 		m.resolvedApparentType = c.getResolvedApparentTypeOfMappedType(t)
+		if c.cycleHead != 0 {
+			c.logFieldUndo(func() { m.resolvedApparentType = nil })
+		}
 	}
 	return m.resolvedApparentType
 }
@@ -23210,6 +23225,9 @@ func (c *Checker) getApparentTypeOfIntersectionType(t *Type, thisArgument *Type)
 		d := t.AsIntersectionType()
 		if d.resolvedApparentType == nil {
 			d.resolvedApparentType = c.getTypeWithThisArgument(t, thisArgument, true /*needApparentType*/)
+			if c.cycleHead != 0 {
+				c.logFieldUndo(func() { d.resolvedApparentType = nil })
+			}
 		}
 		return d.resolvedApparentType
 	}
@@ -23239,6 +23257,9 @@ func (c *Checker) getReducedType(t *Type) *Type {
 			}
 			reducedType := c.getReducedUnionType(t)
 			t.AsUnionType().resolvedReducedType = reducedType
+			if c.cycleHead != 0 {
+				c.logFieldUndo(func() { t.AsUnionType().resolvedReducedType = nil })
+			}
 			return reducedType
 		}
 	case t.flags&TypeFlagsIntersection != 0:
@@ -23363,12 +23384,16 @@ func (c *Checker) getTypeArguments(t *Type) []*Type {
 		if c.popTypeResolution() {
 			if d.resolvedTypeArguments == nil {
 				d.resolvedTypeArguments = c.instantiateTypes(typeArguments, d.mapper)
-				c.logTypeArgumentsUndo(d)
+				if c.cycleHead != 0 {
+					c.logFieldUndo(func() { d.resolvedTypeArguments = nil })
+				}
 			}
 		} else {
 			if d.resolvedTypeArguments == nil {
 				d.resolvedTypeArguments = slices.Repeat([]*Type{c.errorType}, len(n.TypeParameters()))
-				c.logTypeArgumentsUndo(d)
+				if c.cycleHead != 0 {
+					c.logFieldUndo(func() { d.resolvedTypeArguments = nil })
+				}
 			}
 			message := diagnostics.Tuple_type_arguments_circularly_reference_themselves
 			var args []any
@@ -23384,15 +23409,6 @@ func (c *Checker) getTypeArguments(t *Type) []*Type {
 		}
 	}
 	return d.resolvedTypeArguments
-}
-
-// logTypeArgumentsUndo discards the resolved type arguments of a deferred
-// type reference when the cycle in progress ends, like any other result
-// cached during the cycle.
-func (c *Checker) logTypeArgumentsUndo(d *TypeReference) {
-	if c.cycleHead != 0 {
-		c.cycleUndo = append(c.cycleUndo, cycleUndo{nil, func() { d.resolvedTypeArguments = nil }, false})
-	}
 }
 
 func (c *Checker) getEffectiveTypeArguments(node *ast.Node, typeParameters []*Type) []*Type {
@@ -26185,6 +26201,9 @@ func (c *Checker) getTrueTypeFromConditionalType(t *Type) *Type {
 	d := t.AsConditionalType()
 	if d.resolvedTrueType == nil {
 		d.resolvedTrueType = c.instantiateType(c.getTypeFromTypeNode(d.root.node.TrueType), d.mapper)
+		if c.cycleHead != 0 {
+			c.logFieldUndo(func() { d.resolvedTrueType = nil })
+		}
 	}
 	return d.resolvedTrueType
 }
@@ -26193,6 +26212,9 @@ func (c *Checker) getFalseTypeFromConditionalType(t *Type) *Type {
 	d := t.AsConditionalType()
 	if d.resolvedFalseType == nil {
 		d.resolvedFalseType = c.instantiateType(c.getTypeFromTypeNode(d.root.node.FalseType), d.mapper)
+		if c.cycleHead != 0 {
+			c.logFieldUndo(func() { d.resolvedFalseType = nil })
+		}
 	}
 	return d.resolvedFalseType
 }
@@ -26204,6 +26226,9 @@ func (c *Checker) getInferredTrueTypeFromConditionalType(t *Type) *Type {
 			d.resolvedInferredTrueType = c.instantiateType(c.getTypeFromTypeNode(d.root.node.TrueType), d.combinedMapper)
 		} else {
 			d.resolvedInferredTrueType = c.getTrueTypeFromConditionalType(t)
+		}
+		if c.cycleHead != 0 {
+			c.logFieldUndo(func() { d.resolvedInferredTrueType = nil })
 		}
 	}
 	return d.resolvedInferredTrueType
@@ -26589,6 +26614,9 @@ func (c *Checker) isReducibleIntersection(t *Type) bool {
 	d := t.AsIntersectionType()
 	if d.uniqueLiteralFilledInstantiation == nil {
 		d.uniqueLiteralFilledInstantiation = c.instantiateType(t, c.uniqueLiteralMapper)
+		if c.cycleHead != 0 {
+			c.logFieldUndo(func() { d.uniqueLiteralFilledInstantiation = nil })
+		}
 	}
 	return c.getReducedType(d.uniqueLiteralFilledInstantiation) != d.uniqueLiteralFilledInstantiation
 }
