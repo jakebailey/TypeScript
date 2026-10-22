@@ -14015,7 +14015,7 @@ func (c *Checker) getSpreadType(left *Type, right *Type, symbol *ast.Symbol, obj
 				c.spreadLinks.Get(result).rightSpread = rightProp
 				result.SetDeclarations(declarations)
 				links.setNameType(c, c.valueSymbolLinks.Get(leftProp).getNameType())
-				c.spreadSymbols.intern(key, result)
+				c.spreadSymbols.set(c, key, result)
 				members[leftProp.Name()] = result
 			}
 		} else {
@@ -14148,7 +14148,7 @@ func (c *Checker) getSpreadSymbol(prop *ast.Symbol, readonly bool) *ast.Symbol {
 	result.SetDeclarations(prop.Declarations())
 	links.setNameType(c, c.valueSymbolLinks.Get(prop).getNameType())
 	c.mappedSymbolLinks.Get(result).syntheticOrigin = prop
-	c.spreadSymbols.intern(key, result)
+	c.spreadSymbols.set(c, key, result)
 	return result
 }
 
