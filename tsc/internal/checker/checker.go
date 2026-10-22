@@ -17581,13 +17581,18 @@ func (c *Checker) getTypeOfVariableOrParameterOrPropertyWorker(symbol *ast.Symbo
 	if !c.pushTypeResolution(symbol, TypeSystemPropertyNameType) {
 		return c.reportCircularityError(symbol)
 	}
+	var result *Type
 	if symbol.Flags()&ast.SymbolFlagsModuleExports != 0 {
 		if symbol.Name() == "exports" {
-			return c.getTypeOfSymbol(c.resolveExternalModuleSymbol(symbol.ValueDeclaration().Symbol(), false /*dontResolveAlias*/))
+			result = c.getTypeOfSymbol(c.resolveExternalModuleSymbol(symbol.ValueDeclaration().Symbol(), false /*dontResolveAlias*/))
+		} else {
+			result = c.newAnonymousType(symbol, symbol.Members(), nil, nil, nil)
 		}
-		return c.newAnonymousType(symbol, symbol.Members(), nil, nil, nil)
+		if !c.popTypeResolution() {
+			return c.reportCircularityError(symbol)
+		}
+		return result
 	}
-	var result *Type
 	switch declaration.Kind {
 	case ast.KindParameter, ast.KindPropertyDeclaration, ast.KindPropertySignature, ast.KindVariableDeclaration,
 		ast.KindBindingElement:
@@ -20014,6 +20019,7 @@ func (c *Checker) enterCurrentNode(node *ast.Node) savedCurrentNode {
 }
 
 func (c *Checker) exitCurrentNode(save savedCurrentNode) {
+	debug.Assert(len(c.typeResolutions) == c.currentNodeResolution, "type resolutions left on the stack")
 	c.popTypeResolution()
 	c.currentNode = save.node
 	c.currentNodeResolution = save.resolution
