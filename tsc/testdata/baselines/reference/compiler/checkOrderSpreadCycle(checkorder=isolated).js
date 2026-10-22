@@ -67,14 +67,3 @@ export = _exports;
 //// [ma.d.ts]
 export { v as pa } from "./xa";
 export declare const ma = 1;
-//// [ia.d.ts]
-declare const _exports: {
-    v: {
-        pa: {
-            pb: {};
-            mb: 1;
-        };
-        ma: 1;
-    };
-};
-export = _exports;

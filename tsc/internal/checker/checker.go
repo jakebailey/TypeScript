@@ -14030,13 +14030,13 @@ func (c *Checker) getSpreadType(left *Type, right *Type, symbol *ast.Symbol, obj
 	// overrides every property of the left side.
 	contentKey := c.getObjectTypeContentKey(symbol, flags, members, spreadIndexInfos)
 	if existing, _ := c.objectContentTypes.get(c, contentKey); existing != nil {
-		c.spreadTypes.intern(key, existing)
+		c.spreadTypes.set(c, key, existing)
 		return existing
 	}
 	spread := c.newAnonymousType(symbol, members, nil, nil, spreadIndexInfos)
 	spread.objectFlags |= flags
 	c.objectContentTypes.intern(contentKey, spread)
-	c.spreadTypes.intern(key, spread)
+	c.spreadTypes.set(c, key, spread)
 	return spread
 }
 
