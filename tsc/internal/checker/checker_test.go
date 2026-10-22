@@ -6,6 +6,7 @@ import (
 	"go/parser"
 	"go/token"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
@@ -255,7 +256,7 @@ func TestCachedStateIsMemoized(t *testing.T) {
 				return true
 			}
 			st, ok := spec.Type.(*goast.StructType)
-			if !ok || !strings.HasSuffix(spec.Name.Name, "Links") && spec.Name.Name != "checkerStore" {
+			if !ok || slices.Contains(notCacheOwners, spec.Name.Name) || name != "types.go" && !strings.HasSuffix(spec.Name.Name, "Links") && spec.Name.Name != "checkerStore" {
 				return true
 			}
 			for _, field := range st.Fields.List {
@@ -306,9 +307,119 @@ const (
 	unmemoizedMark        = "Written only by reporting activations and emit marking, and read only by emit"
 	unmemoizedNodeBuilder = "Node builder state, scoped to one node builder"
 	unmemoizedNodeFlags   = "Each flag is memo-guarded, reporting-only, or set whenever a node is checked and read only by deferred diagnostics, after the whole file is checked"
+	unmemoizedKeyed       = "Keyed cell, accounted for like a memo under a key naming its entity and field"
+	unmemoizedEntityFlags = "Each flag is set when the entity is created, or is part of a keyed cell"
 )
 
+// notCacheOwners are the structs declared in types.go that are plain values
+// rather than entities owning cached state.
+var notCacheOwners = []string{"LanguageFeatureMinimumTargetMap", "accessibleChainCacheKey", "computedName", "TupleElementInfo"}
+
 var unmemoizedCacheFields = map[string]string{
+	"valueSymbolExtra.nameType":              unmemoizedCreated,
+	"valueSymbolExtra.containingType":        unmemoizedCreated,
+	"TypeAlias.symbol":                       unmemoizedCreated,
+	"TypeAlias.typeArguments":                unmemoizedCreated,
+	"Type.flags":                             unmemoizedCreated,
+	"Type.objectFlags":                       unmemoizedEntityFlags,
+	"Type.id":                                unmemoizedCounter,
+	"Type.kind":                              unmemoizedCreated,
+	"Type.generation":                        unmemoizedCounter,
+	"Type.symbol":                            unmemoizedCreated,
+	"Type.alias":                             unmemoizedCreated,
+	"Type.checker":                           unmemoizedImmutable,
+	"IntrinsicType.intrinsicName":            unmemoizedCreated,
+	"LiteralType.value":                      unmemoizedCreated,
+	"LiteralType.freshType":                  unmemoizedInterned,
+	"LiteralType.regularType":                unmemoizedCreated,
+	"UniqueESSymbolType.name":                unmemoizedCreated,
+	"StructuredType.members":                 unmemoizedKeyed,
+	"StructuredType.properties":              unmemoizedKeyed,
+	"StructuredType.extra":                   unmemoizedKeyed,
+	"structuredTypeExtra.signatures":         unmemoizedKeyed,
+	"structuredTypeExtra.callSignatureCount": unmemoizedKeyed,
+	"structuredTypeExtra.indexInfos":         unmemoizedKeyed,
+	"structuredTypeExtra.objectTypeWithoutAbstractConstructSignatures": unmemoizedInterned,
+	"ObjectType.target":                                    unmemoizedCreated,
+	"ObjectType.mapper":                                    unmemoizedCreated,
+	"TypeReference.node":                                   unmemoizedCreated,
+	"InterfaceType.allTypeParameters":                      unmemoizedCreated,
+	"InterfaceType.outerTypeParameterCount":                unmemoizedCreated,
+	"InterfaceType.thisType":                               unmemoizedCreated,
+	"InterfaceType.baseTypesResolved":                      unmemoizedKeyed,
+	"InterfaceType.declaredMembersResolved":                unmemoizedKeyed,
+	"InterfaceType.declaredMembers":                        unmemoizedKeyed,
+	"InterfaceType.declaredCallSignatures":                 unmemoizedKeyed,
+	"InterfaceType.declaredConstructSignatures":            unmemoizedKeyed,
+	"InterfaceType.declaredIndexInfos":                     unmemoizedKeyed,
+	"TupleType.elementInfos":                               unmemoizedCreated,
+	"TupleType.minLength":                                  unmemoizedCreated,
+	"TupleType.fixedLength":                                unmemoizedCreated,
+	"TupleType.combinedFlags":                              unmemoizedCreated,
+	"TupleType.readonly":                                   unmemoizedCreated,
+	"InstantiationExpressionType.node":                     unmemoizedCreated,
+	"MappedType.declaration":                               unmemoizedCreated,
+	"ReverseMappedType.source":                             unmemoizedCreated,
+	"ReverseMappedType.mappedType":                         unmemoizedCreated,
+	"ReverseMappedType.constraintType":                     unmemoizedCreated,
+	"EvolvingArrayType.elementType":                        unmemoizedCreated,
+	"UnionOrIntersectionType.types":                        unmemoizedCreated,
+	"UnionType.regularType":                                unmemoizedInterned,
+	"UnionType.origin":                                     unmemoizedCreated,
+	"UnionType.constituentMap":                             unmemoizedGuarded,
+	"TypeParameter.target":                                 unmemoizedCreated,
+	"TypeParameter.mapper":                                 unmemoizedCreated,
+	"TypeParameter.isThisType":                             unmemoizedCreated,
+	"TypeParameter.isDistributed":                          unmemoizedCreated,
+	"TypeParameter.distributedType":                        unmemoizedInterned,
+	"TypeParameter.origin":                                 unmemoizedCreated,
+	"IndexType.target":                                     unmemoizedCreated,
+	"IndexType.indexFlags":                                 unmemoizedCreated,
+	"IndexedAccessType.objectType":                         unmemoizedCreated,
+	"IndexedAccessType.indexType":                          unmemoizedCreated,
+	"IndexedAccessType.accessFlags":                        unmemoizedCreated,
+	"TemplateLiteralType.texts":                            unmemoizedCreated,
+	"TemplateLiteralType.types":                            unmemoizedCreated,
+	"StringMappingType.target":                             unmemoizedCreated,
+	"SubstitutionType.baseType":                            unmemoizedCreated,
+	"SubstitutionType.constraint":                          unmemoizedCreated,
+	"ConditionalRoot.node":                                 unmemoizedCreated,
+	"ConditionalRoot.checkType":                            unmemoizedCreated,
+	"ConditionalRoot.extendsType":                          unmemoizedCreated,
+	"ConditionalRoot.isDistributive":                       unmemoizedCreated,
+	"ConditionalRoot.inferTypeParameters":                  unmemoizedCreated,
+	"ConditionalRoot.outerTypeParameters":                  unmemoizedCreated,
+	"ConditionalRoot.alias":                                unmemoizedCreated,
+	"ConditionalType.root":                                 unmemoizedCreated,
+	"ConditionalType.checkType":                            unmemoizedCreated,
+	"ConditionalType.extendsType":                          unmemoizedCreated,
+	"ConditionalType.mapper":                               unmemoizedCreated,
+	"ConditionalType.combinedMapper":                       unmemoizedCreated,
+	"Signature.id":                                         unmemoizedCreated,
+	"Signature.flags":                                      unmemoizedEntityFlags,
+	"Signature.minArgumentCount":                           unmemoizedCreated,
+	"Signature.declaration":                                unmemoizedCreated,
+	"Signature.parameters":                                 unmemoizedCreated,
+	"Signature.target":                                     unmemoizedCreated,
+	"Signature.mapper":                                     unmemoizedCreated,
+	"Signature.extra":                                      unmemoizedCreated,
+	"signatureExtra.typeParameters":                        unmemoizedCreated,
+	"signatureExtra.thisParameter":                         unmemoizedCreated,
+	"signatureExtra.resolvedTypePredicate":                 unmemoizedKeyed,
+	"signatureExtra.isolatedSignatureType":                 unmemoizedInterned,
+	"signatureExtra.composite":                             unmemoizedCreated,
+	"CompositeSignature.isUnion":                           unmemoizedCreated,
+	"CompositeSignature.signatures":                        unmemoizedCreated,
+	"TypePredicate.kind":                                   unmemoizedCreated,
+	"TypePredicate.parameterIndex":                         unmemoizedCreated,
+	"TypePredicate.parameterName":                          unmemoizedCreated,
+	"TypePredicate.t":                                      unmemoizedCreated,
+	"IndexInfo.keyType":                                    unmemoizedCreated,
+	"IndexInfo.valueType":                                  unmemoizedCreated,
+	"IndexInfo.isReadonly":                                 unmemoizedCreated,
+	"IndexInfo.declaration":                                unmemoizedCreated,
+	"IndexInfo.indexSymbol":                                unmemoizedInterned,
+	"IndexInfo.components":                                 unmemoizedCreated,
 	"checkerStore.root":                                    unmemoizedImmutable,
 	"checkerStore.id":                                      unmemoizedImmutable,
 	"checkerStore.program":                                 unmemoizedImmutable,
