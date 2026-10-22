@@ -803,6 +803,8 @@ type checkerStore struct {
 	canCollectSymbolAliasAccessibilityData bool
 	arrayVariances                         []VarianceFlags
 	globals                                ast.SymbolTable
+	globalTypes                            memoMap[globalKey, *Type]
+	globalSymbols                          memoMap[globalKey, *ast.Symbol]
 	stringLiteralTypes                     memoMap[string, *Type]
 	numberLiteralTypes                     memoMap[jsnum.Number, *Type]
 	nanType                                *Type
@@ -1228,39 +1230,73 @@ func (c *Checker) reportUnmeasurableWorker(t *Type) *Type {
 	return t
 }
 
+// globalKey identifies the resolution of a global by name. Resolutions are
+// cached in the store, so all activations share them.
+type globalKey struct {
+	kind         globalKind
+	name         string
+	arity        int
+	reportErrors bool
+}
+
+type globalKind uint8
+
+const (
+	globalKindType globalKind = iota
+	globalKindTypeAlias
+	globalKindValueSymbol
+	globalKindTypeSymbol
+)
+
 // Resolve to the global class or interface by the given name and arity, or emptyObjectType/emptyGenericType otherwise
 func (c *Checker) getGlobalTypeResolver(name string, arity int, reportErrors bool) func() *Type {
-	return memoizeGlobal(c, func() *Type {
-		return c.getGlobalType(name, arity, reportErrors)
-	})
+	key := globalKey{globalKindType, name, arity, reportErrors}
+	return func() *Type {
+		if t, ok := c.globalTypes.get(c, key); ok {
+			return t
+		}
+		return c.globalTypes.compute(c, key, func() *Type {
+			return c.getGlobalType(name, arity, reportErrors)
+		})
+	}
 }
 
 // Resolve to the global type alias symbol by the given name and arity, or nil otherwise
 func (c *Checker) getGlobalTypeAliasResolver(name string, arity int, reportErrors bool) func() *ast.Symbol {
-	return memoizeGlobal(c, func() *ast.Symbol {
+	return c.getGlobalSymbolResolver(globalKey{globalKindTypeAlias, name, arity, reportErrors}, func() *ast.Symbol {
 		return c.getGlobalTypeAliasSymbol(name, arity, reportErrors)
 	})
 }
 
 // Resolve to the global value symbol by the given name, or nil otherwise
 func (c *Checker) getGlobalValueSymbolResolver(name string, reportErrors bool) func() *ast.Symbol {
-	return memoizeGlobal(c, func() *ast.Symbol {
+	return c.getGlobalSymbolResolver(globalKey{globalKindValueSymbol, name, 0, reportErrors}, func() *ast.Symbol {
 		return c.getGlobalSymbol(name, ast.SymbolFlagsValue, core.IfElse(reportErrors, diagnostics.Cannot_find_global_value_0, nil))
 	})
 }
 
 func (c *Checker) getGlobalTypeSymbolResolver(name string, reportErrors bool) func() *ast.Symbol {
-	return memoizeGlobal(c, func() *ast.Symbol {
+	return c.getGlobalSymbolResolver(globalKey{globalKindTypeSymbol, name, 0, reportErrors}, func() *ast.Symbol {
 		return c.getGlobalSymbol(name, ast.SymbolFlagsType, core.IfElse(reportErrors, diagnostics.Cannot_find_global_type_0, nil))
 	})
 }
 
+func (c *Checker) getGlobalSymbolResolver(key globalKey, resolve func() *ast.Symbol) func() *ast.Symbol {
+	return func() *ast.Symbol {
+		if symbol, ok := c.globalSymbols.get(c, key); ok {
+			return symbol
+		}
+		return c.globalSymbols.compute(c, key, resolve)
+	}
+}
+
 func (c *Checker) getGlobalTypesResolver(names []string, arity int, reportErrors bool) func() []*Type {
-	return memoizeGlobal(c, func() []*Type {
-		return core.Map(names, func(name string) *Type {
-			return c.getGlobalType(name, arity, reportErrors)
-		})
+	resolvers := core.Map(names, func(name string) func() *Type {
+		return c.getGlobalTypeResolver(name, arity, reportErrors)
 	})
+	return func() []*Type {
+		return core.Map(resolvers, func(resolve func() *Type) *Type { return resolve() })
+	}
 }
 
 func (c *Checker) getGlobalTypeAliasSymbol(name string, arity int, reportErrors bool) *ast.Symbol {

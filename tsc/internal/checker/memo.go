@@ -8,7 +8,6 @@ import (
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 
-	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
 )
 
@@ -42,7 +41,6 @@ const (
 	memoTypeNodeType
 	memoBaseTypes
 	memoStructuredMembers
-	memoGlobal
 	memoTypeParameterConstraint
 	memoTypeParameterDefault
 	memoTypeAlias
@@ -974,21 +972,6 @@ func (c *Checker) typeResolutionMemo(r *TypeResolution) unsafe.Pointer {
 		return unsafe.Pointer(&c.varianceLinks.Get(r.target.(*ast.Symbol)).variances)
 	}
 	return nil
-}
-
-// memoizeGlobal memoizes the resolution of a global, replaying effects of
-// the resolution wherever the cached result is observed.
-func memoizeGlobal[T any](c *Checker, fn func() T) func() T {
-	cell := &struct{ resolve func() T }{resolve: core.Memoize(fn)}
-	return func() T {
-		if c.memoEnterActive() {
-			pushed := c.enterMemo(memoKeyOf(cell, memoGlobal))
-			result := cell.resolve()
-			c.exitMemo(pushed)
-			return result
-		}
-		return cell.resolve()
-	}
 }
 
 // Instantiation limits
