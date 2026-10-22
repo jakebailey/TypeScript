@@ -70,6 +70,8 @@ const (
 	TypeSystemPropertyNameContextChecked
 	TypeSystemPropertyNameVariances
 	TypeSystemPropertyNameStructuredMembers
+	TypeSystemPropertyNameSimplifiedForReading
+	TypeSystemPropertyNameSimplifiedForWriting
 )
 
 type TypeResolution struct {
@@ -615,6 +617,7 @@ type Checker struct {
 	inlineLevel                                 int
 	serializationLevel                          int
 	currentNode                                 *ast.Node
+	simplifyingIndexedAccess                    collections.Set[CachedTypeKey]
 	varianceTypeParameter                       *Type
 	isInferencePartiallyBlocked                 bool
 	wasCanceled                                 bool
@@ -19997,7 +20000,8 @@ func (c *Checker) typeResolutionHasProperty(r *TypeResolution) bool {
 		return extra != nil && extra.writeType.peek() != nil
 	case TypeSystemPropertyNameAliasTarget:
 		return c.aliasSymbolLinks.Get(r.target.(*ast.Symbol)).aliasTarget.peek() != nil
-	case TypeSystemPropertyNameContextChecked, TypeSystemPropertyNameStructuredMembers:
+	case TypeSystemPropertyNameContextChecked, TypeSystemPropertyNameStructuredMembers,
+		TypeSystemPropertyNameSimplifiedForReading, TypeSystemPropertyNameSimplifiedForWriting:
 		// Marked as checked or resolved on entry, so it is only on the stack
 		// while in progress.
 		return false
@@ -29556,17 +29560,26 @@ func (c *Checker) getSimplifiedIndexType(t *Type) *Type {
 func (c *Checker) getSimplifiedIndexedAccessType(t *Type, writing bool) *Type {
 	key := CachedTypeKey{kind: core.IfElse(writing, CachedTypeKindIndexedAccessForWriting, CachedTypeKindIndexedAccessForReading), typeId: t.id}
 	if cached, _ := c.cachedTypes.get(c, key); cached != nil {
-		return core.IfElse(cached == c.circularConstraintType, t, cached)
+		return cached
+	}
+	propertyName := core.IfElse(writing, TypeSystemPropertyNameSimplifiedForWriting, TypeSystemPropertyNameSimplifiedForReading)
+	if c.simplifyingIndexedAccess.Has(key) {
+		// Resolve circular references to t itself while simplifying, which
+		// depends on the simplification in progress.
+		c.isResolutionInProgress(t, propertyName)
+		return t
 	}
 	pushed := c.memoEnterActive() && c.cachedTypes.enter(c, key)
-	// Resolve circular references to t itself while simplifying.
-	c.cachedTypes.intern(key, t)
+	c.simplifyingIndexedAccess.Add(key)
+	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: t, propertyName: propertyName, result: true, memoDepth: len(c.memoFrames)})
 	result := c.getSimplifiedIndexedAccessTypeWorker(t, writing)
 	if result != t {
 		// If the simplification is a union type that includes t, remove t from the type.
 		result = c.removeType(result, t)
-		c.cachedTypes.set(c, key, result)
 	}
+	c.cachedTypes.set(c, key, result)
+	c.simplifyingIndexedAccess.Delete(key)
+	c.popTypeResolution()
 	c.exitMemo(pushed)
 	return result
 }
