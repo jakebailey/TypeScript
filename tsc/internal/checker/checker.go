@@ -20333,11 +20333,17 @@ func (c *Checker) resolveStructuredTypeMembersUncached(t *Type) *StructuredType 
 	if t.objectFlags&ObjectFlagsMembersResolved == 0 {
 		// Many kinds of types make members available before they are
 		// complete, so the resolution is on the stack, but never fails.
+		outermost := t.objectFlags&ObjectFlagsMembersResolving == 0
 		t.objectFlags |= ObjectFlagsMembersResolving
 		c.typeResolutions = append(c.typeResolutions, TypeResolution{target: t, propertyName: TypeSystemPropertyNameStructuredMembers, result: true, memoDepth: len(c.memoFrames)})
 		defer func() {
-			t.objectFlags &^= ObjectFlagsMembersResolving
 			c.popTypeResolution()
+			if outermost {
+				t.objectFlags &^= ObjectFlagsMembersResolving
+			}
+			if c.cycleHead != 0 {
+				c.logMembersUndo(t)
+			}
 		}()
 		switch {
 		case t.flags&TypeFlagsObject != 0:
@@ -20364,6 +20370,29 @@ func (c *Checker) resolveStructuredTypeMembersUncached(t *Type) *StructuredType 
 		}
 	}
 	return t.AsStructuredType()
+}
+
+// logMembersUndo discards the members of t when the cycle in progress ends,
+// like any other result cached during the cycle, so that they are resolved
+// again from scratch when next requested.
+//
+//go:noinline
+func (c *Checker) logMembersUndo(t *Type) {
+	c.cycleUndo = append(c.cycleUndo, cycleUndo{nil, func() {
+		if t.objectFlags&ObjectFlagsMembersResolving != 0 {
+			// An enclosing resolution of the same members sets them again.
+			return
+		}
+		t.objectFlags &^= ObjectFlagsMembersResolved
+		data := t.AsStructuredType()
+		data.members = nil
+		data.properties = nil
+		if data.extra != nil {
+			data.extra.signatures = nil
+			data.extra.callSignatureCount = 0
+			data.extra.indexInfos = nil
+		}
+	}, false})
 }
 
 func (c *Checker) resolveClassOrInterfaceMembers(t *Type) {
