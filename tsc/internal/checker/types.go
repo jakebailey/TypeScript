@@ -1217,7 +1217,7 @@ func (t *ObjectType) AsObjectType() *ObjectType { return t }
 type TypeReference struct {
 	ObjectType
 	node                  *ast.Node // TypeReferenceNode | ArrayTypeNode | TupleTypeNode when deferred, else nil
-	resolvedTypeArguments []*Type
+	resolvedTypeArguments memo[[]*Type]
 }
 
 func (t *TypeReference) AsTypeReference() *TypeReference { return t }
@@ -1322,19 +1322,19 @@ type InstantiationExpressionType struct {
 type MappedType struct {
 	ObjectType
 	declaration          *ast.MappedTypeNode
-	typeParameter        *Type
-	constraintType       *Type
-	nameType             *Type
-	templateType         *Type
-	modifiersType        *Type
-	resolvedApparentType *Type
-	containsError        bool
+	typeParameter        memo[*Type]
+	constraintType       memo[*Type]
+	nameType             memo[*Type]
+	templateType         memo[*Type]
+	modifiersType        memo[*Type]
+	resolvedApparentType memo[*Type]
+	containsError        memo[bool]
 }
 
-func (t *MappedType) TypeParameter() *Type  { return t.typeParameter }
-func (t *MappedType) ConstraintType() *Type { return t.constraintType }
-func (t *MappedType) NameType() *Type       { return t.nameType }
-func (t *MappedType) TemplateType() *Type   { return t.templateType }
+func (t *MappedType) TypeParameter() *Type  { return t.typeParameter.peek() }
+func (t *MappedType) ConstraintType() *Type { return t.constraintType.peek() }
+func (t *MappedType) NameType() *Type       { return t.nameType.peek() }
+func (t *MappedType) TemplateType() *Type   { return t.templateType.peek() }
 func (t *MappedType) ResolveComponents(c *Checker, typ *Type) {
 	c.getTypeParameterFromMappedType(typ)
 	c.getConstraintTypeFromMappedType(typ)
@@ -1364,9 +1364,9 @@ type EvolvingArrayType struct {
 type UnionOrIntersectionType struct {
 	StructuredType
 	types                                       []*Type
-	propertyCache                               ast.SymbolTable
-	propertyCacheWithoutFunctionPropertyAugment ast.SymbolTable
-	resolvedProperties                          []*ast.Symbol
+	propertyCache                               memoMap[string, *ast.Symbol]
+	propertyCacheWithoutFunctionPropertyAugment memoMap[string, *ast.Symbol]
+	resolvedProperties                          memo[[]*ast.Symbol]
 }
 
 func (t *UnionOrIntersectionType) AsUnionOrIntersectionType() *UnionOrIntersectionType { return t }
@@ -1379,10 +1379,10 @@ func (t *UnionOrIntersectionType) Types() []*Type {
 
 type UnionType struct {
 	UnionOrIntersectionType
-	resolvedReducedType *Type
+	resolvedReducedType memo[*Type]
 	regularType         *Type
 	origin              *Type           // Denormalized union, intersection, or index type in which union originates
-	keyPropertyName     string          // Property with unique unit type that exists in every object/intersection in union type
+	keyPropertyName     memo[string]    // Property with unique unit type that exists in every object/intersection in union type
 	constituentMap      map[*Type]*Type // Constituents keyed by unit type discriminants
 }
 
@@ -1390,8 +1390,8 @@ type UnionType struct {
 
 type IntersectionType struct {
 	UnionOrIntersectionType
-	resolvedApparentType             *Type
-	uniqueLiteralFilledInstantiation *Type // Instantiation with type parameters mapped to never type
+	resolvedApparentType             memo[*Type]
+	uniqueLiteralFilledInstantiation memo[*Type] // Instantiation with type parameters mapped to never type
 }
 
 // TypeParameter
@@ -1484,11 +1484,11 @@ type ConditionalType struct {
 	root                             *ConditionalRoot
 	checkType                        *Type
 	extendsType                      *Type
-	resolvedTrueType                 *Type
-	resolvedFalseType                *Type
-	resolvedInferredTrueType         *Type // The `trueType` instantiated with the `combinedMapper`, if present
-	resolvedDefaultConstraint        *Type
-	resolvedConstraintOfDistributive *Type
+	resolvedTrueType                 memo[*Type]
+	resolvedFalseType                memo[*Type]
+	resolvedInferredTrueType         memo[*Type] // The `trueType` instantiated with the `combinedMapper`, if present
+	resolvedDefaultConstraint        memo[*Type]
+	resolvedConstraintOfDistributive memo[*Type]
 	mapper                           *TypeMapper
 	combinedMapper                   *TypeMapper
 }

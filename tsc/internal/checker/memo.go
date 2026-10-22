@@ -205,6 +205,25 @@ func (m *memo[T]) enter(c *Checker) bool {
 	return c.enterMemo(m.key())
 }
 
+// memoCompute returns the result cached in m, computing it in a computation
+// of its own if there is none. A result cached while computing it, by a
+// computation that re-entered it, is kept.
+func (c *Checker) memoCompute[T comparable](m *memo[T], compute func() T) T {
+	var zero T
+	if v := m.get(c); v != zero {
+		return v
+	}
+	pushed := c.memoEnterActive() && m.enter(c)
+	v := compute()
+	if cur := m.peek(); cur != zero {
+		v = cur
+	} else {
+		m.set(c, v)
+	}
+	c.exitMemo(pushed)
+	return v
+}
+
 // memoMap is a map of cached results, each accounted for like a memo. The
 // entries are only accessible through methods. Memo state is kept per entry in
 // a side map allocated on first use by a non-reporting activation.
@@ -952,6 +971,8 @@ func (c *Checker) typeResolutionMemo(r *TypeResolution) unsafe.Pointer {
 		return unsafe.Pointer(&c.valueSymbolLinks.Get(r.target.(*ast.Symbol)).resolvedType)
 	case TypeSystemPropertyNameDeclaredType:
 		return unsafe.Pointer(&c.typeAliasLinks.Get(r.target.(*ast.Symbol)).declaredType)
+	case TypeSystemPropertyNameResolvedTypeArguments:
+		return unsafe.Pointer(&r.target.(*Type).AsTypeReference().resolvedTypeArguments)
 	case TypeSystemPropertyNameResolvedBaseTypes:
 		return unsafe.Pointer(&r.target.(*Type).AsInterfaceType().resolvedBaseTypes)
 	case TypeSystemPropertyNameResolvedBaseConstructorType:

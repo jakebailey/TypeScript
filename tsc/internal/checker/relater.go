@@ -881,7 +881,7 @@ func (c *Checker) typeGeneration(t *Type) int {
 	switch {
 	case t.flags&TypeFlagsObject != 0:
 		if t.objectFlags&ObjectFlagsReference != 0 && t.AsTypeReference().node == nil {
-			generation = c.typesGeneration(t.AsTypeReference().resolvedTypeArguments)
+			generation = c.typesGeneration(t.AsTypeReference().resolvedTypeArguments.peek())
 		} else if m := t.AsObjectType().mapper; m != nil {
 			generation = c.mapperGeneration(m)
 		} else if t.symbol != nil && t.symbol.Flags()&ast.SymbolFlagsObjectLiteral != 0 {
@@ -1275,13 +1275,15 @@ func (c *Checker) getMatchingUnionConstituentForType(unionType *Type, t *Type) *
 // an empty string if no such discriminant property exists.
 func (c *Checker) getKeyPropertyName(t *Type) string {
 	u := t.AsUnionType()
-	if u.keyPropertyName == "" {
-		u.keyPropertyName, u.constituentMap = c.computeKeyPropertyNameAndMap(t)
-	}
-	if u.keyPropertyName == ast.InternalSymbolNameMissing {
+	name := c.memoCompute(&u.keyPropertyName, func() string {
+		var name string
+		name, u.constituentMap = c.computeKeyPropertyNameAndMap(t)
+		return name
+	})
+	if name == ast.InternalSymbolNameMissing {
 		return ""
 	}
-	return u.keyPropertyName
+	return name
 }
 
 // Given a union type for which getKeyPropertyName returned a non-empty string, return the constituent
@@ -1742,7 +1744,7 @@ func (c *Checker) isMarkerType(t *Type) bool {
 	if t.objectFlags&ObjectFlagsReference != 0 && t.AsTypeReference().node == nil {
 		target := t.Target()
 		if target != nil && target != t && target.objectFlags&ObjectFlagsClassOrInterface != 0 {
-			return c.isMarkerInstantiation(target.symbol, target.AsInterfaceType().TypeParameters(), t.AsTypeReference().resolvedTypeArguments)
+			return c.isMarkerInstantiation(target.symbol, target.AsInterfaceType().TypeParameters(), t.AsTypeReference().resolvedTypeArguments.peek())
 		}
 	}
 	return false
