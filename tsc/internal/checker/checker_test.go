@@ -459,7 +459,6 @@ var unmemoizedCacheFields = map[string]string{
 	"checkerStore.SignatureCount":                          unmemoizedCounter,
 	"checkerStore.TotalInstantiationCount":                 unmemoizedCounter,
 	"checkerStore.nanType":                                 unmemoizedInterned,
-	"checkerStore.externalModuleContainers":                unmemoizedProgram,
 	"checkerStore.packagesMap":                             unmemoizedProgram,
 	"checkerStore.ambientModulesOnce":                      unmemoizedProgram,
 	"checkerStore.ambientModules":                          unmemoizedProgram,

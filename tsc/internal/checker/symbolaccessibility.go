@@ -222,7 +222,6 @@ func (c *Checker) getImportedContainingModules(symbol *ast.Symbol, containingFil
 }
 
 type externalModuleContainerIndex struct {
-	complete           bool
 	containersByTarget map[*ast.Symbol][]*ast.Symbol
 	moduleOrder        map[*ast.Symbol]int
 }
@@ -235,13 +234,13 @@ func (index *externalModuleContainerIndex) add(target *ast.Symbol, container *as
 }
 
 func (c *Checker) getExternalModuleContainers(symbol *ast.Symbol) []*ast.Symbol {
-	if c.externalModuleContainers == nil {
-		c.buildExternalModuleContainerIndex()
-	}
-	index := c.externalModuleContainers
-	if !index.complete {
+	if c.buildingExternalModuleContainers {
 		// Re-entered from an alias resolved while building the index; answer this query without it.
 		return c.scanExternalModuleContainers(symbol)
+	}
+	index := c.externalModuleContainers.get(c)
+	if index == nil {
+		index = c.buildExternalModuleContainerIndex()
 	}
 	containers := index.containersByTarget[c.getResolvedTarget(symbol)]
 	parent := c.getParentOfSymbol(symbol)
@@ -258,12 +257,13 @@ func (c *Checker) getExternalModuleContainers(symbol *ast.Symbol) []*ast.Symbol 
 	return containers
 }
 
-func (c *Checker) buildExternalModuleContainerIndex() {
+func (c *Checker) buildExternalModuleContainerIndex() *externalModuleContainerIndex {
+	pushed := c.memoEnterActive() && c.externalModuleContainers.enter(c)
+	c.buildingExternalModuleContainers = true
 	index := &externalModuleContainerIndex{
 		containersByTarget: make(map[*ast.Symbol][]*ast.Symbol),
 		moduleOrder:        make(map[*ast.Symbol]int, len(c.program.SourceFiles())),
 	}
-	c.externalModuleContainers = index
 	for _, file := range c.program.SourceFiles() {
 		if !ast.IsExternalModule(file) {
 			continue
@@ -277,7 +277,10 @@ func (c *Checker) buildExternalModuleContainerIndex() {
 			index.add(c.getResolvedTarget(exportEquals), container)
 		}
 	}
-	index.complete = true
+	c.buildingExternalModuleContainers = false
+	c.externalModuleContainers.set(c, index)
+	c.exitMemo(pushed)
+	return index
 }
 
 func (c *Checker) scanExternalModuleContainers(symbol *ast.Symbol) []*ast.Symbol {

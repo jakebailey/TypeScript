@@ -630,6 +630,7 @@ type Checker struct {
 	varianceTypeParameter                       *Type
 	isInferencePartiallyBlocked                 bool
 	wasCanceled                                 bool
+	buildingExternalModuleContainers            bool
 	evaluate                                    evaluator.Evaluator
 	resolveName                                 func(location *ast.Node, name string, meaning ast.SymbolFlags, nameNotFoundMessage *diagnostics.Message, isUse bool, excludeGlobals bool) *ast.Symbol
 	resolveNameForSymbolSuggestion              func(location *ast.Node, name string, meaning ast.SymbolFlags, nameNotFoundMessage *diagnostics.Message, isUse bool, excludeGlobals bool) *ast.Symbol
@@ -888,7 +889,7 @@ type checkerStore struct {
 	importedContainingModules               memoMap[symbolFileKey, []*ast.Symbol]           // Modules imported by a file that export a symbol
 	extendedContainers                      memoMap[*ast.Symbol, []*ast.Symbol]             // Containers (other than the parent) which a symbol is aliased in
 	accessibleChains                        memoMap[accessibleChainCacheKey, []*ast.Symbol] // Accessible symbol chains by location
-	externalModuleContainers                *externalModuleContainerIndex
+	externalModuleContainers                memo[*externalModuleContainerIndex]
 	sourceFileLinks                         core.LinkStore[*ast.SourceFile, SourceFileLinks]
 	patternForType                          memoMap[*Type, *ast.Node]
 	contextFreeTypes                        memoMap[*ast.Node, *Type]
