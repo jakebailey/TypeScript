@@ -304,7 +304,7 @@ func (a *tracedTypeAdapter) EvolvingArrayFinalType() tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsEvolvingArray == 0 {
 		return nil
 	}
-	t := a.t.AsEvolvingArrayType().finalArrayType
+	t := a.t.AsEvolvingArrayType().finalArrayType.peek()
 	if t == nil {
 		return nil
 	}

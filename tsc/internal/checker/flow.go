@@ -1604,10 +1604,7 @@ func (c *Checker) finalizeEvolvingArrayType(t *Type) *Type {
 }
 
 func (c *Checker) getFinalArrayType(t *EvolvingArrayType) *Type {
-	if t.finalArrayType == nil {
-		t.finalArrayType = c.createFinalArrayType(t.elementType)
-	}
-	return t.finalArrayType
+	return c.memoCompute(&t.finalArrayType, func() *Type { return c.createFinalArrayType(t.elementType) })
 }
 
 func (c *Checker) createFinalArrayType(elementType *Type) *Type {

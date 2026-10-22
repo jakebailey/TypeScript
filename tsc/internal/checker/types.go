@@ -1356,7 +1356,7 @@ type ReverseMappedType struct {
 type EvolvingArrayType struct {
 	ObjectType
 	elementType    *Type
-	finalArrayType *Type
+	finalArrayType memo[*Type]
 }
 
 // UnionOrIntersectionTypeData
@@ -1527,7 +1527,7 @@ type Signature struct {
 	id                       SignatureId
 	flags                    SignatureFlags
 	minArgumentCount         int32
-	resolvedMinArgumentCount int32
+	resolvedMinArgumentCount memo[int32]
 	declaration              *ast.Node
 	parameters               []*ast.Symbol
 	resolvedReturnType       memo[*Type]
@@ -1573,7 +1573,20 @@ func (s *Signature) getResolvedTypePredicate(c *Checker) *TypePredicate {
 	return s.extra.resolvedTypePredicate
 }
 
+// setResolvedTypePredicate caches the type predicate of the signature, a
+// keyed cell; see initResolvedTypePredicate.
 func (s *Signature) setResolvedTypePredicate(c *Checker, predicate *TypePredicate) {
+	if c.cycleHead != 0 {
+		old := s.getResolvedTypePredicate(c)
+		c.logKeyedUndo(func() { s.initResolvedTypePredicate(c, old) })
+	}
+	s.initResolvedTypePredicate(c, predicate)
+	c.setKeyed(memoKeyOf(s, memoTypePredicate))
+}
+
+// initResolvedTypePredicate sets the type predicate of a signature being
+// created.
+func (s *Signature) initResolvedTypePredicate(c *Checker, predicate *TypePredicate) {
 	s.flags &^= signatureFlagsNoTypePredicate
 	if predicate != nil && predicate == c.noTypePredicate {
 		s.flags |= signatureFlagsNoTypePredicate

@@ -21112,15 +21112,31 @@ func (c *Checker) addInheritedMembers(symbols ast.SymbolTable, baseSymbols []*as
 
 func (c *Checker) resolveDeclaredMembers(t *Type) *InterfaceType {
 	d := t.AsInterfaceType()
+	key := memoKeyOf(t, memoDeclaredMembers)
+	if d.declaredMembersResolved {
+		c.observeKeyed(key)
+		return d
+	}
+	pushed := c.memoEnterActive() && c.enterMemo(key)
+	c.resolveDeclaredMembersUncached(t)
+	c.exitMemo(pushed)
+	return d
+}
+
+func (c *Checker) resolveDeclaredMembersUncached(t *Type) {
+	d := t.AsInterfaceType()
 	if !d.declaredMembersResolved {
 		members := c.getMembersOfSymbol(t.symbol)
 		d.declaredMembersResolved = true
+		if c.cycleHead != 0 {
+			c.logKeyedUndo(func() { d.declaredMembersResolved = false })
+		}
+		c.setKeyed(memoKeyOf(t, memoDeclaredMembers))
 		d.declaredMembers = members
 		d.declaredCallSignatures = c.getSignaturesOfSymbol(d.declaredMembers[ast.InternalSymbolNameCall])
 		d.declaredConstructSignatures = c.getSignaturesOfSymbol(d.declaredMembers[ast.InternalSymbolNameNew])
 		d.declaredIndexInfos = c.getIndexInfosOfSymbol(t.symbol)
 	}
-	return d
 }
 
 func (c *Checker) getIndexInfosOfSymbol(symbol *ast.Symbol) []*IndexInfo {
@@ -23398,17 +23414,21 @@ func (c *Checker) getReducedType(t *Type) *Type {
 			return c.memoCompute(&t.AsUnionType().resolvedReducedType, func() *Type { return c.getReducedUnionType(t) })
 		}
 	case t.flags&TypeFlagsIntersection != 0:
-		if t.objectFlags&ObjectFlagsIsNeverIntersectionComputed == 0 {
-			t.objectFlags |= ObjectFlagsIsNeverIntersectionComputed
-			if !c.isMappingOfSameObjectType(t.Types()) && c.somePropertyReducesToNever(t) {
-				t.objectFlags |= ObjectFlagsIsNeverIntersection
-			}
-		}
-		if t.objectFlags&ObjectFlagsIsNeverIntersection != 0 {
+		if c.isNeverIntersection(t) {
 			return c.neverType
 		}
 	}
 	return t
+}
+
+// isNeverIntersection reports whether the intersection t reduces to never.
+func (c *Checker) isNeverIntersection(t *Type) bool {
+	return c.objectFlagsCell(t, memoNeverIntersection, ObjectFlagsIsNeverIntersectionComputed, ObjectFlagsIsNeverIntersection, true /*inProgress*/, func() ObjectFlags {
+		if !c.isMappingOfSameObjectType(t.Types()) && c.somePropertyReducesToNever(t) {
+			return ObjectFlagsIsNeverIntersection
+		}
+		return 0
+	}) != 0
 }
 
 func (c *Checker) isMappingOfSameObjectType(types []*Type) bool {
@@ -23471,7 +23491,7 @@ func (c *Checker) getReducedApparentType(t *Type) *Type {
 }
 
 func (c *Checker) elaborateNeverIntersection(chain *ast.Diagnostic, node *ast.Node, t *Type) *ast.Diagnostic {
-	if t.flags&TypeFlagsIntersection != 0 && t.objectFlags&ObjectFlagsIsNeverIntersection != 0 {
+	if t.flags&TypeFlagsIntersection != 0 && c.isNeverIntersection(t) {
 		neverProp := core.Find(c.getPropertiesOfUnionOrIntersectionType(t), c.isDiscriminantWithNeverType)
 		if neverProp != nil {
 			return NewDiagnosticChainForNode(chain, node, diagnostics.The_intersection_0_was_reduced_to_never_because_property_1_has_conflicting_types_in_some_constituents, c.typeToStringEx(t, nil, TypeFormatFlagsNoTypeReduction, nil), c.symbolToString(neverProp))
@@ -23903,16 +23923,18 @@ func (c *Checker) couldContainTypeVariablesWorker(t *Type) bool {
 	if t.flags&TypeFlagsStructuredOrInstantiable == 0 {
 		return false
 	}
+	return c.objectFlagsCell(t, memoCouldContainTypeVariables, ObjectFlagsCouldContainTypeVariablesComputed, ObjectFlagsCouldContainTypeVariables, false /*inProgress*/, func() ObjectFlags {
+		return core.IfElse(c.computeCouldContainTypeVariables(t), ObjectFlagsCouldContainTypeVariables, 0)
+	}) != 0
+}
+
+func (c *Checker) computeCouldContainTypeVariables(t *Type) bool {
 	objectFlags := t.objectFlags
-	if objectFlags&ObjectFlagsCouldContainTypeVariablesComputed != 0 {
-		return objectFlags&ObjectFlagsCouldContainTypeVariables != 0
-	}
 	result := t.flags&TypeFlagsInstantiable != 0 ||
 		t.flags&TypeFlagsObject != 0 && !c.isNonGenericTopLevelType(t) && (objectFlags&ObjectFlagsReference != 0 && (t.AsTypeReference().node != nil || core.Some(c.getTypeArguments(t), c.couldContainTypeVariables)) ||
 			objectFlags&ObjectFlagsAnonymous != 0 && t.symbol != nil && t.symbol.Flags()&(ast.SymbolFlagsFunction|ast.SymbolFlagsMethod|ast.SymbolFlagsClass|ast.SymbolFlagsTypeLiteral|ast.SymbolFlagsObjectLiteral) != 0 && t.symbol.Declarations() != nil ||
 			objectFlags&(ObjectFlagsMapped|ObjectFlagsReverseMapped|ObjectFlagsObjectRestType|ObjectFlagsInstantiationExpressionType) != 0) ||
 		t.flags&TypeFlagsUnionOrIntersection != 0 && t.flags&TypeFlagsEnumLiteral == 0 && !c.isNonGenericTopLevelType(t) && core.Some(t.Types(), c.couldContainTypeVariables)
-	t.objectFlags |= ObjectFlagsCouldContainTypeVariablesComputed | core.IfElse(result, ObjectFlagsCouldContainTypeVariables, 0)
 	return result
 }
 
@@ -24112,13 +24134,15 @@ func (c *Checker) getObjectTypeInstantiation(t *Type, m *TypeMapper, alias *Type
 			// if `result` is one of the object types we tried to make (it may not be, due to how `instantiateMappedType` works), we can carry forward the type variable containment check from the input type arguments
 			resultCouldContainObjectFlags := core.Some(typeArguments, c.couldContainTypeVariables)
 			if result.objectFlags&ObjectFlagsCouldContainTypeVariablesComputed == 0 {
+				key := memoKeyOf(result, memoCouldContainTypeVariables)
+				mask := ObjectFlagsCouldContainTypeVariablesComputed | ObjectFlagsCouldContainTypeVariables
 				if result.objectFlags&(ObjectFlagsMapped|ObjectFlagsAnonymous|ObjectFlagsReference) != 0 {
-					result.objectFlags |= ObjectFlagsCouldContainTypeVariablesComputed | core.IfElse(resultCouldContainObjectFlags, ObjectFlagsCouldContainTypeVariables, 0)
-				} else {
+					setKeyedBits(c, key, &result.objectFlags, mask, ObjectFlagsCouldContainTypeVariablesComputed|core.IfElse(resultCouldContainObjectFlags, ObjectFlagsCouldContainTypeVariables, 0))
+				} else if !resultCouldContainObjectFlags {
 					// If none of the type arguments for the outer type parameters contain type variables, it follows
 					// that the instantiated type doesn't reference type variables.
 					// Intrinsics have `CouldContainTypeVariablesComputed` pre-set, so this should only cover unions and intersections resulting from `instantiateMappedType`
-					result.objectFlags |= core.IfElse(!resultCouldContainObjectFlags, ObjectFlagsCouldContainTypeVariablesComputed, 0)
+					setKeyedBits(c, key, &result.objectFlags, mask, ObjectFlagsCouldContainTypeVariablesComputed)
 				}
 			}
 		}
@@ -26723,7 +26747,8 @@ func (c *Checker) isGenericIndexType(t *Type) bool {
 func (c *Checker) getGenericObjectFlags(t *Type) ObjectFlags {
 	var combinedFlags ObjectFlags
 	if t.flags&(TypeFlagsUnionOrIntersection|TypeFlagsSubstitution) != 0 {
-		if t.objectFlags&ObjectFlagsIsGenericTypeComputed == 0 {
+		return c.objectFlagsCell(t, memoGenericObjectFlags, ObjectFlagsIsGenericTypeComputed, ObjectFlagsIsGenericType, false /*inProgress*/, func() ObjectFlags {
+			var combinedFlags ObjectFlags
 			if t.flags&TypeFlagsUnionOrIntersection != 0 {
 				for _, u := range t.Types() {
 					combinedFlags |= c.getGenericObjectFlags(u)
@@ -26731,9 +26756,8 @@ func (c *Checker) getGenericObjectFlags(t *Type) ObjectFlags {
 			} else {
 				combinedFlags = c.getGenericObjectFlags(t.AsSubstitutionType().baseType) | c.getGenericObjectFlags(t.AsSubstitutionType().constraint)
 			}
-			t.objectFlags |= ObjectFlagsIsGenericTypeComputed | combinedFlags
-		}
-		return t.objectFlags & ObjectFlagsIsGenericType
+			return combinedFlags
+		})
 	}
 	if t.flags&TypeFlagsInstantiableNonPrimitive != 0 || c.isGenericMappedType(t) || c.isGenericTupleType(t) {
 		combinedFlags |= ObjectFlagsIsGenericObjectType
@@ -27111,9 +27135,9 @@ func (c *Checker) newSignature(flags SignatureFlags, declaration *ast.Node, type
 	sig.parameters = parameters
 	sig.setThisParameter(c, thisParameter)
 	sig.resolvedReturnType.init(resolvedReturnType)
-	sig.setResolvedTypePredicate(c, resolvedTypePredicate)
+	sig.initResolvedTypePredicate(c, resolvedTypePredicate)
 	sig.minArgumentCount = int32(minArgumentCount)
-	sig.resolvedMinArgumentCount = -1
+	sig.resolvedMinArgumentCount.init(-1)
 	return sig
 }
 
@@ -29743,14 +29767,13 @@ func getNameFromIndexInfo(info *IndexInfo) string {
 
 func (c *Checker) isUnknownLikeUnionType(t *Type) bool {
 	if c.strictNullChecks && t.flags&TypeFlagsUnion != 0 {
-		if t.objectFlags&ObjectFlagsIsUnknownLikeUnionComputed == 0 {
-			t.objectFlags |= ObjectFlagsIsUnknownLikeUnionComputed
+		return c.objectFlagsCell(t, memoUnknownLikeUnion, ObjectFlagsIsUnknownLikeUnionComputed, ObjectFlagsIsUnknownLikeUnion, true /*inProgress*/, func() ObjectFlags {
 			types := t.Types()
 			if len(types) >= 3 && types[0].flags&TypeFlagsUndefined != 0 && types[1].flags&TypeFlagsNull != 0 && core.Some(types, c.IsEmptyAnonymousObjectType) {
-				t.objectFlags |= ObjectFlagsIsUnknownLikeUnion
+				return ObjectFlagsIsUnknownLikeUnion
 			}
-		}
-		return t.objectFlags&ObjectFlagsIsUnknownLikeUnion != 0
+			return 0
+		}) != 0
 	}
 	return false
 }

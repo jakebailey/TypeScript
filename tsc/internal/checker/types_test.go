@@ -606,7 +606,7 @@ func TestSignatureExtra(t *testing.T) {
 	assert.Assert(t, sig.getComposite() == nil)
 	assert.Assert(t, sig.getIsolatedSignatureType() == nil)
 	assert.Assert(t, sig.getResolvedTypePredicate(c) == nil)
-	assert.Equal(t, sig.resolvedMinArgumentCount, int32(-1))
+	assert.Equal(t, sig.resolvedMinArgumentCount.peek(), int32(-1))
 	sig.setTypeParameters(c, nil)
 	sig.setThisParameter(c, nil)
 	sig.setComposite(c, nil)

@@ -56,6 +56,12 @@ const (
 	memoModuleExports
 	memoInstantiationExpressionType
 	memoRelationOverflow
+	memoTypePredicate
+	memoDeclaredMembers
+	memoCouldContainTypeVariables
+	memoGenericObjectFlags
+	memoUnknownLikeUnion
+	memoNeverIntersection
 	memoResolvedMembers // followed by one field per MembersOrExportsResolutionKind
 )
 
@@ -853,11 +859,71 @@ type cycleUndo struct {
 	effects bool // Restores the effects of a result rather than the result
 }
 
-// logFieldUndo records how to discard a result cached in a plain field while
-// a cycle is in progress. Callers check cycleHead first so that the closure
-// is only allocated when needed.
-func (c *Checker) logFieldUndo(reset func()) {
-	c.cycleUndo = append(c.cycleUndo, cycleUndo{nil, reset, false})
+// A keyed cell is a cached result held outside a memo, so that it costs no
+// space of its own: bits of a flags word shared with other results, or a
+// field of storage allocated only when needed. It is accounted for like a
+// memo under a key naming its entity and field. Readers finding it cached
+// call observeKeyed; it is computed between enterMemo and exitMemo for the
+// key, and cached with setKeyedBits, or with setKeyed after logging how to
+// discard it with logKeyedUndo.
+
+// observeKeyed accounts for reading the keyed cell identified by key.
+func (c *Checker) observeKeyed(key memoKey) {
+	if c.memoActive() {
+		c.observeMemo(key)
+	}
+}
+
+// setKeyed accounts for caching the result of the keyed cell identified by
+// key, as memo.set does.
+func (c *Checker) setKeyed(key memoKey) {
+	if !c.reporting {
+		c.memoAttach(key)
+	}
+}
+
+// logKeyedUndo records how to discard the result of a keyed cell while a
+// cycle is in progress; the caller checks cycleHead so that the closure is
+// only allocated when needed.
+//
+//go:noinline
+func (c *Checker) logKeyedUndo(restore func()) {
+	c.cycleUndo = append(c.cycleUndo, cycleUndo{nil, restore, false})
+}
+
+// objectFlagsCell returns the flags under value of t, a keyed cell whose
+// result is cached once the computed flag is set, computing them in a
+// computation of their own if needed. With inProgress, the computed flag is
+// set while computing, so that a computation re-entering it finds no flags.
+func (c *Checker) objectFlagsCell(t *Type, field memoField, computed ObjectFlags, value ObjectFlags, inProgress bool, compute func() ObjectFlags) ObjectFlags {
+	key := memoKeyOf(t, field)
+	if t.objectFlags&computed != 0 {
+		c.observeKeyed(key)
+		return t.objectFlags & value
+	}
+	pushed := c.memoEnterActive() && c.enterMemo(key)
+	if inProgress {
+		setKeyedBits(c, key, &t.objectFlags, computed|value, computed)
+	}
+	result := compute() & value
+	if inProgress || t.objectFlags&computed == 0 {
+		setKeyedBits(c, key, &t.objectFlags, computed|value, computed|result)
+	} else {
+		result = t.objectFlags & value
+	}
+	c.exitMemo(pushed)
+	return result
+}
+
+// setKeyedBits caches the bits of *p under mask as the result of the keyed
+// cell identified by key.
+func setKeyedBits[T ~uint32](c *Checker, key memoKey, p *T, mask T, bits T) {
+	if c.cycleHead != 0 {
+		old := *p & mask
+		c.logKeyedUndo(func() { *p = *p&^mask | old })
+	}
+	*p = *p&^mask | bits&mask
+	c.setKeyed(key)
 }
 
 // endCycle discards the results cached since the outermost cycle in progress

@@ -2056,9 +2056,23 @@ func (c *Checker) getMinArgumentCount(signature *Signature) int {
 }
 
 func (c *Checker) getMinArgumentCountEx(signature *Signature, flags MinArgumentCountFlags) int {
+	voidIsNonOptional := flags & MinArgumentCountFlagsVoidIsNonOptional
+	if voidIsNonOptional != 0 {
+		return c.getMinArgumentCountUncached(signature, flags)
+	}
+	if count := signature.resolvedMinArgumentCount.get(c); count != -1 {
+		return int(count)
+	}
+	pushed := c.memoEnterActive() && signature.resolvedMinArgumentCount.enter(c)
+	result := c.getMinArgumentCountUncached(signature, flags)
+	c.exitMemo(pushed)
+	return result
+}
+
+func (c *Checker) getMinArgumentCountUncached(signature *Signature, flags MinArgumentCountFlags) int {
 	strongArityForUntypedJS := flags & MinArgumentCountFlagsStrongArityForUntypedJS
 	voidIsNonOptional := flags & MinArgumentCountFlagsVoidIsNonOptional
-	if voidIsNonOptional != 0 || signature.resolvedMinArgumentCount == -1 {
+	{
 		minArgumentCount := -1
 		if signatureHasRestParameter(signature) {
 			restType := c.getTypeOfSymbol(signature.parameters[len(signature.parameters)-1])
@@ -2091,9 +2105,9 @@ func (c *Checker) getMinArgumentCountEx(signature *Signature, flags MinArgumentC
 			}
 			minArgumentCount = i
 		}
-		signature.resolvedMinArgumentCount = int32(minArgumentCount)
+		signature.resolvedMinArgumentCount.set(c, int32(minArgumentCount))
+		return minArgumentCount
 	}
-	return int(signature.resolvedMinArgumentCount)
 }
 
 func (c *Checker) hasEffectiveRestParameter(signature *Signature) bool {
@@ -2364,6 +2378,22 @@ func (c *Checker) getTupleElementLabelFromBindingElement(node *ast.Node, index i
 }
 
 func (c *Checker) getTypePredicateOfSignature(sig *Signature) *TypePredicate {
+	key := memoKeyOf(sig, memoTypePredicate)
+	if sig.getResolvedTypePredicate(c) != nil {
+		c.observeKeyed(key)
+	} else {
+		pushed := c.memoEnterActive() && c.enterMemo(key)
+		c.resolveTypePredicateOfSignature(sig)
+		c.exitMemo(pushed)
+	}
+	predicate := sig.getResolvedTypePredicate(c)
+	if predicate == c.noTypePredicate {
+		return nil
+	}
+	return predicate
+}
+
+func (c *Checker) resolveTypePredicateOfSignature(sig *Signature) {
 	if sig.getResolvedTypePredicate(c) == nil {
 		switch {
 		case sig.target != nil:
@@ -2391,11 +2421,6 @@ func (c *Checker) getTypePredicateOfSignature(sig *Signature) *TypePredicate {
 			sig.setResolvedTypePredicate(c, c.noTypePredicate)
 		}
 	}
-	predicate := sig.getResolvedTypePredicate(c)
-	if predicate == c.noTypePredicate {
-		return nil
-	}
-	return predicate
 }
 
 func (c *Checker) getUnionOrIntersectionTypePredicate(signatures []*Signature, isUnion bool) *TypePredicate {
