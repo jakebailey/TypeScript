@@ -69,6 +69,7 @@ const (
 	TypeSystemPropertyNameComputedPropertyName
 	TypeSystemPropertyNameContextChecked
 	TypeSystemPropertyNameVariances
+	TypeSystemPropertyNameStructuredMembers
 )
 
 type TypeResolution struct {
@@ -19996,8 +19997,9 @@ func (c *Checker) typeResolutionHasProperty(r *TypeResolution) bool {
 		return extra != nil && extra.writeType.peek() != nil
 	case TypeSystemPropertyNameAliasTarget:
 		return c.aliasSymbolLinks.Get(r.target.(*ast.Symbol)).aliasTarget.peek() != nil
-	case TypeSystemPropertyNameContextChecked:
-		// Marked as checked on entry, so it is only on the stack while in progress.
+	case TypeSystemPropertyNameContextChecked, TypeSystemPropertyNameStructuredMembers:
+		// Marked as checked or resolved on entry, so it is only on the stack
+		// while in progress.
 		return false
 	case TypeSystemPropertyNameComputedPropertyName:
 		return c.typeNodeLinks.Get(r.target.(*ast.Node)).resolvedType.peek() != nil
@@ -20251,6 +20253,11 @@ func (c *Checker) isApplicableIndexType(source *Type, target *Type) bool {
 }
 
 func (c *Checker) resolveStructuredTypeMembers(t *Type) *StructuredType {
+	if t.objectFlags&ObjectFlagsMembersResolving != 0 {
+		// Resolving members may observe the type itself, whose members are
+		// then incomplete.
+		c.isResolutionInProgress(t, TypeSystemPropertyNameStructuredMembers)
+	}
 	if c.memoActive() {
 		pushed := c.enterMemo(memoKeyOf(t, memoStructuredMembers))
 		result := c.resolveStructuredTypeMembersUncached(t)
@@ -20262,6 +20269,14 @@ func (c *Checker) resolveStructuredTypeMembers(t *Type) *StructuredType {
 
 func (c *Checker) resolveStructuredTypeMembersUncached(t *Type) *StructuredType {
 	if t.objectFlags&ObjectFlagsMembersResolved == 0 {
+		// Many kinds of types make members available before they are
+		// complete, so the resolution is on the stack, but never fails.
+		t.objectFlags |= ObjectFlagsMembersResolving
+		c.typeResolutions = append(c.typeResolutions, TypeResolution{target: t, propertyName: TypeSystemPropertyNameStructuredMembers, result: true, memoDepth: len(c.memoFrames)})
+		defer func() {
+			t.objectFlags &^= ObjectFlagsMembersResolving
+			c.popTypeResolution()
+		}()
 		switch {
 		case t.flags&TypeFlagsObject != 0:
 			switch {

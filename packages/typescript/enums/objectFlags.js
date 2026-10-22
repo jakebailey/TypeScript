@@ -24,6 +24,7 @@ export var ObjectFlags;
     ObjectFlags[ObjectFlags["CouldContainTypeVariablesComputed"] = 524288] = "CouldContainTypeVariablesComputed";
     ObjectFlags[ObjectFlags["CouldContainTypeVariables"] = 1048576] = "CouldContainTypeVariables";
     ObjectFlags[ObjectFlags["MembersResolved"] = 2097152] = "MembersResolved";
+    ObjectFlags[ObjectFlags["MembersResolving"] = 1073741824] = "MembersResolving";
     ObjectFlags[ObjectFlags["ClassOrInterface"] = 3] = "ClassOrInterface";
     ObjectFlags[ObjectFlags["RequiresWidening"] = 196608] = "RequiresWidening";
     ObjectFlags[ObjectFlags["PropagatingFlags"] = 458752] = "PropagatingFlags";

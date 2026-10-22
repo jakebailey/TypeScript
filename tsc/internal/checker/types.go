@@ -698,6 +698,7 @@ const (
 	ObjectFlagsCouldContainTypeVariablesComputed          ObjectFlags = 1 << 19 // CouldContainTypeVariables flag has been computed
 	ObjectFlagsCouldContainTypeVariables                  ObjectFlags = 1 << 20 // Type could contain a type variable
 	ObjectFlagsMembersResolved                            ObjectFlags = 1 << 21 // Members have been resolved
+	ObjectFlagsMembersResolving                           ObjectFlags = 1 << 30 // Members are being resolved
 
 	ObjectFlagsClassOrInterface   = ObjectFlagsClass | ObjectFlagsInterface
 	ObjectFlagsRequiresWidening   = ObjectFlagsContainsWideningType | ObjectFlagsContainsObjectOrArrayLiteral
