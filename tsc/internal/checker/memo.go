@@ -89,6 +89,20 @@ func (f *memoEffects) addDep(d *memoEffects) {
 	f.deps = append(f.deps, d)
 }
 
+// covers reports whether replaying f replays deps, checking only the direct
+// dependencies of f, and only of a few, to stay cheap.
+func (f *memoEffects) covers(deps []*memoEffects) bool {
+	if len(deps) > 16 || len(f.deps) > 64 {
+		return false
+	}
+	for _, d := range deps {
+		if d != f && !slices.Contains(f.deps, d) {
+			return false
+		}
+	}
+	return true
+}
+
 // memoSlot is the memo state of one memoized result.
 type memoSlot struct {
 	pending *memoEffects // Effects not yet replayed by a reporting activation
@@ -133,6 +147,16 @@ func (m *memo[T]) set(c *Checker, v T) {
 	m.memoValue = v
 	if !c.reporting {
 		c.attachCell(unsafe.Pointer(m))
+	}
+}
+
+// memoUpdate is set for a result that every computation needing it sets
+// again, such as the symbol a property access resolves to. Setting the value
+// it already has comes from the same computation, whose effects are already
+// retained, so it is only set when it changes.
+func memoUpdate[T comparable](c *Checker, m *memo[T], v T) {
+	if m.memoValue != v {
+		m.set(c, v)
 	}
 }
 
@@ -506,6 +530,43 @@ func (c *Checker) exitMemo(pushed bool) {
 	if !pushed {
 		return
 	}
+	slot, f := c.popMemoFrame()
+	if f == nil {
+		return
+	}
+	c.retainEffects(slot, f)
+}
+
+// exitMemoUncached is exitMemo for a computation that did not cache its
+// result. Nothing can reuse the result, so its effects belong only to the
+// enclosing computation, and retaining them for the result would grow them
+// each time it is computed again.
+func (c *Checker) exitMemoUncached(pushed bool) {
+	c.exitInstantiationBudget()
+	if !pushed {
+		return
+	}
+	slot, f := c.popMemoFrame()
+	if f == nil {
+		return
+	}
+	if parent := c.currentMemoFrame(); parent != nil {
+		if len(f.effects) == 0 && f.entry == parent.entry {
+			// Without effects of its own, and located like the enclosing
+			// computation, the computation adds nothing but what it observed.
+			for _, d := range f.deps {
+				parent.addDep(d)
+			}
+		} else {
+			parent.addDep(f)
+		}
+	} else if c.flushSlots != nil {
+		// withoutReporting replays effects through the results computed.
+		c.retainEffects(slot, f)
+	}
+}
+
+func (c *Checker) popMemoFrame() (*memoSlot, *memoEffects) {
 	n := len(c.memoFrames) - 1
 	frame := c.memoFrames[n]
 	c.memoFrames[n] = memoFrame{}
@@ -514,8 +575,21 @@ func (c *Checker) exitMemo(pushed bool) {
 	if slot.depth == n+1 {
 		slot.depth = 0
 	}
-	f := frame.effects
-	if f == nil {
+	return slot, frame.effects
+}
+
+// retainEffects retains the effects of a computation that just finished for
+// replay by later reuse of its result, and adds them to the enclosing
+// computation.
+func (c *Checker) retainEffects(slot *memoSlot, f *memoEffects) {
+	if slot.pending != nil && len(f.effects) == 0 && slot.pending.covers(f.deps) {
+		// Computing the result again, typically to return it from a cache
+		// that the computation reads, observed only what computing it
+		// before did. Retaining that again would grow the effects of the
+		// result each time.
+		if parent := c.currentMemoFrame(); parent != nil {
+			parent.addDep(slot.pending)
+		}
 		return
 	}
 	if c.cycleHead != 0 || c.effectsMarkDepth != 0 {

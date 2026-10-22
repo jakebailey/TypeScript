@@ -7593,8 +7593,10 @@ func (c *Checker) getTypeOfExpression(node *ast.Node) *Type {
 		// If control flow analysis was required to determine the type, it is worth caching.
 		if c.flowInvocationCount != startInvocationCount {
 			c.flowExpressionTypes.set(c, node, t)
+			c.exitMemo(pushed)
+		} else {
+			c.exitMemoUncached(pushed)
 		}
-		c.exitMemo(pushed)
 		return t
 	}
 	// Within loop analysis, the type may depend on the transient types of the
@@ -7614,8 +7616,10 @@ func (c *Checker) getTypeOfExpression(node *ast.Node) *Type {
 			c.flowTypeCache = make(map[*ast.Node]*Type)
 		}
 		c.flowTypeCache[node] = t
+		c.exitMemo(pushed)
+	} else {
+		c.exitMemoUncached(pushed)
 	}
-	c.exitMemo(pushed)
 	return t
 }
 
@@ -11835,7 +11839,7 @@ func (c *Checker) checkPropertyAccessExpressionOrQualifiedName(node *ast.Node, l
 		}
 		c.checkPropertyNotUsedBeforeDeclaration(prop, node, right)
 		c.markPropertyAsReferenced(prop, node, c.isSelfTypeAccess(left, parentSymbol))
-		c.symbolNodeLinks.Get(node).resolvedSymbol.set(c, prop)
+		memoUpdate(c, &c.symbolNodeLinks.Get(node).resolvedSymbol, prop)
 		c.checkPropertyAccessibility(node, left.Kind == ast.KindSuperKeyword, ast.IsWriteAccess(node), apparentType, prop)
 		if c.isAssignmentToReadonlyEntity(node, prop, assignmentKind) {
 			c.error(right, diagnostics.Cannot_assign_to_0_because_it_is_a_read_only_property, right.Text())
