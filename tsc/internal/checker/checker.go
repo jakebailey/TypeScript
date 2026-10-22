@@ -70,6 +70,7 @@ const (
 	TypeSystemPropertyNameContextChecked
 	TypeSystemPropertyNameVariances
 	TypeSystemPropertyNameStructuredMembers
+	TypeSystemPropertyNameCurrentNode
 	TypeSystemPropertyNameSimplifiedForReading
 	TypeSystemPropertyNameSimplifiedForWriting
 )
@@ -618,6 +619,7 @@ type Checker struct {
 	serializationLevel                          int
 	currentNode                                 *ast.Node
 	simplifyingIndexedAccess                    collections.Set[CachedTypeKey]
+	currentNodeResolution                       int // 1-based index in typeResolutions of the entry of currentNode, or 0; see enterCurrentNode
 	varianceTypeParameter                       *Type
 	isInferencePartiallyBlocked                 bool
 	wasCanceled                                 bool
@@ -2369,12 +2371,11 @@ func (c *Checker) checkSourceElements(nodes []*ast.Node) {
 
 func (c *Checker) checkSourceElement(node *ast.Node) bool {
 	if node != nil {
-		saveCurrentNode := c.currentNode
+		saveCurrentNode := c.enterCurrentNode(node)
 		saveWithinUnreachableCode := c.withinUnreachableCode
-		c.currentNode = node
 		c.instantiationCount = 0
 		c.checkSourceElementWorker(node)
-		c.currentNode = saveCurrentNode
+		c.exitCurrentNode(saveCurrentNode)
 		c.withinUnreachableCode = saveWithinUnreachableCode
 	}
 	return false
@@ -2612,8 +2613,7 @@ func (c *Checker) checkDeferredNode(node *ast.Node) {
 	if tr := c.tracer; tr != nil {
 		defer tr.Push(tracing.PhaseCheck, "checkDeferredNode", map[string]any{"kind": node.Kind, "pos": node.Pos(), "end": node.End(), "path": ast.GetSourceFileOfNode(node).FileName()}, false)()
 	}
-	saveCurrentNode := c.currentNode
-	c.currentNode = node
+	saveCurrentNode := c.enterCurrentNode(node)
 	c.instantiationCount = 0
 	switch node.Kind {
 	case ast.KindCallExpression, ast.KindNewExpression, ast.KindTaggedTemplateExpression, ast.KindDecorator, ast.KindJsxOpeningElement:
@@ -2643,7 +2643,7 @@ func (c *Checker) checkDeferredNode(node *ast.Node) {
 	case ast.KindObjectLiteralExpression, ast.KindJsxAttributes:
 		c.checkContextualDeprecations(node)
 	}
-	c.currentNode = saveCurrentNode
+	c.exitCurrentNode(saveCurrentNode)
 }
 
 func (c *Checker) checkJSDocComments(node *ast.Node) {
@@ -7848,15 +7848,14 @@ func (c *Checker) checkExpressionEx(node *ast.Node, checkMode CheckMode) *Type {
 	if tr := c.tracer; tr != nil {
 		defer tr.Push(tracing.PhaseCheck, "checkExpression", map[string]any{"kind": node.Kind, "pos": node.Pos(), "end": node.End(), "path": ast.GetSourceFileOfNode(node).FileName()}, false)()
 	}
-	saveCurrentNode := c.currentNode
-	c.currentNode = node
+	saveCurrentNode := c.enterCurrentNode(node)
 	c.instantiationCount = 0
 	uninstantiatedType := c.checkExpressionWorker(node, checkMode)
 	t := c.instantiateTypeWithSingleGenericCallSignature(node, uninstantiatedType, checkMode)
 	if isConstEnumObjectType(t) {
 		c.checkConstEnumAccess(node, t)
 	}
-	c.currentNode = saveCurrentNode
+	c.exitCurrentNode(saveCurrentNode)
 	return t
 }
 
@@ -8758,8 +8757,7 @@ func (c *Checker) getResolvedSignature(node *ast.Node, candidatesOutArray *[]*Si
 	// Resolution is located at the call however it was requested, such as
 	// from contextually typing an argument, so that errors it reports at the
 	// current node do not depend on which was checked first.
-	saveCurrentNode := c.currentNode
-	c.currentNode = node
+	saveCurrentNode := c.enterCurrentNode(node)
 	var result *Signature
 	if c.memoActive() {
 		pushed := c.signatureLinks.Get(node).resolvedSignature.enter(c)
@@ -8768,7 +8766,7 @@ func (c *Checker) getResolvedSignature(node *ast.Node, candidatesOutArray *[]*Si
 	} else {
 		result = c.getResolvedSignatureUncached(node, candidatesOutArray, checkMode)
 	}
-	c.currentNode = saveCurrentNode
+	c.exitCurrentNode(saveCurrentNode)
 	return result
 }
 
@@ -14659,7 +14657,19 @@ func (c *Checker) errorAtCurrentNode(message *diagnostics.Message, args ...any) 
 	c.reportAtCurrentNode(func(c *Checker, node *ast.Node) { c.error(node, message, args...) })
 }
 
+// reportAtCurrentNode reports an error located at whichever node's check
+// reached it, so that every node reaching it reports it, as it would if it
+// were checked first. Results cached from now until the current node is left
+// were computed for that node, and are discarded so that other nodes
+// compute them again.
 func (c *Checker) reportAtCurrentNode(report func(c *Checker, node *ast.Node)) {
+	c.taintCurrentNode()
+	c.reportAtCurrentNodeOnce(report)
+}
+
+// reportAtCurrentNodeOnce is reportAtCurrentNode for an error whose result
+// is kept, so that only the node reaching it first reports it.
+func (c *Checker) reportAtCurrentNodeOnce(report func(c *Checker, node *ast.Node)) {
 	if !c.reporting {
 		// A node the computation started at is where the computation was
 		// requested from, so it is located wherever the result is reused.
@@ -19927,6 +19937,36 @@ func (c *Checker) isResolutionInProgress(target TypeSystemEntity, propertyName T
 	return true
 }
 
+// enterCurrentNode makes node the node being checked, until the matching
+// exitCurrentNode. Its entry on the type resolution stack delimits the
+// results that errors located at node (see reportAtCurrentNode) depend on.
+func (c *Checker) enterCurrentNode(node *ast.Node) savedCurrentNode {
+	save := savedCurrentNode{node: c.currentNode, resolution: c.currentNodeResolution}
+	c.currentNode = node
+	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: node, propertyName: TypeSystemPropertyNameCurrentNode, result: true, memoDepth: len(c.memoFrames)})
+	c.currentNodeResolution = len(c.typeResolutions)
+	return save
+}
+
+func (c *Checker) exitCurrentNode(save savedCurrentNode) {
+	c.popTypeResolution()
+	c.currentNode = save.node
+	c.currentNodeResolution = save.resolution
+}
+
+type savedCurrentNode struct {
+	node       *ast.Node
+	resolution int
+}
+
+// taintCurrentNode records that results cached until the current node is
+// left depend on that node.
+func (c *Checker) taintCurrentNode() {
+	if c.currentNodeResolution != 0 && (c.cycleHead == 0 || c.currentNodeResolution < c.cycleHead) {
+		c.cycleHead = c.currentNodeResolution
+	}
+}
+
 // taintResolutionCycle records that the computations from start to the top
 // of the stack observed the incomplete resolution at start without failing,
 // so results cached while it is in progress are discarded when it finishes.
@@ -20000,7 +20040,7 @@ func (c *Checker) typeResolutionHasProperty(r *TypeResolution) bool {
 		return extra != nil && extra.writeType.peek() != nil
 	case TypeSystemPropertyNameAliasTarget:
 		return c.aliasSymbolLinks.Get(r.target.(*ast.Symbol)).aliasTarget.peek() != nil
-	case TypeSystemPropertyNameContextChecked, TypeSystemPropertyNameStructuredMembers,
+	case TypeSystemPropertyNameContextChecked, TypeSystemPropertyNameStructuredMembers, TypeSystemPropertyNameCurrentNode,
 		TypeSystemPropertyNameSimplifiedForReading, TypeSystemPropertyNameSimplifiedForWriting:
 		// Marked as checked or resolved on entry, so it is only on the stack
 		// while in progress.
@@ -23494,13 +23534,23 @@ func (c *Checker) instantiateTypeWithAlias(t *Type, m *TypeMapper, alias *TypeAl
 			tr.Instant(tracing.PhaseCheckTypes, "instantiateType_DepthLimit", map[string]any{"typeId": t.id, "instantiationDepth": len(c.instantiationStack), "instantiationCount": c.instantiationCount})
 		}
 		circularTypeNames := c.getCircularTypeNames()
+		var message *diagnostics.Message
+		var args []any
 		switch {
 		case len(circularTypeNames) == 1:
-			c.errorAtCurrentNode(diagnostics.Instantiations_of_type_0_appear_infinitely_circular, circularTypeNames[0])
+			message, args = diagnostics.Instantiations_of_type_0_appear_infinitely_circular, []any{circularTypeNames[0]}
 		case len(circularTypeNames) > 1:
-			c.errorAtCurrentNode(diagnostics.Instantiations_of_the_following_types_appear_infinitely_circular_Colon_0, quotedAndCommaSeparated(circularTypeNames))
+			message, args = diagnostics.Instantiations_of_the_following_types_appear_infinitely_circular_Colon_0, []any{quotedAndCommaSeparated(circularTypeNames)}
 		default:
-			c.errorAtCurrentNode(diagnostics.Type_instantiation_is_excessively_deep_and_possibly_infinite)
+			message = diagnostics.Type_instantiation_is_excessively_deep_and_possibly_infinite
+		}
+		report := func(c *Checker, node *ast.Node) { c.error(node, message, args...) }
+		if c.instantiationDepthLimitReached() {
+			c.reportAtCurrentNode(report)
+		} else {
+			// The count depends on how much was already cached, so computing
+			// the result again elsewhere would not reliably reach it either.
+			c.reportAtCurrentNodeOnce(report)
 		}
 		return c.errorType
 	}
@@ -29103,7 +29153,11 @@ func (c *Checker) getResolvedBaseConstraintUncached(t *Type, stack []RecursionId
 			errorNode := c.getConstraintDeclaration(t)
 			if errorNode != nil {
 				typeString := c.TypeToString(t)
-				c.reportAtCurrentNode(func(c *Checker, node *ast.Node) {
+				// The error is located at the constraint, not the current node, and the
+				// circularity is intrinsic to the declarations, so it is reported once
+				// and the circular result is kept. Discarding it would let a later
+				// computation reuse cycle participants that hide the cycle.
+				c.reportAtCurrentNodeOnce(func(c *Checker, node *ast.Node) {
 					diagnostic := c.error(errorNode, diagnostics.Type_parameter_0_has_a_circular_constraint, typeString)
 					if node != nil && !isNodeDescendantOf(errorNode, node) && !isNodeDescendantOf(node, errorNode) {
 						diagnostic.AddRelatedInfo(NewDiagnosticForNode(node, diagnostics.Circularity_originates_in_type_at_this_location))

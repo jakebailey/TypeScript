@@ -379,6 +379,8 @@ type memoFrame struct {
 	effects *memoEffects // Allocated on first use
 	slot    *memoSlot
 	entry   *ast.Node // Current node when the computation started
+	query   savedCurrentNode
+	isQuery bool
 }
 
 // memoActive reports whether memoized entry points must track effects. When
@@ -420,7 +422,16 @@ func (c *Checker) enterSlot(slot *memoSlot) bool {
 			parent.addDep(slot.pending)
 		}
 	}
-	c.memoFrames = append(c.memoFrames, memoFrame{slot: slot, entry: c.currentNode})
+	frame := memoFrame{slot: slot, entry: c.currentNode}
+	if len(c.memoFrames) == 0 && c.currentNodeResolution == 0 {
+		// A query made outside of checking: errors located at the current
+		// node are located wherever checking reuses the result, so results
+		// they depend on are discarded once the query finishes (see
+		// reportAtCurrentNode), and every reuse computes them again.
+		frame.query = c.enterCurrentNode(c.currentNode)
+		frame.isQuery = true
+	}
+	c.memoFrames = append(c.memoFrames, frame)
 	if slot.depth != 0 {
 		// Re-entering a computation in progress: the inner result is derived
 		// from whatever in-progress marker the outer computation left behind.
@@ -574,6 +585,9 @@ func (c *Checker) popMemoFrame() (*memoSlot, *memoEffects) {
 	slot := frame.slot
 	if slot.depth == n+1 {
 		slot.depth = 0
+	}
+	if frame.isQuery {
+		c.exitCurrentNode(frame.query)
 	}
 	return slot, frame.effects
 }
@@ -975,7 +989,10 @@ func (c *Checker) exitInstantiationBudget() {
 // instantiationLimitReached reports whether a further instantiation would
 // exceed a limit.
 func (c *Checker) instantiationLimitReached() bool {
+	return c.instantiationDepthLimitReached() || c.instantiationCount >= instantiationCountLimit
+}
+
+func (c *Checker) instantiationDepthLimitReached() bool {
 	depth := len(c.instantiationStack)
-	return depth-c.instantiationDepthBase == instantiationDepthLimit || depth == instantiationTotalDepthLimit ||
-		c.instantiationCount >= instantiationCountLimit
+	return depth-c.instantiationDepthBase == instantiationDepthLimit || depth == instantiationTotalDepthLimit
 }
