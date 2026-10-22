@@ -179,6 +179,18 @@ func (m *memo[T]) setStable(c *Checker, v T) {
 	}
 }
 
+// setUnlessReported is setStable for a result whose computation started when
+// c.currentNodeReports was reports. If the computation reported errors at the
+// current node, the result is discarded with other results cached for that
+// node instead, so that every node reaching it computes it again and reports
+// the errors itself.
+func (m *memo[T]) setUnlessReported(c *Checker, v T, reports int) {
+	if c.currentNodeReports != reports && c.cycleHead != 0 {
+		m.logUndo(c)
+	}
+	m.setStable(c, v)
+}
+
 //go:noinline
 func (m *memo[T]) logUndo(c *Checker) {
 	old := m.memoValue
@@ -303,6 +315,14 @@ func (m *memoMap[K, V]) logUndo(c *Checker, k K) {
 			delete(m.memoEntries, k)
 		}
 	}, false})
+}
+
+// setUnlessReported is setStable for an entry; see memo.setUnlessReported.
+func (m *memoMap[K, V]) setUnlessReported(c *Checker, k K, v V, reports int) {
+	if c.currentNodeReports != reports && c.cycleHead != 0 {
+		m.logUndo(c, k)
+	}
+	m.setStable(c, k, v)
 }
 
 // setStable is set for a result that defines the identity of what it

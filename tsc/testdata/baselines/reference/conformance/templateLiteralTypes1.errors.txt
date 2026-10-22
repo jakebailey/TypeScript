@@ -8,10 +8,11 @@ templateLiteralTypes1.ts(201,16): error TS2590: Expression produces a union type
 templateLiteralTypes1.ts(205,16): error TS2590: Expression produces a union type that is too complex to represent.
 templateLiteralTypes1.ts(250,5): error TS2590: Expression produces a union type that is too complex to represent.
 templateLiteralTypes1.ts(252,7): error TS2590: Expression produces a union type that is too complex to represent.
+templateLiteralTypes1.ts(254,7): error TS2590: Expression produces a union type that is too complex to represent.
 templateLiteralTypes1.ts(254,14): error TS2590: Expression produces a union type that is too complex to represent.
 
 
-==== templateLiteralTypes1.ts (9 errors) ====
+==== templateLiteralTypes1.ts (10 errors) ====
     // Template types example from #12754
     
     const createScopedActionType = <S extends string>(scope: S) => <T extends string>(type: T) => `${scope}/${type}` as `${S}/${T}`;
@@ -287,6 +288,8 @@ templateLiteralTypes1.ts(254,14): error TS2590: Expression produces a union type
 !!! error TS2590: Expression produces a union type that is too complex to represent.
     
     const test1: SpacingShorthand = "0 0 0";
+          ~~~~~
+!!! error TS2590: Expression produces a union type that is too complex to represent.
                  ~~~~~~~~~~~~~~~~
 !!! error TS2590: Expression produces a union type that is too complex to represent.
     
