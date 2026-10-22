@@ -84,6 +84,9 @@ type TypeResolution struct {
 	// canonical is the member of a cycle headed by this resolution that is
 	// resolved first; see observeCircularHead.
 	canonical TypeSystemEntity
+	// canonicalMembers is a type whose members are resolved in a failing
+	// cycle headed by this resolution; see markResolutionCycle.
+	canonicalMembers *Type
 }
 
 // ContextualInfo
@@ -17226,22 +17229,58 @@ func (c *Checker) resolveAliasUncached(symbol *ast.Symbol) *ast.Symbol {
 	}
 	links := c.aliasSymbolLinks.Get(symbol)
 	if links.aliasTarget.get(c) == nil {
-		if !c.pushTypeResolution(symbol, TypeSystemPropertyNameAliasTarget) {
-			return c.unknownSymbol
+		if c.reporting {
+			// Results computed in a cycle entered here may be discarded along
+			// with their effects (see popResolutionRestart), so resolve while
+			// recording effects.
+			var result *ast.Symbol
+			c.withoutReporting(func() {
+				result = c.resolveAlias(symbol)
+			})
+			return result
 		}
-		node := c.getDeclarationOfAliasSymbol(symbol)
-		if node == nil {
-			panic("Unexpected nil in resolveAlias for symbol: " + c.symbolToString(symbol))
-		}
-		target := c.getTargetOfAliasDeclaration(node)
-		if ast.IsNonLocalAlias(target, ast.SymbolFlagsValue|ast.SymbolFlagsType|ast.SymbolFlagsNamespace) {
-			// When the target is a pure alias, we transitively resolve and propagate any typeOnlyDeclaration
-			target = c.resolveIndirectionAlias(symbol, target)
-		}
-		links.aliasTarget.set(c, core.OrElse(target, c.unknownSymbol))
-		if !c.popTypeResolution() {
-			c.error(node, diagnostics.Circular_definition_of_import_alias_0, c.symbolToString(symbol))
-			links.aliasTarget.set(c, c.unknownSymbol)
+		saveCycleHead := c.cycleHead
+		undoStart := len(c.cycleUndo)
+		participantsStart := len(c.cycleParticipants)
+		mark := c.markEffects()
+		saveEffectsMarkDepth := c.effectsMarkDepth
+		c.effectsMarkDepth = mark.frameIndex + 1
+		defer func() {
+			c.effectsMarkDepth = saveEffectsMarkDepth
+			if c.effectsMarkDepth == 0 && c.cycleHead == 0 {
+				// Only dependency undo entries can remain, which nothing can
+				// roll back once no cycle or effects mark is in progress.
+				c.cycleUndo = nil
+			}
+		}()
+		for {
+			if !c.pushTypeResolution(symbol, TypeSystemPropertyNameAliasTarget) {
+				return c.unknownSymbol
+			}
+			node := c.getDeclarationOfAliasSymbol(symbol)
+			if node == nil {
+				panic("Unexpected nil in resolveAlias for symbol: " + c.symbolToString(symbol))
+			}
+			target := c.getTargetOfAliasDeclaration(node)
+			if ast.IsNonLocalAlias(target, ast.SymbolFlagsValue|ast.SymbolFlagsType|ast.SymbolFlagsNamespace) {
+				// When the target is a pure alias, we transitively resolve and propagate any typeOnlyDeclaration
+				target = c.resolveIndirectionAlias(symbol, target)
+			}
+			if top := &c.typeResolutions[len(c.typeResolutions)-1]; !top.result && top.canonicalMembers != nil {
+				members := c.popResolutionRestart()
+				c.discardCycleSince(undoStart, participantsStart, saveCycleHead, mark)
+				c.resolveStructuredTypeMembers(members)
+				if links.aliasTarget.get(c) != nil {
+					break
+				}
+				continue
+			}
+			links.aliasTarget.set(c, core.OrElse(target, c.unknownSymbol))
+			if !c.popTypeResolution() {
+				c.error(node, diagnostics.Circular_definition_of_import_alias_0, c.symbolToString(symbol))
+				links.aliasTarget.set(c, c.unknownSymbol)
+			}
+			break
 		}
 	}
 	return links.aliasTarget.get(c)
@@ -19939,6 +19978,14 @@ func (c *Checker) markResolutionCycle(start int) {
 		}
 		c.typeResolutions[i].result = false
 	}
+	if head := &c.typeResolutions[start]; head.canonicalMembers == nil {
+		for i := start + 1; i < len(c.typeResolutions); i++ {
+			if r := &c.typeResolutions[i]; r.propertyName == TypeSystemPropertyNameStructuredMembers {
+				head.canonicalMembers = r.target.(*Type)
+				break
+			}
+		}
+	}
 	if !c.reporting {
 		c.memoCycle(c.typeResolutions[start].memoDepth)
 	}
@@ -20005,6 +20052,20 @@ func (c *Checker) popCircularHead() TypeSystemEntity {
 	}
 	c.popTypeResolution()
 	return canonical
+}
+
+// popResolutionRestart pops a resolution that may head a failing cycle
+// through the resolution of a type's members. Members are made available
+// while they are resolved, so entering the cycle at the members never
+// fails, while entering it elsewhere fails the entry. The cycle thus
+// resolves the members first: popResolutionRestart returns their type when
+// the cycle was entered elsewhere, in which case the caller must discard
+// everything cached during the cycle, resolve the members, and resolve the
+// head again.
+func (c *Checker) popResolutionRestart() *Type {
+	t := c.typeResolutions[len(c.typeResolutions)-1].canonicalMembers
+	c.popTypeResolution()
+	return t
 }
 
 // enterCurrentNode makes node the node being checked, until the matching
