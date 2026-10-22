@@ -8297,7 +8297,7 @@ func (c *Checker) isTemplateLiteralContextualType(t *Type) bool {
 }
 
 func (c *Checker) checkRegularExpressionLiteral(node *ast.Node) *Type {
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(node, memoRegularExpression))
 		result := c.checkRegularExpressionLiteralUncached(node)
 		c.exitMemo(pushed)
@@ -10555,7 +10555,7 @@ func (c *Checker) checkFunctionExpressionOrObjectLiteralMethod(node *ast.Node, c
 }
 
 func (c *Checker) contextuallyCheckFunctionExpressionOrObjectLiteralMethod(node *ast.Node, checkMode CheckMode) {
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(node, memoContextChecked))
 		c.contextuallyCheckFunctionExpressionOrObjectLiteralMethodUncached(node, checkMode)
 		c.exitMemo(pushed)
@@ -11103,7 +11103,7 @@ func (c *Checker) getInstantiationExpressionType(exprType *Type, node *ast.Node)
 		entry = &instantiationExpressionEntry{}
 		c.instantiationExpressionTypes.intern(key, entry)
 	}
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(entry, memoInstantiationExpressionType))
 		result := c.getInstantiationExpressionTypeCached(exprType, node, typeArguments, entry)
 		c.exitMemo(pushed)
@@ -11676,7 +11676,7 @@ func (c *Checker) removeOptionalityFromDeclaredType(declaredType *Type, declarat
 }
 
 func (c *Checker) parameterInitializerContainsUndefined(declaration *ast.Node) bool {
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(declaration, memoInitializerIsUndefined))
 		result := c.parameterInitializerContainsUndefinedUncached(declaration)
 		c.exitMemo(pushed)
@@ -16820,7 +16820,7 @@ func (c *Checker) getExportsOfSymbol(symbol *ast.Symbol) ast.SymbolTable {
 }
 
 func (c *Checker) getResolvedMembersOrExportsOfSymbol(symbol *ast.Symbol, resolutionKind MembersOrExportsResolutionKind) ast.SymbolTable {
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(symbol, memoResolvedMembers+memoField(resolutionKind)))
 		result := c.getResolvedMembersOrExportsOfSymbolUncached(symbol, resolutionKind)
 		c.exitMemo(pushed)
@@ -17032,7 +17032,7 @@ func (c *Checker) getMembersOfSymbol(symbol *ast.Symbol) ast.SymbolTable {
 
 func (c *Checker) getExportsOfModule(moduleSymbol *ast.Symbol) ast.SymbolTable {
 	links := c.moduleSymbolLinks.Get(moduleSymbol)
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(links, memoModuleExports))
 		result := c.getExportsOfModuleCached(moduleSymbol, links)
 		c.exitMemo(pushed)
@@ -17358,7 +17358,7 @@ func (c *Checker) getWriteTypeOfSymbolWithDeferredType(symbol *ast.Symbol) *Type
 // properties deriving from set accessors will either pre-compute or defer the union or
 // intersection of the writeTypes of their constituents.
 func (c *Checker) getWriteTypeOfSymbol(symbol *ast.Symbol) *Type {
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(symbol, memoWriteType))
 		result := c.getWriteTypeOfSymbolUncached(symbol)
 		c.exitMemo(pushed)
@@ -18031,7 +18031,7 @@ func (c *Checker) getConstraintOfType(t *Type) *Type {
 }
 
 func (c *Checker) getConstraintOfTypeParameter(typeParameter *Type) *Type {
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(typeParameter, memoTypeParameterConstraint))
 		result := c.getConstraintOfTypeParameterUncached(typeParameter)
 		c.exitMemo(pushed)
@@ -19618,7 +19618,7 @@ func (c *Checker) getTypeOfEnumMember(symbol *ast.Symbol) *Type {
 }
 
 func (c *Checker) getTypeOfAccessors(symbol *ast.Symbol) *Type {
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(symbol, memoAccessorType))
 		result := c.getTypeOfAccessorsUncached(symbol)
 		c.exitMemo(pushed)
@@ -20258,7 +20258,7 @@ func (c *Checker) resolveStructuredTypeMembers(t *Type) *StructuredType {
 		// then incomplete.
 		c.isResolutionInProgress(t, TypeSystemPropertyNameStructuredMembers)
 	}
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(t, memoStructuredMembers))
 		result := c.resolveStructuredTypeMembersUncached(t)
 		c.exitMemo(pushed)
@@ -20390,7 +20390,7 @@ func (c *Checker) getBaseTypes(t *Type) []*Type {
 		}
 		return data.resolvedBaseTypes.get(c)
 	}
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(t, memoBaseTypes))
 		result := c.getBaseTypesUncached(t)
 		c.exitMemo(pushed)
@@ -23357,7 +23357,7 @@ func (c *Checker) getDefaultTypeArgumentType(isInJavaScriptFile bool) *Type {
 // this gets the instantiated default type of its target. If the type parameter has no default type or
 // the default is circular, `undefined` is returned.
 func (c *Checker) getDefaultFromTypeParameter(t *Type) *Type {
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(t, memoTypeParameterDefault))
 		result := c.getDefaultFromTypeParameterUncached(t)
 		c.exitMemo(pushed)
@@ -24218,7 +24218,7 @@ func (c *Checker) tryGetTypeFromTypeNode(node *ast.Node) *Type {
 }
 
 func (c *Checker) getTypeFromTypeNode(node *ast.Node) *Type {
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(node, memoTypeNodeType))
 		result := c.getTypeFromTypeNodeUncached(node)
 		c.exitMemo(pushed)
@@ -25158,7 +25158,7 @@ func isLocalTypeAlias(symbol *ast.Symbol) bool {
 }
 
 func (c *Checker) getDeclaredTypeOfSymbol(symbol *ast.Symbol) *Type {
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(symbol, memoDeclaredType))
 		result := c.getDeclaredTypeOfSymbolUncached(symbol)
 		c.exitMemo(pushed)
@@ -25448,7 +25448,7 @@ func (c *Checker) getDeclaredTypeOfEnumMember(symbol *ast.Symbol) *Type {
 }
 
 func (c *Checker) computeEnumMemberValues(node *ast.Node) {
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(node, memoEnumMemberValue))
 		c.computeEnumMemberValuesUncached(node)
 		c.exitMemo(pushed)
@@ -29063,7 +29063,7 @@ func (c *Checker) getBaseConstraintOfType(t *Type) *Type {
 }
 
 func (c *Checker) getResolvedBaseConstraint(t *Type, stack []RecursionId) *Type {
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(t, memoBaseConstraint))
 		result := c.getResolvedBaseConstraintUncached(t, stack)
 		c.exitMemo(pushed)

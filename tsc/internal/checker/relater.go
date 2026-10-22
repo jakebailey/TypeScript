@@ -3542,7 +3542,12 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		if tr := r.c.tracer; tr != nil {
 			defer tr.Push(tracing.PhaseCheckTypes, "structuredTypeRelatedTo", map[string]any{"sourceId": source.id, "targetId": target.id}, false)()
 		}
+		// The result is cached, so instantiations it needs count against
+		// depth limits from here, not from wherever it is first compared
+		// (see "Instantiation limits" in memo.go).
+		r.c.enterInstantiationBudget()
 		result = r.structuredTypeRelatedTo(source, target, reportErrors, intersectionState)
+		r.c.exitInstantiationBudget()
 	}
 	propagatingVarianceFlags := r.c.reliabilityFlags
 	r.c.reliabilityFlags |= saveReliabilityFlags

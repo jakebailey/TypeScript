@@ -1492,7 +1492,7 @@ func markAsSynthetic(node *ast.Node) bool {
 func (c *Checker) getJsxNamespaceContainerForImplicitImport(location *ast.Node) *ast.Symbol {
 	file := ast.GetSourceFileOfNode(location)
 	links := c.jsxElementLinks.Get(file.AsNode())
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(links, memoJsxImplicitImportContainer))
 		result := c.getJsxNamespaceContainerForImplicitImportCached(file, links)
 		c.exitMemo(pushed)

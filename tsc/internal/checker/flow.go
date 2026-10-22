@@ -1353,7 +1353,7 @@ func (c *Checker) getTypeAtFlowLoopLabel(f *FlowState, flow *ast.FlowNode) FlowT
 		entry = &flowLoopCacheEntry{}
 		c.flowLoopCache.intern(key, entry)
 	}
-	if c.memoActive() {
+	if c.memoEnterActive() {
 		pushed := c.enterMemo(memoKeyOf(entry, memoFlowLoopType))
 		result := c.getTypeAtFlowLoopLabelCached(f, flow, key, entry)
 		c.exitMemo(pushed)

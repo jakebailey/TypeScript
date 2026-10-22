@@ -928,8 +928,9 @@ func memoizeGlobal[T any](c *Checker, fn func() T) func() T {
 // Instantiation stops with an error when nested too deeply or after too
 // many instantiations, as the instantiation is then very likely infinite.
 // For the result not to depend on what was cached before, each memoized
-// computation measures depth from where it started, and a reused result
-// adds no depth. Chains that start a new memoized computation at every
+// computation (including each cached comparison of two types) measures
+// depth from where it started, whether or not it reports errors, and a
+// reused result adds no depth. Chains that start a new memoized computation at every
 // level are only stopped by a much larger limit on the whole outermost
 // instantiation, which is only reached by runaway instantiations, and which
 // does depend on what was cached before.
