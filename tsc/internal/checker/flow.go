@@ -855,10 +855,10 @@ func (c *Checker) getNarrowedType(t *Type, candidate *Type, assumeTrue bool, che
 	if narrowedType, ok := c.narrowedTypes.get(c, key); ok {
 		return narrowedType
 	}
-	pushed := c.narrowedTypes.enter(c, key)
+	c.narrowedTypes.enter(c, key)
 	narrowedType := c.getNarrowedTypeWorker(t, candidate, assumeTrue, checkDerived)
 	c.narrowedTypes.set(c, key, narrowedType)
-	c.exitMemo(pushed)
+	c.exitMemo()
 	return narrowedType
 }
 
@@ -1353,9 +1353,9 @@ func (c *Checker) getTypeAtFlowLoopLabel(f *FlowState, flow *ast.FlowNode) FlowT
 		entry = &flowLoopCacheEntry{}
 		c.flowLoopCache.intern(key, entry)
 	}
-	pushed := c.enterMemo(memoKeyOf(entry, memoFlowLoopType))
+	c.enterMemo(memoKeyOf(entry, memoFlowLoopType))
 	result := c.getTypeAtFlowLoopLabelCached(f, flow, key, entry)
-	c.exitMemo(pushed)
+	c.exitMemo()
 	return result
 }
 
@@ -1961,14 +1961,14 @@ func (c *Checker) isExhaustiveSwitchStatement(node *ast.Node) bool {
 	links := c.switchStatementLinks.Get(node)
 	switch links.exhaustiveState.get(c) {
 	case ExhaustiveStateUnknown:
-		pushed := links.exhaustiveState.enter(c)
+		links.exhaustiveState.enter(c)
 		// Indicate resolution is in process
 		links.exhaustiveState.set(c, ExhaustiveStateComputing)
 		isExhaustive := c.computeExhaustiveSwitchStatement(node)
 		if links.exhaustiveState.get(c) == ExhaustiveStateComputing {
 			links.exhaustiveState.set(c, core.IfElse(isExhaustive, ExhaustiveStateTrue, ExhaustiveStateFalse))
 		}
-		c.exitMemo(pushed)
+		c.exitMemo()
 	case ExhaustiveStateComputing:
 		// Resolve circularity to false
 		links.exhaustiveState.set(c, ExhaustiveStateFalse)
@@ -2056,14 +2056,14 @@ func (c *Checker) getNotEqualFactsFromTypeofSwitch(start int, end int, witnesses
 func (c *Checker) getSwitchClauseTypes(node *ast.Node) []*Type {
 	links := c.switchStatementLinks.Get(node)
 	if links.switchTypes.get(c) == nil {
-		pushed := links.switchTypes.enter(c)
+		links.switchTypes.enter(c)
 		clauses := node.AsSwitchStatement().CaseBlock.AsCaseBlock().Clauses.Nodes
 		types := make([]*Type, len(clauses))
 		for i, clause := range clauses {
 			types[i] = c.getTypeOfSwitchClause(clause)
 		}
 		links.switchTypes.set(c, types)
-		c.exitMemo(pushed)
+		c.exitMemo()
 	}
 	return links.switchTypes.get(c)
 }
@@ -2079,7 +2079,7 @@ func (c *Checker) getEffectsSignature(node *ast.Node) *Signature {
 	links := c.signatureLinks.Get(node)
 	signature := links.effectsSignature.get(c)
 	if signature == nil {
-		pushed := links.effectsSignature.enter(c)
+		links.effectsSignature.enter(c)
 		// A call expression parented by an expression statement is a potential assertion. Other call
 		// expressions are potential type predicate function calls. In order to avoid triggering
 		// circularities in control flow analysis, we use getTypeOfDottedName when resolving the call
@@ -2112,7 +2112,7 @@ func (c *Checker) getEffectsSignature(node *ast.Node) *Signature {
 			signature = c.unknownSignature
 		}
 		links.effectsSignature.set(c, signature)
-		c.exitMemo(pushed)
+		c.exitMemo()
 	}
 	if signature == c.unknownSignature {
 		return nil
@@ -2439,10 +2439,10 @@ func (c *Checker) getAssignmentReducedType(declaredType *Type, assignedType *Typ
 	key := AssignmentReducedKey{id1: declaredType.id, id2: assignedType.id}
 	result, _ := c.assignmentReducedTypes.get(c, key)
 	if result == nil {
-		pushed := c.assignmentReducedTypes.enter(c, key)
+		c.assignmentReducedTypes.enter(c, key)
 		result = c.getAssignmentReducedTypeWorker(declaredType, assignedType)
 		c.assignmentReducedTypes.set(c, key, result)
-		c.exitMemo(pushed)
+		c.exitMemo()
 	}
 	return result
 }
@@ -2565,10 +2565,10 @@ func (c *Checker) isReachableFlowNodeWorker(f *FlowState, flow *ast.FlowNode, no
 				if reachable, ok := c.flowNodeReachable.get(c, flow); ok {
 					return reachable
 				}
-				pushed := c.flowNodeReachable.enter(c, flow)
+				c.flowNodeReachable.enter(c, flow)
 				reachable := c.isReachableFlowNodeWorker(f, flow, true /*noCacheCheck*/)
 				c.flowNodeReachable.set(c, flow, reachable)
-				c.exitMemo(pushed)
+				c.exitMemo()
 				return reachable
 			}
 			noCacheCheck = false
@@ -2653,10 +2653,10 @@ func (c *Checker) isPostSuperFlowNodeWorker(f *FlowState, flow *ast.FlowNode, no
 				if postSuper, ok := c.flowNodePostSuper.get(c, flow); ok {
 					return postSuper
 				}
-				pushed := c.flowNodePostSuper.enter(c, flow)
+				c.flowNodePostSuper.enter(c, flow)
 				postSuper := c.isPostSuperFlowNodeWorker(f, flow, true /*noCacheCheck*/)
 				c.flowNodePostSuper.set(c, flow, postSuper)
-				c.exitMemo(pushed)
+				c.exitMemo()
 			}
 			noCacheCheck = false
 		}

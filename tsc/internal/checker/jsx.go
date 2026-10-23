@@ -268,7 +268,7 @@ func (c *Checker) discriminateContextualTypeByJSXAttributes(node *ast.Node, cont
 	if discriminated, _ := c.discriminatedContextualTypes.get(c, key); discriminated != nil {
 		return discriminated
 	}
-	pushed := c.discriminatedContextualTypes.enter(c, key)
+	c.discriminatedContextualTypes.enter(c, key)
 	jsxChildrenPropertyName := c.getJsxElementChildrenPropertyName(c.getJsxNamespaceAt(node))
 	discriminantProperties := core.Filter(node.Properties(), func(p *ast.Node) bool {
 		symbol := p.Symbol()
@@ -291,7 +291,7 @@ func (c *Checker) discriminateContextualTypeByJSXAttributes(node *ast.Node, cont
 	discriminator := &ObjectLiteralDiscriminator{c: c, props: discriminantProperties, members: discriminantMembers}
 	discriminated := c.discriminateTypeByDiscriminableItems(contextualType, discriminator)
 	c.discriminatedContextualTypes.set(c, key, discriminated)
-	c.exitMemo(pushed)
+	c.exitMemo()
 	return discriminated
 }
 
@@ -505,10 +505,10 @@ func (c *Checker) getJSXFragmentType(node *ast.Node) *Type {
 	if t := links.jsxFragmentType.get(c); t != nil {
 		return t
 	}
-	pushed := links.jsxFragmentType.enter(c)
+	links.jsxFragmentType.enter(c)
 	t := c.getJSXFragmentTypeWorker(node)
 	links.jsxFragmentType.set(c, t)
-	c.exitMemo(pushed)
+	c.exitMemo()
 	return t
 }
 
@@ -1197,9 +1197,9 @@ func (c *Checker) getIntrinsicAttributesTypeFromJsxOpeningLikeElement(node *ast.
 		return t
 	}
 	if c.memoActive() {
-		pushed := links.resolvedJsxElementAttributesType.enter(c)
+		links.resolvedJsxElementAttributesType.enter(c)
 		result := c.getIntrinsicAttributesTypeFromJsxOpeningLikeElementUncached(node, links)
-		c.exitMemo(pushed)
+		c.exitMemo()
 		return result
 	}
 	return c.getIntrinsicAttributesTypeFromJsxOpeningLikeElementUncached(node, links)
@@ -1229,9 +1229,9 @@ func (c *Checker) getIntrinsicAttributesTypeFromJsxOpeningLikeElementUncached(no
 // May also return unknownSymbol if both of these lookups fail.
 func (c *Checker) getIntrinsicTagSymbol(node *ast.Node) *ast.Symbol {
 	if c.memoActive() {
-		pushed := c.symbolNodeLinks.Get(node).resolvedSymbol.enter(c)
+		c.symbolNodeLinks.Get(node).resolvedSymbol.enter(c)
 		result := c.getIntrinsicTagSymbolUncached(node)
-		c.exitMemo(pushed)
+		c.exitMemo()
 		return result
 	}
 	return c.getIntrinsicTagSymbolUncached(node)
@@ -1336,9 +1336,9 @@ func (c *Checker) getJsxNamespaceAt(location *ast.Node) *ast.Symbol {
 		return s
 	}
 	if c.memoActive() {
-		pushed := links.jsxNamespace.enter(c)
+		links.jsxNamespace.enter(c)
 		result := c.getJsxNamespaceAtUncached(location, links)
-		c.exitMemo(pushed)
+		c.exitMemo()
 		return result
 	}
 	return c.getJsxNamespaceAtUncached(location, links)
@@ -1492,9 +1492,9 @@ func markAsSynthetic(node *ast.Node) bool {
 func (c *Checker) getJsxNamespaceContainerForImplicitImport(location *ast.Node) *ast.Symbol {
 	file := ast.GetSourceFileOfNode(location)
 	links := c.jsxElementLinks.Get(file.AsNode())
-	pushed := c.enterMemo(memoKeyOf(links, memoJsxImplicitImportContainer))
+	c.enterMemo(memoKeyOf(links, memoJsxImplicitImportContainer))
 	result := c.getJsxNamespaceContainerForImplicitImportCached(file, links)
-	c.exitMemo(pushed)
+	c.exitMemo()
 	return result
 }
 

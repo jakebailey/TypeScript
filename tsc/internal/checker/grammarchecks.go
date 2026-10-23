@@ -2027,10 +2027,10 @@ func (c *Checker) checkGrammarSourceFile(node *ast.SourceFile) bool {
 }
 
 func (c *Checker) reportStatementInAmbientContext(links *NodeLinks, node *ast.Node, message *diagnostics.Message) bool {
-	pushed := links.hasReportedStatementInAmbientContext.enter(c)
+	links.hasReportedStatementInAmbientContext.enter(c)
 	reported := c.grammarErrorOnFirstToken(node, message)
 	links.hasReportedStatementInAmbientContext.set(c, reported)
-	c.exitMemo(pushed)
+	c.exitMemo()
 	return reported
 }
 

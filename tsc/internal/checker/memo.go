@@ -231,8 +231,8 @@ func (m *memo[T]) init(v T) {
 }
 
 // enter starts the computation of the result; see enterMemo.
-func (m *memo[T]) enter(c *Checker) bool {
-	return c.enterMemo(m.key())
+func (m *memo[T]) enter(c *Checker) {
+	c.enterMemo(m.key())
 }
 
 // memoCompute returns the result cached in m, computing it in a computation
@@ -243,14 +243,14 @@ func (c *Checker) memoCompute[T comparable](m *memo[T], compute func() T) T {
 	if v := m.get(c); v != zero {
 		return v
 	}
-	pushed := m.enter(c)
+	m.enter(c)
 	v := compute()
 	if cur := m.peek(); cur != zero {
 		v = cur
 	} else {
 		m.set(c, v)
 	}
-	c.exitMemo(pushed)
+	c.exitMemo()
 	return v
 }
 
@@ -387,15 +387,15 @@ func (m *memoMap[K, V]) intern(k K, v V) {
 
 // compute computes and caches the result for k in a computation of its own.
 func (m *memoMap[K, V]) compute(c *Checker, k K, fn func() V) V {
-	pushed := m.enter(c, k)
+	m.enter(c, k)
 	v := fn()
 	m.set(c, k, v)
-	c.exitMemo(pushed)
+	c.exitMemo()
 	return v
 }
 
 // enter starts the computation of the result for k; see enterMemo.
-func (m *memoMap[K, V]) enter(c *Checker, k K) bool {
+func (m *memoMap[K, V]) enter(c *Checker, k K) {
 	if c.inWork() {
 		// Entering a computed result reads it.
 		if slot := m.memoSlots[k]; slot != nil {
@@ -408,9 +408,9 @@ func (m *memoMap[K, V]) enter(c *Checker, k K) bool {
 		if c.memoPendingCount != 0 && m.memoSlots != nil {
 			c.replayPending(m.memoSlots[k])
 		}
-		return false
+		return
 	}
-	return c.enterSlot(m.slot(k))
+	c.enterSlot(m.slot(k))
 }
 
 // isOwnWork reports whether the current work frame computes the entry for k.
@@ -458,10 +458,10 @@ func (s *memoSet[K]) once(c *Checker, k K, fn func()) {
 	if s.m.has(c, k) {
 		return
 	}
-	pushed := s.m.enter(c, k)
+	s.m.enter(c, k)
 	s.m.set(c, k, struct{}{})
 	fn()
-	c.exitMemo(pushed)
+	c.exitMemo()
 }
 
 // memoOnce is a memoSet for a single key, kept in the links of the entity it
@@ -475,38 +475,37 @@ func (o *memoOnce) once(c *Checker, fn func()) {
 	if o.done.get(c) {
 		return
 	}
-	pushed := o.done.enter(c)
+	o.done.enter(c)
 	o.done.set(c, true)
 	fn()
-	c.exitMemo(pushed)
+	c.exitMemo()
 }
 
-// memoActive reports whether memoized entry points must track effects. When
-// false (a reporting activation with nothing pending), they may skip enterMemo
-// and exitMemo entirely.
+// memoActive reports whether reading a cached result must account for its
+// effects: false in a reporting activation with nothing pending.
 func (c *Checker) memoActive() bool {
 	return !c.reporting || c.memoPendingCount|c.memoReportSlots != 0
 }
 
 // enterMemo is called on entry to a memoized function whose result for this
 // input is cached in the slot identified by key. It accounts for effects
-// recorded by a previous computation of that result, and in a non-reporting
-// activation starts a frame recording effects of this computation. The result
-// must be passed to exitMemo.
-func (c *Checker) enterMemo(key memoKey) bool {
+// recorded by a previous computation of that result, and starts a frame for
+// this computation, which in a non-reporting activation records its effects.
+// It must be matched by exitMemo.
+func (c *Checker) enterMemo(key memoKey) {
 	c.enterWork(key, nil, 0)
 	if c.reporting {
 		if c.memoPendingCount != 0 {
 			c.replayPending(c.memoSlots[key])
 		}
-		return false
+		return
 	}
-	return c.enterSlot(c.memoSlot(key))
+	c.enterSlot(c.memoSlot(key))
 }
 
 // enterSlot is enterMemo for the slot of a result, in a non-reporting
 // activation.
-func (c *Checker) enterSlot(slot *memoSlot) bool {
+func (c *Checker) enterSlot(slot *memoSlot) {
 	if slot.pending != nil {
 		if parent := c.currentMemoFrame(); parent != nil {
 			parent.addDep(slot.pending)
@@ -520,7 +519,6 @@ func (c *Checker) enterSlot(slot *memoSlot) bool {
 	} else {
 		slot.depth = c.memoTop
 	}
-	return true
 }
 
 // pushMemo starts recording the effects of the current frame, which computes
@@ -728,7 +726,7 @@ func (c *Checker) replayPending(slot *memoSlot) {
 // exitMemo finishes a computation started by enterMemo, retaining its effects
 // for replay by later reuse of the result. The effects also become part of the
 // enclosing computation, since it observed the result.
-func (c *Checker) exitMemo(pushed bool) {
+func (c *Checker) exitMemo() {
 	if f := c.popMemo(); f != nil && f.effects != nil {
 		c.retainEffects(f.result, f.effects)
 	}
@@ -739,7 +737,7 @@ func (c *Checker) exitMemo(pushed bool) {
 // result. Nothing can reuse the result, so its effects belong only to the
 // enclosing computation, and retaining them for the result would grow them
 // each time it is computed again.
-func (c *Checker) exitMemoUncached(pushed bool) {
+func (c *Checker) exitMemoUncached() {
 	c.forgetWork()
 	defer c.exitWork()
 	frame := c.popMemo()
@@ -1044,7 +1042,7 @@ func (c *Checker) objectFlagsCell(t *Type, field memoField, computed ObjectFlags
 		c.observeKeyed(key)
 		return t.objectFlags & value
 	}
-	pushed := c.enterMemo(key)
+	c.enterMemo(key)
 	if inProgress {
 		setKeyedBits(c, key, &t.objectFlags, computed|value, computed)
 	}
@@ -1054,7 +1052,7 @@ func (c *Checker) objectFlagsCell(t *Type, field memoField, computed ObjectFlags
 	} else {
 		result = t.objectFlags & value
 	}
-	c.exitMemo(pushed)
+	c.exitMemo()
 	return result
 }
 

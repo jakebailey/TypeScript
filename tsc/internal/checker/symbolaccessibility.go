@@ -258,7 +258,7 @@ func (c *Checker) getExternalModuleContainers(symbol *ast.Symbol) []*ast.Symbol 
 }
 
 func (c *Checker) buildExternalModuleContainerIndex() *externalModuleContainerIndex {
-	pushed := c.externalModuleContainers.enter(c)
+	c.externalModuleContainers.enter(c)
 	c.buildingExternalModuleContainers = true
 	index := &externalModuleContainerIndex{
 		containersByTarget: make(map[*ast.Symbol][]*ast.Symbol),
@@ -279,7 +279,7 @@ func (c *Checker) buildExternalModuleContainerIndex() *externalModuleContainerIn
 	}
 	c.buildingExternalModuleContainers = false
 	c.externalModuleContainers.set(c, index)
-	c.exitMemo(pushed)
+	c.exitMemo()
 	return index
 }
 
@@ -528,7 +528,7 @@ func (c *Checker) getAccessibleSymbolChainEx(ctx accessibleSymbolChainContext) [
 	if existing, ok := c.accessibleChains.get(c, key); ok {
 		return existing
 	}
-	pushed := c.accessibleChains.enter(c, key)
+	c.accessibleChains.enter(c, key)
 
 	var result []*ast.Symbol
 
@@ -541,7 +541,7 @@ func (c *Checker) getAccessibleSymbolChainEx(ctx accessibleSymbolChainContext) [
 		return false
 	})
 	c.accessibleChains.set(c, key, result)
-	c.exitMemo(pushed)
+	c.exitMemo()
 	return result
 }
 
