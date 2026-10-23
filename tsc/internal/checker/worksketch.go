@@ -90,7 +90,6 @@ type frame struct {
 	// work is cached with its result, and in a node within one.
 	heights bool
 	serial  uint32 // Identifies the frame among all entered
-	slots   int32  // Length of workLinkSlots on entry
 
 	// A non-reporting activation records the effects of a memoized
 	// computation, for replay by reuse of its result; see memo.go.
@@ -172,7 +171,6 @@ func (c *Checker) pushWork(key memoKey, cell *memoHeader, source workSlotSource,
 		top:       base,
 		heights:   heights,
 		serial:    c.workSerials,
-		slots:     int32(len(c.workLinkSlots)),
 	})
 }
 
@@ -187,7 +185,7 @@ func (c *Checker) exitWork() resultWork {
 		// Nothing computed while aborting is kept.
 		w = resultWork{}
 		c.dropWork(f)
-	} else if w.sketch != nil || w.height != 0 || f.source != nil || int(f.slots) != len(c.workLinkSlots) {
+	} else if w.sketch != nil || w.height != 0 || f.source != nil {
 		c.finishWork(f, w)
 	}
 	top := f.top
@@ -222,9 +220,6 @@ func (c *Checker) finishWork(f *frame, w resultWork) {
 		if slot != nil {
 			slot.storeWork(w)
 		}
-		for _, slot := range c.workLinkSlots[f.slots:] {
-			slot.linkWork(w)
-		}
 	}
 	c.dropWork(f)
 }
@@ -234,8 +229,6 @@ func (c *Checker) dropWork(f *frame) {
 	if f.source != nil {
 		f.source.popWork(int(f.index))
 	}
-	clear(c.workLinkSlots[f.slots:])
-	c.workLinkSlots = c.workLinkSlots[:f.slots]
 }
 
 // storeWork stores the work of computing the slot's result, which earlier
@@ -368,15 +361,25 @@ func (c *Checker) linkWork(cell *memoHeader) {
 	if len(c.frames) <= 1 || c.aborting {
 		return
 	}
-	f := c.currentWork()
-	if cell == f.cell {
+	if cell == c.currentWork().cell {
 		return
 	}
-	cell.memoHeight = f.top - f.base
+	w := c.workSoFar()
+	cell.memoHeight = w.height
+	if w.sketch != nil {
+		c.memoSlot(cell.key()).sketch = w.sketch
+	}
+}
+
+// workSoFar returns the work the current frame has done so far.
+func (c *Checker) workSoFar() resultWork {
+	f := c.currentWork()
+	w := resultWork{height: f.top - f.base}
 	if f.sketch != nil {
 		sketch := *f.sketch
-		c.memoSlot(cell.key()).sketch = &sketch
+		w.sketch = &sketch
 	}
+	return w
 }
 
 // observeCellWork is observeWork for the result of a memo. Only results with

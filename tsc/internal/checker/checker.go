@@ -620,7 +620,6 @@ type Checker struct {
 	compareSymbols                              func(*ast.Symbol, *ast.Symbol) int
 	compareSymbolChains                         func([]*ast.Symbol, []*ast.Symbol) int
 	workSerials                                 uint32
-	workLinkSlots                               []*memoSlot
 	frames                                      []frame
 	symbolHashes                                map[*ast.Symbol]uint64
 	typeHashes                                  map[*Type]*[typeHashDepth]uint64

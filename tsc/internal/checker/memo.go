@@ -369,6 +369,12 @@ func (m *memoMap[K, V]) set(c *Checker, k K, v V) {
 		m.logUndo(c, k)
 	}
 	m.setStable(c, k, v)
+	if len(c.frames) > 1 && !c.aborting && !m.isOwnWork(c, k) {
+		// Like memo.set; see linkWork.
+		if w := c.workSoFar(); w.sketch != nil || w.height != 0 || m.memoSlots[k] != nil {
+			m.slot(k).linkWork(w)
+		}
+	}
 }
 
 //go:noinline
@@ -407,9 +413,6 @@ func (m *memoMap[K, V]) setStable(c *Checker, k K, v V) {
 		m.memoEntries = make(map[K]V)
 	}
 	m.memoEntries[k] = v
-	if len(c.frames) > 1 && !m.isOwnWork(c, k) {
-		c.workLinkSlots = append(c.workLinkSlots, m.slot(k))
-	}
 	if c.memoTop != 0 {
 		c.attachSlot(m.slot(k))
 	}
