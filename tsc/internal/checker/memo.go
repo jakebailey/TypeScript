@@ -78,9 +78,6 @@ const (
 	// the outer computation is in progress are discarded when it finishes,
 	// and computed again from its result. This is the default.
 	reentryTaint reentry = iota
-	// The computation detects re-entry with a type resolution of its own,
-	// which decides the head of the cycle and what to discard.
-	reentryResolution
 	// The computation publishes a partial result before it finishes, and
 	// re-entry observes that partial result. Results derived from it may
 	// differ depending on which computation starts first.
@@ -94,10 +91,6 @@ var memoReentry = [memoFieldCount]reentry{
 	memoCell: reentryPartial,
 	// Many kinds of types make members available before they are complete.
 	memoStructuredMembers: reentryPartial,
-	// Circular defaults are reported at the default first in program order.
-	memoTypeParameterDefault: reentryResolution,
-	// Contextual checking resolves a cycle through the enclosing call.
-	memoContextChecked: reentryResolution,
 }
 
 // memoKey identifies a memoized result: the address of the entity owning the
