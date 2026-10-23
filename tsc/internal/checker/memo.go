@@ -566,9 +566,11 @@ func (c *Checker) pushMemo(slot *memoSlot) {
 		// A query made outside of checking: errors located at the current
 		// node are located wherever checking reuses the result, so results
 		// they depend on are discarded once the query finishes (see
-		// reportAtCurrentNode), and every reuse computes them again.
-		f.query = c.enterCurrentNode(c.currentNode)
+		// reportAtCurrentNode), and every reuse computes them again. The
+		// node's resolution is entered above the computation's frame.
 		f.isQuery = true
+		query := c.enterCurrentNode(c.currentNode)
+		c.frames[n].query = query
 	}
 	c.memoTop = n + 1
 }
@@ -577,6 +579,11 @@ func (c *Checker) pushMemo(slot *memoSlot) {
 // it recorded them.
 func (c *Checker) popMemo() *frame {
 	n := len(c.frames) - 1
+	if c.frames[n].resolving {
+		n--
+		debug.Assert(c.frames[n].isQuery, "resolution left on the stack")
+		c.exitCurrentNode(c.frames[n].query)
+	}
 	f := &c.frames[n]
 	if !f.memo {
 		return nil
@@ -584,9 +591,6 @@ func (c *Checker) popMemo() *frame {
 	c.memoTop = int(f.prevMemo)
 	if f.result.depth == n+1 {
 		f.result.depth = 0
-	}
-	if f.isQuery {
-		c.exitCurrentNode(f.query)
 	}
 	return f
 }
@@ -781,9 +785,9 @@ func (c *Checker) exitMemo() {
 // enclosing computation, and retaining them for the result would grow them
 // each time it is computed again.
 func (c *Checker) exitMemoUncached() {
-	c.forgetWork()
 	defer c.exitWork()
 	frame := c.popMemo()
+	c.forgetWork()
 	if frame == nil || frame.effects == nil {
 		return
 	}

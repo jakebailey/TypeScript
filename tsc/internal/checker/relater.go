@@ -1525,11 +1525,11 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 	links.variances.enter(c)
 	saveResolutionStart := c.resolutionStart
 	if len(c.varianceStack) == 0 {
-		c.resolutionStart = len(c.typeResolutions)
+		c.resolutionStart = len(c.frames)
 	}
 	index := len(c.varianceStack)
-	c.varianceStack = append(c.varianceStack, VarianceStackEntry{symbol: symbol, typeParameters: typeParameters, resolution: len(c.typeResolutions), cycleStart: math.MaxInt})
-	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: symbol, propertyName: TypeSystemPropertyNameVariances, result: true, memoDepth: c.memoTop})
+	c.varianceStack = append(c.varianceStack, VarianceStackEntry{symbol: symbol, typeParameters: typeParameters, resolution: len(c.frames), cycleStart: math.MaxInt})
+	c.pushResolution(symbol, TypeSystemPropertyNameVariances)
 	if c.varianceMeasuring == nil {
 		c.varianceMeasuring = make(map[*ast.Symbol]int)
 	}
@@ -1591,7 +1591,7 @@ func (c *Checker) getVarianceGuess(stackIndex int) []VarianceFlags {
 	top := &c.varianceStack[len(c.varianceStack)-1]
 	top.cycleStart = min(top.cycleStart, stackIndex)
 	for i := stackIndex; i < len(c.varianceStack); i++ {
-		c.cycleParticipants = append(c.cycleParticipants, c.typeResolutions[c.varianceStack[i].resolution])
+		c.cycleParticipants = append(c.cycleParticipants, c.frames[c.varianceStack[i].resolution].resolution)
 	}
 	c.taintResolutionCycle(entry.resolution)
 	guess := c.varianceGuesses[entry.symbol]

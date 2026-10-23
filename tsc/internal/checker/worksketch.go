@@ -1,6 +1,7 @@
 package checker
 
 import (
+	"github.com/microsoft/TypeScript/tsc/internal/debug"
 	"math/bits"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
@@ -101,6 +102,13 @@ type frame struct {
 	effects  *memoEffects // Allocated on first use
 	entry    *ast.Node    // Current node when the computation started
 	query    savedCurrentNode
+
+	// A resolution frame is a computation that re-entering detects as a
+	// cycle; see pushResolution. Its other fields are those of the frame
+	// below it, whose work it shares.
+	resolving      bool
+	prevResolution int32 // Checker.resolutionTop on entry
+	resolution     TypeResolution
 }
 
 // resultWork is the work computing a result from scratch needs: the
@@ -171,6 +179,7 @@ func (c *Checker) pushWork(key memoKey, cell *memoHeader, source workSlotSource,
 func (c *Checker) exitWork() resultWork {
 	n := len(c.frames) - 1
 	f := &c.frames[n]
+	debug.Assert(!f.resolving, "resolution left on the stack")
 	w := resultWork{f.sketch, f.top - f.base}
 	if c.aborting {
 		// Nothing computed while aborting is kept.

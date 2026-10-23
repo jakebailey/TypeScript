@@ -80,7 +80,6 @@ type TypeResolution struct {
 	target       TypeSystemEntity
 	propertyName TypeSystemPropertyName
 	result       bool
-	memoDepth    int // Checker.memoTop when pushed; see memo.go
 	// canonical is the member of a cycle headed by this resolution that is
 	// resolved first; see observeCircularHead.
 	canonical TypeSystemEntity
@@ -571,7 +570,7 @@ type WideningContext struct {
 type VarianceStackEntry struct {
 	symbol         *ast.Symbol
 	typeParameters []*Type
-	resolution     int  // Index of the entry in typeResolutions
+	resolution     int  // Index in Checker.frames of the resolution of the measurement
 	cycleStart     int  // Lowest index of an entry whose guessed variances this measurement used, or MaxInt
 	guessChanged   bool // Whether a measurement in the circularity found stricter variances than guessed
 }
@@ -633,7 +632,7 @@ type Checker struct {
 	serializationLevel                          int
 	currentNode                                 *ast.Node
 	simplifyingIndexedAccess                    collections.Set[CachedTypeKey]
-	currentNodeResolution                       int // 1-based index in typeResolutions of the entry of currentNode, or 0; see enterCurrentNode
+	currentNodeResolution                       int // 1-based index in frames of the resolution of currentNode, or 0; see enterCurrentNode
 	varianceTypeParameter                       *Type
 	isInferencePartiallyBlocked                 bool
 	wasCanceled                                 bool
@@ -672,9 +671,9 @@ type Checker struct {
 	restrictiveMapper                           *TypeMapper
 	permissiveMapper                            *TypeMapper
 	contextualBindingPatterns                   []*ast.Node
-	typeResolutions                             []TypeResolution
-	resolutionStart                             int
-	cycleHead                                   int              // 1-based index in typeResolutions of the outermost cycle in progress, or 0; see memo.go
+	resolutionTop                               int              // 1-based index in frames of the innermost resolution, or 0
+	resolutionStart                             int              // Index in frames below which resolutions are not searched for cycles
+	cycleHead                                   int              // 1-based index in frames of the outermost cycle in progress, or 0; see memo.go
 	nodeReports                                 []*nodeReport    // Errors reported at the current node while collecting; see startNodeReports
 	nodeReportCollectors                        int              // Number of computations collecting nodeReports
 	nodeReportsCyclic                           bool             // Whether a cycle was observed while collecting nodeReports; see endNodeReports
@@ -8877,7 +8876,7 @@ func (c *Checker) getResolvedSignatureUncached(node *ast.Node, candidatesOutArra
 		// through resolution of the containing function call. By resetting the resolution stack we'll
 		// retry the symbol type resolution with the resolvingSignature marker in place to suppress
 		// the contextual type circularity.
-		c.resolutionStart = len(c.typeResolutions)
+		c.resolutionStart = len(c.frames)
 	}
 	links.resolvedSignature.exchange(c.resolvingSignature)
 	result := c.resolveSignature(node, candidatesOutArray, checkMode)
@@ -17307,7 +17306,7 @@ func (c *Checker) resolveAliasUncached(symbol *ast.Symbol) *ast.Symbol {
 				// When the target is a pure alias, we transitively resolve and propagate any typeOnlyDeclaration
 				target = c.resolveIndirectionAlias(symbol, target)
 			}
-			if top := &c.typeResolutions[len(c.typeResolutions)-1]; !top.result && top.canonicalMembers != nil {
+			if top := c.topResolution(); !top.result && top.canonicalMembers != nil {
 				members := c.popResolutionRestart()
 				c.rollBackTo(mark)
 				c.resolveStructuredTypeMembers(members)
@@ -19986,32 +19985,28 @@ func (c *Checker) pushTypeResolution(target TypeSystemEntity, propertyName TypeS
 		c.markResolutionCycle(resolutionCycleStartIndex)
 		return false
 	}
-	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: target, propertyName: propertyName, result: true, memoDepth: c.memoTop})
+	c.pushResolution(target, propertyName)
 	return true
 }
 
 // markResolutionCycle records that the type resolution entries from start to
 // the top of the stack form a cycle, so each of them fails.
 func (c *Checker) markResolutionCycle(start int) {
-	for i := start; i < len(c.typeResolutions); i++ {
-		if c.typeResolutions[i].result {
-			c.cycleParticipants = append(c.cycleParticipants, c.typeResolutions[i])
+	for i := start; i < len(c.frames); i++ {
+		if r := &c.frames[i].resolution; c.frames[i].resolving && r.result {
+			c.cycleParticipants = append(c.cycleParticipants, *r)
+			r.result = false
 		}
-		c.typeResolutions[i].result = false
 	}
-	if head := &c.typeResolutions[start]; head.canonicalMembers == nil {
-		for i := start + 1; i < len(c.typeResolutions); i++ {
-			if r := &c.typeResolutions[i]; r.propertyName == TypeSystemPropertyNameStructuredMembers {
+	if head := &c.frames[start].resolution; head.canonicalMembers == nil {
+		for i := start + 1; i < len(c.frames); i++ {
+			if r := &c.frames[i].resolution; c.frames[i].resolving && r.propertyName == TypeSystemPropertyNameStructuredMembers {
 				head.canonicalMembers = r.target.(*Type)
 				break
 			}
 		}
 	}
-	if !c.reporting {
-		c.memoCycle(c.typeResolutions[start].memoDepth)
-	}
-	c.nodeReportsCyclic = true
-	c.raiseCycleHead(start + 1)
+	c.taintResolutionCycle(start)
 }
 
 // observeResolutionInProgress is for computations that are skipped rather
@@ -20049,10 +20044,10 @@ func (c *Checker) observeCircularHead(target TypeSystemEntity, propertyName Type
 		return
 	}
 	c.taintResolutionCycle(start)
-	head := &c.typeResolutions[start]
+	head := &c.frames[start].resolution
 	canonical := core.OrElse(head.canonical, head.target)
-	for i := start + 1; i < len(c.typeResolutions); i++ {
-		if r := &c.typeResolutions[i]; r.propertyName == propertyName && compare(r.target, canonical) < 0 {
+	for i := start + 1; i < len(c.frames); i++ {
+		if r := &c.frames[i].resolution; c.frames[i].resolving && r.propertyName == propertyName && compare(r.target, canonical) < 0 {
 			canonical = r.target
 		}
 	}
@@ -20065,7 +20060,7 @@ func (c *Checker) observeCircularHead(target TypeSystemEntity, propertyName Type
 // been discarded and the caller must resolve the canonical member before
 // resolving the head again.
 func (c *Checker) popCircularHead() TypeSystemEntity {
-	r := &c.typeResolutions[len(c.typeResolutions)-1]
+	r := c.topResolution()
 	canonical := r.canonical
 	if canonical == r.target {
 		canonical = nil
@@ -20083,29 +20078,29 @@ func (c *Checker) popCircularHead() TypeSystemEntity {
 // everything cached during the cycle, resolve the members, and resolve the
 // head again.
 func (c *Checker) popResolutionRestart() *Type {
-	t := c.typeResolutions[len(c.typeResolutions)-1].canonicalMembers
+	t := c.topResolution().canonicalMembers
 	c.popTypeResolution()
 	return t
 }
 
 // enterCurrentNode makes node the node being checked, until the matching
-// exitCurrentNode. Its entry on the type resolution stack delimits the
-// results that errors located at node (see reportAtCurrentNode) depend on.
+// exitCurrentNode. Its resolution frame delimits the results that errors
+// located at node (see reportAtCurrentNode) depend on.
 func (c *Checker) enterCurrentNode(node *ast.Node) savedCurrentNode {
 	save := savedCurrentNode{node: c.currentNode, resolution: c.currentNodeResolution}
-	if c.cycleHead != 0 && c.cycleHead == c.currentNodeResolution && len(c.typeResolutions) == c.currentNodeResolution {
+	if c.cycleHead != 0 && c.cycleHead == c.currentNodeResolution && c.resolutionTop == c.currentNodeResolution {
 		// The results discarded when the current node is left depend on errors
 		// located at it, so a node within it must not reuse them either.
 		c.endCycle()
 	}
 	c.currentNode = node
-	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: node, propertyName: TypeSystemPropertyNameCurrentNode, result: true, memoDepth: c.memoTop})
-	c.currentNodeResolution = len(c.typeResolutions)
+	c.pushResolution(node, TypeSystemPropertyNameCurrentNode)
+	c.currentNodeResolution = c.resolutionTop
 	return save
 }
 
 func (c *Checker) exitCurrentNode(save savedCurrentNode) {
-	debug.Assert(len(c.typeResolutions) == c.currentNodeResolution, "type resolutions left on the stack")
+	debug.Assert(len(c.frames) == c.currentNodeResolution, "frames left on the stack")
 	c.popTypeResolution()
 	c.currentNode = save.node
 	c.currentNodeResolution = save.resolution
@@ -20148,7 +20143,7 @@ func (c *Checker) taintCurrentNode() {
 func (c *Checker) taintResolutionCycle(start int) {
 	c.nodeReportsCyclic = true
 	if !c.reporting {
-		c.memoCycle(c.typeResolutions[start].memoDepth)
+		c.memoCycle(int(c.frames[start].prevMemo))
 	}
 	c.raiseCycleHead(start + 1)
 }
@@ -20158,19 +20153,53 @@ func (c *Checker) taintResolutionCycle(start int) {
  * be true if no circularities were detected, or false if a circularity was found.
  */
 func (c *Checker) popTypeResolution() bool {
-	lastIndex := len(c.typeResolutions) - 1
-	result := c.typeResolutions[lastIndex].result
-	c.typeResolutions[lastIndex] = TypeResolution{} // Clear the last entry to avoid memory leaks
-	c.typeResolutions = c.typeResolutions[:lastIndex]
-	if c.cycleHead > lastIndex {
+	n := len(c.frames) - 1
+	debug.Assert(c.resolutionTop == n+1, "frames left above a resolution")
+	f := &c.frames[n]
+	result := f.resolution.result
+	parent := &c.frames[n-1]
+	parent.sketch = f.sketch
+	parent.top = max(parent.top, f.top)
+	c.resolutionTop = int(f.prevResolution)
+	c.frames[n] = frame{}
+	c.frames = c.frames[:n]
+	if c.cycleHead > n {
 		c.endCycle()
 	}
 	return result
 }
 
+// pushResolution starts the resolution of propertyName for target, which
+// re-entering detects as a cycle. Its frame shares the work of the frame
+// below it.
+func (c *Checker) pushResolution(target TypeSystemEntity, propertyName TypeSystemPropertyName) {
+	parent := c.currentWork()
+	f := frame{
+		sketch:         parent.sketch,
+		base:           parent.base,
+		depthBase:      parent.depthBase,
+		top:            parent.top,
+		heights:        parent.heights,
+		serial:         parent.serial,
+		prevMemo:       int32(c.memoTop),
+		resolving:      true,
+		prevResolution: int32(c.resolutionTop),
+		resolution:     TypeResolution{target: target, propertyName: propertyName, result: true},
+	}
+	c.frames = append(c.frames, f)
+	c.resolutionTop = len(c.frames)
+}
+
+// topResolution returns the innermost resolution, which must be the
+// innermost frame.
+func (c *Checker) topResolution() *TypeResolution {
+	debug.Assert(c.resolutionTop == len(c.frames), "frames left above a resolution")
+	return &c.frames[len(c.frames)-1].resolution
+}
+
 func (c *Checker) findResolutionCycleStartIndex(target TypeSystemEntity, propertyName TypeSystemPropertyName) int {
-	for i := len(c.typeResolutions) - 1; i >= c.resolutionStart; i-- {
-		resolution := &c.typeResolutions[i]
+	for i := c.resolutionTop - 1; i >= c.resolutionStart; i = int(c.frames[i].prevResolution) - 1 {
+		resolution := &c.frames[i].resolution
 		if c.typeResolutionHasProperty(resolution) {
 			// Only now does the search depend on the result, which was set
 			// before its computation finished.
@@ -20492,7 +20521,7 @@ func (c *Checker) resolveStructuredTypeMembersUncached(t *Type) *StructuredType 
 		// complete, so the resolution is on the stack, but never fails.
 		outermost := t.objectFlags&ObjectFlagsMembersResolving == 0
 		t.objectFlags |= ObjectFlagsMembersResolving
-		c.typeResolutions = append(c.typeResolutions, TypeResolution{target: t, propertyName: TypeSystemPropertyNameStructuredMembers, result: true, memoDepth: c.memoTop})
+		c.pushResolution(t, TypeSystemPropertyNameStructuredMembers)
 		defer func() {
 			c.popTypeResolution()
 			if outermost {
@@ -29895,7 +29924,7 @@ func (c *Checker) getSimplifiedIndexedAccessType(t *Type, writing bool) *Type {
 	}
 	c.cachedTypes.enter(c, key)
 	c.simplifyingIndexedAccess.Add(key)
-	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: t, propertyName: propertyName, result: true, memoDepth: c.memoTop})
+	c.pushResolution(t, propertyName)
 	result := c.getSimplifiedIndexedAccessTypeWorker(t, writing)
 	if result != t {
 		// If the simplification is a union type that includes t, remove t from the type.
@@ -33439,7 +33468,7 @@ func (c *Checker) getAwaitedTypeNoAliasEx(t *Type, errorNode *ast.Node, diagnost
 // pushAwaitingType records that the awaited type of t is being computed, until
 // the matching popTypeResolution.
 func (c *Checker) pushAwaitingType(t *Type) {
-	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: t, propertyName: TypeSystemPropertyNameAwaitedType, result: true, memoDepth: c.memoTop})
+	c.pushResolution(t, TypeSystemPropertyNameAwaitedType)
 }
 
 // isAwaitingType reports whether the awaited type of t is being computed. A
@@ -33449,8 +33478,8 @@ func (c *Checker) pushAwaitingType(t *Type) {
 // reports the failure. Unlike isResolutionInProgress, it searches the whole
 // stack, since the computation would not otherwise stop.
 func (c *Checker) isAwaitingType(t *Type) bool {
-	for i := len(c.typeResolutions) - 1; i >= 0; i-- {
-		if r := &c.typeResolutions[i]; r.target == t && r.propertyName == TypeSystemPropertyNameAwaitedType {
+	for i := c.resolutionTop - 1; i >= 0; i = int(c.frames[i].prevResolution) - 1 {
+		if r := &c.frames[i].resolution; r.target == t && r.propertyName == TypeSystemPropertyNameAwaitedType {
 			c.taintResolutionCycle(i)
 			return true
 		}
