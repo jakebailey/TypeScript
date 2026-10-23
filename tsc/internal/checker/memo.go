@@ -112,7 +112,7 @@ func (f *memoEffects) covers(deps []*memoEffects) bool {
 // memoSlot is the memo state of one memoized result.
 type memoSlot struct {
 	pending *memoEffects  // Effects not yet replayed by a reporting activation
-	depth   int           // 1-based index in memoFrames of the outermost computation in progress, or 0
+	depth   int           // 1 + index in Checker.frames of the outermost computation in progress, or 0
 	reports []*nodeReport // Errors the computation reported at the current node; see setReported
 	sketch  *workSketch   // Instantiations the computation needed; see "Work sketches"
 }
@@ -350,10 +350,10 @@ func (m *memoMap[K, V]) setStable(c *Checker, k K, v V) {
 		m.memoEntries = make(map[K]V)
 	}
 	m.memoEntries[k] = v
-	if len(c.workFrames) > 1 && !m.isOwnWork(c, k) {
+	if len(c.frames) > 1 && !m.isOwnWork(c, k) {
 		c.workLinkSlots = append(c.workLinkSlots, m.slot(k))
 	}
-	if !c.reporting && len(c.memoFrames) != 0 {
+	if c.memoTop != 0 {
 		c.attachSlot(m.slot(k))
 	}
 }
@@ -371,7 +371,7 @@ func (m *memoMap[K, V]) setWithWork(c *Checker, k K, v V, sketch *workSketch) {
 	if sketch != nil {
 		m.slot(k).sketch = sketch
 	}
-	if !c.reporting && len(c.memoFrames) != 0 {
+	if c.memoTop != 0 {
 		c.attachSlot(m.slot(k))
 	}
 }
@@ -403,7 +403,7 @@ func (m *memoMap[K, V]) enter(c *Checker, k K) bool {
 		}
 	}
 	m.workKeys = append(m.workKeys, k)
-	c.enterWork(0, nil, m, len(m.workKeys)-1)
+	c.enterWork(0, m, len(m.workKeys)-1)
 	if c.reporting {
 		if c.memoPendingCount != 0 && m.memoSlots != nil {
 			c.replayPending(m.memoSlots[k])
@@ -416,10 +416,7 @@ func (m *memoMap[K, V]) enter(c *Checker, k K) bool {
 // isOwnWork reports whether the current work frame computes the entry for k.
 func (m *memoMap[K, V]) isOwnWork(c *Checker, k K) bool {
 	f := c.currentWork()
-	if f.source == workSlotSource(m) {
-		return m.workKeys[f.index] == k
-	}
-	return f.slot != nil && f.slot == m.memoSlots[k]
+	return f.source == workSlotSource(m) && m.workKeys[f.index] == k
 }
 
 func (m *memoMap[K, V]) workSlot(i int) *memoSlot {
@@ -484,14 +481,6 @@ func (o *memoOnce) once(c *Checker, fn func()) {
 	c.exitMemo(pushed)
 }
 
-type memoFrame struct {
-	effects *memoEffects // Allocated on first use
-	slot    *memoSlot
-	entry   *ast.Node // Current node when the computation started
-	query   savedCurrentNode
-	isQuery bool
-}
-
 // memoActive reports whether memoized entry points must track effects. When
 // false (a reporting activation with nothing pending), they may skip enterMemo
 // and exitMemo entirely.
@@ -505,7 +494,7 @@ func (c *Checker) memoActive() bool {
 // activation starts a frame recording effects of this computation. The result
 // must be passed to exitMemo.
 func (c *Checker) enterMemo(key memoKey) bool {
-	c.enterWork(key, nil, nil, 0)
+	c.enterWork(key, nil, 0)
 	if c.reporting {
 		if c.memoPendingCount != 0 {
 			c.replayPending(c.memoSlots[key])
@@ -523,24 +512,53 @@ func (c *Checker) enterSlot(slot *memoSlot) bool {
 			parent.addDep(slot.pending)
 		}
 	}
-	frame := memoFrame{slot: slot, entry: c.currentNode}
-	if len(c.memoFrames) == 0 && c.currentNodeResolution == 0 {
-		// A query made outside of checking: errors located at the current
-		// node are located wherever checking reuses the result, so results
-		// they depend on are discarded once the query finishes (see
-		// reportAtCurrentNode), and every reuse computes them again.
-		frame.query = c.enterCurrentNode(c.currentNode)
-		frame.isQuery = true
-	}
-	c.memoFrames = append(c.memoFrames, frame)
+	c.pushMemo(slot)
 	if slot.depth != 0 {
 		// Re-entering a computation in progress: the inner result is derived
 		// from whatever in-progress marker the outer computation left behind.
 		c.memoCycle(slot.depth)
 	} else {
-		slot.depth = len(c.memoFrames)
+		slot.depth = c.memoTop
 	}
 	return true
+}
+
+// pushMemo starts recording the effects of the current frame, which computes
+// the result in slot.
+func (c *Checker) pushMemo(slot *memoSlot) {
+	n := len(c.frames) - 1
+	f := &c.frames[n]
+	f.memo = true
+	f.prevMemo = int32(c.memoTop)
+	f.result = slot
+	f.entry = c.currentNode
+	if c.memoTop == 0 && c.currentNodeResolution == 0 {
+		// A query made outside of checking: errors located at the current
+		// node are located wherever checking reuses the result, so results
+		// they depend on are discarded once the query finishes (see
+		// reportAtCurrentNode), and every reuse computes them again.
+		f.query = c.enterCurrentNode(c.currentNode)
+		f.isQuery = true
+	}
+	c.memoTop = n + 1
+}
+
+// popMemo stops recording the effects of the current frame, returning it if
+// it recorded them.
+func (c *Checker) popMemo() *frame {
+	n := len(c.frames) - 1
+	f := &c.frames[n]
+	if !f.memo {
+		return nil
+	}
+	c.memoTop = int(f.prevMemo)
+	if f.result.depth == n+1 {
+		f.result.depth = 0
+	}
+	if f.isQuery {
+		c.exitCurrentNode(f.query)
+	}
+	return f
 }
 
 func (c *Checker) memoSlot(key memoKey) *memoSlot {
@@ -558,7 +576,7 @@ func (c *Checker) memoSlot(key memoKey) *memoSlot {
 // memoAttach makes the result identified by key depend on the innermost
 // computation in progress, unless that computation is the result's own.
 func (c *Checker) memoAttach(key memoKey) {
-	if len(c.memoFrames) == 0 {
+	if c.memoTop == 0 {
 		return
 	}
 	c.attachSlot(c.memoSlot(key))
@@ -566,11 +584,11 @@ func (c *Checker) memoAttach(key memoKey) {
 
 // attachSlot is memoAttach for the slot of a result.
 func (c *Checker) attachSlot(slot *memoSlot) {
-	n := len(c.memoFrames) - 1
+	n := c.memoTop - 1
 	if n < 0 {
 		return
 	}
-	if c.memoFrames[n].slot == slot {
+	if c.frames[n].result == slot {
 		return
 	}
 	f := c.memoFrameAt(n)
@@ -711,15 +729,10 @@ func (c *Checker) replayPending(slot *memoSlot) {
 // for replay by later reuse of the result. The effects also become part of the
 // enclosing computation, since it observed the result.
 func (c *Checker) exitMemo(pushed bool) {
+	if f := c.popMemo(); f != nil && f.effects != nil {
+		c.retainEffects(f.result, f.effects)
+	}
 	c.exitWork()
-	if !pushed {
-		return
-	}
-	slot, f := c.popMemoFrame()
-	if f == nil {
-		return
-	}
-	c.retainEffects(slot, f)
 }
 
 // exitMemoUncached is exitMemo for a computation that did not cache its
@@ -728,14 +741,12 @@ func (c *Checker) exitMemo(pushed bool) {
 // each time it is computed again.
 func (c *Checker) exitMemoUncached(pushed bool) {
 	c.forgetWork()
-	c.exitWork()
-	if !pushed {
+	defer c.exitWork()
+	frame := c.popMemo()
+	if frame == nil || frame.effects == nil {
 		return
 	}
-	slot, f := c.popMemoFrame()
-	if f == nil {
-		return
-	}
+	slot, f := frame.result, frame.effects
 	if parent := c.currentMemoFrame(); parent != nil {
 		if len(f.effects) == 0 && f.entry == parent.entry {
 			// Without effects of its own, and located like the enclosing
@@ -750,21 +761,6 @@ func (c *Checker) exitMemoUncached(pushed bool) {
 		// withoutReporting replays effects through the results computed.
 		c.retainEffects(slot, f)
 	}
-}
-
-func (c *Checker) popMemoFrame() (*memoSlot, *memoEffects) {
-	n := len(c.memoFrames) - 1
-	frame := c.memoFrames[n]
-	c.memoFrames[n] = memoFrame{}
-	c.memoFrames = c.memoFrames[:n]
-	slot := frame.slot
-	if slot.depth == n+1 {
-		slot.depth = 0
-	}
-	if frame.isQuery {
-		c.exitCurrentNode(frame.query)
-	}
-	return slot, frame.effects
 }
 
 // retainEffects retains the effects of a computation that just finished for
@@ -836,16 +832,15 @@ func (c *Checker) replayFrame(f *memoEffects, outerEntry *ast.Node, outerEntered
 // currentNodeIsAmbient reports whether the current node is the one the
 // innermost computation in progress started with.
 func (c *Checker) currentNodeIsAmbient() bool {
-	n := len(c.memoFrames) - 1
-	return n >= 0 && c.memoFrames[n].entry == c.currentNode
+	n := c.memoTop - 1
+	return n >= 0 && c.frames[n].entry == c.currentNode
 }
 
 func (c *Checker) currentMemoFrame() *memoEffects {
-	n := len(c.memoFrames) - 1
-	if n < 0 {
+	if c.memoTop == 0 {
 		return nil
 	}
-	return c.memoFrameAt(n)
+	return c.memoFrameAt(c.memoTop - 1)
 }
 
 // recordEffect records a side effect produced by a non-reporting activation
@@ -872,15 +867,12 @@ func (c *Checker) recordReferenceMark(symbol *ast.Symbol) {
 // on whether a file was emitted before it was checked. Other effects stay
 // pending for checking to replay.
 func (c *Checker) withReferenceMarks(fn func()) {
-	debug.Assert(!c.reporting && len(c.memoFrames) == 0, "withReferenceMarks inside a computation")
-	frame := memoFrame{slot: &memoSlot{}, entry: c.currentNode}
-	if c.currentNodeResolution == 0 {
-		frame.query = c.enterCurrentNode(c.currentNode)
-		frame.isQuery = true
-	}
-	c.memoFrames = append(c.memoFrames, frame)
+	debug.Assert(!c.reporting && c.memoTop == 0, "withReferenceMarks inside a computation")
+	c.enterNodeWork()
+	c.pushMemo(&memoSlot{})
 	fn()
-	_, f := c.popMemoFrame()
+	f := c.popMemo().effects
+	c.exitWork()
 	if f == nil {
 		return
 	}
@@ -909,15 +901,15 @@ func (c *Checker) withReferenceMarks(fn func()) {
 // effects can be discarded with the results they belong to.
 func (c *Checker) withoutReporting(fn func()) {
 	debug.Assert(c.reporting && c.flushSlots == nil, "withoutReporting outside a reporting activation")
-	saveFrames := c.memoFrames
+	saveMemoTop := c.memoTop
 	var slots []*memoSlot
 	c.reporting = false
-	c.memoFrames = nil
+	c.memoTop = 0
 	c.flushSlots = &slots
 	fn()
 	c.flushSlots = nil
 	c.reporting = true
-	c.memoFrames = saveFrames
+	c.memoTop = saveMemoTop
 	// Replaying is in order of computation, so effects apply in the order
 	// they would have in the reporting activation.
 	// They also happened at the current node, so only the effects of
@@ -936,18 +928,15 @@ func (c *Checker) withoutReporting(fn func()) {
 func (c *Checker) withReporting(fn func()) {
 	// Reporting starts only from top-level requests, so any frame left at
 	// this point was never exited and would absorb unrelated effects.
-	debug.Assert(len(c.memoFrames) == 0, "memo frame leaked")
+	debug.Assert(c.memoTop == 0, "memo frame leaked")
 	saveReporting := c.reporting
-	saveFrames := c.memoFrames
 	c.reporting = true
-	c.memoFrames = nil
 	fn()
 	c.reporting = saveReporting
-	c.memoFrames = saveFrames
 }
 
 // memoCycle is called when a computation observes another computation that is
-// still in progress, whose enclosing memo frame is at index depth-1. Every
+// still in progress, whose frame is at index depth-1. Every
 // computation started since then produced its result from the incomplete
 // state of that computation, so reusing any of them must also replay the
 // effects of the whole cycle (for example, its circularity error).
@@ -956,7 +945,10 @@ func (c *Checker) memoCycle(depth int) {
 		return
 	}
 	outer := c.memoFrameAt(depth - 1)
-	for i := depth; i < len(c.memoFrames); i++ {
+	for i := depth; i < len(c.frames); i++ {
+		if !c.frames[i].memo {
+			continue
+		}
 		f := c.memoFrameAt(i)
 		if i < c.effectsMarkDepth-1 && f != outer && outer.parent != f {
 			// The frame is in progress below the mark, so rolling back to
@@ -982,10 +974,10 @@ func (c *Checker) logDepsUndo(f *memoEffects) {
 }
 
 func (c *Checker) memoFrameAt(i int) *memoEffects {
-	f := c.memoFrames[i].effects
+	f := c.frames[i].effects
 	if f == nil {
-		f = &memoEffects{entry: c.memoFrames[i].entry, entered: true}
-		c.memoFrames[i].effects = f
+		f = &memoEffects{entry: c.frames[i].entry, entered: true}
+		c.frames[i].effects = f
 	}
 	return f
 }
@@ -1133,13 +1125,13 @@ type memoEffectsMark struct {
 // markEffects returns the position of the effects recorded so far by the
 // innermost computation in progress, which must have a memo frame.
 func (c *Checker) markEffects() memoEffectsMark {
-	n := len(c.memoFrames) - 1
+	n := c.memoTop - 1
 	f := c.memoFrameAt(n)
 	return memoEffectsMark{frame: f, effects: len(f.effects), deps: len(f.deps), frameIndex: n}
 }
 
 func (c *Checker) discardEffectsSince(m memoEffectsMark) {
-	debug.Assert(len(c.memoFrames)-1 == m.frameIndex && c.memoFrames[m.frameIndex].effects == m.frame, "effects discarded outside their computation")
+	debug.Assert(c.memoTop-1 == m.frameIndex && c.frames[m.frameIndex].effects == m.frame, "effects discarded outside their computation")
 	f := m.frame
 	clear(f.effects[m.effects:])
 	f.effects = f.effects[:m.effects]

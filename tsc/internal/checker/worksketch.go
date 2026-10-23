@@ -1,6 +1,10 @@
 package checker
 
-import "math/bits"
+import (
+	"math/bits"
+
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
+)
 
 // Work sketches
 //
@@ -61,15 +65,14 @@ func (s *workSketch) exceedsLimit() bool {
 	return s != nil && s.inverse <= workSketchLimit
 }
 
-// A workFrame is a memoized computation, comparison, or checked node in
-// progress. The innermost is the last in Checker.workFrames, above a root
-// frame for work outside any of them.
-type workFrame struct {
+// A frame is a computation in progress: a memoized computation, a cached
+// comparison, or a checked node. The innermost is the last in Checker.frames,
+// above a root frame for work outside any of them.
+type frame struct {
 	sketch *workSketch // Allocated on first use
-	// The sketch is stored for the memo identified by key, in slot, or in the
-	// slot source creates for index, if any is given.
+	// The sketch is stored for the memo identified by key, or in the slot
+	// source creates for index, if either is given.
 	key    memoKey
-	slot   *memoSlot
 	source workSlotSource
 	index  int32
 	base   int32 // Length of the instantiation stack on entry
@@ -79,6 +82,16 @@ type workFrame struct {
 	serial    uint32 // Identifies the frame among all entered
 	links     int32  // Length of workLinks on entry
 	slots     int32  // Length of workLinkSlots on entry
+
+	// A non-reporting activation records the effects of a memoized
+	// computation, for replay by reuse of its result; see memo.go.
+	memo     bool
+	isQuery  bool
+	prevMemo int32        // Checker.memoTop on entry
+	result   *memoSlot    // Slot of the result computed
+	effects  *memoEffects // Allocated on first use
+	entry    *ast.Node    // Current node when the computation started
+	query    savedCurrentNode
 }
 
 // A workSlotSource creates the slot of a computation in progress on demand,
@@ -89,36 +102,35 @@ type workSlotSource interface {
 }
 
 func (c *Checker) initWork() {
-	c.workFrames = []workFrame{{}}
+	c.frames = []frame{{}}
 }
 
-func (c *Checker) currentWork() *workFrame {
-	return &c.workFrames[len(c.workFrames)-1]
+func (c *Checker) currentWork() *frame {
+	return &c.frames[len(c.frames)-1]
 }
 
 // enterWork starts a work frame with an empty sketch for a computation,
 // which also starts the depth limit of instantiations (see "Instantiation
 // limits" in memo.go).
-func (c *Checker) enterWork(key memoKey, slot *memoSlot, source workSlotSource, index int) {
-	if (key != 0 || slot != nil) && c.inWork() {
+func (c *Checker) enterWork(key memoKey, source workSlotSource, index int) {
+	if key != 0 && c.inWork() {
 		// Entering a computed result reads it.
-		c.observeWork(c.storedWork(key, slot))
+		c.observeWork(c.storedWork(key))
 	}
 	base := int32(len(c.instantiationStack))
-	c.pushWork(key, slot, source, index, base)
+	c.pushWork(key, source, index, base)
 }
 
 // enterNodeWork starts a work frame for checking a node, which continues
 // the depth limit of the enclosing frame.
 func (c *Checker) enterNodeWork() {
-	c.pushWork(0, nil, nil, 0, c.currentWork().depthBase)
+	c.pushWork(0, nil, 0, c.currentWork().depthBase)
 }
 
-func (c *Checker) pushWork(key memoKey, slot *memoSlot, source workSlotSource, index int, depthBase int32) {
+func (c *Checker) pushWork(key memoKey, source workSlotSource, index int, depthBase int32) {
 	c.workSerials++
-	c.workFrames = append(c.workFrames, workFrame{
+	c.frames = append(c.frames, frame{
 		key:       key,
-		slot:      slot,
 		source:    source,
 		index:     int32(index),
 		base:      int32(len(c.instantiationStack)),
@@ -129,17 +141,17 @@ func (c *Checker) pushWork(key memoKey, slot *memoSlot, source workSlotSource, i
 	})
 }
 
-// exitWork finishes the current work frame, returning its sketch, or nil if
-// it did no instantiations.
+// exitWork finishes the current frame, returning its sketch, or nil if it did
+// no instantiations.
 func (c *Checker) exitWork() *workSketch {
-	n := len(c.workFrames) - 1
-	f := &c.workFrames[n]
+	n := len(c.frames) - 1
+	f := &c.frames[n]
 	sketch := f.sketch
 	if sketch != nil || f.source != nil || int(f.links) != len(c.workLinks) || int(f.slots) != len(c.workLinkSlots) {
 		c.finishWork(f)
 	}
-	c.workFrames[n] = workFrame{}
-	c.workFrames = c.workFrames[:n]
+	c.frames[n] = frame{}
+	c.frames = c.frames[:n]
 	if sketch != nil {
 		c.observeWork(sketch)
 	}
@@ -147,12 +159,12 @@ func (c *Checker) exitWork() *workSketch {
 }
 
 // finishWork stores the sketch of a work frame for the results it computed.
-func (c *Checker) finishWork(f *workFrame) {
+func (c *Checker) finishWork(f *frame) {
 	if sketch := f.sketch; sketch != nil {
-		slot := f.slot
+		var slot *memoSlot
 		if f.source != nil {
 			slot = f.source.workSlot(int(f.index))
-		} else if slot == nil && f.key != 0 {
+		} else if f.key != 0 {
 			slot = c.memoSlot(f.key)
 		}
 		if slot != nil {
@@ -185,7 +197,7 @@ func (c *Checker) forgetWork() {
 	if f.source != nil {
 		f.source.popWork(int(f.index))
 	}
-	f.key, f.slot, f.source = 0, nil, nil
+	f.key, f.source = 0, nil
 }
 
 // inWork reports whether an instantiation of the current work frame is in
@@ -221,15 +233,13 @@ func (c *Checker) addWork(h uint64) {
 // linkWork records that the memo identified by key was set by the current
 // work frame.
 func (c *Checker) linkWork(key memoKey) {
-	if len(c.workFrames) > 1 && key != c.currentWork().key {
+	if len(c.frames) > 1 && key != c.currentWork().key {
 		c.workLinks = append(c.workLinks, key)
 	}
 }
 
-func (c *Checker) storedWork(key memoKey, slot *memoSlot) *workSketch {
-	if slot == nil && key != 0 {
-		slot = c.memoSlots[key]
-	}
+func (c *Checker) storedWork(key memoKey) *workSketch {
+	slot := c.memoSlots[key]
 	if slot == nil {
 		return nil
 	}

@@ -80,7 +80,7 @@ type TypeResolution struct {
 	target       TypeSystemEntity
 	propertyName TypeSystemPropertyName
 	result       bool
-	memoDepth    int // len(memoFrames) when pushed; see memo.go
+	memoDepth    int // Checker.memoTop when pushed; see memo.go
 	// canonical is the member of a cycle headed by this resolution that is
 	// resolved first; see observeCircularHead.
 	canonical TypeSystemEntity
@@ -620,7 +620,7 @@ type Checker struct {
 	workSerials                                 uint32
 	workLinks                                   []memoKey
 	workLinkSlots                               []*memoSlot
-	workFrames                                  []workFrame
+	frames                                      []frame
 	symbolHashes                                map[*ast.Symbol]uint64
 	typeHashes                                  map[*Type]*[typeHashDepth]uint64
 	mapperHashes                                map[*TypeMapper]uint64
@@ -678,7 +678,7 @@ type Checker struct {
 	nodeReportsCyclic                           bool             // Whether a cycle was observed while collecting nodeReports; see endNodeReports
 	cycleUndo                                   []cycleUndo      // Restores results cached while a cycle is in progress
 	cycleParticipants                           []TypeResolution // Computations that observed a cycle in progress
-	effectsMarkDepth                            int              // 1 + memo frame index of the innermost effects mark that may be rolled back, or 0
+	effectsMarkDepth                            int              // 1 + frame index of the innermost effects mark that may be rolled back, or 0
 	varianceStack                               []VarianceStackEntry
 	varianceMeasuring                           map[*ast.Symbol]int             // Symbols whose variances are being measured
 	varianceGuesses                             map[*ast.Symbol][]VarianceFlags // Variances assumed for measurements in progress; see getVariancesWorker
@@ -776,9 +776,9 @@ type Checker struct {
 	activeTypeMappersCaches                     []map[CacheHashKey]activeMapperCacheEntry
 	withinUnreachableCode                       bool
 	typeToStringNodebuilder                     *NodeBuilder
-	tracer                                      *Tracer     // Optional tracer for trace events and type recording (for --generateTrace)
-	reporting                                   bool        // Whether side effects such as diagnostics are applied; see memo.go
-	memoFrames                                  []memoFrame // Memoized computations in progress when not reporting; see memo.go
+	tracer                                      *Tracer // Optional tracer for trace events and type recording (for --generateTrace)
+	reporting                                   bool    // Whether side effects such as diagnostics are applied; see memo.go
+	memoTop                                     int     // 1 + index in frames of the innermost computation recording effects, or 0; see memo.go
 }
 
 // checkerStore holds the memoized state of a checker: interned types, links,
@@ -19987,7 +19987,7 @@ func (c *Checker) pushTypeResolution(target TypeSystemEntity, propertyName TypeS
 		c.markResolutionCycle(resolutionCycleStartIndex)
 		return false
 	}
-	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: target, propertyName: propertyName, result: true, memoDepth: len(c.memoFrames)})
+	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: target, propertyName: propertyName, result: true, memoDepth: c.memoTop})
 	return true
 }
 
@@ -20102,7 +20102,7 @@ func (c *Checker) enterCurrentNode(node *ast.Node) savedCurrentNode {
 		c.endCycle()
 	}
 	c.currentNode = node
-	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: node, propertyName: TypeSystemPropertyNameCurrentNode, result: true, memoDepth: len(c.memoFrames)})
+	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: node, propertyName: TypeSystemPropertyNameCurrentNode, result: true, memoDepth: c.memoTop})
 	c.currentNodeResolution = len(c.typeResolutions)
 	return save
 }
@@ -20120,7 +20120,7 @@ func (c *Checker) exitCurrentNode(save savedCurrentNode) {
 // that reads results back from caches after computing them must do so before
 // then.
 func (c *Checker) enterQuery() (savedCurrentNode, bool) {
-	if len(c.memoFrames) != 0 || c.currentNodeResolution != 0 {
+	if c.memoTop != 0 || c.currentNodeResolution != 0 {
 		return savedCurrentNode{}, false
 	}
 	return c.enterCurrentNode(c.currentNode), true
@@ -20496,7 +20496,7 @@ func (c *Checker) resolveStructuredTypeMembersUncached(t *Type) *StructuredType 
 		// complete, so the resolution is on the stack, but never fails.
 		outermost := t.objectFlags&ObjectFlagsMembersResolving == 0
 		t.objectFlags |= ObjectFlagsMembersResolving
-		c.typeResolutions = append(c.typeResolutions, TypeResolution{target: t, propertyName: TypeSystemPropertyNameStructuredMembers, result: true, memoDepth: len(c.memoFrames)})
+		c.typeResolutions = append(c.typeResolutions, TypeResolution{target: t, propertyName: TypeSystemPropertyNameStructuredMembers, result: true, memoDepth: c.memoTop})
 		defer func() {
 			c.popTypeResolution()
 			if outermost {
@@ -29892,7 +29892,7 @@ func (c *Checker) getSimplifiedIndexedAccessType(t *Type, writing bool) *Type {
 	}
 	pushed := c.cachedTypes.enter(c, key)
 	c.simplifyingIndexedAccess.Add(key)
-	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: t, propertyName: propertyName, result: true, memoDepth: len(c.memoFrames)})
+	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: t, propertyName: propertyName, result: true, memoDepth: c.memoTop})
 	result := c.getSimplifiedIndexedAccessTypeWorker(t, writing)
 	if result != t {
 		// If the simplification is a union type that includes t, remove t from the type.

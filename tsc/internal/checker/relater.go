@@ -1553,7 +1553,7 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 	}
 	index := len(c.varianceStack)
 	c.varianceStack = append(c.varianceStack, VarianceStackEntry{symbol: symbol, typeParameters: typeParameters, resolution: len(c.typeResolutions), cycleStart: math.MaxInt})
-	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: symbol, propertyName: TypeSystemPropertyNameVariances, result: true, memoDepth: len(c.memoFrames)})
+	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: symbol, propertyName: TypeSystemPropertyNameVariances, result: true, memoDepth: c.memoTop})
 	if c.varianceMeasuring == nil {
 		c.varianceMeasuring = make(map[*ast.Symbol]int)
 	}
@@ -3577,7 +3577,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		// The result is cached, so instantiations it needs count against
 		// depth limits from here, not from wherever it is first compared
 		// (see "Instantiation limits" in memo.go).
-		r.c.enterWork(0, nil, nil, 0)
+		r.c.enterWork(0, nil, 0)
 		result = r.structuredTypeRelatedTo(source, target, reportErrors, intersectionState)
 		sketch = r.c.exitWork()
 	}
