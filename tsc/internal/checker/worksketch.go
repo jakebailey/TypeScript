@@ -1,10 +1,10 @@
 package checker
 
 import (
-	"github.com/microsoft/TypeScript/tsc/internal/debug"
 	"math/bits"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/debug"
 )
 
 // Work sketches
