@@ -222,13 +222,17 @@ func memoUpdate[T comparable](c *Checker, m *memo[T], v T) {
 // the end of a cycle: discarding an identity would let a second, distinct
 // result exist, and an entity can outlive the cycle in caches that are kept
 // while having no way to compute its parts again.
+//
+// Unlike set, it does not take on the work of the computation setting it
+// (see linkWork): an identity is reached only through the result that
+// created it, whose work is already accounted for, and the setting
+// computation's later work, which would otherwise count, is unrelated.
 func (m *memo[T]) setStable(c *Checker, v T) {
 	if c.aborting {
 		// Nothing computed while aborting is kept; see "Instantiation limits".
 		m.logUndo(c)
 	}
 	m.memoValue = v
-	c.linkWork(&m.memoHeader)
 	if !c.reporting {
 		c.attachCell(&m.memoHeader)
 	}
