@@ -20104,6 +20104,11 @@ func (c *Checker) popResolutionRestart() *Type {
 // results that errors located at node (see reportAtCurrentNode) depend on.
 func (c *Checker) enterCurrentNode(node *ast.Node) savedCurrentNode {
 	save := savedCurrentNode{node: c.currentNode, resolution: c.currentNodeResolution}
+	if c.cycleHead != 0 && c.cycleHead == c.currentNodeResolution && len(c.typeResolutions) == c.currentNodeResolution {
+		// The results discarded when the current node is left depend on errors
+		// located at it, so a node within it must not reuse them either.
+		c.endCycle()
+	}
 	c.currentNode = node
 	c.typeResolutions = append(c.typeResolutions, TypeResolution{target: node, propertyName: TypeSystemPropertyNameCurrentNode, result: true, memoDepth: len(c.memoFrames)})
 	c.currentNodeResolution = len(c.typeResolutions)
