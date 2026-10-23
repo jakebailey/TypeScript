@@ -2187,10 +2187,11 @@ func (c *Checker) getTypeOfDottedName(node *ast.Node, diagnostic *ast.Diagnostic
 
 func (c *Checker) getExplicitTypeOfSymbol(symbol *ast.Symbol, diagnostic *ast.Diagnostic) *Type {
 	symbol = c.resolveSymbol(symbol)
-	if !c.resolvingExplicitTypeOfSymbol.AddIfAbsent(symbol) {
+	if c.isResolvingAnywhere(symbol, TypeSystemPropertyNameExplicitType) {
 		return nil
 	}
-	defer c.resolvingExplicitTypeOfSymbol.Delete(symbol)
+	c.pushResolution(symbol, TypeSystemPropertyNameExplicitType)
+	defer c.popTypeResolution()
 	if symbol.Flags()&(ast.SymbolFlagsFunction|ast.SymbolFlagsMethod|ast.SymbolFlagsClass|ast.SymbolFlagsValueModule) != 0 {
 		return c.getTypeOfSymbol(symbol)
 	}

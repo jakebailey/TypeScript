@@ -74,6 +74,7 @@ const (
 	TypeSystemPropertyNameSimplifiedForWriting
 	TypeSystemPropertyNameDefaultType
 	TypeSystemPropertyNameAwaitedType
+	TypeSystemPropertyNameExplicitType
 )
 
 type TypeResolution struct {
@@ -688,7 +689,6 @@ type Checker struct {
 	varianceGuessed                             []*ast.Symbol                   // Keys of varianceGuesses in order of addition
 	flushSlots                                  *[]*memoSlot                    // Collects slots given effects to replay, if non-nil; see withoutReporting
 	callResolutionStack                         []*ast.Node
-	resolvingExplicitTypeOfSymbol               collections.Set[*ast.Symbol]
 	resolvingBindingElementParents              collections.Set[*ast.Node] // Binding element parents whose types are being resolved to narrow a reference
 	apparentArgumentCount                       *int
 	lastGetCombinedNodeFlagsNode                *ast.Node
@@ -20042,6 +20042,22 @@ func (c *Checker) isResolutionInProgress(target TypeSystemEntity, propertyName T
 	return true
 }
 
+// isResolvingAnywhere reports whether the property of target is being
+// resolved. A computation finding it so fails, as computing it from scratch
+// would, so the results cached since it started are discarded when it
+// finishes, like those of any other failure, and every caller computes them
+// again and reports the failure. Unlike isResolutionInProgress, it searches
+// the whole stack, for computations that would not otherwise stop.
+func (c *Checker) isResolvingAnywhere(target TypeSystemEntity, propertyName TypeSystemPropertyName) bool {
+	for i := c.resolutionTop - 1; i >= 0; i = int(c.frames[i].prevResolution) - 1 {
+		if r := &c.frames[i].resolution; r.target == target && r.propertyName == propertyName {
+			c.taintResolutionCycle(i)
+			return true
+		}
+	}
+	return false
+}
+
 // observeCircularHead is for computations where re-entering one in progress
 // fails only that computation, while the others complete from its failed
 // result. Which member fails then depends on which was entered first, so the
@@ -20263,7 +20279,7 @@ func (c *Checker) typeResolutionHasProperty(r *TypeResolution) bool {
 		return c.aliasSymbolLinks.Get(r.target.(*ast.Symbol)).aliasTarget.peek() != nil
 	case TypeSystemPropertyNameContextChecked, TypeSystemPropertyNameStructuredMembers, TypeSystemPropertyNameCurrentNode,
 		TypeSystemPropertyNameSimplifiedForReading, TypeSystemPropertyNameSimplifiedForWriting, TypeSystemPropertyNameDefaultType,
-		TypeSystemPropertyNameAwaitedType:
+		TypeSystemPropertyNameAwaitedType, TypeSystemPropertyNameExplicitType:
 		// Marked as checked or resolved on entry, so it is only on the stack
 		// while in progress.
 		return false
@@ -33489,20 +33505,10 @@ func (c *Checker) pushAwaitingType(t *Type) {
 	c.pushResolution(t, TypeSystemPropertyNameAwaitedType)
 }
 
-// isAwaitingType reports whether the awaited type of t is being computed. A
-// computation finding it so fails, as computing it from scratch would, so
-// the results cached since it started are discarded when it finishes, like
-// those of any other failure, and every caller computes them again and
-// reports the failure. Unlike isResolutionInProgress, it searches the whole
-// stack, since the computation would not otherwise stop.
+// isAwaitingType reports whether the awaited type of t is being computed;
+// see isResolvingAnywhere.
 func (c *Checker) isAwaitingType(t *Type) bool {
-	for i := c.resolutionTop - 1; i >= 0; i = int(c.frames[i].prevResolution) - 1 {
-		if r := &c.frames[i].resolution; r.target == t && r.propertyName == TypeSystemPropertyNameAwaitedType {
-			c.taintResolutionCycle(i)
-			return true
-		}
-	}
-	return false
+	return c.isResolvingAnywhere(t, TypeSystemPropertyNameAwaitedType)
 }
 
 func (c *Checker) isAwaitedTypeInstantiation(t *Type) bool {
