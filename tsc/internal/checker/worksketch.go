@@ -79,9 +79,16 @@ type frame struct {
 	// Length of the instantiation stack from which the depth limit counts:
 	// base for a computation, or that of the enclosing frame for a node.
 	depthBase int32
-	serial    uint32 // Identifies the frame among all entered
-	links     int32  // Length of workLinks on entry
-	slots     int32  // Length of workLinkSlots on entry
+	// Deepest instantiation stack the frame needed, counting what computing
+	// the results it reused would need; see "Instantiation limits".
+	top int32
+	// Whether reading a result accounts for its work even when no
+	// instantiation of the frame is in progress: in a computation, whose
+	// work is cached with its result, and in a node within one.
+	heights bool
+	serial  uint32 // Identifies the frame among all entered
+	links   int32  // Length of workLinks on entry
+	slots   int32  // Length of workLinkSlots on entry
 
 	// A non-reporting activation records the effects of a memoized
 	// computation, for replay by reuse of its result; see memo.go.
@@ -92,6 +99,14 @@ type frame struct {
 	effects  *memoEffects // Allocated on first use
 	entry    *ast.Node    // Current node when the computation started
 	query    savedCurrentNode
+}
+
+// resultWork is the work computing a result from scratch needs: the
+// instantiations it performs, and how much deeper than where it starts
+// they nest.
+type resultWork struct {
+	sketch *workSketch
+	height int32
 }
 
 // A workSlotSource creates the slot of a computation in progress on demand,
@@ -113,54 +128,64 @@ func (c *Checker) currentWork() *frame {
 // which also starts the depth limit of instantiations (see "Instantiation
 // limits" in memo.go).
 func (c *Checker) enterWork(key memoKey, source workSlotSource, index int) {
-	if key != 0 && c.inWork() {
+	if key != 0 && c.observingWork() {
 		// Entering a computed result reads it.
 		c.observeWork(c.storedWork(key))
 	}
 	base := int32(len(c.instantiationStack))
-	c.pushWork(key, source, index, base)
+	c.pushWork(key, source, index, base, true)
 }
 
 // enterNodeWork starts a work frame for checking a node, which continues
 // the depth limit of the enclosing frame.
 func (c *Checker) enterNodeWork() {
-	c.pushWork(0, nil, 0, c.currentWork().depthBase)
+	parent := c.currentWork()
+	c.pushWork(0, nil, 0, parent.depthBase, parent.heights || c.inWork())
 }
 
-func (c *Checker) pushWork(key memoKey, source workSlotSource, index int, depthBase int32) {
+func (c *Checker) pushWork(key memoKey, source workSlotSource, index int, depthBase int32, heights bool) {
 	c.workSerials++
+	base := int32(len(c.instantiationStack))
 	c.frames = append(c.frames, frame{
 		key:       key,
 		source:    source,
 		index:     int32(index),
-		base:      int32(len(c.instantiationStack)),
+		base:      base,
 		depthBase: depthBase,
+		top:       base,
+		heights:   heights,
 		serial:    c.workSerials,
 		links:     int32(len(c.workLinks)),
 		slots:     int32(len(c.workLinkSlots)),
 	})
 }
 
-// exitWork finishes the current frame, returning its sketch, or nil if it did
-// no instantiations.
-func (c *Checker) exitWork() *workSketch {
+// exitWork finishes the current frame, returning its work.
+func (c *Checker) exitWork() resultWork {
 	n := len(c.frames) - 1
 	f := &c.frames[n]
-	sketch := f.sketch
-	if sketch != nil || f.source != nil || int(f.links) != len(c.workLinks) || int(f.slots) != len(c.workLinkSlots) {
-		c.finishWork(f)
+	w := resultWork{f.sketch, f.top - f.base}
+	if c.aborting {
+		// Nothing computed while aborting is kept.
+		w = resultWork{}
+		c.dropWork(f)
+	} else if w.sketch != nil || w.height != 0 || f.source != nil || int(f.links) != len(c.workLinks) || int(f.slots) != len(c.workLinkSlots) {
+		c.finishWork(f, w)
 	}
+	top := f.top
 	c.frames[n] = frame{}
 	c.frames = c.frames[:n]
-	if sketch != nil {
-		c.observeWork(sketch)
+	parent := c.currentWork()
+	parent.top = max(parent.top, top)
+	if w.sketch != nil {
+		c.observeSketch(w.sketch)
 	}
-	return sketch
+	return w
 }
 
-// finishWork stores the sketch of a work frame for the results it computed.
-func (c *Checker) finishWork(f *frame) {
-	if sketch := f.sketch; sketch != nil {
+// finishWork stores the work of a frame for the results it computed.
+func (c *Checker) finishWork(f *frame, w resultWork) {
+	if w.sketch != nil || w.height != 0 {
 		var slot *memoSlot
 		if f.source != nil {
 			slot = f.source.workSlot(int(f.index))
@@ -168,26 +193,52 @@ func (c *Checker) finishWork(f *frame) {
 			slot = c.memoSlot(f.key)
 		}
 		if slot != nil {
-			if slot.sketch != nil {
-				sketch.merge(slot.sketch)
-			}
-			slot.sketch = sketch
+			slot.storeWork(w)
 		}
 		// Results set outside a computation of their own need the work of
 		// the computation that set them.
 		for _, key := range c.workLinks[f.links:] {
-			c.memoSlot(key).sketch = sketch
+			c.memoSlot(key).linkWork(w)
 		}
 		for _, slot := range c.workLinkSlots[f.slots:] {
-			slot.sketch = sketch
+			slot.linkWork(w)
 		}
 	}
+	c.dropWork(f)
+}
+
+// dropWork releases the state of a frame without storing its work.
+func (c *Checker) dropWork(f *frame) {
 	if f.source != nil {
 		f.source.popWork(int(f.index))
 	}
 	c.workLinks = c.workLinks[:f.links]
 	clear(c.workLinkSlots[f.slots:])
 	c.workLinkSlots = c.workLinkSlots[:f.slots]
+}
+
+// storeWork stores the work of computing the slot's result, which earlier
+// computations of it in a cycle may also have needed.
+func (s *memoSlot) storeWork(w resultWork) {
+	if w.sketch != nil {
+		if s.sketch != nil {
+			w.sketch.merge(s.sketch)
+		}
+		s.sketch = w.sketch
+	}
+	s.height = max(s.height, w.height)
+}
+
+// linkWork stores the work of the computation that set the slot's result.
+func (s *memoSlot) linkWork(w resultWork) {
+	if w.sketch != nil {
+		s.sketch = w.sketch
+	}
+	s.height = w.height
+}
+
+func (s *memoSlot) work() resultWork {
+	return resultWork{s.sketch, s.height}
 }
 
 // forgetWork makes the current work frame store its sketch for no result,
@@ -206,9 +257,34 @@ func (c *Checker) inWork() bool {
 	return len(c.instantiationStack) > int(c.currentWork().base)
 }
 
-// observeWork accounts for the work of a result read by the current work
-// frame.
-func (c *Checker) observeWork(sketch *workSketch) {
+// observingWork reports whether reading a result accounts for its work.
+func (c *Checker) observingWork() bool {
+	f := c.currentWork()
+	return f.heights || len(c.instantiationStack) > int(f.base)
+}
+
+// observeWork accounts for the work of a result read by the current frame.
+func (c *Checker) observeWork(w resultWork) {
+	if w.height != 0 {
+		c.observeHeight(w.height)
+	}
+	c.observeSketch(w.sketch)
+}
+
+// observeHeight accounts for reusing a result whose computation nests
+// instantiations height deeper than where it starts.
+func (c *Checker) observeHeight(height int32) {
+	depth := int32(len(c.instantiationStack))
+	f := c.currentWork()
+	f.top = max(f.top, depth+height)
+	if depth != 0 && depth+height > instantiationTotalDepthLimit {
+		c.abortInstantiation()
+	}
+}
+
+// observeSketch accounts for the instantiations of a result read by the
+// current frame.
+func (c *Checker) observeSketch(sketch *workSketch) {
 	if sketch == nil || !c.inWork() {
 		return
 	}
@@ -238,10 +314,10 @@ func (c *Checker) linkWork(key memoKey) {
 	}
 }
 
-func (c *Checker) storedWork(key memoKey) *workSketch {
+func (c *Checker) storedWork(key memoKey) resultWork {
 	slot := c.memoSlots[key]
 	if slot == nil {
-		return nil
+		return resultWork{}
 	}
-	return slot.sketch
+	return slot.work()
 }

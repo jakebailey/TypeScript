@@ -1,8 +1,9 @@
 instantiationLimitsCheckOrder.ts(10,16): error TS2589: Type instantiation is excessively deep and possibly infinite.
 instantiationLimitsCheckOrder.ts(16,17): error TS2589: Type instantiation is excessively deep and possibly infinite.
+instantiationLimitsCheckOrder.ts(29,18): error TS2589: Type instantiation is excessively deep and possibly infinite.
 
 
-==== instantiationLimitsCheckOrder.ts (2 errors) ====
+==== instantiationLimitsCheckOrder.ts (3 errors) ====
     // Instantiation limits must not depend on what was instantiated before:
     // Wide2All reaches the limit on the number of instantiations like WideAll,
     // although Wide2Tail already performed half of them.
@@ -29,4 +30,13 @@ instantiationLimitsCheckOrder.ts(16,17): error TS2589: Type instantiation is exc
     type Deep<N extends 0[]> = N["length"] extends 60 ? never : Deep<[...N, 0]> | N["length"];
     type DeepTail = Deep<[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]>;
     type DeepAll = Deep<[]>;
+    
+    // Over a thousand nested instantiations in all, past the limit on the whole
+    // outermost instantiation, half of which already happened for another
+    // statement.
+    type Deeper<N extends 0[]> = N["length"] extends 600 ? never : Deeper<[...N, 0]> | N["length"];
+    type DeeperTail = Deeper<[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]>;
+    type DeeperAll = Deeper<[]>;
+                     ~~~~~~~~~~
+!!! error TS2589: Type instantiation is excessively deep and possibly infinite.
     

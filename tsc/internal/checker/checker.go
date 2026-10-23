@@ -626,6 +626,8 @@ type Checker struct {
 	mapperHashes                                map[*TypeMapper]uint64
 	fileHashes                                  map[*ast.SourceFile]uint64
 	instantiationStack                          []*Type
+	aborting                                    bool             // Whether the outermost instantiation is aborting; see "Instantiation limits"
+	heldDiagnostics                             []heldDiagnostic // Errors reported within the outermost instantiation, held until it finishes
 	conditionalConstraintDepth                  uint32
 	inlineLevel                                 int
 	serializationLevel                          int
@@ -14691,6 +14693,10 @@ func (c *Checker) addDiagnostic(diagnostic *ast.Diagnostic) *ast.Diagnostic {
 			c.recordEffect(func(c *Checker) { c.diagnostics.Add(diagnostic) })
 			return diagnostic
 		}
+		if len(c.instantiationStack) != 0 {
+			c.heldDiagnostics = append(c.heldDiagnostics, heldDiagnostic{diagnostic, false})
+			return diagnostic
+		}
 		return c.diagnostics.Add(diagnostic)
 	}
 	return diagnostic
@@ -14701,6 +14707,10 @@ func (c *Checker) addSuggestionDiagnostic(diagnostic *ast.Diagnostic) *ast.Diagn
 	if c.serializationLevel < maxSerializationLevel {
 		if !c.reporting {
 			c.recordEffect(func(c *Checker) { c.suggestionDiagnostics.Add(diagnostic) })
+			return diagnostic
+		}
+		if len(c.instantiationStack) != 0 {
+			c.heldDiagnostics = append(c.heldDiagnostics, heldDiagnostic{diagnostic, true})
 			return diagnostic
 		}
 		return c.suggestionDiagnostics.Add(diagnostic)
@@ -23773,6 +23783,14 @@ func (c *Checker) instantiateTypeWithAlias(t *Type, m *TypeMapper, alias *TypeAl
 		return t
 	}
 	// See "Instantiation limits" in memo.go.
+	if c.aborting {
+		return c.errorType
+	}
+	depth := len(c.instantiationStack)
+	if depth == instantiationTotalDepthLimit {
+		c.abortInstantiation()
+		return c.errorType
+	}
 	if c.instantiationLimitReached() {
 		// We have reached 100 recursive type instantiations in one computation, or 5M type instantiations caused by
 		// the same statement or expression. There is a very high likelihood we're dealing with a combination of infinite generic types
@@ -23794,6 +23812,13 @@ func (c *Checker) instantiateTypeWithAlias(t *Type, m *TypeMapper, alias *TypeAl
 		c.reportAtCurrentNode(func(c *Checker, node *ast.Node) { c.error(node, message, args...) })
 		return c.errorType
 	}
+	if depth == 0 {
+		return c.instantiateOutermost(t, m, alias)
+	}
+	return c.instantiateTypeNested(t, m, alias)
+}
+
+func (c *Checker) instantiateTypeNested(t *Type, m *TypeMapper, alias *TypeAlias) *Type {
 	index := c.findActiveMapper(m)
 	if index == -1 {
 		c.pushActiveMapper(m)
@@ -23817,10 +23842,12 @@ func (c *Checker) instantiateTypeWithAlias(t *Type, m *TypeMapper, alias *TypeAl
 	}
 	c.addWork(hashFinal(h))
 	c.instantiationStack = append(c.instantiationStack, t)
+	f := c.currentWork()
+	f.top = max(f.top, int32(len(c.instantiationStack)))
 	result := c.instantiateTypeWorker(t, m, alias)
 	if index == -1 {
 		c.popActiveMapper()
-	} else {
+	} else if !c.aborting {
 		cache[key] = activeMapperCacheEntry{result, serial}
 	}
 	c.instantiationStack[len(c.instantiationStack)-1] = nil

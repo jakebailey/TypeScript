@@ -138,10 +138,10 @@ func (r *Relation) get(c *Checker, key CacheHashKey) RelationComparisonResult {
 	return result
 }
 
-// set caches the result of a comparison that needed the instantiations in
-// sketch; see "Work sketches".
-func (r *Relation) set(c *Checker, key CacheHashKey, result RelationComparisonResult, sketch *workSketch) {
-	r.results.setWithWork(c, key, result, sketch)
+// set caches the result of a comparison that needed the work w; see "Work
+// sketches".
+func (r *Relation) set(c *Checker, key CacheHashKey, result RelationComparisonResult, w resultWork) {
+	r.results.setWithWork(c, key, result, w)
 }
 
 func (c *Checker) isTypeIdenticalTo(source *Type, target *Type) bool {
@@ -331,7 +331,7 @@ func (c *Checker) isEnumTypeRelatedTo(source *ast.Symbol, target *ast.Symbol, er
 	}
 	c.enumRelation.enter(c, key)
 	related := c.isEnumTypeRelatedToWorker(sourceSymbol, targetSymbol, errorReporter)
-	c.enumRelation.setWithWork(c, key, core.IfElse(related, RelationComparisonResultSucceeded, RelationComparisonResultFailed), nil)
+	c.enumRelation.setWithWork(c, key, core.IfElse(related, RelationComparisonResultSucceeded, RelationComparisonResultFailed), resultWork{})
 	c.exitMemo()
 	return related
 }
@@ -419,7 +419,7 @@ func (c *Checker) checkTypeRelatedToEx(
 	result := r.isRelatedToEx(source, target, RecursionFlagsBoth, errorNode != nil /*reportErrors*/, headMessage, IntersectionStateNone)
 	if r.overflow {
 		// Record this relation as having failed such that we don't attempt the overflowing operation again.
-		relation.set(c, id, RelationComparisonResultFailed|RelationComparisonResultComplexityOverflow, nil)
+		relation.set(c, id, RelationComparisonResultFailed|RelationComparisonResultComplexityOverflow, resultWork{})
 	}
 	c.exitMemo()
 	if r.overflow {
@@ -3554,7 +3554,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	saveReliabilityFlags := r.c.reliabilityFlags
 	r.c.reliabilityFlags = 0
 	var result Ternary
-	var sketch *workSketch
+	var work resultWork
 	if r.expandingFlags == ExpandingFlagsBoth {
 		if tr := r.c.tracer; tr != nil {
 			tr.Instant(tracing.PhaseCheckTypes, "recursiveTypeRelatedTo_DepthLimit", map[string]any{"sourceId": source.id, "targetId": target.id, "depth": len(r.sourceStack), "targetDepth": len(r.targetStack)})
@@ -3570,7 +3570,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		// (see "Instantiation limits" in memo.go).
 		r.c.enterWork(0, nil, 0)
 		result = r.structuredTypeRelatedTo(source, target, reportErrors, intersectionState)
-		sketch = r.c.exitWork()
+		work = r.c.exitWork()
 	}
 	propagatingVarianceFlags := r.c.reliabilityFlags
 	r.c.reliabilityFlags |= saveReliabilityFlags
@@ -3590,9 +3590,9 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	case result == TernaryFalse:
 		// A false result goes straight into global cache (when something is false under
 		// assumptions it will also be false without assumptions)
-		r.relation.set(r.c, id, RelationComparisonResultFailed|propagatingVarianceFlags, sketch)
+		r.relation.set(r.c, id, RelationComparisonResultFailed|propagatingVarianceFlags, work)
 		r.relationCount--
-		r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false, nil)
+		r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false, resultWork{})
 	case low >= frame:
 		// The result depends on no comparison outside of this one, so it is the
 		// same from scratch. Comparisons that completed assuming this one hold
@@ -3600,13 +3600,13 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		// scratch. Ternary.Unknown results are never recorded.
 		switch {
 		case result == TernaryUnknown:
-			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false, nil)
+			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false, resultWork{})
 		case truncated:
-			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false, nil)
-			r.relation.set(r.c, id, RelationComparisonResultSucceeded|propagatingVarianceFlags, sketch)
+			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false, resultWork{})
+			r.relation.set(r.c, id, RelationComparisonResultSucceeded|propagatingVarianceFlags, work)
 			r.relationCount--
 		default:
-			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, true, sketch)
+			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, true, work)
 		}
 		// The result no longer depends on any comparison in progress, so it
 		// is reported as related, the same as when it is read from the cache.
@@ -3648,13 +3648,13 @@ func (r *Relater) truncate(frame int) {
 }
 
 // resetMaybeStack ends the comparisons since maybeStart, recording them as
-// related if markAllAsSucceeded. Those recorded need the work in sketch.
-func (r *Relater) resetMaybeStack(maybeStart int, propagatingVarianceFlags RelationComparisonResult, markAllAsSucceeded bool, sketch *workSketch) {
+// related if markAllAsSucceeded. Those recorded need the work w.
+func (r *Relater) resetMaybeStack(maybeStart int, propagatingVarianceFlags RelationComparisonResult, markAllAsSucceeded bool, w resultWork) {
 	for i := maybeStart; i < len(r.maybeKeys); i++ {
 		key := r.maybeKeys[i].key
 		delete(r.maybeKeysSet, key)
 		if markAllAsSucceeded {
-			r.relation.set(r.c, key, RelationComparisonResultSucceeded|propagatingVarianceFlags, sketch)
+			r.relation.set(r.c, key, RelationComparisonResultSucceeded|propagatingVarianceFlags, w)
 			r.relationCount--
 		}
 	}

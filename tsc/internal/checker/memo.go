@@ -9,6 +9,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
+	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 )
 
 // Checker side effects and memoization
@@ -115,6 +116,7 @@ type memoSlot struct {
 	depth   int           // 1 + index in Checker.frames of the outermost computation in progress, or 0
 	reports []*nodeReport // Errors the computation reported at the current node; see setReported
 	sketch  *workSketch   // Instantiations the computation needed; see "Work sketches"
+	height  int32         // How much deeper than its start the computation nested instantiations
 }
 
 // memo is a cached result. Cached checker state must live in a memo so that
@@ -139,7 +141,7 @@ func (m *memo[T]) key() memoKey {
 
 // get returns the cached result, accounting for the effects of computing it.
 func (m *memo[T]) get(c *Checker) T {
-	if c.memoActive() || c.inWork() {
+	if c.observing() {
 		c.observeCell(unsafe.Pointer(m))
 	}
 	return m.memoValue
@@ -176,6 +178,10 @@ func memoUpdate[T comparable](c *Checker, m *memo[T], v T) {
 // result exist, and an entity can outlive the cycle in caches that are kept
 // while having no way to compute its parts again.
 func (m *memo[T]) setStable(c *Checker, v T) {
+	if c.aborting {
+		// Nothing computed while aborting is kept; see "Instantiation limits".
+		m.logUndo(c)
+	}
 	m.memoValue = v
 	c.linkWork(m.key())
 	if !c.reporting {
@@ -197,6 +203,9 @@ func (m *memo[T]) setReported(c *Checker, v T, r nodeReports) {
 		r.list = nil
 	}
 	m.setStable(c, v)
+	if c.aborting {
+		return
+	}
 	if r.list != nil || c.memoReportSlots != 0 && c.memoSlots[m.key()] != nil {
 		c.memoSlot(m.key()).setReports(c, r.list)
 	}
@@ -271,7 +280,7 @@ type memoMap[K comparable, V any] struct {
 // get returns the cached result for k, accounting for the effects of
 // computing it.
 func (m *memoMap[K, V]) get(c *Checker, k K) (V, bool) {
-	if m.memoSlots != nil && (c.memoActive() || c.inWork()) {
+	if m.memoSlots != nil && c.observing() {
 		m.observe(c, k)
 	}
 	v, ok := m.memoEntries[k]
@@ -338,6 +347,9 @@ func (m *memoMap[K, V]) setReported(c *Checker, k K, v V, r nodeReports) {
 		r.list = nil
 	}
 	m.setStable(c, k, v)
+	if c.aborting {
+		return
+	}
 	if r.list != nil || c.memoReportSlots != 0 && m.memoSlots[k] != nil {
 		m.slot(k).setReports(c, r.list)
 	}
@@ -358,9 +370,9 @@ func (m *memoMap[K, V]) setStable(c *Checker, k K, v V) {
 	}
 }
 
-// setWithWork is set for a result whose computation needed the
-// instantiations in sketch, rather than those of the current work frame.
-func (m *memoMap[K, V]) setWithWork(c *Checker, k K, v V, sketch *workSketch) {
+// setWithWork is set for a result whose computation needed the work w,
+// rather than that of the current work frame.
+func (m *memoMap[K, V]) setWithWork(c *Checker, k K, v V, w resultWork) {
 	if c.logResults() {
 		m.logUndo(c, k)
 	}
@@ -368,8 +380,8 @@ func (m *memoMap[K, V]) setWithWork(c *Checker, k K, v V, sketch *workSketch) {
 		m.memoEntries = make(map[K]V)
 	}
 	m.memoEntries[k] = v
-	if sketch != nil {
-		m.slot(k).sketch = sketch
+	if w.sketch != nil || w.height != 0 {
+		m.slot(k).linkWork(w)
 	}
 	if c.memoTop != 0 {
 		c.attachSlot(m.slot(k))
@@ -396,10 +408,10 @@ func (m *memoMap[K, V]) compute(c *Checker, k K, fn func() V) V {
 
 // enter starts the computation of the result for k; see enterMemo.
 func (m *memoMap[K, V]) enter(c *Checker, k K) {
-	if c.inWork() {
+	if c.observingWork() {
 		// Entering a computed result reads it.
 		if slot := m.memoSlots[k]; slot != nil {
-			c.observeWork(slot.sketch)
+			c.observeWork(slot.work())
 		}
 	}
 	m.workKeys = append(m.workKeys, k)
@@ -485,6 +497,12 @@ func (o *memoOnce) once(c *Checker, fn func()) {
 // effects: false in a reporting activation with nothing pending.
 func (c *Checker) memoActive() bool {
 	return !c.reporting || c.memoPendingCount|c.memoReportSlots != 0
+}
+
+// observing reports whether reading a cached result must account for its
+// effects or its work.
+func (c *Checker) observing() bool {
+	return c.memoActive() || c.observingWork()
 }
 
 // enterMemo is called on entry to a memoized function whose result for this
@@ -627,7 +645,7 @@ func (c *Checker) observeSlot(slot *memoSlot) {
 	if slot == nil {
 		return
 	}
-	c.observeWork(slot.sketch)
+	c.observeWork(slot.work())
 	if slot.reports != nil {
 		c.replayNodeReports(slot.reports)
 	}
@@ -1012,13 +1030,13 @@ type undoEntry struct {
 // logResults reports whether caching a result must be logged in the
 // journal.
 func (c *Checker) logResults() bool {
-	return c.cycleHead != 0
+	return c.cycleHead != 0 || len(c.instantiationStack) != 0 || c.aborting
 }
 
 // logEffects reports whether changing the effects of a result must be
 // logged in the journal.
 func (c *Checker) logEffects() bool {
-	return c.cycleHead != 0 || c.effectsMarkDepth != 0
+	return c.logResults() || c.effectsMarkDepth != 0
 }
 
 // rollBack restores everything logged in the journal since position start.
@@ -1049,7 +1067,7 @@ func (c *Checker) trimJournal() {
 
 // observeKeyed accounts for reading the keyed cell identified by key.
 func (c *Checker) observeKeyed(key memoKey) {
-	if c.memoActive() {
+	if c.observing() {
 		c.observeMemo(key)
 	}
 }
@@ -1167,7 +1185,9 @@ func (c *Checker) markRollback() rollbackMark {
 		effects:          c.markEffects(),
 		effectsMarkDepth: c.effectsMarkDepth,
 	}
-	c.effectsMarkDepth = m.effects.frameIndex + 1
+	if m.effects.frameIndex >= 0 {
+		c.effectsMarkDepth = m.effects.frameIndex + 1
+	}
 	return m
 }
 
@@ -1191,23 +1211,33 @@ func (c *Checker) releaseRollback(m rollbackMark) {
 // memoEffectsMark is a position in the effects recorded by a computation in
 // progress, to which they can be rolled back.
 type memoEffectsMark struct {
-	frame      *memoEffects
 	effects    int
 	deps       int
-	frameIndex int
+	frameIndex int // Index in Checker.frames of the computation, or -1 if none records effects
 }
 
 // markEffects returns the position of the effects recorded so far by the
-// innermost computation in progress, which must have a memo frame.
+// innermost computation in progress.
 func (c *Checker) markEffects() memoEffectsMark {
 	n := c.memoTop - 1
-	f := c.memoFrameAt(n)
-	return memoEffectsMark{frame: f, effects: len(f.effects), deps: len(f.deps), frameIndex: n}
+	m := memoEffectsMark{frameIndex: n}
+	if n >= 0 {
+		if f := c.frames[n].effects; f != nil {
+			m.effects, m.deps = len(f.effects), len(f.deps)
+		}
+	}
+	return m
 }
 
 func (c *Checker) discardEffectsSince(m memoEffectsMark) {
-	debug.Assert(c.memoTop-1 == m.frameIndex && c.frames[m.frameIndex].effects == m.frame, "effects discarded outside their computation")
-	f := m.frame
+	if m.frameIndex < 0 {
+		return
+	}
+	debug.Assert(c.memoTop-1 == m.frameIndex, "effects discarded outside their computation")
+	f := c.frames[m.frameIndex].effects
+	if f == nil {
+		return
+	}
 	clear(f.effects[m.effects:])
 	f.effects = f.effects[:m.effects]
 	f.truncateDeps(m.deps)
@@ -1286,10 +1316,25 @@ func (c *Checker) typeResolutionMemo(r *TypeResolution) unsafe.Pointer {
 // For the result not to depend on what was cached before, each memoized
 // computation (including each cached comparison of two types) measures
 // depth from where it started, whether or not it reports errors, and a
-// reused result adds no depth. Chains that start a new memoized computation at every
-// level are only stopped by a much larger limit on the whole outermost
-// instantiation, which is only reached by runaway instantiations, and which
-// does depend on what was cached before.
+// reused result adds no depth.
+//
+// Chains that start a new memoized computation at every level are only
+// stopped by a much larger limit on the depth of the whole outermost
+// instantiation, which is only reached by runaway instantiations. Reaching
+// it aborts the outermost instantiation, which then fails with an error. So
+// that reusing a result aborts wherever computing it would, each result
+// records its height, how much deeper than where its computation started
+// that computation nested instantiations, including the heights of the
+// results it reused. Reusing a result whose height would take the stack past
+// the limit aborts, as computing it would have.
+//
+// Aborting finishes the computations in progress within the outermost
+// instantiation, with every instantiation failing at once, and then rolls
+// back what they cached and reported (see rollbackMark), as they were cut
+// short at a point that depends on what was cached before. So while an
+// instantiation is in progress, the journal logs every result cached, and
+// errors reported by a reporting activation are held until the outermost
+// instantiation finishes.
 //
 // The limit on the number of instantiations likewise applies to the work
 // needed to compute the current result from scratch, estimated by a work
@@ -1309,6 +1354,55 @@ func (c *Checker) instantiationLimitReached() bool {
 }
 
 func (c *Checker) instantiationDepthLimitReached() bool {
-	depth := len(c.instantiationStack)
-	return depth-int(c.currentWork().depthBase) == instantiationDepthLimit || depth == instantiationTotalDepthLimit
+	return len(c.instantiationStack)-int(c.currentWork().depthBase) == instantiationDepthLimit
+}
+
+// instantiateOutermost is instantiateTypeWithAlias with no instantiation in
+// progress.
+func (c *Checker) instantiateOutermost(t *Type, m *TypeMapper, alias *TypeAlias) *Type {
+	mark := c.markRollback()
+	nodeReports := len(c.nodeReports)
+	result := c.instantiateTypeNested(t, m, alias)
+	if c.aborting {
+		c.aborting = false
+		c.rollBackTo(mark)
+		clear(c.nodeReports[nodeReports:])
+		c.nodeReports = c.nodeReports[:nodeReports]
+		clear(c.heldDiagnostics)
+		c.heldDiagnostics = c.heldDiagnostics[:0]
+		c.releaseRollback(mark)
+		c.errorAtCurrentNode(diagnostics.Type_instantiation_is_excessively_deep_and_possibly_infinite)
+		return c.errorType
+	}
+	c.releaseRollback(mark)
+	if len(c.heldDiagnostics) != 0 {
+		held := c.heldDiagnostics
+		c.heldDiagnostics = nil
+		for _, d := range held {
+			if d.suggestion {
+				c.suggestionDiagnostics.Add(d.diagnostic)
+			} else {
+				c.diagnostics.Add(d.diagnostic)
+			}
+		}
+		clear(held)
+		c.heldDiagnostics = held[:0]
+	}
+	return result
+}
+
+// abortInstantiation starts aborting the outermost instantiation in
+// progress, as one would nest past instantiationTotalDepthLimit.
+func (c *Checker) abortInstantiation() {
+	f := c.currentWork()
+	f.top = max(f.top, instantiationTotalDepthLimit+1)
+	c.aborting = true
+}
+
+// A heldDiagnostic is an error reported by a reporting activation within
+// the outermost instantiation in progress, which is only reported once the
+// instantiation finishes without aborting.
+type heldDiagnostic struct {
+	diagnostic *ast.Diagnostic
+	suggestion bool
 }

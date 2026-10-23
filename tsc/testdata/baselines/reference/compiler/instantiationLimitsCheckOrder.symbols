@@ -75,3 +75,22 @@ type DeepAll = Deep<[]>;
 >DeepAll : Symbol(DeepAll, Decl(instantiationLimitsCheckOrder.ts, 20, 113))
 >Deep : Symbol(Deep, Decl(instantiationLimitsCheckOrder.ts, 15, 30))
 
+// Over a thousand nested instantiations in all, past the limit on the whole
+// outermost instantiation, half of which already happened for another
+// statement.
+type Deeper<N extends 0[]> = N["length"] extends 600 ? never : Deeper<[...N, 0]> | N["length"];
+>Deeper : Symbol(Deeper, Decl(instantiationLimitsCheckOrder.ts, 21, 24))
+>N : Symbol(N, Decl(instantiationLimitsCheckOrder.ts, 26, 12))
+>N : Symbol(N, Decl(instantiationLimitsCheckOrder.ts, 26, 12))
+>Deeper : Symbol(Deeper, Decl(instantiationLimitsCheckOrder.ts, 21, 24))
+>N : Symbol(N, Decl(instantiationLimitsCheckOrder.ts, 26, 12))
+>N : Symbol(N, Decl(instantiationLimitsCheckOrder.ts, 26, 12))
+
+type DeeperTail = Deeper<[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]>;
+>DeeperTail : Symbol(DeeperTail, Decl(instantiationLimitsCheckOrder.ts, 26, 95))
+>Deeper : Symbol(Deeper, Decl(instantiationLimitsCheckOrder.ts, 21, 24))
+
+type DeeperAll = Deeper<[]>;
+>DeeperAll : Symbol(DeeperAll, Decl(instantiationLimitsCheckOrder.ts, 27, 927))
+>Deeper : Symbol(Deeper, Decl(instantiationLimitsCheckOrder.ts, 21, 24))
+
