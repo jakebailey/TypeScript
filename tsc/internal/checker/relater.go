@@ -3577,11 +3577,9 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		// The result is cached, so instantiations it needs count against
 		// depth limits from here, not from wherever it is first compared
 		// (see "Instantiation limits" in memo.go).
-		r.c.enterInstantiationBudget()
 		r.c.enterWork(0, nil, nil, 0)
 		result = r.structuredTypeRelatedTo(source, target, reportErrors, intersectionState)
 		sketch = r.c.exitWork()
-		r.c.exitInstantiationBudget()
 	}
 	propagatingVarianceFlags := r.c.reliabilityFlags
 	r.c.reliabilityFlags |= saveReliabilityFlags

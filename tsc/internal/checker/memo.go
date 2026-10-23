@@ -396,7 +396,6 @@ func (m *memoMap[K, V]) compute(c *Checker, k K, fn func() V) V {
 
 // enter starts the computation of the result for k; see enterMemo.
 func (m *memoMap[K, V]) enter(c *Checker, k K) bool {
-	c.enterInstantiationBudget()
 	if c.inWork() {
 		// Entering a computed result reads it.
 		if slot := m.memoSlots[k]; slot != nil {
@@ -506,7 +505,6 @@ func (c *Checker) memoActive() bool {
 // activation starts a frame recording effects of this computation. The result
 // must be passed to exitMemo.
 func (c *Checker) enterMemo(key memoKey) bool {
-	c.enterInstantiationBudget()
 	c.enterWork(key, nil, nil, 0)
 	if c.reporting {
 		if c.memoPendingCount != 0 {
@@ -713,7 +711,6 @@ func (c *Checker) replayPending(slot *memoSlot) {
 // for replay by later reuse of the result. The effects also become part of the
 // enclosing computation, since it observed the result.
 func (c *Checker) exitMemo(pushed bool) {
-	c.exitInstantiationBudget()
 	c.exitWork()
 	if !pushed {
 		return
@@ -730,7 +727,6 @@ func (c *Checker) exitMemo(pushed bool) {
 // enclosing computation, and retaining them for the result would grow them
 // each time it is computed again.
 func (c *Checker) exitMemoUncached(pushed bool) {
-	c.exitInstantiationBudget()
 	c.forgetWork()
 	c.exitWork()
 	if !pushed {
@@ -1239,24 +1235,6 @@ const (
 	instantiationCountLimit      = 5_000_000
 )
 
-// enterInstantiationBudget starts the depth limit of a memoized computation.
-// It is called on entry to every memoized computation, and must be matched
-// by exitInstantiationBudget at the same instantiation depth.
-func (c *Checker) enterInstantiationBudget() {
-	if len(c.instantiationStack) != 0 {
-		c.instantiationDepthBases = append(c.instantiationDepthBases, c.instantiationDepthBase)
-		c.instantiationDepthBase = len(c.instantiationStack)
-	}
-}
-
-func (c *Checker) exitInstantiationBudget() {
-	if len(c.instantiationStack) != 0 {
-		n := len(c.instantiationDepthBases) - 1
-		c.instantiationDepthBase = c.instantiationDepthBases[n]
-		c.instantiationDepthBases = c.instantiationDepthBases[:n]
-	}
-}
-
 // instantiationLimitReached reports whether a further instantiation would
 // exceed a limit.
 func (c *Checker) instantiationLimitReached() bool {
@@ -1265,5 +1243,5 @@ func (c *Checker) instantiationLimitReached() bool {
 
 func (c *Checker) instantiationDepthLimitReached() bool {
 	depth := len(c.instantiationStack)
-	return depth-c.instantiationDepthBase == instantiationDepthLimit || depth == instantiationTotalDepthLimit
+	return depth-int(c.currentWork().depthBase) == instantiationDepthLimit || depth == instantiationTotalDepthLimit
 }

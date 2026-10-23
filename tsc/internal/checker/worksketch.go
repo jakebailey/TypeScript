@@ -72,10 +72,13 @@ type workFrame struct {
 	slot   *memoSlot
 	source workSlotSource
 	index  int32
-	base   int32  // Length of the instantiation stack on entry
-	serial uint32 // Identifies the frame among all entered
-	links  int32  // Length of workLinks on entry
-	slots  int32  // Length of workLinkSlots on entry
+	base   int32 // Length of the instantiation stack on entry
+	// Length of the instantiation stack from which the depth limit counts:
+	// base for a computation, or that of the enclosing frame for a node.
+	depthBase int32
+	serial    uint32 // Identifies the frame among all entered
+	links     int32  // Length of workLinks on entry
+	slots     int32  // Length of workLinkSlots on entry
 }
 
 // A workSlotSource creates the slot of a computation in progress on demand,
@@ -93,30 +96,36 @@ func (c *Checker) currentWork() *workFrame {
 	return &c.workFrames[len(c.workFrames)-1]
 }
 
-// enterWork starts a work frame with an empty sketch.
+// enterWork starts a work frame with an empty sketch for a computation,
+// which also starts the depth limit of instantiations (see "Instantiation
+// limits" in memo.go).
 func (c *Checker) enterWork(key memoKey, slot *memoSlot, source workSlotSource, index int) {
-	if key == 0 && slot == nil {
-		c.pushWork(0, nil, source, index)
-		return
-	}
-	if c.inWork() {
+	if (key != 0 || slot != nil) && c.inWork() {
 		// Entering a computed result reads it.
 		c.observeWork(c.storedWork(key, slot))
 	}
-	c.pushWork(key, slot, source, index)
+	base := int32(len(c.instantiationStack))
+	c.pushWork(key, slot, source, index, base)
 }
 
-func (c *Checker) pushWork(key memoKey, slot *memoSlot, source workSlotSource, index int) {
+// enterNodeWork starts a work frame for checking a node, which continues
+// the depth limit of the enclosing frame.
+func (c *Checker) enterNodeWork() {
+	c.pushWork(0, nil, nil, 0, c.currentWork().depthBase)
+}
+
+func (c *Checker) pushWork(key memoKey, slot *memoSlot, source workSlotSource, index int, depthBase int32) {
 	c.workSerials++
 	c.workFrames = append(c.workFrames, workFrame{
-		key:    key,
-		slot:   slot,
-		source: source,
-		index:  int32(index),
-		base:   int32(len(c.instantiationStack)),
-		serial: c.workSerials,
-		links:  int32(len(c.workLinks)),
-		slots:  int32(len(c.workLinkSlots)),
+		key:       key,
+		slot:      slot,
+		source:    source,
+		index:     int32(index),
+		base:      int32(len(c.instantiationStack)),
+		depthBase: depthBase,
+		serial:    c.workSerials,
+		links:     int32(len(c.workLinks)),
+		slots:     int32(len(c.workLinkSlots)),
 	})
 }
 

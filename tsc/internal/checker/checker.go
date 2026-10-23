@@ -625,8 +625,6 @@ type Checker struct {
 	typeHashes                                  map[*Type]*[typeHashDepth]uint64
 	mapperHashes                                map[*TypeMapper]uint64
 	fileHashes                                  map[*ast.SourceFile]uint64
-	instantiationDepthBase                      int
-	instantiationDepthBases                     []int
 	instantiationStack                          []*Type
 	conditionalConstraintDepth                  uint32
 	inlineLevel                                 int
@@ -2444,7 +2442,7 @@ func (c *Checker) checkSourceElement(node *ast.Node) bool {
 	if node != nil {
 		saveCurrentNode := c.enterCurrentNode(node)
 		saveWithinUnreachableCode := c.withinUnreachableCode
-		c.enterWork(0, nil, nil, 0)
+		c.enterNodeWork()
 		c.checkSourceElementWorker(node)
 		c.exitWork()
 		c.exitCurrentNode(saveCurrentNode)
@@ -2686,7 +2684,7 @@ func (c *Checker) checkDeferredNode(node *ast.Node) {
 		defer tr.Push(tracing.PhaseCheck, "checkDeferredNode", map[string]any{"kind": node.Kind, "pos": node.Pos(), "end": node.End(), "path": ast.GetSourceFileOfNode(node).FileName()}, false)()
 	}
 	saveCurrentNode := c.enterCurrentNode(node)
-	c.enterWork(0, nil, nil, 0)
+	c.enterNodeWork()
 	switch node.Kind {
 	case ast.KindCallExpression, ast.KindNewExpression, ast.KindTaggedTemplateExpression, ast.KindDecorator, ast.KindJsxOpeningElement:
 		// These node kinds are deferred checked when overload resolution fails. To save on work,
@@ -7925,7 +7923,7 @@ func (c *Checker) checkExpressionEx(node *ast.Node, checkMode CheckMode) *Type {
 		defer tr.Push(tracing.PhaseCheck, "checkExpression", map[string]any{"kind": node.Kind, "pos": node.Pos(), "end": node.End(), "path": ast.GetSourceFileOfNode(node).FileName()}, false)()
 	}
 	saveCurrentNode := c.enterCurrentNode(node)
-	c.enterWork(0, nil, nil, 0)
+	c.enterNodeWork()
 	uninstantiatedType := c.checkExpressionWorker(node, checkMode)
 	t := c.instantiateTypeWithSingleGenericCallSignature(node, uninstantiatedType, checkMode)
 	if isConstEnumObjectType(t) {
