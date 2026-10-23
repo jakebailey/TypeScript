@@ -1,0 +1,44 @@
+//// [tests/cases/compiler/reverseMappedTypeInheritedApparentMembers.ts] ////
+
+=== reverseMappedTypeInheritedApparentMembers.ts ===
+// Inherited members of an interface whose base is a type parameter instantiated
+// with a primitive come from the apparent type (here, String). Reverse mapped
+// type inference must still be able to resolve them.
+
+declare const Base: new <T extends object>() => T;
+>Base : Symbol(Base, Decl(reverseMappedTypeInheritedApparentMembers.ts, 4, 13))
+>T : Symbol(T, Decl(reverseMappedTypeInheritedApparentMembers.ts, 4, 25))
+>T : Symbol(T, Decl(reverseMappedTypeInheritedApparentMembers.ts, 4, 25))
+
+// @ts-ignore
+declare class Wrapper<T extends object> extends Base<T> {}
+>Wrapper : Symbol(Wrapper, Decl(reverseMappedTypeInheritedApparentMembers.ts, 4, 50))
+>T : Symbol(T, Decl(reverseMappedTypeInheritedApparentMembers.ts, 6, 22))
+>Base : Symbol(Base, Decl(reverseMappedTypeInheritedApparentMembers.ts, 4, 13))
+>T : Symbol(T, Decl(reverseMappedTypeInheritedApparentMembers.ts, 6, 22))
+
+interface Derived<T extends {}> extends Wrapper<T> {}
+>Derived : Symbol(Derived, Decl(reverseMappedTypeInheritedApparentMembers.ts, 6, 58))
+>T : Symbol(T, Decl(reverseMappedTypeInheritedApparentMembers.ts, 7, 18))
+>Wrapper : Symbol(Wrapper, Decl(reverseMappedTypeInheritedApparentMembers.ts, 4, 50))
+>T : Symbol(T, Decl(reverseMappedTypeInheritedApparentMembers.ts, 7, 18))
+
+type Mapped<T> = { [K in keyof T]: Derived<K> };
+>Mapped : Symbol(Mapped, Decl(reverseMappedTypeInheritedApparentMembers.ts, 7, 53))
+>T : Symbol(T, Decl(reverseMappedTypeInheritedApparentMembers.ts, 9, 12))
+>K : Symbol(K, Decl(reverseMappedTypeInheritedApparentMembers.ts, 9, 20))
+>T : Symbol(T, Decl(reverseMappedTypeInheritedApparentMembers.ts, 9, 12))
+>Derived : Symbol(Derived, Decl(reverseMappedTypeInheritedApparentMembers.ts, 6, 58))
+>K : Symbol(K, Decl(reverseMappedTypeInheritedApparentMembers.ts, 9, 20))
+
+declare function f<T>(arg: Mapped<T>): void;
+>f : Symbol(f, Decl(reverseMappedTypeInheritedApparentMembers.ts, 9, 48))
+>T : Symbol(T, Decl(reverseMappedTypeInheritedApparentMembers.ts, 10, 19))
+>arg : Symbol(arg, Decl(reverseMappedTypeInheritedApparentMembers.ts, 10, 22))
+>Mapped : Symbol(Mapped, Decl(reverseMappedTypeInheritedApparentMembers.ts, 7, 53))
+>T : Symbol(T, Decl(reverseMappedTypeInheritedApparentMembers.ts, 10, 19))
+
+f({ a: {} });
+>f : Symbol(f, Decl(reverseMappedTypeInheritedApparentMembers.ts, 9, 48))
+>a : Symbol(a, Decl(reverseMappedTypeInheritedApparentMembers.ts, 12, 3))
+

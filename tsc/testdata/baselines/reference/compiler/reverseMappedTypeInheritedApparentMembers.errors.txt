@@ -1,0 +1,21 @@
+reverseMappedTypeInheritedApparentMembers.ts(13,5): error TS2740: Type '{}' is missing the following properties from type 'Derived<"a">': charAt, charCodeAt, concat, indexOf, and 46 more.
+
+
+==== reverseMappedTypeInheritedApparentMembers.ts (1 errors) ====
+    // Inherited members of an interface whose base is a type parameter instantiated
+    // with a primitive come from the apparent type (here, String). Reverse mapped
+    // type inference must still be able to resolve them.
+    
+    declare const Base: new <T extends object>() => T;
+    // @ts-ignore
+    declare class Wrapper<T extends object> extends Base<T> {}
+    interface Derived<T extends {}> extends Wrapper<T> {}
+    
+    type Mapped<T> = { [K in keyof T]: Derived<K> };
+    declare function f<T>(arg: Mapped<T>): void;
+    
+    f({ a: {} });
+        ~
+!!! error TS2740: Type '{}' is missing the following properties from type 'Derived<"a">': charAt, charCodeAt, concat, indexOf, and 46 more.
+!!! related TS6500 reverseMappedTypeInheritedApparentMembers.ts:13:5: The expected type comes from property 'a' which is declared here on type 'Mapped<{ a: unknown; }>'
+    
