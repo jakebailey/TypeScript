@@ -594,23 +594,22 @@ type nodeReport struct {
 }
 
 type nodeReportsMark struct {
-	reports     int
-	resolutions int
-	cycleStart  int
+	reports int
+	cyclic  bool
 }
 
 // nodeReports are the errors a computation reported at the current node.
 type nodeReports struct {
 	list   []*nodeReport
-	cyclic bool // Whether computing the result elsewhere may not report them
+	cyclic bool // Whether the computation observed a cycle, so computing it elsewhere may not report them
 }
 
 // startNodeReports starts collecting the errors a computation reports at the
 // current node, to be passed to endNodeReports when it finishes.
 func (c *Checker) startNodeReports() nodeReportsMark {
 	c.nodeReportCollectors++
-	mark := nodeReportsMark{len(c.nodeReports), len(c.typeResolutions), c.nodeReportsCycleStart}
-	c.nodeReportsCycleStart = 0
+	mark := nodeReportsMark{len(c.nodeReports), c.nodeReportsCyclic}
+	c.nodeReportsCyclic = false
 	return mark
 }
 
@@ -623,19 +622,15 @@ func (c *Checker) endNodeReports(mark nodeReportsMark) nodeReports {
 			r.list = append(r.list, report)
 		}
 	}
-	// Errors reported outside of checking, or depending on a cycle in progress
-	// outside the computation, depend on what was computed before it.
-	start := c.nodeReportsCycleStart
-	r.cyclic = r.list != nil && (!c.reporting || start != 0 && start <= mark.resolutions)
-	if mark.cycleStart != 0 && (start == 0 || mark.cycleStart < start) {
-		start = mark.cycleStart
-	}
-	c.nodeReportsCycleStart = start
+	// Which errors a cycle reports depends on where it is entered, so they
+	// are only reported where the result is computed.
+	r.cyclic = r.list != nil && c.nodeReportsCyclic
+	c.nodeReportsCyclic = c.nodeReportsCyclic || mark.cyclic
 	c.nodeReportCollectors--
 	if c.nodeReportCollectors == 0 {
 		clear(c.nodeReports)
 		c.nodeReports = c.nodeReports[:0]
-		c.nodeReportsCycleStart = 0
+		c.nodeReportsCyclic = false
 	}
 	return r
 }

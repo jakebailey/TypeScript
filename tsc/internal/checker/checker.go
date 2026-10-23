@@ -670,7 +670,7 @@ type Checker struct {
 	cycleHead                                   int              // 1-based index in typeResolutions of the outermost cycle in progress, or 0; see memo.go
 	nodeReports                                 []*nodeReport    // Errors reported at the current node while collecting; see startNodeReports
 	nodeReportCollectors                        int              // Number of computations collecting nodeReports
-	nodeReportsCycleStart                       int              // 1 + lowest start of a cycle observed while collecting, or 0
+	nodeReportsCyclic                           bool             // Whether a cycle was observed while collecting nodeReports; see endNodeReports
 	cycleUndo                                   []cycleUndo      // Restores results cached while a cycle is in progress
 	cycleParticipants                           []TypeResolution // Computations that observed a cycle in progress
 	effectsMarkDepth                            int              // 1 + memo frame index of the innermost effects mark that may be rolled back, or 0
@@ -20029,18 +20029,9 @@ func (c *Checker) markResolutionCycle(start int) {
 	if !c.reporting {
 		c.memoCycle(c.typeResolutions[start].memoDepth)
 	}
-	c.noteCycleStart(start)
+	c.nodeReportsCyclic = true
 	if c.cycleHead == 0 || start+1 < c.cycleHead {
 		c.cycleHead = start + 1
-	}
-}
-
-// noteCycleStart records for computations collecting errors reported at the
-// current node that they observed a cycle starting at start; see
-// endNodeReports.
-func (c *Checker) noteCycleStart(start int) {
-	if c.nodeReportCollectors != 0 && (c.nodeReportsCycleStart == 0 || start < c.nodeReportsCycleStart) {
-		c.nodeReportsCycleStart = start + 1
 	}
 }
 
@@ -20176,7 +20167,7 @@ func (c *Checker) taintCurrentNode() {
 // of the stack observed the incomplete resolution at start without failing,
 // so results cached while it is in progress are discarded when it finishes.
 func (c *Checker) taintResolutionCycle(start int) {
-	c.noteCycleStart(start)
+	c.nodeReportsCyclic = true
 	if !c.reporting {
 		c.memoCycle(c.typeResolutions[start].memoDepth)
 	}
