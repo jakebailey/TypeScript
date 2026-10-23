@@ -154,7 +154,6 @@ func (f *memoEffects) covers(deps []*memoEffects) bool {
 // memoSlot is the memo state of one memoized result.
 type memoSlot struct {
 	pending *memoEffects  // Effects not yet replayed by a reporting activation
-	depth   int           // 1 + index in Checker.frames of the outermost computation in progress, or 0
 	reports []*nodeReport // Errors the computation reported at the current node; see setReported
 	sketch  *workSketch   // Instantiations the computation needed; see "Work sketches"
 	height  int32         // How much deeper than its start the computation nested instantiations
@@ -349,7 +348,9 @@ func (m *memoMap[K, V]) peek(k K) (V, bool) {
 //
 //go:noinline
 func (m *memoMap[K, V]) observe(c *Checker, k K) {
-	c.observeSlot(m.memoSlots[k])
+	if c.observeSlot(m.memoSlots[k]) {
+		c.memoCycle(m.computingFrame(c, k))
+	}
 }
 
 // has reports whether a result is cached for k; see get.
@@ -465,6 +466,11 @@ func (m *memoMap[K, V]) enter(c *Checker, k K) {
 			c.observeWork(slot.work())
 		}
 	}
+	outer := m.computingFrame(c, k)
+	if outer != 0 {
+		// Re-entering an entry taints the cycle; see reentryTaint.
+		c.taintFrameCycle(outer - 1)
+	}
 	m.workKeys = append(m.workKeys, k)
 	c.enterWork(0, nil, m, len(m.workKeys)-1)
 	if c.reporting {
@@ -473,7 +479,22 @@ func (m *memoMap[K, V]) enter(c *Checker, k K) {
 		}
 		return
 	}
-	c.enterSlot(m.slot(k))
+	c.enterSlot(m.slot(k), outer)
+}
+
+// computingFrame returns 1 + the index in frames of the computation of the
+// entry for k in progress, or 0.
+func (m *memoMap[K, V]) computingFrame(c *Checker, k K) int {
+	i := slices.Index(m.workKeys, k)
+	if i < 0 {
+		return 0
+	}
+	for j := len(c.frames) - 1; j >= 0; j-- {
+		if f := &c.frames[j]; f.source == workSlotSource(m) && int(f.index) == i {
+			return j + 1
+		}
+	}
+	panic("entry in progress without a frame")
 }
 
 // isOwnWork reports whether the current work frame computes the entry for k.
@@ -574,25 +595,26 @@ func (c *Checker) enterMemoSlot(key memoKey) {
 		}
 		return
 	}
-	c.enterSlot(c.memoSlot(key))
+	outer := c.computingFrame(key)
+	if outer == len(c.frames) {
+		outer = 0
+	}
+	c.enterSlot(c.memoSlot(key), outer)
 }
 
 // enterSlot is enterMemo for the slot of a result, in a non-reporting
-// activation.
-func (c *Checker) enterSlot(slot *memoSlot) {
+// activation. outer is 1 + the index in frames of the computation of the
+// same result in progress, if this one re-enters it, or 0.
+func (c *Checker) enterSlot(slot *memoSlot, outer int) {
 	if slot.pending != nil {
 		if parent := c.currentMemoFrame(); parent != nil {
 			parent.addDep(slot.pending)
 		}
 	}
 	c.pushMemo(slot)
-	if slot.depth != 0 {
-		// Re-entering a computation in progress: the inner result is derived
-		// from whatever in-progress marker the outer computation left behind.
-		c.memoCycle(slot.depth)
-	} else {
-		slot.depth = c.memoTop
-	}
+	// Re-entering a computation in progress: the inner result is derived
+	// from whatever in-progress marker the outer computation left behind.
+	c.memoCycle(outer)
 }
 
 // pushMemo starts recording the effects of the current frame, which computes
@@ -631,9 +653,6 @@ func (c *Checker) popMemo() *frame {
 		return nil
 	}
 	c.memoTop = int(f.prevMemo)
-	if f.result.depth == n+1 {
-		f.result.depth = 0
-	}
 	return f
 }
 
@@ -694,7 +713,9 @@ func (c *Checker) observeCell(h *memoHeader) {
 	if h.memoHeight != 0 {
 		c.observeHeight(h.memoHeight)
 	}
-	c.observeSlot(c.memoSlots[h.key()])
+	if c.observeSlot(c.memoSlots[h.key()]) {
+		c.memoCycle(c.computingFrame(h.key()))
+	}
 }
 
 //go:noinline
@@ -708,13 +729,18 @@ func (c *Checker) observeMemo(key memoKey) {
 		// Only the work of the result is accounted for, and it has none.
 		return
 	}
-	c.observeSlot(c.memoSlots[key])
+	if c.observeSlot(c.memoSlots[key]) {
+		c.memoCycle(c.computingFrame(key))
+	}
 }
 
-// observeSlot is observeMemo for the slot of a result, if it has one.
-func (c *Checker) observeSlot(slot *memoSlot) {
+// observeSlot is observeMemo for the slot of a result, if it has one. It
+// reports whether the result is read in a non-reporting activation, in
+// which case reading a computation in progress is left to the caller; see
+// memoCycle.
+func (c *Checker) observeSlot(slot *memoSlot) bool {
 	if slot == nil {
-		return
+		return false
 	}
 	c.observeWork(slot.work())
 	if slot.reports != nil {
@@ -722,16 +748,14 @@ func (c *Checker) observeSlot(slot *memoSlot) {
 	}
 	if c.reporting {
 		c.replayPending(slot)
-		return
+		return false
 	}
 	if slot.pending != nil {
 		if parent := c.currentMemoFrame(); parent != nil {
 			parent.addDep(slot.pending)
 		}
 	}
-	if slot.depth != 0 {
-		c.memoCycle(slot.depth)
-	}
+	return true
 }
 
 // A nodeReport is an error reported at the current node; see
@@ -1028,7 +1052,8 @@ func (c *Checker) withReporting(fn func()) {
 // state of that computation, so reusing any of them must also replay the
 // effects of the whole cycle (for example, its circularity error).
 func (c *Checker) memoCycle(depth int) {
-	if depth == 0 {
+	if depth == 0 || !c.frames[depth-1].memo {
+		// The outer computation does not record effects.
 		return
 	}
 	outer := c.memoFrameAt(depth - 1)

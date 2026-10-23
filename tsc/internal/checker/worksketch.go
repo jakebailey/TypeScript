@@ -285,6 +285,15 @@ func (c *Checker) forgetWork() {
 	f.key, f.cell, f.source = 0, nil, nil
 }
 
+// computingFrame returns 1 + the index in frames of the outermost
+// computation of key in progress, or 0.
+func (c *Checker) computingFrame(key memoKey) int {
+	if i, ok := c.computing[key]; ok {
+		return int(i) + 1
+	}
+	return 0
+}
+
 // enterComputing records that the frame about to be pushed computes key,
 // unless a computation of key is already in progress, in which case the new
 // one re-enters it as the policy of its kind says; see memoReentry.
