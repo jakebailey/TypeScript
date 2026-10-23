@@ -1083,7 +1083,7 @@ func (c *Checker) inferReverseMappedType(source *Type, target *Type, constraint 
 	}
 	c.reverseMappedCache.enter(c, key)
 	if len(c.reverseMappedSourceStack) == 0 {
-		c.reverseMappedBaseFrame = len(c.frames) - 1
+		c.reverseMappedBaseFrame = int32(len(c.frames) - 1)
 	}
 	c.reverseMappedSourceStack = append(c.reverseMappedSourceStack, source)
 	c.reverseMappedTargetStack = append(c.reverseMappedTargetStack, target)
@@ -1100,7 +1100,7 @@ func (c *Checker) inferReverseMappedType(source *Type, target *Type, constraint 
 	} else {
 		// Stopping depends on the enclosing reverse mappings, not just on key, so
 		// only the outermost one, which has none, may keep a result.
-		c.taintFrameCycle(c.reverseMappedBaseFrame)
+		c.taintFrameCycle(int(c.reverseMappedBaseFrame))
 	}
 	c.reverseMappedSourceStack = c.reverseMappedSourceStack[:len(c.reverseMappedSourceStack)-1]
 	c.reverseMappedTargetStack = c.reverseMappedTargetStack[:len(c.reverseMappedTargetStack)-1]

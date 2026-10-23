@@ -709,7 +709,7 @@ type Checker struct {
 	reverseMappedSourceStack                    []*Type
 	reverseMappedTargetStack                    []*Type
 	reverseExpandingFlags                       ExpandingFlags
-	reverseMappedBaseFrame                      int
+	reverseMappedBaseFrame                      int32
 	freeRelater                                 *Relater
 	getGlobalESSymbolType                       func() *Type
 	getGlobalBigIntType                         func() *Type
@@ -20185,23 +20185,23 @@ func (c *Checker) taintFrameCycle(start int) {
 // depth. How deep a computation may go then depends on how deep it was entered,
 // so a computation cut short keeps its result only if it started counting.
 type nestingLimit struct {
-	depth int
-	base  int // Index in frames of the computation that started counting
+	depth int32
+	base  int32 // Index in frames of the computation that started counting
 }
 
 // nestingLimitReached reports whether l is at limit, in which case the
 // computations since the one that started counting are tainted.
-func (c *Checker) nestingLimitReached(l *nestingLimit, limit int) bool {
+func (c *Checker) nestingLimitReached(l *nestingLimit, limit int32) bool {
 	if l.depth < limit {
 		return false
 	}
-	c.taintFrameCycle(l.base)
+	c.taintFrameCycle(int(l.base))
 	return true
 }
 
 func (c *Checker) enterNesting(l *nestingLimit) {
 	if l.depth == 0 {
-		l.base = len(c.frames) - 1
+		l.base = int32(len(c.frames) - 1)
 	}
 	l.depth++
 }
