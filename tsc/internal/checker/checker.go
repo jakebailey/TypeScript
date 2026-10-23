@@ -14868,8 +14868,18 @@ func (c *Checker) combineSymbolTables(first ast.SymbolTable, second ast.SymbolTa
 	if len(second) == 0 {
 		return first
 	}
-	combined := make(ast.SymbolTable)
-	c.mergeSymbolTable(combined, first, false, nil)
+	// Late binding has merged into early symbols already; the merges are
+	// looked up without resolving the table, whose resolution is this one.
+	combined := make(ast.SymbolTable, len(first)+len(second))
+	for id, symbol := range first {
+		if merged := c.mergedSymbols[symbol]; merged != nil {
+			symbol = merged
+		}
+		if merged, _ := c.lateMergedSymbols.get(c, symbol); merged != nil {
+			symbol = merged
+		}
+		combined[id] = symbol
+	}
 	c.mergeSymbolTable(combined, second, false, nil)
 	return combined
 }
