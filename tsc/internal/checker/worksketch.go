@@ -90,7 +90,6 @@ type frame struct {
 	// work is cached with its result, and in a node within one.
 	heights bool
 	serial  uint32 // Identifies the frame among all entered
-	links   int32  // Length of workLinks on entry
 	slots   int32  // Length of workLinkSlots on entry
 
 	// A non-reporting activation records the effects of a memoized
@@ -173,7 +172,6 @@ func (c *Checker) pushWork(key memoKey, cell *memoHeader, source workSlotSource,
 		top:       base,
 		heights:   heights,
 		serial:    c.workSerials,
-		links:     int32(len(c.workLinks)),
 		slots:     int32(len(c.workLinkSlots)),
 	})
 }
@@ -189,7 +187,7 @@ func (c *Checker) exitWork() resultWork {
 		// Nothing computed while aborting is kept.
 		w = resultWork{}
 		c.dropWork(f)
-	} else if w.sketch != nil || w.height != 0 || f.source != nil || int(f.links) != len(c.workLinks) || int(f.slots) != len(c.workLinkSlots) {
+	} else if w.sketch != nil || w.height != 0 || f.source != nil || int(f.slots) != len(c.workLinkSlots) {
 		c.finishWork(f, w)
 	}
 	top := f.top
@@ -224,14 +222,6 @@ func (c *Checker) finishWork(f *frame, w resultWork) {
 		if slot != nil {
 			slot.storeWork(w)
 		}
-		// Results set outside a computation of their own need the work of
-		// the computation that set them.
-		for _, cell := range c.workLinks[f.links:] {
-			cell.memoHeight = w.height
-			if w.sketch != nil {
-				c.memoSlot(cell.key()).sketch = w.sketch
-			}
-		}
 		for _, slot := range c.workLinkSlots[f.slots:] {
 			slot.linkWork(w)
 		}
@@ -244,8 +234,6 @@ func (c *Checker) dropWork(f *frame) {
 	if f.source != nil {
 		f.source.popWork(int(f.index))
 	}
-	clear(c.workLinks[f.links:])
-	c.workLinks = c.workLinks[:f.links]
 	clear(c.workLinkSlots[f.slots:])
 	c.workLinkSlots = c.workLinkSlots[:f.slots]
 }
@@ -373,10 +361,21 @@ func (c *Checker) addWork(h uint64) {
 	f.sketch.add(h)
 }
 
-// linkWork records that the memo was set by the current work frame.
+// linkWork gives a memo set outside a computation of its own the work the
+// current frame has done so far. Recomputing the memo from scratch repeats
+// that work, but not what the frame goes on to do after setting it.
 func (c *Checker) linkWork(cell *memoHeader) {
-	if len(c.frames) > 1 && cell != c.currentWork().cell {
-		c.workLinks = append(c.workLinks, cell)
+	if len(c.frames) <= 1 || c.aborting {
+		return
+	}
+	f := c.currentWork()
+	if cell == f.cell {
+		return
+	}
+	cell.memoHeight = f.top - f.base
+	if f.sketch != nil {
+		sketch := *f.sketch
+		c.memoSlot(cell.key()).sketch = &sketch
 	}
 }
 
