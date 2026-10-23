@@ -56,7 +56,6 @@ const (
 	memoJsxImplicitImportContainer
 	memoModuleExports
 	memoInstantiationExpressionType
-	memoRelationOverflow
 	memoTypePredicate
 	memoDeclaredMembers
 	memoCouldContainTypeVariables
