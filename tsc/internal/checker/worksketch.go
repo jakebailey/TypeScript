@@ -191,6 +191,7 @@ func (c *Checker) finishWork(f *frame, w resultWork) {
 			slot = f.source.workSlot(int(f.index))
 		} else if f.key != 0 {
 			slot = c.memoSlot(f.key)
+			c.markWork(f.key)
 		}
 		if slot != nil {
 			slot.storeWork(w)
@@ -199,6 +200,7 @@ func (c *Checker) finishWork(f *frame, w resultWork) {
 		// the computation that set them.
 		for _, key := range c.workLinks[f.links:] {
 			c.memoSlot(key).linkWork(w)
+			c.markWork(key)
 		}
 		for _, slot := range c.workLinkSlots[f.slots:] {
 			slot.linkWork(w)
@@ -315,9 +317,39 @@ func (c *Checker) linkWork(key memoKey) {
 }
 
 func (c *Checker) storedWork(key memoKey) resultWork {
+	if !c.mayHaveWork(key) {
+		return resultWork{}
+	}
 	slot := c.memoSlots[key]
 	if slot == nil {
 		return resultWork{}
 	}
 	return slot.work()
+}
+
+// The work filter is a set of the memo keys whose slots may store work, so
+// that reading a result without effects to account for can skip looking up
+// its slot. Most reads within computations only account for work, and most
+// results need none.
+
+const workFilterBits = 22
+
+func workFilterIndex(key memoKey) uint64 {
+	return uint64(key) * 0x9E3779B97F4A7C15 >> (64 - workFilterBits)
+}
+
+func (c *Checker) markWork(key memoKey) {
+	if c.workFilter == nil {
+		c.workFilter = make([]uint64, 1<<workFilterBits/64)
+	}
+	i := workFilterIndex(key)
+	c.workFilter[i/64] |= 1 << (i % 64)
+}
+
+func (c *Checker) mayHaveWork(key memoKey) bool {
+	if c.workFilter == nil {
+		return false
+	}
+	i := workFilterIndex(key)
+	return c.workFilter[i/64]&(1<<(i%64)) != 0
 }

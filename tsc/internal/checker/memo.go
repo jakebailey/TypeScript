@@ -637,6 +637,10 @@ func (c *Checker) attachCell(p unsafe.Pointer) {
 
 // observeMemo accounts for reading a memoized result without computing it.
 func (c *Checker) observeMemo(key memoKey) {
+	if !c.memoActive() && !c.mayHaveWork(key) {
+		// Only the work of the result is accounted for, and it has none.
+		return
+	}
 	c.observeSlot(c.memoSlots[key])
 }
 

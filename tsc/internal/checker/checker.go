@@ -1008,6 +1008,7 @@ type checkerStore struct {
 	nonExistentProperties                   collections.Set[NonExistentPropertyKey]
 	deferredDiagnosticCallbacks             []func(c *Checker)
 	memoSlots                               map[memoKey]*memoSlot // Memo state of results computed when not reporting; see memo.go
+	workFilter                              []uint64              // Memo keys whose slots may store work; see worksketch.go
 	memoPendingCount                        int                   // Number of memoSlots with unreplayed effects
 	memoReportSlots                         int                   // Number of memoSlots with reports; see setReported
 
