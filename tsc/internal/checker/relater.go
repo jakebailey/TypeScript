@@ -328,7 +328,7 @@ func (c *Checker) isEnumTypeRelatedTo(source *ast.Symbol, target *ast.Symbol, er
 		// Recompute a cached failure only to elaborate it.
 		return c.isEnumTypeRelatedToWorker(sourceSymbol, targetSymbol, errorReporter)
 	}
-	pushed := c.memoEnterActive() && c.enumRelation.enter(c, key)
+	pushed := c.enumRelation.enter(c, key)
 	related := c.isEnumTypeRelatedToWorker(sourceSymbol, targetSymbol, errorReporter)
 	c.enumRelation.setWithWork(c, key, core.IfElse(related, RelationComparisonResultSucceeded, RelationComparisonResultFailed), nil)
 	c.exitMemo(pushed)
@@ -413,26 +413,16 @@ func (c *Checker) checkTypeRelatedToEx(
 	// The comparison is a computation of its own, so that reusing any result it
 	// caches accounts for the effects of the whole comparison. Errors are
 	// reported after it, since they belong to the caller rather than the result.
-	// The key is only needed when tracking effects or on overflow, so it is
-	// not hashed on the common path.
-	var id CacheHashKey
-	hasID := c.memoEnterActive()
-	pushedComparison := false
-	if hasID {
-		id, _ = c.getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
-		pushedComparison = relation.results.enter(c, id)
-	}
+	id, _ := c.getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
+	pushedComparison := relation.results.enter(c, id)
 	result := r.isRelatedToEx(source, target, RecursionFlagsBoth, errorNode != nil /*reportErrors*/, headMessage, IntersectionStateNone)
 	if r.overflow {
-		if !hasID {
-			id, _ = c.getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
-		}
 		// Record this relation as having failed such that we don't attempt the overflowing operation again.
 		relation.set(c, id, RelationComparisonResultFailed|RelationComparisonResultComplexityOverflow, nil)
 	}
 	c.exitMemo(pushedComparison)
 	if r.overflow {
-		pushed := c.memoEnterActive() && c.enterMemo(memoKeyOf(relation.overflowCell(id), memoRelationOverflow))
+		pushed := c.enterMemo(memoKeyOf(relation.overflowCell(id), memoRelationOverflow))
 		if tr := c.tracer; tr != nil {
 			tr.Instant(tracing.PhaseCheckTypes, "checkTypeRelatedTo_DepthLimit", map[string]any{"sourceId": source.id, "targetId": target.id, "depth": len(r.sourceStack), "targetDepth": len(r.targetStack)})
 		}
@@ -1253,7 +1243,7 @@ func (c *Checker) isDiscriminantProperty(t *Type, name string) bool {
 				c.observeKeyed(key)
 				return prop.CheckFlags()&ast.CheckFlagsIsDiscriminant != 0
 			}
-			pushed := c.memoEnterActive() && c.enterMemo(key)
+			pushed := c.enterMemo(key)
 			c.setDiscriminantFlags(prop, ast.CheckFlagsIsDiscriminantComputed)
 			if prop.CheckFlags()&ast.CheckFlagsNonUniformAndLiteral == ast.CheckFlagsNonUniformAndLiteral && !c.isGenericType(c.getTypeOfSymbol(prop)) {
 				c.setDiscriminantFlags(prop, ast.CheckFlagsIsDiscriminantComputed|ast.CheckFlagsIsDiscriminant)
@@ -1556,7 +1546,7 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 			popFn()
 		}()
 	}
-	pushed := c.memoEnterActive() && links.variances.enter(c)
+	pushed := links.variances.enter(c)
 	saveResolutionStart := c.resolutionStart
 	if len(c.varianceStack) == 0 {
 		c.resolutionStart = len(c.typeResolutions)
@@ -2077,7 +2067,7 @@ func (c *Checker) getMinArgumentCountEx(signature *Signature, flags MinArgumentC
 	if count := signature.resolvedMinArgumentCount.get(c); count != -1 {
 		return int(count)
 	}
-	pushed := c.memoEnterActive() && signature.resolvedMinArgumentCount.enter(c)
+	pushed := signature.resolvedMinArgumentCount.enter(c)
 	result := c.getMinArgumentCountUncached(signature, flags)
 	c.exitMemo(pushed)
 	return result
@@ -2396,7 +2386,7 @@ func (c *Checker) getTypePredicateOfSignature(sig *Signature) *TypePredicate {
 	if sig.getResolvedTypePredicate(c) != nil {
 		c.observeKeyed(key)
 	} else {
-		pushed := c.memoEnterActive() && c.enterMemo(key)
+		pushed := c.enterMemo(key)
 		c.resolveTypePredicateOfSignature(sig)
 		c.exitMemo(pushed)
 	}

@@ -243,7 +243,7 @@ func (c *Checker) memoCompute[T comparable](m *memo[T], compute func() T) T {
 	if v := m.get(c); v != zero {
 		return v
 	}
-	pushed := c.memoEnterActive() && m.enter(c)
+	pushed := m.enter(c)
 	v := compute()
 	if cur := m.peek(); cur != zero {
 		v = cur
@@ -387,7 +387,7 @@ func (m *memoMap[K, V]) intern(k K, v V) {
 
 // compute computes and caches the result for k in a computation of its own.
 func (m *memoMap[K, V]) compute(c *Checker, k K, fn func() V) V {
-	pushed := c.memoEnterActive() && m.enter(c, k)
+	pushed := m.enter(c, k)
 	v := fn()
 	m.set(c, k, v)
 	c.exitMemo(pushed)
@@ -462,7 +462,7 @@ func (s *memoSet[K]) once(c *Checker, k K, fn func()) {
 	if s.m.has(c, k) {
 		return
 	}
-	pushed := c.memoEnterActive() && s.m.enter(c, k)
+	pushed := s.m.enter(c, k)
 	s.m.set(c, k, struct{}{})
 	fn()
 	c.exitMemo(pushed)
@@ -479,7 +479,7 @@ func (o *memoOnce) once(c *Checker, fn func()) {
 	if o.done.get(c) {
 		return
 	}
-	pushed := c.memoEnterActive() && o.done.enter(c)
+	pushed := o.done.enter(c)
 	o.done.set(c, true)
 	fn()
 	c.exitMemo(pushed)
@@ -498,14 +498,6 @@ type memoFrame struct {
 // and exitMemo entirely.
 func (c *Checker) memoActive() bool {
 	return !c.reporting || c.memoPendingCount|c.memoReportSlots != 0
-}
-
-// memoEnterActive reports whether memoized entry points must call enterMemo
-// and exitMemo: when tracking effects, or when an instantiation is in
-// progress, whose limits each memoized computation starts afresh (see
-// enterInstantiationBudget).
-func (c *Checker) memoEnterActive() bool {
-	return true
 }
 
 // enterMemo is called on entry to a memoized function whose result for this
@@ -1064,7 +1056,7 @@ func (c *Checker) objectFlagsCell(t *Type, field memoField, computed ObjectFlags
 		c.observeKeyed(key)
 		return t.objectFlags & value
 	}
-	pushed := c.memoEnterActive() && c.enterMemo(key)
+	pushed := c.enterMemo(key)
 	if inProgress {
 		setKeyedBits(c, key, &t.objectFlags, computed|value, computed)
 	}

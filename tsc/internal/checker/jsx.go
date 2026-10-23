@@ -268,7 +268,7 @@ func (c *Checker) discriminateContextualTypeByJSXAttributes(node *ast.Node, cont
 	if discriminated, _ := c.discriminatedContextualTypes.get(c, key); discriminated != nil {
 		return discriminated
 	}
-	pushed := c.memoEnterActive() && c.discriminatedContextualTypes.enter(c, key)
+	pushed := c.discriminatedContextualTypes.enter(c, key)
 	jsxChildrenPropertyName := c.getJsxElementChildrenPropertyName(c.getJsxNamespaceAt(node))
 	discriminantProperties := core.Filter(node.Properties(), func(p *ast.Node) bool {
 		symbol := p.Symbol()
@@ -505,7 +505,7 @@ func (c *Checker) getJSXFragmentType(node *ast.Node) *Type {
 	if t := links.jsxFragmentType.get(c); t != nil {
 		return t
 	}
-	pushed := c.memoEnterActive() && links.jsxFragmentType.enter(c)
+	pushed := links.jsxFragmentType.enter(c)
 	t := c.getJSXFragmentTypeWorker(node)
 	links.jsxFragmentType.set(c, t)
 	c.exitMemo(pushed)
@@ -1492,13 +1492,10 @@ func markAsSynthetic(node *ast.Node) bool {
 func (c *Checker) getJsxNamespaceContainerForImplicitImport(location *ast.Node) *ast.Symbol {
 	file := ast.GetSourceFileOfNode(location)
 	links := c.jsxElementLinks.Get(file.AsNode())
-	if c.memoEnterActive() {
-		pushed := c.enterMemo(memoKeyOf(links, memoJsxImplicitImportContainer))
-		result := c.getJsxNamespaceContainerForImplicitImportCached(file, links)
-		c.exitMemo(pushed)
-		return result
-	}
-	return c.getJsxNamespaceContainerForImplicitImportCached(file, links)
+	pushed := c.enterMemo(memoKeyOf(links, memoJsxImplicitImportContainer))
+	result := c.getJsxNamespaceContainerForImplicitImportCached(file, links)
+	c.exitMemo(pushed)
+	return result
 }
 
 func (c *Checker) getJsxNamespaceContainerForImplicitImportCached(file *ast.SourceFile, links *JsxElementLinks) *ast.Symbol {
