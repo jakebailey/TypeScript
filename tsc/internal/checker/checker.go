@@ -23954,7 +23954,9 @@ type activeMapperCacheEntry struct {
 func (c *Checker) getCircularTypeNames() []string {
 	typeCounts := make(map[*Type]int)
 	var circularTypeNames []string
-	for _, t := range c.instantiationStack {
+	// Only the instantiations counted by the depth limit, which the current
+	// computation performs, are its own; see "Instantiation limits".
+	for _, t := range c.instantiationStack[c.currentWork().depthBase:] {
 		typeCounts[t] = typeCounts[t] + 1
 		if typeCounts[t] == 3 {
 			symbol := t.symbol
