@@ -255,8 +255,13 @@ func (m *memo[T]) setReported(c *Checker, v T, r nodeReports) {
 
 //go:noinline
 func (m *memo[T]) logUndo(c *Checker) {
-	old := m.memoValue
-	c.journal = append(c.journal, undoEntry{&m.memoHeader, func() { m.memoValue = old }, false})
+	// The work of the result is discarded with it.
+	old, oldHeight := m.memoValue, m.memoHeight
+	oldWork := savedWorkOf(c.memoSlots, m.key())
+	c.journal = append(c.journal, undoEntry{&m.memoHeader, func() {
+		m.memoValue, m.memoHeight = old, oldHeight
+		oldWork.restore(c.memoSlots, m.key())
+	}, false})
 }
 
 // peek returns the cached result without accounting for effects. It is only
@@ -380,12 +385,14 @@ func (m *memoMap[K, V]) set(c *Checker, k K, v V) {
 //go:noinline
 func (m *memoMap[K, V]) logUndo(c *Checker, k K) {
 	old, ok := m.memoEntries[k]
+	oldWork := savedWorkOf(m.memoSlots, k)
 	c.journal = append(c.journal, undoEntry{nil, func() {
 		if ok {
 			m.memoEntries[k] = old
 		} else {
 			delete(m.memoEntries, k)
 		}
+		oldWork.restore(m.memoSlots, k)
 	}, false})
 }
 

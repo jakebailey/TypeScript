@@ -243,6 +243,22 @@ func (s *memoSlot) storeWork(w resultWork) {
 	s.height = max(s.height, w.height)
 }
 
+// savedWorkOf returns the work stored in the slot for k, so that discarding
+// a result can discard the work stored for it since.
+func savedWorkOf[K comparable](slots map[K]*memoSlot, k K) resultWork {
+	if s := slots[k]; s != nil {
+		return s.work()
+	}
+	return resultWork{}
+}
+
+// restore makes w the work stored in the slot for k, if it has one.
+func (w resultWork) restore[K comparable](slots map[K]*memoSlot, k K) {
+	if s := slots[k]; s != nil {
+		s.sketch, s.height = w.sketch, w.height
+	}
+}
+
 // linkWork stores the work of the computation that set the slot's result.
 func (s *memoSlot) linkWork(w resultWork) {
 	if w.sketch != nil {
