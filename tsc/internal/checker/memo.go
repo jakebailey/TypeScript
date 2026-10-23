@@ -94,10 +94,6 @@ var memoReentry = [memoFieldCount]reentry{
 	memoCell: reentryPartial,
 	// Many kinds of types make members available before they are complete.
 	memoStructuredMembers: reentryPartial,
-	// The early-bound symbols are published before late-bound ones are
-	// resolved.
-	memoSymbolExports: reentryPartial,
-	memoSymbolMembers: reentryPartial,
 	// Circular defaults are reported at the default first in program order.
 	memoTypeParameterDefault: reentryResolution,
 	// Contextual checking resolves a cycle through the enclosing call.
