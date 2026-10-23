@@ -1260,7 +1260,7 @@ func (c *Checker) isDiscriminantProperty(t *Type, name string) bool {
 // discriminant, a keyed cell.
 func (c *Checker) setDiscriminantFlags(prop *ast.Symbol, flags ast.CheckFlags) {
 	const mask = ast.CheckFlagsIsDiscriminantComputed | ast.CheckFlagsIsDiscriminant
-	if c.cycleHead != 0 {
+	if c.logResults() {
 		old := prop.CheckFlags() & mask
 		c.logKeyedUndo(func() { prop.SetCheckFlags(prop.CheckFlags()&^mask | old) })
 	}
@@ -1561,7 +1561,7 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 	c.varianceMeasuring[symbol]++
 	guessesStart := len(c.varianceGuessed)
 	saveCycleHead := c.cycleHead
-	undoStart := len(c.cycleUndo)
+	undoStart := len(c.journal)
 	participantsStart := len(c.cycleParticipants)
 	mark := c.markEffects()
 	saveEffectsMarkDepth := c.effectsMarkDepth
@@ -1600,11 +1600,7 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 		c.varianceGuessed = c.varianceGuessed[:guessesStart]
 	}
 	c.effectsMarkDepth = saveEffectsMarkDepth
-	if index == 0 && c.cycleHead == 0 {
-		// Only dependency undo entries can remain, which nothing can roll
-		// back once no measurement or cycle is in progress.
-		c.cycleUndo = nil
-	}
+	c.trimJournal()
 	links.variances.set(c, variances)
 	c.varianceStack = c.varianceStack[:index]
 	c.popTypeResolution()

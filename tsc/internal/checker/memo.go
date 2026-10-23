@@ -149,7 +149,7 @@ func (m *memo[T]) get(c *Checker) T {
 // example, the types of binding elements assigned while resolving the type of
 // their declaration), the result depends on the computation setting it.
 func (m *memo[T]) set(c *Checker, v T) {
-	if c.cycleHead != 0 {
+	if c.logResults() {
 		m.logUndo(c)
 	}
 	m.memoValue = v
@@ -191,7 +191,7 @@ func (m *memo[T]) setStable(c *Checker, v T) {
 // current node.
 func (m *memo[T]) setReported(c *Checker, v T, r nodeReports) {
 	if r.cyclic {
-		if c.cycleHead != 0 {
+		if c.logResults() {
 			m.logUndo(c)
 		}
 		r.list = nil
@@ -205,7 +205,7 @@ func (m *memo[T]) setReported(c *Checker, v T, r nodeReports) {
 //go:noinline
 func (m *memo[T]) logUndo(c *Checker) {
 	old := m.memoValue
-	c.cycleUndo = append(c.cycleUndo, cycleUndo{unsafe.Pointer(m), func() { m.memoValue = old }, false})
+	c.journal = append(c.journal, undoEntry{unsafe.Pointer(m), func() { m.memoValue = old }, false})
 }
 
 // peek returns the cached result without accounting for effects. It is only
@@ -311,7 +311,7 @@ func (m *memoMap[K, V]) values() iter.Seq[V] {
 
 // set caches the result for k; see memo.set.
 func (m *memoMap[K, V]) set(c *Checker, k K, v V) {
-	if c.cycleHead != 0 {
+	if c.logResults() {
 		m.logUndo(c, k)
 	}
 	m.setStable(c, k, v)
@@ -320,7 +320,7 @@ func (m *memoMap[K, V]) set(c *Checker, k K, v V) {
 //go:noinline
 func (m *memoMap[K, V]) logUndo(c *Checker, k K) {
 	old, ok := m.memoEntries[k]
-	c.cycleUndo = append(c.cycleUndo, cycleUndo{nil, func() {
+	c.journal = append(c.journal, undoEntry{nil, func() {
 		if ok {
 			m.memoEntries[k] = old
 		} else {
@@ -332,7 +332,7 @@ func (m *memoMap[K, V]) logUndo(c *Checker, k K) {
 // setReported is setStable for an entry; see memo.setReported.
 func (m *memoMap[K, V]) setReported(c *Checker, k K, v V, r nodeReports) {
 	if r.cyclic {
-		if c.cycleHead != 0 {
+		if c.logResults() {
 			m.logUndo(c, k)
 		}
 		r.list = nil
@@ -361,7 +361,7 @@ func (m *memoMap[K, V]) setStable(c *Checker, k K, v V) {
 // setWithWork is set for a result whose computation needed the
 // instantiations in sketch, rather than those of the current work frame.
 func (m *memoMap[K, V]) setWithWork(c *Checker, k K, v V, sketch *workSketch) {
-	if c.cycleHead != 0 {
+	if c.logResults() {
 		m.logUndo(c, k)
 	}
 	if m.memoEntries == nil {
@@ -590,7 +590,7 @@ func (c *Checker) attachSlot(slot *memoSlot) {
 		return
 	}
 	f := c.memoFrameAt(n)
-	if c.cycleHead != 0 {
+	if c.logResults() {
 		c.logPendingUndo(slot)
 	}
 	if slot.pending == nil {
@@ -775,7 +775,7 @@ func (c *Checker) retainEffects(slot *memoSlot, f *memoEffects) {
 		}
 		return
 	}
-	if c.cycleHead != 0 || c.effectsMarkDepth != 0 {
+	if c.logEffects() {
 		c.logPendingUndo(slot)
 	}
 	if slot.pending != nil {
@@ -964,7 +964,7 @@ func (c *Checker) memoCycle(depth int) {
 //go:noinline
 func (c *Checker) logDepsUndo(f *memoEffects) {
 	n := len(f.deps)
-	c.cycleUndo = append(c.cycleUndo, cycleUndo{effects: true, restore: func() {
+	c.journal = append(c.journal, undoEntry{effects: true, restore: func() {
 		if len(f.deps) > n {
 			f.truncateDeps(n)
 		}
@@ -994,10 +994,49 @@ func (c *Checker) memoFrameAt(i int) *memoEffects {
 // computed from scratch too, so each result is the fallback for a circularity
 // whichever participant is computed first.
 
-type cycleUndo struct {
+// Journal
+//
+// Some computations run provisionally, and may have to be undone as if they
+// had never run: those in a cycle (see above), and those a computation that
+// retries from a mark of its effects runs before retrying (see markEffects).
+// While any of them is in progress, what they cache is logged in the
+// journal, from which each rolls back to the position where it started.
+// The journal is cleared once nothing in progress can roll back.
+
+type undoEntry struct {
 	memo    unsafe.Pointer // The memo restored, or nil
 	restore func()
 	effects bool // Restores the effects of a result rather than the result
+}
+
+// logResults reports whether caching a result must be logged in the
+// journal.
+func (c *Checker) logResults() bool {
+	return c.cycleHead != 0
+}
+
+// logEffects reports whether changing the effects of a result must be
+// logged in the journal.
+func (c *Checker) logEffects() bool {
+	return c.cycleHead != 0 || c.effectsMarkDepth != 0
+}
+
+// rollBack restores everything logged in the journal since position start.
+func (c *Checker) rollBack(start int) {
+	start = min(start, len(c.journal))
+	for i := len(c.journal) - 1; i >= start; i-- {
+		c.journal[i].restore()
+	}
+	clear(c.journal[start:])
+	c.journal = c.journal[:start]
+}
+
+// trimJournal clears the journal if nothing in progress can roll back.
+func (c *Checker) trimJournal() {
+	if !c.logEffects() && len(c.journal) != 0 {
+		clear(c.journal)
+		c.journal = c.journal[:0]
+	}
 }
 
 // A keyed cell is a cached result held outside a memo, so that it costs no
@@ -1023,13 +1062,13 @@ func (c *Checker) setKeyed(key memoKey) {
 	}
 }
 
-// logKeyedUndo records how to discard the result of a keyed cell while a
-// cycle is in progress; the caller checks cycleHead so that the closure is
-// only allocated when needed.
+// logKeyedUndo logs how to discard the result of a keyed cell in the
+// journal; the caller checks logResults so that the closure is only
+// allocated when needed.
 //
 //go:noinline
 func (c *Checker) logKeyedUndo(restore func()) {
-	c.cycleUndo = append(c.cycleUndo, cycleUndo{nil, restore, false})
+	c.journal = append(c.journal, undoEntry{nil, restore, false})
 }
 
 // objectFlagsCell returns the flags under value of t, a keyed cell whose
@@ -1059,7 +1098,7 @@ func (c *Checker) objectFlagsCell(t *Type, field memoField, computed ObjectFlags
 // setKeyedBits caches the bits of *p under mask as the result of the keyed
 // cell identified by key.
 func setKeyedBits[T ~uint32](c *Checker, key memoKey, p *T, mask T, bits T) {
-	if c.cycleHead != 0 {
+	if c.logResults() {
 		old := *p & mask
 		c.logKeyedUndo(func() { *p = *p&^mask | old })
 	}
@@ -1070,10 +1109,9 @@ func setKeyedBits[T ~uint32](c *Checker, key memoKey, p *T, mask T, bits T) {
 // endCycle discards the results cached since the outermost cycle in progress
 // was detected, except those of its participants.
 func (c *Checker) endCycle() {
-	undo := c.cycleUndo
+	undo := c.journal[min(c.cycleMark, len(c.journal)):]
 	participants := c.cycleParticipants
 	c.cycleHead = 0
-	c.cycleUndo = nil
 	c.cycleParticipants = nil
 	keep := make(map[unsafe.Pointer]struct{}, len(participants))
 	for i := range participants {
@@ -1092,20 +1130,30 @@ func (c *Checker) endCycle() {
 		}
 		u.restore()
 	}
+	// Entries logged for an enclosing effects mark are dropped too; that
+	// mark then has nothing left to roll back.
+	c.journal = nil
+}
+
+// raiseCycleHead makes the resolution at index head-1 part of the cycle in
+// progress, starting one if there is none.
+func (c *Checker) raiseCycleHead(head int) {
+	if c.cycleHead == 0 {
+		c.cycleMark = len(c.journal)
+		c.cycleHead = head
+	} else if head < c.cycleHead {
+		c.cycleHead = head
+	}
 }
 
 // discardCycleSince discards the results cached since the given positions
-// of the cycle undo log and participants, restoring the cycle head in effect
+// of the journal and the cycle participants, restoring the cycle head in effect
 // then, so a computation in a cycle can run again from the same state. The
 // effects of computing the discarded results are discarded with them, and
 // those recorded by the computation in progress are rolled back to the given
 // mark, as if the discarded computations had never run.
 func (c *Checker) discardCycleSince(undoStart int, participantsStart int, cycleHead int, mark memoEffectsMark) {
-	undoStart = min(undoStart, len(c.cycleUndo))
-	for i := len(c.cycleUndo) - 1; i >= undoStart; i-- {
-		c.cycleUndo[i].restore()
-	}
-	c.cycleUndo = c.cycleUndo[:undoStart]
+	c.rollBack(undoStart)
 	c.cycleParticipants = c.cycleParticipants[:min(participantsStart, len(c.cycleParticipants))]
 	c.cycleHead = cycleHead
 	c.discardEffectsSince(mark)
@@ -1156,7 +1204,7 @@ func (c *Checker) logPendingUndo(slot *memoSlot) {
 	if old != nil {
 		n = len(old.deps)
 	}
-	c.cycleUndo = append(c.cycleUndo, cycleUndo{effects: true, restore: func() {
+	c.journal = append(c.journal, undoEntry{effects: true, restore: func() {
 		switch {
 		case old == nil && slot.pending != nil:
 			c.memoPendingCount--

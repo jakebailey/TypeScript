@@ -676,7 +676,8 @@ type Checker struct {
 	nodeReports                                 []*nodeReport    // Errors reported at the current node while collecting; see startNodeReports
 	nodeReportCollectors                        int              // Number of computations collecting nodeReports
 	nodeReportsCyclic                           bool             // Whether a cycle was observed while collecting nodeReports; see endNodeReports
-	cycleUndo                                   []cycleUndo      // Restores results cached while a cycle is in progress
+	journal                                     []undoEntry      // Restores what was cached while anything may be rolled back; see "Journal" in memo.go
+	cycleMark                                   int              // Length of journal when the cycle in progress was detected
 	cycleParticipants                           []TypeResolution // Computations that observed a cycle in progress
 	effectsMarkDepth                            int              // 1 + frame index of the innermost effects mark that may be rolled back, or 0
 	varianceStack                               []VarianceStackEntry
@@ -17282,18 +17283,14 @@ func (c *Checker) resolveAliasUncached(symbol *ast.Symbol) *ast.Symbol {
 			return result
 		}
 		saveCycleHead := c.cycleHead
-		undoStart := len(c.cycleUndo)
+		undoStart := len(c.journal)
 		participantsStart := len(c.cycleParticipants)
 		mark := c.markEffects()
 		saveEffectsMarkDepth := c.effectsMarkDepth
 		c.effectsMarkDepth = mark.frameIndex + 1
 		defer func() {
 			c.effectsMarkDepth = saveEffectsMarkDepth
-			if c.effectsMarkDepth == 0 && c.cycleHead == 0 {
-				// Only dependency undo entries can remain, which nothing can
-				// roll back once no cycle or effects mark is in progress.
-				c.cycleUndo = nil
-			}
+			c.trimJournal()
 		}()
 		for {
 			if !c.pushTypeResolution(symbol, TypeSystemPropertyNameAliasTarget) {
@@ -20012,9 +20009,7 @@ func (c *Checker) markResolutionCycle(start int) {
 		c.memoCycle(c.typeResolutions[start].memoDepth)
 	}
 	c.nodeReportsCyclic = true
-	if c.cycleHead == 0 || start+1 < c.cycleHead {
-		c.cycleHead = start + 1
-	}
+	c.raiseCycleHead(start + 1)
 }
 
 // observeResolutionInProgress is for computations that are skipped rather
@@ -20140,8 +20135,8 @@ type savedCurrentNode struct {
 // taintCurrentNode records that results cached until the current node is
 // left depend on that node.
 func (c *Checker) taintCurrentNode() {
-	if c.currentNodeResolution != 0 && (c.cycleHead == 0 || c.currentNodeResolution < c.cycleHead) {
-		c.cycleHead = c.currentNodeResolution
+	if c.currentNodeResolution != 0 {
+		c.raiseCycleHead(c.currentNodeResolution)
 	}
 }
 
@@ -20153,9 +20148,7 @@ func (c *Checker) taintResolutionCycle(start int) {
 	if !c.reporting {
 		c.memoCycle(c.typeResolutions[start].memoDepth)
 	}
-	if c.cycleHead == 0 || start+1 < c.cycleHead {
-		c.cycleHead = start + 1
-	}
+	c.raiseCycleHead(start + 1)
 }
 
 /**
@@ -20502,7 +20495,7 @@ func (c *Checker) resolveStructuredTypeMembersUncached(t *Type) *StructuredType 
 			if outermost {
 				t.objectFlags &^= ObjectFlagsMembersResolving
 			}
-			if c.cycleHead != 0 {
+			if c.logResults() {
 				c.logMembersUndo(t)
 			}
 		}()
@@ -20539,7 +20532,7 @@ func (c *Checker) resolveStructuredTypeMembersUncached(t *Type) *StructuredType 
 //
 //go:noinline
 func (c *Checker) logMembersUndo(t *Type) {
-	c.cycleUndo = append(c.cycleUndo, cycleUndo{nil, func() {
+	c.journal = append(c.journal, undoEntry{nil, func() {
 		if t.objectFlags&ObjectFlagsMembersResolving != 0 {
 			// An enclosing resolution of the same members sets them again.
 			return
@@ -20683,8 +20676,8 @@ func (c *Checker) getBaseTypesUncached(t *Type) []*Type {
 		// See https://github.com/microsoft/TypeScript/issues/16861 for an example.
 		t.objectFlags &^= ObjectFlagsMembersResolved
 		data.baseTypesResolved = true
-		if c.cycleHead != 0 {
-			c.cycleUndo = append(c.cycleUndo, cycleUndo{unsafe.Pointer(&data.resolvedBaseTypes), func() { data.baseTypesResolved = false }, false})
+		if c.logResults() {
+			c.journal = append(c.journal, undoEntry{unsafe.Pointer(&data.resolvedBaseTypes), func() { data.baseTypesResolved = false }, false})
 		}
 	}
 	return data.resolvedBaseTypes.get(c)
@@ -21122,7 +21115,7 @@ func (c *Checker) resolveDeclaredMembersUncached(t *Type) {
 	if !d.declaredMembersResolved {
 		members := c.getMembersOfSymbol(t.symbol)
 		d.declaredMembersResolved = true
-		if c.cycleHead != 0 {
+		if c.logResults() {
 			c.logKeyedUndo(func() { d.declaredMembersResolved = false })
 		}
 		c.setKeyed(memoKeyOf(t, memoDeclaredMembers))
@@ -23682,7 +23675,7 @@ func (c *Checker) resolveTypeParameterDefault(t *Type) {
 	}
 	d.resolvedDefaultType.enter(c)
 	saveCycleHead := c.cycleHead
-	undoStart := len(c.cycleUndo)
+	undoStart := len(c.journal)
 	participantsStart := len(c.cycleParticipants)
 	mark := c.markEffects()
 	saveEffectsMarkDepth := c.effectsMarkDepth
@@ -23718,11 +23711,7 @@ func (c *Checker) resolveTypeParameterDefault(t *Type) {
 		c.getResolvedTypeParameterDefault(canonical.(*Type))
 	}
 	c.effectsMarkDepth = saveEffectsMarkDepth
-	if c.effectsMarkDepth == 0 && c.cycleHead == 0 {
-		// Only dependency undo entries can remain, which nothing can roll
-		// back once no cycle or effects mark is in progress.
-		c.cycleUndo = nil
-	}
+	c.trimJournal()
 	c.exitMemo()
 }
 

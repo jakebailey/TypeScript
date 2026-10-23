@@ -1576,7 +1576,7 @@ func (s *Signature) getResolvedTypePredicate(c *Checker) *TypePredicate {
 // setResolvedTypePredicate caches the type predicate of the signature, a
 // keyed cell; see initResolvedTypePredicate.
 func (s *Signature) setResolvedTypePredicate(c *Checker, predicate *TypePredicate) {
-	if c.cycleHead != 0 {
+	if c.logResults() {
 		old := s.getResolvedTypePredicate(c)
 		c.logKeyedUndo(func() { s.initResolvedTypePredicate(c, old) })
 	}
