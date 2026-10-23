@@ -617,7 +617,14 @@ type Checker struct {
 	*checkerStore
 	compareSymbols                              func(*ast.Symbol, *ast.Symbol) int
 	compareSymbolChains                         func([]*ast.Symbol, []*ast.Symbol) int
-	instantiationCount                          uint32
+	workSerials                                 uint32
+	workLinks                                   []memoKey
+	workLinkSlots                               []*memoSlot
+	workFrames                                  []workFrame
+	symbolHashes                                map[*ast.Symbol]uint64
+	typeHashes                                  map[*Type]*[typeHashDepth]uint64
+	mapperHashes                                map[*TypeMapper]uint64
+	fileHashes                                  map[*ast.SourceFile]uint64
 	instantiationDepthBase                      int
 	instantiationDepthBases                     []int
 	instantiationStack                          []*Type
@@ -768,7 +775,7 @@ type Checker struct {
 	skipDirectInferenceNodes                    collections.Set[*ast.Node]
 	ctx                                         context.Context
 	activeMappers                               []*TypeMapper
-	activeTypeMappersCaches                     []map[CacheHashKey]*Type
+	activeTypeMappersCaches                     []map[CacheHashKey]activeMapperCacheEntry
 	withinUnreachableCode                       bool
 	typeToStringNodebuilder                     *NodeBuilder
 	tracer                                      *Tracer     // Optional tracer for trace events and type recording (for --generateTrace)
@@ -1010,6 +1017,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	program.BindSourceFiles()
 
 	c := &Checker{checkerStore: &checkerStore{}, reporting: true}
+	c.initWork()
 	c.root = c
 	c.id = nextCheckerID.Add(1)
 	c.tracer = tracer
@@ -1199,6 +1207,7 @@ func (c *Checker) initActivation() {
 // store's lock (returned by NewChecker) before use.
 func (c *Checker) Clone() *Checker {
 	clone := &Checker{checkerStore: c.checkerStore, tracer: c.tracer}
+	clone.initWork()
 	clone.initActivation()
 	return clone
 }
@@ -2435,8 +2444,9 @@ func (c *Checker) checkSourceElement(node *ast.Node) bool {
 	if node != nil {
 		saveCurrentNode := c.enterCurrentNode(node)
 		saveWithinUnreachableCode := c.withinUnreachableCode
-		c.instantiationCount = 0
+		c.enterWork(0, nil, nil, 0)
 		c.checkSourceElementWorker(node)
+		c.exitWork()
 		c.exitCurrentNode(saveCurrentNode)
 		c.withinUnreachableCode = saveWithinUnreachableCode
 	}
@@ -2676,7 +2686,7 @@ func (c *Checker) checkDeferredNode(node *ast.Node) {
 		defer tr.Push(tracing.PhaseCheck, "checkDeferredNode", map[string]any{"kind": node.Kind, "pos": node.Pos(), "end": node.End(), "path": ast.GetSourceFileOfNode(node).FileName()}, false)()
 	}
 	saveCurrentNode := c.enterCurrentNode(node)
-	c.instantiationCount = 0
+	c.enterWork(0, nil, nil, 0)
 	switch node.Kind {
 	case ast.KindCallExpression, ast.KindNewExpression, ast.KindTaggedTemplateExpression, ast.KindDecorator, ast.KindJsxOpeningElement:
 		// These node kinds are deferred checked when overload resolution fails. To save on work,
@@ -2705,6 +2715,7 @@ func (c *Checker) checkDeferredNode(node *ast.Node) {
 	case ast.KindObjectLiteralExpression, ast.KindJsxAttributes:
 		c.checkContextualDeprecations(node)
 	}
+	c.exitWork()
 	c.exitCurrentNode(saveCurrentNode)
 }
 
@@ -7914,12 +7925,13 @@ func (c *Checker) checkExpressionEx(node *ast.Node, checkMode CheckMode) *Type {
 		defer tr.Push(tracing.PhaseCheck, "checkExpression", map[string]any{"kind": node.Kind, "pos": node.Pos(), "end": node.End(), "path": ast.GetSourceFileOfNode(node).FileName()}, false)()
 	}
 	saveCurrentNode := c.enterCurrentNode(node)
-	c.instantiationCount = 0
+	c.enterWork(0, nil, nil, 0)
 	uninstantiatedType := c.checkExpressionWorker(node, checkMode)
 	t := c.instantiateTypeWithSingleGenericCallSignature(node, uninstantiatedType, checkMode)
 	if isConstEnumObjectType(t) {
 		c.checkConstEnumAccess(node, t)
 	}
+	c.exitWork()
 	c.exitCurrentNode(saveCurrentNode)
 	return t
 }
@@ -23830,7 +23842,7 @@ func (c *Checker) instantiateTypeWithAlias(t *Type, m *TypeMapper, alias *TypeAl
 		// the same statement or expression. There is a very high likelihood we're dealing with a combination of infinite generic types
 		// that perpetually generate new type identities, so we stop the recursion here by yielding the error type.
 		if tr := c.tracer; tr != nil {
-			tr.Instant(tracing.PhaseCheckTypes, "instantiateType_DepthLimit", map[string]any{"typeId": t.id, "instantiationDepth": len(c.instantiationStack), "instantiationCount": c.instantiationCount})
+			tr.Instant(tracing.PhaseCheckTypes, "instantiateType_DepthLimit", map[string]any{"typeId": t.id, "instantiationDepth": len(c.instantiationStack)})
 		}
 		circularTypeNames := c.getCircularTypeNames()
 		var message *diagnostics.Message
@@ -23843,14 +23855,7 @@ func (c *Checker) instantiateTypeWithAlias(t *Type, m *TypeMapper, alias *TypeAl
 		default:
 			message = diagnostics.Type_instantiation_is_excessively_deep_and_possibly_infinite
 		}
-		report := func(c *Checker, node *ast.Node) { c.error(node, message, args...) }
-		if c.instantiationDepthLimitReached() {
-			c.reportAtCurrentNode(report)
-		} else {
-			// The count depends on how much was already cached, so computing
-			// the result again elsewhere would not reliably reach it either.
-			c.reportAtCurrentNodeOnce(report)
-		}
+		c.reportAtCurrentNode(func(c *Checker, node *ast.Node) { c.error(node, message, args...) })
 		return c.errorType
 	}
 	index := c.findActiveMapper(m)
@@ -23862,21 +23867,34 @@ func (c *Checker) instantiateTypeWithAlias(t *Type, m *TypeMapper, alias *TypeAl
 	b.writeAlias(alias)
 	key := b.hash()
 	cache := c.activeTypeMappersCaches[core.IfElse(index != -1, index, len(c.activeTypeMappersCaches)-1)]
-	if cachedType, ok := cache[key]; ok {
-		return cachedType
+	// An instantiation cached in another work frame is not part of the work
+	// of this one, so it is only reused within the same frame.
+	serial := c.currentWork().serial
+	if cached, ok := cache[key]; ok && cached.serial == serial {
+		return cached.result
 	}
 	c.TotalInstantiationCount++
-	c.instantiationCount++
+	h := hashCombine(c.typeHash(t), c.mapperHash(m))
+	if alias != nil {
+		h = hashCombine(h, c.symbolHash(alias.symbol))
+		h = c.hashTypes(h, alias.typeArguments, typeHashDepth)
+	}
+	c.addWork(hashFinal(h))
 	c.instantiationStack = append(c.instantiationStack, t)
 	result := c.instantiateTypeWorker(t, m, alias)
 	if index == -1 {
 		c.popActiveMapper()
 	} else {
-		cache[key] = result
+		cache[key] = activeMapperCacheEntry{result, serial}
 	}
 	c.instantiationStack[len(c.instantiationStack)-1] = nil
 	c.instantiationStack = c.instantiationStack[:len(c.instantiationStack)-1]
 	return result
+}
+
+type activeMapperCacheEntry struct {
+	result *Type
+	serial uint32
 }
 
 func (c *Checker) getCircularTypeNames() []string {
@@ -23907,10 +23925,10 @@ func (c *Checker) pushActiveMapper(mapper *TypeMapper) {
 		// The cap may contain an empty map from popActiveMapper; reuse it.
 		c.activeTypeMappersCaches = c.activeTypeMappersCaches[:lastIndex+1]
 		if c.activeTypeMappersCaches[lastIndex] == nil {
-			c.activeTypeMappersCaches[lastIndex] = make(map[CacheHashKey]*Type, 1)
+			c.activeTypeMappersCaches[lastIndex] = make(map[CacheHashKey]activeMapperCacheEntry, 1)
 		}
 	} else {
-		c.activeTypeMappersCaches = append(c.activeTypeMappersCaches, make(map[CacheHashKey]*Type, 1))
+		c.activeTypeMappersCaches = append(c.activeTypeMappersCaches, make(map[CacheHashKey]activeMapperCacheEntry, 1))
 	}
 }
 

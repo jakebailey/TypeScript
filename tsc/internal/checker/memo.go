@@ -114,6 +114,7 @@ type memoSlot struct {
 	pending *memoEffects  // Effects not yet replayed by a reporting activation
 	depth   int           // 1-based index in memoFrames of the outermost computation in progress, or 0
 	reports []*nodeReport // Errors the computation reported at the current node; see setReported
+	sketch  *workSketch   // Instantiations the computation needed; see "Work sketches"
 }
 
 // memo is a cached result. Cached checker state must live in a memo so that
@@ -138,7 +139,7 @@ func (m *memo[T]) key() memoKey {
 
 // get returns the cached result, accounting for the effects of computing it.
 func (m *memo[T]) get(c *Checker) T {
-	if c.memoActive() {
+	if c.memoActive() || c.inWork() {
 		c.observeCell(unsafe.Pointer(m))
 	}
 	return m.memoValue
@@ -152,6 +153,7 @@ func (m *memo[T]) set(c *Checker, v T) {
 		m.logUndo(c)
 	}
 	m.memoValue = v
+	c.linkWork(m.key())
 	if !c.reporting {
 		c.attachCell(unsafe.Pointer(m))
 	}
@@ -175,6 +177,7 @@ func memoUpdate[T comparable](c *Checker, m *memo[T], v T) {
 // while having no way to compute its parts again.
 func (m *memo[T]) setStable(c *Checker, v T) {
 	m.memoValue = v
+	c.linkWork(m.key())
 	if !c.reporting {
 		c.attachCell(unsafe.Pointer(m))
 	}
@@ -262,12 +265,13 @@ type memoMap[K comparable, V any] struct {
 	_           memoNoCopy
 	memoEntries map[K]V
 	memoSlots   map[K]*memoSlot
+	workKeys    []K // Keys of computations in progress without a slot yet
 }
 
 // get returns the cached result for k, accounting for the effects of
 // computing it.
 func (m *memoMap[K, V]) get(c *Checker, k K) (V, bool) {
-	if m.memoSlots != nil && c.memoActive() {
+	if m.memoSlots != nil && (c.memoActive() || c.inWork()) {
 		m.observe(c, k)
 	}
 	v, ok := m.memoEntries[k]
@@ -346,6 +350,27 @@ func (m *memoMap[K, V]) setStable(c *Checker, k K, v V) {
 		m.memoEntries = make(map[K]V)
 	}
 	m.memoEntries[k] = v
+	if len(c.workFrames) > 1 && !m.isOwnWork(c, k) {
+		c.workLinkSlots = append(c.workLinkSlots, m.slot(k))
+	}
+	if !c.reporting && len(c.memoFrames) != 0 {
+		c.attachSlot(m.slot(k))
+	}
+}
+
+// setWithWork is set for a result whose computation needed the
+// instantiations in sketch, rather than those of the current work frame.
+func (m *memoMap[K, V]) setWithWork(c *Checker, k K, v V, sketch *workSketch) {
+	if c.cycleHead != 0 {
+		m.logUndo(c, k)
+	}
+	if m.memoEntries == nil {
+		m.memoEntries = make(map[K]V)
+	}
+	m.memoEntries[k] = v
+	if sketch != nil {
+		m.slot(k).sketch = sketch
+	}
 	if !c.reporting && len(c.memoFrames) != 0 {
 		c.attachSlot(m.slot(k))
 	}
@@ -372,6 +397,14 @@ func (m *memoMap[K, V]) compute(c *Checker, k K, fn func() V) V {
 // enter starts the computation of the result for k; see enterMemo.
 func (m *memoMap[K, V]) enter(c *Checker, k K) bool {
 	c.enterInstantiationBudget()
+	if c.inWork() {
+		// Entering a computed result reads it.
+		if slot := m.memoSlots[k]; slot != nil {
+			c.observeWork(slot.sketch)
+		}
+	}
+	m.workKeys = append(m.workKeys, k)
+	c.enterWork(0, nil, m, len(m.workKeys)-1)
 	if c.reporting {
 		if c.memoPendingCount != 0 && m.memoSlots != nil {
 			c.replayPending(m.memoSlots[k])
@@ -379,6 +412,24 @@ func (m *memoMap[K, V]) enter(c *Checker, k K) bool {
 		return false
 	}
 	return c.enterSlot(m.slot(k))
+}
+
+// isOwnWork reports whether the current work frame computes the entry for k.
+func (m *memoMap[K, V]) isOwnWork(c *Checker, k K) bool {
+	f := c.currentWork()
+	if f.source == workSlotSource(m) {
+		return m.workKeys[f.index] == k
+	}
+	return f.slot != nil && f.slot == m.memoSlots[k]
+}
+
+func (m *memoMap[K, V]) workSlot(i int) *memoSlot {
+	return m.slot(m.workKeys[i])
+}
+
+func (m *memoMap[K, V]) popWork(i int) {
+	clear(m.workKeys[i:])
+	m.workKeys = m.workKeys[:i]
 }
 
 func (m *memoMap[K, V]) slot(k K) *memoSlot {
@@ -454,7 +505,7 @@ func (c *Checker) memoActive() bool {
 // progress, whose limits each memoized computation starts afresh (see
 // enterInstantiationBudget).
 func (c *Checker) memoEnterActive() bool {
-	return c.memoActive() || len(c.instantiationStack) != 0
+	return true
 }
 
 // enterMemo is called on entry to a memoized function whose result for this
@@ -464,6 +515,7 @@ func (c *Checker) memoEnterActive() bool {
 // must be passed to exitMemo.
 func (c *Checker) enterMemo(key memoKey) bool {
 	c.enterInstantiationBudget()
+	c.enterWork(key, nil, nil, 0)
 	if c.reporting {
 		if c.memoPendingCount != 0 {
 			c.replayPending(c.memoSlots[key])
@@ -569,6 +621,7 @@ func (c *Checker) observeSlot(slot *memoSlot) {
 	if slot == nil {
 		return
 	}
+	c.observeWork(slot.sketch)
 	if slot.reports != nil {
 		c.replayNodeReports(slot.reports)
 	}
@@ -669,6 +722,7 @@ func (c *Checker) replayPending(slot *memoSlot) {
 // enclosing computation, since it observed the result.
 func (c *Checker) exitMemo(pushed bool) {
 	c.exitInstantiationBudget()
+	c.exitWork()
 	if !pushed {
 		return
 	}
@@ -685,6 +739,8 @@ func (c *Checker) exitMemo(pushed bool) {
 // each time it is computed again.
 func (c *Checker) exitMemoUncached(pushed bool) {
 	c.exitInstantiationBudget()
+	c.forgetWork()
+	c.exitWork()
 	if !pushed {
 		return
 	}
@@ -1180,18 +1236,10 @@ func (c *Checker) typeResolutionMemo(r *TypeResolution) unsafe.Pointer {
 // instantiation, which is only reached by runaway instantiations, and which
 // does depend on what was cached before.
 //
-// TODO: The limit on the number of instantiations still counts the work of
-// the current statement or expression rather than of the result, so whether
-// it is reached depends on what was cached before. Counting per memoized
-// computation is pure, but most runaway instantiations cross a new memoized
-// computation at every level and so are then only stopped by a far larger
-// limit on the whole outermost instantiation. Instead, each cached result
-// could store a mergeable distinct-count sketch (e.g. HyperLogLog) of the
-// computations it needed, merged into the current sketch on reuse,
-// approximating the work to compute a result from scratch. Summing stored
-// costs instead overcounts shared results exponentially. Sketches need
-// computation IDs that do not depend on creation order, which type IDs
-// currently do.
+// The limit on the number of instantiations likewise applies to the work
+// needed to compute the current result from scratch, estimated by a work
+// sketch of the distinct instantiations it needs, including those of the
+// results it reuses (see worksketch.go).
 
 const (
 	instantiationDepthLimit      = 100
@@ -1220,7 +1268,7 @@ func (c *Checker) exitInstantiationBudget() {
 // instantiationLimitReached reports whether a further instantiation would
 // exceed a limit.
 func (c *Checker) instantiationLimitReached() bool {
-	return c.instantiationDepthLimitReached() || c.instantiationCount >= instantiationCountLimit
+	return c.instantiationDepthLimitReached() || c.currentWork().sketch.exceedsLimit()
 }
 
 func (c *Checker) instantiationDepthLimitReached() bool {

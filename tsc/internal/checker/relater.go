@@ -137,8 +137,10 @@ func (r *Relation) get(c *Checker, key CacheHashKey) RelationComparisonResult {
 	return result
 }
 
-func (r *Relation) set(c *Checker, key CacheHashKey, result RelationComparisonResult) {
-	r.results.set(c, key, result)
+// set caches the result of a comparison that needed the instantiations in
+// sketch; see "Work sketches".
+func (r *Relation) set(c *Checker, key CacheHashKey, result RelationComparisonResult, sketch *workSketch) {
+	r.results.setWithWork(c, key, result, sketch)
 }
 
 func (c *Checker) isTypeIdenticalTo(source *Type, target *Type) bool {
@@ -328,7 +330,7 @@ func (c *Checker) isEnumTypeRelatedTo(source *ast.Symbol, target *ast.Symbol, er
 	}
 	pushed := c.memoEnterActive() && c.enumRelation.enter(c, key)
 	related := c.isEnumTypeRelatedToWorker(sourceSymbol, targetSymbol, errorReporter)
-	c.enumRelation.set(c, key, core.IfElse(related, RelationComparisonResultSucceeded, RelationComparisonResultFailed))
+	c.enumRelation.setWithWork(c, key, core.IfElse(related, RelationComparisonResultSucceeded, RelationComparisonResultFailed), nil)
 	c.exitMemo(pushed)
 	return related
 }
@@ -426,7 +428,7 @@ func (c *Checker) checkTypeRelatedToEx(
 			id, _ = c.getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
 		}
 		// Record this relation as having failed such that we don't attempt the overflowing operation again.
-		relation.set(c, id, RelationComparisonResultFailed|RelationComparisonResultComplexityOverflow)
+		relation.set(c, id, RelationComparisonResultFailed|RelationComparisonResultComplexityOverflow, nil)
 	}
 	c.exitMemo(pushedComparison)
 	if r.overflow {
@@ -1573,7 +1575,6 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 	mark := c.markEffects()
 	saveEffectsMarkDepth := c.effectsMarkDepth
 	c.effectsMarkDepth = mark.frameIndex + 1
-	instantiationCount := c.instantiationCount
 	var variances []VarianceFlags
 	for {
 		variances = c.measureVariances(symbol, typeParameters)
@@ -1600,10 +1601,6 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 		entry.cycleStart = math.MaxInt
 		entry.guessChanged = false
 		c.discardCycleSince(undoStart, participantsStart, saveCycleHead, mark)
-		// The work of a discarded round does not count toward the limit on
-		// instantiations, so whether the limit is reached does not depend on
-		// how many rounds the circularity took to settle.
-		c.instantiationCount = instantiationCount
 	}
 	if c.varianceStack[index].cycleStart >= index {
 		for _, s := range c.varianceGuessed[guessesStart:] {
@@ -3576,6 +3573,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	saveReliabilityFlags := r.c.reliabilityFlags
 	r.c.reliabilityFlags = 0
 	var result Ternary
+	var sketch *workSketch
 	if r.expandingFlags == ExpandingFlagsBoth {
 		if tr := r.c.tracer; tr != nil {
 			tr.Instant(tracing.PhaseCheckTypes, "recursiveTypeRelatedTo_DepthLimit", map[string]any{"sourceId": source.id, "targetId": target.id, "depth": len(r.sourceStack), "targetDepth": len(r.targetStack)})
@@ -3590,7 +3588,9 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		// depth limits from here, not from wherever it is first compared
 		// (see "Instantiation limits" in memo.go).
 		r.c.enterInstantiationBudget()
+		r.c.enterWork(0, nil, nil, 0)
 		result = r.structuredTypeRelatedTo(source, target, reportErrors, intersectionState)
+		sketch = r.c.exitWork()
 		r.c.exitInstantiationBudget()
 	}
 	propagatingVarianceFlags := r.c.reliabilityFlags
@@ -3611,9 +3611,9 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	case result == TernaryFalse:
 		// A false result goes straight into global cache (when something is false under
 		// assumptions it will also be false without assumptions)
-		r.relation.set(r.c, id, RelationComparisonResultFailed|propagatingVarianceFlags)
+		r.relation.set(r.c, id, RelationComparisonResultFailed|propagatingVarianceFlags, sketch)
 		r.relationCount--
-		r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false)
+		r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false, nil)
 	case low >= frame:
 		// The result depends on no comparison outside of this one, so it is the
 		// same from scratch. Comparisons that completed assuming this one hold
@@ -3621,13 +3621,13 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		// scratch. Ternary.Unknown results are never recorded.
 		switch {
 		case result == TernaryUnknown:
-			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false)
+			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false, nil)
 		case truncated:
-			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false)
-			r.relation.set(r.c, id, RelationComparisonResultSucceeded|propagatingVarianceFlags)
+			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false, nil)
+			r.relation.set(r.c, id, RelationComparisonResultSucceeded|propagatingVarianceFlags, sketch)
 			r.relationCount--
 		default:
-			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, true)
+			r.resetMaybeStack(maybeStart, propagatingVarianceFlags, true, sketch)
 		}
 		// The result no longer depends on any comparison in progress, so it
 		// is reported as related, the same as when it is read from the cache.
@@ -3668,12 +3668,14 @@ func (r *Relater) truncate(frame int) {
 	r.truncated = true
 }
 
-func (r *Relater) resetMaybeStack(maybeStart int, propagatingVarianceFlags RelationComparisonResult, markAllAsSucceeded bool) {
+// resetMaybeStack ends the comparisons since maybeStart, recording them as
+// related if markAllAsSucceeded. Those recorded need the work in sketch.
+func (r *Relater) resetMaybeStack(maybeStart int, propagatingVarianceFlags RelationComparisonResult, markAllAsSucceeded bool, sketch *workSketch) {
 	for i := maybeStart; i < len(r.maybeKeys); i++ {
 		key := r.maybeKeys[i].key
 		delete(r.maybeKeysSet, key)
 		if markAllAsSucceeded {
-			r.relation.set(r.c, key, RelationComparisonResultSucceeded|propagatingVarianceFlags)
+			r.relation.set(r.c, key, RelationComparisonResultSucceeded|propagatingVarianceFlags, sketch)
 			r.relationCount--
 		}
 	}

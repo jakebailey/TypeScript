@@ -178,6 +178,7 @@ func BenchmarkTypeListKey(b *testing.B) {
 // newBareTestChecker returns an uninitialized activation with an empty store.
 func newBareTestChecker() *Checker {
 	c := &Checker{checkerStore: &checkerStore{}}
+	c.initWork()
 	c.root = c
 	return c
 }
