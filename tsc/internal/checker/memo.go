@@ -64,7 +64,45 @@ const (
 	memoNeverIntersection
 	memoDiscriminant
 	memoResolvedMembers // followed by one field per MembersOrExportsResolutionKind
+	memoSymbolExports   = memoResolvedMembers + memoField(MembersOrExportsResolutionKindResolvedExports)
+	memoSymbolMembers   = memoResolvedMembers + memoField(MembersOrExportsResolutionKindResolvedMembers)
+	memoFieldCount      = memoResolvedMembers + 2
 )
+
+// A reentry says what it means to re-enter a computation in progress, which
+// can only observe whatever the computation has published so far.
+type reentry uint8
+
+const (
+	// What re-entry observes is incomplete, so the results computed while
+	// the outer computation is in progress are discarded when it finishes,
+	// and computed again from its result. This is the default.
+	reentryTaint reentry = iota
+	// The computation detects re-entry with a type resolution of its own,
+	// which decides the head of the cycle and what to discard.
+	reentryResolution
+	// The computation publishes a partial result before it finishes, and
+	// re-entry observes that partial result. Results derived from it may
+	// differ depending on which computation starts first.
+	reentryPartial
+)
+
+// memoReentry is the re-entry policy of each kind of computation.
+var memoReentry = [memoFieldCount]reentry{
+	// memoCompute keeps the result that a re-entrant computation cached,
+	// and many cells publish an in-progress marker for re-entry to read.
+	memoCell: reentryPartial,
+	// Many kinds of types make members available before they are complete.
+	memoStructuredMembers: reentryPartial,
+	// The early-bound symbols are published before late-bound ones are
+	// resolved.
+	memoSymbolExports: reentryPartial,
+	memoSymbolMembers: reentryPartial,
+	// Circular defaults are reported at the default first in program order.
+	memoTypeParameterDefault: reentryResolution,
+	// Contextual checking resolves a cycle through the enclosing call.
+	memoContextChecked: reentryResolution,
+}
 
 // memoKey identifies a memoized result: the address of the entity owning the
 // cache slot (an *ast.Node, *ast.Symbol, *Type, or *Signature) shifted left by
@@ -72,6 +110,10 @@ const (
 // operations on the fast path. Entities live as long as the program or the
 // checker store, so an address cannot be reused while its keys exist.
 type memoKey uint64
+
+func (k memoKey) field() memoField {
+	return memoField(k)
+}
 
 func memoKeyOf[T any](entity *T, field memoField) memoKey {
 	return memoKey(uint64(uintptr(unsafe.Pointer(entity)))<<8 | uint64(field))

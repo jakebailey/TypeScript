@@ -671,16 +671,17 @@ type Checker struct {
 	restrictiveMapper                           *TypeMapper
 	permissiveMapper                            *TypeMapper
 	contextualBindingPatterns                   []*ast.Node
-	resolutionTop                               int              // 1-based index in frames of the innermost resolution, or 0
-	resolutionStart                             int              // Index in frames below which resolutions are not searched for cycles
-	cycleHead                                   int              // 1-based index in frames of the outermost cycle in progress, or 0; see memo.go
-	nodeReports                                 []*nodeReport    // Errors reported at the current node while collecting; see startNodeReports
-	nodeReportCollectors                        int              // Number of computations collecting nodeReports
-	nodeReportsCyclic                           bool             // Whether a cycle was observed while collecting nodeReports; see endNodeReports
-	journal                                     []undoEntry      // Restores what was cached while anything may be rolled back; see "Journal" in memo.go
-	cycleMark                                   int              // Length of journal when the cycle in progress was detected
-	cycleParticipants                           []TypeResolution // Computations that observed a cycle in progress
-	effectsMarkDepth                            int              // 1 + frame index of the innermost effects mark that may be rolled back, or 0
+	computing                                   map[memoKey]int32 // Index in frames of the outermost computation of each key in progress
+	resolutionTop                               int               // 1-based index in frames of the innermost resolution, or 0
+	resolutionStart                             int               // Index in frames below which resolutions are not searched for cycles
+	cycleHead                                   int               // 1-based index in frames of the outermost cycle in progress, or 0; see memo.go
+	nodeReports                                 []*nodeReport     // Errors reported at the current node while collecting; see startNodeReports
+	nodeReportCollectors                        int               // Number of computations collecting nodeReports
+	nodeReportsCyclic                           bool              // Whether a cycle was observed while collecting nodeReports; see endNodeReports
+	journal                                     []undoEntry       // Restores what was cached while anything may be rolled back; see "Journal" in memo.go
+	cycleMark                                   int               // Length of journal when the cycle in progress was detected
+	cycleParticipants                           []TypeResolution  // Computations that observed a cycle in progress
+	effectsMarkDepth                            int               // 1 + frame index of the innermost effects mark that may be rolled back, or 0
 	varianceStack                               []VarianceStackEntry
 	varianceMeasuring                           map[*ast.Symbol]int             // Symbols whose variances are being measured
 	varianceGuesses                             map[*ast.Symbol][]VarianceFlags // Variances assumed for measurements in progress; see getVariancesWorker
@@ -20141,10 +20142,17 @@ func (c *Checker) taintCurrentNode() {
 // of the stack observed the incomplete resolution at start without failing,
 // so results cached while it is in progress are discarded when it finishes.
 func (c *Checker) taintResolutionCycle(start int) {
-	c.nodeReportsCyclic = true
 	if !c.reporting {
 		c.memoCycle(int(c.frames[start].prevMemo))
 	}
+	c.taintFrameCycle(start)
+}
+
+// taintFrameCycle records that the computations from the frame at start to
+// the top of the stack observed the incomplete computation at start, so
+// results cached while it is in progress are discarded when it finishes.
+func (c *Checker) taintFrameCycle(start int) {
+	c.nodeReportsCyclic = true
 	c.raiseCycleHead(start + 1)
 }
 

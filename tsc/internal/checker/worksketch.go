@@ -146,6 +146,9 @@ func (c *Checker) enterWork(key memoKey, cell *memoHeader, source workSlotSource
 			c.observeWork(c.storedWork(key))
 		}
 	}
+	if key != 0 {
+		c.enterComputing(key)
+	}
 	base := int32(len(c.instantiationStack))
 	c.pushWork(key, cell, source, index, base, true)
 }
@@ -180,6 +183,7 @@ func (c *Checker) exitWork() resultWork {
 	n := len(c.frames) - 1
 	f := &c.frames[n]
 	debug.Assert(!f.resolving, "resolution left on the stack")
+	c.finishComputing(f, n)
 	w := resultWork{f.sketch, f.top - f.base}
 	if c.aborting {
 		// Nothing computed while aborting is kept.
@@ -191,6 +195,9 @@ func (c *Checker) exitWork() resultWork {
 	top := f.top
 	c.frames[n] = frame{}
 	c.frames = c.frames[:n]
+	if c.cycleHead > n {
+		c.endCycle()
+	}
 	parent := c.currentWork()
 	parent.top = max(parent.top, top)
 	if w.sketch != nil {
@@ -274,7 +281,32 @@ func (c *Checker) forgetWork() {
 	if f.source != nil {
 		f.source.popWork(int(f.index))
 	}
+	c.finishComputing(f, len(c.frames)-1)
 	f.key, f.cell, f.source = 0, nil, nil
+}
+
+// enterComputing records that the frame about to be pushed computes key,
+// unless a computation of key is already in progress, in which case the new
+// one re-enters it as the policy of its kind says; see memoReentry.
+func (c *Checker) enterComputing(key memoKey) {
+	if i, ok := c.computing[key]; ok {
+		if memoReentry[key.field()] == reentryTaint {
+			c.taintFrameCycle(int(i))
+		}
+		return
+	}
+	if c.computing == nil {
+		c.computing = make(map[memoKey]int32)
+	}
+	c.computing[key] = int32(len(c.frames))
+}
+
+// finishComputing records that the frame at index n no longer computes its
+// key.
+func (c *Checker) finishComputing(f *frame, n int) {
+	if f.key != 0 && c.computing[f.key] == int32(n) {
+		delete(c.computing, f.key)
+	}
 }
 
 // inWork reports whether an instantiation of the current work frame is in
