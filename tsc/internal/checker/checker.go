@@ -685,7 +685,6 @@ type Checker struct {
 	cycleParticipants                           []TypeResolution  // Computations that observed a cycle in progress
 	effectsMarkDepth                            int               // 1 + frame index of the innermost effects mark that may be rolled back, or 0
 	varianceStack                               []VarianceStackEntry
-	varianceMeasuring                           map[*ast.Symbol]int             // Symbols whose variances are being measured
 	varianceGuesses                             map[*ast.Symbol][]VarianceFlags // Variances assumed for measurements in progress; see getVariancesWorker
 	varianceGuessed                             []*ast.Symbol                   // Keys of varianceGuesses in order of addition
 	flushSlots                                  *[]*memoSlot                    // Collects slots given effects to replay, if non-nil; see withoutReporting

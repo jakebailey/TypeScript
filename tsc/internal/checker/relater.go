@@ -1530,10 +1530,6 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 	index := len(c.varianceStack)
 	c.varianceStack = append(c.varianceStack, VarianceStackEntry{symbol: symbol, typeParameters: typeParameters, resolution: len(c.frames), cycleStart: math.MaxInt})
 	c.pushResolution(symbol, TypeSystemPropertyNameVariances)
-	if c.varianceMeasuring == nil {
-		c.varianceMeasuring = make(map[*ast.Symbol]int)
-	}
-	c.varianceMeasuring[symbol]++
 	guessesStart := len(c.varianceGuessed)
 	mark := c.markRollback()
 	var variances []VarianceFlags
@@ -1573,9 +1569,6 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 	links.variances.set(c, variances)
 	c.varianceStack = c.varianceStack[:index]
 	c.popTypeResolution()
-	if c.varianceMeasuring[symbol]--; c.varianceMeasuring[symbol] == 0 {
-		delete(c.varianceMeasuring, symbol)
-	}
 	if index == 0 {
 		c.resolutionStart = saveResolutionStart
 	}
@@ -1704,7 +1697,7 @@ func (c *Checker) createMarkerType(symbol *ast.Symbol, source *Type, target *Typ
 // those nested in the type being measured, are not marker types, whether or
 // not their own variances have been measured before.
 func (c *Checker) isMarkerType(t *Type) bool {
-	if len(c.varianceMeasuring) == 0 && c.varianceTypeParameter == nil {
+	if len(c.varianceStack) == 0 && c.varianceTypeParameter == nil {
 		return false
 	}
 	if t.alias != nil && t.alias.symbol.Flags()&ast.SymbolFlagsTypeAlias != 0 &&
@@ -1741,7 +1734,7 @@ func (c *Checker) isMarkerInstantiation(symbol *ast.Symbol, typeParameters []*Ty
 	case c.markerSuperTypeForCheck, c.markerSubTypeForCheck:
 		return typeParameters[replaced] == c.varianceTypeParameter
 	default:
-		return c.varianceMeasuring[symbol] != 0
+		return c.getVarianceStackIndex(symbol) >= 0
 	}
 }
 
