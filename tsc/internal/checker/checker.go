@@ -630,9 +630,9 @@ type Checker struct {
 	instantiationStack                          []*Type
 	aborting                                    bool             // Whether the outermost instantiation is aborting; see "Instantiation limits"
 	heldDiagnostics                             []heldDiagnostic // Errors reported within the outermost instantiation, held until it finishes
-	conditionalConstraintDepth                  uint32
-	inlineLevel                                 int
-	serializationLevel                          int
+	conditionalConstraintDepth                  nestingLimit
+	inlineLevel                                 nestingLimit
+	serializationLevel                          nestingLimit
 	currentNode                                 *ast.Node
 	currentNodeResolution                       int // 1-based index in frames of the resolution of currentNode, or 0; see enterCurrentNode
 	varianceTypeParameter                       *Type
@@ -14687,7 +14687,7 @@ func (c *Checker) produceDeferredDiagnostics() {
 
 func (c *Checker) addDiagnostic(diagnostic *ast.Diagnostic) *ast.Diagnostic {
 	// Discard diagnostics created while at the maximum number of recursive TypeToString invocations.
-	if c.serializationLevel < maxSerializationLevel {
+	if !c.nestingLimitReached(&c.serializationLevel, maxSerializationLevel) {
 		if !c.reporting {
 			c.recordEffect(func(c *Checker) { c.diagnostics.Add(diagnostic) })
 			return diagnostic
@@ -14703,7 +14703,7 @@ func (c *Checker) addDiagnostic(diagnostic *ast.Diagnostic) *ast.Diagnostic {
 
 func (c *Checker) addSuggestionDiagnostic(diagnostic *ast.Diagnostic) *ast.Diagnostic {
 	// Discard diagnostics created while at the maximum number of recursive TypeToString invocations.
-	if c.serializationLevel < maxSerializationLevel {
+	if !c.nestingLimitReached(&c.serializationLevel, maxSerializationLevel) {
 		if !c.reporting {
 			c.recordEffect(func(c *Checker) { c.suggestionDiagnostics.Add(diagnostic) })
 			return diagnostic
@@ -20179,6 +20179,35 @@ func (c *Checker) taintResolutionCycle(start int) {
 func (c *Checker) taintFrameCycle(start int) {
 	c.nodeReportsCyclic = true
 	c.raiseCycleHead(start + 1)
+}
+
+// nestingLimit counts the nesting of a recursion that is cut short at a fixed
+// depth. How deep a computation may go then depends on how deep it was entered,
+// so a computation cut short keeps its result only if it started counting.
+type nestingLimit struct {
+	depth int
+	base  int // Index in frames of the computation that started counting
+}
+
+// nestingLimitReached reports whether l is at limit, in which case the
+// computations since the one that started counting are tainted.
+func (c *Checker) nestingLimitReached(l *nestingLimit, limit int) bool {
+	if l.depth < limit {
+		return false
+	}
+	c.taintFrameCycle(l.base)
+	return true
+}
+
+func (c *Checker) enterNesting(l *nestingLimit) {
+	if l.depth == 0 {
+		l.base = len(c.frames) - 1
+	}
+	l.depth++
+}
+
+func (l *nestingLimit) exit() {
+	l.depth--
 }
 
 /**
@@ -29583,12 +29612,12 @@ func (c *Checker) computeBaseConstraint(t *Type, stack []RecursionId) *Type {
 		}
 		return c.getNextBaseConstraint(c.getIndexedAccessTypeOrUndefined(baseObjectType, baseIndexType, t.AsIndexedAccessType().accessFlags, nil, nil), stack)
 	case t.flags&TypeFlagsConditional != 0:
-		if c.conditionalConstraintDepth >= 100 {
+		if c.nestingLimitReached(&c.conditionalConstraintDepth, 100) {
 			return nil
 		}
-		c.conditionalConstraintDepth++
+		c.enterNesting(&c.conditionalConstraintDepth)
 		constraint := c.getConstraintFromConditionalType(t)
-		c.conditionalConstraintDepth--
+		c.conditionalConstraintDepth.exit()
 		return c.getNextBaseConstraint(constraint, stack)
 	case t.flags&TypeFlagsSubstitution != 0:
 		return c.getNextBaseConstraint(c.getSubstitutionIntersection(t), stack)
