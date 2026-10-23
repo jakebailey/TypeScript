@@ -26774,15 +26774,15 @@ func (c *Checker) getGenericObjectFlags(t *Type) ObjectFlags {
 	var combinedFlags ObjectFlags
 	if t.flags&(TypeFlagsUnionOrIntersection|TypeFlagsSubstitution) != 0 {
 		return c.objectFlagsCell(t, memoGenericObjectFlags, ObjectFlagsIsGenericTypeComputed, ObjectFlagsIsGenericType, false /*inProgress*/, func() ObjectFlags {
-			var combinedFlags ObjectFlags
+			var flags ObjectFlags
 			if t.flags&TypeFlagsUnionOrIntersection != 0 {
 				for _, u := range t.Types() {
-					combinedFlags |= c.getGenericObjectFlags(u)
+					flags |= c.getGenericObjectFlags(u)
 				}
 			} else {
-				combinedFlags = c.getGenericObjectFlags(t.AsSubstitutionType().baseType) | c.getGenericObjectFlags(t.AsSubstitutionType().constraint)
+				flags = c.getGenericObjectFlags(t.AsSubstitutionType().baseType) | c.getGenericObjectFlags(t.AsSubstitutionType().constraint)
 			}
-			return combinedFlags
+			return flags
 		})
 	}
 	if t.flags&TypeFlagsInstantiableNonPrimitive != 0 || c.isGenericMappedType(t) || c.isGenericTupleType(t) {
