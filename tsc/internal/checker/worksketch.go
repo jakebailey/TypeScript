@@ -71,8 +71,10 @@ func (s *workSketch) exceedsLimit() bool {
 type frame struct {
 	sketch *workSketch // Allocated on first use
 	// The sketch is stored for the memo identified by key, or in the slot
-	// source creates for index, if either is given.
+	// source creates for index, if either is given. The height is stored in
+	// cell instead, if key identifies a memo.
 	key    memoKey
+	cell   *memoHeader
 	source workSlotSource
 	index  int32
 	base   int32 // Length of the instantiation stack on entry
@@ -127,27 +129,32 @@ func (c *Checker) currentWork() *frame {
 // enterWork starts a work frame with an empty sketch for a computation,
 // which also starts the depth limit of instantiations (see "Instantiation
 // limits" in memo.go).
-func (c *Checker) enterWork(key memoKey, source workSlotSource, index int) {
+func (c *Checker) enterWork(key memoKey, cell *memoHeader, source workSlotSource, index int) {
 	if key != 0 && c.observingWork() {
 		// Entering a computed result reads it.
-		c.observeWork(c.storedWork(key))
+		if cell != nil {
+			c.observeCellWork(cell)
+		} else {
+			c.observeWork(c.storedWork(key))
+		}
 	}
 	base := int32(len(c.instantiationStack))
-	c.pushWork(key, source, index, base, true)
+	c.pushWork(key, cell, source, index, base, true)
 }
 
 // enterNodeWork starts a work frame for checking a node, which continues
 // the depth limit of the enclosing frame.
 func (c *Checker) enterNodeWork() {
 	parent := c.currentWork()
-	c.pushWork(0, nil, 0, parent.depthBase, parent.heights || c.inWork())
+	c.pushWork(0, nil, nil, 0, parent.depthBase, parent.heights || c.inWork())
 }
 
-func (c *Checker) pushWork(key memoKey, source workSlotSource, index int, depthBase int32, heights bool) {
+func (c *Checker) pushWork(key memoKey, cell *memoHeader, source workSlotSource, index int, depthBase int32, heights bool) {
 	c.workSerials++
 	base := int32(len(c.instantiationStack))
 	c.frames = append(c.frames, frame{
 		key:       key,
+		cell:      cell,
 		source:    source,
 		index:     int32(index),
 		base:      base,
@@ -189,6 +196,11 @@ func (c *Checker) finishWork(f *frame, w resultWork) {
 		var slot *memoSlot
 		if f.source != nil {
 			slot = f.source.workSlot(int(f.index))
+		} else if f.cell != nil {
+			f.cell.memoHeight = max(f.cell.memoHeight, w.height)
+			if w.sketch != nil {
+				c.memoSlot(f.key).storeWork(resultWork{sketch: w.sketch})
+			}
 		} else if f.key != 0 {
 			slot = c.memoSlot(f.key)
 			c.markWork(f.key)
@@ -198,9 +210,11 @@ func (c *Checker) finishWork(f *frame, w resultWork) {
 		}
 		// Results set outside a computation of their own need the work of
 		// the computation that set them.
-		for _, key := range c.workLinks[f.links:] {
-			c.memoSlot(key).linkWork(w)
-			c.markWork(key)
+		for _, cell := range c.workLinks[f.links:] {
+			cell.memoHeight = w.height
+			if w.sketch != nil {
+				c.memoSlot(cell.key()).sketch = w.sketch
+			}
 		}
 		for _, slot := range c.workLinkSlots[f.slots:] {
 			slot.linkWork(w)
@@ -214,6 +228,7 @@ func (c *Checker) dropWork(f *frame) {
 	if f.source != nil {
 		f.source.popWork(int(f.index))
 	}
+	clear(c.workLinks[f.links:])
 	c.workLinks = c.workLinks[:f.links]
 	clear(c.workLinkSlots[f.slots:])
 	c.workLinkSlots = c.workLinkSlots[:f.slots]
@@ -250,7 +265,7 @@ func (c *Checker) forgetWork() {
 	if f.source != nil {
 		f.source.popWork(int(f.index))
 	}
-	f.key, f.source = 0, nil
+	f.key, f.cell, f.source = 0, nil, nil
 }
 
 // inWork reports whether an instantiation of the current work frame is in
@@ -308,11 +323,24 @@ func (c *Checker) addWork(h uint64) {
 	f.sketch.add(h)
 }
 
-// linkWork records that the memo identified by key was set by the current
-// work frame.
-func (c *Checker) linkWork(key memoKey) {
-	if len(c.frames) > 1 && key != c.currentWork().key {
-		c.workLinks = append(c.workLinks, key)
+// linkWork records that the memo was set by the current work frame.
+func (c *Checker) linkWork(cell *memoHeader) {
+	if len(c.frames) > 1 && cell != c.currentWork().cell {
+		c.workLinks = append(c.workLinks, cell)
+	}
+}
+
+// observeCellWork is observeWork for the result of a memo. Only results with
+// a height can have a sketch, as they performed instantiations.
+func (c *Checker) observeCellWork(cell *memoHeader) {
+	if cell.memoHeight == 0 {
+		return
+	}
+	c.observeHeight(cell.memoHeight)
+	if c.inWork() {
+		if slot := c.memoSlots[cell.key()]; slot != nil {
+			c.observeSketch(slot.sketch)
+		}
 	}
 }
 

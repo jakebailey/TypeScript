@@ -3568,7 +3568,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		// The result is cached, so instantiations it needs count against
 		// depth limits from here, not from wherever it is first compared
 		// (see "Instantiation limits" in memo.go).
-		r.c.enterWork(0, nil, 0)
+		r.c.enterWork(0, nil, nil, 0)
 		result = r.structuredTypeRelatedTo(source, target, reportErrors, intersectionState)
 		work = r.c.exitWork()
 	}

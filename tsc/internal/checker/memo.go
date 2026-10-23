@@ -123,10 +123,19 @@ type memoSlot struct {
 // every read accounts for the effects of the computation that produced it;
 // see the package comment above. The value is only accessible through
 // methods. The memo state of a result is kept in the store's slot map, keyed
-// by the address of the memo, so a memo costs nothing beyond its value.
+// by the address of the memo, except for its height.
 type memo[T any] struct {
-	_         memoNoCopy
+	memoHeader
 	memoValue T
+}
+
+// memoHeader is the part of a memo independent of its type, which also
+// identifies it. It holds the height of the result (see "Instantiation
+// limits"), since most reads of a result need nothing else of its memo state,
+// and most results have none.
+type memoHeader struct {
+	_          memoNoCopy
+	memoHeight int32
 }
 
 // memoNoCopy makes go vet reject copies of a memo, which would bypass it.
@@ -135,14 +144,14 @@ type memoNoCopy struct{}
 func (*memoNoCopy) Lock()   {}
 func (*memoNoCopy) Unlock() {}
 
-func (m *memo[T]) key() memoKey {
-	return memoKeyOf(m, memoCell)
+func (h *memoHeader) key() memoKey {
+	return memoKeyOf(h, memoCell)
 }
 
 // get returns the cached result, accounting for the effects of computing it.
 func (m *memo[T]) get(c *Checker) T {
-	if c.observing() {
-		c.observeCell(unsafe.Pointer(m))
+	if c.memoActive() || m.memoHeight != 0 && c.observingWork() {
+		c.observeCell(&m.memoHeader)
 	}
 	return m.memoValue
 }
@@ -155,9 +164,9 @@ func (m *memo[T]) set(c *Checker, v T) {
 		m.logUndo(c)
 	}
 	m.memoValue = v
-	c.linkWork(m.key())
+	c.linkWork(&m.memoHeader)
 	if !c.reporting {
-		c.attachCell(unsafe.Pointer(m))
+		c.attachCell(&m.memoHeader)
 	}
 }
 
@@ -183,9 +192,9 @@ func (m *memo[T]) setStable(c *Checker, v T) {
 		m.logUndo(c)
 	}
 	m.memoValue = v
-	c.linkWork(m.key())
+	c.linkWork(&m.memoHeader)
 	if !c.reporting {
-		c.attachCell(unsafe.Pointer(m))
+		c.attachCell(&m.memoHeader)
 	}
 }
 
@@ -214,7 +223,7 @@ func (m *memo[T]) setReported(c *Checker, v T, r nodeReports) {
 //go:noinline
 func (m *memo[T]) logUndo(c *Checker) {
 	old := m.memoValue
-	c.journal = append(c.journal, undoEntry{unsafe.Pointer(m), func() { m.memoValue = old }, false})
+	c.journal = append(c.journal, undoEntry{&m.memoHeader, func() { m.memoValue = old }, false})
 }
 
 // peek returns the cached result without accounting for effects. It is only
@@ -241,7 +250,8 @@ func (m *memo[T]) init(v T) {
 
 // enter starts the computation of the result; see enterMemo.
 func (m *memo[T]) enter(c *Checker) {
-	c.enterMemo(m.key())
+	c.enterWork(m.key(), &m.memoHeader, nil, 0)
+	c.enterMemoSlot(m.key())
 }
 
 // memoCompute returns the result cached in m, computing it in a computation
@@ -415,7 +425,7 @@ func (m *memoMap[K, V]) enter(c *Checker, k K) {
 		}
 	}
 	m.workKeys = append(m.workKeys, k)
-	c.enterWork(0, m, len(m.workKeys)-1)
+	c.enterWork(0, nil, m, len(m.workKeys)-1)
 	if c.reporting {
 		if c.memoPendingCount != 0 && m.memoSlots != nil {
 			c.replayPending(m.memoSlots[k])
@@ -511,7 +521,12 @@ func (c *Checker) observing() bool {
 // this computation, which in a non-reporting activation records its effects.
 // It must be matched by exitMemo.
 func (c *Checker) enterMemo(key memoKey) {
-	c.enterWork(key, nil, 0)
+	c.enterWork(key, nil, nil, 0)
+	c.enterMemoSlot(key)
+}
+
+// enterMemoSlot is the part of enterMemo for the memo state of the result.
+func (c *Checker) enterMemoSlot(key memoKey) {
 	if c.reporting {
 		if c.memoPendingCount != 0 {
 			c.replayPending(c.memoSlots[key])
@@ -626,13 +641,20 @@ func (c *Checker) attachSlot(slot *memoSlot) {
 // cheap enough to inline.
 //
 //go:noinline
-func (c *Checker) observeCell(p unsafe.Pointer) {
-	c.observeMemo(memoKeyOf((*byte)(p), memoCell))
+func (c *Checker) observeCell(h *memoHeader) {
+	if !c.memoActive() {
+		c.observeCellWork(h)
+		return
+	}
+	if h.memoHeight != 0 {
+		c.observeHeight(h.memoHeight)
+	}
+	c.observeSlot(c.memoSlots[h.key()])
 }
 
 //go:noinline
-func (c *Checker) attachCell(p unsafe.Pointer) {
-	c.memoAttach(memoKeyOf((*byte)(p), memoCell))
+func (c *Checker) attachCell(h *memoHeader) {
+	c.memoAttach(h.key())
 }
 
 // observeMemo accounts for reading a memoized result without computing it.
@@ -1026,7 +1048,7 @@ func (c *Checker) memoFrameAt(i int) *memoEffects {
 // The journal is cleared once nothing in progress can roll back.
 
 type undoEntry struct {
-	memo    unsafe.Pointer // The memo restored, or nil
+	memo    *memoHeader // The memo restored, or nil
 	restore func()
 	effects bool // Restores the effects of a result rather than the result
 }
@@ -1136,7 +1158,7 @@ func (c *Checker) endCycle() {
 	participants := c.cycleParticipants
 	c.cycleHead = 0
 	c.cycleParticipants = nil
-	keep := make(map[unsafe.Pointer]struct{}, len(participants))
+	keep := make(map[*memoHeader]struct{}, len(participants))
 	for i := range participants {
 		if p := c.typeResolutionMemo(&participants[i]); p != nil {
 			keep[p] = struct{}{}
@@ -1283,32 +1305,32 @@ func (c *Checker) logPendingUndo(slot *memoSlot) {
 
 // typeResolutionMemo returns the address of the memo caching the result of
 // a type resolution, or nil if it is not cached in a memo.
-func (c *Checker) typeResolutionMemo(r *TypeResolution) unsafe.Pointer {
+func (c *Checker) typeResolutionMemo(r *TypeResolution) *memoHeader {
 	switch r.propertyName {
 	case TypeSystemPropertyNameType:
-		return unsafe.Pointer(&c.valueSymbolLinks.Get(r.target.(*ast.Symbol)).resolvedType)
+		return &c.valueSymbolLinks.Get(r.target.(*ast.Symbol)).resolvedType.memoHeader
 	case TypeSystemPropertyNameDeclaredType:
-		return unsafe.Pointer(&c.typeAliasLinks.Get(r.target.(*ast.Symbol)).declaredType)
+		return &c.typeAliasLinks.Get(r.target.(*ast.Symbol)).declaredType.memoHeader
 	case TypeSystemPropertyNameResolvedTypeArguments:
-		return unsafe.Pointer(&r.target.(*Type).AsTypeReference().resolvedTypeArguments)
+		return &r.target.(*Type).AsTypeReference().resolvedTypeArguments.memoHeader
 	case TypeSystemPropertyNameResolvedBaseTypes:
-		return unsafe.Pointer(&r.target.(*Type).AsInterfaceType().resolvedBaseTypes)
+		return &r.target.(*Type).AsInterfaceType().resolvedBaseTypes.memoHeader
 	case TypeSystemPropertyNameResolvedBaseConstructorType:
-		return unsafe.Pointer(&r.target.(*Type).AsInterfaceType().resolvedBaseConstructorType)
+		return &r.target.(*Type).AsInterfaceType().resolvedBaseConstructorType.memoHeader
 	case TypeSystemPropertyNameResolvedReturnType:
-		return unsafe.Pointer(&r.target.(*Signature).resolvedReturnType)
+		return &r.target.(*Signature).resolvedReturnType.memoHeader
 	case TypeSystemPropertyNameResolvedBaseConstraint:
-		return unsafe.Pointer(&r.target.(*Type).AsConstrainedType().resolvedBaseConstraint)
+		return &r.target.(*Type).AsConstrainedType().resolvedBaseConstraint.memoHeader
 	case TypeSystemPropertyNameWriteType:
 		if extra := c.valueSymbolLinks.Get(r.target.(*ast.Symbol)).extra; extra != nil {
-			return unsafe.Pointer(&extra.writeType)
+			return &extra.writeType.memoHeader
 		}
 	case TypeSystemPropertyNameAliasTarget:
-		return unsafe.Pointer(&c.aliasSymbolLinks.Get(r.target.(*ast.Symbol)).aliasTarget)
+		return &c.aliasSymbolLinks.Get(r.target.(*ast.Symbol)).aliasTarget.memoHeader
 	case TypeSystemPropertyNameComputedPropertyName:
-		return unsafe.Pointer(&c.typeNodeLinks.Get(r.target.(*ast.Node)).resolvedType)
+		return &c.typeNodeLinks.Get(r.target.(*ast.Node)).resolvedType.memoHeader
 	case TypeSystemPropertyNameVariances:
-		return unsafe.Pointer(&c.varianceLinks.Get(r.target.(*ast.Symbol)).variances)
+		return &c.varianceLinks.Get(r.target.(*ast.Symbol)).variances.memoHeader
 	}
 	return nil
 }

@@ -12,7 +12,6 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
-	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/binder"
@@ -618,7 +617,7 @@ type Checker struct {
 	compareSymbols                              func(*ast.Symbol, *ast.Symbol) int
 	compareSymbolChains                         func([]*ast.Symbol, []*ast.Symbol) int
 	workSerials                                 uint32
-	workLinks                                   []memoKey
+	workLinks                                   []*memoHeader
 	workLinkSlots                               []*memoSlot
 	frames                                      []frame
 	symbolHashes                                map[*ast.Symbol]uint64
@@ -20680,7 +20679,7 @@ func (c *Checker) getBaseTypesUncached(t *Type) []*Type {
 		t.objectFlags &^= ObjectFlagsMembersResolved
 		data.baseTypesResolved = true
 		if c.logResults() {
-			c.journal = append(c.journal, undoEntry{unsafe.Pointer(&data.resolvedBaseTypes), func() { data.baseTypesResolved = false }, false})
+			c.journal = append(c.journal, undoEntry{&data.resolvedBaseTypes.memoHeader, func() { data.baseTypesResolved = false }, false})
 		}
 	}
 	return data.resolvedBaseTypes.get(c)
