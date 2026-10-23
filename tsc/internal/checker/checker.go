@@ -668,7 +668,9 @@ type Checker struct {
 	typeResolutions                             []TypeResolution
 	resolutionStart                             int
 	cycleHead                                   int              // 1-based index in typeResolutions of the outermost cycle in progress, or 0; see memo.go
-	currentNodeReports                          int              // Errors reported at the current node so far; see setUnlessReported
+	nodeReports                                 []*nodeReport    // Errors reported at the current node while collecting; see startNodeReports
+	nodeReportCollectors                        int              // Number of computations collecting nodeReports
+	nodeReportsCycleStart                       int              // 1 + lowest start of a cycle observed while collecting, or 0
 	cycleUndo                                   []cycleUndo      // Restores results cached while a cycle is in progress
 	cycleParticipants                           []TypeResolution // Computations that observed a cycle in progress
 	effectsMarkDepth                            int              // 1 + memo frame index of the innermost effects mark that may be rolled back, or 0
@@ -999,6 +1001,7 @@ type checkerStore struct {
 	deferredDiagnosticCallbacks             []func(c *Checker)
 	memoSlots                               map[memoKey]*memoSlot // Memo state of results computed when not reporting; see memo.go
 	memoPendingCount                        int                   // Number of memoSlots with unreplayed effects
+	memoReportSlots                         int                   // Number of memoSlots with reports; see setReported
 
 	mu sync.Mutex
 }
@@ -14725,9 +14728,15 @@ func (c *Checker) errorAtCurrentNode(message *diagnostics.Message, args ...any) 
 // were computed for that node, and are discarded so that other nodes
 // compute them again.
 func (c *Checker) reportAtCurrentNode(report func(c *Checker, node *ast.Node)) {
+	c.reportNode(&nodeReport{report})
+}
+
+func (c *Checker) reportNode(r *nodeReport) {
 	c.taintCurrentNode()
-	c.currentNodeReports++
-	c.reportAtCurrentNodeOnce(report)
+	if c.nodeReportCollectors != 0 {
+		c.nodeReports = append(c.nodeReports, r)
+	}
+	c.reportAtCurrentNodeOnce(r.report)
 }
 
 // reportAtCurrentNodeOnce is reportAtCurrentNode for an error whose result
@@ -20020,8 +20029,18 @@ func (c *Checker) markResolutionCycle(start int) {
 	if !c.reporting {
 		c.memoCycle(c.typeResolutions[start].memoDepth)
 	}
+	c.noteCycleStart(start)
 	if c.cycleHead == 0 || start+1 < c.cycleHead {
 		c.cycleHead = start + 1
+	}
+}
+
+// noteCycleStart records for computations collecting errors reported at the
+// current node that they observed a cycle starting at start; see
+// endNodeReports.
+func (c *Checker) noteCycleStart(start int) {
+	if c.nodeReportCollectors != 0 && (c.nodeReportsCycleStart == 0 || start < c.nodeReportsCycleStart) {
+		c.nodeReportsCycleStart = start + 1
 	}
 }
 
@@ -20157,6 +20176,7 @@ func (c *Checker) taintCurrentNode() {
 // of the stack observed the incomplete resolution at start without failing,
 // so results cached while it is in progress are discarded when it finishes.
 func (c *Checker) taintResolutionCycle(start int) {
+	c.noteCycleStart(start)
 	if !c.reporting {
 		c.memoCycle(c.typeResolutions[start].memoDepth)
 	}
@@ -24133,10 +24153,10 @@ func (c *Checker) getObjectTypeInstantiation(t *Type, m *TypeMapper, alias *Type
 	}
 	result, _ := data.instantiations.get(c, key)
 	if result == nil {
-		reports := c.currentNodeReports
+		reports := c.startNodeReports()
 		pushed := c.memoEnterActive() && data.instantiations.enter(c, key)
 		result = instantiate(newTypeMapper(typeParameters, typeArguments))
-		data.instantiations.setUnlessReported(c, key, result, reports)
+		data.instantiations.setReported(c, key, result, c.endNodeReports(reports))
 		c.exitMemo(pushed)
 		if result.flags&TypeFlagsObjectFlagsType != 0 && result.objectFlags&ObjectFlagsCouldContainTypeVariablesComputed == 0 {
 			// if `result` is one of the object types we tried to make (it may not be, due to how `instantiateMappedType` works), we can carry forward the type variable containment check from the input type arguments
@@ -24250,7 +24270,7 @@ func (c *Checker) getConditionalTypeInstantiation(t *Type, mapper *TypeMapper, f
 		key := getConditionalTypeKey(typeArguments, alias, forConstraint)
 		result, _ := root.instantiations.get(c, key)
 		if result == nil {
-			reports := c.currentNodeReports
+			reports := c.startNodeReports()
 			pushed := c.memoEnterActive() && root.instantiations.enter(c, key)
 			newMapper := newTypeMapper(root.outerTypeParameters, typeArguments)
 			checkType := root.checkType
@@ -24268,7 +24288,7 @@ func (c *Checker) getConditionalTypeInstantiation(t *Type, mapper *TypeMapper, f
 			} else {
 				result = c.getConditionalType(root, newMapper, forConstraint, alias)
 			}
-			root.instantiations.setUnlessReported(c, key, result, reports)
+			root.instantiations.setReported(c, key, result, c.endNodeReports(reports))
 			c.exitMemo(pushed)
 		}
 		return result
@@ -25698,7 +25718,7 @@ func (c *Checker) getDeclaredTypeOfTypeAlias(symbol *ast.Symbol) *Type {
 		if !c.pushTypeResolution(symbol, TypeSystemPropertyNameDeclaredType) {
 			return c.errorType
 		}
-		reports := c.currentNodeReports
+		reports := c.startNodeReports()
 		declaration := core.Find(symbol.Declarations(), ast.IsTypeOrJSTypeAliasDeclaration)
 		typeNode := declaration.Type()
 		t := c.getTypeFromTypeNode(typeNode)
@@ -25721,9 +25741,11 @@ func (c *Checker) getDeclaredTypeOfTypeAlias(symbol *ast.Symbol) *Type {
 			c.error(errorNode, diagnostics.Type_alias_0_circularly_references_itself, c.symbolToString(symbol))
 			t = c.errorType
 		}
-		if links.declaredType.get(c) == nil {
-			links.declaredType.setUnlessReported(c, t, reports)
+		nodeReports := c.endNodeReports(reports)
+		if links.declaredType.peek() == nil {
+			links.declaredType.setReported(c, t, nodeReports)
 		}
+		return links.declaredType.peek()
 	}
 	return links.declaredType.get(c)
 }

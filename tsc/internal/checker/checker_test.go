@@ -575,6 +575,7 @@ var unmemoizedCacheFields = map[string]string{
 	"checkerStore.ambientModules":                          unmemoizedProgram,
 	"checkerStore.memoSlots":                               unmemoizedMemoState,
 	"checkerStore.memoPendingCount":                        unmemoizedMemoState,
+	"checkerStore.memoReportSlots":                         unmemoizedMemoState,
 	"checkerStore.mu":                                      unmemoizedMemoState,
 	"checkerStore.diagnostics":                             unmemoizedReporting,
 	"checkerStore.suggestionDiagnostics":                   unmemoizedReporting,

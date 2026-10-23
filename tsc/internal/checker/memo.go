@@ -111,8 +111,9 @@ func (f *memoEffects) covers(deps []*memoEffects) bool {
 
 // memoSlot is the memo state of one memoized result.
 type memoSlot struct {
-	pending *memoEffects // Effects not yet replayed by a reporting activation
-	depth   int          // 1-based index in memoFrames of the outermost computation in progress, or 0
+	pending *memoEffects  // Effects not yet replayed by a reporting activation
+	depth   int           // 1-based index in memoFrames of the outermost computation in progress, or 0
+	reports []*nodeReport // Errors the computation reported at the current node; see setReported
 }
 
 // memo is a cached result. Cached checker state must live in a memo so that
@@ -179,16 +180,23 @@ func (m *memo[T]) setStable(c *Checker, v T) {
 	}
 }
 
-// setUnlessReported is setStable for a result whose computation started when
-// c.currentNodeReports was reports. If the computation reported errors at the
-// current node, the result is discarded with other results cached for that
-// node instead, so that every node reaching it computes it again and reports
-// the errors itself.
-func (m *memo[T]) setUnlessReported(c *Checker, v T, reports int) {
-	if c.currentNodeReports != reports && c.cycleHead != 0 {
-		m.logUndo(c)
+// setReported is setStable for a result whose computation collected errors
+// reported at the current node, as returned by endNodeReports. Every node
+// reusing the result reports them again, as it would had it computed the
+// result itself. If computing the result elsewhere may not report them (see
+// endNodeReports), it is instead discarded with other results cached for the
+// current node.
+func (m *memo[T]) setReported(c *Checker, v T, r nodeReports) {
+	if r.cyclic {
+		if c.cycleHead != 0 {
+			m.logUndo(c)
+		}
+		r.list = nil
 	}
 	m.setStable(c, v)
+	if r.list != nil || c.memoReportSlots != 0 && c.memoSlots[m.key()] != nil {
+		c.memoSlot(m.key()).setReports(c, r.list)
+	}
 }
 
 //go:noinline
@@ -317,12 +325,18 @@ func (m *memoMap[K, V]) logUndo(c *Checker, k K) {
 	}, false})
 }
 
-// setUnlessReported is setStable for an entry; see memo.setUnlessReported.
-func (m *memoMap[K, V]) setUnlessReported(c *Checker, k K, v V, reports int) {
-	if c.currentNodeReports != reports && c.cycleHead != 0 {
-		m.logUndo(c, k)
+// setReported is setStable for an entry; see memo.setReported.
+func (m *memoMap[K, V]) setReported(c *Checker, k K, v V, r nodeReports) {
+	if r.cyclic {
+		if c.cycleHead != 0 {
+			m.logUndo(c, k)
+		}
+		r.list = nil
 	}
 	m.setStable(c, k, v)
+	if r.list != nil || c.memoReportSlots != 0 && m.memoSlots[k] != nil {
+		m.slot(k).setReports(c, r.list)
+	}
 }
 
 // setStable is set for a result that defines the identity of what it
@@ -432,7 +446,7 @@ type memoFrame struct {
 // false (a reporting activation with nothing pending), they may skip enterMemo
 // and exitMemo entirely.
 func (c *Checker) memoActive() bool {
-	return !c.reporting || c.memoPendingCount != 0
+	return !c.reporting || c.memoPendingCount|c.memoReportSlots != 0
 }
 
 // memoEnterActive reports whether memoized entry points must call enterMemo
@@ -555,6 +569,9 @@ func (c *Checker) observeSlot(slot *memoSlot) {
 	if slot == nil {
 		return
 	}
+	if slot.reports != nil {
+		c.replayNodeReports(slot.reports)
+	}
 	if c.reporting {
 		c.replayPending(slot)
 		return
@@ -566,6 +583,80 @@ func (c *Checker) observeSlot(slot *memoSlot) {
 	}
 	if slot.depth != 0 {
 		c.memoCycle(slot.depth)
+	}
+}
+
+// A nodeReport is an error reported at the current node; see
+// reportAtCurrentNode. Replaying it reports the same *nodeReport, so that
+// reports collected more than once can be told apart from distinct ones.
+type nodeReport struct {
+	report func(c *Checker, node *ast.Node)
+}
+
+type nodeReportsMark struct {
+	reports     int
+	resolutions int
+	cycleStart  int
+}
+
+// nodeReports are the errors a computation reported at the current node.
+type nodeReports struct {
+	list   []*nodeReport
+	cyclic bool // Whether computing the result elsewhere may not report them
+}
+
+// startNodeReports starts collecting the errors a computation reports at the
+// current node, to be passed to endNodeReports when it finishes.
+func (c *Checker) startNodeReports() nodeReportsMark {
+	c.nodeReportCollectors++
+	mark := nodeReportsMark{len(c.nodeReports), len(c.typeResolutions), c.nodeReportsCycleStart}
+	c.nodeReportsCycleStart = 0
+	return mark
+}
+
+// endNodeReports returns the errors reported at the current node since mark.
+func (c *Checker) endNodeReports(mark nodeReportsMark) nodeReports {
+	var r nodeReports
+	for _, report := range c.nodeReports[mark.reports:] {
+		// Reusing a result more than once reports its errors each time.
+		if !slices.Contains(r.list, report) {
+			r.list = append(r.list, report)
+		}
+	}
+	// Errors reported outside of checking, or depending on a cycle in progress
+	// outside the computation, depend on what was computed before it.
+	start := c.nodeReportsCycleStart
+	r.cyclic = r.list != nil && (!c.reporting || start != 0 && start <= mark.resolutions)
+	if mark.cycleStart != 0 && (start == 0 || mark.cycleStart < start) {
+		start = mark.cycleStart
+	}
+	c.nodeReportsCycleStart = start
+	c.nodeReportCollectors--
+	if c.nodeReportCollectors == 0 {
+		clear(c.nodeReports)
+		c.nodeReports = c.nodeReports[:0]
+		c.nodeReportsCycleStart = 0
+	}
+	return r
+}
+
+func (s *memoSlot) setReports(c *Checker, reports []*nodeReport) {
+	switch {
+	case s.reports == nil && reports != nil:
+		c.memoReportSlots++
+	case s.reports != nil && reports == nil:
+		c.memoReportSlots--
+	}
+	s.reports = reports
+}
+
+// replayNodeReports reports at the current node the errors that computing a
+// reused result reported at the node it was computed for.
+//
+//go:noinline
+func (c *Checker) replayNodeReports(reports []*nodeReport) {
+	for _, r := range reports {
+		c.reportNode(r)
 	}
 }
 
