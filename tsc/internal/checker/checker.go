@@ -17282,16 +17282,8 @@ func (c *Checker) resolveAliasUncached(symbol *ast.Symbol) *ast.Symbol {
 			})
 			return result
 		}
-		saveCycleHead := c.cycleHead
-		undoStart := len(c.journal)
-		participantsStart := len(c.cycleParticipants)
-		mark := c.markEffects()
-		saveEffectsMarkDepth := c.effectsMarkDepth
-		c.effectsMarkDepth = mark.frameIndex + 1
-		defer func() {
-			c.effectsMarkDepth = saveEffectsMarkDepth
-			c.trimJournal()
-		}()
+		mark := c.markRollback()
+		defer c.releaseRollback(mark)
 		for {
 			if !c.pushTypeResolution(symbol, TypeSystemPropertyNameAliasTarget) {
 				return c.unknownSymbol
@@ -17307,7 +17299,7 @@ func (c *Checker) resolveAliasUncached(symbol *ast.Symbol) *ast.Symbol {
 			}
 			if top := &c.typeResolutions[len(c.typeResolutions)-1]; !top.result && top.canonicalMembers != nil {
 				members := c.popResolutionRestart()
-				c.discardCycleSince(undoStart, participantsStart, saveCycleHead, mark)
+				c.rollBackTo(mark)
 				c.resolveStructuredTypeMembers(members)
 				if links.aliasTarget.get(c) != nil {
 					break
@@ -23674,12 +23666,7 @@ func (c *Checker) resolveTypeParameterDefault(t *Type) {
 		return
 	}
 	d.resolvedDefaultType.enter(c)
-	saveCycleHead := c.cycleHead
-	undoStart := len(c.journal)
-	participantsStart := len(c.cycleParticipants)
-	mark := c.markEffects()
-	saveEffectsMarkDepth := c.effectsMarkDepth
-	c.effectsMarkDepth = mark.frameIndex + 1
+	mark := c.markRollback()
 	for {
 		// To block recursion, set the initial value to the resolvingDefaultType.
 		// Markers of a resolution in progress are never observed once it
@@ -23707,11 +23694,10 @@ func (c *Checker) resolveTypeParameterDefault(t *Type) {
 			d.resolvedDefaultType.set(c, defaultType)
 			break
 		}
-		c.discardCycleSince(undoStart, participantsStart, saveCycleHead, mark)
+		c.rollBackTo(mark)
 		c.getResolvedTypeParameterDefault(canonical.(*Type))
 	}
-	c.effectsMarkDepth = saveEffectsMarkDepth
-	c.trimJournal()
+	c.releaseRollback(mark)
 	c.exitMemo()
 }
 

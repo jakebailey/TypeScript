@@ -1560,12 +1560,7 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 	}
 	c.varianceMeasuring[symbol]++
 	guessesStart := len(c.varianceGuessed)
-	saveCycleHead := c.cycleHead
-	undoStart := len(c.journal)
-	participantsStart := len(c.cycleParticipants)
-	mark := c.markEffects()
-	saveEffectsMarkDepth := c.effectsMarkDepth
-	c.effectsMarkDepth = mark.frameIndex + 1
+	mark := c.markRollback()
 	var variances []VarianceFlags
 	for {
 		variances = c.measureVariances(symbol, typeParameters)
@@ -1591,7 +1586,7 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 		c.varianceGuesses[symbol] = variances
 		entry.cycleStart = math.MaxInt
 		entry.guessChanged = false
-		c.discardCycleSince(undoStart, participantsStart, saveCycleHead, mark)
+		c.rollBackTo(mark)
 	}
 	if c.varianceStack[index].cycleStart >= index {
 		for _, s := range c.varianceGuessed[guessesStart:] {
@@ -1599,8 +1594,7 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 		}
 		c.varianceGuessed = c.varianceGuessed[:guessesStart]
 	}
-	c.effectsMarkDepth = saveEffectsMarkDepth
-	c.trimJournal()
+	c.releaseRollback(mark)
 	links.variances.set(c, variances)
 	c.varianceStack = c.varianceStack[:index]
 	c.popTypeResolution()

@@ -958,7 +958,7 @@ func (c *Checker) memoCycle(depth int) {
 }
 
 // logDepsUndo logs the dependencies of a computation in progress below the
-// innermost effects mark, which are about to grow, so discardCycleSince can
+// innermost effects mark, which are about to grow, so rollBackTo can
 // restore them.
 //
 //go:noinline
@@ -1147,17 +1147,45 @@ func (c *Checker) raiseCycleHead(head int) {
 	}
 }
 
-// discardCycleSince discards the results cached since the given positions
-// of the journal and the cycle participants, restoring the cycle head in effect
-// then, so a computation in a cycle can run again from the same state. The
-// effects of computing the discarded results are discarded with them, and
-// those recorded by the computation in progress are rolled back to the given
-// mark, as if the discarded computations had never run.
-func (c *Checker) discardCycleSince(undoStart int, participantsStart int, cycleHead int, mark memoEffectsMark) {
-	c.rollBack(undoStart)
-	c.cycleParticipants = c.cycleParticipants[:min(participantsStart, len(c.cycleParticipants))]
-	c.cycleHead = cycleHead
-	c.discardEffectsSince(mark)
+// A rollbackMark is a position in the computation in progress to which it
+// can roll back, so that it can run again from the same state, as if what it
+// computed since had never run. From markRollback to releaseRollback, the
+// journal logs all that may have to be rolled back.
+type rollbackMark struct {
+	journal          int
+	participants     int
+	cycleHead        int
+	effects          memoEffectsMark
+	effectsMarkDepth int // Checker.effectsMarkDepth to restore on release
+}
+
+func (c *Checker) markRollback() rollbackMark {
+	m := rollbackMark{
+		journal:          len(c.journal),
+		participants:     len(c.cycleParticipants),
+		cycleHead:        c.cycleHead,
+		effects:          c.markEffects(),
+		effectsMarkDepth: c.effectsMarkDepth,
+	}
+	c.effectsMarkDepth = m.effects.frameIndex + 1
+	return m
+}
+
+// rollBackTo discards the results cached since m, with the effects of
+// computing them, restoring the cycle in progress then, and rolls back the
+// effects recorded by the computation in progress.
+func (c *Checker) rollBackTo(m rollbackMark) {
+	c.rollBack(m.journal)
+	c.cycleParticipants = c.cycleParticipants[:min(m.participants, len(c.cycleParticipants))]
+	c.cycleHead = m.cycleHead
+	c.discardEffectsSince(m.effects)
+}
+
+// releaseRollback ends the period during which the computation in progress
+// can roll back to m.
+func (c *Checker) releaseRollback(m rollbackMark) {
+	c.effectsMarkDepth = m.effectsMarkDepth
+	c.trimJournal()
 }
 
 // memoEffectsMark is a position in the effects recorded by a computation in
@@ -1196,7 +1224,7 @@ func (f *memoEffects) truncateDeps(n int) {
 }
 
 // logPendingUndo logs the effects of the result in the slot, which are about
-// to change, so discardCycleSince can restore them.
+// to change, so rollBackTo can restore them.
 //
 //go:noinline
 func (c *Checker) logPendingUndo(slot *memoSlot) {
