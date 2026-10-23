@@ -1109,7 +1109,8 @@ func setKeyedBits[T ~uint32](c *Checker, key memoKey, p *T, mask T, bits T) {
 // endCycle discards the results cached since the outermost cycle in progress
 // was detected, except those of its participants.
 func (c *Checker) endCycle() {
-	undo := c.journal[min(c.cycleMark, len(c.journal)):]
+	mark := min(c.cycleMark, len(c.journal))
+	undo := c.journal[mark:]
 	participants := c.cycleParticipants
 	c.cycleHead = 0
 	c.cycleParticipants = nil
@@ -1130,9 +1131,9 @@ func (c *Checker) endCycle() {
 		}
 		u.restore()
 	}
-	// Entries logged for an enclosing effects mark are dropped too; that
-	// mark then has nothing left to roll back.
-	c.journal = nil
+	clear(undo)
+	c.journal = c.journal[:mark]
+	c.trimJournal()
 }
 
 // raiseCycleHead makes the resolution at index head-1 part of the cycle in
