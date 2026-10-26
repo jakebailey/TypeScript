@@ -788,7 +788,7 @@ type Type struct {
 	flags       TypeFlags
 	objectFlags ObjectFlags
 	id          TypeId
-	kind        typeKind
+	kind        typeKind `customlint:"protected"`
 	symbol      *ast.Symbol
 	alias       *TypeAlias
 	checker     *Checker
