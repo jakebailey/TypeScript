@@ -82,6 +82,7 @@ func (c *Checker) getFlowTypeOfReference(reference *ast.Node, declaredType *Type
 
 func (c *Checker) getFlowTypeOfReferenceEx(reference *ast.Node, declaredType *Type, initialType *Type, flowContainer *ast.Node, flowNode *ast.FlowNode) *Type {
 	if c.flowAnalysisDisabled {
+		c.noteTransientRead()
 		return c.errorType
 	}
 	if flowNode == nil {
@@ -150,6 +151,7 @@ func (c *Checker) getTypeAtFlowNode(f *FlowState, flow *ast.FlowNode) FlowType {
 			tr.Instant(tracing.PhaseCheckTypes, "getTypeAtFlowNode_DepthLimit", map[string]any{"depth": f.depth})
 		}
 		c.flowAnalysisDisabled = true
+		c.noteTransientRead()
 		c.reportFlowControlError(f.reference)
 		return FlowType{t: c.errorType}
 	}
@@ -417,7 +419,10 @@ func (c *Checker) narrowType(f *FlowState, t *Type, expr *ast.Node, assumeTrue b
 	case ast.KindIdentifier:
 		// When narrowing a reference to a const variable, non-assigned parameter, or readonly property, we inline
 		// up to five levels of aliased conditional expressions that are themselves declared as const variables.
-		if !c.isMatchingReference(f.reference, expr) && c.inlineLevel < 5 {
+		if c.inlineLevel >= 5 {
+			// Whether this inlines depends on how deep the enclosing inlining is.
+			c.noteTransientRead()
+		} else if !c.isMatchingReference(f.reference, expr) {
 			symbol := c.getResolvedSymbol(expr)
 			if c.isConstantVariable(symbol) {
 				declaration := symbol.ValueDeclaration()
@@ -1380,6 +1385,7 @@ func (c *Checker) getTypeAtFlowLoopLabel(f *FlowState, flow *ast.FlowNode) FlowT
 	// path that leads to the top.
 	for _, loopInfo := range c.flowLoopStack {
 		if loopInfo.key == key && len(loopInfo.types) != 0 {
+			c.noteTransientRead()
 			return c.newFlowType(c.getUnionOrEvolvingArrayType(f, loopInfo.types, UnionReductionLiteral), true /*incomplete*/)
 		}
 	}
