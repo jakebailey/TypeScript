@@ -2617,6 +2617,7 @@ type Relater struct {
 	targetDepth    int
 	expandingFlags ExpandingFlags
 	overflow       bool
+	maybeSetActive bool
 	relationCount  int
 	next           *Relater
 }
@@ -2631,7 +2632,9 @@ func (c *Checker) getRelater() *Relater {
 }
 
 func (c *Checker) putRelater(r *Relater) {
-	r.maybeKeysSet.Clear()
+	if r.maybeSetActive {
+		r.maybeKeysSet.Clear()
+	}
 	*r = Relater{
 		c:            c,
 		maybeKeys:    r.maybeKeys[:0],
@@ -3143,7 +3146,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		return TernaryFalse
 	}
 	// If source and target are already being compared, consider them related with assumptions
-	if r.maybeKeysSet.Has(id) {
+	if r.hasMaybeKey(id) {
 		return TernaryMaybe
 	}
 	// A constrained key indicates that we have type references that reference constrained
@@ -3151,7 +3154,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	// were unconstrained.
 	if constrained {
 		broadestEquivalentId, _ := getRelationKey(source, target, intersectionState, r.relation == r.c.identityRelation, true /*ignoreConstraints*/)
-		if r.maybeKeysSet.Has(broadestEquivalentId) {
+		if r.hasMaybeKey(broadestEquivalentId) {
 			return TernaryMaybe
 		}
 	}
@@ -3162,8 +3165,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		return TernaryMaybe
 	}
 	maybeStart := len(r.maybeKeys)
-	r.maybeKeys = append(r.maybeKeys, id)
-	r.maybeKeysSet.Add(id)
+	r.pushMaybeKey(id)
 	saveExpandingFlags := r.expandingFlags
 	if recursionFlags&RecursionFlagsSource != 0 {
 		r.sourceStack = append(r.sourceStack, source)
@@ -3223,9 +3225,39 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	return result
 }
 
+// Relation stacks are almost always shallow, and scanning a short slice is cheaper than
+// maintaining a hash set, so maybeKeysSet mirrors maybeKeys only while maybeSetActive,
+// once the stack has grown past this many keys.
+const maxLinearMaybeKeys = 32
+
+func (r *Relater) hasMaybeKey(id relationKey) bool {
+	if r.maybeSetActive {
+		return r.maybeKeysSet.Has(id)
+	}
+	return slices.Contains(r.maybeKeys, id)
+}
+
+func (r *Relater) pushMaybeKey(id relationKey) {
+	r.maybeKeys = append(r.maybeKeys, id)
+	if r.maybeSetActive {
+		r.maybeKeysSet.Add(id)
+	} else if len(r.maybeKeys) > maxLinearMaybeKeys {
+		r.maybeSetActive = true
+		for _, key := range r.maybeKeys {
+			r.maybeKeysSet.Add(key)
+		}
+	}
+}
+
 func (r *Relater) resetMaybeStack(maybeStart int, propagatingVarianceFlags RelationComparisonResult, markAllAsSucceeded bool) {
+	if r.maybeSetActive && maybeStart <= maxLinearMaybeKeys {
+		r.maybeKeysSet.Clear()
+		r.maybeSetActive = false
+	}
 	for i := maybeStart; i < len(r.maybeKeys); i++ {
-		r.maybeKeysSet.Delete(r.maybeKeys[i])
+		if r.maybeSetActive {
+			r.maybeKeysSet.Delete(r.maybeKeys[i])
+		}
 		if markAllAsSucceeded {
 			r.relation.set(r.maybeKeys[i], RelationComparisonResultSucceeded|propagatingVarianceFlags)
 			r.relationCount--
