@@ -89,6 +89,11 @@ type TypeResolution struct {
 	// canonical is the member of a cycle headed by this resolution that is
 	// resolved first; see observeCircularHead.
 	canonical TypeSystemEntity
+	// restartHidden records that a cycle entered below this resolution of a
+	// module table passes through it; see resolveModuleTableMembers.
+	restartHidden bool
+	// participant records that the resolution is in cycleParticipants.
+	participant bool
 }
 
 // ContextualInfo
@@ -20142,7 +20147,6 @@ func (c *Checker) pushTypeResolution(target TypeSystemEntity, propertyName TypeS
 	resolutionCycleStartIndex := c.findResolutionCycleStartIndex(target, propertyName)
 	if resolutionCycleStartIndex >= 0 {
 		if !c.yieldCycleToMembers(resolutionCycleStartIndex) {
-			c.markResolutionCycle(resolutionCycleStartIndex)
 			return false
 		}
 	}
@@ -20215,18 +20219,31 @@ func (c *Checker) observeHiddenMembers(t *Type) {
 // member table. Entering the cycle at the member table instead would not
 // fail, as the table is available while it is resolved, so the resolution
 // re-entered is computed again as if the table had been entered first: by
-// the caller, with everything entered before the table hidden. Otherwise it
-// yields as yieldCycle does.
+// the caller, with everything entered before the table hidden. A module
+// table is instead resolved again itself, as if entered first (see
+// resolveModuleTableMembers), so everything above it fails until then, to
+// be discarded. Otherwise it yields as yieldCycle does. It reports whether
+// the resolution re-entered may be pushed.
 func (c *Checker) yieldCycleToMembers(start int) bool {
 	if m := c.findMembersInCycle(start); m >= 0 {
 		r := &c.resolutions[start].typeResolution
 		if c.isYieldingTo(r.target, r.propertyName) {
+			c.markResolutionCycle(start)
+			return false
+		}
+		if t := &c.resolutions[m].typeResolution; t.propertyName == TypeSystemPropertyNameStructuredMembers && c.isModuleTableType(t.target.(*Type)) {
+			t.restartHidden = true
+			c.markResolutionCycle(m)
 			return false
 		}
 		c.beginCycleYield(r.target, r.propertyName, len(c.resolutions), m)
 		return true
 	}
-	return c.yieldCycle(start)
+	if !c.yieldCycle(start) {
+		c.markResolutionCycle(start)
+		return false
+	}
+	return true
 }
 
 // findMembersInCycle returns the index in resolutions of the outermost
@@ -20344,11 +20361,12 @@ func (c *Checker) resolvingAnywhereIndex(target TypeSystemEntity, propertyName T
 // cycle records its canonical member, the first in program order, and the
 // head resolves that member first when it finishes; see popCircularHead.
 // Everything else cached during the cycle is discarded like for
-// isResolutionInProgress.
-func (c *Checker) observeCircularHead(target TypeSystemEntity, propertyName TypeSystemPropertyName, compare func(a, b TypeSystemEntity) int) {
+// isResolutionInProgress. It returns the index in resolutions of the head, or
+// -1 if target is not in progress.
+func (c *Checker) observeCircularHead(target TypeSystemEntity, propertyName TypeSystemPropertyName, compare func(a, b TypeSystemEntity) int) int {
 	start := c.findResolutionCycleStartIndex(target, propertyName)
 	if start < 0 {
-		return
+		return -1
 	}
 	c.markTypeResolutionCircular(start)
 	head := &c.resolutions[start].typeResolution
@@ -20359,6 +20377,19 @@ func (c *Checker) observeCircularHead(target TypeSystemEntity, propertyName Type
 		}
 	}
 	head.canonical = canonical
+	return start
+}
+
+// addCycleParticipants keeps the results of the type resolutions from start
+// to the top of the stack when the cycle in progress ends, as they would be
+// kept had the resolution at start been entered first.
+func (c *Checker) addCycleParticipants(start int) {
+	for i := start; i < len(c.resolutions); i++ {
+		if r := &c.resolutions[i].typeResolution; c.resolutions[i].isTypeResolution && r.result && !r.participant {
+			r.participant = true
+			c.cycleParticipants = append(c.cycleParticipants, *r)
+		}
+	}
 }
 
 // popCircularHead pops a resolution that may head a cycle observed by
@@ -20882,7 +20913,14 @@ func (c *Checker) resolveStructuredTypeMembers(t *Type) *StructuredType {
 	if t.objectFlags&ObjectFlagsMembersResolving != 0 {
 		// Resolving members may observe the type itself, whose members are
 		// then incomplete.
-		if c.isResolutionInProgress(t, TypeSystemPropertyNameStructuredMembers) && t.AsStructuredType().getLazyState() != nil {
+		if c.isModuleTableType(t) {
+			if start := c.observeCircularHead(t, TypeSystemPropertyNameStructuredMembers, c.compareModuleTables); start >= 0 {
+				// When the table is canonical, the computations that read
+				// its partial members keep their results, as they would
+				// had the table been entered first.
+				c.addCycleParticipants(start)
+			}
+		} else if c.isResolutionInProgress(t, TypeSystemPropertyNameStructuredMembers) && t.AsStructuredType().getLazyState() != nil {
 			// Its declared members are available while inherited members
 			// are resolved; see resolveObjectTypeMembers.
 			return t.AsStructuredType()
@@ -20899,6 +20937,10 @@ func (c *Checker) resolveStructuredTypeMembers(t *Type) *StructuredType {
 
 func (c *Checker) resolveStructuredTypeMembersUncached(t *Type) *StructuredType {
 	if t.objectFlags&ObjectFlagsMembersResolved == 0 {
+		if t.objectFlags&ObjectFlagsMembersResolving == 0 && c.isModuleTableType(t) {
+			c.resolveModuleTableMembers(t)
+			return t.AsStructuredType()
+		}
 		// Many kinds of types make members available before they are
 		// complete, so the resolution is on the stack, but never fails.
 		outermost := t.objectFlags&ObjectFlagsMembersResolving == 0
@@ -20936,6 +20978,102 @@ func (c *Checker) resolveStructuredTypeMembersUncached(t *Type) *StructuredType 
 		}
 	}
 	return t.AsStructuredType()
+}
+
+// isModuleTableType reports whether t is the type of a module object, whose
+// members are the exports of the module.
+func (c *Checker) isModuleTableType(t *Type) bool {
+	if t.objectFlags&ObjectFlagsAnonymous == 0 || t.symbol == nil || t.AsObjectType().target != nil {
+		return false
+	}
+	flags := c.getMergedSymbol(t.symbol).Flags()
+	return flags&ast.SymbolFlagsValueModule != 0 && flags&(ast.SymbolFlagsFunction|ast.SymbolFlagsClass|ast.SymbolFlagsEnum|ast.SymbolFlagsTypeLiteral) == 0
+}
+
+// compareModuleTables orders the resolutions of module object types in a
+// cycle by the declarations of their modules, before any other resolutions.
+func (c *Checker) compareModuleTables(a, b TypeSystemEntity) int {
+	ta, tb := a.(*Type), b.(*Type)
+	ma, mb := c.isModuleTableType(ta), c.isModuleTableType(tb)
+	switch {
+	case ma && mb:
+		return c.compareSymbols(ta.symbol, tb.symbol)
+	case ma:
+		return -1
+	case mb:
+		return 1
+	}
+	return 0
+}
+
+// resolveModuleTableMembers resolves the members of a module object type.
+// Members are available while they are resolved, so module tables that
+// read each other's members see the partial members of whichever was
+// entered first. The table of the module first in program order is always
+// resolved first, discarding whatever was computed starting from another,
+// and a table that a cycle entered elsewhere passes through is resolved
+// again as if the cycle had been entered at the table.
+func (c *Checker) resolveModuleTableMembers(t *Type) {
+	if c.checking {
+		// Results computed starting from another table are discarded along
+		// with their effects, so resolve while recording effects.
+		c.withoutChecking(func() {
+			c.resolveModuleTableMembers(t)
+		})
+		return
+	}
+	mark := c.markDiscard()
+	hidden := false
+	for {
+		t.objectFlags |= ObjectFlagsMembersResolving
+		c.beginTypeResolution(t, TypeSystemPropertyNameStructuredMembers)
+		c.resolveAnonymousTypeMembers(t)
+		r := c.topTypeResolution()
+		restart := r.restartHidden && !hidden
+		canonical := r.canonical
+		if canonical == t {
+			canonical = nil
+		}
+		if canonical != nil || restart {
+			// Discard while the cycle is still in progress, so that the
+			// results of its participants are discarded too.
+			c.discardSince(mark)
+		}
+		c.popTypeResolution()
+		t.objectFlags &^= ObjectFlagsMembersResolving
+		if canonical == nil && !restart {
+			break
+		}
+		c.clearStructuredMembers(t)
+		if canonical != nil {
+			c.resolveStructuredTypeMembers(canonical.(*Type))
+			continue
+		}
+		// A cycle entered below the table passed through it, so the table
+		// is resolved again as if it had been entered first: with the
+		// computations in progress below it hidden.
+		hidden = true
+		c.beginCycleYield(t, TypeSystemPropertyNameStructuredMembers, -1, int(c.resolving[memoKeyOf(t, memoStructuredMembers)]))
+	}
+	if hidden {
+		c.endCycleYield()
+	}
+	c.releaseDiscardMark(mark)
+	if c.logResults() {
+		c.logMembersDiscard(t)
+	}
+}
+
+func (c *Checker) clearStructuredMembers(t *Type) {
+	t.objectFlags &^= ObjectFlagsMembersResolved
+	data := t.AsStructuredType()
+	data.members = nil
+	data.properties = nil
+	if data.extra != nil {
+		data.extra.signatures = nil
+		data.extra.callSignatureCount = 0
+		data.extra.indexInfos = nil
+	}
 }
 
 // logMembersDiscard discards the members of t when the cycle in progress
