@@ -22944,18 +22944,26 @@ func (c *Checker) instantiateTypeWorker(t *Type, m *TypeMapper, alias *TypeAlias
 				source = origin
 			}
 		}
-		types := source.Types()
-		newTypes := c.instantiateTypes(types, m)
-		if core.Same(newTypes, types) && alias.Symbol() == t.alias.Symbol() {
+		// The instantiated constituents are only needed while constructing the result, which
+		// copies them into a new type if needed, so borrow temporary storage for them.
+		set := c.getTemporaryTypeSet()
+		defer c.releaseTemporaryTypeSet(set)
+		changed := false
+		for _, u := range source.Types() {
+			newType := c.instantiateType(u, m)
+			changed = changed || newType != u
+			set.values = append(set.values, newType)
+		}
+		if !changed && alias.Symbol() == t.alias.Symbol() {
 			return t
 		}
 		if alias == nil {
 			alias = c.instantiateTypeAlias(t.alias, m)
 		}
 		if source.flags&TypeFlagsIntersection != 0 {
-			return c.getIntersectionTypeEx(newTypes, IntersectionFlagsNone, alias)
+			return c.getIntersectionTypeEx(set.values, IntersectionFlagsNone, alias)
 		}
-		return c.getUnionTypeEx(newTypes, UnionReductionLiteral, alias, nil /*origin*/)
+		return c.getUnionTypeEx(set.values, UnionReductionLiteral, alias, nil /*origin*/)
 	case flags&TypeFlagsIndex != 0:
 		return c.getIndexType(c.instantiateType(t.Target(), m))
 	case flags&TypeFlagsIndexedAccess != 0:
@@ -26476,13 +26484,18 @@ func (c *Checker) getUnionTypeWorker(types []*Type, unionReduction UnionReductio
 		}
 	}
 	if origin == nil && includes&TypeFlagsUnion != 0 {
-		namedUnions := c.addNamedUnions(nil, types)
-		var reducedTypes []*Type
+		namedSet := c.getTemporaryTypeSet()
+		defer c.releaseTemporaryTypeSet(namedSet)
+		namedSet.values = c.addNamedUnions(namedSet.values, types)
+		namedUnions := namedSet.values
+		reducedSet := c.getTemporaryTypeSet()
+		defer c.releaseTemporaryTypeSet(reducedSet)
 		for _, t := range typeSet {
 			if !core.Some(namedUnions, func(u *Type) bool { return containsType(u.Types(), t) }) {
-				reducedTypes = append(reducedTypes, t)
+				reducedSet.values = append(reducedSet.values, t)
 			}
 		}
+		reducedTypes := reducedSet.values
 		if alias == nil && len(namedUnions) == 1 && len(reducedTypes) == 0 {
 			return namedUnions[0]
 		}
@@ -26496,6 +26509,7 @@ func (c *Checker) getUnionTypeWorker(types []*Type, unionReduction UnionReductio
 			for _, t := range namedUnions {
 				reducedTypes, _ = insertType(reducedTypes, t)
 			}
+			reducedSet.values = reducedTypes
 			origin = c.newUnionType(ObjectFlagsNone, reducedTypes)
 		}
 	}
@@ -26975,7 +26989,12 @@ func (c *Checker) getIntersectionTypeEx(types []*Type, flags IntersectionFlags, 
 				if !c.checkCrossProductUnion(typeSet) {
 					return c.errorType
 				}
-				constituents := c.getCrossProductIntersections(typeSet, flags)
+				// The constituents are only needed while constructing the result, which copies them
+				// into a new type if needed, so borrow temporary storage for them.
+				constituentSet := c.getTemporaryTypeSet()
+				defer c.releaseTemporaryTypeSet(constituentSet)
+				constituentSet.values = c.getCrossProductIntersections(constituentSet.values, typeSet, flags)
+				constituents := constituentSet.values
 				// We attach a denormalized origin type when at least one constituent of the cross-product union is an
 				// intersection (i.e. when the intersection didn't just reduce one or more unions to smaller unions) and
 				// the denormalized origin has fewer constituents than the union itself.
@@ -27199,11 +27218,17 @@ func (c *Checker) unionContainsType(union *Type, t *Type, matchSymbol bool) bool
 	return primitive != nil && containsType(types, primitive)
 }
 
-func (c *Checker) getCrossProductIntersections(types []*Type, flags IntersectionFlags) []*Type {
+// getCrossProductIntersections appends the non-never intersections in the cross product of types to
+// intersections.
+func (c *Checker) getCrossProductIntersections(intersections []*Type, types []*Type, flags IntersectionFlags) []*Type {
 	count := c.getCrossProductUnionSize(types)
-	var intersections []*Type
+	// Every iteration replaces each union with one of its constituents, so a single scratch list
+	// suffices; getIntersectionTypeEx copies its input when it creates a new type.
+	set := c.getTemporaryTypeSet()
+	defer c.releaseTemporaryTypeSet(set)
+	set.values = append(set.values, types...)
+	constituents := set.values
 	for i := range count {
-		constituents := slices.Clone(types)
 		n := i
 		for j := len(types) - 1; j >= 0; j-- {
 			if types[j].flags&TypeFlagsUnion != 0 {
@@ -27749,12 +27774,15 @@ func (c *Checker) getIndexedAccessTypeOrUndefined(objectType *Type, indexType *T
 	// skipping straight to getPropertyTypeForIndexType gives errors with 'boolean' instead of 'true'.
 	apparentObjectType := c.getReducedApparentType(objectType)
 	if indexType.flags&TypeFlagsUnion != 0 && indexType.flags&TypeFlagsBoolean == 0 {
-		var propTypes []*Type
+		// The property types are only needed while constructing the result, which copies them
+		// into a new type if needed, so borrow temporary storage for them.
+		set := c.getTemporaryTypeSet()
+		defer c.releaseTemporaryTypeSet(set)
 		wasMissingProp := false
 		for _, t := range indexType.Types() {
 			propType := c.getPropertyTypeForIndexType(objectType, apparentObjectType, t, indexType, accessNode, accessFlags|core.IfElse(wasMissingProp, AccessFlagsSuppressNoImplicitAnyError, 0))
 			if propType != nil {
-				propTypes = append(propTypes, propType)
+				set.values = append(set.values, propType)
 			} else if accessNode == nil {
 				// If there's no error node, we can immediately stop, since error reporting is off
 				return nil
@@ -27767,9 +27795,9 @@ func (c *Checker) getIndexedAccessTypeOrUndefined(objectType *Type, indexType *T
 			return nil
 		}
 		if accessFlags&AccessFlagsWriting != 0 {
-			return c.getIntersectionTypeEx(propTypes, IntersectionFlagsNone, alias)
+			return c.getIntersectionTypeEx(set.values, IntersectionFlagsNone, alias)
 		}
-		return c.getUnionTypeEx(propTypes, UnionReductionLiteral, alias, nil)
+		return c.getUnionTypeEx(set.values, UnionReductionLiteral, alias, nil)
 	}
 	return c.getPropertyTypeForIndexType(objectType, apparentObjectType, indexType, indexType, accessNode, accessFlags|AccessFlagsCacheSymbol|AccessFlagsReportDeprecated)
 }
