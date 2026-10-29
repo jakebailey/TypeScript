@@ -696,6 +696,7 @@ type Checker struct {
 	memberLayoutArena                           core.Arena[MemberLayout]
 	layoutMemberInfos                           map[string]MemberInfo
 	freeTypeSets                                *temporaryTypeSet
+	keyBuilder                                  keyBuilder
 	freePropertyCounts                          *temporaryPropertyCounts
 	mergedSymbols                               map[*ast.Symbol]*ast.Symbol
 	mergedExportsChecked                        collections.Set[*ast.Symbol]
@@ -17816,8 +17817,26 @@ type keyBuilder struct {
 	inlineBuffer   [192]byte
 }
 
+// Do not retain arbitrarily large overflow buffers in a reused keyBuilder.
+const maxRetainedKeyBufferSize = 1 << 16
+
+// getKeyBuilder returns the checker's reusable keyBuilder, reset to empty. Keys that don't fit
+// in the inline buffer (for example, those of large unions) would otherwise allocate a fresh
+// overflow buffer every time; the reused builder keeps its overflow buffer between keys. Only
+// one key can be built at a time, so callers must not reenter the checker while building a key.
+func (c *Checker) getKeyBuilder() *keyBuilder {
+	b := &c.keyBuilder
+	b.inlineLength = 0
+	if cap(b.overflowBuffer) > maxRetainedKeyBufferSize {
+		b.overflowBuffer = nil
+	} else {
+		b.overflowBuffer = b.overflowBuffer[:0]
+	}
+	return b
+}
+
 func (b *keyBuilder) hash() CacheHashKey {
-	if b.overflowBuffer == nil {
+	if len(b.overflowBuffer) == 0 {
 		return CacheHashKey(xxh3.Hash128(b.inlineBuffer[:b.inlineLength]))
 	}
 	return CacheHashKey(xxh3.Hash128(append(b.overflowBuffer, b.inlineBuffer[:b.inlineLength]...)))
@@ -17831,7 +17850,7 @@ func (b *keyBuilder) spill() {
 }
 
 func (b *keyBuilder) reserve(size int) {
-	if b.overflowBuffer != nil || b.inlineLength+size > len(b.inlineBuffer) {
+	if len(b.overflowBuffer) != 0 || b.inlineLength+size > len(b.inlineBuffer) {
 		b.overflowBuffer = slices.Grow(b.overflowBuffer, b.inlineLength+size)
 	}
 }
@@ -17958,8 +17977,8 @@ func getAliasKey(alias *TypeAlias) CacheHashKey {
 	return b.hash()
 }
 
-func getUnionKey(types []*Type, origin *Type, alias *TypeAlias) CacheHashKey {
-	var b keyBuilder
+func (c *Checker) getUnionKey(types []*Type, origin *Type, alias *TypeAlias) CacheHashKey {
+	b := c.getKeyBuilder()
 	switch {
 	case origin == nil:
 		b.writeTypes(types)
@@ -17982,8 +18001,8 @@ func getUnionKey(types []*Type, origin *Type, alias *TypeAlias) CacheHashKey {
 	return b.hash()
 }
 
-func getIntersectionKey(types []*Type, flags IntersectionFlags, alias *TypeAlias) CacheHashKey {
-	var b keyBuilder
+func (c *Checker) getIntersectionKey(types []*Type, flags IntersectionFlags, alias *TypeAlias) CacheHashKey {
+	b := c.getKeyBuilder()
 	b.writeTypes(types)
 	if flags&IntersectionFlagsNoConstraintReduction == 0 {
 		b.writeAlias(alias)
@@ -18039,8 +18058,8 @@ func getIndexedAccessKey(objectType *Type, indexType *Type, accessFlags AccessFl
 	return b.hash()
 }
 
-func getTemplateTypeKey(texts []string, types []*Type) CacheHashKey {
-	var b keyBuilder
+func (c *Checker) getTemplateTypeKey(texts []string, types []*Type) CacheHashKey {
+	b := c.getKeyBuilder()
 	b.writeTypes(types)
 	b.writeByte('|')
 	for _, s := range texts {
@@ -26493,7 +26512,7 @@ func (c *Checker) getUnionTypeFromSortedList(types []*Type, precomputedObjectFla
 	if len(types) == 1 {
 		return types[0]
 	}
-	key := getUnionKey(types, origin, alias)
+	key := c.getUnionKey(types, origin, alias)
 	t := c.unionTypes[key]
 	if t == nil {
 		t = c.newUnionType(precomputedObjectFlags|c.getPropagatingFlagsOfTypes(types, TypeFlagsNullable), types)
@@ -26916,7 +26935,7 @@ func (c *Checker) getIntersectionTypeEx(types []*Type, flags IntersectionFlags, 
 			}
 		}
 	}
-	key := getIntersectionKey(typeSet, flags, alias)
+	key := c.getIntersectionKey(typeSet, flags, alias)
 	result := c.intersectionTypes[key]
 	if result == nil {
 		if includes&TypeFlagsUnion != 0 {
@@ -29996,7 +30015,7 @@ func (c *Checker) getTemplateLiteralType(texts []string, types []*Type) *Type {
 			return newTypes[0]
 		}
 	}
-	key := getTemplateTypeKey(newTexts, newTypes)
+	key := c.getTemplateTypeKey(newTexts, newTypes)
 	t := c.templateLiteralTypes[key]
 	if t == nil {
 		t = c.newTemplateLiteralType(newTexts, newTypes)

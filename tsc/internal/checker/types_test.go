@@ -138,6 +138,18 @@ func TestKeyBuilder(t *testing.T) {
 			builder.writeString("suffix")
 			assert.Equal(t, builder.hash(), CacheHashKey(xxh3.Hash128(expected)))
 			assert.Equal(t, builder.hash(), CacheHashKey(xxh3.Hash128(expected)))
+			// A reused builder must not leak bytes from previously built keys.
+			c := &Checker{}
+			for _, previous := range []int{0, 1000, maxRetainedKeyBufferSize + 1} {
+				c.getKeyBuilder().writeString(strings.Repeat("y", previous))
+				reused := c.getKeyBuilder()
+				reused.writeString(prefix)
+				reused.writeByte(17)
+				reused.writeUint32(123)
+				reused.writeTypes(types)
+				reused.writeString("suffix")
+				assert.Equal(t, reused.hash(), CacheHashKey(xxh3.Hash128(expected)))
+			}
 		})
 	}
 }
