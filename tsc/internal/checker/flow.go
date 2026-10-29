@@ -2163,7 +2163,7 @@ func (c *Checker) getExplicitTypeOfSymbol(symbol *ast.Symbol, diagnostic *ast.Di
 	}
 	if symbol.Flags()&(ast.SymbolFlagsVariable|ast.SymbolFlagsProperty) != 0 {
 		if symbol.CheckFlags()&ast.CheckFlagsMapped != 0 {
-			origin := c.mappedSymbolLinks.Get(symbol).syntheticOrigin
+			origin := c.valueSymbolLinks.Get(symbol).target
 			if origin != nil && c.getExplicitTypeOfSymbol(origin, diagnostic) != nil {
 				return c.getTypeOfSymbol(symbol)
 			}

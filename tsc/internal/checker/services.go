@@ -434,12 +434,6 @@ func (c *Checker) getImmediateRootSymbols(symbol *ast.Symbol) []*ast.Symbol {
 				return []*ast.Symbol{leftSpread, rightSpread}
 			}
 		}
-		if c.mappedSymbolLinks.Has(symbol) {
-			syntheticOrigin := c.mappedSymbolLinks.Get(symbol).syntheticOrigin
-			if syntheticOrigin != nil {
-				return []*ast.Symbol{syntheticOrigin}
-			}
-		}
 		target := c.tryGetTarget(symbol)
 		if target != nil {
 			return []*ast.Symbol{target}

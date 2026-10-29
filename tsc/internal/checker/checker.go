@@ -712,7 +712,6 @@ type Checker struct {
 	computedNameLinks                           core.LinkStore[*ast.Node, ComputedNameNodeLinks]
 	symbolReferenceLinks                        core.LinkStore[*ast.Symbol, SymbolReferenceLinks]
 	valueSymbolLinks                            symbolLinkStore[ValueSymbolLinks]
-	mappedSymbolLinks                           core.LinkStore[*ast.Symbol, MappedSymbolLinks]
 	deferredSymbolLinks                         core.LinkStore[*ast.Symbol, DeferredSymbolLinks]
 	aliasSymbolLinks                            core.LinkStore[*ast.Symbol, AliasSymbolLinks]
 	moduleSymbolLinks                           core.LinkStore[*ast.Symbol, ModuleSymbolLinks]
@@ -13829,7 +13828,7 @@ func (c *Checker) tryMergeUnionOfObjectTypeAndEmptyObject(t *Type, readonly bool
 			}
 			result.SetDeclarations(prop.Declarations())
 			links.setNameType(c, c.valueSymbolLinks.TryGet(prop).getNameType())
-			c.mappedSymbolLinks.Get(result).syntheticOrigin = prop
+			links.target = prop
 			members.Set(prop.Name(), result)
 		}
 	}
@@ -13859,7 +13858,7 @@ func (c *Checker) getSpreadSymbol(prop *ast.Symbol, readonly bool) *ast.Symbol {
 	}
 	result.SetDeclarations(prop.Declarations())
 	links.setNameType(c, c.valueSymbolLinks.TryGet(prop).getNameType())
-	c.mappedSymbolLinks.Get(result).syntheticOrigin = prop
+	links.target = prop
 	return result
 }
 
@@ -21505,8 +21504,7 @@ func (c *Checker) resolveMappedTypeMembers(t *Type) {
 			if existingProp := members.Get(propName); existingProp != nil {
 				valueLinks := c.valueSymbolLinks.Get(existingProp)
 				valueLinks.setNameType(c, c.getUnionType([]*Type{valueLinks.getNameType(), propNameType}))
-				mappedLinks := c.mappedSymbolLinks.Get(existingProp)
-				mappedLinks.keyType = c.getUnionType([]*Type{mappedLinks.keyType, keyType})
+				valueLinks.setKeyType(c, c.getUnionType([]*Type{valueLinks.getKeyType(), keyType}))
 			} else {
 				var modifiersProp *ast.Symbol
 				if isTypeUsableAsPropertyName(keyType) {
@@ -21524,10 +21522,9 @@ func (c *Checker) resolveMappedTypeMembers(t *Type) {
 				valueLinks := c.valueSymbolLinks.Get(prop)
 				valueLinks.setContainingType(c, t)
 				valueLinks.setNameType(c, propNameType)
-				mappedLinks := c.mappedSymbolLinks.Get(prop)
-				mappedLinks.keyType = keyType
+				valueLinks.setKeyType(c, keyType)
 				if modifiersProp != nil {
-					mappedLinks.syntheticOrigin = modifiersProp
+					valueLinks.target = modifiersProp
 					if shouldLinkPropDeclarations {
 						prop.SetDeclarations(modifiersProp.Declarations())
 					}
@@ -21576,7 +21573,7 @@ func (c *Checker) getTypeOfMappedSymbol(symbol *ast.Symbol) *Type {
 			return c.errorType
 		}
 		templateType := c.getTemplateTypeFromMappedType(core.OrElse(mappedType.AsMappedType().target, mappedType))
-		mapper := appendTypeMapping(mappedType.AsMappedType().mapper, c.getTypeParameterFromMappedType(mappedType), c.mappedSymbolLinks.Get(symbol).keyType)
+		mapper := appendTypeMapping(mappedType.AsMappedType().mapper, c.getTypeParameterFromMappedType(mappedType), links.getKeyType())
 		propType := c.instantiateType(templateType, mapper)
 		// When creating an optional property in strictNullChecks mode, if 'undefined' isn't assignable to the
 		// type, we include 'undefined' in the type. Similarly, when creating a non-optional property in strictNullChecks

@@ -181,14 +181,14 @@ type SymbolReferenceLinks struct {
 // Links for value symbols
 
 type ValueSymbolLinks struct {
-	resolvedType *Type // Type of value symbol
-	target       *ast.Symbol
+	resolvedType *Type       // Type of value symbol
+	target       *ast.Symbol // Target of an instantiated symbol, or the original property of a mapped or spread type property
 	mapper       *TypeMapper
 	extra        *valueSymbolExtra
 }
 
 type valueSymbolExtra struct {
-	writeType      *Type
+	writeType      *Type // Write type, or the key type of a mapped type property (which never has a distinct write type)
 	nameType       *Type
 	containingType *Type // Mapped type for mapped type property, containing union or intersection type for synthetic property
 }
@@ -244,11 +244,12 @@ func (links *ValueSymbolLinks) setContainingType(c *Checker, typ *Type) {
 	links.extra.containingType = typ
 }
 
-// Additional links for mapped symbols
+func (links *ValueSymbolLinks) getKeyType() *Type {
+	return links.getWriteType()
+}
 
-type MappedSymbolLinks struct {
-	keyType         *Type       // Key type for mapped type member
-	syntheticOrigin *ast.Symbol // For a property on a mapped or spread type, points back to the original property
+func (links *ValueSymbolLinks) setKeyType(c *Checker, typ *Type) {
+	links.setWriteType(c, typ)
 }
 
 // Additional links for deferred type symbols
