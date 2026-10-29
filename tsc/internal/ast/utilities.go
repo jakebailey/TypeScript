@@ -1601,15 +1601,15 @@ func IsVoidZero(node *Node) bool {
 }
 
 func IsExportsIdentifier(node *Node) bool {
-	return IsIdentifier(node) && node.Text() == "exports"
+	return IsIdentifier(node) && node.AsIdentifier().Text == "exports"
 }
 
 func IsModuleIdentifier(node *Node) bool {
-	return IsIdentifier(node) && node.Text() == "module"
+	return IsIdentifier(node) && node.AsIdentifier().Text == "module"
 }
 
 func IsThisIdentifier(node *Node) bool {
-	return IsIdentifier(node) && node.Text() == "this"
+	return IsIdentifier(node) && node.AsIdentifier().Text == "this"
 }
 
 func IsThisParameter(node *Node) bool {
