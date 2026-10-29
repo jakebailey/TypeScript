@@ -124,9 +124,20 @@ func (c *Checker) mapTypeWithCompositeMapper(t *Type, m1 *TypeMapper, m2 *TypeMa
 	}
 	t1 := getMappedType(t, m1)
 	if t1 != t {
-		return c.instantiateType(t1, m2)
+		return c.instantiateSecondStage(t1, m2)
 	}
 	return getMappedType(t, m2)
+}
+
+// instantiateSecondStage instantiates the result of the first mapper of a composite
+// mapper with the second. The result is often a primitive or literal type (for example,
+// the inferred type of a type parameter), which instantiation would return unchanged, so
+// that case is checked inline to avoid the call.
+func (c *Checker) instantiateSecondStage(t *Type, m *TypeMapper) *Type {
+	if t.flags&TypeFlagsStructuredOrInstantiable == 0 && t.alias == nil {
+		return t
+	}
+	return c.instantiateType(t, m)
 }
 
 func mergeTypeMappers(m1 *TypeMapper, m2 *TypeMapper) *TypeMapper {
@@ -340,7 +351,7 @@ func newCompositeTypeMapper(c *Checker, m1 *TypeMapper, m2 *TypeMapper) *TypeMap
 func (m *CompositeTypeMapper) Map(t *Type) *Type {
 	t1 := m.m1.Map(t)
 	if t1 != t {
-		return m.c.instantiateType(t1, m.m2)
+		return m.c.instantiateSecondStage(t1, m.m2)
 	}
 	return m.m2.Map(t)
 }
