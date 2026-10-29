@@ -47,7 +47,18 @@ var (
 	_ [0 - unsafe.Offsetof(TypeMapperBase{}.TypeMapper)]byte
 )
 
+// Map is kept small enough to be inlined so that the most common mapper kind,
+// a single source mapped to a single target, is handled without a call.
 func (m *TypeMapper) Map(t *Type) *Type {
+	if m.kind == TypeMapperKindSimple {
+		// SAFETY: The kind was just checked, so castTypeMapper's check (which
+		// would make this function too costly to inline) is redundant.
+		return (*SimpleTypeMapper)(unsafe.Pointer(m)).Map(t)
+	}
+	return m.mapOther(t)
+}
+
+func (m *TypeMapper) mapOther(t *Type) *Type {
 	switch m.kind {
 	case TypeMapperKindSimple:
 		return castTypeMapper[SimpleTypeMapper](m, TypeMapperKindSimple).Map(t)
