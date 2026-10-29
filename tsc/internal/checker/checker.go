@@ -299,6 +299,7 @@ type InferenceInfo struct {
 	topLevel         bool              // True if all inferences are to top level occurrences
 	isFixed          bool              // True if inferences are fixed
 	impliedArity     int               // Implied arity (or -1)
+	candidateStorage [2]*Type          // Inline storage for the first candidates
 }
 
 type InferencePriority int32

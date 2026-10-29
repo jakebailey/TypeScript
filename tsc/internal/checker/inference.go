@@ -1295,14 +1295,19 @@ func (c *Checker) newInferenceContext(typeParameters []*Type, signature *Signatu
 	if compareTypes == nil {
 		compareTypes = c.compareTypesAssignable
 	}
-	return c.newInferenceContextWorker(core.Map(typeParameters, newInferenceInfo), signature, flags, compareTypes)
+	infos := make([]InferenceInfo, len(typeParameters))
+	inferences := make([]*InferenceInfo, len(typeParameters))
+	for i, typeParameter := range typeParameters {
+		inferences[i] = initInferenceInfo(&infos[i], typeParameter)
+	}
+	return c.newInferenceContextWorker(inferences, signature, flags, compareTypes)
 }
 
 func (c *Checker) cloneInferenceContext(n *InferenceContext, extraFlags InferenceFlags) *InferenceContext {
 	if n == nil {
 		return nil
 	}
-	return c.newInferenceContextWorker(core.Map(n.inferences, cloneInferenceInfo), n.signature, n.flags|extraFlags, n.compareTypes)
+	return c.newInferenceContextWorker(cloneInferenceInfos(n.inferences), n.signature, n.flags|extraFlags, n.compareTypes)
 }
 
 func (c *Checker) cloneInferredPartOfContext(n *InferenceContext) *InferenceContext {
@@ -1310,7 +1315,7 @@ func (c *Checker) cloneInferredPartOfContext(n *InferenceContext) *InferenceCont
 	if len(inferences) == 0 {
 		return nil
 	}
-	return c.newInferenceContextWorker(core.Map(inferences, cloneInferenceInfo), n.signature, n.flags, n.compareTypes)
+	return c.newInferenceContextWorker(cloneInferenceInfos(inferences), n.signature, n.flags, n.compareTypes)
 }
 
 func (c *Checker) newInferenceContextWorker(inferences []*InferenceInfo, signature *Signature, flags InferenceFlags, compareTypes TypeComparer) *InferenceContext {
@@ -1668,20 +1673,34 @@ func (c *Checker) isSkipDirectInferenceNode(node *ast.Node) bool {
 }
 
 func newInferenceInfo(typeParameter *Type) *InferenceInfo {
-	return &InferenceInfo{typeParameter: typeParameter, priority: InferencePriorityMaxValue, topLevel: true, impliedArity: -1}
+	return initInferenceInfo(&InferenceInfo{}, typeParameter)
 }
 
-func cloneInferenceInfo(info *InferenceInfo) *InferenceInfo {
-	return &InferenceInfo{
-		typeParameter:    info.typeParameter,
-		candidates:       slices.Clone(info.candidates),
-		contraCandidates: slices.Clone(info.contraCandidates),
-		inferredType:     info.inferredType,
-		priority:         info.priority,
-		topLevel:         info.topLevel,
-		isFixed:          info.isFixed,
-		impliedArity:     info.impliedArity,
+func initInferenceInfo(info *InferenceInfo, typeParameter *Type) *InferenceInfo {
+	*info = InferenceInfo{typeParameter: typeParameter, priority: InferencePriorityMaxValue, topLevel: true, impliedArity: -1}
+	info.candidates = info.candidateStorage[:0]
+	return info
+}
+
+// The infos of an inference context live exactly as long as the context, so they are allocated as a single block.
+func cloneInferenceInfos(inferences []*InferenceInfo) []*InferenceInfo {
+	infos := make([]InferenceInfo, len(inferences))
+	result := make([]*InferenceInfo, len(inferences))
+	for i, info := range inferences {
+		clone := &infos[i]
+		*clone = InferenceInfo{
+			typeParameter:    info.typeParameter,
+			contraCandidates: slices.Clone(info.contraCandidates),
+			inferredType:     info.inferredType,
+			priority:         info.priority,
+			topLevel:         info.topLevel,
+			isFixed:          info.isFixed,
+			impliedArity:     info.impliedArity,
+		}
+		clone.candidates = append(clone.candidateStorage[:0], info.candidates...)
+		result[i] = clone
 	}
+	return result
 }
 
 func clearCachedInferences(inferences []*InferenceInfo) {
