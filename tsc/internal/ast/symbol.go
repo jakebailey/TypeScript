@@ -277,19 +277,38 @@ func (m *SymbolMap) Set(key string, symbol *Symbol) {
 		proxy.data.parent = symbol
 		symbol = proxy
 	}
-	if i := m.find(key); i >= 0 {
-		m.entries[i] = symbol
+	if m.index != nil {
+		// Probe once: the slot where the search for key ends is the slot a new entry goes in.
+		mask := uint64(len(m.index) - 1)
+		slot := maphash.String(symbolTableSeed, key) & mask
+		for p := m.index[slot]; p != 0; p = m.index[slot] {
+			if i := int(p - 1); m.keyAt(i) == key {
+				m.entries[i] = symbol
+				return
+			}
+			slot = (slot + 1) & mask
+		}
+		i := int32(len(m.entries))
+		m.entries = append(m.entries, symbol)
+		if len(m.entries)*4 <= len(m.index)*3 {
+			m.index[slot] = i + 1
+		} else {
+			m.buildIndex()
+		}
 		return
 	}
-	i := int32(len(m.entries))
+	for i := range m.entries {
+		if m.keyAt(i) == key {
+			m.entries[i] = symbol
+			return
+		}
+	}
 	if cap(m.entries) == 0 {
 		// Most tables hold one or two entries, so start with room for two rather than growing from one.
 		m.entries = make([]*Symbol, 0, 2)
 	}
 	m.entries = append(m.entries, symbol)
-	if m.index != nil && len(m.entries)*4 <= len(m.index)*3 {
-		m.insertIndex(key, i)
-	} else if len(m.entries) > symbolTableLinearMax {
+	if len(m.entries) > symbolTableLinearMax {
 		m.buildIndex()
 	}
 }
@@ -347,8 +366,11 @@ func (m *SymbolMap) All() iter.Seq2[string, *Symbol] {
 
 func (m *SymbolMap) Keys() iter.Seq[string] {
 	return func(yield func(string) bool) {
-		for key := range m.All() {
-			if !yield(key) {
+		if m == nil {
+			return
+		}
+		for i := range m.entries {
+			if !yield(m.keyAt(i)) {
 				return
 			}
 		}
@@ -357,8 +379,11 @@ func (m *SymbolMap) Keys() iter.Seq[string] {
 
 func (m *SymbolMap) Values() iter.Seq[*Symbol] {
 	return func(yield func(*Symbol) bool) {
-		for _, symbol := range m.All() {
-			if !yield(symbol) {
+		if m == nil {
+			return
+		}
+		for i := range m.entries {
+			if !yield(m.symbolAt(i)) {
 				return
 			}
 		}
