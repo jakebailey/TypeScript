@@ -497,9 +497,10 @@ type SourceFileLinks struct {
 // Signature specific links
 
 type SignatureLinks struct {
-	resolvedSignature  *Signature // Cached signature of signature node or call expression
-	effectsSignature   *Signature // Signature with possible control flow effects
-	decoratorSignature *Signature // Signature for decorator as if invoked by the runtime
+	resolvedSignature *Signature // Cached signature of signature node or call expression
+	// Signature with possible control flow effects (for call and instanceof expressions), or signature for a decorator
+	// as if invoked by the runtime (for decorated declarations). These never apply to the same node.
+	effectsOrDecoratorSignature *Signature
 }
 
 type TypeFlags uint32

@@ -30958,15 +30958,15 @@ func (c *Checker) getDecoratorCallSignature(decorator *ast.Node) *Signature {
 func (c *Checker) getLegacyDecoratorCallSignature(decorator *ast.Node) *Signature {
 	node := decorator.Parent
 	links := c.signatureLinks.Get(node)
-	if links.decoratorSignature == nil {
-		links.decoratorSignature = c.anySignature
+	if links.effectsOrDecoratorSignature == nil {
+		links.effectsOrDecoratorSignature = c.anySignature
 		switch node.Kind {
 		case ast.KindClassDeclaration, ast.KindClassExpression:
 			// For a class decorator, the `target` is the type of the class (e.g. the
 			// "static" or "constructor" side of the class).
 			targetType := c.getTypeOfSymbol(c.getSymbolOfDeclaration(node))
 			targetParam := c.newParameter("target", targetType)
-			links.decoratorSignature = c.newCallSignature(nil, nil, []*ast.Symbol{targetParam}, c.getUnionType([]*Type{targetType, c.voidType}))
+			links.effectsOrDecoratorSignature = c.newCallSignature(nil, nil, []*ast.Symbol{targetParam}, c.getUnionType([]*Type{targetType, c.voidType}))
 		case ast.KindParameter:
 			if !ast.IsConstructorDeclaration(node.Parent) && !(ast.IsMethodDeclaration(node.Parent) || ast.IsSetAccessorDeclaration(node.Parent) && ast.IsClassLike(node.Parent.Parent)) {
 				break
@@ -30991,7 +30991,7 @@ func (c *Checker) getLegacyDecoratorCallSignature(decorator *ast.Node) *Signatur
 			targetParam := c.newParameter("target", targetType)
 			keyParam := c.newParameter("propertyKey", keyType)
 			indexParam := c.newParameter("parameterIndex", indexType)
-			links.decoratorSignature = c.newCallSignature(nil, nil, []*ast.Symbol{targetParam, keyParam, indexParam}, c.voidType)
+			links.effectsOrDecoratorSignature = c.newCallSignature(nil, nil, []*ast.Symbol{targetParam, keyParam, indexParam}, c.voidType)
 		case ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindPropertyDeclaration:
 			if !ast.IsClassLike(node.Parent) {
 				break
@@ -31010,16 +31010,16 @@ func (c *Checker) getLegacyDecoratorCallSignature(decorator *ast.Node) *Signatur
 			if hasPropDesc {
 				descriptorType := c.newTypedPropertyDescriptorType(c.getTypeOfNode(node))
 				descriptorParam := c.newParameter("descriptor", descriptorType)
-				links.decoratorSignature = c.newCallSignature(nil, nil, []*ast.Symbol{targetParam, keyParam, descriptorParam}, c.getUnionType([]*Type{returnType, c.voidType}))
+				links.effectsOrDecoratorSignature = c.newCallSignature(nil, nil, []*ast.Symbol{targetParam, keyParam, descriptorParam}, c.getUnionType([]*Type{returnType, c.voidType}))
 			} else {
-				links.decoratorSignature = c.newCallSignature(nil, nil, []*ast.Symbol{targetParam, keyParam}, c.getUnionType([]*Type{returnType, c.voidType}))
+				links.effectsOrDecoratorSignature = c.newCallSignature(nil, nil, []*ast.Symbol{targetParam, keyParam}, c.getUnionType([]*Type{returnType, c.voidType}))
 			}
 		}
 	}
-	if links.decoratorSignature == c.anySignature {
+	if links.effectsOrDecoratorSignature == c.anySignature {
 		return nil
 	}
-	return links.decoratorSignature
+	return links.effectsOrDecoratorSignature
 }
 
 func (c *Checker) getESDecoratorCallSignature(decorator *ast.Node) *Signature {
@@ -31105,15 +31105,15 @@ func (c *Checker) getESDecoratorCallSignature(decorator *ast.Node) *Signature {
 	// `undefined` then the "output type" is the "input type").
 	node := decorator.Parent
 	links := c.signatureLinks.Get(node)
-	if links.decoratorSignature == nil {
-		links.decoratorSignature = c.anySignature
+	if links.effectsOrDecoratorSignature == nil {
+		links.effectsOrDecoratorSignature = c.anySignature
 		switch node.Kind {
 		case ast.KindClassDeclaration, ast.KindClassExpression:
 			// Class decorators have a `context` of `ClassDecoratorContext<Class>`, where the `Class` type
 			// argument will be the "final type" of the class after all decorators are applied.
 			targetType := c.getTypeOfSymbol(c.getSymbolOfDeclaration(node))
 			contextType := c.newClassDecoratorContextType(targetType)
-			links.decoratorSignature = c.newESDecoratorCallSignature(targetType, contextType, targetType)
+			links.effectsOrDecoratorSignature = c.newESDecoratorCallSignature(targetType, contextType, targetType)
 		case ast.KindMethodDeclaration, ast.KindGetAccessor, ast.KindSetAccessor:
 			if !ast.IsClassLike(node.Parent) {
 				break
@@ -31154,7 +31154,7 @@ func (c *Checker) getESDecoratorCallSignature(decorator *ast.Node) *Signature {
 				targetType = valueType
 			}
 			contextType := c.newClassMemberDecoratorContextTypeForNode(node, thisType, valueType)
-			links.decoratorSignature = c.newESDecoratorCallSignature(targetType, contextType, targetType)
+			links.effectsOrDecoratorSignature = c.newESDecoratorCallSignature(targetType, contextType, targetType)
 		case ast.KindPropertyDeclaration:
 			if !ast.IsClassLike(node.Parent) {
 				break
@@ -31191,13 +31191,13 @@ func (c *Checker) getESDecoratorCallSignature(decorator *ast.Node) *Signature {
 				returnType = c.newClassFieldDecoratorInitializerMutatorType(thisType, valueType)
 			}
 			contextType := c.newClassMemberDecoratorContextTypeForNode(node, thisType, valueType)
-			links.decoratorSignature = c.newESDecoratorCallSignature(targetType, contextType, returnType)
+			links.effectsOrDecoratorSignature = c.newESDecoratorCallSignature(targetType, contextType, returnType)
 		}
 	}
-	if links.decoratorSignature == c.anySignature {
+	if links.effectsOrDecoratorSignature == c.anySignature {
 		return nil
 	}
-	return links.decoratorSignature
+	return links.effectsOrDecoratorSignature
 }
 
 func (c *Checker) newClassDecoratorContextType(classType *Type) *Type {
