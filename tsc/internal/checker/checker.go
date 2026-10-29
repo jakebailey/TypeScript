@@ -23288,7 +23288,9 @@ func (c *Checker) instantiateMappedTupleType(tupleType *Type, mappedType *Type, 
 	modifiers := getMappedTypeModifiers(mappedType)
 	elementTypes := c.getElementTypes(tupleType)
 	newElementTypes := make([]*Type, len(elementTypes))
-	newElementInfos := slices.Clone(elementInfos)
+	// Share the element infos of the source tuple unless a modifier changes them.
+	newElementInfos := elementInfos
+	clonedElementInfos := false
 	for i, e := range elementTypes {
 		flags := elementInfos[i].flags
 		var mapped *Type
@@ -23303,15 +23305,23 @@ func (c *Checker) instantiateMappedTupleType(tupleType *Type, mappedType *Type, 
 				mapped = c.unknownType
 			}
 		}
+		newFlags := flags
 		switch {
 		case modifiers&MappedTypeModifiersIncludeOptional != 0:
 			if flags&ElementFlagsRequired != 0 {
-				newElementInfos[i].flags = ElementFlagsOptional
+				newFlags = ElementFlagsOptional
 			}
 		case modifiers&MappedTypeModifiersExcludeOptional != 0:
 			if flags&ElementFlagsOptional != 0 {
-				newElementInfos[i].flags = ElementFlagsRequired
+				newFlags = ElementFlagsRequired
 			}
+		}
+		if newFlags != flags {
+			if !clonedElementInfos {
+				newElementInfos = slices.Clone(elementInfos)
+				clonedElementInfos = true
+			}
+			newElementInfos[i].flags = newFlags
 		}
 		newElementTypes[i] = mapped
 	}
