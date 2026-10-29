@@ -1543,7 +1543,7 @@ func (c *Checker) createNameResolver() *binder.NameResolver {
 		Globals:                          c.globals,
 		ArgumentsSymbol:                  c.argumentsSymbol,
 		RequireSymbol:                    c.requireSymbol,
-		Lookup:                           c.getSymbol,
+		LookupSymbol:                     c.getSymbolOfMeaning,
 		SymbolReferenced:                 c.symbolReferenced,
 		SetRequiresScopeChangeCache:      c.setRequiresScopeChangeCache,
 		GetRequiresScopeChangeCache:      c.getRequiresScopeChangeCache,
@@ -2247,7 +2247,15 @@ func (c *Checker) addTypeOnlyDeclarationRelatedInfo(diagnostic *ast.Diagnostic, 
 
 func (c *Checker) getSymbol(symbols ast.SymbolTable, name string, meaning ast.SymbolFlags) *ast.Symbol {
 	if meaning&ast.SymbolFlagsAll != 0 {
-		symbol := c.getMergedSymbol(symbols.Get(name))
+		return c.getSymbolOfMeaning(symbols.Get(name), meaning)
+	}
+	return nil
+}
+
+// getSymbolOfMeaning returns the merged symbol of a symbol found in a symbol table if it has the given meaning.
+func (c *Checker) getSymbolOfMeaning(symbol *ast.Symbol, meaning ast.SymbolFlags) *ast.Symbol {
+	if meaning&ast.SymbolFlagsAll != 0 {
+		symbol = c.getMergedSymbol(symbol)
 		if symbol != nil {
 			if symbol.Flags()&meaning != 0 {
 				return symbol

@@ -14,6 +14,7 @@ type NameResolver struct {
 	ArgumentsSymbol                  *ast.Symbol
 	RequireSymbol                    *ast.Symbol
 	Lookup                           func(symbols ast.SymbolTable, name string, meaning ast.SymbolFlags) *ast.Symbol
+	LookupSymbol                     func(symbol *ast.Symbol, meaning ast.SymbolFlags) *ast.Symbol
 	SymbolReferenced                 func(symbol *ast.Symbol, meaning ast.SymbolFlags)
 	SetRequiresScopeChangeCache      func(node *ast.Node, value core.Tristate)
 	GetRequiresScopeChangeCache      func(node *ast.Node) core.Tristate
@@ -115,6 +116,7 @@ loop:
 				break
 			}
 			moduleExports := moduleSymbol.Exports()
+			moduleExport := moduleExports.Get(name)
 			if ast.IsSourceFile(location) || (ast.IsModuleDeclaration(location) && location.Flags&ast.NodeFlagsAmbient != 0 && !ast.IsGlobalScopeAugmentation(location)) {
 				// It's an external module. First see if the module has an export default and if the local
 				// name of that export default matches.
@@ -137,13 +139,17 @@ loop:
 				//     2. We check === SymbolFlags.Alias in order to check that the symbol is *purely*
 				//        an alias. If we used &, we'd be throwing out symbols that have non alias aspects,
 				//        which is not the desired behavior.
-				moduleExport := moduleExports.Get(name)
 				if moduleExport != nil && moduleExport.Flags() == ast.SymbolFlagsAlias && (ast.GetDeclarationOfKind(moduleExport, ast.KindExportSpecifier) != nil || ast.GetDeclarationOfKind(moduleExport, ast.KindNamespaceExport) != nil) {
 					break
 				}
 			}
 			if name != ast.InternalSymbolNameDefault {
-				if result = r.lookup(moduleExports, name, meaning&ast.SymbolFlagsModuleMember); result != nil {
+				if r.Lookup != nil {
+					result = r.Lookup(moduleExports, name, meaning&ast.SymbolFlagsModuleMember)
+				} else {
+					result = r.lookupSymbol(moduleExport, meaning&ast.SymbolFlagsModuleMember)
+				}
+				if result != nil {
 					if ast.IsSourceFile(location) && location.AsSourceFile().CommonJSModuleIndicator != nil && result.Flags()&ast.SymbolFlagsType == 0 {
 						result = nil
 					} else {
@@ -427,14 +433,21 @@ func (r *NameResolver) lookup(symbols ast.SymbolTable, name string, meaning ast.
 	if r.Lookup != nil {
 		return r.Lookup(symbols, name, meaning)
 	}
+	if meaning == 0 {
+		return nil
+	}
+	return r.lookupSymbol(symbols.Get(name), meaning)
+}
+
+// lookupSymbol filters the symbol, possibly nil, found in a symbol table by meaning. Unlike Lookup, the LookupSymbol hook
+// lets the resolver reuse a symbol it has already looked up rather than look it up again; it is used only when Lookup is nil.
+func (r *NameResolver) lookupSymbol(symbol *ast.Symbol, meaning ast.SymbolFlags) *ast.Symbol {
+	if r.LookupSymbol != nil {
+		return r.LookupSymbol(symbol, meaning)
+	}
 	// Default implementation does not support following aliases or merged symbols
-	if meaning != 0 {
-		symbol := symbols.Get(name)
-		if symbol != nil {
-			if symbol.Flags()&meaning != 0 {
-				return symbol
-			}
-		}
+	if symbol != nil && symbol.Flags()&meaning != 0 {
+		return symbol
 	}
 	return nil
 }
