@@ -698,6 +698,7 @@ type Checker struct {
 	layoutMemberInfos                           map[string]MemberInfo
 	freeTypeSets                                *temporaryTypeSet
 	freePropertyCounts                          *temporaryPropertyCounts
+	freeTemplateMatches                         [][]*Type
 	mergedSymbols                               map[*ast.Symbol]*ast.Symbol
 	mergedExportsChecked                        collections.Set[*ast.Symbol]
 	factory                                     ast.NodeFactory

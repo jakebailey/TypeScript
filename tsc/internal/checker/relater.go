@@ -2367,32 +2367,52 @@ func (c *Checker) templateLiteralTypesDefinitelyUnrelated(source *TemplateLitera
 }
 
 func (c *Checker) isTypeMatchedByTemplateLiteralType(source *Type, target *TemplateLiteralType, compareTypes TypeComparer) bool {
-	inferences := c.inferTypesFromTemplateLiteralType(source, target, compareTypes)
-	if inferences != nil {
-		for i, inference := range inferences {
-			if !c.isValidTypeForTemplateLiteralPlaceholder(inference, target.types[i], compareTypes) {
-				return false
-			}
+	buf := c.getTemplateMatchesBuffer()
+	inferences := c.inferTypesFromTemplateLiteralType(source, target, compareTypes, buf)
+	result := inferences != nil
+	for i, inference := range inferences {
+		if !c.isValidTypeForTemplateLiteralPlaceholder(inference, target.types[i], compareTypes) {
+			result = false
+			break
 		}
-		return true
 	}
-	return false
+	c.releaseTemplateMatchesBuffer(buf)
+	return result
 }
 
-func (c *Checker) inferTypesFromTemplateLiteralType(source *Type, target *TemplateLiteralType, compareTypes TypeComparer) []*Type {
+// Returns an empty scratch list for template literal matches. Matches are only used by the caller while it
+// checks or infers from them, so the list is returned with releaseTemplateMatchesBuffer instead of being retained.
+func (c *Checker) getTemplateMatchesBuffer() []*Type {
+	if n := len(c.freeTemplateMatches); n > 0 {
+		buf := c.freeTemplateMatches[n-1]
+		c.freeTemplateMatches[n-1] = nil
+		c.freeTemplateMatches = c.freeTemplateMatches[:n-1]
+		return buf
+	}
+	return make([]*Type, 0, 8)
+}
+
+func (c *Checker) releaseTemplateMatchesBuffer(buf []*Type) {
+	clear(buf[:cap(buf)])
+	c.freeTemplateMatches = append(c.freeTemplateMatches, buf)
+}
+
+// The inferred types are appended to matches, which is typically a scratch buffer that the caller reuses.
+func (c *Checker) inferTypesFromTemplateLiteralType(source *Type, target *TemplateLiteralType, compareTypes TypeComparer, matches []*Type) []*Type {
 	switch {
 	case source.flags&TypeFlagsStringLiteral != 0:
-		return c.inferFromLiteralPartsToTemplateLiteral([]string{getStringLiteralValue(source)}, nil, target)
+		return c.inferFromLiteralPartsToTemplateLiteral([]string{getStringLiteralValue(source)}, nil, target, matches)
 	case source.flags&TypeFlagsTemplateLiteral != 0:
 		if slices.Equal(source.AsTemplateLiteralType().texts, target.texts) {
-			return core.MapIndex(source.AsTemplateLiteralType().types, func(s *Type, i int) *Type {
-				if compareTypes(c.getBaseConstraintOrType(s), c.getBaseConstraintOrType(target.types[i]), false /*partialMatch*/) != TernaryFalse {
-					return s
+			for i, s := range source.AsTemplateLiteralType().types {
+				if compareTypes(c.getBaseConstraintOrType(s), c.getBaseConstraintOrType(target.types[i]), false /*partialMatch*/) == TernaryFalse {
+					s = c.getStringLikeTypeForType(s)
 				}
-				return c.getStringLikeTypeForType(s)
-			})
+				matches = append(matches, s)
+			}
+			return matches
 		}
-		return c.inferFromLiteralPartsToTemplateLiteral(source.AsTemplateLiteralType().texts, source.AsTemplateLiteralType().types, target)
+		return c.inferFromLiteralPartsToTemplateLiteral(source.AsTemplateLiteralType().texts, source.AsTemplateLiteralType().types, target, matches)
 	default:
 		return nil
 	}
@@ -2419,7 +2439,7 @@ func (c *Checker) inferTypesFromTemplateLiteralType(source *Type, target *Templa
 // the source. The first match for the '.' in target occurs at character 1 in the source text part at index 1, and thus
 // the first inference is the template literal type `<${string}>`. The remainder of the source makes up the second
 // inference, the template literal type `<${number}-${number}>`.
-func (c *Checker) inferFromLiteralPartsToTemplateLiteral(sourceTexts []string, sourceTypes []*Type, target *TemplateLiteralType) []*Type {
+func (c *Checker) inferFromLiteralPartsToTemplateLiteral(sourceTexts []string, sourceTypes []*Type, target *TemplateLiteralType, matches []*Type) []*Type {
 	lastSourceIndex := len(sourceTexts) - 1
 	sourceStartText := sourceTexts[0]
 	sourceEndText := sourceTexts[lastSourceIndex]
@@ -2433,7 +2453,6 @@ func (c *Checker) inferFromLiteralPartsToTemplateLiteral(sourceTexts []string, s
 	remainingEndText := sourceEndText[:len(sourceEndText)-len(targetEndText)]
 	seg := 0
 	pos := len(targetStartText)
-	var matches []*Type
 	getSourceText := func(index int) string {
 		if index < lastSourceIndex {
 			return sourceTexts[index]

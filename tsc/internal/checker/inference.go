@@ -587,7 +587,8 @@ func (c *Checker) inferToConditionalType(n *InferenceState, source *Type, target
 }
 
 func (c *Checker) inferToTemplateLiteralType(n *InferenceState, source *Type, target *TemplateLiteralType) {
-	matches := c.inferTypesFromTemplateLiteralType(source, target, c.compareTypesAssignable)
+	buf := c.getTemplateMatchesBuffer()
+	matches := c.inferTypesFromTemplateLiteralType(source, target, c.compareTypesAssignable, buf)
 	types := target.types
 	// When the target template literal contains only placeholders (meaning that inference is intended to extract
 	// single characters and remainder strings) and inference fails to produce matches, we want to infer 'never' for
@@ -705,6 +706,7 @@ func (c *Checker) inferToTemplateLiteralType(n *InferenceState, source *Type, ta
 			c.inferFromTypes(n, source, target)
 		}
 	}
+	c.releaseTemplateMatchesBuffer(buf)
 }
 
 func (c *Checker) inferFromGenericMappedTypes(n *InferenceState, source *Type, target *Type) {
