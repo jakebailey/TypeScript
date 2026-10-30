@@ -697,6 +697,7 @@ type Checker struct {
 	layoutMemberInfos                           map[string]MemberInfo
 	freeTypeSets                                *temporaryTypeSet
 	unionRunStarts                              []int
+	namedUnionMembers                           map[*Type]struct{}
 	freePropertyCounts                          *temporaryPropertyCounts
 	mergedSymbols                               map[*ast.Symbol]*ast.Symbol
 	mergedExportsChecked                        collections.Set[*ast.Symbol]
@@ -26476,9 +26477,35 @@ func (c *Checker) getUnionTypeWorker(types []*Type, unionReduction UnionReductio
 	if origin == nil && includes&TypeFlagsUnion != 0 {
 		namedUnions := c.addNamedUnions(nil, types)
 		var reducedTypes []*Type
-		for _, t := range typeSet {
-			if !core.Some(namedUnions, func(u *Type) bool { return containsType(u.Types(), t) }) {
-				reducedTypes = append(reducedTypes, t)
+		if len(typeSet) > 16 {
+			// Searching every named union for every constituent gets expensive for larger unions, so collect the
+			// members of all named unions into a set first.
+			members := c.namedUnionMembers
+			if members == nil {
+				members = make(map[*Type]struct{})
+			}
+			for _, u := range namedUnions {
+				for _, t := range u.Types() {
+					members[t] = struct{}{}
+				}
+			}
+			for _, t := range typeSet {
+				if _, ok := members[t]; !ok {
+					reducedTypes = append(reducedTypes, t)
+				}
+			}
+			// Do not retain large sets, which would also make clearing them for small unions expensive.
+			if len(members) <= 1024 {
+				clear(members)
+				c.namedUnionMembers = members
+			} else {
+				c.namedUnionMembers = nil
+			}
+		} else {
+			for _, t := range typeSet {
+				if !core.Some(namedUnions, func(u *Type) bool { return containsType(u.Types(), t) }) {
+					reducedTypes = append(reducedTypes, t)
+				}
 			}
 		}
 		if alias == nil && len(namedUnions) == 1 && len(reducedTypes) == 0 {
