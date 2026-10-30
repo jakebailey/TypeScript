@@ -24056,62 +24056,48 @@ func (c *Checker) createNormalizedTupleTypeEx(target *Type, elementTypes []*Type
 	// In either layout, zero or more generic variadic elements may be present at any location.
 	// Note that the element types may contain an extra 'this' type argument that we want to ignore during normalization
 	// and then just append to the normalized element types.
-	n := &TupleNormalizer{}
-	if !n.normalize(c, elementTypes[:len(d.elementInfos)], d.elementInfos) {
-		return c.errorType
+	var typesBuf [8]*Type
+	var infosBuf [8]TupleElementInfo
+	// The normalization is done inline so that the buffers stay on the stack.
+	types := typesBuf[:0]
+	infos := infosBuf[:0]
+	lastRequiredIndex := -1
+	firstRestIndex := -1
+	lastOptionalOrRestIndex := -1
+	add := func(t *Type, info TupleElementInfo) {
+		if info.flags&ElementFlagsRequired != 0 {
+			lastRequiredIndex = len(types)
+		}
+		if info.flags&ElementFlagsRest != 0 && firstRestIndex < 0 {
+			firstRestIndex = len(types)
+		}
+		if info.flags&(ElementFlagsOptional|ElementFlagsRest) != 0 {
+			lastOptionalOrRestIndex = len(types)
+		}
+		types = append(types, c.addOptionalityEx(t, true /*isProperty*/, info.flags&ElementFlagsOptional != 0))
+		infos = append(infos, info)
 	}
-	if len(elementTypes) > len(d.elementInfos) {
-		n.types = append(n.types, elementTypes[len(d.elementInfos)])
-	}
-	tupleTarget := c.getTupleTargetType(n.infos, d.readonly)
-	switch {
-	case tupleTarget == c.emptyGenericType:
-		return c.emptyObjectType
-	case len(n.types) != 0:
-		return c.createTypeReferenceEx(tupleTarget, n.types, objectFlags)
-	}
-	return tupleTarget
-}
-
-func (c *Checker) createNormalizedTupleType(target *Type, elementTypes []*Type) *Type {
-	return c.createNormalizedTupleTypeEx(target, elementTypes, ObjectFlagsNone)
-}
-
-type TupleNormalizer struct {
-	c                       *Checker
-	types                   []*Type
-	infos                   []TupleElementInfo
-	lastRequiredIndex       int
-	firstRestIndex          int
-	lastOptionalOrRestIndex int
-}
-
-func (n *TupleNormalizer) normalize(c *Checker, elementTypes []*Type, elementInfos []TupleElementInfo) bool {
-	n.c = c
-	n.lastRequiredIndex = -1
-	n.firstRestIndex = -1
-	n.lastOptionalOrRestIndex = -1
-	for i, t := range elementTypes {
-		info := elementInfos[i]
+	for i, t := range elementTypes[:len(d.elementInfos)] {
+		info := d.elementInfos[i]
 		if info.flags&ElementFlagsVariadic != 0 {
 			if t.flags&TypeFlagsAny != 0 {
-				n.add(t, TupleElementInfo{flags: ElementFlagsRest, labeledDeclaration: info.labeledDeclaration})
+				add(t, TupleElementInfo{flags: ElementFlagsRest, labeledDeclaration: info.labeledDeclaration})
 			} else if t.flags&TypeFlagsInstantiableNonPrimitive != 0 || c.isGenericMappedType(t) {
 				// Generic variadic elements stay as they are.
-				n.add(t, info)
+				add(t, info)
 			} else if isTupleType(t) {
 				spreadTypes := c.getElementTypes(t)
-				if len(spreadTypes)+len(n.types) >= 10_000 {
+				if len(spreadTypes)+len(types) >= 10_000 {
 					message := core.IfElse(ast.IsPartOfTypeNode(c.currentNode),
 						diagnostics.Type_produces_a_tuple_type_that_is_too_large_to_represent,
 						diagnostics.Expression_produces_a_tuple_type_that_is_too_large_to_represent)
 					c.error(c.currentNode, message)
-					return false
+					return c.errorType
 				}
 				// Spread variadic elements with tuple types into the resulting tuple.
 				spreadInfos := t.TargetTupleType().elementInfos
 				for j, s := range spreadTypes {
-					n.add(s, spreadInfos[j])
+					add(s, spreadInfos[j])
 				}
 			} else {
 				// Treat everything else as an array type and create a rest element.
@@ -24122,48 +24108,53 @@ func (n *TupleNormalizer) normalize(c *Checker, elementTypes []*Type, elementInf
 				if s == nil {
 					s = c.errorType
 				}
-				n.add(s, TupleElementInfo{flags: ElementFlagsRest, labeledDeclaration: info.labeledDeclaration})
+				add(s, TupleElementInfo{flags: ElementFlagsRest, labeledDeclaration: info.labeledDeclaration})
 			}
 		} else {
 			// Copy other element kinds with no change.
-			n.add(t, info)
+			add(t, info)
 		}
 	}
 	// Turn optional elements preceding the last required element into required elements
-	for i := range n.lastRequiredIndex {
-		if n.infos[i].flags&ElementFlagsOptional != 0 {
-			n.infos[i].flags = ElementFlagsRequired
+	for i := range lastRequiredIndex {
+		if infos[i].flags&ElementFlagsOptional != 0 {
+			infos[i].flags = ElementFlagsRequired
 		}
 	}
-	if n.firstRestIndex >= 0 && n.firstRestIndex < n.lastOptionalOrRestIndex {
+	if firstRestIndex >= 0 && firstRestIndex < lastOptionalOrRestIndex {
 		// Turn elements between first rest and last optional/rest into a single rest element
-		var types []*Type
-		for i := n.firstRestIndex; i <= n.lastOptionalOrRestIndex; i++ {
-			t := n.types[i]
-			if n.infos[i].flags&ElementFlagsVariadic != 0 {
+		var restTypes []*Type
+		for i := firstRestIndex; i <= lastOptionalOrRestIndex; i++ {
+			t := types[i]
+			if infos[i].flags&ElementFlagsVariadic != 0 {
 				t = c.getIndexedAccessType(t, c.numberType)
 			}
-			types = append(types, t)
+			restTypes = append(restTypes, t)
 		}
-		n.types[n.firstRestIndex] = c.getUnionType(types)
-		n.types = slices.Delete(n.types, n.firstRestIndex+1, n.lastOptionalOrRestIndex+1)
-		n.infos = slices.Delete(n.infos, n.firstRestIndex+1, n.lastOptionalOrRestIndex+1)
+		types[firstRestIndex] = c.getUnionType(restTypes)
+		types = slices.Delete(types, firstRestIndex+1, lastOptionalOrRestIndex+1)
+		infos = slices.Delete(infos, firstRestIndex+1, lastOptionalOrRestIndex+1)
 	}
-	return true
+	if len(elementTypes) > len(d.elementInfos) {
+		types = append(types, elementTypes[len(d.elementInfos)])
+	}
+	tupleTarget := c.getTupleTargetType(infos, d.readonly)
+	switch {
+	case tupleTarget == c.emptyGenericType:
+		return c.emptyObjectType
+	case len(types) != 0:
+		// The normalized types may live in a temporary buffer, so copy them only when creating a new reference.
+		id := getTypeListKey(types)
+		if t, ok := tupleTarget.AsInterfaceType().instantiations[id]; ok {
+			return t
+		}
+		return c.newTypeReferenceInstantiation(tupleTarget, id, slices.Clone(types), objectFlags)
+	}
+	return tupleTarget
 }
 
-func (n *TupleNormalizer) add(t *Type, info TupleElementInfo) {
-	if info.flags&ElementFlagsRequired != 0 {
-		n.lastRequiredIndex = len(n.types)
-	}
-	if info.flags&ElementFlagsRest != 0 && n.firstRestIndex < 0 {
-		n.firstRestIndex = len(n.types)
-	}
-	if info.flags&(ElementFlagsOptional|ElementFlagsRest) != 0 {
-		n.lastOptionalOrRestIndex = len(n.types)
-	}
-	n.types = append(n.types, n.c.addOptionalityEx(t, true /*isProperty*/, info.flags&ElementFlagsOptional != 0))
-	n.infos = append(n.infos, info)
+func (c *Checker) createNormalizedTupleType(target *Type, elementTypes []*Type) *Type {
+	return c.createNormalizedTupleTypeEx(target, elementTypes, ObjectFlagsNone)
 }
 
 // Return count of starting consecutive tuple elements of the given kind(s)
@@ -24889,7 +24880,13 @@ func (c *Checker) getArrayOrTupleTargetType(node *ast.Node) *Type {
 		}
 		return c.globalArrayType
 	}
-	return c.getTupleTargetType(core.Map(node.Elements(), c.getTupleElementInfo), readonly)
+	elements := node.Elements()
+	var buf [16]TupleElementInfo
+	elementInfos := buf[:0]
+	for _, e := range elements {
+		elementInfos = append(elementInfos, c.getTupleElementInfo(e))
+	}
+	return c.getTupleTargetType(elementInfos, readonly)
 }
 
 func (c *Checker) isReadonlyTypeOperator(node *ast.Node) bool {
@@ -25468,7 +25465,11 @@ func (c *Checker) getTupleElementInfo(node *ast.Node) TupleElementInfo {
 }
 
 func (c *Checker) createTupleType(elementTypes []*Type) *Type {
-	elementInfos := core.Map(elementTypes, func(_ *Type) TupleElementInfo { return TupleElementInfo{flags: ElementFlagsRequired} })
+	var buf [16]TupleElementInfo
+	elementInfos := buf[:0]
+	for range elementTypes {
+		elementInfos = append(elementInfos, TupleElementInfo{flags: ElementFlagsRequired})
+	}
 	return c.createTupleTypeEx(elementTypes, elementInfos, false /*readonly*/)
 }
 
@@ -25554,7 +25555,8 @@ func (c *Checker) createTupleTargetType(elementInfos []TupleElementInfo, readonl
 	d.resolvedTypeArguments = d.TypeParameters()
 	d.declaredMembersResolved = true
 	d.declaredMembers = members
-	d.elementInfos = elementInfos
+	// Callers may pass temporary buffers, so the tuple target keeps its own copy.
+	d.elementInfos = slices.Clone(elementInfos)
 	d.minLength = minLength
 	d.fixedLength = fixedLength
 	d.combinedFlags = combinedFlags
@@ -25849,10 +25851,14 @@ func (c *Checker) createTypeReference(target *Type, typeArguments []*Type) *Type
 
 func (c *Checker) createTypeReferenceEx(target *Type, typeArguments []*Type, objectFlags ObjectFlags) *Type {
 	id := getTypeListKey(typeArguments)
-	intf := target.AsInterfaceType()
-	if t, ok := intf.instantiations[id]; ok {
+	if t, ok := target.AsInterfaceType().instantiations[id]; ok {
 		return t
 	}
+	return c.newTypeReferenceInstantiation(target, id, typeArguments, objectFlags)
+}
+
+func (c *Checker) newTypeReferenceInstantiation(target *Type, id CacheHashKey, typeArguments []*Type, objectFlags ObjectFlags) *Type {
+	intf := target.AsInterfaceType()
 	t := c.newObjectType(ObjectFlagsReference|objectFlags|c.getPropagatingFlagsOfTypes(typeArguments, TypeFlagsNone), target.symbol)
 	d := t.AsTypeReference()
 	d.target = target
