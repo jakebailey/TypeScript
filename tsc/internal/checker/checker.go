@@ -25248,9 +25248,19 @@ func (c *Checker) getTailRecursionRoot(newType *Type, newMapper *TypeMapper) (*C
 	if newType.flags&TypeFlagsConditional != 0 && newMapper != nil {
 		newRoot := newType.AsConditionalType().root
 		if len(newRoot.outerTypeParameters) != 0 {
-			typeParamMapper := c.combineTypeMappers(newType.AsConditionalType().mapper, newMapper)
-			typeArguments := core.Map(newRoot.outerTypeParameters, typeParamMapper.Map)
-			newRootMapper := newTypeMapper(newRoot.outerTypeParameters, typeArguments)
+			// Avoid allocating a composite mapper, and a type argument list for a single parameter.
+			mapper := newType.AsConditionalType().mapper
+			var newRootMapper *TypeMapper
+			if len(newRoot.outerTypeParameters) == 1 {
+				tp := newRoot.outerTypeParameters[0]
+				newRootMapper = newSimpleTypeMapper(tp, c.mapTypeWithCompositeMapperUnallocated(tp, mapper, newMapper))
+			} else {
+				typeArguments := make([]*Type, len(newRoot.outerTypeParameters))
+				for i, tp := range newRoot.outerTypeParameters {
+					typeArguments[i] = c.mapTypeWithCompositeMapperUnallocated(tp, mapper, newMapper)
+				}
+				newRootMapper = newArrayTypeMapper(newRoot.outerTypeParameters, typeArguments)
+			}
 			var newCheckType *Type
 			if newRoot.isDistributive {
 				newCheckType = getMappedType(newRoot.checkType, newRootMapper)
