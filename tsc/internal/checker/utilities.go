@@ -920,11 +920,15 @@ func (c *Checker) releaseTemporaryTypeSet(set *temporaryTypeSet) {
 	if cap(set.values) > len(set.inline) {
 		clear(set.inline[:])
 	}
-	clear(set.valuesByKey)
-	// Do not retain arbitrarily large temporary unions and their dedup maps.
+	// Do not retain arbitrarily large temporary unions and their dedup maps. Maps never shrink,
+	// and clearing one takes time proportional to its capacity, so bound the retained maps too.
+	if len(set.valuesByKey) > 256 || cap(set.values) > 4096 {
+		set.valuesByKey = nil
+	} else {
+		clear(set.valuesByKey)
+	}
 	if cap(set.values) > 4096 {
 		set.values = set.inline[:0]
-		set.valuesByKey = nil
 	} else {
 		set.values = set.values[:0]
 	}
@@ -1000,8 +1004,10 @@ func (c *Checker) releaseTemporaryPropertyCounts(counts *temporaryPropertyCounts
 	c.freePropertyCounts = counts
 }
 
+// Reused sets retain an empty map, so check its length rather than whether it exists. The map is
+// only populated once the set grows past orderedSetMapThreshold, and then holds every value.
 func (s *orderedSet[T]) contains(value T) bool {
-	if s.valuesByKey == nil {
+	if len(s.valuesByKey) == 0 {
 		return slices.Contains(s.values, value)
 	}
 	_, ok := s.valuesByKey[value]
@@ -1012,11 +1018,13 @@ func (s *orderedSet[T]) add(value T) {
 	s.values = append(s.values, value)
 	// Small sets are served by a linear scan over values; only materialize the map once the set
 	// grows large enough for hashing to win.
-	if s.valuesByKey == nil {
+	if len(s.valuesByKey) == 0 {
 		if len(s.values) <= orderedSetMapThreshold {
 			return
 		}
-		s.valuesByKey = make(map[T]struct{}, len(s.values))
+		if s.valuesByKey == nil {
+			s.valuesByKey = make(map[T]struct{}, len(s.values))
+		}
 		for _, v := range s.values[:len(s.values)-1] {
 			s.valuesByKey[v] = struct{}{}
 		}
