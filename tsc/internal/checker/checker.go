@@ -698,6 +698,7 @@ type Checker struct {
 	freeTypeSets                                *temporaryTypeSet
 	unionRunStarts                              []int
 	namedUnionMembers                           map[*Type]struct{}
+	constituentTypeFlags                        map[*Type]TypeFlags
 	freePropertyCounts                          *temporaryPropertyCounts
 	mergedSymbols                               map[*ast.Symbol]*ast.Symbol
 	mergedExportsChecked                        collections.Set[*ast.Symbol]
@@ -28516,13 +28517,43 @@ func (c *Checker) maybeTypeOfKind(t *Type, kind TypeFlags) bool {
 		return true
 	}
 	if t.flags&TypeFlagsUnionOrIntersection != 0 {
-		for _, t := range t.Types() {
+		types := t.Types()
+		if len(types) >= 8 {
+			return c.getConstituentTypeFlags(t)&kind != 0
+		}
+		for _, t := range types {
 			if c.maybeTypeOfKind(t, kind) {
 				return true
 			}
 		}
 	}
 	return false
+}
+
+// getConstituentTypeFlags returns the union of the flags of all (transitive) constituents of a union or
+// intersection type. Results are cached for types with many constituents, which are repeatedly scanned otherwise.
+func (c *Checker) getConstituentTypeFlags(t *Type) TypeFlags {
+	types := t.Types()
+	cacheable := len(types) >= 8
+	if cacheable {
+		if flags, ok := c.constituentTypeFlags[t]; ok {
+			return flags
+		}
+	}
+	var flags TypeFlags
+	for _, ct := range types {
+		flags |= ct.flags
+		if ct.flags&TypeFlagsUnionOrIntersection != 0 {
+			flags |= c.getConstituentTypeFlags(ct)
+		}
+	}
+	if cacheable {
+		if c.constituentTypeFlags == nil {
+			c.constituentTypeFlags = make(map[*Type]TypeFlags)
+		}
+		c.constituentTypeFlags[t] = flags
+	}
+	return flags
 }
 
 func (c *Checker) maybeTypeOfKindConsideringBaseConstraint(t *Type, kind TypeFlags) bool {
