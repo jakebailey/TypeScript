@@ -790,6 +790,7 @@ type Checker struct {
 	typeToStringNodebuilder                     *NodeBuilder
 	tracer                                      *Tracer // Optional tracer for trace events and type recording (for --generateTrace)
 	checking                                    bool    // Whether side effects such as diagnostics are applied; see memo.go
+	observeFloor                                int     // Length of instantiationStack above which observing holds; see syncObserveFloor
 	memoTop                                     int     // 1 + index in resolutions of the innermost computation recording effects, or 0; see memo.go
 }
 
@@ -1154,6 +1155,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.initializeChecker()
 	c.mergesFrozen = true
 	c.checking = false
+	c.syncObserveFloor()
 	return c, &c.mu
 }
 
@@ -20554,6 +20556,7 @@ func (c *Checker) popTypeResolution() bool {
 	c.typeResolutionTop = int(f.prevTypeResolution)
 	c.resolutions[n] = resolution{}
 	c.resolutions = c.resolutions[:n]
+	c.syncObserveFloor()
 	if c.circularityStart > n {
 		c.endCircularity()
 	} else if len(c.innerCycles) != 0 {

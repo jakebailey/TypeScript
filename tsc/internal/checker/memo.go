@@ -652,7 +652,20 @@ func (c *Checker) memoActive() bool {
 // observing reports whether reading a cached result must account for its
 // effects or its instantiation count.
 func (c *Checker) observing() bool {
-	return c.memoActive() || c.inResolution()
+	return len(c.instantiationStack) > c.observeFloor
+}
+
+// syncObserveFloor updates observeFloor after a change to what observing
+// depends on: the checking flag, the counts read by memoActive, or the
+// resolution stack. The counts are shared with other checkers using the same
+// store, but those only run while this one is not checking, and it syncs on
+// starting to check.
+func (c *Checker) syncObserveFloor() {
+	if c.memoActive() {
+		c.observeFloor = -1
+	} else {
+		c.observeFloor = int(c.currentResolution().start)
+	}
 }
 
 // beginMemo is called on entry to a memoized function whose result for this
@@ -819,6 +832,7 @@ func (c *Checker) linkState(state *memoState, f *memoEffects) {
 	if state.pending == nil {
 		state.pending = &memoEffects{}
 		c.memoPendingCount++
+		c.syncObserveFloor()
 		if c.flushStates != nil {
 			*c.flushStates = append(*c.flushStates, state)
 		}
@@ -942,8 +956,10 @@ func (s *memoState) setErrors(c *Checker, reports []*currentNodeError) {
 	switch {
 	case s.errors == nil && reports != nil:
 		c.memoErrorStates++
+		c.syncObserveFloor()
 	case s.errors != nil && reports == nil:
 		c.memoErrorStates--
+		c.syncObserveFloor()
 	}
 	s.errors = reports
 }
@@ -963,6 +979,7 @@ func (c *Checker) replayPending(state *memoState) {
 		f := state.pending
 		state.pending = nil
 		c.memoPendingCount--
+		c.syncObserveFloor()
 		c.replayMemo(f)
 	}
 }
@@ -1044,6 +1061,7 @@ func (c *Checker) retainEffects(state *memoState, f *memoEffects) {
 		f.addDep(state.pending)
 	} else {
 		c.memoPendingCount++
+		c.syncObserveFloor()
 		if c.flushStates != nil {
 			*c.flushStates = append(*c.flushStates, state)
 		}
@@ -1171,11 +1189,13 @@ func (c *Checker) withoutChecking(fn func()) {
 	saveMemoTop := c.memoTop
 	var states []*memoState
 	c.checking = false
+	c.syncObserveFloor()
 	c.memoTop = 0
 	c.flushStates = &states
 	fn()
 	c.flushStates = nil
 	c.checking = true
+	c.syncObserveFloor()
 	c.memoTop = saveMemoTop
 	// Replaying is in order of computation, so effects apply in the order
 	// they would have in the check. They also happened at the current node,
@@ -1185,6 +1205,7 @@ func (c *Checker) withoutChecking(fn func()) {
 			f := state.pending
 			state.pending = nil
 			c.memoPendingCount--
+			c.syncObserveFloor()
 			c.replayEffects(f, c.currentNode, true)
 		}
 	}
@@ -1221,6 +1242,7 @@ func (c *Checker) recordFromCheck() {
 	}
 	c.resolutions[i].fromCheck = true
 	c.checking = false
+	c.syncObserveFloor()
 	c.flushBuf = c.flushBuf[:0]
 	c.flushStates = &c.flushBuf
 }
@@ -1231,12 +1253,14 @@ func (c *Checker) endQueryFromCheck() {
 	states := *c.flushStates
 	c.flushStates = nil
 	c.checking = true
+	c.syncObserveFloor()
 	defer clear(states)
 	for _, state := range states {
 		if state.pending != nil {
 			f := state.pending
 			state.pending = nil
 			c.memoPendingCount--
+			c.syncObserveFloor()
 			c.replayEffects(f, c.currentNode, true)
 		}
 	}
@@ -1249,8 +1273,10 @@ func (c *Checker) withChecking(fn func()) {
 	debug.Assert(c.memoTop == 0, "memo resolution leaked")
 	saveChecking := c.checking
 	c.checking = true
+	c.syncObserveFloor()
 	fn()
 	c.checking = saveChecking
+	c.syncObserveFloor()
 }
 
 // memoCycle is called when a computation observes another computation that is
@@ -1654,8 +1680,10 @@ func (c *Checker) logPendingDiscard(state *memoState) {
 		switch {
 		case old == nil && state.pending != nil:
 			c.memoPendingCount--
+			c.syncObserveFloor()
 		case old != nil && state.pending == nil:
 			c.memoPendingCount++
+			c.syncObserveFloor()
 		}
 		state.pending = old
 		if old != nil && len(old.deps) > n {
