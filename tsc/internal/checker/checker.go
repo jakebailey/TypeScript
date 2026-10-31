@@ -8829,45 +8829,48 @@ func (c *Checker) isSymbolOrSymbolForCall(node *ast.Node) bool {
 	return globalESSymbol == c.resolveName(left, "Symbol", ast.SymbolFlagsValue, nil /*nameNotFoundMessage*/, false /*isUse*/, false)
 }
 
-// isContextuallyTypedByEnclosingCall reports whether the contextual type of
-// an expression may come from an argument of an enclosing call. Other
-// contexts are not resolved ahead of the expression, since computing them
-// may evaluate expressions that checking only evaluates otherwise, such as
-// the target of a destructuring assignment.
-func isContextuallyTypedByEnclosingCall(node *ast.Node) bool {
+// getContextuallyTypingCall returns the enclosing call an argument of which
+// may give an expression its contextual type, or nil. Other contexts are not
+// resolved ahead of the expression, since computing them may evaluate
+// expressions that checking only evaluates otherwise, such as the target of a
+// destructuring assignment.
+func getContextuallyTypingCall(node *ast.Node) *ast.Node {
 	for {
 		parent := node.Parent
 		switch parent.Kind {
 		case ast.KindCallExpression, ast.KindNewExpression:
-			return node != parent.Expression()
+			if node == parent.Expression() {
+				return nil
+			}
+			return parent
 		case ast.KindParenthesizedExpression, ast.KindSpreadElement, ast.KindArrayLiteralExpression,
 			ast.KindObjectLiteralExpression, ast.KindPropertyAssignment, ast.KindAwaitExpression:
 			node = parent
 			continue
 		case ast.KindConditionalExpression:
 			if node == parent.AsConditionalExpression().Condition {
-				return false
+				return nil
 			}
 		case ast.KindBinaryExpression:
 			switch parent.AsBinaryExpression().OperatorToken.Kind {
 			case ast.KindBarBarToken, ast.KindAmpersandAmpersandToken, ast.KindQuestionQuestionToken, ast.KindCommaToken:
 				if node != parent.AsBinaryExpression().Right {
-					return false
+					return nil
 				}
 			default:
-				return false
+				return nil
 			}
 		case ast.KindArrowFunction:
 			if node != parent.Body() {
-				return false
+				return nil
 			}
 		case ast.KindReturnStatement:
 			parent = ast.GetContainingFunction(parent)
 			if parent == nil || !ast.IsFunctionExpressionOrArrowFunction(parent) {
-				return false
+				return nil
 			}
 		default:
-			return false
+			return nil
 		}
 		node = parent
 	}
@@ -8916,8 +8919,10 @@ func (c *Checker) getResolvedSignatureUncached(node *ast.Node, candidatesOutArra
 		// type parameters this call references. Resolved from within this call
 		// instead, the enclosing call sees this one marked as resolving, and
 		// the result depends on which call was queried first.
-		if (ast.IsCallExpression(node) || ast.IsNewExpression(node)) && isContextuallyTypedByEnclosingCall(node) {
-			c.getContextualType(node, ContextFlagsNone)
+		if ast.IsCallExpression(node) || ast.IsNewExpression(node) {
+			if call := getContextuallyTypingCall(node); call != nil && !c.isSignatureResolvingOrResolved(call) {
+				c.getContextualType(node, ContextFlagsNone)
+			}
 		}
 		cached = links.resolvedSignature.get(c)
 		if cached == c.resolvingSignature && c.isSignatureResolutionHidden(links) {
@@ -8983,6 +8988,14 @@ type signatureResolving struct {
 
 // isSignatureResolutionHidden reports whether the resolution of the call
 // with the given links is in progress below what is visible; see yieldCycle.
+// isSignatureResolvingOrResolved reports whether the signature of a call is
+// resolved, or being resolved by a resolution visible to the current one.
+func (c *Checker) isSignatureResolvingOrResolved(call *ast.Node) bool {
+	links := c.signatureLinks.Get(call)
+	s := links.resolvedSignature.get(c)
+	return s != nil && !(s == c.resolvingSignature && c.isSignatureResolutionHidden(links))
+}
+
 func (c *Checker) isSignatureResolutionHidden(links *SignatureLinks) bool {
 	if c.visibleStart == 0 {
 		return false
