@@ -132,6 +132,7 @@ type memoEffects struct {
 	marks    []*ast.Symbol // Aliases marked referenced, also among effects; see withReferenceMarks
 	deps     []*memoEffects
 	parent   *memoEffects // Resolution d was most recently added to; avoids duplicate deps
+	cycles   []int32      // Indices in deps of the cycle heads memoCycle added
 	entry    *ast.Node    // Current node when the computation started, if entered
 	entered  bool         // Whether this is the resolution of a computation, not just a set of deps
 	replayed bool
@@ -1114,6 +1115,7 @@ func (c *Checker) replayEffects(f *memoEffects, outerEntry *ast.Node, outerEnter
 	c.currentNode = saveCurrentNode
 	f.effects = nil
 	f.deps = nil
+	f.cycles = nil
 }
 
 // atMemoStartNode reports whether the current node is the one the innermost
@@ -1299,7 +1301,11 @@ func (c *Checker) memoCycle(depth int) {
 		return
 	}
 	var outer *memoEffects
-	for i := depth; i < len(c.resolutions); i++ {
+	// Walk down from the top, stopping at a computation an earlier reentry
+	// already made depend on outer: the computations below it were in
+	// progress then too, so they depend on outer as well. Without this,
+	// every reentry of a cycle would walk, and grow, the whole stack.
+	for i := len(c.resolutions) - 1; i >= depth; i-- {
 		if !c.resolutions[i].memo {
 			continue
 		}
@@ -1309,13 +1315,31 @@ func (c *Checker) memoCycle(depth int) {
 			outer = c.memoEffectsAt(depth - 1)
 		}
 		f := c.memoEffectsAt(i)
-		if i < c.effectsMarkDepth-1 && f != outer && outer.parent != f {
+		if f == outer || outer.parent == f {
+			continue
+		}
+		if f.dependsOnCycle(outer) {
+			break
+		}
+		if i < c.effectsMarkDepth-1 {
 			// The resolution is in progress below the mark, so discarding to
 			// the mark must also discard this dependency.
 			c.logDepsDiscard(f)
 		}
-		f.addDep(outer)
+		f.cycles = append(f.cycles, int32(len(f.deps)))
+		f.deps = append(f.deps, outer)
+		outer.parent = f
 	}
+}
+
+// dependsOnCycle reports whether memoCycle made f depend on the cycle head.
+func (f *memoEffects) dependsOnCycle(head *memoEffects) bool {
+	for _, i := range f.cycles {
+		if f.deps[i] == head {
+			return true
+		}
+	}
+	return false
 }
 
 // logDepsDiscard logs the dependencies of a computation in progress below the
@@ -1680,6 +1704,9 @@ func (f *memoEffects) truncateDeps(n int) {
 	}
 	clear(f.deps[n:])
 	f.deps = f.deps[:n]
+	for len(f.cycles) != 0 && int(f.cycles[len(f.cycles)-1]) >= n {
+		f.cycles = f.cycles[:len(f.cycles)-1]
+	}
 }
 
 // logPendingDiscard logs the effects of the result in the memo state, which
