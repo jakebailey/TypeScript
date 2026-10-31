@@ -14331,10 +14331,9 @@ func (c *Checker) getObjectTypeContentKey(symbol *ast.Symbol, flags ObjectFlags,
 		b.writeByte(0)
 	}
 	b.writeUint32(uint32(flags))
-	names := slices.Sorted(members.Keys())
-	b.writeInt(len(names))
-	for _, name := range names {
-		b.writeSymbol(members.Get(name))
+	b.writeInt(members.Len())
+	for member := range members.Values() {
+		b.writeSymbol(member)
 	}
 	b.writeInt(len(indexInfos))
 	for _, info := range indexInfos {
