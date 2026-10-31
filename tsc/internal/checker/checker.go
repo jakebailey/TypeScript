@@ -20487,6 +20487,14 @@ func (c *Checker) enterCurrentNode(node *ast.Node) savedCurrentNode {
 		c.endCircularity()
 	}
 	c.currentNode = node
+	if c.currentNodeResolution != 0 && c.currentNodeResolution == len(c.resolutions) && c.circularityStart == 0 && len(c.innerCycles) == 0 {
+		// Nothing separates the node from the one enclosing it, so the
+		// resolution of that one stands in for it: a cycle through the node
+		// starts at that resolution, and nothing else can until the node is
+		// left, where exitCurrentNode ends it as popping the node's own
+		// resolution would.
+		return save
+	}
 	// beginTypeResolution, without the call, for a resolution that is not
 	// searchable.
 	f := c.pushResolution()
@@ -20505,6 +20513,16 @@ func (c *Checker) enterCurrentNode(node *ast.Node) savedCurrentNode {
 }
 
 func (c *Checker) exitCurrentNode(save savedCurrentNode) {
+	if c.currentNodeResolution == save.resolution {
+		// The node had no resolution of its own; see enterCurrentNode.
+		if c.circularityStart >= save.resolution {
+			c.endCircularity()
+		} else if len(c.innerCycles) != 0 {
+			c.endInnerCycles(save.resolution - 1)
+		}
+		c.currentNode = save.node
+		return
+	}
 	// popTypeResolution, without the call.
 	n := len(c.resolutions) - 1
 	debug.Assert(c.currentNodeResolution == n+1 && c.typeResolutionTop == n+1, "resolutions left on the stack")
