@@ -1867,7 +1867,7 @@ func (c *Checker) typeResolutionMemo(r *TypeResolution) *memoHeader {
 
 const (
 	instantiationDepthLimit      = 100
-	instantiationTotalDepthLimit = 1000
+	instantiationTotalDepthLimit = 200
 	instantiationCountLimit      = 5_000_000
 )
 
