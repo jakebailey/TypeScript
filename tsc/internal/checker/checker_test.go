@@ -282,6 +282,9 @@ func TestCachedStateIsMemoized(t *testing.T) {
 }
 
 func isMemoType(expr goast.Expr) bool {
+	if a, ok := expr.(*goast.ArrayType); ok {
+		expr = a.Elt
+	}
 	switch e := expr.(type) {
 	case *goast.IndexExpr:
 		expr = e.X

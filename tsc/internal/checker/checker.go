@@ -614,6 +614,7 @@ type Checker struct {
 	*memoStore
 	compareSymbols             func(*ast.Symbol, *ast.Symbol) int
 	compareSymbolChains        func([]*ast.Symbol, []*ast.Symbol) int
+	globalIDs                  map[globalKey]globalID
 	resolutionSerials          uint32
 	resolutions                []resolution
 	instantiationStack         []*Type
@@ -822,8 +823,8 @@ type memoStore struct {
 	canCollectSymbolAliasAccessibilityData bool
 	arrayVariances                         []VarianceFlags
 	globals                                ast.SymbolTable
-	globalTypes                            memoMap[globalKey, *Type]
-	globalSymbols                          memoMap[globalKey, *ast.Symbol]
+	globalTypes                            []memo[resolvedGlobal[*Type]]      // Indexed by globalID
+	globalSymbols                          []memo[resolvedGlobal[*ast.Symbol]] // Indexed by globalID
 	stringLiteralTypes                     memoMap[string, *Type]
 	numberLiteralTypes                     memoMap[jsnum.Number, *Type]
 	nanType                                *Type
@@ -1221,6 +1222,14 @@ func (c *Checker) initCheckerState() {
 	c.getGlobalClassFieldDecoratorContextType = c.getGlobalTypeResolver("ClassFieldDecoratorContext", 2 /*arity*/, true /*reportErrors*/)
 	c.initializeClosures()
 	c.initializeIterationResolvers()
+	// Memos are identified by their addresses, so the cells are allocated
+	// once all resolvers have their IDs, which every checker sharing the
+	// store assigns alike.
+	if c.globalTypes == nil {
+		c.globalTypes = make([]memo[resolvedGlobal[*Type]], len(c.globalIDs))
+		c.globalSymbols = make([]memo[resolvedGlobal[*ast.Symbol]], len(c.globalIDs))
+	}
+	debug.Assert(len(c.globalTypes) == len(c.globalIDs), "checkers sharing a store assigned different global IDs")
 }
 
 // Clone returns a new checker sharing c's store. The clone observes and
@@ -1275,6 +1284,24 @@ type globalKey struct {
 	reportErrors bool
 }
 
+// globalID is the small integer standing for a globalKey in the store, so
+// that resolving a global hashes an integer rather than a name. Resolvers are
+// all created as a checker is initialized, in the same order, so every
+// checker sharing a store assigns the same IDs.
+type globalID uint32
+
+func (c *Checker) getGlobalID(key globalKey) globalID {
+	if id, ok := c.globalIDs[key]; ok {
+		return id
+	}
+	if c.globalIDs == nil {
+		c.globalIDs = make(map[globalKey]globalID)
+	}
+	id := globalID(len(c.globalIDs))
+	c.globalIDs[key] = id
+	return id
+}
+
 type globalKind uint8
 
 const (
@@ -1286,15 +1313,22 @@ const (
 
 // Resolve to the global class or interface by the given name and arity, or emptyObjectType/emptyGenericType otherwise
 func (c *Checker) getGlobalTypeResolver(name string, arity int, reportErrors bool) func() *Type {
-	key := globalKey{globalKindType, name, arity, reportErrors}
+	key := c.getGlobalID(globalKey{globalKindType, name, arity, reportErrors})
 	return func() *Type {
-		if t, ok := c.globalTypes.get(c, key); ok {
-			return t
+		m := &c.globalTypes[key]
+		if r := m.get(c); r.resolved {
+			return r.value
 		}
-		return c.globalTypes.compute(c, key, func() *Type {
-			return c.getGlobalType(name, arity, reportErrors)
-		})
+		return c.memoCompute(m, func() resolvedGlobal[*Type] {
+			return resolvedGlobal[*Type]{c.getGlobalType(name, arity, reportErrors), true}
+		}).value
 	}
+}
+
+// resolvedGlobal is the result of resolving a global, which may be nil.
+type resolvedGlobal[T any] struct {
+	value    T
+	resolved bool
 }
 
 // Resolve to the global type alias symbol by the given name and arity, or nil otherwise
@@ -1317,12 +1351,16 @@ func (c *Checker) getGlobalTypeSymbolResolver(name string, reportErrors bool) fu
 	})
 }
 
-func (c *Checker) getGlobalSymbolResolver(key globalKey, resolve func() *ast.Symbol) func() *ast.Symbol {
+func (c *Checker) getGlobalSymbolResolver(k globalKey, resolve func() *ast.Symbol) func() *ast.Symbol {
+	key := c.getGlobalID(k)
 	return func() *ast.Symbol {
-		if symbol, ok := c.globalSymbols.get(c, key); ok {
-			return symbol
+		m := &c.globalSymbols[key]
+		if r := m.get(c); r.resolved {
+			return r.value
 		}
-		return c.globalSymbols.compute(c, key, resolve)
+		return c.memoCompute(m, func() resolvedGlobal[*ast.Symbol] {
+			return resolvedGlobal[*ast.Symbol]{resolve(), true}
+		}).value
 	}
 }
 
