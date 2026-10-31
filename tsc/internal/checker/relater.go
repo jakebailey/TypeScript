@@ -413,7 +413,16 @@ func (c *Checker) checkTypeRelatedToWithKey(
 		// The comparison overflowed before, and would again.
 		r.overflow = true
 	} else {
+		measuring := c.measuringVariances
+		c.measuringVariances = false
+		saveIncomplete := c.incompleteVariances
+		c.incompleteVariances = 0
 		result = r.isRelatedToEx(source, target, RecursionFlagsBoth, errorNode != nil /*reportErrors*/, headMessage, IntersectionStateNone)
+		incomplete := c.incompleteVariances
+		c.incompleteVariances = saveIncomplete
+		if incomplete != 0 && !measuring {
+			c.markIncompleteVariances(incomplete)
+		}
 		if r.topBegun {
 			if r.overflow {
 				// Record this relation as having failed such that we don't attempt the overflowing operation again.
@@ -1562,13 +1571,6 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 // measured again with nothing in progress visible, measuring the others in the circularity as
 // it reaches them, and the measurements in progress then take those results.
 func (c *Checker) getRecursiveVariances(stackIndex int) []VarianceFlags {
-	// Results computed since the circularity was entered observed incomplete variances, so
-	// they are discarded once the measurement re-entered finishes. The variances themselves are
-	// kept, since each is measured from the canonical entry whichever type is entered first.
-	for i := stackIndex; i < len(c.varianceStack); i++ {
-		c.cycleParticipants = append(c.cycleParticipants, c.resolutions[c.varianceStack[i].resolution].typeResolution)
-	}
-	c.markTypeResolutionCircular(c.varianceStack[stackIndex].resolution)
 	minIndex := stackIndex
 	for i := stackIndex + 1; i < len(c.varianceStack); i++ {
 		if c.compareSymbols(c.varianceStack[i].symbol, c.varianceStack[minIndex].symbol) < 0 {
@@ -1587,7 +1589,46 @@ func (c *Checker) getRecursiveVariances(stackIndex int) []VarianceFlags {
 	if variances := c.varianceLinks.Get(c.varianceStack[stackIndex].symbol).variances.get(c); variances != nil {
 		return variances
 	}
+	// The variances are incomplete. Only comparisons and inferences read
+	// variances: a comparison observing them is not cached, and once the
+	// outermost one completes, what reads its result is discarded when the
+	// measurement re-entered finishes, unless it is one measuring variances,
+	// which are kept, since each is measured from the canonical entry
+	// whichever type is entered first.
+	c.incompleteVariances = minIncompleteVariances(c.incompleteVariances, c.varianceStack[stackIndex].resolution+1)
 	return []VarianceFlags{}
+}
+
+func minIncompleteVariances(a int, b int) int {
+	if a == 0 || b != 0 && b < a {
+		return b
+	}
+	return a
+}
+
+// markIncompleteVariances marks circular the measurement of variances in
+// progress at index head-1 in resolutions, whose incomplete variances were
+// observed, keeping the variances of it and those measured above it.
+func (c *Checker) markIncompleteVariances(head int) {
+	for _, e := range c.varianceStack {
+		if e.resolution >= head-1 {
+			c.cycleParticipants = append(c.cycleParticipants, c.resolutions[e.resolution].typeResolution)
+		}
+	}
+	c.markTypeResolutionCircular(head - 1)
+}
+
+// getVariancesForInference returns the variances get returns, for an
+// inference, which is discarded if they are incomplete.
+func (c *Checker) getVariancesForInference(get func() []VarianceFlags) []VarianceFlags {
+	saveIncomplete := c.incompleteVariances
+	c.incompleteVariances = 0
+	variances := get()
+	if c.incompleteVariances != 0 {
+		c.markIncompleteVariances(c.incompleteVariances)
+	}
+	c.incompleteVariances = saveIncomplete
+	return variances
 }
 
 func (c *Checker) measureVariances(symbol *ast.Symbol, typeParameters []*Type, links *VarianceLinks) []VarianceFlags {
@@ -1612,13 +1653,13 @@ func (c *Checker) measureVariances(symbol *ast.Symbol, typeParameters []*Type, l
 			// invariance, covariance, contravariance or bivariance.
 			typeWithSuper := c.createMarkerType(symbol, tp, c.markerSuperType)
 			typeWithSub := c.createMarkerType(symbol, tp, c.markerSubType)
-			variance = core.IfElse(c.isTypeAssignableTo(typeWithSub, typeWithSuper), VarianceFlagsCovariant, 0) |
-				core.IfElse(c.isTypeAssignableTo(typeWithSuper, typeWithSub), VarianceFlagsContravariant, 0)
+			variance = core.IfElse(c.isMarkerTypeAssignableTo(typeWithSub, typeWithSuper), VarianceFlagsCovariant, 0) |
+				core.IfElse(c.isMarkerTypeAssignableTo(typeWithSuper, typeWithSub), VarianceFlagsContravariant, 0)
 			// If the instantiations appear to be related bivariantly it may be because the
 			// type parameter is independent (i.e. it isn't witnessed anywhere in the generic
 			// type). To determine this we compare instantiations where the type parameter is
 			// replaced with marker types that are known to be unrelated.
-			if variance == VarianceFlagsBivariant && c.isTypeAssignableTo(c.createMarkerType(symbol, tp, c.markerOtherType), typeWithSuper) {
+			if variance == VarianceFlagsBivariant && c.isMarkerTypeAssignableTo(c.createMarkerType(symbol, tp, c.markerOtherType), typeWithSuper) {
 				variance = VarianceFlagsIndependent
 			}
 			if c.reliabilityFlags&RelationComparisonResultReportsUnmeasurable != 0 {
@@ -1637,6 +1678,15 @@ func (c *Checker) measureVariances(symbol *ast.Symbol, typeParameters []*Type, l
 		variances[i] = variance
 	}
 	return variances
+}
+
+// isMarkerTypeAssignableTo is isTypeAssignableTo for a comparison measuring
+// variances.
+func (c *Checker) isMarkerTypeAssignableTo(source *Type, target *Type) bool {
+	c.measuringVariances = true
+	result := c.isTypeAssignableTo(source, target)
+	c.measuringVariances = false
+	return result
 }
 
 func (c *Checker) getVarianceStackIndex(symbol *ast.Symbol) int {
@@ -3577,6 +3627,8 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	}
 	saveReliabilityFlags := r.c.reliabilityFlags
 	r.c.reliabilityFlags = 0
+	saveIncomplete := r.c.incompleteVariances
+	r.c.incompleteVariances = 0
 	var result Ternary
 	if r.expandingFlags == ExpandingFlagsBoth {
 		if tr := r.c.tracer; tr != nil {
@@ -3597,6 +3649,8 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	}
 	propagatingVarianceFlags := r.c.reliabilityFlags
 	r.c.reliabilityFlags |= saveReliabilityFlags
+	incomplete := r.c.incompleteVariances
+	r.c.incompleteVariances = minIncompleteVariances(saveIncomplete, incomplete)
 	if recursionFlags&RecursionFlagsSource != 0 {
 		r.sourceStack = r.sourceStack[:len(r.sourceStack)-1]
 		r.sourceDepths = r.sourceDepths[:len(r.sourceDepths)-1]
@@ -3616,6 +3670,17 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		// from scratch would give. Only the overflow is cached.
 		r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false)
 		result = TernaryFalse
+	case incomplete != 0 && low >= depth:
+		// The result observed incomplete variances, so it is not what
+		// comparing from scratch would give (see getRecursiveVariances).
+		r.resetMaybeStack(maybeStart, propagatingVarianceFlags, false)
+		if result == TernaryMaybe {
+			result = TernaryTrue
+		}
+	case incomplete != 0:
+		// As above, once the outermost comparison this one assumed completes.
+		r.low = min(r.low, low)
+		r.truncated = r.truncated || truncated
 	case result == TernaryFalse:
 		// A false result goes straight into global cache (when something is false under
 		// assumptions it will also be false without assumptions)

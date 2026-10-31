@@ -285,11 +285,11 @@ func (c *Checker) inferFromAliasTypeArguments(n *InferenceState, source *Type, t
 	nodeIsInJsFile := ast.IsInJSFile(source.alias.symbol.ValueDeclaration())
 	sourceTypes := c.fillMissingTypeArguments(source.alias.typeArguments, params, minParams, nodeIsInJsFile)
 	targetTypes := c.fillMissingTypeArguments(target.alias.typeArguments, params, minParams, nodeIsInJsFile)
-	c.inferFromTypeArguments(n, sourceTypes, targetTypes, c.getAliasVariances(source.alias.symbol))
+	c.inferFromTypeArguments(n, sourceTypes, targetTypes, c.getVariancesForInference(func() []VarianceFlags { return c.getAliasVariances(source.alias.symbol) }))
 }
 
 func (c *Checker) inferFromReferenceTypeArguments(n *InferenceState, source *Type, target *Type) {
-	c.inferFromTypeArguments(n, c.getTypeArguments(source), c.getTypeArguments(target), c.getVariances(source.AsTypeReference().target))
+	c.inferFromTypeArguments(n, c.getTypeArguments(source), c.getTypeArguments(target), c.getVariancesForInference(func() []VarianceFlags { return c.getVariances(source.AsTypeReference().target) }))
 }
 
 func (c *Checker) inferFromTypeArguments(n *InferenceState, sourceTypes []*Type, targetTypes []*Type, variances []VarianceFlags) {

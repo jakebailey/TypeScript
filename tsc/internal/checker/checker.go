@@ -683,6 +683,8 @@ type Checker struct {
 	cycleParticipants                           []TypeResolution    // Computations that observed a cycle in progress
 	effectsMarkDepth                            int                 // 1 + resolution index of the innermost effects mark that may be discarded, or 0
 	varianceStack                               []VarianceStackEntry
+	incompleteVariances                         int  // 1 + resolution index of the outermost measurement whose incomplete variances were observed, or 0; see getRecursiveVariances
+	measuringVariances                          bool // The comparison about to start measures variances; see isMarkerTypeAssignableTo
 	flushBuf                                    []*memoState
 	resumeBuf                                   []int
 	deferredAttach                              []*memoState  // See attachState
