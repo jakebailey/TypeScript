@@ -348,7 +348,8 @@ type memoMap[K comparable, V any] struct {
 
 type memoMapSide[K comparable] struct {
 	memoStates    map[K]*memoState
-	resolvingKeys []K // Keys of computations in progress without a memo state yet
+	resolvingKeys []K     // Keys of computations in progress without a memo state yet
+	resolvingAt   []int32 // Index in Checker.resolutions of each
 	// If set, keyBits returns well-mixed bits of a key, with which stateKeys
 	// filters the keys that may have a memo state, since few do and looking
 	// up one that does not costs as much as one that does.
@@ -529,6 +530,7 @@ func (m *memoMap[K, V]) begin(c *Checker, k K) {
 		state = m.stateOf(k)
 	}
 	side.resolvingKeys = append(side.resolvingKeys, k)
+	side.resolvingAt = append(side.resolvingAt, int32(len(c.resolutions)))
 	c.beginResolution(m, len(side.resolvingKeys)-1)
 	if c.checking && c.memoPendingCount == 0 && c.memoTop|c.currentNodeResolution != 0 && !c.logEffects() {
 		// beginCheckedMemo for the common case, without the calls.
@@ -562,22 +564,14 @@ func (m *memoMap[K, V]) resolvingIndex(c *Checker, k K) int {
 		if key != k {
 			continue
 		}
-		j := m.resolutionIndex(c, i)
+		j := int(m.side.resolvingAt[i])
+		debug.Assert(c.resolutions[j].source == memoStateSource(m) && int(c.resolutions[j].index) == i, "entry in progress without a resolution")
 		if j >= c.visibleStart {
 			return j + 1
 		}
 		// Hidden; see yieldCycle.
 	}
 	return 0
-}
-
-func (m *memoMap[K, V]) resolutionIndex(c *Checker, i int) int {
-	for j := len(c.resolutions) - 1; j >= 0; j-- {
-		if f := &c.resolutions[j]; f.source == memoStateSource(m) && int(f.index) == i {
-			return j
-		}
-	}
-	panic("entry in progress without a resolution")
 }
 
 // isOwnResolution reports whether the current resolution computes the entry
@@ -594,6 +588,7 @@ func (m *memoMap[K, V]) stateAt(i int) *memoState {
 func (m *memoMap[K, V]) popState(i int) {
 	clear(m.side.resolvingKeys[i:])
 	m.side.resolvingKeys = m.side.resolvingKeys[:i]
+	m.side.resolvingAt = m.side.resolvingAt[:i]
 }
 
 func (m *memoMap[K, V]) state(k K) *memoState {
