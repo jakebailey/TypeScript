@@ -870,7 +870,7 @@ type memoStore struct {
 	unionTypes                             memoMap[CacheHashKey, *Type]
 	unionOfUnionTypes                      memoMap[UnionOfUnionKey, *Type]
 	intersectionTypes                      memoMap[CacheHashKey, *Type]
-	objectLiteralTypes                     memoMap[CacheHashKey, *Type]
+	objectLiteralTypes                     memoMap[*ast.Node, []objectLiteralType]
 	spreadTypes                            memoMap[CacheHashKey, *Type]
 	objectContentTypes                     memoMap[CacheHashKey, *Type]
 	spreadSymbols                          memoMap[spreadSymbolKey, *ast.Symbol]
@@ -13896,16 +13896,18 @@ func (c *Checker) checkObjectLiteral(node *ast.Node, checkMode CheckMode) *Type 
 		if patternWithComputedProperties {
 			flags |= ObjectFlagsObjectLiteralPatternWithComputedProperties
 		}
-		key := c.getObjectLiteralTypeKey(node, flags, propertiesTable, indexInfos)
-		if existing, _ := c.objectLiteralTypes.get(c, key); existing != nil {
-			return existing
+		existingTypes, _ := c.objectLiteralTypes.peek(node)
+		for _, existing := range existingTypes {
+			if c.isSameObjectLiteralType(existing, flags, propertiesTable, indexInfos) {
+				return existing.t
+			}
 		}
 		result := c.newAnonymousType(node.Symbol(), propertiesTable, nil, nil, indexInfos)
 		result.objectFlags |= flags
 		if inDestructuringPattern {
 			c.patternForType.intern(result, node)
 		}
-		c.objectLiteralTypes.intern(key, result)
+		c.objectLiteralTypes.intern(node, append(existingTypes, objectLiteralType{flags, propertiesTable, indexInfos, result}))
 		return result
 	}
 	for _, memberDecl := range node.Properties() {
@@ -18841,50 +18843,49 @@ func (b *keyBuilder) writeNode(node *ast.Node) {
 	}
 }
 
-// getObjectLiteralTypeKey identifies the content of an object literal type, so
-// that checking the same object literal again with the same results yields the
-// same type.
-func (c *Checker) getObjectLiteralTypeKey(node *ast.Node, flags ObjectFlags, properties ast.SymbolTable, indexInfos []*IndexInfo) CacheHashKey {
-	var b keyBuilder
-	b.writeNode(node)
-	b.writeUint32(uint32(flags))
-	b.writeInt(properties.Len())
-	for name, prop := range properties.All() {
-		b.writeString(name)
-		b.writeByte(0)
-		b.writeUint32(uint32(prop.Flags()))
-		b.writeUint32(uint32(prop.CheckFlags()))
-		// Members created by this object literal have their types set at
+// An objectLiteralType is a type created for an object literal, with the
+// content it was created from; see isSameObjectLiteralType.
+type objectLiteralType struct {
+	flags      ObjectFlags
+	properties ast.SymbolTable
+	indexInfos []*IndexInfo
+	t          *Type
+}
+
+// isSameObjectLiteralType reports whether an object literal type created
+// before has the given content, so that checking the same object literal
+// again with the same results yields the same type.
+func (c *Checker) isSameObjectLiteralType(e objectLiteralType, flags ObjectFlags, properties ast.SymbolTable, indexInfos []*IndexInfo) bool {
+	if e.flags != flags || e.properties.Len() != properties.Len() || len(e.indexInfos) != len(indexInfos) {
+		return false
+	}
+	for i, info := range indexInfos {
+		other := e.indexInfos[i]
+		if info.keyType != other.keyType || info.valueType != other.valueType || info.isReadonly != other.isReadonly || !slices.Equal(info.components, other.components) {
+			return false
+		}
+	}
+	for i := range properties.Len() {
+		name, prop := properties.At(i)
+		otherName, other := e.properties.At(i)
+		if name != otherName || prop.Flags() != other.Flags() || prop.CheckFlags() != other.CheckFlags() {
+			return false
+		}
+		// Members created by an object literal have their types set at
 		// creation; other members (accessors) are the declared symbols.
 		links := c.valueSymbolLinks.TryGet(prop)
-		if links == nil || links.target == nil {
-			b.writeByte(2)
-			b.writeSymbol(prop)
+		otherLinks := c.valueSymbolLinks.TryGet(other)
+		if links == nil || links.target == nil || otherLinks == nil || otherLinks.target == nil {
+			if prop != other {
+				return false
+			}
 			continue
 		}
-		if nameType := links.getNameType(); nameType != nil {
-			b.writeByte(1)
-			b.writeType(nameType)
-		} else {
-			b.writeByte(0)
-		}
-		b.writeType(links.resolvedType.peek())
-	}
-	b.writeInt(len(indexInfos))
-	for _, info := range indexInfos {
-		b.writeType(info.keyType)
-		b.writeType(info.valueType)
-		if info.isReadonly {
-			b.writeByte(1)
-		} else {
-			b.writeByte(0)
-		}
-		b.writeInt(len(info.components))
-		for _, n := range info.components {
-			b.writeNode(n)
+		if links.getNameType() != otherLinks.getNameType() || links.resolvedType.peek() != otherLinks.resolvedType.peek() {
+			return false
 		}
 	}
-	return b.hash()
+	return true
 }
 
 func getTypeListKey(types []*Type) CacheHashKey {
