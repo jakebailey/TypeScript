@@ -310,7 +310,7 @@ type ExportTypeLinks struct {
 // Links for type aliases
 
 type TypeAliasLinks struct {
-	declaredType   memo[*Type]
+	declaredType   memoReported[*Type]
 	typeParameters []*Type                      // Type parameters of type alias (undefined if non-generic)
 	instantiations memoMap[CacheHashKey, *Type] // Instantiations of generic type alias (undefined if non-generic)
 }

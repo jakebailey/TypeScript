@@ -258,13 +258,27 @@ func (m *memo[T]) setIdentity(c *Checker, v T) {
 	}
 }
 
+// A memoReported is a memo whose result can have errors to replay; see
+// setReported. Reading it accounts for them even when nothing else must be
+// accounted for.
+type memoReported[T comparable] struct {
+	memo[T]
+}
+
+func (m *memoReported[T]) get(c *Checker) T {
+	if c.observing() || c.memoErrorStates != 0 {
+		c.observeCell(&m.memoHeader)
+	}
+	return m.memoValue
+}
+
 // setReported is setIdentity for a result whose computation collected errors
 // reported at the current node, as returned by endCurrentNodeErrors. Every
 // node reusing the result reports them again, as it would had it computed the
 // result itself. If computing the result elsewhere may not report them (see
 // endCurrentNodeErrors), it is instead discarded with other results cached
 // for the current node.
-func (m *memo[T]) setReported(c *Checker, v T, r currentNodeErrors) {
+func (m *memoReported[T]) setReported(c *Checker, v T, r currentNodeErrors) {
 	if r.cyclic {
 		if c.logResults() {
 			m.logDiscard(c)
@@ -403,7 +417,7 @@ func (m *memoMap[K, V]) stateOf(k K) *memoState {
 // get returns the cached result for k, accounting for the effects of
 // computing it.
 func (m *memoMap[K, V]) get(c *Checker, k K) (V, bool) {
-	if m.side != nil && c.observing() {
+	if m.side != nil && (c.observing() || m.side.hasErrors) {
 		m.observe(c, k)
 	}
 	v, ok := m.memoEntries[k]
@@ -654,19 +668,20 @@ func (c *Checker) memoActive() bool {
 	return !c.checking || c.memoPendingCount|c.memoErrorStates != 0
 }
 
-// observing reports whether reading a cached result must account for its
-// effects. It is memoActive, kept in a field for the many reads that check
-// it.
+// observing reports whether reading a cached result that cannot have errors
+// to replay must account for its effects: memoActive, except for results
+// with errors, which only memoReported and memoMap cache. It is kept in a
+// field for the many reads that check it.
 func (c *Checker) observing() bool {
 	return c.observingMemos
 }
 
-// syncObserving updates observingMemos after a change to what memoActive
-// depends on: the checking flag or the counts it reads. The counts are shared with other checkers using the same
+// syncObserving updates observingMemos after a change to what it depends
+// on: the checking flag or the counts it reads. The counts are shared with other checkers using the same
 // store, but those only run while this one is not checking, and it syncs on
 // starting to check.
 func (c *Checker) syncObserving() {
-	c.observingMemos = c.memoActive()
+	c.observingMemos = !c.checking || c.memoPendingCount != 0
 }
 
 // beginMemo is called on entry to a memoized function whose result for this

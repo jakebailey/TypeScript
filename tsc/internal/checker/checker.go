@@ -26312,7 +26312,7 @@ func (c *Checker) getDeclaredTypeOfSymbolUncached(symbol *ast.Symbol) *Type {
 func (c *Checker) peekDeclaredTypeOfSymbol(symbol *ast.Symbol) *Type {
 	switch {
 	case symbol.Flags()&ast.SymbolFlagsTypeAlias != 0 && symbol.Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface|ast.SymbolFlagsTypeParameter) == 0:
-		if links := c.typeAliasLinks.TryGet(symbol); links != nil {
+		if links := c.typeAliasLinks.TryGet(symbol); links != nil && c.memoErrorStates == 0 {
 			return links.declaredType.peek()
 		}
 	case symbol.Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface|ast.SymbolFlagsTypeParameter|ast.SymbolFlagsEnum|ast.SymbolFlagsEnumMember|ast.SymbolFlagsAlias) != 0:
