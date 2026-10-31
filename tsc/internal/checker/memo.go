@@ -1261,11 +1261,19 @@ func (c *Checker) recordFromCheck() {
 // endQueryFromCheck ends the query begun by recordFromCheck, replaying
 // the effects of everything it computed in the check.
 func (c *Checker) endQueryFromCheck() {
+	if c.flushStates == nil {
+		// The query already ended; see resumeChecking.
+		return
+	}
 	states := *c.flushStates
 	c.flushStates = nil
 	c.checking = true
 	c.syncObserving()
 	defer clear(states)
+	c.replayFlushed(states)
+}
+
+func (c *Checker) replayFlushed(states []*memoState) {
 	for _, state := range states {
 		if state.pending != nil {
 			f := state.pending
@@ -1275,6 +1283,53 @@ func (c *Checker) endQueryFromCheck() {
 			c.replayEffects(f, c.currentNode, true)
 		}
 	}
+}
+
+// resumeChecking ends the query begun by recordFromCheck as soon as nothing
+// computed since can be discarded: no cycle is in progress and no effects
+// mark is held. Recording until the outermost computation finishes would be
+// equivalent, but makes every read until then account for effects. What the
+// query recorded applies now, as it would have in the check, including what
+// the computations in progress recorded, which continue as in a check.
+func (c *Checker) resumeChecking() {
+	if c.checking || c.flushStates != &c.flushBuf || c.logEffects() || len(c.innerCycles) != 0 || len(c.discardLog) != 0 {
+		return
+	}
+	chain := c.resumeBuf[:0]
+	for i := c.memoTop - 1; i >= 0; i = int(c.resolutions[i].prevMemo) - 1 {
+		chain = append(chain, i)
+	}
+	saveCurrentNode := c.currentNode
+	if len(chain) != 0 {
+		root := &c.resolutions[chain[len(chain)-1]]
+		root.fromCheck = false
+		if root.entry != nil {
+			// The effects apply as they would when the outermost computation
+			// finishes, back at the node it started at.
+			c.currentNode = root.entry
+		}
+	}
+	states := c.flushBuf
+	c.flushStates = nil
+	c.checking = true
+	c.syncObserving()
+	c.replayFlushed(states)
+	clear(states)
+	loc := c.currentNode
+	for k := len(chain) - 1; k >= 0; k-- {
+		r := &c.resolutions[chain[k]]
+		if f := r.effects; f != nil {
+			r.effects = nil
+			c.currentNode = loc
+			c.replayEffects(f, loc, true)
+		}
+		if r.entry != nil {
+			loc = r.entry
+		}
+	}
+	c.currentNode = saveCurrentNode
+	clear(chain)
+	c.resumeBuf = chain[:0]
 }
 
 // withChecking runs fn in a check.
@@ -1551,6 +1606,7 @@ func (c *Checker) endCircularity() {
 	c.discardCycle(mark, false)
 	c.cycleParticipants = nil
 	c.trimDiscardLog()
+	c.resumeChecking()
 }
 
 // discardCycle discards the results logged since mark, except those of the
@@ -1694,6 +1750,7 @@ func (c *Checker) discardSince(m discardMark) {
 func (c *Checker) releaseDiscardMark(m discardMark) {
 	c.effectsMarkDepth = m.effectsMarkDepth
 	c.trimDiscardLog()
+	c.resumeChecking()
 }
 
 func (f *memoEffects) truncateDeps(n int) {

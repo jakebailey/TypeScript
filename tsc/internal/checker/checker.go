@@ -684,6 +684,7 @@ type Checker struct {
 	effectsMarkDepth                            int                 // 1 + resolution index of the innermost effects mark that may be discarded, or 0
 	varianceStack                               []VarianceStackEntry
 	flushBuf                                    []*memoState
+	resumeBuf                                   []int
 	deferredAttach                              []*memoState  // See attachState
 	flushStates                                 *[]*memoState // Collects memo states given effects to replay, if non-nil; see withoutChecking
 	apparentArgumentCount                       *int
