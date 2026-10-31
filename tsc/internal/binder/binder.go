@@ -52,34 +52,35 @@ type Binder struct {
 	bindFunc        func(*ast.Node) bool
 	unreachableFlow *ast.FlowNode
 
-	container                   *ast.Node
-	thisContainer               *ast.Node
-	blockScopeContainer         *ast.Node
-	lastContainer               *ast.Node
-	currentFlow                 *ast.FlowNode
-	currentBreakTarget          *ast.FlowLabel
-	currentContinueTarget       *ast.FlowLabel
-	currentReturnTarget         *ast.FlowLabel
-	currentTrueTarget           *ast.FlowLabel
-	currentFalseTarget          *ast.FlowLabel
-	currentExceptionTarget      *ast.FlowLabel
-	preSwitchCaseFlow           *ast.FlowNode
-	activeLabelList             *ActiveLabel
-	emitFlags                   ast.NodeFlags
-	seenThisKeyword             bool
-	hasExplicitReturn           bool
-	hasFlowEffects              bool
-	inAssignmentPattern         bool
-	seenParseError              bool
+	container               *ast.Node
+	thisContainer           *ast.Node
+	blockScopeContainer     *ast.Node
+	lastContainer           *ast.Node
+	currentFlow             *ast.FlowNode
+	currentBreakTarget      *ast.FlowLabel
+	currentContinueTarget   *ast.FlowLabel
+	currentReturnTarget     *ast.FlowLabel
+	currentTrueTarget       *ast.FlowLabel
+	currentFalseTarget      *ast.FlowLabel
+	currentExceptionTarget  *ast.FlowLabel
+	preSwitchCaseFlow       *ast.FlowNode
+	activeLabelList         *ActiveLabel
+	emitFlags               ast.NodeFlags
+	seenThisKeyword         bool
+	hasExplicitReturn       bool
+	hasFlowEffects          bool
+	inAssignmentPattern     bool
+	seenParseError          bool
+	symbolCount             int
+	notConstEnumOnlyModules collections.Set[*ast.Symbol]
+	symbolWithDataArena     core.Arena[ast.SymbolWithData]
+	symbolExtraArena        ast.SymbolExtraArena
+	flowNodeArena           core.Arena[ast.FlowNode]
+	flowListArena           core.Arena[ast.FlowList]
+	singleDeclarationsArena core.Arena[*ast.Node]
+	expandoAssignments      []ExpandoAssignmentInfo
+
 	seenCommonJSModuleIndicator bool
-	symbolCount                 int
-	notConstEnumOnlyModules     collections.Set[*ast.Symbol]
-	symbolWithDataArena         core.Arena[ast.SymbolWithData]
-	symbolExtraArena            ast.SymbolExtraArena
-	flowNodeArena               core.Arena[ast.FlowNode]
-	flowListArena               core.Arena[ast.FlowList]
-	singleDeclarationsArena     core.Arena[*ast.Node]
-	expandoAssignments          []ExpandoAssignmentInfo
 }
 
 type ActiveLabel struct {
