@@ -674,6 +674,19 @@ func (c *Checker) syncObserving() {
 // effects recorded by a previous computation of that result, and starts a
 // resolution for this computation, which in a query records its effects. It
 // must be matched by endMemo.
+// readsWithoutMemo reports whether a memoized computation identified by key,
+// whose result is cached, can read it without beginning the memo: when no
+// memo is active, the memo records and replays nothing, and the computation
+// only reads, unless it re-enters itself in progress, with the result
+// published before it is complete.
+func (c *Checker) readsWithoutMemo(key memoKey) bool {
+	if c.observing() {
+		return false
+	}
+	_, resolving := c.resolving.get(key)
+	return !resolving
+}
+
 func (c *Checker) beginMemo(key memoKey) {
 	state := c.peekMemoState(key)
 	resolving := c.beginResolving(key)

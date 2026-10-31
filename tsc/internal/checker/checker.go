@@ -17015,6 +17015,9 @@ func (c *Checker) getExportsOfSymbol(symbol *ast.Symbol) ast.SymbolTable {
 
 func (c *Checker) getResolvedMembersOrExportsOfSymbol(symbol *ast.Symbol, resolutionKind MembersOrExportsResolutionKind) ast.SymbolTable {
 	key := memoKeyOf(symbol, memoResolvedMembers+memoField(resolutionKind))
+	if links := c.membersAndExportsLinks.TryGet(symbol); links != nil && links[resolutionKind] != nil && c.readsWithoutMemo(key) {
+		return links[resolutionKind]
+	}
 	if floor := c.findEarlierMembersInCycle(key, symbol); floor >= 0 {
 		return c.yieldMembers(key, symbol, resolutionKind, floor)
 	}
@@ -17282,7 +17285,11 @@ func (c *Checker) getMembersOfSymbol(symbol *ast.Symbol) ast.SymbolTable {
 
 func (c *Checker) getExportsOfModule(moduleSymbol *ast.Symbol) ast.SymbolTable {
 	links := c.moduleSymbolLinks.Get(moduleSymbol)
-	c.beginMemo(memoKeyOf(links, memoModuleExports))
+	key := memoKeyOf(links, memoModuleExports)
+	if links.resolvedExports != nil && c.readsWithoutMemo(key) {
+		return links.resolvedExports
+	}
+	c.beginMemo(key)
 	result := c.getExportsOfModuleCached(moduleSymbol, links)
 	c.endMemo()
 	return result
@@ -18312,7 +18319,11 @@ func (c *Checker) getConstraintOfType(t *Type) *Type {
 }
 
 func (c *Checker) getConstraintOfTypeParameter(typeParameter *Type) *Type {
-	c.beginMemo(memoKeyOf(typeParameter, memoTypeParameterConstraint))
+	key := memoKeyOf(typeParameter, memoTypeParameterConstraint)
+	if typeParameter.flags&TypeFlagsTypeParameter != 0 && typeParameter.AsTypeParameter().resolvedBaseConstraint.peek() != nil && typeParameter.AsTypeParameter().constraint.peek() != nil && c.readsWithoutMemo(key) {
+		return c.getConstraintOfTypeParameterUncached(typeParameter)
+	}
+	c.beginMemo(key)
 	result := c.getConstraintOfTypeParameterUncached(typeParameter)
 	c.endMemo()
 	return result
@@ -24370,7 +24381,11 @@ func (c *Checker) getDefaultTypeArgumentType(isInJavaScriptFile bool) *Type {
 // this gets the instantiated default type of its target. If the type parameter has no default type or
 // the default is circular, `undefined` is returned.
 func (c *Checker) getDefaultFromTypeParameter(t *Type) *Type {
-	c.beginMemo(memoKeyOf(t, memoTypeParameterDefault))
+	key := memoKeyOf(t, memoTypeParameterDefault)
+	if t.flags&TypeFlagsTypeParameter != 0 && t.AsTypeParameter().resolvedDefaultType.peek() != nil && c.readsWithoutMemo(key) {
+		return c.getDefaultFromTypeParameterUncached(t)
+	}
+	c.beginMemo(key)
 	result := c.getDefaultFromTypeParameterUncached(t)
 	c.endMemo()
 	return result
@@ -25309,7 +25324,11 @@ func (c *Checker) tryGetTypeFromTypeNode(node *ast.Node) *Type {
 }
 
 func (c *Checker) getTypeFromTypeNode(node *ast.Node) *Type {
-	c.beginMemo(memoKeyOf(node, memoTypeNodeType))
+	key := memoKeyOf(node, memoTypeNodeType)
+	if t := c.peekTypeFromTypeNode(node); t != nil && c.readsWithoutMemo(key) {
+		return t
+	}
+	c.beginMemo(key)
 	result := c.getTypeFromTypeNodeUncached(node)
 	c.endMemo()
 	return result
@@ -25325,6 +25344,30 @@ func memoTypeNode(c *Checker, node *ast.Node, worker func(*Checker, *ast.Node) *
 		return result
 	}
 	return worker(c, node)
+}
+
+// peekTypeFromTypeNode returns the type of node if reading it only reads a
+// cached result, or nil: for a kind whose type is cached in the node's links,
+// at a location where getConditionalFlowTypeOfType leaves it unchanged.
+func (c *Checker) peekTypeFromTypeNode(node *ast.Node) *Type {
+	switch node.Kind {
+	case ast.KindTypeReference, ast.KindExpressionWithTypeArguments, ast.KindUnionType, ast.KindIntersectionType,
+		ast.KindConditionalType, ast.KindIndexedAccessType, ast.KindArrayType, ast.KindTupleType, ast.KindThisType,
+		ast.KindTypeOperator, ast.KindLiteralType:
+		links := c.typeNodeLinks.TryGet(node)
+		if links == nil || links.resolvedType.peek() == nil {
+			return nil
+		}
+		for n := node; n != nil && !ast.IsStatement(n) && n.Kind != ast.KindJSDoc; n = n.Parent {
+			parent := n.Parent
+			if ast.IsConditionalTypeNode(parent) && n == parent.AsConditionalTypeNode().TrueType ||
+				ast.IsMappedTypeNode(parent) && parent.AsMappedTypeNode().NameType == nil && n == parent.Type() {
+				return nil
+			}
+		}
+		return links.resolvedType.peek()
+	}
+	return nil
 }
 
 func (c *Checker) getTypeFromTypeNodeUncached(node *ast.Node) *Type {
@@ -26246,7 +26289,11 @@ func isLocalTypeAlias(symbol *ast.Symbol) bool {
 }
 
 func (c *Checker) getDeclaredTypeOfSymbol(symbol *ast.Symbol) *Type {
-	c.beginMemo(memoKeyOf(symbol, memoDeclaredType))
+	key := memoKeyOf(symbol, memoDeclaredType)
+	if t := c.peekDeclaredTypeOfSymbol(symbol); t != nil && c.readsWithoutMemo(key) {
+		return t
+	}
+	c.beginMemo(key)
 	result := c.getDeclaredTypeOfSymbolUncached(symbol)
 	c.endMemo()
 	return result
@@ -26258,6 +26305,22 @@ func (c *Checker) getDeclaredTypeOfSymbolUncached(symbol *ast.Symbol) *Type {
 		result = c.errorType
 	}
 	return result
+}
+
+// peekDeclaredTypeOfSymbol returns the declared type of symbol if it is
+// resolved, or nil.
+func (c *Checker) peekDeclaredTypeOfSymbol(symbol *ast.Symbol) *Type {
+	switch {
+	case symbol.Flags()&ast.SymbolFlagsTypeAlias != 0 && symbol.Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface|ast.SymbolFlagsTypeParameter) == 0:
+		if links := c.typeAliasLinks.TryGet(symbol); links != nil {
+			return links.declaredType.peek()
+		}
+	case symbol.Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface|ast.SymbolFlagsTypeParameter|ast.SymbolFlagsEnum|ast.SymbolFlagsEnumMember|ast.SymbolFlagsAlias) != 0:
+		if links := c.declaredTypeLinks.TryGet(symbol); links != nil {
+			return links.declaredType.peek()
+		}
+	}
+	return nil
 }
 
 func (c *Checker) tryGetDeclaredTypeOfSymbol(symbol *ast.Symbol) *Type {
