@@ -615,6 +615,7 @@ type Checker struct {
 	compareSymbols             func(*ast.Symbol, *ast.Symbol) int
 	compareSymbolChains        func([]*ast.Symbol, []*ast.Symbol) int
 	globalIDs                  map[globalKey]globalID
+	awaitedTypeErrors          uint32 // Errors computing awaited types have reported or would report; see getAwaitedTypeNoAliasEx
 	resolutionSerials          uint32
 	resolutions                []resolution
 	instantiationStack         []*Type
@@ -31855,13 +31856,17 @@ func (c *Checker) getPromisedTypeOfPromiseEx(t *Type, errorNode *ast.Node, thisT
 	if IsTypeAny(t) {
 		return nil
 	}
-	if errorNode != nil {
-		// Errors belong to errorNode; see getIterationTypesOfIterable.
-		return c.getPromisedTypeOfPromiseWorker(t, errorNode, thisTypeForErrorOut)
-	}
 	key := CachedTypeKey{kind: CachedTypeKindPromisedTypeOfPromise, typeId: t.id}
 	if cached, _ := c.cachedTypes.get(c, key); cached != nil {
 		return cached
+	}
+	if errorNode != nil {
+		// Errors belong to errorNode; see getIterationTypesOfIterable. Only
+		// a missing result reports any, so a result is shared all the same.
+		if result := c.getPromisedTypeOfPromiseEx(t, nil /*errorNode*/, thisTypeForErrorOut); result != nil {
+			return result
+		}
+		return c.getPromisedTypeOfPromiseWorker(t, errorNode, thisTypeForErrorOut)
 	}
 	c.cachedTypes.begin(c, key)
 	defer c.endMemo()
@@ -34231,19 +34236,27 @@ func (c *Checker) getAwaitedTypeNoAliasEx(t *Type, errorNode *ast.Node, diagnost
 	if c.isAwaitedTypeInstantiation(t) {
 		return t
 	}
-	if errorNode != nil {
-		// Errors belong to errorNode; see getIterationTypesOfIterable.
-		return c.getAwaitedTypeNoAliasWorker(t, errorNode, diagnosticMessage, args...)
-	}
 	// If we've already cached an awaited type, return a possible `Awaited<T>` for it.
 	key := CachedTypeKey{kind: CachedTypeKindAwaitedType, typeId: t.id}
 	if awaitedType, _ := c.cachedTypes.get(c, key); awaitedType != nil {
 		return awaitedType
 	}
+	if errorNode != nil {
+		// Errors belong to errorNode; see getIterationTypesOfIterable. Only a
+		// result computing which reports nothing is cached, so it is shared
+		// all the same.
+		if c.getAwaitedTypeNoAliasEx(t, nil /*errorNode*/, nil /*diagnosticMessage*/) != nil {
+			if awaitedType, _ := c.cachedTypes.get(c, key); awaitedType != nil {
+				return awaitedType
+			}
+		}
+		return c.getAwaitedTypeNoAliasWorker(t, errorNode, diagnosticMessage, args...)
+	}
 	c.cachedTypes.begin(c, key)
 	defer c.endMemo()
+	errors := c.awaitedTypeErrors
 	awaitedType := c.getAwaitedTypeNoAliasWorker(t, nil /*errorNode*/, nil /*diagnosticMessage*/)
-	if awaitedType != nil {
+	if awaitedType != nil && c.awaitedTypeErrors == errors {
 		c.cachedTypes.set(c, key, awaitedType)
 	}
 	return awaitedType
@@ -34253,6 +34266,7 @@ func (c *Checker) getAwaitedTypeNoAliasWorker(t *Type, errorNode *ast.Node, diag
 	// For a union, get a union of the awaited types of each constituent.
 	if t.flags&TypeFlagsUnion != 0 {
 		if c.isAwaitingType(t) {
+			c.awaitedTypeErrors++
 			if errorNode != nil {
 				c.error(errorNode, diagnostics.Type_is_referenced_directly_or_indirectly_in_the_fulfillment_callback_of_its_own_then_method)
 			}
@@ -34304,6 +34318,7 @@ func (c *Checker) getAwaitedTypeNoAliasWorker(t *Type, errorNode *ast.Node, diag
 			//          onrejected: (error: any) => any): BadPromiseA;
 			//  }
 			//
+			c.awaitedTypeErrors++
 			if errorNode != nil {
 				c.error(errorNode, diagnostics.Type_is_referenced_directly_or_indirectly_in_the_fulfillment_callback_of_its_own_then_method)
 			}
@@ -34332,6 +34347,7 @@ func (c *Checker) getAwaitedTypeNoAliasWorker(t *Type, errorNode *ast.Node, diag
 	// function, they would need to wrap it in some other value. If they want it to
 	// be treated as a promise, they can cast to <any>.
 	if c.isThenableType(t) {
+		c.awaitedTypeErrors++
 		if errorNode != nil {
 			var diagnostic *ast.Diagnostic
 			if thisTypeForError != nil {
