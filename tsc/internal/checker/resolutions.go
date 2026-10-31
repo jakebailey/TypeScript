@@ -49,6 +49,7 @@ type resolution struct {
 // demand, since few computations do work worth storing.
 type memoStateSource interface {
 	stateAt(i int) *memoState
+	peekStateAt(i int) *memoState
 	popState(i int)
 }
 

@@ -544,7 +544,6 @@ func (m *memoMap[K, V]) compute(c *Checker, k K, fn func() V) V {
 
 // enter starts the computation of the result for k; see beginMemo.
 func (m *memoMap[K, V]) begin(c *Checker, k K) {
-	state := m.stateOf(k)
 	side := m.sideTable()
 	outer := 0
 	if len(side.resolvingKeys) != 0 {
@@ -553,24 +552,25 @@ func (m *memoMap[K, V]) begin(c *Checker, k K) {
 	if outer != 0 {
 		// Re-entering an entry marks the cycle circular; see reentryCircular.
 		c.markCircular(outer - 1)
-		// Marking may have given the entry a state.
-		state = m.stateOf(k)
 	}
 	side.resolvingKeys = append(side.resolvingKeys, k)
 	side.resolvingAt = append(side.resolvingAt, int32(len(c.resolutions)))
 	c.beginResolution(m, len(side.resolvingKeys)-1)
 	if c.checking && c.memoPendingCount == 0 && c.memoTop|c.currentNodeResolution != 0 && !c.logEffects() {
-		// beginCheckedMemo for the common case, without the calls.
+		// beginCheckedMemo for the common case, without the calls. The memo
+		// state of the result is looked up only if needed; see
+		// resolutionState.
 		n := len(c.resolutions) - 1
 		f := &c.resolutions[n]
 		f.memo = true
 		f.prevMemo = int32(c.memoTop)
-		f.result = state
 		f.entry = c.currentNode
 		f.attachStart = int32(len(c.deferredAttach))
 		c.memoTop = n + 1
 		return
 	}
+	// Looked up after marking a cycle, which may give the entry a state.
+	state := m.stateOf(k)
 	if c.checking {
 		if c.memoPendingCount != 0 && state != nil {
 			c.replayPending(state)
@@ -610,6 +610,10 @@ func (m *memoMap[K, V]) isOwnResolution(c *Checker, k K) bool {
 
 func (m *memoMap[K, V]) stateAt(i int) *memoState {
 	return m.state(m.side.resolvingKeys[i])
+}
+
+func (m *memoMap[K, V]) peekStateAt(i int) *memoState {
+	return m.stateOf(m.side.resolvingKeys[i])
 }
 
 func (m *memoMap[K, V]) popState(i int) {
@@ -703,22 +707,23 @@ func (c *Checker) readsWithoutMemo(key memoKey) bool {
 }
 
 func (c *Checker) beginMemo(key memoKey) {
-	state := c.peekMemoState(key)
 	resolving := c.beginResolving(key)
 	c.appendResolution(key, nil, 0, int32(len(c.instantiationStack)))
 	n := len(c.resolutions) - 1
 	f := &c.resolutions[n]
 	f.resolving = resolving
 	if c.checking && c.memoPendingCount == 0 && c.memoTop|c.currentNodeResolution != 0 && !c.logEffects() {
-		// beginCheckedMemo for the common case, without the calls.
+		// beginCheckedMemo for the common case, without the calls. The memo
+		// state of the result is looked up only if needed; see
+		// resolutionState.
 		f.memo = true
 		f.prevMemo = int32(c.memoTop)
-		f.result = state
 		f.entry = c.currentNode
 		f.attachStart = int32(len(c.deferredAttach))
 		c.memoTop = n + 1
 		return
 	}
+	state := c.peekMemoState(key)
 	if c.checking {
 		if c.memoPendingCount != 0 {
 			c.replayPending(state)
@@ -880,7 +885,7 @@ func (c *Checker) attachState(state *memoState) {
 	if n < 0 {
 		return
 	}
-	if c.resolutions[n].result == state {
+	if c.peekResolutionState(&c.resolutions[n]) == state {
 		// Writers skip their own computation before creating its state, so
 		// a state created later is never the computation's own.
 		return
@@ -1125,6 +1130,20 @@ func (c *Checker) resolutionState(f *resolution) *memoState {
 		default:
 			// The computation caches no result; see forgetResult.
 			f.result = &memoState{}
+		}
+	}
+	return f.result
+}
+
+// peekResolutionState is resolutionState without creating the memo state,
+// returning nil if the result has none yet.
+func (c *Checker) peekResolutionState(f *resolution) *memoState {
+	if f.result == nil {
+		switch {
+		case f.source != nil:
+			f.result = f.source.peekStateAt(int(f.index))
+		case f.key != 0:
+			f.result = c.peekMemoState(f.key)
 		}
 	}
 	return f.result
