@@ -415,6 +415,10 @@ func (c *Checker) checkTypeRelatedToWithKey(
 	} else {
 		measuring := c.measuringVariances
 		c.measuringVariances = false
+		if measuring {
+			e := c.varianceStack[len(c.varianceStack)-1]
+			r.measured, r.measuredResolution = c.varianceLinks.Get(e.symbol), e.resolution
+		}
 		saveIncomplete := c.incompleteVariances
 		c.incompleteVariances = 0
 		result = r.isRelatedToEx(source, target, RecursionFlagsBoth, errorNode != nil /*reportErrors*/, headMessage, IntersectionStateNone)
@@ -2950,7 +2954,12 @@ type Relater struct {
 	expandingTargetDepth int
 	overflow             bool
 	relationCount        int
-	next                 *Relater
+	// measured is the variances of the type whose measurement the
+	// comparison is part of, if any, and measuredResolution the index in
+	// Checker.resolutions of that measurement.
+	measured           *VarianceLinks
+	measuredResolution int
+	next               *Relater
 }
 
 type maybeKey struct {
@@ -3017,6 +3026,7 @@ func (c *Checker) putRelater(r *Relater) {
 	r.expandingFlags, r.expandingSourceDepth, r.expandingTargetDepth = ExpandingFlagsNone, 0, 0
 	r.overflow = false
 	r.relationCount = 0
+	r.measured, r.measuredResolution = nil, 0
 	r.next = c.freeRelater
 	c.freeRelater = r
 }
@@ -3517,6 +3527,15 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	if r.overflow {
 		// Note that stack depth overflows can cause _any_ relation involving structured types to become false, so it is
 		// important to have well-defined behavior even in cases that shouldn't normally occur.
+		return TernaryFalse
+	}
+	if r.measured != nil && len(r.measured.variances.peek()) != 0 {
+		// A restart from a circularity measured the type from the canonical
+		// entry (see getRecursiveVariances), so the measurement in progress is
+		// superseded and its result unused. It stops here, as reading the
+		// incomplete variances of the measurement, so that what it compared
+		// is not cached.
+		r.c.incompleteVariances = minIncompleteVariances(r.c.incompleteVariances, r.measuredResolution+1)
 		return TernaryFalse
 	}
 	if !r.topBegun && !r.beginTop() {
