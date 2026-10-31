@@ -938,7 +938,7 @@ func (b *Binder) bindCallExpression(node *ast.Node) {
 // parser has already determined. The file symbol is created at the first CommonJS construct
 // in the walk, rather than up front, to preserve symbol creation order.
 func (b *Binder) setCommonJSModuleIndicator(node *ast.Node) bool {
-	if !b.file.IsCommonJSModule {
+	if b.file.CommonJSModuleIndicator == nil {
 		debug.Assert(b.file.ExternalModuleIndicator != nil && b.file.ExternalModuleIndicator != b.file.AsNode(), "parser missed a CommonJS module indicator")
 		return false
 	}
@@ -1624,7 +1624,7 @@ func (b *Binder) bindContainer(node *ast.Node, containerFlags ContainerFlags) {
 				b.bindBlockScopedDeclaration(statement, ast.SymbolFlagsTypeAlias, ast.SymbolFlagsTypeAliasExcludes)
 			}
 		}
-		debug.Assert(b.seenCommonJSModuleIndicator == b.file.IsCommonJSModule, "binder missed a CommonJS module indicator")
+		debug.Assert(b.seenCommonJSModuleIndicator == (b.file.CommonJSModuleIndicator != nil), "binder missed a CommonJS module indicator")
 		if b.seenCommonJSModuleIndicator {
 			b.declareCommonJSVariable("module")
 			b.declareCommonJSVariable("exports")

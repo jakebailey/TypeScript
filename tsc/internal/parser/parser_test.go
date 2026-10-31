@@ -607,7 +607,7 @@ func TestCommonJSModuleIndicator(t *testing.T) {
 			opts := ast.SourceFileParseOptions{FileName: test.fileName, PathKey: tspath.CaseSensitive.PathKey(test.fileName.AsPath())}
 			opts.ExternalModuleIndicatorOptions.Force = test.fileName.ExtensionIsOneOf([]string{tspath.ExtensionCjs, tspath.ExtensionMjs})
 			file := parser.ParseSourceFile(opts, test.source, core.GetScriptKindFromFileName(test.fileName))
-			assert.Equal(t, file.IsCommonJSModule, test.expected)
+			assert.Equal(t, file.CommonJSModuleIndicator != nil, test.expected)
 		})
 	}
 }

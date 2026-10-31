@@ -86,7 +86,7 @@ func TestParseCacheBindsBeforePublishing(t *testing.T) {
 	defer cache.Deref(key)
 
 	assert.Assert(t, file.IsBound())
-	assert.Assert(t, file.IsCommonJSModule)
+	assert.Assert(t, file.CommonJSModuleIndicator != nil)
 }
 
 func TestParseCacheAcquireExistingUsesFullKey(t *testing.T) {

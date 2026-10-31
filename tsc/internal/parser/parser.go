@@ -99,7 +99,7 @@ type Parser struct {
 	setParentFromContext ast.Visitor
 	reparsedClones       []*ast.Node
 
-	hasCommonJSConstruct      bool
+	commonJSModuleIndicator   *ast.Node
 	jsdocHasCommonJSConstruct bool
 }
 
@@ -349,7 +349,7 @@ type ParserState struct {
 	reparsedClonesLen           int
 	statementHasAwaitIdentifier bool
 	hasParseError               bool
-	hasCommonJSConstruct        bool
+	commonJSModuleIndicator     *ast.Node
 	jsdocHasCommonJSConstruct   bool
 }
 
@@ -363,7 +363,7 @@ func (p *Parser) mark() ParserState {
 		reparsedClonesLen:           len(p.reparsedClones),
 		statementHasAwaitIdentifier: p.statementHasAwaitIdentifier,
 		hasParseError:               p.hasParseError,
-		hasCommonJSConstruct:        p.hasCommonJSConstruct,
+		commonJSModuleIndicator:     p.commonJSModuleIndicator,
 		jsdocHasCommonJSConstruct:   p.jsdocHasCommonJSConstruct,
 	}
 }
@@ -378,7 +378,7 @@ func (p *Parser) rewind(state ParserState) {
 	p.reparsedClones = p.reparsedClones[0:state.reparsedClonesLen]
 	p.statementHasAwaitIdentifier = state.statementHasAwaitIdentifier
 	p.hasParseError = state.hasParseError
-	p.hasCommonJSConstruct = state.hasCommonJSConstruct
+	p.commonJSModuleIndicator = state.commonJSModuleIndicator
 	p.jsdocHasCommonJSConstruct = state.jsdocHasCommonJSConstruct
 }
 
@@ -462,7 +462,7 @@ func (p *Parser) parseSourceFileWorker() *ast.SourceFile {
 		if node != reparse {
 			// Reparsing can change which CommonJS constructs exist, so recompute from the final tree.
 			if p.contextFlags&ast.NodeFlagsJavaScriptFile != 0 {
-				p.hasCommonJSConstruct = containsCommonJSModuleIndicator(reparse)
+				p.commonJSModuleIndicator = findCommonJSModuleIndicator(reparse)
 			}
 			result = reparse.AsSourceFile()
 			p.finishSourceFile(result, isDeclarationFile)
@@ -498,24 +498,24 @@ func (p *Parser) finishSourceFile(result *ast.SourceFile, isDeclarationFile bool
 	ast.SetExternalModuleIndicator(result, p.opts.ExternalModuleIndicatorOptions)
 	// CommonJS constructs only make a file a module when it has no ES module syntax.
 	if result.ExternalModuleIndicator == nil || result.ExternalModuleIndicator == result.AsNode() {
-		if !p.hasCommonJSConstruct && p.jsdocHasCommonJSConstruct {
+		if p.commonJSModuleIndicator == nil && p.jsdocHasCommonJSConstruct {
 			// Only reparsed JSDoc clones that survive into the tree are bound.
-			p.hasCommonJSConstruct = containsCommonJSModuleIndicator(result.AsNode())
+			p.commonJSModuleIndicator = findCommonJSModuleIndicator(result.AsNode())
 		}
-		result.IsCommonJSModule = p.hasCommonJSConstruct
+		result.CommonJSModuleIndicator = p.commonJSModuleIndicator
 	} else {
-		result.IsCommonJSModule = false
+		result.CommonJSModuleIndicator = nil
 	}
 }
 
-// checkCommonJSModuleIndicator records whether a JavaScript file contains a CommonJS construct
+// checkCommonJSModuleIndicator records the first CommonJS construct in a JavaScript file
 // (a require call, or an assignment or Object.defineProperty on exports or module.exports).
 // The binder binds the same constructs as CommonJS exports. Nodes parsed within JSDoc are
 // only bound if reparsed, so for those we just note that the final tree needs checking.
 func (p *Parser) checkCommonJSModuleIndicator(node *ast.Node) *ast.Node {
-	if !p.hasCommonJSConstruct && node.Flags&ast.NodeFlagsJavaScriptFile != 0 && isCommonJSModuleIndicator(node) {
+	if p.commonJSModuleIndicator == nil && node.Flags&ast.NodeFlagsJavaScriptFile != 0 && isCommonJSModuleIndicator(node) {
 		if node.Flags&ast.NodeFlagsJSDoc == 0 {
-			p.hasCommonJSConstruct = true
+			p.commonJSModuleIndicator = node
 		} else {
 			p.jsdocHasCommonJSConstruct = true
 		}
@@ -523,12 +523,18 @@ func (p *Parser) checkCommonJSModuleIndicator(node *ast.Node) *ast.Node {
 	return node
 }
 
-func containsCommonJSModuleIndicator(node *ast.Node) bool {
+func findCommonJSModuleIndicator(node *ast.Node) *ast.Node {
+	var found *ast.Node
 	var visit func(*ast.Node) bool
 	visit = func(n *ast.Node) bool {
-		return isCommonJSModuleIndicator(n) || n.ForEachChild(visit)
+		if isCommonJSModuleIndicator(n) {
+			found = n
+			return true
+		}
+		return n.ForEachChild(visit)
 	}
-	return visit(node)
+	visit(node)
+	return found
 }
 
 func isCommonJSModuleIndicator(node *ast.Node) bool {

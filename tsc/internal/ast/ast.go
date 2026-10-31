@@ -2417,7 +2417,7 @@ type SourceFile struct {
 	CheckJsDirective            *CheckJsDirective
 	NodeCount                   int
 	TextCount                   int
-	IsCommonJSModule            bool
+	CommonJSModuleIndicator     *Node
 	// If this is the SourceFile itself, then this module was "forced"
 	// to be an external module (previously "true").
 	ExternalModuleIndicator *Node
@@ -2738,7 +2738,7 @@ func (node *SourceFile) copyFrom(other *SourceFile) {
 	node.ReferencedFiles = other.ReferencedFiles
 	node.TypeReferenceDirectives = other.TypeReferenceDirectives
 	node.LibReferenceDirectives = other.LibReferenceDirectives
-	node.IsCommonJSModule = other.IsCommonJSModule
+	node.CommonJSModuleIndicator = other.CommonJSModuleIndicator
 	node.ExternalModuleIndicator = other.ExternalModuleIndicator
 	node.Flags |= other.Flags
 }

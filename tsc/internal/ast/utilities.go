@@ -1737,12 +1737,12 @@ func IsExternalModule(file *SourceFile) bool {
 }
 
 func IsExternalOrCommonJSModule(file *SourceFile) bool {
-	return file.ExternalModuleIndicator != nil || file.IsCommonJSModule
+	return file.ExternalModuleIndicator != nil || file.CommonJSModuleIndicator != nil
 }
 
 // TODO: Should we deprecate `IsExternalOrCommonJSModule` in favor of this function?
 func IsEffectiveExternalModule(node *SourceFile, compilerOptions *core.CompilerOptions) bool {
-	return IsExternalModule(node) || (isCommonJSContainingModuleKind(compilerOptions.GetEmitModuleKind()) && node.IsCommonJSModule)
+	return IsExternalModule(node) || (isCommonJSContainingModuleKind(compilerOptions.GetEmitModuleKind()) && node.CommonJSModuleIndicator != nil)
 }
 
 func isCommonJSContainingModuleKind(kind core.ModuleKind) bool {
