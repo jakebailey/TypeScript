@@ -20248,7 +20248,7 @@ func (c *Checker) getLayoutPropertiesOfType(t *Type) []*ast.Symbol {
 	if lazy == nil {
 		return c.getPropertiesOfType(t)
 	}
-	layout := lazy.layout
+	layout := lazy.getLayout(c)
 	if layout.layoutProperties == nil {
 		layout.layoutProperties = make([]*ast.Symbol, len(layout.memberInfos))
 		for i, memberInfo := range layout.memberInfos {
@@ -20611,10 +20611,11 @@ func (c *Checker) resolveObjectTypeMembers(t *Type) {
 		// Inherited members may depend on the type itself, for example
 		// through this types. Rather than resolving it again without end,
 		// such a dependency sees the declared members, which come first in
-		// the full layout too.
+		// the full layout too. Few do, so their layout is only computed for
+		// those that do.
 		c.setStructuredTypeSignatures(t.AsStructuredType(), callSignatures, constructSignatures, indexInfos)
 		declared := c.lazyStateArena.New()
-		declared.layout = c.getMemberLayout(t, nil)
+		declared.declaredOf = t
 		declared.mapper = mapper
 		t.AsTypeReference().lazy = declared
 	}
@@ -20666,7 +20667,7 @@ func (c *Checker) getMemberLayoutKey(t *Type, baseTypes []*Type) CacheHashKey {
 		if baseType.objectFlags&ObjectFlagsReference != 0 {
 			c.resolveStructuredTypeMembers(baseType)
 			b.writeByte('+')
-			b.writeUint32(baseType.AsTypeReference().lazy.layout.id)
+			b.writeUint32(baseType.AsTypeReference().lazy.getLayout(c).id)
 		} else {
 			b.writeByte('-')
 			b.writeType(baseType)
@@ -20697,7 +20698,7 @@ func (c *Checker) createMemberLayout(t *Type, baseTypes []*Type) *MemberLayout {
 	for baseIndex, baseType := range baseTypes {
 		if baseType.objectFlags&(ObjectFlagsReference|ObjectFlagsClassOrInterface) != 0 {
 			c.resolveStructuredTypeMembers(baseType)
-			for _, info := range baseType.AsTypeReference().lazy.layout.memberInfos {
+			for _, info := range baseType.AsTypeReference().lazy.getLayout(c).memberInfos {
 				if !isStaticPrivateIdentifierProperty(info.symbol) {
 					addMember(info.symbol, baseIndex)
 				}
@@ -20961,7 +20962,7 @@ func (c *Checker) getSingleCallOrConstructSignature(t *Type) *Signature {
 func (c *Checker) getSingleSignature(t *Type, kind SignatureKind, allowMembers bool) *Signature {
 	if t.flags&TypeFlagsObject != 0 {
 		resolved := c.resolveStructuredTypeMembers(t)
-		if allowMembers || !resolved.hasProperties() && len(resolved.getIndexInfos()) == 0 {
+		if allowMembers || !resolved.hasProperties(c) && len(resolved.getIndexInfos()) == 0 {
 			if kind == SignatureKindCall && len(resolved.CallSignatures()) == 1 && len(resolved.ConstructSignatures()) == 0 {
 				return resolved.CallSignatures()[0]
 			}
@@ -28487,7 +28488,7 @@ func (c *Checker) IsEmptyAnonymousObjectType(t *Type) bool {
 }
 
 func (c *Checker) isEmptyResolvedType(t *StructuredType) bool {
-	return t.AsType() != c.anyFunctionType && !t.hasProperties() && len(t.getSignatures()) == 0 && len(t.getIndexInfos()) == 0
+	return t.AsType() != c.anyFunctionType && !t.hasProperties(c) && len(t.getSignatures()) == 0 && len(t.getIndexInfos()) == 0
 }
 
 func (c *Checker) isEmptyObjectType(t *Type) bool {

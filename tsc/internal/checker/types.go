@@ -1157,7 +1157,7 @@ func (t *StructuredType) getMember(c *Checker, name string) *ast.Symbol {
 	if lazy == nil {
 		return nil
 	}
-	memberInfo := lazy.layout.memberInfoMap[name]
+	memberInfo := lazy.getLayout(c).memberInfoMap[name]
 	if memberInfo == nil {
 		return nil
 	}
@@ -1182,11 +1182,11 @@ func (t *StructuredType) getPropertyAt(c *Checker, index int) *ast.Symbol {
 		return t.properties[index]
 	}
 	if t.properties == nil {
-		t.properties = make([]*ast.Symbol, len(lazy.layout.memberInfos))
+		t.properties = make([]*ast.Symbol, len(lazy.getLayout(c).memberInfos))
 	}
 	member := t.properties[index]
 	if member == nil {
-		memberInfo := lazy.layout.memberInfos[index]
+		memberInfo := lazy.getLayout(c).memberInfos[index]
 		if memberInfo.baseIndex < 0 {
 			member = c.instantiateSymbol(memberInfo.symbol, lazy.mapper)
 		} else {
@@ -1202,7 +1202,7 @@ func (t *StructuredType) getPropertyAt(c *Checker, index int) *ast.Symbol {
 
 func (t *StructuredType) getProperties(c *Checker) []*ast.Symbol {
 	if lazy := t.getLazyState(); lazy != nil && !lazy.propertiesResolved {
-		for i := range lazy.layout.memberInfos {
+		for i := range lazy.getLayout(c).memberInfos {
 			t.getPropertyAt(c, i)
 		}
 		lazy.propertiesResolved = true
@@ -1210,7 +1210,7 @@ func (t *StructuredType) getProperties(c *Checker) []*ast.Symbol {
 	return t.AsStructuredType().properties
 }
 
-func (t *StructuredType) hasProperties() bool {
+func (t *StructuredType) hasProperties(c *Checker) bool {
 	if len(t.properties) != 0 {
 		return true
 	}
@@ -1218,7 +1218,7 @@ func (t *StructuredType) hasProperties() bool {
 	if lazy == nil {
 		return false
 	}
-	return len(lazy.layout.memberInfos) != 0
+	return len(lazy.getLayout(c).memberInfos) != 0
 }
 
 func (t *StructuredType) getLazyState() *LazyState {
@@ -1305,10 +1305,21 @@ type TypeReference struct {
 }
 
 type LazyState struct {
-	layout             *MemberLayout
+	layout *MemberLayout // Use getLayout
+	// declaredOf is the type whose declared members the layout holds, if it
+	// is not computed yet; see resolveObjectTypeMembers.
+	declaredOf         *Type
 	mapper             *TypeMapper
 	baseTypes          []*Type
 	propertiesResolved bool
+}
+
+// getLayout returns the member layout of the state.
+func (lazy *LazyState) getLayout(c *Checker) *MemberLayout {
+	if lazy.layout == nil {
+		lazy.layout = c.getMemberLayout(lazy.declaredOf, nil)
+	}
+	return lazy.layout
 }
 
 type MemberLayout struct {
