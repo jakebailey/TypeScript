@@ -3,6 +3,7 @@ package checker
 import (
 	"iter"
 	"maps"
+	"math/bits"
 	"slices"
 	"unsafe"
 
@@ -769,16 +770,52 @@ func (c *Checker) memoState(key memoKey) *memoState {
 		}
 		state = &memoState{}
 		c.memoStates[key] = state
-		if c.stateFilter == nil {
-			c.stateFilter = make([]uint64, 1<<stateFilterBits/64)
-		}
-		i := stateFilterIndex(key)
-		c.stateFilter[i/64] |= 1 << (i % 64)
+		c.stateFilter.add(key, c.memoStates)
 	}
 	return state
 }
 
-const stateFilterBits = 22
+// stateKeyFilter is a filter of the keys of memoStates, sized to the number
+// of states so that it stays in cache: few results have a memo state.
+type stateKeyFilter struct {
+	words []uint64
+	shift uint8 // 64 - log2 of the number of bits
+}
+
+// Bits per state below which the filter grows, keeping false positives
+// to a few percent.
+const stateFilterBitsPerState = 16
+
+func (f *stateKeyFilter) index(key memoKey) uint64 {
+	return uint64(key) * 0x9E3779B97F4A7C15 >> f.shift
+}
+
+func (f *stateKeyFilter) mayContain(key memoKey) bool {
+	if f.words == nil {
+		return false
+	}
+	i := f.index(key)
+	return f.words[i/64]&(1<<(i%64)) != 0
+}
+
+// add adds key, which states has just been given a state for.
+func (f *stateKeyFilter) add(key memoKey, states map[memoKey]*memoState) {
+	if n := 64 * len(f.words); n < stateFilterBitsPerState*len(states) {
+		n = max(2*n, 1<<15)
+		f.words = make([]uint64, n/64)
+		f.shift = uint8(65 - bits.Len(uint(n)))
+		for k := range states {
+			f.set(k)
+		}
+		return
+	}
+	f.set(key)
+}
+
+func (f *stateKeyFilter) set(key memoKey) {
+	i := f.index(key)
+	f.words[i/64] |= 1 << (i % 64)
+}
 
 const errorFilterBits = 12
 
@@ -788,17 +825,10 @@ func errorFilterIndex(key memoKey) uint64 {
 	return uint64(key) * 0x9E3779B97F4A7C15 >> (64 - errorFilterBits)
 }
 
-func stateFilterIndex(key memoKey) uint64 {
-	return uint64(key) * 0x9E3779B97F4A7C15 >> (64 - stateFilterBits)
-}
-
 // peekMemoState returns the memo state of the result identified by key, or
 // nil if it has none, consulting a filter first since most results have none.
 func (c *Checker) peekMemoState(key memoKey) *memoState {
-	if c.stateFilter == nil {
-		return nil
-	}
-	if i := stateFilterIndex(key); c.stateFilter[i/64]&(1<<(i%64)) == 0 {
+	if !c.stateFilter.mayContain(key) {
 		return nil
 	}
 	return c.memoStates[key]

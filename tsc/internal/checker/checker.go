@@ -1021,7 +1021,7 @@ type memoStore struct {
 	nonExistentPropertyNodes                collections.Set[*ast.Node] // Property names reported as nonexistent
 	deferredDiagnosticCallbacks             []func(c *Checker)
 	memoStates                              map[memoKey]*memoState // Memo state of results computed by queries; see memo.go
-	stateFilter                             []uint64               // Memo keys that may have a memo state; see memoState
+	stateFilter                             stateKeyFilter         // Memo keys that may have a memo state; see memoState
 	errorFilter                             errorKeyFilter         // Memo keys that may have reports; see observeMemo
 	memoPendingCount                        int                    // Number of memoStates with unreplayed effects
 	memoErrorStates                         int                    // Number of memoStates with reports; see setReported
