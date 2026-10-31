@@ -612,19 +612,23 @@ var nextCheckerID atomic.Uint32
 // checkers may share one store; see Clone.
 type Checker struct {
 	*memoStore
-	compareSymbols                   func(*ast.Symbol, *ast.Symbol) int
-	compareSymbolChains              func([]*ast.Symbol, []*ast.Symbol) int
-	resolutionSerials                uint32
-	resolutions                      []resolution
-	instantiationStack               []*Type
-	conditionalConstraintDepth       depthLimit
-	inlineLevel                      depthLimit
-	serializationLevel               depthLimit
-	currentNode                      *ast.Node
-	currentNodeResolution            int              // 1-based index in resolutions of the resolution of currentNode, or 0; see enterCurrentNode
-	querySave                        savedCurrentNode // Saved by the query in progress made outside of checking; see startEffects
-	inQuery                          bool
-	varianceTypeParameter            *Type
+	compareSymbols             func(*ast.Symbol, *ast.Symbol) int
+	compareSymbolChains        func([]*ast.Symbol, []*ast.Symbol) int
+	resolutionSerials          uint32
+	resolutions                []resolution
+	instantiationStack         []*Type
+	conditionalConstraintDepth depthLimit
+	inlineLevel                depthLimit
+	serializationLevel         depthLimit
+	currentNode                *ast.Node
+	currentNodeResolution      int              // 1-based index in resolutions of the resolution of currentNode, or 0; see enterCurrentNode
+	querySave                  savedCurrentNode // Saved by the query in progress made outside of checking; see startEffects
+	inQuery                    bool
+	varianceTypeParameter      *Type
+	// The parent last looked up in parentLateBindableKinds and its kinds, as
+	// members of one parent are often looked up together.
+	lastLateBindableParent           *ast.Symbol
+	lastLateBindableKinds            uint8
 	isInferencePartiallyBlocked      bool
 	wasCanceled                      bool
 	buildingExternalModuleContainers bool
@@ -877,9 +881,8 @@ type memoStore struct {
 	suggestionDiagnostics                  ast.DiagnosticsCollection
 	mergedSymbols                          symbolLinkStore[*ast.Symbol]
 	lateMergedSymbols                      memoMap[*ast.Symbol, *ast.Symbol]
-	lateBindableKinds                      memoMap[*ast.Symbol, uint8]
-	// lateBindableKinds of the parent of a member, with lateBindableKnown
-	// set once known; see getLateMergedSymbol.
+	// getLateBindableKinds of the merged symbol of a parent of members, with
+	// lateBindableKnown set once known; see getLateMergedSymbol.
 	parentLateBindableKinds symbolLinkStore[uint8]
 	// mergesFrozen is set once global merging is done; mergedSymbols is
 	// immutable from then on.
@@ -15212,11 +15215,15 @@ func (c *Checker) getLateMergedSymbol(symbol *ast.Symbol) *ast.Symbol {
 	if !late {
 		// Most members cannot merge, which depends only on syntax and on
 		// the merges done before checking, so it is looked up cheaply.
-		known := c.parentLateBindableKinds.Get(symbol)
-		if *known == 0 {
-			*known = c.getLateBindableKinds(c.getMergedSymbol(symbol.Parent())) | lateBindableKnown
+		if symbol.Parent() != c.lastLateBindableParent {
+			known := c.parentLateBindableKinds.Get(symbol.Parent())
+			if *known == 0 {
+				*known = c.getLateBindableKinds(c.getMergedSymbol(symbol.Parent())) | lateBindableKnown
+			}
+			c.lastLateBindableParent = symbol.Parent()
+			c.lastLateBindableKinds = *known &^ lateBindableKnown
 		}
-		lateBindable = *known &^ lateBindableKnown
+		lateBindable = c.lastLateBindableKinds
 		if lateBindable == 0 {
 			return symbol
 		}
@@ -15252,9 +15259,6 @@ const lateBindableKnown uint8 = 1 << 7
 // members and exports of symbol could late-bind any when resolved, as a set
 // of 1<<MembersOrExportsResolutionKind bits.
 func (c *Checker) getLateBindableKinds(symbol *ast.Symbol) uint8 {
-	if result, ok := c.lateBindableKinds.get(c, symbol); ok {
-		return result
-	}
 	isLateBindable := func(member *ast.Node) bool {
 		name := ast.GetNameOfDeclaration(member)
 		return name != nil && isLateBindableAST(name)
@@ -15276,7 +15280,6 @@ func (c *Checker) getLateBindableKinds(symbol *ast.Symbol) uint8 {
 			result |= 1 << MembersOrExportsResolutionKindResolvedExports
 		}
 	}
-	c.lateBindableKinds.intern(symbol, result)
 	return result
 }
 
