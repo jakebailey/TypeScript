@@ -906,7 +906,7 @@ type memoStore struct {
 	typeAliasLinks                          core.LinkStore[*ast.Symbol, TypeAliasLinks]
 	declaredTypeLinks                       core.LinkStore[*ast.Symbol, DeclaredTypeLinks]
 	spreadLinks                             core.LinkStore[*ast.Symbol, SpreadLinks]
-	varianceLinks                           core.LinkStore[*ast.Symbol, VarianceLinks]
+	varianceLinks                           symbolLinkStore[VarianceLinks]
 	ReverseMappedSymbolLinks                core.LinkStore[*ast.Symbol, ReverseMappedSymbolLinks]
 	markedAssignmentSymbolLinks             core.LinkStore[*ast.Symbol, MarkedAssignmentSymbolLinks]
 	importedContainingModules               memoMap[symbolFileKey, []*ast.Symbol]           // Modules imported by a file that export a symbol
