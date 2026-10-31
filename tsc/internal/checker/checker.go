@@ -1022,6 +1022,7 @@ type memoStore struct {
 	deferredDiagnosticCallbacks             []func(c *Checker)
 	memoStates                              map[memoKey]*memoState // Memo state of results computed by queries; see memo.go
 	stateFilter                             []uint64               // Memo keys that may have a memo state; see memoState
+	errorFilter                             errorKeyFilter         // Memo keys that may have reports; see observeMemo
 	memoPendingCount                        int                    // Number of memoStates with unreplayed effects
 	memoErrorStates                         int                    // Number of memoStates with reports; see setReported
 

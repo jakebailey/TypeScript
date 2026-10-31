@@ -272,6 +272,10 @@ func (m *memo[T]) setReported(c *Checker, v T, r currentNodeErrors) {
 	}
 	m.setIdentity(c, v)
 	if r.list != nil || c.memoErrorStates != 0 && c.peekMemoState(m.key()) != nil {
+		if r.list != nil {
+			i := errorFilterIndex(m.key())
+			c.errorFilter[i/64] |= 1 << (i % 64)
+		}
 		c.memoState(m.key()).setErrors(c, r.list)
 	}
 }
@@ -355,6 +359,7 @@ type memoMapSide[K comparable] struct {
 	// up one that does not costs as much as one that does.
 	keyBits   func(K) uint64
 	stateKeys []uint64
+	hasErrors bool // Whether an entry ever had reports; see setReported
 }
 
 func (m *memoMap[K, V]) sideTable() *memoMapSide[K] {
@@ -418,6 +423,10 @@ func (m *memoMap[K, V]) observe(c *Checker, k K) {
 	if m.side.memoStates == nil && len(m.side.resolvingKeys) == 0 {
 		return
 	}
+	if c.checking && c.memoPendingCount == 0 && !m.side.hasErrors {
+		// Only reports are replayed; see observeMemo.
+		return
+	}
 	// A computation in progress may not have a memo state yet; see
 	// resolutionState.
 	if state := m.stateOf(k); c.observeState(state) || state == nil && !c.checking {
@@ -472,6 +481,9 @@ func (m *memoMap[K, V]) setReported(c *Checker, k K, v V, r currentNodeErrors) {
 	}
 	m.setIdentity(c, k, v)
 	if r.list != nil || c.memoErrorStates != 0 && m.stateOf(k) != nil {
+		if r.list != nil {
+			m.sideTable().hasErrors = true
+		}
 		m.state(k).setErrors(c, r.list)
 	}
 }
@@ -768,6 +780,14 @@ func (c *Checker) memoState(key memoKey) *memoState {
 
 const stateFilterBits = 22
 
+const errorFilterBits = 12
+
+type errorKeyFilter [1 << errorFilterBits / 64]uint64
+
+func errorFilterIndex(key memoKey) uint64 {
+	return uint64(key) * 0x9E3779B97F4A7C15 >> (64 - errorFilterBits)
+}
+
 func stateFilterIndex(key memoKey) uint64 {
 	return uint64(key) * 0x9E3779B97F4A7C15 >> (64 - stateFilterBits)
 }
@@ -852,6 +872,13 @@ func (c *Checker) attachCell(h *memoHeader) {
 func (c *Checker) observeMemo(key memoKey) {
 	if !c.memoActive() {
 		return
+	}
+	if c.checking && c.memoPendingCount == 0 {
+		// Only reports are replayed, which few results have, so a filter
+		// small enough to stay in cache rules out most.
+		if i := errorFilterIndex(key); c.errorFilter[i/64]&(1<<(i%64)) == 0 {
+			return
+		}
 	}
 	// A computation in progress may not have a memo state yet; see
 	// resolutionState.

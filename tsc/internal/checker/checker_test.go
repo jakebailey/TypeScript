@@ -590,6 +590,7 @@ var unmemoizedCacheFields = map[string]string{
 	"memoStore.memoPendingCount":                        unmemoizedMemoState,
 	"memoStore.memoErrorStates":                         unmemoizedMemoState,
 	"memoStore.stateFilter":                             unmemoizedMemoState,
+	"memoStore.errorFilter":                             unmemoizedMemoState,
 	"memoStore.mu":                                      unmemoizedMemoState,
 	"memoStore.diagnostics":                             unmemoizedChecking,
 	"memoStore.suggestionDiagnostics":                   unmemoizedChecking,
