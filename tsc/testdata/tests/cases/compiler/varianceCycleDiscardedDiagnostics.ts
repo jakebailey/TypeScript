@@ -3,8 +3,10 @@
 // @noEmit: true
 
 // Measuring the variances of Bar resolves the type of Value, which picks an
-// overload by relating Foo<T> to Foo<number> while the variances of Foo are
-// still a guess. Diagnostics from that attempt must not outlive it.
+// overload by relating Foo<T> to Foo<number> while the variances of Bar are
+// still being measured. Diagnostics from that attempt must not outlive it,
+// and the result must not depend on whether Value or the variances of Bar
+// are needed first.
 
 interface A { a: string }
 interface B { foo: string }

@@ -1,7 +1,6 @@
 package checker
 
 import (
-	"math"
 	"math/bits"
 	"slices"
 	"strconv"
@@ -1507,32 +1506,15 @@ func (c *Checker) getAliasVariances(symbol *ast.Symbol) []VarianceFlags {
 // Return an array containing the variance of each type parameter. The variance is effectively
 // a digest of the type comparisons that occur for each type argument when instantiations of the
 // generic type are structurally compared. We infer the variance information by comparing
-// instantiations of the generic type for type arguments with known relations.
-//
-// Generic types whose variance measurements depend on each other are measured together as a
-// fixpoint. A measurement that needs the variances of a type still being measured uses a guess
-// for them, starting from the most permissive variances. When the outermost measurement of the
-// circularity finishes, any measured type whose variances are stricter than its guess gets the
-// stricter guess, and everything computed since the guesses were first used is discarded and
-// measured again. Measurements only get stricter, so this ends, with the same variances for
-// each type whichever type is measured first.
+// instantiations of the generic type for type arguments with known relations. The function
+// returns an empty slice when invoked recursively for the given generic type.
 func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type) []VarianceFlags {
 	links := c.varianceLinks.Get(symbol)
 	if variances := links.variances.get(c); variances != nil {
 		return variances
 	}
 	if stackIndex := c.getVarianceStackIndex(symbol); stackIndex >= 0 {
-		return c.getVarianceGuess(stackIndex)
-	}
-	if c.checking {
-		// A circularity is measured again with stricter guesses after
-		// discarding what was computed from the earlier ones, including its
-		// effects, so measure while recording effects.
-		var variances []VarianceFlags
-		c.withoutChecking(func() {
-			variances = c.getVariancesWorker(symbol, typeParameters)
-		})
-		return variances
+		return c.getRecursiveVariances(stackIndex)
 	}
 	var traceArgs map[string]any
 	if tr := c.tracer; tr != nil {
@@ -1553,107 +1535,62 @@ func (c *Checker) getVariancesWorker(symbol *ast.Symbol, typeParameters []*Type)
 	if len(c.varianceStack) == 0 {
 		c.resolutionStart = len(c.resolutions)
 	}
-	index := len(c.varianceStack)
-	c.varianceStack = append(c.varianceStack, VarianceStackEntry{symbol: symbol, typeParameters: typeParameters, resolution: len(c.resolutions), cycleStart: math.MaxInt})
+	c.varianceStack = append(c.varianceStack, VarianceStackEntry{symbol: symbol, typeParameters: typeParameters, resolution: len(c.resolutions)})
 	c.beginTypeResolution(symbol, TypeSystemPropertyNameVariances)
-	guessesStart := len(c.varianceGuessed)
-	mark := c.markDiscard()
-	instantiationCount := c.instantiationCount
-	var variances []VarianceFlags
-	for {
-		variances = c.measureVariances(symbol, typeParameters)
-		entry := &c.varianceStack[index]
-		guess := c.varianceGuesses[symbol]
-		if guess != nil {
-			variances = meetVariances(guess, variances)
-		}
-		if entry.cycleStart < index {
-			// Part of a circularity whose outermost measurement is still in progress.
-			if guess != nil && !slices.Equal(guess, variances) {
-				c.varianceGuesses[symbol] = variances
-				entry.guessChanged = true
-			}
-			parent := &c.varianceStack[index-1]
-			parent.cycleStart = min(parent.cycleStart, entry.cycleStart)
-			parent.guessChanged = parent.guessChanged || entry.guessChanged
-			break
-		}
-		if guess == nil || !entry.guessChanged && slices.Equal(guess, variances) {
-			break
-		}
-		c.varianceGuesses[symbol] = variances
-		entry.cycleStart = math.MaxInt
-		entry.guessChanged = false
-		c.discardSince(mark)
-		// The work of a discarded round does not count toward the limit on
-		// instantiations, so whether the limit is reached does not depend on
-		// how many rounds the circularity took to settle.
-		c.instantiationCount = instantiationCount
+	variances := c.measureVariances(symbol, typeParameters, links)
+	// A restart from a circularity (see getRecursiveVariances) may already
+	// have measured this type, from the canonical entry of the circularity.
+	if restarted := links.variances.get(c); len(restarted) != 0 {
+		variances = restarted
 	}
-	if c.varianceStack[index].cycleStart >= index {
-		for _, s := range c.varianceGuessed[guessesStart:] {
-			delete(c.varianceGuesses, s)
-		}
-		c.varianceGuessed = c.varianceGuessed[:guessesStart]
-	}
-	c.releaseDiscardMark(mark)
 	links.variances.set(c, variances)
-	c.varianceStack = c.varianceStack[:index]
+	c.varianceStack = c.varianceStack[:len(c.varianceStack)-1]
 	c.popTypeResolution()
-	if index == 0 {
+	if len(c.varianceStack) == 0 {
 		c.resolutionStart = saveResolutionStart
 	}
 	c.endMemo()
 	return variances
 }
 
-// getVarianceGuess returns the variances to assume for the generic type at the given index of
-// the variance stack, whose measurement is in progress. Everything measured since then is part
-// of a circularity with it, and results computed from now on depend on the guess.
-func (c *Checker) getVarianceGuess(stackIndex int) []VarianceFlags {
-	entry := &c.varianceStack[stackIndex]
-	top := &c.varianceStack[len(c.varianceStack)-1]
-	top.cycleStart = min(top.cycleStart, stackIndex)
+// getRecursiveVariances handles a measurement needing the variances of the type at the given
+// index of the variance stack, whose measurement is in progress. Occurrences of type parameters
+// nested in such recursive references are not measured: the variances are an empty slice, which
+// comparisons treat as unknown. Since the variances measured then depend on where the
+// circularity was entered, it is measured from a canonical entry, the type with the "smallest"
+// symbol, as if that type had been measured first: if that is not the type re-entered, it is
+// measured again with nothing in progress visible, measuring the others in the circularity as
+// it reaches them, and the measurements in progress then take those results.
+func (c *Checker) getRecursiveVariances(stackIndex int) []VarianceFlags {
+	// Results computed since the circularity was entered observed incomplete variances, so
+	// they are discarded once the measurement re-entered finishes. The variances themselves are
+	// kept, since each is measured from the canonical entry whichever type is entered first.
 	for i := stackIndex; i < len(c.varianceStack); i++ {
 		c.cycleParticipants = append(c.cycleParticipants, c.resolutions[c.varianceStack[i].resolution].typeResolution)
 	}
-	c.markTypeResolutionCircular(entry.resolution)
-	guess := c.varianceGuesses[entry.symbol]
-	if guess == nil {
-		guess = make([]VarianceFlags, len(entry.typeParameters))
-		for i := range guess {
-			guess[i] = VarianceFlagsIndependent
+	c.markTypeResolutionCircular(c.varianceStack[stackIndex].resolution)
+	minIndex := stackIndex
+	for i := stackIndex + 1; i < len(c.varianceStack); i++ {
+		if c.compareSymbols(c.varianceStack[i].symbol, c.varianceStack[minIndex].symbol) < 0 {
+			minIndex = i
 		}
-		if c.varianceGuesses == nil {
-			c.varianceGuesses = make(map[*ast.Symbol][]VarianceFlags)
-		}
-		c.varianceGuesses[entry.symbol] = guess
-		c.varianceGuessed = append(c.varianceGuessed, entry.symbol)
 	}
-	return guess
+	if minIndex > stackIndex && !c.isYieldingTo(c.varianceStack[minIndex].symbol, TypeSystemPropertyNameVariances) {
+		entry := c.varianceStack[minIndex]
+		saveVarianceStack := c.varianceStack
+		c.varianceStack = nil
+		c.beginCycleYield(entry.symbol, TypeSystemPropertyNameVariances, -1, len(c.resolutions))
+		c.getVariancesWorker(entry.symbol, entry.typeParameters)
+		c.endCycleYield()
+		c.varianceStack = saveVarianceStack
+	}
+	if variances := c.varianceLinks.Get(c.varianceStack[stackIndex].symbol).variances.get(c); variances != nil {
+		return variances
+	}
+	return []VarianceFlags{}
 }
 
-// meetVariances returns, for each type parameter, the most permissive variance that is no more
-// permissive than either of the given variances.
-func meetVariances(a []VarianceFlags, b []VarianceFlags) []VarianceFlags {
-	result := make([]VarianceFlags, len(a))
-	for i := range a {
-		x, y := a[i]&VarianceFlagsVarianceMask, b[i]&VarianceFlagsVarianceMask
-		var v VarianceFlags
-		switch {
-		case x == VarianceFlagsIndependent:
-			v = y
-		case y == VarianceFlagsIndependent:
-			v = x
-		default:
-			v = x & y
-		}
-		result[i] = v | (a[i]|b[i])&VarianceFlagsAllowsStructuralFallback
-	}
-	return result
-}
-
-func (c *Checker) measureVariances(symbol *ast.Symbol, typeParameters []*Type) []VarianceFlags {
+func (c *Checker) measureVariances(symbol *ast.Symbol, typeParameters []*Type, links *VarianceLinks) []VarianceFlags {
 	variances := make([]VarianceFlags, len(typeParameters))
 	for i, tp := range typeParameters {
 		modifiers := c.getTypeParameterModifiers(tp)
@@ -1692,6 +1629,11 @@ func (c *Checker) measureVariances(symbol *ast.Symbol, typeParameters []*Type) [
 			}
 			c.reliabilityFlags = saveReliabilityFlags
 		}
+		// If variance computation was restarted due to a circularity we may have already
+		// computed variances for this generic type. If so, we exit early.
+		if len(links.variances.get(c)) != 0 {
+			break
+		}
 		variances[i] = variance
 	}
 	return variances
@@ -1721,12 +1663,15 @@ func (c *Checker) createMarkerType(symbol *ast.Symbol, source *Type, target *Typ
 	return result
 }
 
-// isMarkerType reports whether t is a marker type of a variance computation
-// or variance annotation check in progress: an instantiation of the generic
-// type or type alias being measured with one of its type parameters replaced
-// by a variance marker. Instantiations of other types with markers, such as
-// those nested in the type being measured, are not marker types, whether or
-// not their own variances have been measured before.
+// isMarkerType reports whether t is a marker type of the innermost variance
+// computation or variance annotation check in progress: an instantiation of
+// the generic type or type alias being measured with one of its type
+// parameters replaced by a variance marker. Instantiations of other types with
+// markers, such as those nested in the type being measured, are not marker
+// types, whether or not their own variances have been measured before. Nor
+// are those of measurements further down the variance stack: a reference to
+// them must get their variances, so that the circularity is found and
+// measured from its canonical entry (see getRecursiveVariances).
 func (c *Checker) isMarkerType(t *Type) bool {
 	if len(c.varianceStack) == 0 && c.varianceTypeParameter == nil {
 		return false
@@ -1765,7 +1710,7 @@ func (c *Checker) isMarkerInstantiation(symbol *ast.Symbol, typeParameters []*Ty
 	case c.markerSuperTypeForCheck, c.markerSubTypeForCheck:
 		return typeParameters[replaced] == c.varianceTypeParameter
 	default:
-		return c.getVarianceStackIndex(symbol) >= 0
+		return len(c.varianceStack) != 0 && c.varianceStack[len(c.varianceStack)-1].symbol == symbol
 	}
 }
 

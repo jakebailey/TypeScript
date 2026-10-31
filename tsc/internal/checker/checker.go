@@ -570,9 +570,7 @@ type WideningContext struct {
 type VarianceStackEntry struct {
 	symbol         *ast.Symbol
 	typeParameters []*Type
-	resolution     int  // Index in Checker.resolutions of the resolution of the measurement
-	cycleStart     int  // Lowest index of an entry whose guessed variances this measurement used, or MaxInt
-	guessChanged   bool // Whether a measurement in the circularity found stricter variances than guessed
+	resolution     int // Index in Checker.resolutions of the resolution of the measurement
 }
 
 const maxSerializationLevel = 2
@@ -685,8 +683,6 @@ type Checker struct {
 	cycleParticipants                           []TypeResolution    // Computations that observed a cycle in progress
 	effectsMarkDepth                            int                 // 1 + resolution index of the innermost effects mark that may be discarded, or 0
 	varianceStack                               []VarianceStackEntry
-	varianceGuesses                             map[*ast.Symbol][]VarianceFlags // Variances assumed for measurements in progress; see getVariancesWorker
-	varianceGuessed                             []*ast.Symbol                   // Keys of varianceGuesses in order of addition
 	flushBuf                                    []*memoState
 	deferredAttach                              []*memoState  // See attachState
 	flushStates                                 *[]*memoState // Collects memo states given effects to replay, if non-nil; see withoutChecking

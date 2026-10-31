@@ -2,8 +2,10 @@
 
 === varianceCycleDiscardedDiagnostics.ts ===
 // Measuring the variances of Bar resolves the type of Value, which picks an
-// overload by relating Foo<T> to Foo<number> while the variances of Foo are
-// still a guess. Diagnostics from that attempt must not outlive it.
+// overload by relating Foo<T> to Foo<number> while the variances of Bar are
+// still being measured. Diagnostics from that attempt must not outlive it,
+// and the result must not depend on whether Value or the variances of Bar
+// are needed first.
 
 interface A { a: string }
 >a : string
@@ -26,14 +28,14 @@ class Bar<T> {
 >x : T
 
     Value = pick(new Foo(this)).foo;
->Value : string
->pick(new Foo(this)).foo : string
->pick(new Foo(this)) : B
+>Value : any
+>pick(new Foo(this)).foo : any
+>pick(new Foo(this)) : A
 >pick : { (x: Foo<number>): A; (x: object): B; }
 >new Foo(this) : Foo<T>
 >Foo : typeof Foo
 >this : this
->foo : string
+>foo : any
 }
 
 class Foo<T> {
@@ -56,8 +58,8 @@ class Foo<T> {
 
 const v: number = new Bar<string>().Value;
 >v : number
->new Bar<string>().Value : string
+>new Bar<string>().Value : any
 >new Bar<string>() : Bar<string>
 >Bar : typeof Bar
->Value : string
+>Value : any
 
