@@ -95,6 +95,10 @@ type TypeResolution struct {
 	restartHidden bool
 	// participant records that the resolution is in cycleParticipants.
 	participant bool
+	// outerSelf is one more than the index in resolutions of the outermost
+	// resolution of the same property of target hidden below this one, or 0;
+	// see popTypeResolution.
+	outerSelf int32
 }
 
 // ContextualInfo
@@ -20292,7 +20296,27 @@ func (c *Checker) pushTypeResolution(target TypeSystemEntity, propertyName TypeS
 		}
 	}
 	c.beginTypeResolution(target, propertyName)
+	if resolutionCycleStartIndex < 0 && c.resolutionStart > 0 {
+		if i := c.findHiddenResolution(target, propertyName); i >= 0 {
+			c.resolutions[len(c.resolutions)-1].typeResolution.outerSelf = int32(i + 1)
+		}
+	}
 	return true
+}
+
+// findHiddenResolution returns the index in resolutions of the outermost
+// resolution of the property of target in progress below resolutionStart,
+// or -1.
+func (c *Checker) findHiddenResolution(target TypeSystemEntity, propertyName TypeSystemPropertyName) int {
+	found := -1
+	for i := int(c.resolutions[len(c.resolutions)-1].prevSearchable) - 1; i >= 0; i = int(c.resolutions[i].prevSearchable) - 1 {
+		if i < c.resolutionStart {
+			if r := &c.resolutions[i].typeResolution; r.target == target && r.propertyName == propertyName {
+				found = i
+			}
+		}
+	}
+	return found
 }
 
 // cycleYield is a canonical recomputation in progress; see yieldCycle.
@@ -20823,7 +20847,15 @@ func (c *Checker) popTypeResolution() bool {
 	debug.Assert(c.typeResolutionTop == n+1, "resolutions left above a type resolution")
 	f := &c.resolutions[n]
 	result := f.typeResolution.result
-	if r := &f.typeResolution; result && !r.participant && c.observedOnlyOutermostMeasurement(n) {
+	if r := &f.typeResolution; r.outerSelf != 0 && result && c.circularityStart != 0 && c.circularityStart <= n && c.circularityStart >= int(r.outerSelf) && !r.participant {
+		// The resolution re-entered a hidden resolution of itself, which a
+		// computation from scratch of the outer one always does, and what it
+		// observed in progress was all entered by the outer one, so its result
+		// is what the outer one computes first from scratch: the outer one
+		// keeps it, as must the cycle.
+		r.participant = true
+		c.cycleParticipants = append(c.cycleParticipants, *r)
+	} else if r := &f.typeResolution; result && !r.participant && c.observedOnlyOutermostMeasurement(n) {
 		// The outermost measurement of variances hides what is below it and
 		// is measured from the canonical entry of its circularity, so what
 		// it computes is the same whatever led to it. This resolution only
