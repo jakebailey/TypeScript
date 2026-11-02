@@ -1926,6 +1926,7 @@ func (c *Checker) discardCycle(mark int, retain bool) {
 // is incomplete is discarded when it finishes, as for the outermost, rather
 // than read by the rest of the outer cycle.
 func (c *Checker) extendCircularity(head int) {
+	c.observedHead = minObservedHead(c.observedHead, int32(head))
 	if c.checking && c.memoTop != 0 {
 		c.recordFromCheck()
 	}

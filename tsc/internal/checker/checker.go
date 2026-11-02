@@ -708,6 +708,7 @@ type Checker struct {
 	circularityMark                             int                 // Length of discard log when the cycle in progress was detected
 	innerCycles                                 []innerCycle        // Cycles detected inside the one in progress; see extendCircularity
 	flowDepthFailures                           map[FlowLoopKey]int // Largest depth budget known to be too small for a flow walk from a node; see getTypeAtFlowNode
+	observedHead                                int32               // 1 + index in resolutions of the lowest head of a cycle observed by the innermost type resolution in progress, or 0
 	cycleParticipants                           []TypeResolution    // Computations that observed a cycle in progress
 	effectsMarkDepth                            int                 // 1 + resolution index of the innermost effects mark that may be discarded, or 0
 	varianceStack                               []VarianceStackEntry
@@ -20327,7 +20328,18 @@ type cycleYield struct {
 	savedResolutionStart int
 	savedVisibleStart    int
 	savedDepths          [3]depthLimit
+	savedReverseMapped   reverseMappedState
+	savedContextual      []ContextualInfo
+	savedInference       []InferenceContextInfo
+	floor                int
 	shadowed             []shadowedResolving
+}
+
+type reverseMappedState struct {
+	sourceStack    []*Type
+	targetStack    []*Type
+	expandingFlags ExpandingFlags
+	start          int32
 }
 
 type shadowedResolving struct {
@@ -20513,7 +20525,15 @@ func (c *Checker) beginCycleYield(target TypeSystemEntity, propertyName TypeSyst
 		savedResolutionStart: c.resolutionStart,
 		savedVisibleStart:    c.visibleStart,
 		savedDepths:          [3]depthLimit{c.serializationLevel, c.inlineLevel, c.conditionalConstraintDepth},
+		savedReverseMapped:   reverseMappedState{c.reverseMappedSourceStack, c.reverseMappedTargetStack, c.reverseExpandingFlags, c.reverseMappedStart},
+		savedContextual:      c.contextualInfos,
+		savedInference:       c.inferenceContextInfos,
+		floor:                floor,
 	})
+	// The contexts the hidden resolutions entered are hidden too, so that the
+	// recomputation is from scratch.
+	c.reverseMappedSourceStack, c.reverseMappedTargetStack, c.reverseExpandingFlags, c.reverseMappedStart = nil, nil, 0, 0
+	c.contextualInfos, c.inferenceContextInfos = nil, nil
 	c.resolutionStart = n
 	c.visibleStart = n
 	c.serializationLevel, c.inlineLevel, c.conditionalConstraintDepth = depthLimit{}, depthLimit{}, depthLimit{}
@@ -20524,6 +20544,9 @@ func (c *Checker) endCycleYield() {
 	c.resolutionStart = y.savedResolutionStart
 	c.visibleStart = y.savedVisibleStart
 	c.serializationLevel, c.inlineLevel, c.conditionalConstraintDepth = y.savedDepths[0], y.savedDepths[1], y.savedDepths[2]
+	r := y.savedReverseMapped
+	c.reverseMappedSourceStack, c.reverseMappedTargetStack, c.reverseExpandingFlags, c.reverseMappedStart = r.sourceStack, r.targetStack, r.expandingFlags, r.start
+	c.contextualInfos, c.inferenceContextInfos = y.savedContextual, y.savedInference
 	for _, sh := range y.shadowed {
 		c.resolving.set(sh.key, sh.index)
 	}
@@ -20789,6 +20812,42 @@ func (c *Checker) markTypeResolutionCircular(start int) {
 	c.markCircular(start)
 }
 
+// keepsResultInCycle reports whether the type resolution at index n, which
+// observed the cycles whose lowest head is observed (see Checker.observedHead),
+// computes what it computes first from scratch although a cycle is in
+// progress, so that its result is kept as a participant of the cycle:
+//   - The resolution re-entered a hidden resolution of itself, which a
+//     computation from scratch of the outer one always does, and what it
+//     observed in progress was all entered by the outer one, so its result is
+//     what the outer one computes first from scratch.
+//   - The resolution is the one a cycle yield computes again from scratch,
+//     with everything below it hidden, and it observed nothing hidden.
+//   - The resolution is inside the outermost measurement of variances, which
+//     hides what is below it and is measured from the canonical entry of its
+//     circularity, so what it computes is the same whatever led to it, and it
+//     only observed its incomplete variances. Computing it first from scratch
+//     reaches the measurement and computes it again inside, the same way.
+func (c *Checker) keepsResultInCycle(n int, f *resolution, observed int32) bool {
+	r := &f.typeResolution
+	if r.outerSelf != 0 && observed != 0 && observed >= r.outerSelf && int(observed) <= n {
+		return true
+	}
+	if len(c.cycleYields) != 0 {
+		y := &c.cycleYields[len(c.cycleYields)-1]
+		if n >= y.floor && int(f.prevTypeResolution) <= y.floor && (observed == 0 || int(observed) > y.floor) {
+			return true
+		}
+	}
+	return c.observedOnlyOutermostMeasurement(n)
+}
+
+func minObservedHead(a int32, b int32) int32 {
+	if a == 0 || b != 0 && b < a {
+		return b
+	}
+	return a
+}
+
 // observedOnlyOutermostMeasurement reports whether the cycle in progress is
 // the one headed by the outermost measurement of variances, which the
 // resolution at index n is inside, and no other.
@@ -20847,21 +20906,9 @@ func (c *Checker) popTypeResolution() bool {
 	debug.Assert(c.typeResolutionTop == n+1, "resolutions left above a type resolution")
 	f := &c.resolutions[n]
 	result := f.typeResolution.result
-	if r := &f.typeResolution; r.outerSelf != 0 && result && c.circularityStart != 0 && c.circularityStart <= n && c.circularityStart >= int(r.outerSelf) && !r.participant {
-		// The resolution re-entered a hidden resolution of itself, which a
-		// computation from scratch of the outer one always does, and what it
-		// observed in progress was all entered by the outer one, so its result
-		// is what the outer one computes first from scratch: the outer one
-		// keeps it, as must the cycle.
-		r.participant = true
-		c.cycleParticipants = append(c.cycleParticipants, *r)
-	} else if r := &f.typeResolution; result && !r.participant && c.observedOnlyOutermostMeasurement(n) {
-		// The outermost measurement of variances hides what is below it and
-		// is measured from the canonical entry of its circularity, so what
-		// it computes is the same whatever led to it. This resolution only
-		// observed its incomplete variances, so its result is what it
-		// computes first from scratch too, which reaches the measurement and
-		// computes it again inside, as main keeps the first result set.
+	observed := c.observedHead
+	c.observedHead = minObservedHead(f.prevObservedHead, observed)
+	if r := &f.typeResolution; result && !r.participant && c.circularityStart != 0 && c.keepsResultInCycle(n, f, observed) {
 		r.participant = true
 		c.cycleParticipants = append(c.cycleParticipants, *r)
 	}
@@ -20893,6 +20940,8 @@ func (c *Checker) beginTypeResolution(target TypeSystemEntity, propertyName Type
 	f.prevMemo = int32(c.memoTop)
 	f.isTypeResolution = true
 	f.prevTypeResolution = int32(c.typeResolutionTop)
+	f.prevObservedHead = c.observedHead
+	c.observedHead = 0
 	f.typeResolution.target = target
 	f.typeResolution.propertyName = propertyName
 	f.typeResolution.result = true

@@ -45,6 +45,7 @@ type resolution struct {
 	typeResolution     TypeResolution
 	isTypeResolution   bool
 	prevTypeResolution int32 // Checker.typeResolutionTop on entry
+	prevObservedHead   int32 // Checker.observedHead on entry
 	// Checker.searchableTop on entry, for a type resolution other than that
 	// of a current node.
 	prevSearchable int32
