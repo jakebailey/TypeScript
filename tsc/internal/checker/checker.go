@@ -80,6 +80,7 @@ const (
 	TypeSystemPropertyNameCallResolution
 	TypeSystemPropertyNameAssertionOperand
 	TypeSystemPropertyNamePatternInitializer
+	TypeSystemPropertyNameContextualBindingPattern
 )
 
 type TypeResolution struct {
@@ -686,7 +687,6 @@ type Checker struct {
 	reportUnmeasurableMapper         *TypeMapper
 	restrictiveMapper                *TypeMapper
 	permissiveMapper                 *TypeMapper
-	contextualBindingPatterns        []*ast.Node
 	resolving                        resolvingTable // Index in resolutions of the outermost computation of each key in progress
 	typeResolutionTop                int            // 1-based index in resolutions of the innermost resolution, or 0
 	// Like typeResolutionTop, but skipping the type resolutions of current
@@ -11786,8 +11786,9 @@ func (c *Checker) checkIdentifier(node *ast.Node, checkMode CheckMode) *Type {
 	// If the identifier is declared in a binding pattern for which we're currently computing the implied type and the
 	// reference occurs with the same binding pattern, return the non-inferrable any type. This for example occurs in
 	// 'const [a, b = a + 1] = [2]' when we're computing the contextual type for the array literal '[2]'.
-	if declaration != nil && declaration.Kind == ast.KindBindingElement && slices.Contains(c.contextualBindingPatterns, declaration.Parent) &&
-		ast.FindAncestor(node, func(parent *ast.Node) bool { return parent == declaration.Parent }) != nil {
+	if declaration != nil && declaration.Kind == ast.KindBindingElement &&
+		ast.FindAncestor(node, func(parent *ast.Node) bool { return parent == declaration.Parent }) != nil &&
+		c.isResolvingAnywhere(declaration.Parent, TypeSystemPropertyNameContextualBindingPattern) {
 		return c.nonInferrableAnyType
 	}
 	t := c.getNarrowedTypeOfSymbol(localOrExportSymbol, node)
@@ -19376,7 +19377,10 @@ func (c *Checker) getParentElementAccess(node *ast.Node) *ast.Node {
 // the parameter.
 func (c *Checker) getTypeFromBindingPattern(pattern *ast.Node, includePatternInType bool, reportErrors bool) *Type {
 	if includePatternInType {
-		c.contextualBindingPatterns = append(c.contextualBindingPatterns, pattern)
+		// While the implied type is computed, references to the pattern's own
+		// elements are any (see checkIdentifier), so nothing computed from
+		// them may be cached; see isResolvingAnywhere.
+		c.beginTypeResolution(pattern, TypeSystemPropertyNameContextualBindingPattern)
 	}
 	var result *Type
 	if ast.IsObjectBindingPattern(pattern) {
@@ -19385,7 +19389,7 @@ func (c *Checker) getTypeFromBindingPattern(pattern *ast.Node, includePatternInT
 		result = c.getTypeFromArrayBindingPattern(pattern, includePatternInType, reportErrors)
 	}
 	if includePatternInType {
-		c.contextualBindingPatterns = c.contextualBindingPatterns[:len(c.contextualBindingPatterns)-1]
+		c.popTypeResolution()
 	}
 	return result
 }
@@ -20937,7 +20941,7 @@ func (c *Checker) typeResolutionHasProperty(r *TypeResolution) bool {
 		TypeSystemPropertyNameSimplifiedForReading, TypeSystemPropertyNameSimplifiedForWriting, TypeSystemPropertyNameDefaultType,
 		TypeSystemPropertyNameAwaitedType, TypeSystemPropertyNameExplicitType,
 		TypeSystemPropertyNameBindingElementParent, TypeSystemPropertyNameCallResolution,
-		TypeSystemPropertyNameAssertionOperand, TypeSystemPropertyNamePatternInitializer:
+		TypeSystemPropertyNameAssertionOperand, TypeSystemPropertyNamePatternInitializer, TypeSystemPropertyNameContextualBindingPattern:
 		// Marked as checked or resolved on entry, so it is only on the stack
 		// while in progress.
 		return false
