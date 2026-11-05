@@ -65,6 +65,7 @@ func (f *Fix) Edits(
 ) ([]*lsproto.TextEdit, string, bool) {
 	locale := locale.FromContext(ctx)
 	tracker := change.NewTracker(ctx, compilerOptions, formatOptions, converters)
+	defer tracker.Release()
 	switch f.Kind {
 	case lsproto.AutoImportFixKindUseNamespace:
 		description := addNamespaceQualifier(f, tracker, file, locale)

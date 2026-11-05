@@ -183,7 +183,9 @@ func createSyntaxList(factory *ast.NodeFactory, children []ast.Node) ast.Node {
 }
 
 func getSmartSelectionRange(l *LanguageService, sourceFile *ast.SourceFile, pos int) *lsproto.SelectionRange {
-	factory := &ast.NodeFactory{}
+	store := ast.NewNodeStore()
+	defer store.Release()
+	factory := ast.NewNodeFactory(store, ast.NodeFactoryHooks{})
 	// Traversal discovers ranges from broadest to most specific, so retain the newest ranges nearest to the cursor
 	ranges := newSelectionRangeBuilder(maxSelectionRangeDepth - 1)
 	var root *lsproto.SelectionRange
@@ -388,7 +390,7 @@ func getSmartSelectionRange(l *LanguageService, sourceFile *ast.SourceFile, pos 
 			visit(jsdoc)
 		}
 
-		tempVisitor := ast.NewNodeVisitor(visit, nil, ast.NodeVisitorHooks{
+		tempVisitor := ast.NewNodeVisitor(visit, factory, ast.NodeVisitorHooks{
 			VisitNodes: visitNodes,
 		})
 

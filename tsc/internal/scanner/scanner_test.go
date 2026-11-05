@@ -51,7 +51,9 @@ func TestNormalizeJSDocTypeSourceText(t *testing.T) {
 func TestIsJSDocTypeExpressionOrChild(t *testing.T) {
 	t.Parallel()
 
-	var f ast.NodeFactory
+	store := ast.NewNodeStore()
+	t.Cleanup(store.Release)
+	f := ast.NewNodeFactory(store, ast.NodeFactoryHooks{})
 	withFlags := func(node ast.Node, flags ast.NodeFlags, parent ast.Node) ast.Node {
 		node.SetFlags(flags)
 		node.SetParent(parent)
@@ -91,7 +93,9 @@ func TestGetTextOfNodeFromJSDocTypePreservesAsteriskType(t *testing.T) {
 	t.Parallel()
 
 	sourceText := strings.Join([]string{"", " * *"}, core.NewLineKindLF.GetNewLineCharacter())
-	var f ast.NodeFactory
+	store := ast.NewNodeStore()
+	t.Cleanup(store.Release)
+	f := ast.NewNodeFactory(store, ast.NodeFactoryHooks{})
 	node := f.NewJSDocAllType()
 	node.SetFlags(ast.NodeFlagsJSDoc)
 	node.SetLoc(core.NewTextRange(0, len(sourceText)))

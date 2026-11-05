@@ -68,8 +68,20 @@ type NodeFactoryCoercible interface {
 	AsNodeFactory() *NodeFactory
 }
 
-func NewNodeFactory(hooks NodeFactoryHooks) *NodeFactory {
-	return &NodeFactory{hooks: hooks}
+// NewNodeFactory returns a factory making nodes in store, which must
+// outlive them.
+func NewNodeFactory(store *NodeStore, hooks NodeFactoryHooks) *NodeFactory {
+	return &NodeFactory{hooks: hooks, store: store}
+}
+
+// SetStore makes f make its nodes in store, which must outlive them.
+func (f *NodeFactory) SetStore(store *NodeStore) {
+	f.store = store
+}
+
+// Store returns the store f makes its nodes in.
+func (f *NodeFactory) Store() *NodeStore {
+	return f.store
 }
 
 func newNode(s *nodeStore, kind Kind, layout nodeLayout, rec Node, hooks NodeFactoryHooks) Node {
@@ -83,9 +95,9 @@ func newNode(s *nodeStore, kind Kind, layout nodeLayout, rec Node, hooks NodeFac
 
 func (f *NodeFactory) nodeStore() *nodeStore {
 	if f.store == nil {
-		f.store = newNodeStore()
+		panic("ast: node factory has no store")
 	}
-	return f.store
+	return f.store.get()
 }
 
 // SetSourceText sets the text that nodes created by f are parsed from;
@@ -104,8 +116,8 @@ func (f *NodeFactory) BuildInScratch() {
 // size, after which they must never change. It must be called before the
 // nodes are shared with other goroutines.
 func (f *NodeFactory) FinishStore() {
-	if f.store != nil {
-		f.store.finish(true)
+	if f.store != nil && f.store.s != nil {
+		f.store.s.finish(true)
 	}
 }
 
@@ -116,8 +128,8 @@ func (f *NodeFactory) SetStoreFile(file *SourceFile) {
 
 // FinishStoreUnfrozen is like FinishStore, but nodes may still be added.
 func (f *NodeFactory) FinishStoreUnfrozen() {
-	if f.store != nil {
-		f.store.finish(false)
+	if f.store != nil && f.store.s != nil {
+		f.store.s.finish(false)
 	}
 }
 
@@ -129,7 +141,7 @@ func (node *SourceFile) CompactBinderData() {
 
 func (f *NodeFactory) newNode(kind Kind, layout nodeLayout, rec Node) Node {
 	f.nodeCount++
-	return newNode(f.store, kind, layout, rec, f.hooks)
+	return newNode(f.store.s, kind, layout, rec, f.hooks)
 }
 
 func (f *NodeFactory) NodeCount() int {
@@ -163,47 +175,39 @@ func cloneNode(updated Node, original Node, hooks NodeFactoryHooks) Node {
 	return updated
 }
 
-// Node is a handle to an AST node: the address of its record. The zero
-// Node is the absent node.
+// Node is a handle to an AST node: the id of the store holding it and its
+// index in the store's nodes. The zero Node is the absent node.
 type Node struct {
-	p unsafe.Pointer
+	file uint32
+	node uint32
 }
 
-func (n Node) IsNil() bool               { return n.p == nil }
-func (n Node) Kind() Kind                { return Kind(n.hdr().kind.Load() & kindMask) }
+func (n Node) IsNil() bool               { return n.node == 0 }
+func (n Node) Kind() Kind                { return n.hdr().kind }
 func (n Node) Flags() NodeFlags          { return n.hdr().flags }
 func (n Node) Loc() core.TextRange       { return n.hdr().loc }
 func (n Node) SetFlags(flags NodeFlags)  { n.hdr().flags = flags }
 func (n Node) SetLoc(loc core.TextRange) { n.hdr().loc = loc }
 func (n Node) SetParent(parent Node) {
 	h := n.hdr()
-	switch {
-	case parent.p == nil:
-		h.parent = parentNone
-	case parent.chunk() == n.chunk():
-		// SAFETY: Only the byte distance between records in the same chunk is retained.
-		h.parent = parentRef(int32(uintptr(parent.p) - uintptr(n.p)))
-	case h.parent&1 != 0 && h.parent != parentNone:
-		// Slots are never shared, so the record's own slot can be reused.
-		n.store().far[uint32(h.parent)>>1] = parent
-	default:
-		s := n.store()
-		h.parent = parentRef(farSlot(len(s.far)) | 1)
-		s.far = append(s.far, parent)
+	if parent.file == n.file {
+		h.parent = nodeRef(parent.node)
+		return
 	}
+	n.store().setRef(&h.parent, parent)
 }
 
 // Parent is written out so that loops walking up the tree stay small enough
 // to inline.
 func (n Node) Parent() Node {
-	// SAFETY: Every node record begins with an aligned nodeBaseData header.
-	h := (*nodeBaseData)(n.p)
-	r := int(h.parent)
-	if r&1 == 0 {
-		// SAFETY: SetParent encodes an even offset only for a parent in the same retained chunk.
-		return Node{unsafe.Add(n.p, r)}
+	r := n.hdr().parent
+	if r&refFar == 0 {
+		if r == 0 {
+			return Node{}
+		}
+		return Node{n.file, uint32(r)}
 	}
-	return chunkOf(n.p, h.kind.Load()).store.far[uint32(r)>>1]
+	return n.store().far[r&^refFar]
 }
 
 // Shared node accessors dispatch on Kind to the enclosing concrete node.
@@ -238,7 +242,7 @@ func (n Node) AsMutable() MutableNode { return MutableNode{n} }
 func (n Node) Symbol() *Symbol {
 	if off := nodeSymbolOffsets[n.Kind()]; off != 0 {
 		// SAFETY: The kind's layout table identifies an aligned sideRef field in this record.
-		return n.store().symbols.items[*(*sideRef)(unsafe.Add(n.p, off))]
+		return n.store().symbols.items[*(*sideRef)(unsafe.Add(n.fields(), off-1))]
 	}
 	return nil
 }
@@ -254,7 +258,7 @@ func (n Node) LocalSymbol() *Symbol {
 func (n Node) Locals() SymbolTable {
 	if off := nodeLocalsOffsets[n.Kind()]; off != 0 {
 		// SAFETY: The kind's layout table identifies an aligned sideRef field in this record.
-		return n.store().symbolTables.items[*(*sideRef)(unsafe.Add(n.p, off))]
+		return n.store().symbolTables.items[*(*sideRef)(unsafe.Add(n.fields(), off-1))]
 	}
 	return nil
 }
@@ -280,7 +284,7 @@ func (n Node) TextSymbolName() SymbolName {
 func (n Node) Text() string {
 	if off := nodeTextOffsets[n.Kind()]; off != 0 {
 		// SAFETY: The kind's layout table identifies an aligned textRef field in this record.
-		return n.store().texts.get(*(*textRef)(unsafe.Add(n.p, off)))
+		return n.store().texts.get(*(*textRef)(unsafe.Add(n.fields(), off-1)))
 	}
 	return n.computedText()
 }
@@ -2168,7 +2172,6 @@ type TokenCacheKey struct {
 // sourceFileData is a SourceFile's record. It holds the fields that
 // SourceFile shares with other nodes; the rest are in the SourceFile.
 type sourceFileData struct {
-	nodeBaseData
 	nextContainer nodeRef
 	symbol        sideRef
 	locals        sideRef
@@ -2241,6 +2244,11 @@ type SourceFile struct {
 
 	// Fields set by language service
 
+	// nodes is the store holding the file's nodes, and jsdocStores those
+	// holding its lazily parsed JSDoc, which the file owns; see Release.
+	nodes       *nodeStore
+	jsdocStores []*nodeStore
+
 	Hash             xxh3.Uint128
 	tokenCacheMu     sync.Mutex
 	tokenCache       map[TokenCacheKey]Node
@@ -2265,6 +2273,7 @@ func (f *NodeFactory) NewSourceFile(opts SourceFileParseOptions, text string, st
 		text:           text,
 		Statements:     statements,
 		EndOfFileToken: endOfFileToken,
+		nodes:          store,
 	}
 	store.sourceFiles.set(&rec.file, file, false)
 	file.Node = f.newNode(KindSourceFile, layoutSourceFile, i)
@@ -2273,7 +2282,7 @@ func (f *NodeFactory) NewSourceFile(opts SourceFileParseOptions, text string, st
 
 func (n Node) asSourceFile() *SourceFile {
 	// SAFETY: AsSourceFile checks the kind; its record has the sourceFileData layout.
-	return n.store().sourceFiles.get((*sourceFileData)(n.rec()).file)
+	return n.store().sourceFiles.get((*sourceFileData)(n.payload(false)).file)
 }
 
 func (node *SourceFile) ParseOptions() SourceFileParseOptions {
@@ -2511,7 +2520,30 @@ func (node *SourceFile) resolveJSDoc(n Node) []Node {
 		node.jsdocCache = make(map[Node][]Node)
 	}
 	node.jsdocCache[n] = jsdocs
+	if len(jsdocs) != 0 {
+		node.jsdocStores = append(node.jsdocStores, jsdocs[0].store())
+	}
 	return jsdocs
+}
+
+// Release releases the file's nodes, which must no longer be used, along
+// with those of its JSDoc and tokens. The owner of a file, such as a parse
+// cache, releases it once no program uses it.
+func (node *SourceFile) Release() {
+	node.jsdocMu.Lock()
+	for _, s := range node.jsdocStores {
+		s.release()
+	}
+	node.jsdocStores = nil
+	node.jsdocCache = nil
+	node.jsdocMu.Unlock()
+	node.tokenCacheMu.Lock()
+	if node.tokenFactory != nil {
+		node.tokenFactory.store.Release()
+	}
+	node.tokenCache = nil
+	node.tokenCacheMu.Unlock()
+	node.nodes.release()
 }
 
 func (node *SourceFile) BindDiagnostics() []*Diagnostic {
@@ -2679,7 +2711,7 @@ func (node *SourceFile) GetOrCreateToken(
 // `kind` should be a token kind.
 func createToken(kind Kind, file *SourceFile, pos, end int, flags TokenFlags) Node {
 	if file.tokenFactory == nil {
-		file.tokenFactory = NewNodeFactory(NodeFactoryHooks{})
+		file.tokenFactory = NewNodeFactory(NewNodeStore(), NodeFactoryHooks{})
 	}
 	text := file.text[pos:end]
 	switch kind {
@@ -2923,12 +2955,4 @@ func forEachChild_JSDocParameterOrPropertyTag(node JSDocParameterOrPropertyTag, 
 
 func visitEachChild_JSDocParameterOrPropertyTag(node JSDocParameterOrPropertyTag, v *NodeVisitor) Node {
 	return v.Factory.UpdateJSDocParameterOrPropertyTag(node, v.visitNode(node.TagName()), v.visitNode(node.Name()), node.IsBracketed(), v.visitNode(node.TypeExpression()), node.IsNameFirst(), v.visitNodes(node.Comment()))
-}
-
-func (f *NodeFactory) ReleaseArenas() {
-	*f = NodeFactory{
-		hooks:     f.hooks,
-		textCount: f.textCount,
-		nodeCount: f.nodeCount,
-	}
 }

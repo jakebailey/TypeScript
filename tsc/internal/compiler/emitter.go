@@ -42,6 +42,8 @@ type emitter struct {
 	writeFile          WriteFile
 	tr                 *tracing.Tracing
 	prints             []func()
+	// emitContext owns the nodes made for the file, which print releases.
+	emitContext *printer.EmitContext
 }
 
 // transform runs the JS and declaration transformers for the file, the part of emit that uses the checker. print
@@ -51,6 +53,7 @@ func (e *emitter) transform() {
 		defer e.tr.Push(tracing.PhaseEmit, "emit", map[string]any{"path": string(e.sourceFile.PathKey())}, true)()
 	}
 	emitContext := printer.NewEmitContext()
+	e.emitContext = emitContext
 	emitResolver := e.host.NewEmitResolver(emitContext)
 	e.emitJSFile(emitResolver, e.sourceFile, e.paths.JsFilePath(), e.paths.SourceMapFilePath())
 	e.emitDeclarationFile(emitResolver, e.sourceFile, e.paths.DeclarationFilePath(), e.paths.DeclarationMapPath())
@@ -66,6 +69,10 @@ func (e *emitter) print() {
 		print()
 	}
 	e.prints = nil
+	if e.emitContext != nil {
+		e.emitContext.Release()
+		e.emitContext = nil
+	}
 	e.emitResult.Diagnostics = e.emitterDiagnostics.GetDiagnostics()
 }
 
@@ -347,7 +354,6 @@ func (e *emitter) printSourceFile(emitContext *printer.EmitContext, jsFilePath t
 	}
 
 	printer_.Write(sourceFile.AsNode(), sourceFile, e.writer, sourceMapGenerator)
-	emitContext.Factory.ReleaseArenas()
 
 	sourceMapUrlPos := -1
 	if sourceMapGenerator != nil {
@@ -576,7 +582,9 @@ func getDeclarationDiagnostics(host EmitHost, file *ast.SourceFile) []*ast.Diagn
 		return []*ast.Diagnostic{}
 	}
 	options := host.Options()
-	emitResolver := host.NewEmitResolver(printer.NewEmitContext())
+	emitContext := printer.NewEmitContext()
+	defer emitContext.Release()
+	emitResolver := host.NewEmitResolver(emitContext)
 	transform := declarations.NewDeclarationTransformer(host, emitResolver, options, "")
 	transform.TransformSourceFile(file)
 	return transform.GetDiagnostics()

@@ -10,6 +10,7 @@ import (
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/testutil"
+	"github.com/microsoft/TypeScript/tsc/internal/testutil/parsetestutil"
 	"gotest.tools/v3/assert"
 )
 
@@ -27,7 +28,7 @@ func TestNodeFactoryKinds(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			factory := reflect.ValueOf(ast.NewNodeFactory(ast.NodeFactoryHooks{}))
+			factory := reflect.ValueOf(parsetestutil.NewNodeFactory(t))
 			constructor := factory.MethodByName("New" + test.name)
 			args := make([]reflect.Value, constructor.Type().NumIn())
 			for i := range args {
@@ -57,7 +58,7 @@ func TestNodeFactoryKinds(t *testing.T) {
 
 func TestNodeAccessors(t *testing.T) {
 	t.Parallel()
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := parsetestutil.NewNodeFactory(t)
 	name := factory.NewIdentifier("f")
 	modifiers := factory.NewModifierList([]ast.Node{factory.NewToken(ast.KindExportKeyword)})
 	node := factory.NewFunctionDeclaration(modifiers, ast.Node{}, name, ast.TypeParameterList{}, ast.ParameterList{}, ast.Node{}, ast.Node{}, ast.Node{})
@@ -84,7 +85,7 @@ func TestNodeAccessors(t *testing.T) {
 
 func TestArrowFunctionToken(t *testing.T) {
 	t.Parallel()
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := parsetestutil.NewNodeFactory(t)
 	parameters := factory.NewNodeList(nil)
 	body := factory.NewBlock(factory.NewNodeList(nil), false)
 	arrow := factory.NewArrowFunction(ast.ModifierList{}, ast.TypeParameterList{}, parameters, ast.TypeNode{}, ast.TypeNode{}, ast.EqualsGreaterThanToken{}, body)
@@ -103,7 +104,7 @@ func TestArrowFunctionToken(t *testing.T) {
 
 func TestClauseNodeAccessors(t *testing.T) {
 	t.Parallel()
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := parsetestutil.NewNodeFactory(t)
 	expression := factory.NewIdentifier("value")
 	statements := factory.NewNodeList([]ast.Node{factory.NewBreakStatement(ast.Node{})})
 	caseClause := factory.NewCaseClause(expression, statements)
@@ -134,7 +135,7 @@ func TestClauseNodeAccessors(t *testing.T) {
 
 func TestNodeAccessorsSharedKinds(t *testing.T) {
 	t.Parallel()
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := parsetestutil.NewNodeFactory(t)
 	name := factory.NewIdentifier("T")
 	modifiers := factory.NewModifierList([]ast.Node{factory.NewToken(ast.KindExportKeyword)})
 	for _, node := range []ast.Node{
@@ -151,7 +152,7 @@ func TestNodeAccessorsSharedKinds(t *testing.T) {
 
 func TestNodeAccessorsMissing(t *testing.T) {
 	t.Parallel()
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := parsetestutil.NewNodeFactory(t)
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{}, "", factory.NewNodeList(nil), factory.NewToken(ast.KindEndOfFile)).AsSourceFile()
 	nodes := []ast.Node{
 		factory.NewToken(ast.KindUnknown),
@@ -185,7 +186,7 @@ func TestNodeHandleLayout(t *testing.T) {
 
 func TestNodeStoreGrowth(t *testing.T) {
 	t.Parallel()
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := parsetestutil.NewNodeFactory(t)
 	var nodes []ast.Node
 	for i := range 5000 {
 		name := factory.NewIdentifier(strconv.Itoa(i))
@@ -199,8 +200,8 @@ func TestNodeStoreGrowth(t *testing.T) {
 
 func TestNodeCrossStoreReferences(t *testing.T) {
 	t.Parallel()
-	f1 := ast.NewNodeFactory(ast.NodeFactoryHooks{})
-	f2 := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	f1 := parsetestutil.NewNodeFactory(t)
+	f2 := parsetestutil.NewNodeFactory(t)
 	inner := f1.NewIdentifier("x")
 	outer := f2.NewParenthesizedExpression(inner)
 	inner.SetParent(outer)
@@ -218,7 +219,7 @@ func TestNodeCrossStoreReferences(t *testing.T) {
 
 func TestNodeCloneAsKindAlias(t *testing.T) {
 	t.Parallel()
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := parsetestutil.NewNodeFactory(t)
 	name := factory.NewIdentifier("T")
 	node := factory.NewJSTypeAliasDeclaration(ast.ModifierList{}, name, ast.TypeParameterList{}, ast.Node{})
 	clone := node.AsTypeAliasDeclaration().CloneAs(factory, ast.KindTypeAliasDeclaration)
@@ -231,7 +232,7 @@ func TestNodeCloneAsKindAlias(t *testing.T) {
 
 func TestNodeCastRejectsWrongKind(t *testing.T) {
 	t.Parallel()
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := parsetestutil.NewNodeFactory(t)
 	identifier := factory.NewIdentifier("name")
 	testutil.AssertPanics(t, func() {
 		identifier.AsStringLiteral()
@@ -254,9 +255,11 @@ func TestNodeCastRejectsWrongKind(t *testing.T) {
 	}, "Invalid token kind")
 }
 
-func TestNodeHeaderKeepsPayloadAlive(t *testing.T) {
+// Nodes stay valid while their store's owner does, however little else
+// refers to them.
+func TestNodeStoreOwnerKeepsNodes(t *testing.T) {
 	t.Parallel()
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := parsetestutil.NewNodeFactory(t)
 	name := factory.NewIdentifier("property")
 	root := factory.NewPropertyAccessExpression(factory.NewIdentifier("object"), ast.Node{}, name, ast.NodeFlagsNone)
 	name.SetParent(root)
@@ -268,7 +271,7 @@ func TestNodeHeaderKeepsPayloadAlive(t *testing.T) {
 	assert.Equal(t, root.AsPropertyAccessExpression().Name(), name)
 	assert.Equal(t, name.Text(), "property")
 	assert.Equal(t, name.Parent(), root)
-	clone := root.Clone(ast.NewNodeFactory(ast.NodeFactoryHooks{}))
+	clone := root.Clone(parsetestutil.NewNodeFactory(t))
 	runtime.GC()
 	assert.Assert(t, clone != root)
 	assert.Equal(t, clone.AsPropertyAccessExpression().Name(), name)

@@ -197,7 +197,9 @@ func getTokenAtPosition(
 		return nodeList
 	}
 
-	visitor := getNodeVisitor(visitNode, visitNodeList)
+	var store ast.NodeStore
+	defer store.Release()
+	visitor := getNodeVisitor(&store, visitNode, visitNodeList)
 	for {
 		visitEachChildAndJSDoc(current, sourceFile, visitor)
 		// If prevSubtree was set on the last iteration, it ends at the target position.
@@ -298,7 +300,9 @@ func findRightmostNode(node ast.Node) ast.Node {
 		}
 		return nodeList
 	}
-	visitor := getNodeVisitor(visitNode, visitNodes)
+	var store ast.NodeStore
+	defer store.Release()
+	visitor := getNodeVisitor(&store, visitNode, visitNodes)
 
 	for {
 		current.VisitEachChild(visitor)
@@ -316,7 +320,9 @@ func VisitEachChildAndJSDoc(
 	visitNode func(ast.Node, *ast.NodeVisitor) ast.Node,
 	visitNodes func(ast.NodeList, *ast.NodeVisitor) ast.NodeList,
 ) {
-	visitEachChildAndJSDoc(node, sourceFile, getNodeVisitor(visitNode, visitNodes))
+	var store ast.NodeStore
+	defer store.Release()
+	visitEachChildAndJSDoc(node, sourceFile, getNodeVisitor(&store, visitNode, visitNodes))
 }
 
 func visitEachChildAndJSDoc(node ast.Node, sourceFile *ast.SourceFile, visitor *ast.NodeVisitor) {
@@ -692,7 +698,11 @@ func FindNextToken(previousToken ast.Node, parent ast.Node, file *ast.SourceFile
 	return find(parent)
 }
 
+// getNodeVisitor makes a visitor for walking the tree. Visiting updates nodes
+// whose visited children differ, as when a hook skips a child; the updated
+// nodes are unused, but are made in store, which the caller releases.
 func getNodeVisitor(
+	store *ast.NodeStore,
 	visitNode func(ast.Node, *ast.NodeVisitor) ast.Node,
 	visitNodes func(ast.NodeList, *ast.NodeVisitor) ast.NodeList,
 ) *ast.NodeVisitor {
@@ -716,7 +726,7 @@ func getNodeVisitor(
 		}
 	}
 
-	return ast.NewNodeVisitor(core.Identity, nil, ast.NodeVisitorHooks{
+	return ast.NewNodeVisitor(core.Identity, ast.NewNodeFactory(store, ast.NodeFactoryHooks{}), ast.NodeVisitorHooks{
 		VisitNode:  wrappedVisitNode,
 		VisitToken: wrappedVisitNode,
 		VisitNodes: wrappedVisitNodes,

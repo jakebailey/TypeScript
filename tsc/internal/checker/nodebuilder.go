@@ -286,17 +286,33 @@ func NewNodeBuilderEx(ch *Checker, e *printer.EmitContext, idToSymbol map[ast.Id
 }
 
 func (c *Checker) getNodeBuilder() (*NodeBuilder, func()) {
-	releaseNodes := func() {
-		c.typeToStringNodebuilder.EmitContext().Factory.ReleaseArenas() // Allow any allocated nodes to be freed if they're no longer in a cache
+	if c.typeToStringNodebuilder == nil {
+		c.typeToStringNodebuilder = NewNodeBuilderEx(c, printer.NewEmitContext(), nil /*idToSymbol*/)
 	}
-	if c.typeToStringNodebuilder != nil {
-		return c.typeToStringNodebuilder, releaseNodes
+	c.typeToStringDepth++
+	return c.typeToStringNodebuilder, func() {
+		// The nodes are only printed, so they are released once the
+		// outermost use of the builder is done (serializing a type can
+		// report diagnostics that serialize types again); cache entries
+		// holding them are dropped when next looked up.
+		c.typeToStringDepth--
+		if c.typeToStringDepth == 0 {
+			c.typeToStringNodebuilder.EmitContext().Release()
+		}
 	}
-	c.typeToStringNodebuilder = c.getNodeBuilderEx(nil /*idToSymbol*/)
-	return c.typeToStringNodebuilder, releaseNodes
 }
 
+// getNodeBuilderEx returns a builder making its nodes in the checker's
+// store, so that they stay valid until the checker is released.
 func (c *Checker) getNodeBuilderEx(idToSymbol map[ast.IdentifierNode]*ast.Symbol) *NodeBuilder {
-	b := NewNodeBuilderEx(c, printer.NewEmitContext(), idToSymbol)
-	return b
+	return NewNodeBuilderEx(c, printer.NewEmitContextInStore(&c.nodeStore), idToSymbol)
+}
+
+// Release releases the nodes the checker has made, which must no longer be
+// used. The checker must no longer be used either.
+func (c *Checker) Release() {
+	if c.typeToStringNodebuilder != nil {
+		c.typeToStringNodebuilder.EmitContext().Release()
+	}
+	c.nodeStore.Release()
 }

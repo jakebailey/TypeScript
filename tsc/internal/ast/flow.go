@@ -1,5 +1,7 @@
 package ast
 
+import "unsafe"
+
 // FlowFlags
 
 type FlowFlags uint32
@@ -34,7 +36,7 @@ type FlowNode struct {
 }
 
 type flowNodeData struct {
-	node        nodeAnchor  // Associated AST node
+	node        nodeRef     // Associated AST node
 	antecedent  flowRef     // Antecedent for all but FlowLabel
 	antecedents flowListRef // Linked list of antecedents for FlowLabel
 	flags       FlowFlags
@@ -56,7 +58,7 @@ func (f FlowNode) IsNil() bool { return f.s == nil }
 func (f FlowNode) data() *flowNodeData { return &f.s.flows[f.i] }
 
 // Node returns the AST node associated with the flow node.
-func (f FlowNode) Node() Node { return f.s.fromAnchor(f.data().node) }
+func (f FlowNode) Node() Node { return f.s.node(f.data().node) }
 
 func (f FlowNode) Flags() FlowFlags { return f.data().flags }
 
@@ -119,14 +121,14 @@ func newFlowNode(s *nodeStore, flags FlowFlags, node Node, antecedent FlowNode) 
 		panic("node store is frozen")
 	}
 	if len(s.flows) == 0 {
-		s.flows = make([]flowNodeData, 1, minStoreWords)
+		s.flows = make([]flowNodeData, 1, 64)
 	}
 	f := FlowNode{s, uint32(len(s.flows))}
 	s.flows = append(s.flows, flowNodeData{flags: flags})
 	if f.i >= flowReused {
 		panic("node store flow node overflow")
 	}
-	f.data().node = s.anchor(node)
+	s.setRef(&f.data().node, node)
 	f.SetAntecedent(antecedent)
 	return f
 }
@@ -187,7 +189,7 @@ func NewFlowList(file *SourceFile, flow FlowNode, next FlowList) FlowList {
 		panic("node store is frozen")
 	}
 	if len(s.flowLists) == 0 {
-		s.flowLists = make([]flowListData, 1, minStoreWords)
+		s.flowLists = make([]flowListData, 1, 64)
 	}
 	l := FlowList{s, uint32(len(s.flowLists))}
 	s.flowLists = append(s.flowLists, flowListData{next: s.flowListRef(next)})
@@ -207,7 +209,6 @@ const (
 type FlowSwitchClauseData struct{ Node }
 
 type flowSwitchClauseData struct {
-	nodeBaseData
 	switchStatement nodeRef
 	clauseStart     int32 // Start index of case/default clause range
 	clauseEnd       int32 // End index of case/default clause range
@@ -215,7 +216,7 @@ type flowSwitchClauseData struct {
 
 func (node FlowSwitchClauseData) data() *flowSwitchClauseData {
 	// SAFETY: This wrapper holds a record allocated with the flowSwitchClauseData layout.
-	return (*flowSwitchClauseData)(node.rec())
+	return (*flowSwitchClauseData)(node.payload(unsafe.Sizeof(flowSwitchClauseData{}) <= 4))
 }
 
 func (node FlowSwitchClauseData) SwitchStatement() Node {
@@ -250,14 +251,13 @@ func (node FlowSwitchClauseData) IsEmpty() bool {
 type FlowReduceLabelData struct{ Node }
 
 type flowReduceLabelData struct {
-	nodeBaseData
 	target      flowRef     // Target label
 	antecedents flowListRef // Temporary antecedent list
 }
 
 func (node FlowReduceLabelData) data() *flowReduceLabelData {
 	// SAFETY: This wrapper holds a record allocated with the flowReduceLabelData layout.
-	return (*flowReduceLabelData)(node.rec())
+	return (*flowReduceLabelData)(node.payload(unsafe.Sizeof(flowReduceLabelData{}) <= 4))
 }
 
 func (node FlowReduceLabelData) Target() FlowLabel { return node.derefFlow(&node.data().target) }

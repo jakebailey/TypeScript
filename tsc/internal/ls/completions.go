@@ -2654,6 +2654,7 @@ func (l *LanguageService) getEntryForMemberCompletion(ctx context.Context, typeC
 	}
 
 	changeTracker := change.NewTracker(ctx, l.GetProgram().Options(), l.FormatOptions(), l.converters)
+	defer changeTracker.Release()
 	fixer := newMissingMemberFixer(changeTracker, l.GetProgram(), typeChecker, l.UserPreferences(), importAdder, locale.FromContext(ctx))
 
 	presentModifiers := l.getPresentMemberModifiers(contextToken, file, position)
@@ -6622,7 +6623,9 @@ func (l *LanguageService) getExhaustiveCaseSnippets(
 		}
 
 		var elements []ast.Expression
-		factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+		store := ast.NewNodeStore()
+		defer store.Release()
+		factory := ast.NewNodeFactory(store, ast.NodeFactoryHooks{})
 		for _, t := range switchType.Types() {
 			// Enums
 			if t.IsEnumLiteral() {
@@ -6639,7 +6642,7 @@ func (l *LanguageService) getExhaustiveCaseSnippets(
 					}
 					tracker.addValue(enumValue)
 				}
-				typeNode := autoimport.TypeToAutoImportableTypeNode(c, importAdder, t, caseBlock.AsNode())
+				typeNode := autoimport.TypeToAutoImportableTypeNode(factory, c, importAdder, t, caseBlock.AsNode())
 				if typeNode.IsNil() {
 					return nil, nil
 				}

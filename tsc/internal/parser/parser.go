@@ -158,6 +158,9 @@ func parseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 	p := getParser()
 	defer putParser(p)
 	p.initializeState(opts, sourceText, scriptKind)
+	// The file owns the store its nodes are made in; see SourceFile.Release.
+	p.factory.SetStore(ast.NewNodeStore())
+	p.factory.SetSourceText(sourceText)
 	p.factory.BuildInScratch()
 	p.nextToken()
 	var result *ast.SourceFile
@@ -317,13 +320,19 @@ func (p *Parser) validateJsonObjectLiteral(sourceFile *ast.SourceFile, node ast.
 	}
 }
 
-func ParseIsolatedEntityName(text string) ast.EntityName {
+// ParseIsolatedEntityName parses text as an entity name, making its nodes
+// in store.
+func ParseIsolatedEntityName(text string, store *ast.NodeStore) ast.EntityName {
 	p := getParser()
 	defer putParser(p)
 	p.initializeState(ast.SourceFileParseOptions{}, text, core.ScriptKindJS)
+	p.factory.SetStore(store)
 	p.nextToken()
 	entityName := p.parseEntityName(true, false, nil)
-	return core.IfElse(p.token == ast.KindEndOfFile && len(p.diagnostics) == 0, entityName, ast.Node{})
+	if p.token != ast.KindEndOfFile || len(p.diagnostics) != 0 {
+		return ast.Node{}
+	}
+	return entityName
 }
 
 func (p *Parser) initializeState(opts ast.SourceFileParseOptions, sourceText string, scriptKind core.ScriptKind) {
@@ -338,7 +347,6 @@ func (p *Parser) initializeState(opts ast.SourceFileParseOptions, sourceText str
 	}
 	p.opts = opts
 	p.sourceText = sourceText
-	p.factory.SetSourceText(sourceText)
 	p.scriptKind = scriptKind
 	p.languageVariant = getLanguageVariant(p.scriptKind)
 	switch p.scriptKind {

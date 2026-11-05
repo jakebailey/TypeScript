@@ -132,6 +132,7 @@ func getAllIsolatedDeclarationsCodeActions(ctx context.Context, fixContext *Code
 	defer done()
 
 	changeTracker := change.NewTracker(ctx, fixContext.Program.Options(), fixContext.LS.FormatOptions(), fixContext.LS.converters)
+	defer changeTracker.Release()
 
 	fixer := &isolatedDeclarationsFixer{
 		sourceFile:    fixContext.SourceFile,
@@ -168,6 +169,7 @@ func getAllIsolatedDeclarationsCodeActions(ctx context.Context, fixContext *Code
 
 func tryCodeAction(ctx context.Context, fixContext *CodeFixContext, ch *checker.Checker, fn func(*isolatedDeclarationsFixer) string) *CodeAction {
 	changeTracker := change.NewTracker(ctx, fixContext.Program.Options(), fixContext.LS.FormatOptions(), fixContext.LS.converters)
+	defer changeTracker.Release()
 
 	var importAdder autoimport.ImportAdder
 	// importAdder may be nil if the auto-import registry is not available;
@@ -1196,7 +1198,7 @@ func (f *isolatedDeclarationsFixer) typeToMinimizedReferenceType(t *checker.Type
 	}
 	// Convert import type references (e.g. import("./path").Name) to simple type references
 	// and collect symbols that need to be imported
-	referenceTypeNode, importableSymbols := autoimport.TryGetAutoImportableReferenceFromTypeNode(typeNode, idToSymbol)
+	referenceTypeNode, importableSymbols := autoimport.TryGetAutoImportableReferenceFromTypeNode(ast.NewNodeFactory(f.changeTracker.Store(), ast.NodeFactoryHooks{}), typeNode, idToSymbol)
 	if !referenceTypeNode.IsNil() {
 		typeNode = referenceTypeNode
 		f.symbolsToImport = append(f.symbolsToImport, importableSymbols...)

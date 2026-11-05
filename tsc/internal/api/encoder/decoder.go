@@ -30,27 +30,32 @@ type astDecoder struct {
 }
 
 // DecodeSourceFile decodes binary-encoded data into an *ast.SourceFile.
+// The file owns its nodes; see ast.SourceFile.Release.
 func DecodeSourceFile(data []byte) (*ast.SourceFile, error) {
-	node, err := DecodeNodes(data)
+	store := ast.NewNodeStore()
+	node, err := DecodeNodes(data, store)
 	if err != nil {
+		store.Release()
 		return nil, err
 	}
 	if node.Kind() != ast.KindSourceFile {
+		store.Release()
 		return nil, fmt.Errorf("expected SourceFile root, got %v", node.Kind())
 	}
 	return node.AsSourceFile(), nil
 }
 
-// DecodeNodes decodes binary-encoded AST data into a tree of ast.Node objects.
-func DecodeNodes(data []byte) (ast.Node, error) {
-	d, err := newASTDecoder(data)
+// DecodeNodes decodes binary-encoded AST data into a tree of ast.Node objects,
+// made in store.
+func DecodeNodes(data []byte, store *ast.NodeStore) (ast.Node, error) {
+	d, err := newASTDecoder(data, store)
 	if err != nil {
 		return ast.Node{}, err
 	}
 	return d.decode()
 }
 
-func newASTDecoder(data []byte) (*astDecoder, error) {
+func newASTDecoder(data []byte, store *ast.NodeStore) (*astDecoder, error) {
 	if len(data) < HeaderSize {
 		return nil, fmt.Errorf("data too short for header: %d bytes", len(data))
 	}
@@ -82,7 +87,7 @@ func newASTDecoder(data []byte) (*astDecoder, error) {
 		strData:  strData,
 		extData:  extData,
 		nodeOff:  nodeOff,
-		factory:  ast.NewNodeFactory(ast.NodeFactoryHooks{}),
+		factory:  ast.NewNodeFactory(store, ast.NodeFactoryHooks{}),
 	}
 
 	d.nodeCount = (len(data) - int(d.nodeOff)) / NodeSize

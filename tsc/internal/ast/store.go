@@ -1,8 +1,6 @@
 package ast
 
 import (
-	"math/bits"
-	"reflect"
 	"slices"
 	"sync"
 	"sync/atomic"
@@ -12,30 +10,30 @@ import (
 )
 
 // A nodeStore holds the nodes created by one NodeFactory: for a parsed
-// file, every node of that file. Nodes are records in chunks of words,
-// each beginning with the shared node header (nodeBaseData).
+// file, every node of that file. A node is its index in the store's table
+// of fixed-size headers, nodes. A header holds the node's kind, flags,
+// location and parent, and a payload word: the kind's fields themselves
+// if they fit in four bytes, and otherwise the offset of the words in data
+// where they start. A list is its index in lists, whose elements are a
+// span of listNodes.
 //
-// Records hold no Go pointers and never move. A chunk is a Go object whose
-// only pointer is its leading chunkHeader, so the garbage collector never
-// scans its records. A Node is just the address of its record; the record
-// header holds its offset from the start of its chunk, whose header leads
-// back to the store. A record refers to another record in the same chunk
-// by its offset from the referring field. Fields holding Go values, and
-// refs to records in other chunks or stores, go through the store's side
-// tables.
+// The tables hold no Go pointers, so the garbage collector never scans
+// them. Fields refer to nodes and lists of the same store by index; a
+// field holding a Go value refers to a slot in one of the store's side
+// tables, and a field referring to a node or list of another store, such
+// as an original node reused by a transformed tree, refers to a slot in
+// far or farLists.
+//
+// The tables grow by copying. The store's entry in the store table holds
+// their current addresses, so that a Node, which is the store's id and an
+// index, finds its header with two dependent loads.
 type nodeStore struct {
-	// free is the unused rest of the chunk being allocated from, whose
-	// header is at base, in units of recordAlign bytes.
-	free []uint32
-	base unsafe.Pointer
-	// baseCode is the chunk code of that chunk's first block.
-	baseCode uint32
-	// chunks holds the start of every chunk, in allocation order.
-	chunks []unsafe.Pointer
-	// words counts the words of all chunks.
-	words int
-	// hint sizes the first chunk.
-	hint int
+	id uint32
+
+	nodes     []nodeHeader
+	data      []uint32
+	lists     []nodeList
+	listNodes []uint32
 
 	symbols      sideTable[*Symbol]
 	symbolTables sideTable[SymbolTable]
@@ -50,58 +48,242 @@ type nodeStore struct {
 	// file.
 	file *SourceFile
 
-	// far holds the nodes that records refer to but cannot reach by an
-	// offset: those in other chunks, and those of other stores, such as
-	// original nodes reused by a transformed tree.
-	far []Node
-	// farLists holds the lists that records refer to but cannot reach by
-	// an offset.
+	// far holds the nodes of other stores that fields refer to, and
+	// farLists the lists. Their owners must keep them until this store is
+	// released.
+	far      []Node
 	farLists []NodeList
 
 	// names holds the symbol names that records cannot hold inline; see
 	// nameRef.
 	names []SymbolName
 
-	// spilledLists holds the pos, end and aux of the lists with
-	// listSpilled set.
-	spilledLists map[unsafe.Pointer]*spilledList
+	// missing holds the indices of the lists that stand for lists missing
+	// from the source.
+	missing map[uint32]struct{}
 
 	flows       []flowNodeData
 	flowLists   []flowListData
 	reusedFlows []FlowNode
 
-	// frozen is set once the records are shared, after which no more may
-	// be allocated.
+	// frozen is set once the nodes are shared, after which no more may be
+	// created.
 	frozen bool
 
-	// idMu serializes giving the store's nodes ids.
-	idMu sync.Mutex
+	released bool
 }
 
-// A chunkHeader begins every chunk, before its records.
-type chunkHeader struct {
-	store *nodeStore
-	// ids points at the ids of the chunk's nodes that have one, in the
-	// order they were given.
-	ids   atomic.Pointer[uint32]
-	index uint32
-	// idCount counts the chunk's nodes that have ids, and idCap the room
-	// at ids. They are guarded by the store's idMu.
-	idCount uint16
-	idCap   uint16
+// A NodeStore owns nodes: those that factories using it make. The nodes
+// stay valid until the store is released, after which using them panics,
+// so the owner of a store must outlive its nodes. A released store may be
+// used again, for new nodes.
+//
+// A parsed file is an exception: its nodes are in a store of its own,
+// which the file owns; see SourceFile.Release.
+type NodeStore struct {
+	s *nodeStore
 }
 
-const (
-	chunkHeaderSize  = uint32(unsafe.Sizeof(chunkHeader{}))
-	chunkHeaderWords = chunkHeaderSize / uint32(wordSize)
+// NewNodeStore returns a new store. It takes no memory until nodes are
+// made in it.
+func NewNodeStore() *NodeStore {
+	return &NodeStore{}
+}
+
+func (o *NodeStore) get() *nodeStore {
+	if o.s == nil {
+		o.s = newNodeStore()
+	}
+	return o.s
+}
+
+// Release releases the nodes made in o. Any later use of them panics.
+func (o *NodeStore) Release() {
+	if o == nil {
+		return
+	}
+	o.s.release()
+	o.s = nil
+}
+
+// A nodeHeader is the fixed part of every node.
+type nodeHeader struct {
+	kind   Kind
+	_      uint16
+	flags  NodeFlags
+	loc    core.TextRange
+	parent nodeRef
+	// word holds the node's fields if its kind's take at most four bytes;
+	// otherwise, it is the index in the store's data of the first word of
+	// its fields.
+	word uint32
+}
+
+const nodeHeaderSize = unsafe.Sizeof(nodeHeader{})
+
+var (
+	_ [nodeHeaderSize - 24]struct{}
+	_ [24 - nodeHeaderSize]struct{}
 )
 
+// A nodeList is a list of nodes: a span of its store's listNodes.
+type nodeList struct {
+	loc   core.TextRange
+	start uint32
+	len   uint32
+}
+
+const nodeListSize = unsafe.Sizeof(nodeList{})
+
+var (
+	_ [nodeListSize - 16]struct{}
+	_ [16 - nodeListSize]struct{}
+)
+
+// A nodeRef is a field referring to a node. Zero is no node. With refFar
+// clear, it is the node's index in the store of the field; otherwise, the
+// rest is an index into that store's far nodes. A node's parent and the
+// elements of lists are nodeRefs too.
+type nodeRef uint32
+
+const refFar = 1 << 31
+
+// maxStores bounds the stores alive at once.
+const maxStores = 1 << 22
+
+// A store id is the index of its entry in the store table, plus, above
+// that, a generation counting the reuses of the entry. A node of a released
+// store thus never matches the entry's id again until the generation wraps,
+// so using it panics instead of reading another store, and as a map key it
+// differs from the nodes of a later store in the same entry. Ids stay below
+// 1<<29, keeping node ids below 1<<61.
+const (
+	storeSlotMask  = maxStores - 1
+	storeGenOne    = maxStores
+	storeIDBitMask = 1<<29 - 1
+)
+
+// checkStoreIDs makes every access to a node check that its store has not
+// been released.
+const checkStoreIDs = true
+
+// A storeEntry holds the id of the store using it, the store, and its
+// tables, so that a Node, which is the store's id and an index, finds its
+// header with two dependent loads. The entry holds the store alive until
+// its owner releases it; see nodeStore.release.
+type storeEntry struct {
+	id        atomic.Uint32
+	store     atomic.Pointer[nodeStore]
+	nodes     atomic.Pointer[nodeHeader]
+	data      atomic.Pointer[uint32]
+	lists     atomic.Pointer[nodeList]
+	listNodes atomic.Pointer[uint32]
+}
+
+// The store table is paged, so that it takes memory only for the entries
+// used, and the garbage collector scans only those.
+const (
+	storePageShift = 10
+	storePageSize  = 1 << storePageShift
+)
+
+type storePage [storePageSize]storeEntry
+
+var storePages [maxStores / storePageSize]*storePage
+
+// The zero Node and NodeList belong to entry zero, whose id is zero and
+// whose tables read as zero values.
+var (
+	nilNodes     [1]nodeHeader
+	nilData      [64]uint32
+	nilLists     [1]nodeList
+	nilListNodes [1]uint32
+)
+
+func init() {
+	storePages[0] = new(storePage)
+	e := &storePages[0][0]
+	e.nodes.Store(&nilNodes[0])
+	e.data.Store(&nilData[0])
+	e.lists.Store(&nilLists[0])
+	e.listNodes.Store(&nilListNodes[0])
+}
+
+// slotEntry returns the entry of the slot that id names.
+func slotEntry(id uint32) *storeEntry {
+	slot := id & storeSlotMask
+	return &storePages[slot>>storePageShift][slot&(storePageSize-1)]
+}
+
+// storeEntryOf returns the entry of the store with the id, panicking if
+// the store has been released.
+func storeEntryOf(id uint32) *storeEntry {
+	e := slotEntry(id)
+	if checkStoreIDs && e.id.Load() != id {
+		panicReleasedStore()
+	}
+	return e
+}
+
+func panicReleasedStore() {
+	panic("ast: use of a node or list whose node store was released")
+}
+
+var storeIDs struct {
+	mu   sync.Mutex
+	next uint32
+	live int
+	// free queues the ids of released stores, reused first in first out,
+	// and only once storeIDReuseDelay of them are waiting, so that the
+	// generation of an entry wraps only after very many releases.
+	free []uint32
+	head int
+}
+
+const storeIDReuseDelay = 1024
+
+// newStoreID returns the id for a new store, whose entry is clear.
+func newStoreID() uint32 {
+	storeIDs.mu.Lock()
+	defer storeIDs.mu.Unlock()
+	storeIDs.live++
+	if len(storeIDs.free)-storeIDs.head > storeIDReuseDelay {
+		id := (storeIDs.free[storeIDs.head] + storeGenOne) & storeIDBitMask
+		if id&^storeSlotMask == 0 {
+			// Generation zero is skipped, so that no id is zero.
+			id += storeGenOne
+		}
+		storeIDs.head++
+		if storeIDs.head >= 4096 && storeIDs.head*2 >= len(storeIDs.free) {
+			storeIDs.free = slices.Delete(storeIDs.free, 0, storeIDs.head)
+			storeIDs.head = 0
+		}
+		return id
+	}
+	if storeIDs.next == maxStores-1 {
+		panic("too many node stores")
+	}
+	storeIDs.next++
+	id := storeIDs.next
+	if storePages[id>>storePageShift] == nil {
+		storePages[id>>storePageShift] = new(storePage)
+	}
+	return id | storeGenOne
+}
+
+// LiveNodeStores returns the number of node stores not yet released.
+func LiveNodeStores() int {
+	storeIDs.mu.Lock()
+	defer storeIDs.mu.Unlock()
+	return storeIDs.live
+}
+
+// newNodeStore returns a new store. It holds its nodes until its owner
+// releases it.
 func newNodeStore() *nodeStore {
-	// The first far slots are the absent node and list, which zero refs
-	// refer to.
-	return &nodeStore{
-		far:          make([]Node, 1),
-		farLists:     make([]NodeList, 1),
+	s := &nodeStore{
+		id:           newStoreID(),
+		nodes:        make([]nodeHeader, 1, 8),
 		symbols:      newSideTable[*Symbol](),
 		symbolTables: newSideTable[SymbolTable](),
 		stringLists:  newSideTable[[]string](),
@@ -109,428 +291,181 @@ func newNodeStore() *nodeStore {
 		values:       newSideTable[any](),
 		sourceFiles:  newSideTable[*SourceFile](),
 	}
+	e := slotEntry(s.id)
+	e.store.Store(s)
+	e.nodes.Store(&s.nodes[0])
+	e.data.Store(&nilData[0])
+	e.lists.Store(&nilLists[0])
+	e.listNodes.Store(&nilListNodes[0])
+	e.id.Store(s.id)
+	return s
 }
 
-// nodeBaseData is the header at the start of every node record.
-type nodeBaseData struct {
-	loc    core.TextRange
-	parent parentRef
-	flags  NodeFlags
-	// kind holds the node's Kind in its low kindBits bits, the record's
-	// chunkCode in the next chunkCodeBits, and in its high 16 bits the
-	// node's number among the nodes of its chunk given an id, or zero if
-	// it has none yet. It is atomic since ids are given lazily, possibly
-	// while other goroutines read the kind.
-	kind atomic.Uint32
-}
-
-// Every node has a header, so it must stay small.
-var _ [20 - unsafe.Sizeof(nodeBaseData{})]struct{}
-
-const (
-	kindBits      = 9
-	kindMask      = 1<<kindBits - 1
-	chunkCodeBits = 7
-	nodeNumShift  = 16
-)
-
-var (
-	_ [kindMask - kindFlowReduceLabelData]struct{}
-	_ [nodeNumShift - kindBits - chunkCodeBits]struct{}
-)
-
-// A chunkCode locates the header of the chunk holding a record from the
-// record's address, so that records need not hold their offset in the
-// chunk. Chunks are allocated so that their header is chunkLead bytes
-// into a block of 1<<shift bytes aligned to its size, where shift is
-// smallChunkShift for chunks of at most smallChunkBytes, and
-// largeChunkShift, marked by chunkCodeLarge, for larger ones. The rest of
-// the code counts the blocks from that one to the one holding the record.
-//
-// The Go allocator gives small objects slots of their size class within
-// page-aligned spans, so a slot of 2^k or 3*2^(k-1) bytes, the sizes that
-// chunkClass picks, is aligned to 2^(k-1) bytes, at least the 256 bytes of
-// the smallest small block. It puts an 8-byte malloc header first in the
-// slot of a small object with pointers, such as a chunk, larger than 512
-// bytes, and it aligns large objects to pages, the largest blocks. The
-// other chunks start with a pad word, so that every header is chunkLead
-// bytes into its block. addChunk checks all this.
-const (
-	chunkLead       = 8
-	smallChunkShift = 8
-	largeChunkShift = 13
-	smallChunkBytes = (chunkCodeBlocks + 1) << smallChunkShift
-	chunkCodeLarge  = 1 << (chunkCodeBits - 1)
-	chunkCodeBlocks = chunkCodeLarge - 1
-)
-
-// chunkOf returns the header of the chunk holding the record at p, whose
-// chunk code is in w, from bit kindBits up.
-func chunkOf(p unsafe.Pointer, w uint32) *chunkHeader {
-	d := &chunkDecode[w>>kindBits&(1<<chunkCodeBits-1)]
-	// SAFETY: p's integer address is only used to find its offset in its
-	// block, and the chunk code leads from there back to the header of the
-	// allocation holding p.
-	return (*chunkHeader)(unsafe.Add(p, -int(uintptr(p)&d.mask+d.add)))
-}
-
-// chunkDecode holds, for each chunk code, the mask that gives a record's
-// offset in its block, and what to add for the offset of the record from
-// its chunk's header.
-var chunkDecode = func() (t [1 << chunkCodeBits]struct{ mask, add uintptr }) {
-	for c := range t {
-		shift := chunkShift(uint32(c))
-		t[c].mask = 1<<shift - 1
-		t[c].add = uintptr(c&chunkCodeBlocks)<<shift - chunkLead
-	}
-	return t
-}()
-
-// A nodeRef is a record field referring to a node. With the low bit set,
-// the referenced record is in the same chunk, at the field's address plus
-// the rest of the ref, read as a signed number of bytes; otherwise, the
-// rest is an index into the store's far nodes, whose first is the absent
-// node, so that zero is no node.
-//
-// Records and refs are four byte aligned, so the distance
-// from a ref to a record never has the low bit set.
-type nodeRef uint32
-
-const refNear = 1
-
-// A parentRef is a record's parent. It is encoded unlike a nodeRef so that
-// walking up the tree, the hottest way of following a ref, costs a single
-// add: an even ref is the signed distance in bytes from the record to its
-// parent in the same chunk, never zero as no record is its own parent; an
-// odd ref is an index into the store's far nodes, shifted left by one, so
-// that parentNone is no parent. Records start with parentNone.
-type parentRef int32
-
-const parentNone parentRef = 1
-
-const wordSize = unsafe.Sizeof(uint64(0))
-
-// recordAlign is the alignment of records and lists in their chunks. No
-// record field is wider than four bytes.
-const recordAlign = 4
-
-// Normal chunks are small enough for anchors to address all their records.
-var _ [maxChunkUnits - maxChunkRecordWords*int(wordSize)/recordAlign]struct{}
-
-// rec returns the address of n's record.
-func (n Node) rec() unsafe.Pointer { return n.p }
-
-func (n Node) hdr() *nodeBaseData {
-	// SAFETY: Every node record starts with an aligned nodeBaseData header.
-	return (*nodeBaseData)(n.p)
-}
-
-func (n Node) chunk() *chunkHeader { return chunkOf(n.p, n.hdr().kind.Load()) }
-
-// store returns the store that owns n.
-func (n Node) store() *nodeStore { return n.chunk().store }
-
-// deref returns the node that the field f of n's record refers to.
-func (n Node) deref(f *nodeRef) Node {
-	r := *f
-	if r&refNear != 0 {
-		// SAFETY: setRef encodes a near offset only between records in the same live chunk.
-		return Node{unsafe.Add(unsafe.Pointer(f), int32(r-refNear))}
-	}
-	if r == 0 {
-		// Absent fields are common, and checking for them is cheaper than
-		// reading the absent far slot, which is far from the record.
-		return Node{}
-	}
-	// The store is found by hand rather than by n.store() to keep callers
-	// within the inlining budget.
-	// SAFETY: The node starts with nodeBaseData.
-	return chunkOf(n.p, (*nodeBaseData)(n.p).kind.Load()).store.far[r>>1]
-}
-
-// refAt returns the node that the field at offset off of n's record refers
-// to.
-func (n Node) refAt(off uint8) Node {
-	// SAFETY: The kind's layout table supplies the offset of an aligned nodeRef within this record.
-	return n.deref((*nodeRef)(unsafe.Add(n.p, off)))
-}
-
-// setRef makes the field f of n's record refer to v.
-func (n Node) setRef(f *nodeRef, v Node) {
-	setRef(n.chunk(), f, v)
-}
-
-// setNodeRef makes the field f of the record of owner refer to v.
-func setNodeRef(f *nodeRef, owner Node, v Node) {
-	setRef(owner.chunk(), f, v)
-}
-
-// setRef makes the field f of a record in chunk c refer to v.
-func setRef(c *chunkHeader, f *nodeRef, v Node) {
-	if v.p == nil {
-		*f = 0
+// release drops s's nodes. Any later use of them panics, until the
+// generation of the entry wraps. It must only be called once nothing reads
+// the nodes any more; calling it again does nothing.
+func (s *nodeStore) release() {
+	if s == nil || s.released {
 		return
 	}
-	if v.chunk() == c {
-		*f = nodeRef(near(f, v.p))
-		return
-	}
-	s := c.store
-	if *f != 0 && *f&refNear == 0 {
-		// Slots are never shared, so the field's own slot can be reused.
-		s.far[*f>>1] = v
-		return
-	}
-	*f = nodeRef(farSlot(len(s.far)))
-	s.far = append(s.far, v)
+	s.released = true
+	e := slotEntry(s.id)
+	e.id.Store(0)
+	e.store.Store(nil)
+	e.nodes.Store(nil)
+	e.data.Store(nil)
+	e.lists.Store(nil)
+	e.listNodes.Store(nil)
+	*s = nodeStore{id: s.id, released: true, file: s.file}
+	storeIDs.mu.Lock()
+	storeIDs.live--
+	storeIDs.free = append(storeIDs.free, s.id)
+	storeIDs.mu.Unlock()
 }
 
-// near returns the ref from the field at f to the record at p in the same
-// chunk.
-func near[F any](f *F, p unsafe.Pointer) uint32 {
-	// SAFETY: Callers pass a field and target in the same chunk; only their byte distance is retained.
-	return uint32(int32(uintptr(p)-uintptr(unsafe.Pointer(f)))) | refNear
+func (s *nodeStore) entry() *storeEntry { return slotEntry(s.id) }
+
+// setNodes replaces s's nodes, publishing the new ones first, so that a
+// reader that loaded the old ones still holds them.
+func (s *nodeStore) setNodes(nodes []nodeHeader) {
+	// SAFETY: The entry points at the first element of nodes, which
+	// stays reachable through it until the store is released.
+	s.entry().nodes.Store(unsafe.SliceData(nodes))
+	s.nodes = nodes
 }
 
-func farSlot(i int) uint32 {
-	if uint64(i) >= 1<<31 {
-		panic("node store far ref overflow")
+func (s *nodeStore) setData(data []uint32) {
+	if cap(data) != 0 {
+		// SAFETY: The entry points at the first element of data, which
+		// stays reachable through it until the store is released.
+		s.entry().data.Store(unsafe.SliceData(data))
 	}
-	return uint32(i) << 1
+	s.data = data
 }
 
-// A nodeAnchor refers to a node of a store from outside its records: the
-// chunk, biased by one, and the record's offset there in units of
-// recordAlign bytes. With anchorFar
-// set, the rest is an index into the store's far nodes.
-type nodeAnchor uint32
-
-const (
-	anchorFar        = 1 << 31
-	anchorChunkShift = 23
-	maxAnchorChunks  = 1<<(31-anchorChunkShift) - 1
-	// maxChunkUnits bounds chunks so that anchors can address every record.
-	maxChunkUnits = 1 << anchorChunkShift
-)
-
-func (s *nodeStore) anchor(v Node) nodeAnchor {
-	if v.p == nil {
-		return 0
-	}
-	c := v.chunk()
-	// SAFETY: The integer addresses are only subtracted, giving the record's offset in its chunk.
-	if u := uint32(uintptr(v.p)-uintptr(unsafe.Pointer(c))) / recordAlign; c.store == s && c.index < maxAnchorChunks && u < maxChunkUnits {
-		return nodeAnchor((c.index+1)<<anchorChunkShift | u)
-	}
-	s.far = append(s.far, v)
-	if uint64(len(s.far)) > anchorFar {
-		panic("node store far ref overflow")
-	}
-	return nodeAnchor(len(s.far)-1) | anchorFar
+func (s *nodeStore) setLists(lists []nodeList) {
+	// SAFETY: The entry points at the first element of lists, which
+	// stays reachable through it until the store is released.
+	s.entry().lists.Store(unsafe.SliceData(lists))
+	s.lists = lists
 }
 
-func (s *nodeStore) fromAnchor(r nodeAnchor) Node {
-	switch {
-	case r == 0:
-		return Node{}
-	case r&anchorFar != 0:
-		return s.far[r&^anchorFar]
+func (s *nodeStore) setListNodes(listNodes []uint32) {
+	if cap(listNodes) != 0 {
+		// SAFETY: The entry points at the first element of listNodes, which
+		// stays reachable through it until the store is released.
+		s.entry().listNodes.Store(unsafe.SliceData(listNodes))
 	}
-	c := s.chunks[r>>anchorChunkShift-1]
-	// SAFETY: anchor encodes the offset of a record in this retained chunk.
-	return Node{unsafe.Add(c, int(r&(maxChunkUnits-1))*recordAlign)}
+	s.listNodes = listNodes
+}
+
+func (s *nodeStore) checkMutable() {
+	if s.frozen {
+		panic("node store is frozen")
+	}
+}
+
+// addNode adds a zero node and returns its index.
+func (s *nodeStore) addNode() uint32 {
+	s.checkMutable()
+	i := len(s.nodes)
+	if i == cap(s.nodes) {
+		if uint64(i) >= refFar {
+			panic("node store overflow")
+		}
+		s.setNodes(slices.Grow(s.nodes, 1))
+	}
+	s.nodes = s.nodes[:i+1]
+	s.nodes[i] = nodeHeader{}
+	return uint32(i)
+}
+
+// addData adds n zero words to s's data and returns the index of the first.
+func (s *nodeStore) addData(n int) uint32 {
+	off := len(s.data)
+	if off+n > cap(s.data) {
+		if uint64(off+n) > 1<<32 {
+			panic("node store data overflow")
+		}
+		s.setData(slices.Grow(s.data, n))
+	}
+	s.data = s.data[:off+n]
+	clear(s.data[off:])
+	return uint32(off)
 }
 
 func (s *nodeStore) newNode(kind Kind, layout nodeLayout, n Node) Node {
 	if kindLayout[kind] != layout {
 		panic("node kind does not match its record layout")
 	}
-	h := n.hdr()
-	h.kind.Store(h.kind.Load()&^kindMask | uint32(kind))
+	s.nodes[n.node].kind = kind
 	return n
 }
 
-// newRecord allocates a zeroed record of type T, whose first field must be
-// its nodeBaseData.
+// newRecord adds a node whose fields are a zero T, returning them and the
+// node. The fields stay where they are only until the store's next node.
 func newRecord[T any](s *nodeStore, layout nodeLayout) (*T, Node) {
-	if unsafe.Alignof(*new(T)) > recordAlign {
-		panic("node record is overaligned")
+	size := unsafe.Sizeof(*new(T))
+	if unsafe.Alignof(*new(T)) > 4 || layoutInline[layout] != (size <= 4) {
+		panic("node record does not fit its layout")
 	}
-	p, code := s.alloc(unsafe.Sizeof(*new(T)))
-	// SAFETY: alloc returns aligned, zeroed storage for T, whose first field is nodeBaseData.
-	h := (*nodeBaseData)(p)
-	h.kind.Store(code << kindBits)
-	h.parent = parentNone
-	// SAFETY: The allocation has T's size and alignment; record types contain no Go pointers.
-	return (*T)(p), Node{p}
+	i := s.addNode()
+	n := Node{s.id, i}
+	if size <= 4 {
+		// SAFETY: T fits in the aligned header word, and holds no pointers.
+		return (*T)(unsafe.Pointer(&s.nodes[i].word)), n
+	}
+	off := s.addData(int(size+3) / 4)
+	s.nodes[i].word = off
+	// SAFETY: addData reserved T's size in aligned words; T holds no pointers.
+	return (*T)(unsafe.Pointer(&s.data[off])), n
 }
 
-// alloc allocates size zeroed bytes for a record, returning its address and
-// its chunk code.
-func (s *nodeStore) alloc(size uintptr) (unsafe.Pointer, uint32) {
-	if s.frozen {
-		panic("node store is frozen")
-	}
-	units := int((size + recordAlign - 1) / recordAlign)
-	if units > len(s.free) {
-		return s.grow(units)
-	}
-	// SAFETY: The free units belong to a retained chunk and have room for this record.
-	p := unsafe.Pointer(unsafe.SliceData(s.free))
-	s.free = s.free[units:]
-	// SAFETY: p and s.base address the same retained chunk; their integer addresses
-	// are used only to compute a byte offset, never to reconstruct a pointer.
-	return p, s.baseCode + uint32(uintptr(p)-uintptr(s.base)+chunkLead)>>chunkShift(s.baseCode)
-}
+// sizeHint is the source bytes per node that parsing typically yields;
+// stores for parsing are sized from it, and trimmed when finished.
+const sizeHint = 6
 
-// chunkShift returns the log2 of the size of the blocks counted by chunk
-// codes with the same size marker as code.
-func chunkShift(code uint32) uint32 {
-	if code&chunkCodeLarge != 0 {
-		return largeChunkShift
-	}
-	return smallChunkShift
-}
-
-// grow allocates units in a new chunk. A record never spans two chunks.
-func (s *nodeStore) grow(units int) (unsafe.Pointer, uint32) {
-	words := (units*recordAlign + int(wordSize) - 1) / int(wordSize)
-	n := min(max(s.words/storeGrowthDivisor, minStoreWords), maxChunkRecordWords)
-	if len(s.chunks) == 0 {
-		n = min(max(n, s.hint), maxChunkRecordWords)
-	}
-	if words > n {
-		// A record too large for a normal chunk gets one of its own, and
-		// the current chunk stays in use.
-		base, code, _ := s.addChunk(words)
-		// SAFETY: addChunk reserves its header followed by at least words record words.
-		return unsafe.Add(base, chunkHeaderSize), code + (chunkLead+chunkHeaderSize)>>chunkShift(code)
-	}
-	base, code, all := s.addChunk(n)
-	s.base = base
-	s.baseCode = code
-	s.free = all[units:]
-	// SAFETY: all is the retained chunk's records region.
-	return unsafe.Pointer(unsafe.SliceData(all)), code + (chunkLead+chunkHeaderSize)>>chunkShift(code)
-}
-
-// addChunk allocates a chunk with room for at least n words of records,
-// returning its header, the chunk code of its first block, and its
-// records' units of recordAlign bytes.
-func (s *nodeStore) addChunk(n int) (unsafe.Pointer, uint32, []uint32) {
-	n = chunkClass(n)
-	bytes := (n + int(chunkHeaderWords)) * int(wordSize)
-	pad := mallocHeader(bytes+chunkLead) == 0
-	base := reflect.New(chunkType(n, pad)).UnsafePointer()
-	if pad {
-		// SAFETY: A padded chunkType has its header after a pad word.
-		base = unsafe.Add(base, chunkLead)
-	}
-	var code uint32
-	shift := uint(smallChunkShift)
-	if bytes+chunkLead > smallChunkBytes {
-		code, shift = chunkCodeLarge, largeChunkShift
-	}
-	// SAFETY: base's integer address is only used to check its alignment.
-	if (uintptr(base)-chunkLead)&(1<<shift-1) != 0 || bytes+chunkLead > (chunkCodeBlocks+1)<<shift && n <= maxChunkRecordWords {
-		panic("node chunk is misaligned")
-	}
-	// SAFETY: chunkType has a chunkHeader at base, preserving its pointer's GC metadata.
-	*(*chunkHeader)(base) = chunkHeader{store: s, index: uint32(len(s.chunks))}
-	s.chunks = append(s.chunks, base)
-	s.words += n
-	// SAFETY: chunkType places exactly n aligned uint64 words immediately after the header.
-	return base, code, unsafe.Slice((*uint32)(unsafe.Add(base, chunkHeaderSize)), n*int(wordSize)/recordAlign)
-}
-
-// chunkClass rounds n up so that a chunk with n words of records takes
-// 2^k or 3*2^(k-1) bytes, sizes that the Go allocator has a class for, so
-// the space it would otherwise round up to holds records too. Every chunk
-// takes chunkLead bytes more than its header and records: the allocator's
-// malloc header, or a pad word.
-func chunkClass(n int) int {
-	bytes := max(n+int(chunkHeaderWords), minStoreWords)*int(wordSize) + chunkLead
-	size := 1 << bits.Len(uint(bytes-1))
-	if three := size / 4 * 3; three >= bytes {
-		size = three
-	}
-	return (size-chunkLead)/int(wordSize) - int(chunkHeaderWords)
-}
-
-// mallocHeader returns how many bytes the Go allocator puts at the start of
-// an object of size bytes with pointers to describe them: a word for small
-// objects too large for the allocator to describe in their span, but none
-// for the smallest and large ones.
-func mallocHeader(size int) int {
-	if size <= 512 || size > 32<<10 {
-		return 0
-	}
-	return int(wordSize)
-}
-
-var chunkTypes sync.Map // chunkTypeKey -> reflect.Type
-
-type chunkTypeKey struct {
-	n   int
-	pad bool
-}
-
-// chunkType returns the type of a chunk with n words of records: a pad
-// word if pad is set, then a chunkHeader followed by an array of n words,
-// so the header is its only pointer.
-func chunkType(n int, pad bool) reflect.Type {
-	key := chunkTypeKey{n, pad}
-	if t, ok := chunkTypes.Load(key); ok {
-		return t.(reflect.Type)
-	}
-	fields := []reflect.StructField{
-		{Name: "Header", Type: reflect.TypeFor[chunkHeader]()},
-		{Name: "Words", Type: reflect.ArrayOf(n, reflect.TypeFor[uint64]())},
-	}
-	if pad {
-		fields = append([]reflect.StructField{{Name: "Pad", Type: reflect.TypeFor[uint64]()}}, fields...)
-	}
-	t2, _ := chunkTypes.LoadOrStore(key, reflect.StructOf(fields))
-	return t2.(reflect.Type)
-}
-
-// maxChunkRecordWords bounds the chunks that hold more than one record, so
-// that chunk codes can count the blocks of all their records, and no chunk
-// holds more nodes than can be numbered: every node record is at least its
-// header. With its header and lead, such a chunk is 1<<19 bytes, a size
-// that chunkClass does not round up.
-const maxChunkRecordWords = (chunkCodeBlocks+1)<<largeChunkShift/int(wordSize) - int(chunkHeaderWords) - chunkLead/int(wordSize)
-
-var _ [maxNodesPerChunk - maxChunkRecordWords*int(wordSize)/int(unsafe.Sizeof(nodeBaseData{}))]struct{}
-
-// Stores start small, since many, such as those for lazily parsed JSDoc,
-// are tiny. This is the words of a chunk, including its header.
-const minStoreWords = 64
-
-// Each new chunk adds a fraction of the store's size, which bounds the
-// space left unused at the end of the last one.
-const storeGrowthDivisor = 16
-
-// textBytesPerStoreWord gives a lower estimate of how many words parsing
-// text takes.
-const textBytesPerStoreWord = 4
-
-// sizeForSource sizes the store's first chunk for parsing its source text.
+// sizeForSource sizes the store's tables for parsing its source text.
 func (s *nodeStore) sizeForSource() {
-	if len(s.chunks) != 0 {
+	n := len(s.texts.source)/sizeHint + 16
+	if len(s.nodes) > 1 {
 		panic("node store already has records")
 	}
-	s.hint = len(s.texts.source) / textBytesPerStoreWord
+	s.setNodes(slices.Grow(s.nodes, n))
+	s.setData(slices.Grow(s.data, n*3/2))
+	s.setLists(slices.Grow(append(s.lists, nodeList{}), n/8))
+	s.setListNodes(slices.Grow(s.listNodes, n/2))
 }
 
-// finish freezes the records if asked to, and trims the side tables. It
-// must only be called before the store is shared.
+// finish freezes the nodes if asked to, and trims the tables. It must only
+// be called before the store is shared.
 func (s *nodeStore) finish(freeze bool) {
 	s.frozen = freeze
-	if freeze {
-		s.free = nil
+	s.compact()
+}
+
+// compact trims the tables to size. It must only be called while the
+// store is not being read concurrently.
+func (s *nodeStore) compact() {
+	if len(s.nodes) != cap(s.nodes) {
+		s.setNodes(exact(s.nodes))
+	}
+	if len(s.data) != cap(s.data) {
+		s.setData(exact(s.data))
+	}
+	if len(s.lists) != cap(s.lists) {
+		s.setLists(exact(s.lists))
+	}
+	if len(s.listNodes) != cap(s.listNodes) {
+		s.setListNodes(exact(s.listNodes))
 	}
 	s.compactSide()
+}
+
+func exact[T any](s []T) []T {
+	c := make([]T, len(s))
+	copy(c, s)
+	return c
 }
 
 // compactSide trims the side tables to size. Side values are never
@@ -545,8 +480,131 @@ func (s *nodeStore) compactSide() {
 	if len(s.names) != cap(s.names) {
 		s.names = slices.Clip(slices.Clone(s.names))
 	}
-	s.far = slices.Clip(slices.Clone(s.far))
-	s.farLists = slices.Clip(slices.Clone(s.farLists))
+	if len(s.far) != cap(s.far) {
+		s.far = slices.Clip(slices.Clone(s.far))
+	}
+	if len(s.farLists) != cap(s.farLists) {
+		s.farLists = slices.Clip(slices.Clone(s.farLists))
+	}
+}
+
+// IsLive reports whether n is nil or its store has not been released.
+func (n Node) IsLive() bool {
+	return slotEntry(n.file).id.Load() == n.file
+}
+
+func (n Node) hdr() *nodeHeader {
+	// SAFETY: A node's index is within its store's nodes.
+	return (*nodeHeader)(unsafe.Add(unsafe.Pointer(storeEntryOf(n.file).nodes.Load()), uintptr(n.node)*nodeHeaderSize))
+}
+
+// store returns the store that owns n.
+func (n Node) store() *nodeStore {
+	return storeEntryOf(n.file).store.Load()
+}
+
+// payload returns the address of n's fields, which are in its header word
+// if inline is set.
+func (n Node) payload(inline bool) unsafe.Pointer {
+	e := storeEntryOf(n.file)
+	// SAFETY: A node's index is within its store's nodes.
+	h := (*nodeHeader)(unsafe.Add(unsafe.Pointer(e.nodes.Load()), uintptr(n.node)*nodeHeaderSize))
+	if inline {
+		// SAFETY: Inline fields are in the header's word.
+		return unsafe.Pointer(&h.word)
+	}
+	// SAFETY: A node whose fields are not inline has them at word in data.
+	return unsafe.Add(unsafe.Pointer(e.data.Load()), uintptr(h.word)*4)
+}
+
+// fields returns the address of n's fields, whatever its kind.
+func (n Node) fields() unsafe.Pointer {
+	e := storeEntryOf(n.file)
+	// SAFETY: A node's index is within its store's nodes.
+	h := (*nodeHeader)(unsafe.Add(unsafe.Pointer(e.nodes.Load()), uintptr(n.node)*nodeHeaderSize))
+	if kindInline[h.kind] {
+		// SAFETY: Inline fields are in the header's word.
+		return unsafe.Pointer(&h.word)
+	}
+	// SAFETY: A node whose fields are not inline has them at word in data.
+	return unsafe.Add(unsafe.Pointer(e.data.Load()), uintptr(h.word)*4)
+}
+
+// kindInline tells for each kind whether its fields fit in the header word.
+var kindInline = func() (t [kindFlowReduceLabelData + 1]bool) {
+	for k, layout := range kindLayout {
+		t[k] = layoutInline[layout]
+	}
+	return t
+}()
+
+// deref returns the node that the field f of n refers to.
+func (n Node) deref(f *nodeRef) Node {
+	r := *f
+	if r&refFar == 0 {
+		if r == 0 {
+			return Node{}
+		}
+		return Node{n.file, uint32(r)}
+	}
+	return n.store().far[r&^refFar]
+}
+
+// refAt returns the node that the field at offset off-1 of n's fields
+// refers to.
+func (n Node) refAt(off uint8) Node {
+	// SAFETY: The kind's table gives the offset of an aligned nodeRef.
+	return n.deref((*nodeRef)(unsafe.Add(n.fields(), off-1)))
+}
+
+// setRef makes the field f of n refer to v.
+func (n Node) setRef(f *nodeRef, v Node) { setNodeRef(f, n, v) }
+
+// setNodeRef makes the field f of owner refer to v.
+func setNodeRef(f *nodeRef, owner Node, v Node) {
+	if v.file == owner.file {
+		*f = nodeRef(v.node)
+		return
+	}
+	if v.node == 0 {
+		*f = 0
+		return
+	}
+	owner.store().setRef(f, v)
+}
+
+// node returns the node that r, a ref held by s, refers to.
+func (s *nodeStore) node(r nodeRef) Node {
+	if r&refFar == 0 {
+		if r == 0 {
+			return Node{}
+		}
+		return Node{s.id, uint32(r)}
+	}
+	return s.far[r&^refFar]
+}
+
+// setRef makes the ref f, held by s, refer to v.
+func (s *nodeStore) setRef(f *nodeRef, v Node) {
+	switch {
+	case v.node == 0:
+		*f = 0
+	case v.file == s.id:
+		*f = nodeRef(v.node)
+	case *f&refFar != 0:
+		// Slots are never shared, so the field's own slot can be reused.
+		s.far[*f&^refFar] = v
+	default:
+		*f = nodeRef(farSlot(len(s.far)))
+		s.far = append(s.far, v)
+	}
+}
+
+func farSlot(i int) uint32 {
+	if uint64(i) >= refFar {
+		panic("node store far ref overflow")
+	}
+	return uint32(i) | refFar
 }
 
 // A sideRef is a record field's slot in a side table. The first slot holds

@@ -11,6 +11,7 @@ import (
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/json"
+	"github.com/microsoft/TypeScript/tsc/internal/testutil/parsetestutil"
 	"gotest.tools/v3/assert"
 )
 
@@ -270,7 +271,7 @@ func TestSymbolAccessors(t *testing.T) {
 	assert.Assert(t, symbol.Parent() == nil)
 	assert.Assert(t, symbol.ExportSymbol() == nil)
 
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := parsetestutil.NewNodeFactory(t)
 	declaration := factory.NewIdentifier("a")
 	otherDeclaration := factory.NewIdentifier("b")
 	member := ast.NewSymbol()

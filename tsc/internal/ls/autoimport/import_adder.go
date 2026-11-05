@@ -119,6 +119,7 @@ func (adder *importAdder) AddImportFromExportedSymbol(exportedSymbol *ast.Symbol
 func (adder *importAdder) Edits() []*lsproto.TextEdit {
 	// !!! organize imports?
 	tracker := change.NewTracker(adder.ctx, adder.view.program.Options(), adder.formatOptions, adder.converters)
+	defer tracker.Release()
 	quotePreference := lsutil.GetQuotePreference(adder.view.importingFile, adder.preferences)
 	for _, fix := range adder.addToNamespace {
 		addNamespaceQualifier(fix, tracker, adder.view.importingFile, locale.Default)
@@ -381,6 +382,7 @@ func (adder *importAdder) getAllExportsForSymbol(symbol *ast.Symbol) []*Export {
 }
 
 func TypeToAutoImportableTypeNode(
+	factory *ast.NodeFactory,
 	c *checker.Checker,
 	importAdder ImportAdder,
 	t *checker.Type,
@@ -391,17 +393,19 @@ func TypeToAutoImportableTypeNode(
 	if typeNode.IsNil() {
 		return ast.Node{}
 	}
-	return TypeNodeToAutoImportableTypeNode(typeNode, importAdder, idToSymbol)
+	return TypeNodeToAutoImportableTypeNode(factory, typeNode, importAdder, idToSymbol)
 }
 
 // TypeNodeToAutoImportableTypeNode converts import type references in a type node to
 // simple type references and registers needed imports with the import adder.
+// The nodes it makes belong to factory.
 func TypeNodeToAutoImportableTypeNode(
+	factory *ast.NodeFactory,
 	typeNode ast.TypeNode,
 	importAdder ImportAdder,
 	idToSymbol map[ast.IdentifierNode]*ast.Symbol,
 ) ast.TypeNode {
-	referenceTypeNode, importableSymbols := TryGetAutoImportableReferenceFromTypeNode(typeNode, idToSymbol)
+	referenceTypeNode, importableSymbols := TryGetAutoImportableReferenceFromTypeNode(factory, typeNode, idToSymbol)
 	if !referenceTypeNode.IsNil() {
 		if importAdder != nil {
 			importSymbols(importAdder, importableSymbols)
@@ -424,11 +428,10 @@ func importSymbols(importAdder ImportAdder, symbols []*ast.Symbol) {
 // with type references, and a list of symbols that must be imported to use the type reference.
 // TryGetAutoImportableReferenceFromTypeNode converts import type references in a type node
 // to simple type references and returns the transformed type node and the symbols that need
-// to be imported.
-func TryGetAutoImportableReferenceFromTypeNode(importTypeNode ast.TypeNode, idToSymbol map[ast.IdentifierNode]*ast.Symbol) (ast.TypeNode, []*ast.Symbol) {
+// to be imported. The nodes it makes belong to factory.
+func TryGetAutoImportableReferenceFromTypeNode(factory *ast.NodeFactory, importTypeNode ast.TypeNode, idToSymbol map[ast.IdentifierNode]*ast.Symbol) (ast.TypeNode, []*ast.Symbol) {
 	var symbols []*ast.Symbol
 	var visitor *ast.NodeVisitor
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
 	visit := func(node ast.Node) ast.Node {
 		if ast.IsLiteralImportTypeNode(node) && !node.AsImportTypeNode().Qualifier().IsNil() {
 			importTypeNode := node.AsImportTypeNode()

@@ -53,15 +53,21 @@ func findPointer(typ reflect.Type, path string) string {
 	return ""
 }
 
-// Records never move as the store grows; refs crossing chunks go far.
+func newTestFactory(t *testing.T) *NodeFactory {
+	store := NewNodeStore()
+	t.Cleanup(store.Release)
+	return NewNodeFactory(store, NodeFactoryHooks{})
+}
+
+// Nodes keep their handles as the store's tables grow and are trimmed.
 func TestNodeStoreGrowth(t *testing.T) {
 	t.Parallel()
-	factory := NewNodeFactory(NodeFactoryHooks{})
+	factory := newTestFactory(t)
 	var statements []Node
 	for i := range 20000 {
 		statements = append(statements, factory.NewExpressionStatement(factory.NewIdentifier(strconv.Itoa(i))))
 	}
-	store := factory.store
+	store := factory.nodeStore()
 	for i, statement := range statements {
 		expression := statement.Expression()
 		assert.Equal(t, expression.Text(), strconv.Itoa(i))
@@ -69,54 +75,33 @@ func TestNodeStoreGrowth(t *testing.T) {
 		expression.SetParent(statement)
 		assert.Equal(t, expression.Parent(), statement)
 	}
-	assert.Assert(t, len(store.far) < len(statements)/100, "most refs should stay within a chunk")
+	assert.Equal(t, len(store.far), 0)
 	factory.FinishStore()
-	assert.Assert(t, len(store.chunks) > 0)
+	assert.Equal(t, len(store.nodes), len(statements)*2+1)
+	assert.Equal(t, len(store.nodes), cap(store.nodes))
 	assert.Equal(t, statements[0].Expression().Text(), "0")
 	assert.Equal(t, statements[19999].Expression().Parent(), statements[19999])
 }
 
-// Ids are kept beside the kind and per chunk; a chunk must never hold more
-// nodes than can be numbered.
 func TestNodeIds(t *testing.T) {
 	t.Parallel()
-	factory := NewNodeFactory(NodeFactoryHooks{})
-	// As if sized for a large source file.
-	factory.nodeStore().hint = 1 << 20
-	var nodes []Node
-	for range 3 * maxNodesPerChunk {
-		nodes = append(nodes, factory.NewToken(KindCommaToken))
-	}
-	other := NewNodeFactory(NodeFactoryHooks{}).NewIdentifier("x")
-	nodes = append(nodes, other)
-	var gen NodeIdGenerator
+	a := newTestFactory(t)
+	b := newTestFactory(t)
+	nodes := []Node{a.NewToken(KindCommaToken), a.NewIdentifier("x"), b.NewToken(KindCommaToken), b.NewIdentifier("x")}
 	seen := make(map[NodeId]bool)
-	for i, node := range nodes {
-		var id NodeId
-		if i%2 == 0 {
-			id = gen.GetNodeId(node)
-		} else {
-			id = GetNodeId(node)
-		}
+	for _, node := range nodes {
+		id := GetNodeId(node)
 		assert.Assert(t, id != 0)
 		assert.Assert(t, !seen[id], "id %d given twice", id)
 		seen[id] = true
+		assert.Equal(t, GetNodeId(node), id)
 	}
-	for i, node := range nodes {
-		assert.Equal(t, GetNodeId(node), gen.GetNodeId(node))
-		if i < len(nodes)-1 {
-			assert.Equal(t, node.Kind(), KindCommaToken)
-		}
-	}
-	assert.Equal(t, other.Kind(), KindIdentifier)
-	// A generator's ids are consecutive.
-	assert.Equal(t, gen.GetNodeId(nodes[2]), gen.GetNodeId(nodes[0])+1)
 }
 
 func TestNodeStoreCrossStoreRefs(t *testing.T) {
 	t.Parallel()
-	a := NewNodeFactory(NodeFactoryHooks{})
-	b := NewNodeFactory(NodeFactoryHooks{})
+	a := newTestFactory(t)
+	b := newTestFactory(t)
 	target := a.NewIdentifier("x")
 	first := b.NewExpressionStatement(target)
 	second := b.NewExpressionStatement(target)
@@ -124,17 +109,22 @@ func TestNodeStoreCrossStoreRefs(t *testing.T) {
 	assert.Equal(t, second.Expression(), target)
 	target.SetParent(first)
 	assert.Equal(t, target.Parent(), first)
-	assert.Equal(t, len(b.store.far), 3)
+	assert.Equal(t, len(b.nodeStore().far), 2)
 	target.SetParent(second)
 	target.SetParent(first)
-	assert.Equal(t, len(a.store.far), 2, "rewriting a far ref should reuse its slot")
+	assert.Equal(t, len(a.nodeStore().far), 1, "rewriting a far ref should reuse its slot")
 	first.AsExpressionStatement().SetExpression(Node{})
 	assert.Assert(t, first.Expression().IsNil())
+	assert.Equal(t, first.Expression(), Node{})
+	list := b.NewNodeList([]Node{target, Node{}, first})
+	assert.Equal(t, list.At(0), target)
+	assert.Equal(t, list.At(1), Node{})
+	assert.Equal(t, list.At(2), first)
 }
 
 func TestFarSlotBounds(t *testing.T) {
 	t.Parallel()
-	assert.Equal(t, farSlot(1<<31-1), uint32(0xfffffffe))
+	assert.Equal(t, farSlot(1<<31-1), uint32(0xffffffff))
 	if strconv.IntSize == 64 {
 		overflow := uint64(1 << 31)
 		testutil.AssertPanics(t, func() { farSlot(int(overflow)) }, "node store far ref overflow")
@@ -143,7 +133,7 @@ func TestFarSlotBounds(t *testing.T) {
 
 func TestNodeSideTableZeroValues(t *testing.T) {
 	t.Parallel()
-	factory := NewNodeFactory(NodeFactoryHooks{})
+	factory := newTestFactory(t)
 	node := factory.NewBlock(StatementList{}, false)
 	assert.Assert(t, node.AsBlock().Statements().IsNil())
 	assert.Assert(t, node.AsBlock().Locals() == nil)
@@ -153,16 +143,16 @@ func TestNodeSideTableZeroValues(t *testing.T) {
 	assert.Assert(t, node.AsBlock().Locals() != nil)
 	node.AsBlock().SetLocals(nil)
 	assert.Assert(t, node.AsBlock().Locals() == nil)
-	assert.Equal(t, len(factory.store.symbolTables.items), 2)
+	assert.Equal(t, len(factory.nodeStore().symbolTables.items), 2)
 }
 
 func TestNodeTextRefs(t *testing.T) {
 	t.Parallel()
-	factory := NewNodeFactory(NodeFactoryHooks{})
+	factory := newTestFactory(t)
 	source := "let alpha = beta;"
 	factory.SetSourceText(source)
 	inSource := factory.NewIdentifier(source[4:9])
-	assert.Equal(t, factory.store.texts.next, uint32(0))
+	assert.Equal(t, factory.nodeStore().texts.next, uint32(0))
 	synthesized := factory.NewIdentifier("gamma")
 	empty := factory.NewIdentifier("")
 	var long []Node
@@ -175,4 +165,42 @@ func TestNodeTextRefs(t *testing.T) {
 	for i, node := range long {
 		assert.Equal(t, node.Text(), strconv.Itoa(i)+string(make([]byte, i)))
 	}
+}
+
+func TestStoreIDReuseChangesGeneration(t *testing.T) {
+	t.Parallel()
+	released := map[uint32]uint32{}
+	for range 2 * storeIDReuseDelay {
+		s := newNodeStore()
+		released[s.id&storeSlotMask] = s.id
+		s.release()
+	}
+	reused := 0
+	var stores []*nodeStore
+	for range 4 * storeIDReuseDelay {
+		s := newNodeStore()
+		stores = append(stores, s)
+		if old, ok := released[s.id&storeSlotMask]; ok {
+			assert.Assert(t, s.id != old)
+			reused++
+		}
+	}
+	assert.Assert(t, reused > 0)
+	for _, s := range stores {
+		s.release()
+	}
+}
+
+// A handle into a released store panics rather than reading whatever store
+// has its slot now.
+func TestReleasedStorePanics(t *testing.T) {
+	t.Parallel()
+	store := NewNodeStore()
+	node := NewNodeFactory(store, NodeFactoryHooks{}).NewIdentifier("x")
+	assert.Equal(t, node.Text(), "x")
+	assert.Assert(t, node.IsLive())
+	store.Release()
+	assert.Assert(t, !node.IsLive())
+	testutil.AssertPanics(t, func() { _ = node.Kind() }, "ast: use of a node or list whose node store was released")
+	store.Release()
 }

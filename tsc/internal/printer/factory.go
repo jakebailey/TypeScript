@@ -18,7 +18,7 @@ type NodeFactory struct {
 
 func NewNodeFactory(context *EmitContext) *NodeFactory {
 	return &NodeFactory{
-		NodeFactory: *ast.NewNodeFactory(ast.NodeFactoryHooks{
+		NodeFactory: *ast.NewNodeFactory(context.store, ast.NodeFactoryHooks{
 			OnCreate: context.onCreate,
 			OnUpdate: context.onUpdate,
 			OnClone:  context.onClone,

@@ -708,6 +708,7 @@ type Checker struct {
 	mergedSymbols                               symbolLinkStore[*ast.Symbol]
 	mergedExportsChecked                        collections.Set[*ast.Symbol]
 	factory                                     ast.NodeFactory
+	nodeStore                                   ast.NodeStore // owns the checker's synthetic nodes; see Release
 	nodeLinks                                   core.LinkStore[ast.Node, NodeLinks]
 	signatureLinks                              core.LinkStore[ast.Node, SignatureLinks]
 	symbolNodeLinks                             symbolNodeLinkStore
@@ -942,6 +943,7 @@ type Checker struct {
 	nonExistentProperties                       collections.Set[NonExistentPropertyKey]
 	deferredDiagnosticCallbacks                 []func()
 	typeToStringNodebuilder                     *NodeBuilder
+	typeToStringDepth                           int
 
 	mu     sync.Mutex
 	tracer *Tracer // Optional tracer for trace events and type recording (for --generateTrace)
@@ -952,6 +954,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 
 	c := &Checker{}
 	c.id = nextCheckerID.Add(1)
+	c.factory.SetStore(&c.nodeStore)
 	c.tracer = tracer
 	c.program = program
 	c.compilerOptions = program.Options()

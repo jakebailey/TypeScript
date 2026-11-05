@@ -216,13 +216,43 @@ The file id indexes a process-wide table of stores. Each entry holds the bases o
 
 What Go forces:
 
-- **Ids are recycled.** A long-running language server creates stores without end (reparsed files, lazily parsed JSDoc, factories), so ids must be reused. A handle is just two integers, so it can't keep its store alive. Each store therefore has an owner that holds it: its `SourceFile`, its `NodeFactory`, or a store that refers into it. A `runtime.AddCleanup` on the store frees its id once the store is unreachable.
-- **The table holds its pointers weakly.** If the entries were ordinary Go pointers, every store would stay reachable forever. So the table is pointer-free memory that the collector doesn't scan, and the pointers in it are read as `unsafe.Pointer`. `weak.Pointer` would be the safe way to do this, but `Value()` is a runtime call, too slow for `Kind()`.
+- **Ids are recycled, so stores are owned and released.** A long-running language server creates stores without end (reparsed files, lazily parsed JSDoc, emit and checker working stores), so ids must be reused. A handle is just two integers, so it can't keep its store alive. Every store therefore has an owner that releases it explicitly; see "Ownership" below.
+- **The table holds ordinary pointers.** Each entry holds the store and the bases of its four tables as atomic Go pointers the collector can see, so a store can't be freed while its slot is live, and a handle never reads freed memory. The table is paged (1,024 entries a page), so the collector scans only pages in use.
+- **The id carries a generation.** An id is a 22-bit slot plus a 7-bit generation, bumped each time the slot is reused. Every access compares the entry's id with the handle's (one load and one compare), so a handle into a released store panics ("use of a node or list whose node store was released") instead of reading the store now in its slot. Released slots wait in a FIFO of 1,024 before reuse, so a stale handle goes undetected only after about 128k releases of other stores.
 - **The bases are published atomically.** Parsed stores are private until they are frozen, so they grow by plain `append`. Some unfrozen stores are read by other goroutines while they grow, such as a source file's token factory, whose tokens are cached under a lock and then read without one. So a store publishes each new base with an atomic store, and readers load the bases atomically, which is a plain load on amd64.
+
+### Ownership
+
+The one rule is that **a store's owner outlives the uses of its nodes**. There is no `KeepAlive` or pinning anywhere: a node is valid exactly as long as whatever owns its store has not released it. A factory owns nothing; it is only an appender into a store that something with a clear lifetime owns (`ast.NewNodeFactory(store, hooks)`).
+
+| Owner | Store(s) | Released by |
+|---|---|---|
+| Parsed `SourceFile` (held by its program or parse cache) | its own store, its lazily parsed JSDoc stores, and its token cache's store | `SourceFile.Release()` |
+| `EmitContext` from `printer.NewEmitContext()` (one per file's transform and emit, per declaration-diagnostics query, per language-service request) | one working store, which its factory appends to; originals stay in the file's store | `EmitContext.Release()`, when emit for the file is done |
+| `Checker` | one store for its synthetic nodes, isolated entity names, and node builder results kept by the caller | `Checker.Release()` |
+| The checker's `typeToString` builder | its own context's store, whose nodes are only printed | at the end of the outermost `typeToString`-style call |
+| `change.Tracker` | its `EmitContext`'s store, which fixes and organize imports build their nodes in | `Tracker.Release()`, after its changes are taken |
+| Language-service request code that builds nodes (exhaustive case snippets, selection ranges, `printNode` and the API decoder) | a local `NodeStore` | `defer store.Release()` |
+| Tree walks whose visitor may update nodes it skips (`astnav`, formatting, selection ranges) | a local, lazily created `NodeStore`; the updated nodes are never used | `defer store.Release()` |
+| Program | the stores of synthetic import declarations | never (see below) |
+| Tests | `parsetestutil.NewNodeStore(t)` and `NewNodeFactory(t)` | `t.Cleanup` |
+
+A store refers into other stores freely (originals, reused children, parents of reused nodes) through its far table. It does not keep them alive: whoever uses a working store's nodes must also hold the owners of the stores they refer into, which in practice holds already (emit and the checker hold the program).
+
+Not released yet, so they leak rather than break:
+
+- **The CLI's program and checkers**: they live until the process exits.
+- **Language-service source files and checkers.** The parse cache drops a file when its refcount reaches zero, but `RefCountCache.Ref` can resurrect a dropped entry and in-flight requests may still hold the old program, so releasing on drop could panic a request. Each reparse of an edited file leaks its store until a safe release point exists.
+- **Program synthetic import stores**: a cloned program shares them and programs have no close. They are small.
+- **Watch and build mode programs**, for the same reason as the CLI.
+
+Misuse is caught, not silently wrong: making a node with a factory that has no store panics ("node factory has no store"), and reading a node of a released store panics as above. A missed release leaks memory, never corrupts it.
+
+The serialized-type cache of the node builder may hold nodes of a released `typeToString` store; a lookup that finds one recomputes the entry (`Node.IsLive`), which loses some cache hits compared with before but changes no output.
 
 ### Cross-store refs and lists
 
-Factory and transformer trees refer to nodes and lists of parsed files: originals, reused children, and parents of reused nodes. A plain 4-byte index can't name another store. This is a forced deviation: a ref with its top bit set is an index into the store's `far []Node` or `farLists []NodeList` table, and the store holds every store it refers into, so that they stay alive. Parsed files never refer outside their own store, so their refs are plain indices.
+Factory and transformer trees refer to nodes and lists of parsed files: originals, reused children, and parents of reused nodes. A plain 4-byte index can't name another store. This is a forced deviation: a ref with its top bit set is an index into the store's `far []Node` or `farLists []NodeList` table. Parsed files never refer outside their own store, so their refs are plain indices.
 
 `NodeList` is a handle like `Node`, `{file, list}`. A `ModifierList`'s flags are computed from its elements, since the target `nodeList` has no room for them. Missing lists, which are rare, are kept in a per-store set.
 
@@ -259,6 +289,20 @@ Each step is a commit, measured separately:
 3. Binder data in sparse maps and hash maps.
 4. Subtree facts in a per-store side table.
 5. Symbol-of-node as per-file `map[uint32]`.
+
+### Progress
+
+Memory used from `--extendedDiagnostics`, single-threaded check. Base is `1fce2af19c3`; main is 3,792,305K on vscode.
+
+| Step | vscode | sentry | mui |
+|---|---|---|---|
+| base | 3,168,196K | 1,829,589K | 1,174,464K |
+| 1. node links in maps | 3,209,104K (+41MB) | 1,835,984K (+6MB) | 1,176,794K (+2MB) |
+| 2. nodes as (store, index) | 3,281,105K (+72MB) | 1,851,797K (+16MB) | 1,187,501K (+11MB) |
+
+Step 2's vscode heap: node headers 472MB, `dataWords` and `listNodes` 286MB, lists 54MB, in place of 742MB of chunks. The payloads still hold the binder fields and the facts word, which steps 3 and 4 move out; flow nodes grew from 47MB to 71MB because their table is never trimmed after binding.
+
+The generation check costs about 1s of vscode's ~22s check time (n=5 alternating, 23.1s with it, 22.1s without; the spread of each is about ±1s).
 
 ## Historical: earlier measurements (step 9 vs main, vscode, n=10, interleaved)
 

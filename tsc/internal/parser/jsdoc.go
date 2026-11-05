@@ -20,6 +20,10 @@ func parseJSDocForNode(sourceFile *ast.SourceFile, node ast.Node) []ast.Node {
 	p := getParser()
 	defer putParser(p)
 	p.initializeState(sourceFile.ParseOptions(), sourceFile.Text(), sourceFile.ScriptKind)
+	// The file owns the store the JSDoc is made in, unless there is none.
+	store := ast.NewNodeStore()
+	p.factory.SetStore(store)
+	p.factory.SetSourceText(sourceFile.Text())
 	ranges := GetJSDocCommentRanges(&p.factory, nil, node, sourceFile.Text())
 	if len(ranges) == 0 {
 		return nil
@@ -32,6 +36,10 @@ func parseJSDocForNode(sourceFile *ast.SourceFile, node ast.Node) []ast.Node {
 			jsdoc = append(jsdoc, parsed)
 			pos = parsed.End()
 		}
+	}
+	if len(jsdoc) == 0 {
+		store.Release()
+		return nil
 	}
 	p.factory.FinishStore()
 	return jsdoc

@@ -106,7 +106,7 @@ function generateNodeFactoryStruct(w: CodeWriter) {
     w.write("type NodeFactory struct {");
     w.push();
     w.write("hooks NodeFactoryHooks");
-    w.write("store *nodeStore");
+    w.write("store *NodeStore");
     for (const { fieldName, typeName } of arenaFields) {
         w.write(`${fieldName} core.Arena[${typeName}]`);
     }
@@ -396,7 +396,6 @@ function generateStructDef(w: CodeWriter, node: NodeType) {
     const structName = node.name;
     w.write(`type ${dataName(node)} struct {`);
     w.push();
-    w.write("nodeBaseData");
     for (const { storage, goType, comment } of nodeRecordFields(node)) {
         w.write(comment ? `${storage} ${goType} ${comment}` : `${storage} ${goType}`);
     }
@@ -492,7 +491,8 @@ function baseFieldName(key: string, name: string): string {
 }
 
 // A base's fields lie at different offsets in each kind's record, so each
-// has a table of its offsets by kind, zero for kinds without the base.
+// has a table of its offsets by kind, plus one, and zero for kinds without
+// the base.
 function generateBaseFieldOffsets(w: CodeWriter, base: NodeType, name: string, valueType: string, isNode: boolean) {
     const method = baseFieldName(base.key, name);
     const table = `${method}Offsets`;
@@ -502,7 +502,7 @@ function generateBaseFieldOffsets(w: CodeWriter, base: NodeType, name: string, v
     for (const node of api.nodes()) {
         if (!transitiveBaseKeys(node).has(base.key)) continue;
         for (const kind of node.allKinds()) {
-            w.write(`${kind.formatGoConstant()}: uint8(unsafe.Offsetof(${dataName(node)}{}.${goStorageName(name)})),`);
+            w.write(`${kind.formatGoConstant()}: uint8(unsafe.Offsetof(${dataName(node)}{}.${goStorageName(name)}) + 1),`);
         }
     }
     w.pop();
@@ -512,7 +512,7 @@ function generateBaseFieldOffsets(w: CodeWriter, base: NodeType, name: string, v
     w.push();
     w.write(`if off := ${table}[n.Kind()]; off != 0 {`);
     w.push();
-    w.write(`return (*${goType})(unsafe.Add(n.rec(), off))`);
+    w.write(`return (*${goType})(unsafe.Add(n.fields(), off-1))`);
     w.pop();
     w.write("}");
     w.write("return nil");
@@ -556,13 +556,14 @@ function generateLayouts(w: CodeWriter) {
     w.pop();
     w.write("}");
     w.write("");
-    w.write("// Every record must begin with its nodeBaseData header.");
-    w.write("const (");
+    w.write("// layoutInline tells for each layout whether its fields fit in the");
+    w.write("// node header's word.");
+    w.write("var layoutInline = [layoutCount]bool{");
     w.push();
-    for (const node of api.nodes()) w.write(`_ = -unsafe.Offsetof(${dataName(node)}{}.nodeBaseData)`);
-    for (const name of EXTRA_LAYOUTS) w.write(`_ = -unsafe.Offsetof(${name[0].toLowerCase()}${name.slice(1)}{}.nodeBaseData)`);
+    for (const node of api.nodes()) w.write(`${layoutName(node)}: unsafe.Sizeof(${dataName(node)}{}) <= 4,`);
+    for (const name of EXTRA_LAYOUTS) w.write(`layout${name}: unsafe.Sizeof(${name[0].toLowerCase()}${name.slice(1)}{}) <= 4,`);
     w.pop();
-    w.write(")");
+    w.write("}");
     w.write("");
     w.write("// layoutRecord returns a zero record of layout.");
     w.write("func layoutRecord(layout nodeLayout) any {");
@@ -695,7 +696,7 @@ function setterName(name: string): string {
 
 // The storage struct of a node, reached from a handle.
 function dataOf(node: NodeType, recv: string): string {
-    return `(*${dataName(node)})(${recv}.rec())`;
+    return `(*${dataName(node)})(${recv}.payload(unsafe.Sizeof(${dataName(node)}{}) <= 4))`;
 }
 
 // The typed view of a node, reached from a handle.
@@ -1335,7 +1336,7 @@ function generateMemberOffsetTable(w: CodeWriter, table: string, member: string,
             const field = nodeRecordFields(node).find(f => f.storage === storage);
             // Only refs can be read the same way for every kind.
             if (field?.goType !== refType) continue;
-            w.write(`${constant}: uint8(unsafe.Offsetof(${dataName(node)}{}.${storage})),`);
+            w.write(`${constant}: uint8(unsafe.Offsetof(${dataName(node)}{}.${storage}) + 1),`);
         }
     }
     w.pop();
@@ -1344,7 +1345,8 @@ function generateMemberOffsetTable(w: CodeWriter, table: string, member: string,
 }
 
 // A member that every node having it stores as the same kind of ref is read
-// through a table of its offsets by kind, zero for kinds without it.
+// through a table of its offsets by kind, plus one, and zero for kinds
+// without it.
 function generateMemberOffsetAccessor(w: CodeWriter, method: string, ret: string, member: string, refType: string, deref: string, zero: string) {
     const table = `node${method}Offsets`;
     generateMemberOffsetTable(w, table, member, refType);
@@ -1352,7 +1354,7 @@ function generateMemberOffsetAccessor(w: CodeWriter, method: string, ret: string
     w.push();
     w.write(`if off := ${table}[n.Kind()]; off != 0 {`);
     w.push();
-    w.write(`return ${deref}((*${refType})(unsafe.Add(n.p, off)))`);
+    w.write(`return ${deref}((*${refType})(unsafe.Add(n.fields(), off-1)))`);
     w.pop();
     w.write("}");
     w.write(`return ${zero}`);

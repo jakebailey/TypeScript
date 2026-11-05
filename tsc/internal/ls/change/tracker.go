@@ -126,6 +126,18 @@ func NewTracker(ctx context.Context, compilerOptions *core.CompilerOptions, form
 	}
 }
 
+// Store returns the store owning the nodes made for the tracker, in which
+// code building nodes given to the tracker makes them.
+func (t *Tracker) Store() *ast.NodeStore {
+	return t.EmitContext.Store()
+}
+
+// Release releases the nodes made for the tracker, once its changes have
+// been gotten.
+func (t *Tracker) Release() {
+	t.EmitContext.Release()
+}
+
 // GetChanges returns the accumulated text edits grouped by file name. Any file whose edits could not be
 // faithfully mapped back onto content-mapped original text is omitted from the returned map, and its name
 // is included in the returned slice. Dropping the whole file (rather than the individual edit) keeps a

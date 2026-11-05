@@ -505,7 +505,11 @@ func (p *Program) hasSameSyntheticImports(oldFile *ast.SourceFile, newFile *ast.
 // replaceSyntheticImports recreates the synthetic imports of replaced files, as the existing ones are
 // parented to the old versions of those files.
 func (p *Program) replaceSyntheticImports(newFile *ast.SourceFile, newSupplementalFiles []*ast.SourceFile) {
-	var factory ast.NodeFactory
+	// The old store may be shared with the old program, so the new imports
+	// go in a store of their own, owned by this program.
+	store := ast.NewNodeStore()
+	factory := ast.NewNodeFactory(store, ast.NodeFactoryHooks{})
+	p.syntheticImportStores = append(slices.Clip(p.syntheticImportStores), store)
 	clonedImportHelpers := false
 	clonedJSXRuntime := false
 	for _, file := range core.Concatenate([]*ast.SourceFile{newFile}, newSupplementalFiles) {
@@ -515,7 +519,7 @@ func (p *Program) replaceSyntheticImports(newFile *ast.SourceFile, newSupplement
 				p.importHelpersImportSpecifiers = maps.Clone(p.importHelpersImportSpecifiers)
 				clonedImportHelpers = true
 			}
-			p.importHelpersImportSpecifiers[path] = newSyntheticImport(&factory, externalHelpersModuleNameText, file)
+			p.importHelpersImportSpecifiers[path] = newSyntheticImport(factory, externalHelpersModuleNameText, file)
 		}
 		if jsxImport := p.jsxRuntimeImportSpecifiers[path]; jsxImport != nil {
 			if !clonedJSXRuntime {
@@ -524,7 +528,7 @@ func (p *Program) replaceSyntheticImports(newFile *ast.SourceFile, newSupplement
 			}
 			p.jsxRuntimeImportSpecifiers[path] = &jsxRuntimeImportSpecifier{
 				moduleReference: jsxImport.moduleReference,
-				specifier:       newSyntheticImport(&factory, jsxImport.moduleReference, file),
+				specifier:       newSyntheticImport(factory, jsxImport.moduleReference, file),
 			}
 		}
 	}
@@ -1343,7 +1347,7 @@ func (p *Program) verifyCompilerOptions() {
 		if options.Jsx == core.JsxEmitReactJSX || options.Jsx == core.JsxEmitReactJSXDev {
 			createDiagnosticForOptionName(diagnostics.Option_0_cannot_be_specified_when_option_jsx_is_1, "jsxFactory", options.Jsx.String())
 		}
-		if parser.ParseIsolatedEntityName(options.JsxFactory).IsNil() {
+		if isInvalidEntityName(options.JsxFactory) {
 			createOptionValueDiagnostic("jsxFactory", diagnostics.Invalid_value_for_jsxFactory_0_is_not_a_valid_identifier_or_qualified_name, options.JsxFactory)
 		}
 	} else if options.ReactNamespace != "" && !scanner.IsIdentifierText(options.ReactNamespace, core.LanguageVariantStandard) {
@@ -1357,7 +1361,7 @@ func (p *Program) verifyCompilerOptions() {
 		if options.Jsx == core.JsxEmitReactJSX || options.Jsx == core.JsxEmitReactJSXDev {
 			createDiagnosticForOptionName(diagnostics.Option_0_cannot_be_specified_when_option_jsx_is_1, "jsxFragmentFactory", options.Jsx.String())
 		}
-		if parser.ParseIsolatedEntityName(options.JsxFragmentFactory).IsNil() {
+		if isInvalidEntityName(options.JsxFragmentFactory) {
 			createOptionValueDiagnostic("jsxFragmentFactory", diagnostics.Invalid_value_for_jsxFragmentFactory_0_is_not_a_valid_identifier_or_qualified_name, options.JsxFragmentFactory)
 		}
 	}
@@ -2597,3 +2601,9 @@ var plainJSErrors = collections.NewSetFromItems(
 	// Type errors
 	diagnostics.This_condition_will_always_return_0_since_JavaScript_compares_objects_by_reference_not_value.Code(),
 )
+
+func isInvalidEntityName(text string) bool {
+	store := ast.NewNodeStore()
+	defer store.Release()
+	return parser.ParseIsolatedEntityName(text, store).IsNil()
+}

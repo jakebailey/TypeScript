@@ -2,244 +2,107 @@ package ast
 
 import (
 	"iter"
-	"math/bits"
+	"slices"
 	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
-// A NodeList is a handle to a list of nodes: the address of its record.
-// The zero NodeList is the absent list.
-//
-// A list record is a listHeader, then the elements as nodeRefs, then
-// those of the list's pos, end and aux that its header says it stores.
-// A parsed list mostly spans exactly its elements, so it derives pos and
-// end from them instead of storing them.
+// A NodeList is a handle to a list of nodes: the id of the store holding
+// it and its index in the store's lists. The zero NodeList is the absent
+// list.
 type NodeList struct {
-	p unsafe.Pointer
+	file uint32
+	list uint32
 }
 
-type listHeader struct {
-	// info holds the record's chunkCode in its low chunkCodeBits bits,
-	// shifted left by kindBits like a node's, and flags above them.
-	info uint32
-	n    uint32
-}
-
-const listHeaderSize = unsafe.Sizeof(listHeader{})
-
-const listChunkBits = kindBits + chunkCodeBits
-
-const (
-	// listPos and listEnd mark a list record that stores its pos or end;
-	// otherwise the pos is that of its first element, and the end is
-	// that of its last element, or its pos if listEndAtPos is set.
-	listPos uint32 = 1 << (listChunkBits + iota)
-	listEnd
-	listEndAtPos
-	// listAux marks a list record that stores its aux.
-	listAux
-	// listSpilled marks a list whose pos, end and aux are in its store's
-	// spilledLists, because they changed in a way its record has no room
-	// for.
-	listSpilled
-)
-
-// spilledList holds the pos, end and aux of a list with listSpilled set.
-type spilledList struct {
-	loc core.TextRange
-	aux uint32
-}
-
-// A ModifierList is a NodeList of modifiers, whose record also holds their
-// combined flags.
+// A ModifierList is a NodeList of modifiers.
 type ModifierList struct {
 	NodeList
 }
 
-// A listRef is a record field referring to a list, encoded like a
-// nodeRef, whose far lists are the store's farLists.
+// A listRef is a field referring to a list, encoded like a nodeRef, whose
+// far lists are the store's farLists.
 type listRef uint32
 
-// listMissing marks a list that was expected but missing from the source.
-const listMissing = 1
-
 func (f *NodeFactory) NewNodeList(nodes []Node) NodeList {
-	return newNodeList(f.nodeStore(), nodes, 0, core.UndefinedTextRange(), false)
+	return f.nodeStore().newNodeList(nodes, core.UndefinedTextRange())
 }
 
 func (f *NodeFactory) NewModifierList(nodes []Node) ModifierList {
-	return ModifierList{newNodeList(f.nodeStore(), nodes, uint32(ModifiersToFlags(nodes)), core.UndefinedTextRange(), false)}
+	return ModifierList{f.nodeStore().newNodeList(nodes, core.UndefinedTextRange())}
 }
 
-// NewNodeListAt returns a new list of nodes spanning loc, whose nodes'
-// locations must not change afterwards.
+// NewNodeListAt returns a new list of nodes spanning loc.
 func (f *NodeFactory) NewNodeListAt(loc core.TextRange, nodes []Node) NodeList {
-	return newNodeList(f.nodeStore(), nodes, 0, loc, true)
+	return f.nodeStore().newNodeList(nodes, loc)
 }
 
 // NewModifierListAt is like NewNodeListAt for modifiers.
 func (f *NodeFactory) NewModifierListAt(loc core.TextRange, nodes []Node) ModifierList {
-	return ModifierList{newNodeList(f.nodeStore(), nodes, uint32(ModifiersToFlags(nodes)), loc, true)}
+	return ModifierList{f.nodeStore().newNodeList(nodes, loc)}
 }
 
-// newNodeList returns a new list of nodes spanning loc. If derive is set,
-// the record omits a pos or end that it can derive from the nodes, whose
-// locations therefore must not change; otherwise it stores both.
-func newNodeList(s *nodeStore, nodes []Node, aux uint32, loc core.TextRange, derive bool) NodeList {
-	n := len(nodes)
-	var flags uint32
-	pos, end := int32(loc.Pos()), int32(loc.End())
-	switch {
-	case !derive:
-		flags = listPos | listEnd
-	case n == 0:
-		flags = listPos
-		if end == pos {
-			flags |= listEndAtPos
-		} else {
-			flags |= listEnd
-		}
-	default:
-		if int(pos) != nodes[0].Pos() {
-			flags |= listPos
-		}
-		if int(end) != nodes[n-1].End() {
-			flags |= listEnd
-		}
+// newNodeList returns a new list of nodes spanning loc.
+func (s *nodeStore) newNodeList(nodes []Node, loc core.TextRange) NodeList {
+	s.checkMutable()
+	if len(s.lists) == 0 {
+		// The first list is the absent one, so that no list ref is zero.
+		s.setLists(make([]nodeList, 1, 8))
 	}
-	if aux != 0 {
-		flags |= listAux
+	i := len(s.lists)
+	if uint64(i) >= refFar {
+		panic("node store list overflow")
 	}
-	extra := bits.OnesCount32(flags & (listPos | listEnd | listAux))
-	p, code := s.alloc(listHeaderSize + uintptr(n+extra)*unsafe.Sizeof(nodeRef(0)))
-	l := NodeList{p}
-	*l.hdr() = listHeader{info: code<<kindBits | flags, n: uint32(n)}
-	c := l.chunk()
+	start := len(s.listNodes)
+	if uint64(start+len(nodes)) > 1<<32 {
+		panic("node store list overflow")
+	}
+	if start+len(nodes) > cap(s.listNodes) {
+		s.setListNodes(slices.Grow(s.listNodes, len(nodes)))
+	}
+	s.listNodes = s.listNodes[:start+len(nodes)]
 	for k, node := range nodes {
-		setRef(c, l.slot(k), node)
+		s.setRef((*nodeRef)(&s.listNodes[start+k]), node)
 	}
-	k := n
-	if flags&listPos != 0 {
-		*l.slot(k) = nodeRef(pos)
-		k++
+	if i == cap(s.lists) {
+		s.setLists(slices.Grow(s.lists, 1))
 	}
-	if flags&listEnd != 0 {
-		*l.slot(k) = nodeRef(end)
-		k++
-	}
-	if flags&listAux != 0 {
-		*l.slot(k) = nodeRef(aux)
-	}
-	return l
+	s.lists = append(s.lists, nodeList{loc: loc, start: uint32(start), len: uint32(len(nodes))})
+	return NodeList{s.id, uint32(i)}
 }
 
-func (l NodeList) IsNil() bool { return l.p == nil }
+func (l NodeList) IsNil() bool { return l.list == 0 }
 
-func (l NodeList) hdr() *listHeader {
-	// SAFETY: Every list record starts with an aligned listHeader.
-	return (*listHeader)(l.p)
+func (l NodeList) hdr() *nodeList {
+	// SAFETY: A list's index is within its store's lists.
+	return (*nodeList)(unsafe.Add(unsafe.Pointer(storeEntryOf(l.file).lists.Load()), uintptr(l.list)*nodeListSize))
 }
 
-// slot returns the element ref at index k of l's record, or for k past
-// the elements, the word holding the next stored pos, end or aux.
+func (l NodeList) store() *nodeStore {
+	return storeEntryOf(l.file).store.Load()
+}
+
+// slot returns the ref of the element at index k of l, which must be in
+// range.
 func (l NodeList) slot(k int) *nodeRef {
-	// SAFETY: Callers bound k by the list length and stored words; newNodeList reserves that many aligned words after the header.
-	return (*nodeRef)(unsafe.Add(l.p, listHeaderSize+uintptr(k)*unsafe.Sizeof(nodeRef(0))))
+	e := storeEntryOf(l.file)
+	// SAFETY: A list's index is within its store's lists.
+	h := (*nodeList)(unsafe.Add(unsafe.Pointer(e.lists.Load()), uintptr(l.list)*nodeListSize))
+	// SAFETY: A list's elements are within its store's listNodes.
+	return (*nodeRef)(unsafe.Add(unsafe.Pointer(e.listNodes.Load()), (uintptr(h.start)+uintptr(k))*4))
 }
 
-func (l NodeList) chunk() *chunkHeader { return chunkOf(l.p, l.hdr().info) }
+func (l NodeList) Loc() core.TextRange { return l.hdr().loc }
 
-func (l NodeList) store() *nodeStore { return l.chunk().store }
-
-func (l NodeList) Loc() core.TextRange {
-	h := l.hdr()
-	info := h.info
-	if info&listSpilled != 0 {
-		return l.store().spilledLists[l.p].loc
-	}
-	n := int(h.n)
-	var pos, end int
-	k := n
-	if info&listPos != 0 {
-		pos = int(int32(*l.slot(k)))
-		k++
-	} else {
-		pos = l.at(0).Pos()
-	}
-	switch {
-	case info&listEnd != 0:
-		end = int(int32(*l.slot(k)))
-	case info&listEndAtPos != 0:
-		end = pos
-	default:
-		end = l.at(n - 1).End()
-	}
-	return core.NewTextRange(pos, end)
-}
-
-func (l NodeList) SetLoc(loc core.TextRange) {
-	h := l.hdr()
-	info := h.info
-	if info&listSpilled == 0 && info&(listPos|listEnd) == listPos|listEnd {
-		*l.slot(int(h.n)) = nodeRef(int32(loc.Pos()))
-		*l.slot(int(h.n) + 1) = nodeRef(int32(loc.End()))
-		return
-	}
-	if info&listSpilled == 0 && l.Loc() == loc {
-		return
-	}
-	l.spill().loc = loc
-}
-
-// spill moves l's pos, end and aux to its store's spilledLists, if they
-// are not there already, and returns them. It is for lists that change
-// in a way their record has no room for, which is rare.
-func (l NodeList) spill() *spilledList {
-	s := l.store()
-	if s.spilledLists == nil {
-		s.spilledLists = make(map[unsafe.Pointer]*spilledList)
-	}
-	h := l.hdr()
-	if h.info&listSpilled == 0 {
-		s.spilledLists[l.p] = &spilledList{loc: l.Loc(), aux: l.aux()}
-		h.info |= listSpilled
-	}
-	return s.spilledLists[l.p]
-}
+func (l NodeList) SetLoc(loc core.TextRange) { l.hdr().loc = loc }
 
 func (l NodeList) Pos() int { return l.Loc().Pos() }
 func (l NodeList) End() int { return l.Loc().End() }
 
-func (l NodeList) aux() uint32 {
-	h := l.hdr()
-	info := h.info
-	switch {
-	case info&listSpilled != 0:
-		return l.store().spilledLists[l.p].aux
-	case info&listAux == 0:
-		return 0
-	}
-	return uint32(*l.slot(int(h.n) + bits.OnesCount32(info&(listPos|listEnd))))
-}
-
-func (l NodeList) setAux(v uint32) {
-	h := l.hdr()
-	info := h.info
-	switch {
-	case info&listSpilled == 0 && info&listAux != 0:
-		*l.slot(int(h.n) + bits.OnesCount32(info&(listPos|listEnd))) = nodeRef(v)
-	case info&listSpilled != 0 || v != 0:
-		l.spill().aux = v
-	}
-}
-
 // Len returns the number of nodes in l, which is zero for the absent list.
 func (l NodeList) Len() int {
-	if l.p == nil {
-		return 0
-	}
-	return int(l.hdr().n)
+	return int(l.hdr().len)
 }
 
 // At returns the node at index k of l.
@@ -251,13 +114,14 @@ func (l NodeList) At(k int) Node {
 }
 
 func (l NodeList) at(k int) Node {
-	f := l.slot(k)
-	r := *f
-	if r&refNear != 0 {
-		// SAFETY: setRef encodes a near offset only to a node in the list's retained chunk.
-		return Node{unsafe.Add(unsafe.Pointer(f), int(int32(r))-refNear)}
+	r := *l.slot(k)
+	if r&refFar == 0 {
+		if r == 0 {
+			return Node{}
+		}
+		return Node{l.file, uint32(r)}
 	}
-	return l.store().far[r>>1]
+	return l.store().far[r&^refFar]
 }
 
 // SetAt replaces the node at index k of l.
@@ -265,13 +129,7 @@ func (l NodeList) SetAt(k int, node Node) {
 	if uint(k) >= uint(l.Len()) {
 		panic("node list index out of range")
 	}
-	if info := l.hdr().info; info&listSpilled == 0 &&
-		(k == 0 && info&listPos == 0 || k == l.Len()-1 && info&(listEnd|listEndAtPos) == 0) &&
-		node.Loc() != l.at(k).Loc() {
-		// The list derives its loc from the node being replaced.
-		l.spill()
-	}
-	setRef(l.chunk(), l.slot(k), node)
+	l.store().setRef(l.slot(k), node)
 }
 
 // First returns the first node of l, or the absent node if l is empty.
@@ -337,9 +195,21 @@ func (l NodeList) Slice() []Node {
 }
 
 // IsMissing reports whether l stands for a list missing from the source.
-func (l NodeList) IsMissing() bool { return l.p != nil && l.aux()&listMissing != 0 }
+func (l NodeList) IsMissing() bool {
+	if l.list == 0 {
+		return false
+	}
+	_, ok := l.store().missing[l.list]
+	return ok
+}
 
-func (l NodeList) SetMissing() { l.setAux(l.aux() | listMissing) }
+func (l NodeList) SetMissing() {
+	s := l.store()
+	if s.missing == nil {
+		s.missing = make(map[uint32]struct{})
+	}
+	s.missing[l.list] = struct{}{}
+}
 
 func (l NodeList) HasTrailingComma() bool {
 	n := l.Len()
@@ -355,75 +225,65 @@ func (l NodeList) Clone(f NodeFactoryCoercible) NodeList {
 	return result
 }
 
+// ModifierFlags returns the combined flags of the modifiers in l.
 func (l ModifierList) ModifierFlags() ModifierFlags {
-	if l.p == nil {
-		return ModifierFlagsNone
+	var flags ModifierFlags
+	for k, n := 0, l.Len(); k < n; k++ {
+		flags |= ModifierToFlag(l.at(k).Kind())
 	}
-	return ModifierFlags(l.aux())
+	return flags
 }
-
-func (l ModifierList) SetModifierFlags(flags ModifierFlags) { l.setAux(uint32(flags)) }
 
 func (l ModifierList) Clone(f *NodeFactory) ModifierList {
-	res := ModifierList{newNodeList(f.nodeStore(), l.Slice(), uint32(l.ModifierFlags()), core.UndefinedTextRange(), false)}
-	res.SetLoc(l.Loc())
-	return res
+	return ModifierList{l.NodeList.Clone(f)}
 }
 
-// derefList returns the list that the field f of n's record refers to.
+// derefList returns the list that the field f of n refers to.
 func (n Node) derefList(f *listRef) NodeList {
 	r := *f
-	if r&refNear != 0 {
-		// SAFETY: setListRef encodes a near offset only to a list in the same retained chunk.
-		return NodeList{unsafe.Add(unsafe.Pointer(f), int32(r-refNear))}
+	if r&refFar == 0 {
+		if r == 0 {
+			return NodeList{}
+		}
+		return NodeList{n.file, uint32(r)}
 	}
-	if r == 0 {
-		// Absent fields are common, and checking for them is cheaper than
-		// reading the absent far slot, which is far from the record.
-		return NodeList{}
-	}
-	// SAFETY: The node starts with nodeBaseData.
-	return chunkOf(n.p, (*nodeBaseData)(n.p).kind.Load()).store.farLists[r>>1]
+	return n.store().farLists[r&^refFar]
 }
 
 func (n Node) derefModifiers(f *listRef) ModifierList {
 	return ModifierList{n.derefList(f)}
 }
 
-// setListRef makes the field f of n's record refer to v.
-func (n Node) setListRef(f *listRef, v NodeList) { setListRef(n.chunk(), f, v) }
+// setListRef makes the field f of n refer to v.
+func (n Node) setListRef(f *listRef, v NodeList) { setListRefAt(f, n, v) }
 
-func (n Node) setModifiersRef(f *listRef, v ModifierList) { setListRef(n.chunk(), f, v.NodeList) }
+func (n Node) setModifiersRef(f *listRef, v ModifierList) { setListRefAt(f, n, v.NodeList) }
 
-// setListRefAt makes the field f of the record of owner refer to v.
-func setListRefAt(f *listRef, owner Node, v NodeList) { setListRef(owner.chunk(), f, v) }
+// setListRefAt makes the field f of owner refer to v.
+func setListRefAt(f *listRef, owner Node, v NodeList) {
+	switch {
+	case v.file == owner.file:
+		*f = listRef(v.list)
+	case v.list == 0:
+		*f = 0
+	default:
+		s := owner.store()
+		if *f&refFar != 0 {
+			s.farLists[*f&^refFar] = v
+		} else {
+			*f = listRef(farSlot(len(s.farLists)))
+			s.farLists = append(s.farLists, v)
+		}
+	}
+}
 
 func setModifiersRefAt(f *listRef, owner Node, v ModifierList) {
-	setListRef(owner.chunk(), f, v.NodeList)
+	setListRefAt(f, owner, v.NodeList)
 }
 
-// setListRef makes the field f of a record in chunk c refer to v.
-func setListRef(c *chunkHeader, f *listRef, v NodeList) {
-	if v.p == nil {
-		*f = 0
-		return
-	}
-	if v.chunk() == c {
-		*f = listRef(near(f, v.p))
-		return
-	}
-	s := c.store
-	if *f != 0 && *f&refNear == 0 {
-		s.farLists[*f>>1] = v
-		return
-	}
-	*f = listRef(farSlot(len(s.farLists)))
-	s.farLists = append(s.farLists, v)
-}
-
-// listAt returns the list that the field at offset off of n's record
+// listAt returns the list that the field at offset off-1 of n's fields
 // refers to.
 func (n Node) listAt(off uint8) NodeList {
-	// SAFETY: The kind's layout table identifies an aligned listRef within this record.
-	return n.derefList((*listRef)(unsafe.Add(n.p, off)))
+	// SAFETY: The kind's table gives the offset of an aligned listRef.
+	return n.derefList((*listRef)(unsafe.Add(n.fields(), off-1)))
 }

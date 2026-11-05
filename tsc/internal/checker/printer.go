@@ -291,8 +291,7 @@ func (c *Checker) TypeToTypeNode(t *Type, enclosingDeclaration ast.Node, flags n
 }
 
 func (c *Checker) SignatureToSignatureDeclaration(signature *Signature, kind ast.Kind, enclosingDeclaration ast.Node, flags nodebuilder.Flags) ast.Node {
-	nodeBuilder, release := c.getNodeBuilder()
-	defer release()
+	nodeBuilder := c.getNodeBuilderEx(nil /*idToSymbol*/)
 	return nodeBuilder.SignatureToSignatureDeclaration(signature, kind, enclosingDeclaration, flags, nodebuilder.InternalFlagsNone, nil)
 }
 

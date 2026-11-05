@@ -3981,7 +3981,9 @@ func (s *Session) handleTypeToString(ctx context.Context, params *TypeToTypeNode
 
 // handlePrintNode decodes a binary-encoded AST node and prints it to text.
 func (s *Session) handlePrintNode(_ context.Context, params *PrintNodeParams) (string, error) {
-	node, err := decodePrintNode(params.Data)
+	store := ast.NewNodeStore()
+	defer store.Release()
+	node, err := decodePrintNode(params.Data, store)
 	if err != nil {
 		return "", err
 	}
@@ -3993,13 +3995,13 @@ func (s *Session) handlePrintNode(_ context.Context, params *PrintNodeParams) (s
 	return newPrinter(params).Emit(node, sourceFile), nil
 }
 
-func decodePrintNode(encoded string) (ast.Node, error) {
+func decodePrintNode(encoded string, store *ast.NodeStore) (ast.Node, error) {
 	data, err := base64.StdEncoding.DecodeString(encoded)
 	if err != nil {
 		return ast.Node{}, fmt.Errorf("%w: invalid base64 data: %w", ErrClientError, err)
 	}
 
-	node, err := encoder.DecodeNodes(data)
+	node, err := encoder.DecodeNodes(data, store)
 	if err != nil {
 		return ast.Node{}, fmt.Errorf("%w: failed to decode AST: %w", ErrClientError, err)
 	}
@@ -4196,7 +4198,9 @@ func (s *Session) handleFormatNodeForInsertion(ctx context.Context, params *Form
 		return "", fmt.Errorf("%w: invalid base64 data: %w", ErrClientError, err)
 	}
 
-	node, err := encoder.DecodeNodes(data)
+	store := ast.NewNodeStore()
+	defer store.Release()
+	node, err := encoder.DecodeNodes(data, store)
 	if err != nil {
 		return "", fmt.Errorf("%w: failed to decode AST: %w", ErrClientError, err)
 	}
@@ -4205,7 +4209,7 @@ func (s *Session) handleFormatNodeForInsertion(ctx context.Context, params *Form
 	formatOptions := sd.snapshot.UserPreferences().FormatCodeSettings
 	newLine := formatOptions.NewLineCharacter
 
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := ast.NewNodeFactory(store, ast.NodeFactoryHooks{})
 	text, nodeWithPos := printer.PrintAndPositionNode(factory, node, nil, newLine, formatOptions.IndentSize, nil)
 	syntheticFile := printer.CreateSyntheticSourceFile(factory, nodeWithPos, text, targetSourceFile.ParseOptions())
 

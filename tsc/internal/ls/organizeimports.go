@@ -29,6 +29,7 @@ func (l *LanguageService) OrganizeImports(
 	kind lsproto.CodeActionKind,
 ) map[tspath.RootedFilePath][]*lsproto.TextEdit {
 	changeTracker := change.NewTracker(ctx, program.Options(), l.FormatOptions(), l.converters)
+	defer changeTracker.Release()
 	shouldSort := kind == lsproto.CodeActionKindSourceSortImportsTs || kind == lsproto.CodeActionKindSourceOrganizeImportsTs
 	shouldCombine := shouldSort
 	shouldRemove := kind == lsproto.CodeActionKindSourceRemoveUnusedImportsTs || kind == lsproto.CodeActionKindSourceOrganizeImportsTs
@@ -242,7 +243,7 @@ func removeUnusedImports(oldImports []ast.Statement, sourceFile *ast.SourceFile,
 	jsxElementsPresent := (sourceFile.AsNode().SubtreeFacts() & ast.SubtreeContainsJsx) != 0
 	jsxModeNeedsExplicitImport := compilerOptions.Jsx == core.JsxEmitReact || compilerOptions.Jsx == core.JsxEmitReactNative
 
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := ast.NewNodeFactory(changeTracker.Store(), ast.NodeFactoryHooks{})
 	usedImports := make([]ast.Statement, 0, len(oldImports))
 
 	for _, importDecl := range oldImports {
@@ -490,7 +491,7 @@ func coalesceImportsWorker(
 		})
 		coalescedImports = append(coalescedImports, categorized.sourcePhaseImports...)
 
-		factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+		factory := ast.NewNodeFactory(changeTracker.Store(), ast.NodeFactoryHooks{})
 
 		for i, group := range []importGroup{categorized.regularImports, categorized.typeOnlyImports} {
 			if group.isEmpty() {
@@ -890,7 +891,7 @@ func coalesceExportsWorker(
 	})
 
 	var coalescedExports []ast.Statement
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := ast.NewNodeFactory(changeTracker.Store(), ast.NodeFactoryHooks{})
 
 	for _, moduleSpecifier := range moduleSpecifierOrder {
 		group := exportsByModuleSpecifier[moduleSpecifier]

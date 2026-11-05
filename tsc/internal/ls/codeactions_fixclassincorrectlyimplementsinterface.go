@@ -52,6 +52,7 @@ func getCodeActionsToFixClassIncorrectlyImplementsInterface(context context.Cont
 
 		addChanges(context, fixContext, changeTracker, importAdder, typeChecker, classDeclaration, implementedTypeNode)
 		changes := getChanges(changeTracker, importAdder, fixContext.SourceFile)
+		changeTracker.Release()
 		if len(changes) == 0 {
 			continue
 		}
@@ -73,6 +74,7 @@ func getAllCodeActionsToFixClassIncorrectlyImplementsInterface(context context.C
 	defer done()
 
 	changeTracker := change.NewTracker(context, fixContext.Program.Options(), fixContext.LS.FormatOptions(), fixContext.LS.converters)
+	defer changeTracker.Release()
 	importAdder, err := createImportAdder(context, fixContext, typeChecker)
 	if err != nil {
 		return nil, err

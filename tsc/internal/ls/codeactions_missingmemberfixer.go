@@ -377,7 +377,7 @@ func (f *missingMemberFixer) importTypeNode(typeNode ast.TypeNode, idToSymbol ma
 		return typeNode
 	}
 
-	importedTypeNode, symbols := autoimport.TryGetAutoImportableReferenceFromTypeNode(typeNode, idToSymbol)
+	importedTypeNode, symbols := autoimport.TryGetAutoImportableReferenceFromTypeNode(ast.NewNodeFactory(f.changeTracker.Store(), ast.NodeFactoryHooks{}), typeNode, idToSymbol)
 	if !importedTypeNode.IsNil() {
 		for _, symbol := range symbols {
 			exportSymbol := f.getExportedSymbol(symbol)

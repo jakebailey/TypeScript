@@ -10,6 +10,7 @@ import (
 	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
+	"github.com/microsoft/TypeScript/tsc/internal/testutil/parsetestutil"
 	"github.com/microsoft/TypeScript/tsc/internal/testutil/race"
 	"github.com/zeebo/xxh3"
 	"gotest.tools/v3/assert"
@@ -17,7 +18,7 @@ import (
 
 func TestCheckerNodeLinkStores(t *testing.T) {
 	t.Parallel()
-	f := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	f := parsetestutil.NewNodeFactory(t)
 	first := &Checker{}
 	second := &Checker{}
 	nodes := make([]ast.Node, 4096)
@@ -34,7 +35,6 @@ func TestCheckerNodeLinkStores(t *testing.T) {
 		second.typeNodeLinks.Get(node).resolvedType = &Type{id: TypeId(i + 2)}
 		second.signatureLinks.Get(node).resolvedSignature = &Signature{id: SignatureId(i + 2)}
 	}
-	f.ReleaseArenas()
 	runtime.GC()
 	for i, node := range nodes {
 		assert.Equal(t, first.typeNodeLinks.Get(node).resolvedType.id, TypeId(i+1))
