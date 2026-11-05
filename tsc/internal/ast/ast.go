@@ -267,8 +267,17 @@ func (n Node) Body() Node {
 	return Node{}
 }
 
-// Text reads the text field of identifiers and literals through a table,
-// and computes the text of the other kinds having it.
+// TextSymbolName returns Text() as a SymbolName. Identifiers are interned when
+// created, so this avoids reinterning their text.
+func (n Node) TextSymbolName() SymbolName {
+	if n.Kind() == KindIdentifier {
+		return n.AsIdentifier().Text()
+	}
+	return MakeSymbolName(n.Text())
+}
+
+// Text reads the text field of literals through a table, and computes the
+// text of identifiers and the other kinds having it.
 func (n Node) Text() string {
 	if off := nodeTextOffsets[n.Kind()]; off != 0 {
 		// SAFETY: The kind's layout table identifies an aligned textRef field in this record.
@@ -279,6 +288,8 @@ func (n Node) Text() string {
 
 func (n Node) computedText() string {
 	switch n.Kind() {
+	case KindIdentifier:
+		return n.AsIdentifier().Text().String()
 	case KindMetaProperty:
 		return n.AsMetaProperty().Name().Text()
 	case KindJsxNamespacedName:

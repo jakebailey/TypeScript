@@ -3030,8 +3030,8 @@ func IsToken(node Node) bool {
 
 type identifierData struct {
 	nodeBaseData
+	text     SymbolName
 	flowNode flowRef // FlowNode
-	text     textRef // string
 }
 
 type Identifier struct{ Node }
@@ -3040,22 +3040,22 @@ func (node Identifier) data() *identifierData { return (*identifierData)(node.re
 
 func (node Identifier) FlowNode() FlowNode         { return node.derefFlow(&node.data().flowNode) }
 func (node Identifier) SetFlowNode(value FlowNode) { node.setFlowRef(&node.data().flowNode, value) }
-func (node Identifier) Text() string               { return node.store().texts.get(node.data().text) }
-
-func (node Identifier) SetText(value string) {
-	node.store().texts.set(&node.data().text, value, value == "")
-}
+func (node Identifier) Text() SymbolName           { return node.data().text }
+func (node Identifier) SetText(value SymbolName)   { node.data().text = value }
 
 func (f *NodeFactory) NewIdentifier(text string) Node {
-	s := f.nodeStore()
-	data, i := newRecord[identifierData](s, layoutIdentifier)
-	s.texts.set(&data.text, text, text == "")
+	return f.NewIdentifierFromSymbolName(MakeSymbolName(text))
+}
+
+func (f *NodeFactory) NewIdentifierFromSymbolName(text SymbolName) Node {
+	data, i := newRecord[identifierData](f.nodeStore(), layoutIdentifier)
+	data.text = text
 	f.textCount++
 	return f.newNode(KindIdentifier, layoutIdentifier, i)
 }
 
 func (node Identifier) Clone(f NodeFactoryCoercible) Node {
-	return cloneNode(f.AsNodeFactory().NewIdentifier(node.Text()), node.AsNode(), f.AsNodeFactory().hooks)
+	return cloneNode(f.AsNodeFactory().NewIdentifierFromSymbolName(node.Text()), node.AsNode(), f.AsNodeFactory().hooks)
 }
 
 func IsIdentifier(node Node) bool {
@@ -19484,7 +19484,6 @@ var nodeBodyOffsets = [kindFlowReduceLabelData + 1]uint8{
 }
 
 var nodeTextOffsets = [kindFlowReduceLabelData + 1]uint8{
-	KindIdentifier:                    uint8(unsafe.Offsetof(identifierData{}.text)),
 	KindPrivateIdentifier:             uint8(unsafe.Offsetof(privateIdentifierData{}.text)),
 	KindStringLiteral:                 uint8(unsafe.Offsetof(stringLiteralData{}.text)),
 	KindNumericLiteral:                uint8(unsafe.Offsetof(numericLiteralData{}.text)),

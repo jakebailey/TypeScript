@@ -229,7 +229,7 @@ func getSourceDefCheckerInfo(
 	isPropertyName := !node.Parent().IsNil() && ast.IsAccessExpression(node.Parent()) && node.Parent().Name() == node
 	if len(declarations) == 0 && isPropertyName {
 		if left := node.Parent().Expression(); !left.IsNil() {
-			if prop := c.GetPropertyOfType(c.GetTypeAtLocation(left), node.Text()); prop != nil {
+			if prop := c.GetPropertyOfType(c.GetTypeAtLocation(left), node.TextSymbolName()); prop != nil {
 				declarations = prop.Declarations()
 			}
 		}
