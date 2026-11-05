@@ -76,6 +76,43 @@ func TestNodeStoreGrowth(t *testing.T) {
 	assert.Equal(t, statements[19999].Expression().Parent(), statements[19999])
 }
 
+// Ids are kept beside the kind and per chunk; a chunk must never hold more
+// nodes than can be numbered.
+func TestNodeIds(t *testing.T) {
+	t.Parallel()
+	factory := NewNodeFactory(NodeFactoryHooks{})
+	// As if sized for a large source file.
+	factory.nodeStore().hint = 1 << 20
+	var nodes []Node
+	for range 3 * maxNodesPerChunk {
+		nodes = append(nodes, factory.NewToken(KindCommaToken))
+	}
+	other := NewNodeFactory(NodeFactoryHooks{}).NewIdentifier("x")
+	nodes = append(nodes, other)
+	var gen NodeIdGenerator
+	seen := make(map[NodeId]bool)
+	for i, node := range nodes {
+		var id NodeId
+		if i%2 == 0 {
+			id = gen.GetNodeId(node)
+		} else {
+			id = GetNodeId(node)
+		}
+		assert.Assert(t, id != 0)
+		assert.Assert(t, !seen[id], "id %d given twice", id)
+		seen[id] = true
+	}
+	for i, node := range nodes {
+		assert.Equal(t, GetNodeId(node), gen.GetNodeId(node))
+		if i < len(nodes)-1 {
+			assert.Equal(t, node.Kind(), KindCommaToken)
+		}
+	}
+	assert.Equal(t, other.Kind(), KindIdentifier)
+	// A generator's ids are consecutive.
+	assert.Equal(t, gen.GetNodeId(nodes[2]), gen.GetNodeId(nodes[0])+1)
+}
+
 func TestNodeStoreCrossStoreRefs(t *testing.T) {
 	t.Parallel()
 	a := NewNodeFactory(NodeFactoryHooks{})

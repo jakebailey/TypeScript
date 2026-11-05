@@ -2,10 +2,12 @@ package ast
 
 import (
 	"fmt"
+	"math"
 	"slices"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
@@ -15,22 +17,85 @@ import (
 // Atomic ids
 
 var (
-	nextNodeId        atomic.Uint64
-	nextSymbolId      atomic.Uint64
 	nextNodeBlockId   atomic.Uint64
+	nextSingleNodeId  atomic.Uint64
+	nextSymbolId      atomic.Uint64
 	nextSymbolBlockId atomic.Uint64
 )
 
+// Node ids are given lazily, so that only the nodes asked for one use up
+// ids, and a NodeIdGenerator can keep the ids of the nodes it is asked about
+// dense. A node with an id holds its number among the nodes of its chunk
+// that have one, in the spare half of its kind word, and the chunk maps the
+// number to the id.
+const (
+	// Node numbers start at one, so that zero is no number.
+	maxNodesPerChunk = 1<<16 - 1
+	// Ids given outside of a NodeIdGenerator are taken from the top half
+	// of the id space, so that they do not break up the generators' dense
+	// ranges.
+	singleNodeIdBase = 1 << 31
+)
+
+// GetNodeId returns the node's id, giving it a new one if it has none. Ids
+// are unique among all nodes and are never zero.
 func GetNodeId(node Node) NodeId {
-	id := node.hdr().id.Load()
-	if id == 0 {
-		// Worst case, we burn a few ids if we have to CAS.
-		id = nextNodeId.Add(1)
-		if !node.hdr().id.CompareAndSwap(0, id) {
-			id = node.hdr().id.Load()
-		}
+	return getNodeId(node, nil)
+}
+
+func getNodeId(node Node, gen *NodeIdGenerator) NodeId {
+	// SAFETY: Every node record begins with an aligned nodeBaseData header.
+	h := (*nodeBaseData)(node.p)
+	if i := h.kind.Load() >> 16; i != 0 {
+		// SAFETY: The header's chunk offset leads back to the chunk's header,
+		// whose ids hold the id of every number given to one of its nodes;
+		// the number was published after its id.
+		return NodeId(*(*uint32)(unsafe.Add(unsafe.Pointer((*chunkHeader)(unsafe.Add(node.p, -int(h.chunk))).ids.Load()), (i-1)*4)))
 	}
-	return NodeId(id)
+	return assignNodeId(node, gen)
+}
+
+func assignNodeId(node Node, gen *NodeIdGenerator) NodeId {
+	h := node.hdr()
+	c := node.chunk()
+	s := c.store
+	s.idMu.Lock()
+	if h.kind.Load()>>16 == 0 {
+		if c.idCount == maxNodesPerChunk {
+			panic("too many nodes in chunk")
+		}
+		var id uint64
+		if gen != nil {
+			if gen.nextId == gen.lastId {
+				// Blocks start at one, so that no id is zero.
+				gen.nextId = nextNodeBlockId.Add(1) * BlockIdSize
+				gen.lastId = gen.nextId + BlockIdSize
+			}
+			id = gen.nextId
+			gen.nextId++
+		} else {
+			id = singleNodeIdBase + nextSingleNodeId.Add(1)
+		}
+		if id > math.MaxUint32 || gen != nil && id >= singleNodeIdBase {
+			panic("node id overflow")
+		}
+		k := int(c.idCount)
+		if k == int(c.idCap) {
+			grown := make([]uint32, min(max(4, k+k/2), maxNodesPerChunk))
+			if k != 0 {
+				// SAFETY: The chunk's ids hold k ids.
+				copy(grown, unsafe.Slice(c.ids.Load(), k))
+			}
+			c.ids.Store(&grown[0])
+			c.idCap = uint16(len(grown))
+		}
+		// SAFETY: The chunk's ids have room for k+1 ids.
+		*(*uint32)(unsafe.Add(unsafe.Pointer(c.ids.Load()), k*4)) = uint32(id)
+		c.idCount++
+		h.kind.Store(h.kind.Load() | uint32(c.idCount)<<16)
+	}
+	s.idMu.Unlock()
+	return getNodeId(node, nil)
 }
 
 func GetSymbolId(symbol *Symbol) SymbolId {
@@ -50,27 +115,16 @@ const (
 	BlockIdSize   = core.LinkPageSize
 )
 
+// A NodeIdGenerator gives the nodes it is asked about that have no id yet
+// consecutive ids, taken in blocks, so that the ids its user indexes by are
+// dense.
 type NodeIdGenerator struct {
 	nextId uint64
 	lastId uint64
 }
 
 func (a *NodeIdGenerator) GetNodeId(node Node) NodeId {
-	// SAFETY: Every node record begins with an aligned nodeBaseData header.
-	h := (*nodeBaseData)(node.p)
-	id := h.id.Load()
-	if id == 0 {
-		if a.nextId == a.lastId {
-			a.nextId = nextNodeBlockId.Add(BlockIdSize) - BlockIdSize
-			a.lastId = a.nextId + BlockIdSize
-		}
-		id = a.nextId + BlockIdOffset
-		a.nextId++
-		if !h.id.CompareAndSwap(0, id) {
-			id = h.id.Load()
-		}
-	}
-	return NodeId(id)
+	return getNodeId(node, a)
 }
 
 type SymbolIdGenerator struct {

@@ -170,7 +170,7 @@ type Node struct {
 }
 
 func (n Node) IsNil() bool               { return n.p == nil }
-func (n Node) Kind() Kind                { return n.hdr().kind }
+func (n Node) Kind() Kind                { return Kind(uint16(n.hdr().kind.Load())) }
 func (n Node) Flags() NodeFlags          { return n.hdr().flags }
 func (n Node) Loc() core.TextRange       { return n.hdr().loc }
 func (n Node) SetFlags(flags NodeFlags)  { n.hdr().flags = flags }

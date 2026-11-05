@@ -23,31 +23,38 @@ type PropertyAccessExpression struct{ Node } // typed views carry no extra data
 
 ```go
 type chunkHeader struct {
-    store *nodeStore  // the only pointer in a chunk
-    index uint32
-    _     uint32
+    store   *nodeStore
+    ids     atomic.Pointer[uint32] // node ids, see below
+    index   uint32
+    idCount uint16
+    idCap   uint16
 }
 // A chunk is reflect.StructOf{Header chunkHeader; Words [n]uint64}.
 ```
 
-Each store (one per `NodeFactory`, so one per parsed file) allocates records from chunks. Each chunk is a single Go object whose only pointer is its header, so the GC never scans the records. Chunks are sized to allocator size classes (2^k or 3·2^(k-1) bytes), so no rounding is wasted. A parsed file's first chunk is sized from its source length, and later chunks add 1/16 of the store's size. Records never move. An interior `Node` pointer keeps its chunk alive, and the chunk header keeps the store alive.
+Each store (one per `NodeFactory`, so one per parsed file) allocates records from chunks. Each chunk is a single Go object whose only pointers are in its header, so the GC never scans the records. Chunks are sized to allocator size classes (2^k or 3·2^(k-1) bytes), so no rounding is wasted. A parsed file's first chunk is sized from its source length, and later chunks add 1/16 of the store's size, up to 1.5MB (so a chunk holds at most 65535 records). Records never move. An interior `Node` pointer keeps its chunk alive, and the chunk header keeps the store alive.
 
 `ParseSourceFile` parses, binds right away while the file is still private, then freezes the store and clips its side tables. Allocating in a frozen store panics.
 
-### Every record starts with a 32-byte header
+### Every record starts with a 24-byte header
 
 ```go
 type nodeBaseData struct {
-    id     atomic.Uint64
     loc    core.TextRange
     parent parentRef
     flags  NodeFlags
-    chunk  uint32 // byte offset of the record in its chunk
-    kind   Kind
+    chunk  uint32        // byte offset of the record in its chunk
+    kind   atomic.Uint32 // Kind in the low 16 bits, id number in the high 16
 }
 ```
 
 `chunk` leads from any record back to its chunk header, and from there to the store and its side tables.
+
+### Node ids live in the chunk
+
+Records carry no 8-byte id. Ids are still given lazily, on first `GetNodeId`, so only the nodes that ask get one (about 7M of 20M on vscode), and they come from the same per-link-store `NodeIdGenerator` blocks as before, so the paged node link stores stay as dense as they were. The first time a node gets an id, it is appended to its chunk's `ids` table, and its 1-based position in that table goes in the high 16 bits of `kind`. Reading an id is a load of `kind`, then a load from the table. The kind word is atomic because ids are given while other goroutines read kinds.
+
+A position-derived ordinal (record index in the store plus a per-store base) was tried and rejected: it gives every node an id, so link pages get allocated over nearly every 256-node window (about +330MB of pages on vscode). Ids shared across stores in small global blocks interleaved the link stores and cost about +73MB of pages.
 
 ### Records are flat and generated
 
@@ -134,6 +141,7 @@ Experiments that didn't pay: a zero check in side-table getters (+0.03% instruct
 25. **Parent as a record-relative delta** (`86be7af1fdd`, −0.32% instructions).
 26. **Zero refs tested first** (`1e5f65ab9fc`, −0.21% instructions): absent fields no longer load the far table.
 27. **`GetNodeId` inlinable again** (`67837fcf02d`, −0.28% instructions).
+28. **24-byte header** (vscode memory used −140MB, −3.9%): ids move from the header to per-chunk tables. Chunks shrink by 174MB, and the id tables take 35MB.
 
 ## Next
 
@@ -225,7 +233,7 @@ Peak RSS is 4.19GB on main and 4.21GB on the arena. Symbol (7.09M), type (2.43M)
 | Idea | What it is | Expected impact | Effort |
 |---|---|---|---|
 | **Inline symbol/flow IDs instead of side tables** | Give symbols and flow nodes dense uint32 IDs into global (or per-program) arrays and store the ID inline in the record, dropping the per-store side tables for densely populated fields. | About −125MB, recovering the side-table overhead. Lookup cost is similar (one indexed load). | Medium: needs stable ID allocation for binder- and checker-created symbols. |
-| **24-byte header (drop `id`)** | Derive the node ordinal from the store plus the record position instead of storing an 8-byte atomic id. Node links index by ordinal. | About −80–100MB (8 bytes × ~10M+ nodes). Check time roughly neutral. | Medium: everything that uses `GetNodeId` must be able to compute it, and ordinals must be stable and dense. |
+| **24-byte header (drop `id`)** (done, step 28) | Move the 8-byte atomic id out of the header into per-chunk id tables. | −140MB on vscode (chunks −174MB, id tables +35MB). Per-chunk tables per generator could cut the 35MB further. | Medium: ids must stay unique and as dense as before for the paged node links. |
 | **Lists in the arena** (done, step 15) | Store `NodeList`, `ModifierList` and `[]Node` as inline ref arrays in chunks instead of side-table slices. | About −50–100MB, fewer GC-visible slices, and better locality in `ForEachChild`. | Medium: the list API currently hands out `*NodeList` / `[]Node`, so it needs a view type. |
 | **Compacted per-file image** | After parse and bind, copy a file's chunks into one exact-size block (with refs rewritten), dropping growth tails and side-table slack. | About −20–50MB. More importantly, a file becomes **one contiguous, pointer-free blob**: zero-copy hand-off to the JS API or IPC, mmap-able caches, and cheap incremental reuse. | Medium-high: cross-store refs and `keep` sets need fixing up, and this must happen before the file is shared. |
 | **Relative refs again, done right** | 32-bit refs relative to the chunk or image base (not the field), with the image making "far" refs rare. | Shrinks every ref field by 4 bytes (about −100MB+). The previous attempt cost 6–8% of check time; with a contiguous image it should be one add instead of a branch plus a table lookup. | Medium, and depends on the image. |

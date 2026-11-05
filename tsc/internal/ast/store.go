@@ -63,13 +63,22 @@ type nodeStore struct {
 	// frozen is set once the records are shared, after which no more may
 	// be allocated.
 	frozen bool
+
+	// idMu serializes giving the store's nodes ids.
+	idMu sync.Mutex
 }
 
 // A chunkHeader begins every chunk, before its records.
 type chunkHeader struct {
 	store *nodeStore
+	// ids points at the ids of the chunk's nodes that have one, in the
+	// order they were given.
+	ids   atomic.Pointer[uint32]
 	index uint32
-	_     uint32
+	// idCount counts the chunk's nodes that have ids, and idCap the room
+	// at ids. They are guarded by the store's idMu.
+	idCount uint16
+	idCap   uint16
 }
 
 const (
@@ -94,17 +103,20 @@ func newNodeStore() *nodeStore {
 
 // nodeBaseData is the header at the start of every node record.
 type nodeBaseData struct {
-	id     atomic.Uint64
 	loc    core.TextRange
 	parent parentRef
 	flags  NodeFlags
 	// chunk is the record's offset in bytes from the start of its chunk.
 	chunk uint32
-	kind  Kind
+	// kind holds the node's Kind in its low 16 bits and, in its high 16
+	// bits, the node's number among the nodes of its chunk given an id, or
+	// zero if it has none yet. It is atomic since ids are given lazily,
+	// possibly while other goroutines read the kind.
+	kind atomic.Uint32
 }
 
 // Every node has a header, so it must stay small.
-var _ [32 - unsafe.Sizeof(nodeBaseData{})]struct{}
+var _ [24 - unsafe.Sizeof(nodeBaseData{})]struct{}
 
 // A nodeRef is a record field referring to a node. With the low bit set,
 // the referenced record is in the same chunk, at the field's address plus
@@ -262,7 +274,7 @@ func (s *nodeStore) newNode(kind Kind, layout nodeLayout, n Node) Node {
 	if kindLayout[kind] != layout {
 		panic("node kind does not match its record layout")
 	}
-	n.hdr().kind = kind
+	n.hdr().kind.Store(uint32(uint16(kind)))
 	return n
 }
 
@@ -298,9 +310,9 @@ func (s *nodeStore) alloc(size uintptr) (unsafe.Pointer, uint32) {
 
 // grow allocates words in a new chunk. A record never spans two chunks.
 func (s *nodeStore) grow(words int) (unsafe.Pointer, uint32) {
-	n := min(max(s.words/storeGrowthDivisor, minStoreWords), maxChunkWords)
+	n := min(max(s.words/storeGrowthDivisor, minStoreWords), maxChunkRecordWords)
 	if len(s.chunks) == 0 {
-		n = min(max(n, s.hint), maxChunkWords)
+		n = min(max(n, s.hint), maxChunkRecordWords)
 	}
 	if words > n || words > maxChunkWords {
 		// A record too large for a normal chunk gets one of its own, and
@@ -357,6 +369,14 @@ func chunkType(n int) reflect.Type {
 	t2, _ := chunkTypes.LoadOrStore(n, t)
 	return t2.(reflect.Type)
 }
+
+// maxChunkRecordWords bounds the chunks that hold more than one record, so
+// that no chunk holds more nodes than can be numbered: every node record is
+// at least its header. With its header, such a chunk is 3<<19 bytes, a size
+// that chunkClass does not round up.
+const maxChunkRecordWords = 3<<16 - int(chunkHeaderWords)
+
+var _ [maxNodesPerChunk - maxChunkRecordWords*int(wordSize)/int(unsafe.Sizeof(nodeBaseData{}))]struct{}
 
 // Stores start small, since many, such as those for lazily parsed JSDoc,
 // are tiny. This is the words of a chunk, including its header.
