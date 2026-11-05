@@ -314,6 +314,37 @@ Step 4 removes the facts word from the payloads of the 76 composite kinds. The t
 
 The generation check costs about 1s of vscode's ~22s check time (n=5 alternating, 23.1s with it, 22.1s without; the spread of each is about ±1s).
 
+Step 5 keys symbol-of-node by store id, then node index. A slice indexed by slot would be cheaper to look up, but slots are process-wide and a test process makes hundreds of thousands of stores, so a per-checker slice grows with every store ever made; a map of maps grows only with the stores the checker touches.
+
+### Final state
+
+Sizes match the target: the header is 24 bytes, `nodeList` 16, and `Node` and `NodeList` handles 8. Payloads are as in the table under "Record sizes", with every kind's payload unchanged from it.
+
+Memory used, final vs base: vscode +20.7MB (+0.65%), sentry −11.4MB (−0.6%), mui −3.8MB (−0.3%). Vs main, vscode is −603MB (−15.9%).
+
+Check time, n=5 alternating, `taskset -c 2`, base vs final (min–max):
+
+| | base | final | delta |
+|---|---|---|---|
+| vscode | 17.56–17.89s | 21.24–21.60s | +3.7s (+21%) |
+| sentry | 14.37–14.67s | 16.13–16.52s | +1.7s (+12%) |
+| mui | 5.62–6.39s | 6.13–6.72s | +0.5s (+9%) |
+
+The CPU profile on vscode puts about 7% of samples in `storeEntryOf` and `slotEntry`: every header read loads the table page, then the entry, then the header, and checks the generation. The collector's share fell (mark workers 27% of samples after step 1, 18% at the end), since the tables are pointer-free and there are no chunk headers to scan, but not by enough to pay for the indirection.
+
+Final vscode heap (in-use space at exit):
+
+| | MB |
+|---|---|
+| Node headers (`nodes`) | 495 |
+| `dataWords` and `listNodes` | 163 |
+| `lists` | 59 |
+| Binder sparse maps and hash maps | 133 |
+| Flow nodes | 45 |
+| Node links keyed by handle (`LinkStore`) | 135 |
+| Symbol-of-node maps | 132 |
+| Symbol links (`PagedLinkStore`, by symbol id) | 196 |
+
 ## Historical: earlier measurements (step 9 vs main, vscode, n=10, interleaved)
 
 ### Branch tip vs main
