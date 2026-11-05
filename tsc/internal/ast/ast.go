@@ -136,7 +136,9 @@ func (f *NodeFactory) FinishStoreUnfrozen() {
 // CompactBinderData packs the binder's additions to the file's nodes. It
 // must be called before the file is shared with other goroutines.
 func (node *SourceFile) CompactBinderData() {
-	node.store().compactSide()
+	s := node.store()
+	s.compactSide()
+	s.finishBinding()
 }
 
 func (f *NodeFactory) newNode(kind Kind, layout nodeLayout, rec Node) Node {
@@ -240,27 +242,15 @@ type MutableNode struct{ Node }
 func (n Node) AsMutable() MutableNode { return MutableNode{n} }
 
 func (n Node) Symbol() *Symbol {
-	if off := nodeSymbolOffsets[n.Kind()]; off != 0 {
-		// SAFETY: The kind's layout table identifies an aligned sideRef field in this record.
-		return n.store().symbols.items[*(*sideRef)(unsafe.Add(n.fields(), off-1))]
-	}
-	return nil
+	return n.binderSymbol()
 }
 
 func (n Node) LocalSymbol() *Symbol {
-	data := n.ExportableData()
-	if !data.IsNil() {
-		return data.LocalSymbol()
-	}
-	return nil
+	return n.binderLocalSymbol()
 }
 
 func (n Node) Locals() SymbolTable {
-	if off := nodeLocalsOffsets[n.Kind()]; off != 0 {
-		// SAFETY: The kind's layout table identifies an aligned sideRef field in this record.
-		return n.store().symbolTables.items[*(*sideRef)(unsafe.Add(n.fields(), off-1))]
-	}
-	return nil
+	return n.binderLocals()
 }
 
 func (n Node) Body() Node {

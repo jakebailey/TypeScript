@@ -35,13 +35,11 @@ type nodeStore struct {
 	lists     []nodeList
 	listNodes []uint32
 
-	symbols      sideTable[*Symbol]
-	symbolTables sideTable[SymbolTable]
-	texts        textStore
-	stringLists  sideTable[[]string]
-	nodeSlices   sideTable[[]Node]
-	values       sideTable[any]
-	sourceFiles  sideTable[*SourceFile]
+	texts       textStore
+	stringLists sideTable[[]string]
+	nodeSlices  sideTable[[]Node]
+	values      sideTable[any]
+	sourceFiles sideTable[*SourceFile]
 
 	// file is the source file whose tree the store holds, if it holds a
 	// parsed file. Every node of the store that is in that tree is in the
@@ -61,6 +59,8 @@ type nodeStore struct {
 	// missing holds the indices of the lists that stand for lists missing
 	// from the source.
 	missing map[uint32]struct{}
+
+	binder binderData
 
 	flows       []flowNodeData
 	flowLists   []flowListData
@@ -282,14 +282,12 @@ func LiveNodeStores() int {
 // releases it.
 func newNodeStore() *nodeStore {
 	s := &nodeStore{
-		id:           newStoreID(),
-		nodes:        make([]nodeHeader, 1, 8),
-		symbols:      newSideTable[*Symbol](),
-		symbolTables: newSideTable[SymbolTable](),
-		stringLists:  newSideTable[[]string](),
-		nodeSlices:   newSideTable[[]Node](),
-		values:       newSideTable[any](),
-		sourceFiles:  newSideTable[*SourceFile](),
+		id:          newStoreID(),
+		nodes:       make([]nodeHeader, 1, 8),
+		stringLists: newSideTable[[]string](),
+		nodeSlices:  newSideTable[[]Node](),
+		values:      newSideTable[any](),
+		sourceFiles: newSideTable[*SourceFile](),
 	}
 	e := slotEntry(s.id)
 	e.store.Store(s)
@@ -472,8 +470,6 @@ func exact[T any](s []T) []T {
 // addressed, so this is safe whenever the store is not being read
 // concurrently.
 func (s *nodeStore) compactSide() {
-	s.symbols.compact()
-	s.symbolTables.compact()
 	s.stringLists.compact()
 	s.nodeSlices.compact()
 	s.values.compact()

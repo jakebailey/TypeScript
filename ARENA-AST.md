@@ -172,6 +172,8 @@ The goal is to match a fixed reference layout, so that memory compares like for 
 - **Binder data moves out of payloads into per-store side tables:**
   - symbols and flow nodes go in a sparse node map: one `{bits uint32, base uint32}` block per 32 nodes, plus dense values found by popcount. It is built from a dense table once binding is done;
   - locals, local symbol, next container, and end, return and fallthrough flow nodes go in hash maps keyed by node index.
+  - Deviation: the binder's node flags stay in the header's `flags` word instead of a sparse `nodeFlags` map. The binder sets and clears bits of the same word the parser does (reachability, `ContainsThis`, export context, error propagation), and every `Flags()` read would otherwise consult both. On vscode 262K nodes carry binder flags, so a sparse map would cost about 6MB (598K blocks of 8 bytes plus 4-byte values); the comparison should add that.
+  - Deviation: a symbol is a `*Symbol`, so the sparse symbol map's values are 8 bytes, not 4.
 - **Checker links:**
   - symbol-of-node is a per-file `map[uint32]` (a slice of maps indexed by file id);
   - other node links are maps keyed by the 8-byte handle.
@@ -299,8 +301,11 @@ Memory used from `--extendedDiagnostics`, single-threaded check. Base is `1fce2a
 | base | 3,168,196K | 1,829,589K | 1,174,464K |
 | 1. node links in maps | 3,209,104K (+41MB) | 1,835,984K (+6MB) | 1,176,794K (+2MB) |
 | 2. nodes as (store, index) | 3,281,105K (+72MB) | 1,851,797K (+16MB) | 1,187,501K (+11MB) |
+| 3. binder side tables | 3,237,589K (−44MB) | 1,830,127K (−22MB) | 1,171,878K (−16MB) |
 
 Step 2's vscode heap: node headers 472MB, `dataWords` and `listNodes` 286MB, lists 54MB, in place of 742MB of chunks. The payloads still hold the binder fields and the facts word, which steps 3 and 4 move out; flow nodes grew from 47MB to 71MB because their table is never trimmed after binding.
+
+Step 3 on vscode: `dataWords` and `listNodes` fall from 286MB to 195MB and flow nodes from 71MB to 44MB, now trimmed after binding. The sparse maps hold 2.62M symbols and 10.1M flow nodes (48MB of flow values and blocks plus 26MB of symbol values and blocks); the hash maps hold 557K next containers, 312K locals, 207K end flow nodes, 57K local symbols and 11K return flow nodes.
 
 The generation check costs about 1s of vscode's ~22s check time (n=5 alternating, 23.1s with it, 22.1s without; the spread of each is about ±1s).
 

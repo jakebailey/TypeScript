@@ -1193,10 +1193,8 @@ func layoutRecord(layout nodeLayout) any {
 
 type StatementBase struct{ Node }
 
-func (node StatementBase) FlowNode() FlowNode { return node.derefFlow(node.flowNodeBaseFlowNode()) }
-func (node StatementBase) SetFlowNode(value FlowNode) {
-	node.setFlowRef(node.flowNodeBaseFlowNode(), value)
-}
+func (node StatementBase) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node StatementBase) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 
 var iterationStatementBaseStatementOffsets = [kindFlowReduceLabelData + 1]uint8{
 	KindDoStatement:    uint8(unsafe.Offsetof(doStatementData{}.statement) + 1),
@@ -1213,13 +1211,8 @@ func (n Node) iterationStatementBaseStatement() *nodeRef {
 
 type IterationStatementBase struct{ Node }
 
-func (node IterationStatementBase) FlowNode() FlowNode {
-	return node.derefFlow(node.flowNodeBaseFlowNode())
-}
-
-func (node IterationStatementBase) SetFlowNode(value FlowNode) {
-	node.setFlowRef(node.flowNodeBaseFlowNode(), value)
-}
+func (node IterationStatementBase) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node IterationStatementBase) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 
 func (node IterationStatementBase) Statement() Statement {
 	return node.deref(node.iterationStatementBaseStatement())
@@ -1268,118 +1261,15 @@ func (node NodeWithTypeArgumentsBase) SetTypeArguments(value TypeList) {
 
 type JSDocTypeBase struct{ Node }
 
-var declarationBaseSymbolOffsets = [kindFlowReduceLabelData + 1]uint8{
-	KindVariableDeclaration:           uint8(unsafe.Offsetof(variableDeclarationData{}.symbol) + 1),
-	KindParameter:                     uint8(unsafe.Offsetof(parameterDeclarationData{}.symbol) + 1),
-	KindBindingElement:                uint8(unsafe.Offsetof(bindingElementData{}.symbol) + 1),
-	KindMissingDeclaration:            uint8(unsafe.Offsetof(missingDeclarationData{}.symbol) + 1),
-	KindFunctionDeclaration:           uint8(unsafe.Offsetof(functionDeclarationData{}.symbol) + 1),
-	KindClassDeclaration:              uint8(unsafe.Offsetof(classDeclarationData{}.symbol) + 1),
-	KindClassExpression:               uint8(unsafe.Offsetof(classExpressionData{}.symbol) + 1),
-	KindInterfaceDeclaration:          uint8(unsafe.Offsetof(interfaceDeclarationData{}.symbol) + 1),
-	KindTypeAliasDeclaration:          uint8(unsafe.Offsetof(typeAliasDeclarationData{}.symbol) + 1),
-	KindJSTypeAliasDeclaration:        uint8(unsafe.Offsetof(typeAliasDeclarationData{}.symbol) + 1),
-	KindEnumMember:                    uint8(unsafe.Offsetof(enumMemberData{}.symbol) + 1),
-	KindEnumDeclaration:               uint8(unsafe.Offsetof(enumDeclarationData{}.symbol) + 1),
-	KindNotEmittedTypeElement:         uint8(unsafe.Offsetof(notEmittedTypeElementData{}.symbol) + 1),
-	KindImportDeclaration:             uint8(unsafe.Offsetof(importDeclarationData{}.symbol) + 1),
-	KindJSImportDeclaration:           uint8(unsafe.Offsetof(importDeclarationData{}.symbol) + 1),
-	KindNamespaceImport:               uint8(unsafe.Offsetof(namespaceImportData{}.symbol) + 1),
-	KindExportAssignment:              uint8(unsafe.Offsetof(exportAssignmentData{}.symbol) + 1),
-	KindNamespaceExportDeclaration:    uint8(unsafe.Offsetof(namespaceExportDeclarationData{}.symbol) + 1),
-	KindNamespaceExport:               uint8(unsafe.Offsetof(namespaceExportData{}.symbol) + 1),
-	KindExportSpecifier:               uint8(unsafe.Offsetof(exportSpecifierData{}.symbol) + 1),
-	KindCallSignature:                 uint8(unsafe.Offsetof(callSignatureDeclarationData{}.symbol) + 1),
-	KindConstructSignature:            uint8(unsafe.Offsetof(constructSignatureDeclarationData{}.symbol) + 1),
-	KindConstructor:                   uint8(unsafe.Offsetof(constructorDeclarationData{}.symbol) + 1),
-	KindGetAccessor:                   uint8(unsafe.Offsetof(getAccessorDeclarationData{}.symbol) + 1),
-	KindSetAccessor:                   uint8(unsafe.Offsetof(setAccessorDeclarationData{}.symbol) + 1),
-	KindIndexSignature:                uint8(unsafe.Offsetof(indexSignatureDeclarationData{}.symbol) + 1),
-	KindMethodSignature:               uint8(unsafe.Offsetof(methodSignatureDeclarationData{}.symbol) + 1),
-	KindMethodDeclaration:             uint8(unsafe.Offsetof(methodDeclarationData{}.symbol) + 1),
-	KindPropertySignature:             uint8(unsafe.Offsetof(propertySignatureDeclarationData{}.symbol) + 1),
-	KindPropertyDeclaration:           uint8(unsafe.Offsetof(propertyDeclarationData{}.symbol) + 1),
-	KindSemicolonClassElement:         uint8(unsafe.Offsetof(semicolonClassElementData{}.symbol) + 1),
-	KindClassStaticBlockDeclaration:   uint8(unsafe.Offsetof(classStaticBlockDeclarationData{}.symbol) + 1),
-	KindNoSubstitutionTemplateLiteral: uint8(unsafe.Offsetof(noSubstitutionTemplateLiteralData{}.symbol) + 1),
-	KindBinaryExpression:              uint8(unsafe.Offsetof(binaryExpressionData{}.symbol) + 1),
-	KindArrowFunction:                 uint8(unsafe.Offsetof(arrowFunctionData{}.symbol) + 1),
-	KindFunctionExpression:            uint8(unsafe.Offsetof(functionExpressionData{}.symbol) + 1),
-	KindCallExpression:                uint8(unsafe.Offsetof(callExpressionData{}.symbol) + 1),
-	KindObjectLiteralExpression:       uint8(unsafe.Offsetof(objectLiteralExpressionData{}.symbol) + 1),
-	KindSpreadAssignment:              uint8(unsafe.Offsetof(spreadAssignmentData{}.symbol) + 1),
-	KindPropertyAssignment:            uint8(unsafe.Offsetof(propertyAssignmentData{}.symbol) + 1),
-	KindShorthandPropertyAssignment:   uint8(unsafe.Offsetof(shorthandPropertyAssignmentData{}.symbol) + 1),
-	KindMappedType:                    uint8(unsafe.Offsetof(mappedTypeNodeData{}.symbol) + 1),
-	KindTypeLiteral:                   uint8(unsafe.Offsetof(typeLiteralNodeData{}.symbol) + 1),
-	KindNamedTupleMember:              uint8(unsafe.Offsetof(namedTupleMemberData{}.symbol) + 1),
-	KindFunctionType:                  uint8(unsafe.Offsetof(functionTypeNodeData{}.symbol) + 1),
-	KindConstructorType:               uint8(unsafe.Offsetof(constructorTypeNodeData{}.symbol) + 1),
-	KindJsxAttributes:                 uint8(unsafe.Offsetof(jsxAttributesData{}.symbol) + 1),
-	KindJsxAttribute:                  uint8(unsafe.Offsetof(jsxAttributeData{}.symbol) + 1),
-	KindJsxSpreadAttribute:            uint8(unsafe.Offsetof(jsxSpreadAttributeData{}.symbol) + 1),
-	KindJSDocSignature:                uint8(unsafe.Offsetof(jsDocSignatureData{}.symbol) + 1),
-	KindSourceFile:                    uint8(unsafe.Offsetof(sourceFileData{}.symbol) + 1),
-	KindModuleDeclaration:             uint8(unsafe.Offsetof(moduleDeclarationData{}.symbol) + 1),
-	KindImportEqualsDeclaration:       uint8(unsafe.Offsetof(importEqualsDeclarationData{}.symbol) + 1),
-	KindExportDeclaration:             uint8(unsafe.Offsetof(exportDeclarationData{}.symbol) + 1),
-	KindImportClause:                  uint8(unsafe.Offsetof(importClauseData{}.symbol) + 1),
-	KindImportSpecifier:               uint8(unsafe.Offsetof(importSpecifierData{}.symbol) + 1),
-	KindTypeParameter:                 uint8(unsafe.Offsetof(typeParameterDeclarationData{}.symbol) + 1),
-	KindJSDocTypeLiteral:              uint8(unsafe.Offsetof(jsDocTypeLiteralData{}.symbol) + 1),
-}
-
-func (n Node) declarationBaseSymbol() *sideRef {
-	if off := declarationBaseSymbolOffsets[n.Kind()]; off != 0 {
-		return (*sideRef)(unsafe.Add(n.fields(), off-1))
-	}
-	return nil
-}
-
 type DeclarationBase struct{ Node }
 
-func (node DeclarationBase) Symbol() *Symbol {
-	return node.store().symbols.get(*node.declarationBaseSymbol())
-}
-
-func (node DeclarationBase) SetSymbol(value *Symbol) {
-	node.store().symbols.set(node.declarationBaseSymbol(), value, value == nil)
-}
-
-var exportableBaseLocalSymbolOffsets = [kindFlowReduceLabelData + 1]uint8{
-	KindVariableDeclaration:     uint8(unsafe.Offsetof(variableDeclarationData{}.localSymbol) + 1),
-	KindBindingElement:          uint8(unsafe.Offsetof(bindingElementData{}.localSymbol) + 1),
-	KindFunctionDeclaration:     uint8(unsafe.Offsetof(functionDeclarationData{}.localSymbol) + 1),
-	KindClassDeclaration:        uint8(unsafe.Offsetof(classDeclarationData{}.localSymbol) + 1),
-	KindClassExpression:         uint8(unsafe.Offsetof(classExpressionData{}.localSymbol) + 1),
-	KindInterfaceDeclaration:    uint8(unsafe.Offsetof(interfaceDeclarationData{}.localSymbol) + 1),
-	KindTypeAliasDeclaration:    uint8(unsafe.Offsetof(typeAliasDeclarationData{}.localSymbol) + 1),
-	KindJSTypeAliasDeclaration:  uint8(unsafe.Offsetof(typeAliasDeclarationData{}.localSymbol) + 1),
-	KindEnumDeclaration:         uint8(unsafe.Offsetof(enumDeclarationData{}.localSymbol) + 1),
-	KindNamespaceImport:         uint8(unsafe.Offsetof(namespaceImportData{}.localSymbol) + 1),
-	KindExportSpecifier:         uint8(unsafe.Offsetof(exportSpecifierData{}.localSymbol) + 1),
-	KindModuleDeclaration:       uint8(unsafe.Offsetof(moduleDeclarationData{}.localSymbol) + 1),
-	KindImportEqualsDeclaration: uint8(unsafe.Offsetof(importEqualsDeclarationData{}.localSymbol) + 1),
-	KindImportClause:            uint8(unsafe.Offsetof(importClauseData{}.localSymbol) + 1),
-	KindImportSpecifier:         uint8(unsafe.Offsetof(importSpecifierData{}.localSymbol) + 1),
-}
-
-func (n Node) exportableBaseLocalSymbol() *sideRef {
-	if off := exportableBaseLocalSymbolOffsets[n.Kind()]; off != 0 {
-		return (*sideRef)(unsafe.Add(n.fields(), off-1))
-	}
-	return nil
-}
+func (node DeclarationBase) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node DeclarationBase) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 
 type ExportableBase struct{ Node }
 
-func (node ExportableBase) LocalSymbol() *Symbol {
-	return node.store().symbols.get(*node.exportableBaseLocalSymbol())
-}
-
-func (node ExportableBase) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(node.exportableBaseLocalSymbol(), value, value == nil)
-}
+func (node ExportableBase) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
+func (node ExportableBase) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
 
 var modifiersBaseModifiersOffsets = [kindFlowReduceLabelData + 1]uint8{
 	KindVariableStatement:           uint8(unsafe.Offsetof(variableStatementData{}.modifiers) + 1),
@@ -1433,170 +1323,18 @@ func (node ModifiersBase) setModifiers(value ModifierList) {
 	node.setModifiersRef(node.modifiersBaseModifiers(), value)
 }
 
-var localsContainerBaseLocalsOffsets = [kindFlowReduceLabelData + 1]uint8{
-	KindForStatement:                uint8(unsafe.Offsetof(forStatementData{}.locals) + 1),
-	KindForInStatement:              uint8(unsafe.Offsetof(forInOrOfStatementData{}.locals) + 1),
-	KindForOfStatement:              uint8(unsafe.Offsetof(forInOrOfStatementData{}.locals) + 1),
-	KindCaseBlock:                   uint8(unsafe.Offsetof(caseBlockData{}.locals) + 1),
-	KindCatchClause:                 uint8(unsafe.Offsetof(catchClauseData{}.locals) + 1),
-	KindBlock:                       uint8(unsafe.Offsetof(blockData{}.locals) + 1),
-	KindFunctionDeclaration:         uint8(unsafe.Offsetof(functionDeclarationData{}.locals) + 1),
-	KindClassDeclaration:            uint8(unsafe.Offsetof(classDeclarationData{}.locals) + 1),
-	KindClassExpression:             uint8(unsafe.Offsetof(classExpressionData{}.locals) + 1),
-	KindTypeAliasDeclaration:        uint8(unsafe.Offsetof(typeAliasDeclarationData{}.locals) + 1),
-	KindJSTypeAliasDeclaration:      uint8(unsafe.Offsetof(typeAliasDeclarationData{}.locals) + 1),
-	KindCallSignature:               uint8(unsafe.Offsetof(callSignatureDeclarationData{}.locals) + 1),
-	KindConstructSignature:          uint8(unsafe.Offsetof(constructSignatureDeclarationData{}.locals) + 1),
-	KindConstructor:                 uint8(unsafe.Offsetof(constructorDeclarationData{}.locals) + 1),
-	KindGetAccessor:                 uint8(unsafe.Offsetof(getAccessorDeclarationData{}.locals) + 1),
-	KindSetAccessor:                 uint8(unsafe.Offsetof(setAccessorDeclarationData{}.locals) + 1),
-	KindIndexSignature:              uint8(unsafe.Offsetof(indexSignatureDeclarationData{}.locals) + 1),
-	KindMethodSignature:             uint8(unsafe.Offsetof(methodSignatureDeclarationData{}.locals) + 1),
-	KindMethodDeclaration:           uint8(unsafe.Offsetof(methodDeclarationData{}.locals) + 1),
-	KindClassStaticBlockDeclaration: uint8(unsafe.Offsetof(classStaticBlockDeclarationData{}.locals) + 1),
-	KindArrowFunction:               uint8(unsafe.Offsetof(arrowFunctionData{}.locals) + 1),
-	KindFunctionExpression:          uint8(unsafe.Offsetof(functionExpressionData{}.locals) + 1),
-	KindConditionalType:             uint8(unsafe.Offsetof(conditionalTypeNodeData{}.locals) + 1),
-	KindMappedType:                  uint8(unsafe.Offsetof(mappedTypeNodeData{}.locals) + 1),
-	KindFunctionType:                uint8(unsafe.Offsetof(functionTypeNodeData{}.locals) + 1),
-	KindConstructorType:             uint8(unsafe.Offsetof(constructorTypeNodeData{}.locals) + 1),
-	KindJSDocSignature:              uint8(unsafe.Offsetof(jsDocSignatureData{}.locals) + 1),
-	KindSourceFile:                  uint8(unsafe.Offsetof(sourceFileData{}.locals) + 1),
-	KindModuleDeclaration:           uint8(unsafe.Offsetof(moduleDeclarationData{}.locals) + 1),
-}
-
-func (n Node) localsContainerBaseLocals() *sideRef {
-	if off := localsContainerBaseLocalsOffsets[n.Kind()]; off != 0 {
-		return (*sideRef)(unsafe.Add(n.fields(), off-1))
-	}
-	return nil
-}
-
-var localsContainerBaseNextContainerOffsets = [kindFlowReduceLabelData + 1]uint8{
-	KindForStatement:                uint8(unsafe.Offsetof(forStatementData{}.nextContainer) + 1),
-	KindForInStatement:              uint8(unsafe.Offsetof(forInOrOfStatementData{}.nextContainer) + 1),
-	KindForOfStatement:              uint8(unsafe.Offsetof(forInOrOfStatementData{}.nextContainer) + 1),
-	KindCaseBlock:                   uint8(unsafe.Offsetof(caseBlockData{}.nextContainer) + 1),
-	KindCatchClause:                 uint8(unsafe.Offsetof(catchClauseData{}.nextContainer) + 1),
-	KindBlock:                       uint8(unsafe.Offsetof(blockData{}.nextContainer) + 1),
-	KindFunctionDeclaration:         uint8(unsafe.Offsetof(functionDeclarationData{}.nextContainer) + 1),
-	KindClassDeclaration:            uint8(unsafe.Offsetof(classDeclarationData{}.nextContainer) + 1),
-	KindClassExpression:             uint8(unsafe.Offsetof(classExpressionData{}.nextContainer) + 1),
-	KindTypeAliasDeclaration:        uint8(unsafe.Offsetof(typeAliasDeclarationData{}.nextContainer) + 1),
-	KindJSTypeAliasDeclaration:      uint8(unsafe.Offsetof(typeAliasDeclarationData{}.nextContainer) + 1),
-	KindCallSignature:               uint8(unsafe.Offsetof(callSignatureDeclarationData{}.nextContainer) + 1),
-	KindConstructSignature:          uint8(unsafe.Offsetof(constructSignatureDeclarationData{}.nextContainer) + 1),
-	KindConstructor:                 uint8(unsafe.Offsetof(constructorDeclarationData{}.nextContainer) + 1),
-	KindGetAccessor:                 uint8(unsafe.Offsetof(getAccessorDeclarationData{}.nextContainer) + 1),
-	KindSetAccessor:                 uint8(unsafe.Offsetof(setAccessorDeclarationData{}.nextContainer) + 1),
-	KindIndexSignature:              uint8(unsafe.Offsetof(indexSignatureDeclarationData{}.nextContainer) + 1),
-	KindMethodSignature:             uint8(unsafe.Offsetof(methodSignatureDeclarationData{}.nextContainer) + 1),
-	KindMethodDeclaration:           uint8(unsafe.Offsetof(methodDeclarationData{}.nextContainer) + 1),
-	KindClassStaticBlockDeclaration: uint8(unsafe.Offsetof(classStaticBlockDeclarationData{}.nextContainer) + 1),
-	KindArrowFunction:               uint8(unsafe.Offsetof(arrowFunctionData{}.nextContainer) + 1),
-	KindFunctionExpression:          uint8(unsafe.Offsetof(functionExpressionData{}.nextContainer) + 1),
-	KindConditionalType:             uint8(unsafe.Offsetof(conditionalTypeNodeData{}.nextContainer) + 1),
-	KindMappedType:                  uint8(unsafe.Offsetof(mappedTypeNodeData{}.nextContainer) + 1),
-	KindFunctionType:                uint8(unsafe.Offsetof(functionTypeNodeData{}.nextContainer) + 1),
-	KindConstructorType:             uint8(unsafe.Offsetof(constructorTypeNodeData{}.nextContainer) + 1),
-	KindJSDocSignature:              uint8(unsafe.Offsetof(jsDocSignatureData{}.nextContainer) + 1),
-	KindSourceFile:                  uint8(unsafe.Offsetof(sourceFileData{}.nextContainer) + 1),
-	KindModuleDeclaration:           uint8(unsafe.Offsetof(moduleDeclarationData{}.nextContainer) + 1),
-}
-
-func (n Node) localsContainerBaseNextContainer() *nodeRef {
-	if off := localsContainerBaseNextContainerOffsets[n.Kind()]; off != 0 {
-		return (*nodeRef)(unsafe.Add(n.fields(), off-1))
-	}
-	return nil
-}
-
 type LocalsContainerBase struct{ Node }
 
-func (node LocalsContainerBase) Locals() SymbolTable {
-	return node.store().symbolTables.get(*node.localsContainerBaseLocals())
-}
+func (node LocalsContainerBase) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node LocalsContainerBase) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node LocalsContainerBase) NextContainer() Node         { return node.Node.binderNextContainer() }
 
-func (node LocalsContainerBase) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(node.localsContainerBaseLocals(), value, value == nil)
-}
-
-func (node LocalsContainerBase) NextContainer() Node {
-	return node.deref(node.localsContainerBaseNextContainer())
-}
-
-func (node LocalsContainerBase) SetNextContainer(value Node) {
-	node.setRef(node.localsContainerBaseNextContainer(), value)
-}
-
-var flowNodeBaseFlowNodeOffsets = [kindFlowReduceLabelData + 1]uint8{
-	KindIdentifier:                 uint8(unsafe.Offsetof(identifierData{}.flowNode) + 1),
-	KindQualifiedName:              uint8(unsafe.Offsetof(qualifiedNameData{}.flowNode) + 1),
-	KindEmptyStatement:             uint8(unsafe.Offsetof(emptyStatementData{}.flowNode) + 1),
-	KindIfStatement:                uint8(unsafe.Offsetof(ifStatementData{}.flowNode) + 1),
-	KindDoStatement:                uint8(unsafe.Offsetof(doStatementData{}.flowNode) + 1),
-	KindWhileStatement:             uint8(unsafe.Offsetof(whileStatementData{}.flowNode) + 1),
-	KindForStatement:               uint8(unsafe.Offsetof(forStatementData{}.flowNode) + 1),
-	KindForInStatement:             uint8(unsafe.Offsetof(forInOrOfStatementData{}.flowNode) + 1),
-	KindForOfStatement:             uint8(unsafe.Offsetof(forInOrOfStatementData{}.flowNode) + 1),
-	KindBreakStatement:             uint8(unsafe.Offsetof(breakStatementData{}.flowNode) + 1),
-	KindContinueStatement:          uint8(unsafe.Offsetof(continueStatementData{}.flowNode) + 1),
-	KindReturnStatement:            uint8(unsafe.Offsetof(returnStatementData{}.flowNode) + 1),
-	KindWithStatement:              uint8(unsafe.Offsetof(withStatementData{}.flowNode) + 1),
-	KindSwitchStatement:            uint8(unsafe.Offsetof(switchStatementData{}.flowNode) + 1),
-	KindThrowStatement:             uint8(unsafe.Offsetof(throwStatementData{}.flowNode) + 1),
-	KindTryStatement:               uint8(unsafe.Offsetof(tryStatementData{}.flowNode) + 1),
-	KindDebuggerStatement:          uint8(unsafe.Offsetof(debuggerStatementData{}.flowNode) + 1),
-	KindLabeledStatement:           uint8(unsafe.Offsetof(labeledStatementData{}.flowNode) + 1),
-	KindExpressionStatement:        uint8(unsafe.Offsetof(expressionStatementData{}.flowNode) + 1),
-	KindBlock:                      uint8(unsafe.Offsetof(blockData{}.flowNode) + 1),
-	KindVariableStatement:          uint8(unsafe.Offsetof(variableStatementData{}.flowNode) + 1),
-	KindBindingElement:             uint8(unsafe.Offsetof(bindingElementData{}.flowNode) + 1),
-	KindMissingDeclaration:         uint8(unsafe.Offsetof(missingDeclarationData{}.flowNode) + 1),
-	KindFunctionDeclaration:        uint8(unsafe.Offsetof(functionDeclarationData{}.flowNode) + 1),
-	KindClassDeclaration:           uint8(unsafe.Offsetof(classDeclarationData{}.flowNode) + 1),
-	KindInterfaceDeclaration:       uint8(unsafe.Offsetof(interfaceDeclarationData{}.flowNode) + 1),
-	KindTypeAliasDeclaration:       uint8(unsafe.Offsetof(typeAliasDeclarationData{}.flowNode) + 1),
-	KindJSTypeAliasDeclaration:     uint8(unsafe.Offsetof(typeAliasDeclarationData{}.flowNode) + 1),
-	KindEnumDeclaration:            uint8(unsafe.Offsetof(enumDeclarationData{}.flowNode) + 1),
-	KindModuleBlock:                uint8(unsafe.Offsetof(moduleBlockData{}.flowNode) + 1),
-	KindNotEmittedStatement:        uint8(unsafe.Offsetof(notEmittedStatementData{}.flowNode) + 1),
-	KindImportDeclaration:          uint8(unsafe.Offsetof(importDeclarationData{}.flowNode) + 1),
-	KindJSImportDeclaration:        uint8(unsafe.Offsetof(importDeclarationData{}.flowNode) + 1),
-	KindExportAssignment:           uint8(unsafe.Offsetof(exportAssignmentData{}.flowNode) + 1),
-	KindNamespaceExportDeclaration: uint8(unsafe.Offsetof(namespaceExportDeclarationData{}.flowNode) + 1),
-	KindGetAccessor:                uint8(unsafe.Offsetof(getAccessorDeclarationData{}.flowNode) + 1),
-	KindSetAccessor:                uint8(unsafe.Offsetof(setAccessorDeclarationData{}.flowNode) + 1),
-	KindMethodDeclaration:          uint8(unsafe.Offsetof(methodDeclarationData{}.flowNode) + 1),
-	KindNullKeyword:                uint8(unsafe.Offsetof(keywordExpressionData{}.flowNode) + 1),
-	KindTrueKeyword:                uint8(unsafe.Offsetof(keywordExpressionData{}.flowNode) + 1),
-	KindFalseKeyword:               uint8(unsafe.Offsetof(keywordExpressionData{}.flowNode) + 1),
-	KindThisKeyword:                uint8(unsafe.Offsetof(keywordExpressionData{}.flowNode) + 1),
-	KindSuperKeyword:               uint8(unsafe.Offsetof(keywordExpressionData{}.flowNode) + 1),
-	KindImportKeyword:              uint8(unsafe.Offsetof(keywordExpressionData{}.flowNode) + 1),
-	KindArrowFunction:              uint8(unsafe.Offsetof(arrowFunctionData{}.flowNode) + 1),
-	KindFunctionExpression:         uint8(unsafe.Offsetof(functionExpressionData{}.flowNode) + 1),
-	KindPropertyAccessExpression:   uint8(unsafe.Offsetof(propertyAccessExpressionData{}.flowNode) + 1),
-	KindElementAccessExpression:    uint8(unsafe.Offsetof(elementAccessExpressionData{}.flowNode) + 1),
-	KindMetaProperty:               uint8(unsafe.Offsetof(metaPropertyData{}.flowNode) + 1),
-	KindModuleDeclaration:          uint8(unsafe.Offsetof(moduleDeclarationData{}.flowNode) + 1),
-	KindImportEqualsDeclaration:    uint8(unsafe.Offsetof(importEqualsDeclarationData{}.flowNode) + 1),
-	KindExportDeclaration:          uint8(unsafe.Offsetof(exportDeclarationData{}.flowNode) + 1),
-}
-
-func (n Node) flowNodeBaseFlowNode() *flowRef {
-	if off := flowNodeBaseFlowNodeOffsets[n.Kind()]; off != 0 {
-		return (*flowRef)(unsafe.Add(n.fields(), off-1))
-	}
-	return nil
-}
+func (node LocalsContainerBase) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
 
 type FlowNodeBase struct{ Node }
 
-func (node FlowNodeBase) FlowNode() FlowNode { return node.derefFlow(node.flowNodeBaseFlowNode()) }
-func (node FlowNodeBase) SetFlowNode(value FlowNode) {
-	node.setFlowRef(node.flowNodeBaseFlowNode(), value)
-}
+func (node FlowNodeBase) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node FlowNodeBase) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 
 var compositeBaseFactsOffsets = [kindFlowReduceLabelData + 1]uint8{
 	KindQualifiedName:               uint8(unsafe.Offsetof(qualifiedNameData{}.facts) + 1),
@@ -1786,21 +1524,10 @@ func (n Node) functionLikeBaseFullSignature() *nodeRef {
 
 type FunctionLikeBase struct{ Node }
 
-func (node FunctionLikeBase) Locals() SymbolTable {
-	return node.store().symbolTables.get(*node.localsContainerBaseLocals())
-}
-
-func (node FunctionLikeBase) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(node.localsContainerBaseLocals(), value, value == nil)
-}
-
-func (node FunctionLikeBase) NextContainer() Node {
-	return node.deref(node.localsContainerBaseNextContainer())
-}
-
-func (node FunctionLikeBase) SetNextContainer(value Node) {
-	node.setRef(node.localsContainerBaseNextContainer(), value)
-}
+func (node FunctionLikeBase) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node FunctionLikeBase) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node FunctionLikeBase) NextContainer() Node         { return node.Node.binderNextContainer() }
+func (node FunctionLikeBase) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
 
 func (node FunctionLikeBase) TypeParameters() TypeParameterList {
 	return node.derefList(node.functionLikeBaseTypeParameters())
@@ -1866,24 +1593,6 @@ func (n Node) bodyBaseBody() *nodeRef {
 	return nil
 }
 
-var bodyBaseEndFlowNodeOffsets = [kindFlowReduceLabelData + 1]uint8{
-	KindFunctionDeclaration: uint8(unsafe.Offsetof(functionDeclarationData{}.endFlowNode) + 1),
-	KindConstructor:         uint8(unsafe.Offsetof(constructorDeclarationData{}.endFlowNode) + 1),
-	KindGetAccessor:         uint8(unsafe.Offsetof(getAccessorDeclarationData{}.endFlowNode) + 1),
-	KindSetAccessor:         uint8(unsafe.Offsetof(setAccessorDeclarationData{}.endFlowNode) + 1),
-	KindMethodDeclaration:   uint8(unsafe.Offsetof(methodDeclarationData{}.endFlowNode) + 1),
-	KindArrowFunction:       uint8(unsafe.Offsetof(arrowFunctionData{}.endFlowNode) + 1),
-	KindFunctionExpression:  uint8(unsafe.Offsetof(functionExpressionData{}.endFlowNode) + 1),
-	KindModuleDeclaration:   uint8(unsafe.Offsetof(moduleDeclarationData{}.endFlowNode) + 1),
-}
-
-func (n Node) bodyBaseEndFlowNode() *flowRef {
-	if off := bodyBaseEndFlowNodeOffsets[n.Kind()]; off != 0 {
-		return (*flowRef)(unsafe.Add(n.fields(), off-1))
-	}
-	return nil
-}
-
 type BodyBase struct{ Node }
 
 func (node BodyBase) AsteriskToken() AsteriskToken { return node.deref(node.bodyBaseAsteriskToken()) }
@@ -1891,29 +1600,21 @@ func (node BodyBase) AsteriskToken() AsteriskToken { return node.deref(node.body
 func (node BodyBase) SetAsteriskToken(value AsteriskToken) {
 	node.setRef(node.bodyBaseAsteriskToken(), value)
 }
-func (node BodyBase) Body() NodeBody         { return node.deref(node.bodyBaseBody()) }
-func (node BodyBase) SetBody(value NodeBody) { node.setRef(node.bodyBaseBody(), value) }
-func (node BodyBase) EndFlowNode() FlowNode  { return node.derefFlow(node.bodyBaseEndFlowNode()) }
-func (node BodyBase) SetEndFlowNode(value FlowNode) {
-	node.setFlowRef(node.bodyBaseEndFlowNode(), value)
-}
+func (node BodyBase) Body() NodeBody                { return node.deref(node.bodyBaseBody()) }
+func (node BodyBase) SetBody(value NodeBody)        { node.setRef(node.bodyBaseBody(), value) }
+func (node BodyBase) EndFlowNode() FlowNode         { return node.Node.binderEndFlowNode() }
+func (node BodyBase) SetEndFlowNode(value FlowNode) { node.Node.setBinderEndFlowNode(value) }
 
 type FunctionLikeWithBodyBase struct{ Node }
 
-func (node FunctionLikeWithBodyBase) Locals() SymbolTable {
-	return node.store().symbolTables.get(*node.localsContainerBaseLocals())
-}
+func (node FunctionLikeWithBodyBase) Locals() SymbolTable { return node.Node.binderLocals() }
 
-func (node FunctionLikeWithBodyBase) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(node.localsContainerBaseLocals(), value, value == nil)
-}
+func (node FunctionLikeWithBodyBase) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
 
-func (node FunctionLikeWithBodyBase) NextContainer() Node {
-	return node.deref(node.localsContainerBaseNextContainer())
-}
+func (node FunctionLikeWithBodyBase) NextContainer() Node { return node.Node.binderNextContainer() }
 
 func (node FunctionLikeWithBodyBase) SetNextContainer(value Node) {
-	node.setRef(node.localsContainerBaseNextContainer(), value)
+	node.Node.setBinderNextContainer(value)
 }
 
 func (node FunctionLikeWithBodyBase) TypeParameters() TypeParameterList {
@@ -1960,12 +1661,10 @@ func (node FunctionLikeWithBodyBase) Body() NodeBody { return node.deref(node.bo
 
 func (node FunctionLikeWithBodyBase) SetBody(value NodeBody) { node.setRef(node.bodyBaseBody(), value) }
 
-func (node FunctionLikeWithBodyBase) EndFlowNode() FlowNode {
-	return node.derefFlow(node.bodyBaseEndFlowNode())
-}
+func (node FunctionLikeWithBodyBase) EndFlowNode() FlowNode { return node.Node.binderEndFlowNode() }
 
 func (node FunctionLikeWithBodyBase) SetEndFlowNode(value FlowNode) {
-	node.setFlowRef(node.bodyBaseEndFlowNode(), value)
+	node.Node.setBinderEndFlowNode(value)
 }
 
 var classLikeBaseNameOffsets = [kindFlowReduceLabelData + 1]uint8{
@@ -2018,35 +1717,17 @@ func (n Node) classLikeBaseMembers() *listRef {
 
 type ClassLikeBase struct{ Node }
 
-func (node ClassLikeBase) LocalSymbol() *Symbol {
-	return node.store().symbols.get(*node.exportableBaseLocalSymbol())
-}
-
-func (node ClassLikeBase) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(node.exportableBaseLocalSymbol(), value, value == nil)
-}
-func (node ClassLikeBase) Modifiers() ModifierList { return node.Node.Modifiers() }
+func (node ClassLikeBase) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
+func (node ClassLikeBase) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node ClassLikeBase) Modifiers() ModifierList      { return node.Node.Modifiers() }
 func (node ClassLikeBase) setModifiers(value ModifierList) {
 	node.setModifiersRef(node.modifiersBaseModifiers(), value)
 }
-
-func (node ClassLikeBase) Locals() SymbolTable {
-	return node.store().symbolTables.get(*node.localsContainerBaseLocals())
-}
-
-func (node ClassLikeBase) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(node.localsContainerBaseLocals(), value, value == nil)
-}
-
-func (node ClassLikeBase) NextContainer() Node {
-	return node.deref(node.localsContainerBaseNextContainer())
-}
-
-func (node ClassLikeBase) SetNextContainer(value Node) {
-	node.setRef(node.localsContainerBaseNextContainer(), value)
-}
-
-func (node ClassLikeBase) Name() IdentifierNode { return node.deref(node.classLikeBaseName()) }
+func (node ClassLikeBase) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node ClassLikeBase) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node ClassLikeBase) NextContainer() Node         { return node.Node.binderNextContainer() }
+func (node ClassLikeBase) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
+func (node ClassLikeBase) Name() IdentifierNode        { return node.deref(node.classLikeBaseName()) }
 
 func (node ClassLikeBase) setName(value IdentifierNode) { node.setRef(node.classLikeBaseName(), value) }
 
@@ -2273,13 +1954,8 @@ type ObjectLiteralElementBase struct{ Node }
 
 type AccessorDeclarationBase struct{ Node }
 
-func (node AccessorDeclarationBase) Symbol() *Symbol {
-	return node.store().symbols.get(*node.declarationBaseSymbol())
-}
-
-func (node AccessorDeclarationBase) SetSymbol(value *Symbol) {
-	node.store().symbols.set(node.declarationBaseSymbol(), value, value == nil)
-}
+func (node AccessorDeclarationBase) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node AccessorDeclarationBase) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node AccessorDeclarationBase) Modifiers() ModifierList { return node.Node.Modifiers() }
 func (node AccessorDeclarationBase) setModifiers(value ModifierList) {
 	node.setModifiersRef(node.modifiersBaseModifiers(), value)
@@ -2300,21 +1976,13 @@ func (node AccessorDeclarationBase) PostfixToken() TokenNode {
 func (node AccessorDeclarationBase) SetPostfixToken(value TokenNode) {
 	node.setRef(node.namedMemberBasePostfixToken(), value)
 }
+func (node AccessorDeclarationBase) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node AccessorDeclarationBase) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
 
-func (node AccessorDeclarationBase) Locals() SymbolTable {
-	return node.store().symbolTables.get(*node.localsContainerBaseLocals())
-}
-
-func (node AccessorDeclarationBase) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(node.localsContainerBaseLocals(), value, value == nil)
-}
-
-func (node AccessorDeclarationBase) NextContainer() Node {
-	return node.deref(node.localsContainerBaseNextContainer())
-}
+func (node AccessorDeclarationBase) NextContainer() Node { return node.Node.binderNextContainer() }
 
 func (node AccessorDeclarationBase) SetNextContainer(value Node) {
-	node.setRef(node.localsContainerBaseNextContainer(), value)
+	node.Node.setBinderNextContainer(value)
 }
 
 func (node AccessorDeclarationBase) TypeParameters() TypeParameterList {
@@ -2360,31 +2028,20 @@ func (node AccessorDeclarationBase) SetAsteriskToken(value AsteriskToken) {
 func (node AccessorDeclarationBase) Body() NodeBody { return node.deref(node.bodyBaseBody()) }
 
 func (node AccessorDeclarationBase) SetBody(value NodeBody) { node.setRef(node.bodyBaseBody(), value) }
-
-func (node AccessorDeclarationBase) EndFlowNode() FlowNode {
-	return node.derefFlow(node.bodyBaseEndFlowNode())
-}
-
+func (node AccessorDeclarationBase) EndFlowNode() FlowNode  { return node.Node.binderEndFlowNode() }
 func (node AccessorDeclarationBase) SetEndFlowNode(value FlowNode) {
-	node.setFlowRef(node.bodyBaseEndFlowNode(), value)
+	node.Node.setBinderEndFlowNode(value)
 }
 
-func (node AccessorDeclarationBase) FlowNode() FlowNode {
-	return node.derefFlow(node.flowNodeBaseFlowNode())
-}
+func (node AccessorDeclarationBase) FlowNode() FlowNode { return node.Node.binderFlowNode() }
 
-func (node AccessorDeclarationBase) SetFlowNode(value FlowNode) {
-	node.setFlowRef(node.flowNodeBaseFlowNode(), value)
-}
+func (node AccessorDeclarationBase) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 
 type FunctionOrConstructorTypeNodeBase struct{ Node }
 
-func (node FunctionOrConstructorTypeNodeBase) Symbol() *Symbol {
-	return node.store().symbols.get(*node.declarationBaseSymbol())
-}
-
+func (node FunctionOrConstructorTypeNodeBase) Symbol() *Symbol { return node.Node.binderSymbol() }
 func (node FunctionOrConstructorTypeNodeBase) SetSymbol(value *Symbol) {
-	node.store().symbols.set(node.declarationBaseSymbol(), value, value == nil)
+	node.Node.setBinderSymbol(value)
 }
 
 func (node FunctionOrConstructorTypeNodeBase) Modifiers() ModifierList { return node.Node.Modifiers() }
@@ -2393,20 +2050,18 @@ func (node FunctionOrConstructorTypeNodeBase) setModifiers(value ModifierList) {
 	node.setModifiersRef(node.modifiersBaseModifiers(), value)
 }
 
-func (node FunctionOrConstructorTypeNodeBase) Locals() SymbolTable {
-	return node.store().symbolTables.get(*node.localsContainerBaseLocals())
-}
+func (node FunctionOrConstructorTypeNodeBase) Locals() SymbolTable { return node.Node.binderLocals() }
 
 func (node FunctionOrConstructorTypeNodeBase) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(node.localsContainerBaseLocals(), value, value == nil)
+	node.Node.setBinderLocals(value)
 }
 
 func (node FunctionOrConstructorTypeNodeBase) NextContainer() Node {
-	return node.deref(node.localsContainerBaseNextContainer())
+	return node.Node.binderNextContainer()
 }
 
 func (node FunctionOrConstructorTypeNodeBase) SetNextContainer(value Node) {
-	node.setRef(node.localsContainerBaseNextContainer(), value)
+	node.Node.setBinderNextContainer(value)
 }
 
 func (node FunctionOrConstructorTypeNodeBase) TypeParameters() TypeParameterList {
@@ -2550,18 +2205,6 @@ func (n Node) caseOrDefaultClauseBaseStatements() *listRef {
 	return nil
 }
 
-var caseOrDefaultClauseBaseFallthroughFlowNodeOffsets = [kindFlowReduceLabelData + 1]uint8{
-	KindCaseClause:    uint8(unsafe.Offsetof(caseClauseData{}.fallthroughFlowNode) + 1),
-	KindDefaultClause: uint8(unsafe.Offsetof(defaultClauseData{}.fallthroughFlowNode) + 1),
-}
-
-func (n Node) caseOrDefaultClauseBaseFallthroughFlowNode() *flowRef {
-	if off := caseOrDefaultClauseBaseFallthroughFlowNodeOffsets[n.Kind()]; off != 0 {
-		return (*flowRef)(unsafe.Add(n.fields(), off-1))
-	}
-	return nil
-}
-
 type CaseOrDefaultClauseBase struct{ Node }
 
 func (node CaseOrDefaultClauseBase) Statements() StatementList {
@@ -2573,11 +2216,11 @@ func (node CaseOrDefaultClauseBase) SetStatements(value StatementList) {
 }
 
 func (node CaseOrDefaultClauseBase) FallthroughFlowNode() FlowNode {
-	return node.derefFlow(node.caseOrDefaultClauseBaseFallthroughFlowNode())
+	return node.Node.binderFallthroughFlowNode()
 }
 
 func (node CaseOrDefaultClauseBase) SetFallthroughFlowNode(value FlowNode) {
-	node.setFlowRef(node.caseOrDefaultClauseBaseFallthroughFlowNode(), value)
+	node.Node.setBinderFallthroughFlowNode(value)
 }
 
 var jsDocCommentBaseTextOffsets = [kindFlowReduceLabelData + 1]uint8{
@@ -3030,8 +2673,7 @@ func IsToken(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type identifierData struct {
-	flowNode flowRef // FlowNode
-	text     nameRef // SymbolName
+	text nameRef // SymbolName
 }
 
 type Identifier struct{ Node }
@@ -3040,8 +2682,8 @@ func (node Identifier) data() *identifierData {
 	return (*identifierData)(node.payload(unsafe.Sizeof(identifierData{}) <= 4))
 }
 
-func (node Identifier) FlowNode() FlowNode         { return node.derefFlow(&node.data().flowNode) }
-func (node Identifier) SetFlowNode(value FlowNode) { node.setFlowRef(&node.data().flowNode, value) }
+func (node Identifier) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node Identifier) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 func (node Identifier) Text() SymbolName           { return node.derefName(&node.data().text) }
 func (node Identifier) SetText(value SymbolName)   { node.setNameRef(&node.data().text, value) }
 
@@ -3105,10 +2747,9 @@ func IsPrivateIdentifier(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type qualifiedNameData struct {
-	flowNode flowRef // FlowNode
-	facts    atomic.Uint32
-	left     nodeRef // EntityName
-	right    nodeRef // MemberName
+	facts atomic.Uint32
+	left  nodeRef // EntityName
+	right nodeRef // MemberName
 }
 
 type QualifiedName struct{ Node }
@@ -3117,9 +2758,8 @@ func (node QualifiedName) data() *qualifiedNameData {
 	return (*qualifiedNameData)(node.payload(unsafe.Sizeof(qualifiedNameData{}) <= 4))
 }
 
-func (node QualifiedName) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node QualifiedName) SetFlowNode(value FlowNode) { node.setFlowRef(&node.data().flowNode, value) }
+func (node QualifiedName) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node QualifiedName) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 func (node QualifiedName) Left() EntityName           { return node.deref(&node.data().left) }
 func (node QualifiedName) SetLeft(value EntityName)   { node.setRef(&node.data().left, value) }
 func (node QualifiedName) Right() MemberName          { return node.deref(&node.data().right) }
@@ -3271,9 +2911,7 @@ func IsDecorator(node Node) bool {
 // EmptyStatement
 // ──────────────────────────────────────────────────────────────────────
 
-type emptyStatementData struct {
-	flowNode flowRef // FlowNode
-}
+type emptyStatementData struct{}
 
 type EmptyStatement struct{ Node }
 
@@ -3281,9 +2919,8 @@ func (node EmptyStatement) data() *emptyStatementData {
 	return (*emptyStatementData)(node.payload(unsafe.Sizeof(emptyStatementData{}) <= 4))
 }
 
-func (node EmptyStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node EmptyStatement) SetFlowNode(value FlowNode) { node.setFlowRef(&node.data().flowNode, value) }
+func (node EmptyStatement) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node EmptyStatement) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 
 func (f *NodeFactory) NewEmptyStatement() Node {
 	_, i := newRecord[emptyStatementData](f.nodeStore(), layoutEmptyStatement)
@@ -3303,7 +2940,6 @@ func IsEmptyStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type ifStatementData struct {
-	flowNode      flowRef // FlowNode
 	facts         atomic.Uint32
 	expression    nodeRef // Expression
 	thenStatement nodeRef // Statement
@@ -3316,11 +2952,9 @@ func (node IfStatement) data() *ifStatementData {
 	return (*ifStatementData)(node.payload(unsafe.Sizeof(ifStatementData{}) <= 4))
 }
 
-func (node IfStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node IfStatement) SetFlowNode(value FlowNode) { node.setFlowRef(&node.data().flowNode, value) }
-
-func (node IfStatement) Expression() Expression { return node.deref(&node.data().expression) }
+func (node IfStatement) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node IfStatement) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node IfStatement) Expression() Expression     { return node.deref(&node.data().expression) }
 
 func (node IfStatement) SetExpression(value Expression) { node.setRef(&node.data().expression, value) }
 
@@ -3377,7 +3011,6 @@ func IsIfStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type doStatementData struct {
-	flowNode   flowRef // FlowNode
 	statement  nodeRef // Statement
 	facts      atomic.Uint32
 	expression nodeRef // Expression
@@ -3389,11 +3022,9 @@ func (node DoStatement) data() *doStatementData {
 	return (*doStatementData)(node.payload(unsafe.Sizeof(doStatementData{}) <= 4))
 }
 
-func (node DoStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node DoStatement) SetFlowNode(value FlowNode) { node.setFlowRef(&node.data().flowNode, value) }
-
-func (node DoStatement) Statement() Statement { return node.deref(&node.data().statement) }
+func (node DoStatement) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node DoStatement) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node DoStatement) Statement() Statement       { return node.deref(&node.data().statement) }
 
 func (node DoStatement) SetStatement(value Statement) { node.setRef(&node.data().statement, value) }
 
@@ -3442,7 +3073,6 @@ func IsDoStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type whileStatementData struct {
-	flowNode   flowRef // FlowNode
 	statement  nodeRef // Statement
 	facts      atomic.Uint32
 	expression nodeRef // Expression
@@ -3454,11 +3084,9 @@ func (node WhileStatement) data() *whileStatementData {
 	return (*whileStatementData)(node.payload(unsafe.Sizeof(whileStatementData{}) <= 4))
 }
 
-func (node WhileStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node WhileStatement) SetFlowNode(value FlowNode) { node.setFlowRef(&node.data().flowNode, value) }
-
-func (node WhileStatement) Statement() Statement { return node.deref(&node.data().statement) }
+func (node WhileStatement) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node WhileStatement) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node WhileStatement) Statement() Statement       { return node.deref(&node.data().statement) }
 
 func (node WhileStatement) SetStatement(value Statement) { node.setRef(&node.data().statement, value) }
 
@@ -3509,14 +3137,11 @@ func IsWhileStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type forStatementData struct {
-	flowNode      flowRef // FlowNode
-	statement     nodeRef // Statement
-	locals        sideRef // SymbolTable
-	nextContainer nodeRef // Node
-	facts         atomic.Uint32
-	initializer   nodeRef // ForInitializer. Optional
-	condition     nodeRef // Expression. Optional
-	incrementor   nodeRef // Expression. Optional
+	statement   nodeRef // Statement
+	facts       atomic.Uint32
+	initializer nodeRef // ForInitializer. Optional
+	condition   nodeRef // Expression. Optional
+	incrementor nodeRef // Expression. Optional
 }
 
 type ForStatement struct{ Node }
@@ -3525,25 +3150,15 @@ func (node ForStatement) data() *forStatementData {
 	return (*forStatementData)(node.payload(unsafe.Sizeof(forStatementData{}) <= 4))
 }
 
-func (node ForStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node ForStatement) SetFlowNode(value FlowNode)   { node.setFlowRef(&node.data().flowNode, value) }
+func (node ForStatement) FlowNode() FlowNode           { return node.Node.binderFlowNode() }
+func (node ForStatement) SetFlowNode(value FlowNode)   { node.Node.setBinderFlowNode(value) }
 func (node ForStatement) Statement() Statement         { return node.deref(&node.data().statement) }
 func (node ForStatement) SetStatement(value Statement) { node.setRef(&node.data().statement, value) }
-
-func (node ForStatement) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node ForStatement) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-
-func (node ForStatement) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-
-func (node ForStatement) SetNextContainer(value Node) { node.setRef(&node.data().nextContainer, value) }
-
-func (node ForStatement) Initializer() ForInitializer { return node.deref(&node.data().initializer) }
+func (node ForStatement) Locals() SymbolTable          { return node.Node.binderLocals() }
+func (node ForStatement) SetLocals(value SymbolTable)  { node.Node.setBinderLocals(value) }
+func (node ForStatement) NextContainer() Node          { return node.Node.binderNextContainer() }
+func (node ForStatement) SetNextContainer(value Node)  { node.Node.setBinderNextContainer(value) }
+func (node ForStatement) Initializer() ForInitializer  { return node.deref(&node.data().initializer) }
 
 func (node ForStatement) SetInitializer(value ForInitializer) {
 	node.setRef(&node.data().initializer, value)
@@ -3607,9 +3222,6 @@ func IsForStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type forInOrOfStatementData struct {
-	flowNode      flowRef // FlowNode
-	locals        sideRef // SymbolTable
-	nextContainer nodeRef // Node
 	facts         atomic.Uint32
 	awaitModifier nodeRef // AwaitKeyword. Optional
 	initializer   nodeRef // ForInitializer
@@ -3623,24 +3235,13 @@ func (node ForInOrOfStatement) data() *forInOrOfStatementData {
 	return (*forInOrOfStatementData)(node.payload(unsafe.Sizeof(forInOrOfStatementData{}) <= 4))
 }
 
-func (node ForInOrOfStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node ForInOrOfStatement) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
+func (node ForInOrOfStatement) FlowNode() FlowNode          { return node.Node.binderFlowNode() }
+func (node ForInOrOfStatement) SetFlowNode(value FlowNode)  { node.Node.setBinderFlowNode(value) }
+func (node ForInOrOfStatement) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node ForInOrOfStatement) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node ForInOrOfStatement) NextContainer() Node         { return node.Node.binderNextContainer() }
 
-func (node ForInOrOfStatement) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node ForInOrOfStatement) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-
-func (node ForInOrOfStatement) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-
-func (node ForInOrOfStatement) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
-}
+func (node ForInOrOfStatement) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
 
 func (node ForInOrOfStatement) AwaitModifier() AwaitKeyword {
 	return node.deref(&node.data().awaitModifier)
@@ -3718,8 +3319,7 @@ func IsForOfStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type breakStatementData struct {
-	flowNode flowRef // FlowNode
-	label    nodeRef // IdentifierNode. Optional
+	label nodeRef // IdentifierNode. Optional
 }
 
 type BreakStatement struct{ Node }
@@ -3728,9 +3328,8 @@ func (node BreakStatement) data() *breakStatementData {
 	return (*breakStatementData)(node.payload(unsafe.Sizeof(breakStatementData{}) <= 4))
 }
 
-func (node BreakStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node BreakStatement) SetFlowNode(value FlowNode)    { node.setFlowRef(&node.data().flowNode, value) }
+func (node BreakStatement) FlowNode() FlowNode            { return node.Node.binderFlowNode() }
+func (node BreakStatement) SetFlowNode(value FlowNode)    { node.Node.setBinderFlowNode(value) }
 func (node BreakStatement) Label() IdentifierNode         { return node.deref(&node.data().label) }
 func (node BreakStatement) SetLabel(value IdentifierNode) { node.setRef(&node.data().label, value) }
 
@@ -3769,8 +3368,7 @@ func IsBreakStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type continueStatementData struct {
-	flowNode flowRef // FlowNode
-	label    nodeRef // IdentifierNode. Optional
+	label nodeRef // IdentifierNode. Optional
 }
 
 type ContinueStatement struct{ Node }
@@ -3779,12 +3377,9 @@ func (node ContinueStatement) data() *continueStatementData {
 	return (*continueStatementData)(node.payload(unsafe.Sizeof(continueStatementData{}) <= 4))
 }
 
-func (node ContinueStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node ContinueStatement) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-
-func (node ContinueStatement) Label() IdentifierNode { return node.deref(&node.data().label) }
+func (node ContinueStatement) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node ContinueStatement) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node ContinueStatement) Label() IdentifierNode      { return node.deref(&node.data().label) }
 
 func (node ContinueStatement) SetLabel(value IdentifierNode) { node.setRef(&node.data().label, value) }
 
@@ -3823,7 +3418,6 @@ func IsContinueStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type returnStatementData struct {
-	flowNode   flowRef // FlowNode
 	facts      atomic.Uint32
 	expression nodeRef // Expression. Optional
 }
@@ -3834,11 +3428,10 @@ func (node ReturnStatement) data() *returnStatementData {
 	return (*returnStatementData)(node.payload(unsafe.Sizeof(returnStatementData{}) <= 4))
 }
 
-func (node ReturnStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node ReturnStatement) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-func (node ReturnStatement) Expression() Expression { return node.deref(&node.data().expression) }
+func (node ReturnStatement) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node ReturnStatement) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node ReturnStatement) Expression() Expression     { return node.deref(&node.data().expression) }
+
 func (node ReturnStatement) SetExpression(value Expression) {
 	node.setRef(&node.data().expression, value)
 }
@@ -3878,7 +3471,6 @@ func IsReturnStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type withStatementData struct {
-	flowNode   flowRef // FlowNode
 	facts      atomic.Uint32
 	expression nodeRef // Expression
 	statement  nodeRef // Statement
@@ -3890,9 +3482,8 @@ func (node WithStatement) data() *withStatementData {
 	return (*withStatementData)(node.payload(unsafe.Sizeof(withStatementData{}) <= 4))
 }
 
-func (node WithStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node WithStatement) SetFlowNode(value FlowNode) { node.setFlowRef(&node.data().flowNode, value) }
+func (node WithStatement) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node WithStatement) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 func (node WithStatement) Expression() Expression     { return node.deref(&node.data().expression) }
 func (node WithStatement) SetExpression(value Expression) {
 	node.setRef(&node.data().expression, value)
@@ -3943,7 +3534,6 @@ func IsWithStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type switchStatementData struct {
-	flowNode   flowRef // FlowNode
 	facts      atomic.Uint32
 	expression nodeRef // Expression
 	caseBlock  nodeRef // CaseBlockNode
@@ -3955,11 +3545,10 @@ func (node SwitchStatement) data() *switchStatementData {
 	return (*switchStatementData)(node.payload(unsafe.Sizeof(switchStatementData{}) <= 4))
 }
 
-func (node SwitchStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node SwitchStatement) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-func (node SwitchStatement) Expression() Expression { return node.deref(&node.data().expression) }
+func (node SwitchStatement) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node SwitchStatement) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node SwitchStatement) Expression() Expression     { return node.deref(&node.data().expression) }
+
 func (node SwitchStatement) SetExpression(value Expression) {
 	node.setRef(&node.data().expression, value)
 }
@@ -4009,10 +3598,8 @@ func IsSwitchStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type caseBlockData struct {
-	locals        sideRef // SymbolTable
-	nextContainer nodeRef // Node
-	facts         atomic.Uint32
-	clauses       listRef // CaseClausesList
+	facts   atomic.Uint32
+	clauses listRef // CaseClausesList
 }
 
 type CaseBlock struct{ Node }
@@ -4021,17 +3608,11 @@ func (node CaseBlock) data() *caseBlockData {
 	return (*caseBlockData)(node.payload(unsafe.Sizeof(caseBlockData{}) <= 4))
 }
 
-func (node CaseBlock) Locals() SymbolTable { return node.store().symbolTables.get(node.data().locals) }
-
-func (node CaseBlock) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-
-func (node CaseBlock) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-
-func (node CaseBlock) SetNextContainer(value Node) { node.setRef(&node.data().nextContainer, value) }
-
-func (node CaseBlock) Clauses() CaseClausesList { return node.derefList(&node.data().clauses) }
+func (node CaseBlock) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node CaseBlock) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node CaseBlock) NextContainer() Node         { return node.Node.binderNextContainer() }
+func (node CaseBlock) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
+func (node CaseBlock) Clauses() CaseClausesList    { return node.derefList(&node.data().clauses) }
 
 func (node CaseBlock) SetClauses(value CaseClausesList) { node.setListRef(&node.data().clauses, value) }
 
@@ -4074,10 +3655,9 @@ func IsCaseBlock(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type caseClauseData struct {
-	statements          listRef // StatementList
-	fallthroughFlowNode flowRef // FlowNode
-	facts               atomic.Uint32
-	expression          nodeRef // Expression
+	statements listRef // StatementList
+	facts      atomic.Uint32
+	expression nodeRef // Expression
 }
 
 type CaseClause struct{ Node }
@@ -4091,12 +3671,10 @@ func (node CaseClause) SetStatements(value StatementList) {
 	node.setListRef(&node.data().statements, value)
 }
 
-func (node CaseClause) FallthroughFlowNode() FlowNode {
-	return node.derefFlow(&node.data().fallthroughFlowNode)
-}
+func (node CaseClause) FallthroughFlowNode() FlowNode { return node.Node.binderFallthroughFlowNode() }
 
 func (node CaseClause) SetFallthroughFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().fallthroughFlowNode, value)
+	node.Node.setBinderFallthroughFlowNode(value)
 }
 
 func (node CaseClause) Expression() Expression { return node.deref(&node.data().expression) }
@@ -4144,9 +3722,8 @@ func IsCaseClause(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type defaultClauseData struct {
-	statements          listRef // StatementList
-	fallthroughFlowNode flowRef // FlowNode
-	facts               atomic.Uint32
+	statements listRef // StatementList
+	facts      atomic.Uint32
 }
 
 type DefaultClause struct{ Node }
@@ -4162,11 +3739,11 @@ func (node DefaultClause) SetStatements(value StatementList) {
 }
 
 func (node DefaultClause) FallthroughFlowNode() FlowNode {
-	return node.derefFlow(&node.data().fallthroughFlowNode)
+	return node.Node.binderFallthroughFlowNode()
 }
 
 func (node DefaultClause) SetFallthroughFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().fallthroughFlowNode, value)
+	node.Node.setBinderFallthroughFlowNode(value)
 }
 
 func (f *NodeFactory) NewDefaultClause(statements StatementList) Node {
@@ -4208,7 +3785,6 @@ func IsDefaultClause(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type throwStatementData struct {
-	flowNode   flowRef // FlowNode
 	facts      atomic.Uint32
 	expression nodeRef // Expression
 }
@@ -4219,11 +3795,9 @@ func (node ThrowStatement) data() *throwStatementData {
 	return (*throwStatementData)(node.payload(unsafe.Sizeof(throwStatementData{}) <= 4))
 }
 
-func (node ThrowStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node ThrowStatement) SetFlowNode(value FlowNode) { node.setFlowRef(&node.data().flowNode, value) }
-
-func (node ThrowStatement) Expression() Expression { return node.deref(&node.data().expression) }
+func (node ThrowStatement) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node ThrowStatement) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node ThrowStatement) Expression() Expression     { return node.deref(&node.data().expression) }
 
 func (node ThrowStatement) SetExpression(value Expression) {
 	node.setRef(&node.data().expression, value)
@@ -4268,7 +3842,6 @@ func IsThrowStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type tryStatementData struct {
-	flowNode     flowRef // FlowNode
 	facts        atomic.Uint32
 	tryBlock     nodeRef // BlockNode
 	catchClause  nodeRef // CatchClauseNode. Optional
@@ -4281,9 +3854,8 @@ func (node TryStatement) data() *tryStatementData {
 	return (*tryStatementData)(node.payload(unsafe.Sizeof(tryStatementData{}) <= 4))
 }
 
-func (node TryStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node TryStatement) SetFlowNode(value FlowNode)   { node.setFlowRef(&node.data().flowNode, value) }
+func (node TryStatement) FlowNode() FlowNode           { return node.Node.binderFlowNode() }
+func (node TryStatement) SetFlowNode(value FlowNode)   { node.Node.setBinderFlowNode(value) }
 func (node TryStatement) TryBlock() BlockNode          { return node.deref(&node.data().tryBlock) }
 func (node TryStatement) SetTryBlock(value BlockNode)  { node.setRef(&node.data().tryBlock, value) }
 func (node TryStatement) CatchClause() CatchClauseNode { return node.deref(&node.data().catchClause) }
@@ -4339,8 +3911,6 @@ func IsTryStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type catchClauseData struct {
-	locals              sideRef // SymbolTable
-	nextContainer       nodeRef // Node
 	facts               atomic.Uint32
 	variableDeclaration nodeRef // VariableDeclarationNode. Optional
 	block               nodeRef // BlockNode
@@ -4352,18 +3922,10 @@ func (node CatchClause) data() *catchClauseData {
 	return (*catchClauseData)(node.payload(unsafe.Sizeof(catchClauseData{}) <= 4))
 }
 
-func (node CatchClause) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node CatchClause) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-
-func (node CatchClause) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-
-func (node CatchClause) SetNextContainer(value Node) { node.setRef(&node.data().nextContainer, value) }
-
+func (node CatchClause) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node CatchClause) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node CatchClause) NextContainer() Node         { return node.Node.binderNextContainer() }
+func (node CatchClause) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
 func (node CatchClause) VariableDeclaration() VariableDeclarationNode {
 	return node.deref(&node.data().variableDeclaration)
 }
@@ -4409,9 +3971,7 @@ func IsCatchClause(node Node) bool {
 // DebuggerStatement
 // ──────────────────────────────────────────────────────────────────────
 
-type debuggerStatementData struct {
-	flowNode flowRef // FlowNode
-}
+type debuggerStatementData struct{}
 
 type DebuggerStatement struct{ Node }
 
@@ -4419,10 +3979,8 @@ func (node DebuggerStatement) data() *debuggerStatementData {
 	return (*debuggerStatementData)(node.payload(unsafe.Sizeof(debuggerStatementData{}) <= 4))
 }
 
-func (node DebuggerStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node DebuggerStatement) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
+func (node DebuggerStatement) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node DebuggerStatement) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 
 func (f *NodeFactory) NewDebuggerStatement() Node {
 	_, i := newRecord[debuggerStatementData](f.nodeStore(), layoutDebuggerStatement)
@@ -4442,7 +4000,6 @@ func IsDebuggerStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type labeledStatementData struct {
-	flowNode  flowRef // FlowNode
 	label     nodeRef // IdentifierNode
 	statement nodeRef // Statement
 }
@@ -4453,12 +4010,9 @@ func (node LabeledStatement) data() *labeledStatementData {
 	return (*labeledStatementData)(node.payload(unsafe.Sizeof(labeledStatementData{}) <= 4))
 }
 
-func (node LabeledStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node LabeledStatement) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-
-func (node LabeledStatement) Label() IdentifierNode { return node.deref(&node.data().label) }
+func (node LabeledStatement) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node LabeledStatement) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node LabeledStatement) Label() IdentifierNode      { return node.deref(&node.data().label) }
 
 func (node LabeledStatement) SetLabel(value IdentifierNode) { node.setRef(&node.data().label, value) }
 
@@ -4509,7 +4063,6 @@ func IsLabeledStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type expressionStatementData struct {
-	flowNode   flowRef // FlowNode
 	expression nodeRef // Expression
 }
 
@@ -4519,12 +4072,9 @@ func (node ExpressionStatement) data() *expressionStatementData {
 	return (*expressionStatementData)(node.payload(unsafe.Sizeof(expressionStatementData{}) <= 4))
 }
 
-func (node ExpressionStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node ExpressionStatement) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-
-func (node ExpressionStatement) Expression() Expression { return node.deref(&node.data().expression) }
+func (node ExpressionStatement) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node ExpressionStatement) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node ExpressionStatement) Expression() Expression     { return node.deref(&node.data().expression) }
 
 func (node ExpressionStatement) SetExpression(value Expression) {
 	node.setRef(&node.data().expression, value)
@@ -4569,12 +4119,9 @@ func IsExpressionStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type blockData struct {
-	flowNode      flowRef // FlowNode
-	locals        sideRef // SymbolTable
-	nextContainer nodeRef // Node
-	facts         atomic.Uint32
-	statements    listRef // StatementList
-	multiLine     bool
+	facts      atomic.Uint32
+	statements listRef // StatementList
+	multiLine  bool
 }
 
 type Block struct{ Node }
@@ -4583,19 +4130,13 @@ func (node Block) data() *blockData {
 	return (*blockData)(node.payload(unsafe.Sizeof(blockData{}) <= 4))
 }
 
-func (node Block) FlowNode() FlowNode         { return node.derefFlow(&node.data().flowNode) }
-func (node Block) SetFlowNode(value FlowNode) { node.setFlowRef(&node.data().flowNode, value) }
-func (node Block) Locals() SymbolTable        { return node.store().symbolTables.get(node.data().locals) }
-
-func (node Block) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-
-func (node Block) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-
-func (node Block) SetNextContainer(value Node) { node.setRef(&node.data().nextContainer, value) }
-
-func (node Block) Statements() StatementList { return node.derefList(&node.data().statements) }
+func (node Block) FlowNode() FlowNode          { return node.Node.binderFlowNode() }
+func (node Block) SetFlowNode(value FlowNode)  { node.Node.setBinderFlowNode(value) }
+func (node Block) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node Block) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node Block) NextContainer() Node         { return node.Node.binderNextContainer() }
+func (node Block) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
+func (node Block) Statements() StatementList   { return node.derefList(&node.data().statements) }
 
 func (node Block) SetStatements(value StatementList) { node.setListRef(&node.data().statements, value) }
 func (node Block) MultiLine() bool                   { return node.data().multiLine }
@@ -4641,7 +4182,6 @@ func IsBlock(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type variableStatementData struct {
-	flowNode        flowRef // FlowNode
 	modifiers       listRef // ModifierList. Optional
 	facts           atomic.Uint32
 	declarationList nodeRef // VariableDeclarationListNode
@@ -4653,11 +4193,8 @@ func (node VariableStatement) data() *variableStatementData {
 	return (*variableStatementData)(node.payload(unsafe.Sizeof(variableStatementData{}) <= 4))
 }
 
-func (node VariableStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node VariableStatement) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-
+func (node VariableStatement) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node VariableStatement) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 func (node VariableStatement) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -4710,8 +4247,6 @@ func IsVariableStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type variableDeclarationData struct {
-	symbol           sideRef // *Symbol
-	localSymbol      sideRef // *Symbol
 	facts            atomic.Uint32
 	name             nodeRef // BindingName
 	exclamationToken nodeRef // ExclamationToken. Optional
@@ -4725,21 +4260,16 @@ func (node VariableDeclaration) data() *variableDeclarationData {
 	return (*variableDeclarationData)(node.payload(unsafe.Sizeof(variableDeclarationData{}) <= 4))
 }
 
-func (node VariableDeclaration) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
+func (node VariableDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node VariableDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node VariableDeclaration) LocalSymbol() *Symbol    { return node.Node.binderLocalSymbol() }
 
-func (node VariableDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
+func (node VariableDeclaration) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
 
-func (node VariableDeclaration) LocalSymbol() *Symbol {
-	return node.store().symbols.get(node.data().localSymbol)
-}
+func (node VariableDeclaration) Name() BindingName { return node.deref(&node.data().name) }
 
-func (node VariableDeclaration) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().localSymbol, value, value == nil)
-}
-func (node VariableDeclaration) Name() BindingName         { return node.deref(&node.data().name) }
 func (node VariableDeclaration) setName(value BindingName) { node.setRef(&node.data().name, value) }
+
 func (node VariableDeclaration) ExclamationToken() ExclamationToken {
 	return node.deref(&node.data().exclamationToken)
 }
@@ -4916,7 +4446,6 @@ func IsArrayBindingPattern(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type parameterDeclarationData struct {
-	symbol         sideRef // *Symbol
 	modifiers      listRef // ModifierList. Optional
 	facts          atomic.Uint32
 	dotDotDotToken nodeRef // DotDotDotToken. Optional
@@ -4932,14 +4461,8 @@ func (node ParameterDeclaration) data() *parameterDeclarationData {
 	return (*parameterDeclarationData)(node.payload(unsafe.Sizeof(parameterDeclarationData{}) <= 4))
 }
 
-func (node ParameterDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node ParameterDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node ParameterDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node ParameterDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node ParameterDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -5023,9 +4546,6 @@ func IsParameterDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type bindingElementData struct {
-	symbol         sideRef // *Symbol
-	localSymbol    sideRef // *Symbol
-	flowNode       flowRef // FlowNode
 	facts          atomic.Uint32
 	dotDotDotToken nodeRef // DotDotDotToken. Optional
 	propertyName   nodeRef // PropertyName. Optional
@@ -5039,23 +4559,12 @@ func (node BindingElement) data() *bindingElementData {
 	return (*bindingElementData)(node.payload(unsafe.Sizeof(bindingElementData{}) <= 4))
 }
 
-func (node BindingElement) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node BindingElement) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node BindingElement) LocalSymbol() *Symbol {
-	return node.store().symbols.get(node.data().localSymbol)
-}
-
-func (node BindingElement) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().localSymbol, value, value == nil)
-}
-
-func (node BindingElement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node BindingElement) SetFlowNode(value FlowNode) { node.setFlowRef(&node.data().flowNode, value) }
-
+func (node BindingElement) Symbol() *Symbol              { return node.Node.binderSymbol() }
+func (node BindingElement) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
+func (node BindingElement) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
+func (node BindingElement) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node BindingElement) FlowNode() FlowNode           { return node.Node.binderFlowNode() }
+func (node BindingElement) SetFlowNode(value FlowNode)   { node.Node.setBinderFlowNode(value) }
 func (node BindingElement) DotDotDotToken() DotDotDotToken {
 	return node.deref(&node.data().dotDotDotToken)
 }
@@ -5118,8 +4627,6 @@ func IsBindingElement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type missingDeclarationData struct {
-	flowNode  flowRef // FlowNode
-	symbol    sideRef // *Symbol
 	modifiers listRef // ModifierList. Optional
 }
 
@@ -5129,17 +4636,10 @@ func (node MissingDeclaration) data() *missingDeclarationData {
 	return (*missingDeclarationData)(node.payload(unsafe.Sizeof(missingDeclarationData{}) <= 4))
 }
 
-func (node MissingDeclaration) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node MissingDeclaration) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-
-func (node MissingDeclaration) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node MissingDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node MissingDeclaration) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node MissingDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node MissingDeclaration) Symbol() *Symbol            { return node.Node.binderSymbol() }
+func (node MissingDeclaration) SetSymbol(value *Symbol)    { node.Node.setBinderSymbol(value) }
 func (node MissingDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -5183,22 +4683,15 @@ func IsMissingDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type functionDeclarationData struct {
-	flowNode       flowRef // FlowNode
-	symbol         sideRef // *Symbol
-	localSymbol    sideRef // *Symbol
 	modifiers      listRef // ModifierList. Optional
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
 	typeParameters listRef // TypeParameterList. Optional
 	parameters     listRef // ParameterList
 	typeField      nodeRef // TypeNode. Optional
 	fullSignature  nodeRef // TypeNode. Optional
 	asteriskToken  nodeRef // AsteriskToken. Optional
 	body           nodeRef // NodeBody. Optional
-	endFlowNode    flowRef // FlowNode
 	facts          atomic.Uint32
 	name           nodeRef // IdentifierNode. Optional
-	returnFlowNode flowRef // FlowNode
 }
 
 type FunctionDeclaration struct{ Node }
@@ -5207,24 +4700,13 @@ func (node FunctionDeclaration) data() *functionDeclarationData {
 	return (*functionDeclarationData)(node.payload(unsafe.Sizeof(functionDeclarationData{}) <= 4))
 }
 
-func (node FunctionDeclaration) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node FunctionDeclaration) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
+func (node FunctionDeclaration) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node FunctionDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node FunctionDeclaration) Symbol() *Symbol            { return node.Node.binderSymbol() }
+func (node FunctionDeclaration) SetSymbol(value *Symbol)    { node.Node.setBinderSymbol(value) }
+func (node FunctionDeclaration) LocalSymbol() *Symbol       { return node.Node.binderLocalSymbol() }
 
-func (node FunctionDeclaration) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node FunctionDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node FunctionDeclaration) LocalSymbol() *Symbol {
-	return node.store().symbols.get(node.data().localSymbol)
-}
-
-func (node FunctionDeclaration) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().localSymbol, value, value == nil)
-}
+func (node FunctionDeclaration) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
 
 func (node FunctionDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
@@ -5233,20 +4715,11 @@ func (node FunctionDeclaration) Modifiers() ModifierList {
 func (node FunctionDeclaration) setModifiers(value ModifierList) {
 	node.setModifiersRef(&node.data().modifiers, value)
 }
+func (node FunctionDeclaration) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node FunctionDeclaration) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node FunctionDeclaration) NextContainer() Node         { return node.Node.binderNextContainer() }
 
-func (node FunctionDeclaration) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node FunctionDeclaration) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-
-func (node FunctionDeclaration) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-
-func (node FunctionDeclaration) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
-}
+func (node FunctionDeclaration) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
 
 func (node FunctionDeclaration) TypeParameters() TypeParameterList {
 	return node.derefList(&node.data().typeParameters)
@@ -5283,26 +4756,23 @@ func (node FunctionDeclaration) AsteriskToken() AsteriskToken {
 func (node FunctionDeclaration) SetAsteriskToken(value AsteriskToken) {
 	node.setRef(&node.data().asteriskToken, value)
 }
-func (node FunctionDeclaration) Body() NodeBody         { return node.deref(&node.data().body) }
-func (node FunctionDeclaration) SetBody(value NodeBody) { node.setRef(&node.data().body, value) }
-func (node FunctionDeclaration) EndFlowNode() FlowNode {
-	return node.derefFlow(&node.data().endFlowNode)
-}
 
-func (node FunctionDeclaration) SetEndFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().endFlowNode, value)
-}
+func (node FunctionDeclaration) Body() NodeBody { return node.deref(&node.data().body) }
+
+func (node FunctionDeclaration) SetBody(value NodeBody) { node.setRef(&node.data().body, value) }
+
+func (node FunctionDeclaration) EndFlowNode() FlowNode { return node.Node.binderEndFlowNode() }
+
+func (node FunctionDeclaration) SetEndFlowNode(value FlowNode) { node.Node.setBinderEndFlowNode(value) }
 
 func (node FunctionDeclaration) Name() IdentifierNode { return node.deref(&node.data().name) }
 
 func (node FunctionDeclaration) setName(value IdentifierNode) { node.setRef(&node.data().name, value) }
 
-func (node FunctionDeclaration) ReturnFlowNode() FlowNode {
-	return node.derefFlow(&node.data().returnFlowNode)
-}
+func (node FunctionDeclaration) ReturnFlowNode() FlowNode { return node.Node.binderReturnFlowNode() }
 
 func (node FunctionDeclaration) SetReturnFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().returnFlowNode, value)
+	node.Node.setBinderReturnFlowNode(value)
 }
 
 func (f *NodeFactory) NewFunctionDeclaration(modifiers ModifierList, asteriskToken AsteriskToken, name IdentifierNode, typeParameters TypeParameterList, parameters ParameterList, typeNode TypeNode, fullSignature TypeNode, body FunctionBody) Node {
@@ -5354,12 +4824,7 @@ func IsFunctionDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type classDeclarationData struct {
-	flowNode        flowRef // FlowNode
-	symbol          sideRef // *Symbol
-	localSymbol     sideRef // *Symbol
 	modifiers       listRef // ModifierList. Optional
-	locals          sideRef // SymbolTable
-	nextContainer   nodeRef // Node
 	facts           atomic.Uint32
 	name            nodeRef // IdentifierNode. Optional
 	typeParameters  listRef // TypeParameterList. Optional
@@ -5373,25 +4838,12 @@ func (node ClassDeclaration) data() *classDeclarationData {
 	return (*classDeclarationData)(node.payload(unsafe.Sizeof(classDeclarationData{}) <= 4))
 }
 
-func (node ClassDeclaration) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node ClassDeclaration) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-
-func (node ClassDeclaration) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node ClassDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node ClassDeclaration) LocalSymbol() *Symbol {
-	return node.store().symbols.get(node.data().localSymbol)
-}
-
-func (node ClassDeclaration) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().localSymbol, value, value == nil)
-}
-
+func (node ClassDeclaration) FlowNode() FlowNode           { return node.Node.binderFlowNode() }
+func (node ClassDeclaration) SetFlowNode(value FlowNode)   { node.Node.setBinderFlowNode(value) }
+func (node ClassDeclaration) Symbol() *Symbol              { return node.Node.binderSymbol() }
+func (node ClassDeclaration) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
+func (node ClassDeclaration) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
+func (node ClassDeclaration) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
 func (node ClassDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -5399,18 +4851,11 @@ func (node ClassDeclaration) Modifiers() ModifierList {
 func (node ClassDeclaration) setModifiers(value ModifierList) {
 	node.setModifiersRef(&node.data().modifiers, value)
 }
+func (node ClassDeclaration) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node ClassDeclaration) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node ClassDeclaration) NextContainer() Node         { return node.Node.binderNextContainer() }
 
-func (node ClassDeclaration) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node ClassDeclaration) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-func (node ClassDeclaration) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-func (node ClassDeclaration) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
-}
+func (node ClassDeclaration) SetNextContainer(value Node)  { node.Node.setBinderNextContainer(value) }
 func (node ClassDeclaration) Name() IdentifierNode         { return node.deref(&node.data().name) }
 func (node ClassDeclaration) setName(value IdentifierNode) { node.setRef(&node.data().name, value) }
 func (node ClassDeclaration) TypeParameters() TypeParameterList {
@@ -5478,11 +4923,7 @@ func IsClassDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type classExpressionData struct {
-	symbol          sideRef // *Symbol
-	localSymbol     sideRef // *Symbol
 	modifiers       listRef // ModifierList. Optional
-	locals          sideRef // SymbolTable
-	nextContainer   nodeRef // Node
 	facts           atomic.Uint32
 	name            nodeRef // IdentifierNode. Optional
 	typeParameters  listRef // TypeParameterList. Optional
@@ -5496,19 +4937,10 @@ func (node ClassExpression) data() *classExpressionData {
 	return (*classExpressionData)(node.payload(unsafe.Sizeof(classExpressionData{}) <= 4))
 }
 
-func (node ClassExpression) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node ClassExpression) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node ClassExpression) LocalSymbol() *Symbol {
-	return node.store().symbols.get(node.data().localSymbol)
-}
-
-func (node ClassExpression) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().localSymbol, value, value == nil)
-}
-
+func (node ClassExpression) Symbol() *Symbol              { return node.Node.binderSymbol() }
+func (node ClassExpression) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
+func (node ClassExpression) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
+func (node ClassExpression) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
 func (node ClassExpression) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -5516,18 +4948,10 @@ func (node ClassExpression) Modifiers() ModifierList {
 func (node ClassExpression) setModifiers(value ModifierList) {
 	node.setModifiersRef(&node.data().modifiers, value)
 }
-
-func (node ClassExpression) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node ClassExpression) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-func (node ClassExpression) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-func (node ClassExpression) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
-}
+func (node ClassExpression) Locals() SymbolTable          { return node.Node.binderLocals() }
+func (node ClassExpression) SetLocals(value SymbolTable)  { node.Node.setBinderLocals(value) }
+func (node ClassExpression) NextContainer() Node          { return node.Node.binderNextContainer() }
+func (node ClassExpression) SetNextContainer(value Node)  { node.Node.setBinderNextContainer(value) }
 func (node ClassExpression) Name() IdentifierNode         { return node.deref(&node.data().name) }
 func (node ClassExpression) setName(value IdentifierNode) { node.setRef(&node.data().name, value) }
 func (node ClassExpression) TypeParameters() TypeParameterList {
@@ -5652,9 +5076,6 @@ func IsHeritageClause(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type interfaceDeclarationData struct {
-	flowNode        flowRef // FlowNode
-	symbol          sideRef // *Symbol
-	localSymbol     sideRef // *Symbol
 	modifiers       listRef // ModifierList. Optional
 	name            nodeRef // IdentifierNode
 	typeParameters  listRef // TypeParameterList. Optional
@@ -5668,27 +5089,13 @@ func (node InterfaceDeclaration) data() *interfaceDeclarationData {
 	return (*interfaceDeclarationData)(node.payload(unsafe.Sizeof(interfaceDeclarationData{}) <= 4))
 }
 
-func (node InterfaceDeclaration) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
+func (node InterfaceDeclaration) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node InterfaceDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node InterfaceDeclaration) Symbol() *Symbol            { return node.Node.binderSymbol() }
+func (node InterfaceDeclaration) SetSymbol(value *Symbol)    { node.Node.setBinderSymbol(value) }
+func (node InterfaceDeclaration) LocalSymbol() *Symbol       { return node.Node.binderLocalSymbol() }
 
-func (node InterfaceDeclaration) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-
-func (node InterfaceDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node InterfaceDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node InterfaceDeclaration) LocalSymbol() *Symbol {
-	return node.store().symbols.get(node.data().localSymbol)
-}
-
-func (node InterfaceDeclaration) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().localSymbol, value, value == nil)
-}
+func (node InterfaceDeclaration) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
 
 func (node InterfaceDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
@@ -5769,12 +5176,7 @@ func IsInterfaceDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type typeAliasDeclarationData struct {
-	flowNode       flowRef // FlowNode
-	symbol         sideRef // *Symbol
-	localSymbol    sideRef // *Symbol
 	modifiers      listRef // ModifierList. Optional
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
 	name           nodeRef // IdentifierNode
 	typeParameters listRef // TypeParameterList. Optional
 	typeField      nodeRef // TypeNode
@@ -5786,27 +5188,13 @@ func (node TypeAliasDeclaration) data() *typeAliasDeclarationData {
 	return (*typeAliasDeclarationData)(node.payload(unsafe.Sizeof(typeAliasDeclarationData{}) <= 4))
 }
 
-func (node TypeAliasDeclaration) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
+func (node TypeAliasDeclaration) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node TypeAliasDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node TypeAliasDeclaration) Symbol() *Symbol            { return node.Node.binderSymbol() }
+func (node TypeAliasDeclaration) SetSymbol(value *Symbol)    { node.Node.setBinderSymbol(value) }
+func (node TypeAliasDeclaration) LocalSymbol() *Symbol       { return node.Node.binderLocalSymbol() }
 
-func (node TypeAliasDeclaration) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-
-func (node TypeAliasDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node TypeAliasDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node TypeAliasDeclaration) LocalSymbol() *Symbol {
-	return node.store().symbols.get(node.data().localSymbol)
-}
-
-func (node TypeAliasDeclaration) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().localSymbol, value, value == nil)
-}
+func (node TypeAliasDeclaration) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
 
 func (node TypeAliasDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
@@ -5815,19 +5203,12 @@ func (node TypeAliasDeclaration) Modifiers() ModifierList {
 func (node TypeAliasDeclaration) setModifiers(value ModifierList) {
 	node.setModifiersRef(&node.data().modifiers, value)
 }
-
-func (node TypeAliasDeclaration) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node TypeAliasDeclaration) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-
-func (node TypeAliasDeclaration) NextContainer() Node { return node.deref(&node.data().nextContainer) }
+func (node TypeAliasDeclaration) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node TypeAliasDeclaration) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node TypeAliasDeclaration) NextContainer() Node         { return node.Node.binderNextContainer() }
 
 func (node TypeAliasDeclaration) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
+	node.Node.setBinderNextContainer(value)
 }
 
 func (node TypeAliasDeclaration) Name() IdentifierNode { return node.deref(&node.data().name) }
@@ -5920,7 +5301,6 @@ func IsJSTypeAliasDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type enumMemberData struct {
-	symbol       sideRef // *Symbol
 	modifiers    listRef // ModifierList. Optional
 	name         nodeRef // PropertyName
 	postfixToken nodeRef // TokenNode. Optional
@@ -5934,11 +5314,8 @@ func (node EnumMember) data() *enumMemberData {
 	return (*enumMemberData)(node.payload(unsafe.Sizeof(enumMemberData{}) <= 4))
 }
 
-func (node EnumMember) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node EnumMember) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node EnumMember) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node EnumMember) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node EnumMember) Modifiers() ModifierList { return node.derefModifiers(&node.data().modifiers) }
 
 func (node EnumMember) setModifiers(value ModifierList) {
@@ -5991,13 +5368,10 @@ func IsEnumMember(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type enumDeclarationData struct {
-	flowNode    flowRef // FlowNode
-	symbol      sideRef // *Symbol
-	localSymbol sideRef // *Symbol
-	modifiers   listRef // ModifierList. Optional
-	facts       atomic.Uint32
-	name        nodeRef // IdentifierNode
-	members     listRef // EnumMemberList
+	modifiers listRef // ModifierList. Optional
+	facts     atomic.Uint32
+	name      nodeRef // IdentifierNode
+	members   listRef // EnumMemberList
 }
 
 type EnumDeclaration struct{ Node }
@@ -6006,23 +5380,12 @@ func (node EnumDeclaration) data() *enumDeclarationData {
 	return (*enumDeclarationData)(node.payload(unsafe.Sizeof(enumDeclarationData{}) <= 4))
 }
 
-func (node EnumDeclaration) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node EnumDeclaration) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-func (node EnumDeclaration) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node EnumDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node EnumDeclaration) LocalSymbol() *Symbol {
-	return node.store().symbols.get(node.data().localSymbol)
-}
-
-func (node EnumDeclaration) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().localSymbol, value, value == nil)
-}
-
+func (node EnumDeclaration) FlowNode() FlowNode           { return node.Node.binderFlowNode() }
+func (node EnumDeclaration) SetFlowNode(value FlowNode)   { node.Node.setBinderFlowNode(value) }
+func (node EnumDeclaration) Symbol() *Symbol              { return node.Node.binderSymbol() }
+func (node EnumDeclaration) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
+func (node EnumDeclaration) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
+func (node EnumDeclaration) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
 func (node EnumDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -6075,7 +5438,6 @@ func IsEnumDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type moduleBlockData struct {
-	flowNode   flowRef // FlowNode
 	facts      atomic.Uint32
 	statements listRef // StatementList
 }
@@ -6086,10 +5448,9 @@ func (node ModuleBlock) data() *moduleBlockData {
 	return (*moduleBlockData)(node.payload(unsafe.Sizeof(moduleBlockData{}) <= 4))
 }
 
-func (node ModuleBlock) FlowNode() FlowNode         { return node.derefFlow(&node.data().flowNode) }
-func (node ModuleBlock) SetFlowNode(value FlowNode) { node.setFlowRef(&node.data().flowNode, value) }
-
-func (node ModuleBlock) Statements() StatementList { return node.derefList(&node.data().statements) }
+func (node ModuleBlock) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node ModuleBlock) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node ModuleBlock) Statements() StatementList  { return node.derefList(&node.data().statements) }
 
 func (node ModuleBlock) SetStatements(value StatementList) {
 	node.setListRef(&node.data().statements, value)
@@ -6133,9 +5494,7 @@ func IsModuleBlock(node Node) bool {
 // NotEmittedStatement
 // ──────────────────────────────────────────────────────────────────────
 
-type notEmittedStatementData struct {
-	flowNode flowRef // FlowNode
-}
+type notEmittedStatementData struct{}
 
 type NotEmittedStatement struct{ Node }
 
@@ -6143,10 +5502,8 @@ func (node NotEmittedStatement) data() *notEmittedStatementData {
 	return (*notEmittedStatementData)(node.payload(unsafe.Sizeof(notEmittedStatementData{}) <= 4))
 }
 
-func (node NotEmittedStatement) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node NotEmittedStatement) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
+func (node NotEmittedStatement) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node NotEmittedStatement) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 
 func (f *NodeFactory) NewNotEmittedStatement() Node {
 	_, i := newRecord[notEmittedStatementData](f.nodeStore(), layoutNotEmittedStatement)
@@ -6165,9 +5522,7 @@ func IsNotEmittedStatement(node Node) bool {
 // NotEmittedTypeElement
 // ──────────────────────────────────────────────────────────────────────
 
-type notEmittedTypeElementData struct {
-	symbol sideRef // *Symbol
-}
+type notEmittedTypeElementData struct{}
 
 type NotEmittedTypeElement struct{ Node }
 
@@ -6175,13 +5530,8 @@ func (node NotEmittedTypeElement) data() *notEmittedTypeElementData {
 	return (*notEmittedTypeElementData)(node.payload(unsafe.Sizeof(notEmittedTypeElementData{}) <= 4))
 }
 
-func (node NotEmittedTypeElement) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node NotEmittedTypeElement) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
+func (node NotEmittedTypeElement) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node NotEmittedTypeElement) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 
 func (f *NodeFactory) NewNotEmittedTypeElement() Node {
 	_, i := newRecord[notEmittedTypeElementData](f.nodeStore(), layoutNotEmittedTypeElement)
@@ -6201,10 +5551,8 @@ func IsNotEmittedTypeElement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type importDeclarationData struct {
-	flowNode        flowRef // FlowNode
 	modifiers       listRef // ModifierList. Optional
 	facts           atomic.Uint32
-	symbol          sideRef // *Symbol
 	importClause    nodeRef // ImportClauseNode. Optional
 	moduleSpecifier nodeRef // Expression
 	attributes      nodeRef // ImportAttributesNode. Optional
@@ -6216,11 +5564,8 @@ func (node ImportDeclaration) data() *importDeclarationData {
 	return (*importDeclarationData)(node.payload(unsafe.Sizeof(importDeclarationData{}) <= 4))
 }
 
-func (node ImportDeclaration) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node ImportDeclaration) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-
+func (node ImportDeclaration) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node ImportDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 func (node ImportDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -6228,13 +5573,8 @@ func (node ImportDeclaration) Modifiers() ModifierList {
 func (node ImportDeclaration) setModifiers(value ModifierList) {
 	node.setModifiersRef(&node.data().modifiers, value)
 }
-
-func (node ImportDeclaration) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node ImportDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node ImportDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node ImportDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node ImportDeclaration) ImportClause() ImportClauseNode {
 	return node.deref(&node.data().importClause)
 }
@@ -6394,9 +5734,7 @@ func IsExternalModuleReference(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type namespaceImportData struct {
-	symbol      sideRef // *Symbol
-	localSymbol sideRef // *Symbol
-	name        nodeRef // IdentifierNode
+	name nodeRef // IdentifierNode
 }
 
 type NamespaceImport struct{ Node }
@@ -6405,18 +5743,10 @@ func (node NamespaceImport) data() *namespaceImportData {
 	return (*namespaceImportData)(node.payload(unsafe.Sizeof(namespaceImportData{}) <= 4))
 }
 
-func (node NamespaceImport) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node NamespaceImport) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node NamespaceImport) LocalSymbol() *Symbol {
-	return node.store().symbols.get(node.data().localSymbol)
-}
-
-func (node NamespaceImport) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().localSymbol, value, value == nil)
-}
+func (node NamespaceImport) Symbol() *Symbol              { return node.Node.binderSymbol() }
+func (node NamespaceImport) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
+func (node NamespaceImport) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
+func (node NamespaceImport) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
 func (node NamespaceImport) Name() IdentifierNode         { return node.deref(&node.data().name) }
 func (node NamespaceImport) setName(value IdentifierNode) { node.setRef(&node.data().name, value) }
 
@@ -6514,8 +5844,6 @@ func IsNamedImports(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type exportAssignmentData struct {
-	flowNode       flowRef // FlowNode
-	symbol         sideRef // *Symbol
 	modifiers      listRef // ModifierList. Optional
 	facts          atomic.Uint32
 	typeField      nodeRef // TypeNode. Optional
@@ -6529,17 +5857,10 @@ func (node ExportAssignment) data() *exportAssignmentData {
 	return (*exportAssignmentData)(node.payload(unsafe.Sizeof(exportAssignmentData{}) <= 4))
 }
 
-func (node ExportAssignment) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node ExportAssignment) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-
-func (node ExportAssignment) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node ExportAssignment) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node ExportAssignment) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node ExportAssignment) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node ExportAssignment) Symbol() *Symbol            { return node.Node.binderSymbol() }
+func (node ExportAssignment) SetSymbol(value *Symbol)    { node.Node.setBinderSymbol(value) }
 func (node ExportAssignment) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -6597,8 +5918,6 @@ func IsExportAssignment(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type namespaceExportDeclarationData struct {
-	flowNode  flowRef // FlowNode
-	symbol    sideRef // *Symbol
 	modifiers listRef // ModifierList. Optional
 	name      nodeRef // IdentifierNode
 }
@@ -6609,22 +5928,12 @@ func (node NamespaceExportDeclaration) data() *namespaceExportDeclarationData {
 	return (*namespaceExportDeclarationData)(node.payload(unsafe.Sizeof(namespaceExportDeclarationData{}) <= 4))
 }
 
-func (node NamespaceExportDeclaration) FlowNode() FlowNode {
-	return node.derefFlow(&node.data().flowNode)
-}
-
+func (node NamespaceExportDeclaration) FlowNode() FlowNode { return node.Node.binderFlowNode() }
 func (node NamespaceExportDeclaration) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
+	node.Node.setBinderFlowNode(value)
 }
-
-func (node NamespaceExportDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node NamespaceExportDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node NamespaceExportDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node NamespaceExportDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node NamespaceExportDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -6675,8 +5984,7 @@ func IsNamespaceExportDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type namespaceExportData struct {
-	symbol sideRef // *Symbol
-	name   nodeRef // ModuleExportName
+	name nodeRef // ModuleExportName
 }
 
 type NamespaceExport struct{ Node }
@@ -6685,10 +5993,8 @@ func (node NamespaceExport) data() *namespaceExportData {
 	return (*namespaceExportData)(node.payload(unsafe.Sizeof(namespaceExportData{}) <= 4))
 }
 
-func (node NamespaceExport) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node NamespaceExport) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
+func (node NamespaceExport) Symbol() *Symbol                { return node.Node.binderSymbol() }
+func (node NamespaceExport) SetSymbol(value *Symbol)        { node.Node.setBinderSymbol(value) }
 func (node NamespaceExport) Name() ModuleExportName         { return node.deref(&node.data().name) }
 func (node NamespaceExport) setName(value ModuleExportName) { node.setRef(&node.data().name, value) }
 
@@ -6786,8 +6092,6 @@ func IsNamedExports(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type exportSpecifierData struct {
-	symbol       sideRef // *Symbol
-	localSymbol  sideRef // *Symbol
 	facts        atomic.Uint32
 	propertyName nodeRef // ModuleExportName. Optional
 	name         nodeRef // ModuleExportName
@@ -6800,20 +6104,12 @@ func (node ExportSpecifier) data() *exportSpecifierData {
 	return (*exportSpecifierData)(node.payload(unsafe.Sizeof(exportSpecifierData{}) <= 4))
 }
 
-func (node ExportSpecifier) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node ExportSpecifier) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node ExportSpecifier) LocalSymbol() *Symbol {
-	return node.store().symbols.get(node.data().localSymbol)
-}
-
-func (node ExportSpecifier) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().localSymbol, value, value == nil)
-}
-func (node ExportSpecifier) IsTypeOnly() bool         { return node.data().isTypeOnly }
-func (node ExportSpecifier) SetIsTypeOnly(value bool) { node.data().isTypeOnly = value }
+func (node ExportSpecifier) Symbol() *Symbol              { return node.Node.binderSymbol() }
+func (node ExportSpecifier) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
+func (node ExportSpecifier) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
+func (node ExportSpecifier) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node ExportSpecifier) IsTypeOnly() bool             { return node.data().isTypeOnly }
+func (node ExportSpecifier) SetIsTypeOnly(value bool)     { node.data().isTypeOnly = value }
 func (node ExportSpecifier) PropertyName() ModuleExportName {
 	return node.deref(&node.data().propertyName)
 }
@@ -6861,9 +6157,6 @@ func IsExportSpecifier(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type callSignatureDeclarationData struct {
-	symbol         sideRef // *Symbol
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
 	typeParameters listRef // TypeParameterList. Optional
 	parameters     listRef // ParameterList
 	typeField      nodeRef // TypeNode. Optional
@@ -6876,28 +6169,18 @@ func (node CallSignatureDeclaration) data() *callSignatureDeclarationData {
 	return (*callSignatureDeclarationData)(node.payload(unsafe.Sizeof(callSignatureDeclarationData{}) <= 4))
 }
 
-func (node CallSignatureDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
+func (node CallSignatureDeclaration) Symbol() *Symbol { return node.Node.binderSymbol() }
 
-func (node CallSignatureDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
+func (node CallSignatureDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 
-func (node CallSignatureDeclaration) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
+func (node CallSignatureDeclaration) Locals() SymbolTable { return node.Node.binderLocals() }
 
-func (node CallSignatureDeclaration) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
+func (node CallSignatureDeclaration) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
 
-func (node CallSignatureDeclaration) NextContainer() Node {
-	return node.deref(&node.data().nextContainer)
-}
+func (node CallSignatureDeclaration) NextContainer() Node { return node.Node.binderNextContainer() }
 
 func (node CallSignatureDeclaration) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
+	node.Node.setBinderNextContainer(value)
 }
 
 func (node CallSignatureDeclaration) TypeParameters() TypeParameterList {
@@ -6965,9 +6248,6 @@ func IsCallSignatureDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type constructSignatureDeclarationData struct {
-	symbol         sideRef // *Symbol
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
 	typeParameters listRef // TypeParameterList. Optional
 	parameters     listRef // ParameterList
 	typeField      nodeRef // TypeNode. Optional
@@ -6980,28 +6260,22 @@ func (node ConstructSignatureDeclaration) data() *constructSignatureDeclarationD
 	return (*constructSignatureDeclarationData)(node.payload(unsafe.Sizeof(constructSignatureDeclarationData{}) <= 4))
 }
 
-func (node ConstructSignatureDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
+func (node ConstructSignatureDeclaration) Symbol() *Symbol { return node.Node.binderSymbol() }
 
-func (node ConstructSignatureDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
+func (node ConstructSignatureDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 
-func (node ConstructSignatureDeclaration) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
+func (node ConstructSignatureDeclaration) Locals() SymbolTable { return node.Node.binderLocals() }
 
 func (node ConstructSignatureDeclaration) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
+	node.Node.setBinderLocals(value)
 }
 
 func (node ConstructSignatureDeclaration) NextContainer() Node {
-	return node.deref(&node.data().nextContainer)
+	return node.Node.binderNextContainer()
 }
 
 func (node ConstructSignatureDeclaration) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
+	node.Node.setBinderNextContainer(value)
 }
 
 func (node ConstructSignatureDeclaration) TypeParameters() TypeParameterList {
@@ -7071,19 +6345,14 @@ func IsConstructSignatureDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type constructorDeclarationData struct {
-	symbol         sideRef // *Symbol
 	modifiers      listRef // ModifierList. Optional
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
 	typeParameters listRef // TypeParameterList. Optional
 	parameters     listRef // ParameterList
 	typeField      nodeRef // TypeNode. Optional
 	fullSignature  nodeRef // TypeNode. Optional
 	asteriskToken  nodeRef // AsteriskToken. Optional
 	body           nodeRef // NodeBody. Optional
-	endFlowNode    flowRef // FlowNode
 	facts          atomic.Uint32
-	returnFlowNode flowRef // FlowNode
 }
 
 type ConstructorDeclaration struct{ Node }
@@ -7092,14 +6361,8 @@ func (node ConstructorDeclaration) data() *constructorDeclarationData {
 	return (*constructorDeclarationData)(node.payload(unsafe.Sizeof(constructorDeclarationData{}) <= 4))
 }
 
-func (node ConstructorDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node ConstructorDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node ConstructorDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node ConstructorDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node ConstructorDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -7107,21 +6370,12 @@ func (node ConstructorDeclaration) Modifiers() ModifierList {
 func (node ConstructorDeclaration) setModifiers(value ModifierList) {
 	node.setModifiersRef(&node.data().modifiers, value)
 }
-
-func (node ConstructorDeclaration) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node ConstructorDeclaration) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-
-func (node ConstructorDeclaration) NextContainer() Node {
-	return node.deref(&node.data().nextContainer)
-}
+func (node ConstructorDeclaration) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node ConstructorDeclaration) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node ConstructorDeclaration) NextContainer() Node         { return node.Node.binderNextContainer() }
 
 func (node ConstructorDeclaration) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
+	node.Node.setBinderNextContainer(value)
 }
 
 func (node ConstructorDeclaration) TypeParameters() TypeParameterList {
@@ -7161,20 +6415,15 @@ func (node ConstructorDeclaration) SetAsteriskToken(value AsteriskToken) {
 }
 func (node ConstructorDeclaration) Body() NodeBody         { return node.deref(&node.data().body) }
 func (node ConstructorDeclaration) SetBody(value NodeBody) { node.setRef(&node.data().body, value) }
-func (node ConstructorDeclaration) EndFlowNode() FlowNode {
-	return node.derefFlow(&node.data().endFlowNode)
-}
-
+func (node ConstructorDeclaration) EndFlowNode() FlowNode  { return node.Node.binderEndFlowNode() }
 func (node ConstructorDeclaration) SetEndFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().endFlowNode, value)
+	node.Node.setBinderEndFlowNode(value)
 }
 
-func (node ConstructorDeclaration) ReturnFlowNode() FlowNode {
-	return node.derefFlow(&node.data().returnFlowNode)
-}
+func (node ConstructorDeclaration) ReturnFlowNode() FlowNode { return node.Node.binderReturnFlowNode() }
 
 func (node ConstructorDeclaration) SetReturnFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().returnFlowNode, value)
+	node.Node.setBinderReturnFlowNode(value)
 }
 
 func (f *NodeFactory) NewConstructorDeclaration(modifiers ModifierList, typeParameters TypeParameterList, parameters ParameterList, typeNode TypeNode, fullSignature TypeNode, body FunctionBody) Node {
@@ -7222,20 +6471,15 @@ func IsConstructorDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type getAccessorDeclarationData struct {
-	symbol         sideRef // *Symbol
 	modifiers      listRef // ModifierList. Optional
 	name           nodeRef // PropertyName
 	postfixToken   nodeRef // TokenNode. Optional
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
 	typeParameters listRef // TypeParameterList. Optional
 	parameters     listRef // ParameterList
 	typeField      nodeRef // TypeNode. Optional
 	fullSignature  nodeRef // TypeNode. Optional
 	asteriskToken  nodeRef // AsteriskToken. Optional
 	body           nodeRef // NodeBody. Optional
-	endFlowNode    flowRef // FlowNode
-	flowNode       flowRef // FlowNode
 	facts          atomic.Uint32
 }
 
@@ -7245,14 +6489,8 @@ func (node GetAccessorDeclaration) data() *getAccessorDeclarationData {
 	return (*getAccessorDeclarationData)(node.payload(unsafe.Sizeof(getAccessorDeclarationData{}) <= 4))
 }
 
-func (node GetAccessorDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node GetAccessorDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node GetAccessorDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node GetAccessorDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node GetAccessorDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -7272,21 +6510,12 @@ func (node GetAccessorDeclaration) PostfixToken() TokenNode {
 func (node GetAccessorDeclaration) SetPostfixToken(value TokenNode) {
 	node.setRef(&node.data().postfixToken, value)
 }
-
-func (node GetAccessorDeclaration) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node GetAccessorDeclaration) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-
-func (node GetAccessorDeclaration) NextContainer() Node {
-	return node.deref(&node.data().nextContainer)
-}
+func (node GetAccessorDeclaration) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node GetAccessorDeclaration) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node GetAccessorDeclaration) NextContainer() Node         { return node.Node.binderNextContainer() }
 
 func (node GetAccessorDeclaration) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
+	node.Node.setBinderNextContainer(value)
 }
 
 func (node GetAccessorDeclaration) TypeParameters() TypeParameterList {
@@ -7326,19 +6555,12 @@ func (node GetAccessorDeclaration) SetAsteriskToken(value AsteriskToken) {
 }
 func (node GetAccessorDeclaration) Body() NodeBody         { return node.deref(&node.data().body) }
 func (node GetAccessorDeclaration) SetBody(value NodeBody) { node.setRef(&node.data().body, value) }
-func (node GetAccessorDeclaration) EndFlowNode() FlowNode {
-	return node.derefFlow(&node.data().endFlowNode)
-}
-
+func (node GetAccessorDeclaration) EndFlowNode() FlowNode  { return node.Node.binderEndFlowNode() }
 func (node GetAccessorDeclaration) SetEndFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().endFlowNode, value)
+	node.Node.setBinderEndFlowNode(value)
 }
-
-func (node GetAccessorDeclaration) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node GetAccessorDeclaration) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
+func (node GetAccessorDeclaration) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node GetAccessorDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 
 func (f *NodeFactory) NewGetAccessorDeclaration(modifiers ModifierList, name PropertyName, typeParameters TypeParameterList, parameters ParameterList, typeNode TypeNode, fullSignature TypeNode, body FunctionBody) Node {
 	s := f.nodeStore()
@@ -7387,20 +6609,15 @@ func IsGetAccessorDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type setAccessorDeclarationData struct {
-	symbol         sideRef // *Symbol
 	modifiers      listRef // ModifierList. Optional
 	name           nodeRef // PropertyName
 	postfixToken   nodeRef // TokenNode. Optional
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
 	typeParameters listRef // TypeParameterList. Optional
 	parameters     listRef // ParameterList
 	typeField      nodeRef // TypeNode. Optional
 	fullSignature  nodeRef // TypeNode. Optional
 	asteriskToken  nodeRef // AsteriskToken. Optional
 	body           nodeRef // NodeBody. Optional
-	endFlowNode    flowRef // FlowNode
-	flowNode       flowRef // FlowNode
 	facts          atomic.Uint32
 }
 
@@ -7410,14 +6627,8 @@ func (node SetAccessorDeclaration) data() *setAccessorDeclarationData {
 	return (*setAccessorDeclarationData)(node.payload(unsafe.Sizeof(setAccessorDeclarationData{}) <= 4))
 }
 
-func (node SetAccessorDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node SetAccessorDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node SetAccessorDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node SetAccessorDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node SetAccessorDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -7437,21 +6648,12 @@ func (node SetAccessorDeclaration) PostfixToken() TokenNode {
 func (node SetAccessorDeclaration) SetPostfixToken(value TokenNode) {
 	node.setRef(&node.data().postfixToken, value)
 }
-
-func (node SetAccessorDeclaration) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node SetAccessorDeclaration) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-
-func (node SetAccessorDeclaration) NextContainer() Node {
-	return node.deref(&node.data().nextContainer)
-}
+func (node SetAccessorDeclaration) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node SetAccessorDeclaration) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node SetAccessorDeclaration) NextContainer() Node         { return node.Node.binderNextContainer() }
 
 func (node SetAccessorDeclaration) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
+	node.Node.setBinderNextContainer(value)
 }
 
 func (node SetAccessorDeclaration) TypeParameters() TypeParameterList {
@@ -7491,19 +6693,12 @@ func (node SetAccessorDeclaration) SetAsteriskToken(value AsteriskToken) {
 }
 func (node SetAccessorDeclaration) Body() NodeBody         { return node.deref(&node.data().body) }
 func (node SetAccessorDeclaration) SetBody(value NodeBody) { node.setRef(&node.data().body, value) }
-func (node SetAccessorDeclaration) EndFlowNode() FlowNode {
-	return node.derefFlow(&node.data().endFlowNode)
-}
-
+func (node SetAccessorDeclaration) EndFlowNode() FlowNode  { return node.Node.binderEndFlowNode() }
 func (node SetAccessorDeclaration) SetEndFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().endFlowNode, value)
+	node.Node.setBinderEndFlowNode(value)
 }
-
-func (node SetAccessorDeclaration) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node SetAccessorDeclaration) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
+func (node SetAccessorDeclaration) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node SetAccessorDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 
 func (f *NodeFactory) NewSetAccessorDeclaration(modifiers ModifierList, name PropertyName, typeParameters TypeParameterList, parameters ParameterList, typeNode TypeNode, fullSignature TypeNode, body FunctionBody) Node {
 	s := f.nodeStore()
@@ -7552,10 +6747,7 @@ func IsSetAccessorDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type indexSignatureDeclarationData struct {
-	symbol         sideRef // *Symbol
 	modifiers      listRef // ModifierList. Optional
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
 	typeParameters listRef // TypeParameterList. Optional
 	parameters     listRef // ParameterList
 	typeField      nodeRef // TypeNode. Optional
@@ -7568,14 +6760,8 @@ func (node IndexSignatureDeclaration) data() *indexSignatureDeclarationData {
 	return (*indexSignatureDeclarationData)(node.payload(unsafe.Sizeof(indexSignatureDeclarationData{}) <= 4))
 }
 
-func (node IndexSignatureDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node IndexSignatureDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node IndexSignatureDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node IndexSignatureDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node IndexSignatureDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -7584,20 +6770,14 @@ func (node IndexSignatureDeclaration) setModifiers(value ModifierList) {
 	node.setModifiersRef(&node.data().modifiers, value)
 }
 
-func (node IndexSignatureDeclaration) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
+func (node IndexSignatureDeclaration) Locals() SymbolTable { return node.Node.binderLocals() }
 
-func (node IndexSignatureDeclaration) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
+func (node IndexSignatureDeclaration) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
 
-func (node IndexSignatureDeclaration) NextContainer() Node {
-	return node.deref(&node.data().nextContainer)
-}
+func (node IndexSignatureDeclaration) NextContainer() Node { return node.Node.binderNextContainer() }
 
 func (node IndexSignatureDeclaration) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
+	node.Node.setBinderNextContainer(value)
 }
 
 func (node IndexSignatureDeclaration) TypeParameters() TypeParameterList {
@@ -7665,12 +6845,9 @@ func IsIndexSignatureDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type methodSignatureDeclarationData struct {
-	symbol         sideRef // *Symbol
 	modifiers      listRef // ModifierList. Optional
 	name           nodeRef // PropertyName
 	postfixToken   nodeRef // TokenNode. Optional
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
 	typeParameters listRef // TypeParameterList. Optional
 	parameters     listRef // ParameterList
 	typeField      nodeRef // TypeNode. Optional
@@ -7683,14 +6860,8 @@ func (node MethodSignatureDeclaration) data() *methodSignatureDeclarationData {
 	return (*methodSignatureDeclarationData)(node.payload(unsafe.Sizeof(methodSignatureDeclarationData{}) <= 4))
 }
 
-func (node MethodSignatureDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node MethodSignatureDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node MethodSignatureDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node MethodSignatureDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node MethodSignatureDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -7711,20 +6882,14 @@ func (node MethodSignatureDeclaration) SetPostfixToken(value TokenNode) {
 	node.setRef(&node.data().postfixToken, value)
 }
 
-func (node MethodSignatureDeclaration) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
+func (node MethodSignatureDeclaration) Locals() SymbolTable { return node.Node.binderLocals() }
 
-func (node MethodSignatureDeclaration) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
+func (node MethodSignatureDeclaration) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
 
-func (node MethodSignatureDeclaration) NextContainer() Node {
-	return node.deref(&node.data().nextContainer)
-}
+func (node MethodSignatureDeclaration) NextContainer() Node { return node.Node.binderNextContainer() }
 
 func (node MethodSignatureDeclaration) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
+	node.Node.setBinderNextContainer(value)
 }
 
 func (node MethodSignatureDeclaration) TypeParameters() TypeParameterList {
@@ -7800,20 +6965,15 @@ func IsMethodSignatureDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type methodDeclarationData struct {
-	symbol         sideRef // *Symbol
 	modifiers      listRef // ModifierList. Optional
 	name           nodeRef // PropertyName
 	postfixToken   nodeRef // TokenNode. Optional
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
 	typeParameters listRef // TypeParameterList. Optional
 	parameters     listRef // ParameterList
 	typeField      nodeRef // TypeNode. Optional
 	fullSignature  nodeRef // TypeNode. Optional
 	asteriskToken  nodeRef // AsteriskToken. Optional
 	body           nodeRef // NodeBody. Optional
-	endFlowNode    flowRef // FlowNode
-	flowNode       flowRef // FlowNode
 	facts          atomic.Uint32
 }
 
@@ -7823,12 +6983,8 @@ func (node MethodDeclaration) data() *methodDeclarationData {
 	return (*methodDeclarationData)(node.payload(unsafe.Sizeof(methodDeclarationData{}) <= 4))
 }
 
-func (node MethodDeclaration) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node MethodDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node MethodDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node MethodDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node MethodDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -7843,18 +6999,11 @@ func (node MethodDeclaration) PostfixToken() TokenNode    { return node.deref(&n
 func (node MethodDeclaration) SetPostfixToken(value TokenNode) {
 	node.setRef(&node.data().postfixToken, value)
 }
+func (node MethodDeclaration) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node MethodDeclaration) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node MethodDeclaration) NextContainer() Node         { return node.Node.binderNextContainer() }
 
-func (node MethodDeclaration) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node MethodDeclaration) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-func (node MethodDeclaration) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-func (node MethodDeclaration) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
-}
+func (node MethodDeclaration) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
 
 func (node MethodDeclaration) TypeParameters() TypeParameterList {
 	return node.derefList(&node.data().typeParameters)
@@ -7887,17 +7036,16 @@ func (node MethodDeclaration) AsteriskToken() AsteriskToken {
 func (node MethodDeclaration) SetAsteriskToken(value AsteriskToken) {
 	node.setRef(&node.data().asteriskToken, value)
 }
-func (node MethodDeclaration) Body() NodeBody         { return node.deref(&node.data().body) }
-func (node MethodDeclaration) SetBody(value NodeBody) { node.setRef(&node.data().body, value) }
-func (node MethodDeclaration) EndFlowNode() FlowNode  { return node.derefFlow(&node.data().endFlowNode) }
 
-func (node MethodDeclaration) SetEndFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().endFlowNode, value)
-}
-func (node MethodDeclaration) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node MethodDeclaration) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
+func (node MethodDeclaration) Body() NodeBody { return node.deref(&node.data().body) }
+
+func (node MethodDeclaration) SetBody(value NodeBody) { node.setRef(&node.data().body, value) }
+
+func (node MethodDeclaration) EndFlowNode() FlowNode { return node.Node.binderEndFlowNode() }
+
+func (node MethodDeclaration) SetEndFlowNode(value FlowNode) { node.Node.setBinderEndFlowNode(value) }
+func (node MethodDeclaration) FlowNode() FlowNode            { return node.Node.binderFlowNode() }
+func (node MethodDeclaration) SetFlowNode(value FlowNode)    { node.Node.setBinderFlowNode(value) }
 
 func (f *NodeFactory) NewMethodDeclaration(modifiers ModifierList, asteriskToken AsteriskToken, name PropertyName, postfixToken TokenNode, typeParameters TypeParameterList, parameters ParameterList, typeNode TypeNode, fullSignature TypeNode, body FunctionBody) Node {
 	s := f.nodeStore()
@@ -7950,7 +7098,6 @@ func IsMethodDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type propertySignatureDeclarationData struct {
-	symbol       sideRef // *Symbol
 	modifiers    listRef // ModifierList. Optional
 	name         nodeRef // PropertyName
 	postfixToken nodeRef // TokenNode. Optional
@@ -7964,13 +7111,9 @@ func (node PropertySignatureDeclaration) data() *propertySignatureDeclarationDat
 	return (*propertySignatureDeclarationData)(node.payload(unsafe.Sizeof(propertySignatureDeclarationData{}) <= 4))
 }
 
-func (node PropertySignatureDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
+func (node PropertySignatureDeclaration) Symbol() *Symbol { return node.Node.binderSymbol() }
 
-func (node PropertySignatureDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
+func (node PropertySignatureDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 
 func (node PropertySignatureDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
@@ -8051,7 +7194,6 @@ func IsPropertySignatureDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type propertyDeclarationData struct {
-	symbol       sideRef // *Symbol
 	modifiers    listRef // ModifierList. Optional
 	name         nodeRef // PropertyName
 	postfixToken nodeRef // TokenNode. Optional
@@ -8066,12 +7208,8 @@ func (node PropertyDeclaration) data() *propertyDeclarationData {
 	return (*propertyDeclarationData)(node.payload(unsafe.Sizeof(propertyDeclarationData{}) <= 4))
 }
 
-func (node PropertyDeclaration) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node PropertyDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node PropertyDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node PropertyDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node PropertyDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -8142,9 +7280,7 @@ func IsPropertyDeclaration(node Node) bool {
 // SemicolonClassElement
 // ──────────────────────────────────────────────────────────────────────
 
-type semicolonClassElementData struct {
-	symbol sideRef // *Symbol
-}
+type semicolonClassElementData struct{}
 
 type SemicolonClassElement struct{ Node }
 
@@ -8152,13 +7288,8 @@ func (node SemicolonClassElement) data() *semicolonClassElementData {
 	return (*semicolonClassElementData)(node.payload(unsafe.Sizeof(semicolonClassElementData{}) <= 4))
 }
 
-func (node SemicolonClassElement) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node SemicolonClassElement) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
+func (node SemicolonClassElement) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node SemicolonClassElement) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 
 func (f *NodeFactory) NewSemicolonClassElement() Node {
 	_, i := newRecord[semicolonClassElementData](f.nodeStore(), layoutSemicolonClassElement)
@@ -8178,13 +7309,9 @@ func IsSemicolonClassElement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type classStaticBlockDeclarationData struct {
-	symbol         sideRef // *Symbol
-	modifiers      listRef // ModifierList. Optional
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
-	facts          atomic.Uint32
-	body           nodeRef // BlockNode
-	returnFlowNode flowRef // FlowNode
+	modifiers listRef // ModifierList. Optional
+	facts     atomic.Uint32
+	body      nodeRef // BlockNode
 }
 
 type ClassStaticBlockDeclaration struct{ Node }
@@ -8193,13 +7320,8 @@ func (node ClassStaticBlockDeclaration) data() *classStaticBlockDeclarationData 
 	return (*classStaticBlockDeclarationData)(node.payload(unsafe.Sizeof(classStaticBlockDeclarationData{}) <= 4))
 }
 
-func (node ClassStaticBlockDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node ClassStaticBlockDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
+func (node ClassStaticBlockDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node ClassStaticBlockDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 
 func (node ClassStaticBlockDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
@@ -8208,21 +7330,15 @@ func (node ClassStaticBlockDeclaration) Modifiers() ModifierList {
 func (node ClassStaticBlockDeclaration) setModifiers(value ModifierList) {
 	node.setModifiersRef(&node.data().modifiers, value)
 }
-
-func (node ClassStaticBlockDeclaration) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
+func (node ClassStaticBlockDeclaration) Locals() SymbolTable { return node.Node.binderLocals() }
 func (node ClassStaticBlockDeclaration) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
+	node.Node.setBinderLocals(value)
 }
 
-func (node ClassStaticBlockDeclaration) NextContainer() Node {
-	return node.deref(&node.data().nextContainer)
-}
+func (node ClassStaticBlockDeclaration) NextContainer() Node { return node.Node.binderNextContainer() }
 
 func (node ClassStaticBlockDeclaration) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
+	node.Node.setBinderNextContainer(value)
 }
 func (node ClassStaticBlockDeclaration) Body() BlockNode { return node.deref(&node.data().body) }
 func (node ClassStaticBlockDeclaration) SetBody(value BlockNode) {
@@ -8230,11 +7346,11 @@ func (node ClassStaticBlockDeclaration) SetBody(value BlockNode) {
 }
 
 func (node ClassStaticBlockDeclaration) ReturnFlowNode() FlowNode {
-	return node.derefFlow(&node.data().returnFlowNode)
+	return node.Node.binderReturnFlowNode()
 }
 
 func (node ClassStaticBlockDeclaration) SetReturnFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().returnFlowNode, value)
+	node.Node.setBinderReturnFlowNode(value)
 }
 
 func (f *NodeFactory) NewClassStaticBlockDeclaration(modifiers ModifierList, body BlockNode) Node {
@@ -8297,9 +7413,7 @@ func IsOmittedExpression(node Node) bool {
 // KeywordExpression
 // ──────────────────────────────────────────────────────────────────────
 
-type keywordExpressionData struct {
-	flowNode flowRef // FlowNode
-}
+type keywordExpressionData struct{}
 
 type KeywordExpression struct{ Node }
 
@@ -8307,10 +7421,8 @@ func (node KeywordExpression) data() *keywordExpressionData {
 	return (*keywordExpressionData)(node.payload(unsafe.Sizeof(keywordExpressionData{}) <= 4))
 }
 
-func (node KeywordExpression) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node KeywordExpression) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
+func (node KeywordExpression) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node KeywordExpression) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 
 func (f *NodeFactory) NewKeywordExpression(kind KeywordExpressionSyntaxKind) Node {
 	switch kind {
@@ -8502,7 +7614,6 @@ type noSubstitutionTemplateLiteralData struct {
 	tokenFlags    TokenFlags
 	rawText       textRef // string
 	templateFlags TokenFlags
-	symbol        sideRef // *Symbol
 }
 
 type NoSubstitutionTemplateLiteral struct{ Node }
@@ -8539,13 +7650,9 @@ func (node NoSubstitutionTemplateLiteral) SetTemplateFlags(value TokenFlags) {
 	node.data().templateFlags = value
 }
 
-func (node NoSubstitutionTemplateLiteral) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
+func (node NoSubstitutionTemplateLiteral) Symbol() *Symbol { return node.Node.binderSymbol() }
 
-func (node NoSubstitutionTemplateLiteral) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
+func (node NoSubstitutionTemplateLiteral) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 
 func (f *NodeFactory) NewNoSubstitutionTemplateLiteral(text string, templateFlags TokenFlags) Node {
 	s := f.nodeStore()
@@ -8569,7 +7676,6 @@ func IsNoSubstitutionTemplateLiteral(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type binaryExpressionData struct {
-	symbol        sideRef // *Symbol
 	modifiers     listRef // ModifierList. Optional
 	facts         atomic.Uint32
 	left          nodeRef // Expression
@@ -8584,12 +7690,8 @@ func (node BinaryExpression) data() *binaryExpressionData {
 	return (*binaryExpressionData)(node.payload(unsafe.Sizeof(binaryExpressionData{}) <= 4))
 }
 
-func (node BinaryExpression) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node BinaryExpression) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node BinaryExpression) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node BinaryExpression) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node BinaryExpression) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -8828,18 +7930,13 @@ func IsYieldExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type arrowFunctionData struct {
-	symbol                 sideRef // *Symbol
 	modifiers              listRef // ModifierList. Optional
-	locals                 sideRef // SymbolTable
-	nextContainer          nodeRef // Node
 	typeParameters         listRef // TypeParameterList. Optional
 	parameters             listRef // ParameterList
 	typeField              nodeRef // TypeNode. Optional
 	fullSignature          nodeRef // TypeNode. Optional
 	asteriskToken          nodeRef // AsteriskToken. Optional
 	body                   nodeRef // NodeBody. Optional
-	endFlowNode            flowRef // FlowNode
-	flowNode               flowRef // FlowNode
 	facts                  atomic.Uint32
 	equalsGreaterThanToken nodeRef // EqualsGreaterThanToken
 }
@@ -8850,11 +7947,8 @@ func (node ArrowFunction) data() *arrowFunctionData {
 	return (*arrowFunctionData)(node.payload(unsafe.Sizeof(arrowFunctionData{}) <= 4))
 }
 
-func (node ArrowFunction) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node ArrowFunction) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node ArrowFunction) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node ArrowFunction) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node ArrowFunction) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -8862,19 +7956,10 @@ func (node ArrowFunction) Modifiers() ModifierList {
 func (node ArrowFunction) setModifiers(value ModifierList) {
 	node.setModifiersRef(&node.data().modifiers, value)
 }
-
-func (node ArrowFunction) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node ArrowFunction) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-func (node ArrowFunction) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-func (node ArrowFunction) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
-}
-
+func (node ArrowFunction) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node ArrowFunction) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node ArrowFunction) NextContainer() Node         { return node.Node.binderNextContainer() }
+func (node ArrowFunction) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
 func (node ArrowFunction) TypeParameters() TypeParameterList {
 	return node.derefList(&node.data().typeParameters)
 }
@@ -8902,18 +7987,12 @@ func (node ArrowFunction) AsteriskToken() AsteriskToken {
 func (node ArrowFunction) SetAsteriskToken(value AsteriskToken) {
 	node.setRef(&node.data().asteriskToken, value)
 }
-func (node ArrowFunction) Body() NodeBody         { return node.deref(&node.data().body) }
-func (node ArrowFunction) SetBody(value NodeBody) { node.setRef(&node.data().body, value) }
-func (node ArrowFunction) EndFlowNode() FlowNode  { return node.derefFlow(&node.data().endFlowNode) }
-
-func (node ArrowFunction) SetEndFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().endFlowNode, value)
-}
-
-func (node ArrowFunction) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node ArrowFunction) SetFlowNode(value FlowNode) { node.setFlowRef(&node.data().flowNode, value) }
-
+func (node ArrowFunction) Body() NodeBody                { return node.deref(&node.data().body) }
+func (node ArrowFunction) SetBody(value NodeBody)        { node.setRef(&node.data().body, value) }
+func (node ArrowFunction) EndFlowNode() FlowNode         { return node.Node.binderEndFlowNode() }
+func (node ArrowFunction) SetEndFlowNode(value FlowNode) { node.Node.setBinderEndFlowNode(value) }
+func (node ArrowFunction) FlowNode() FlowNode            { return node.Node.binderFlowNode() }
+func (node ArrowFunction) SetFlowNode(value FlowNode)    { node.Node.setBinderFlowNode(value) }
 func (node ArrowFunction) EqualsGreaterThanToken() EqualsGreaterThanToken {
 	return node.deref(&node.data().equalsGreaterThanToken)
 }
@@ -8972,21 +8051,15 @@ func IsArrowFunction(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type functionExpressionData struct {
-	symbol         sideRef // *Symbol
 	modifiers      listRef // ModifierList. Optional
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
 	typeParameters listRef // TypeParameterList. Optional
 	parameters     listRef // ParameterList
 	typeField      nodeRef // TypeNode. Optional
 	fullSignature  nodeRef // TypeNode. Optional
 	asteriskToken  nodeRef // AsteriskToken. Optional
 	body           nodeRef // NodeBody. Optional
-	endFlowNode    flowRef // FlowNode
-	flowNode       flowRef // FlowNode
 	facts          atomic.Uint32
 	name           nodeRef // IdentifierNode. Optional
-	returnFlowNode flowRef // FlowNode
 }
 
 type FunctionExpression struct{ Node }
@@ -8995,12 +8068,8 @@ func (node FunctionExpression) data() *functionExpressionData {
 	return (*functionExpressionData)(node.payload(unsafe.Sizeof(functionExpressionData{}) <= 4))
 }
 
-func (node FunctionExpression) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node FunctionExpression) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node FunctionExpression) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node FunctionExpression) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node FunctionExpression) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -9008,20 +8077,11 @@ func (node FunctionExpression) Modifiers() ModifierList {
 func (node FunctionExpression) setModifiers(value ModifierList) {
 	node.setModifiersRef(&node.data().modifiers, value)
 }
+func (node FunctionExpression) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node FunctionExpression) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node FunctionExpression) NextContainer() Node         { return node.Node.binderNextContainer() }
 
-func (node FunctionExpression) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node FunctionExpression) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-
-func (node FunctionExpression) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-
-func (node FunctionExpression) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
-}
+func (node FunctionExpression) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
 
 func (node FunctionExpression) TypeParameters() TypeParameterList {
 	return node.derefList(&node.data().typeParameters)
@@ -9056,30 +8116,24 @@ func (node FunctionExpression) AsteriskToken() AsteriskToken {
 func (node FunctionExpression) SetAsteriskToken(value AsteriskToken) {
 	node.setRef(&node.data().asteriskToken, value)
 }
-func (node FunctionExpression) Body() NodeBody         { return node.deref(&node.data().body) }
+
+func (node FunctionExpression) Body() NodeBody { return node.deref(&node.data().body) }
+
 func (node FunctionExpression) SetBody(value NodeBody) { node.setRef(&node.data().body, value) }
-func (node FunctionExpression) EndFlowNode() FlowNode {
-	return node.derefFlow(&node.data().endFlowNode)
-}
 
-func (node FunctionExpression) SetEndFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().endFlowNode, value)
-}
-func (node FunctionExpression) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node FunctionExpression) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
+func (node FunctionExpression) EndFlowNode() FlowNode { return node.Node.binderEndFlowNode() }
 
-func (node FunctionExpression) Name() IdentifierNode { return node.deref(&node.data().name) }
+func (node FunctionExpression) SetEndFlowNode(value FlowNode) { node.Node.setBinderEndFlowNode(value) }
+func (node FunctionExpression) FlowNode() FlowNode            { return node.Node.binderFlowNode() }
+func (node FunctionExpression) SetFlowNode(value FlowNode)    { node.Node.setBinderFlowNode(value) }
+func (node FunctionExpression) Name() IdentifierNode          { return node.deref(&node.data().name) }
 
 func (node FunctionExpression) setName(value IdentifierNode) { node.setRef(&node.data().name, value) }
 
-func (node FunctionExpression) ReturnFlowNode() FlowNode {
-	return node.derefFlow(&node.data().returnFlowNode)
-}
+func (node FunctionExpression) ReturnFlowNode() FlowNode { return node.Node.binderReturnFlowNode() }
 
 func (node FunctionExpression) SetReturnFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().returnFlowNode, value)
+	node.Node.setBinderReturnFlowNode(value)
 }
 
 func (f *NodeFactory) NewFunctionExpression(modifiers ModifierList, asteriskToken AsteriskToken, name IdentifierNode, typeParameters TypeParameterList, parameters ParameterList, typeNode TypeNode, fullSignature TypeNode, body FunctionBody) Node {
@@ -9336,7 +8390,6 @@ func IsConditionalExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type propertyAccessExpressionData struct {
-	flowNode         flowRef // FlowNode
 	facts            atomic.Uint32
 	expression       nodeRef // Expression
 	questionDotToken nodeRef // QuestionDotToken. Optional
@@ -9349,13 +8402,9 @@ func (node PropertyAccessExpression) data() *propertyAccessExpressionData {
 	return (*propertyAccessExpressionData)(node.payload(unsafe.Sizeof(propertyAccessExpressionData{}) <= 4))
 }
 
-func (node PropertyAccessExpression) FlowNode() FlowNode {
-	return node.derefFlow(&node.data().flowNode)
-}
+func (node PropertyAccessExpression) FlowNode() FlowNode { return node.Node.binderFlowNode() }
 
-func (node PropertyAccessExpression) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
+func (node PropertyAccessExpression) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 
 func (node PropertyAccessExpression) Expression() Expression {
 	return node.deref(&node.data().expression)
@@ -9416,7 +8465,6 @@ func IsPropertyAccessExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type elementAccessExpressionData struct {
-	flowNode           flowRef // FlowNode
 	facts              atomic.Uint32
 	expression         nodeRef // Expression
 	questionDotToken   nodeRef // QuestionDotToken. Optional
@@ -9429,11 +8477,9 @@ func (node ElementAccessExpression) data() *elementAccessExpressionData {
 	return (*elementAccessExpressionData)(node.payload(unsafe.Sizeof(elementAccessExpressionData{}) <= 4))
 }
 
-func (node ElementAccessExpression) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
+func (node ElementAccessExpression) FlowNode() FlowNode { return node.Node.binderFlowNode() }
 
-func (node ElementAccessExpression) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
+func (node ElementAccessExpression) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 
 func (node ElementAccessExpression) Expression() Expression {
 	return node.deref(&node.data().expression)
@@ -9504,7 +8550,6 @@ func IsElementAccessExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type callExpressionData struct {
-	symbol           sideRef // *Symbol
 	facts            atomic.Uint32
 	expression       nodeRef // Expression
 	questionDotToken nodeRef // QuestionDotToken. Optional
@@ -9518,11 +8563,9 @@ func (node CallExpression) data() *callExpressionData {
 	return (*callExpressionData)(node.payload(unsafe.Sizeof(callExpressionData{}) <= 4))
 }
 
-func (node CallExpression) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node CallExpression) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-func (node CallExpression) Expression() Expression { return node.deref(&node.data().expression) }
+func (node CallExpression) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node CallExpression) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node CallExpression) Expression() Expression  { return node.deref(&node.data().expression) }
 func (node CallExpression) SetExpression(value Expression) {
 	node.setRef(&node.data().expression, value)
 }
@@ -9654,7 +8697,6 @@ func IsNewExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type metaPropertyData struct {
-	flowNode     flowRef // FlowNode
 	facts        atomic.Uint32
 	name         nodeRef // IdentifierNode
 	keywordToken Kind
@@ -9666,9 +8708,8 @@ func (node MetaProperty) data() *metaPropertyData {
 	return (*metaPropertyData)(node.payload(unsafe.Sizeof(metaPropertyData{}) <= 4))
 }
 
-func (node MetaProperty) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-
-func (node MetaProperty) SetFlowNode(value FlowNode)   { node.setFlowRef(&node.data().flowNode, value) }
+func (node MetaProperty) FlowNode() FlowNode           { return node.Node.binderFlowNode() }
+func (node MetaProperty) SetFlowNode(value FlowNode)   { node.Node.setBinderFlowNode(value) }
 func (node MetaProperty) KeywordToken() Kind           { return node.data().keywordToken }
 func (node MetaProperty) SetKeywordToken(value Kind)   { node.data().keywordToken = value }
 func (node MetaProperty) Name() IdentifierNode         { return node.deref(&node.data().name) }
@@ -10134,7 +9175,6 @@ func IsArrayLiteralExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type objectLiteralExpressionData struct {
-	symbol     sideRef // *Symbol
 	facts      atomic.Uint32
 	properties listRef // NodeList
 	multiLine  bool
@@ -10146,14 +9186,8 @@ func (node ObjectLiteralExpression) data() *objectLiteralExpressionData {
 	return (*objectLiteralExpressionData)(node.payload(unsafe.Sizeof(objectLiteralExpressionData{}) <= 4))
 }
 
-func (node ObjectLiteralExpression) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node ObjectLiteralExpression) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node ObjectLiteralExpression) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node ObjectLiteralExpression) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node ObjectLiteralExpression) Properties() NodeList {
 	return node.derefList(&node.data().properties)
 }
@@ -10204,7 +9238,6 @@ func IsObjectLiteralExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type spreadAssignmentData struct {
-	symbol     sideRef // *Symbol
 	expression nodeRef // Expression
 }
 
@@ -10214,12 +9247,9 @@ func (node SpreadAssignment) data() *spreadAssignmentData {
 	return (*spreadAssignmentData)(node.payload(unsafe.Sizeof(spreadAssignmentData{}) <= 4))
 }
 
-func (node SpreadAssignment) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node SpreadAssignment) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-func (node SpreadAssignment) Expression() Expression { return node.deref(&node.data().expression) }
+func (node SpreadAssignment) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node SpreadAssignment) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node SpreadAssignment) Expression() Expression  { return node.deref(&node.data().expression) }
 func (node SpreadAssignment) SetExpression(value Expression) {
 	node.setRef(&node.data().expression, value)
 }
@@ -10259,7 +9289,6 @@ func IsSpreadAssignment(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type propertyAssignmentData struct {
-	symbol       sideRef // *Symbol
 	modifiers    listRef // ModifierList. Optional
 	name         nodeRef // PropertyName
 	postfixToken nodeRef // TokenNode. Optional
@@ -10274,12 +9303,8 @@ func (node PropertyAssignment) data() *propertyAssignmentData {
 	return (*propertyAssignmentData)(node.payload(unsafe.Sizeof(propertyAssignmentData{}) <= 4))
 }
 
-func (node PropertyAssignment) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node PropertyAssignment) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node PropertyAssignment) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node PropertyAssignment) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node PropertyAssignment) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -10346,7 +9371,6 @@ func IsPropertyAssignment(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type shorthandPropertyAssignmentData struct {
-	symbol                      sideRef // *Symbol
 	modifiers                   listRef // ModifierList. Optional
 	name                        nodeRef // PropertyName
 	postfixToken                nodeRef // TokenNode. Optional
@@ -10362,13 +9386,8 @@ func (node ShorthandPropertyAssignment) data() *shorthandPropertyAssignmentData 
 	return (*shorthandPropertyAssignmentData)(node.payload(unsafe.Sizeof(shorthandPropertyAssignmentData{}) <= 4))
 }
 
-func (node ShorthandPropertyAssignment) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node ShorthandPropertyAssignment) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
+func (node ShorthandPropertyAssignment) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node ShorthandPropertyAssignment) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 
 func (node ShorthandPropertyAssignment) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
@@ -10847,12 +9866,10 @@ func IsIntersectionTypeNode(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type conditionalTypeNodeData struct {
-	locals        sideRef // SymbolTable
-	nextContainer nodeRef // Node
-	checkType     nodeRef // TypeNode
-	extendsType   nodeRef // TypeNode
-	trueType      nodeRef // TypeNode
-	falseType     nodeRef // TypeNode
+	checkType   nodeRef // TypeNode
+	extendsType nodeRef // TypeNode
+	trueType    nodeRef // TypeNode
+	falseType   nodeRef // TypeNode
 }
 
 type ConditionalTypeNode struct{ Node }
@@ -10861,20 +9878,14 @@ func (node ConditionalTypeNode) data() *conditionalTypeNodeData {
 	return (*conditionalTypeNodeData)(node.payload(unsafe.Sizeof(conditionalTypeNodeData{}) <= 4))
 }
 
-func (node ConditionalTypeNode) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
+func (node ConditionalTypeNode) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node ConditionalTypeNode) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node ConditionalTypeNode) NextContainer() Node         { return node.Node.binderNextContainer() }
 
-func (node ConditionalTypeNode) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
+func (node ConditionalTypeNode) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
 
-func (node ConditionalTypeNode) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-
-func (node ConditionalTypeNode) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
-}
 func (node ConditionalTypeNode) CheckType() TypeNode { return node.deref(&node.data().checkType) }
+
 func (node ConditionalTypeNode) SetCheckType(value TypeNode) {
 	node.setRef(&node.data().checkType, value)
 }
@@ -11580,9 +10591,6 @@ func IsTypeQueryNode(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type mappedTypeNodeData struct {
-	symbol        sideRef // *Symbol
-	locals        sideRef // SymbolTable
-	nextContainer nodeRef // Node
 	readonlyToken nodeRef // TokenNode. Optional
 	typeParameter nodeRef // TypeParameterDeclarationNode
 	nameType      nodeRef // TypeNode. Optional
@@ -11597,24 +10605,13 @@ func (node MappedTypeNode) data() *mappedTypeNodeData {
 	return (*mappedTypeNodeData)(node.payload(unsafe.Sizeof(mappedTypeNodeData{}) <= 4))
 }
 
-func (node MappedTypeNode) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node MappedTypeNode) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node MappedTypeNode) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node MappedTypeNode) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-func (node MappedTypeNode) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-func (node MappedTypeNode) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
-}
-
-func (node MappedTypeNode) ReadonlyToken() TokenNode { return node.deref(&node.data().readonlyToken) }
+func (node MappedTypeNode) Symbol() *Symbol             { return node.Node.binderSymbol() }
+func (node MappedTypeNode) SetSymbol(value *Symbol)     { node.Node.setBinderSymbol(value) }
+func (node MappedTypeNode) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node MappedTypeNode) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node MappedTypeNode) NextContainer() Node         { return node.Node.binderNextContainer() }
+func (node MappedTypeNode) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
+func (node MappedTypeNode) ReadonlyToken() TokenNode    { return node.deref(&node.data().readonlyToken) }
 
 func (node MappedTypeNode) SetReadonlyToken(value TokenNode) {
 	node.setRef(&node.data().readonlyToken, value)
@@ -11686,7 +10683,6 @@ func IsMappedTypeNode(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type typeLiteralNodeData struct {
-	symbol  sideRef // *Symbol
 	members listRef // TypeElementList
 }
 
@@ -11696,11 +10692,8 @@ func (node TypeLiteralNode) data() *typeLiteralNodeData {
 	return (*typeLiteralNodeData)(node.payload(unsafe.Sizeof(typeLiteralNodeData{}) <= 4))
 }
 
-func (node TypeLiteralNode) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node TypeLiteralNode) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node TypeLiteralNode) Symbol() *Symbol          { return node.Node.binderSymbol() }
+func (node TypeLiteralNode) SetSymbol(value *Symbol)  { node.Node.setBinderSymbol(value) }
 func (node TypeLiteralNode) Members() TypeElementList { return node.derefList(&node.data().members) }
 
 func (node TypeLiteralNode) SetMembers(value TypeElementList) {
@@ -11790,7 +10783,6 @@ func IsTupleTypeNode(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type namedTupleMemberData struct {
-	symbol         sideRef // *Symbol
 	dotDotDotToken nodeRef // DotDotDotToken. Optional
 	name           nodeRef // IdentifierNode
 	questionToken  nodeRef // QuestionToken. Optional
@@ -11803,12 +10795,8 @@ func (node NamedTupleMember) data() *namedTupleMemberData {
 	return (*namedTupleMemberData)(node.payload(unsafe.Sizeof(namedTupleMemberData{}) <= 4))
 }
 
-func (node NamedTupleMember) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node NamedTupleMember) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node NamedTupleMember) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node NamedTupleMember) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node NamedTupleMember) DotDotDotToken() DotDotDotToken {
 	return node.deref(&node.data().dotDotDotToken)
 }
@@ -12011,10 +10999,7 @@ func IsParenthesizedTypeNode(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type functionTypeNodeData struct {
-	symbol         sideRef // *Symbol
 	modifiers      listRef // ModifierList. Optional
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
 	typeParameters listRef // TypeParameterList. Optional
 	parameters     listRef // ParameterList
 	typeField      nodeRef // TypeNode. Optional
@@ -12027,12 +11012,8 @@ func (node FunctionTypeNode) data() *functionTypeNodeData {
 	return (*functionTypeNodeData)(node.payload(unsafe.Sizeof(functionTypeNodeData{}) <= 4))
 }
 
-func (node FunctionTypeNode) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node FunctionTypeNode) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node FunctionTypeNode) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node FunctionTypeNode) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node FunctionTypeNode) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -12040,18 +11021,10 @@ func (node FunctionTypeNode) Modifiers() ModifierList {
 func (node FunctionTypeNode) setModifiers(value ModifierList) {
 	node.setModifiersRef(&node.data().modifiers, value)
 }
-
-func (node FunctionTypeNode) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node FunctionTypeNode) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-func (node FunctionTypeNode) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-func (node FunctionTypeNode) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
-}
+func (node FunctionTypeNode) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node FunctionTypeNode) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node FunctionTypeNode) NextContainer() Node         { return node.Node.binderNextContainer() }
+func (node FunctionTypeNode) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
 
 func (node FunctionTypeNode) TypeParameters() TypeParameterList {
 	return node.derefList(&node.data().typeParameters)
@@ -12113,10 +11086,7 @@ func IsFunctionTypeNode(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type constructorTypeNodeData struct {
-	symbol         sideRef // *Symbol
 	modifiers      listRef // ModifierList. Optional
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
 	typeParameters listRef // TypeParameterList. Optional
 	parameters     listRef // ParameterList
 	typeField      nodeRef // TypeNode. Optional
@@ -12129,12 +11099,8 @@ func (node ConstructorTypeNode) data() *constructorTypeNodeData {
 	return (*constructorTypeNodeData)(node.payload(unsafe.Sizeof(constructorTypeNodeData{}) <= 4))
 }
 
-func (node ConstructorTypeNode) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node ConstructorTypeNode) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node ConstructorTypeNode) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node ConstructorTypeNode) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node ConstructorTypeNode) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -12142,20 +11108,11 @@ func (node ConstructorTypeNode) Modifiers() ModifierList {
 func (node ConstructorTypeNode) setModifiers(value ModifierList) {
 	node.setModifiersRef(&node.data().modifiers, value)
 }
+func (node ConstructorTypeNode) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node ConstructorTypeNode) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node ConstructorTypeNode) NextContainer() Node         { return node.Node.binderNextContainer() }
 
-func (node ConstructorTypeNode) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node ConstructorTypeNode) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-
-func (node ConstructorTypeNode) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-
-func (node ConstructorTypeNode) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
-}
+func (node ConstructorTypeNode) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
 
 func (node ConstructorTypeNode) TypeParameters() TypeParameterList {
 	return node.derefList(&node.data().typeParameters)
@@ -12678,7 +11635,6 @@ func IsJsxElement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type jsxAttributesData struct {
-	symbol     sideRef // *Symbol
 	facts      atomic.Uint32
 	properties listRef // JsxAttributeList
 }
@@ -12689,11 +11645,8 @@ func (node JsxAttributes) data() *jsxAttributesData {
 	return (*jsxAttributesData)(node.payload(unsafe.Sizeof(jsxAttributesData{}) <= 4))
 }
 
-func (node JsxAttributes) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node JsxAttributes) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node JsxAttributes) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node JsxAttributes) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node JsxAttributes) Properties() JsxAttributeList {
 	return node.derefList(&node.data().properties)
 }
@@ -13055,7 +12008,6 @@ func IsJsxClosingFragment(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type jsxAttributeData struct {
-	symbol      sideRef // *Symbol
 	facts       atomic.Uint32
 	name        nodeRef // JsxAttributeName
 	initializer nodeRef // JsxAttributeValue. Optional
@@ -13067,10 +12019,8 @@ func (node JsxAttribute) data() *jsxAttributeData {
 	return (*jsxAttributeData)(node.payload(unsafe.Sizeof(jsxAttributeData{}) <= 4))
 }
 
-func (node JsxAttribute) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node JsxAttribute) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
+func (node JsxAttribute) Symbol() *Symbol                { return node.Node.binderSymbol() }
+func (node JsxAttribute) SetSymbol(value *Symbol)        { node.Node.setBinderSymbol(value) }
 func (node JsxAttribute) Name() JsxAttributeName         { return node.deref(&node.data().name) }
 func (node JsxAttribute) setName(value JsxAttributeName) { node.setRef(&node.data().name, value) }
 func (node JsxAttribute) Initializer() JsxAttributeValue { return node.deref(&node.data().initializer) }
@@ -13115,7 +12065,6 @@ func IsJsxAttribute(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type jsxSpreadAttributeData struct {
-	symbol     sideRef // *Symbol
 	expression nodeRef // Expression
 }
 
@@ -13125,13 +12074,9 @@ func (node JsxSpreadAttribute) data() *jsxSpreadAttributeData {
 	return (*jsxSpreadAttributeData)(node.payload(unsafe.Sizeof(jsxSpreadAttributeData{}) <= 4))
 }
 
-func (node JsxSpreadAttribute) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node JsxSpreadAttribute) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node JsxSpreadAttribute) Expression() Expression { return node.deref(&node.data().expression) }
+func (node JsxSpreadAttribute) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node JsxSpreadAttribute) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node JsxSpreadAttribute) Expression() Expression  { return node.deref(&node.data().expression) }
 
 func (node JsxSpreadAttribute) SetExpression(value Expression) {
 	node.setRef(&node.data().expression, value)
@@ -14948,9 +13893,6 @@ func IsJSDocTypedefTag(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type jsDocSignatureData struct {
-	symbol         sideRef // *Symbol
-	locals         sideRef // SymbolTable
-	nextContainer  nodeRef // Node
 	typeParameters listRef // TypeParameterList. Optional
 	parameters     listRef // ParameterList
 	typeField      nodeRef // TypeNode. Optional
@@ -14963,23 +13905,12 @@ func (node JSDocSignature) data() *jsDocSignatureData {
 	return (*jsDocSignatureData)(node.payload(unsafe.Sizeof(jsDocSignatureData{}) <= 4))
 }
 
-func (node JSDocSignature) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node JSDocSignature) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node JSDocSignature) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node JSDocSignature) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-func (node JSDocSignature) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-func (node JSDocSignature) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
-}
-
+func (node JSDocSignature) Symbol() *Symbol             { return node.Node.binderSymbol() }
+func (node JSDocSignature) SetSymbol(value *Symbol)     { node.Node.setBinderSymbol(value) }
+func (node JSDocSignature) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node JSDocSignature) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node JSDocSignature) NextContainer() Node         { return node.Node.binderNextContainer() }
+func (node JSDocSignature) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
 func (node JSDocSignature) TypeParameters() TypeParameterList {
 	return node.derefList(&node.data().typeParameters)
 }
@@ -15094,15 +14025,9 @@ func IsSourceFile(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type moduleDeclarationData struct {
-	flowNode      flowRef // FlowNode
-	symbol        sideRef // *Symbol
-	localSymbol   sideRef // *Symbol
 	modifiers     listRef // ModifierList. Optional
-	locals        sideRef // SymbolTable
-	nextContainer nodeRef // Node
 	asteriskToken nodeRef // AsteriskToken. Optional
 	body          nodeRef // NodeBody. Optional
-	endFlowNode   flowRef // FlowNode
 	facts         atomic.Uint32
 	name          nodeRef // ModuleName
 	attributes    nodeRef // TypeLiteralNodeNode. Optional
@@ -15115,24 +14040,12 @@ func (node ModuleDeclaration) data() *moduleDeclarationData {
 	return (*moduleDeclarationData)(node.payload(unsafe.Sizeof(moduleDeclarationData{}) <= 4))
 }
 
-func (node ModuleDeclaration) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node ModuleDeclaration) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-
-func (node ModuleDeclaration) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node ModuleDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node ModuleDeclaration) LocalSymbol() *Symbol {
-	return node.store().symbols.get(node.data().localSymbol)
-}
-
-func (node ModuleDeclaration) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().localSymbol, value, value == nil)
-}
+func (node ModuleDeclaration) FlowNode() FlowNode           { return node.Node.binderFlowNode() }
+func (node ModuleDeclaration) SetFlowNode(value FlowNode)   { node.Node.setBinderFlowNode(value) }
+func (node ModuleDeclaration) Symbol() *Symbol              { return node.Node.binderSymbol() }
+func (node ModuleDeclaration) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
+func (node ModuleDeclaration) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
+func (node ModuleDeclaration) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
 
 func (node ModuleDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
@@ -15141,18 +14054,11 @@ func (node ModuleDeclaration) Modifiers() ModifierList {
 func (node ModuleDeclaration) setModifiers(value ModifierList) {
 	node.setModifiersRef(&node.data().modifiers, value)
 }
+func (node ModuleDeclaration) Locals() SymbolTable         { return node.Node.binderLocals() }
+func (node ModuleDeclaration) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
+func (node ModuleDeclaration) NextContainer() Node         { return node.Node.binderNextContainer() }
 
-func (node ModuleDeclaration) Locals() SymbolTable {
-	return node.store().symbolTables.get(node.data().locals)
-}
-
-func (node ModuleDeclaration) SetLocals(value SymbolTable) {
-	node.store().symbolTables.set(&node.data().locals, value, value == nil)
-}
-func (node ModuleDeclaration) NextContainer() Node { return node.deref(&node.data().nextContainer) }
-func (node ModuleDeclaration) SetNextContainer(value Node) {
-	node.setRef(&node.data().nextContainer, value)
-}
+func (node ModuleDeclaration) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
 
 func (node ModuleDeclaration) AsteriskToken() AsteriskToken {
 	return node.deref(&node.data().asteriskToken)
@@ -15161,17 +14067,20 @@ func (node ModuleDeclaration) AsteriskToken() AsteriskToken {
 func (node ModuleDeclaration) SetAsteriskToken(value AsteriskToken) {
 	node.setRef(&node.data().asteriskToken, value)
 }
-func (node ModuleDeclaration) Body() NodeBody         { return node.deref(&node.data().body) }
-func (node ModuleDeclaration) SetBody(value NodeBody) { node.setRef(&node.data().body, value) }
-func (node ModuleDeclaration) EndFlowNode() FlowNode  { return node.derefFlow(&node.data().endFlowNode) }
 
-func (node ModuleDeclaration) SetEndFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().endFlowNode, value)
-}
-func (node ModuleDeclaration) Keyword() Kind            { return node.data().keyword }
-func (node ModuleDeclaration) SetKeyword(value Kind)    { node.data().keyword = value }
-func (node ModuleDeclaration) Name() ModuleName         { return node.deref(&node.data().name) }
+func (node ModuleDeclaration) Body() NodeBody { return node.deref(&node.data().body) }
+
+func (node ModuleDeclaration) SetBody(value NodeBody) { node.setRef(&node.data().body, value) }
+
+func (node ModuleDeclaration) EndFlowNode() FlowNode { return node.Node.binderEndFlowNode() }
+
+func (node ModuleDeclaration) SetEndFlowNode(value FlowNode) { node.Node.setBinderEndFlowNode(value) }
+func (node ModuleDeclaration) Keyword() Kind                 { return node.data().keyword }
+func (node ModuleDeclaration) SetKeyword(value Kind)         { node.data().keyword = value }
+func (node ModuleDeclaration) Name() ModuleName              { return node.deref(&node.data().name) }
+
 func (node ModuleDeclaration) setName(value ModuleName) { node.setRef(&node.data().name, value) }
+
 func (node ModuleDeclaration) Attributes() TypeLiteralNodeNode {
 	return node.deref(&node.data().attributes)
 }
@@ -15222,9 +14131,6 @@ func IsModuleDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type importEqualsDeclarationData struct {
-	flowNode        flowRef // FlowNode
-	symbol          sideRef // *Symbol
-	localSymbol     sideRef // *Symbol
 	modifiers       listRef // ModifierList. Optional
 	facts           atomic.Uint32
 	name            nodeRef // IdentifierNode
@@ -15238,26 +14144,15 @@ func (node ImportEqualsDeclaration) data() *importEqualsDeclarationData {
 	return (*importEqualsDeclarationData)(node.payload(unsafe.Sizeof(importEqualsDeclarationData{}) <= 4))
 }
 
-func (node ImportEqualsDeclaration) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
+func (node ImportEqualsDeclaration) FlowNode() FlowNode { return node.Node.binderFlowNode() }
 
-func (node ImportEqualsDeclaration) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-
-func (node ImportEqualsDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node ImportEqualsDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node ImportEqualsDeclaration) LocalSymbol() *Symbol {
-	return node.store().symbols.get(node.data().localSymbol)
-}
+func (node ImportEqualsDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node ImportEqualsDeclaration) Symbol() *Symbol            { return node.Node.binderSymbol() }
+func (node ImportEqualsDeclaration) SetSymbol(value *Symbol)    { node.Node.setBinderSymbol(value) }
+func (node ImportEqualsDeclaration) LocalSymbol() *Symbol       { return node.Node.binderLocalSymbol() }
 
 func (node ImportEqualsDeclaration) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().localSymbol, value, value == nil)
+	node.Node.setBinderLocalSymbol(value)
 }
 
 func (node ImportEqualsDeclaration) Modifiers() ModifierList {
@@ -15321,8 +14216,6 @@ func IsImportEqualsDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type exportDeclarationData struct {
-	flowNode        flowRef // FlowNode
-	symbol          sideRef // *Symbol
 	modifiers       listRef // ModifierList. Optional
 	facts           atomic.Uint32
 	exportClause    nodeRef // NamedExportBindings. Optional
@@ -15337,17 +14230,10 @@ func (node ExportDeclaration) data() *exportDeclarationData {
 	return (*exportDeclarationData)(node.payload(unsafe.Sizeof(exportDeclarationData{}) <= 4))
 }
 
-func (node ExportDeclaration) FlowNode() FlowNode { return node.derefFlow(&node.data().flowNode) }
-func (node ExportDeclaration) SetFlowNode(value FlowNode) {
-	node.setFlowRef(&node.data().flowNode, value)
-}
-
-func (node ExportDeclaration) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node ExportDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node ExportDeclaration) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
+func (node ExportDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
+func (node ExportDeclaration) Symbol() *Symbol            { return node.Node.binderSymbol() }
+func (node ExportDeclaration) SetSymbol(value *Symbol)    { node.Node.setBinderSymbol(value) }
 func (node ExportDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -15501,8 +14387,6 @@ func IsImportTypeNode(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type importClauseData struct {
-	symbol        sideRef // *Symbol
-	localSymbol   sideRef // *Symbol
 	facts         atomic.Uint32
 	name          nodeRef                       // IdentifierNode. Optional
 	namedBindings nodeRef                       // NamedImportBindings. Optional
@@ -15515,19 +14399,10 @@ func (node ImportClause) data() *importClauseData {
 	return (*importClauseData)(node.payload(unsafe.Sizeof(importClauseData{}) <= 4))
 }
 
-func (node ImportClause) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node ImportClause) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node ImportClause) LocalSymbol() *Symbol {
-	return node.store().symbols.get(node.data().localSymbol)
-}
-
-func (node ImportClause) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().localSymbol, value, value == nil)
-}
-
+func (node ImportClause) Symbol() *Symbol              { return node.Node.binderSymbol() }
+func (node ImportClause) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
+func (node ImportClause) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
+func (node ImportClause) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
 func (node ImportClause) PhaseModifier() ImportPhaseModifierSyntaxKind {
 	return node.data().phaseModifier
 }
@@ -15582,8 +14457,6 @@ func IsImportClause(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type importSpecifierData struct {
-	symbol       sideRef // *Symbol
-	localSymbol  sideRef // *Symbol
 	facts        atomic.Uint32
 	propertyName nodeRef // ModuleExportName. Optional
 	name         nodeRef // IdentifierNode
@@ -15596,20 +14469,12 @@ func (node ImportSpecifier) data() *importSpecifierData {
 	return (*importSpecifierData)(node.payload(unsafe.Sizeof(importSpecifierData{}) <= 4))
 }
 
-func (node ImportSpecifier) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-func (node ImportSpecifier) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
-func (node ImportSpecifier) LocalSymbol() *Symbol {
-	return node.store().symbols.get(node.data().localSymbol)
-}
-
-func (node ImportSpecifier) SetLocalSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().localSymbol, value, value == nil)
-}
-func (node ImportSpecifier) IsTypeOnly() bool         { return node.data().isTypeOnly }
-func (node ImportSpecifier) SetIsTypeOnly(value bool) { node.data().isTypeOnly = value }
+func (node ImportSpecifier) Symbol() *Symbol              { return node.Node.binderSymbol() }
+func (node ImportSpecifier) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
+func (node ImportSpecifier) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
+func (node ImportSpecifier) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node ImportSpecifier) IsTypeOnly() bool             { return node.data().isTypeOnly }
+func (node ImportSpecifier) SetIsTypeOnly(value bool)     { node.data().isTypeOnly = value }
 func (node ImportSpecifier) PropertyName() ModuleExportName {
 	return node.deref(&node.data().propertyName)
 }
@@ -15854,7 +14719,6 @@ func IsJSDocLinkCode(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type typeParameterDeclarationData struct {
-	symbol      sideRef // *Symbol
 	modifiers   listRef // ModifierList. Optional
 	name        nodeRef // IdentifierNode
 	constraint  nodeRef // TypeNode. Optional
@@ -15868,14 +14732,8 @@ func (node TypeParameterDeclaration) data() *typeParameterDeclarationData {
 	return (*typeParameterDeclarationData)(node.payload(unsafe.Sizeof(typeParameterDeclarationData{}) <= 4))
 }
 
-func (node TypeParameterDeclaration) Symbol() *Symbol {
-	return node.store().symbols.get(node.data().symbol)
-}
-
-func (node TypeParameterDeclaration) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node TypeParameterDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node TypeParameterDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node TypeParameterDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -16022,7 +14880,6 @@ func IsSyntheticReferenceExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type jsDocTypeLiteralData struct {
-	symbol            sideRef // *Symbol
 	jsDocPropertyTags sideRef // []Node. Optional
 	isArrayType       bool
 }
@@ -16033,12 +14890,8 @@ func (node JSDocTypeLiteral) data() *jsDocTypeLiteralData {
 	return (*jsDocTypeLiteralData)(node.payload(unsafe.Sizeof(jsDocTypeLiteralData{}) <= 4))
 }
 
-func (node JSDocTypeLiteral) Symbol() *Symbol { return node.store().symbols.get(node.data().symbol) }
-
-func (node JSDocTypeLiteral) SetSymbol(value *Symbol) {
-	node.store().symbols.set(&node.data().symbol, value, value == nil)
-}
-
+func (node JSDocTypeLiteral) Symbol() *Symbol         { return node.Node.binderSymbol() }
+func (node JSDocTypeLiteral) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
 func (node JSDocTypeLiteral) JSDocPropertyTags() []Node {
 	return node.store().nodeSlices.get(node.data().jsDocPropertyTags)
 }
@@ -19510,99 +18363,6 @@ var nodeTextOffsets = [kindFlowReduceLabelData + 1]uint8{
 	KindTemplateHead:                  uint8(unsafe.Offsetof(templateHeadData{}.text) + 1),
 	KindTemplateMiddle:                uint8(unsafe.Offsetof(templateMiddleData{}.text) + 1),
 	KindTemplateTail:                  uint8(unsafe.Offsetof(templateTailData{}.text) + 1),
-}
-
-var nodeSymbolOffsets = [kindFlowReduceLabelData + 1]uint8{
-	KindVariableDeclaration:           uint8(unsafe.Offsetof(variableDeclarationData{}.symbol) + 1),
-	KindParameter:                     uint8(unsafe.Offsetof(parameterDeclarationData{}.symbol) + 1),
-	KindBindingElement:                uint8(unsafe.Offsetof(bindingElementData{}.symbol) + 1),
-	KindMissingDeclaration:            uint8(unsafe.Offsetof(missingDeclarationData{}.symbol) + 1),
-	KindFunctionDeclaration:           uint8(unsafe.Offsetof(functionDeclarationData{}.symbol) + 1),
-	KindClassDeclaration:              uint8(unsafe.Offsetof(classDeclarationData{}.symbol) + 1),
-	KindClassExpression:               uint8(unsafe.Offsetof(classExpressionData{}.symbol) + 1),
-	KindInterfaceDeclaration:          uint8(unsafe.Offsetof(interfaceDeclarationData{}.symbol) + 1),
-	KindTypeAliasDeclaration:          uint8(unsafe.Offsetof(typeAliasDeclarationData{}.symbol) + 1),
-	KindJSTypeAliasDeclaration:        uint8(unsafe.Offsetof(typeAliasDeclarationData{}.symbol) + 1),
-	KindEnumMember:                    uint8(unsafe.Offsetof(enumMemberData{}.symbol) + 1),
-	KindEnumDeclaration:               uint8(unsafe.Offsetof(enumDeclarationData{}.symbol) + 1),
-	KindNotEmittedTypeElement:         uint8(unsafe.Offsetof(notEmittedTypeElementData{}.symbol) + 1),
-	KindImportDeclaration:             uint8(unsafe.Offsetof(importDeclarationData{}.symbol) + 1),
-	KindJSImportDeclaration:           uint8(unsafe.Offsetof(importDeclarationData{}.symbol) + 1),
-	KindNamespaceImport:               uint8(unsafe.Offsetof(namespaceImportData{}.symbol) + 1),
-	KindExportAssignment:              uint8(unsafe.Offsetof(exportAssignmentData{}.symbol) + 1),
-	KindNamespaceExportDeclaration:    uint8(unsafe.Offsetof(namespaceExportDeclarationData{}.symbol) + 1),
-	KindNamespaceExport:               uint8(unsafe.Offsetof(namespaceExportData{}.symbol) + 1),
-	KindExportSpecifier:               uint8(unsafe.Offsetof(exportSpecifierData{}.symbol) + 1),
-	KindCallSignature:                 uint8(unsafe.Offsetof(callSignatureDeclarationData{}.symbol) + 1),
-	KindConstructSignature:            uint8(unsafe.Offsetof(constructSignatureDeclarationData{}.symbol) + 1),
-	KindConstructor:                   uint8(unsafe.Offsetof(constructorDeclarationData{}.symbol) + 1),
-	KindGetAccessor:                   uint8(unsafe.Offsetof(getAccessorDeclarationData{}.symbol) + 1),
-	KindSetAccessor:                   uint8(unsafe.Offsetof(setAccessorDeclarationData{}.symbol) + 1),
-	KindIndexSignature:                uint8(unsafe.Offsetof(indexSignatureDeclarationData{}.symbol) + 1),
-	KindMethodSignature:               uint8(unsafe.Offsetof(methodSignatureDeclarationData{}.symbol) + 1),
-	KindMethodDeclaration:             uint8(unsafe.Offsetof(methodDeclarationData{}.symbol) + 1),
-	KindPropertySignature:             uint8(unsafe.Offsetof(propertySignatureDeclarationData{}.symbol) + 1),
-	KindPropertyDeclaration:           uint8(unsafe.Offsetof(propertyDeclarationData{}.symbol) + 1),
-	KindSemicolonClassElement:         uint8(unsafe.Offsetof(semicolonClassElementData{}.symbol) + 1),
-	KindClassStaticBlockDeclaration:   uint8(unsafe.Offsetof(classStaticBlockDeclarationData{}.symbol) + 1),
-	KindNoSubstitutionTemplateLiteral: uint8(unsafe.Offsetof(noSubstitutionTemplateLiteralData{}.symbol) + 1),
-	KindBinaryExpression:              uint8(unsafe.Offsetof(binaryExpressionData{}.symbol) + 1),
-	KindArrowFunction:                 uint8(unsafe.Offsetof(arrowFunctionData{}.symbol) + 1),
-	KindFunctionExpression:            uint8(unsafe.Offsetof(functionExpressionData{}.symbol) + 1),
-	KindCallExpression:                uint8(unsafe.Offsetof(callExpressionData{}.symbol) + 1),
-	KindObjectLiteralExpression:       uint8(unsafe.Offsetof(objectLiteralExpressionData{}.symbol) + 1),
-	KindSpreadAssignment:              uint8(unsafe.Offsetof(spreadAssignmentData{}.symbol) + 1),
-	KindPropertyAssignment:            uint8(unsafe.Offsetof(propertyAssignmentData{}.symbol) + 1),
-	KindShorthandPropertyAssignment:   uint8(unsafe.Offsetof(shorthandPropertyAssignmentData{}.symbol) + 1),
-	KindMappedType:                    uint8(unsafe.Offsetof(mappedTypeNodeData{}.symbol) + 1),
-	KindTypeLiteral:                   uint8(unsafe.Offsetof(typeLiteralNodeData{}.symbol) + 1),
-	KindNamedTupleMember:              uint8(unsafe.Offsetof(namedTupleMemberData{}.symbol) + 1),
-	KindFunctionType:                  uint8(unsafe.Offsetof(functionTypeNodeData{}.symbol) + 1),
-	KindConstructorType:               uint8(unsafe.Offsetof(constructorTypeNodeData{}.symbol) + 1),
-	KindJsxAttributes:                 uint8(unsafe.Offsetof(jsxAttributesData{}.symbol) + 1),
-	KindJsxAttribute:                  uint8(unsafe.Offsetof(jsxAttributeData{}.symbol) + 1),
-	KindJsxSpreadAttribute:            uint8(unsafe.Offsetof(jsxSpreadAttributeData{}.symbol) + 1),
-	KindJSDocSignature:                uint8(unsafe.Offsetof(jsDocSignatureData{}.symbol) + 1),
-	KindSourceFile:                    uint8(unsafe.Offsetof(sourceFileData{}.symbol) + 1),
-	KindModuleDeclaration:             uint8(unsafe.Offsetof(moduleDeclarationData{}.symbol) + 1),
-	KindImportEqualsDeclaration:       uint8(unsafe.Offsetof(importEqualsDeclarationData{}.symbol) + 1),
-	KindExportDeclaration:             uint8(unsafe.Offsetof(exportDeclarationData{}.symbol) + 1),
-	KindImportClause:                  uint8(unsafe.Offsetof(importClauseData{}.symbol) + 1),
-	KindImportSpecifier:               uint8(unsafe.Offsetof(importSpecifierData{}.symbol) + 1),
-	KindTypeParameter:                 uint8(unsafe.Offsetof(typeParameterDeclarationData{}.symbol) + 1),
-	KindJSDocTypeLiteral:              uint8(unsafe.Offsetof(jsDocTypeLiteralData{}.symbol) + 1),
-}
-
-var nodeLocalsOffsets = [kindFlowReduceLabelData + 1]uint8{
-	KindForStatement:                uint8(unsafe.Offsetof(forStatementData{}.locals) + 1),
-	KindForInStatement:              uint8(unsafe.Offsetof(forInOrOfStatementData{}.locals) + 1),
-	KindForOfStatement:              uint8(unsafe.Offsetof(forInOrOfStatementData{}.locals) + 1),
-	KindCaseBlock:                   uint8(unsafe.Offsetof(caseBlockData{}.locals) + 1),
-	KindCatchClause:                 uint8(unsafe.Offsetof(catchClauseData{}.locals) + 1),
-	KindBlock:                       uint8(unsafe.Offsetof(blockData{}.locals) + 1),
-	KindFunctionDeclaration:         uint8(unsafe.Offsetof(functionDeclarationData{}.locals) + 1),
-	KindClassDeclaration:            uint8(unsafe.Offsetof(classDeclarationData{}.locals) + 1),
-	KindClassExpression:             uint8(unsafe.Offsetof(classExpressionData{}.locals) + 1),
-	KindTypeAliasDeclaration:        uint8(unsafe.Offsetof(typeAliasDeclarationData{}.locals) + 1),
-	KindJSTypeAliasDeclaration:      uint8(unsafe.Offsetof(typeAliasDeclarationData{}.locals) + 1),
-	KindCallSignature:               uint8(unsafe.Offsetof(callSignatureDeclarationData{}.locals) + 1),
-	KindConstructSignature:          uint8(unsafe.Offsetof(constructSignatureDeclarationData{}.locals) + 1),
-	KindConstructor:                 uint8(unsafe.Offsetof(constructorDeclarationData{}.locals) + 1),
-	KindGetAccessor:                 uint8(unsafe.Offsetof(getAccessorDeclarationData{}.locals) + 1),
-	KindSetAccessor:                 uint8(unsafe.Offsetof(setAccessorDeclarationData{}.locals) + 1),
-	KindIndexSignature:              uint8(unsafe.Offsetof(indexSignatureDeclarationData{}.locals) + 1),
-	KindMethodSignature:             uint8(unsafe.Offsetof(methodSignatureDeclarationData{}.locals) + 1),
-	KindMethodDeclaration:           uint8(unsafe.Offsetof(methodDeclarationData{}.locals) + 1),
-	KindClassStaticBlockDeclaration: uint8(unsafe.Offsetof(classStaticBlockDeclarationData{}.locals) + 1),
-	KindArrowFunction:               uint8(unsafe.Offsetof(arrowFunctionData{}.locals) + 1),
-	KindFunctionExpression:          uint8(unsafe.Offsetof(functionExpressionData{}.locals) + 1),
-	KindConditionalType:             uint8(unsafe.Offsetof(conditionalTypeNodeData{}.locals) + 1),
-	KindMappedType:                  uint8(unsafe.Offsetof(mappedTypeNodeData{}.locals) + 1),
-	KindFunctionType:                uint8(unsafe.Offsetof(functionTypeNodeData{}.locals) + 1),
-	KindConstructorType:             uint8(unsafe.Offsetof(constructorTypeNodeData{}.locals) + 1),
-	KindJSDocSignature:              uint8(unsafe.Offsetof(jsDocSignatureData{}.locals) + 1),
-	KindSourceFile:                  uint8(unsafe.Offsetof(sourceFileData{}.locals) + 1),
-	KindModuleDeclaration:           uint8(unsafe.Offsetof(moduleDeclarationData{}.locals) + 1),
 }
 
 func (n MutableNode) SetModifiers(modifiers ModifierList) {

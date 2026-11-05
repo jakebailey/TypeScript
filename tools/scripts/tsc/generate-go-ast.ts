@@ -272,6 +272,23 @@ const sideTables: Record<string, string> = {
     "any": "values",
 };
 
+// The binder's fields are not in records; the store keeps them in side
+// tables keyed by node index, read and written by the methods named here.
+const binderFields: Record<string, string> = {
+    Symbol: "binderSymbol",
+    LocalSymbol: "binderLocalSymbol",
+    Locals: "binderLocals",
+    NextContainer: "binderNextContainer",
+    FlowNode: "binderFlowNode",
+    EndFlowNode: "binderEndFlowNode",
+    ReturnFlowNode: "binderReturnFlowNode",
+    FallthroughFlowNode: "binderFallthroughFlowNode",
+};
+
+function isBinderField(f: { name: string; goOnly?: boolean; }): boolean {
+    return !!f.goOnly && Object.hasOwn(binderFields, f.name);
+}
+
 // Fields referring to records that live in the store's blocks, and symbol
 // names, hold a 32-bit ref, like node fields; the methods named here read,
 // write and create them.
@@ -314,7 +331,7 @@ function baseGoFields(key: string): GoField[] {
     for (const ext of baseGoEmbeds(base)) fields.push(...baseGoFields(ext));
     for (const field of base.fields) {
         if (field.noGo) continue;
-        fields.push({ name: field.name, goType: field.goOnly ? field.rawType as string : field.type.formatGoReference(), isNode: isNodeField(field), owner: key });
+        fields.push({ name: field.name, goType: field.goOnly ? field.rawType as string : field.type.formatGoReference(), isNode: isNodeField(field), owner: key, binder: isBinderField(field) });
     }
     return fields;
 }
@@ -332,7 +349,7 @@ function baseRecordFields(key: string): RecordField[] {
     const fields: RecordField[] = [];
     for (const ext of baseGoEmbeds(base)) fields.push(...baseRecordFields(ext));
     for (const field of base.fields) {
-        if (field.noGo) continue;
+        if (field.noGo || isBinderField(field)) continue;
         const valueType = field.goOnly ? field.rawType as string : field.type.formatGoReference();
         const goType = recordGoType(isNodeField(field), valueType);
         const parts = [];
@@ -371,6 +388,7 @@ function nodeRecordFields(node: NodeType): RecordField[] {
     const fields: RecordField[] = [];
     for (const ext of goEmbeds(node.extendsKeys)) fields.push(...baseRecordFields(ext));
     for (const m of nodeOwnFields(node)) {
+        if (isBinderField(m)) continue;
         const goType = recordGoType(isNodeField(m), memberGoType(m));
         fields.push({ storage: goStorageName(m.name), goType, comment: buildFieldComment(m, goType !== memberGoType(m) ? memberGoType(m) : undefined) });
     }
@@ -388,7 +406,7 @@ function nodeRecordFields(node: NodeType): RecordField[] {
 function nodeGoFields(node: NodeType): GoField[] {
     const fields: GoField[] = [];
     for (const ext of goEmbeds(node.extendsKeys)) fields.push(...baseGoFields(ext));
-    for (const m of nodeOwnFields(node)) fields.push({ name: m.name, goType: memberGoType(m), isNode: isNodeField(m) });
+    for (const m of nodeOwnFields(node)) fields.push({ name: m.name, goType: memberGoType(m), isNode: isNodeField(m), binder: isBinderField(m) });
     return fields;
 }
 
@@ -472,7 +490,7 @@ function generateBaseStructDefs(w: CodeWriter) {
 
         const structName = base.key;
         for (const field of base.fields) {
-            if (!field.noGo) generateBaseFieldOffsets(w, base, field.name, field.goOnly ? field.rawType as string : field.type.formatGoReference(), isNodeField(field));
+            if (!field.noGo && !isBinderField(field)) generateBaseFieldOffsets(w, base, field.name, field.goOnly ? field.rawType as string : field.type.formatGoReference(), isNodeField(field));
         }
 
         // Base views see the fields of whichever concrete node they wrap.
@@ -674,6 +692,7 @@ interface GoField {
     isNode: boolean;
     // The base declaring the field, or undefined for a node's own field.
     owner?: string;
+    binder?: boolean;
 }
 
 function dataName(node: NodeType): string {
@@ -720,7 +739,12 @@ function generateFieldAccessors(w: CodeWriter, structName: string, fields: GoFie
         const side = sideTableOf(goType);
         const recordRef = recordRefOf(goType);
         const dispatched = isBase ? KIND_DISPATCHED_GETTERS[name] : undefined;
-        if (dispatched && dispatched.goType === goType && recordRef) {
+        if (field.binder) {
+            const method = binderFields[name];
+            w.write(`func (node ${structName}) ${getterName(name, goType)}() ${goType} { return node.Node.${method}() }`);
+            w.write(`func (node ${structName}) ${setterName(name)}(value ${goType}) { node.Node.set${api.capitalize(method)}(value) }`);
+        }
+        else if (dispatched && dispatched.goType === goType && recordRef) {
             w.write(`func (node ${structName}) ${getterName(name, goType)}() ${goType} { return node.Node.${dispatched.getter}() }`);
             w.write(`func (node ${structName}) ${setterName(name)}(value ${goType}) { node.${recordRef.set}(${addr(field)}, value) }`);
         }
@@ -1382,8 +1406,6 @@ const MEMBER_OFFSET_TABLES: { member: string; refType: string; overrides?: Recor
     { member: "Body", refType: "nodeRef", overrides: { KindClassStaticBlockDeclaration: null } },
     // Node.Text has never read the text of JsxText.
     { member: "Text", refType: "textRef", overrides: { KindJsxText: null } },
-    { member: "Symbol", refType: "sideRef" },
-    { member: "Locals", refType: "sideRef" },
 ];
 
 function generateMemberOffsetTables(w: CodeWriter) {

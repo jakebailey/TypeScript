@@ -143,7 +143,36 @@ func TestNodeSideTableZeroValues(t *testing.T) {
 	assert.Assert(t, node.AsBlock().Locals() != nil)
 	node.AsBlock().SetLocals(nil)
 	assert.Assert(t, node.AsBlock().Locals() == nil)
-	assert.Equal(t, len(factory.nodeStore().symbolTables.items), 2)
+	assert.Equal(t, len(factory.nodeStore().binder.locals), 0)
+}
+
+func TestSparseMap(t *testing.T) {
+	t.Parallel()
+	var m sparseMap[uint32]
+	const n = 100
+	for _, i := range []uint32{3, 31, 32, 70} {
+		m.set(i, i+1000, n)
+	}
+	m.set(5, 0, n)
+	m.pack()
+	assert.Assert(t, m.dense == nil)
+	assert.Equal(t, len(m.blocks), 3)
+	assert.Equal(t, len(m.values), 4)
+	for i := range uint32(n) {
+		want := uint32(0)
+		if i == 3 || i == 31 || i == 32 || i == 70 {
+			want = i + 1000
+		}
+		assert.Equal(t, m.get(i), want, "index %d", i)
+	}
+	m.set(32, 7, 0)
+	m.set(33, 8, 0)
+	m.set(99, 9, 0)
+	assert.Equal(t, m.get(32), uint32(7))
+	assert.Equal(t, m.get(33), uint32(8))
+	assert.Equal(t, m.get(99), uint32(9))
+	assert.Equal(t, m.get(70), uint32(1070))
+	assert.Equal(t, len(m.extra), 2)
 }
 
 func TestNodeTextRefs(t *testing.T) {
