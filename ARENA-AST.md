@@ -153,6 +153,113 @@ Experiments that didn't pay: a zero check in side-table getters (+0.03% instruct
 - Find more places where the store can answer structurally what main answers by walking parents (as `GetSourceFileOfNode` does).
 - Symbols as per-store typed arrays addressed by index, which would shrink the remaining GC-scanned side tables.
 
+## Redesign: nodes as (store, index)
+
+Branch `new-ast-index`, from `new-ast` at `1fce2af19c3`. In the design above, a node is a raw address, so everything about it has to be recovered from that address: its chunk (alignment tricks and chunk codes), its store, its file, and its id (per-chunk id tables). The redesign identifies a node by its store and its index in that store's node table, like an index into an array. Everything else hangs off the store.
+
+### Target layout
+
+The goal is to match a fixed reference layout, so that memory compares like for like. Deviations are listed below, with the reason Go forces each one.
+
+- **Node header, exactly 24 bytes:** `{kind uint16, spare uint16, flags uint32, pos int32, end int32, parent uint32, word uint32}`.
+  - `parent` is a node index, with 0 for none.
+  - `word` holds the kind's payload inline when that payload is exactly 4 bytes, for example an `Identifier`'s interned name. Otherwise it is the offset in the store's `dataWords` where the payload starts.
+  - Index 0 of the node table is a reserved dummy, so node indices are never 0.
+- **Per store:** `nodes []nodeHeader`, `lists []nodeList`, `listNodes []uint32` and `dataWords []uint32`, shrunk to exact size after parsing.
+- **Payload refs:** a child is a 4-byte node index. A list is a 4-byte list index, with 0 for none.
+- **`nodeList`:** `{pos int32, end int32, start uint32, len uint32}`, 16 bytes. Its elements are `listNodes[start:start+len]`.
+- **Node handle:** 8 bytes, `{file uint32, node uint32}`. The file id indexes a table of stores, and factory and transformer stores take ids from the same table.
+- **Binder data moves out of payloads into per-store side tables:**
+  - symbols and flow nodes go in a sparse node map: one `{bits uint32, base uint32}` block per 32 nodes, plus dense values found by popcount. It is built from a dense table once binding is done;
+  - locals, local symbol, next container, and end, return and fallthrough flow nodes go in hash maps keyed by node index.
+- **Checker links:**
+  - symbol-of-node is a per-file `map[uint32]` (a slice of maps indexed by file id);
+  - other node links are maps keyed by the 8-byte handle.
+
+  There are no global node ids and no dense paged node link stores.
+- **`GetSourceFileOfNode`** is O(1): `handle.file` gives the store, and the store gives its file.
+
+### Record sizes, vscode
+
+Payloads below exclude the binder fields and the subtree facts cache, which both move to side tables. Counts are of parsed nodes at the end of a vscode run: 19.39M nodes in 26,098 stores, and 3.61M lists holding 6.23M elements.
+
+| Kind | Count | Now (bytes) | Payload | In `dataWords` | Header + data |
+|---|---|---|---|---|---|
+| Identifier | 6.65M | 28 | 4 | inline | 24 |
+| PropertyAccessExpression | 1.74M | 40 | 12 | 12 | 36 |
+| CallExpression | 1.14M | 44 | 16 | 16 | 40 |
+| StringLiteral | 0.87M | 32 | 12 | 12 | 36 |
+| PropertyAssignment | 0.69M | 48 | 20 | 20 | 44 |
+| ExpressionStatement | 0.57M | 28 | 4 | inline | 24 |
+| TypeReference | 0.43M | 28 | 8 | 8 | 32 |
+| Block | 0.38M | 44 | 5 | 8 | 32 |
+| VariableDeclaration | 0.36M | 48 | 16 | 16 | 40 |
+| VariableDeclarationList | 0.36M | 28 | 4 | inline | 24 |
+| BinaryExpression | 0.34M | 48 | 20 | 20 | 44 |
+| VariableStatement | 0.34M | 36 | 8 | 8 | 32 |
+| Parameter | 0.32M | 52 | 24 | 24 | 48 |
+| ThisKeyword | 0.32M | 24 | 0 | – | 24 |
+
+Tokens grow from 20 to 24 bytes. 8.3M nodes have an inline payload.
+
+### Handle
+
+`Node` is `struct{file, node uint32}`. It is 8 bytes and comparable, and the zero value is the absent node.
+
+The handle size matters well beyond the AST: checker maps keyed by node, `[]Node` slices, symbol declarations and flow caches all hold nodes. Padding the current one-pointer handle to 16 bytes, with no other change, raised vscode's Memory used from 3,167,904K to 3,274,391K (+106MB). So a `{*store, index}` handle is out.
+
+The file id indexes a process-wide table of stores. Each entry holds the bases of the store's four tables and the store itself, so `Kind()` is three dependent loads:
+
+1. the table page, from a fixed global directory;
+2. the entry's `nodes` base;
+3. the header.
+
+What Go forces:
+
+- **Ids are recycled.** A long-running language server creates stores without end (reparsed files, lazily parsed JSDoc, factories), so ids must be reused. A handle is just two integers, so it can't keep its store alive. Each store therefore has an owner that holds it: its `SourceFile`, its `NodeFactory`, or a store that refers into it. A `runtime.AddCleanup` on the store frees its id once the store is unreachable.
+- **The table holds its pointers weakly.** If the entries were ordinary Go pointers, every store would stay reachable forever. So the table is pointer-free memory that the collector doesn't scan, and the pointers in it are read as `unsafe.Pointer`. `weak.Pointer` would be the safe way to do this, but `Value()` is a runtime call, too slow for `Kind()`.
+- **The bases are published atomically.** Parsed stores are private until they are frozen, so they grow by plain `append`. Some unfrozen stores are read by other goroutines while they grow, such as a source file's token factory, whose tokens are cached under a lock and then read without one. So a store publishes each new base with an atomic store, and readers load the bases atomically, which is a plain load on amd64.
+
+### Cross-store refs and lists
+
+Factory and transformer trees refer to nodes and lists of parsed files: originals, reused children, and parents of reused nodes. A plain 4-byte index can't name another store. This is a forced deviation: a ref with its top bit set is an index into the store's `far []Node` or `farLists []NodeList` table, and the store holds every store it refers into, so that they stay alive. Parsed files never refer outside their own store, so their refs are plain indices.
+
+`NodeList` is a handle like `Node`, `{file, list}`. A `ModifierList`'s flags are computed from its elements, since the target `nodeList` has no room for them. Missing lists, which are rare, are kept in a per-store set.
+
+### Other side tables
+
+- **Subtree facts.** Today these are a lazily computed, atomically cached word in the payload of 76 composite kinds. They move to a per-store `[]atomic.Uint32` indexed by node, allocated on the first facts query. This keeps payloads at the target size. The checker never queries facts; emit, JSX module detection and some JS diagnostics do.
+- **Go values.** Strings, `[]string`, `*SourceFile` and similar stay in the existing typed side tables, as 4-byte refs in payloads (text refs are 8 bytes), since pointer-free payloads can't hold them.
+- **Flow nodes.** Flow nodes stay in a per-store table of 16-byte records. Their node field becomes a node ref.
+
+### What gets deleted
+
+Chunks, chunk headers and chunk codes, size-class and alignment logic, anchors, near/far self-relative refs, parent deltas, per-chunk id tables, `NodeIdGenerator` and the global node id counters, paged node link stores, list header encodings (derived pos and end, spilled lists), and the field offset tables' reliance on record headers.
+
+`GetNodeId` survives as a key derived from the handle, `file<<32 | node`. It is unique among live nodes, which is all its remaining callers need: printer name caches, the declaration transformer and checker cache keys.
+
+### Estimate (vscode)
+
+| | Now | Target |
+|---|---|---|
+| Node records | 658MB | headers 465MB + `dataWords` 133MB = 598MB |
+| Lists | ~54MB (8-byte headers plus elements) | 83MB (16 bytes each plus elements) |
+| Binder data | ~73MB in records + 21MB symbol side table | sparse symbols ~26MB, sparse flows ~45MB, maps ~27MB (1.13M entries) |
+| Far tables, id tables | ~16MB + ~35MB | far tables for factory stores only |
+| Node link stores | paged by lazy id | maps keyed by handle (to be measured) |
+
+The AST itself comes out roughly even, perhaps 50–80MB smaller. The link stores are the unknown: a map entry costs 2–3 times a dense page slot.
+
+### Steps
+
+Each step is a commit, measured separately:
+
+1. Node links in maps keyed by node, and symbol-of-node as a node→symbol map, still on the current AST. Ids stay only for their few non-link users.
+2. Nodes as (store, index): the tables, the 8-byte handle, the store table, payloads in `dataWords`, lists, and far tables. Chunks, anchors and ids are deleted. Binder fields and facts stay in payloads for now.
+3. Binder data in sparse maps and hash maps.
+4. Subtree facts in a per-store side table.
+5. Symbol-of-node as per-file `map[uint32]`.
+
 ## Historical: earlier measurements (step 9 vs main, vscode, n=10, interleaved)
 
 ### Branch tip vs main
