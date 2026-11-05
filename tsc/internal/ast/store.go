@@ -220,6 +220,18 @@ func slotEntry(id uint32) *storeEntry {
 
 // storeEntryOf returns the entry of the store with the id, panicking if
 // the store has been released.
+// StoreSlot returns the slot of n's store in the store table, which no
+// other live store has. Slots are small and reused once a store is
+// released; StoreID tells apart the stores that have had a slot.
+func (n Node) StoreSlot() uint32 { return n.file & storeSlotMask }
+
+// StoreID returns the id of n's store, unique among the stores ever made
+// in its slot.
+func (n Node) StoreID() uint32 { return n.file }
+
+// Index returns n's index in its store, which is never zero.
+func (n Node) Index() uint32 { return n.node }
+
 func storeEntryOf(id uint32) *storeEntry {
 	e := slotEntry(id)
 	if checkStoreIDs && e.id.Load() != id {

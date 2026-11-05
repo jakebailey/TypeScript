@@ -176,6 +176,7 @@ The goal is to match a fixed reference layout, so that memory compares like for 
   - Deviation: a symbol is a `*Symbol`, so the sparse symbol map's values are 8 bytes, not 4.
 - **Checker links:**
   - symbol-of-node is a per-file `map[uint32]` (a slice of maps indexed by file id);
+    - Deviation: the per-store maps are found through a map keyed by store id, with a one-entry cache, not a slice. Store ids are process-wide slots, not indices into a program's file table, so a slice indexed by slot grows with every store alive in the process; the compiler test suite, with many programs alive at once, ran out of memory that way. Values are `*Symbol`, 8 bytes.
   - other node links are maps keyed by the 8-byte handle.
 
   There are no global node ids and no dense paged node link stores.
@@ -303,6 +304,7 @@ Memory used from `--extendedDiagnostics`, single-threaded check. Base is `1fce2a
 | 2. nodes as (store, index) | 3,281,105K (+72MB) | 1,851,797K (+16MB) | 1,187,501K (+11MB) |
 | 3. binder side tables | 3,237,589K (−44MB) | 1,830,127K (−22MB) | 1,171,878K (−16MB) |
 | 4. subtree facts table | 3,202,245K (−35MB) | 1,816,695K (−13MB) | 1,168,769K (−3MB) |
+| 5. symbol-of-node per store | 3,188,922K (−13MB) | 1,818,221K (+2MB) | 1,170,622K (+2MB) |
 
 Step 2's vscode heap: node headers 472MB, `dataWords` and `listNodes` 286MB, lists 54MB, in place of 742MB of chunks. The payloads still hold the binder fields and the facts word, which steps 3 and 4 move out; flow nodes grew from 47MB to 71MB because their table is never trimmed after binding.
 
