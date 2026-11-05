@@ -76,7 +76,7 @@ Records are generated from the AST schema (`tools/scripts/tsc/generate-go-ast.ts
 
 Lists are records too: a range, a count, a flags word (missing list, or a `ModifierList`'s flags), then packed element refs. The parser collects elements on one scratch stack and copies each finished list into the store, so parsing allocates no `[]Node` per list.
 
-Records are word aligned and refs are 4-byte aligned, so a distance between them is never odd, and the low bit is free to mark near refs. Go's compiler can't emit a three-operand LEA, so every encoding is chosen to make the hot decode one add: near refs keep the bit set and subtract a constant, and parents use even offsets from the record itself.
+Records, lists and refs are 4-byte aligned (no record field is wider than 4 bytes), so a distance between them is never odd, and the low bit is free to mark near refs. Go's compiler can't emit a three-operand LEA, so every encoding is chosen to make the hot decode one add: near refs keep the bit set and subtract a constant, and parents use even offsets from the record itself.
 
 ### What unsafe is left
 
@@ -144,6 +144,7 @@ Experiments that didn't pay: a zero check in side-table getters (+0.03% instruct
 27. **`GetNodeId` inlinable again** (`67837fcf02d`, −0.28% instructions).
 28. **24-byte header** (vscode memory used −140MB, −3.9%): ids move from the header to per-chunk tables. Chunks shrink by 174MB, and the id tables take 35MB.
 29. **4-byte names in records** (vscode memory used −61MB, −1.8%): `Identifier` keeps its `SymbolName` as a 32-bit `nameRef`, shrinking from 40 to 32 bytes. On vscode every one of the 6.9M identifier names is a plain interned ID (the largest is about 2^20), so the store's `names` table stays empty.
+30. **4-byte record alignment** (vscode memory used −32MB, −1.0%): records and lists are allocated in 4-byte units instead of words, so the many records with a 4-byte tail (`PropertyAccessExpression` 48 → 44, `StringLiteral` 40 → 36, `ThisKeyword` 32 → 28, `BinaryExpression` and `PropertyAssignment` 56 → 52) no longer pad. Anchors count 4-byte units.
 
 ## Next
 

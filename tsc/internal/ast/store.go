@@ -25,8 +25,8 @@ import (
 // tables.
 type nodeStore struct {
 	// free is the unused rest of the chunk being allocated from, which
-	// starts at base.
-	free []uint64
+	// starts at base, in units of recordAlign bytes.
+	free []uint32
 	base unsafe.Pointer
 	// chunks holds the start of every chunk, in allocation order.
 	chunks []unsafe.Pointer
@@ -128,7 +128,7 @@ var _ [24 - unsafe.Sizeof(nodeBaseData{})]struct{}
 // rest is an index into the store's far nodes, whose first is the absent
 // node, so that zero is no node.
 //
-// Records are word aligned and refs are four byte aligned, so the distance
+// Records and refs are four byte aligned, so the distance
 // from a ref to a record never has the low bit set.
 type nodeRef uint32
 
@@ -145,6 +145,13 @@ type parentRef int32
 const parentNone parentRef = 1
 
 const wordSize = unsafe.Sizeof(uint64(0))
+
+// recordAlign is the alignment of records and lists in their chunks. No
+// record field is wider than four bytes.
+const recordAlign = 4
+
+// Normal chunks are small enough for anchors to address all their records.
+var _ [maxChunkUnits - maxChunkRecordWords*int(wordSize)/recordAlign]struct{}
 
 // rec returns the address of n's record.
 func (n Node) rec() unsafe.Pointer { return n.p }
@@ -236,7 +243,8 @@ func farSlot(i int) uint32 {
 }
 
 // A nodeAnchor refers to a node of a store from outside its records: the
-// chunk, biased by one, and the record's word offset there. With anchorFar
+// chunk, biased by one, and the record's offset there in units of
+// recordAlign bytes. With anchorFar
 // set, the rest is an index into the store's far nodes.
 type nodeAnchor uint32
 
@@ -244,16 +252,16 @@ const (
 	anchorFar        = 1 << 31
 	anchorChunkShift = 23
 	maxAnchorChunks  = 1<<(31-anchorChunkShift) - 1
-	// maxChunkWords bounds chunks so that anchors can address every word.
-	maxChunkWords = 1 << anchorChunkShift
+	// maxChunkUnits bounds chunks so that anchors can address every record.
+	maxChunkUnits = 1 << anchorChunkShift
 )
 
 func (s *nodeStore) anchor(v Node) nodeAnchor {
 	if v.p == nil {
 		return 0
 	}
-	if c, w := v.chunk(), v.hdr().chunk/uint32(wordSize); c.store == s && c.index < maxAnchorChunks && w < maxChunkWords {
-		return nodeAnchor((c.index+1)<<anchorChunkShift | w)
+	if c, u := v.chunk(), v.hdr().chunk/recordAlign; c.store == s && c.index < maxAnchorChunks && u < maxChunkUnits {
+		return nodeAnchor((c.index+1)<<anchorChunkShift | u)
 	}
 	s.far = append(s.far, v)
 	if uint64(len(s.far)) > anchorFar {
@@ -270,8 +278,8 @@ func (s *nodeStore) fromAnchor(r nodeAnchor) Node {
 		return s.far[r&^anchorFar]
 	}
 	c := s.chunks[r>>anchorChunkShift-1]
-	// SAFETY: anchor encodes a word offset to a record in this retained chunk.
-	return Node{unsafe.Add(c, int(r&(maxChunkWords-1))*int(wordSize))}
+	// SAFETY: anchor encodes the offset of a record in this retained chunk.
+	return Node{unsafe.Add(c, int(r&(maxChunkUnits-1))*recordAlign)}
 }
 
 func (s *nodeStore) newNode(kind Kind, layout nodeLayout, n Node) Node {
@@ -285,8 +293,11 @@ func (s *nodeStore) newNode(kind Kind, layout nodeLayout, n Node) Node {
 // newRecord allocates a zeroed record of type T, whose first field must be
 // its nodeBaseData.
 func newRecord[T any](s *nodeStore, layout nodeLayout) (*T, Node) {
+	if unsafe.Alignof(*new(T)) > recordAlign {
+		panic("node record is overaligned")
+	}
 	p, chunk := s.alloc(unsafe.Sizeof(*new(T)))
-	// SAFETY: alloc returns word-aligned, zeroed storage for T, whose first field is nodeBaseData.
+	// SAFETY: alloc returns aligned, zeroed storage for T, whose first field is nodeBaseData.
 	h := (*nodeBaseData)(p)
 	h.chunk = chunk
 	h.parent = parentNone
@@ -300,25 +311,26 @@ func (s *nodeStore) alloc(size uintptr) (unsafe.Pointer, uint32) {
 	if s.frozen {
 		panic("node store is frozen")
 	}
-	words := int((size + wordSize - 1) / wordSize)
-	if words > len(s.free) {
-		return s.grow(words)
+	units := int((size + recordAlign - 1) / recordAlign)
+	if units > len(s.free) {
+		return s.grow(units)
 	}
-	// SAFETY: The free words belong to a retained chunk and have room for this record.
+	// SAFETY: The free units belong to a retained chunk and have room for this record.
 	p := unsafe.Pointer(unsafe.SliceData(s.free))
-	s.free = s.free[words:]
+	s.free = s.free[units:]
 	// SAFETY: p and s.base address the same retained chunk; their integer addresses
 	// are used only to compute a byte offset, never to reconstruct a pointer.
 	return p, uint32(uintptr(p) - uintptr(s.base))
 }
 
-// grow allocates words in a new chunk. A record never spans two chunks.
-func (s *nodeStore) grow(words int) (unsafe.Pointer, uint32) {
+// grow allocates units in a new chunk. A record never spans two chunks.
+func (s *nodeStore) grow(units int) (unsafe.Pointer, uint32) {
+	words := (units*recordAlign + int(wordSize) - 1) / int(wordSize)
 	n := min(max(s.words/storeGrowthDivisor, minStoreWords), maxChunkRecordWords)
 	if len(s.chunks) == 0 {
 		n = min(max(n, s.hint), maxChunkRecordWords)
 	}
-	if words > n || words > maxChunkWords {
+	if words > n {
 		// A record too large for a normal chunk gets one of its own, and
 		// the current chunk stays in use.
 		base, _ := s.addChunk(words)
@@ -327,14 +339,14 @@ func (s *nodeStore) grow(words int) (unsafe.Pointer, uint32) {
 	}
 	base, all := s.addChunk(n)
 	s.base = base
-	s.free = all[words:]
-	// SAFETY: all is the retained chunk's word-aligned records region.
+	s.free = all[units:]
+	// SAFETY: all is the retained chunk's records region.
 	return unsafe.Pointer(unsafe.SliceData(all)), chunkHeaderSize
 }
 
 // addChunk allocates a chunk with room for at least n words of records,
-// returning its start and its records' words.
-func (s *nodeStore) addChunk(n int) (unsafe.Pointer, []uint64) {
+// returning its start and its records' units of recordAlign bytes.
+func (s *nodeStore) addChunk(n int) (unsafe.Pointer, []uint32) {
 	n = chunkClass(n)
 	base := reflect.New(chunkType(n)).UnsafePointer()
 	// SAFETY: chunkType starts with a chunkHeader, preserving its pointer's GC metadata.
@@ -342,7 +354,7 @@ func (s *nodeStore) addChunk(n int) (unsafe.Pointer, []uint64) {
 	s.chunks = append(s.chunks, base)
 	s.words += n
 	// SAFETY: chunkType places exactly n aligned uint64 words immediately after the header.
-	return base, unsafe.Slice((*uint64)(unsafe.Add(base, chunkHeaderSize)), n)
+	return base, unsafe.Slice((*uint32)(unsafe.Add(base, chunkHeaderSize)), n*int(wordSize)/recordAlign)
 }
 
 // chunkClass rounds n up so that a chunk with n words of records is 2^k
