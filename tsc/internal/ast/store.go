@@ -361,16 +361,29 @@ func (s *nodeStore) addChunk(n int) (unsafe.Pointer, []uint32) {
 	return base, unsafe.Slice((*uint32)(unsafe.Add(base, chunkHeaderSize)), n*int(wordSize)/recordAlign)
 }
 
-// chunkClass rounds n up so that a chunk with n words of records is 2^k
-// or 3*2^(k-1) bytes, sizes that the Go allocator has a class for, so the
-// space it would otherwise round up to holds records too.
+// chunkClass rounds n up so that a chunk with n words of records takes
+// 2^k or 3*2^(k-1) bytes, sizes that the Go allocator has a class for, so
+// the space it would otherwise round up to holds records too.
 func chunkClass(n int) int {
 	bytes := max(n+int(chunkHeaderWords), minStoreWords) * int(wordSize)
-	size := 1 << bits.Len(uint(bytes-1))
-	if three := size / 4 * 3; three >= bytes {
-		size = three
+	for p := 1 << (bits.Len(uint(bytes-1)) - 1); ; p *= 2 {
+		for _, size := range [...]int{p, p / 2 * 3} {
+			if size -= mallocHeader(size); size >= bytes {
+				return size/int(wordSize) - int(chunkHeaderWords)
+			}
+		}
 	}
-	return size/int(wordSize) - int(chunkHeaderWords)
+}
+
+// mallocHeader returns how many bytes the Go allocator puts before a
+// chunk to describe its pointers, if it is to take size bytes in all: a
+// word for small objects with pointers that are too large for the
+// allocator to describe in their span, but none for large ones.
+func mallocHeader(size int) int {
+	if size <= 512 || size > 32<<10 {
+		return 0
+	}
+	return int(wordSize)
 }
 
 var chunkTypes sync.Map // int -> reflect.Type
