@@ -1336,92 +1336,6 @@ type FlowNodeBase struct{ Node }
 func (node FlowNodeBase) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
 func (node FlowNodeBase) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
 
-var compositeBaseFactsOffsets = [kindFlowReduceLabelData + 1]uint8{
-	KindQualifiedName:               uint8(unsafe.Offsetof(qualifiedNameData{}.facts) + 1),
-	KindComputedPropertyName:        uint8(unsafe.Offsetof(computedPropertyNameData{}.facts) + 1),
-	KindDecorator:                   uint8(unsafe.Offsetof(decoratorData{}.facts) + 1),
-	KindIfStatement:                 uint8(unsafe.Offsetof(ifStatementData{}.facts) + 1),
-	KindDoStatement:                 uint8(unsafe.Offsetof(doStatementData{}.facts) + 1),
-	KindWhileStatement:              uint8(unsafe.Offsetof(whileStatementData{}.facts) + 1),
-	KindForStatement:                uint8(unsafe.Offsetof(forStatementData{}.facts) + 1),
-	KindForInStatement:              uint8(unsafe.Offsetof(forInOrOfStatementData{}.facts) + 1),
-	KindForOfStatement:              uint8(unsafe.Offsetof(forInOrOfStatementData{}.facts) + 1),
-	KindReturnStatement:             uint8(unsafe.Offsetof(returnStatementData{}.facts) + 1),
-	KindWithStatement:               uint8(unsafe.Offsetof(withStatementData{}.facts) + 1),
-	KindSwitchStatement:             uint8(unsafe.Offsetof(switchStatementData{}.facts) + 1),
-	KindCaseBlock:                   uint8(unsafe.Offsetof(caseBlockData{}.facts) + 1),
-	KindCaseClause:                  uint8(unsafe.Offsetof(caseClauseData{}.facts) + 1),
-	KindDefaultClause:               uint8(unsafe.Offsetof(defaultClauseData{}.facts) + 1),
-	KindThrowStatement:              uint8(unsafe.Offsetof(throwStatementData{}.facts) + 1),
-	KindTryStatement:                uint8(unsafe.Offsetof(tryStatementData{}.facts) + 1),
-	KindCatchClause:                 uint8(unsafe.Offsetof(catchClauseData{}.facts) + 1),
-	KindBlock:                       uint8(unsafe.Offsetof(blockData{}.facts) + 1),
-	KindVariableStatement:           uint8(unsafe.Offsetof(variableStatementData{}.facts) + 1),
-	KindVariableDeclaration:         uint8(unsafe.Offsetof(variableDeclarationData{}.facts) + 1),
-	KindVariableDeclarationList:     uint8(unsafe.Offsetof(variableDeclarationListData{}.facts) + 1),
-	KindObjectBindingPattern:        uint8(unsafe.Offsetof(bindingPatternData{}.facts) + 1),
-	KindArrayBindingPattern:         uint8(unsafe.Offsetof(bindingPatternData{}.facts) + 1),
-	KindParameter:                   uint8(unsafe.Offsetof(parameterDeclarationData{}.facts) + 1),
-	KindBindingElement:              uint8(unsafe.Offsetof(bindingElementData{}.facts) + 1),
-	KindFunctionDeclaration:         uint8(unsafe.Offsetof(functionDeclarationData{}.facts) + 1),
-	KindClassDeclaration:            uint8(unsafe.Offsetof(classDeclarationData{}.facts) + 1),
-	KindClassExpression:             uint8(unsafe.Offsetof(classExpressionData{}.facts) + 1),
-	KindHeritageClause:              uint8(unsafe.Offsetof(heritageClauseData{}.facts) + 1),
-	KindEnumMember:                  uint8(unsafe.Offsetof(enumMemberData{}.facts) + 1),
-	KindEnumDeclaration:             uint8(unsafe.Offsetof(enumDeclarationData{}.facts) + 1),
-	KindModuleBlock:                 uint8(unsafe.Offsetof(moduleBlockData{}.facts) + 1),
-	KindImportDeclaration:           uint8(unsafe.Offsetof(importDeclarationData{}.facts) + 1),
-	KindJSImportDeclaration:         uint8(unsafe.Offsetof(importDeclarationData{}.facts) + 1),
-	KindNamedImports:                uint8(unsafe.Offsetof(namedImportsData{}.facts) + 1),
-	KindExportAssignment:            uint8(unsafe.Offsetof(exportAssignmentData{}.facts) + 1),
-	KindNamedExports:                uint8(unsafe.Offsetof(namedExportsData{}.facts) + 1),
-	KindExportSpecifier:             uint8(unsafe.Offsetof(exportSpecifierData{}.facts) + 1),
-	KindConstructor:                 uint8(unsafe.Offsetof(constructorDeclarationData{}.facts) + 1),
-	KindGetAccessor:                 uint8(unsafe.Offsetof(getAccessorDeclarationData{}.facts) + 1),
-	KindSetAccessor:                 uint8(unsafe.Offsetof(setAccessorDeclarationData{}.facts) + 1),
-	KindMethodDeclaration:           uint8(unsafe.Offsetof(methodDeclarationData{}.facts) + 1),
-	KindPropertyDeclaration:         uint8(unsafe.Offsetof(propertyDeclarationData{}.facts) + 1),
-	KindClassStaticBlockDeclaration: uint8(unsafe.Offsetof(classStaticBlockDeclarationData{}.facts) + 1),
-	KindBinaryExpression:            uint8(unsafe.Offsetof(binaryExpressionData{}.facts) + 1),
-	KindArrowFunction:               uint8(unsafe.Offsetof(arrowFunctionData{}.facts) + 1),
-	KindFunctionExpression:          uint8(unsafe.Offsetof(functionExpressionData{}.facts) + 1),
-	KindConditionalExpression:       uint8(unsafe.Offsetof(conditionalExpressionData{}.facts) + 1),
-	KindPropertyAccessExpression:    uint8(unsafe.Offsetof(propertyAccessExpressionData{}.facts) + 1),
-	KindElementAccessExpression:     uint8(unsafe.Offsetof(elementAccessExpressionData{}.facts) + 1),
-	KindCallExpression:              uint8(unsafe.Offsetof(callExpressionData{}.facts) + 1),
-	KindNewExpression:               uint8(unsafe.Offsetof(newExpressionData{}.facts) + 1),
-	KindMetaProperty:                uint8(unsafe.Offsetof(metaPropertyData{}.facts) + 1),
-	KindTemplateExpression:          uint8(unsafe.Offsetof(templateExpressionData{}.facts) + 1),
-	KindTaggedTemplateExpression:    uint8(unsafe.Offsetof(taggedTemplateExpressionData{}.facts) + 1),
-	KindArrayLiteralExpression:      uint8(unsafe.Offsetof(arrayLiteralExpressionData{}.facts) + 1),
-	KindObjectLiteralExpression:     uint8(unsafe.Offsetof(objectLiteralExpressionData{}.facts) + 1),
-	KindPropertyAssignment:          uint8(unsafe.Offsetof(propertyAssignmentData{}.facts) + 1),
-	KindShorthandPropertyAssignment: uint8(unsafe.Offsetof(shorthandPropertyAssignmentData{}.facts) + 1),
-	KindExpressionWithTypeArguments: uint8(unsafe.Offsetof(expressionWithTypeArgumentsData{}.facts) + 1),
-	KindImportAttribute:             uint8(unsafe.Offsetof(importAttributeData{}.facts) + 1),
-	KindImportAttributes:            uint8(unsafe.Offsetof(importAttributesData{}.facts) + 1),
-	KindJsxElement:                  uint8(unsafe.Offsetof(jsxElementData{}.facts) + 1),
-	KindJsxAttributes:               uint8(unsafe.Offsetof(jsxAttributesData{}.facts) + 1),
-	KindJsxNamespacedName:           uint8(unsafe.Offsetof(jsxNamespacedNameData{}.facts) + 1),
-	KindJsxOpeningElement:           uint8(unsafe.Offsetof(jsxOpeningElementData{}.facts) + 1),
-	KindJsxSelfClosingElement:       uint8(unsafe.Offsetof(jsxSelfClosingElementData{}.facts) + 1),
-	KindJsxFragment:                 uint8(unsafe.Offsetof(jsxFragmentData{}.facts) + 1),
-	KindJsxAttribute:                uint8(unsafe.Offsetof(jsxAttributeData{}.facts) + 1),
-	KindSourceFile:                  uint8(unsafe.Offsetof(sourceFileData{}.facts) + 1),
-	KindModuleDeclaration:           uint8(unsafe.Offsetof(moduleDeclarationData{}.facts) + 1),
-	KindImportEqualsDeclaration:     uint8(unsafe.Offsetof(importEqualsDeclarationData{}.facts) + 1),
-	KindExportDeclaration:           uint8(unsafe.Offsetof(exportDeclarationData{}.facts) + 1),
-	KindImportClause:                uint8(unsafe.Offsetof(importClauseData{}.facts) + 1),
-	KindImportSpecifier:             uint8(unsafe.Offsetof(importSpecifierData{}.facts) + 1),
-}
-
-func (n Node) compositeBaseFacts() *atomic.Uint32 {
-	if off := compositeBaseFactsOffsets[n.Kind()]; off != 0 {
-		return (*atomic.Uint32)(unsafe.Add(n.fields(), off-1))
-	}
-	return nil
-}
-
 type CompositeBase struct{ Node }
 
 type TypeSyntaxBase struct{ Node }
@@ -2747,7 +2661,6 @@ func IsPrivateIdentifier(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type qualifiedNameData struct {
-	facts atomic.Uint32
 	left  nodeRef // EntityName
 	right nodeRef // MemberName
 }
@@ -2806,7 +2719,6 @@ func IsQualifiedName(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type computedPropertyNameData struct {
-	facts      atomic.Uint32
 	expression nodeRef // Expression
 }
 
@@ -2861,7 +2773,6 @@ func IsComputedPropertyName(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type decoratorData struct {
-	facts      atomic.Uint32
 	expression nodeRef // LeftHandSideExpression
 }
 
@@ -2940,7 +2851,6 @@ func IsEmptyStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type ifStatementData struct {
-	facts         atomic.Uint32
 	expression    nodeRef // Expression
 	thenStatement nodeRef // Statement
 	elseStatement nodeRef // Statement. Optional
@@ -3012,7 +2922,6 @@ func IsIfStatement(node Node) bool {
 
 type doStatementData struct {
 	statement  nodeRef // Statement
-	facts      atomic.Uint32
 	expression nodeRef // Expression
 }
 
@@ -3074,7 +2983,6 @@ func IsDoStatement(node Node) bool {
 
 type whileStatementData struct {
 	statement  nodeRef // Statement
-	facts      atomic.Uint32
 	expression nodeRef // Expression
 }
 
@@ -3138,7 +3046,6 @@ func IsWhileStatement(node Node) bool {
 
 type forStatementData struct {
 	statement   nodeRef // Statement
-	facts       atomic.Uint32
 	initializer nodeRef // ForInitializer. Optional
 	condition   nodeRef // Expression. Optional
 	incrementor nodeRef // Expression. Optional
@@ -3222,7 +3129,6 @@ func IsForStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type forInOrOfStatementData struct {
-	facts         atomic.Uint32
 	awaitModifier nodeRef // AwaitKeyword. Optional
 	initializer   nodeRef // ForInitializer
 	expression    nodeRef // Expression
@@ -3418,7 +3324,6 @@ func IsContinueStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type returnStatementData struct {
-	facts      atomic.Uint32
 	expression nodeRef // Expression. Optional
 }
 
@@ -3471,7 +3376,6 @@ func IsReturnStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type withStatementData struct {
-	facts      atomic.Uint32
 	expression nodeRef // Expression
 	statement  nodeRef // Statement
 }
@@ -3534,7 +3438,6 @@ func IsWithStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type switchStatementData struct {
-	facts      atomic.Uint32
 	expression nodeRef // Expression
 	caseBlock  nodeRef // CaseBlockNode
 }
@@ -3598,7 +3501,6 @@ func IsSwitchStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type caseBlockData struct {
-	facts   atomic.Uint32
 	clauses listRef // CaseClausesList
 }
 
@@ -3656,7 +3558,6 @@ func IsCaseBlock(node Node) bool {
 
 type caseClauseData struct {
 	statements listRef // StatementList
-	facts      atomic.Uint32
 	expression nodeRef // Expression
 }
 
@@ -3723,7 +3624,6 @@ func IsCaseClause(node Node) bool {
 
 type defaultClauseData struct {
 	statements listRef // StatementList
-	facts      atomic.Uint32
 }
 
 type DefaultClause struct{ Node }
@@ -3785,7 +3685,6 @@ func IsDefaultClause(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type throwStatementData struct {
-	facts      atomic.Uint32
 	expression nodeRef // Expression
 }
 
@@ -3842,7 +3741,6 @@ func IsThrowStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type tryStatementData struct {
-	facts        atomic.Uint32
 	tryBlock     nodeRef // BlockNode
 	catchClause  nodeRef // CatchClauseNode. Optional
 	finallyBlock nodeRef // BlockNode. Optional
@@ -3911,7 +3809,6 @@ func IsTryStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type catchClauseData struct {
-	facts               atomic.Uint32
 	variableDeclaration nodeRef // VariableDeclarationNode. Optional
 	block               nodeRef // BlockNode
 }
@@ -4119,7 +4016,6 @@ func IsExpressionStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type blockData struct {
-	facts      atomic.Uint32
 	statements listRef // StatementList
 	multiLine  bool
 }
@@ -4183,7 +4079,6 @@ func IsBlock(node Node) bool {
 
 type variableStatementData struct {
 	modifiers       listRef // ModifierList. Optional
-	facts           atomic.Uint32
 	declarationList nodeRef // VariableDeclarationListNode
 }
 
@@ -4247,7 +4142,6 @@ func IsVariableStatement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type variableDeclarationData struct {
-	facts            atomic.Uint32
 	name             nodeRef // BindingName
 	exclamationToken nodeRef // ExclamationToken. Optional
 	typeField        nodeRef // TypeNode. Optional
@@ -4329,7 +4223,6 @@ func IsVariableDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type variableDeclarationListData struct {
-	facts        atomic.Uint32
 	declarations listRef // VariableDeclarationNodeList
 }
 
@@ -4384,7 +4277,6 @@ func IsVariableDeclarationList(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type bindingPatternData struct {
-	facts    atomic.Uint32
 	elements listRef // BindingElementList
 }
 
@@ -4447,7 +4339,6 @@ func IsArrayBindingPattern(node Node) bool {
 
 type parameterDeclarationData struct {
 	modifiers      listRef // ModifierList. Optional
-	facts          atomic.Uint32
 	dotDotDotToken nodeRef // DotDotDotToken. Optional
 	name           nodeRef // BindingName
 	questionToken  nodeRef // QuestionToken. Optional
@@ -4546,7 +4437,6 @@ func IsParameterDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type bindingElementData struct {
-	facts          atomic.Uint32
 	dotDotDotToken nodeRef // DotDotDotToken. Optional
 	propertyName   nodeRef // PropertyName. Optional
 	name           nodeRef // BindingName. Optional
@@ -4690,7 +4580,6 @@ type functionDeclarationData struct {
 	fullSignature  nodeRef // TypeNode. Optional
 	asteriskToken  nodeRef // AsteriskToken. Optional
 	body           nodeRef // NodeBody. Optional
-	facts          atomic.Uint32
 	name           nodeRef // IdentifierNode. Optional
 }
 
@@ -4825,7 +4714,6 @@ func IsFunctionDeclaration(node Node) bool {
 
 type classDeclarationData struct {
 	modifiers       listRef // ModifierList. Optional
-	facts           atomic.Uint32
 	name            nodeRef // IdentifierNode. Optional
 	typeParameters  listRef // TypeParameterList. Optional
 	heritageClauses listRef // HeritageClauseList. Optional
@@ -4924,7 +4812,6 @@ func IsClassDeclaration(node Node) bool {
 
 type classExpressionData struct {
 	modifiers       listRef // ModifierList. Optional
-	facts           atomic.Uint32
 	name            nodeRef // IdentifierNode. Optional
 	typeParameters  listRef // TypeParameterList. Optional
 	heritageClauses listRef // HeritageClauseList. Optional
@@ -5019,7 +4906,6 @@ func IsClassExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type heritageClauseData struct {
-	facts atomic.Uint32
 	types listRef // HeritageClauseElementList
 	token Kind
 }
@@ -5304,7 +5190,6 @@ type enumMemberData struct {
 	modifiers    listRef // ModifierList. Optional
 	name         nodeRef // PropertyName
 	postfixToken nodeRef // TokenNode. Optional
-	facts        atomic.Uint32
 	initializer  nodeRef // Expression. Optional
 }
 
@@ -5369,7 +5254,6 @@ func IsEnumMember(node Node) bool {
 
 type enumDeclarationData struct {
 	modifiers listRef // ModifierList. Optional
-	facts     atomic.Uint32
 	name      nodeRef // IdentifierNode
 	members   listRef // EnumMemberList
 }
@@ -5438,7 +5322,6 @@ func IsEnumDeclaration(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type moduleBlockData struct {
-	facts      atomic.Uint32
 	statements listRef // StatementList
 }
 
@@ -5552,7 +5435,6 @@ func IsNotEmittedTypeElement(node Node) bool {
 
 type importDeclarationData struct {
 	modifiers       listRef // ModifierList. Optional
-	facts           atomic.Uint32
 	importClause    nodeRef // ImportClauseNode. Optional
 	moduleSpecifier nodeRef // Expression
 	attributes      nodeRef // ImportAttributesNode. Optional
@@ -5789,7 +5671,6 @@ func IsNamespaceImport(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type namedImportsData struct {
-	facts    atomic.Uint32
 	elements listRef // ImportSpecifierList
 }
 
@@ -5845,7 +5726,6 @@ func IsNamedImports(node Node) bool {
 
 type exportAssignmentData struct {
 	modifiers      listRef // ModifierList. Optional
-	facts          atomic.Uint32
 	typeField      nodeRef // TypeNode. Optional
 	expression     nodeRef // Expression
 	isExportEquals bool
@@ -6037,7 +5917,6 @@ func IsNamespaceExport(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type namedExportsData struct {
-	facts    atomic.Uint32
 	elements listRef // ExportSpecifierList
 }
 
@@ -6092,7 +5971,6 @@ func IsNamedExports(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type exportSpecifierData struct {
-	facts        atomic.Uint32
 	propertyName nodeRef // ModuleExportName. Optional
 	name         nodeRef // ModuleExportName
 	isTypeOnly   bool
@@ -6352,7 +6230,6 @@ type constructorDeclarationData struct {
 	fullSignature  nodeRef // TypeNode. Optional
 	asteriskToken  nodeRef // AsteriskToken. Optional
 	body           nodeRef // NodeBody. Optional
-	facts          atomic.Uint32
 }
 
 type ConstructorDeclaration struct{ Node }
@@ -6480,7 +6357,6 @@ type getAccessorDeclarationData struct {
 	fullSignature  nodeRef // TypeNode. Optional
 	asteriskToken  nodeRef // AsteriskToken. Optional
 	body           nodeRef // NodeBody. Optional
-	facts          atomic.Uint32
 }
 
 type GetAccessorDeclaration struct{ Node }
@@ -6618,7 +6494,6 @@ type setAccessorDeclarationData struct {
 	fullSignature  nodeRef // TypeNode. Optional
 	asteriskToken  nodeRef // AsteriskToken. Optional
 	body           nodeRef // NodeBody. Optional
-	facts          atomic.Uint32
 }
 
 type SetAccessorDeclaration struct{ Node }
@@ -6974,7 +6849,6 @@ type methodDeclarationData struct {
 	fullSignature  nodeRef // TypeNode. Optional
 	asteriskToken  nodeRef // AsteriskToken. Optional
 	body           nodeRef // NodeBody. Optional
-	facts          atomic.Uint32
 }
 
 type MethodDeclaration struct{ Node }
@@ -7197,7 +7071,6 @@ type propertyDeclarationData struct {
 	modifiers    listRef // ModifierList. Optional
 	name         nodeRef // PropertyName
 	postfixToken nodeRef // TokenNode. Optional
-	facts        atomic.Uint32
 	typeField    nodeRef // TypeNode. Optional
 	initializer  nodeRef // Expression. Optional
 }
@@ -7310,7 +7183,6 @@ func IsSemicolonClassElement(node Node) bool {
 
 type classStaticBlockDeclarationData struct {
 	modifiers listRef // ModifierList. Optional
-	facts     atomic.Uint32
 	body      nodeRef // BlockNode
 }
 
@@ -7677,7 +7549,6 @@ func IsNoSubstitutionTemplateLiteral(node Node) bool {
 
 type binaryExpressionData struct {
 	modifiers     listRef // ModifierList. Optional
-	facts         atomic.Uint32
 	left          nodeRef // Expression
 	typeField     nodeRef // TypeNode. Optional
 	operatorToken nodeRef // BinaryOperatorToken
@@ -7937,7 +7808,6 @@ type arrowFunctionData struct {
 	fullSignature          nodeRef // TypeNode. Optional
 	asteriskToken          nodeRef // AsteriskToken. Optional
 	body                   nodeRef // NodeBody. Optional
-	facts                  atomic.Uint32
 	equalsGreaterThanToken nodeRef // EqualsGreaterThanToken
 }
 
@@ -8058,7 +7928,6 @@ type functionExpressionData struct {
 	fullSignature  nodeRef // TypeNode. Optional
 	asteriskToken  nodeRef // AsteriskToken. Optional
 	body           nodeRef // NodeBody. Optional
-	facts          atomic.Uint32
 	name           nodeRef // IdentifierNode. Optional
 }
 
@@ -8295,7 +8164,6 @@ func IsSatisfiesExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type conditionalExpressionData struct {
-	facts         atomic.Uint32
 	condition     nodeRef // Expression
 	questionToken nodeRef // QuestionToken
 	whenTrue      nodeRef // Expression
@@ -8390,7 +8258,6 @@ func IsConditionalExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type propertyAccessExpressionData struct {
-	facts            atomic.Uint32
 	expression       nodeRef // Expression
 	questionDotToken nodeRef // QuestionDotToken. Optional
 	name             nodeRef // MemberName
@@ -8465,7 +8332,6 @@ func IsPropertyAccessExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type elementAccessExpressionData struct {
-	facts              atomic.Uint32
 	expression         nodeRef // Expression
 	questionDotToken   nodeRef // QuestionDotToken. Optional
 	argumentExpression nodeRef // Expression
@@ -8550,7 +8416,6 @@ func IsElementAccessExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type callExpressionData struct {
-	facts            atomic.Uint32
 	expression       nodeRef // Expression
 	questionDotToken nodeRef // QuestionDotToken. Optional
 	typeArguments    listRef // TypeList. Optional
@@ -8633,7 +8498,6 @@ func IsCallExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type newExpressionData struct {
-	facts         atomic.Uint32
 	expression    nodeRef // Expression
 	typeArguments listRef // TypeList. Optional
 	arguments     listRef // ElementList. Optional
@@ -8697,7 +8561,6 @@ func IsNewExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type metaPropertyData struct {
-	facts        atomic.Uint32
 	name         nodeRef // IdentifierNode
 	keywordToken Kind
 }
@@ -8851,7 +8714,6 @@ func IsSpreadElement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type templateExpressionData struct {
-	facts         atomic.Uint32
 	head          nodeRef // TemplateHeadNode
 	templateSpans listRef // TemplateSpanList
 }
@@ -8974,7 +8836,6 @@ func IsTemplateSpan(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type taggedTemplateExpressionData struct {
-	facts            atomic.Uint32
 	tag              nodeRef // Expression
 	questionDotToken nodeRef // QuestionDotToken. Optional
 	typeArguments    listRef // TypeList. Optional
@@ -9114,7 +8975,6 @@ func IsParenthesizedExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type arrayLiteralExpressionData struct {
-	facts     atomic.Uint32
 	elements  listRef // ElementList
 	multiLine bool
 }
@@ -9175,7 +9035,6 @@ func IsArrayLiteralExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type objectLiteralExpressionData struct {
-	facts      atomic.Uint32
 	properties listRef // NodeList
 	multiLine  bool
 }
@@ -9292,7 +9151,6 @@ type propertyAssignmentData struct {
 	modifiers    listRef // ModifierList. Optional
 	name         nodeRef // PropertyName
 	postfixToken nodeRef // TokenNode. Optional
-	facts        atomic.Uint32
 	typeField    nodeRef // TypeNode. Optional
 	initializer  nodeRef // Expression
 }
@@ -9374,7 +9232,6 @@ type shorthandPropertyAssignmentData struct {
 	modifiers                   listRef // ModifierList. Optional
 	name                        nodeRef // PropertyName
 	postfixToken                nodeRef // TokenNode. Optional
-	facts                       atomic.Uint32
 	typeField                   nodeRef // TypeNode. Optional
 	equalsToken                 nodeRef // EqualsToken. Optional
 	objectAssignmentInitializer nodeRef // Expression. Optional
@@ -10211,7 +10068,6 @@ func IsTypeReferenceNode(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type expressionWithTypeArgumentsData struct {
-	facts         atomic.Uint32
 	expression    nodeRef // Expression
 	typeArguments listRef // TypeList. Optional
 }
@@ -10412,7 +10268,6 @@ func IsTypePredicateNode(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type importAttributeData struct {
-	facts atomic.Uint32
 	name  nodeRef // ImportAttributeName
 	value nodeRef // Expression
 }
@@ -10472,7 +10327,6 @@ func IsImportAttribute(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type importAttributesData struct {
-	facts      atomic.Uint32
 	attributes listRef // ImportAttributeList
 	token      Kind
 	multiLine  bool
@@ -11566,7 +11420,6 @@ func IsPartiallyEmittedExpression(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type jsxElementData struct {
-	facts          atomic.Uint32
 	openingElement nodeRef // JsxOpeningElementNode
 	children       listRef // JsxChildList
 	closingElement nodeRef // JsxClosingElementNode
@@ -11635,7 +11488,6 @@ func IsJsxElement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type jsxAttributesData struct {
-	facts      atomic.Uint32
 	properties listRef // JsxAttributeList
 }
 
@@ -11690,7 +11542,6 @@ func IsJsxAttributes(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type jsxNamespacedNameData struct {
-	facts     atomic.Uint32
 	namespace nodeRef // IdentifierNode
 	name      nodeRef // IdentifierNode
 }
@@ -11745,7 +11596,6 @@ func IsJsxNamespacedName(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type jsxOpeningElementData struct {
-	facts         atomic.Uint32
 	tagName       nodeRef // JsxTagNameExpression
 	typeArguments listRef // TypeList. Optional
 	attributes    nodeRef // JsxAttributesNode
@@ -11816,7 +11666,6 @@ func IsJsxOpeningElement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type jsxSelfClosingElementData struct {
-	facts         atomic.Uint32
 	tagName       nodeRef // JsxTagNameExpression
 	typeArguments listRef // TypeList. Optional
 	attributes    nodeRef // JsxAttributesNode
@@ -11889,7 +11738,6 @@ func IsJsxSelfClosingElement(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type jsxFragmentData struct {
-	facts           atomic.Uint32
 	openingFragment nodeRef // JsxOpeningFragmentNode
 	children        listRef // JsxChildList
 	closingFragment nodeRef // JsxClosingFragmentNode
@@ -12008,7 +11856,6 @@ func IsJsxClosingFragment(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type jsxAttributeData struct {
-	facts       atomic.Uint32
 	name        nodeRef // JsxAttributeName
 	initializer nodeRef // JsxAttributeValue. Optional
 }
@@ -14028,7 +13875,6 @@ type moduleDeclarationData struct {
 	modifiers     listRef // ModifierList. Optional
 	asteriskToken nodeRef // AsteriskToken. Optional
 	body          nodeRef // NodeBody. Optional
-	facts         atomic.Uint32
 	name          nodeRef // ModuleName
 	attributes    nodeRef // TypeLiteralNodeNode. Optional
 	keyword       Kind
@@ -14132,7 +13978,6 @@ func IsModuleDeclaration(node Node) bool {
 
 type importEqualsDeclarationData struct {
 	modifiers       listRef // ModifierList. Optional
-	facts           atomic.Uint32
 	name            nodeRef // IdentifierNode
 	moduleReference nodeRef // ModuleReference
 	isTypeOnly      bool
@@ -14217,7 +14062,6 @@ func IsImportEqualsDeclaration(node Node) bool {
 
 type exportDeclarationData struct {
 	modifiers       listRef // ModifierList. Optional
-	facts           atomic.Uint32
 	exportClause    nodeRef // NamedExportBindings. Optional
 	moduleSpecifier nodeRef // Expression. Optional
 	attributes      nodeRef // ImportAttributesNode. Optional
@@ -14387,7 +14231,6 @@ func IsImportTypeNode(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type importClauseData struct {
-	facts         atomic.Uint32
 	name          nodeRef                       // IdentifierNode. Optional
 	namedBindings nodeRef                       // NamedImportBindings. Optional
 	phaseModifier ImportPhaseModifierSyntaxKind // Optional
@@ -14457,7 +14300,6 @@ func IsImportClause(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type importSpecifierData struct {
-	facts        atomic.Uint32
 	propertyName nodeRef // ModuleExportName. Optional
 	name         nodeRef // IdentifierNode
 	isTypeOnly   bool
@@ -16692,62 +16534,45 @@ func (n Node) SubtreeFacts() SubtreeFacts {
 	case KindVoidKeyword, KindAnyKeyword, KindBooleanKeyword, KindIntrinsicKeyword, KindNeverKeyword, KindNumberKeyword, KindObjectKeyword, KindStringKeyword, KindSymbolKeyword, KindUndefinedKeyword, KindUnknownKeyword, KindBigIntKeyword:
 		return n.computeSubtreeFacts()
 	case KindQualifiedName:
-		// SAFETY: This case only matches kinds backed by a QualifiedName record.
-		return subtreeFactsWorker(&(*qualifiedNameData)(n.payload(unsafe.Sizeof(qualifiedNameData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindComputedPropertyName:
-		// SAFETY: This case only matches kinds backed by a ComputedPropertyName record.
-		return subtreeFactsWorker(&(*computedPropertyNameData)(n.payload(unsafe.Sizeof(computedPropertyNameData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindDecorator:
-		// SAFETY: This case only matches kinds backed by a Decorator record.
-		return subtreeFactsWorker(&(*decoratorData)(n.payload(unsafe.Sizeof(decoratorData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindEmptyStatement:
 		return n.computeSubtreeFacts()
 	case KindIfStatement:
-		// SAFETY: This case only matches kinds backed by a IfStatement record.
-		return subtreeFactsWorker(&(*ifStatementData)(n.payload(unsafe.Sizeof(ifStatementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindDoStatement:
-		// SAFETY: This case only matches kinds backed by a DoStatement record.
-		return subtreeFactsWorker(&(*doStatementData)(n.payload(unsafe.Sizeof(doStatementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindWhileStatement:
-		// SAFETY: This case only matches kinds backed by a WhileStatement record.
-		return subtreeFactsWorker(&(*whileStatementData)(n.payload(unsafe.Sizeof(whileStatementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindForStatement:
-		// SAFETY: This case only matches kinds backed by a ForStatement record.
-		return subtreeFactsWorker(&(*forStatementData)(n.payload(unsafe.Sizeof(forStatementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindForInStatement, KindForOfStatement:
-		// SAFETY: This case only matches kinds backed by a ForInOrOfStatement record.
-		return subtreeFactsWorker(&(*forInOrOfStatementData)(n.payload(unsafe.Sizeof(forInOrOfStatementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindBreakStatement:
 		return n.computeSubtreeFacts()
 	case KindContinueStatement:
 		return n.computeSubtreeFacts()
 	case KindReturnStatement:
-		// SAFETY: This case only matches kinds backed by a ReturnStatement record.
-		return subtreeFactsWorker(&(*returnStatementData)(n.payload(unsafe.Sizeof(returnStatementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindWithStatement:
-		// SAFETY: This case only matches kinds backed by a WithStatement record.
-		return subtreeFactsWorker(&(*withStatementData)(n.payload(unsafe.Sizeof(withStatementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindSwitchStatement:
-		// SAFETY: This case only matches kinds backed by a SwitchStatement record.
-		return subtreeFactsWorker(&(*switchStatementData)(n.payload(unsafe.Sizeof(switchStatementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindCaseBlock:
-		// SAFETY: This case only matches kinds backed by a CaseBlock record.
-		return subtreeFactsWorker(&(*caseBlockData)(n.payload(unsafe.Sizeof(caseBlockData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindCaseClause:
-		// SAFETY: This case only matches kinds backed by a CaseClause record.
-		return subtreeFactsWorker(&(*caseClauseData)(n.payload(unsafe.Sizeof(caseClauseData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindDefaultClause:
-		// SAFETY: This case only matches kinds backed by a DefaultClause record.
-		return subtreeFactsWorker(&(*defaultClauseData)(n.payload(unsafe.Sizeof(defaultClauseData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindThrowStatement:
-		// SAFETY: This case only matches kinds backed by a ThrowStatement record.
-		return subtreeFactsWorker(&(*throwStatementData)(n.payload(unsafe.Sizeof(throwStatementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindTryStatement:
-		// SAFETY: This case only matches kinds backed by a TryStatement record.
-		return subtreeFactsWorker(&(*tryStatementData)(n.payload(unsafe.Sizeof(tryStatementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindCatchClause:
-		// SAFETY: This case only matches kinds backed by a CatchClause record.
-		return subtreeFactsWorker(&(*catchClauseData)(n.payload(unsafe.Sizeof(catchClauseData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindDebuggerStatement:
 		return n.computeSubtreeFacts()
 	case KindLabeledStatement:
@@ -16755,115 +16580,89 @@ func (n Node) SubtreeFacts() SubtreeFacts {
 	case KindExpressionStatement:
 		return n.computeSubtreeFacts()
 	case KindBlock:
-		// SAFETY: This case only matches kinds backed by a Block record.
-		return subtreeFactsWorker(&(*blockData)(n.payload(unsafe.Sizeof(blockData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindVariableStatement:
-		// SAFETY: This case only matches kinds backed by a VariableStatement record.
-		return subtreeFactsWorker(&(*variableStatementData)(n.payload(unsafe.Sizeof(variableStatementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindVariableDeclaration:
-		// SAFETY: This case only matches kinds backed by a VariableDeclaration record.
-		return subtreeFactsWorker(&(*variableDeclarationData)(n.payload(unsafe.Sizeof(variableDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindVariableDeclarationList:
-		// SAFETY: This case only matches kinds backed by a VariableDeclarationList record.
-		return subtreeFactsWorker(&(*variableDeclarationListData)(n.payload(unsafe.Sizeof(variableDeclarationListData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindObjectBindingPattern, KindArrayBindingPattern:
-		// SAFETY: This case only matches kinds backed by a BindingPattern record.
-		return subtreeFactsWorker(&(*bindingPatternData)(n.payload(unsafe.Sizeof(bindingPatternData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindParameter:
-		// SAFETY: This case only matches kinds backed by a ParameterDeclaration record.
-		return subtreeFactsWorker(&(*parameterDeclarationData)(n.payload(unsafe.Sizeof(parameterDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindBindingElement:
-		// SAFETY: This case only matches kinds backed by a BindingElement record.
-		return subtreeFactsWorker(&(*bindingElementData)(n.payload(unsafe.Sizeof(bindingElementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindMissingDeclaration:
 		return n.computeSubtreeFacts()
 	case KindFunctionDeclaration:
-		// SAFETY: This case only matches kinds backed by a FunctionDeclaration record.
-		return subtreeFactsWorker(&(*functionDeclarationData)(n.payload(unsafe.Sizeof(functionDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindClassDeclaration:
-		// SAFETY: This case only matches kinds backed by a ClassDeclaration record.
-		return subtreeFactsWorker(&(*classDeclarationData)(n.payload(unsafe.Sizeof(classDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindClassExpression:
-		// SAFETY: This case only matches kinds backed by a ClassExpression record.
-		return subtreeFactsWorker(&(*classExpressionData)(n.payload(unsafe.Sizeof(classExpressionData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindHeritageClause:
-		// SAFETY: This case only matches kinds backed by a HeritageClause record.
-		return subtreeFactsWorker(&(*heritageClauseData)(n.payload(unsafe.Sizeof(heritageClauseData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindInterfaceDeclaration:
 		return n.computeSubtreeFacts()
 	case KindTypeAliasDeclaration, KindJSTypeAliasDeclaration:
 		return n.computeSubtreeFacts()
 	case KindEnumMember:
-		// SAFETY: This case only matches kinds backed by a EnumMember record.
-		return subtreeFactsWorker(&(*enumMemberData)(n.payload(unsafe.Sizeof(enumMemberData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindEnumDeclaration:
-		// SAFETY: This case only matches kinds backed by a EnumDeclaration record.
-		return subtreeFactsWorker(&(*enumDeclarationData)(n.payload(unsafe.Sizeof(enumDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindModuleBlock:
-		// SAFETY: This case only matches kinds backed by a ModuleBlock record.
-		return subtreeFactsWorker(&(*moduleBlockData)(n.payload(unsafe.Sizeof(moduleBlockData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindNotEmittedStatement:
 		return n.computeSubtreeFacts()
 	case KindNotEmittedTypeElement:
 		return n.computeSubtreeFacts()
 	case KindImportDeclaration, KindJSImportDeclaration:
-		// SAFETY: This case only matches kinds backed by a ImportDeclaration record.
-		return subtreeFactsWorker(&(*importDeclarationData)(n.payload(unsafe.Sizeof(importDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindExternalModuleReference:
 		return n.computeSubtreeFacts()
 	case KindNamespaceImport:
 		return n.computeSubtreeFacts()
 	case KindNamedImports:
-		// SAFETY: This case only matches kinds backed by a NamedImports record.
-		return subtreeFactsWorker(&(*namedImportsData)(n.payload(unsafe.Sizeof(namedImportsData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindExportAssignment:
-		// SAFETY: This case only matches kinds backed by a ExportAssignment record.
-		return subtreeFactsWorker(&(*exportAssignmentData)(n.payload(unsafe.Sizeof(exportAssignmentData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindNamespaceExportDeclaration:
 		return n.computeSubtreeFacts()
 	case KindNamespaceExport:
 		return n.computeSubtreeFacts()
 	case KindNamedExports:
-		// SAFETY: This case only matches kinds backed by a NamedExports record.
-		return subtreeFactsWorker(&(*namedExportsData)(n.payload(unsafe.Sizeof(namedExportsData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindExportSpecifier:
-		// SAFETY: This case only matches kinds backed by a ExportSpecifier record.
-		return subtreeFactsWorker(&(*exportSpecifierData)(n.payload(unsafe.Sizeof(exportSpecifierData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindCallSignature:
 		return n.computeSubtreeFacts()
 	case KindConstructSignature:
 		return n.computeSubtreeFacts()
 	case KindConstructor:
-		// SAFETY: This case only matches kinds backed by a ConstructorDeclaration record.
-		return subtreeFactsWorker(&(*constructorDeclarationData)(n.payload(unsafe.Sizeof(constructorDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindGetAccessor:
-		// SAFETY: This case only matches kinds backed by a GetAccessorDeclaration record.
-		return subtreeFactsWorker(&(*getAccessorDeclarationData)(n.payload(unsafe.Sizeof(getAccessorDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindSetAccessor:
-		// SAFETY: This case only matches kinds backed by a SetAccessorDeclaration record.
-		return subtreeFactsWorker(&(*setAccessorDeclarationData)(n.payload(unsafe.Sizeof(setAccessorDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindIndexSignature:
 		return n.computeSubtreeFacts()
 	case KindMethodSignature:
 		return n.computeSubtreeFacts()
 	case KindMethodDeclaration:
-		// SAFETY: This case only matches kinds backed by a MethodDeclaration record.
-		return subtreeFactsWorker(&(*methodDeclarationData)(n.payload(unsafe.Sizeof(methodDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindPropertySignature:
 		return n.computeSubtreeFacts()
 	case KindPropertyDeclaration:
-		// SAFETY: This case only matches kinds backed by a PropertyDeclaration record.
-		return subtreeFactsWorker(&(*propertyDeclarationData)(n.payload(unsafe.Sizeof(propertyDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindSemicolonClassElement:
 		return n.computeSubtreeFacts()
 	case KindClassStaticBlockDeclaration:
-		// SAFETY: This case only matches kinds backed by a ClassStaticBlockDeclaration record.
-		return subtreeFactsWorker(&(*classStaticBlockDeclarationData)(n.payload(unsafe.Sizeof(classStaticBlockDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindOmittedExpression:
 		return n.computeSubtreeFacts()
 	case KindBinaryExpression:
-		// SAFETY: This case only matches kinds backed by a BinaryExpression record.
-		return subtreeFactsWorker(&(*binaryExpressionData)(n.payload(unsafe.Sizeof(binaryExpressionData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindPrefixUnaryExpression:
 		return n.computeSubtreeFacts()
 	case KindPostfixUnaryExpression:
@@ -16871,61 +16670,47 @@ func (n Node) SubtreeFacts() SubtreeFacts {
 	case KindYieldExpression:
 		return n.computeSubtreeFacts()
 	case KindArrowFunction:
-		// SAFETY: This case only matches kinds backed by a ArrowFunction record.
-		return subtreeFactsWorker(&(*arrowFunctionData)(n.payload(unsafe.Sizeof(arrowFunctionData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindFunctionExpression:
-		// SAFETY: This case only matches kinds backed by a FunctionExpression record.
-		return subtreeFactsWorker(&(*functionExpressionData)(n.payload(unsafe.Sizeof(functionExpressionData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindAsExpression:
 		return n.computeSubtreeFacts()
 	case KindSatisfiesExpression:
 		return n.computeSubtreeFacts()
 	case KindConditionalExpression:
-		// SAFETY: This case only matches kinds backed by a ConditionalExpression record.
-		return subtreeFactsWorker(&(*conditionalExpressionData)(n.payload(unsafe.Sizeof(conditionalExpressionData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindPropertyAccessExpression:
-		// SAFETY: This case only matches kinds backed by a PropertyAccessExpression record.
-		return subtreeFactsWorker(&(*propertyAccessExpressionData)(n.payload(unsafe.Sizeof(propertyAccessExpressionData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindElementAccessExpression:
-		// SAFETY: This case only matches kinds backed by a ElementAccessExpression record.
-		return subtreeFactsWorker(&(*elementAccessExpressionData)(n.payload(unsafe.Sizeof(elementAccessExpressionData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindCallExpression:
-		// SAFETY: This case only matches kinds backed by a CallExpression record.
-		return subtreeFactsWorker(&(*callExpressionData)(n.payload(unsafe.Sizeof(callExpressionData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindNewExpression:
-		// SAFETY: This case only matches kinds backed by a NewExpression record.
-		return subtreeFactsWorker(&(*newExpressionData)(n.payload(unsafe.Sizeof(newExpressionData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindMetaProperty:
-		// SAFETY: This case only matches kinds backed by a MetaProperty record.
-		return subtreeFactsWorker(&(*metaPropertyData)(n.payload(unsafe.Sizeof(metaPropertyData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindNonNullExpression:
 		return n.computeSubtreeFacts()
 	case KindSpreadElement:
 		return n.computeSubtreeFacts()
 	case KindTemplateExpression:
-		// SAFETY: This case only matches kinds backed by a TemplateExpression record.
-		return subtreeFactsWorker(&(*templateExpressionData)(n.payload(unsafe.Sizeof(templateExpressionData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindTemplateSpan:
 		return n.computeSubtreeFacts()
 	case KindTaggedTemplateExpression:
-		// SAFETY: This case only matches kinds backed by a TaggedTemplateExpression record.
-		return subtreeFactsWorker(&(*taggedTemplateExpressionData)(n.payload(unsafe.Sizeof(taggedTemplateExpressionData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindParenthesizedExpression:
 		return n.computeSubtreeFacts()
 	case KindArrayLiteralExpression:
-		// SAFETY: This case only matches kinds backed by a ArrayLiteralExpression record.
-		return subtreeFactsWorker(&(*arrayLiteralExpressionData)(n.payload(unsafe.Sizeof(arrayLiteralExpressionData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindObjectLiteralExpression:
-		// SAFETY: This case only matches kinds backed by a ObjectLiteralExpression record.
-		return subtreeFactsWorker(&(*objectLiteralExpressionData)(n.payload(unsafe.Sizeof(objectLiteralExpressionData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindSpreadAssignment:
 		return n.computeSubtreeFacts()
 	case KindPropertyAssignment:
-		// SAFETY: This case only matches kinds backed by a PropertyAssignment record.
-		return subtreeFactsWorker(&(*propertyAssignmentData)(n.payload(unsafe.Sizeof(propertyAssignmentData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindShorthandPropertyAssignment:
-		// SAFETY: This case only matches kinds backed by a ShorthandPropertyAssignment record.
-		return subtreeFactsWorker(&(*shorthandPropertyAssignmentData)(n.payload(unsafe.Sizeof(shorthandPropertyAssignmentData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindDeleteExpression:
 		return n.computeSubtreeFacts()
 	case KindTypeOfExpression:
@@ -16953,8 +16738,7 @@ func (n Node) SubtreeFacts() SubtreeFacts {
 	case KindTypeReference:
 		return n.computeSubtreeFacts()
 	case KindExpressionWithTypeArguments:
-		// SAFETY: This case only matches kinds backed by a ExpressionWithTypeArguments record.
-		return subtreeFactsWorker(&(*expressionWithTypeArgumentsData)(n.payload(unsafe.Sizeof(expressionWithTypeArgumentsData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindLiteralType:
 		return n.computeSubtreeFacts()
 	case KindThisType:
@@ -16962,11 +16746,9 @@ func (n Node) SubtreeFacts() SubtreeFacts {
 	case KindTypePredicate:
 		return n.computeSubtreeFacts()
 	case KindImportAttribute:
-		// SAFETY: This case only matches kinds backed by a ImportAttribute record.
-		return subtreeFactsWorker(&(*importAttributeData)(n.payload(unsafe.Sizeof(importAttributeData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindImportAttributes:
-		// SAFETY: This case only matches kinds backed by a ImportAttributes record.
-		return subtreeFactsWorker(&(*importAttributesData)(n.payload(unsafe.Sizeof(importAttributesData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindTypeQuery:
 		return n.computeSubtreeFacts()
 	case KindMappedType:
@@ -16996,30 +16778,23 @@ func (n Node) SubtreeFacts() SubtreeFacts {
 	case KindPartiallyEmittedExpression:
 		return n.computeSubtreeFacts()
 	case KindJsxElement:
-		// SAFETY: This case only matches kinds backed by a JsxElement record.
-		return subtreeFactsWorker(&(*jsxElementData)(n.payload(unsafe.Sizeof(jsxElementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindJsxAttributes:
-		// SAFETY: This case only matches kinds backed by a JsxAttributes record.
-		return subtreeFactsWorker(&(*jsxAttributesData)(n.payload(unsafe.Sizeof(jsxAttributesData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindJsxNamespacedName:
-		// SAFETY: This case only matches kinds backed by a JsxNamespacedName record.
-		return subtreeFactsWorker(&(*jsxNamespacedNameData)(n.payload(unsafe.Sizeof(jsxNamespacedNameData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindJsxOpeningElement:
-		// SAFETY: This case only matches kinds backed by a JsxOpeningElement record.
-		return subtreeFactsWorker(&(*jsxOpeningElementData)(n.payload(unsafe.Sizeof(jsxOpeningElementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindJsxSelfClosingElement:
-		// SAFETY: This case only matches kinds backed by a JsxSelfClosingElement record.
-		return subtreeFactsWorker(&(*jsxSelfClosingElementData)(n.payload(unsafe.Sizeof(jsxSelfClosingElementData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindJsxFragment:
-		// SAFETY: This case only matches kinds backed by a JsxFragment record.
-		return subtreeFactsWorker(&(*jsxFragmentData)(n.payload(unsafe.Sizeof(jsxFragmentData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindJsxOpeningFragment:
 		return n.computeSubtreeFacts()
 	case KindJsxClosingFragment:
 		return n.computeSubtreeFacts()
 	case KindJsxAttribute:
-		// SAFETY: This case only matches kinds backed by a JsxAttribute record.
-		return subtreeFactsWorker(&(*jsxAttributeData)(n.payload(unsafe.Sizeof(jsxAttributeData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindJsxSpreadAttribute:
 		return n.computeSubtreeFacts()
 	case KindJsxClosingElement:
@@ -17087,25 +16862,19 @@ func (n Node) SubtreeFacts() SubtreeFacts {
 	case KindJSDocNameReference:
 		return n.computeSubtreeFacts()
 	case KindSourceFile:
-		// SAFETY: This case only matches kinds backed by a SourceFile record.
-		return subtreeFactsWorker(&(*sourceFileData)(n.payload(unsafe.Sizeof(sourceFileData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindModuleDeclaration:
-		// SAFETY: This case only matches kinds backed by a ModuleDeclaration record.
-		return subtreeFactsWorker(&(*moduleDeclarationData)(n.payload(unsafe.Sizeof(moduleDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindImportEqualsDeclaration:
-		// SAFETY: This case only matches kinds backed by a ImportEqualsDeclaration record.
-		return subtreeFactsWorker(&(*importEqualsDeclarationData)(n.payload(unsafe.Sizeof(importEqualsDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindExportDeclaration:
-		// SAFETY: This case only matches kinds backed by a ExportDeclaration record.
-		return subtreeFactsWorker(&(*exportDeclarationData)(n.payload(unsafe.Sizeof(exportDeclarationData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindImportType:
 		return n.computeSubtreeFacts()
 	case KindImportClause:
-		// SAFETY: This case only matches kinds backed by a ImportClause record.
-		return subtreeFactsWorker(&(*importClauseData)(n.payload(unsafe.Sizeof(importClauseData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindImportSpecifier:
-		// SAFETY: This case only matches kinds backed by a ImportSpecifier record.
-		return subtreeFactsWorker(&(*importSpecifierData)(n.payload(unsafe.Sizeof(importSpecifierData{}) <= 4)).facts, n)
+		return subtreeFactsWorker(n.factsCache(), n)
 	case KindJSDocText:
 		return n.computeSubtreeFacts()
 	case KindJSDocLink:

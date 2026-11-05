@@ -62,6 +62,9 @@ type nodeStore struct {
 
 	binder binderData
 
+	// facts caches the subtree facts of nodes, by index; see factsCache.
+	facts atomic.Pointer[[]atomic.Uint32]
+
 	flows       []flowNodeData
 	flowLists   []flowListData
 	reusedFlows []FlowNode
@@ -785,4 +788,35 @@ func (t *textStore) alloc(v string) uint32 {
 	copy(unsafe.Slice((*byte)(unsafe.Add(t.pieces[t.arena], off)), n), v)
 	t.next += n
 	return t.arena<<textPieceShift | off
+}
+
+// factsCache returns the word caching n's subtree facts. The store's table
+// of them is made on the first query, since most programs never make one;
+// a store still growing makes a larger one when it must, losing at worst
+// some cached facts.
+func (n Node) factsCache() *atomic.Uint32 {
+	s := n.store()
+	t := s.facts.Load()
+	if t == nil || n.node >= uint32(len(*t)) {
+		t = s.growFacts(n.node)
+	}
+	return &(*t)[n.node]
+}
+
+func (s *nodeStore) growFacts(i uint32) *[]atomic.Uint32 {
+	for {
+		old := s.facts.Load()
+		if old != nil && i < uint32(len(*old)) {
+			return old
+		}
+		t := make([]atomic.Uint32, max(len(s.nodes), int(i)+1))
+		if old != nil {
+			for j := range *old {
+				t[j].Store((*old)[j].Load())
+			}
+		}
+		if s.facts.CompareAndSwap(old, &t) {
+			return &t
+		}
+	}
 }

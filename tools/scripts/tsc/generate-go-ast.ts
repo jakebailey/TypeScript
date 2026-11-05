@@ -289,6 +289,12 @@ function isBinderField(f: { name: string; goOnly?: boolean; }): boolean {
     return !!f.goOnly && Object.hasOwn(binderFields, f.name);
 }
 
+// Whether a field is kept out of records: the binder's fields, and the
+// subtree facts cache, which the store keeps in a table of its own.
+function isOutOfRecord(f: { name: string; goOnly?: boolean; }): boolean {
+    return isBinderField(f) || (!!f.goOnly && f.name === "facts");
+}
+
 // Fields referring to records that live in the store's blocks, and symbol
 // names, hold a 32-bit ref, like node fields; the methods named here read,
 // write and create them.
@@ -349,7 +355,7 @@ function baseRecordFields(key: string): RecordField[] {
     const fields: RecordField[] = [];
     for (const ext of baseGoEmbeds(base)) fields.push(...baseRecordFields(ext));
     for (const field of base.fields) {
-        if (field.noGo || isBinderField(field)) continue;
+        if (field.noGo || isOutOfRecord(field)) continue;
         const valueType = field.goOnly ? field.rawType as string : field.type.formatGoReference();
         const goType = recordGoType(isNodeField(field), valueType);
         const parts = [];
@@ -388,7 +394,7 @@ function nodeRecordFields(node: NodeType): RecordField[] {
     const fields: RecordField[] = [];
     for (const ext of goEmbeds(node.extendsKeys)) fields.push(...baseRecordFields(ext));
     for (const m of nodeOwnFields(node)) {
-        if (isBinderField(m)) continue;
+        if (isOutOfRecord(m)) continue;
         const goType = recordGoType(isNodeField(m), memberGoType(m));
         fields.push({ storage: goStorageName(m.name), goType, comment: buildFieldComment(m, goType !== memberGoType(m) ? memberGoType(m) : undefined) });
     }
@@ -490,7 +496,7 @@ function generateBaseStructDefs(w: CodeWriter) {
 
         const structName = base.key;
         for (const field of base.fields) {
-            if (!field.noGo && !isBinderField(field)) generateBaseFieldOffsets(w, base, field.name, field.goOnly ? field.rawType as string : field.type.formatGoReference(), isNodeField(field));
+            if (!field.noGo && !isOutOfRecord(field)) generateBaseFieldOffsets(w, base, field.name, field.goOnly ? field.rawType as string : field.type.formatGoReference(), isNodeField(field));
         }
 
         // Base views see the fields of whichever concrete node they wrap.
@@ -1239,8 +1245,7 @@ function generateSubtreeFactsDispatch(w: CodeWriter) {
         w.write(`case ${kinds.join(", ")}:`);
         w.push();
         if (transitiveBaseKeys(node).has("CompositeBase")) {
-            writeNodeCastSafety(w, node);
-            w.write(`return subtreeFactsWorker(&${dataOf(node, "n")}.facts, n)`);
+            w.write("return subtreeFactsWorker(n.factsCache(), n)");
         }
         else {
             w.write("return n.computeSubtreeFacts()");
