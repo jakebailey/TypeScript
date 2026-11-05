@@ -60,6 +60,10 @@ type nodeStore struct {
 	// nameRef.
 	names []SymbolName
 
+	// spilledLists holds the pos, end and aux of the lists with
+	// listSpilled set.
+	spilledLists map[unsafe.Pointer]*spilledList
+
 	flows       []flowNodeData
 	flowLists   []flowListData
 	reusedFlows []FlowNode

@@ -74,7 +74,7 @@ Records are generated from the AST schema (`tools/scripts/tsc/generate-go-ast.ts
 | `SymbolName` | `nameRef`: an interned name's ID below 2^31 as is; any other name (derived names) is an index into the store's `names`, with the top bit set | one test, then the ID |
 | `string` | `textRef{off, len}`: the top 5 bits pick one of 32 pieces of up to 128MB. The first pieces hold the source text, so source substrings are referenced in place; the rest are an append-only arena. | `unsafe.String(pieces[off>>27]+off&mask, len)` |
 
-Lists are records too: a range, a count, a flags word (missing list, or a `ModifierList`'s flags), then packed element refs. The parser collects elements on one scratch stack and copies each finished list into the store, so parsing allocates no `[]Node` per list.
+Lists are records too: an 8-byte header (chunk offset and layout flags, count), the packed element refs, then only those of pos, end and an aux word (missing list, or a `ModifierList`'s flags) that the list can't derive. A parsed list (`NewNodeListAt`) almost always spans exactly its elements, so it reads its pos from the first element and its end from the last; factory lists store both, since callers move their elements afterwards. A list that later changes in a way its record has no room for spills its loc and aux to a per-store map. The parser collects elements on one scratch stack and copies each finished list into the store, so parsing allocates no `[]Node` per list.
 
 Records, lists and refs are 4-byte aligned (no record field is wider than 4 bytes), so a distance between them is never odd, and the low bit is free to mark near refs. Go's compiler can't emit a three-operand LEA, so every encoding is chosen to make the hot decode one add: near refs keep the bit set and subtract a constant, and parents use even offsets from the record itself.
 
@@ -145,6 +145,7 @@ Experiments that didn't pay: a zero check in side-table getters (+0.03% instruct
 28. **24-byte header** (vscode memory used −140MB, −3.9%): ids move from the header to per-chunk tables. Chunks shrink by 174MB, and the id tables take 35MB.
 29. **4-byte names in records** (vscode memory used −61MB, −1.8%): `Identifier` keeps its `SymbolName` as a 32-bit `nameRef`, shrinking from 40 to 32 bytes. On vscode every one of the 6.9M identifier names is a plain interned ID (the largest is about 2^20), so the store's `names` table stays empty.
 30. **4-byte record alignment** (vscode memory used −32MB, −1.0%): records and lists are allocated in 4-byte units instead of words, so the many records with a 4-byte tail (`PropertyAccessExpression` 48 → 44, `StringLiteral` 40 → 36, `ThisKeyword` 32 → 28, `BinaryExpression` and `PropertyAssignment` 56 → 52) no longer pad. Anchors count 4-byte units.
+31. **Smaller list headers** (memory used −44MB vscode, −17MB sentry, −4MB material-ui; check time within noise): the list header shrinks from 20 bytes to 8. On vscode 3.6M lists hold only 6.2M elements, and 99.98% of non-empty parsed lists start at their first element and 96% end at their last, so pos and end are derived instead of stored, and aux is stored only when nonzero.
 
 ## Next
 

@@ -6102,15 +6102,11 @@ func (p *Parser) createIdentifierWithDiagnostic(isIdentifier bool, diagnosticMes
 }
 
 func (p *Parser) newNodeList(loc core.TextRange, nodes []ast.Node) ast.NodeList {
-	list := p.factory.NewNodeList(nodes)
-	list.SetLoc(loc)
-	return list
+	return p.factory.NewNodeListAt(loc, nodes)
 }
 
 func (p *Parser) newModifierList(loc core.TextRange, nodes []ast.Node) ast.ModifierList {
-	list := p.factory.NewModifierList(nodes)
-	list.SetLoc(loc)
-	return list
+	return p.factory.NewModifierListAt(loc, nodes)
 }
 
 func (p *Parser) finishNode(node ast.Node, pos int) ast.Node {
