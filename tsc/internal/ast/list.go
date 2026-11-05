@@ -20,22 +20,17 @@ type NodeList struct {
 }
 
 type listHeader struct {
-	// info holds the record's offset in bytes from the start of its chunk
-	// in its low listChunkBits bits, and listInfo flags above them.
+	// info holds the record's chunkCode in its low chunkCodeBits bits,
+	// shifted left by kindBits like a node's, and flags above them.
 	info uint32
 	n    uint32
 }
 
 const listHeaderSize = unsafe.Sizeof(listHeader{})
 
-const listChunkBits = 21
-
-// Every chunk offset fits in listChunkBits bits.
-var _ [1<<listChunkBits - int(chunkHeaderSize) - maxChunkRecordWords*int(wordSize)]struct{}
+const listChunkBits = kindBits + chunkCodeBits
 
 const (
-	listChunkMask = 1<<listChunkBits - 1
-
 	// listPos and listEnd mark a list record that stores its pos or end;
 	// otherwise the pos is that of its first element, and the end is
 	// that of its last element, or its pos if listEndAtPos is set.
@@ -117,9 +112,9 @@ func newNodeList(s *nodeStore, nodes []Node, aux uint32, loc core.TextRange, der
 		flags |= listAux
 	}
 	extra := bits.OnesCount32(flags & (listPos | listEnd | listAux))
-	p, chunk := s.alloc(listHeaderSize + uintptr(n+extra)*unsafe.Sizeof(nodeRef(0)))
+	p, code := s.alloc(listHeaderSize + uintptr(n+extra)*unsafe.Sizeof(nodeRef(0)))
 	l := NodeList{p}
-	*l.hdr() = listHeader{info: chunk | flags, n: uint32(n)}
+	*l.hdr() = listHeader{info: code<<kindBits | flags, n: uint32(n)}
 	c := l.chunk()
 	for k, node := range nodes {
 		setRef(c, l.slot(k), node)
@@ -153,7 +148,7 @@ func (l NodeList) slot(k int) *nodeRef {
 	return (*nodeRef)(unsafe.Add(l.p, listHeaderSize+uintptr(k)*unsafe.Sizeof(nodeRef(0))))
 }
 
-func (l NodeList) chunk() *chunkHeader { return chunkOf(l.p, l.hdr().info&listChunkMask) }
+func (l NodeList) chunk() *chunkHeader { return chunkOf(l.p, l.hdr().info) }
 
 func (l NodeList) store() *nodeStore { return l.chunk().store }
 
@@ -387,8 +382,8 @@ func (n Node) derefList(f *listRef) NodeList {
 		// reading the absent far slot, which is far from the record.
 		return NodeList{}
 	}
-	// SAFETY: The node header's chunk offset leads back to its containing allocation's header.
-	return (*chunkHeader)(unsafe.Add(n.p, -int((*nodeBaseData)(n.p).chunk))).store.farLists[r>>1]
+	// SAFETY: The node starts with nodeBaseData.
+	return chunkOf(n.p, (*nodeBaseData)(n.p).kind.Load()).store.farLists[r>>1]
 }
 
 func (n Node) derefModifiers(f *listRef) ModifierList {

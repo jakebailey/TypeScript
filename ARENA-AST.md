@@ -32,23 +32,22 @@ type chunkHeader struct {
 // A chunk is reflect.StructOf{Header chunkHeader; Words [n]uint64}.
 ```
 
-Each store (one per `NodeFactory`, so one per parsed file) allocates records from chunks. Each chunk is a single Go object whose only pointers are in its header, so the GC never scans the records. Chunks are sized to allocator size classes (2^k or 3·2^(k-1) bytes), so no rounding is wasted. A parsed file's first chunk is sized from its source length, and later chunks add 1/16 of the store's size, up to 1.5MB (so a chunk holds at most 65535 records). Records never move. An interior `Node` pointer keeps its chunk alive, and the chunk header keeps the store alive.
+Each store (one per `NodeFactory`, so one per parsed file) allocates records from chunks. Each chunk is a single Go object whose only pointers are in its header, so the GC never scans the records. Chunks are sized to allocator size classes (2^k or 3·2^(k-1) bytes, including the allocator's 8-byte malloc header or a pad word of our own), so no rounding is wasted. A parsed file's first chunk is sized from its source length, and later chunks add 1/16 of the store's size, up to 512KB. Records never move. An interior `Node` pointer keeps its chunk alive, and the chunk header keeps the store alive.
 
 `ParseSourceFile` parses, binds right away while the file is still private, then freezes the store and clips its side tables. Allocating in a frozen store panics.
 
-### Every record starts with a 24-byte header
+### Every record starts with a 20-byte header
 
 ```go
 type nodeBaseData struct {
     loc    core.TextRange
     parent parentRef
     flags  NodeFlags
-    chunk  uint32        // byte offset of the record in its chunk
-    kind   atomic.Uint32 // Kind in the low 16 bits, id number in the high 16
+    kind   atomic.Uint32 // Kind (9 bits), chunk code (7 bits), id number (16 bits)
 }
 ```
 
-`chunk` leads from any record back to its chunk header, and from there to the store and its side tables.
+The chunk code leads from any record back to its chunk header, and from there to the store and its side tables. Every chunk header sits 8 bytes into a block aligned to 256 bytes (chunks up to 16KB) or 8KB (larger chunks): the Go allocator puts small objects in slots aligned to a power of two dividing their size class, and an 8-byte malloc header first in those with pointers over 512 bytes, and it page-aligns large objects, which get a pad word instead. So the code holds the block size (1 bit) and how many blocks back the chunk's block is (6 bits), and `chunkOf` is a mask and an add from a 128-entry table. `addChunk` panics if an allocation breaks these assumptions.
 
 ### Node ids live in the chunk
 
@@ -147,6 +146,7 @@ Experiments that didn't pay: a zero check in side-table getters (+0.03% instruct
 30. **4-byte record alignment** (vscode memory used −32MB, −1.0%): records and lists are allocated in 4-byte units instead of words, so the many records with a 4-byte tail (`PropertyAccessExpression` 48 → 44, `StringLiteral` 40 → 36, `ThisKeyword` 32 → 28, `BinaryExpression` and `PropertyAssignment` 56 → 52) no longer pad. Anchors count 4-byte units.
 31. **Smaller list headers** (memory used −44MB vscode, −17MB sentry, −4MB material-ui; check time within noise): the list header shrinks from 20 bytes to 8. On vscode 3.6M lists hold only 6.2M elements, and 99.98% of non-empty parsed lists start at their first element and 96% end at their last, so pos and end are derived instead of stored, and aux is stored only when nonzero.
 32. **Chunks sized for the malloc header** (memory used −50MB vscode, −29MB sentry, −11MB material-ui; check time within noise): since Go 1.22 the allocator puts an 8-byte type header before every small object with pointers larger than 512 bytes. A chunk starts with pointers, so a chunk of exactly a size class's bytes, as `chunkClass` asked for, spilled into the next class: a 4KB chunk took 4.75KB and an 8KB chunk 9.25KB. Chunks between 512 bytes and 32KB now leave room for that header.
+33. **20-byte header** (memory used −87MB vscode, −35MB sentry, −11MB material-ui; check time vscode +4.9% (p=0.15), sentry −0.2%, material-ui −5.1%, so possibly a small cost on vscode): the record header drops its 4-byte chunk offset for a 7-bit chunk code packed into the kind word (Kind needs only 9 bits), found from the record's address and the alignment of chunks. Every node record shrinks by 4 bytes, and lists keep the code in their info word. Chunks are capped at 512KB so that 6 bits count their 8KB blocks.
 
 ## Next
 

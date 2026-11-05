@@ -170,7 +170,7 @@ type Node struct {
 }
 
 func (n Node) IsNil() bool               { return n.p == nil }
-func (n Node) Kind() Kind                { return Kind(uint16(n.hdr().kind.Load())) }
+func (n Node) Kind() Kind                { return Kind(n.hdr().kind.Load() & kindMask) }
 func (n Node) Flags() NodeFlags          { return n.hdr().flags }
 func (n Node) Loc() core.TextRange       { return n.hdr().loc }
 func (n Node) SetFlags(flags NodeFlags)  { n.hdr().flags = flags }
@@ -203,8 +203,7 @@ func (n Node) Parent() Node {
 		// SAFETY: SetParent encodes an even offset only for a parent in the same retained chunk.
 		return Node{unsafe.Add(n.p, r)}
 	}
-	// SAFETY: The header's chunk offset leads back to this record's allocation header.
-	return (*chunkHeader)(unsafe.Add(n.p, -int(h.chunk))).store.far[uint32(r)>>1]
+	return chunkOf(n.p, h.kind.Load()).store.far[uint32(r)>>1]
 }
 
 // Shared node accessors dispatch on Kind to the enclosing concrete node.

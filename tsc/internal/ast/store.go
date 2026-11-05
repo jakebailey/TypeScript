@@ -24,10 +24,12 @@ import (
 // refs to records in other chunks or stores, go through the store's side
 // tables.
 type nodeStore struct {
-	// free is the unused rest of the chunk being allocated from, which
-	// starts at base, in units of recordAlign bytes.
+	// free is the unused rest of the chunk being allocated from, whose
+	// header is at base, in units of recordAlign bytes.
 	free []uint32
 	base unsafe.Pointer
+	// baseCode is the chunk code of that chunk's first block.
+	baseCode uint32
 	// chunks holds the start of every chunk, in allocation order.
 	chunks []unsafe.Pointer
 	// words counts the words of all chunks.
@@ -114,17 +116,75 @@ type nodeBaseData struct {
 	loc    core.TextRange
 	parent parentRef
 	flags  NodeFlags
-	// chunk is the record's offset in bytes from the start of its chunk.
-	chunk uint32
-	// kind holds the node's Kind in its low 16 bits and, in its high 16
-	// bits, the node's number among the nodes of its chunk given an id, or
-	// zero if it has none yet. It is atomic since ids are given lazily,
-	// possibly while other goroutines read the kind.
+	// kind holds the node's Kind in its low kindBits bits, the record's
+	// chunkCode in the next chunkCodeBits, and in its high 16 bits the
+	// node's number among the nodes of its chunk given an id, or zero if
+	// it has none yet. It is atomic since ids are given lazily, possibly
+	// while other goroutines read the kind.
 	kind atomic.Uint32
 }
 
 // Every node has a header, so it must stay small.
-var _ [24 - unsafe.Sizeof(nodeBaseData{})]struct{}
+var _ [20 - unsafe.Sizeof(nodeBaseData{})]struct{}
+
+const (
+	kindBits      = 9
+	kindMask      = 1<<kindBits - 1
+	chunkCodeBits = 7
+	nodeNumShift  = 16
+)
+
+var (
+	_ [kindMask - kindFlowReduceLabelData]struct{}
+	_ [nodeNumShift - kindBits - chunkCodeBits]struct{}
+)
+
+// A chunkCode locates the header of the chunk holding a record from the
+// record's address, so that records need not hold their offset in the
+// chunk. Chunks are allocated so that their header is chunkLead bytes
+// into a block of 1<<shift bytes aligned to its size, where shift is
+// smallChunkShift for chunks of at most smallChunkBytes, and
+// largeChunkShift, marked by chunkCodeLarge, for larger ones. The rest of
+// the code counts the blocks from that one to the one holding the record.
+//
+// The Go allocator gives small objects slots of their size class within
+// page-aligned spans, so a slot of 2^k or 3*2^(k-1) bytes, the sizes that
+// chunkClass picks, is aligned to 2^(k-1) bytes, at least the 256 bytes of
+// the smallest small block. It puts an 8-byte malloc header first in the
+// slot of a small object with pointers, such as a chunk, larger than 512
+// bytes, and it aligns large objects to pages, the largest blocks. The
+// other chunks start with a pad word, so that every header is chunkLead
+// bytes into its block. addChunk checks all this.
+const (
+	chunkLead       = 8
+	smallChunkShift = 8
+	largeChunkShift = 13
+	smallChunkBytes = (chunkCodeBlocks + 1) << smallChunkShift
+	chunkCodeLarge  = 1 << (chunkCodeBits - 1)
+	chunkCodeBlocks = chunkCodeLarge - 1
+)
+
+// chunkOf returns the header of the chunk holding the record at p, whose
+// chunk code is in w, from bit kindBits up.
+func chunkOf(p unsafe.Pointer, w uint32) *chunkHeader {
+	d := &chunkDecode[w>>kindBits&(1<<chunkCodeBits-1)]
+	// SAFETY: p's integer address is only used to find its offset in its
+	// block, and the chunk code leads from there back to the header of the
+	// allocation holding p.
+	return (*chunkHeader)(unsafe.Add(p, -int(uintptr(p)&d.mask+d.add)))
+}
+
+// chunkDecode holds, for each chunk code, the mask that gives a record's
+// offset in its block, and what to add for the offset of the record from
+// its chunk's header.
+var chunkDecode = func() (t [1 << chunkCodeBits]struct{ mask, add uintptr }) {
+	for c := range t {
+		shift := chunkShift(uint32(c))
+		t[c].mask = 1<<shift - 1
+		t[c].add = uintptr(c&chunkCodeBlocks)<<shift - chunkLead
+	}
+	return t
+}()
 
 // A nodeRef is a record field referring to a node. With the low bit set,
 // the referenced record is in the same chunk, at the field's address plus
@@ -165,14 +225,7 @@ func (n Node) hdr() *nodeBaseData {
 	return (*nodeBaseData)(n.p)
 }
 
-// chunkOf returns the header of the chunk holding the record at p, which
-// is chunk bytes from the chunk's start.
-func chunkOf(p unsafe.Pointer, chunk uint32) *chunkHeader {
-	// SAFETY: The record's chunk offset leads back to its containing allocation's header.
-	return (*chunkHeader)(unsafe.Add(p, -int(chunk)))
-}
-
-func (n Node) chunk() *chunkHeader { return chunkOf(n.p, n.hdr().chunk) }
+func (n Node) chunk() *chunkHeader { return chunkOf(n.p, n.hdr().kind.Load()) }
 
 // store returns the store that owns n.
 func (n Node) store() *nodeStore { return n.chunk().store }
@@ -191,8 +244,8 @@ func (n Node) deref(f *nodeRef) Node {
 	}
 	// The store is found by hand rather than by n.store() to keep callers
 	// within the inlining budget.
-	// SAFETY: The node starts with nodeBaseData, whose chunk offset addresses its allocation's header.
-	return (*chunkHeader)(unsafe.Add(n.p, -int((*nodeBaseData)(n.p).chunk))).store.far[r>>1]
+	// SAFETY: The node starts with nodeBaseData.
+	return chunkOf(n.p, (*nodeBaseData)(n.p).kind.Load()).store.far[r>>1]
 }
 
 // refAt returns the node that the field at offset off of n's record refers
@@ -264,7 +317,9 @@ func (s *nodeStore) anchor(v Node) nodeAnchor {
 	if v.p == nil {
 		return 0
 	}
-	if c, u := v.chunk(), v.hdr().chunk/recordAlign; c.store == s && c.index < maxAnchorChunks && u < maxChunkUnits {
+	c := v.chunk()
+	// SAFETY: The integer addresses are only subtracted, giving the record's offset in its chunk.
+	if u := uint32(uintptr(v.p)-uintptr(unsafe.Pointer(c))) / recordAlign; c.store == s && c.index < maxAnchorChunks && u < maxChunkUnits {
 		return nodeAnchor((c.index+1)<<anchorChunkShift | u)
 	}
 	s.far = append(s.far, v)
@@ -290,7 +345,8 @@ func (s *nodeStore) newNode(kind Kind, layout nodeLayout, n Node) Node {
 	if kindLayout[kind] != layout {
 		panic("node kind does not match its record layout")
 	}
-	n.hdr().kind.Store(uint32(uint16(kind)))
+	h := n.hdr()
+	h.kind.Store(h.kind.Load()&^kindMask | uint32(kind))
 	return n
 }
 
@@ -300,17 +356,17 @@ func newRecord[T any](s *nodeStore, layout nodeLayout) (*T, Node) {
 	if unsafe.Alignof(*new(T)) > recordAlign {
 		panic("node record is overaligned")
 	}
-	p, chunk := s.alloc(unsafe.Sizeof(*new(T)))
+	p, code := s.alloc(unsafe.Sizeof(*new(T)))
 	// SAFETY: alloc returns aligned, zeroed storage for T, whose first field is nodeBaseData.
 	h := (*nodeBaseData)(p)
-	h.chunk = chunk
+	h.kind.Store(code << kindBits)
 	h.parent = parentNone
 	// SAFETY: The allocation has T's size and alignment; record types contain no Go pointers.
 	return (*T)(p), Node{p}
 }
 
 // alloc allocates size zeroed bytes for a record, returning its address and
-// its byte offset in its chunk.
+// its chunk code.
 func (s *nodeStore) alloc(size uintptr) (unsafe.Pointer, uint32) {
 	if s.frozen {
 		panic("node store is frozen")
@@ -324,7 +380,16 @@ func (s *nodeStore) alloc(size uintptr) (unsafe.Pointer, uint32) {
 	s.free = s.free[units:]
 	// SAFETY: p and s.base address the same retained chunk; their integer addresses
 	// are used only to compute a byte offset, never to reconstruct a pointer.
-	return p, uint32(uintptr(p) - uintptr(s.base))
+	return p, s.baseCode + uint32(uintptr(p)-uintptr(s.base)+chunkLead)>>chunkShift(s.baseCode)
+}
+
+// chunkShift returns the log2 of the size of the blocks counted by chunk
+// codes with the same size marker as code.
+func chunkShift(code uint32) uint32 {
+	if code&chunkCodeLarge != 0 {
+		return largeChunkShift
+	}
+	return smallChunkShift
 }
 
 // grow allocates units in a new chunk. A record never spans two chunks.
@@ -337,48 +402,65 @@ func (s *nodeStore) grow(units int) (unsafe.Pointer, uint32) {
 	if words > n {
 		// A record too large for a normal chunk gets one of its own, and
 		// the current chunk stays in use.
-		base, _ := s.addChunk(words)
+		base, code, _ := s.addChunk(words)
 		// SAFETY: addChunk reserves its header followed by at least words record words.
-		return unsafe.Add(base, chunkHeaderSize), chunkHeaderSize
+		return unsafe.Add(base, chunkHeaderSize), code + (chunkLead+chunkHeaderSize)>>chunkShift(code)
 	}
-	base, all := s.addChunk(n)
+	base, code, all := s.addChunk(n)
 	s.base = base
+	s.baseCode = code
 	s.free = all[units:]
 	// SAFETY: all is the retained chunk's records region.
-	return unsafe.Pointer(unsafe.SliceData(all)), chunkHeaderSize
+	return unsafe.Pointer(unsafe.SliceData(all)), code + (chunkLead+chunkHeaderSize)>>chunkShift(code)
 }
 
 // addChunk allocates a chunk with room for at least n words of records,
-// returning its start and its records' units of recordAlign bytes.
-func (s *nodeStore) addChunk(n int) (unsafe.Pointer, []uint32) {
+// returning its header, the chunk code of its first block, and its
+// records' units of recordAlign bytes.
+func (s *nodeStore) addChunk(n int) (unsafe.Pointer, uint32, []uint32) {
 	n = chunkClass(n)
-	base := reflect.New(chunkType(n)).UnsafePointer()
-	// SAFETY: chunkType starts with a chunkHeader, preserving its pointer's GC metadata.
+	bytes := (n + int(chunkHeaderWords)) * int(wordSize)
+	pad := mallocHeader(bytes+chunkLead) == 0
+	base := reflect.New(chunkType(n, pad)).UnsafePointer()
+	if pad {
+		// SAFETY: A padded chunkType has its header after a pad word.
+		base = unsafe.Add(base, chunkLead)
+	}
+	var code uint32
+	shift := uint(smallChunkShift)
+	if bytes+chunkLead > smallChunkBytes {
+		code, shift = chunkCodeLarge, largeChunkShift
+	}
+	// SAFETY: base's integer address is only used to check its alignment.
+	if (uintptr(base)-chunkLead)&(1<<shift-1) != 0 || bytes+chunkLead > (chunkCodeBlocks+1)<<shift && n <= maxChunkRecordWords {
+		panic("node chunk is misaligned")
+	}
+	// SAFETY: chunkType has a chunkHeader at base, preserving its pointer's GC metadata.
 	*(*chunkHeader)(base) = chunkHeader{store: s, index: uint32(len(s.chunks))}
 	s.chunks = append(s.chunks, base)
 	s.words += n
 	// SAFETY: chunkType places exactly n aligned uint64 words immediately after the header.
-	return base, unsafe.Slice((*uint32)(unsafe.Add(base, chunkHeaderSize)), n*int(wordSize)/recordAlign)
+	return base, code, unsafe.Slice((*uint32)(unsafe.Add(base, chunkHeaderSize)), n*int(wordSize)/recordAlign)
 }
 
 // chunkClass rounds n up so that a chunk with n words of records takes
 // 2^k or 3*2^(k-1) bytes, sizes that the Go allocator has a class for, so
-// the space it would otherwise round up to holds records too.
+// the space it would otherwise round up to holds records too. Every chunk
+// takes chunkLead bytes more than its header and records: the allocator's
+// malloc header, or a pad word.
 func chunkClass(n int) int {
-	bytes := max(n+int(chunkHeaderWords), minStoreWords) * int(wordSize)
-	for p := 1 << (bits.Len(uint(bytes-1)) - 1); ; p *= 2 {
-		for _, size := range [...]int{p, p / 2 * 3} {
-			if size -= mallocHeader(size); size >= bytes {
-				return size/int(wordSize) - int(chunkHeaderWords)
-			}
-		}
+	bytes := max(n+int(chunkHeaderWords), minStoreWords)*int(wordSize) + chunkLead
+	size := 1 << bits.Len(uint(bytes-1))
+	if three := size / 4 * 3; three >= bytes {
+		size = three
 	}
+	return (size-chunkLead)/int(wordSize) - int(chunkHeaderWords)
 }
 
-// mallocHeader returns how many bytes the Go allocator puts before a
-// chunk to describe its pointers, if it is to take size bytes in all: a
-// word for small objects with pointers that are too large for the
-// allocator to describe in their span, but none for large ones.
+// mallocHeader returns how many bytes the Go allocator puts at the start of
+// an object of size bytes with pointers to describe them: a word for small
+// objects too large for the allocator to describe in their span, but none
+// for the smallest and large ones.
 func mallocHeader(size int) int {
 	if size <= 512 || size > 32<<10 {
 		return 0
@@ -386,28 +468,38 @@ func mallocHeader(size int) int {
 	return int(wordSize)
 }
 
-var chunkTypes sync.Map // int -> reflect.Type
+var chunkTypes sync.Map // chunkTypeKey -> reflect.Type
 
-// chunkType returns the type of a chunk with n words of records: a
-// chunkHeader followed by an array of n words, so the header is its only
-// pointer.
-func chunkType(n int) reflect.Type {
-	if t, ok := chunkTypes.Load(n); ok {
+type chunkTypeKey struct {
+	n   int
+	pad bool
+}
+
+// chunkType returns the type of a chunk with n words of records: a pad
+// word if pad is set, then a chunkHeader followed by an array of n words,
+// so the header is its only pointer.
+func chunkType(n int, pad bool) reflect.Type {
+	key := chunkTypeKey{n, pad}
+	if t, ok := chunkTypes.Load(key); ok {
 		return t.(reflect.Type)
 	}
-	t := reflect.StructOf([]reflect.StructField{
+	fields := []reflect.StructField{
 		{Name: "Header", Type: reflect.TypeFor[chunkHeader]()},
 		{Name: "Words", Type: reflect.ArrayOf(n, reflect.TypeFor[uint64]())},
-	})
-	t2, _ := chunkTypes.LoadOrStore(n, t)
+	}
+	if pad {
+		fields = append([]reflect.StructField{{Name: "Pad", Type: reflect.TypeFor[uint64]()}}, fields...)
+	}
+	t2, _ := chunkTypes.LoadOrStore(key, reflect.StructOf(fields))
 	return t2.(reflect.Type)
 }
 
 // maxChunkRecordWords bounds the chunks that hold more than one record, so
-// that no chunk holds more nodes than can be numbered: every node record is
-// at least its header. With its header, such a chunk is 3<<19 bytes, a size
+// that chunk codes can count the blocks of all their records, and no chunk
+// holds more nodes than can be numbered: every node record is at least its
+// header. With its header and lead, such a chunk is 1<<19 bytes, a size
 // that chunkClass does not round up.
-const maxChunkRecordWords = 3<<16 - int(chunkHeaderWords)
+const maxChunkRecordWords = (chunkCodeBlocks+1)<<largeChunkShift/int(wordSize) - int(chunkHeaderWords) - chunkLead/int(wordSize)
 
 var _ [maxNodesPerChunk - maxChunkRecordWords*int(wordSize)/int(unsafe.Sizeof(nodeBaseData{}))]struct{}
 

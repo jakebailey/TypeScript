@@ -46,11 +46,10 @@ func GetNodeId(node Node) NodeId {
 func getNodeId(node Node, gen *NodeIdGenerator) NodeId {
 	// SAFETY: Every node record begins with an aligned nodeBaseData header.
 	h := (*nodeBaseData)(node.p)
-	if i := h.kind.Load() >> 16; i != 0 {
-		// SAFETY: The header's chunk offset leads back to the chunk's header,
-		// whose ids hold the id of every number given to one of its nodes;
-		// the number was published after its id.
-		return NodeId(*(*uint32)(unsafe.Add(unsafe.Pointer((*chunkHeader)(unsafe.Add(node.p, -int(h.chunk))).ids.Load()), (i-1)*4)))
+	if w := h.kind.Load(); w>>nodeNumShift != 0 {
+		// SAFETY: The chunk's ids hold the id of every number given to one
+		// of its nodes; the number was published after its id.
+		return NodeId(*(*uint32)(unsafe.Add(unsafe.Pointer(chunkOf(node.p, w).ids.Load()), (w>>nodeNumShift-1)*4)))
 	}
 	return assignNodeId(node, gen)
 }
@@ -60,7 +59,7 @@ func assignNodeId(node Node, gen *NodeIdGenerator) NodeId {
 	c := node.chunk()
 	s := c.store
 	s.idMu.Lock()
-	if h.kind.Load()>>16 == 0 {
+	if h.kind.Load()>>nodeNumShift == 0 {
 		if c.idCount == maxNodesPerChunk {
 			panic("too many nodes in chunk")
 		}
@@ -92,7 +91,7 @@ func assignNodeId(node Node, gen *NodeIdGenerator) NodeId {
 		// SAFETY: The chunk's ids have room for k+1 ids.
 		*(*uint32)(unsafe.Add(unsafe.Pointer(c.ids.Load()), k*4)) = uint32(id)
 		c.idCount++
-		h.kind.Store(h.kind.Load() | uint32(c.idCount)<<16)
+		h.kind.Store(h.kind.Load() | uint32(c.idCount)<<nodeNumShift)
 	}
 	s.idMu.Unlock()
 	return getNodeId(node, nil)
