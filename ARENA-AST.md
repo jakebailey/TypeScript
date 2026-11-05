@@ -71,6 +71,7 @@ Records are generated from the AST schema (`tools/scripts/tsc/generate-go-ast.ts
 | Node list, modifier list | `listRef`, same encoding as `nodeRef`, over `farLists` | as for nodes |
 | Flow node, flow list | index into the store's `flows`/`flowLists` arrays (pointer-free, 16 bytes each) | `FlowNode{store, i}` |
 | `*Symbol`, `SymbolTable`, `[]string`, `[]Node`, `any` | `sideRef`: index into a typed side table, whose slot 0 is the zero value | `store.T.items[r]` |
+| `SymbolName` | `nameRef`: an interned name's ID below 2^31 as is; any other name (derived names) is an index into the store's `names`, with the top bit set | one test, then the ID |
 | `string` | `textRef{off, len}`: the top 5 bits pick one of 32 pieces of up to 128MB. The first pieces hold the source text, so source substrings are referenced in place; the rest are an append-only arena. | `unsafe.String(pieces[off>>27]+off&mask, len)` |
 
 Lists are records too: a range, a count, a flags word (missing list, or a `ModifierList`'s flags), then packed element refs. The parser collects elements on one scratch stack and copies each finished list into the store, so parsing allocates no `[]Node` per list.
@@ -142,6 +143,7 @@ Experiments that didn't pay: a zero check in side-table getters (+0.03% instruct
 26. **Zero refs tested first** (`1e5f65ab9fc`, −0.21% instructions): absent fields no longer load the far table.
 27. **`GetNodeId` inlinable again** (`67837fcf02d`, −0.28% instructions).
 28. **24-byte header** (vscode memory used −140MB, −3.9%): ids move from the header to per-chunk tables. Chunks shrink by 174MB, and the id tables take 35MB.
+29. **4-byte names in records** (vscode memory used −61MB, −1.8%): `Identifier` keeps its `SymbolName` as a 32-bit `nameRef`, shrinking from 40 to 32 bytes. On vscode every one of the 6.9M identifier names is a plain interned ID (the largest is about 2^20), so the store's `names` table stays empty.
 
 ## Next
 

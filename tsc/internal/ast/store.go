@@ -56,6 +56,10 @@ type nodeStore struct {
 	// an offset.
 	farLists []NodeList
 
+	// names holds the symbol names that records cannot hold inline; see
+	// nameRef.
+	names []SymbolName
+
 	flows       []flowNodeData
 	flowLists   []flowListData
 	reusedFlows []FlowNode
@@ -417,6 +421,9 @@ func (s *nodeStore) compactSide() {
 	s.stringLists.compact()
 	s.nodeSlices.compact()
 	s.values.compact()
+	if len(s.names) != cap(s.names) {
+		s.names = slices.Clip(slices.Clone(s.names))
+	}
 	s.far = slices.Clip(slices.Clone(s.far))
 	s.farLists = slices.Clip(slices.Clone(s.farLists))
 }
@@ -456,6 +463,44 @@ func (t *sideTable[T]) compact() {
 	if len(t.items) != cap(t.items) {
 		t.items = slices.Clip(slices.Clone(t.items))
 	}
+}
+
+// A nameRef is a SymbolName field. Nearly every name in a record is
+// interned with an ID below nameFar, and is held as is; any other name, such
+// as a derived one, is held in the store's names, at the index in the rest
+// of the ref.
+type nameRef uint32
+
+const nameFar = 1 << 31
+
+func (n Node) derefName(f *nameRef) SymbolName {
+	r := *f
+	if r&nameFar == 0 {
+		return SymbolName(r)
+	}
+	return n.store().names[r&^nameFar]
+}
+
+// setNameRef makes the field f of n's record hold v.
+func (n Node) setNameRef(f *nameRef, v SymbolName) { setNameRef(f, n, v) }
+
+// setNameRef makes the field f of the record of owner hold v.
+func setNameRef(f *nameRef, owner Node, v SymbolName) {
+	if v < nameFar {
+		*f = nameRef(v)
+		return
+	}
+	s := owner.store()
+	if *f&nameFar != 0 {
+		// Slots are never shared, so the field's own slot can be reused.
+		s.names[*f&^nameFar] = v
+		return
+	}
+	if uint64(len(s.names)) >= nameFar {
+		panic("node store name overflow")
+	}
+	*f = nameRef(len(s.names)) | nameFar
+	s.names = append(s.names, v)
 }
 
 // A textRef is a string field: a range of the store's text, located by

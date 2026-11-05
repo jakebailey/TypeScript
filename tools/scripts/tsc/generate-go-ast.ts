@@ -272,12 +272,14 @@ const sideTables: Record<string, string> = {
     "any": "values",
 };
 
-// Fields referring to records that live in the store's blocks hold a ref,
-// like node fields; the methods named here read, write and create them.
+// Fields referring to records that live in the store's blocks, and symbol
+// names, hold a 32-bit ref, like node fields; the methods named here read,
+// write and create them.
 const recordRefs: Record<string, { ref: string; deref: string; set: string; setAt: string; }> = {
     FlowNode: { ref: "flowRef", deref: "derefFlow", set: "setFlowRef", setAt: "setFlowRef" },
     NodeList: { ref: "listRef", deref: "derefList", set: "setListRef", setAt: "setListRefAt" },
     ModifierList: { ref: "listRef", deref: "derefModifiers", set: "setModifiersRef", setAt: "setModifiersRefAt" },
+    SymbolName: { ref: "nameRef", deref: "derefName", set: "setNameRef", setAt: "setNameRef" },
 };
 
 function recordRefOf(goType: string) {
@@ -343,8 +345,8 @@ function baseRecordFields(key: string): RecordField[] {
 
 // Alignments of the Go types that record fields may have.
 const recordFieldAlignments: Record<string, number> = {
-    "SymbolName": 8,
     "nodeRef": 4,
+    "nameRef": 4,
     "flowRef": 4,
     "listRef": 4,
     "textRef": 4,

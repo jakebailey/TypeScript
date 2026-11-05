@@ -3030,8 +3030,8 @@ func IsToken(node Node) bool {
 
 type identifierData struct {
 	nodeBaseData
-	text     SymbolName
 	flowNode flowRef // FlowNode
+	text     nameRef // SymbolName
 }
 
 type Identifier struct{ Node }
@@ -3040,16 +3040,17 @@ func (node Identifier) data() *identifierData { return (*identifierData)(node.re
 
 func (node Identifier) FlowNode() FlowNode         { return node.derefFlow(&node.data().flowNode) }
 func (node Identifier) SetFlowNode(value FlowNode) { node.setFlowRef(&node.data().flowNode, value) }
-func (node Identifier) Text() SymbolName           { return node.data().text }
-func (node Identifier) SetText(value SymbolName)   { node.data().text = value }
+func (node Identifier) Text() SymbolName           { return node.derefName(&node.data().text) }
+func (node Identifier) SetText(value SymbolName)   { node.setNameRef(&node.data().text, value) }
 
 func (f *NodeFactory) NewIdentifier(text string) Node {
 	return f.NewIdentifierFromSymbolName(MakeSymbolName(text))
 }
 
 func (f *NodeFactory) NewIdentifierFromSymbolName(text SymbolName) Node {
-	data, i := newRecord[identifierData](f.nodeStore(), layoutIdentifier)
-	data.text = text
+	s := f.nodeStore()
+	data, i := newRecord[identifierData](s, layoutIdentifier)
+	setNameRef(&data.text, i, text)
 	f.textCount++
 	return f.newNode(KindIdentifier, layoutIdentifier, i)
 }
