@@ -30,7 +30,7 @@ func NewNodeFactory(context *EmitContext) *NodeFactory {
 func (f *NodeFactory) newGeneratedIdentifier(kind GeneratedIdentifierFlags, text string, node ast.Node, options AutoGenerateOptions) ast.IdentifierNode {
 	id := AutoGenerateId(nextAutoGenerateId.Add(1))
 
-	var name *ast.IdentifierNode
+	var name ast.IdentifierNode
 	if len(text) == 0 {
 		prefix, suffix := removeLeadingHash(options.Prefix), removeLeadingHash(options.Suffix)
 		switch {

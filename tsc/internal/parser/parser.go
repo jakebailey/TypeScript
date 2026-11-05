@@ -3157,14 +3157,14 @@ func (p *Parser) newIdentifier(text string) ast.Node {
 // newScannedIdentifier creates an identifier for the current token's value,
 // reusing the hash the scanner computed for it if available. Call it before
 // advancing past the token.
-func (p *Parser) newScannedIdentifier(text string) *ast.Node {
+func (p *Parser) newScannedIdentifier(text string) ast.Node {
 	if hash, ok := p.scanner.IdentifierHash(text); ok {
 		return p.newIdentifierFromSymbolName(text, p.identifierNames.MakeHashed(text, hash))
 	}
 	return p.newIdentifier(text)
 }
 
-func (p *Parser) newIdentifierFromSymbolName(text string, name ast.SymbolName) *ast.Node {
+func (p *Parser) newIdentifierFromSymbolName(text string, name ast.SymbolName) ast.Node {
 	p.identifierCount++
 	id := p.factory.NewIdentifierFromSymbolName(name)
 	if text == "await" {

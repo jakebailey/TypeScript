@@ -35,24 +35,24 @@ export class Second { #value = 2; }
 	BindSourceFile(file)
 
 	name := ast.MakeSymbolName("named")
-	local := file.Locals.Get(name)
-	exported := file.Symbol.Exports().Get(name)
+	local := file.Locals().Get(name)
+	exported := file.Symbol().Exports().Get(name)
 	assert.Assert(t, local != nil && exported != nil)
 	assert.Assert(t, local.Name() == name && exported.Name() == name)
 	assert.Equal(t, len(local.Declarations()), 2)
 	assert.Equal(t, len(exported.Declarations()), 2)
 	assert.Equal(t, local.ExportSymbol(), exported)
 
-	members := file.Symbol.Exports().Get(ast.MakeSymbolName("Shape")).Members()
+	members := file.Symbol().Exports().Get(ast.MakeSymbolName("Shape")).Members()
 	for _, name := range []ast.SymbolName{ast.InternalSymbolNameCall, ast.MakeSymbolName("__call"), ast.MakeSymbolName("literal"), ast.MakeSymbolName("0")} {
 		assert.Assert(t, members.Get(name) != nil)
 		assert.Assert(t, members.Get(name).Name() == name)
 	}
 	assert.Assert(t, members.Get(ast.InternalSymbolNameCall) != members.Get(ast.MakeSymbolName("__call")))
-	assert.Assert(t, file.Symbol.Exports().Get(ast.MakeSymbolName("renamed")).Name() == ast.MakeSymbolName("renamed"))
+	assert.Assert(t, file.Symbol().Exports().Get(ast.MakeSymbolName("renamed")).Name() == ast.MakeSymbolName("renamed"))
 
-	first := file.Symbol.Exports().Get(ast.InternalSymbolNameDefault)
-	second := file.Symbol.Exports().Get(ast.MakeSymbolName("Second"))
+	first := file.Symbol().Exports().Get(ast.InternalSymbolNameDefault)
+	second := file.Symbol().Exports().Get(ast.MakeSymbolName("Second"))
 	firstPrivate := GetSymbolNameForPrivateIdentifier(first, "#value")
 	secondPrivate := GetSymbolNameForPrivateIdentifier(second, "#value")
 	assert.Assert(t, firstPrivate != secondPrivate)
