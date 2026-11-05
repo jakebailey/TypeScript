@@ -515,11 +515,7 @@ func (b *NodeBuilderImpl) tryGetResolvedSymbolFromTypeNode(node ast.Node) *ast.S
 	}
 	b.ch.getTypeFromTypeNode(node)
 	// call to ensure symbol is resolved
-	links := b.ch.symbolNodeLinks.TryGet(node)
-	if links == nil {
-		return nil
-	}
-	return links.resolvedSymbol
+	return b.ch.symbolNodeLinks.get(node)
 }
 
 func (b *NodeBuilderImpl) existingTypeNodeIsNotReferenceOrIsReferenceWithCompatibleTypeArgumentCount(existing ast.TypeNode, t *Type) bool {

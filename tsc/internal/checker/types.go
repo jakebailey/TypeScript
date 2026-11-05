@@ -433,10 +433,6 @@ type NodeLinks struct {
 	hasReportedStatementInAmbientContext bool           // Cache boolean if we report statements in ambient context
 }
 
-type SymbolNodeLinks struct {
-	resolvedSymbol *ast.Symbol // Resolved symbol associated with node
-}
-
 type TypeNodeLinks struct {
 	resolvedType        *Type    // Resolved type associated with node
 	outerTypeParameters *[]*Type // Outer type parameters of anonymous object type

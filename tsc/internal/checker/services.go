@@ -870,10 +870,10 @@ func (c *Checker) GetConstantValue(node ast.Node) any {
 		return c.getEnumMemberValue(node).Value
 	}
 
-	if c.symbolNodeLinks.Get(node).resolvedSymbol == nil {
+	if c.symbolNodeLinks.get(node) == nil {
 		c.checkExpressionCached(node) // ensure cached resolved symbol is set
 	}
-	symbol := c.symbolNodeLinks.Get(node).resolvedSymbol
+	symbol := c.symbolNodeLinks.get(node)
 	if symbol == nil && ast.IsEntityNameExpression(node) {
 		symbol = c.resolveEntityName(
 			node,
