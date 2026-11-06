@@ -5,25 +5,22 @@ import (
 	"slices"
 )
 
-// The binder's fields of nodes are not in their records but in side tables
-// of their store, keyed by node index. Declarations' symbols and nodes'
-// flow nodes, which many nodes have, are in sparse maps; the other fields,
-// which few nodes have, are in hash maps.
+// The binder's fields of nodes are not in their records but in sparse side
+// tables of their store, keyed by node index. Declarations' symbols and
+// nodes' flow nodes, which many nodes have, are in bitmap-ranked maps. The
+// fields of containers, which few nodes have, share one record per node in
+// a map of sorted node indices, as do local symbols.
 type binderData struct {
-	symbols   sparseMap[uint32]
-	flowNodes sparseMap[flowRef]
+	symbols      sparseMap[uint32]
+	flowNodes    sparseMap[flowRef]
+	containers   sortedMap[containerData]
+	localSymbols sortedMap[uint32]
 
 	// foreignSymbols holds the symbols, and foreignLocalSymbols the local
 	// symbols, of nodes whose symbol is not one of the store's own, which
 	// symbols and localSymbols hold by index.
-	foreignSymbols       map[uint32]Symbol
-	localSymbols         map[uint32]uint32
-	foreignLocalSymbols  map[uint32]Symbol
-	locals               map[uint32]SymbolTable
-	nextContainers       map[uint32]nodeRef
-	endFlowNodes         map[uint32]flowRef
-	returnFlowNodes      map[uint32]flowRef
-	fallthroughFlowNodes map[uint32]flowRef
+	foreignSymbols      map[uint32]Symbol
+	foreignLocalSymbols map[uint32]Symbol
 
 	// done is set once a parsed file's binding is finished and its sparse
 	// maps are packed.
@@ -131,12 +128,79 @@ func (m *sparseMap[T]) pack() {
 	m.dense = nil
 }
 
+// containerData holds the binder's fields of a container, a function or a
+// case clause.
+type containerData struct {
+	locals              SymbolTable
+	nextContainer       nodeRef
+	endFlowNode         flowRef
+	returnFlowNode      flowRef
+	fallthroughFlowNode flowRef
+}
+
+// A sortedMap maps node indices to values, for fields few nodes have.
+// Packed, it holds the indices sorted, with their values in the same order,
+// found by binary search. Values are set in extra while a file is being
+// bound, and set later for nodes having none, which is also all that a
+// store of nodes not from a parsed file uses.
+type sortedMap[T comparable] struct {
+	keys   []uint32
+	values []T
+	extra  map[uint32]T
+}
+
+func (m *sortedMap[T]) get(i uint32) T {
+	if j, ok := slices.BinarySearch(m.keys, i); ok {
+		return m.values[j]
+	}
+	if m.extra != nil {
+		return m.extra[i]
+	}
+	var zero T
+	return zero
+}
+
+func (m *sortedMap[T]) set(i uint32, v T) {
+	if j, ok := slices.BinarySearch(m.keys, i); ok {
+		m.values[j] = v
+		return
+	}
+	var zero T
+	if v == zero {
+		delete(m.extra, i)
+		return
+	}
+	if m.extra == nil {
+		m.extra = make(map[uint32]T)
+	}
+	m.extra[i] = v
+}
+
+// pack moves the values set while binding into the sorted arrays.
+func (m *sortedMap[T]) pack() {
+	if len(m.extra) == 0 || m.keys != nil {
+		return
+	}
+	m.keys = make([]uint32, 0, len(m.extra))
+	for i := range m.extra {
+		m.keys = append(m.keys, i)
+	}
+	slices.Sort(m.keys)
+	m.values = make([]T, len(m.keys))
+	for j, i := range m.keys {
+		m.values[j] = m.extra[i]
+	}
+	m.extra = nil
+}
+
 // finishBinding packs the binder's data of a parsed file. It must be
 // called before the file is shared with other goroutines.
 func (s *NodeStore) finishBinding() {
 	b := &s.binder
 	b.symbols.pack()
 	b.flowNodes.pack()
+	b.containers.pack()
+	b.localSymbols.pack()
 	s.symbols.finishBinding()
 	b.done = true
 	if len(s.flows) != cap(s.flows) {
@@ -208,7 +272,7 @@ func (n Node) setBinderFlowNode(v FlowNode) {
 
 func (n Node) binderLocalSymbol() Symbol {
 	s := n.store()
-	if i := s.binder.localSymbols[n.node]; i != 0 {
+	if i := s.binder.localSymbols.get(n.node); i != 0 {
 		return Symbol{&s.symbols, i}
 	}
 	if s.binder.foreignLocalSymbols != nil {
@@ -223,62 +287,60 @@ func (n Node) setBinderLocalSymbol(v Symbol) {
 	if v.s == &s.symbols {
 		i = v.i
 	}
-	setBinderMap(&s.binder.localSymbols, n.node, i)
+	s.binder.localSymbols.set(n.node, i)
 	if i == 0 && (!v.IsNil() || s.binder.foreignLocalSymbols != nil) {
 		setBinderMap(&s.binder.foreignLocalSymbols, n.node, v)
 	}
 }
 
+func (n Node) binderContainer() containerData {
+	return n.store().binder.containers.get(n.node)
+}
+
+func (n Node) updateBinderContainer(update func(d *containerData)) {
+	m := &n.store().binder.containers
+	d := m.get(n.node)
+	update(&d)
+	m.set(n.node, d)
+}
+
 func (n Node) binderLocals() SymbolTable {
-	return n.store().binder.locals[n.node]
+	return n.binderContainer().locals
 }
 
 func (n Node) setBinderLocals(v SymbolTable) {
-	setBinderMap(&n.store().binder.locals, n.node, v)
+	n.updateBinderContainer(func(d *containerData) { d.locals = v })
 }
 
 func (n Node) binderNextContainer() Node {
-	r := n.store().binder.nextContainers[n.node]
+	r := n.binderContainer().nextContainer
 	return n.deref(&r)
 }
 
 func (n Node) setBinderNextContainer(v Node) {
-	m := &n.store().binder.nextContainers
-	r := (*m)[n.node]
-	setNodeRef(&r, n, v)
-	setBinderMap(m, n.node, r)
-}
-
-func (n Node) binderFlowMap(m map[uint32]flowRef) FlowNode {
-	return n.store().derefFlow(m[n.node])
-}
-
-func (n Node) setBinderFlowMap(m *map[uint32]flowRef, v FlowNode) {
-	r := (*m)[n.node]
-	n.store().setFlowRef(&r, v)
-	setBinderMap(m, n.node, r)
+	n.updateBinderContainer(func(d *containerData) { setNodeRef(&d.nextContainer, n, v) })
 }
 
 func (n Node) binderEndFlowNode() FlowNode {
-	return n.binderFlowMap(n.store().binder.endFlowNodes)
+	return n.store().derefFlow(n.binderContainer().endFlowNode)
 }
 
 func (n Node) setBinderEndFlowNode(v FlowNode) {
-	n.setBinderFlowMap(&n.store().binder.endFlowNodes, v)
+	n.updateBinderContainer(func(d *containerData) { n.store().setFlowRef(&d.endFlowNode, v) })
 }
 
 func (n Node) binderReturnFlowNode() FlowNode {
-	return n.binderFlowMap(n.store().binder.returnFlowNodes)
+	return n.store().derefFlow(n.binderContainer().returnFlowNode)
 }
 
 func (n Node) setBinderReturnFlowNode(v FlowNode) {
-	n.setBinderFlowMap(&n.store().binder.returnFlowNodes, v)
+	n.updateBinderContainer(func(d *containerData) { n.store().setFlowRef(&d.returnFlowNode, v) })
 }
 
 func (n Node) binderFallthroughFlowNode() FlowNode {
-	return n.binderFlowMap(n.store().binder.fallthroughFlowNodes)
+	return n.store().derefFlow(n.binderContainer().fallthroughFlowNode)
 }
 
 func (n Node) setBinderFallthroughFlowNode(v FlowNode) {
-	n.setBinderFlowMap(&n.store().binder.fallthroughFlowNodes, v)
+	n.updateBinderContainer(func(d *containerData) { n.store().setFlowRef(&d.fallthroughFlowNode, v) })
 }

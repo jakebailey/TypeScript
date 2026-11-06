@@ -143,7 +143,7 @@ func TestNodeSideTableZeroValues(t *testing.T) {
 	assert.Assert(t, node.AsBlock().Locals() != nil)
 	node.AsBlock().SetLocals(nil)
 	assert.Assert(t, node.AsBlock().Locals() == nil)
-	assert.Equal(t, len(factory.nodeStore().binder.locals), 0)
+	assert.Equal(t, len(factory.nodeStore().binder.containers.extra), 0)
 }
 
 func TestSparseMap(t *testing.T) {
@@ -173,6 +173,30 @@ func TestSparseMap(t *testing.T) {
 	assert.Equal(t, m.get(99), uint32(9))
 	assert.Equal(t, m.get(70), uint32(1070))
 	assert.Equal(t, len(m.extra), 2)
+}
+
+func TestSortedMap(t *testing.T) {
+	t.Parallel()
+	var m sortedMap[uint32]
+	for _, i := range []uint32{900, 4, 70} {
+		m.set(i, i+1000)
+	}
+	m.set(5, 0)
+	m.pack()
+	assert.Assert(t, m.extra == nil)
+	assert.DeepEqual(t, m.keys, []uint32{4, 70, 900})
+	for i := range uint32(1000) {
+		want := uint32(0)
+		if i == 4 || i == 70 || i == 900 {
+			want = i + 1000
+		}
+		assert.Equal(t, m.get(i), want, "index %d", i)
+	}
+	m.set(70, 7)
+	m.set(71, 8)
+	assert.Equal(t, m.get(70), uint32(7))
+	assert.Equal(t, m.get(71), uint32(8))
+	assert.Equal(t, len(m.extra), 1)
 }
 
 func TestNodeTextRefs(t *testing.T) {

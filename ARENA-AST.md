@@ -299,6 +299,12 @@ Node links are per-file maps keyed by node index, the same key as a `NodeRef`. L
 
 This saves 99MB on vscode, 30MB on sentry and 8MB on mui; vscode check time drops by about 0.6s, mostly from fewer pages and records for the collector to mark.
 
+### Binder side tables
+
+Node flags are in the 24-byte node header. The binder's other fields are in per-file side tables keyed by node index. Declarations' symbols and nodes' flow nodes, which many nodes have, are bitmap-ranked: a block of 32 bits per 32 nodes with the index of the block's first value, and a node's value found by counting the bits below it. They are dense arrays while the file is bound and packed when binding finishes. The fields that only containers have (locals, as the small-map symbol table of item 4, the next container, and the end, return and fallthrough flow nodes) share one 24-byte record per node, and local symbols have their own table; both are packed when binding finishes as sorted node indices with values in the same order, found by binary search, and kept in a hash map before that. They used to be five and one hash maps.
+
+Packing the container fields as five separate bitmap-ranked maps cost memory instead (+13MB on vscode): a bitmap spans the whole file however few nodes have a value, and each map's header is paid by every store. One sorted table per record saves 5MB on vscode, 3MB on sentry and 1MB on mui, with check time unchanged.
+
 ### Progress
 
 Memory used from `--extendedDiagnostics`, single-threaded check. Base is `1fce2af19c3`; main is 3,792,305K on vscode.
@@ -574,6 +580,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 6. signature, index info and mapper ids | 2,935,087K (−54MB) | 1,781,170K (−27MB) | 1,198,541K (−20MB) | 20.23–21.12s (20.85) |
 | 7. lists from per-checker arenas | 2,937,281K (+2MB) | 1,781,930K (+1MB) | 1,195,336K (−3MB) | 20.16–21.37s (21.02) |
 | 8. link stores | 2,837,832K (−99MB) | 1,752,047K (−30MB) | 1,187,507K (−8MB) | 20.33–20.69s (20.48) |
+| 9. binder side tables | 2,832,808K (−5MB) | 1,749,019K (−3MB) | 1,186,661K (−1MB) | 19.90–21.24s (20.49) |
 
 ### Deviations forced by the language
 
@@ -590,6 +597,8 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 - Multi-field links stay records in a per-checker arena with the map holding a pointer, because Go map values aren't addressable: a link updated field by field in place can't live in the map itself. Only links of one small field are stored inline in their maps.
 
 ### Other deviations
+
+- The binder fields that only containers have share one record per node in one sorted table, rather than each being its own sparse map, since they are set on the same few nodes and a separate map per field cost more in bitmaps and headers than it saved.
 
 - Node links are keyed by node index in one map per file rather than by `NodeRef` in one map. The key carries the same information, and the per-file maps keep each map smaller and its keys 4 bytes.
 - Symbol links for transient symbols share the binder symbols' pages (transient ids sit above binder ids in the same id space) rather than living in separate maps, since nearly every transient symbol has value links and the pages are as dense as a chunked slice.
