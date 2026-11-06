@@ -652,6 +652,7 @@ The collector traces every heap object that may hold pointers; pointer-free obje
 | link maps | 496,160K | 2,579,317K | 19% |
 | array mappers | 459,944K | 2,561,439K | 18% |
 | symbol tables | 367,135K | 2,555,222K | 14% |
+| resolved types | 334,213K | 2,539,452K | 13% |
 
 - Value links: the rare write, name and containing types hang off a 4-byte index into a checker page store instead of a pointer, so the value link pages (130MB on vscode) carry no pointers. The link shrinks from 24 to 16 bytes.
 - Resolved members: the record of an object type's resolved members held a table pointer, a slice and an extra pointer (56 bytes). It now holds an index into the checker's member tables, an 8-byte handle into a symbol list store like the type list store, and an index into the extra records: 16 bytes and no pointers.
@@ -659,6 +660,7 @@ The collector traces every heap object that may hold pointers; pointer-free obje
 - Link maps: node links and the rarer symbol links were maps from key to a pointer into an arena of records, so every map slot held a pointer and the arena chunks were scanned. The maps now hold a 4-byte record index into chunks that double in size; a map of integers is not scanned, and the chunks of pointer-free records aren't either. The node fields held by alias, export type and JSX links (type-only declaration, originating import, first JSX tag) are node refs.
 - Array mappers: an array or array-to-single mapper held its source and target lists as slices (64 bytes, two pointers). The lists are now handles into the checker's list store, where a declaration's type parameters and a reference's type arguments already live, so most lists keep their handle and the rest are copied in. The mapper is 20 bytes with no pointers.
 - Symbol tables: a table was a 48-byte object holding its store, its entry slice and a pointer to its hash index (64MB on vscode, 1.3M tables). A store now owns its tables: a 16-byte record per table and pools of pages that hold every table's entries and index slots, with freed blocks reused by size. A table is a view of the store plus the record's index. Binder records and node side tables keep the 4-byte index; the checker keeps an 8-byte `TableRef` (store number, index), resolved through its file table. Nothing in the pools holds a pointer. mui grows 5MB, from the spare room of pages and freed blocks.
+- Resolved types: the per-node cache of resolved types (type nodes, cached expression types) held a `*Type` in each map slot, so its maps were scanned. It holds a `TypeId` and resolves it through the type slab on read.
 
 ### Progress
 
@@ -694,6 +696,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 22. pointer-free link maps | 2,578,621K (−11MB) | 1,486,903K (−13MB) | 960,847K (−13MB) | 20.09–20.30s (20.24) |
 | 23. pointer-free array mappers | 2,560,816K (−18MB) | 1,479,362K (−8MB) | 957,940K (−3MB) | 20.12–20.80s (20.59) |
 | 24. pointer-free symbol tables | 2,554,841K (−6MB) | 1,474,363K (−5MB) | 962,496K (+5MB) | 19.94–20.24s (19.99) |
+| 25. resolved types as ids | 2,539,334K (−16MB) | 1,468,504K (−6MB) | 960,398K (−2MB) | 19.83–19.93s (19.89) |
 
 ### Deviations forced by the language
 

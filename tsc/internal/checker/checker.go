@@ -766,7 +766,7 @@ type Checker struct {
 	effectsSignatures                           nodeValueMap[SignatureId] // Signature with possible control flow effects
 	decoratorSignatures                         nodeValueMap[SignatureId] // Signature for decorator as if invoked by the runtime
 	symbolNodeLinks                             symbolNodeLinkStore
-	resolvedTypes                               nodeValueMap[*Type]    // Resolved type associated with node
+	resolvedTypes                               nodeTypeMap            // Resolved type associated with node
 	outerTypeParameters                         nodeValueMap[[]TypeId] // Outer type parameters of anonymous object type
 	enumMemberLinks                             nodeLinkStore[EnumMemberLinks]
 	assertionLinks                              nodeLinkStore[AssertionLinks]

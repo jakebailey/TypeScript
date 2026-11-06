@@ -31,22 +31,22 @@ func TestCheckerNodeLinkStores(t *testing.T) {
 			ast.GetNodeId(node)
 		}
 		nodes[i] = node
-		assert.Assert(t, first.resolvedTypes.get(node) == nil)
+		assert.Assert(t, first.resolvedTypes.ids.get(node) == 0)
 		assert.Equal(t, first.resolvedSignatures.get(node), SignatureId(0))
-		first.resolvedTypes.set(node, &Type{id: TypeId(i + 1)})
+		first.resolvedTypes.ids.set(node, TypeId(i+1))
 		first.resolvedSignatures.set(node, SignatureId(i+1))
-		second.resolvedTypes.set(node, &Type{id: TypeId(i + 2)})
+		second.resolvedTypes.ids.set(node, TypeId(i+2))
 		second.resolvedSignatures.set(node, SignatureId(i+2))
 	}
 	runtime.GC()
 	for i, node := range nodes {
-		assert.Equal(t, first.resolvedTypes.get(node).Id(), TypeId(i+1))
+		assert.Equal(t, first.resolvedTypes.ids.get(node), TypeId(i+1))
 		assert.Equal(t, first.resolvedSignatures.get(node), SignatureId(i+1))
-		assert.Equal(t, second.resolvedTypes.get(node).Id(), TypeId(i+2))
+		assert.Equal(t, second.resolvedTypes.ids.get(node), TypeId(i+2))
 		assert.Equal(t, second.resolvedSignatures.get(node), SignatureId(i+2))
 	}
 	clone := nodes[0].Clone(f)
-	assert.Assert(t, first.resolvedTypes.get(clone) == nil)
+	assert.Assert(t, first.resolvedTypes.ids.get(clone) == 0)
 	assert.Equal(t, first.resolvedSignatures.get(clone), SignatureId(0))
 }
 

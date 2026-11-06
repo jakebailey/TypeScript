@@ -24,7 +24,8 @@ func (c *Checker) initNodeLinks(refs ast.RefCache) {
 	c.effectsSignatures.refs = &c.refs
 	c.decoratorSignatures.refs = &c.refs
 	c.symbolNodeLinks.refs = &c.refs
-	c.resolvedTypes.refs = &c.refs
+	c.resolvedTypes.ids.refs = &c.refs
+	c.resolvedTypes.types = &c.types
 	c.outerTypeParameters.refs = &c.refs
 	c.sourceFileLinks.refs = &c.refs
 	c.enumMemberLinks.refs = &c.refs
@@ -170,6 +171,21 @@ func (s *nodeValueMap[V]) delete(node ast.Node) {
 	if int(r.File()) < len(s.files) {
 		delete(s.files[r.File()], r.Index())
 	}
+}
+
+// nodeTypeMap holds a type per node as a TypeId, so its maps are not
+// scanned by the garbage collector.
+type nodeTypeMap struct {
+	ids   nodeValueMap[TypeId]
+	types *typeSlab
+}
+
+func (s *nodeTypeMap) get(node ast.Node) *Type {
+	return s.types.at(s.ids.get(node))
+}
+
+func (s *nodeTypeMap) set(node ast.Node, t *Type) {
+	s.ids.set(node, t.ref())
 }
 
 // sourceFileLinkStore holds the links of source files, indexed by the

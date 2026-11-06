@@ -892,6 +892,14 @@ func (s *typeSlab) add(kind typeKind) *Type {
 	return t
 }
 
+// at returns the type with the given id, or nil for 0.
+func (s *typeSlab) at(id TypeId) *Type {
+	if id == 0 {
+		return nil
+	}
+	return &s.dir[id>>typeChunkShift][id&typeChunkMask]
+}
+
 // typ returns the type with the given id, or nil for 0.
 func (c *Checker) typ(id TypeId) *Type {
 	if id == 0 {
