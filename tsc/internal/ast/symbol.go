@@ -3,7 +3,6 @@ package ast
 import (
 	"errors"
 	"iter"
-	"maps"
 	"slices"
 	"strings"
 	"unicode/utf8"
@@ -66,23 +65,54 @@ func (name *SymbolName) UnmarshalJSON(data []byte) error {
 // is deterministic and visits symbols in the order the binder and checker added them. A nil SymbolTable is an empty
 // table that can be read and iterated but not written, like a nil map.
 //
-// The entries are kept in insertion order in one slice. Most tables are small, so a table is searched linearly until
-// it has more than symbolTableLinearMax entries, and only then gets a hash index of entry positions. An entry does not
-// store its key as the key is almost always the symbol's own name. In the rare cases when a symbol has a different name,
-// the table stores a proxy symbol with the new name and a reference to the original symbol in the parent field.
+// The entries are kept in insertion order in one slice of 12-byte (name, id) pairs. Most tables are small, so a table
+// is searched linearly until it has more than symbolTableLinearMax entries, and only then gets a hash index of entry
+// positions.
+//
+// An id means a symbol through the table's store. In a binder store's table it is the symbol's index in that store,
+// and a symbol of any other store is kept aside as a view, with its position there as the id. In a checker store's
+// table it is the symbol's id in the checker, which names any symbol. A table takes the store of the first symbol
+// added unless made for one, and moves to a checker's store when it is given one of the checker's symbols.
 //
 // A table must not be changed with Set or Delete while it is being iterated.
 type SymbolTable = *SymbolMap
 
-const symbolTableLinearMax = 16
+const symbolTableLinearMax = 8
+
+// foreignSymbol marks an id that is a position in a table's foreign symbols.
+const foreignSymbol = 1 << 31
 
 type SymbolMap struct {
-	entries []Symbol
-	// names holds the keys of the entries whose key is not their symbol's
-	// name, by position.
-	names map[int32]SymbolName
-	index []int32 // open addressing table of entry positions plus one (0 is empty), only past symbolTableLinearMax
+	store   *SymbolStore
+	entries []symbolEntry
+	rare    *symbolMapRare
 }
+
+type symbolMapRare struct {
+	index   []int32 // open addressing table of entry positions plus one (0 is empty), only past symbolTableLinearMax
+	foreign []Symbol
+}
+
+func (m *SymbolMap) ensureRare() *symbolMapRare {
+	if m.rare == nil {
+		m.rare = &symbolMapRare{}
+	}
+	return m.rare
+}
+
+func (m *SymbolMap) index() []int32 {
+	if m.rare == nil {
+		return nil
+	}
+	return m.rare.index
+}
+
+type symbolEntry struct {
+	lo, hi uint32 // the name
+	id     uint32
+}
+
+func (e *symbolEntry) name() SymbolName { return SymbolName(uint64(e.hi)<<32 | uint64(e.lo)) }
 
 func hashSymbolTableKey(name SymbolName) uint64 {
 	h := uint64(name) * 0x9e3779b97f4a7c15
@@ -94,11 +124,27 @@ func NewSymbolTable() SymbolTable {
 }
 
 func NewSymbolTableWithCapacity(capacity int) SymbolTable {
-	m := &SymbolMap{}
+	return newSymbolTable(nil, capacity)
+}
+
+// NewTable returns a table whose ids are those of st.
+func (st *SymbolStore) NewTable(capacity int) SymbolTable {
+	return newSymbolTable(st, capacity)
+}
+
+// TableOf returns a table of st holding symbol under name.
+func (st *SymbolStore) TableOf(name SymbolName, symbol Symbol) SymbolTable {
+	m := newSymbolTable(st, 1)
+	m.Set(name, symbol)
+	return m
+}
+
+func newSymbolTable(st *SymbolStore, capacity int) SymbolTable {
+	m := &SymbolMap{store: st}
 	if capacity > 0 {
-		m.entries = make([]Symbol, 0, capacity)
+		m.entries = make([]symbolEntry, 0, capacity)
 		if capacity > symbolTableLinearMax {
-			m.index = make([]int32, indexSizeFor(capacity))
+			m.ensureRare().index = make([]int32, indexSizeFor(capacity))
 		}
 	}
 	return m
@@ -111,36 +157,85 @@ func SymbolTableOf(name SymbolName, symbol Symbol) SymbolTable {
 }
 
 func (m *SymbolMap) KeyAt(i int) SymbolName {
-	if m.names != nil {
-		if name, ok := m.names[int32(i)]; ok {
-			return name
-		}
-	}
-	return m.entries[i].Name()
+	return m.entries[i].name()
 }
 
 func (m *SymbolMap) SymbolAt(i int) Symbol {
-	return m.entries[i]
+	return m.symbolOf(m.entries[i].id)
+}
+
+func (m *SymbolMap) symbolOf(id uint32) Symbol {
+	st := m.store
+	if st == nil {
+		return Symbol{}
+	}
+	if st.checker != nil {
+		return st.SymbolOf(SymbolId(id))
+	}
+	if id&foreignSymbol != 0 {
+		return m.rare.foreign[id&^foreignSymbol]
+	}
+	if id == 0 {
+		return Symbol{}
+	}
+	return Symbol{st, id}
+}
+
+func (m *SymbolMap) idOf(symbol Symbol) uint32 {
+	if symbol.s == nil {
+		return 0
+	}
+	if m.store == nil {
+		m.store = symbol.s
+	}
+	st := m.store
+	if st.checker == nil && symbol.s.checker != nil {
+		m.moveTo(symbol.s)
+		st = m.store
+	}
+	if st.checker != nil {
+		return uint32(st.IdOf(symbol))
+	}
+	if symbol.s == st {
+		return symbol.i
+	}
+	r := m.ensureRare()
+	r.foreign = append(r.foreign, symbol)
+	return uint32(len(r.foreign)-1) | foreignSymbol
+}
+
+// moveTo renumbers the entries of a binder store's table with the ids of a
+// checker's store.
+func (m *SymbolMap) moveTo(st *SymbolStore) {
+	for i := range m.entries {
+		e := &m.entries[i]
+		e.id = uint32(st.IdOf(m.symbolOf(e.id)))
+	}
+	m.store = st
+	if m.rare != nil {
+		m.rare.foreign = nil
+	}
 }
 
 func (m *SymbolMap) Find(key SymbolName) int {
 	if m == nil {
 		return -1
 	}
-	if len(m.index) != 0 {
-		mask := uint64(len(m.index) - 1)
+	lo, hi := uint32(key), uint32(key>>32)
+	if index := m.index(); len(index) != 0 {
+		mask := uint64(len(index) - 1)
 		for slot := hashSymbolTableKey(key) & mask; ; slot = (slot + 1) & mask {
-			p := m.index[slot]
+			p := index[slot]
 			if p == 0 {
 				return -1
 			}
-			if i := int(p - 1); m.KeyAt(i) == key {
-				return i
+			if e := &m.entries[p-1]; e.lo == lo && e.hi == hi {
+				return int(p - 1)
 			}
 		}
 	}
 	for i := range m.entries {
-		if m.KeyAt(i) == key {
+		if e := &m.entries[i]; e.lo == lo && e.hi == hi {
 			return i
 		}
 	}
@@ -179,17 +274,17 @@ func (m *SymbolMap) AddIfAbsent(key SymbolName, symbol Symbol) bool {
 func (m *SymbolMap) setOrAdd(key SymbolName, symbol Symbol, replace bool) bool {
 	if i := m.Find(key); i >= 0 {
 		if replace {
-			m.setEntry(i, key, symbol)
+			m.entries[i].id = m.idOf(symbol)
 		}
 		return replace
 	}
 	i := len(m.entries)
 	if cap(m.entries) == 0 {
-		m.entries = make([]Symbol, 0, 2)
+		m.entries = make([]symbolEntry, 0, 2)
 	}
-	m.entries = append(m.entries, Symbol{})
-	m.setEntry(i, key, symbol)
-	if len(m.index) != 0 && len(m.entries)*4 <= len(m.index)*3 {
+	id := m.idOf(symbol)
+	m.entries = append(m.entries, symbolEntry{uint32(key), uint32(key >> 32), id})
+	if index := m.index(); len(index) != 0 && len(m.entries)*4 <= len(index)*3 {
 		m.insertIndex(key, i)
 	} else if len(m.entries) > symbolTableLinearMax {
 		m.buildIndex()
@@ -197,20 +292,8 @@ func (m *SymbolMap) setOrAdd(key SymbolName, symbol Symbol, replace bool) bool {
 	return true
 }
 
-func (m *SymbolMap) setEntry(i int, key SymbolName, symbol Symbol) {
-	m.entries[i] = symbol
-	if key != symbol.Name() {
-		if m.names == nil {
-			m.names = make(map[int32]SymbolName)
-		}
-		m.names[int32(i)] = key
-	} else if m.names != nil {
-		delete(m.names, int32(i))
-	}
-}
-
 func indexSizeFor(n int) int {
-	size := 32
+	size := 16
 	for size*3 < n*4 {
 		size *= 2
 	}
@@ -218,18 +301,19 @@ func indexSizeFor(n int) int {
 }
 
 func (m *SymbolMap) insertIndex(key SymbolName, i int) {
-	mask := uint64(len(m.index) - 1)
+	index := m.rare.index
+	mask := uint64(len(index) - 1)
 	slot := hashSymbolTableKey(key) & mask
-	for m.index[slot] != 0 {
+	for index[slot] != 0 {
 		slot = (slot + 1) & mask
 	}
-	m.index[slot] = int32(i + 1)
+	index[slot] = int32(i + 1)
 }
 
 func (m *SymbolMap) buildIndex() {
 	indexLen := indexSizeFor(len(m.entries))
-	if len(m.index) < indexLen {
-		m.index = make([]int32, indexLen)
+	if r := m.ensureRare(); len(r.index) < indexLen {
+		r.index = make([]int32, indexLen)
 	}
 	for i := range m.entries {
 		m.insertIndex(m.KeyAt(i), i)
@@ -241,31 +325,11 @@ func (m *SymbolMap) Delete(key SymbolName) {
 	if d < 0 {
 		return
 	}
-	if m.names != nil {
-		names := m.names
-		m.names = nil
-		for i, name := range names {
-			switch {
-			case int(i) < d:
-				m.names = setName(m.names, i, name)
-			case int(i) > d:
-				m.names = setName(m.names, i-1, name)
-			}
-		}
-	}
 	m.entries = slices.Delete(m.entries, d, d+1)
-	if len(m.index) != 0 {
-		clear(m.index)
+	if index := m.index(); len(index) != 0 {
+		clear(index)
 		m.buildIndex()
 	}
-}
-
-func setName(names map[int32]SymbolName, i int32, name SymbolName) map[int32]SymbolName {
-	if names == nil {
-		names = make(map[int32]SymbolName)
-	}
-	names[i] = name
-	return names
 }
 
 func (m *SymbolMap) All() iter.Seq2[SymbolName, Symbol] {
@@ -275,7 +339,7 @@ func (m *SymbolMap) All() iter.Seq2[SymbolName, Symbol] {
 		}
 		entries := m.entries
 		for i := range entries {
-			if !yield(m.KeyAt(i), m.SymbolAt(i)) {
+			if !yield(entries[i].name(), m.symbolOf(entries[i].id)) {
 				return
 			}
 		}
@@ -289,7 +353,7 @@ func (m *SymbolMap) Keys() iter.Seq[SymbolName] {
 		}
 		entries := m.entries
 		for i := range entries {
-			if !yield(m.KeyAt(i)) {
+			if !yield(entries[i].name()) {
 				return
 			}
 		}
@@ -303,7 +367,7 @@ func (m *SymbolMap) Values() iter.Seq[Symbol] {
 		}
 		entries := m.entries
 		for i := range entries {
-			if !yield(m.SymbolAt(i)) {
+			if !yield(m.symbolOf(entries[i].id)) {
 				return
 			}
 		}
@@ -314,10 +378,10 @@ func (m *SymbolMap) Clone() SymbolTable {
 	if m == nil {
 		return nil
 	}
-	clone := &SymbolMap{}
+	clone := &SymbolMap{store: m.store}
 	clone.entries = slices.Clone(m.entries)
-	if m.names != nil {
-		clone.names = maps.Clone(m.names)
+	if m.rare != nil && m.rare.foreign != nil {
+		clone.ensureRare().foreign = slices.Clone(m.rare.foreign)
 	}
 	if len(m.entries) > symbolTableLinearMax {
 		clone.buildIndex()
@@ -327,10 +391,11 @@ func (m *SymbolMap) Clone() SymbolTable {
 
 func (m *SymbolMap) Clear() {
 	if m != nil && len(m.entries) != 0 {
-		clear(m.entries)
-		clear(m.index)
 		m.entries = m.entries[:0]
-		m.names = nil
+		if m.rare != nil {
+			clear(m.rare.index)
+			m.rare.foreign = nil
+		}
 	}
 }
 

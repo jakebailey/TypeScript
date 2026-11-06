@@ -264,7 +264,7 @@ function isNodeField(f: { goOnly?: boolean; rawType: string | string[]; type: Ty
 // Fields holding Go pointers are kept out of records, in the store's side
 // table for their type, so that records contain no pointers.
 const sideTables: Record<string, string> = {
-    "*Symbol": "symbols",
+    "Symbol": "symbols",
     "SymbolTable": "symbolTables",
     "string": "texts",
     "[]string": "stringLists",

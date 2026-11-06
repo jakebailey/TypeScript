@@ -1117,7 +1117,7 @@ func (c *Checker) resolveReverseMappedTypeMembers(t *Type) {
 	if indexInfo != nil {
 		indexInfos = []*IndexInfo{c.newIndexInfo(c.stringType, core.OrElse(c.inferReverseMappedType(indexInfo.valueType, r.mappedType, r.constraintType), c.unknownType), readonlyMask && indexInfo.isReadonly, ast.Node{}, nil)}
 	}
-	members := ast.NewSymbolTable()
+	members := c.symbols.NewTable(0)
 	limitedConstraint := c.getLimitedConstraint(t)
 	for _, prop := range c.getPropertiesOfType(r.source) {
 		// Private and protected properties are never produced by keyof, so they have no counterpart in a
@@ -1243,7 +1243,7 @@ func (c *Checker) isTypeCloselyMatchedBy(s *Type, t *Type) bool {
 
 // Create an object with properties named in the string literal type. Every property has type `any`.
 func (c *Checker) createEmptyObjectTypeFromStringLiteral(t *Type) *Type {
-	members := ast.NewSymbolTable()
+	members := c.symbols.NewTable(0)
 	for _, t := range t.Distributed() {
 		if t.flags&TypeFlagsStringLiteral == 0 {
 			continue

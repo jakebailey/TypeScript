@@ -710,9 +710,9 @@ func (c *Checker) checkApplicableSignatureForJsxCallLikeElement(node ast.Node, s
 func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeElement ast.Node, checkMode CheckMode) *Type {
 	var allAttributesTable ast.SymbolTable
 	if c.strictNullChecks {
-		allAttributesTable = ast.NewSymbolTable()
+		allAttributesTable = c.symbols.NewTable(0)
 	}
-	attributesTable := ast.NewSymbolTable()
+	attributesTable := c.symbols.NewTable(0)
 	var attributesSymbol ast.Symbol
 	attributeParent := openingLikeElement
 	spread := c.emptyJsxObjectType
@@ -768,7 +768,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 				debug.Assert(attributeDecl.Kind() == ast.KindJsxSpreadAttribute)
 				if attributesTable.Len() != 0 {
 					spread = c.getSpreadType(spread, createJsxAttributesType(), attributesSymbol, objectFlags, false /*readonly*/)
-					attributesTable = ast.NewSymbolTable()
+					attributesTable = c.symbols.NewTable(0)
 				}
 				exprType := c.getReducedType(c.checkExpressionEx(attributeDecl.Expression(), checkMode&CheckModeInferential))
 				if IsTypeAny(exprType) {
@@ -846,7 +846,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 			childrenPropSymbol.SetValueDeclaration(c.factory.NewPropertySignatureDeclaration(ast.ModifierList{}, c.factory.NewIdentifier(jsxChildrenPropertyName.String()), ast.Node{} /*postfixToken*/, ast.Node{} /*type*/, ast.Node{} /*initializer*/))
 			childrenPropSymbol.ValueDeclaration().SetParent(attributeParent)
 			childrenPropSymbol.ValueDeclaration().AsPropertySignatureDeclaration().SetSymbol(childrenPropSymbol)
-			childPropMap := ast.NewSymbolTable()
+			childPropMap := c.symbols.NewTable(0)
 			childPropMap.Set(jsxChildrenPropertyName, childrenPropSymbol)
 			spread = c.getSpreadType(spread, c.newAnonymousType(attributesSymbol, childPropMap, nil, nil, nil), attributesSymbol, objectFlags|c.getPropagatingFlagsOfTypes(childTypes, TypeFlagsNone), false /*readonly*/)
 		}

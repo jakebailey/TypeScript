@@ -31,7 +31,7 @@ func GetSymbolTable(data *SymbolTable) SymbolTable {
 func GetMembers(symbol Symbol) SymbolTable {
 	members := symbol.Members()
 	if members == nil {
-		members = NewSymbolTable()
+		members = symbol.Store().NewTable(0)
 		symbol.SetMembers(members)
 	}
 	return members
@@ -40,7 +40,7 @@ func GetMembers(symbol Symbol) SymbolTable {
 func GetExports(symbol Symbol) SymbolTable {
 	exports := symbol.Exports()
 	if exports == nil {
-		exports = NewSymbolTable()
+		exports = symbol.Store().NewTable(0)
 		symbol.SetExports(exports)
 	}
 	return exports

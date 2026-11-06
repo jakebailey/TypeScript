@@ -437,6 +437,38 @@ func TestSymbolTableKeysOtherThanNames(t *testing.T) {
 	assert.Equal(t, table.Get(ast.MakeSymbolName("k9")), symbols[9])
 }
 
+func TestSymbolTableStores(t *testing.T) {
+	t.Parallel()
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
+	own := factory.NewIdentifier("a").Store().Symbols()
+	other := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{}).NewIdentifier("b").Store().Symbols()
+	checker := ast.NewCheckerSymbolStore(nil)
+	symbols := []ast.Symbol{
+		own.NewBinderSymbol(ast.SymbolFlagsProperty, ast.MakeSymbolName("a")),
+		other.NewBinderSymbol(ast.SymbolFlagsProperty, ast.MakeSymbolName("b")),
+		own.NewBinderSymbol(ast.SymbolFlagsProperty, ast.MakeSymbolName("c")),
+		checker.NewSymbol(ast.SymbolFlagsTransient, ast.MakeSymbolName("d")),
+	}
+	table := ast.NewSymbolTable()
+	check := func(n int) {
+		assert.Equal(t, table.Len(), n)
+		for i, symbol := range symbols[:n] {
+			assert.Equal(t, table.Get(symbol.Name()), symbol)
+			assert.Equal(t, table.SymbolAt(i), symbol)
+		}
+	}
+	// A table of a binder store keeps symbols of other stores aside, and
+	// takes a checker's ids once it holds one of the checker's symbols.
+	for i, symbol := range symbols {
+		table.Set(symbol.Name(), symbol)
+		check(i + 1)
+	}
+	clone := table.Clone()
+	table.Delete(ast.MakeSymbolName("a"))
+	assert.Equal(t, clone.Get(ast.MakeSymbolName("a")), symbols[0])
+	assert.Equal(t, table.Get(ast.MakeSymbolName("d")), symbols[3])
+}
+
 func TestSymbolDeclarationsAcrossStores(t *testing.T) {
 	t.Parallel()
 	f1 := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})

@@ -890,7 +890,7 @@
             "brand": "_declarationBrand",
             "fields": {
                 "Symbol": {
-                    "type": "*Symbol",
+                    "type": "Symbol",
                     "goOnly": true
                 }
             },
@@ -899,7 +899,7 @@
         "ExportableBase": {
             "fields": {
                 "LocalSymbol": {
-                    "type": "*Symbol",
+                    "type": "Symbol",
                     "goOnly": true
                 }
             },

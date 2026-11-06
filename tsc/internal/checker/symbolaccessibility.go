@@ -850,7 +850,7 @@ func (c *Checker) someSymbolTableInScope(
 			for key, memberSymbol := range sym.Members().All() {
 				if memberSymbol.Flags()&(ast.SymbolFlagsType & ^ast.SymbolFlagsAssignment) != 0 {
 					if table == nil {
-						table = ast.NewSymbolTable()
+						table = c.symbols.NewTable(0)
 					}
 					table.Set(key, memberSymbol)
 				}
@@ -892,7 +892,7 @@ func (c *Checker) getClassExpressionNameTable(location ast.Node) ast.SymbolTable
 	if len(nameText) == 0 || classSymbol.IsNil() {
 		return nil
 	}
-	table := ast.SymbolTableOf(ast.MakeSymbolName(nameText), classSymbol)
+	table := c.symbols.TableOf(ast.MakeSymbolName(nameText), classSymbol)
 	if c.classExpressionNameTables == nil {
 		c.classExpressionNameTables = make(map[ast.NodeId]ast.SymbolTable)
 	}
