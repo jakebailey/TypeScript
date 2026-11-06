@@ -51,7 +51,39 @@ const (
 	CheckModeForceTuple CheckMode = 1 << 7
 )
 
-type TypeSystemEntity any
+// TypeSystemEntity is the symbol, node, type or signature whose property a
+// type resolution computes. It is held like a RecursionId, so that pushing a
+// resolution doesn't box a symbol or node view in an interface.
+type TypeSystemEntity struct{ id RecursionId }
+
+func entityOf[T ast.Node | ast.Symbol | *Type | *Signature](value T) TypeSystemEntity {
+	if unsafe.Sizeof(value) == unsafe.Sizeof(RecursionId{}) {
+		// SAFETY: T is ast.Node or ast.Symbol, which have the layout of RecursionId.
+		return TypeSystemEntity{*(*RecursionId)(unsafe.Pointer(&value))}
+	}
+	// SAFETY: T is *Type or *Signature, a single pointer.
+	return TypeSystemEntity{RecursionId{p: *(*unsafe.Pointer)(unsafe.Pointer(&value))}}
+}
+
+func (e TypeSystemEntity) symbol() ast.Symbol {
+	// SAFETY: e was made from an ast.Symbol, which has the layout of RecursionId.
+	return *(*ast.Symbol)(unsafe.Pointer(&e.id))
+}
+
+func (e TypeSystemEntity) node() ast.Node {
+	// SAFETY: e was made from an ast.Node, which has the layout of RecursionId.
+	return *(*ast.Node)(unsafe.Pointer(&e.id))
+}
+
+func (e TypeSystemEntity) typ() *Type {
+	// SAFETY: e was made from a *Type.
+	return (*Type)(e.id.p)
+}
+
+func (e TypeSystemEntity) signature() *Signature {
+	// SAFETY: e was made from a *Signature.
+	return (*Signature)(e.id.p)
+}
 
 type TypeSystemPropertyName int32
 
@@ -11500,7 +11532,7 @@ func (c *Checker) removeOptionalityFromDeclaredType(declaredType *Type, declarat
 func (c *Checker) parameterInitializerContainsUndefined(declaration ast.Node) bool {
 	links := c.nodeLinks.Get(declaration)
 	if links.flags&NodeCheckFlagsInitializerIsUndefinedComputed == 0 {
-		if !c.pushTypeResolution(declaration, TypeSystemPropertyNameInitializerIsUndefined) {
+		if !c.pushTypeResolution(entityOf(declaration), TypeSystemPropertyNameInitializerIsUndefined) {
 			c.reportCircularityError(declaration.Symbol())
 			return true
 		}
@@ -16750,7 +16782,7 @@ func (c *Checker) resolveAlias(symbol ast.Symbol) ast.Symbol {
 	}
 	links := c.aliasSymbolLinks.Get(symbol)
 	if links.aliasTarget.IsNil() {
-		if !c.pushTypeResolution(symbol, TypeSystemPropertyNameAliasTarget) {
+		if !c.pushTypeResolution(entityOf(symbol), TypeSystemPropertyNameAliasTarget) {
 			return c.unknownSymbol
 		}
 		node := c.getDeclarationOfAliasSymbol(symbol)
@@ -16783,7 +16815,7 @@ func (c *Checker) resolveIndirectionAlias(source ast.Symbol, target ast.Symbol) 
 
 func (c *Checker) tryResolveAlias(symbol ast.Symbol) ast.Symbol {
 	links := c.aliasSymbolLinks.Get(symbol)
-	if !links.aliasTarget.IsNil() || c.findResolutionCycleStartIndex(symbol, TypeSystemPropertyNameAliasTarget) < 0 {
+	if !links.aliasTarget.IsNil() || c.findResolutionCycleStartIndex(entityOf(symbol), TypeSystemPropertyNameAliasTarget) < 0 {
 		return c.resolveAlias(symbol)
 	}
 	return ast.Symbol{}
@@ -17075,7 +17107,7 @@ func (c *Checker) getTypeOfVariableOrParameterOrPropertyWorker(symbol ast.Symbol
 		return c.getWidenedType(c.getWidenedLiteralType(c.checkExpression(statements[0].Expression())))
 	}
 	// Handle variable, parameter or property
-	if !c.pushTypeResolution(symbol, TypeSystemPropertyNameType) {
+	if !c.pushTypeResolution(entityOf(symbol), TypeSystemPropertyNameType) {
 		return c.reportCircularityError(symbol)
 	}
 	if symbol.Flags()&ast.SymbolFlagsModuleExports != 0 {
@@ -17446,7 +17478,7 @@ func (c *Checker) getBaseConstructorTypeOfClass(t *Type) *Type {
 		data.iface().resolvedBaseConstructorType = c.undefinedType
 		return data.iface().resolvedBaseConstructorType
 	}
-	if !c.pushTypeResolution(t, TypeSystemPropertyNameResolvedBaseConstructorType) {
+	if !c.pushTypeResolution(entityOf(t), TypeSystemPropertyNameResolvedBaseConstructorType) {
 		return c.errorType
 	}
 	baseConstructorType := c.checkExpression(baseTypeNode.Expression())
@@ -19060,7 +19092,7 @@ func (c *Checker) getTypeOfEnumMember(symbol ast.Symbol) *Type {
 func (c *Checker) getTypeOfAccessors(symbol ast.Symbol) *Type {
 	links := c.valueSymbolLinks.Get(symbol)
 	if links.resolvedType == nil {
-		if !c.pushTypeResolution(symbol, TypeSystemPropertyNameType) {
+		if !c.pushTypeResolution(entityOf(symbol), TypeSystemPropertyNameType) {
 			return c.errorType
 		}
 		getter := ast.GetDeclarationOfKind(symbol, ast.KindGetAccessor)
@@ -19115,7 +19147,7 @@ func (c *Checker) getTypeOfAccessors(symbol ast.Symbol) *Type {
 func (c *Checker) getWriteTypeOfAccessors(symbol ast.Symbol) *Type {
 	links := c.valueSymbolLinks.Get(symbol)
 	if links.getWriteType() == nil {
-		if !c.pushTypeResolution(symbol, TypeSystemPropertyNameWriteType) {
+		if !c.pushTypeResolution(entityOf(symbol), TypeSystemPropertyNameWriteType) {
 			return c.errorType
 		}
 		setter := ast.GetDeclarationOfKind(symbol, ast.KindSetAccessor)
@@ -19147,7 +19179,7 @@ func (c *Checker) getWriteTypeOfAccessors(symbol ast.Symbol) *Type {
 func (c *Checker) getTypeOfAlias(symbol ast.Symbol) *Type {
 	links := c.valueSymbolLinks.Get(symbol)
 	if links.resolvedType == nil {
-		if !c.pushTypeResolution(symbol, TypeSystemPropertyNameType) {
+		if !c.pushTypeResolution(entityOf(symbol), TypeSystemPropertyNameType) {
 			return c.errorType
 		}
 		targetSymbol := c.resolveAlias(symbol)
@@ -19345,25 +19377,25 @@ func (c *Checker) findResolutionCycleStartIndex(target TypeSystemEntity, propert
 func (c *Checker) typeResolutionHasProperty(r *TypeResolution) bool {
 	switch r.propertyName {
 	case TypeSystemPropertyNameType:
-		return c.valueSymbolLinks.Get(r.target.(ast.Symbol)).resolvedType != nil
+		return c.valueSymbolLinks.Get(r.target.symbol()).resolvedType != nil
 	case TypeSystemPropertyNameDeclaredType:
-		return c.typeAliasLinks.Get(r.target.(ast.Symbol)).declaredType != nil
+		return c.typeAliasLinks.Get(r.target.symbol()).declaredType != nil
 	case TypeSystemPropertyNameResolvedTypeArguments:
-		return r.target.(*Type).AsTypeReference().resolvedTypeArguments() != nil
+		return r.target.typ().AsTypeReference().resolvedTypeArguments() != nil
 	case TypeSystemPropertyNameResolvedBaseTypes:
-		return r.target.(*Type).AsInterfaceType().iface().baseTypesResolved
+		return r.target.typ().AsInterfaceType().iface().baseTypesResolved
 	case TypeSystemPropertyNameResolvedBaseConstructorType:
-		return r.target.(*Type).AsInterfaceType().iface().resolvedBaseConstructorType != nil
+		return r.target.typ().AsInterfaceType().iface().resolvedBaseConstructorType != nil
 	case TypeSystemPropertyNameResolvedReturnType:
-		return r.target.(*Signature).resolvedReturnType != nil
+		return r.target.signature().resolvedReturnType != nil
 	case TypeSystemPropertyNameResolvedBaseConstraint:
-		return r.target.(*Type).AsConstrainedType().resolvedBaseConstraint() != nil
+		return r.target.typ().AsConstrainedType().resolvedBaseConstraint() != nil
 	case TypeSystemPropertyNameInitializerIsUndefined:
-		return c.nodeLinks.Get(r.target.(ast.Node)).flags&NodeCheckFlagsInitializerIsUndefinedComputed != 0
+		return c.nodeLinks.Get(r.target.node()).flags&NodeCheckFlagsInitializerIsUndefinedComputed != 0
 	case TypeSystemPropertyNameWriteType:
-		return c.valueSymbolLinks.Get(r.target.(ast.Symbol)).getWriteType() != nil
+		return c.valueSymbolLinks.Get(r.target.symbol()).getWriteType() != nil
 	case TypeSystemPropertyNameAliasTarget:
-		return !c.aliasSymbolLinks.Get(r.target.(ast.Symbol)).aliasTarget.IsNil()
+		return !c.aliasSymbolLinks.Get(r.target.symbol()).aliasTarget.IsNil()
 	}
 	panic("Unhandled case in typeResolutionHasProperty")
 }
@@ -19873,7 +19905,7 @@ func (c *Checker) getBaseTypes(t *Type) []*Type {
 	}
 	data := t.AsInterfaceType()
 	if !data.iface().baseTypesResolved {
-		if !c.pushTypeResolution(t, TypeSystemPropertyNameResolvedBaseTypes) {
+		if !c.pushTypeResolution(entityOf(t), TypeSystemPropertyNameResolvedBaseTypes) {
 			return data.iface().resolvedBaseTypes
 		}
 		switch {
@@ -20712,7 +20744,7 @@ func (c *Checker) getReturnTypeOfSignature(sig *Signature) *Type {
 	if sig.resolvedReturnType != nil {
 		return sig.resolvedReturnType
 	}
-	if !c.pushTypeResolution(sig, TypeSystemPropertyNameResolvedReturnType) {
+	if !c.pushTypeResolution(entityOf(sig), TypeSystemPropertyNameResolvedReturnType) {
 		return c.errorType
 	}
 	var t *Type
@@ -21685,7 +21717,7 @@ func (c *Checker) getTypeOfMappedSymbol(symbol ast.Symbol) *Type {
 	links := c.valueSymbolLinks.Get(symbol)
 	if links.resolvedType == nil {
 		mappedType := links.getContainingType()
-		if !c.pushTypeResolution(symbol, TypeSystemPropertyNameType) {
+		if !c.pushTypeResolution(entityOf(symbol), TypeSystemPropertyNameType) {
 			mappedType.AsMappedType().mapped().containsError = true
 			return c.errorType
 		}
@@ -22659,7 +22691,7 @@ func (c *Checker) getTypeArguments(t *Type) []*Type {
 	d := t.AsTypeReference()
 	if d.resolvedTypeArguments() == nil {
 		n := d.target().AsInterfaceType()
-		if !c.pushTypeResolution(t, TypeSystemPropertyNameResolvedTypeArguments) {
+		if !c.pushTypeResolution(entityOf(t), TypeSystemPropertyNameResolvedTypeArguments) {
 			return slices.Repeat([]*Type{c.errorType}, len(n.TypeParameters()))
 		}
 		var typeArguments []*Type
@@ -23329,7 +23361,7 @@ func (c *Checker) instantiateMappedType(t *Type, m *TypeMapper, alias *TypeAlias
 			return s
 		}
 		if d.mapped().declaration.NameType().IsNil() {
-			if c.isArrayType(s) || s.flags&TypeFlagsAny != 0 && c.findResolutionCycleStartIndex(typeVariable, TypeSystemPropertyNameResolvedBaseConstraint) < 0 && c.hasArrayOrTypeTypeConstraint(typeVariable) {
+			if c.isArrayType(s) || s.flags&TypeFlagsAny != 0 && c.findResolutionCycleStartIndex(entityOf(typeVariable), TypeSystemPropertyNameResolvedBaseConstraint) < 0 && c.hasArrayOrTypeTypeConstraint(typeVariable) {
 				return c.instantiateMappedArrayType(s, t, prependTypeMapping(typeVariable, s, m))
 			}
 			if isTupleType(s) {
@@ -24649,7 +24681,7 @@ func (c *Checker) getDeclaredTypeOfTypeAlias(symbol ast.Symbol) *Type {
 	if links.declaredType == nil {
 		// Note that we use the links object as the target here because the symbol object is used as the unique
 		// identity for resolution of the 'type' property in SymbolLinks.
-		if !c.pushTypeResolution(symbol, TypeSystemPropertyNameDeclaredType) {
+		if !c.pushTypeResolution(entityOf(symbol), TypeSystemPropertyNameDeclaredType) {
 			return c.errorType
 		}
 		declaration := symbol.Declarations().Find(ast.IsTypeOrJSTypeAliasDeclaration)
@@ -28381,7 +28413,7 @@ func (c *Checker) getResolvedBaseConstraint(t *Type, stack []RecursionId) *Type 
 	if constrained.resolvedBaseConstraint() != nil {
 		return constrained.resolvedBaseConstraint()
 	}
-	if !c.pushTypeResolution(t, TypeSystemPropertyNameResolvedBaseConstraint) {
+	if !c.pushTypeResolution(entityOf(t), TypeSystemPropertyNameResolvedBaseConstraint) {
 		return c.circularConstraintType
 	}
 	var constraint *Type
@@ -31628,7 +31660,7 @@ func (c *Checker) getTypeFromIndexInfosOfContextualType(t *Type, name ast.Symbol
 func (c *Checker) isCircularMappedProperty(symbol ast.Symbol) bool {
 	if symbol.CheckFlags()&ast.CheckFlagsMapped != 0 {
 		links := c.valueSymbolLinks.Get(symbol)
-		return links.resolvedType == nil && c.findResolutionCycleStartIndex(symbol, TypeSystemPropertyNameType) >= 0
+		return links.resolvedType == nil && c.findResolutionCycleStartIndex(entityOf(symbol), TypeSystemPropertyNameType) >= 0
 	}
 	return false
 }

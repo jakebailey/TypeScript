@@ -597,6 +597,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 11. packed interning keys | 2,783,162K (−1MB) | 1,677,740K (−2MB) | 1,166,235K (−1MB) | 19.98–20.21s (20.00) |
 | 12. bitmap-ranked container table | 2,785,906K (+3MB) | 1,678,874K (+1MB) | 1,166,731K (+0.5MB) | 19.50–20.13s (19.75) |
 | 13. page directory allocated only on growth | 2,785,830K (−0.1MB) | 1,678,753K (−0.1MB) | 1,166,863K (+0.1MB) | 19.10–20.02s (19.63) |
+| 14. unboxed type resolution targets | 2,785,674K (−0.2MB) | 1,678,971K (+0.2MB) | 1,166,975K (+0.1MB) | 18.85–19.87s (18.88) |
 
 ### Deviations forced by the language
 
