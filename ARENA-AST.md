@@ -574,6 +574,49 @@ This saves 49MB on vscode, 70MB on sentry and 21MB on mui, and about 0.6s of vsc
 
 The maps that intern types keep one type per key. Keys of up to two types (a type reference's type arguments, a union's constituents without origin or alias, an anonymous type's instantiation arguments without alias) are now packed, the type ids in the low word and a per-function tag in the high word, instead of hashed with xxh3; longer lists and keys with an alias, origin or flags are hashed as before. A union of a union with one other type and no alias, the commonest union, is keyed by a packed `uint64` of the two ids and the reduction. The effect is within noise: memory 1–2MB less, check time unchanged; the hashing these skip was not a measurable cost.
 
+### Check time profile
+
+Memory used is 382MB below `new-ast` on vscode, but check time is 1.8s above it: 19.16–20.04s (median 19.58s) against 16.94–17.77s (17.75s), n=5 alternating. User CPU for the whole run is the same for both (24.7–25.6s against 24.1–25.3s): `new-ast` spends more on GC, and part of that falls outside the check phase, in its final forced collection (1.63s against 0.86s). To find out where the check time went, both were profiled single-threaded on vscode (CPU pprof and `GODEBUG=gctrace=1`, one run each, row 14 as HEAD).
+
+| vscode, single-threaded | `new-ast` | HEAD |
+|---|---|---|
+| Check time (this run) | 16.96s | 19.40s |
+| CPU samples | 24.63s | 25.31s |
+| GC cycles | 17 | 22 |
+| Summed mark CPU (gctrace) | 4.77s | 2.74s |
+| `gcBgMarkWorker` samples | 4.86s | 2.77s |
+| `mallocgc` / `wbBufFlush` / `bulkBarrierPreWrite` | 0.97 / 0.77 / 0.45s | 0.92 / 0.58 / 0.31s |
+| Mutator CPU (samples less mark workers) | 19.77s | 22.54s |
+| Allocations | 31.3M | 30.8M |
+
+GC did fall a lot: mark CPU is down 43% and write barriers by a third, even with more cycles (the heap is smaller, so the pacer runs more often). The mutator is what got slower, by 2.8s. Flat CPU by category, HEAD less `new-ast`:
+
+| Category | `new-ast` | HEAD | Δ |
+|---|---|---|---|
+| checker | 5.16s | 6.44s | +1.28s |
+| ast accessors | 6.40s | 7.26s | +0.86s |
+| maps | 2.85s | 3.62s | +0.77s |
+| core pages and collections | 0.41s | 0.60s | +0.19s |
+| allocation | 0.73s | 0.71s | −0.02s |
+| parse and bind | 1.15s | 1.12s | −0.03s |
+| runtime, other | 1.55s | 1.29s | −0.26s |
+| GC | 5.35s | 3.37s | −1.98s |
+
+Where the mutator time went:
+
+- **Symbol access.** Reading a field now indexes a record through a store: `Symbol.Flags` 0.22s, `Declarations` 0.21s, `rareOf` 0.13s, and `SymbolOf` (id to view through the directory) 0.21s. Converting a view to an id costs `symbolIds.id` 0.25s and `BaseOf` 0.10s. These replace a pointer dereference, which cost nothing that showed in the profile.
+- **Maps.** `mapaccess*_fast32` is 1.44s, against 1.07s before. The callers are symbol-of-node (`symbolNodeLinkStore.get`, 0.49s, nearly all from `getResolvedSymbol`, plus 0.23s for `set`), referenced symbol meanings (`symbolValueMap.get`, 0.26s), node links (`nodeValueMap.get`, 0.22s and 0.10s), and flow reachability (0.13s). The old layout kept most of these as fields of the node's or symbol's links record, reached by a pointer; the target layout makes them maps keyed by id.
+- **Relation and link pages.** `relationTable.slot` 0.25s and `PagedLinkStore.Get` 0.15s, the open-addressing probe and the page lookup that replace a field read.
+- **Node headers.** `Node.hdr` is +0.43s flat. It is an unchecked load at a computed address, so the cost is the cache miss: the headers of a file are one array, and the checker touches nodes all over it.
+- **Bounds checks.** `-d=ssa/check_bce` finds one check per accessor in the symbol record and side-table accessors (`Symbol.Flags`, `Name`, `rareOf`, `SymbolOf`, `sparseMap.get`) and none in the node header accessors, which already read through `unsafe`. An unchecked symbol record read measured neutral (19.68s against 19.74s median) and was dropped.
+- **Inlining.** `-m` shows `Node.Kind`, `hdr`, `Parent`, `Symbol.Flags`, `rareOf`, `symbolIds.symbol`, `symbolValueMap.get`, `nodeValueMap.get` and `PagedLinkStore.Get` inline. `Symbol.Name`, `Parent`, `Declarations`, `ValueDeclaration`, `SymbolOf`, `BaseOf` and `symbolIds.id` don't. Splitting them into an inlined binder fast path and an out-of-line slow path only gets `Name` and `symbolIds.id` under the budget (the out-of-line call alone costs 57 of the 80), and those two measured neutral (19.59s against 19.53s) and were dropped.
+
+Why GC marking didn't fall further: the pointer-free structures are the node headers (482MB on vscode), data words (152MB), the binder symbol records (88MB), the relation tables and the signature cache. What is still scanned is mostly the type system: the type slabs (163MB, each type has pointer words for its payload, resolved members and extra fields, since a type is still a pointer handle), value link pages that hold `*Type` (140MB), resolved members and property lists (140MB), symbol tables (125MB), symbol-of-node maps (64MB), the resolved-type node map (26MB) and mappers (39MB).
+
+Fixes kept, each its own commit (rows 12–14): the bitmap-ranked container table (`binderContainer` 0.39s to 0.23s); allocating `core.Pages`' directory header only when it grows, which removed 4.6M allocations; and recursion identities as a pointer and index instead of an `interface`, which removed 1.2M more and brought allocations below `new-ast`'s. Together they took the median from 20.00s to 18.88s. Tried and dropped as neutral: one lookup instead of two in `getResolvedSymbol`, skipping unchanged writes to referenced symbol meanings, the inlinable accessor split above, and unchecked symbol record reads.
+
+What remains is the price of the layout: 4-byte ids and per-file maps in place of pointers and pointer-linked records. The handle for symbols is evaluated below (see "Other deviations").
+
 ### Progress
 
 Memory used (median) and vscode check time (n=5 alternating against the previous row, min–max and median).
@@ -624,6 +667,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 
 - A symbol's name stays an 8-byte `SymbolName` rather than an interned 4-byte atom. Most names are already packed into the eight bytes without interning, and derived names (`__@iterator@12`, late-bound names) would grow an intern table without bound across a long-lived language service.
 - File bases are aligned to 64 ids so an id finds its file with one directory load instead of a binary search over offsets.
+- The checker's working handle for a symbol stays the 16-byte view, not the 4-byte `SymbolId` with a program-wide table of 4096-entry chunks whose entries copy the flags and name next to a pointer to the record. A random-access microbenchmark over 2.5M symbols in 10,000 stores measured: a view in hand, flags read, 8.5ns; an id through the per-64 directory, then flags, 15.7ns; an id through the chunked table, copied flags, 8.8ns; the same, then a field that is not copied (declarations, value declaration, parent), 19ns; a view to an id, 9ns. The id handle would make flags and names as cheap as a view in hand and remove the view-to-id conversions (about 0.4s on vscode), but reads of declarations, value declaration and parent, which are about as frequent, would roughly double (+0.3–0.4s). Its 32-byte entries cost about 87MB on vscode (2.7M binder symbols), and it would rewrite about 3,000 call sites. The net time is about zero and the memory is worse, so the view stays.
 - Symbols from stores outside the program's file table are numbered on first use from 2^31 up, under a lock, rather than refused.
 - Symbol table entries are 12 bytes (an 8-byte name and a 4-byte id) rather than 8, since names are not interned atoms (see above). A binder store's table keeps symbols of other stores as views in its rare part rather than as program-wide ids, because a binder store has no program to number them.
 - A binder record refers to its rare part by index into a per-file slice, not by pointer, so the record array has no pointers for the garbage collector to scan.
