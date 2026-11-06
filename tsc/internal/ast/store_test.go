@@ -173,6 +173,21 @@ func TestSparseMap(t *testing.T) {
 	assert.Equal(t, m.get(99), uint32(9))
 	assert.Equal(t, m.get(70), uint32(1070))
 	assert.Equal(t, len(m.extra), 2)
+
+	var e sparseMap[uint32]
+	for _, i := range []uint32{900, 4, 70} {
+		e.set(i, i+1000, 0)
+	}
+	e.pack()
+	assert.Assert(t, e.extra == nil)
+	assert.Equal(t, len(e.blocks), 900>>5+1)
+	for i := range uint32(1000) {
+		want := uint32(0)
+		if i == 4 || i == 70 || i == 900 {
+			want = i + 1000
+		}
+		assert.Equal(t, e.get(i), want, "index %d", i)
+	}
 }
 
 func TestSortedMap(t *testing.T) {

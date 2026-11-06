@@ -283,38 +283,6 @@ Each step is a commit, measured separately:
 4. Subtree facts in a per-store side table.
 5. Symbol-of-node as per-file `map[uint32]`.
 
-### Symbol tables
-
-A symbol table is an insertion-ordered small map from name to symbol id: a header of a store pointer, one slice of 12-byte (name, id) entries and a pointer to a rare part, 40 bytes in all. Up to 8 entries are searched linearly by their inline names, without touching any symbol record. Past 8, the rare part gets an open-addressing hash index of entry positions (`[]int32`). Deleting an entry shifts the slice, so iteration keeps insertion order.
-
-An id means a symbol through the table's store. In a binder store's table it is the symbol's index in that store, which is all the binder ever puts there; the rare symbol from another store (a global merged into a module's exports, a JSDoc store's symbol) is kept aside as a view in the rare part and the entry holds its position there. In a checker's table the id is the checker's program-wide id, which names any symbol. A table takes the store it was made for, or the store of the first symbol added, and rewrites its ids once to a checker's store when it is given one of the checker's symbols. Tables the checker makes are made for its store.
-
-The old table held a slice of 16-byte views plus a map index past 16 entries. Keeping the index and foreign views behind the rare pointer halves the header from 80 bytes, which alone is most of the saving on vscode. Lookups read each candidate's name through its symbol record; now the name is in the entry. This saves 44MB on vscode, 28MB on sentry and 11MB on mui, and about 0.6s of vscode check time.
-
-### Link stores
-
-Links for symbols are kept in pages indexed by `SymbolId` (256 links to a page, allocated on first write) for the links nearly every value symbol has. A page now holds its links inline behind a presence bitmap instead of 256 pointers to arena records, which saves the pointer array and lets a page of pointer-free links go unscanned. Binder ids fill the low pages and transient ids, numbered after them, fill the pages above, so the pages over the transient range are in effect a chunked slice indexed by transient index. Rarer symbol links (deferred, reverse-mapped, alias, module, late-bound, export type, spread, type alias, declared type, variances, ...) are maps keyed by `SymbolId`. Which meanings of a symbol were referenced is a `map[SymbolId]SymbolFlags`, and reading it no longer creates an entry.
-
-Node links are per-file maps keyed by node index, the same key as a `NodeRef`. Links of one small field are now their own value maps rather than records: a node's resolved type, an anonymous type's outer type parameters, and the resolved, effects and decorator signatures, which used to share two records. A node that has a resolved type but no signature, the common case, no longer carries an empty signature slot. Symbol-of-node is one map per file keyed by node index. Source file links are a slice indexed by the checker's file number.
-
-This saves 99MB on vscode, 30MB on sentry and 8MB on mui; vscode check time drops by about 0.6s, mostly from fewer pages and records for the collector to mark.
-
-### Binder side tables
-
-Node flags are in the 24-byte node header. The binder's other fields are in per-file side tables keyed by node index. Declarations' symbols and nodes' flow nodes, which many nodes have, are bitmap-ranked: a block of 32 bits per 32 nodes with the index of the block's first value, and a node's value found by counting the bits below it. They are dense arrays while the file is bound and packed when binding finishes. The fields that only containers have (locals, as the small-map symbol table of item 4, the next container, and the end, return and fallthrough flow nodes) share one 24-byte record per node, and local symbols have their own table; both are packed when binding finishes as sorted node indices with values in the same order, found by binary search, and kept in a hash map before that. They used to be five and one hash maps.
-
-Packing the container fields as five separate bitmap-ranked maps cost memory instead (+13MB on vscode): a bitmap spans the whole file however few nodes have a value, and each map's header is paid by every store. One sorted table per record saves 5MB on vscode, 3MB on sentry and 1MB on mui, with check time unchanged.
-
-### Relation keys
-
-A relation cache key used to be a 128-bit xxh3 hash of a byte string (a tag, the two type ids and the intersection state), which the Go map then hashed again, and the relater's set of keys being compared ("maybe" keys) was a Go set of the same 16-byte keys. A key is now a `RelationKey`, one `uint64`: the source and target type ids (27 bits each, the width of a type id) and the intersection state packed into one word. The rare complex form, two generic type references whose key encodes the shape of their type arguments, is still built as a full 128-bit key and numbered through a per-checker map, with the top bit set, so a full key still decides identity. Relation results and the maybe set are open-addressing tables of `RelationKey`, probed linearly with a multiply-rotate hash; the maybe set deletes by shifting entries back, so it needs no tombstones.
-
-This saves 49MB on vscode, 70MB on sentry and 21MB on mui, and about 0.6s of vscode check time.
-
-### Interning keys
-
-The maps that intern types keep one type per key. Keys of up to two types (a type reference's type arguments, a union's constituents without origin or alias, an anonymous type's instantiation arguments without alias) are now packed, the type ids in the low word and a per-function tag in the high word, instead of hashed with xxh3; longer lists and keys with an alias, origin or flags are hashed as before. A union of a union with one other type and no alias, the commonest union, is keyed by a packed `uint64` of the two ids and the reduction. The effect is within noise: memory 1–2MB less, check time unchanged; the hashing these skip was not a measurable cost.
-
 ### Progress
 
 Memory used from `--extendedDiagnostics`, single-threaded check. Base is `1fce2af19c3`; main is 3,792,305K on vscode.
@@ -547,6 +515,14 @@ A symbol the checker creates is one 32-byte, pointer-free record in checker-owne
 
 This replaces a 32-byte record plus a 48-byte data record, and saves 74MB on vscode, 57MB on sentry and 89MB on mui with no change in check time.
 
+### Symbol tables
+
+A symbol table is an insertion-ordered small map from name to symbol id: a header of a store pointer, one slice of 12-byte (name, id) entries and a pointer to a rare part, 40 bytes in all. Up to 8 entries are searched linearly by their inline names, without touching any symbol record. Past 8, the rare part gets an open-addressing hash index of entry positions (`[]int32`). Deleting an entry shifts the slice, so iteration keeps insertion order.
+
+An id means a symbol through the table's store. In a binder store's table it is the symbol's index in that store, which is all the binder ever puts there; the rare symbol from another store (a global merged into a module's exports, a JSDoc store's symbol) is kept aside as a view in the rare part and the entry holds its position there. In a checker's table the id is the checker's program-wide id, which names any symbol. A table takes the store it was made for, or the store of the first symbol added, and rewrites its ids once to a checker's store when it is given one of the checker's symbols. Tables the checker makes are made for its store.
+
+The old table held a slice of 16-byte views plus a map index past 16 entries. Keeping the index and foreign views behind the rare pointer halves the header from 80 bytes, which alone is most of the saving on vscode. Lookups read each candidate's name through its symbol record; now the name is in the entry. This saves 44MB on vscode, 28MB on sentry and 11MB on mui, and about 0.6s of vscode check time.
+
 ### Types
 
 A type is one 64-byte record: flags, object flags, id, the symbol's id, a pointer to its resolved structured members, a pointer to its rare fields, and a 32-byte per-kind payload. The checker allocates types in chunked slabs (`[]Type` chunks), never one allocation per type. The payload holds what each kind needs inline: an intrinsic name, a literal's value and its fresh and regular types, a type parameter's constraint, target and mapper, a union's or intersection's constituents and its origin, the object and index types of an indexed access, and so on. Kinds with more state point from the payload to a box from a per-kind arena: interface and tuple types (type parameters, base types, element flags), mapped and conditional types, and the rarer fields of unions and intersections (key property map, resolved apparent and base types, property caches), allocated on first write.
@@ -572,6 +548,32 @@ Immutable lists that a record keeps are carved from per-checker list arenas (`co
 The effect is within noise: vscode +2MB, sentry +1MB, mui −3MB, check time unchanged. Allocator size-class rounding, the main thing this removes, is small for 8- and 16-byte elements, and the tail of each chunk is wasted instead. Larger chunks (2KB, 8KB) made it worse: mui grew by 13–24MB, because a list that stays alive keeps its whole chunk alive.
 
 
+### Link stores
+
+Links for symbols are kept in pages indexed by `SymbolId` (256 links to a page, allocated on first write) for the links nearly every value symbol has. A page now holds its links inline behind a presence bitmap instead of 256 pointers to arena records, which saves the pointer array and lets a page of pointer-free links go unscanned. Binder ids fill the low pages and transient ids, numbered after them, fill the pages above, so the pages over the transient range are in effect a chunked slice indexed by transient index. Rarer symbol links (deferred, reverse-mapped, alias, module, late-bound, export type, spread, type alias, declared type, variances, ...) are maps keyed by `SymbolId`. Which meanings of a symbol were referenced is a `map[SymbolId]SymbolFlags`, and reading it no longer creates an entry.
+
+Node links are per-file maps keyed by node index, the same key as a `NodeRef`. Links of one small field are now their own value maps rather than records: a node's resolved type, an anonymous type's outer type parameters, and the resolved, effects and decorator signatures, which used to share two records. A node that has a resolved type but no signature, the common case, no longer carries an empty signature slot. Symbol-of-node is one map per file keyed by node index. Source file links are a slice indexed by the checker's file number.
+
+This saves 99MB on vscode, 30MB on sentry and 8MB on mui; vscode check time drops by about 0.6s, mostly from fewer pages and records for the collector to mark.
+
+### Binder side tables
+
+Node flags are in the 24-byte node header. The binder's other fields are in per-file side tables keyed by node index. Declarations' symbols and nodes' flow nodes, which many nodes have, are bitmap-ranked: a block of 32 bits per 32 nodes with the index of the block's first value, and a node's value found by counting the bits below it. They are dense arrays while the file is bound and packed when binding finishes. The fields that only containers have (locals, as the small-map symbol table of item 4, the next container, and the end, return and fallthrough flow nodes) share one 24-byte record per node, and local symbols have their own table; both are packed when binding finishes as sorted node indices with values in the same order, found by binary search, and kept in a hash map before that. They used to be five and one hash maps.
+
+Packing the container fields as five separate bitmap-ranked maps cost memory instead (+13MB on vscode): a bitmap spans the whole file however few nodes have a value, and each map's header is paid by every store. One sorted table per record saves 5MB on vscode, 3MB on sentry and 1MB on mui, with check time unchanged.
+
+Name resolution reads a container's locals on every enclosing node, and the binary search showed up in the check profile (0.4s on vscode). The container table is now bitmap-ranked like the symbol and flow node tables, built from the binding-time hash map when binding finishes, so a lookup is one block load and a popcount. One bitmap costs about 3MB on vscode against the sorted keys it replaces, and saves 0.15s of check time. Local symbols, rarely read, keep the sorted table.
+
+### Relation keys
+
+A relation cache key used to be a 128-bit xxh3 hash of a byte string (a tag, the two type ids and the intersection state), which the Go map then hashed again, and the relater's set of keys being compared ("maybe" keys) was a Go set of the same 16-byte keys. A key is now a `RelationKey`, one `uint64`: the source and target type ids (27 bits each, the width of a type id) and the intersection state packed into one word. The rare complex form, two generic type references whose key encodes the shape of their type arguments, is still built as a full 128-bit key and numbered through a per-checker map, with the top bit set, so a full key still decides identity. Relation results and the maybe set are open-addressing tables of `RelationKey`, probed linearly with a multiply-rotate hash; the maybe set deletes by shifting entries back, so it needs no tombstones.
+
+This saves 49MB on vscode, 70MB on sentry and 21MB on mui, and about 0.6s of vscode check time.
+
+### Interning keys
+
+The maps that intern types keep one type per key. Keys of up to two types (a type reference's type arguments, a union's constituents without origin or alias, an anonymous type's instantiation arguments without alias) are now packed, the type ids in the low word and a per-function tag in the high word, instead of hashed with xxh3; longer lists and keys with an alias, origin or flags are hashed as before. A union of a union with one other type and no alias, the commonest union, is keyed by a packed `uint64` of the two ids and the reduction. The effect is within noise: memory 1–2MB less, check time unchanged; the hashing these skip was not a measurable cost.
+
 ### Progress
 
 Memory used (median) and vscode check time (n=5 alternating against the previous row, min–max and median).
@@ -593,6 +595,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 9. binder side tables | 2,832,808K (−5MB) | 1,749,019K (−3MB) | 1,186,661K (−1MB) | 19.90–21.24s (20.49) |
 | 10. packed relation keys | 2,784,099K (−49MB) | 1,679,415K (−70MB) | 1,167,338K (−19MB) | 19.75–20.66s (19.99) |
 | 11. packed interning keys | 2,783,162K (−1MB) | 1,677,740K (−2MB) | 1,166,235K (−1MB) | 19.98–20.21s (20.00) |
+| 12. bitmap-ranked container table | 2,785,906K (+3MB) | 1,678,874K (+1MB) | 1,166,731K (+0.5MB) | 19.50–20.13s (19.75) |
 
 ### Deviations forced by the language
 
@@ -612,7 +615,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 
 - String literal types are interned by their string, not by an atom, since names and strings are not interned (see the symbol name entry below). Packed interning keys keep the 16-byte hashed key's shape, with the ids in one word and a tag in the other, so packed and hashed keys share one map per kind; a separate `uint64` map with a fallback for long lists would cost a second map per type for no measured gain.
 
-- The binder fields that only containers have share one record per node in one sorted table, rather than each being its own sparse map, since they are set on the same few nodes and a separate map per field cost more in bitmaps and headers than it saved.
+- The binder fields that only containers have share one record per node in one bitmap-ranked table, rather than each being its own sparse map, since they are set on the same few nodes and a separate map per field cost more in bitmaps and headers than it saved. Local symbols are in a sorted table rather than a bitmap-ranked one, since they are rare and rarely read.
 
 - Node links are keyed by node index in one map per file rather than by `NodeRef` in one map. The key carries the same information, and the per-file maps keep each map smaller and its keys 4 bytes.
 - Symbol links for transient symbols share the binder symbols' pages (transient ids sit above binder ids in the same id space) rather than living in separate maps, since nearly every transient symbol has value links and the pages are as dense as a chunked slice.

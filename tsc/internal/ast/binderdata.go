@@ -9,11 +9,13 @@ import (
 // tables of their store, keyed by node index. Declarations' symbols and
 // nodes' flow nodes, which many nodes have, are in bitmap-ranked maps. The
 // fields of containers, which few nodes have, share one record per node in
-// a map of sorted node indices, as do local symbols.
+// another bitmap-ranked map, since name resolution reads them on every
+// enclosing node. Local symbols, which are rare and seldom read, are in a
+// map of sorted node indices.
 type binderData struct {
 	symbols      sparseMap[uint32]
 	flowNodes    sparseMap[flowRef]
-	containers   sortedMap[containerData]
+	containers   sparseMap[containerData]
 	localSymbols sortedMap[uint32]
 
 	// foreignSymbols holds the symbols, and foreignLocalSymbols the local
@@ -34,7 +36,8 @@ type binderData struct {
 // maps are dense, with a value for every node; binding a large file sets
 // values for most of its nodes, in no useful order. Values set in a packed
 // map for nodes having none are kept in extra, which is also all that a
-// store of nodes not from a parsed file uses.
+// store of nodes not from a parsed file uses. A map that is never dense,
+// set only through extra while binding, is packed from extra.
 type sparseMap[T comparable] struct {
 	blocks []sparseBlock
 	values []T
@@ -100,6 +103,7 @@ func (m *sparseMap[T]) set(i uint32, v T, dense int) {
 // pack turns a dense map into a packed one.
 func (m *sparseMap[T]) pack() {
 	if m.dense == nil {
+		m.packExtra()
 		return
 	}
 	var zero T
@@ -126,6 +130,29 @@ func (m *sparseMap[T]) pack() {
 		}
 	}
 	m.dense = nil
+}
+
+// packExtra turns a map set only through extra into a packed one.
+func (m *sparseMap[T]) packExtra() {
+	if len(m.extra) == 0 || m.blocks != nil {
+		return
+	}
+	keys := make([]uint32, 0, len(m.extra))
+	for i := range m.extra {
+		keys = append(keys, i)
+	}
+	slices.Sort(keys)
+	m.blocks = make([]sparseBlock, keys[len(keys)-1]>>5+1)
+	m.values = make([]T, 0, len(keys))
+	for _, i := range keys {
+		block := &m.blocks[i>>5]
+		if block.bits == 0 {
+			block.base = uint32(len(m.values))
+		}
+		block.bits |= 1 << (i & 31)
+		m.values = append(m.values, m.extra[i])
+	}
+	m.extra = nil
 }
 
 // containerData holds the binder's fields of a container, a function or a
@@ -301,7 +328,7 @@ func (n Node) updateBinderContainer(update func(d *containerData)) {
 	m := &n.store().binder.containers
 	d := m.get(n.node)
 	update(&d)
-	m.set(n.node, d)
+	m.set(n.node, d, 0)
 }
 
 func (n Node) binderLocals() SymbolTable {
