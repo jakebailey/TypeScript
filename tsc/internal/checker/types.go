@@ -843,10 +843,14 @@ type typeExtra struct {
 }
 
 // structuredMembers holds the resolved members of an object, union or intersection type.
+//
+// The record holds no pointers: the member table is an index (plus one) into the checker's member tables, the
+// properties a list in its symbol list store, and the rarer fields an index (plus one) into its extra records.
 type structuredMembers struct {
-	members    ast.SymbolTable
-	properties []ast.SymbolId
-	extra      *structuredTypeExtra
+	members uint32
+	propPos uint32
+	propLen uint32
+	extra   uint32
 }
 
 type structuredTypeExtra struct {
@@ -968,6 +972,17 @@ func pageAt[T any](p *core.Pages[T], i uint32) *T {
 func pageAdd[T any](p *core.Pages[T]) (uint32, *T) {
 	i, r := p.Add()
 	return i + 1, r
+}
+
+// symbolListOf copies a list of symbols into the checker's symbol list store and returns its handle. A nil list stays
+// nil and an empty one stays empty.
+func (c *Checker) symbolListOf(s []ast.SymbolId) (uint32, uint32) {
+	if s == nil {
+		return 0, 0
+	}
+	pos, room := c.symbolLists.alloc(len(s))
+	copy(room, s)
+	return pos, uint32(len(s))
 }
 
 // typeListOf copies a list of types into the checker's list store and returns its handle. A nil list stays nil and an
@@ -1355,50 +1370,75 @@ func (t *StructuredType) members(c *Checker) ast.SymbolTable {
 	if t.resolved == 0 {
 		return nil
 	}
-	return t.res(c).members
+	if i := t.res(c).members; i != 0 {
+		return *c.memberTables.At(i - 1)
+	}
+	return nil
 }
 
 func (t *StructuredType) setMembers(c *Checker, members ast.SymbolTable) {
-	if members == nil && t.resolved == 0 {
+	if members == nil {
+		if t.resolved != 0 {
+			t.res(c).members = 0
+		}
 		return
 	}
-	t.ensureResolved(c).members = members
+	r := t.ensureResolved(c)
+	if r.members != 0 {
+		*c.memberTables.At(r.members - 1) = members
+		return
+	}
+	i, m := pageAdd(&c.memberTables)
+	*m = members
+	r.members = i
 }
 
 func (t *StructuredType) properties(c *Checker) []ast.SymbolId {
 	if t.resolved == 0 {
 		return nil
 	}
-	return t.res(c).properties
+	r := t.res(c)
+	return c.symbolLists.slice(r.propPos, r.propLen)
 }
 
+// setProperties stores a copy of properties.
 func (t *StructuredType) setProperties(c *Checker, properties []ast.SymbolId) {
 	if properties == nil && t.resolved == 0 {
 		return
 	}
-	t.ensureResolved(c).properties = properties
+	r := t.ensureResolved(c)
+	r.propPos, r.propLen = c.symbolListOf(properties)
+}
+
+// shareProperties makes t's properties the same list as source's.
+func (t *StructuredType) shareProperties(c *Checker, source *StructuredType) {
+	if source.resolved == 0 {
+		t.setProperties(c, nil)
+		return
+	}
+	pos, n := source.res(c).propPos, source.res(c).propLen
+	if pos == 0 && t.resolved == 0 {
+		return
+	}
+	r := t.ensureResolved(c)
+	r.propPos, r.propLen = pos, n
 }
 
 func (t *StructuredType) resolvedExtra(c *Checker) *structuredTypeExtra {
 	if t.resolved == 0 {
 		return nil
 	}
-	return t.res(c).extra
-}
-
-func (t *StructuredType) setResolvedExtra(c *Checker, extra *structuredTypeExtra) {
-	if extra == nil && t.resolved == 0 {
-		return
-	}
-	t.ensureResolved(c).extra = extra
+	return pageAt(&c.structuredTypeExtras, t.res(c).extra)
 }
 
 func (t *StructuredType) ensureResolvedExtra(c *Checker) *structuredTypeExtra {
 	resolved := t.ensureResolved(c)
-	if resolved.extra == nil {
-		resolved.extra = c.structuredTypeExtraArena.New()
+	if resolved.extra == 0 {
+		i, extra := pageAdd(&c.structuredTypeExtras)
+		resolved.extra = i
+		return extra
 	}
-	return resolved.extra
+	return pageAt(&c.structuredTypeExtras, resolved.extra)
 }
 
 func (t *StructuredType) CallSignatures(c *Checker) []*Signature {

@@ -745,7 +745,9 @@ type Checker struct {
 	signatureListArena                          core.Arena[*Signature]
 	indexInfoListArena                          core.Arena[*IndexInfo]
 	valueSymbolExtras                           core.Pages[valueSymbolExtra]
-	structuredTypeExtraArena                    core.Arena[structuredTypeExtra]
+	structuredTypeExtras                        core.Pages[structuredTypeExtra]
+	memberTables                                core.Pages[ast.SymbolTable]
+	symbolLists                                 listStore[ast.SymbolId]
 	memberLayoutArena                           core.Arena[MemberLayout]
 	layoutMembers                               ast.SymbolTable
 	layoutBaseIndices                           []int32
@@ -4690,7 +4692,8 @@ func (c *Checker) getTypeWithoutSignatures(t *Type) *Type {
 			result := c.newObjectType(ObjectFlagsAnonymous, c.symbolOfType(t))
 			result.objectFlags |= ObjectFlagsMembersResolved
 			result.AsObjectType().setMembers(c, resolved.getMembers(c))
-			result.AsObjectType().setProperties(c, resolved.getProperties(c))
+			resolved.getProperties(c)
+			result.AsObjectType().shareProperties(c, resolved)
 			return result
 		}
 	case t.flags&TypeFlagsIntersection != 0:
@@ -26053,7 +26056,7 @@ func (c *Checker) setStructuredTypeMembers(t *Type, members ast.SymbolTable, cal
 	t.objectFlags |= ObjectFlagsMembersResolved
 	data := t.AsStructuredType()
 	data.setMembers(c, members)
-	data.setProperties(c, listOf(&c.symbolListArena, c.getNamedMembers(members)))
+	data.setProperties(c, c.getNamedMembers(members))
 	c.setStructuredTypeSignatures(data, callSignatures, constructSignatures, indexInfos)
 }
 
