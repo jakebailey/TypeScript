@@ -377,9 +377,9 @@ func (c *Checker) runWithoutResolvedSignatureCaching[T any](node ast.Node, fn fu
 			c.resolvedSignatures.delete(ancestorNode)
 			if ast.IsFunctionExpressionOrArrowFunction(ancestorNode) {
 				symbolLinks := c.valueSymbolLinks.Get(c.getSymbolOfDeclaration(ancestorNode))
-				resolvedType := symbolLinks.resolvedType
+				resolvedType := c.typ(symbolLinks.resolvedType)
 				cachedTypes[symbolLinks] = resolvedType
-				symbolLinks.resolvedType = nil
+				symbolLinks.resolvedType = 0
 			}
 			ancestorNode = ast.FindAncestor(ancestorNode.Parent(), ast.IsCallLikeOrFunctionLikeExpression)
 		}
@@ -392,7 +392,7 @@ func (c *Checker) runWithoutResolvedSignatureCaching[T any](node ast.Node, fn fu
 			}
 		}
 		for symbolLinks, resolvedType := range cachedTypes {
-			symbolLinks.resolvedType = resolvedType
+			symbolLinks.resolvedType = resolvedType.ref()
 		}
 		return result
 	}
@@ -420,14 +420,14 @@ func (c *Checker) getRootSymbols(symbol ast.SymbolId) []ast.SymbolId {
 
 func (c *Checker) getMappedTypeSymbolOfProperty(symbol ast.SymbolId) ast.SymbolId {
 	if valueLinks := c.valueSymbolLinks.TryGet(symbol); valueLinks != nil {
-		return c.symbolOfType(valueLinks.getContainingType())
+		return c.symbolOfType(valueLinks.getContainingType(c))
 	}
 	return 0
 }
 
 func (c *Checker) getImmediateRootSymbols(symbol ast.SymbolId) []ast.SymbolId {
 	if c.symbolCheckFlags(symbol)&ast.CheckFlagsSynthetic != 0 {
-		return typesMapNonNilTo(c, c.valueSymbolLinks.Get(symbol).getContainingType().Types(), func(t *Type) ast.SymbolId {
+		return typesMapNonNilTo(c, c.valueSymbolLinks.Get(symbol).getContainingType(c).Types(), func(t *Type) ast.SymbolId {
 			return c.getPropertyOfType(t, c.symbolName(symbol))
 		})
 	}

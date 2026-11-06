@@ -167,27 +167,27 @@ func (m *TypeMapperBase) MapsThisOnly(c *Checker) bool  { return false }
 
 type SimpleTypeMapper struct {
 	TypeMapperBase
-	source *Type
-	target *Type
+	source TypeId
+	target TypeId
 }
 
 func newSimpleTypeMapper(source *Type, target *Type) *TypeMapper {
 	m := &SimpleTypeMapper{}
 	m.kind = TypeMapperKindSimple //nolint:customlint
-	m.source = source
-	m.target = target
+	m.source = source.ref()
+	m.target = target.ref()
 	return &m.TypeMapper
 }
 
 func (m *SimpleTypeMapper) Map(c *Checker, t *Type) *Type {
-	if t == m.source {
-		return m.target
+	if t == c.typ(m.source) {
+		return c.typ(m.target)
 	}
 	return t
 }
 
 func (m *SimpleTypeMapper) MapsThisOnly(c *Checker) bool {
-	return isThisTypeParameter(m.source)
+	return isThisTypeParameter(c.typ(m.source))
 }
 
 // ArrayTypeMapper
@@ -225,20 +225,20 @@ func (m *ArrayTypeMapper) MapsThisOnly(c *Checker) bool {
 type ArrayToSingleTypeMapper struct {
 	TypeMapperBase
 	sources []TypeId
-	target  *Type
+	target  TypeId
 }
 
 func newArrayToSingleTypeMapper(sources []TypeId, target *Type) *TypeMapper {
 	m := &ArrayToSingleTypeMapper{}
 	m.kind = TypeMapperKindArrayToSingle //nolint:customlint
 	m.sources = sources
-	m.target = target
+	m.target = target.ref()
 	return &m.TypeMapper
 }
 
 func (m *ArrayToSingleTypeMapper) Map(c *Checker, t *Type) *Type {
 	if slices.Contains(m.sources, t.ref()) {
-		return m.target
+		return c.typ(m.target)
 	}
 	return t
 }

@@ -93,7 +93,7 @@ func (c *Checker) GetUnionType(types []*Type) *Type {
 
 func (c *Checker) getNameTypeOfSymbol(symbol ast.SymbolId) *Type {
 	if links := c.valueSymbolLinks.TryGet(symbol); links != nil {
-		return links.getNameType()
+		return links.getNameType(c)
 	}
 	return nil
 }

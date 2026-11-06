@@ -701,7 +701,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol ast.Symbol,
 					if i != 0 {
 						dpw.WritePunctuation(" | ")
 					}
-					writeTypeClassified(info.KeyType(), container, typeFormatFlags)
+					writeTypeClassified(info.KeyType(c), container, typeFormatFlags)
 				}
 				dpw.WritePunctuation("]: ")
 			} else {

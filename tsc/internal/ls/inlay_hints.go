@@ -132,7 +132,7 @@ func (s *inlayHintState) visitFunctionDeclarationLikeForReturnType(decl ast.Func
 
 	typePredicate := s.checker.GetTypePredicateOfSignature(signature)
 
-	if typePredicate != nil && typePredicate.Type() != nil {
+	if typePredicate != nil && typePredicate.Type(s.checker) != nil {
 		hintParts := s.typePredicateToInlayHintParts(typePredicate)
 		s.addTypeHints(hintParts, s.getTypeAnnotationPosition(decl))
 		return

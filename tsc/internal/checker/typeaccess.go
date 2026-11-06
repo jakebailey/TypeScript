@@ -228,3 +228,8 @@ func (c *Checker) TypesOf(ts []TypeId) []*Type {
 func (c *Checker) TypeOf(id TypeId) *Type {
 	return c.typ(id)
 }
+
+func typeLookup[K comparable](c *Checker, m map[K]TypeId, k K) (*Type, bool) {
+	id, ok := m[k]
+	return c.typ(id), ok
+}

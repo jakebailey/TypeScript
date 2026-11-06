@@ -186,10 +186,10 @@ func BenchmarkTypeListKey(b *testing.B) {
 func newCompositeTestChecker() (*Checker, []TypeId) {
 	c := &Checker{
 		strictNullChecks:         true,
-		unionTypes:               make(map[CacheHashKey]*Type),
-		unionOfUnionTypes:        make(map[uint64]*Type),
-		aliasedUnionOfUnionTypes: make(map[UnionOfUnionKey]*Type),
-		intersectionTypes:        make(map[CacheHashKey]*Type),
+		unionTypes:               make(map[CacheHashKey]TypeId),
+		unionOfUnionTypes:        make(map[uint64]TypeId),
+		aliasedUnionOfUnionTypes: make(map[UnionOfUnionKey]TypeId),
+		intersectionTypes:        make(map[CacheHashKey]TypeId),
 		subtypeReductionCache:    make(map[CacheHashKey][]TypeId),
 	}
 	c.compareSymbols = c.compareSymbolsWorker
@@ -458,7 +458,7 @@ func TestCompactTypeMapperLayout(t *testing.T) {
 	assert.Assert(t, unsafe.Sizeof(MergedTypeMapper{}) <= 3*unsafe.Sizeof(uintptr(0)))
 	c, types := newCompositeTestChecker()
 	mapper := newSimpleTypeMapper(c.typ(types[0]), c.typ(types[1]))
-	assert.Assert(t, castTypeMapper[SimpleTypeMapper](mapper, TypeMapperKindSimple).source == c.typ(types[0]))
+	assert.Assert(t, c.typ(castTypeMapper[SimpleTypeMapper](mapper, TypeMapperKindSimple).source) == c.typ(types[0]))
 	func() {
 		defer func() { assert.Assert(t, recover() != nil) }()
 		castTypeMapper[ArrayTypeMapper](mapper, TypeMapperKindArray)
@@ -496,12 +496,12 @@ func TestInferenceContextMappers(t *testing.T) { //nolint:paralleltest
 func TestCompactValueSymbolLinksLayout(t *testing.T) {
 	t.Parallel()
 	assert.Equal(t, unsafe.Sizeof(ValueSymbolLinks{}), 3*unsafe.Sizeof(uintptr(0)))
-	assert.Equal(t, unsafe.Sizeof(valueSymbolExtra{}), 3*unsafe.Sizeof(uintptr(0)))
+	assert.Equal(t, unsafe.Sizeof(valueSymbolExtra{}), 3*unsafe.Sizeof(TypeId(0)))
 	c, types := newCompositeTestChecker()
 	var links ValueSymbolLinks
-	assert.Assert(t, links.getWriteType() == nil)
-	assert.Assert(t, links.getNameType() == nil)
-	assert.Assert(t, links.getContainingType() == nil)
+	assert.Assert(t, links.getWriteType(c) == nil)
+	assert.Assert(t, links.getNameType(c) == nil)
+	assert.Assert(t, links.getContainingType(c) == nil)
 	links.setWriteType(c, nil)
 	links.setNameType(c, nil)
 	links.setContainingType(c, nil)
@@ -516,13 +516,13 @@ func TestCompactValueSymbolLinksLayout(t *testing.T) {
 		other.setNameType(c, c.typ(types[2]))
 	}
 	runtime.GC()
-	assert.Equal(t, links.getWriteType(), c.typ(types[0]))
-	assert.Equal(t, links.getNameType(), c.typ(types[1]))
-	assert.Equal(t, links.getContainingType(), c.typ(types[2]))
+	assert.Equal(t, links.getWriteType(c), c.typ(types[0]))
+	assert.Equal(t, links.getNameType(c), c.typ(types[1]))
+	assert.Equal(t, links.getContainingType(c), c.typ(types[2]))
 	links.setNameType(c, nil)
-	assert.Assert(t, links.getNameType() == nil)
-	assert.Equal(t, links.getWriteType(), c.typ(types[0]))
-	assert.Equal(t, links.getContainingType(), c.typ(types[2]))
+	assert.Assert(t, links.getNameType(c) == nil)
+	assert.Equal(t, links.getWriteType(c), c.typ(types[0]))
+	assert.Equal(t, links.getContainingType(c), c.typ(types[2]))
 }
 
 func TestUnionIntersectionPropertyCacheSharing(t *testing.T) {
@@ -619,7 +619,7 @@ func TestStructuredTypeExtra(t *testing.T) {
 
 	call := &Signature{}
 	construct := &Signature{}
-	info := &IndexInfo{keyType: c.typ(types[0])}
+	info := &IndexInfo{keyType: c.typ(types[0]).ref()}
 	c.setStructuredTypeSignatures(data, []*Signature{call}, []*Signature{construct}, []*IndexInfo{info})
 	assert.Equal(t, data.CallSignatures()[0], call)
 	assert.Equal(t, data.ConstructSignatures()[0], construct)
@@ -627,7 +627,7 @@ func TestStructuredTypeExtra(t *testing.T) {
 	assert.Equal(t, cap(data.ConstructSignatures()), 1)
 	assert.Equal(t, data.getIndexInfos()[0], info)
 	extra := data.resolvedExtra()
-	extra.objectTypeWithoutAbstractConstructSignatures = c.typ(types[2])
+	extra.objectTypeWithoutAbstractConstructSignatures = c.typ(types[2]).ref()
 	for range 1024 {
 		other := c.newAnonymousType(0, nil, []*Signature{call}, nil, nil)
 		assert.Assert(t, other.AsStructuredType().resolvedExtra() != extra)
@@ -636,7 +636,7 @@ func TestStructuredTypeExtra(t *testing.T) {
 	assert.Equal(t, data.CallSignatures()[0], call)
 	assert.Equal(t, data.ConstructSignatures()[0], construct)
 	assert.Equal(t, data.getIndexInfos()[0], info)
-	assert.Equal(t, data.resolvedExtra().objectTypeWithoutAbstractConstructSignatures, c.typ(types[2]))
+	assert.Equal(t, c.typ(data.resolvedExtra().objectTypeWithoutAbstractConstructSignatures), c.typ(types[2]))
 	c.setStructuredTypeSignatures(data, nil, []*Signature{construct}, nil)
 	assert.Equal(t, len(data.CallSignatures()), 0)
 	assert.Equal(t, data.ConstructSignatures()[0], construct)
@@ -645,7 +645,7 @@ func TestStructuredTypeExtra(t *testing.T) {
 	assert.Assert(t, data.CallSignatures() == nil)
 	assert.Assert(t, data.ConstructSignatures() == nil)
 	assert.Equal(t, data.resolvedExtra(), extra)
-	assert.Equal(t, extra.objectTypeWithoutAbstractConstructSignatures, c.typ(types[2]))
+	assert.Equal(t, c.typ(extra.objectTypeWithoutAbstractConstructSignatures), c.typ(types[2]))
 	c.setStructuredTypeSignatures(data, nil, nil, []*IndexInfo{})
 	assert.Assert(t, data.getIndexInfos() != nil)
 	runtime.KeepAlive(c)
@@ -666,7 +666,7 @@ func TestSignatureExtra(t *testing.T) {
 	assert.Assert(t, sig.TypeParameters() == nil)
 	assert.Assert(t, sig.ThisParameter() == 0)
 	assert.Assert(t, sig.getComposite() == nil)
-	assert.Assert(t, sig.getIsolatedSignatureType() == nil)
+	assert.Assert(t, sig.getIsolatedSignatureType(c) == nil)
 	assert.Assert(t, sig.getResolvedTypePredicate(c) == nil)
 	assert.Equal(t, sig.resolvedMinArgumentCount, int32(-1))
 	sig.setTypeParameters(c, nil)
@@ -695,14 +695,14 @@ func TestSignatureExtra(t *testing.T) {
 	assert.Equal(t, c.getTypePredicateOfSignature(sig), predicate)
 	composite := &CompositeSignature{isUnion: true, signatures: []*Signature{sig}}
 	sig.setComposite(c, composite)
-	sig.ensureExtra(c).isolatedSignatureType = c.typ(types[2])
+	sig.ensureExtra(c).isolatedSignatureType = c.typ(types[2]).ref()
 	clone := c.cloneSignature(sig)
 	assert.Assert(t, clone.extra != entry)
 	assert.Equal(t, clone.getComposite(), composite)
 	assert.Equal(t, clone.ThisParameter(), parameter)
 	assert.Equal(t, c.typ(clone.TypeParameters()[0]), c.typ(types[1]))
 	assert.Assert(t, clone.getResolvedTypePredicate(c) == nil)
-	assert.Assert(t, clone.getIsolatedSignatureType() == nil)
+	assert.Assert(t, clone.getIsolatedSignatureType(c) == nil)
 	clone.setThisParameter(c, 0)
 	assert.Equal(t, sig.ThisParameter(), parameter)
 	sig.setResolvedTypePredicate(c, c.noTypePredicate)
@@ -717,13 +717,13 @@ func TestSignatureExtra(t *testing.T) {
 	assert.Equal(t, sig.extra, entry)
 	assert.Equal(t, sig.getResolvedTypePredicate(c), predicate)
 	assert.Equal(t, sig.Flags(), SignatureFlagsHasRestParameter)
-	assert.Equal(t, sig.getIsolatedSignatureType(), c.typ(types[2]))
+	assert.Equal(t, sig.getIsolatedSignatureType(c), c.typ(types[2]))
 	sig.setTypeParameters(c, nil)
 	sig.setThisParameter(c, 0)
 	sig.setComposite(c, nil)
 	assert.Equal(t, sig.extra, entry)
 	assert.Assert(t, sig.TypeParameters() == nil)
-	assert.Equal(t, sig.resolvedReturnType, c.typ(types[0]))
+	assert.Equal(t, c.typ(sig.resolvedReturnType), c.typ(types[0]))
 	assert.Equal(t, sig.minArgumentCount, int32(1))
 	assert.Equal(t, sig.getResolvedTypePredicate(c), predicate)
 	runtime.KeepAlive(c)

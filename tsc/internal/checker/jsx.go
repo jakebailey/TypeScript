@@ -33,7 +33,7 @@ const (
 
 type JsxElementLinks struct {
 	jsxFlags                         JsxFlags     // Flags for the JSX element
-	resolvedJsxElementAttributesType *Type        // Resolved element attributes type of a JSX opening-like element
+	resolvedJsxElementAttributesType TypeId       // Resolved element attributes type of a JSX opening-like element
 	jsxNamespace                     ast.SymbolId // Resolved JSX namespace symbol for this node
 	jsxImplicitImportContainer       ast.SymbolId // Resolved module symbol the implicit JSX import of this file should refer to
 	firstJSXTagInFile                ast.Node     // The first JSX tag in the file
@@ -265,7 +265,7 @@ func (c *Checker) getContextualTypeForChildJsxExpression(node ast.Node, child as
 
 func (c *Checker) discriminateContextualTypeByJSXAttributes(node ast.Node, contextualType *Type) *Type {
 	key := DiscriminatedContextualTypeKey{nodeId: ast.GetNodeId(node), typeId: contextualType.Id()}
-	if discriminated := c.discriminatedContextualTypes[key]; discriminated != nil {
+	if discriminated := c.typ(c.discriminatedContextualTypes[key]); discriminated != nil {
 		return discriminated
 	}
 	jsxChildrenPropertyName := c.getJsxElementChildrenPropertyName(c.getJsxNamespaceAt(node))
@@ -289,7 +289,7 @@ func (c *Checker) discriminateContextualTypeByJSXAttributes(node ast.Node, conte
 	})
 	discriminator := &ObjectLiteralDiscriminator{c: c, props: discriminantProperties, members: discriminantMembers}
 	discriminated := c.discriminateTypeByDiscriminableItems(contextualType, discriminator)
-	c.discriminatedContextualTypes[key] = discriminated
+	c.discriminatedContextualTypes[key] = discriminated.ref()
 	return discriminated
 }
 
@@ -500,15 +500,15 @@ func (c *Checker) getSuggestedSymbolForNonexistentJSXAttribute(name ast.SymbolNa
 func (c *Checker) getJSXFragmentType(node ast.Node) *Type {
 	// An opening fragment is required in order for `getJsxNamespace` to give the fragment factory
 	links := c.sourceFileLinks.Get(ast.GetSourceFileOfNode(node))
-	if links.jsxFragmentType != nil {
-		return links.jsxFragmentType
+	if links.jsxFragmentType != 0 {
+		return c.typ(links.jsxFragmentType)
 	}
 	jsxFragmentFactoryName := c.getJsxNamespace(node)
 	// #38720/60122, allow null as jsxFragmentFactory
 	shouldResolveFactoryReference := (c.compilerOptions.Jsx == core.JsxEmitReact || c.compilerOptions.JsxFragmentFactory != "") && jsxFragmentFactoryName != "null"
 	if !shouldResolveFactoryReference {
-		links.jsxFragmentType = c.anyType
-		return links.jsxFragmentType
+		links.jsxFragmentType = c.anyType.ref()
+		return c.typ(links.jsxFragmentType)
 	}
 	jsxFactorySymbol := c.getJsxNamespaceContainerForImplicitImport(node)
 	if jsxFactorySymbol == 0 {
@@ -520,12 +520,12 @@ func (c *Checker) getJSXFragmentType(node ast.Node) *Type {
 		jsxFactorySymbol = c.resolveName(node, ast.MakeSymbolName(jsxFragmentFactoryName), flags, diagnostics.Using_JSX_fragments_requires_fragment_factory_0_to_be_in_scope_but_it_could_not_be_found, true /*isUse*/, false /*excludeGlobals*/)
 	}
 	if jsxFactorySymbol == 0 {
-		links.jsxFragmentType = c.errorType
-		return links.jsxFragmentType
+		links.jsxFragmentType = c.errorType.ref()
+		return c.typ(links.jsxFragmentType)
 	}
 	if c.symbolName(jsxFactorySymbol) == ast.MakeSymbolName(ReactNames.Fragment) {
-		links.jsxFragmentType = c.getTypeOfSymbol(jsxFactorySymbol)
-		return links.jsxFragmentType
+		links.jsxFragmentType = c.getTypeOfSymbol(jsxFactorySymbol).ref()
+		return c.typ(links.jsxFragmentType)
 	}
 	resolvedAlias := jsxFactorySymbol
 	if c.symbolFlags(jsxFactorySymbol)&ast.SymbolFlagsAlias != 0 {
@@ -535,11 +535,11 @@ func (c *Checker) getJSXFragmentType(node ast.Node) *Type {
 	reactExports := c.getExportsOfSymbol(resolvedAlias)
 	typeSymbol := c.getSymbol(reactExports, ast.MakeSymbolName(ReactNames.Fragment), ast.SymbolFlagsBlockScopedVariable)
 	if typeSymbol != 0 {
-		links.jsxFragmentType = c.getTypeOfSymbol(typeSymbol)
+		links.jsxFragmentType = c.getTypeOfSymbol(typeSymbol).ref()
 	} else {
-		links.jsxFragmentType = c.errorType
+		links.jsxFragmentType = c.errorType.ref()
 	}
-	return links.jsxFragmentType
+	return c.typ(links.jsxFragmentType)
 }
 
 func (c *Checker) resolveJsxOpeningLikeElement(node ast.Node, candidatesOutArray *[]*Signature, checkMode CheckMode) *Signature {
@@ -748,7 +748,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 					c.setSymbolValueDeclaration(attributeSymbol, c.symbolValueDeclaration(member))
 				}
 				links := c.valueSymbolLinks.Get(attributeSymbol)
-				links.resolvedType = exprType
+				links.resolvedType = exprType.ref()
 				links.target = member
 				attributesTable.SetId(c.symbols, c.symbolName(attributeSymbol), attributeSymbol)
 				if allAttributesTable != nil {
@@ -836,11 +836,11 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 			links := c.valueSymbolLinks.Get(childrenPropSymbol)
 			switch {
 			case len(childTypes) == 1:
-				links.resolvedType = c.typ(childTypes[0])
+				links.resolvedType = c.typ(childTypes[0]).ref()
 			case childrenContextualType != nil && c.someType(childrenContextualType, c.isTupleLikeType):
-				links.resolvedType = c.createTupleType(childTypes)
+				links.resolvedType = c.createTupleType(childTypes).ref()
 			default:
-				links.resolvedType = c.createArrayType(c.getUnionType(childTypes))
+				links.resolvedType = c.createArrayType(c.getUnionType(childTypes)).ref()
 			}
 			// Fake up a property declaration for the children
 			c.setSymbolValueDeclaration(childrenPropSymbol, c.factory.NewPropertySignatureDeclaration(ast.ModifierList{}, c.factory.NewIdentifier(jsxChildrenPropertyName.String()), ast.Node{} /*postfixToken*/, ast.Node{} /*type*/, ast.Node{} /*initializer*/))
@@ -1178,7 +1178,7 @@ func (c *Checker) createSignatureForJSXIntrinsic(node ast.Node, result *Type) *S
 	// returnNode := typeSymbol && c.nodeBuilder.symbolToEntityName(typeSymbol, ast.SymbolFlagsType, node)
 	// declaration := factory.createFunctionTypeNode(nil, []ParameterDeclaration{factory.createParameterDeclaration(nil, nil /*dotDotDotToken*/, "props", nil /*questionToken*/, c.nodeBuilder.typeToTypeNode(result, node))}, ifElse(returnNode != nil, factory.createTypeReferenceNode(returnNode, nil /*typeArguments*/), factory.createKeywordTypeNode(ast.KindAnyKeyword)))
 	parameterSymbol := c.newSymbol(ast.SymbolFlagsFunctionScopedVariable, ast.SymbolNameProps)
-	c.valueSymbolLinks.Get(parameterSymbol).resolvedType = result
+	c.valueSymbolLinks.Get(parameterSymbol).resolvedType = result.ref()
 	return c.newSignature(SignatureFlagsNone, ast.Node{}, nil, 0, []ast.SymbolId{parameterSymbol}, elementType, nil, 1)
 }
 
@@ -1188,23 +1188,23 @@ func (c *Checker) createSignatureForJSXIntrinsic(node ast.Node, result *Type) *S
 func (c *Checker) getIntrinsicAttributesTypeFromJsxOpeningLikeElement(node ast.Node) *Type {
 	debug.Assert(isJsxIntrinsicTagName(node.TagName()))
 	links := c.jsxElementLinks.Get(node)
-	if links.resolvedJsxElementAttributesType != nil {
-		return links.resolvedJsxElementAttributesType
+	if links.resolvedJsxElementAttributesType != 0 {
+		return c.typ(links.resolvedJsxElementAttributesType)
 	}
 	symbol := c.getIntrinsicTagSymbol(node)
 	if links.jsxFlags&JsxFlagsIntrinsicNamedElement != 0 {
-		links.resolvedJsxElementAttributesType = core.OrElse(c.getTypeOfSymbol(symbol), c.errorType)
-		return links.resolvedJsxElementAttributesType
+		links.resolvedJsxElementAttributesType = core.OrElse(c.getTypeOfSymbol(symbol), c.errorType).ref()
+		return c.typ(links.resolvedJsxElementAttributesType)
 	}
 	if links.jsxFlags&JsxFlagsIntrinsicIndexedElement != 0 {
 		indexInfo := c.getApplicableIndexInfoForName(c.getJsxType(JsxNames.IntrinsicElements, node), node.TagName().TextSymbolName())
 		if indexInfo != nil {
 			links.resolvedJsxElementAttributesType = indexInfo.valueType
-			return links.resolvedJsxElementAttributesType
+			return c.typ(links.resolvedJsxElementAttributesType)
 		}
 	}
-	links.resolvedJsxElementAttributesType = c.errorType
-	return links.resolvedJsxElementAttributesType
+	links.resolvedJsxElementAttributesType = c.errorType.ref()
+	return c.typ(links.resolvedJsxElementAttributesType)
 }
 
 // Looks up an intrinsic tag name and returns a symbol that either points to an intrinsic

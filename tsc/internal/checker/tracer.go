@@ -192,7 +192,7 @@ func (a *tracedTypeAdapter) ConditionalTrueType() tracing.TracedType {
 	if a.t.flags&TypeFlagsConditional == 0 {
 		return nil
 	}
-	t := a.t.AsConditionalType().cond().resolvedTrueType
+	t := a.checker.typ(a.t.AsConditionalType().cond().resolvedTrueType)
 	if t == nil {
 		return nil
 	}
@@ -203,7 +203,7 @@ func (a *tracedTypeAdapter) ConditionalFalseType() tracing.TracedType {
 	if a.t.flags&TypeFlagsConditional == 0 {
 		return nil
 	}
-	t := a.t.AsConditionalType().cond().resolvedFalseType
+	t := a.checker.typ(a.t.AsConditionalType().cond().resolvedFalseType)
 	if t == nil {
 		return nil
 	}
@@ -320,7 +320,7 @@ func (a *tracedTypeAdapter) Pattern() ast.Node {
 	if a.checker == nil {
 		return ast.Node{}
 	}
-	return a.checker.patternForType[a.t]
+	return a.checker.patternForType[a.t.ref()]
 }
 
 func (a *tracedTypeAdapter) RecursionIdentity() any {

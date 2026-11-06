@@ -741,10 +741,10 @@ func (c *Checker) compareTypeMappers(m1, m2 *TypeMapper) int {
 	case TypeMapperKindSimple:
 		m1 := castTypeMapper[SimpleTypeMapper](m1, TypeMapperKindSimple)
 		m2 := castTypeMapper[SimpleTypeMapper](m2, TypeMapperKindSimple)
-		if r := c.CompareTypes(m1.source, m2.source); r != 0 {
+		if r := c.CompareTypes(c.typ(m1.source), c.typ(m2.source)); r != 0 {
 			return r
 		}
-		return c.CompareTypes(m1.target, m2.target)
+		return c.CompareTypes(c.typ(m1.target), c.typ(m2.target))
 	case TypeMapperKindArray:
 		m1 := castTypeMapper[ArrayTypeMapper](m1, TypeMapperKindArray)
 		m2 := castTypeMapper[ArrayTypeMapper](m2, TypeMapperKindArray)

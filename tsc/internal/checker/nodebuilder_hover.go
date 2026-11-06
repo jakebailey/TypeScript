@@ -370,8 +370,8 @@ func (b *NodeBuilderImpl) serializeIndexSignaturesOfType(input *Type, baseType *
 	var result []ast.Node
 	for _, info := range b.ch.getIndexInfosOfType(input) {
 		if baseType != nil {
-			baseInfo := b.ch.getIndexInfoOfType(baseType, info.keyType)
-			if baseInfo != nil && b.ch.isTypeIdenticalTo(info.valueType, baseInfo.valueType) {
+			baseInfo := b.ch.getIndexInfoOfType(baseType, b.ch.typ(info.keyType))
+			if baseInfo != nil && b.ch.isTypeIdenticalTo(b.ch.typ(info.valueType), b.ch.typ(baseInfo.valueType)) {
 				continue
 			}
 		}
@@ -581,7 +581,7 @@ func (b *NodeBuilderImpl) filterInheritedProperties(t *Type, baseTypes []TypeId,
 	var inherited collections.Set[ast.SymbolName]
 	for _, baseId := range baseTypes {
 		base := b.ch.typ(baseId)
-		baseWithThis := b.ch.getTypeWithThisArgument(base, b.ch.getTargetType(t).AsInterfaceType().iface().thisType, false)
+		baseWithThis := b.ch.getTypeWithThisArgument(base, b.ch.typ(b.ch.getTargetType(t).AsInterfaceType().iface().thisType), false)
 		for _, prop := range b.ch.getPropertiesOfType(baseWithThis) {
 			if existing, ok := propsByName[b.ch.symbolName(prop)]; ok && b.ch.symbolParent(prop) == b.ch.symbolParent(existing) {
 				inherited.Add(b.ch.symbolName(prop))

@@ -1246,7 +1246,7 @@ type TypeResponse struct {
 	Symbol *CompactSymbolReference `json:"symbol,omitempty"`
 }
 
-func newTypeResponse(t *checker.Type, id TypeID) *TypeResponse {
+func newTypeResponse(c *checker.Checker, t *checker.Type, id TypeID) *TypeResponse {
 	resp := &TypeResponse{
 		Id:    id,
 		Flags: uint32(t.Flags()),
@@ -1291,8 +1291,8 @@ func newTypeResponse(t *checker.Type, id TypeID) *TypeResponse {
 			resp.TypeParameters = typeHandles(iface.TypeParameters())
 			resp.OuterTypeParameters = typeHandles(iface.OuterTypeParameters())
 			resp.LocalTypeParameters = typeHandles(iface.LocalTypeParameters())
-			if iface.ThisType() != nil {
-				resp.ThisType = TypeHandle(iface.ThisType())
+			if thisType := iface.ThisType(c); thisType != nil {
+				resp.ThisType = TypeHandle(thisType)
 			}
 		}
 	case flags&checker.TypeFlagsUnionOrIntersection != 0:

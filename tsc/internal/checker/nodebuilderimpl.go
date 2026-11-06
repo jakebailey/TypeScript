@@ -564,19 +564,19 @@ func (b *NodeBuilderImpl) getResolvedTypeWithoutAbstractConstructSignatures(t *S
 	if len(t.ConstructSignatures()) == 0 {
 		return t.AsType()
 	}
-	if t.resolvedExtra().objectTypeWithoutAbstractConstructSignatures != nil {
-		return t.resolvedExtra().objectTypeWithoutAbstractConstructSignatures
+	if t.resolvedExtra().objectTypeWithoutAbstractConstructSignatures != 0 {
+		return b.ch.typ(t.resolvedExtra().objectTypeWithoutAbstractConstructSignatures)
 	}
 	constructSignatures := core.Filter(t.ConstructSignatures(), func(signature *Signature) bool {
 		return signature.flags&SignatureFlagsAbstract == 0
 	})
 	if len(constructSignatures) == len(t.ConstructSignatures()) {
-		t.resolvedExtra().objectTypeWithoutAbstractConstructSignatures = t.AsType()
+		t.resolvedExtra().objectTypeWithoutAbstractConstructSignatures = t.AsType().ref()
 		return t.AsType()
 	}
 	typeCopy := b.ch.newAnonymousType(b.ch.symbolOfType(t.AsType()), t.getMembers(b.ch), t.CallSignatures(), core.IfElse(len(constructSignatures) > 0, constructSignatures, []*Signature{}), t.getIndexInfos())
-	t.resolvedExtra().objectTypeWithoutAbstractConstructSignatures = typeCopy
-	typeCopy.AsStructuredType().ensureResolvedExtra(b.ch).objectTypeWithoutAbstractConstructSignatures = typeCopy
+	t.resolvedExtra().objectTypeWithoutAbstractConstructSignatures = typeCopy.ref()
+	typeCopy.AsStructuredType().ensureResolvedExtra(b.ch).objectTypeWithoutAbstractConstructSignatures = typeCopy.ref()
 	return typeCopy
 }
 
@@ -589,7 +589,7 @@ func (b *NodeBuilderImpl) symbolToNode(symbol ast.SymbolId, meaning ast.SymbolFl
 			}
 		}
 		if b.ch.valueSymbolLinks.Has(symbol) {
-			nameType := b.ch.valueSymbolLinks.Get(symbol).getNameType()
+			nameType := b.ch.valueSymbolLinks.Get(symbol).getNameType(b.ch)
 			if nameType != nil && nameType.flags&(TypeFlagsEnumLiteral|TypeFlagsUniqueESSymbol) != 0 {
 				oldEnclosing := b.ctx.enclosingDeclaration
 				b.ctx.enclosingDeclaration = b.ch.symbolValueDeclaration(b.ch.symbolOfType(nameType))
@@ -934,7 +934,7 @@ func isDefaultBindingContext(location ast.Node) bool {
 
 func (b *NodeBuilderImpl) getNameOfSymbolFromNameType(symbol ast.SymbolId) string {
 	if b.ch.valueSymbolLinks.Has(symbol) {
-		nameType := b.ch.valueSymbolLinks.Get(symbol).getNameType()
+		nameType := b.ch.valueSymbolLinks.Get(symbol).getNameType(b.ch)
 		if nameType == nil {
 			return ""
 		}
@@ -991,7 +991,7 @@ func (b *NodeBuilderImpl) getNameOfSymbolAsWritten(symbol ast.SymbolId) string {
 			// 	return symbol.Name
 			// }
 			if ast.IsComputedPropertyName(name) && b.ch.symbolCheckFlags(symbol)&ast.CheckFlagsLate == 0 {
-				if b.ch.valueSymbolLinks.Has(symbol) && b.ch.valueSymbolLinks.Get(symbol).getNameType() != nil && b.ch.valueSymbolLinks.Get(symbol).getNameType().flags&TypeFlagsStringOrNumberLiteral != 0 {
+				if b.ch.valueSymbolLinks.Has(symbol) && b.ch.valueSymbolLinks.Get(symbol).getNameType(b.ch) != nil && b.ch.valueSymbolLinks.Get(symbol).getNameType(b.ch).flags&TypeFlagsStringOrNumberLiteral != 0 {
 					result := b.getNameOfSymbolFromNameType(symbol)
 					if len(result) > 0 {
 						return result
@@ -1661,8 +1661,8 @@ func (b *NodeBuilderImpl) typePredicateToTypePredicateNode(predicate *TypePredic
 		parameterName = b.f.NewThisTypeNode()
 	}
 	var typeNode ast.Node
-	if predicate.t != nil {
-		typeNode = b.typeToTypeNode(predicate.t)
+	if predicate.t != 0 {
+		typeNode = b.typeToTypeNode(b.ch.typ(predicate.t))
 	}
 	return b.f.NewTypePredicateNode(
 		assertsModifier,
@@ -1856,8 +1856,8 @@ func (b *NodeBuilderImpl) typePredicateToTypePredicateNodeHelper(typePredicate *
 		parameterName = b.f.NewThisTypeNode()
 	}
 	var typeNode ast.Node
-	if typePredicate.t != nil {
-		typeNode = b.typeToTypeNode(typePredicate.t)
+	if typePredicate.t != 0 {
+		typeNode = b.typeToTypeNode(b.ch.typ(typePredicate.t))
 	}
 	return b.f.NewTypePredicateNode(assertsModifier, parameterName, typeNode)
 }
@@ -2058,9 +2058,9 @@ func (c *Checker) getExpandedParameters(sig *Signature, skipUnionExpanding bool)
 				symbol := c.newSymbolEx(ast.SymbolFlagsFunctionScopedVariable, name, checkFlags)
 				links := c.valueSymbolLinks.Get(symbol)
 				if flags&ElementFlagsRest != 0 {
-					links.resolvedType = c.createArrayType(t)
+					links.resolvedType = c.createArrayType(t).ref()
 				} else {
-					links.resolvedType = t
+					links.resolvedType = t.ref()
 				}
 				return symbol
 			})
@@ -2217,17 +2217,17 @@ func (b *NodeBuilderImpl) indexInfoToObjectComputedNamesOrSignatureDeclaration(i
 
 func (b *NodeBuilderImpl) indexInfoToIndexSignatureDeclarationHelper(indexInfo *IndexInfo, typeNode ast.TypeNode) ast.Node {
 	name := getNameFromIndexInfo(indexInfo)
-	indexerTypeNode := b.typeToTypeNode(indexInfo.keyType)
+	indexerTypeNode := b.typeToTypeNode(b.ch.typ(indexInfo.keyType))
 
 	indexingParameter := b.f.NewParameterDeclaration(ast.ModifierList{}, ast.Node{}, b.newIdentifier(name, 0 /*symbol*/), ast.Node{}, indexerTypeNode, ast.Node{})
 	if typeNode.IsNil() {
-		if indexInfo.valueType == nil {
+		if indexInfo.valueType == 0 {
 			typeNode = b.f.NewKeywordTypeNode(ast.KindAnyKeyword)
 		} else {
-			typeNode = b.typeToTypeNode(indexInfo.valueType)
+			typeNode = b.typeToTypeNode(b.ch.typ(indexInfo.valueType))
 		}
 	}
-	if indexInfo.valueType == nil && b.ctx.flags&nodebuilder.FlagsAllowEmptyIndexInfoType == 0 {
+	if indexInfo.valueType == 0 && b.ctx.flags&nodebuilder.FlagsAllowEmptyIndexInfoType == 0 {
 		b.ctx.encounteredError = true
 	}
 	b.ctx.approximateLength += len(name) + 4
@@ -2405,7 +2405,7 @@ func (b *NodeBuilderImpl) shouldUsePlaceholderForProperty(propertySymbol ast.Sym
 		last := b.ctx.reverseMappedStack[len(b.ctx.reverseMappedStack)-1]
 		if b.ch.reverseMappedSymbolLinks.Has(last) {
 			links := b.ch.reverseMappedSymbolLinks.TryGet(last)
-			propertyType := links.propertyType
+			propertyType := b.ch.typ(links.propertyType)
 			if propertyType != nil && propertyType.objectFlags&ObjectFlagsAnonymous == 0 {
 				return true
 			}
@@ -2421,7 +2421,7 @@ func (b *NodeBuilderImpl) shouldUsePlaceholderForProperty(propertySymbol ast.Sym
 		return false
 	}
 	propertyLinks := b.ch.reverseMappedSymbolLinks.TryGet(propertySymbol)
-	propMappedType := propertyLinks.mappedType
+	propMappedType := b.ch.typ(propertyLinks.mappedType)
 	if propMappedType == nil || b.ch.symbolOfType(propMappedType) == 0 {
 		return false
 	}
@@ -2432,7 +2432,7 @@ func (b *NodeBuilderImpl) shouldUsePlaceholderForProperty(propertySymbol ast.Sym
 		prop := b.ctx.reverseMappedStack[len(b.ctx.reverseMappedStack)-1-i]
 		if b.ch.reverseMappedSymbolLinks.Has(prop) {
 			links := b.ch.reverseMappedSymbolLinks.TryGet(prop)
-			mappedType := links.mappedType
+			mappedType := b.ch.typ(links.mappedType)
 			if mappedType != nil && b.ch.symbolOfType(mappedType) == b.ch.symbolOfType(propMappedType) {
 				return true
 			}
@@ -2538,7 +2538,7 @@ func (b *NodeBuilderImpl) getPropertyNameNodeForSymbolFromNameType(symbol ast.Sy
 	if !b.ch.valueSymbolLinks.Has(symbol) {
 		return ast.Node{}
 	}
-	nameType := b.ch.valueSymbolLinks.TryGet(symbol).getNameType()
+	nameType := b.ch.valueSymbolLinks.TryGet(symbol).getNameType(b.ch)
 	if nameType == nil {
 		return ast.Node{}
 	}
@@ -2663,7 +2663,7 @@ func (b *NodeBuilderImpl) addPropertyToElementList(propertySymbol ast.SymbolId, 
 				typeElements = append(typeElements, fakeGetterDeclaration)
 
 				setterParam := b.ch.newSymbol(ast.SymbolFlagsFunctionScopedVariable, ast.SymbolNameArg)
-				b.ch.valueSymbolLinks.Get(setterParam).resolvedType = writeType
+				b.ch.valueSymbolLinks.Get(setterParam).resolvedType = writeType.ref()
 				fakeSetterSignature := b.ch.newSignature(SignatureFlagsNone, ast.Node{}, nil, 0, []ast.SymbolId{setterParam}, b.ch.voidType, nil, 0)
 				fakeSetterDeclaration := b.signatureToSignatureDeclarationHelper(fakeSetterSignature, ast.KindSetAccessor, &SignatureToSignatureDeclarationOptions{
 					name: propertyName,
@@ -3042,10 +3042,10 @@ func (b *NodeBuilderImpl) conditionalTypeToTypeNode(_t *Type) ast.TypeNode {
 		newTypeVariable := b.f.NewTypeReferenceNode(name.AsNode(), ast.TypeList{})
 		b.ctx.approximateLength += 37
 		// 15 each for two added conditionals, 7 for an added infer type
-		newMapper := prependTypeMapping(t.cond().root.checkType, newParam, b.ch.mapperOf(t.cond().mapper))
+		newMapper := prependTypeMapping(b.ch.typ(t.cond().root.checkType), newParam, b.ch.mapperOf(t.cond().mapper))
 		saveInferTypeParameters := b.ctx.inferTypeParameters
 		b.ctx.inferTypeParameters = t.cond().root.inferTypeParameters
-		extendsTypeNode := b.typeToTypeNode(b.ch.instantiateType(t.cond().root.extendsType, newMapper))
+		extendsTypeNode := b.typeToTypeNode(b.ch.instantiateType(b.ch.typ(t.cond().root.extendsType), newMapper))
 		b.ctx.inferTypeParameters = saveInferTypeParameters
 		trueTypeNode := b.typeToTypeNodeOrCircularityElision(b.ch.instantiateType(b.getTypeFromTypeNode(t.cond().root.node.TrueType(), false), newMapper))
 		falseTypeNode := b.typeToTypeNodeOrCircularityElision(b.ch.instantiateType(b.getTypeFromTypeNode(t.cond().root.node.FalseType(), false), newMapper))

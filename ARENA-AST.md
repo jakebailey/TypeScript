@@ -635,6 +635,8 @@ Every list of types (union and intersection constituents, type arguments and par
 
 Halving the lists saves 11MB on vscode, but sentry grows 3MB and mui 16MB. Pointer-free list chunks are not the cause; the growth is checked against a heap profile in the pointer-free step that follows, which changes the same lists' surroundings. vscode check time drops 0.25s (19.89s to 19.65s, median), since key building and sorting no longer dereference each element.
 
+Every stored reference to a type outside the type records is an id as well: the value and declared-type links, the iteration types cache, index infos, type predicates, signatures' resolved return types, the conditional, mapped, interface, union and intersection side records, the per-type and per-alias instantiation maps, and the checker's interning maps and caches (string, number and enum literals, unions, intersections, tuples, indexed accesses, substitutions, narrowing and flow caches). A Go map whose keys and values hold no pointers keeps its storage out of the collector's scan set, so these maps stop costing mark work. The accessors that resolve an id take the checker (`info.KeyType(c)`, `pred.Type(c)`, `mapped.TemplateType(c)`); the few callers outside the checker pass the checker they already hold. Memory falls 15MB on vscode, 17MB on sentry and 30MB on mui; check time is unchanged (19.77s to 19.55s median, within noise).
+
 ### Progress
 
 Memory used (median) and vscode check time (n=5 alternating against the previous row, min–max and median).
@@ -661,6 +663,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 14. unboxed type resolution targets | 2,785,674K (−0.2MB) | 1,678,971K (+0.2MB) | 1,166,975K (+0.1MB) | 18.85–19.87s (18.88) |
 | 15. symbol id as the working handle | 2,723,118K (−63MB) | 1,577,330K (−101MB) | 1,021,427K (−146MB) | 19.74–20.36s (19.96) |
 | 16. type lists as type ids | 2,712,297K (−11MB) | 1,580,666K (+3MB) | 1,037,484K (+16MB) | 19.34–19.71s (19.65) |
+| 17. types as ids in links and caches | 2,696,966K (−15MB) | 1,563,516K (−17MB) | 1,007,160K (−30MB) | 19.39–19.91s (19.55) |
 
 ### Deviations forced by the language
 

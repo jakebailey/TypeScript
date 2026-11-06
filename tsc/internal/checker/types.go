@@ -175,37 +175,37 @@ type (
 // Links for value symbols
 
 type ValueSymbolLinks struct {
-	resolvedType *Type // Type of value symbol
+	resolvedType TypeId // Type of value symbol
 	target       ast.SymbolId
 	mapper       TypeMapperId
 	extra        *valueSymbolExtra
 }
 
 type valueSymbolExtra struct {
-	writeType      *Type
-	nameType       *Type
-	containingType *Type // Mapped type for mapped type property, containing union or intersection type for synthetic property
+	writeType      TypeId
+	nameType       TypeId
+	containingType TypeId // Mapped type for mapped type property, containing union or intersection type for synthetic property
 }
 
-func (links *ValueSymbolLinks) getWriteType() *Type {
+func (links *ValueSymbolLinks) getWriteType(c *Checker) *Type {
 	if links.extra == nil {
 		return nil
 	}
-	return links.extra.writeType
+	return c.typ(links.extra.writeType)
 }
 
-func (links *ValueSymbolLinks) getNameType() *Type {
+func (links *ValueSymbolLinks) getNameType(c *Checker) *Type {
 	if links.extra == nil {
 		return nil
 	}
-	return links.extra.nameType
+	return c.typ(links.extra.nameType)
 }
 
-func (links *ValueSymbolLinks) getContainingType() *Type {
+func (links *ValueSymbolLinks) getContainingType(c *Checker) *Type {
 	if links.extra == nil {
 		return nil
 	}
-	return links.extra.containingType
+	return c.typ(links.extra.containingType)
 }
 
 func (links *ValueSymbolLinks) setWriteType(c *Checker, typ *Type) {
@@ -215,7 +215,7 @@ func (links *ValueSymbolLinks) setWriteType(c *Checker, typ *Type) {
 		}
 		links.extra = c.valueSymbolExtraArena.New()
 	}
-	links.extra.writeType = typ
+	links.extra.writeType = typ.ref()
 }
 
 func (links *ValueSymbolLinks) setNameType(c *Checker, typ *Type) {
@@ -225,7 +225,7 @@ func (links *ValueSymbolLinks) setNameType(c *Checker, typ *Type) {
 		}
 		links.extra = c.valueSymbolExtraArena.New()
 	}
-	links.extra.nameType = typ
+	links.extra.nameType = typ.ref()
 }
 
 func (links *ValueSymbolLinks) setContainingType(c *Checker, typ *Type) {
@@ -235,20 +235,20 @@ func (links *ValueSymbolLinks) setContainingType(c *Checker, typ *Type) {
 		}
 		links.extra = c.valueSymbolExtraArena.New()
 	}
-	links.extra.containingType = typ
+	links.extra.containingType = typ.ref()
 }
 
 // Additional links for mapped symbols
 
 type MappedSymbolLinks struct {
-	keyType         *Type        // Key type for mapped type member
+	keyType         TypeId       // Key type for mapped type member
 	syntheticOrigin ast.SymbolId // For a property on a mapped or spread type, points back to the original property
 }
 
 // Additional links for deferred type symbols
 
 type DeferredSymbolLinks struct {
-	parent            *Type    // Source union/intersection of a deferred type
+	parent            TypeId   // Source union/intersection of a deferred type
 	constituents      []TypeId // Calculated list of constituents for a deferred type
 	writeConstituents []TypeId // Constituents of a deferred `writeType`
 }
@@ -271,9 +271,9 @@ type ModuleSymbolLinks struct {
 }
 
 type ReverseMappedSymbolLinks struct {
-	propertyType   *Type
-	mappedType     *Type // References a mapped type
-	constraintType *Type // References an index type
+	propertyType   TypeId
+	mappedType     TypeId // References a mapped type
+	constraintType TypeId // References an index type
 }
 
 // Links for late-bound symbols
@@ -292,16 +292,16 @@ type ExportTypeLinks struct {
 // Links for type aliases
 
 type TypeAliasLinks struct {
-	declaredType                  *Type
-	typeParameters                []TypeId               // Type parameters of type alias (undefined if non-generic)
-	instantiations                map[CacheHashKey]*Type // Instantiations of generic type alias (undefined if non-generic)
+	declaredType                  TypeId
+	typeParameters                []TypeId                // Type parameters of type alias (undefined if non-generic)
+	instantiations                map[CacheHashKey]TypeId // Instantiations of generic type alias (undefined if non-generic)
 	isConstructorDeclaredProperty bool
 }
 
 // Links for declared types (type parameters, class types, interface types, enums)
 
 type DeclaredTypeLinks struct {
-	declaredType           *Type
+	declaredType           TypeId
 	interfaceChecked       bool
 	indexSignaturesChecked bool
 	typeParametersChecked  bool
@@ -441,7 +441,7 @@ type EnumMemberLinks struct {
 // Links for assertion expressions
 
 type AssertionLinks struct {
-	exprType *Type // Assertion expression type
+	exprType TypeId // Assertion expression type
 }
 
 // SourceFile links
@@ -457,7 +457,7 @@ type SourceFileLinks struct {
 	localJsxFragmentNamespace    string
 	localJsxFactory              ast.EntityName
 	localJsxFragmentFactory      ast.EntityName
-	jsxFragmentType              *Type
+	jsxFragmentType              TypeId
 }
 
 type TypeFlags uint32
@@ -836,12 +836,12 @@ var (
 // typeExtra holds the fields of a type that few types set.
 type typeExtra struct {
 	alias                  *TypeAlias
-	resolvedBaseConstraint *Type
-	instantiations         map[CacheHashKey]*Type // Map of type instantiations
-	mapper                 *TypeMapper            // Type mapper of a deferred type reference
-	node                   ast.NodeRef            // TypeReferenceNode | ArrayTypeNode | TupleTypeNode of a deferred type reference
-	resolvedDefaultType    *Type                  // Default of a type parameter
-	distributedType        *Type                  // Distributed form of a type parameter
+	resolvedBaseConstraint TypeId
+	instantiations         map[CacheHashKey]TypeId // Map of type instantiations
+	mapper                 *TypeMapper             // Type mapper of a deferred type reference
+	node                   ast.NodeRef             // TypeReferenceNode | ArrayTypeNode | TupleTypeNode of a deferred type reference
+	resolvedDefaultType    TypeId                  // Default of a type parameter
+	distributedType        TypeId                  // Distributed form of a type parameter
 }
 
 // structuredMembers holds the resolved members of an object, union or intersection type.
@@ -856,7 +856,7 @@ type structuredTypeExtra struct {
 	callSignatureCount int          // Count of call signatures
 	indexInfos         []*IndexInfo
 
-	objectTypeWithoutAbstractConstructSignatures *Type
+	objectTypeWithoutAbstractConstructSignatures TypeId
 }
 
 // typeSlab holds a checker's types in fixed chunks behind a directory, so a TypeId (a type's position, from 1)
@@ -1326,18 +1326,18 @@ type ConstrainedType struct {
 
 func (t *ConstrainedType) AsConstrainedType() *ConstrainedType { return t }
 
-func (t *ConstrainedType) resolvedBaseConstraint() *Type {
+func (t *ConstrainedType) resolvedBaseConstraint(c *Checker) *Type {
 	if t.extra == nil {
 		return nil
 	}
-	return t.extra.resolvedBaseConstraint
+	return c.typ(t.extra.resolvedBaseConstraint)
 }
 
 func (t *ConstrainedType) setResolvedBaseConstraint(c *Checker, constraint *Type) {
 	if constraint == nil && t.extra == nil {
 		return
 	}
-	t.ensureExtra(c).resolvedBaseConstraint = constraint
+	t.ensureExtra(c).resolvedBaseConstraint = constraint.ref()
 }
 
 // StructuredType (base of all types with members)
@@ -1600,14 +1600,14 @@ func (t *ObjectType) setMapper(c *Checker, mapper *TypeMapper) {
 }
 
 // Map of type instantiations
-func (t *ObjectType) instantiations() map[CacheHashKey]*Type {
+func (t *ObjectType) instantiations() map[CacheHashKey]TypeId {
 	if t.extra == nil {
 		return nil
 	}
 	return t.extra.instantiations
 }
 
-func (t *ObjectType) setInstantiations(c *Checker, instantiations map[CacheHashKey]*Type) {
+func (t *ObjectType) setInstantiations(c *Checker, instantiations map[CacheHashKey]TypeId) {
 	if instantiations == nil && t.extra == nil {
 		return
 	}
@@ -1686,10 +1686,10 @@ type interfaceData struct {
 	lazy                        *LazyState
 	allTypeParameters           []TypeId // Type parameters (outer + local + thisType)
 	outerTypeParameterCount     int      // Count of outer type parameters
-	thisType                    *Type    // The "this" type (nil if none)
+	thisType                    TypeId   // The "this" type (nil if none)
 	baseTypesResolved           bool
 	declaredMembersResolved     bool
-	resolvedBaseConstructorType *Type
+	resolvedBaseConstructorType TypeId
 	resolvedBaseTypes           []TypeId
 	declaredMembers             ast.SymbolTable // Declared members
 	declaredCallSignatures      []*Signature    // Declared call signatures
@@ -1727,8 +1727,8 @@ func (t *InterfaceType) TypeParameters() []TypeId {
 	return slices.Clip(d.allTypeParameters[:len(d.allTypeParameters)-1])
 }
 
-func (t *InterfaceType) ThisType() *Type {
-	return t.iface().thisType
+func (t *InterfaceType) ThisType(c *Checker) *Type {
+	return c.typ(t.iface().thisType)
 }
 
 // TupleType
@@ -1810,12 +1810,12 @@ type MappedType struct {
 
 type mappedData struct {
 	declaration          ast.MappedTypeNode
-	typeParameter        *Type
-	constraintType       *Type
-	nameType             *Type
-	templateType         *Type
-	modifiersType        *Type
-	resolvedApparentType *Type
+	typeParameter        TypeId
+	constraintType       TypeId
+	nameType             TypeId
+	templateType         TypeId
+	modifiersType        TypeId
+	resolvedApparentType TypeId
 	containsError        bool
 }
 
@@ -1823,10 +1823,10 @@ func (t *MappedType) mapped() *mappedData {
 	return fromPayload[mappedData](t.data.p2)
 }
 
-func (t *MappedType) TypeParameter() *Type  { return t.mapped().typeParameter }
-func (t *MappedType) ConstraintType() *Type { return t.mapped().constraintType }
-func (t *MappedType) NameType() *Type       { return t.mapped().nameType }
-func (t *MappedType) TemplateType() *Type   { return t.mapped().templateType }
+func (t *MappedType) TypeParameter(c *Checker) *Type  { return c.typ(t.mapped().typeParameter) }
+func (t *MappedType) ConstraintType(c *Checker) *Type { return c.typ(t.mapped().constraintType) }
+func (t *MappedType) NameType(c *Checker) *Type       { return c.typ(t.mapped().nameType) }
+func (t *MappedType) TemplateType(c *Checker) *Type   { return c.typ(t.mapped().templateType) }
 func (t *MappedType) ResolveComponents(c *Checker, typ *Type) {
 	c.getTypeParameterFromMappedType(typ)
 	c.getConstraintTypeFromMappedType(typ)
@@ -1940,10 +1940,10 @@ type UnionType struct {
 
 type unionData struct {
 	unionOrIntersectionData
-	resolvedReducedType *Type
-	regularType         *Type
-	keyPropertyName     ast.SymbolName  // Property with unique unit type that exists in every object/intersection in union type
-	constituentMap      map[*Type]*Type // Constituents keyed by unit type discriminants
+	resolvedReducedType TypeId
+	regularType         TypeId
+	keyPropertyName     ast.SymbolName    // Property with unique unit type that exists in every object/intersection in union type
+	constituentMap      map[TypeId]TypeId // Constituents keyed by unit type discriminants
 }
 
 func (t *UnionType) union() *unionData {
@@ -1954,28 +1954,28 @@ func (t *UnionType) union() *unionData {
 func (t *UnionType) origin() *Type     { return fromPayload[Type](t.data.p1) }
 func (t *UnionType) setOrigin(v *Type) { t.data.p1 = toPayload(v) }
 
-func (t *UnionType) resolvedReducedType() *Type {
+func (t *UnionType) resolvedReducedType(c *Checker) *Type {
 	if d := t.union(); d != nil {
-		return d.resolvedReducedType
+		return c.typ(d.resolvedReducedType)
 	}
 	return nil
 }
 
 func (t *UnionType) setResolvedReducedType(c *Checker, v *Type) {
 	t.ensureMore(c)
-	t.union().resolvedReducedType = v
+	t.union().resolvedReducedType = v.ref()
 }
 
-func (t *UnionType) regularType() *Type {
+func (t *UnionType) regularType(c *Checker) *Type {
 	if d := t.union(); d != nil {
-		return d.regularType
+		return c.typ(d.regularType)
 	}
 	return nil
 }
 
 func (t *UnionType) setRegularType(c *Checker, v *Type) {
 	t.ensureMore(c)
-	t.union().regularType = v
+	t.union().regularType = v.ref()
 }
 
 func (t *UnionType) keyPropertyName() ast.SymbolName {
@@ -1990,14 +1990,14 @@ func (t *UnionType) setKeyPropertyName(c *Checker, v ast.SymbolName) {
 	t.union().keyPropertyName = v
 }
 
-func (t *UnionType) constituentMap() map[*Type]*Type {
+func (t *UnionType) constituentMap() map[TypeId]TypeId {
 	if d := t.union(); d != nil {
 		return d.constituentMap
 	}
 	return nil
 }
 
-func (t *UnionType) setConstituentMap(c *Checker, v map[*Type]*Type) {
+func (t *UnionType) setConstituentMap(c *Checker, v map[TypeId]TypeId) {
 	t.ensureMore(c)
 	t.union().constituentMap = v
 }
@@ -2010,22 +2010,22 @@ type IntersectionType struct {
 
 type intersectionData struct {
 	unionOrIntersectionData
-	uniqueLiteralFilledInstantiation *Type // Instantiation with type parameters mapped to never type
+	uniqueLiteralFilledInstantiation TypeId // Instantiation with type parameters mapped to never type
 }
 
 func (t *IntersectionType) resolvedApparentType() *Type     { return fromPayload[Type](t.data.p1) }
 func (t *IntersectionType) setResolvedApparentType(v *Type) { t.data.p1 = toPayload(v) }
 
-func (t *IntersectionType) uniqueLiteralFilledInstantiation() *Type {
+func (t *IntersectionType) uniqueLiteralFilledInstantiation(c *Checker) *Type {
 	if d := fromPayload[intersectionData](t.data.p2); d != nil {
-		return d.uniqueLiteralFilledInstantiation
+		return c.typ(d.uniqueLiteralFilledInstantiation)
 	}
 	return nil
 }
 
 func (t *IntersectionType) setUniqueLiteralFilledInstantiation(c *Checker, v *Type) {
 	t.ensureMore(c)
-	fromPayload[intersectionData](t.data.p2).uniqueLiteralFilledInstantiation = v
+	fromPayload[intersectionData](t.data.p2).uniqueLiteralFilledInstantiation = v.ref()
 }
 
 // TypeParameter: the constraint, target and mapper in p0, p1 and p2, and flags in w0. The default and distributed
@@ -2059,32 +2059,32 @@ func (t *TypeParameter) setFlag(flag uint32, v bool) {
 	}
 }
 
-func (t *TypeParameter) resolvedDefaultType() *Type {
+func (t *TypeParameter) resolvedDefaultType(c *Checker) *Type {
 	if t.extra == nil {
 		return nil
 	}
-	return t.extra.resolvedDefaultType
+	return c.typ(t.extra.resolvedDefaultType)
 }
 
 func (t *TypeParameter) setResolvedDefaultType(c *Checker, v *Type) {
 	if v == nil && t.extra == nil {
 		return
 	}
-	t.ensureExtra(c).resolvedDefaultType = v
+	t.ensureExtra(c).resolvedDefaultType = v.ref()
 }
 
-func (t *TypeParameter) distributedType() *Type {
+func (t *TypeParameter) distributedType(c *Checker) *Type {
 	if t.extra == nil {
 		return nil
 	}
-	return t.extra.distributedType
+	return c.typ(t.extra.distributedType)
 }
 
 func (t *TypeParameter) setDistributedType(c *Checker, v *Type) {
 	if v == nil && t.extra == nil {
 		return
 	}
-	t.ensureExtra(c).distributedType = v
+	t.ensureExtra(c).distributedType = v.ref()
 }
 
 // IndexFlags
@@ -2176,12 +2176,12 @@ func (t *SubstitutionType) setConstraint(v *Type)  { t.data.p1 = toPayload(v) }
 
 type ConditionalRoot struct {
 	node                ast.ConditionalTypeNode
-	checkType           *Type
-	extendsType         *Type
+	checkType           TypeId
+	extendsType         TypeId
 	isDistributive      bool
 	inferTypeParameters []TypeId
 	outerTypeParameters []TypeId
-	instantiations      map[CacheHashKey]*Type
+	instantiations      map[CacheHashKey]TypeId
 	alias               *TypeAlias
 }
 
@@ -2193,11 +2193,11 @@ type ConditionalType struct {
 
 type conditionalData struct {
 	root                             *ConditionalRoot
-	resolvedTrueType                 *Type
-	resolvedFalseType                *Type
-	resolvedInferredTrueType         *Type // The `trueType` instantiated with the `combinedMapper`, if present
-	resolvedDefaultConstraint        *Type
-	resolvedConstraintOfDistributive *Type
+	resolvedTrueType                 TypeId
+	resolvedFalseType                TypeId
+	resolvedInferredTrueType         TypeId // The `trueType` instantiated with the `combinedMapper`, if present
+	resolvedDefaultConstraint        TypeId
+	resolvedConstraintOfDistributive TypeId
 	mapper                           TypeMapperId
 	combinedMapper                   TypeMapperId
 }
@@ -2244,7 +2244,7 @@ type Signature struct {
 	resolvedMinArgumentCount int32
 	declaration              ast.NodeRef
 	parameters               []ast.SymbolId
-	resolvedReturnType       *Type
+	resolvedReturnType       TypeId
 	target                   SignatureId
 	mapper                   TypeMapperId
 	extra                    *signatureExtra
@@ -2254,7 +2254,7 @@ type signatureExtra struct {
 	typeParameters        []TypeId
 	thisParameter         ast.SymbolId
 	resolvedTypePredicate *TypePredicate
-	isolatedSignatureType *Type
+	isolatedSignatureType TypeId
 	composite             *CompositeSignature
 }
 
@@ -2311,11 +2311,11 @@ func (s *Signature) setComposite(c *Checker, composite *CompositeSignature) {
 	}
 }
 
-func (s *Signature) getIsolatedSignatureType() *Type {
+func (s *Signature) getIsolatedSignatureType(c *Checker) *Type {
 	if s.extra == nil {
 		return nil
 	}
-	return s.extra.isolatedSignatureType
+	return c.typ(s.extra.isolatedSignatureType)
 }
 
 func (s *Signature) Id() SignatureId {
@@ -2374,11 +2374,11 @@ type TypePredicate struct {
 	kind           TypePredicateKind
 	parameterIndex int32
 	parameterName  ast.SymbolName
-	t              *Type
+	t              TypeId
 }
 
-func (typePredicate *TypePredicate) Type() *Type {
-	return typePredicate.t
+func (typePredicate *TypePredicate) Type(c *Checker) *Type {
+	return c.typ(typePredicate.t)
 }
 
 func (typePredicate *TypePredicate) Kind() TypePredicateKind {
@@ -2399,8 +2399,8 @@ func (typePredicate *TypePredicate) ParameterName() ast.SymbolName {
 type IndexInfoId uint32
 
 type IndexInfo struct {
-	keyType     *Type
-	valueType   *Type
+	keyType     TypeId
+	valueType   TypeId
 	id          IndexInfoId
 	isReadonly  bool
 	declaration ast.Node     // IndexSignatureDeclaration
@@ -2408,12 +2408,12 @@ type IndexInfo struct {
 	components  []ast.Node   // ElementWithComputedPropertyName
 }
 
-func (info *IndexInfo) KeyType() *Type {
-	return info.keyType
+func (info *IndexInfo) KeyType(c *Checker) *Type {
+	return c.typ(info.keyType)
 }
 
-func (info *IndexInfo) ValueType() *Type {
-	return info.valueType
+func (info *IndexInfo) ValueType(c *Checker) *Type {
+	return c.typ(info.valueType)
 }
 
 func (info *IndexInfo) IsReadonly() bool {

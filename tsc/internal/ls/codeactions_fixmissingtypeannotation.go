@@ -868,7 +868,7 @@ func (f *isolatedDeclarationsFixer) inferType(node ast.Node, variableType *check
 		if signature != nil {
 			typePredicate := f.checker.GetTypePredicateOfSignature(signature)
 			if typePredicate != nil {
-				if typePredicate.Type() == nil {
+				if typePredicate.Type(f.checker) == nil {
 					return ast.Node{}
 				}
 				enclosingDecl := ast.FindAncestor(node, ast.IsDeclaration)
@@ -876,7 +876,7 @@ func (f *isolatedDeclarationsFixer) inferType(node ast.Node, variableType *check
 					enclosingDecl = f.sourceFile.AsNode()
 				}
 				flags := declarationEmitNodeBuilderFlags
-				if typePredicate.Type().Flags()&checker.TypeFlagsUniqueESSymbol != 0 {
+				if typePredicate.Type(f.checker).Flags()&checker.TypeFlagsUniqueESSymbol != 0 {
 					flags |= nodebuilder.FlagsAllowUniqueESSymbolType
 				}
 				result := f.checker.TypePredicateToTypePredicateNode(typePredicate, enclosingDecl, flags, nil)

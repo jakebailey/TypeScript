@@ -293,7 +293,7 @@ func (c *Checker) getTypeAtFlowCall(f *FlowState, flow ast.FlowNode) FlowType {
 			t := c.finalizeEvolvingArrayType(flowType.t)
 			var narrowedType *Type
 			switch {
-			case predicate.t != nil:
+			case predicate.t != 0:
 				narrowedType = c.narrowTypeByTypePredicate(f, t, predicate, flow.Node(), true /*assumeTrue*/)
 			case predicate.kind == TypePredicateKindAssertsIdentifier && predicate.parameterIndex >= 0 && int(predicate.parameterIndex) < flow.Node().ArgumentList().Len():
 				narrowedType = c.narrowTypeByAssertion(f, t, flow.Node().ArgumentList().At(int(predicate.parameterIndex)))
@@ -314,19 +314,19 @@ func (c *Checker) getTypeAtFlowCall(f *FlowState, flow ast.FlowNode) FlowType {
 
 func (c *Checker) narrowTypeByTypePredicate(f *FlowState, t *Type, predicate *TypePredicate, callExpression ast.Node, assumeTrue bool) *Type {
 	// Don't narrow from 'any' if the predicate type is exactly 'Object' or 'Function'
-	if predicate.t != nil && !(IsTypeAny(t) && (predicate.t == c.globalObjectType || predicate.t == c.globalFunctionType)) {
+	if predicate.t != 0 && !(IsTypeAny(t) && (c.typ(predicate.t) == c.globalObjectType || c.typ(predicate.t) == c.globalFunctionType)) {
 		predicateArgument := c.getTypePredicateArgument(predicate, callExpression)
 		if !predicateArgument.IsNil() {
 			if c.isMatchingReference(f.reference, predicateArgument) {
-				return c.getNarrowedType(t, predicate.t, assumeTrue, false /*checkDerived*/)
+				return c.getNarrowedType(t, c.typ(predicate.t), assumeTrue, false /*checkDerived*/)
 			}
-			if c.strictNullChecks && c.optionalChainContainsReference(predicateArgument, f.reference) && (assumeTrue && !c.hasTypeFacts(predicate.t, TypeFactsEQUndefined) || !assumeTrue && c.everyType(predicate.t, c.IsNullableType)) {
+			if c.strictNullChecks && c.optionalChainContainsReference(predicateArgument, f.reference) && (assumeTrue && !c.hasTypeFacts(c.typ(predicate.t), TypeFactsEQUndefined) || !assumeTrue && c.everyType(c.typ(predicate.t), c.IsNullableType)) {
 				t = c.getAdjustedTypeWithFacts(t, TypeFactsNEUndefinedOrNull)
 			}
 			access := c.getDiscriminantPropertyAccess(f, predicateArgument, t)
 			if !access.IsNil() {
 				return c.narrowTypeByDiscriminant(t, access, func(t *Type) *Type {
-					return c.getNarrowedType(t, predicate.t, assumeTrue, false /*checkDerived*/)
+					return c.getNarrowedType(t, c.typ(predicate.t), assumeTrue, false /*checkDerived*/)
 				})
 			}
 		}
@@ -828,7 +828,7 @@ func (c *Checker) narrowTypeByInstanceof(f *FlowState, t *Type, expr ast.BinaryE
 		predicate = c.getTypePredicateOfSignature(signature)
 	}
 	if predicate != nil && predicate.kind == TypePredicateKindIdentifier && predicate.parameterIndex == 0 {
-		return c.getNarrowedType(t, predicate.t, assumeTrue, true /*checkDerived*/)
+		return c.getNarrowedType(t, c.typ(predicate.t), assumeTrue, true /*checkDerived*/)
 	}
 	if !c.isTypeDerivedFrom(rightType, c.globalFunctionType) {
 		return t
@@ -846,12 +846,12 @@ func (c *Checker) getNarrowedType(t *Type, candidate *Type, assumeTrue bool, che
 	if t.flags&TypeFlagsUnion == 0 {
 		return c.getNarrowedTypeWorker(t, candidate, assumeTrue, checkDerived)
 	}
-	key := NarrowedTypeKey{t, candidate, assumeTrue, checkDerived}
-	if narrowedType, ok := c.narrowedTypes[key]; ok {
+	key := NarrowedTypeKey{t.ref(), candidate.ref(), assumeTrue, checkDerived}
+	if narrowedType, ok := typeLookup(c, c.narrowedTypes, key); ok {
 		return narrowedType
 	}
 	narrowedType := c.getNarrowedTypeWorker(t, candidate, assumeTrue, checkDerived)
-	c.narrowedTypes[key] = narrowedType
+	c.narrowedTypes[key] = narrowedType.ref()
 	return narrowedType
 }
 
@@ -1333,7 +1333,7 @@ func (c *Checker) getTypeAtFlowLoopLabel(f *FlowState, flow ast.FlowNode) FlowTy
 	key := FlowLoopKey{flowNode: flow, refKey: f.refKey}
 	// If we have previously computed the control flow type for the reference at
 	// this flow loop junction, return the cached type.
-	if cached := c.flowLoopCache[key]; cached != nil {
+	if cached := c.typ(c.flowLoopCache[key]); cached != nil {
 		return FlowType{t: cached}
 	}
 	// If this flow loop junction and reference are already being processed, return
@@ -1373,7 +1373,7 @@ func (c *Checker) getTypeAtFlowLoopLabel(f *FlowState, flow ast.FlowNode) FlowTy
 			// If we see a value appear in the cache it is a sign that control flow analysis
 			// was restarted and completed by checkExpressionCached. We can simply pick up
 			// the resulting type and bail out.
-			if cached := c.flowLoopCache[key]; cached != nil {
+			if cached := c.typ(c.flowLoopCache[key]); cached != nil {
 				return FlowType{t: cached}
 			}
 		}
@@ -1397,7 +1397,7 @@ func (c *Checker) getTypeAtFlowLoopLabel(f *FlowState, flow ast.FlowNode) FlowTy
 	if firstAntecedentType.incomplete {
 		return c.newFlowType(result, true /*incomplete*/)
 	}
-	c.flowLoopCache[key] = result
+	c.flowLoopCache[key] = result.ref()
 	return FlowType{t: result}
 }
 
@@ -1508,11 +1508,11 @@ func getCandidateVariableDeclarationInitializer(node ast.Node) ast.Node {
 // and never escape the getFlowTypeOfReference function.
 func (c *Checker) getEvolvingArrayType(elementType *Type) *Type {
 	key := CachedTypeKey{kind: CachedTypeKindEvolvingArrayType, typeId: elementType.Id()}
-	result := c.cachedTypes[key]
+	result := c.typ(c.cachedTypes[key])
 	if result == nil {
 		result = c.newObjectType(ObjectFlagsEvolvingArray, 0)
 		result.AsEvolvingArrayType().setElementType(elementType)
-		c.cachedTypes[key] = result
+		c.cachedTypes[key] = result.ref()
 	}
 	return result
 }
@@ -2238,7 +2238,7 @@ func (c *Checker) getExplicitThisType(node ast.Node) *Type {
 		if ast.IsStatic(container) {
 			return c.getTypeOfSymbol(symbol)
 		} else {
-			return c.getDeclaredTypeOfSymbol(symbol).AsInterfaceType().iface().thisType
+			return c.typ(c.getDeclaredTypeOfSymbol(symbol).AsInterfaceType().iface().thisType)
 		}
 	}
 	return nil
@@ -2382,7 +2382,7 @@ func (c *Checker) getTypeOfDestructuredProperty(t *Type, name ast.Node) *Type {
 		return propType
 	}
 	if indexInfo := c.getApplicableIndexInfoForName(t, text); indexInfo != nil {
-		return c.includeUndefinedInIndexSignature(indexInfo.valueType)
+		return c.includeUndefinedInIndexSignature(c.typ(indexInfo.valueType))
 	}
 	return c.errorType
 }
@@ -2414,10 +2414,10 @@ func (c *Checker) getAssignmentReducedType(declaredType *Type, assignedType *Typ
 		return assignedType
 	}
 	key := AssignmentReducedKey{id1: declaredType.Id(), id2: assignedType.Id()}
-	result := c.assignmentReducedTypes[key]
+	result := c.typ(c.assignmentReducedTypes[key])
 	if result == nil {
 		result = c.getAssignmentReducedTypeWorker(declaredType, assignedType)
-		c.assignmentReducedTypes[key] = result
+		c.assignmentReducedTypes[key] = result.ref()
 	}
 	return result
 }
@@ -2552,7 +2552,7 @@ func (c *Checker) isReachableFlowNodeWorker(f *FlowState, flow ast.FlowNode, noC
 			flow = flow.Antecedent()
 		case flags&ast.FlowFlagsCall != 0:
 			if signature := c.getEffectsSignature(flow.Node()); signature != nil {
-				if predicate := c.getTypePredicateOfSignature(signature); predicate != nil && predicate.kind == TypePredicateKindAssertsIdentifier && predicate.t == nil {
+				if predicate := c.getTypePredicateOfSignature(signature); predicate != nil && predicate.kind == TypePredicateKindAssertsIdentifier && predicate.t == 0 {
 					if arguments := flow.Node().Arguments(); predicate.parameterIndex >= 0 && int(predicate.parameterIndex) < len(arguments) && c.isFalseExpression(arguments[predicate.parameterIndex]) {
 						return false
 					}

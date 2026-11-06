@@ -925,8 +925,8 @@ func (c *Checker) applyToReturnTypes(source *Signature, target *Signature, callb
 	targetTypePredicate := c.getTypePredicateOfSignature(target)
 	if targetTypePredicate != nil {
 		sourceTypePredicate := c.getTypePredicateOfSignature(source)
-		if sourceTypePredicate != nil && c.typePredicateKindsMatch(sourceTypePredicate, targetTypePredicate) && sourceTypePredicate.t != nil && targetTypePredicate.t != nil {
-			callback(sourceTypePredicate.t, targetTypePredicate.t)
+		if sourceTypePredicate != nil && c.typePredicateKindsMatch(sourceTypePredicate, targetTypePredicate) && sourceTypePredicate.t != 0 && targetTypePredicate.t != 0 {
+			callback(c.typ(sourceTypePredicate.t), c.typ(targetTypePredicate.t))
 			return
 		}
 	}
@@ -947,7 +947,7 @@ func (c *Checker) inferFromIndexTypes(n *InferenceState, source *Type, target *T
 		for _, targetInfo := range indexInfos {
 			var propTypes []TypeId
 			for _, prop := range c.getPropertiesOfType(source) {
-				if c.isApplicableIndexType(c.getLiteralTypeFromProperty(prop, TypeFlagsStringOrNumberLiteralOrUnique, false), targetInfo.keyType) {
+				if c.isApplicableIndexType(c.getLiteralTypeFromProperty(prop, TypeFlagsStringOrNumberLiteralOrUnique, false), c.typ(targetInfo.keyType)) {
 					propType := c.getTypeOfSymbol(prop)
 					if c.symbolFlags(prop)&ast.SymbolFlagsOptional != 0 {
 						propType = c.removeMissingOrUndefinedType(propType)
@@ -956,19 +956,19 @@ func (c *Checker) inferFromIndexTypes(n *InferenceState, source *Type, target *T
 				}
 			}
 			for _, info := range c.getIndexInfosOfType(source) {
-				if c.isApplicableIndexType(info.keyType, targetInfo.keyType) {
-					propTypes = append(propTypes, info.valueType.ref())
+				if c.isApplicableIndexType(c.typ(info.keyType), c.typ(targetInfo.keyType)) {
+					propTypes = append(propTypes, c.typ(info.valueType).ref())
 				}
 			}
 			if len(propTypes) != 0 {
-				c.inferWithPriority(n, c.getUnionType(propTypes), targetInfo.valueType, priority)
+				c.inferWithPriority(n, c.getUnionType(propTypes), c.typ(targetInfo.valueType), priority)
 			}
 		}
 	}
 	for _, targetInfo := range indexInfos {
-		sourceInfo := c.getApplicableIndexInfo(source, targetInfo.keyType)
+		sourceInfo := c.getApplicableIndexInfo(source, c.typ(targetInfo.keyType))
 		if sourceInfo != nil {
-			c.inferWithPriority(n, sourceInfo.valueType, targetInfo.valueType, priority)
+			c.inferWithPriority(n, c.typ(sourceInfo.valueType), c.typ(targetInfo.valueType), priority)
 		}
 	}
 }
@@ -1002,7 +1002,7 @@ func (c *Checker) inferToMappedType(n *InferenceState, source *Type, target *Typ
 	if constraintType.flags&TypeFlagsTypeParameter != 0 {
 		// We're inferring from some source type S to a mapped type { [P in K]: X }, where K is a type
 		// parameter. First infer from 'keyof S' to K.
-		c.inferWithPriority(n, c.getIndexTypeEx(source, core.IfElse(!c.patternForType[source].IsNil(), IndexFlagsNoIndexSignatures, IndexFlagsNone)), constraintType, InferencePriorityMappedTypeConstraint)
+		c.inferWithPriority(n, c.getIndexTypeEx(source, core.IfElse(!c.patternForType[source.ref()].IsNil(), IndexFlagsNoIndexSignatures, IndexFlagsNone)), constraintType, InferencePriorityMappedTypeConstraint)
 		// If K is constrained to a type C, also infer to C. Thus, for a mapped type { [P in K]: X },
 		// where K extends keyof T, we make the same inferences as for a homomorphic mapped type
 		// { [P in keyof T]: X }. This enables us to make meaningful inferences when the target is a
@@ -1016,7 +1016,7 @@ func (c *Checker) inferToMappedType(n *InferenceState, source *Type, target *Typ
 		propTypes := mapToTypeIds(c.getPropertiesOfType(source), c.getTypeOfSymbol)
 		indexTypes := mapToTypeIds(c.getIndexInfosOfType(source), func(info *IndexInfo) *Type {
 			if info != c.enumNumberIndexInfo {
-				return info.valueType
+				return c.typ(info.valueType)
 			}
 			return c.neverType
 		})
@@ -1032,11 +1032,11 @@ func (c *Checker) inferToMappedType(n *InferenceState, source *Type, target *Typ
 // variable T[P] (i.e. we treat the type T[P] as the type variable we're inferring for).
 func (c *Checker) inferTypeForHomomorphicMappedType(source *Type, target *Type, constraint *Type) *Type {
 	key := ReverseMappedTypeKey{sourceId: source.Id(), targetId: target.Id(), constraintId: constraint.Id()}
-	if cached := c.reverseHomomorphicMappedCache[key]; cached != nil {
+	if cached := c.typ(c.reverseHomomorphicMappedCache[key]); cached != nil {
 		return cached
 	}
 	t := c.createReverseMappedType(source, target, constraint)
-	c.reverseHomomorphicMappedCache[key] = t
+	c.reverseHomomorphicMappedCache[key] = t.ref()
 	return t
 }
 
@@ -1094,7 +1094,7 @@ func (c *Checker) isPartiallyInferableType(t *Type) bool {
 
 func (c *Checker) inferReverseMappedType(source *Type, target *Type, constraint *Type) *Type {
 	key := ReverseMappedTypeKey{sourceId: source.Id(), targetId: target.Id(), constraintId: constraint.Id()}
-	if cached, ok := c.reverseMappedCache[key]; ok {
+	if cached, ok := typeLookup(c, c.reverseMappedCache, key); ok {
 		return core.OrElse(cached, c.unknownType)
 	}
 	c.reverseMappedSourceStack = append(c.reverseMappedSourceStack, source.ref())
@@ -1113,7 +1113,7 @@ func (c *Checker) inferReverseMappedType(source *Type, target *Type, constraint 
 	c.reverseMappedSourceStack = c.reverseMappedSourceStack[:len(c.reverseMappedSourceStack)-1]
 	c.reverseMappedTargetStack = c.reverseMappedTargetStack[:len(c.reverseMappedTargetStack)-1]
 	c.reverseExpandingFlags = saveExpandingFlags
-	c.reverseMappedCache[key] = t
+	c.reverseMappedCache[key] = t.ref()
 	return t
 }
 
@@ -1133,7 +1133,7 @@ func (c *Checker) resolveReverseMappedTypeMembers(t *Type) {
 	optionalMask := core.IfElse(modifiers&MappedTypeModifiersIncludeOptional != 0, 0, ast.SymbolFlagsOptional)
 	var indexInfos []*IndexInfo
 	if indexInfo != nil {
-		indexInfos = []*IndexInfo{c.newIndexInfo(c.stringType, core.OrElse(c.inferReverseMappedType(indexInfo.valueType, r.mappedType(), r.constraintType()), c.unknownType), readonlyMask && indexInfo.isReadonly, ast.Node{}, nil)}
+		indexInfos = []*IndexInfo{c.newIndexInfo(c.stringType, core.OrElse(c.inferReverseMappedType(c.typ(indexInfo.valueType), r.mappedType(), r.constraintType()), c.unknownType), readonlyMask && indexInfo.isReadonly, ast.Node{}, nil)}
 	}
 	members := c.symbols.NewTable(0)
 	limitedConstraint := c.getLimitedConstraint(t)
@@ -1155,9 +1155,9 @@ func (c *Checker) resolveReverseMappedTypeMembers(t *Type) {
 		checkFlags := ast.CheckFlagsReverseMapped | core.IfElse(readonlyMask && c.isReadonlySymbol(prop), ast.CheckFlagsReadonly, 0)
 		inferredProp := c.newSymbolEx(ast.SymbolFlagsProperty|c.symbolFlags(prop)&optionalMask, c.symbolName(prop), checkFlags)
 		c.setSymbolDeclarations(inferredProp, c.symbolDeclarations(prop))
-		c.valueSymbolLinks.Get(inferredProp).setNameType(c, c.valueSymbolLinks.Get(prop).getNameType())
+		c.valueSymbolLinks.Get(inferredProp).setNameType(c, c.valueSymbolLinks.Get(prop).getNameType(c))
 		links := c.reverseMappedSymbolLinks.Get(inferredProp)
-		links.propertyType = c.getTypeOfSymbol(prop)
+		links.propertyType = c.getTypeOfSymbol(prop).ref()
 		constraintTarget := r.constraintType().AsIndexType().target()
 		if constraintTarget.flags&TypeFlagsIndexedAccess != 0 && constraintTarget.AsIndexedAccessType().objectType().flags&TypeFlagsTypeParameter != 0 && constraintTarget.AsIndexedAccessType().indexType().flags&TypeFlagsTypeParameter != 0 {
 			// A reverse mapping of `{[K in keyof T[K_1]]: T[K_1]}` is the same as that of `{[K in keyof T]: T}`, since all we care about is
@@ -1165,11 +1165,11 @@ func (c *Checker) resolveReverseMappedTypeMembers(t *Type) {
 			// type identities produced, we simplify such indexed access occurrences
 			newTypeParam := constraintTarget.AsIndexedAccessType().objectType()
 			newMappedType := c.replaceIndexedAccess(r.mappedType(), constraintTarget, newTypeParam)
-			links.mappedType = newMappedType
-			links.constraintType = c.getIndexType(newTypeParam)
+			links.mappedType = newMappedType.ref()
+			links.constraintType = c.getIndexType(newTypeParam).ref()
 		} else {
-			links.mappedType = r.mappedType()
-			links.constraintType = r.constraintType()
+			links.mappedType = r.mappedType().ref()
+			links.constraintType = r.constraintType().ref()
 		}
 		members.SetId(c.symbols, c.symbolName(prop), inferredProp)
 	}
@@ -1178,11 +1178,11 @@ func (c *Checker) resolveReverseMappedTypeMembers(t *Type) {
 
 func (c *Checker) getTypeOfReverseMappedSymbol(symbol ast.SymbolId) *Type {
 	links := c.valueSymbolLinks.Get(symbol)
-	if links.resolvedType == nil {
+	if links.resolvedType == 0 {
 		reverseLinks := c.reverseMappedSymbolLinks.Get(symbol)
-		links.resolvedType = core.OrElse(c.inferReverseMappedType(reverseLinks.propertyType, reverseLinks.mappedType, reverseLinks.constraintType), c.unknownType)
+		links.resolvedType = core.OrElse(c.inferReverseMappedType(c.typ(reverseLinks.propertyType), c.typ(reverseLinks.mappedType), c.typ(reverseLinks.constraintType)), c.unknownType).ref()
 	}
-	return links.resolvedType
+	return c.typ(links.resolvedType)
 }
 
 // If the original mapped type had an intersection constraint we extract its components,
@@ -1269,7 +1269,7 @@ func (c *Checker) createEmptyObjectTypeFromStringLiteral(t *Type) *Type {
 		}
 		name := getStringLiteralValue(member)
 		literalProp := c.newSymbol(ast.SymbolFlagsProperty, ast.MakeSymbolName(name))
-		c.valueSymbolLinks.Get(literalProp).resolvedType = c.anyType
+		c.valueSymbolLinks.Get(literalProp).resolvedType = c.anyType.ref()
 		if c.symbolOfType(member) != 0 {
 			c.setSymbolDeclarations(literalProp, c.symbolDeclarations(c.symbolOfType(member)))
 			c.setSymbolValueDeclaration(literalProp, c.symbolValueDeclaration(c.symbolOfType(member)))
@@ -1537,7 +1537,7 @@ func (c *Checker) isTypeParameterAtTopLevel(t *Type, tp *Type, depth int) bool {
 func (c *Checker) isTypeParameterAtTopLevelInReturnType(signature *Signature, typeParameter *Type) bool {
 	typePredicate := c.getTypePredicateOfSignature(signature)
 	if typePredicate != nil {
-		return typePredicate.t != nil && c.isTypeParameterAtTopLevel(typePredicate.t, typeParameter, 0)
+		return typePredicate.t != 0 && c.isTypeParameterAtTopLevel(c.typ(typePredicate.t), typeParameter, 0)
 	}
 	return c.isTypeParameterAtTopLevel(c.getReturnTypeOfSignature(signature), typeParameter, 0)
 }

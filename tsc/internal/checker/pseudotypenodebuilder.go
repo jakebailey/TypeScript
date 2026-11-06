@@ -670,13 +670,13 @@ func (b *NodeBuilderImpl) pseudoReturnTypeMatchesPredicate(rt *pseudochecker.Pse
 		}
 	}
 	// Check the narrowed type, if any
-	if predicate.t != nil {
+	if predicate.t != 0 {
 		if tp.Type().IsNil() {
 			return false
 		}
 		predicateTypeFromNode := b.ch.getTypeFromTypeNode(tp.Type())
-		if predicateTypeFromNode != predicate.t {
-			if b.ch.compareTypesIdentical(predicateTypeFromNode, predicate.t) != TernaryTrue {
+		if predicateTypeFromNode != b.ch.typ(predicate.t) {
+			if b.ch.compareTypesIdentical(predicateTypeFromNode, b.ch.typ(predicate.t)) != TernaryTrue {
 				return false
 			}
 		}
