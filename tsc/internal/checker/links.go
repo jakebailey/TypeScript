@@ -1,6 +1,7 @@
 package checker
 
 import (
+	"math/bits"
 	"slices"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
@@ -34,16 +35,67 @@ func (c *Checker) initNodeLinks(refs ast.RefCache) {
 	c.computedNameLinks.refs = &c.refs
 }
 
-// nodeLinkStore holds links of nodes, in a map per file keyed by node
-// index. Files are numbered by the checker's FileTable, so a key is 4
-// bytes rather than a 16-byte Node.
-type nodeLinkStore[V any] struct {
-	refs  *ast.RefCache
-	files []map[uint32]*V
-	arena core.Arena[V]
+// linkValues holds link records in chunks that double in size, the first holding 16, and names each by its index.
+// Records never move, so a pointer to one stays valid. A map from a key to an index holds no pointers, so neither
+// the map nor, when the record holds none, the chunks are scanned by the garbage collector.
+type linkValues[V any] struct {
+	chunks [][]V
+	n      uint32
 }
 
-func (s *nodeLinkStore[V]) fileLinks(r ast.NodeRef) map[uint32]*V {
+func (s *linkValues[V]) add() uint32 {
+	if s.n == 16<<len(s.chunks)-16 {
+		s.chunks = append(s.chunks, make([]V, 16<<len(s.chunks)))
+	}
+	s.n++
+	return s.n - 1
+}
+
+func (s *linkValues[V]) at(i uint32) *V {
+	k := bits.Len32((i+16)>>4) - 1
+	return &s.chunks[k][i+16-16<<k]
+}
+
+// mapLinkStore holds links that few keys have, in a map from the key to the index of its record.
+type mapLinkStore[K comparable, V any] struct {
+	entries map[K]uint32
+	values  linkValues[V]
+}
+
+func (s *mapLinkStore[K, V]) Get(key K) *V {
+	if i, ok := s.entries[key]; ok {
+		return s.values.at(i)
+	}
+	if s.entries == nil {
+		s.entries = make(map[K]uint32)
+	}
+	i := s.values.add()
+	s.entries[key] = i
+	return s.values.at(i)
+}
+
+func (s *mapLinkStore[K, V]) Has(key K) bool {
+	_, ok := s.entries[key]
+	return ok
+}
+
+func (s *mapLinkStore[K, V]) TryGet(key K) *V {
+	if i, ok := s.entries[key]; ok {
+		return s.values.at(i)
+	}
+	return nil
+}
+
+// nodeLinkStore holds links of nodes, in a map per file from node index to
+// the index of the node's record. Files are numbered by the checker's
+// FileTable, so a key is 4 bytes rather than a 16-byte Node.
+type nodeLinkStore[V any] struct {
+	refs   *ast.RefCache
+	files  []map[uint32]uint32
+	values linkValues[V]
+}
+
+func (s *nodeLinkStore[V]) fileLinks(r ast.NodeRef) map[uint32]uint32 {
 	if int(r.File()) < len(s.files) {
 		return s.files[r.File()]
 	}
@@ -53,19 +105,19 @@ func (s *nodeLinkStore[V]) fileLinks(r ast.NodeRef) map[uint32]*V {
 func (s *nodeLinkStore[V]) Get(node ast.Node) *V {
 	r := s.refs.Ref(node)
 	m := s.fileLinks(r)
-	if value := m[r.Index()]; value != nil {
-		return value
+	if i, ok := m[r.Index()]; ok {
+		return s.values.at(i)
 	}
 	if m == nil {
 		if int(r.File()) >= len(s.files) {
 			s.files = slices.Grow(s.files, int(r.File())+1-len(s.files))[:r.File()+1]
 		}
-		m = make(map[uint32]*V)
+		m = make(map[uint32]uint32)
 		s.files[r.File()] = m
 	}
-	value := s.arena.New()
-	m[r.Index()] = value
-	return value
+	i := s.values.add()
+	m[r.Index()] = i
+	return s.values.at(i)
 }
 
 func (s *nodeLinkStore[V]) Has(node ast.Node) bool {
@@ -76,7 +128,10 @@ func (s *nodeLinkStore[V]) Has(node ast.Node) bool {
 
 func (s *nodeLinkStore[V]) TryGet(node ast.Node) *V {
 	r := s.refs.Ref(node)
-	return s.fileLinks(r)[r.Index()]
+	if i, ok := s.fileLinks(r)[r.Index()]; ok {
+		return s.values.at(i)
+	}
+	return nil
 }
 
 // nodeValueMap holds one small value per node, in a map per file keyed by
@@ -229,7 +284,7 @@ func (c *Checker) symbolId(symbol ast.Symbol) ast.SymbolId {
 }
 
 type symbolLinkStore[V any] struct {
-	links core.LinkStore[ast.SymbolId, V]
+	links mapLinkStore[ast.SymbolId, V]
 	pages core.PagedLinkStore[V]
 }
 
@@ -253,7 +308,7 @@ func (s *symbolLinkStore[V]) TryGet(symbol ast.SymbolId) *V {
 
 // symbolMapLinks holds links that few symbols have, keyed by SymbolId.
 type symbolMapLinks[V any] struct {
-	links core.LinkStore[ast.SymbolId, V]
+	links mapLinkStore[ast.SymbolId, V]
 }
 
 func (s *symbolMapLinks[V]) Get(symbol ast.SymbolId) *V {

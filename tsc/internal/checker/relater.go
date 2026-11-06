@@ -527,11 +527,11 @@ func (c *Checker) checkTypeRelatedToEx(
 		// Check if we should issue an extra diagnostic to produce a quickfix for a slightly incorrect import statement
 		if headMessage != nil && !errorNode.IsNil() && result == TernaryFalse && c.symbolOfType(source) != 0 && c.exportTypeLinks.Has(c.symbolOfType(source)) {
 			links := c.exportTypeLinks.Get(c.symbolOfType(source))
-			if !links.originatingImport.IsNil() && !ast.IsImportCall(links.originatingImport) {
+			if originatingImport := c.nodeOf(links.originatingImport); !originatingImport.IsNil() && !ast.IsImportCall(originatingImport) {
 				helpfulRetry := c.checkTypeRelatedTo(c.getTypeOfSymbol(links.target), target, relation /*errorNode*/, ast.Node{})
 				if helpfulRetry {
 					// Likely an incorrect import. Issue a helpful diagnostic to produce a quickfix to change the import
-					r.relatedInfo = append(r.relatedInfo, createDiagnosticForNode(links.originatingImport, diagnostics.Type_originates_at_this_import_A_namespace_style_import_cannot_be_called_or_constructed_and_will_cause_a_failure_at_runtime_Consider_using_a_default_import_or_import_require_here_instead))
+					r.relatedInfo = append(r.relatedInfo, createDiagnosticForNode(originatingImport, diagnostics.Type_originates_at_this_import_A_namespace_style_import_cannot_be_called_or_constructed_and_will_cause_a_failure_at_runtime_Consider_using_a_default_import_or_import_require_here_instead))
 				}
 			}
 		}

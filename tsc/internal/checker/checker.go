@@ -2292,7 +2292,7 @@ func isPropertyImmediatelyReferencedWithinDeclaration(declaration ast.Node, usag
 func (c *Checker) getTypeOnlyAliasDeclaration(symbol ast.SymbolId) ast.Node {
 	if c.symbolFlags(symbol)&ast.SymbolFlagsAlias != 0 {
 		c.resolveAlias(symbol)
-		return c.aliasSymbolLinks.Get(symbol).typeOnlyDeclaration
+		return c.nodeOf(c.aliasSymbolLinks.Get(symbol).typeOnlyDeclaration)
 	}
 	return ast.Node{}
 }
@@ -2304,7 +2304,7 @@ func (c *Checker) getTypeOnlyAliasDeclarationEx(symbol ast.SymbolId, meaning ast
 		resolved := c.resolveAlias(symbol)
 		links := c.aliasSymbolLinks.Get(symbol)
 		if !links.typeOnlyDeclaration.IsNil() {
-			return links.typeOnlyDeclaration
+			return c.nodeOf(links.typeOnlyDeclaration)
 		}
 		symbol = resolved
 	}
@@ -10351,7 +10351,7 @@ func (c *Checker) invocationErrorRecovery(apparentType *Type, kind SignatureKind
 	if c.symbolOfType(apparentType) == 0 {
 		return
 	}
-	importNode := c.exportTypeLinks.Get(c.symbolOfType(apparentType)).originatingImport
+	importNode := c.nodeOf(c.exportTypeLinks.Get(c.symbolOfType(apparentType)).originatingImport)
 	// Create a diagnostic on the originating import if possible onto which we can attach a quickfix
 	//  An import call expression cannot be rewritten into another form to correct the error - the only solution is to use `.default` at the use-site
 	if !importNode.IsNil() && !ast.IsImportCall(importNode) {
@@ -15521,11 +15521,11 @@ func (c *Checker) markSymbolOfAliasDeclarationIfTypeOnly(aliasDeclaration ast.No
 	sourceSymbol := c.getSymbolOfDeclaration(aliasDeclaration)
 	links := c.aliasSymbolLinks.Get(sourceSymbol)
 	if links.typeOnlyDeclaration.IsNil() && ast.IsTypeOnlyImportOrExportDeclaration(aliasDeclaration) {
-		links.typeOnlyDeclaration = aliasDeclaration
+		links.typeOnlyDeclaration = c.refOf(aliasDeclaration)
 		return true
 	}
 	if links.typeOnlyDeclaration.IsNil() && !exportStarDeclaration.IsNil() {
-		links.typeOnlyDeclaration = exportStarDeclaration
+		links.typeOnlyDeclaration = c.refOf(exportStarDeclaration)
 		return true
 	}
 	return !links.typeOnlyDeclaration.IsNil()
@@ -16274,7 +16274,7 @@ func (c *Checker) cloneTypeAsModuleType(symbol ast.SymbolId, moduleType *Type, r
 	c.setSymbolParent(result, c.symbolParent(symbol))
 	links := c.exportTypeLinks.Get(result)
 	links.target = symbol
-	links.originatingImport = referenceParent
+	links.originatingImport = c.refOf(referenceParent)
 	resolvedModuleType := c.resolveStructuredTypeMembers(moduleType)
 	c.valueSymbolLinks.Get(result).resolvedType = c.newAnonymousType(result, resolvedModuleType.getMembers(c), nil, nil, resolvedModuleType.getIndexInfos(c)).ref()
 	return result

@@ -259,7 +259,7 @@ type AliasSymbolLinks struct {
 	immediateTarget     ast.SymbolId // Immediate target of an alias. May be another alias. Do not access directly, use `checker.getImmediateAliasedSymbol` instead.
 	aliasTarget         ast.SymbolId // Resolved (non-alias) target of an alias
 	referenced          bool         // True if alias symbol has been referenced as a value that can be emitted
-	typeOnlyDeclaration ast.Node     // First resolved alias declaration that makes the symbol only usable in type constructs
+	typeOnlyDeclaration ast.NodeRef  // First resolved alias declaration that makes the symbol only usable in type constructs
 }
 
 // Links for module symbols
@@ -286,7 +286,7 @@ type LateBoundLinks struct {
 
 type ExportTypeLinks struct {
 	target            ast.SymbolId // Target symbol
-	originatingImport ast.Node     // Import declaration which produced the symbol, present if the symbol is marked as uncallable but had call signatures in `resolveESModuleSymbol`
+	originatingImport ast.NodeRef  // Import declaration which produced the symbol, present if the symbol is marked as uncallable but had call signatures in `resolveESModuleSymbol`
 }
 
 // Links for type aliases

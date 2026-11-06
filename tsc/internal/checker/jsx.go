@@ -36,7 +36,7 @@ type JsxElementLinks struct {
 	resolvedJsxElementAttributesType TypeId       // Resolved element attributes type of a JSX opening-like element
 	jsxNamespace                     ast.SymbolId // Resolved JSX namespace symbol for this node
 	jsxImplicitImportContainer       ast.SymbolId // Resolved module symbol the implicit JSX import of this file should refer to
-	firstJSXTagInFile                ast.Node     // The first JSX tag in the file
+	firstJSXTagInFile                ast.NodeRef  // The first JSX tag in the file
 }
 
 var JsxNames = struct {
@@ -1451,22 +1451,22 @@ func (c *Checker) getJsxNamespaceContainerForImplicitImport(location ast.Node) a
 	if links.jsxImplicitImportContainer != 0 {
 		return core.IfElse(links.jsxImplicitImportContainer == c.unknownSymbol, 0, links.jsxImplicitImportContainer)
 	}
-	canonicalErrorTag := links.firstJSXTagInFile
+	canonicalErrorTag := c.nodeOf(links.firstJSXTagInFile)
 	if canonicalErrorTag.IsNil() {
 		var visit ast.Visitor
 		visit = func(node ast.Node) bool {
 			if ast.IsJsxElement(node) || ast.IsJsxSelfClosingElement(node) {
-				links.firstJSXTagInFile = node
+				links.firstJSXTagInFile = c.refOf(node)
 				return true
 			}
 			if ast.IsJsxFragment(node) {
-				links.firstJSXTagInFile = node.AsJsxFragment().OpeningFragment() // to match strada, fragments issue errors on the opening fragment instead of the whole tag
+				links.firstJSXTagInFile = c.refOf(node.AsJsxFragment().OpeningFragment()) // to match strada, fragments issue errors on the opening fragment instead of the whole tag
 				return true
 			}
 			return node.ForEachChild(visit)
 		}
 		file.ForEachChild(visit)
-		canonicalErrorTag = links.firstJSXTagInFile
+		canonicalErrorTag = c.nodeOf(links.firstJSXTagInFile)
 	}
 	moduleReference, specifier := c.getJSXRuntimeImportSpecifier(file)
 	if moduleReference == "" {
