@@ -664,6 +664,15 @@ The collector traces every heap object that may hold pointers; pointer-free obje
 - Resolved types: the per-node cache of resolved types (type nodes, cached expression types) held a `*Type` in each map slot, so its maps were scanned. It holds a `TypeId` and resolves it through the type slab on read.
 - Flow caches: the reachability and post-super caches were maps keyed by flow node views, so every slot held a store pointer and kept the maps (28MB on vscode) in the scan set. They are keyed by a 64-bit key, the store's number in the file table and the flow node's index.
 
+Left undone. The work stopped at 13% rather than 10%; these targets, measured on vscode from a heap dump at the statistics point, are what remains of the scannable heap besides the AST views and file text:
+
+- Node stores: 28.6MB of 1152-byte store objects (about 25,000, most of them stores of lazily parsed JSDoc), every word up to the last pointer scanned. Moving the binder tables, flow tables and side tables behind pointers allocated only for bound or parsed files would shrink the unbound stores. A first step, making the store's symbol store a lazily allocated pointer (the stores were 1408 bytes before it), measured 367MB to 365MB of scan heap and −2MB Memory used on vscode, with check time 19.90–20.18s against 19.68–19.95s before; it was not committed.
+- Structured-type extras: 18.7MB of 64-byte records holding the signature and index info slices of resolved types, plus the interfaces' declared signature and index info slices. Storing them as {position, length} handles into per-checker list stores of signature and index info pointers (the pages hold pointers but only for the entries actually stored) measured 322MB to 276MB of scan heap, Memory used −30MB on vscode, −11MB on sentry and −2MB on mui, and check time 19.82–21.31s (median 19.92s) against 19.87–21.16s (19.91s). It was not committed.
+- Lazy state records of type references: 10.5MB of 48-byte records holding a member layout pointer and a slice of base types; the member layouts (an arena of records holding two slices each) and their cache map hang off them.
+- Interface and tuple data: the type parameter, base type and element info slices of the per-kind records.
+- Index info records hold their declaration as a view and their components as a slice of views.
+- Inference contexts (about 9MB sampled), held by signatures being resolved, and module resolution results in the program (about 23MB sampled).
+
 ### Progress
 
 Memory used (median) and vscode check time (n=5 alternating against the previous row, min–max and median).
@@ -700,6 +709,82 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 24. pointer-free symbol tables | 2,554,841K (−6MB) | 1,474,363K (−5MB) | 962,496K (+5MB) | 19.94–20.24s (19.99) |
 | 25. resolved types as ids | 2,539,334K (−16MB) | 1,468,504K (−6MB) | 960,398K (−2MB) | 19.83–19.93s (19.89) |
 | 26. pointer-free flow caches | 2,534,981K (−4MB) | 1,467,368K (−1MB) | 960,674K (+0MB) | 19.70–20.55s (19.80) |
+
+### Final state of the checker layout
+
+Measured at `51c4581212e` against main (`c46bcd6089e`) and `new-ast` (`1fce2af19c3`). Each project ran five times per binary in rotation. Memory used is the median; check time, user CPU and wall time give min–max (median). Single threaded runs are pinned to one core (`taskset -c 2`); multi-checker runs drop `--singleThreaded` and the pinning, with a load average of 1–9 from other work on the 24-core machine, so their spread is wider.
+
+Single threaded:
+
+| | Memory used | check time | user CPU | wall |
+|---|---|---|---|---|
+| vscode main | 3,791,816K | 16.34–17.02s (16.63) | 24.69–25.74s (25.16) | 25.12–26.29s (25.59) |
+| vscode new-ast | 3,167,825K | 17.19–18.31s (17.80) | 25.01–25.31s (25.27) | 25.41–25.73s (25.68) |
+| vscode this | 2,534,755K | 19.73–20.03s (19.85) | 23.83–24.09s (23.92) | 24.20–24.45s (24.28) |
+| sentry main | 2,076,389K | 14.49–15.09s (14.90) | 19.85–20.29s (20.25) | 20.19–20.66s (20.60) |
+| sentry new-ast | 1,829,706K | 14.30–14.84s (14.48) | 18.62–19.07s (18.68) | 18.95–19.42s (19.01) |
+| sentry this | 1,467,586K | 16.39–17.10s (16.57) | 19.11–19.66s (19.34) | 19.42–19.99s (19.65) |
+| mui main | 1,235,461K | 6.20–6.69s (6.66) | 8.49–9.10s (8.84) | 8.70–9.31s (9.05) |
+| mui new-ast | 1,174,509K | 5.58–6.31s (5.74) | 7.75–8.53s (7.96) | 7.95–8.77s (8.15) |
+| mui this | 960,497K | 7.34–7.40s (7.37) | 8.52–8.60s (8.53) | 8.70–8.78s (8.71) |
+
+Multi-checker (default):
+
+| | Memory used | check time | user CPU | wall |
+|---|---|---|---|---|
+| vscode main | 4,191,609K | 5.40–5.61s (5.45) | 49.14–54.25s (50.02) | 7.23–7.39s (7.28) |
+| vscode new-ast | 3,567,219K | 5.92–6.08s (5.99) | 46.04–48.39s (47.01) | 7.41–7.52s (7.43) |
+| vscode this | 2,823,579K | 7.10–7.14s (7.11) | 38.76–40.28s (39.34) | 8.19–8.40s (8.23) |
+| sentry main | 2,790,738K | 6.26–6.36s (6.28) | 47.96–50.80s (49.64) | 7.44–7.56s (7.50) |
+| sentry new-ast | 2,541,643K | 6.17–6.32s (6.27) | 42.01–45.53s (43.29) | 7.16–7.32s (7.24) |
+| sentry this | 1,945,742K | 6.85–6.92s (6.89) | 35.09–36.36s (35.34) | 7.60–7.74s (7.64) |
+| mui main | 1,762,820K | 3.68–3.76s (3.70) | 23.16–25.10s (23.74) | 4.43–4.50s (4.46) |
+| mui new-ast | 1,688,630K | 3.45–3.49s (3.46) | 20.72–21.22s (21.00) | 4.14–4.18s (4.15) |
+| mui this | 1,347,436K | 4.71–4.82s (4.79) | 17.28–17.65s (17.41) | 5.20–5.29s (5.27) |
+
+Garbage collection on vscode (`GODEBUG=gctrace=1`, summed assist, background and idle mark CPU):
+
+| | single threaded | multi-checker |
+|---|---|---|
+| main | 18 cycles, 4,953ms mark CPU | 17 cycles, 7,237ms |
+| new-ast | 18 cycles, 5,079ms | 19 cycles, 8,126ms |
+| this | 24 cycles, 1,139ms | 23 cycles, 2,051ms |
+
+Mark CPU falls by more than three quarters. There are more cycles because the live heap is smaller, so with the same GOGC each cycle starts sooner; each cycle has far less to trace.
+
+Pointer-bearing (scannable, `/gc/scan/heap`) against live heap at the statistics point, single threaded:
+
+| | vscode | sentry | mui |
+|---|---|---|---|
+| main | 3,465,447K of 3,792,483K (91%) | 1,801,914K of 2,076,846K (87%) | 1,098,185K of 1,236,159K (89%) |
+| new-ast | 1,953,271K of 3,168,359K (62%) | 1,193,489K of 1,830,167K (65%) | 892,179K of 1,174,953K (76%) |
+| this | 321,440K of 2,535,089K (13%) | 218,813K of 1,468,071K (15%) | 185,688K of 960,793K (19%) |
+
+Check time is higher than main and `new-ast` on every project in both modes. Single threaded, where the collector shares the one core, user CPU is the lowest of the three on vscode and between main and `new-ast` on sentry and mui. With multiple checkers, where the collector runs on other cores, user CPU is the lowest on every project, 16–18% below `new-ast` and 21–29% below main, but wall time is not, since the checkers wait on their own slower mutator work. The mutator pays for the indirections: ids resolved through directories, list handles turned into slices, link maps instead of pointer fields, and table views resolved through store numbers. The check time profile above breaks this down.
+
+The heap of vscode at the statistics point (inuse, sampled, 2,506MB):
+
+| | |
+|---|---|
+| node headers | 479MB |
+| data words and list nodes | 156MB |
+| node lists | 58MB |
+| file text | 164MB |
+| type slabs | 170MB |
+| binder symbol records | 84MB |
+| program symbol directory | 63MB |
+| symbol table pools | 127MB |
+| transient symbol records | 91MB |
+| value links | 94MB |
+| symbol of node | 75MB |
+| binder side tables (packed sparse maps, extras) | 80MB |
+| flow nodes | 40MB |
+| node link maps | 49MB |
+| list stores | 48MB |
+| relation tables | 40MB |
+| other checker record pages | 40MB |
+| node store objects | 34MB |
+| signatures | 27MB |
 
 ### Deviations forced by the language
 
