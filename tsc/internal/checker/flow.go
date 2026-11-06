@@ -2538,11 +2538,12 @@ func (c *Checker) isReachableFlowNodeWorker(f *FlowState, flow ast.FlowNode, noC
 		flags := flow.Flags()
 		if flags&ast.FlowFlagsShared != 0 {
 			if !noCacheCheck && len(f.reduceLabels) == 0 {
-				if reachable, ok := c.flowNodeReachable[flow]; ok {
+				key := c.refs.FlowKey(flow)
+				if reachable, ok := c.flowNodeReachable[key]; ok {
 					return reachable
 				}
 				reachable := c.isReachableFlowNodeWorker(f, flow, true /*noCacheCheck*/)
-				c.flowNodeReachable[flow] = reachable
+				c.flowNodeReachable[key] = reachable
 				return reachable
 			}
 			noCacheCheck = false
@@ -2624,11 +2625,12 @@ func (c *Checker) isPostSuperFlowNodeWorker(f *FlowState, flow ast.FlowNode, noC
 		flags := flow.Flags()
 		if flags&ast.FlowFlagsShared != 0 {
 			if !noCacheCheck {
-				if postSuper, ok := c.flowNodePostSuper[flow]; ok {
+				key := c.refs.FlowKey(flow)
+				if postSuper, ok := c.flowNodePostSuper[key]; ok {
 					return postSuper
 				}
 				postSuper := c.isPostSuperFlowNodeWorker(f, flow, true /*noCacheCheck*/)
-				c.flowNodePostSuper[flow] = postSuper
+				c.flowNodePostSuper[key] = postSuper
 			}
 			noCacheCheck = false
 		}

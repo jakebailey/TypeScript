@@ -155,6 +155,19 @@ func (c *RefCache) Ref(n Node) NodeRef {
 	return c.refSlow(n)
 }
 
+// FlowKey returns a key naming f, its store's number in the file table
+// and its index, which holds no pointer.
+func (c *RefCache) FlowKey(f FlowNode) uint64 {
+	if f.s == nil {
+		return 0
+	}
+	file := c.file
+	if f.s != c.last {
+		file = c.table.StoreNumber(f.s)
+	}
+	return uint64(file)<<32 | uint64(f.i)
+}
+
 func (c *RefCache) refSlow(n Node) NodeRef {
 	r := c.table.Ref(n)
 	if n.s != nil {

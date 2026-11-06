@@ -906,8 +906,8 @@ type Checker struct {
 	flowTypeCache                               map[ast.NodeRef]TypeId
 	lastFlowNode                                ast.FlowNode
 	lastFlowNodeReachable                       bool
-	flowNodeReachable                           map[ast.FlowNode]bool
-	flowNodePostSuper                           map[ast.FlowNode]bool
+	flowNodeReachable                           map[uint64]bool // Keyed by RefCache.FlowKey
+	flowNodePostSuper                           map[uint64]bool // Keyed by RefCache.FlowKey
 	renamedBindingElementsInTypes               []ast.Node
 	contextualInfos                             []ContextualInfo
 	inferenceContextInfos                       []InferenceContextInfo
@@ -1169,8 +1169,8 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.zeroBigIntType = c.getBigIntLiteralType(jsnum.PseudoBigInt{})
 	c.typeofType = c.getUnionType(mapToTypeIds(slices.Sorted(maps.Keys(typeofNEFacts)), c.getStringLiteralType))
 	c.flowLoopCache = make(map[FlowLoopKey]TypeId)
-	c.flowNodeReachable = make(map[ast.FlowNode]bool)
-	c.flowNodePostSuper = make(map[ast.FlowNode]bool)
+	c.flowNodeReachable = make(map[uint64]bool)
+	c.flowNodePostSuper = make(map[uint64]bool)
 	c.subtypeRelation = &Relation{}
 	c.strictSubtypeRelation = &Relation{}
 	c.assignableRelation = &Relation{}
