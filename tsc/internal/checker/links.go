@@ -19,9 +19,13 @@ const maxPageLinkCount = 0x100_0000 // 16M
 func (c *Checker) initNodeLinks(refs ast.RefCache) {
 	c.refs = refs
 	c.nodeLinks.refs = &c.refs
-	c.signatureLinks.refs = &c.refs
+	c.resolvedSignatures.refs = &c.refs
+	c.effectsSignatures.refs = &c.refs
+	c.decoratorSignatures.refs = &c.refs
 	c.symbolNodeLinks.refs = &c.refs
-	c.typeNodeLinks.refs = &c.refs
+	c.resolvedTypes.refs = &c.refs
+	c.outerTypeParameters.refs = &c.refs
+	c.sourceFileLinks.refs = &c.refs
 	c.enumMemberLinks.refs = &c.refs
 	c.assertionLinks.refs = &c.refs
 	c.arrayLiteralLinks.refs = &c.refs
@@ -73,6 +77,83 @@ func (s *nodeLinkStore[V]) Has(node ast.Node) bool {
 func (s *nodeLinkStore[V]) TryGet(node ast.Node) *V {
 	r := s.refs.Ref(node)
 	return s.fileLinks(r)[r.Index()]
+}
+
+// nodeValueMap holds one small value per node, in a map per file keyed by
+// node index. The value lives in the map itself rather than in a record the
+// map points to, so a link of one field costs one map slot, and a map whose
+// values hold no pointers is not scanned by the garbage collector.
+type nodeValueMap[V any] struct {
+	refs  *ast.RefCache
+	files []map[uint32]V
+}
+
+func (s *nodeValueMap[V]) get(node ast.Node) V {
+	r := s.refs.Ref(node)
+	if int(r.File()) < len(s.files) {
+		return s.files[r.File()][r.Index()]
+	}
+	var zero V
+	return zero
+}
+
+func (s *nodeValueMap[V]) set(node ast.Node, value V) {
+	r := s.refs.Ref(node)
+	if int(r.File()) >= len(s.files) {
+		s.files = slices.Grow(s.files, int(r.File())+1-len(s.files))[:r.File()+1]
+	}
+	m := s.files[r.File()]
+	if m == nil {
+		m = make(map[uint32]V)
+		s.files[r.File()] = m
+	}
+	m[r.Index()] = value
+}
+
+func (s *nodeValueMap[V]) delete(node ast.Node) {
+	r := s.refs.Ref(node)
+	if int(r.File()) < len(s.files) {
+		delete(s.files[r.File()], r.Index())
+	}
+}
+
+// sourceFileLinkStore holds the links of source files, indexed by the
+// checker's number for the file.
+type sourceFileLinkStore struct {
+	refs  *ast.RefCache
+	files []*SourceFileLinks
+	arena core.Arena[SourceFileLinks]
+}
+
+func (s *sourceFileLinkStore) Get(file *ast.SourceFile) *SourceFileLinks {
+	id := s.refs.Ref(file.AsNode()).File()
+	if int(id) >= len(s.files) {
+		s.files = slices.Grow(s.files, int(id)+1-len(s.files))[:id+1]
+	}
+	links := s.files[id]
+	if links == nil {
+		links = s.arena.New()
+		s.files[id] = links
+	}
+	return links
+}
+
+// symbolValueMap holds one small value per symbol, keyed by SymbolId, for
+// links that few symbols have.
+type symbolValueMap[V any] struct {
+	ids     *symbolIds
+	entries map[ast.SymbolId]V
+}
+
+func (s *symbolValueMap[V]) get(symbol ast.Symbol) V {
+	return s.entries[s.ids.id(symbol)]
+}
+
+func (s *symbolValueMap[V]) set(symbol ast.Symbol, value V) {
+	if s.entries == nil {
+		s.entries = make(map[ast.SymbolId]V)
+	}
+	s.entries[s.ids.id(symbol)] = value
 }
 
 // symbolNodeLinkStore holds the symbol a node resolves to, if any, in a

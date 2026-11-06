@@ -30,23 +30,23 @@ func TestCheckerNodeLinkStores(t *testing.T) {
 			ast.GetNodeId(node)
 		}
 		nodes[i] = node
-		assert.Assert(t, !first.typeNodeLinks.Has(node))
-		assert.Assert(t, !first.signatureLinks.Has(node))
-		first.typeNodeLinks.Get(node).resolvedType = &Type{id: TypeId(i + 1)}
-		first.signatureLinks.Get(node).resolvedSignature = SignatureId(i + 1)
-		second.typeNodeLinks.Get(node).resolvedType = &Type{id: TypeId(i + 2)}
-		second.signatureLinks.Get(node).resolvedSignature = SignatureId(i + 2)
+		assert.Assert(t, first.resolvedTypes.get(node) == nil)
+		assert.Equal(t, first.resolvedSignatures.get(node), SignatureId(0))
+		first.resolvedTypes.set(node, &Type{id: TypeId(i + 1)})
+		first.resolvedSignatures.set(node, SignatureId(i+1))
+		second.resolvedTypes.set(node, &Type{id: TypeId(i + 2)})
+		second.resolvedSignatures.set(node, SignatureId(i+2))
 	}
 	runtime.GC()
 	for i, node := range nodes {
-		assert.Equal(t, first.typeNodeLinks.Get(node).resolvedType.Id(), TypeId(i+1))
-		assert.Equal(t, first.signatureLinks.Get(node).resolvedSignature, SignatureId(i+1))
-		assert.Equal(t, second.typeNodeLinks.Get(node).resolvedType.Id(), TypeId(i+2))
-		assert.Equal(t, second.signatureLinks.Get(node).resolvedSignature, SignatureId(i+2))
+		assert.Equal(t, first.resolvedTypes.get(node).Id(), TypeId(i+1))
+		assert.Equal(t, first.resolvedSignatures.get(node), SignatureId(i+1))
+		assert.Equal(t, second.resolvedTypes.get(node).Id(), TypeId(i+2))
+		assert.Equal(t, second.resolvedSignatures.get(node), SignatureId(i+2))
 	}
 	clone := nodes[0].Clone(f)
-	assert.Assert(t, !first.typeNodeLinks.Has(clone))
-	assert.Assert(t, !first.signatureLinks.Has(clone))
+	assert.Assert(t, first.resolvedTypes.get(clone) == nil)
+	assert.Equal(t, first.resolvedSignatures.get(clone), SignatureId(0))
 }
 
 func TestTypeCasts(t *testing.T) {
@@ -644,38 +644,6 @@ func TestStructuredTypeExtra(t *testing.T) {
 	assert.Equal(t, extra.objectTypeWithoutAbstractConstructSignatures, types[2])
 	c.setStructuredTypeSignatures(data, nil, nil, []*IndexInfo{})
 	assert.Assert(t, data.getIndexInfos() != nil)
-	runtime.KeepAlive(c)
-}
-
-func TestCompactTypeNodeLinksLayout(t *testing.T) {
-	t.Parallel()
-	assert.Equal(t, unsafe.Sizeof(TypeNodeLinks{}), 2*unsafe.Sizeof(uintptr(0)))
-	c, types := newCompositeTestChecker()
-	var links TypeNodeLinks
-	links.resolvedType = types[0]
-	assert.Assert(t, links.getOuterTypeParameters() == nil)
-	links.setOuterTypeParameters(c, nil)
-	assert.Assert(t, links.outerTypeParameters == nil)
-	links.setOuterTypeParameters(c, []*Type{})
-	assert.Assert(t, links.getOuterTypeParameters() != nil)
-	assert.Equal(t, len(links.getOuterTypeParameters()), 0)
-	entry := links.outerTypeParameters
-	list := slices.Clone(types)
-	links.setOuterTypeParameters(c, list)
-	assert.Equal(t, links.outerTypeParameters, entry)
-	assert.Equal(t, links.getOuterTypeParameters()[0], types[0])
-	list[0] = types[1]
-	assert.Equal(t, links.getOuterTypeParameters()[0], types[1])
-	for range 1024 {
-		var other TypeNodeLinks
-		other.setOuterTypeParameters(c, types)
-	}
-	runtime.GC()
-	assert.Equal(t, links.getOuterTypeParameters()[0], types[1])
-	assert.Equal(t, links.resolvedType, types[0])
-	links.setOuterTypeParameters(c, nil)
-	assert.Assert(t, links.getOuterTypeParameters() == nil)
-	assert.Equal(t, links.resolvedType, types[0])
 	runtime.KeepAlive(c)
 }
 

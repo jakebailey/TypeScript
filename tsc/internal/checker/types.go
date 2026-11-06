@@ -172,12 +172,6 @@ type (
 	SignatureId uint32
 )
 
-// Links for referenced symbols
-
-type SymbolReferenceLinks struct {
-	referenceKinds ast.SymbolFlags // Flags for the meanings of the symbol that were referenced
-}
-
 // Links for value symbols
 
 type ValueSymbolLinks struct {
@@ -433,29 +427,6 @@ type NodeLinks struct {
 	hasReportedStatementInAmbientContext bool           // Cache boolean if we report statements in ambient context
 }
 
-type TypeNodeLinks struct {
-	resolvedType        *Type    // Resolved type associated with node
-	outerTypeParameters *[]*Type // Outer type parameters of anonymous object type
-}
-
-func (links *TypeNodeLinks) getOuterTypeParameters() []*Type {
-	if links.outerTypeParameters == nil {
-		return nil
-	}
-	return *links.outerTypeParameters
-}
-
-func (links *TypeNodeLinks) setOuterTypeParameters(c *Checker, types []*Type) {
-	if types == nil {
-		links.outerTypeParameters = nil
-		return
-	}
-	if links.outerTypeParameters == nil {
-		links.outerTypeParameters = c.outerTypeParameterListArena.New()
-	}
-	*links.outerTypeParameters = types
-}
-
 type ComputedNameNodeLinks struct {
 	hasName core.Tristate  // If the node has a computable name
 	name    ast.SymbolName // Resolved name associated with the type of the node
@@ -487,14 +458,6 @@ type SourceFileLinks struct {
 	localJsxFactory              ast.EntityName
 	localJsxFragmentFactory      ast.EntityName
 	jsxFragmentType              *Type
-}
-
-// Signature specific links
-
-type SignatureLinks struct {
-	resolvedSignature  SignatureId // Cached signature of signature node or call expression
-	effectsSignature   SignatureId // Signature with possible control flow effects
-	decoratorSignature SignatureId // Signature for decorator as if invoked by the runtime
 }
 
 type TypeFlags uint32

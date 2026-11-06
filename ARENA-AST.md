@@ -291,6 +291,14 @@ An id means a symbol through the table's store. In a binder store's table it is 
 
 The old table held a slice of 16-byte views plus a map index past 16 entries. Keeping the index and foreign views behind the rare pointer halves the header from 80 bytes, which alone is most of the saving on vscode. Lookups read each candidate's name through its symbol record; now the name is in the entry. This saves 44MB on vscode, 28MB on sentry and 11MB on mui, and about 0.6s of vscode check time.
 
+### Link stores
+
+Links for symbols are kept in pages indexed by `SymbolId` (256 links to a page, allocated on first write) for the links nearly every value symbol has. A page now holds its links inline behind a presence bitmap instead of 256 pointers to arena records, which saves the pointer array and lets a page of pointer-free links go unscanned. Binder ids fill the low pages and transient ids, numbered after them, fill the pages above, so the pages over the transient range are in effect a chunked slice indexed by transient index. Rarer symbol links (deferred, reverse-mapped, alias, module, late-bound, export type, spread, type alias, declared type, variances, ...) are maps keyed by `SymbolId`. Which meanings of a symbol were referenced is a `map[SymbolId]SymbolFlags`, and reading it no longer creates an entry.
+
+Node links are per-file maps keyed by node index, the same key as a `NodeRef`. Links of one small field are now their own value maps rather than records: a node's resolved type, an anonymous type's outer type parameters, and the resolved, effects and decorator signatures, which used to share two records. A node that has a resolved type but no signature, the common case, no longer carries an empty signature slot. Symbol-of-node is one map per file keyed by node index. Source file links are a slice indexed by the checker's file number.
+
+This saves 99MB on vscode, 30MB on sentry and 8MB on mui; vscode check time drops by about 0.6s, mostly from fewer pages and records for the collector to mark.
+
 ### Progress
 
 Memory used from `--extendedDiagnostics`, single-threaded check. Base is `1fce2af19c3`; main is 3,792,305K on vscode.
@@ -565,6 +573,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 5. 64-byte types in slabs | 2,989,022K (−71MB) | 1,808,456K (−9MB) | 1,218,870K (−3MB) | 20.51–21.68s (21.27) |
 | 6. signature, index info and mapper ids | 2,935,087K (−54MB) | 1,781,170K (−27MB) | 1,198,541K (−20MB) | 20.23–21.12s (20.85) |
 | 7. lists from per-checker arenas | 2,937,281K (+2MB) | 1,781,930K (+1MB) | 1,195,336K (−3MB) | 20.16–21.37s (21.02) |
+| 8. link stores | 2,837,832K (−99MB) | 1,752,047K (−30MB) | 1,187,507K (−8MB) | 20.33–20.69s (20.48) |
 
 ### Deviations forced by the language
 
@@ -578,8 +587,12 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 - Each kind is a distinct Go type that embeds `Type` and adds no fields, so `AsUnionType()` and the like stay typed casts of the same record.
 - The working handle for a signature, index info or mapper stays a pointer to its record (pages never move), and ids are what records store, for the same reason as views: an id alone can't reach its checker's pages without a registry.
 - Mapper ids index a table of pointers rather than the mapper records themselves, because the mapper kinds are different Go types of different sizes and Go has no tagged union to hold them in one slice.
+- Multi-field links stay records in a per-checker arena with the map holding a pointer, because Go map values aren't addressable: a link updated field by field in place can't live in the map itself. Only links of one small field are stored inline in their maps.
 
 ### Other deviations
+
+- Node links are keyed by node index in one map per file rather than by `NodeRef` in one map. The key carries the same information, and the per-file maps keep each map smaller and its keys 4 bytes.
+- Symbol links for transient symbols share the binder symbols' pages (transient ids sit above binder ids in the same id space) rather than living in separate maps, since nearly every transient symbol has value links and the pages are as dense as a chunked slice.
 
 - A symbol's name stays an 8-byte `SymbolName` rather than an interned 4-byte atom. Most names are already packed into the eight bytes without interning, and derived names (`__@iterator@12`, late-bound names) would grow an intern table without bound across a long-lived language service.
 - File bases are aligned to 64 ids so an id finds its file with one directory load instead of a binary search over offsets.

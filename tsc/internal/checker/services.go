@@ -365,12 +365,11 @@ func GetResolvedSignatureForSignatureHelp(node ast.Node, argumentCount int, c *C
 func (c *Checker) runWithoutResolvedSignatureCaching[T any](node ast.Node, fn func() T) T {
 	ancestorNode := ast.FindAncestor(node, ast.IsCallLikeOrFunctionLikeExpression)
 	if !ancestorNode.IsNil() {
-		cachedResolvedSignatures := make(map[*SignatureLinks]*Signature)
+		cachedResolvedSignatures := make(map[ast.Node]SignatureId)
 		cachedTypes := make(map[*ValueSymbolLinks]*Type)
 		for !ancestorNode.IsNil() {
-			signatureLinks := c.signatureLinks.Get(ancestorNode)
-			cachedResolvedSignatures[signatureLinks] = c.signatureOf(signatureLinks.resolvedSignature)
-			signatureLinks.resolvedSignature = 0
+			cachedResolvedSignatures[ancestorNode] = c.resolvedSignatures.get(ancestorNode)
+			c.resolvedSignatures.delete(ancestorNode)
 			if ast.IsFunctionExpressionOrArrowFunction(ancestorNode) {
 				symbolLinks := c.valueSymbolLinks.Get(c.getSymbolOfDeclaration(ancestorNode))
 				resolvedType := symbolLinks.resolvedType
@@ -380,8 +379,12 @@ func (c *Checker) runWithoutResolvedSignatureCaching[T any](node ast.Node, fn fu
 			ancestorNode = ast.FindAncestor(ancestorNode.Parent(), ast.IsCallLikeOrFunctionLikeExpression)
 		}
 		result := fn()
-		for signatureLinks, resolvedSignature := range cachedResolvedSignatures {
-			signatureLinks.resolvedSignature = signatureIdOf(resolvedSignature)
+		for node, resolvedSignature := range cachedResolvedSignatures {
+			if resolvedSignature != 0 {
+				c.resolvedSignatures.set(node, resolvedSignature)
+			} else {
+				c.resolvedSignatures.delete(node)
+			}
 		}
 		for symbolLinks, resolvedType := range cachedTypes {
 			symbolLinks.resolvedType = resolvedType

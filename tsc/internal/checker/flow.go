@@ -2057,8 +2057,7 @@ func (c *Checker) getTypeOfSwitchClause(clause ast.Node) *Type {
 }
 
 func (c *Checker) getEffectsSignature(node ast.Node) *Signature {
-	links := c.signatureLinks.Get(node)
-	signature := links.effectsSignature
+	signature := c.effectsSignatures.get(node)
 	if signature == 0 {
 		// A call expression parented by an expression statement is a potential assertion. Other call
 		// expressions are potential type predicate function calls. In order to avoid triggering
@@ -2091,7 +2090,7 @@ func (c *Checker) getEffectsSignature(node ast.Node) *Signature {
 		if !(signature != 0 && c.hasTypePredicateOrNeverReturnType(c.signatureOf(signature))) {
 			signature = signatureIdOf(c.unknownSignature)
 		}
-		links.effectsSignature = signature
+		c.effectsSignatures.set(node, signature)
 	}
 	if signature == c.unknownSignature.id {
 		return nil
@@ -2273,11 +2272,8 @@ func (c *Checker) getTypeOfInitializer(node ast.Node) *Type {
 	// Return the cached type if one is available. If the type of the variable was inferred
 	// from its initializer, we'll already have cached the type. Otherwise we compute it now
 	// without caching such that transient types are reflected.
-	if c.typeNodeLinks.Has(node) {
-		t := c.typeNodeLinks.Get(node).resolvedType
-		if t != nil {
-			return t
-		}
+	if t := c.resolvedTypes.get(node); t != nil {
+		return t
 	}
 	return c.getTypeOfExpression(node)
 }
