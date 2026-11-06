@@ -33,16 +33,16 @@ func TestCheckerNodeLinkStores(t *testing.T) {
 		assert.Assert(t, !first.typeNodeLinks.Has(node))
 		assert.Assert(t, !first.signatureLinks.Has(node))
 		first.typeNodeLinks.Get(node).resolvedType = &Type{id: TypeId(i + 1)}
-		first.signatureLinks.Get(node).resolvedSignature = &Signature{id: SignatureId(i + 1)}
+		first.signatureLinks.Get(node).resolvedSignature = SignatureId(i + 1)
 		second.typeNodeLinks.Get(node).resolvedType = &Type{id: TypeId(i + 2)}
-		second.signatureLinks.Get(node).resolvedSignature = &Signature{id: SignatureId(i + 2)}
+		second.signatureLinks.Get(node).resolvedSignature = SignatureId(i + 2)
 	}
 	runtime.GC()
 	for i, node := range nodes {
 		assert.Equal(t, first.typeNodeLinks.Get(node).resolvedType.Id(), TypeId(i+1))
-		assert.Equal(t, first.signatureLinks.Get(node).resolvedSignature.id, SignatureId(i+1))
+		assert.Equal(t, first.signatureLinks.Get(node).resolvedSignature, SignatureId(i+1))
 		assert.Equal(t, second.typeNodeLinks.Get(node).resolvedType.Id(), TypeId(i+2))
-		assert.Equal(t, second.signatureLinks.Get(node).resolvedSignature.id, SignatureId(i+2))
+		assert.Equal(t, second.signatureLinks.Get(node).resolvedSignature, SignatureId(i+2))
 	}
 	clone := nodes[0].Clone(f)
 	assert.Assert(t, !first.typeNodeLinks.Has(clone))
@@ -491,7 +491,7 @@ func TestInferenceContextMappers(t *testing.T) { //nolint:paralleltest
 
 func TestCompactValueSymbolLinksLayout(t *testing.T) {
 	t.Parallel()
-	assert.Equal(t, unsafe.Sizeof(ValueSymbolLinks{}), 4*unsafe.Sizeof(uintptr(0)))
+	assert.Equal(t, unsafe.Sizeof(ValueSymbolLinks{}), 3*unsafe.Sizeof(uintptr(0)))
 	assert.Equal(t, unsafe.Sizeof(valueSymbolExtra{}), 3*unsafe.Sizeof(uintptr(0)))
 	c, types := newCompositeTestChecker()
 	var links ValueSymbolLinks
@@ -681,7 +681,7 @@ func TestCompactTypeNodeLinksLayout(t *testing.T) {
 
 func TestCompactSignatureLayout(t *testing.T) {
 	t.Parallel()
-	assert.Equal(t, unsafe.Sizeof(Signature{}), 16+7*unsafe.Sizeof(uintptr(0))+unsafe.Sizeof(ast.NodeRef{}))
+	assert.Equal(t, unsafe.Sizeof(Signature{}), 24+5*unsafe.Sizeof(uintptr(0))+unsafe.Sizeof(ast.NodeRef{}))
 	assert.Equal(t, unsafe.Sizeof(signatureExtra{}), 8*unsafe.Sizeof(uintptr(0)))
 }
 

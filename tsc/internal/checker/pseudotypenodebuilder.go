@@ -178,7 +178,7 @@ func (b *NodeBuilderImpl) pseudoTypeToNode(t *pseudochecker.PseudoType) ast.Node
 		d := t.AsPseudoTypeSingleCallSignature()
 		signature := b.ch.getSignatureFromDeclaration(d.Signature)
 		expandedParams := b.ch.getExpandedParameters(signature, true /*skipUnionExpanding*/)[0]
-		cleanup := b.enterNewScope(d.Signature, expandedParams, signature.TypeParameters(), signature.parameters, signature.mapper)
+		cleanup := b.enterNewScope(d.Signature, expandedParams, signature.TypeParameters(), signature.parameters, b.ch.mapperOf(signature.mapper))
 		defer cleanup()
 		var typeParams ast.NodeList
 		if len(d.TypeParameters) > 0 {
@@ -233,7 +233,7 @@ func (b *NodeBuilderImpl) pseudoTypeToNode(t *pseudochecker.PseudoType) ast.Node
 			if e.Kind != pseudochecker.PseudoObjectElementKindPropertyAssignment {
 				signature := b.ch.getSignatureFromDeclaration(e.Signature())
 				expandedParams := b.ch.getExpandedParameters(signature, true /*skipUnionExpanding*/)[0]
-				cleanup = b.enterNewScope(e.Signature(), expandedParams, signature.TypeParameters(), signature.parameters, signature.mapper)
+				cleanup = b.enterNewScope(e.Signature(), expandedParams, signature.TypeParameters(), signature.parameters, b.ch.mapperOf(signature.mapper))
 			}
 			var newProp ast.Node
 			switch e.Kind {

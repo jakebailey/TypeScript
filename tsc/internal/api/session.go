@@ -142,7 +142,7 @@ type projectRegistryData struct {
 	typeRegistry   map[TypeID]registeredType
 	typeRegistryMu sync.RWMutex
 
-	signatureRegistry   map[SignatureID]*checker.Signature
+	signatureRegistry   map[SignatureID]registeredSignature
 	signatureRegistryMu sync.RWMutex
 }
 
@@ -193,7 +193,7 @@ func (sd *snapshotData) getOrCreateProjectRegistry(projectID project.Handle) *pr
 	if sd.projectRegistries[projectID] == nil {
 		sd.projectRegistries[projectID] = &projectRegistryData{
 			typeRegistry:      make(map[TypeID]registeredType),
-			signatureRegistry: make(map[SignatureID]*checker.Signature),
+			signatureRegistry: make(map[SignatureID]registeredSignature),
 		}
 	}
 	return sd.projectRegistries[projectID]
@@ -476,12 +476,24 @@ func (sd *snapshotData) resolveTypeHandleWithChecker(projectID project.Handle, h
 }
 
 // resolveSignatureHandle resolves a signature handle within the project's registry.
+// registeredSignature pairs a signature with the checker that created it,
+// which resolves the signature's target and mapper ids.
+type registeredSignature struct {
+	sig     *checker.Signature
+	checker *checker.Checker
+}
+
 func (sd *snapshotData) resolveSignatureHandle(projectID project.Handle, handle SignatureID) (*checker.Signature, error) {
+	entry, err := sd.resolveRegisteredSignature(projectID, handle)
+	return entry.sig, err
+}
+
+func (sd *snapshotData) resolveRegisteredSignature(projectID project.Handle, handle SignatureID) (registeredSignature, error) {
 	if handle == 0 {
-		return nil, fmt.Errorf("%w: empty signature handle", ErrClientError)
+		return registeredSignature{}, fmt.Errorf("%w: empty signature handle", ErrClientError)
 	}
 	if projectID == 0 {
-		return nil, fmt.Errorf("%w: empty project ID for signature handle %d", ErrClientError, handle)
+		return registeredSignature{}, fmt.Errorf("%w: empty project ID for signature handle %d", ErrClientError, handle)
 	}
 
 	sd.projectRegistriesMu.RLock()
@@ -489,27 +501,27 @@ func (sd *snapshotData) resolveSignatureHandle(projectID project.Handle, handle 
 	sd.projectRegistriesMu.RUnlock()
 
 	if reg == nil {
-		return nil, fmt.Errorf("%w: signature handle %d not found (no registry for project %d)", ErrClientError, handle, projectID)
+		return registeredSignature{}, fmt.Errorf("%w: signature handle %d not found (no registry for project %d)", ErrClientError, handle, projectID)
 	}
 
 	reg.signatureRegistryMu.RLock()
-	sig, ok := reg.signatureRegistry[handle]
+	entry, ok := reg.signatureRegistry[handle]
 	reg.signatureRegistryMu.RUnlock()
 
 	if !ok {
-		return nil, fmt.Errorf("%w: signature handle %d not found in project registry", ErrClientError, handle)
+		return registeredSignature{}, fmt.Errorf("%w: signature handle %d not found in project registry", ErrClientError, handle)
 	}
 
-	return sig, nil
+	return entry, nil
 }
 
 // newSignatureResponse registers a signature in the project's registry and returns the response.
-func (sd *snapshotData) newSignatureResponse(projectID project.Handle, sig *checker.Signature) *SignatureResponse {
+func (sd *snapshotData) newSignatureResponse(projectID project.Handle, c *checker.Checker, sig *checker.Signature) *SignatureResponse {
 	if sig == nil {
 		return nil
 	}
 	resp := &SignatureResponse{
-		Id:    sd.registerSignature(projectID, sig),
+		Id:    sd.registerSignature(projectID, c, sig),
 		Flags: uint32(sig.Flags()),
 	}
 
@@ -534,14 +546,14 @@ func (sd *snapshotData) newSignatureResponse(projectID project.Handle, sig *chec
 		resp.ThisParameter = newSymbolReference(sig.ThisParameter())
 	}
 
-	if sig.Target() != nil {
-		resp.Target = SignatureHandle(sig.Target())
+	if target := sig.Target(c); target != nil {
+		resp.Target = SignatureHandle(target)
 	}
 
 	return resp
 }
 
-func (sd *snapshotData) registerSignature(projectID project.Handle, sig *checker.Signature) SignatureID {
+func (sd *snapshotData) registerSignature(projectID project.Handle, c *checker.Checker, sig *checker.Signature) SignatureID {
 	if sig == nil {
 		return 0
 	}
@@ -549,7 +561,7 @@ func (sd *snapshotData) registerSignature(projectID project.Handle, sig *checker
 	reg := sd.getOrCreateProjectRegistry(projectID)
 	reg.signatureRegistryMu.Lock()
 	defer reg.signatureRegistryMu.Unlock()
-	existing := reg.signatureRegistry[id]
+	existing := reg.signatureRegistry[id].sig
 
 	if existing != nil {
 		if existing != sig {
@@ -557,7 +569,7 @@ func (sd *snapshotData) registerSignature(projectID project.Handle, sig *checker
 		}
 		return id
 	}
-	reg.signatureRegistry[id] = sig
+	reg.signatureRegistry[id] = registeredSignature{sig: sig, checker: c}
 	return id
 }
 
@@ -769,7 +781,7 @@ func (setup checkerSetup) newSymbolResponse(sym ast.Symbol) *SymbolResponse {
 }
 
 func (setup checkerSetup) newSignatureResponse(sig *checker.Signature) *SignatureResponse {
-	return setup.sd.newSignatureResponse(setup.projectID, sig)
+	return setup.sd.newSignatureResponse(setup.projectID, setup.checker, sig)
 }
 
 func (setup checkerSetup) newIndexInfoResponse(info *checker.IndexInfo) *IndexInfoResponse {
@@ -3257,7 +3269,7 @@ func (s *Session) handleGetThisParameterOfSignature(_ context.Context, params *G
 
 // @gen-proto-nullable
 func (s *Session) handleGetTargetOfSignature(_ context.Context, params *GetSignaturePropertyParams) (*SignatureResponse, error) {
-	return s.resolveSignaturePropertyOfSignature(params, (*checker.Signature).Target)
+	return s.resolveSignaturePropertyOfSignature(params, func(c *checker.Checker, sig *checker.Signature) *checker.Signature { return sig.Target(c) })
 }
 
 func (s *Session) handleGetImportAdderEdits(ctx context.Context, params *GetImportAdderEditsParams) ([]*TextEdit, error) {
@@ -3623,22 +3635,22 @@ func (s *Session) resolveTypeArrayPropertyOfSignature(ctx context.Context, param
 	return results, nil
 }
 
-func (s *Session) resolveSignaturePropertyOfSignature(params *GetSignaturePropertyParams, getter func(*checker.Signature) *checker.Signature) (*SignatureResponse, error) {
+func (s *Session) resolveSignaturePropertyOfSignature(params *GetSignaturePropertyParams, getter func(*checker.Checker, *checker.Signature) *checker.Signature) (*SignatureResponse, error) {
 	sd, err := s.getSnapshotData(params.Snapshot)
 	if err != nil {
 		return nil, err
 	}
 
-	sig, err := sd.resolveSignatureHandle(params.Project, params.Signature)
+	entry, err := sd.resolveRegisteredSignature(params.Project, params.Signature)
 	if err != nil {
 		return nil, err
 	}
 
-	result := getter(sig)
+	result := getter(entry.checker, entry.sig)
 	if result == nil {
 		return nil, nil
 	}
-	return sd.newSignatureResponse(params.Project, result), nil
+	return sd.newSignatureResponse(params.Project, entry.checker, result), nil
 }
 
 // handleGetContextualType returns the contextual type for a node.
@@ -4290,7 +4302,7 @@ func (s *Session) handleGetWellKnownSignatures(ctx context.Context, params *GetI
 	defer setup.done()
 
 	return &WellKnownSignaturesResponse{
-		Unknown: setup.sd.registerSignature(setup.projectID, setup.checker.GetUnknownSignature()),
+		Unknown: setup.sd.registerSignature(setup.projectID, setup.checker, setup.checker.GetUnknownSignature()),
 	}, nil
 }
 

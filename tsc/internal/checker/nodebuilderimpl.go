@@ -1878,9 +1878,9 @@ func (b *NodeBuilderImpl) signatureToSignatureDeclarationHelper(signature *Signa
 	b.ctx.approximateLength += 3
 	// Usually a signature contributes a few more characters than this, but 3 is the minimum
 
-	if b.ctx.flags&nodebuilder.FlagsWriteTypeArgumentsOfSignature != 0 && signature.target != nil && signature.mapper != nil && len(signature.target.TypeParameters()) != 0 {
-		for _, parameter := range signature.target.TypeParameters() {
-			typeParameters = append(typeParameters, b.typeToTypeNode(b.ch.instantiateType(parameter, signature.mapper)))
+	if b.ctx.flags&nodebuilder.FlagsWriteTypeArgumentsOfSignature != 0 && signature.target != 0 && signature.mapper != 0 && len(b.ch.signatureOf(signature.target).TypeParameters()) != 0 {
+		for _, parameter := range b.ch.signatureOf(signature.target).TypeParameters() {
+			typeParameters = append(typeParameters, b.typeToTypeNode(b.ch.instantiateType(parameter, b.ch.mapperOf(signature.mapper))))
 		}
 	} else {
 		for _, parameter := range signature.TypeParameters() {
@@ -2632,8 +2632,8 @@ func (b *NodeBuilderImpl) addPropertyToElementList(propertySymbol ast.Symbol, ty
 				symbolMapper := b.ch.valueSymbolLinks.Get(propertySymbol).mapper
 				if getterDeclaration := ast.GetDeclarationOfKind(propertySymbol, ast.KindGetAccessor); !getterDeclaration.IsNil() {
 					getterSignature := b.ch.getSignatureFromDeclaration(getterDeclaration)
-					if symbolMapper != nil {
-						getterSignature = b.ch.instantiateSignature(getterSignature, symbolMapper)
+					if symbolMapper != 0 {
+						getterSignature = b.ch.instantiateSignature(getterSignature, b.ch.mapperOf(symbolMapper))
 					}
 					getter := b.signatureToSignatureDeclarationHelper(getterSignature, ast.KindGetAccessor, &SignatureToSignatureDeclarationOptions{
 						name: propertyName,
@@ -2643,8 +2643,8 @@ func (b *NodeBuilderImpl) addPropertyToElementList(propertySymbol ast.Symbol, ty
 				}
 				if setterDeclaration := ast.GetDeclarationOfKind(propertySymbol, ast.KindSetAccessor); !setterDeclaration.IsNil() {
 					setterSignature := b.ch.getSignatureFromDeclaration(setterDeclaration)
-					if symbolMapper != nil {
-						setterSignature = b.ch.instantiateSignature(setterSignature, symbolMapper)
+					if symbolMapper != 0 {
+						setterSignature = b.ch.instantiateSignature(setterSignature, b.ch.mapperOf(symbolMapper))
 					}
 					setter := b.signatureToSignatureDeclarationHelper(setterSignature, ast.KindSetAccessor, &SignatureToSignatureDeclarationOptions{
 						name: propertyName,
@@ -3043,7 +3043,7 @@ func (b *NodeBuilderImpl) conditionalTypeToTypeNode(_t *Type) ast.TypeNode {
 		newTypeVariable := b.f.NewTypeReferenceNode(name.AsNode(), ast.TypeList{})
 		b.ctx.approximateLength += 37
 		// 15 each for two added conditionals, 7 for an added infer type
-		newMapper := prependTypeMapping(t.cond().root.checkType, newParam, t.cond().mapper)
+		newMapper := prependTypeMapping(t.cond().root.checkType, newParam, b.ch.mapperOf(t.cond().mapper))
 		saveInferTypeParameters := b.ctx.inferTypeParameters
 		b.ctx.inferTypeParameters = t.cond().root.inferTypeParameters
 		extendsTypeNode := b.typeToTypeNode(b.ch.instantiateType(t.cond().root.extendsType, newMapper))
@@ -3749,7 +3749,7 @@ func (b *NodeBuilderImpl) lookupInstantiatedTypeArgumentNodes(chain []ast.Symbol
 		}
 
 		params := b.getTypeParametersOfClassOrInterface(targetSymbol)
-		targetMapper := b.ch.valueSymbolLinks.Get(nextSymbol).mapper
+		targetMapper := b.ch.mapperOf(b.ch.valueSymbolLinks.Get(nextSymbol).mapper)
 		if targetMapper != nil {
 			params = core.Map(params, targetMapper.Map)
 		}

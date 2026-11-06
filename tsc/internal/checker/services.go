@@ -369,8 +369,8 @@ func (c *Checker) runWithoutResolvedSignatureCaching[T any](node ast.Node, fn fu
 		cachedTypes := make(map[*ValueSymbolLinks]*Type)
 		for !ancestorNode.IsNil() {
 			signatureLinks := c.signatureLinks.Get(ancestorNode)
-			cachedResolvedSignatures[signatureLinks] = signatureLinks.resolvedSignature
-			signatureLinks.resolvedSignature = nil
+			cachedResolvedSignatures[signatureLinks] = c.signatureOf(signatureLinks.resolvedSignature)
+			signatureLinks.resolvedSignature = 0
 			if ast.IsFunctionExpressionOrArrowFunction(ancestorNode) {
 				symbolLinks := c.valueSymbolLinks.Get(c.getSymbolOfDeclaration(ancestorNode))
 				resolvedType := symbolLinks.resolvedType
@@ -381,7 +381,7 @@ func (c *Checker) runWithoutResolvedSignatureCaching[T any](node ast.Node, fn fu
 		}
 		result := fn()
 		for signatureLinks, resolvedSignature := range cachedResolvedSignatures {
-			signatureLinks.resolvedSignature = resolvedSignature
+			signatureLinks.resolvedSignature = signatureIdOf(resolvedSignature)
 		}
 		for symbolLinks, resolvedType := range cachedTypes {
 			symbolLinks.resolvedType = resolvedType

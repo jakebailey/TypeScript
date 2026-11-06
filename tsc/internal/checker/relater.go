@@ -1976,10 +1976,10 @@ func (c *Checker) getThisTypeOfSignature(signature *Signature) *Type {
 }
 
 func (c *Checker) isInstantiatedGenericParameter(signature *Signature, pos int) bool {
-	if signature.target == nil {
+	if signature.target == 0 {
 		return false
 	}
-	t := c.tryGetTypeAtPosition(signature.target, pos)
+	t := c.tryGetTypeAtPosition(c.signatureOf(signature.target), pos)
 	return t != nil && c.isGenericType(t)
 }
 
@@ -2071,10 +2071,10 @@ func (c *Checker) getTupleElementLabelFromBindingElement(node ast.Node, index in
 func (c *Checker) getTypePredicateOfSignature(sig *Signature) *TypePredicate {
 	if sig.getResolvedTypePredicate(c) == nil {
 		switch {
-		case sig.target != nil:
-			targetTypePredicate := c.getTypePredicateOfSignature(sig.target)
+		case sig.target != 0:
+			targetTypePredicate := c.getTypePredicateOfSignature(c.signatureOf(sig.target))
 			if targetTypePredicate != nil {
-				sig.setResolvedTypePredicate(c, c.instantiateTypePredicate(targetTypePredicate, sig.mapper))
+				sig.setResolvedTypePredicate(c, c.instantiateTypePredicate(targetTypePredicate, c.mapperOf(sig.mapper)))
 			}
 		case sig.getComposite() != nil:
 			sig.setResolvedTypePredicate(c, c.getUnionOrIntersectionTypePredicate(sig.getComposite().signatures, sig.getComposite().isUnion))

@@ -183,7 +183,7 @@ type SymbolReferenceLinks struct {
 type ValueSymbolLinks struct {
 	resolvedType *Type // Type of value symbol
 	target       ast.SymbolId
-	mapper       *TypeMapper
+	mapper       TypeMapperId
 	extra        *valueSymbolExtra
 }
 
@@ -492,9 +492,9 @@ type SourceFileLinks struct {
 // Signature specific links
 
 type SignatureLinks struct {
-	resolvedSignature  *Signature // Cached signature of signature node or call expression
-	effectsSignature   *Signature // Signature with possible control flow effects
-	decoratorSignature *Signature // Signature for decorator as if invoked by the runtime
+	resolvedSignature  SignatureId // Cached signature of signature node or call expression
+	effectsSignature   SignatureId // Signature with possible control flow effects
+	decoratorSignature SignatureId // Signature for decorator as if invoked by the runtime
 }
 
 type TypeFlags uint32
@@ -1094,14 +1094,14 @@ func (t *Type) Target() *Type {
 	panic("Unhandled case in Type.Target")
 }
 
-func (t *Type) Mapper() *TypeMapper {
+func (t *Type) Mapper(c *Checker) *TypeMapper {
 	switch {
 	case t.flags&TypeFlagsObject != 0:
 		return t.AsObjectType().mapper()
 	case t.flags&TypeFlagsTypeParameter != 0:
 		return t.AsTypeParameter().mapper()
 	case t.flags&TypeFlagsConditional != 0:
-		return t.AsConditionalType().cond().mapper
+		return c.mapperOf(t.AsConditionalType().cond().mapper)
 	}
 	panic("Unhandled case in Type.Mapper")
 }
@@ -1446,7 +1446,7 @@ func (t *StructuredType) getPropertyAt(c *Checker, index int) ast.Symbol {
 		symbol := lazy.layout.members.SymbolAt(index)
 		baseIndex := lazy.layout.baseIndices[index]
 		if baseIndex < 0 {
-			member = c.instantiateSymbol(symbol, lazy.mapper)
+			member = c.instantiateSymbol(symbol, c.mapperOf(lazy.mapper))
 		} else {
 			member = c.getPropertyOfType(lazy.baseTypes[baseIndex], symbol.Name())
 		}
@@ -1613,7 +1613,7 @@ type TypeReference struct {
 
 type LazyState struct {
 	layout             *MemberLayout
-	mapper             *TypeMapper
+	mapper             TypeMapperId
 	baseTypes          []*Type
 	propertiesResolved bool
 }
@@ -2188,8 +2188,8 @@ type conditionalData struct {
 	resolvedInferredTrueType         *Type // The `trueType` instantiated with the `combinedMapper`, if present
 	resolvedDefaultConstraint        *Type
 	resolvedConstraintOfDistributive *Type
-	mapper                           *TypeMapper
-	combinedMapper                   *TypeMapper
+	mapper                           TypeMapperId
+	combinedMapper                   TypeMapperId
 }
 
 func (t *ConditionalType) cond() *conditionalData { return fromPayload[conditionalData](t.data.p0) }
@@ -2235,8 +2235,8 @@ type Signature struct {
 	declaration              ast.NodeRef
 	parameters               []ast.Symbol
 	resolvedReturnType       *Type
-	target                   *Signature
-	mapper                   *TypeMapper
+	target                   SignatureId
+	mapper                   TypeMapperId
 	extra                    *signatureExtra
 }
 
@@ -2323,8 +2323,8 @@ func (s *Signature) TypeParameters() []*Type {
 	return s.extra.typeParameters
 }
 
-func (s *Signature) Target() *Signature {
-	return s.target
+func (s *Signature) Target(c *Checker) *Signature {
+	return c.signatureOf(s.target)
 }
 
 func (s *Signature) ThisParameter() ast.Symbol {
@@ -2385,9 +2385,13 @@ func (typePredicate *TypePredicate) ParameterName() ast.SymbolName {
 
 // IndexInfo
 
+// IndexInfoId names an index info: its index in the checker's index infos plus one, 0 for none.
+type IndexInfoId uint32
+
 type IndexInfo struct {
 	keyType     *Type
 	valueType   *Type
+	id          IndexInfoId
 	isReadonly  bool
 	declaration ast.Node   // IndexSignatureDeclaration
 	indexSymbol ast.Symbol // Synthetic property symbol for this index signature

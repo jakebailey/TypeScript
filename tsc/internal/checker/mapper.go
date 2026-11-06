@@ -11,7 +11,12 @@ import (
 
 type TypeMapper struct {
 	kind TypeMapperKind `customlint:"protected"`
+	id   TypeMapperId   // Assigned when a record first stores the mapper
 }
+
+// TypeMapperId names a mapper stored in a checker record: its index in the checker's mapper table plus one, 0 for
+// none.
+type TypeMapperId uint32
 
 type TypeMapperKind uint8
 

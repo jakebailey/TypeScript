@@ -595,7 +595,7 @@ func (c *Checker) CompareTypes(t1, t2 *Type) int {
 		if r := c.compareNodes(t1.AsConditionalType().cond().root.node.AsNode(), t2.AsConditionalType().cond().root.node.AsNode()); r != 0 {
 			return r
 		}
-		if r := c.compareTypeMappers(t1.AsConditionalType().cond().mapper, t2.AsConditionalType().cond().mapper); r != 0 {
+		if r := c.compareTypeMappers(c.mapperOf(t1.AsConditionalType().cond().mapper), c.mapperOf(t2.AsConditionalType().cond().mapper)); r != 0 {
 			return r
 		}
 	case t1.flags&TypeFlagsSubstitution != 0:

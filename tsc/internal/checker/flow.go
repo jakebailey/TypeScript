@@ -2059,7 +2059,7 @@ func (c *Checker) getTypeOfSwitchClause(clause ast.Node) *Type {
 func (c *Checker) getEffectsSignature(node ast.Node) *Signature {
 	links := c.signatureLinks.Get(node)
 	signature := links.effectsSignature
-	if signature == nil {
+	if signature == 0 {
 		// A call expression parented by an expression statement is a potential assertion. Other call
 		// expressions are potential type predicate function calls. In order to avoid triggering
 		// circularities in control flow analysis, we use getTypeOfDottedName when resolving the call
@@ -2084,19 +2084,19 @@ func (c *Checker) getEffectsSignature(node ast.Node) *Signature {
 		signatures := c.getSignaturesOfType(core.OrElse(apparentType, c.unknownType), SignatureKindCall)
 		switch {
 		case len(signatures) == 1 && len(signatures[0].TypeParameters()) == 0:
-			signature = signatures[0]
+			signature = signatureIdOf(signatures[0])
 		case core.Some(signatures, c.hasTypePredicateOrNeverReturnType):
-			signature = c.getResolvedSignature(node, nil, CheckModeNormal)
+			signature = signatureIdOf(c.getResolvedSignature(node, nil, CheckModeNormal))
 		}
-		if !(signature != nil && c.hasTypePredicateOrNeverReturnType(signature)) {
-			signature = c.unknownSignature
+		if !(signature != 0 && c.hasTypePredicateOrNeverReturnType(c.signatureOf(signature))) {
+			signature = signatureIdOf(c.unknownSignature)
 		}
 		links.effectsSignature = signature
 	}
-	if signature == c.unknownSignature {
+	if signature == c.unknownSignature.id {
 		return nil
 	}
-	return signature
+	return c.signatureOf(signature)
 }
 
 /**

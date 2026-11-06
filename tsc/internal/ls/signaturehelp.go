@@ -518,8 +518,8 @@ func (l *LanguageService) itemInfoForTypeParameters(candidateSignature *checker.
 	p := printer.NewPrinter(printer.PrinterOptions{NewLine: core.NewLineKindLF}, printer.PrintHandlers{}, emitContext)
 
 	var typeParameters []*checker.Type
-	if candidateSignature.Target() != nil {
-		typeParameters = candidateSignature.Target().TypeParameters()
+	if candidateSignature.Target(c) != nil {
+		typeParameters = candidateSignature.Target(c).TypeParameters()
 	} else {
 		typeParameters = candidateSignature.TypeParameters()
 	}
