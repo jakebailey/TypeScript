@@ -1,6 +1,8 @@
 package checker
 
 import (
+	"slices"
+
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
@@ -13,40 +15,92 @@ import (
 
 const maxPageLinkCount = 0x100_0000 // 16M
 
-// symbolNodeLinkStore holds the symbol a node resolves to, if any, in a
-// map per store keyed by node index.
-type symbolNodeLinkStore struct {
-	stores map[*ast.NodeStore]map[uint32]*ast.Symbol
-	// last caches the most recently used store's map, since nodes are
-	// mostly resolved file by file.
-	lastStore *ast.NodeStore
-	last      map[uint32]*ast.Symbol
+// initNodeLinks makes the checker's node link stores number files with refs.
+func (c *Checker) initNodeLinks(refs ast.RefCache) {
+	c.refs = refs
+	c.nodeLinks.refs = &c.refs
+	c.signatureLinks.refs = &c.refs
+	c.symbolNodeLinks.refs = &c.refs
+	c.typeNodeLinks.refs = &c.refs
+	c.enumMemberLinks.refs = &c.refs
+	c.assertionLinks.refs = &c.refs
+	c.arrayLiteralLinks.refs = &c.refs
+	c.switchStatementLinks.refs = &c.refs
+	c.jsxElementLinks.refs = &c.refs
+	c.computedNameLinks.refs = &c.refs
 }
 
-func (s *symbolNodeLinkStore) storeLinks(node ast.Node) map[uint32]*ast.Symbol {
-	store := node.Store()
-	if store != s.lastStore || s.last == nil {
-		s.lastStore = store
-		s.last = s.stores[store]
+// nodeLinkStore holds links of nodes, in a map per file keyed by node
+// index. Files are numbered by the checker's FileTable, so a key is 4
+// bytes rather than a 16-byte Node.
+type nodeLinkStore[V any] struct {
+	refs  *ast.RefCache
+	files []map[uint32]*V
+	arena core.Arena[V]
+}
+
+func (s *nodeLinkStore[V]) fileLinks(r ast.NodeRef) map[uint32]*V {
+	if int(r.File()) < len(s.files) {
+		return s.files[r.File()]
 	}
-	return s.last
+	return nil
+}
+
+func (s *nodeLinkStore[V]) Get(node ast.Node) *V {
+	r := s.refs.Ref(node)
+	m := s.fileLinks(r)
+	if value := m[r.Index()]; value != nil {
+		return value
+	}
+	if m == nil {
+		if int(r.File()) >= len(s.files) {
+			s.files = slices.Grow(s.files, int(r.File())+1-len(s.files))[:r.File()+1]
+		}
+		m = make(map[uint32]*V)
+		s.files[r.File()] = m
+	}
+	value := s.arena.New()
+	m[r.Index()] = value
+	return value
+}
+
+func (s *nodeLinkStore[V]) Has(node ast.Node) bool {
+	r := s.refs.Ref(node)
+	_, ok := s.fileLinks(r)[r.Index()]
+	return ok
+}
+
+func (s *nodeLinkStore[V]) TryGet(node ast.Node) *V {
+	r := s.refs.Ref(node)
+	return s.fileLinks(r)[r.Index()]
+}
+
+// symbolNodeLinkStore holds the symbol a node resolves to, if any, in a
+// map per file keyed by node index.
+type symbolNodeLinkStore struct {
+	refs  *ast.RefCache
+	files []map[uint32]*ast.Symbol
 }
 
 func (s *symbolNodeLinkStore) get(node ast.Node) *ast.Symbol {
-	return s.storeLinks(node)[node.Index()]
+	r := s.refs.Ref(node)
+	if int(r.File()) < len(s.files) {
+		return s.files[r.File()][r.Index()]
+	}
+	return nil
 }
 
 func (s *symbolNodeLinkStore) set(node ast.Node, symbol *ast.Symbol) {
-	m := s.storeLinks(node)
-	if m == nil {
-		if s.stores == nil {
-			s.stores = make(map[*ast.NodeStore]map[uint32]*ast.Symbol)
-		}
-		m = make(map[uint32]*ast.Symbol)
-		s.stores[node.Store()] = m
-		s.last = m
+	r := s.refs.Ref(node)
+	if int(r.File()) >= len(s.files) {
+		s.files = slices.Grow(s.files, int(r.File())+1-len(s.files))[:r.File()+1]
 	}
-	m[node.Index()] = symbol
+	m := s.files[r.File()]
+	if m == nil {
+		m = make(map[uint32]*ast.Symbol)
+		s.files[r.File()] = m
+	}
+	m[r.Index()] = symbol
 }
 
 type symbolLinkStore[V any] struct {

@@ -62,6 +62,10 @@ func (p *fakeProgram) GetResolvedModuleFromModuleSpecifier(file ast.HasFileName,
 	panic("unimplemented")
 }
 
+func (p *fakeProgram) FileTable() *ast.FileTable {
+	return ast.NewFileTable(p.files)
+}
+
 func (p *fakeProgram) FileExists(path tspath.RootedFilePath) bool {
 	return false
 }

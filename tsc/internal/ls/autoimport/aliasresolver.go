@@ -28,6 +28,7 @@ type aliasResolver struct {
 	symlinks                    map[tspath.PathKey]pathAndFileName
 	onFailedAmbientModuleLookup func(source ast.HasFileName, moduleName string)
 	resolvedModules             collections.SyncMap[tspath.PathKey, *collections.SyncMap[module.ModeAwareCacheKey, *module.ResolvedModule]]
+	fileTable                   *ast.FileTable
 }
 
 func newAliasResolver(
@@ -44,6 +45,7 @@ func newAliasResolver(
 		rootFiles:                   rootFiles,
 		symlinks:                    symlinks,
 		onFailedAmbientModuleLookup: onFailedAmbientModuleLookup,
+		fileTable:                   ast.NewFileTable(rootFiles),
 	}
 	return r
 }
@@ -56,6 +58,12 @@ func (r *aliasResolver) BindSourceFiles() {
 // SourceFiles implements checker.Program.
 func (r *aliasResolver) SourceFiles() []*ast.SourceFile {
 	return r.rootFiles
+}
+
+// FileTable implements checker.Program. Files parsed later are numbered
+// as the checker meets them.
+func (r *aliasResolver) FileTable() *ast.FileTable {
+	return r.fileTable
 }
 
 // Options implements checker.Program.

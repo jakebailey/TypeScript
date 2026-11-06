@@ -334,7 +334,7 @@ func (c *Checker) runWithInferenceBlockedFromSourceNode[T any](node ast.Node, fn
 	if !containingCall.IsNil() {
 		toMarkSkip := node
 		for {
-			c.skipDirectInferenceNodes.Add(toMarkSkip)
+			c.skipDirectInferenceNodes.Add(c.refs.Ref(toMarkSkip))
 			toMarkSkip = toMarkSkip.Parent()
 			if toMarkSkip.IsNil() || toMarkSkip == containingCall {
 				break

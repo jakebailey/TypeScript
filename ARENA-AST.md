@@ -393,7 +393,7 @@ There is no package-level registry: refs are meaningless without the table, and 
 
 The checker keeps the most nodes for longest, so its bulk structures take refs:
 
-- node links (`nodeLinks`, `signatureLinks`, `typeNodeLinks` and the other link stores keyed by node): maps keyed by `NodeRef`;
+- node links (`nodeLinks`, `signatureLinks`, `typeNodeLinks` and the other link stores keyed by node): a slice of per-file maps keyed by node index, indexed by `ref.file`;
 - symbol-of-node: a slice of per-file `map[uint32]*Symbol` indexed by `ref.file`, which the target layout asked for and the process-wide store ids ruled out;
 - maps keyed by node (`moduleSymbols`, `contextFreeTypes`, `flowTypeCache`, `cachedArgumentsReferenced` and the like) and cache keys that hold node ids;
 - symbol declarations and `valueDeclaration`, and `[]Node` held by types and symbols, where measurement shows it pays. The binder makes a file's symbols when the file is parsed, before any program numbers it, so binder symbols can't hold program refs; they keep views unless a cheaper per-file encoding pays for itself.
@@ -420,8 +420,15 @@ Memory used from `--extendedDiagnostics`, single-threaded check, median of the r
 | `new-ast` (`1fce2af19c3`) | 3,167,713K | 1,829,551K | 1,174,592K | 16.82–18.29s |
 | `new-ast-index` (`5e349ab704f`) | 3,189,024K | 1,818,226K | 1,170,655K | 21.04–21.99s |
 | 1. views | 3,317,141K (+128MB) | 1,895,679K (+77MB) | 1,212,642K (+42MB) | 18.79–21.24s |
+| 2. refs in the checker | 3,286,921K (−30MB) | 1,882,903K (−13MB) | 1,216,591K (+4MB) | 17.87–19.89s |
 
 Step 1 gives back most of the time the table cost: the median vscode check is 18.9s against 21.4s for `new-ast-index` and 17.8s for `new-ast`. Every node held anywhere grew from 8 to 16 bytes, which costs about what padding the handle did before (+106MB then, +128MB now, with the node links also keyed by node). Step 2 moves the checker's bulk holders to 8-byte refs.
+
+Step 2 gives the checker a `RefCache` over the program's `FileTable`, which remembers the last store it numbered, so a view becomes a ref with one pointer compare in the common case. The node link stores, symbol-of-node and the maps and sets keyed by node (`contextFreeTypes`, `flowTypeCache`, `cachedArgumentsReferenced`, `skipDirectInferenceNodes`, `reportedUnreachableNodes`) take refs. On vscode the link maps fall from 123MB to 102MB of map storage; the rest of the 30MB is the node-keyed maps and their keys. In the same n=5 run, `new-ast-index` checked in 20.93–22.25s, `new-ast` in 17.39–18.35s and step 1 in 19.26–20.70s.
+
+The link stores were measured both ways. One `map[NodeRef]*V` per store is 10MB smaller on vscode, 4MB on sentry and 6MB on mui, since each file's map has its own groups, but checks vscode in 19.16–20.66s against 18.12–19.89s for per-file maps (n=5 alternating each). Per-file maps hash a 4-byte key and stay small, so they were kept. mui grows by 4MB because it has many small files whose maps are mostly overhead.
+
+Symbol declarations and `valueDeclaration` stay views. The binder makes them per file, before any program exists, and a file's symbols are shared by every program that contains it, so they can't hold one program's refs; a store-relative encoding would change the `Declarations()` and `ValueDeclaration()` API at about 750 call sites. On vscode this costs the binder's declaration slices (42MB) and 8 more bytes per symbol in the symbol slab (229MB for binder symbols, 139MB for the checker's), about 47MB in all against 8-byte handles.
 
 ## Historical: earlier measurements (step 9 vs main, vscode, n=10, interleaved)
 

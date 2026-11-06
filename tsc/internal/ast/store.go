@@ -40,6 +40,10 @@ type NodeStore struct {
 	// then. Nothing maps a serial back to its store.
 	serial atomic.Uint32
 
+	// slot caches the store's number in the FileTable that numbered it
+	// last.
+	slot atomic.Pointer[fileSlot]
+
 	nodes     []nodeHeader
 	data      []uint32
 	lists     []nodeList

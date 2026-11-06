@@ -18,8 +18,11 @@ import (
 func TestCheckerNodeLinkStores(t *testing.T) {
 	t.Parallel()
 	f := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
+	table := ast.NewFileTable(nil)
 	first := &Checker{}
+	first.initNodeLinks(ast.NewRefCache(table))
 	second := &Checker{}
+	second.initNodeLinks(ast.NewRefCache(table))
 	nodes := make([]ast.Node, 4096)
 	for i := range nodes {
 		node := f.NewIdentifier(strconv.Itoa(i))

@@ -567,6 +567,8 @@ type Program interface {
 	SourceFiles() []*ast.SourceFile
 	BindSourceFiles()
 	FileExists(fileName tspath.RootedFilePath) bool
+	// FileTable numbers the program's files for the checker's refs.
+	FileTable() *ast.FileTable
 	GetSourceFileForResolvedModule(resolved *module.ResolvedModule) *ast.SourceFile
 	GetEmitModuleFormatOfFile(sourceFile ast.HasFileName) core.ModuleKind
 	GetEmitSyntaxForUsageLocation(sourceFile ast.HasFileName, usageLocation ast.StringLiteralLike) core.ResolutionMode
@@ -709,16 +711,17 @@ type Checker struct {
 	mergedExportsChecked                        collections.Set[*ast.Symbol]
 	factory                                     ast.NodeFactory
 	nodeStore                                   *ast.NodeStore // holds the checker's synthetic nodes
-	nodeLinks                                   core.LinkStore[ast.Node, NodeLinks]
-	signatureLinks                              core.LinkStore[ast.Node, SignatureLinks]
+	refs                                        ast.RefCache
+	nodeLinks                                   nodeLinkStore[NodeLinks]
+	signatureLinks                              nodeLinkStore[SignatureLinks]
 	symbolNodeLinks                             symbolNodeLinkStore
-	typeNodeLinks                               core.LinkStore[ast.Node, TypeNodeLinks]
-	enumMemberLinks                             core.LinkStore[ast.Node, EnumMemberLinks]
-	assertionLinks                              core.LinkStore[ast.Node, AssertionLinks]
-	arrayLiteralLinks                           core.LinkStore[ast.Node, ArrayLiteralLinks]
-	switchStatementLinks                        core.LinkStore[ast.Node, SwitchStatementLinks]
-	jsxElementLinks                             core.LinkStore[ast.Node, JsxElementLinks]
-	computedNameLinks                           core.LinkStore[ast.Node, ComputedNameNodeLinks]
+	typeNodeLinks                               nodeLinkStore[TypeNodeLinks]
+	enumMemberLinks                             nodeLinkStore[EnumMemberLinks]
+	assertionLinks                              nodeLinkStore[AssertionLinks]
+	arrayLiteralLinks                           nodeLinkStore[ArrayLiteralLinks]
+	switchStatementLinks                        nodeLinkStore[SwitchStatementLinks]
+	jsxElementLinks                             nodeLinkStore[JsxElementLinks]
+	computedNameLinks                           nodeLinkStore[ComputedNameNodeLinks]
 	symbolReferenceLinks                        core.LinkStore[*ast.Symbol, SymbolReferenceLinks]
 	valueSymbolLinks                            symbolLinkStore[ValueSymbolLinks]
 	mappedSymbolLinks                           core.LinkStore[*ast.Symbol, MappedSymbolLinks]
@@ -739,7 +742,7 @@ type Checker struct {
 	sourceFileLinks                             core.LinkStore[*ast.SourceFile, SourceFileLinks]
 	regExpScanner                               *scanner.Scanner
 	patternForType                              map[*Type]ast.Node
-	contextFreeTypes                            map[ast.Node]*Type
+	contextFreeTypes                            map[ast.NodeRef]*Type
 	anyType                                     *Type
 	autoType                                    *Type
 	wildcardType                                *Type
@@ -804,7 +807,7 @@ type Checker struct {
 	unknownSignature                            *Signature
 	resolvingSignature                          *Signature
 	silentNeverSignature                        *Signature
-	cachedArgumentsReferenced                   map[ast.Node]bool
+	cachedArgumentsReferenced                   map[ast.NodeRef]bool
 	enumNumberIndexInfo                         *IndexInfo
 	anyBaseTypeIndexInfo                        *IndexInfo
 	patternAmbientModules                       []*ast.PatternAmbientModule
@@ -848,7 +851,7 @@ type Checker struct {
 	antecedentTypes                             []*Type
 	flowAnalysisDisabled                        bool
 	flowInvocationCount                         int
-	flowTypeCache                               map[ast.Node]*Type
+	flowTypeCache                               map[ast.NodeRef]*Type
 	lastFlowNode                                ast.FlowNode
 	lastFlowNodeReachable                       bool
 	flowNodeReachable                           map[ast.FlowNode]bool
@@ -931,7 +934,7 @@ type Checker struct {
 	emitResolverLinks                           EmitResolverLinks
 	_jsxNamespace                               string
 	_jsxFactoryEntity                           ast.Node
-	skipDirectInferenceNodes                    collections.Set[ast.Node]
+	skipDirectInferenceNodes                    collections.Set[ast.NodeRef]
 	ctx                                         context.Context
 	packagesMap                                 map[string]bool
 	activeMappers                               []*TypeMapper
@@ -939,7 +942,7 @@ type Checker struct {
 	ambientModulesOnce                          sync.Once
 	ambientModules                              []*ast.Symbol
 	withinUnreachableCode                       bool
-	reportedUnreachableNodes                    collections.Set[ast.Node]
+	reportedUnreachableNodes                    collections.Set[ast.NodeRef]
 	nonExistentProperties                       collections.Set[NonExistentPropertyKey]
 	deferredDiagnosticCallbacks                 []func()
 	typeToStringNodebuilder                     *NodeBuilder
@@ -955,6 +958,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.id = nextCheckerID.Add(1)
 	c.nodeStore = ast.NewNodeStore()
 	c.factory.SetStore(c.nodeStore)
+	c.initNodeLinks(ast.NewRefCache(program.FileTable()))
 	c.tracer = tracer
 	c.program = program
 	c.compilerOptions = program.Options()
@@ -1021,7 +1025,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.intersectionTypes = make(map[CacheHashKey]*Type)
 	c.propertiesTypes = make(map[PropertiesTypesKey]*Type)
 	c.patternForType = make(map[*Type]ast.Node)
-	c.contextFreeTypes = make(map[ast.Node]*Type)
+	c.contextFreeTypes = make(map[ast.NodeRef]*Type)
 	c.anyType = c.newIntrinsicType(TypeFlagsAny, "any")
 	c.autoType = c.newIntrinsicTypeEx(TypeFlagsAny, "any", ObjectFlagsNonInferrableType)
 	c.wildcardType = c.newIntrinsicType(TypeFlagsAny, "any")
@@ -1093,7 +1097,7 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.unknownSignature = c.newSignature(SignatureFlagsNone, ast.Node{}, nil, nil, nil, c.errorType, nil, 0)
 	c.resolvingSignature = c.newSignature(SignatureFlagsNone, ast.Node{}, nil, nil, nil, c.anyType, nil, 0)
 	c.silentNeverSignature = c.newSignature(SignatureFlagsNone, ast.Node{}, nil, nil, nil, c.silentNeverType, nil, 0)
-	c.cachedArgumentsReferenced = make(map[ast.Node]bool)
+	c.cachedArgumentsReferenced = make(map[ast.NodeRef]bool)
 	c.enumNumberIndexInfo = &IndexInfo{keyType: c.numberType, valueType: c.stringType, isReadonly: true}
 	c.anyBaseTypeIndexInfo = &IndexInfo{keyType: c.stringType, valueType: c.anyType, isReadonly: false}
 	c.emptyStringType = c.getStringLiteralType("")
@@ -2486,7 +2490,7 @@ func (c *Checker) checkSourceElementUnreachable(node ast.Node) bool {
 		return false
 	}
 
-	if c.reportedUnreachableNodes.Has(node) {
+	if c.reportedUnreachableNodes.Has(c.refs.Ref(node)) {
 		return true
 	}
 
@@ -2494,7 +2498,7 @@ func (c *Checker) checkSourceElementUnreachable(node ast.Node) bool {
 		return false
 	}
 
-	c.reportedUnreachableNodes.Add(node)
+	c.reportedUnreachableNodes.Add(c.refs.Ref(node))
 
 	sourceFile := ast.GetSourceFileOfNode(node)
 
@@ -2526,7 +2530,7 @@ func (c *Checker) checkSourceElementUnreachable(node ast.Node) bool {
 					break
 				}
 				last = i
-				c.reportedUnreachableNodes.Add(nextNode)
+				c.reportedUnreachableNodes.Add(c.refs.Ref(nextNode))
 			}
 
 			startNode = statements[first]
@@ -7572,7 +7576,7 @@ func (c *Checker) getTypeOfExpression(node ast.Node) *Type {
 		return quickType
 	}
 	// If a type has been cached for the node, return it.
-	if cachedType := c.flowTypeCache[node]; cachedType != nil {
+	if cachedType := c.flowTypeCache[c.refs.Ref(node)]; cachedType != nil {
 		return cachedType
 	}
 	startInvocationCount := c.flowInvocationCount
@@ -7580,9 +7584,9 @@ func (c *Checker) getTypeOfExpression(node ast.Node) *Type {
 	// If control flow analysis was required to determine the type, it is worth caching.
 	if c.flowInvocationCount != startInvocationCount {
 		if c.flowTypeCache == nil {
-			c.flowTypeCache = make(map[ast.Node]*Type)
+			c.flowTypeCache = make(map[ast.NodeRef]*Type)
 		}
-		c.flowTypeCache[node] = t
+		c.flowTypeCache[c.refs.Ref(node)] = t
 	}
 	return t
 }
@@ -7771,12 +7775,12 @@ func (c *Checker) checkExpressionCachedEx(node ast.Node, checkMode CheckMode) *T
 // and requesting the contextual type might cause a circularity or other bad behaviour.
 // It sets the contextual type of the node to any before calling getTypeOfExpression.
 func (c *Checker) getContextFreeTypeOfExpression(node ast.Node) *Type {
-	if cached := c.contextFreeTypes[node]; cached != nil {
+	if cached := c.contextFreeTypes[c.refs.Ref(node)]; cached != nil {
 		return cached
 	}
 	c.pushContextualType(node, c.anyType, false /*isCache*/)
 	t := c.checkExpressionEx(node, CheckModeSkipContextSensitive)
-	c.contextFreeTypes[node] = t
+	c.contextFreeTypes[c.refs.Ref(node)] = t
 	c.popContextualType()
 	return t
 }
@@ -10385,14 +10389,14 @@ func (c *Checker) checkFunctionExpressionOrObjectLiteralMethod(node ast.Node, ch
 			// Return plain anyFunctionType if there is no possibility we'll make inferences from the return type
 			contextualSignature := c.getContextualSignature(node)
 			if contextualSignature != nil && c.couldContainTypeVariables(c.getReturnTypeOfSignature(contextualSignature)) {
-				if cached, ok := c.contextFreeTypes[node]; ok {
+				if cached, ok := c.contextFreeTypes[c.refs.Ref(node)]; ok {
 					return cached
 				}
 				returnType := c.getReturnTypeFromBody(node, checkMode)
 				returnOnlySignature := c.newSignature(SignatureFlagsIsNonInferrable, ast.Node{}, nil /*typeParameters*/, nil /*thisParameter*/, nil, returnType, nil /*resolvedTypePredicate*/, 0)
 				returnOnlyType := c.newAnonymousType(node.Symbol(), nil, []*Signature{returnOnlySignature}, nil, nil)
 				returnOnlyType.objectFlags |= ObjectFlagsNonInferrableType
-				c.contextFreeTypes[node] = returnOnlyType
+				c.contextFreeTypes[c.refs.Ref(node)] = returnOnlyType
 				return returnOnlyType
 			}
 		}
@@ -32948,7 +32952,7 @@ func (c *Checker) containsArgumentsReference(node ast.Node) bool {
 		return false
 	}
 
-	if containsArguments, ok := c.cachedArgumentsReferenced[node]; ok {
+	if containsArguments, ok := c.cachedArgumentsReferenced[c.refs.Ref(node)]; ok {
 		return containsArguments
 	}
 
@@ -32976,7 +32980,7 @@ func (c *Checker) containsArgumentsReference(node ast.Node) bool {
 	}
 
 	containsArguments := visit(node.Body())
-	c.cachedArgumentsReferenced[node] = containsArguments
+	c.cachedArgumentsReferenced[c.refs.Ref(node)] = containsArguments
 	return containsArguments
 }
 

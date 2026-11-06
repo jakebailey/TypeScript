@@ -112,6 +112,9 @@ type Program struct {
 
 	processedFiles
 
+	fileTableOnce sync.Once
+	fileTable     *ast.FileTable
+
 	sourceFilesByNodeIDOnce sync.Once
 	sourceFilesByNodeID     map[ast.NodeId]*ast.SourceFile
 
@@ -574,6 +577,14 @@ func equalCheckJSDirectives(d1 *ast.CheckJsDirective, d2 *ast.CheckJsDirective) 
 func (p *Program) SourceFiles() []*ast.SourceFile               { return p.files }
 func (p *Program) DuplicateSourceFiles() []*DuplicateSourceFile { return p.duplicateSourceFiles }
 func (p *Program) Options() *core.CompilerOptions               { return p.opts.Config.CompilerOptions() }
+
+// FileTable numbers the program's files for its checkers' refs.
+func (p *Program) FileTable() *ast.FileTable {
+	p.fileTableOnce.Do(func() {
+		p.fileTable = ast.NewFileTable(p.files)
+	})
+	return p.fileTable
+}
 
 // GetContentMapper returns the content mapper that produced the given source file, or nil if the
 // file was not produced by a content mapper.

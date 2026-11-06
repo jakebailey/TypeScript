@@ -32,6 +32,7 @@ func TestProgramSharedData(t *testing.T) {
 	leaves := []reflect.Type{
 		reflect.TypeFor[ast.Node](),
 		reflect.TypeFor[ast.SourceFile](),
+		reflect.TypeFor[ast.FileTable](),
 		reflect.TypeFor[ast.Diagnostic](),
 		reflect.TypeFor[tsoptions.ParsedCommandLine](),
 		reflect.TypeFor[packagejson.PackageJson](),
