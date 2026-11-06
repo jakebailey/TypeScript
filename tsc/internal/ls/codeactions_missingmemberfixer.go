@@ -51,7 +51,7 @@ func (f *missingMemberFixer) createNodeBuilder() (*checker.NodeBuilder, map[ast.
 
 func (f *missingMemberFixer) createMemberFromSymbol(symbol *ast.Symbol, enclosingDeclaration ast.Node, sourceFile *ast.SourceFile, body ast.FunctionBody, preserveOptional preserveOptionalFlags, abstract bool) []ast.Node {
 	declarations := symbol.Declarations()
-	declaration := core.FirstOrNil(declarations)
+	declaration := declarations.FirstOrNil()
 
 	quotePreference := lsutil.GetQuotePreference(sourceFile, f.preferences)
 	ambient := enclosingDeclaration.Flags()&ast.NodeFlagsAmbient != 0
@@ -84,7 +84,7 @@ func (f *missingMemberFixer) createMemberFromSymbol(symbol *ast.Symbol, enclosin
 
 	case ast.KindGetAccessor, ast.KindSetAccessor:
 		nodeBuilder, idToSymbol := f.createNodeBuilder()
-		accessors := ast.GetAllAccessorDeclarations(symbol.Declarations(), declaration)
+		accessors := ast.GetAllAccessorDeclarations(symbol.Declarations().Nodes(), declaration)
 		var orderedAccessors []ast.Node
 		if accessors.SecondAccessor.IsNil() {
 			orderedAccessors = append(orderedAccessors, accessors.FirstAccessor)
@@ -126,7 +126,7 @@ func (f *missingMemberFixer) createMemberFromSymbol(symbol *ast.Symbol, enclosin
 			return nil
 		}
 
-		if len(declarations) == 1 {
+		if declarations.Len() == 1 {
 			method := f.createSignatureDeclarationFromSignature(core.FirstOrNil(signatures), ast.KindMethodDeclaration, sourceFile, enclosingDeclaration, f.createBody(body, quotePreference, signatureOnly), modifiers, declarationName, preserveOptional)
 			if !method.IsNil() {
 				nodes = append(nodes, method)
@@ -149,8 +149,8 @@ func (f *missingMemberFixer) createMemberFromSymbol(symbol *ast.Symbol, enclosin
 			return nodes
 		}
 
-		if len(declarations) > len(signatures) {
-			signature := f.typeChecker.GetSignatureFromDeclaration(core.LastOrNil(declarations))
+		if declarations.Len() > len(signatures) {
+			signature := f.typeChecker.GetSignatureFromDeclaration(declarations.LastOrNil())
 			method := f.createSignatureDeclarationFromSignature(signature, ast.KindMethodDeclaration, sourceFile, enclosingDeclaration, f.createBody(body, quotePreference, false /*signatureOnly*/), modifiers, declarationName, preserveOptional)
 			if !method.IsNil() {
 				nodes = append(nodes, method)

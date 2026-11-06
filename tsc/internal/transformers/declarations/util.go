@@ -2,7 +2,6 @@ package declarations
 
 import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
-	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 )
 
@@ -156,7 +155,7 @@ func shouldEmitFunctionProperties(input ast.FunctionDeclaration) bool {
 	if !input.Body().IsNil() {
 		return true
 	}
-	return !core.Every(input.Symbol().Declarations(), func(decl ast.Node) bool {
+	return !input.Symbol().Declarations().Every(func(decl ast.Node) bool {
 		return !ast.IsFunctionDeclaration(decl) || decl.AsFunctionDeclaration().Body().IsNil()
 	})
 }

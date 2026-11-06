@@ -60,11 +60,11 @@ func isModuleSpecifierLike(node ast.Node) bool {
 }
 
 func getNonModuleSymbolOfMergedModuleSymbol(symbol *ast.Symbol) *ast.Symbol {
-	if len(symbol.Declarations()) == 0 || (symbol.Flags()&(ast.SymbolFlagsModule|ast.SymbolFlagsTransient)) == 0 {
+	if symbol.Declarations().Len() == 0 || (symbol.Flags()&(ast.SymbolFlagsModule|ast.SymbolFlagsTransient)) == 0 {
 		return nil
 	}
 
-	if decl := core.Find(symbol.Declarations(), func(d ast.Node) bool { return !ast.IsSourceFile(d) && !ast.IsModuleDeclaration(d) }); !decl.IsNil() {
+	if decl := symbol.Declarations().Find(func(d ast.Node) bool { return !ast.IsSourceFile(d) && !ast.IsModuleDeclaration(d) }); !decl.IsNil() {
 		return decl.Symbol()
 	}
 	return nil
@@ -885,7 +885,7 @@ func getIntersectingMeaningFromDeclarations(node ast.Node, symbol *ast.Symbol, d
 
 	meaning := getMeaningFromLocation(node)
 	declarations := symbol.Declarations()
-	if len(declarations) == 0 {
+	if declarations.Len() == 0 {
 		return meaning
 	}
 
@@ -893,7 +893,7 @@ func getIntersectingMeaningFromDeclarations(node ast.Node, symbol *ast.Symbol, d
 
 	// !!! TODO check if the port is correct and the for loop is needed
 	iteration := func(m ast.SemanticMeaning) ast.SemanticMeaning {
-		for _, declaration := range declarations {
+		for _, declaration := range declarations.All() {
 			declarationMeaning := getMeaningFromDeclaration(declaration)
 
 			if declarationMeaning&m != 0 {
@@ -971,7 +971,7 @@ func getPropertySymbolsFromBaseTypes(symbol *ast.Symbol, propertyName ast.Symbol
 		if symbol.Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface) == 0 || !seen.AddIfAbsent(symbol) {
 			return nil
 		}
-		for _, declaration := range symbol.Declarations() {
+		for _, declaration := range symbol.Declarations().All() {
 			for _, typeReference := range getAllSuperTypeNodes(declaration) {
 				if propertyType := checker.GetTypeAtLocation(typeReference); propertyType != nil && propertyType.Symbol() != nil {
 					// Visit the typeReference as well to see if it directly or indirectly uses that property

@@ -305,8 +305,8 @@ func (l *LanguageService) collectSemanticTokensInRange(ctx context.Context, c *c
 						if declSourceFile != nil && program.IsSourceFileDefaultLibrary(declSourceFile.PathKey()) {
 							tokenModifier |= tokenModifierDefaultLibrary
 						}
-					} else if symbol.Declarations() != nil {
-						for _, decl := range symbol.Declarations() {
+					} else if symbol.Declarations().Len() != 0 {
+						for _, decl := range symbol.Declarations().All() {
 							declSourceFile := ast.GetSourceFileOfNode(decl)
 							if declSourceFile != nil && program.IsSourceFileDefaultLibrary(declSourceFile.PathKey()) {
 								tokenModifier |= tokenModifierDefaultLibrary
@@ -361,8 +361,8 @@ func classifySymbol(symbol *ast.Symbol, meaning ast.SemanticMeaning) (tokenType,
 
 	// Check the value declaration
 	decl := symbol.ValueDeclaration()
-	if decl.IsNil() && len(symbol.Declarations()) > 0 {
-		decl = symbol.Declarations()[0]
+	if decl.IsNil() && symbol.Declarations().Len() > 0 {
+		decl = symbol.Declarations().At(0)
 	}
 	if !decl.IsNil() {
 		if ast.IsBindingElement(decl) {

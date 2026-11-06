@@ -64,7 +64,7 @@ func (b *NodeBuilderImpl) expandEnumDecl(symbol *ast.Symbol) ast.Node {
 			members = append(members, b.f.NewEnumMember(b.f.NewIdentifier(last.Name().String()), b.enumMemberInitializer(last)))
 			break
 		}
-		memberDecl := core.Find(p.Declarations(), ast.IsEnumMember)
+		memberDecl := p.Declarations().Find(ast.IsEnumMember)
 		var initializer ast.Node
 		if !memberDecl.IsNil() && !memberDecl.AsEnumMember().Initializer().IsNil() {
 			initializer = b.f.DeepCloneNode(memberDecl.AsEnumMember().Initializer())
@@ -90,7 +90,7 @@ func (b *NodeBuilderImpl) expandEnumDecl(symbol *ast.Symbol) ast.Node {
 }
 
 func (b *NodeBuilderImpl) enumMemberInitializer(p *ast.Symbol) ast.Node {
-	memberDecl := core.Find(p.Declarations(), ast.IsEnumMember)
+	memberDecl := p.Declarations().Find(ast.IsEnumMember)
 	if memberDecl.IsNil() {
 		return ast.Node{}
 	}
@@ -112,7 +112,7 @@ func (b *NodeBuilderImpl) expandClassDecl(symbol *ast.Symbol) ast.Node {
 	name := ast.SymbolNameText(symbol)
 	b.ctx.approximateLength += 9 + len(name)
 
-	classLikeDeclarations := core.Filter(symbol.Declarations(), ast.IsClassLike)
+	classLikeDeclarations := symbol.Declarations().Filter(ast.IsClassLike)
 	originalDecl := core.FirstOrNil(classLikeDeclarations)
 	oldEnclosing := b.ctx.enclosingDeclaration
 	if !originalDecl.IsNil() {
@@ -236,7 +236,7 @@ func (b *NodeBuilderImpl) expandInterfaceDecl(symbol *ast.Symbol) ast.Node {
 	b.ctx.approximateLength += 14 + len(name)
 
 	interfaceType := b.ch.getDeclaredTypeOfClassOrInterface(symbol)
-	interfaceDeclarations := core.Filter(symbol.Declarations(), ast.IsInterfaceDeclaration)
+	interfaceDeclarations := symbol.Declarations().Filter(ast.IsInterfaceDeclaration)
 	localParams := b.ch.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol)
 	typeParamDecls := core.Map(localParams, func(p *Type) ast.Node { return b.typeParameterToDeclaration(p) })
 	baseTypes := b.ch.getBaseTypes(interfaceType)
@@ -545,7 +545,7 @@ func (b *NodeBuilderImpl) expandModuleDecl(symbol *ast.Symbol) ast.Node {
 		keyword = ast.KindModuleKeyword
 	}
 	var attributes ast.TypeLiteralNodeNode
-	if declaration := core.Find(symbol.Declarations(), func(declaration ast.Node) bool {
+	if declaration := symbol.Declarations().Find(func(declaration ast.Node) bool {
 		return ast.IsModuleDeclaration(declaration) && !declaration.AsModuleDeclaration().Attributes().IsNil()
 	}); !declaration.IsNil() {
 		attributes = b.f.DeepCloneNode(declaration.AsModuleDeclaration().Attributes())

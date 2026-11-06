@@ -210,8 +210,8 @@ func classificationForSymbol(symbol *ast.Symbol) lsproto.ClassificationTypeName 
 // isFirstDeclarationOfSymbolParameter checks if the symbol's first declaration is a parameter.
 func isFirstDeclarationOfSymbolParameter(symbol *ast.Symbol) bool {
 	declarations := symbol.Declarations()
-	if len(declarations) == 0 {
+	if declarations.Len() == 0 {
 		return false
 	}
-	return declarations[0].Kind() == ast.KindParameter
+	return declarations.At(0).Kind() == ast.KindParameter
 }

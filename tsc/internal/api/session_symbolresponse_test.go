@@ -63,7 +63,7 @@ func TestTransientSymbolWithFileDeclarationIsSnapshotOwned(t *testing.T) {
 	symbol := ast.NewSymbol()
 	symbol.SetFlags(ast.SymbolFlagsClass | ast.SymbolFlagsTransient)
 	symbol.SetName(ast.MakeSymbolName("C"))
-	symbol.SetDeclarations([]ast.Node{class})
+	symbol.SetDeclarations(ast.NewDeclarations(class))
 	sd := newTestSnapshotData()
 
 	response := sd.newSymbolResponse(symbol, 1)

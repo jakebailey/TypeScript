@@ -259,9 +259,9 @@ func buildSymbolResponse(symbol *ast.Symbol, reference SymbolReference, owner *a
 		compilerdebug.Assert(symbol.Parent() == nil || symbolOwnerFile(symbol.Parent()) == owner, "File-owned symbol parent belongs to another owner")
 		compilerdebug.Assert(symbol.ExportSymbol() == nil || symbolOwnerFile(symbol.ExportSymbol()) == owner, "File-owned export symbol belongs to another owner")
 	}
-	if len(symbol.Declarations()) > 0 {
-		resp.Declarations = make([]NodeHandle, len(symbol.Declarations()))
-		for i, decl := range symbol.Declarations() {
+	if symbol.Declarations().Len() > 0 {
+		resp.Declarations = make([]NodeHandle, symbol.Declarations().Len())
+		for i, decl := range symbol.Declarations().All() {
 			resp.Declarations[i] = symbolNodeHandleFrom(decl, owner)
 		}
 	}
@@ -3500,8 +3500,8 @@ func (s *Session) resolveSymbolTablePropertyOfSymbol(ctx context.Context, params
 		slices.SortFunc(symbols, func(left *ast.Symbol, right *ast.Symbol) int {
 			compilerdebug.Assert(ast.GetSourceFileOfSymbol(left) == file)
 			compilerdebug.Assert(ast.GetSourceFileOfSymbol(right) == file)
-			leftHasDeclaration := len(left.Declarations()) != 0
-			rightHasDeclaration := len(right.Declarations()) != 0
+			leftHasDeclaration := left.Declarations().Len() != 0
+			rightHasDeclaration := right.Declarations().Len() != 0
 			if leftHasDeclaration != rightHasDeclaration {
 				if leftHasDeclaration {
 					return -1
@@ -3509,7 +3509,7 @@ func (s *Session) resolveSymbolTablePropertyOfSymbol(ctx context.Context, params
 				return 1
 			}
 			if leftHasDeclaration {
-				if order := cmp.Compare(left.Declarations()[0].Pos(), right.Declarations()[0].Pos()); order != 0 {
+				if order := cmp.Compare(left.Declarations().At(0).Pos(), right.Declarations().At(0).Pos()); order != 0 {
 					return order
 				}
 			}

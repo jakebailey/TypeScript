@@ -110,7 +110,7 @@ type ambientModuleInfo struct {
 }
 
 func tryGetModuleNameFromAmbientModule(moduleSymbol *ast.Symbol, checker CheckerShape) ambientModuleInfo {
-	for _, decl := range moduleSymbol.Declarations() {
+	for _, decl := range moduleSymbol.Declarations().All() {
 		if ast.IsModuleWithStringLiteralName(decl) && (!ast.IsModuleAugmentationExternal(decl) || !tspath.IsExternalModuleNameRelative(decl.Name().Text())) {
 			return ambientModuleInfo{name: tspath.ToModuleSpecifier(decl.Name().Text()), symbol: moduleSymbol}
 		}
@@ -126,7 +126,7 @@ func tryGetModuleNameFromAmbientModule(moduleSymbol *ast.Symbol, checker Checker
 	 * }
 	 */
 	// `import {c} from "m";` is valid, in which case, `moduleSymbol` is "ns", but the module name should be "m"
-	for _, d := range moduleSymbol.Declarations() {
+	for _, d := range moduleSymbol.Declarations().All() {
 		if !ast.IsModuleDeclaration(d) {
 			continue
 		}

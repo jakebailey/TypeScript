@@ -598,12 +598,12 @@ func (c *Checker) elaborateElement(source *Type, target *Type, relation *Relatio
 			diagnostic.AddRelatedInfo(createDiagnosticForNode(indexInfo.declaration, diagnostics.The_expected_type_comes_from_this_index_signature))
 		}
 	}
-	if !issuedElaboration && (targetProp != nil && len(targetProp.Declarations()) != 0 || target.symbol != nil && len(target.symbol.Declarations()) != 0) {
+	if !issuedElaboration && (targetProp != nil && targetProp.Declarations().Len() != 0 || target.symbol != nil && target.symbol.Declarations().Len() != 0) {
 		var targetNode ast.Node
-		if targetProp != nil && len(targetProp.Declarations()) != 0 {
-			targetNode = targetProp.Declarations()[0]
+		if targetProp != nil && targetProp.Declarations().Len() != 0 {
+			targetNode = targetProp.Declarations().At(0)
 		} else {
-			targetNode = target.symbol.Declarations()[0]
+			targetNode = target.symbol.Declarations().At(0)
 		}
 		propertyNameText := propertyName.String()
 		if propertyName == ast.EmptySymbolName || nameType.flags&TypeFlagsUniqueESSymbol != 0 {
@@ -664,8 +664,8 @@ func (c *Checker) elaborateArrowFunction(node ast.Node, source *Type, target *Ty
 	c.checkTypeRelatedToEx(sourceReturn, targetReturn, relation, returnExpression, nil /*headMessage*/, &diags)
 	if len(diags) != 0 {
 		diagnostic := diags[0]
-		if target.symbol != nil && len(target.symbol.Declarations()) != 0 {
-			diagnostic.AddRelatedInfo(createDiagnosticForNode(target.symbol.Declarations()[0], diagnostics.The_expected_type_comes_from_the_return_type_of_this_signature))
+		if target.symbol != nil && target.symbol.Declarations().Len() != 0 {
+			diagnostic.AddRelatedInfo(createDiagnosticForNode(target.symbol.Declarations().At(0), diagnostics.The_expected_type_comes_from_the_return_type_of_this_signature))
 		}
 		if ast.GetFunctionFlags(node)&ast.FunctionFlagsAsync == 0 && c.getTypeOfPropertyOfType(sourceReturn, ast.SymbolNameThen) == nil && c.checkTypeRelatedTo(c.createPromiseType(sourceReturn), targetReturn, relation, ast.Node{} /*errorNode*/) {
 			diagnostic.AddRelatedInfo(createDiagnosticForNode(node, diagnostics.Did_you_mean_to_mark_this_function_as_async))
@@ -1470,7 +1470,7 @@ func (c *Checker) isMarkerType(t *Type) bool {
 func (c *Checker) getTypeParameterModifiers(tp *Type) ast.ModifierFlags {
 	var flags ast.ModifierFlags
 	if tp.symbol != nil {
-		for _, d := range tp.symbol.Declarations() {
+		for _, d := range tp.symbol.Declarations().All() {
 			flags |= d.ModifierFlags()
 		}
 	}
@@ -2797,7 +2797,7 @@ func (r *Relater) hasExcessProperties(source *Type, target *Type, reportErrors b
 						// use the property's value declaration if the property is assigned inside the literal itself
 						var objectLiteralDeclaration ast.Node
 						if source.symbol != nil {
-							objectLiteralDeclaration = core.FirstOrNil(source.symbol.Declarations())
+							objectLiteralDeclaration = source.symbol.Declarations().FirstOrNil()
 						}
 						var suggestion string
 						if !prop.ValueDeclaration().IsNil() && ast.IsObjectLiteralElement(prop.ValueDeclaration()) &&
@@ -4415,8 +4415,8 @@ func (r *Relater) reportUnmatchedProperty(source *Type, target *Type, unmatchedP
 		sourceType, targetType := r.c.getTypeNamesForErrorDisplay(source, target)
 		propName := r.c.symbolToString(unmatchedProperty)
 		r.reportError(diagnostics.Property_0_is_missing_in_type_1_but_required_in_type_2, propName, sourceType, targetType)
-		if len(unmatchedProperty.Declarations()) != 0 {
-			r.relatedInfo = append(r.relatedInfo, createDiagnosticForNode(unmatchedProperty.Declarations()[0], diagnostics.X_0_is_declared_here, propName))
+		if unmatchedProperty.Declarations().Len() != 0 {
+			r.relatedInfo = append(r.relatedInfo, createDiagnosticForNode(unmatchedProperty.Declarations().At(0), diagnostics.X_0_is_declared_here, propName))
 		}
 	} else if r.tryElaborateArrayLikeErrors(source, target, false /*reportErrors*/) {
 		sourceType, targetType := r.c.getTypeNamesForErrorDisplay(source, target)
@@ -4792,12 +4792,12 @@ func (r *Relater) reportErrorResults(originalSource *Type, originalTarget *Type,
 		}
 	}
 	r.reportRelationError(headMessage, source, target)
-	if source.flags&TypeFlagsTypeParameter != 0 && source.symbol != nil && len(source.symbol.Declarations()) != 0 && r.c.getConstraintOfType(source) == nil {
+	if source.flags&TypeFlagsTypeParameter != 0 && source.symbol != nil && source.symbol.Declarations().Len() != 0 && r.c.getConstraintOfType(source) == nil {
 		syntheticParam := r.c.cloneTypeParameter(source)
 		syntheticParam.AsTypeParameter().constraint = r.c.instantiateType(target, newSimpleTypeMapper(source, syntheticParam))
 		if r.c.hasNonCircularBaseConstraint(syntheticParam) {
 			targetConstraintString := r.c.TypeToString(target)
-			r.relatedInfo = append(r.relatedInfo, NewDiagnosticForNode(source.symbol.Declarations()[0], diagnostics.This_type_parameter_might_need_an_extends_0_constraint, targetConstraintString))
+			r.relatedInfo = append(r.relatedInfo, NewDiagnosticForNode(source.symbol.Declarations().At(0), diagnostics.This_type_parameter_might_need_an_extends_0_constraint, targetConstraintString))
 		}
 	}
 }

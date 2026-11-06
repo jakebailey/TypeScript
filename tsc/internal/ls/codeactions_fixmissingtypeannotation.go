@@ -1249,7 +1249,7 @@ func typeParamHasDefault(tp *checker.Type) bool {
 	if sym == nil {
 		return false
 	}
-	for _, decl := range sym.Declarations() {
+	for _, decl := range sym.Declarations().All() {
 		if ast.IsTypeParameterDeclaration(decl) && !decl.AsTypeParameterDeclaration().DefaultType().IsNil() {
 			return true
 		}

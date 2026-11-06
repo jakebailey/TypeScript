@@ -185,7 +185,7 @@ func (r *EmitResolver) markLinkedAliases(node ast.Node) {
 		visited[ast.GetSymbolId(exportSymbol)] = struct{}{}
 
 		var nextSymbol *ast.Symbol
-		for _, declaration := range exportSymbol.Declarations() {
+		for _, declaration := range exportSymbol.Declarations().All() {
 			r.checker.emitResolverLinks.declarationLinks.Get(declaration).isVisible = core.TSTrue
 
 			if ast.IsInternalModuleImportEqualsDeclaration(declaration) {
@@ -271,8 +271,8 @@ func (r *EmitResolver) IsImportRequiredByAugmentation(decl ast.ImportDeclaration
 	for s := range exports.Values() {
 		merged := r.checker.getMergedSymbol(s)
 		if merged != s {
-			if len(merged.Declarations()) > 0 {
-				for _, d := range merged.Declarations() {
+			if merged.Declarations().Len() > 0 {
+				for _, d := range merged.Declarations().All() {
 					declFile := ast.GetSourceFileOfNode(d)
 					if declFile == importTarget {
 						return true
@@ -861,8 +861,8 @@ func (r *EmitResolver) GetTypeReferenceSerializationKind(typeName ast.Node, loca
 	if ast.IsQualifiedName(typeName) {
 		rootValueSymbol := r.checker.resolveEntityName(ast.GetFirstIdentifier(typeName), ast.SymbolFlagsValue, true, true, location)
 
-		if rootValueSymbol != nil && len(rootValueSymbol.Declarations()) > 0 {
-			isTypeOnly = core.Every(rootValueSymbol.Declarations(), ast.IsTypeOnlyImportOrExportDeclaration)
+		if rootValueSymbol != nil && rootValueSymbol.Declarations().Len() > 0 {
+			isTypeOnly = rootValueSymbol.Declarations().Every(ast.IsTypeOnlyImportOrExportDeclaration)
 		}
 	}
 	valueSymbol := r.checker.resolveEntityName(typeName, ast.SymbolFlagsValue, true, true, location)

@@ -177,7 +177,7 @@ func (b *NodeBuilderImpl) enterNewScope(declaration ast.Node, expandedParams []*
 						if originalParam != nil {
 							add(originalParam.Name(), originalParam)
 						}
-					} else if !core.Some(param.Declarations(), func(d ast.Node) bool {
+					} else if !param.Declarations().Some(func(d ast.Node) bool {
 						var bindElement func(e ast.BindingElement)
 						var bindPattern func(e ast.BindingPattern)
 

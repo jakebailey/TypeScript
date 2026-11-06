@@ -3,6 +3,7 @@ package ast_test
 import (
 	"reflect"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -263,7 +264,7 @@ func TestSymbolAccessors(t *testing.T) {
 	assert.Equal(t, symbol.Flags(), ast.SymbolFlagsNone)
 	assert.Equal(t, symbol.CheckFlags(), ast.CheckFlags(0))
 	assert.Equal(t, symbol.Name().String(), "")
-	assert.Assert(t, symbol.Declarations() == nil)
+	assert.Assert(t, symbol.Declarations().Len() == 0)
 	assert.Assert(t, symbol.ValueDeclaration().IsNil())
 	assert.Assert(t, symbol.Members() == nil)
 	assert.Assert(t, symbol.Exports() == nil)
@@ -272,12 +273,11 @@ func TestSymbolAccessors(t *testing.T) {
 
 	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	declaration := factory.NewIdentifier("a")
-	otherDeclaration := factory.NewIdentifier("b")
 	member := ast.NewSymbol()
 	export := ast.NewSymbol()
 	parent := ast.NewSymbol()
 	exportSymbol := ast.NewSymbol()
-	declarations := []ast.Node{declaration}
+	declarations := ast.NewDeclarations(declaration)
 	members := ast.SymbolTableOf(ast.MakeSymbolName("member"), member)
 	exports := ast.SymbolTableOf(ast.MakeSymbolName("export"), export)
 
@@ -294,17 +294,13 @@ func TestSymbolAccessors(t *testing.T) {
 	assert.Equal(t, symbol.Flags(), ast.SymbolFlagsClass|ast.SymbolFlagsTransient)
 	assert.Equal(t, symbol.CheckFlags(), ast.CheckFlagsReadonly)
 	assert.Equal(t, symbol.Name().String(), "C")
-	assert.Equal(t, symbol.Declarations()[0], declaration)
+	assert.Equal(t, symbol.Declarations().At(0), declaration)
 	assert.Equal(t, symbol.ValueDeclaration(), declaration)
 	assert.Equal(t, symbol.Members().Get(ast.MakeSymbolName("member")), member)
 	assert.Equal(t, symbol.Exports().Get(ast.MakeSymbolName("export")), export)
 	assert.Equal(t, symbol.Parent(), parent)
 	assert.Equal(t, symbol.ExportSymbol(), exportSymbol)
 
-	declarations[0] = otherDeclaration
-	assert.Equal(t, symbol.Declarations()[0], otherDeclaration)
-	symbol.Declarations()[0] = declaration
-	assert.Equal(t, declarations[0], declaration)
 	symbol.Members().Set(ast.MakeSymbolName("added"), export)
 	assert.Equal(t, members.Get(ast.MakeSymbolName("added")), export)
 	symbol.Exports().Set(ast.MakeSymbolName("added"), member)
@@ -313,7 +309,7 @@ func TestSymbolAccessors(t *testing.T) {
 	symbol.SetFlags(ast.SymbolFlagsNone)
 	symbol.SetCheckFlags(0)
 	symbol.SetName(ast.MakeSymbolName(""))
-	symbol.SetDeclarations(nil)
+	symbol.SetDeclarations(ast.Declarations{})
 	symbol.SetValueDeclaration(ast.Node{})
 	symbol.SetMembers(nil, &arena)
 	symbol.SetExports(nil, &arena)
@@ -323,7 +319,7 @@ func TestSymbolAccessors(t *testing.T) {
 	assert.Equal(t, symbol.Flags(), ast.SymbolFlagsNone)
 	assert.Equal(t, symbol.CheckFlags(), ast.CheckFlags(0))
 	assert.Equal(t, symbol.Name().String(), "")
-	assert.Assert(t, symbol.Declarations() == nil)
+	assert.Assert(t, symbol.Declarations().Len() == 0)
 	assert.Assert(t, symbol.ValueDeclaration().IsNil())
 	assert.Assert(t, symbol.Members() == nil)
 	assert.Assert(t, symbol.Exports() == nil)
@@ -358,7 +354,7 @@ func TestSymbolTableInitialization(t *testing.T) {
 
 func TestSymbolHotRecordLayout(t *testing.T) {
 	t.Parallel()
-	assert.Equal(t, unsafe.Sizeof(ast.SymbolWithData{}), unsafe.Sizeof(ast.Symbol{})+6*unsafe.Sizeof(uintptr(0))+unsafe.Sizeof(ast.Node{}))
+	assert.Equal(t, unsafe.Sizeof(ast.SymbolWithData{}), unsafe.Sizeof(ast.Symbol{})+6*unsafe.Sizeof(uintptr(0)))
 }
 
 func TestSymbolNilExtraFieldsDoNotAllocate(t *testing.T) { //nolint:paralleltest
@@ -405,4 +401,35 @@ func TestSymbolSharedExtraData(t *testing.T) {
 	runtime.GC()
 	assert.Equal(t, symbol.Members().Get(ast.MakeSymbolName("new")), export)
 	assert.Equal(t, alias.Exports().Get(ast.MakeSymbolName("new")), member)
+}
+
+func TestSymbolDeclarationsAcrossStores(t *testing.T) {
+	t.Parallel()
+	f1 := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
+	f2 := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
+	a, b, other := f1.NewIdentifier("a"), f1.NewIdentifier("b"), f2.NewIdentifier("c")
+
+	symbol := ast.NewSymbol()
+	symbol.SetDeclarations(ast.NewDeclarations(a).Append(b))
+	symbol.SetValueDeclaration(b)
+	snapshot := symbol.Declarations()
+	assert.Assert(t, slices.Equal(snapshot.Nodes(), []ast.Node{a, b}))
+
+	// A value declaration in another store moves the symbol to the general form.
+	symbol.SetValueDeclaration(other)
+	assert.Equal(t, symbol.ValueDeclaration(), other)
+	assert.Assert(t, slices.Equal(symbol.Declarations().Nodes(), []ast.Node{a, b}))
+
+	symbol.SetDeclarations(symbol.Declarations().AppendIfUnique(other).AppendIfUnique(a))
+	assert.Assert(t, slices.Equal(symbol.Declarations().Nodes(), []ast.Node{a, b, other}))
+	assert.Equal(t, symbol.Declarations().Index(other), 2)
+	assert.Equal(t, symbol.ValueDeclaration(), other)
+
+	// Earlier snapshots do not see later additions.
+	assert.Equal(t, snapshot.Len(), 2)
+
+	symbol.SetDeclarations(ast.NewDeclarations(a))
+	symbol.SetValueDeclaration(a)
+	assert.Assert(t, slices.Equal(symbol.Declarations().Nodes(), []ast.Node{a}))
+	assert.Equal(t, symbol.ValueDeclaration(), a)
 }

@@ -2608,7 +2608,7 @@ func IsParameterLike(node Node) bool {
 }
 
 func GetDeclarationOfKind(symbol *Symbol, kind Kind) Node {
-	for _, declaration := range symbol.Declarations() {
+	for _, declaration := range symbol.Declarations().All() {
 		if declaration.Kind() == kind {
 			return declaration
 		}
@@ -3064,7 +3064,7 @@ func IsExclusivelyTypeOnlyImportOrExport(node Node) bool {
 }
 
 func GetClassLikeDeclarationOfSymbol(symbol *Symbol) Node {
-	return core.Find(symbol.Declarations(), IsClassLike)
+	return symbol.Declarations().Find(IsClassLike)
 }
 
 func IsCallLikeExpression(node Node) bool {
@@ -3691,7 +3691,7 @@ func GetSourceFileOfModule(module *Symbol) *SourceFile {
 }
 
 func GetNonAugmentationDeclaration(symbol *Symbol) Node {
-	return core.Find(symbol.Declarations(), func(d Node) bool {
+	return symbol.Declarations().Find(func(d Node) bool {
 		return !IsExternalModuleAugmentation(d) && !IsGlobalScopeAugmentation(d)
 	})
 }
@@ -4485,7 +4485,7 @@ type AllAccessorDeclarations struct {
 	GetAccessor    GetAccessorDeclaration
 }
 
-func GetAllAccessorDeclarationsForDeclaration(accessor AccessorDeclaration, declarationsOfSymbol []Node) AllAccessorDeclarations {
+func GetAllAccessorDeclarationsForDeclaration(accessor AccessorDeclaration, declarationsOfSymbol Declarations) AllAccessorDeclarations {
 	var otherKind Kind
 	if accessor.Kind() == KindSetAccessor {
 		otherKind = KindGetAccessor
@@ -4496,7 +4496,7 @@ func GetAllAccessorDeclarationsForDeclaration(accessor AccessorDeclaration, decl
 	}
 	// otherAccessor := GetDeclarationOfKind(c.getSymbolOfDeclaration(accessor), otherKind)
 	var otherAccessor AccessorDeclaration
-	for _, d := range declarationsOfSymbol {
+	for d := range declarationsOfSymbol.Values() {
 		if d.Kind() == otherKind {
 			otherAccessor = d
 			break
@@ -4538,7 +4538,7 @@ func GetAllAccessorDeclarationsForDeclaration(accessor AccessorDeclaration, decl
 func GetAllAccessorDeclarations(parentDeclarations []Node, accessor AccessorDeclaration) AllAccessorDeclarations {
 	if HasDynamicName(accessor) {
 		// dynamic names can only be match up via checker symbol lookup, just return an object with just this accessor
-		return GetAllAccessorDeclarationsForDeclaration(accessor, []Node{accessor})
+		return GetAllAccessorDeclarationsForDeclaration(accessor, NewDeclarations(accessor))
 	}
 
 	accessorName := GetPropertyNameForPropertyNameNode(accessor.Name())
@@ -4553,7 +4553,7 @@ func GetAllAccessorDeclarations(parentDeclarations []Node, accessor AccessorDecl
 			matches = append(matches, member)
 		}
 	}
-	return GetAllAccessorDeclarationsForDeclaration(accessor, matches)
+	return GetAllAccessorDeclarationsForDeclaration(accessor, NewDeclarations(matches...))
 }
 
 func IsAsyncFunction(node Node) bool {

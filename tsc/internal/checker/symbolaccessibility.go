@@ -43,7 +43,7 @@ func (c *Checker) IsAnySymbolAccessible(symbols []*ast.Symbol, enclosingDeclarat
 			}
 		}
 		if allowModules {
-			if core.Some(symbol.Declarations(), hasNonGlobalAugmentationExternalModuleSymbol) {
+			if symbol.Declarations().Some(hasNonGlobalAugmentationExternalModuleSymbol) {
 				if shouldComputeAliasesToMakeVisible {
 					earlyModuleBail = true
 					// Generally speaking, we want to use the aliases that already exist to refer to a module, if present
@@ -116,7 +116,7 @@ func getQualifiedLeftMeaning(rightMeaning ast.SymbolFlags) ast.SymbolFlags {
 }
 
 func (c *Checker) getWithAlternativeContainers(container *ast.Symbol, symbol *ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags) []*ast.Symbol {
-	additionalContainers := core.MapNonNil(container.Declarations(), func(d ast.Node) *ast.Symbol {
+	additionalContainers := core.MapNonNil(container.Declarations().Nodes(), func(d ast.Node) *ast.Symbol {
 		return c.getFileSymbolIfFileSymbolExportEqualsContainer(d, container)
 	})
 	var reexportContainers []*ast.Symbol
@@ -292,10 +292,10 @@ func (c *Checker) getVariableDeclarationOfObjectLiteral(symbol *ast.Symbol, mean
 	if meaning&ast.SymbolFlagsValue == 0 {
 		return nil
 	}
-	if len(symbol.Declarations()) == 0 {
+	if symbol.Declarations().Len() == 0 {
 		return nil
 	}
-	firstDecl := symbol.Declarations()[0]
+	firstDecl := symbol.Declarations().At(0)
 	if firstDecl.Parent().IsNil() {
 		return nil
 	}
@@ -346,7 +346,7 @@ func (c *Checker) getContainersOfSymbol(symbol *ast.Symbol, enclosingDeclaration
 		return c.getWithAlternativeContainers(container, symbol, enclosingDeclaration, meaning)
 	}
 	var candidates []*ast.Symbol
-	for _, d := range symbol.Declarations() {
+	for _, d := range symbol.Declarations().All() {
 		if !ast.IsAmbientModule(d) && !d.Parent().IsNil() {
 			// direct children of a module
 			if hasNonGlobalAugmentationExternalModuleSymbol(d.Parent()) {
@@ -627,9 +627,9 @@ func (c *Checker) trySymbolTable(
 			symbolFromSymbolTable.Name() != ast.InternalSymbolNameDefault &&
 			!(isUMDExportSymbol(symbolFromSymbolTable) && !ctx.enclosingDeclaration.IsNil() && ast.IsExternalModule(ast.GetSourceFileOfNode(ctx.enclosingDeclaration))) &&
 			// If `!useOnlyExternalAliasing`, we can use any type of alias to get the name
-			(!ctx.useOnlyExternalAliasing || core.Some(symbolFromSymbolTable.Declarations(), ast.IsExternalModuleImportEqualsDeclaration)) &&
+			(!ctx.useOnlyExternalAliasing || symbolFromSymbolTable.Declarations().Some(ast.IsExternalModuleImportEqualsDeclaration)) &&
 			// If we're looking up a local name to reference directly, omit namespace reexports, otherwise when we're trawling through an export list to make a dotted name, we can keep it
-			(isLocalNameLookup && !core.Some(symbolFromSymbolTable.Declarations(), isNamespaceReexportDeclaration) || !isLocalNameLookup) &&
+			(isLocalNameLookup && !symbolFromSymbolTable.Declarations().Some(isNamespaceReexportDeclaration) || !isLocalNameLookup) &&
 			// While exports are generally considered to be in scope, export-specifier declared symbols are _not_
 			// See similar comment in `resolveName` for details
 			(ignoreQualification || len(getDeclarationsOfKind(symbolFromSymbolTable, ast.KindExportSpecifier)) == 0) {
@@ -672,7 +672,7 @@ func (c *Checker) compareSymbolChainsWorker(a []*ast.Symbol, b []*ast.Symbol) in
 }
 
 func isUMDExportSymbol(symbol *ast.Symbol) bool {
-	return symbol != nil && len(symbol.Declarations()) > 0 && !symbol.Declarations()[0].IsNil() && ast.IsNamespaceExportDeclaration(symbol.Declarations()[0])
+	return symbol != nil && symbol.Declarations().Len() > 0 && !symbol.Declarations().At(0).IsNil() && ast.IsNamespaceExportDeclaration(symbol.Declarations().At(0))
 }
 
 func isNamespaceReexportDeclaration(node ast.Node) bool {
@@ -743,7 +743,7 @@ func (c *Checker) isAccessible(
 	// if the symbolFromSymbolTable is not external module (it could be if it was determined as ambient external module and would be in globals table)
 	// and if symbolFromSymbolTable or alias resolution matches the symbol,
 	// check the symbol can be qualified, it is only then this symbol is accessible
-	return !core.Some(symbolFromSymbolTable.Declarations(), hasNonGlobalAugmentationExternalModuleSymbol) &&
+	return !symbolFromSymbolTable.Declarations().Some(hasNonGlobalAugmentationExternalModuleSymbol) &&
 		(ignoreQualification || c.canQualifySymbol(ctx, c.getMergedSymbol(symbolFromSymbolTable), ctx.meaning))
 }
 
@@ -799,8 +799,8 @@ func (c *Checker) needsQualification(symbol *ast.Symbol, enclosingDeclaration as
 }
 
 func isPropertyOrMethodDeclarationSymbol(symbol *ast.Symbol) bool {
-	if len(symbol.Declarations()) > 0 {
-		for _, declaration := range symbol.Declarations() {
+	if symbol.Declarations().Len() > 0 {
+		for _, declaration := range symbol.Declarations().All() {
 			switch declaration.Kind() {
 			case ast.KindPropertyDeclaration,
 				ast.KindMethodDeclaration,
@@ -922,7 +922,7 @@ func (c *Checker) isSymbolAccessibleWorker(symbol *ast.Symbol, enclosingDeclarat
 
 		// This could be a symbol that is not exported in the external module
 		// or it could be a symbol from different external module that is not aliased and hence cannot be named
-		symbolExternalModule := core.FirstNonNil(symbol.Declarations(), c.getExternalModuleContainer)
+		symbolExternalModule := core.FirstNonNilSeq(symbol.Declarations().Values(), c.getExternalModuleContainer)
 		if symbolExternalModule != nil {
 			enclosingExternalModule := c.getExternalModuleContainer(enclosingDeclaration)
 			if symbolExternalModule != enclosingExternalModule {

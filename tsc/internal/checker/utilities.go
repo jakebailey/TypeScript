@@ -372,13 +372,13 @@ func (c *Checker) compareSymbolsWorker(s1, s2 *ast.Symbol) int {
 	if s2 == nil {
 		return -1
 	}
-	if len(s1.Declarations()) != 0 && len(s2.Declarations()) != 0 {
-		if r := c.compareNodes(s1.Declarations()[0], s2.Declarations()[0]); r != 0 {
+	if s1.Declarations().Len() != 0 && s2.Declarations().Len() != 0 {
+		if r := c.compareNodes(s1.Declarations().At(0), s2.Declarations().At(0)); r != 0 {
 			return r
 		}
-	} else if len(s1.Declarations()) != 0 {
+	} else if s1.Declarations().Len() != 0 {
 		return -1
-	} else if len(s2.Declarations()) != 0 {
+	} else if s2.Declarations().Len() != 0 {
 		return 1
 	}
 	if r := strings.Compare(s1.Name().String(), s2.Name().String()); r != 0 {
@@ -444,11 +444,11 @@ func CompareTypes(t1, t2 *Type) int {
 		// Order other unnamed or identically named object types by symbol.
 		if t1.objectFlags&ObjectFlagsInstantiationExpressionType != 0 && t2.objectFlags&ObjectFlagsInstantiationExpressionType != 0 {
 			var declaration1, declaration2 ast.Node
-			if t1.symbol != nil && len(t1.symbol.Declarations()) != 0 {
-				declaration1 = t1.symbol.Declarations()[0]
+			if t1.symbol != nil && t1.symbol.Declarations().Len() != 0 {
+				declaration1 = t1.symbol.Declarations().At(0)
 			}
-			if t2.symbol != nil && len(t2.symbol.Declarations()) != 0 {
-				declaration2 = t2.symbol.Declarations()[0]
+			if t2.symbol != nil && t2.symbol.Declarations().Len() != 0 {
+				declaration2 = t2.symbol.Declarations().At(0)
 			}
 			// A single instantiation expression can produce multiple types for union constituents,
 			// so compare their source declarations before comparing the shared expression node.
@@ -790,10 +790,10 @@ func getDeclarationModifierFlagsFromSymbolEx(s *ast.Symbol, isWrite bool) ast.Mo
 	if !s.ValueDeclaration().IsNil() {
 		var declaration ast.Node
 		if isWrite {
-			declaration = core.Find(s.Declarations(), ast.IsSetAccessorDeclaration)
+			declaration = s.Declarations().Find(ast.IsSetAccessorDeclaration)
 		}
 		if declaration.IsNil() && s.Flags()&ast.SymbolFlagsGetAccessor != 0 {
-			declaration = core.Find(s.Declarations(), ast.IsGetAccessorDeclaration)
+			declaration = s.Declarations().Find(ast.IsGetAccessorDeclaration)
 		}
 		if declaration.IsNil() {
 			declaration = s.ValueDeclaration()
@@ -1417,7 +1417,7 @@ func getEnclosingContainer(node ast.Node) ast.Node {
 }
 
 func getDeclarationsOfKind(symbol *ast.Symbol, kind ast.Kind) []ast.Node {
-	return core.Filter(symbol.Declarations(), func(d ast.Node) bool { return d.Kind() == kind })
+	return symbol.Declarations().Filter(func(d ast.Node) bool { return d.Kind() == kind })
 }
 
 func hasType(node ast.Node) bool {
@@ -1746,9 +1746,9 @@ func tryGetPropertyAccessOrIdentifierToString(expr ast.Node) string {
 }
 
 func allDeclarationsInSameSourceFile(symbol *ast.Symbol) bool {
-	if len(symbol.Declarations()) > 1 {
+	if symbol.Declarations().Len() > 1 {
 		var sourceFile *ast.SourceFile
-		for i, d := range symbol.Declarations() {
+		for i, d := range symbol.Declarations().All() {
 			if i == 0 {
 				sourceFile = ast.GetSourceFileOfNode(d)
 			} else if ast.GetSourceFileOfNode(d) != sourceFile {
@@ -1888,7 +1888,7 @@ func (c *Checker) isUncheckedJSSuggestion(node ast.Node, suggestion *ast.Symbol,
 		if c.compilerOptions.CheckJs.IsUnknown() && file.CheckJsDirective == nil && (file.ScriptKind == core.ScriptKindJS || file.ScriptKind == core.ScriptKindJSX) {
 			var declarationFile *ast.SourceFile
 			if suggestion != nil {
-				if firstDeclaration := core.FirstOrNil(suggestion.Declarations()); !firstDeclaration.IsNil() {
+				if firstDeclaration := suggestion.Declarations().FirstOrNil(); !firstDeclaration.IsNil() {
 					declarationFile = ast.GetSourceFileOfNode(firstDeclaration)
 				}
 			}

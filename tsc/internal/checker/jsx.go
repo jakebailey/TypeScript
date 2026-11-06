@@ -1102,9 +1102,9 @@ func (c *Checker) getNameFromJsxElementAttributesContainer(nameOfAttribPropConta
 			if len(propertiesOfJsxElementAttribPropInterface) == 1 {
 				return propertiesOfJsxElementAttribPropInterface[0].Name()
 			}
-			if len(propertiesOfJsxElementAttribPropInterface) > 1 && len(jsxElementAttribPropInterfaceSym.Declarations()) != 0 {
+			if len(propertiesOfJsxElementAttribPropInterface) > 1 && jsxElementAttribPropInterfaceSym.Declarations().Len() != 0 {
 				// More than one property on ElementAttributesProperty is an error
-				c.error(jsxElementAttribPropInterfaceSym.Declarations()[0], diagnostics.The_global_type_JSX_0_may_not_have_more_than_one_property, nameOfAttribPropContainer.String())
+				c.error(jsxElementAttribPropInterfaceSym.Declarations().At(0), diagnostics.The_global_type_JSX_0_may_not_have_more_than_one_property, nameOfAttribPropContainer.String())
 			}
 		}
 	}

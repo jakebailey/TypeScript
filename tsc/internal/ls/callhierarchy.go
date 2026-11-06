@@ -342,7 +342,7 @@ func findAllInitialDeclarations(c *checker.Checker, node ast.Node) []ast.Node {
 	}
 
 	symbol := getSymbolOfCallHierarchyDeclaration(c, node)
-	if symbol == nil || symbol.Declarations() == nil {
+	if symbol == nil || symbol.Declarations().Len() == 0 {
 		return nil
 	}
 
@@ -351,12 +351,12 @@ func findAllInitialDeclarations(c *checker.Checker, node ast.Node) []ast.Node {
 		pos  int
 	}
 
-	indices := make([]int, len(symbol.Declarations()))
+	indices := make([]int, symbol.Declarations().Len())
 	for i := range indices {
 		indices[i] = i
 	}
-	keys := make([]declKey, len(symbol.Declarations()))
-	for i, decl := range symbol.Declarations() {
+	keys := make([]declKey, symbol.Declarations().Len())
+	for i, decl := range symbol.Declarations().All() {
 		keys[i] = declKey{
 			file: ast.GetSourceFileOfNode(decl).FileName(),
 			pos:  decl.Pos(),
@@ -374,7 +374,7 @@ func findAllInitialDeclarations(c *checker.Checker, node ast.Node) []ast.Node {
 	var lastDecl ast.Node
 
 	for _, i := range indices {
-		decl := symbol.Declarations()[i]
+		decl := symbol.Declarations().At(i)
 		if isValidCallHierarchyDeclaration(decl) {
 			if lastDecl.IsNil() || lastDecl.Parent() != decl.Parent() || lastDecl.End() != decl.Pos() {
 				declarations = append(declarations, decl)

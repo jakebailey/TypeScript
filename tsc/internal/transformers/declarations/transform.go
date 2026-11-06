@@ -355,8 +355,8 @@ func (tx *DeclarationTransformer) transformSourceFile(node *ast.SourceFile) ast.
 	combinedStatements.SetLoc(statements.Loc()) // setTextRange
 	if ast.IsExternalOrCommonJSModule(node) {
 		if ast.IsInJSFile(node.AsNode()) {
-			if exportEquals := node.Symbol().Exports().Get(ast.InternalSymbolNameExportEquals); exportEquals != nil && len(exportEquals.Declarations()) > 1 {
-				for _, node := range exportEquals.Declarations() {
+			if exportEquals := node.Symbol().Exports().Get(ast.InternalSymbolNameExportEquals); exportEquals != nil && exportEquals.Declarations().Len() > 1 {
+				for _, node := range exportEquals.Declarations().All() {
 					tx.state.addDiagnostic(createDiagnosticForNode(node, diagnostics.Multiple_module_exports_assignments_cannot_be_serialized_for_declaration_emit))
 				}
 			}
@@ -1089,7 +1089,7 @@ func (tx *DeclarationTransformer) transformConstructSignatureDeclaration(input a
 }
 
 func (tx *DeclarationTransformer) omitPrivateMethodType(input ast.Node) ast.Node {
-	if input.Symbol() != nil && len(input.Symbol().Declarations()) > 0 && input.Symbol().Declarations()[0] != input {
+	if input.Symbol() != nil && input.Symbol().Declarations().Len() > 0 && input.Symbol().Declarations().At(0) != input {
 		return ast.Node{}
 	}
 	var result ast.Node
@@ -1563,7 +1563,7 @@ func (tx *DeclarationTransformer) wrapInCJSExportNamespace(content ast.Node) ast
 
 func isCommonJSAliasExport(node ast.Node) bool {
 	if ast.IsBinaryExpression(node) && ast.IsIdentifier(node.AsBinaryExpression().Right()) {
-		if symbol := node.Symbol(); symbol != nil && len(symbol.Declarations()) == 1 {
+		if symbol := node.Symbol(); symbol != nil && symbol.Declarations().Len() == 1 {
 			return true
 		}
 	}

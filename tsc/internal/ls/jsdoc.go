@@ -31,7 +31,7 @@ func GetSymbolDocumentationComment(c *checker.Checker, symbol *ast.Symbol) strin
 	}
 	var parts []string
 	var seen collections.Set[ast.Node]
-	for _, decl := range symbol.Declarations() {
+	for _, decl := range symbol.Declarations().All() {
 		if decl.IsNil() {
 			continue
 		}
@@ -54,7 +54,7 @@ func GetSymbolJSDocTags(symbol *ast.Symbol) []JSDocTagInfo {
 	}
 	var infos []JSDocTagInfo
 	var seen collections.Set[ast.Node]
-	for _, decl := range symbol.Declarations() {
+	for _, decl := range symbol.Declarations().All() {
 		if decl.IsNil() {
 			continue
 		}
@@ -191,7 +191,7 @@ func getJSDocOrTag(c *checker.Checker, node ast.Node, seenSymbols *collections.S
 		if name := node.PropertyNameOrName(); ast.IsIdentifier(name) {
 			if objectType := c.GetTypeAtLocation(node.Parent()); objectType != nil {
 				if prop := c.GetPropertyOfType(objectType, name.TextSymbolName()); prop != nil {
-					for _, d := range prop.Declarations() {
+					for _, d := range prop.Declarations().All() {
 						if jsdoc := getJSDoc(d); !jsdoc.IsNil() {
 							return jsdoc
 						}
@@ -202,7 +202,7 @@ func getJSDocOrTag(c *checker.Checker, node ast.Node, seenSymbols *collections.S
 	}
 	if symbol := node.Symbol(); symbol != nil && !node.Parent().IsNil() {
 		if ast.IsFunctionDeclaration(node) || ast.IsMethodDeclaration(node) || ast.IsMethodSignatureDeclaration(node) || ast.IsConstructorDeclaration(node) || ast.IsConstructSignatureDeclaration(node) {
-			firstSignature := core.Find(symbol.Declarations(), ast.IsFunctionLike)
+			firstSignature := symbol.Declarations().Find(ast.IsFunctionLike)
 			if !firstSignature.IsNil() && node != firstSignature {
 				if jsDoc := getJSDocOrTag(c, firstSignature, seenSymbols); !jsDoc.IsNil() {
 					return jsDoc

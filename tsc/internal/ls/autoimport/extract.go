@@ -243,7 +243,7 @@ func (e *symbolExtractor) extractFromSymbol(name ast.SymbolName, symbol *ast.Sym
 			}
 		}
 	} else if syntax == ExportSyntaxCommonJSModuleExports {
-		expression := symbol.Declarations()[0].AsBinaryExpression().Right()
+		expression := symbol.Declarations().At(0).AsBinaryExpression().Right()
 		if expression.Kind() == ast.KindObjectLiteralExpression {
 			// what is actually desirable here? I think it would be reasonable to only treat these as exports
 			// if *every* property is a shorthand property or identifier: identifier
@@ -288,16 +288,16 @@ func (e *symbolExtractor) createExport(symbol *ast.Symbol, moduleID ModuleID, mo
 		targetSymbol = e.tryResolveSymbol(symbol, syntax, checkerLease)
 		if targetSymbol != nil {
 			var decl ast.Node
-			if len(targetSymbol.Declarations()) > 0 {
-				decl = targetSymbol.Declarations()[0]
+			if targetSymbol.Declarations().Len() > 0 {
+				decl = targetSymbol.Declarations().At(0)
 			} else if targetSymbol.CheckFlags()&ast.CheckFlagsMapped != 0 {
-				if mappedDecl := checkerLease.GetChecker().GetMappedTypeSymbolOfProperty(targetSymbol); mappedDecl != nil && len(mappedDecl.Declarations()) > 0 {
-					decl = mappedDecl.Declarations()[0]
+				if mappedDecl := checkerLease.GetChecker().GetMappedTypeSymbolOfProperty(targetSymbol); mappedDecl != nil && mappedDecl.Declarations().Len() > 0 {
+					decl = mappedDecl.Declarations().At(0)
 				}
 			}
 			if decl.IsNil() {
 				// !!! consider GetImmediateAliasedSymbol to go as far as we can
-				decl = symbol.Declarations()[0]
+				decl = symbol.Declarations().At(0)
 			}
 			if decl.IsNil() {
 				panic("no declaration for aliased symbol")
@@ -310,7 +310,7 @@ func (e *symbolExtractor) createExport(symbol *ast.Symbol, moduleID ModuleID, mo
 				parent = checker.GetMergedSymbol(parent)
 			} else {
 				export.Flags = targetSymbol.Flags()
-				export.IsTypeOnly = core.Some(symbol.Declarations(), ast.IsPartOfTypeOnlyImportOrExportDeclaration)
+				export.IsTypeOnly = symbol.Declarations().Some(ast.IsPartOfTypeOnlyImportOrExportDeclaration)
 			}
 			export.ScriptElementKind = lsutil.GetSymbolKind(checkerLease.TryChecker(), targetSymbol, decl)
 			export.ScriptElementKindModifiers = lsutil.GetSymbolModifiers(checkerLease.TryChecker(), targetSymbol)
@@ -326,7 +326,7 @@ func (e *symbolExtractor) createExport(symbol *ast.Symbol, moduleID ModuleID, mo
 			}
 		}
 	} else {
-		export.ScriptElementKind = lsutil.GetSymbolKind(checkerLease.TryChecker(), symbol, symbol.Declarations()[0])
+		export.ScriptElementKind = lsutil.GetSymbolKind(checkerLease.TryChecker(), symbol, symbol.Declarations().At(0))
 		export.ScriptElementKindModifiers = lsutil.GetSymbolModifiers(checkerLease.TryChecker(), symbol)
 	}
 
@@ -420,7 +420,7 @@ func shouldIgnoreSymbol(symbol *ast.Symbol) bool {
 }
 
 func getSyntax(symbol *ast.Symbol) ExportSyntax {
-	for _, decl := range symbol.Declarations() {
+	for _, decl := range symbol.Declarations().All() {
 		switch decl.Kind() {
 		case ast.KindExportSpecifier:
 			return ExportSyntaxNamed
@@ -464,8 +464,8 @@ func isUnusableName(name ast.SymbolName) bool {
 // file name, and uses the lowercased moduleID only for ambient modules where no
 // original file name is available.
 func fileNameForDefaultExportName(targetSymbol *ast.Symbol, moduleFileName tspath.RootedFilePath, moduleID ModuleID) string {
-	if targetSymbol != nil && len(targetSymbol.Declarations()) > 0 {
-		if fn := ast.GetSourceFileOfNode(targetSymbol.Declarations()[0]).FileName(); fn != "" {
+	if targetSymbol != nil && targetSymbol.Declarations().Len() > 0 {
+		if fn := ast.GetSourceFileOfNode(targetSymbol.Declarations().At(0)).FileName(); fn != "" {
 			return fn.AsString()
 		}
 	}

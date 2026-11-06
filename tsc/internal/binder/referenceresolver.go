@@ -132,7 +132,7 @@ func (r *referenceResolver) isTypeOnlyAliasDeclaration(symbol *ast.Symbol) bool 
 }
 
 func (r *referenceResolver) getDeclarationOfAliasSymbol(symbol *ast.Symbol) ast.Declaration {
-	return core.FindLast(symbol.Declarations(), ast.IsAliasSymbolDeclaration)
+	return symbol.Declarations().FindLast(ast.IsAliasSymbolDeclaration)
 }
 
 func (r *referenceResolver) getExportSymbolOfValueSymbolIfExported(symbol *ast.Symbol) *ast.Symbol {
@@ -210,7 +210,7 @@ func (r *referenceResolver) GetReferencedValueDeclarations(node ast.IdentifierNo
 	var declarations []ast.Declaration
 	if symbol := r.getReferencedValueSymbol(node, false /*startInDeclarationContainer*/); symbol != nil {
 		symbol = r.getExportSymbolOfValueSymbolIfExported(symbol)
-		for _, declaration := range symbol.Declarations() {
+		for _, declaration := range symbol.Declarations().All() {
 			switch declaration.Kind() {
 			case ast.KindVariableDeclaration,
 				ast.KindParameter,

@@ -2,7 +2,6 @@ package ls
 
 import (
 	"context"
-	"slices"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
@@ -309,7 +308,7 @@ func getImportersForExport(
 			return sourceFiles
 		}
 		// Module augmentations may use this module's exports without importing it.
-		for _, decl := range exportInfo.exportingModuleSymbol.Declarations() {
+		for _, decl := range exportInfo.exportingModuleSymbol.Declarations().All() {
 			if ast.IsExternalModuleAugmentation(decl) && sourceFilesSet.Has(ast.GetSourceFileOfNode(decl).FileName()) {
 				addIndirectUser(decl, false)
 			}
@@ -523,7 +522,7 @@ func getImportOrExportSymbol(node ast.Node, symbol *ast.Symbol, checker *checker
 			if ast.IsPropertyAccessExpression(parent) {
 				// When accessing an export of a JS module, there's no alias. The symbol will still be flagged as an export even though we're at the use.
 				// So check that we are at the declaration.
-				if ast.IsBinaryExpression(grandparent) && slices.Contains(symbol.Declarations(), parent) {
+				if ast.IsBinaryExpression(grandparent) && symbol.Declarations().Contains(parent) {
 					return getSpecialPropertyExport(grandparent, false /*useLhsSymbol*/)
 				}
 				return nil
@@ -668,7 +667,7 @@ func isExternalModuleImportEquals(node ast.Node) bool {
 // If at an export specifier, go to the symbol it refers to. */
 func skipExportSpecifierSymbol(symbol *ast.Symbol, checker *checker.Checker) *ast.Symbol {
 	// For `export { foo } from './bar", there's nothing to skip, because it does not create a new alias. But `export { foo } does.
-	for _, declaration := range symbol.Declarations() {
+	for _, declaration := range symbol.Declarations().All() {
 		switch {
 		case ast.IsExportSpecifier(declaration) && declaration.PropertyName().IsNil() && declaration.Parent().Parent().ModuleSpecifier().IsNil():
 			return core.OrElse(checker.GetExportSpecifierLocalTargetSymbol(declaration), symbol)
@@ -703,7 +702,7 @@ func symbolNameNoDefault(symbol *ast.Symbol) ast.SymbolName {
 	if symbol.Name() != ast.InternalSymbolNameDefault {
 		return symbol.Name()
 	}
-	for _, decl := range symbol.Declarations() {
+	for _, decl := range symbol.Declarations().All() {
 		name := ast.GetNameOfDeclaration(decl)
 		if !name.IsNil() && ast.IsIdentifier(name) {
 			return name.TextSymbolName()

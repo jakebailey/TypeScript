@@ -813,7 +813,7 @@ func (l *LanguageService) getCompletionData(
 		// For a computed property with an accessible name like `Symbol.iterator`,
 		// we'll add a completion for the *name* `Symbol` instead of for the property.
 		// If this is e.g. [Symbol.iterator], add a completion for `Symbol`.
-		computedPropertyName := core.FirstNonNil(symbol.Declarations(), func(decl ast.Node) ast.Node {
+		computedPropertyName := core.FirstNonNilSeq(symbol.Declarations().Values(), func(decl ast.Node) ast.Node {
 			name := ast.GetNameOfDeclaration(decl)
 			if !name.IsNil() && name.Kind() == ast.KindComputedPropertyName {
 				return name
@@ -951,7 +951,7 @@ func (l *LanguageService) getCompletionData(
 						if isNamespaceName {
 							// At `namespace N.M/**/`, if this is the only declaration of `M`, don't include `M` as a completion.
 							isValidAccess = exportedSymbol.Flags()&ast.SymbolFlagsNamespace != 0 &&
-								!core.Every(exportedSymbol.Declarations(), func(declaration ast.Declaration) bool {
+								!exportedSymbol.Declarations().Every(func(declaration ast.Declaration) bool {
 									return declaration.Parent() == node.Parent()
 								})
 						} else if isRhsOfImportDeclaration {
@@ -969,11 +969,9 @@ func (l *LanguageService) getCompletionData(
 
 					// If the module is merged with a value, we must get the type of the class and add its properties (for inherited static methods).
 					if !isTypeLocation && !insideJSDocTagTypeExpression &&
-						core.Some(
-							symbol.Declarations(),
-							func(decl ast.Declaration) bool {
-								return decl.Kind() != ast.KindSourceFile && decl.Kind() != ast.KindModuleDeclaration && decl.Kind() != ast.KindEnumDeclaration
-							},
+						symbol.Declarations().Some(func(decl ast.Declaration) bool {
+							return decl.Kind() != ast.KindSourceFile && decl.Kind() != ast.KindModuleDeclaration && decl.Kind() != ast.KindEnumDeclaration
+						},
 						) {
 						t := typeChecker.GetNonOptionalType(typeChecker.GetTypeOfSymbolAtLocation(symbol, node))
 						insertQuestionDot := false
@@ -1628,13 +1626,13 @@ func (l *LanguageService) getCompletionData(
 		for index, symbol := range symbols {
 			symbolId := ast.GetSymbolId(symbol)
 			if !typeChecker.IsArgumentsSymbol(symbol) &&
-				!core.Some(symbol.Declarations(), func(decl ast.Declaration) bool {
+				!symbol.Declarations().Some(func(decl ast.Declaration) bool {
 					return ast.GetSourceFileOfNode(decl) == file
 				}) {
 				symbolToSortTextMap[symbolId] = SortTextGlobalsOrKeywords
 			}
 			if typeOnlyAliasNeedsPromotion && symbol.Flags()&ast.SymbolFlagsValue == 0 {
-				typeOnlyAliasDeclaration := core.Find(symbol.Declarations(), ast.IsTypeOnlyImportDeclaration)
+				typeOnlyAliasDeclaration := symbol.Declarations().Find(ast.IsTypeOnlyImportDeclaration)
 				if !typeOnlyAliasDeclaration.IsNil() {
 					origin := &symbolOriginInfo{
 						kind: symbolOriginInfoKindTypeOnlyAlias,
@@ -2030,7 +2028,7 @@ func (l *LanguageService) getCompletionEntriesFromSymbols(
 		// True for locals; false for globals, module exports from other files, `this.` completions.
 		shouldShadowLaterSymbols := (origin == nil || originIsTypeOnlyAlias(origin)) &&
 			!(symbol.Parent() == nil &&
-				!core.Some(symbol.Declarations(), func(d ast.Node) bool { return ast.GetSourceFileOfNode(d) == file }))
+				!symbol.Declarations().Some(func(d ast.Node) bool { return ast.GetSourceFileOfNode(d) == file }))
 		uniques[name] = shouldShadowLaterSymbols
 		var sym *ast.Symbol
 		if includeSymbols {
@@ -2502,7 +2500,7 @@ func (l *LanguageService) createObjectLiteralMethod(snippetPrinter *snippetPrint
 	factory := snippetPrinter.factory
 	emitContext := snippetPrinter.emitContext
 
-	declaration := core.FirstOrNil(symbol.Declarations())
+	declaration := symbol.Declarations().FirstOrNil()
 	if !isObjectLiteralMethodCompletionCandidateDeclaration(declaration) {
 		return ast.Node{}
 	}
@@ -3062,7 +3060,7 @@ func isClassLikeMemberCompletion(symbol *ast.Symbol, location ast.Node, file *as
 func symbolAppearsToBeTypeOnly(symbol *ast.Symbol, typeChecker *checker.Checker) bool {
 	flags := checker.SkipAlias(symbol, typeChecker).CombinedLocalAndExportSymbolFlags()
 	return flags&ast.SymbolFlagsValue == 0 &&
-		(len(symbol.Declarations()) == 0 || !ast.IsInJSFile(symbol.Declarations()[0]) || flags&ast.SymbolFlagsType != 0)
+		(symbol.Declarations().Len() == 0 || !ast.IsInJSFile(symbol.Declarations().At(0)) || flags&ast.SymbolFlagsType != 0)
 }
 
 func shouldIncludeSymbol(
@@ -3094,8 +3092,8 @@ func shouldIncludeSymbol(
 	var symbolDeclaration ast.Declaration
 	if !symbol.ValueDeclaration().IsNil() {
 		symbolDeclaration = symbol.ValueDeclaration()
-	} else if len(symbol.Declarations()) > 0 {
-		symbolDeclaration = symbol.Declarations()[0]
+	} else if symbol.Declarations().Len() > 0 {
+		symbolDeclaration = symbol.Declarations().At(0)
 	}
 
 	if !closestSymbolDeclaration.IsNil() && !symbolDeclaration.IsNil() {
@@ -3436,7 +3434,7 @@ func getFirstSymbolInChain(symbol *ast.Symbol, enclosingDeclaration ast.Node, ty
 }
 
 func isModuleSymbol(symbol *ast.Symbol) bool {
-	return core.Some(symbol.Declarations(), func(decl ast.Declaration) bool { return decl.Kind() == ast.KindSourceFile })
+	return symbol.Declarations().Some(func(decl ast.Declaration) bool { return decl.Kind() == ast.KindSourceFile })
 }
 
 func getNullableSymbolOriginInfoKind(kind symbolOriginInfoKind, insertQuestionDot bool) symbolOriginInfoKind {
@@ -3670,7 +3668,7 @@ func isInTypeParameterDefault(contextToken ast.Node) bool {
 
 func isDeprecated(symbol *ast.Symbol, typeChecker *checker.Checker) bool {
 	declarations := checker.SkipAlias(symbol, typeChecker).Declarations()
-	return len(declarations) > 0 && core.Every(declarations, func(decl ast.Declaration) bool { return typeChecker.IsDeprecatedDeclaration(decl) })
+	return declarations.Len() > 0 && declarations.Every(func(decl ast.Declaration) bool { return typeChecker.IsDeprecatedDeclaration(decl) })
 }
 
 func (l *LanguageService) getReplacementRangeForContextToken(file *ast.SourceFile, contextToken ast.Node, position int) *lsproto.Range {
@@ -4446,10 +4444,10 @@ func getPropertiesForObjectExpression(
 	// function f<T>(x: T) {}
 	// f({ abc/**/: "" }) // `abc` is a member of `T` but only because it declares itself
 	hasDeclarationOtherThanSelf := func(member *ast.Symbol) bool {
-		if len(member.Declarations()) == 0 {
+		if member.Declarations().Len() == 0 {
 			return true
 		}
-		return core.Some(member.Declarations(), func(decl ast.Declaration) bool { return decl.Parent() != obj })
+		return member.Declarations().Some(func(decl ast.Declaration) bool { return decl.Parent() != obj })
 	}
 
 	properties := getApparentProperties(t, obj, typeChecker)
@@ -4736,7 +4734,7 @@ func filterClassMembersList(
 
 	return core.Filter(baseSymbols, func(propertySymbol *ast.Symbol) bool {
 		return !existingMemberNames.Has(ast.MakeSymbolName(ast.SymbolNameText(propertySymbol))) &&
-			len(propertySymbol.Declarations()) > 0 &&
+			propertySymbol.Declarations().Len() > 0 &&
 			checker.GetDeclarationModifierFlagsFromSymbol(propertySymbol)&ast.ModifierFlagsPrivate == 0 &&
 			!(!propertySymbol.ValueDeclaration().IsNil() && ast.IsPrivateIdentifierClassElementDeclaration(propertySymbol.ValueDeclaration()))
 	})

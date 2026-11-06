@@ -2,7 +2,6 @@ package checker
 
 import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
-	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/nodebuilder"
 	"github.com/microsoft/TypeScript/tsc/internal/printer"
 )
@@ -186,7 +185,7 @@ func (b *NodeBuilder) ExpandSymbolForHover(symbol *ast.Symbol, meaning ast.Symbo
 }
 
 func simplifyClassDeclaration(f *ast.NodeFactory, classDecl ast.Node, symbol *ast.Symbol) ast.Node {
-	classDeclarations := core.Filter(symbol.Declarations(), ast.IsClassLike)
+	classDeclarations := symbol.Declarations().Filter(ast.IsClassLike)
 	var originalClassDecl ast.Node
 	if len(classDeclarations) > 0 {
 		originalClassDecl = classDeclarations[0]
@@ -210,7 +209,7 @@ func simplifyClassDeclaration(f *ast.NodeFactory, classDecl ast.Node, symbol *as
 }
 
 func simplifyModifiers(f *ast.NodeFactory, newDecl ast.Node, isDeclKind func(ast.Node) bool, symbol *ast.Symbol) ast.Node {
-	decls := core.Filter(symbol.Declarations(), isDeclKind)
+	decls := symbol.Declarations().Filter(isDeclKind)
 	var declWithModifiers ast.Node
 	if len(decls) > 0 {
 		declWithModifiers = decls[0]

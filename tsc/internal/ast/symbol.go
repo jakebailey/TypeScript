@@ -25,12 +25,18 @@ type Symbol struct {
 }
 
 // Every symbol references a symbolData structure that may be shared with other symbols.
+//
+// The declarations and the value declaration share one store pointer in the compact form of
+// Declarations: s is their store, first the first declaration's index, rest the others, and value
+// the value declaration's index. When they span stores, s is nil and rest holds the nodes.
 type symbolData struct {
-	name             SymbolName
-	declarations     []Node
-	valueDeclaration Node
-	parent           *Symbol
-	extra            *symbolExtra
+	name   SymbolName
+	s      *NodeStore
+	rest   *declRest
+	first  uint32
+	value  uint32
+	parent *Symbol
+	extra  *symbolExtra
 }
 
 type symbolExtra struct {
@@ -48,9 +54,25 @@ type SymbolExtraArena struct {
 func (s *Symbol) Flags() SymbolFlags     { return s.flags }
 func (s *Symbol) CheckFlags() CheckFlags { return s.checkFlags }
 func (s *Symbol) Name() SymbolName       { return s.data.name }
-func (s *Symbol) Declarations() []Node   { return s.data.declarations }
-func (s *Symbol) ValueDeclaration() Node { return s.data.valueDeclaration }
 func (s *Symbol) Parent() *Symbol        { return s.data.parent }
+
+func (s *Symbol) Declarations() Declarations {
+	return Declarations{s: s.data.s, rest: s.data.rest, first: s.data.first}
+}
+
+func (s *Symbol) ValueDeclaration() Node {
+	d := s.data
+	if d.s != nil {
+		if d.value == 0 {
+			return Node{}
+		}
+		return Node{d.s, d.value}
+	}
+	if d.rest != nil {
+		return d.rest.value
+	}
+	return Node{}
+}
 
 func (s *Symbol) Members() SymbolTable {
 	if s.data.extra == nil {
@@ -76,9 +98,32 @@ func (s *Symbol) ExportSymbol() *Symbol {
 func (s *Symbol) SetFlags(value SymbolFlags)     { s.flags = value }
 func (s *Symbol) SetCheckFlags(value CheckFlags) { s.checkFlags = value }
 func (s *Symbol) SetName(value SymbolName)       { s.data.name = value }
-func (s *Symbol) SetDeclarations(value []Node)   { s.data.declarations = value }
-func (s *Symbol) SetValueDeclaration(value Node) { s.data.valueDeclaration = value }
-func (s *Symbol) SetParent(value *Symbol)        { s.data.parent = value }
+
+func (s *Symbol) SetDeclarations(value Declarations) {
+	valueDeclaration := s.ValueDeclaration()
+	d := s.data
+	d.s, d.rest, d.first, d.value = value.s, value.rest, value.first, 0
+	s.SetValueDeclaration(valueDeclaration)
+}
+
+func (s *Symbol) SetValueDeclaration(value Node) {
+	d := s.data
+	switch {
+	case d.s == nil && d.rest != nil:
+		d.rest = &declRest{nodes: d.rest.nodes, value: value}
+	case value.IsNil():
+		d.value = 0
+	case d.s == nil:
+		d.s, d.value = value.s, value.node
+	case d.s == value.s:
+		d.value = value.node
+	default:
+		nodes := s.Declarations().Nodes()
+		d.s, d.first, d.value = nil, 0, 0
+		d.rest = &declRest{nodes: nodes, value: value}
+	}
+}
+func (s *Symbol) SetParent(value *Symbol) { s.data.parent = value }
 
 func (s *Symbol) ensureExtra(arena *SymbolExtraArena) *symbolExtra {
 	if s.data.extra == nil {
@@ -136,15 +181,15 @@ func GetSourceFileOfSymbol(symbol *Symbol) *SourceFile {
 	if symbol.Flags()&SymbolFlagsTransient != 0 {
 		return nil
 	}
-	if len(symbol.Declarations()) == 0 {
+	if symbol.Declarations().Len() == 0 {
 		// A class's implicit prototype has no declaration of its own.
 		debug.Assert(symbol.Flags()&SymbolFlagsPrototype != 0, "File-bound symbol has no declarations")
 		debug.Assert(symbol.Parent() != nil && symbol.Parent().Flags()&SymbolFlagsClass != 0, "Prototype has no declaring class")
 		symbol = symbol.Parent()
 		debug.Assert(symbol.Flags()&SymbolFlagsTransient == 0, "Prototype parent is not file-bound")
-		debug.Assert(len(symbol.Declarations()) != 0, "Prototype parent has no declarations")
+		debug.Assert(symbol.Declarations().Len() != 0, "Prototype parent has no declarations")
 	}
-	file := GetSourceFileOfNode(symbol.Declarations()[0])
+	file := GetSourceFileOfNode(symbol.Declarations().At(0))
 	debug.Assert(file != nil, "File-bound declaration has no source file")
 	return file
 }

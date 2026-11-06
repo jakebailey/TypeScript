@@ -215,7 +215,7 @@ func (c *Checker) hasVisibleDeclarations(symbol *ast.Symbol, shouldComputeAliasT
 		addVisibleAlias = noopAddVisibleAlias
 	}
 
-	for _, declaration := range symbol.Declarations() {
+	for _, declaration := range symbol.Declarations().All() {
 		if ast.IsIdentifier(declaration) {
 			continue
 		}

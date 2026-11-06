@@ -425,7 +425,7 @@ func (b *NodeBuilderImpl) pseudoTypeEquivalentToType(t *pseudochecker.PseudoType
 		// which are two elements in pt.Elements but only one symbol in targetProps.
 		targetDeclCount := 0
 		for _, prop := range targetProps {
-			targetDeclCount += len(prop.Declarations())
+			targetDeclCount += prop.Declarations().Len()
 		}
 		if len(pt.Elements) != targetDeclCount {
 			return false

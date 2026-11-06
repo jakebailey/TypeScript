@@ -295,9 +295,9 @@ func getUmdSymbol(token ast.Node, ch *checker.Checker) *ast.Symbol {
 }
 
 func isUMDExportSymbol(symbol *ast.Symbol) bool {
-	return symbol != nil && len(symbol.Declarations()) > 0 &&
-		!symbol.Declarations()[0].IsNil() &&
-		ast.IsNamespaceExportDeclaration(symbol.Declarations()[0])
+	return symbol != nil && symbol.Declarations().Len() > 0 &&
+		!symbol.Declarations().At(0).IsNil() &&
+		ast.IsNamespaceExportDeclaration(symbol.Declarations().At(0))
 }
 
 func getFixesInfoForNonUMDImport(fixContext *CodeFixContext, symbolToken ast.Node, view *autoimport.View, ch *checker.Checker) []*fixInfo {
@@ -417,7 +417,7 @@ func needsJsxNamespaceFix(jsxNamespace string, symbolToken ast.Node, ch *checker
 	if namespaceSymbol == nil {
 		return true
 	}
-	if slices.ContainsFunc(namespaceSymbol.Declarations(), ast.IsTypeOnlyImportOrExportDeclaration) {
+	if namespaceSymbol.Declarations().Some(ast.IsTypeOnlyImportOrExportDeclaration) {
 		return (namespaceSymbol.Flags() & ast.SymbolFlagsValue) == 0
 	}
 	return false

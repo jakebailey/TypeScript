@@ -115,7 +115,7 @@ func getPackageNamesInNodeModules(nodeModulesDir tspath.RootedDirectoryPath, fs 
 }
 
 func getDefaultLikeExportNameFromDeclaration(symbol *ast.Symbol) ast.SymbolName {
-	for _, d := range symbol.Declarations() {
+	for _, d := range symbol.Declarations().All() {
 		// "export default" in this case. See `ExportAssignment`for more details.
 		if ast.IsExportAssignment(d) {
 			if innerExpression := ast.SkipOuterExpressions(d.Expression(), ast.OEKAll); ast.IsIdentifier(innerExpression) {

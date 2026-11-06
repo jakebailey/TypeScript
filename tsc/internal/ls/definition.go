@@ -65,7 +65,7 @@ func (l *LanguageService) provideDefinitionAtPosition(ctx context.Context, progr
 
 	if node.Kind() == ast.KindOverrideKeyword {
 		if sym := getSymbolForOverriddenMember(c, node); sym != nil {
-			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, sym.Declarations(), nil /*reference*/, spanmap.FeatureDefinition)
+			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, sym.Declarations().Nodes(), nil /*reference*/, spanmap.FeatureDefinition)
 		}
 	}
 
@@ -152,7 +152,7 @@ func (l *LanguageService) provideTypeDefinitionAtPosition(ctx context.Context, p
 			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, declarations, nil /*reference*/, spanmap.FeatureTypeDefinition)
 		}
 		if symbol.Flags()&ast.SymbolFlagsValue == 0 && symbol.Flags()&ast.SymbolFlagsType != 0 {
-			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, symbol.Declarations(), nil /*reference*/, spanmap.FeatureTypeDefinition)
+			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, symbol.Declarations().Nodes(), nil /*reference*/, spanmap.FeatureTypeDefinition)
 		}
 	}
 
@@ -314,7 +314,7 @@ func getDeclarationsFromLocation(c *checker.Checker, node ast.Node) []ast.Node {
 		shorthandSymbol := c.GetResolvedSymbol(node)
 		var declarations []ast.Node
 		if shorthandSymbol != nil {
-			declarations = shorthandSymbol.Declarations()
+			declarations = shorthandSymbol.Declarations().Nodes()
 		}
 		contextualDeclarations := getDeclarationsFromObjectLiteralElement(c, node)
 		return core.Concatenate(declarations, contextualDeclarations)
@@ -341,7 +341,7 @@ func getDeclarationsFromLocation(c *checker.Checker, node ast.Node) []ast.Node {
 				var result []ast.Node
 				for _, unionType := range types {
 					if prop := c.GetPropertyOfType(unionType, ast.MakeSymbolName(name)); prop != nil {
-						result = append(result, prop.Declarations()...)
+						result = slices.AppendSeq(result, prop.Declarations().Values())
 					}
 				}
 				return result
@@ -365,8 +365,8 @@ func getDeclarationsFromLocation(c *checker.Checker, node ast.Node) []ast.Node {
 		if len(objectLiteralElementDeclarations) > 0 {
 			return objectLiteralElementDeclarations
 		}
-		if len(symbol.Declarations()) > 0 {
-			return symbol.Declarations()
+		if symbol.Declarations().Len() > 0 {
+			return symbol.Declarations().Nodes()
 		}
 	}
 	if indexInfos := c.GetIndexSignaturesAtLocation(node); len(indexInfos) != 0 {
@@ -401,7 +401,7 @@ func getDeclarationsFromObjectLiteralElement(c *checker.Checker, node ast.Node) 
 
 	var result []ast.Node
 	for _, prop := range properties {
-		result = append(result, prop.Declarations()...)
+		result = slices.AppendSeq(result, prop.Declarations().Values())
 	}
 	return result
 }
@@ -507,7 +507,7 @@ func getDeclarationsFromType(t *checker.Type) []ast.Node {
 	var result []ast.Node
 	for _, t := range t.Distributed() {
 		if t.Symbol() != nil {
-			for _, decl := range t.Symbol().Declarations() {
+			for _, decl := range t.Symbol().Declarations().All() {
 				result = core.AppendIfUnique(result, decl)
 			}
 		}

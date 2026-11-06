@@ -870,3 +870,13 @@ func CompareBooleans(a, b bool) int {
 	}
 	return 0
 }
+
+func FirstNonNilSeq[T any, U comparable](seq iter.Seq[T], f func(T) U) U {
+	for value := range seq {
+		mapped := f(value)
+		if mapped != *new(U) {
+			return mapped
+		}
+	}
+	return *new(U)
+}

@@ -77,7 +77,6 @@ type Binder struct {
 	notConstEnumOnlyModules collections.Set[*ast.Symbol]
 	symbolWithDataArena     core.Arena[ast.SymbolWithData]
 	symbolExtraArena        ast.SymbolExtraArena
-	singleDeclarationsArena core.Arena[ast.Node]
 	expandoAssignments      []ExpandoAssignmentInfo
 
 	seenCommonJSModuleIndicator bool
@@ -229,7 +228,7 @@ func (b *Binder) declareSymbolEx(symbolTable ast.SymbolTable, parent *ast.Symbol
 					messageNeedsName = false
 				}
 				multipleDefaultExports := false
-				if len(symbol.Declarations()) != 0 {
+				if symbol.Declarations().Len() != 0 {
 					// If the current node is a default export of some sort, then check if
 					// there are any other default exports that we need to error on.
 					// We'll know whether we have other default exports depending on if `symbol` already has a declaration list set.
@@ -242,7 +241,7 @@ func (b *Binder) declareSymbolEx(symbolTable ast.SymbolTable, parent *ast.Symbol
 						// Error on multiple export default in the following case:
 						// 1. multiple export default of class declaration or function declaration by checking NodeFlags.Default
 						// 2. multiple export default of export assignment. This one doesn't have NodeFlags.Default on (as export default doesn't considered as modifiers)
-						if len(symbol.Declarations()) != 0 && ast.IsExportAssignment(node) && !node.AsExportAssignment().IsExportEquals() {
+						if symbol.Declarations().Len() != 0 && ast.IsExportAssignment(node) && !node.AsExportAssignment().IsExportEquals() {
 							message = diagnostics.A_module_cannot_have_multiple_default_exports
 							messageNeedsName = false
 							multipleDefaultExports = true
@@ -263,7 +262,7 @@ func (b *Binder) declareSymbolEx(symbolTable ast.SymbolTable, parent *ast.Symbol
 					// export type T; - may have meant export type { T }?
 					diag.AddRelatedInfo(b.createDiagnosticForNode(node, diagnostics.Did_you_mean_0, "export type { "+node.AsTypeAliasDeclaration().Name().Text()+" }"))
 				}
-				for index, declaration := range symbol.Declarations() {
+				for index, declaration := range symbol.Declarations().All() {
 					var decl ast.Node = ast.GetNameOfDeclaration(declaration)
 					if decl.IsNil() {
 						decl = declaration
@@ -528,10 +527,6 @@ func (b *Binder) combineFlowLists(head ast.FlowList, tail ast.FlowList) ast.Flow
 		return tail
 	}
 	return b.newFlowList(head.Flow(), b.combineFlowLists(head.Next(), tail))
-}
-
-func (b *Binder) newSingleDeclaration(declaration ast.Node) []ast.Node {
-	return b.singleDeclarationsArena.NewSlice1(declaration)
 }
 
 func setFlowNodeReferenced(flow ast.FlowNode) {
@@ -982,7 +977,7 @@ func (b *Binder) bindClassLikeDeclaration(node ast.Node) {
 	prototypeSymbol := b.newSymbol(ast.SymbolFlagsProperty|ast.SymbolFlagsPrototype, ast.SymbolNamePrototype)
 	symbolExport := ast.GetExports(symbol, &b.symbolExtraArena).Get(prototypeSymbol.Name())
 	if symbolExport != nil {
-		b.errorOnNode(symbolExport.Declarations()[0], diagnostics.Duplicate_identifier_0, ast.SymbolNameText(prototypeSymbol))
+		b.errorOnNode(symbolExport.Declarations().At(0), diagnostics.Duplicate_identifier_0, ast.SymbolNameText(prototypeSymbol))
 	}
 	ast.GetExports(symbol, &b.symbolExtraArena).Set(prototypeSymbol.Name(), prototypeSymbol)
 	prototypeSymbol.SetParent(symbol)
@@ -1024,7 +1019,7 @@ func (b *Binder) addLateBoundAssignmentDeclarationToSymbol(node ast.Node, symbol
 		assignmentSymbol = b.newSymbol(ast.SymbolFlagsNone, ast.InternalSymbolNameAssignmentDeclaration)
 		exports.Set(ast.InternalSymbolNameAssignmentDeclaration, assignmentSymbol)
 	}
-	assignmentSymbol.SetDeclarations(append(assignmentSymbol.Declarations(), node))
+	assignmentSymbol.SetDeclarations(assignmentSymbol.Declarations().Append(node))
 }
 
 func (b *Binder) bindModuleExportsAssignment(node ast.Node) {
@@ -1642,8 +1637,8 @@ func (b *Binder) declareCommonJSVariable(name ast.SymbolName) {
 	locals := ast.GetLocals(b.file.AsNode())
 	if locals.Get(name) == nil {
 		symbol := b.newSymbol(ast.SymbolFlagsFunctionScopedVariable|ast.SymbolFlagsModuleExports, name)
-		symbol.SetDeclarations(b.newSingleDeclaration(b.file.AsNode()))
-		symbol.SetValueDeclaration(symbol.Declarations()[0])
+		symbol.SetDeclarations(ast.NewDeclarations(b.file.AsNode()))
+		symbol.SetValueDeclaration(symbol.Declarations().At(0))
 		if name == ast.SymbolNameModule {
 			exportsProperty := b.newSymbol(ast.SymbolFlagsModuleExports|ast.SymbolFlagsProperty, ast.SymbolNameExports)
 			exportsProperty.SetDeclarations(symbol.Declarations())
@@ -2555,11 +2550,7 @@ func (b *Binder) addToContainerChain(next ast.Node) {
 func (b *Binder) addDeclarationToSymbol(symbol *ast.Symbol, node ast.Node, symbolFlags ast.SymbolFlags) {
 	symbol.SetFlags(symbol.Flags() | symbolFlags)
 	node.DeclarationData().SetSymbol(symbol)
-	if symbol.Declarations() == nil {
-		symbol.SetDeclarations(b.newSingleDeclaration(node))
-	} else {
-		symbol.SetDeclarations(core.AppendIfUnique(symbol.Declarations(), node))
-	}
+	symbol.SetDeclarations(symbol.Declarations().AppendIfUnique(node))
 	// On merge of const enum module with class or function, reset const enum only flag (namespaces will already recalculate)
 	if symbol.Flags()&ast.SymbolFlagsConstEnumOnlyModule != 0 && symbol.Flags()&(ast.SymbolFlagsFunction|ast.SymbolFlagsClass|ast.SymbolFlagsRegularEnum) != 0 {
 		symbol.SetFlags(symbol.Flags() &^ ast.SymbolFlagsConstEnumOnlyModule)

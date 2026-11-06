@@ -39,8 +39,8 @@ export class Second { #value = 2; }
 	exported := file.Symbol().Exports().Get(name)
 	assert.Assert(t, local != nil && exported != nil)
 	assert.Assert(t, local.Name() == name && exported.Name() == name)
-	assert.Equal(t, len(local.Declarations()), 2)
-	assert.Equal(t, len(exported.Declarations()), 2)
+	assert.Equal(t, local.Declarations().Len(), 2)
+	assert.Equal(t, exported.Declarations().Len(), 2)
 	assert.Equal(t, local.ExportSymbol(), exported)
 
 	members := file.Symbol().Exports().Get(ast.MakeSymbolName("Shape")).Members()

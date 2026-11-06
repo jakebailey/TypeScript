@@ -473,6 +473,37 @@ Heap profiles sample one allocation per 512KB, so rows move by a few MB between 
 
 Left to do: symbol declarations could hold a store pointer and `[]uint32` of indices, since a binder symbol's declarations are all in its file, at the cost of changing `Declarations()` at every call site; object types and other checker records that hold a node could take a `NodeRef` and resolve through the checker.
 
+## Checker data layout
+
+The views and refs above leave the checker's own records as they were: pointer-linked symbols, types, signatures and lists, each a separate allocation. This part gives them a dense layout, one logical change at a time:
+
+1. Symbol declarations stored compactly, and checker records that hold nodes take `NodeRef` where it pays.
+2. Symbols are named by a program-wide `SymbolId` (`uint32`); binder symbols live in per-file slices of 32-byte records.
+3. Checker-created (transient) symbols are 32-byte records in a checker-owned chunked slice.
+4. Symbol tables are insertion-ordered small maps from name to `SymbolId`.
+5. Types are 64-byte records in checker-owned chunked slabs, with rare and structured parts behind pointers.
+6. Signatures, index infos and type mappers are `uint32` ids into checker-owned chunked slices.
+7. Immutable lists of types, symbols and signatures come from a per-checker chunk allocator.
+8. Link stores: pages by `SymbolId` for binder symbols, maps by `SymbolId` for transient symbols and rare links, maps by `NodeRef` for node links.
+9. Binder side tables: sparse per-file tables keyed by node index, locals as small symbol tables.
+
+### Symbol declarations
+
+A symbol's declarations used to be a `[]Node` (24 bytes plus a separate array) and its value declaration a 16-byte view. Nearly every symbol has all its declarations, and its value declaration, in one store, so `symbolData` now keeps that store once: a store pointer, the first declaration's index and the value declaration's index inline, and any further declarations as `[]uint32` indices behind a pointer. A symbol with one declaration, which is most of them, allocates nothing for it. When the declarations or the value declaration span stores (a merged or checker-created symbol, or a declaration in a lazily parsed JSDoc store), the same pointer holds a `[]Node` and the value view instead. `symbolData` falls from 64 to 48 bytes.
+
+`Symbol.Declarations()` returns an `ast.Declarations`, a 24-byte read-only snapshot with `Len`, `At`, `All`, `Values` and the search helpers the callers used (`Some`, `Find`, `Every`, `Filter`, ...). Adding a declaration copies the list, so a snapshot never changes; the checker used to clip slices by hand before sharing them for the same reason. The call sites were rewritten mechanically with a type-checked rewriter; code that needs a slice, mostly in the language service, calls `Nodes()`.
+
+### Progress
+
+Memory used (median) and vscode check time (n=5 alternating against the previous row, min–max and median).
+
+| | vscode | sentry | mui | vscode check |
+|---|---|---|---|---|
+| `new-ast` (`1fce2af19c3`) | 3,167,713K | 1,829,551K | 1,174,592K | 17.39–18.35s (18.11) |
+| `new-ast-index` (`5e349ab704f`) | 3,189,024K | 1,818,226K | 1,170,655K | 20.93–22.25s (21.25) |
+| views and refs (`9a6514702b3`) | 3,286,921K | 1,882,903K | 1,216,591K | 18.49–19.91s (18.81) |
+| 1. compact declarations | 3,174,055K (−113MB) | 1,815,998K (−67MB) | 1,163,930K (−53MB) | 18.13–18.69s (18.39) |
+
 ## Historical: earlier measurements (step 9 vs main, vscode, n=10, interleaved)
 
 ### Branch tip vs main

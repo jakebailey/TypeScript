@@ -477,8 +477,8 @@ func (s *inlayHintState) getInlayHintLabelParts(node ast.Node, idToSymbol map[as
 		case ast.KindIdentifier:
 			identifierText := node.Text()
 			var name ast.Node
-			if symbol := idToSymbol[node]; symbol != nil && len(symbol.Declarations()) != 0 {
-				name = ast.GetNameOfDeclaration(symbol.Declarations()[0])
+			if symbol := idToSymbol[node]; symbol != nil && symbol.Declarations().Len() != 0 {
+				name = ast.GetNameOfDeclaration(symbol.Declarations().At(0))
 			}
 			if !name.IsNil() {
 				parts = append(parts, s.getNodeDisplayPart(identifierText, name))

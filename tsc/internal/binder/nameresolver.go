@@ -450,10 +450,10 @@ func (r *NameResolver) argumentsSymbol() *ast.Symbol {
 }
 
 func GetLocalSymbolForExportDefault(symbol *ast.Symbol) *ast.Symbol {
-	if !isExportDefaultSymbol(symbol) || len(symbol.Declarations()) == 0 {
+	if !isExportDefaultSymbol(symbol) || symbol.Declarations().Len() == 0 {
 		return nil
 	}
-	for _, decl := range symbol.Declarations() {
+	for _, decl := range symbol.Declarations().All() {
 		localSymbol := decl.LocalSymbol()
 		if localSymbol != nil {
 			return localSymbol
@@ -463,7 +463,7 @@ func GetLocalSymbolForExportDefault(symbol *ast.Symbol) *ast.Symbol {
 }
 
 func isExportDefaultSymbol(symbol *ast.Symbol) bool {
-	return symbol != nil && len(symbol.Declarations()) > 0 && ast.HasSyntacticModifier(symbol.Declarations()[0], ast.ModifierFlagsDefault)
+	return symbol != nil && symbol.Declarations().Len() > 0 && ast.HasSyntacticModifier(symbol.Declarations().At(0), ast.ModifierFlagsDefault)
 }
 
 func getIsDeferredContext(location ast.Node, lastLocation ast.Node) bool {
@@ -485,7 +485,7 @@ func getIsDeferredContext(location ast.Node, lastLocation ast.Node) bool {
 }
 
 func isTypeParameterSymbolDeclaredInContainer(symbol *ast.Symbol, container ast.Node) bool {
-	for _, decl := range symbol.Declarations() {
+	for _, decl := range symbol.Declarations().All() {
 		if decl.Kind() == ast.KindTypeParameter {
 			parent := decl.Parent()
 			if parent == container {
