@@ -336,8 +336,8 @@ func (sd *snapshotData) newTypeResponse(projectID project.Handle, t *checker.Typ
 	}
 	resp := newTypeResponse(c, t, sd.registerType(projectID, c, t))
 	resp.Symbol = newSymbolReference(c.SymbolOfType(t))
-	if t.Alias() != nil {
-		resp.AliasSymbol = newSymbolReference(c.SymbolView(t.Alias().Symbol()))
+	if t.Alias(c) != nil {
+		resp.AliasSymbol = newSymbolReference(c.SymbolView(t.Alias(c).Symbol()))
 	}
 	if t.ObjectFlags()&checker.ObjectFlagsMapped != 0 {
 		mapped := t.AsMappedType()
@@ -347,8 +347,8 @@ func (sd *snapshotData) newTypeResponse(projectID project.Handle, t *checker.Typ
 		resp.NameType = sd.registerType(projectID, c, mapped.NameType(c))
 		resp.TemplateType = sd.registerType(projectID, c, mapped.TemplateType(c))
 	}
-	if checker.IsTupleTypeTarget(t) {
-		elementInfos := t.AsTupleType().ElementInfos()
+	if checker.IsTupleTypeTarget(c, t) {
+		elementInfos := t.AsTupleType().ElementInfos(c)
 		for i := range elementInfos {
 			if declaration := elementInfos[i].LabeledDeclaration(); !declaration.IsNil() {
 				if resp.LabeledElementDeclarations == nil {
@@ -3151,37 +3151,43 @@ func (s *Session) handleGetSymbolOfType(_ context.Context, params *GetTypeProper
 }
 
 func (s *Session) handleGetTargetOfType(ctx context.Context, params *GetTypePropertyParams) (*TypeResponse, error) {
-	return s.resolveTypePropertyOfType(ctx, params, func(_ *checker.Checker, t *checker.Type) *checker.Type { return t.Target() })
+	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.Target(c) })
 }
 
 // @gen-proto-nullable
 func (s *Session) handleGetFreshTypeOfType(ctx context.Context, params *GetTypePropertyParams) (*TypeResponse, error) {
-	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsLiteralType().FreshType() })
+	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsLiteralType().FreshType(c) })
 }
 
 // @gen-proto-nullable
 func (s *Session) handleGetRegularTypeOfType(ctx context.Context, params *GetTypePropertyParams) (*TypeResponse, error) {
-	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsLiteralType().RegularType() })
+	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsLiteralType().RegularType(c) })
 }
 
 // @gen-proto-nullable
 func (s *Session) handleGetTypesOfType(ctx context.Context, params *GetTypePropertyParams) ([]*TypeResponse, error) {
-	return s.resolveTypeArrayPropertyOfType(ctx, params, (*checker.Type).Types)
+	return s.resolveTypeArrayPropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) []checker.TypeId { return t.Types(c) })
 }
 
 // @gen-proto-nullable
 func (s *Session) handleGetTypeParametersOfType(ctx context.Context, params *GetTypePropertyParams) ([]*TypeResponse, error) {
-	return s.resolveTypeArrayPropertyOfType(ctx, params, func(t *checker.Type) []checker.TypeId { return t.AsInterfaceType().TypeParameters() })
+	return s.resolveTypeArrayPropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) []checker.TypeId {
+		return t.AsInterfaceType().TypeParameters(c)
+	})
 }
 
 // @gen-proto-nullable
 func (s *Session) handleGetOuterTypeParametersOfType(ctx context.Context, params *GetTypePropertyParams) ([]*TypeResponse, error) {
-	return s.resolveTypeArrayPropertyOfType(ctx, params, func(t *checker.Type) []checker.TypeId { return t.AsInterfaceType().OuterTypeParameters() })
+	return s.resolveTypeArrayPropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) []checker.TypeId {
+		return t.AsInterfaceType().OuterTypeParameters(c)
+	})
 }
 
 // @gen-proto-nullable
 func (s *Session) handleGetLocalTypeParametersOfType(ctx context.Context, params *GetTypePropertyParams) ([]*TypeResponse, error) {
-	return s.resolveTypeArrayPropertyOfType(ctx, params, func(t *checker.Type) []checker.TypeId { return t.AsInterfaceType().LocalTypeParameters() })
+	return s.resolveTypeArrayPropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) []checker.TypeId {
+		return t.AsInterfaceType().LocalTypeParameters(c)
+	})
 }
 
 // @gen-proto-nullable
@@ -3191,48 +3197,50 @@ func (s *Session) handleGetThisTypeOfType(ctx context.Context, params *GetTypePr
 
 // @gen-proto-nullable
 func (s *Session) handleGetAliasTypeArgumentsOfType(ctx context.Context, params *GetTypePropertyParams) ([]*TypeResponse, error) {
-	return s.resolveTypeArrayPropertyOfType(ctx, params, func(t *checker.Type) []checker.TypeId {
-		if t.Alias() == nil {
+	return s.resolveTypeArrayPropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) []checker.TypeId {
+		if t.Alias(c) == nil {
 			return nil
 		}
-		return t.Alias().TypeArguments()
+		return t.Alias(c).TypeArguments()
 	})
 }
 
 // @gen-proto-nullable
 func (s *Session) handleGetAliasSymbolOfType(_ context.Context, params *GetTypePropertyParams) (*SymbolResponse, error) {
 	return s.resolveSymbolPropertyOfType(params, func(c *checker.Checker, t *checker.Type) ast.Symbol {
-		if t.Alias() == nil {
+		if t.Alias(c) == nil {
 			return ast.Symbol{}
 		}
-		return c.SymbolView(t.Alias().Symbol())
+		return c.SymbolView(t.Alias(c).Symbol())
 	})
 }
 
 func (s *Session) handleGetObjectTypeOfType(ctx context.Context, params *GetTypePropertyParams) (*TypeResponse, error) {
-	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsIndexedAccessType().ObjectType() })
+	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsIndexedAccessType().ObjectType(c) })
 }
 
 func (s *Session) handleGetIndexTypeOfType(ctx context.Context, params *GetTypePropertyParams) (*TypeResponse, error) {
-	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsIndexedAccessType().IndexType() })
+	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsIndexedAccessType().IndexType(c) })
 }
 
 func (s *Session) handleGetCheckTypeOfType(ctx context.Context, params *GetTypePropertyParams) (*TypeResponse, error) {
-	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsConditionalType().CheckType() })
+	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsConditionalType().CheckType(c) })
 }
 
 func (s *Session) handleGetExtendsTypeOfType(ctx context.Context, params *GetTypePropertyParams) (*TypeResponse, error) {
-	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsConditionalType().ExtendsType() })
+	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsConditionalType().ExtendsType(c) })
 }
 
 func (s *Session) handleGetBaseTypeOfType(ctx context.Context, params *GetTypePropertyParams) (*TypeResponse, error) {
-	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsSubstitutionType().BaseType() })
+	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsSubstitutionType().BaseType(c) })
 }
 
 // handleGetConstraintOfType returns the constraint of a substitution type.
 // Type parameter constraints are handled by handleGetConstraintOfTypeParameter.
 func (s *Session) handleGetConstraintOfType(ctx context.Context, params *GetTypePropertyParams) (*TypeResponse, error) {
-	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type { return t.AsSubstitutionType().SubstConstraint() })
+	return s.resolveTypePropertyOfType(ctx, params, func(c *checker.Checker, t *checker.Type) *checker.Type {
+		return t.AsSubstitutionType().SubstConstraint(c)
+	})
 }
 
 func (s *Session) handleGetTypeParameterOfMappedType(ctx context.Context, params *GetTypePropertyParams) (*TypeResponse, error) {
@@ -3435,7 +3443,7 @@ func (s *Session) resolveTypePropertyOfType(ctx context.Context, params *GetType
 }
 
 // resolveTypeArrayPropertyOfType resolves a type property of an array of types and returns an array of type responses.
-func (s *Session) resolveTypeArrayPropertyOfType(ctx context.Context, params *GetTypePropertyParams, getter func(*checker.Type) []checker.TypeId) ([]*TypeResponse, error) {
+func (s *Session) resolveTypeArrayPropertyOfType(ctx context.Context, params *GetTypePropertyParams, getter func(*checker.Checker, *checker.Type) []checker.TypeId) ([]*TypeResponse, error) {
 	setup, err := s.setupChecker(ctx, params.Snapshot, params.Project)
 	if err != nil {
 		return nil, err
@@ -3447,7 +3455,7 @@ func (s *Session) resolveTypeArrayPropertyOfType(ctx context.Context, params *Ge
 		return nil, err
 	}
 
-	types := getter(t)
+	types := getter(setup.checker, t)
 	if len(types) == 0 {
 		return nil, nil
 	}

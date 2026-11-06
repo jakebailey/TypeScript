@@ -95,7 +95,7 @@ func (m *TypeMapper) MapsThisOnly(c *Checker) bool {
 // Factory functions
 
 func (c *Checker) getMappedType(t *Type, mapper *TypeMapper) *Type {
-	return mapper.Map(c, getNonDistributedTypeParameter(t))
+	return mapper.Map(c, getNonDistributedTypeParameter(c, t))
 }
 
 func (c *Checker) newTypeMapper(sources []TypeId, targets []TypeId) *TypeMapper {
@@ -130,18 +130,18 @@ func mergeTypeMappers(m1 *TypeMapper, m2 *TypeMapper) *TypeMapper {
 	return m2
 }
 
-func prependTypeMapping(source *Type, target *Type, mapper *TypeMapper) *TypeMapper {
+func prependTypeMapping(c *Checker, source *Type, target *Type, mapper *TypeMapper) *TypeMapper {
 	if mapper == nil {
-		return newSimpleTypeMapper(getNonDistributedTypeParameter(source), target)
+		return newSimpleTypeMapper(getNonDistributedTypeParameter(c, source), target)
 	}
-	return newMergedTypeMapper(newSimpleTypeMapper(getNonDistributedTypeParameter(source), target), mapper)
+	return newMergedTypeMapper(newSimpleTypeMapper(getNonDistributedTypeParameter(c, source), target), mapper)
 }
 
-func appendTypeMapping(mapper *TypeMapper, source *Type, target *Type) *TypeMapper {
+func appendTypeMapping(c *Checker, mapper *TypeMapper, source *Type, target *Type) *TypeMapper {
 	if mapper == nil {
-		return newSimpleTypeMapper(getNonDistributedTypeParameter(source), target)
+		return newSimpleTypeMapper(getNonDistributedTypeParameter(c, source), target)
 	}
-	return newMergedTypeMapper(mapper, newSimpleTypeMapper(getNonDistributedTypeParameter(source), target))
+	return newMergedTypeMapper(mapper, newSimpleTypeMapper(getNonDistributedTypeParameter(c, source), target))
 }
 
 // Maps forward-references to later types parameters to the empty object type.

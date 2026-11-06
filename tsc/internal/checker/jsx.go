@@ -900,7 +900,7 @@ func (c *Checker) getUninstantiatedJsxSignaturesOfType(elementType *Type, caller
 	if elementType.flags&TypeFlagsStringLiteral != 0 {
 		intrinsicType := c.getIntrinsicAttributesTypeFromStringLiteralType(elementType, caller)
 		if intrinsicType == nil {
-			c.error(caller, diagnostics.Property_0_does_not_exist_on_type_1, getStringLiteralValue(elementType), "JSX."+JsxNames.IntrinsicElements.String())
+			c.error(caller, diagnostics.Property_0_does_not_exist_on_type_1, c.getStringLiteralValue(elementType), "JSX."+JsxNames.IntrinsicElements.String())
 			return nil
 		}
 		fakeSignature := c.createSignatureForJSXIntrinsic(caller, intrinsicType)
@@ -915,7 +915,7 @@ func (c *Checker) getUninstantiatedJsxSignaturesOfType(elementType *Type, caller
 	}
 	if len(signatures) == 0 && apparentElemType.flags&TypeFlagsUnion != 0 {
 		// If each member has some combination of new/call signatures; make a union signature list for those
-		signatures = c.getUnionSignatures(typesMapTo(c, apparentElemType.Types(), func(t *Type) []*Signature {
+		signatures = c.getUnionSignatures(typesMapTo(c, apparentElemType.Types(c), func(t *Type) []*Signature {
 			return c.getUninstantiatedJsxSignaturesOfType(t, caller)
 		}))
 	}
@@ -1040,8 +1040,8 @@ func (c *Checker) instantiateAliasOrInterfaceWithDefaults(managedSym ast.SymbolI
 			return c.getTypeAliasInstantiation(managedSym, args, nil)
 		}
 	}
-	if declaredManagedType.objectFlags&ObjectFlagsClassOrInterface != 0 && len(declaredManagedType.AsInterfaceType().TypeParameters()) >= len(typeArguments) {
-		args := c.fillMissingTypeArguments(typeArguments, declaredManagedType.AsInterfaceType().TypeParameters(), len(typeArguments), inJavaScript)
+	if declaredManagedType.objectFlags&ObjectFlagsClassOrInterface != 0 && len(declaredManagedType.AsInterfaceType().TypeParameters(c)) >= len(typeArguments) {
+		args := c.fillMissingTypeArguments(typeArguments, declaredManagedType.AsInterfaceType().TypeParameters(c), len(typeArguments), inJavaScript)
 		return c.createTypeReference(declaredManagedType, args)
 	}
 	return nil
@@ -1139,7 +1139,7 @@ func (c *Checker) getIntrinsicAttributesTypeFromStringLiteralType(t *Type, locat
 	//      <CustomTag> Hello World </CustomTag>
 	intrinsicElementsType := c.getJsxType(JsxNames.IntrinsicElements, location)
 	if !c.isErrorType(intrinsicElementsType) {
-		stringLiteralTypeName := getStringLiteralValue(t)
+		stringLiteralTypeName := c.getStringLiteralValue(t)
 		intrinsicProp := c.getPropertyOfType(intrinsicElementsType, ast.MakeSymbolName(stringLiteralTypeName))
 		if intrinsicProp != 0 {
 			return c.getTypeOfSymbol(intrinsicProp)

@@ -169,7 +169,7 @@ func (f *missingMemberFixer) createMemberFromSymbol(symbol ast.Symbol, enclosing
 
 func (f *missingMemberFixer) getCallSignatures(t *checker.Type) []*checker.Signature {
 	if t.IsUnion() {
-		return core.FlatMap(f.typeChecker.TypesOf(t.Types()), f.typeChecker.GetCallSignatures)
+		return core.FlatMap(f.typeChecker.TypesOf(t.Types(f.typeChecker)), f.typeChecker.GetCallSignatures)
 	}
 	return f.typeChecker.GetCallSignatures(t)
 }
@@ -492,7 +492,7 @@ func createDeclarationName(factory *ast.NodeFactory, typeChecker *checker.Checke
 	if !symbol.IsNil() && symbol.CheckFlags()&ast.CheckFlagsMapped != 0 {
 		nameType := typeChecker.GetNameTypeOfSymbol(symbol)
 		if nameType != nil && checker.IsTypeUsableAsPropertyName(nameType) {
-			return factory.NewIdentifier(checker.GetPropertyNameFromType(nameType).String())
+			return factory.NewIdentifier(checker.GetPropertyNameFromType(typeChecker, nameType).String())
 		}
 	}
 	if !declaration.IsNil() && !declaration.Name().IsNil() {

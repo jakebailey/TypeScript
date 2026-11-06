@@ -531,7 +531,7 @@ func (c *compilerTest) verifyUnionOrdering(t *testing.T) {
 		p := c.result.Program.Program()
 		p.ForEachCheckerParallel(func(_ int, c *checker.Checker) {
 			for union := range c.UnionTypes() {
-				types := c.TypesOf(union.Types())
+				types := c.TypesOf(union.Types(c))
 
 				reversed := slices.Clone(types)
 				slices.Reverse(reversed)

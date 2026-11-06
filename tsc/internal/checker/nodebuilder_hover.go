@@ -252,14 +252,14 @@ func (b *NodeBuilderImpl) expandInterfaceDecl(symbol ast.SymbolId) ast.Node {
 	// Index signatures, filtering those identical to base
 	members = append(members, b.serializeIndexSignaturesOfType(interfaceType, baseType)...)
 	// Construct signatures (skip abstract)
-	for _, sig := range resolved.ConstructSignatures() {
+	for _, sig := range resolved.ConstructSignatures(b.ch) {
 		if sig.flags&SignatureFlagsAbstract != 0 {
 			continue
 		}
 		members = append(members, b.signatureToSignatureDeclarationHelper(sig, ast.KindConstructSignature, nil))
 	}
 	// Call signatures
-	for _, sig := range resolved.CallSignatures() {
+	for _, sig := range resolved.CallSignatures(b.ch) {
 		members = append(members, b.signatureToSignatureDeclarationHelper(sig, ast.KindCallSignature, nil))
 	}
 	// Properties, filtering inherited
@@ -581,7 +581,7 @@ func (b *NodeBuilderImpl) filterInheritedProperties(t *Type, baseTypes []TypeId,
 	var inherited collections.Set[ast.SymbolName]
 	for _, baseId := range baseTypes {
 		base := b.ch.typ(baseId)
-		baseWithThis := b.ch.getTypeWithThisArgument(base, b.ch.typ(b.ch.getTargetType(t).AsInterfaceType().iface().thisType), false)
+		baseWithThis := b.ch.getTypeWithThisArgument(base, b.ch.typ(b.ch.getTargetType(t).AsInterfaceType().iface(b.ch).thisType), false)
 		for _, prop := range b.ch.getPropertiesOfType(baseWithThis) {
 			if existing, ok := propsByName[b.ch.symbolName(prop)]; ok && b.ch.symbolParent(prop) == b.ch.symbolParent(existing) {
 				inherited.Add(b.ch.symbolName(prop))

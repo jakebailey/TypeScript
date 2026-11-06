@@ -387,7 +387,7 @@ func (walker *typeWriterWalker) writeTypeOrSymbol(node ast.Node, isSymbolWalk bo
 			!isImportStatementName(node) &&
 			!isExportStatementName(node) &&
 			!isIntrinsicJsxTag(node, walker.currentSourceFile) {
-			typeString = t.AsIntrinsicType().IntrinsicName()
+			typeString = t.AsIntrinsicType().IntrinsicName(fileChecker)
 		} else {
 			builder := checker.NewNodeBuilder(fileChecker, ctx)
 			typeFormatFlags := checker.TypeFormatFlagsNoTruncation | checker.TypeFormatFlagsAllowUniqueESSymbolType | checker.TypeFormatFlagsGenerateNamesForShadowedTypeParams

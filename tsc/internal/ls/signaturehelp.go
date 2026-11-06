@@ -1078,19 +1078,19 @@ type contextualSignatureLocationInfo struct {
 
 func getSpreadElementCount(node ast.SpreadElement, c *checker.Checker) int {
 	spreadType := c.GetTypeAtLocation(node.Expression())
-	if checker.IsTupleType(spreadType) {
-		tupleType := spreadType.Target().AsTupleType()
+	if checker.IsTupleType(c, spreadType) {
+		tupleType := spreadType.Target(c).AsTupleType()
 		if tupleType == nil {
 			return 0
 		}
-		return getRequiredTupleElementCount(tupleType)
+		return getRequiredTupleElementCount(c, tupleType)
 	}
 	return 0
 }
 
-func getRequiredTupleElementCount(tupleType *checker.TupleType) int {
-	fixedLength := tupleType.FixedLength()
-	firstOptionalIndex := core.FindIndex(tupleType.ElementInfos()[:fixedLength], func(info checker.TupleElementInfo) bool {
+func getRequiredTupleElementCount(c *checker.Checker, tupleType *checker.TupleType) int {
+	fixedLength := tupleType.FixedLength(c)
+	firstOptionalIndex := core.FindIndex(tupleType.ElementInfos(c)[:fixedLength], func(info checker.TupleElementInfo) bool {
 		return info.TupleElementFlags()&checker.ElementFlagsRequired == 0
 	})
 	return core.IfElse(firstOptionalIndex < 0, fixedLength, firstOptionalIndex)

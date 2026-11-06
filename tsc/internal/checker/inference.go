@@ -79,8 +79,8 @@ func (c *Checker) inferFromTypes(n *InferenceState, source *Type, target *Type) 
 		n.propagationType = savePropagationType
 		return
 	}
-	if source.Alias() != nil && target.Alias() != nil && source.Alias().symbol == target.Alias().symbol {
-		if len(source.Alias().typeArguments) != 0 || len(target.Alias().typeArguments) != 0 {
+	if source.Alias(c) != nil && target.Alias(c) != nil && source.Alias(c).symbol == target.Alias(c).symbol {
+		if len(source.Alias(c).typeArguments) != 0 || len(target.Alias(c).typeArguments) != 0 {
 			c.invokeOnce(n, source, target, (*Checker).inferFromAliasTypeArguments)
 		}
 		// And if there weren't any type arguments, there's no reason to run inference as the types must be the same.
@@ -89,7 +89,7 @@ func (c *Checker) inferFromTypes(n *InferenceState, source *Type, target *Type) 
 	if source == target && source.flags&TypeFlagsUnionOrIntersection != 0 {
 		// When source and target are the same union or intersection type, just relate each constituent
 		// type to itself.
-		for _, tId := range source.Types() {
+		for _, tId := range source.Types(c) {
 			t := c.typ(tId)
 			c.inferFromTypes(n, t, t)
 		}
@@ -98,13 +98,13 @@ func (c *Checker) inferFromTypes(n *InferenceState, source *Type, target *Type) 
 	if target.flags&TypeFlagsUnion != 0 {
 		var sourceTypes []TypeId
 		if source.flags&TypeFlagsUnion != 0 {
-			sourceTypes = source.Types()
+			sourceTypes = source.Types(c)
 		} else {
 			sourceTypes = []TypeId{source.ref()}
 		}
 		// First, infer between identically matching source and target constituents and remove the
 		// matching types.
-		tempSources, tempTargets := c.inferFromMatchingTypes(n, sourceTypes, target.Types(), (*Checker).isTypeOrBaseIdenticalTo, false /*sort*/)
+		tempSources, tempTargets := c.inferFromMatchingTypes(n, sourceTypes, target.Types(c), (*Checker).isTypeOrBaseIdenticalTo, false /*sort*/)
 		// Next, infer between closely matching source and target constituents and remove
 		// the matching types. Types closely match when they are instantiations of the same
 		// object type or instantiations of the same type alias.
@@ -123,7 +123,7 @@ func (c *Checker) inferFromTypes(n *InferenceState, source *Type, target *Type) 
 			return
 		}
 		source = c.getUnionType(sources)
-	} else if target.flags&TypeFlagsIntersection != 0 && !c.typesEvery(target.Types(), c.isNonGenericObjectType) {
+	} else if target.flags&TypeFlagsIntersection != 0 && !c.typesEvery(target.Types(c), c.isNonGenericObjectType) {
 		// We reduce intersection types unless they're simple combinations of object types. For example,
 		// when inferring from 'string[] & { extra: any }' to 'string[] & T' we want to remove string[] and
 		// infer { extra: any } for T. But when inferring to 'string[] & Iterable<T>' we want to keep the
@@ -131,12 +131,12 @@ func (c *Checker) inferFromTypes(n *InferenceState, source *Type, target *Type) 
 		if source.flags&TypeFlagsUnion == 0 {
 			var sourceTypes []TypeId
 			if source.flags&TypeFlagsIntersection != 0 {
-				sourceTypes = source.Types()
+				sourceTypes = source.Types(c)
 			} else {
 				sourceTypes = []TypeId{source.ref()}
 			}
 			// Infer between identically matching source and target constituents and remove the matching types.
-			sources, targets := c.inferFromMatchingTypes(n, sourceTypes, target.Types(), (*Checker).isTypeIdenticalTo, false /*sort*/)
+			sources, targets := c.inferFromMatchingTypes(n, sourceTypes, target.Types(c), (*Checker).isTypeIdenticalTo, false /*sort*/)
 			if len(sources) == 0 || len(targets) == 0 {
 				return
 			}
@@ -156,7 +156,7 @@ func (c *Checker) inferFromTypes(n *InferenceState, source *Type, target *Type) 
 		if c.isFromInferenceBlockedSource(source) {
 			return
 		}
-		inference := getInferenceInfoForType(n, target)
+		inference := getInferenceInfoForType(c, n, target)
 		if inference != nil {
 			// If target is a type parameter, make an inference, unless the source type contains
 			// a "non-inferrable" type. Types with this flag set are markers used to prevent inference.
@@ -214,11 +214,11 @@ func (c *Checker) inferFromTypes(n *InferenceState, source *Type, target *Type) 
 		if simplified != target {
 			c.inferFromTypes(n, source, simplified)
 		} else if target.flags&TypeFlagsIndexedAccess != 0 {
-			indexType := c.getSimplifiedType(target.AsIndexedAccessType().indexType(), false /*writing*/)
+			indexType := c.getSimplifiedType(target.AsIndexedAccessType().indexType(c), false /*writing*/)
 			// Generally simplifications of instantiable indexes are avoided to keep relationship checking correct, however if our target is an access, we can consider
 			// that key of that access to be "instantiated", since we're looking to find the infernce goal in any way we can.
 			if indexType.flags&TypeFlagsInstantiable != 0 {
-				simplified := c.distributeIndexOverObjectType(c.getSimplifiedType(target.AsIndexedAccessType().objectType(), false /*writing*/), indexType, false /*writing*/)
+				simplified := c.distributeIndexOverObjectType(c.getSimplifiedType(target.AsIndexedAccessType().objectType(c), false /*writing*/), indexType, false /*writing*/)
 				if simplified != nil && simplified != target {
 					c.inferFromTypes(n, source, simplified)
 				}
@@ -226,32 +226,32 @@ func (c *Checker) inferFromTypes(n *InferenceState, source *Type, target *Type) 
 		}
 	}
 	switch {
-	case source.objectFlags&ObjectFlagsReference != 0 && target.objectFlags&ObjectFlagsReference != 0 && (source.AsTypeReference().target() == target.AsTypeReference().target() || c.isArrayType(source) && c.isArrayType(target)) && !(!c.nodeOf(source.AsTypeReference().node()).IsNil() && !c.nodeOf(target.AsTypeReference().node()).IsNil()):
+	case source.objectFlags&ObjectFlagsReference != 0 && target.objectFlags&ObjectFlagsReference != 0 && (source.AsTypeReference().target(c) == target.AsTypeReference().target(c) || c.isArrayType(source) && c.isArrayType(target)) && !(!c.nodeOf(source.AsTypeReference().node(c)).IsNil() && !c.nodeOf(target.AsTypeReference().node(c)).IsNil()):
 		// If source and target are references to the same generic type, infer from type arguments
 		c.invokeOnce(n, source, target, (*Checker).inferFromReferenceTypeArguments)
 	case source.flags&TypeFlagsIndex != 0 && target.flags&TypeFlagsIndex != 0:
-		c.inferFromContravariantTypes(n, source.AsIndexType().target(), target.AsIndexType().target())
+		c.inferFromContravariantTypes(n, source.AsIndexType().target(c), target.AsIndexType().target(c))
 	case (c.isLiteralType(source) || source.flags&TypeFlagsString != 0) && target.flags&TypeFlagsIndex != 0:
 		empty := c.createEmptyObjectTypeFromStringLiteral(source)
-		c.inferFromContravariantTypesWithPriority(n, empty, target.AsIndexType().target(), InferencePriorityLiteralKeyof)
+		c.inferFromContravariantTypesWithPriority(n, empty, target.AsIndexType().target(c), InferencePriorityLiteralKeyof)
 	case source.flags&TypeFlagsIndexedAccess != 0 && target.flags&TypeFlagsIndexedAccess != 0:
-		c.inferFromTypes(n, source.AsIndexedAccessType().objectType(), target.AsIndexedAccessType().objectType())
-		c.inferFromTypes(n, source.AsIndexedAccessType().indexType(), target.AsIndexedAccessType().indexType())
+		c.inferFromTypes(n, source.AsIndexedAccessType().objectType(c), target.AsIndexedAccessType().objectType(c))
+		c.inferFromTypes(n, source.AsIndexedAccessType().indexType(c), target.AsIndexedAccessType().indexType(c))
 	case source.flags&TypeFlagsStringMapping != 0 && target.flags&TypeFlagsStringMapping != 0:
 		if c.symbolOfType(source) == c.symbolOfType(target) {
-			c.inferFromTypes(n, source.AsStringMappingType().target(), target.AsStringMappingType().target())
+			c.inferFromTypes(n, source.AsStringMappingType().target(c), target.AsStringMappingType().target(c))
 		}
 	case source.flags&TypeFlagsSubstitution != 0:
-		c.inferFromTypes(n, source.AsSubstitutionType().baseType(), target)
+		c.inferFromTypes(n, source.AsSubstitutionType().baseType(c), target)
 		// Make substitute inference at a lower priority
 		c.inferWithPriority(n, c.getSubstitutionIntersection(source), target, InferencePrioritySubstituteSource)
 	case target.flags&TypeFlagsConditional != 0:
 		c.invokeOnce(n, source, target, (*Checker).inferToConditionalType)
 	case target.flags&TypeFlagsUnionOrIntersection != 0:
-		c.inferToMultipleTypes(n, source, target.Types(), target.flags)
+		c.inferToMultipleTypes(n, source, target.Types(c), target.flags)
 	case source.flags&TypeFlagsUnion != 0:
 		// Source is a union or intersection type, infer from each constituent type
-		for _, sourceTypeId := range source.Types() {
+		for _, sourceTypeId := range source.Types(c) {
 			sourceType := c.typ(sourceTypeId)
 			c.inferFromTypes(n, sourceType, target)
 		}
@@ -282,16 +282,16 @@ func (c *Checker) inferFromTypes(n *InferenceState, source *Type, target *Type) 
 func (c *Checker) inferFromAliasTypeArguments(n *InferenceState, source *Type, target *Type) {
 	// Source and target are types originating in the same generic type alias declaration.
 	// Simply infer from source type arguments to target type arguments, with defaults applied.
-	params := c.typeAliasLinks.Get(source.Alias().symbol).typeParameters
+	params := c.typeAliasLinks.Get(source.Alias(c).symbol).typeParameters
 	minParams := c.getMinTypeArgumentCount(params)
-	nodeIsInJsFile := ast.IsInJSFile(c.symbolValueDeclaration(source.Alias().symbol))
-	sourceTypes := c.fillMissingTypeArguments(source.Alias().typeArguments, params, minParams, nodeIsInJsFile)
-	targetTypes := c.fillMissingTypeArguments(target.Alias().typeArguments, params, minParams, nodeIsInJsFile)
-	c.inferFromTypeArguments(n, sourceTypes, targetTypes, c.getAliasVariances(source.Alias().symbol))
+	nodeIsInJsFile := ast.IsInJSFile(c.symbolValueDeclaration(source.Alias(c).symbol))
+	sourceTypes := c.fillMissingTypeArguments(source.Alias(c).typeArguments, params, minParams, nodeIsInJsFile)
+	targetTypes := c.fillMissingTypeArguments(target.Alias(c).typeArguments, params, minParams, nodeIsInJsFile)
+	c.inferFromTypeArguments(n, sourceTypes, targetTypes, c.getAliasVariances(source.Alias(c).symbol))
 }
 
 func (c *Checker) inferFromReferenceTypeArguments(n *InferenceState, source *Type, target *Type) {
-	c.inferFromTypeArguments(n, c.getTypeArguments(source), c.getTypeArguments(target), c.getVariances(source.AsTypeReference().target()))
+	c.inferFromTypeArguments(n, c.getTypeArguments(source), c.getTypeArguments(target), c.getVariances(source.AsTypeReference().target(c)))
 }
 
 func (c *Checker) inferFromTypeArguments(n *InferenceState, sourceTypes []TypeId, targetTypes []TypeId, variances []VarianceFlags) {
@@ -441,8 +441,8 @@ func (c *Checker) compareTypesAndDepth(t1, t2 *Type) int {
 // the depth is zero. The maximum depth limits infinite recursion of circular types.
 func (c *Checker) getTypeDepth(t *Type, maxDepth int) int {
 	if maxDepth != 0 {
-		if t.Alias() != nil && len(t.Alias().typeArguments) != 0 {
-			return c.getTypeListDepth(t.Alias().typeArguments, maxDepth-1) + 1
+		if t.Alias(c) != nil && len(t.Alias(c).typeArguments) != 0 {
+			return c.getTypeListDepth(t.Alias(c).typeArguments, maxDepth-1) + 1
 		}
 		if t.objectFlags&ObjectFlagsReference != 0 {
 			if typeArguments := c.getTypeArguments(t); len(typeArguments) != 0 {
@@ -450,7 +450,7 @@ func (c *Checker) getTypeDepth(t *Type, maxDepth int) int {
 			}
 		}
 		if t.flags&TypeFlagsUnionOrIntersection != 0 {
-			return c.getTypeListDepth(t.Types(), maxDepth)
+			return c.getTypeListDepth(t.Types(c), maxDepth)
 		}
 	}
 	return 0
@@ -471,7 +471,7 @@ func (c *Checker) inferToMultipleTypes(n *InferenceState, source *Type, targets 
 		var nakedTypeVariable *Type
 		var sources []TypeId
 		if source.flags&TypeFlagsUnion != 0 {
-			sources = source.Types()
+			sources = source.Types(c)
 		} else {
 			sources = []TypeId{source.ref()}
 		}
@@ -483,7 +483,7 @@ func (c *Checker) inferToMultipleTypes(n *InferenceState, source *Type, targets 
 		// parameter.
 		for _, tId := range targets {
 			t := c.typ(tId)
-			if getInferenceInfoForType(n, t) != nil {
+			if getInferenceInfoForType(c, n, t) != nil {
 				nakedTypeVariable = t
 				typeVariableCount++
 			} else {
@@ -532,7 +532,7 @@ func (c *Checker) inferToMultipleTypes(n *InferenceState, source *Type, targets 
 		// of being first in the candidates array.
 		for _, tId := range targets {
 			t := c.typ(tId)
-			if getInferenceInfoForType(n, t) != nil {
+			if getInferenceInfoForType(c, n, t) != nil {
 				typeVariableCount++
 			} else {
 				c.inferFromTypes(n, source, t)
@@ -546,7 +546,7 @@ func (c *Checker) inferToMultipleTypes(n *InferenceState, source *Type, targets 
 	if targetFlags&TypeFlagsIntersection != 0 && typeVariableCount == 1 || targetFlags&TypeFlagsIntersection == 0 && typeVariableCount > 0 {
 		for _, tId := range targets {
 			t := c.typ(tId)
-			if getInferenceInfoForType(n, t) != nil {
+			if getInferenceInfoForType(c, n, t) != nil {
 				c.inferWithPriority(n, source, t, InferencePriorityNakedTypeVariable)
 			}
 		}
@@ -560,7 +560,7 @@ func (c *Checker) getSingleTypeVariableFromIntersectionTypes(n *InferenceState, 
 		if t.flags&TypeFlagsIntersection == 0 {
 			return nil
 		}
-		v := c.typesFind(t.Types(), func(t *Type) bool { return getInferenceInfoForType(n, t) != nil })
+		v := c.typesFind(t.Types(c), func(t *Type) bool { return getInferenceInfoForType(c, n, t) != nil })
 		if v == nil || typeVariable != nil && v != typeVariable {
 			return nil
 		}
@@ -578,10 +578,10 @@ func (c *Checker) inferToMultipleTypesWithPriority(n *InferenceState, source *Ty
 
 func (c *Checker) inferToConditionalType(n *InferenceState, source *Type, target *Type) {
 	if source.flags&TypeFlagsConditional != 0 {
-		c.inferFromTypes(n, getNonDistributedTypeParameter(source.AsConditionalType().checkType()), target.AsConditionalType().checkType())
-		c.inferFromTypes(n, getNonDistributedTypeParameter(source.AsConditionalType().extendsType()), target.AsConditionalType().extendsType())
-		c.inferFromTypes(n, getNonDistributedTypeParameter(c.getTrueTypeFromConditionalType(source)), c.getTrueTypeFromConditionalType(target))
-		c.inferFromTypes(n, getNonDistributedTypeParameter(c.getFalseTypeFromConditionalType(source)), c.getFalseTypeFromConditionalType(target))
+		c.inferFromTypes(n, getNonDistributedTypeParameter(c, source.AsConditionalType().checkType(c)), target.AsConditionalType().checkType(c))
+		c.inferFromTypes(n, getNonDistributedTypeParameter(c, source.AsConditionalType().extendsType(c)), target.AsConditionalType().extendsType(c))
+		c.inferFromTypes(n, getNonDistributedTypeParameter(c, c.getTrueTypeFromConditionalType(source)), c.getTrueTypeFromConditionalType(target))
+		c.inferFromTypes(n, getNonDistributedTypeParameter(c, c.getFalseTypeFromConditionalType(source)), c.getFalseTypeFromConditionalType(target))
 	} else {
 		targetTypes := []TypeId{c.getTrueTypeFromConditionalType(target).ref(), c.getFalseTypeFromConditionalType(target).ref()}
 		c.inferToMultipleTypesWithPriority(n, source, targetTypes, target.flags, core.IfElse(n.contravariant, InferencePriorityContravariantConditional, 0))
@@ -590,14 +590,14 @@ func (c *Checker) inferToConditionalType(n *InferenceState, source *Type, target
 
 func (c *Checker) inferToTemplateLiteralType(n *InferenceState, source *Type, target *TemplateLiteralType) {
 	matches := c.inferTypesFromTemplateLiteralType(source, target, c.compareTypesAssignable)
-	types := target.types()
+	types := target.types(c)
 	// When the target template literal contains only placeholders (meaning that inference is intended to extract
 	// single characters and remainder strings) and inference fails to produce matches, we want to infer 'never' for
 	// each placeholder such that instantiation with the inferred value(s) produces 'never', a type for which an
 	// assignment check will fail. If we make no inferences, we'll likely end up with the constraint 'string' which,
 	// upon instantiation, would collapse all the placeholders to just 'string', and an assignment check might
 	// succeed. That would be a pointless and confusing outcome.
-	if len(matches) != 0 || core.Every(target.texts(), func(s string) bool { return s == "" }) {
+	if len(matches) != 0 || core.Every(target.texts(c), func(s string) bool { return s == "" }) {
 		for i, targetId := range types {
 			target := c.typ(targetId)
 			var source *Type
@@ -609,16 +609,16 @@ func (c *Checker) inferToTemplateLiteralType(n *InferenceState, source *Type, ta
 			// If we are inferring from a string literal type to a type variable whose constraint includes one of the
 			// allowed template literal placeholder types, infer from a literal type corresponding to the constraint.
 			if source.flags&TypeFlagsStringLiteral != 0 && target.flags&TypeFlagsTypeVariable != 0 {
-				if inferenceContext := getInferenceInfoForType(n, target); inferenceContext != nil {
+				if inferenceContext := getInferenceInfoForType(c, n, target); inferenceContext != nil {
 					if constraint := c.getBaseConstraintOfType(inferenceContext.typeParameter); constraint != nil && !IsTypeAny(constraint) {
 						allTypeFlags := TypeFlagsNone
-						for _, tId := range constraint.Distributed() {
+						for _, tId := range constraint.Distributed(c) {
 							t := c.typ(tId)
 							allTypeFlags |= t.flags
 						}
 						// If the constraint contains `string`, we don't need to look for a more preferred type
 						if allTypeFlags&TypeFlagsString == 0 {
-							str := getStringLiteralValue(source)
+							str := c.getStringLiteralValue(source)
 							// If the type contains `number` or a number literal and the string isn't a valid number, exclude numbers
 							if allTypeFlags&TypeFlagsNumberLike != 0 && !isValidNumberString(str, true /*roundTripOnly*/) {
 								allTypeFlags &^= TypeFlagsNumberLike
@@ -645,7 +645,7 @@ func (c *Checker) inferToTemplateLiteralType(n *InferenceState, source *Type, ta
 									return source
 								case left.flags&TypeFlagsStringLiteral != 0:
 									return left
-								case right.flags&TypeFlagsStringLiteral != 0 && getStringLiteralValue(right) == str:
+								case right.flags&TypeFlagsStringLiteral != 0 && c.getStringLiteralValue(right) == str:
 									return right
 								case left.flags&TypeFlagsNumber != 0:
 									return left
@@ -657,7 +657,7 @@ func (c *Checker) inferToTemplateLiteralType(n *InferenceState, source *Type, ta
 									return c.getNumberLiteralType(jsnum.FromString(str))
 								case left.flags&TypeFlagsNumberLiteral != 0:
 									return left
-								case right.flags&TypeFlagsNumberLiteral != 0 && getNumberLiteralValue(right) == jsnum.FromString(str):
+								case right.flags&TypeFlagsNumberLiteral != 0 && getNumberLiteralValue(c, right) == jsnum.FromString(str):
 									return right
 								case left.flags&TypeFlagsBigInt != 0:
 									return left
@@ -665,7 +665,7 @@ func (c *Checker) inferToTemplateLiteralType(n *InferenceState, source *Type, ta
 									return c.parseBigIntLiteralType(str)
 								case left.flags&TypeFlagsBigIntLiteral != 0:
 									return left
-								case right.flags&TypeFlagsBigIntLiteral != 0 && pseudoBigIntToString(getBigIntLiteralValue(right)) == str:
+								case right.flags&TypeFlagsBigIntLiteral != 0 && pseudoBigIntToString(getBigIntLiteralValue(c, right)) == str:
 									return right
 								case left.flags&TypeFlagsBoolean != 0:
 									return left
@@ -680,22 +680,22 @@ func (c *Checker) inferToTemplateLiteralType(n *InferenceState, source *Type, ta
 									}
 								case left.flags&TypeFlagsBooleanLiteral != 0:
 									return left
-								case right.flags&TypeFlagsBooleanLiteral != 0 && core.IfElse(getBooleanLiteralValue(right), "true", "false") == str:
+								case right.flags&TypeFlagsBooleanLiteral != 0 && core.IfElse(getBooleanLiteralValue(c, right), "true", "false") == str:
 									return right
 								case left.flags&TypeFlagsUndefined != 0:
 									return left
-								case right.flags&TypeFlagsUndefined != 0 && right.AsIntrinsicType().IntrinsicName() == str:
+								case right.flags&TypeFlagsUndefined != 0 && right.AsIntrinsicType().IntrinsicName(c) == str:
 									return right
 								case left.flags&TypeFlagsNull != 0:
 									return left
-								case right.flags&TypeFlagsNull != 0 && right.AsIntrinsicType().IntrinsicName() == str:
+								case right.flags&TypeFlagsNull != 0 && right.AsIntrinsicType().IntrinsicName(c) == str:
 									return right
 								default:
 									return left
 								}
 							}
 							matchingType := c.neverType
-							for _, tId := range constraint.Distributed() {
+							for _, tId := range constraint.Distributed(c) {
 								t := c.typ(tId)
 								matchingType = choose(matchingType, t)
 							}
@@ -725,7 +725,7 @@ func (c *Checker) inferFromGenericMappedTypes(n *InferenceState, source *Type, t
 }
 
 func (c *Checker) inferFromObjectTypes(n *InferenceState, source *Type, target *Type) {
-	if source.objectFlags&ObjectFlagsReference != 0 && target.objectFlags&ObjectFlagsReference != 0 && (source.Target() == target.Target() || c.isArrayType(source) && c.isArrayType(target)) {
+	if source.objectFlags&ObjectFlagsReference != 0 && target.objectFlags&ObjectFlagsReference != 0 && (source.Target(c) == target.Target(c) || c.isArrayType(source) && c.isArrayType(target)) {
 		// If source and target are references to the same generic type, infer from type arguments
 		c.inferFromReferenceTypeArguments(n, source, target)
 		return
@@ -733,7 +733,7 @@ func (c *Checker) inferFromObjectTypes(n *InferenceState, source *Type, target *
 	if c.isGenericMappedType(source) && c.isGenericMappedType(target) {
 		c.inferFromGenericMappedTypes(n, source, target)
 	}
-	if target.objectFlags&ObjectFlagsMapped != 0 && target.AsMappedType().mapped().declaration.NameType().IsNil() {
+	if target.objectFlags&ObjectFlagsMapped != 0 && target.AsMappedType().mapped(c).declaration.NameType().IsNil() {
 		constraintType := c.getConstraintTypeFromMappedType(target)
 		if c.inferToMappedType(n, source, target, constraintType) {
 			return
@@ -744,14 +744,14 @@ func (c *Checker) inferFromObjectTypes(n *InferenceState, source *Type, target *
 		return
 	}
 	if c.isArrayOrTupleType(source) {
-		if isTupleType(target) {
+		if c.isTupleType(target) {
 			sourceArity := c.getTypeReferenceArity(source)
 			targetArity := c.getTypeReferenceArity(target)
 			elementTypes := c.getTypeArguments(target)
-			elementInfos := target.TargetTupleType().tuple().elementInfos
+			elementInfos := target.TargetTupleType(c).tuple(c).elementInfos
 			// When source and target are tuple types with the same structure (fixed, variadic, and rest are matched
 			// to the same kind in each position), simply infer between the element types.
-			if isTupleType(source) && c.isTupleTypeStructureMatching(source, target) {
+			if c.isTupleType(source) && c.isTupleTypeStructureMatching(source, target) {
 				for i := range targetArity {
 					c.inferFromTypes(n, c.typ(c.getTypeArguments(source)[i]), c.typ(elementTypes[i]))
 				}
@@ -759,17 +759,17 @@ func (c *Checker) inferFromObjectTypes(n *InferenceState, source *Type, target *
 			}
 			startLength := 0
 			endLength := 0
-			if isTupleType(source) {
-				startLength = min(source.TargetTupleType().tuple().fixedLength, target.TargetTupleType().tuple().fixedLength)
-				if target.TargetTupleType().tuple().combinedFlags&ElementFlagsVariable != 0 {
-					endLength = min(getEndElementCount(source.TargetTupleType(), ElementFlagsFixed), getEndElementCount(target.TargetTupleType(), ElementFlagsFixed))
+			if c.isTupleType(source) {
+				startLength = min(source.TargetTupleType(c).tuple(c).fixedLength, target.TargetTupleType(c).tuple(c).fixedLength)
+				if target.TargetTupleType(c).tuple(c).combinedFlags&ElementFlagsVariable != 0 {
+					endLength = min(getEndElementCount(c, source.TargetTupleType(c), ElementFlagsFixed), getEndElementCount(c, target.TargetTupleType(c), ElementFlagsFixed))
 				}
 			}
 			// Infer between starting fixed elements.
 			for i := range startLength {
 				c.inferFromTypes(n, c.typ(c.getTypeArguments(source)[i]), c.typ(elementTypes[i]))
 			}
-			if !isTupleType(source) || sourceArity-startLength-endLength == 1 && source.TargetTupleType().tuple().elementInfos[startLength].flags&ElementFlagsRest != 0 {
+			if !c.isTupleType(source) || sourceArity-startLength-endLength == 1 && source.TargetTupleType(c).tuple(c).elementInfos[startLength].flags&ElementFlagsRest != 0 {
 				// Single rest element remains in source, infer from that to every element in target
 				restType := c.typ(c.getTypeArguments(source)[startLength])
 				for i := startLength; i < targetArity-endLength; i++ {
@@ -784,7 +784,7 @@ func (c *Checker) inferFromObjectTypes(n *InferenceState, source *Type, target *
 				if middleLength == 2 {
 					if elementInfos[startLength].flags&elementInfos[startLength+1].flags&ElementFlagsVariadic != 0 {
 						// Middle of target is [...T, ...U] and source is tuple type
-						targetInfo := getInferenceInfoForType(n, c.typ(elementTypes[startLength]))
+						targetInfo := getInferenceInfoForType(c, n, c.typ(elementTypes[startLength]))
 						if targetInfo != nil && targetInfo.impliedArity >= 0 {
 							// Infer slices from source based on implied arity of T.
 							c.inferFromTypes(n, c.sliceTupleType(source, startLength, endLength+sourceArity-targetInfo.impliedArity), c.typ(elementTypes[startLength]))
@@ -793,10 +793,10 @@ func (c *Checker) inferFromObjectTypes(n *InferenceState, source *Type, target *
 					} else if elementInfos[startLength].flags&ElementFlagsVariadic != 0 && elementInfos[startLength+1].flags&ElementFlagsRest != 0 {
 						// Middle of target is [...T, ...rest] and source is tuple type
 						// if T is constrained by a fixed-size tuple we might be able to use its arity to infer T
-						if info := getInferenceInfoForType(n, c.typ(elementTypes[startLength])); info != nil {
+						if info := getInferenceInfoForType(c, n, c.typ(elementTypes[startLength])); info != nil {
 							constraint := c.getBaseConstraintOfType(info.typeParameter)
-							if constraint != nil && isTupleType(constraint) && constraint.TargetTupleType().tuple().combinedFlags&ElementFlagsVariable == 0 {
-								impliedArity := constraint.TargetTupleType().tuple().fixedLength
+							if constraint != nil && c.isTupleType(constraint) && constraint.TargetTupleType(c).tuple(c).combinedFlags&ElementFlagsVariable == 0 {
+								impliedArity := constraint.TargetTupleType(c).tuple(c).fixedLength
 								c.inferFromTypes(n, c.sliceTupleType(source, startLength, sourceArity-(startLength+impliedArity)), c.typ(elementTypes[startLength]))
 								if restType := c.getElementTypeOfSliceOfTupleType(source, startLength+impliedArity, endLength, false, false); restType != nil {
 									c.inferFromTypes(n, restType, c.typ(elementTypes[startLength+1]))
@@ -806,14 +806,14 @@ func (c *Checker) inferFromObjectTypes(n *InferenceState, source *Type, target *
 					} else if elementInfos[startLength].flags&ElementFlagsRest != 0 && elementInfos[startLength+1].flags&ElementFlagsVariadic != 0 {
 						// Middle of target is [...rest, ...T] and source is tuple type
 						// if T is constrained by a fixed-size tuple we might be able to use its arity to infer T
-						if info := getInferenceInfoForType(n, c.typ(elementTypes[startLength+1])); info != nil {
+						if info := getInferenceInfoForType(c, n, c.typ(elementTypes[startLength+1])); info != nil {
 							constraint := c.getBaseConstraintOfType(info.typeParameter)
-							if constraint != nil && isTupleType(constraint) && constraint.TargetTupleType().tuple().combinedFlags&ElementFlagsVariable == 0 {
-								impliedArity := constraint.TargetTupleType().tuple().fixedLength
-								endIndex := sourceArity - getEndElementCount(target.TargetTupleType(), ElementFlagsFixed)
+							if constraint != nil && c.isTupleType(constraint) && constraint.TargetTupleType(c).tuple(c).combinedFlags&ElementFlagsVariable == 0 {
+								impliedArity := constraint.TargetTupleType(c).tuple(c).fixedLength
+								endIndex := sourceArity - getEndElementCount(c, target.TargetTupleType(c), ElementFlagsFixed)
 								startIndex := endIndex - impliedArity
 								if startIndex >= startLength {
-									trailingSlice := c.createTupleTypeEx(c.getTypeArguments(source)[startIndex:endIndex], source.TargetTupleType().tuple().elementInfos[startIndex:endIndex], false /*readonly*/)
+									trailingSlice := c.createTupleTypeEx(c.getTypeArguments(source)[startIndex:endIndex], source.TargetTupleType(c).tuple(c).elementInfos[startIndex:endIndex], false /*readonly*/)
 									if restType := c.getElementTypeOfSliceOfTupleType(source, startLength, endLength+impliedArity, false, false); restType != nil {
 										c.inferFromTypes(n, restType, c.typ(elementTypes[startLength]))
 									}
@@ -976,7 +976,7 @@ func (c *Checker) inferFromIndexTypes(n *InferenceState, source *Type, target *T
 func (c *Checker) inferToMappedType(n *InferenceState, source *Type, target *Type, constraintType *Type) bool {
 	if constraintType.flags&TypeFlagsUnion != 0 || constraintType.flags&TypeFlagsIntersection != 0 {
 		result := false
-		for _, tId := range constraintType.Types() {
+		for _, tId := range constraintType.Types(c) {
 			t := c.typ(tId)
 			result = core.OrElse(c.inferToMappedType(n, source, target, t), result)
 		}
@@ -987,7 +987,7 @@ func (c *Checker) inferToMappedType(n *InferenceState, source *Type, target *Typ
 		// where T is a type variable. Use inferTypeForHomomorphicMappedType to infer a suitable source
 		// type and then make a secondary inference from that type to T. We make a secondary inference
 		// such that direct inferences to T get priority over inferences to Partial<T>, for example.
-		inference := getInferenceInfoForType(n, constraintType.AsIndexType().target())
+		inference := getInferenceInfoForType(c, n, constraintType.AsIndexType().target(c))
 		if inference != nil && !inference.isFixed && !c.isFromInferenceBlockedSource(source) {
 			inferredType := c.inferTypeForHomomorphicMappedType(source, target, constraintType)
 			if inferredType != nil {
@@ -1055,15 +1055,15 @@ func (c *Checker) createReverseMappedType(source *Type, target *Type, constraint
 		}
 		return c.createArrayTypeEx(elementType, c.isReadonlyArrayType(source))
 	}
-	if isTupleType(source) {
+	if c.isTupleType(source) {
 		elementTypes := c.typesMap(c.getElementTypes(source), func(t *Type) *Type {
 			return c.inferReverseMappedType(t, target, constraint)
 		})
 		if !c.typesEvery(elementTypes, func(t *Type) bool { return t != nil }) {
 			return nil
 		}
-		elementInfos := source.TargetTupleType().tuple().elementInfos
-		if getMappedTypeModifiers(target)&MappedTypeModifiersIncludeOptional != 0 {
+		elementInfos := source.TargetTupleType(c).tuple(c).elementInfos
+		if getMappedTypeModifiers(c, target)&MappedTypeModifiersIncludeOptional != 0 {
 			elementInfos = core.SameMap(elementInfos, func(info TupleElementInfo) TupleElementInfo {
 				if info.flags&ElementFlagsOptional != 0 {
 					return TupleElementInfo{flags: ElementFlagsRequired, labeledDeclaration: info.labeledDeclaration}
@@ -1071,7 +1071,7 @@ func (c *Checker) createReverseMappedType(source *Type, target *Type, constraint
 				return info
 			})
 		}
-		return c.createTupleTypeEx(elementTypes, elementInfos, source.TargetTupleType().tuple().readonly)
+		return c.createTupleTypeEx(elementTypes, elementInfos, source.TargetTupleType(c).tuple(c).readonly)
 	}
 	// For all other object types we infer a new object type where the reverse mapping has been
 	// applied to the type of each property.
@@ -1089,7 +1089,7 @@ func (c *Checker) createReverseMappedType(source *Type, target *Type, constraint
 func (c *Checker) isPartiallyInferableType(t *Type) bool {
 	return t.objectFlags&ObjectFlagsNonInferrableType == 0 || isObjectLiteralType(t) && core.Some(c.getPropertiesOfType(t), func(prop ast.SymbolId) bool {
 		return c.isPartiallyInferableType(c.getTypeOfSymbol(prop))
-	}) || isTupleType(t) && c.typesSome(c.getElementTypes(t), c.isPartiallyInferableType)
+	}) || c.isTupleType(t) && c.typesSome(c.getElementTypes(t), c.isPartiallyInferableType)
 }
 
 func (c *Checker) inferReverseMappedType(source *Type, target *Type, constraint *Type) *Type {
@@ -1118,7 +1118,7 @@ func (c *Checker) inferReverseMappedType(source *Type, target *Type, constraint 
 }
 
 func (c *Checker) inferReverseMappedTypeWorker(source *Type, target *Type, constraint *Type) *Type {
-	typeParameter := c.getIndexedAccessType(constraint.AsIndexType().target(), c.getTypeParameterFromMappedType(target))
+	typeParameter := c.getIndexedAccessType(constraint.AsIndexType().target(c), c.getTypeParameterFromMappedType(target))
 	templateType := c.getTemplateTypeFromMappedType(target)
 	inference := newInferenceInfo(typeParameter)
 	c.inferTypes([]*InferenceInfo{inference}, source, templateType, InferencePriorityNone, false)
@@ -1127,17 +1127,17 @@ func (c *Checker) inferReverseMappedTypeWorker(source *Type, target *Type, const
 
 func (c *Checker) resolveReverseMappedTypeMembers(t *Type) {
 	r := t.AsReverseMappedType()
-	indexInfo := c.getIndexInfoOfType(r.source(), c.stringType)
-	modifiers := getMappedTypeModifiers(r.mappedType())
+	indexInfo := c.getIndexInfoOfType(r.source(c), c.stringType)
+	modifiers := getMappedTypeModifiers(c, r.mappedType(c))
 	readonlyMask := modifiers&MappedTypeModifiersIncludeReadonly == 0
 	optionalMask := core.IfElse(modifiers&MappedTypeModifiersIncludeOptional != 0, 0, ast.SymbolFlagsOptional)
 	var indexInfos []*IndexInfo
 	if indexInfo != nil {
-		indexInfos = []*IndexInfo{c.newIndexInfo(c.stringType, core.OrElse(c.inferReverseMappedType(c.typ(indexInfo.valueType), r.mappedType(), r.constraintType()), c.unknownType), readonlyMask && indexInfo.isReadonly, ast.Node{}, nil)}
+		indexInfos = []*IndexInfo{c.newIndexInfo(c.stringType, core.OrElse(c.inferReverseMappedType(c.typ(indexInfo.valueType), r.mappedType(c), r.constraintType(c)), c.unknownType), readonlyMask && indexInfo.isReadonly, ast.Node{}, nil)}
 	}
 	members := c.symbols.NewTable(0)
 	limitedConstraint := c.getLimitedConstraint(t)
-	for _, prop := range c.getPropertiesOfType(r.source()) {
+	for _, prop := range c.getPropertiesOfType(r.source(c)) {
 		// Private and protected properties are never produced by keyof, so they have no counterpart in a
 		// reverse mapped type. Copying them would surface them as public properties of the inferred type.
 		if c.getDeclarationModifierFlagsFromSymbol(prop)&ast.ModifierFlagsNonPublicAccessibilityModifier != 0 {
@@ -1158,18 +1158,18 @@ func (c *Checker) resolveReverseMappedTypeMembers(t *Type) {
 		c.valueSymbolLinks.Get(inferredProp).setNameType(c, c.valueSymbolLinks.Get(prop).getNameType(c))
 		links := c.reverseMappedSymbolLinks.Get(inferredProp)
 		links.propertyType = c.getTypeOfSymbol(prop).ref()
-		constraintTarget := r.constraintType().AsIndexType().target()
-		if constraintTarget.flags&TypeFlagsIndexedAccess != 0 && constraintTarget.AsIndexedAccessType().objectType().flags&TypeFlagsTypeParameter != 0 && constraintTarget.AsIndexedAccessType().indexType().flags&TypeFlagsTypeParameter != 0 {
+		constraintTarget := r.constraintType(c).AsIndexType().target(c)
+		if constraintTarget.flags&TypeFlagsIndexedAccess != 0 && constraintTarget.AsIndexedAccessType().objectType(c).flags&TypeFlagsTypeParameter != 0 && constraintTarget.AsIndexedAccessType().indexType(c).flags&TypeFlagsTypeParameter != 0 {
 			// A reverse mapping of `{[K in keyof T[K_1]]: T[K_1]}` is the same as that of `{[K in keyof T]: T}`, since all we care about is
 			// inferring to the "type parameter" (or indexed access) shared by the constraint and template. So, to reduce the number of
 			// type identities produced, we simplify such indexed access occurrences
-			newTypeParam := constraintTarget.AsIndexedAccessType().objectType()
-			newMappedType := c.replaceIndexedAccess(r.mappedType(), constraintTarget, newTypeParam)
+			newTypeParam := constraintTarget.AsIndexedAccessType().objectType(c)
+			newMappedType := c.replaceIndexedAccess(r.mappedType(c), constraintTarget, newTypeParam)
 			links.mappedType = newMappedType.ref()
 			links.constraintType = c.getIndexType(newTypeParam).ref()
 		} else {
-			links.mappedType = r.mappedType().ref()
-			links.constraintType = r.constraintType().ref()
+			links.mappedType = r.mappedType(c).ref()
+			links.constraintType = r.constraintType(c).ref()
 		}
 		members.SetId(c.symbols, c.symbolName(prop), inferredProp)
 	}
@@ -1190,19 +1190,19 @@ func (c *Checker) getTypeOfReverseMappedSymbol(symbol ast.SymbolId) *Type {
 // This entire process allows us to possibly retrieve the filtering type literals.
 // e.g. { [K in keyof U & ("a" | "b") ] } -> "a" | "b"
 func (c *Checker) getLimitedConstraint(t *Type) *Type {
-	constraint := c.getConstraintTypeFromMappedType(t.AsReverseMappedType().mappedType())
+	constraint := c.getConstraintTypeFromMappedType(t.AsReverseMappedType().mappedType(c))
 	if !(constraint.flags&TypeFlagsUnion != 0 || constraint.flags&TypeFlagsIntersection != 0) {
 		return nil
 	}
 	origin := constraint
 	if constraint.flags&TypeFlagsUnion != 0 {
-		origin = constraint.AsUnionType().origin()
+		origin = constraint.AsUnionType().origin(c)
 	}
 	if origin == nil || origin.flags&TypeFlagsIntersection == 0 {
 		return nil
 	}
-	constraintType := t.AsReverseMappedType().constraintType()
-	limitedConstraint := c.getIntersectionType(c.typesFilter(origin.Types(), func(t *Type) bool { return t != constraintType }))
+	constraintType := t.AsReverseMappedType().constraintType(c)
+	limitedConstraint := c.getIntersectionType(c.typesFilter(origin.Types(c), func(t *Type) bool { return t != constraintType }))
 	if limitedConstraint != c.neverType {
 		return limitedConstraint
 	}
@@ -1213,32 +1213,32 @@ func (c *Checker) replaceIndexedAccess(instantiable *Type, t *Type, replacement 
 	// map type.indexType to 0
 	// map type.objectType to `[TReplacement]`
 	// thus making the indexed access `[TReplacement][0]` or `TReplacement`
-	return c.instantiateType(instantiable, c.newTypeMapper([]TypeId{t.AsIndexedAccessType().indexType().ref(), t.AsIndexedAccessType().objectType().ref()}, []TypeId{c.getNumberLiteralType(0).ref(), c.createTupleType([]TypeId{replacement.ref()}).ref()}))
+	return c.instantiateType(instantiable, c.newTypeMapper([]TypeId{t.AsIndexedAccessType().indexType(c).ref(), t.AsIndexedAccessType().objectType(c).ref()}, []TypeId{c.getNumberLiteralType(0).ref(), c.createTupleType([]TypeId{replacement.ref()}).ref()}))
 }
 
 func (c *Checker) typesDefinitelyUnrelated(source *Type, target *Type) bool {
 	// Two tuple types with incompatible arities are definitely unrelated.
 	// Two object types that each have a property that is unmatched in the other are definitely unrelated.
-	if isTupleType(source) && isTupleType(target) {
-		return tupleTypesDefinitelyUnrelated(source, target)
+	if c.isTupleType(source) && c.isTupleType(target) {
+		return tupleTypesDefinitelyUnrelated(c, source, target)
 	}
 	return c.getUnmatchedProperty(source, target, false /*requireOptionalProperties*/, true /*matchDiscriminantProperties*/) != 0 &&
 		c.getUnmatchedProperty(target, source, false /*requireOptionalProperties*/, false /*matchDiscriminantProperties*/) != 0
 }
 
-func tupleTypesDefinitelyUnrelated(source *Type, target *Type) bool {
-	s := source.TargetTupleType()
-	t := target.TargetTupleType()
-	return t.tuple().combinedFlags&ElementFlagsVariadic == 0 && t.tuple().minLength > s.tuple().minLength ||
-		t.tuple().combinedFlags&ElementFlagsVariable == 0 && (s.tuple().combinedFlags&ElementFlagsVariable != 0 || t.tuple().fixedLength < s.tuple().fixedLength)
+func tupleTypesDefinitelyUnrelated(c *Checker, source *Type, target *Type) bool {
+	s := source.TargetTupleType(c)
+	t := target.TargetTupleType(c)
+	return t.tuple(c).combinedFlags&ElementFlagsVariadic == 0 && t.tuple(c).minLength > s.tuple(c).minLength ||
+		t.tuple(c).combinedFlags&ElementFlagsVariable == 0 && (s.tuple(c).combinedFlags&ElementFlagsVariable != 0 || t.tuple(c).fixedLength < s.tuple(c).fixedLength)
 }
 
 func (c *Checker) isTupleTypeStructureMatching(t1 *Type, t2 *Type) bool {
 	if c.getTypeReferenceArity(t1) != c.getTypeReferenceArity(t2) {
 		return false
 	}
-	for i, e := range t1.TargetTupleType().tuple().elementInfos {
-		if e.flags&ElementFlagsVariable != t2.TargetTupleType().tuple().elementInfos[i].flags&ElementFlagsVariable {
+	for i, e := range t1.TargetTupleType(c).tuple(c).elementInfos {
+		if e.flags&ElementFlagsVariable != t2.TargetTupleType(c).tuple(c).elementInfos[i].flags&ElementFlagsVariable {
 			return false
 		}
 	}
@@ -1256,18 +1256,18 @@ func (c *Checker) isTypeOrBaseIdenticalTo(s *Type, t *Type) bool {
 
 func (c *Checker) isTypeCloselyMatchedBy(s *Type, t *Type) bool {
 	return s.flags&TypeFlagsObject != 0 && t.flags&TypeFlagsObject != 0 && c.symbolOfType(s) != 0 && c.symbolOfType(s) == c.symbolOfType(t) ||
-		s.Alias() != nil && t.Alias() != nil && len(s.Alias().typeArguments) != 0 && s.Alias().symbol == t.Alias().symbol
+		s.Alias(c) != nil && t.Alias(c) != nil && len(s.Alias(c).typeArguments) != 0 && s.Alias(c).symbol == t.Alias(c).symbol
 }
 
 // Create an object with properties named in the string literal type. Every property has type `any`.
 func (c *Checker) createEmptyObjectTypeFromStringLiteral(t *Type) *Type {
 	members := c.symbols.NewTable(0)
-	for _, tId := range t.Distributed() {
+	for _, tId := range t.Distributed(c) {
 		member := c.typ(tId)
 		if member.flags&TypeFlagsStringLiteral == 0 {
 			continue
 		}
-		name := getStringLiteralValue(member)
+		name := c.getStringLiteralValue(member)
 		literalProp := c.newSymbol(ast.SymbolFlagsProperty, ast.MakeSymbolName(name))
 		c.valueSymbolLinks.Get(literalProp).resolvedType = c.anyType.ref()
 		if c.symbolOfType(member) != 0 {
@@ -1528,7 +1528,7 @@ func (c *Checker) hasPrimitiveConstraint(t *Type) bool {
 
 func (c *Checker) isTypeParameterAtTopLevel(t *Type, tp *Type, depth int) bool {
 	return t == tp ||
-		t.flags&TypeFlagsUnionOrIntersection != 0 && c.typesSome(t.Types(), func(t *Type) bool { return c.isTypeParameterAtTopLevel(t, tp, depth) }) ||
+		t.flags&TypeFlagsUnionOrIntersection != 0 && c.typesSome(t.Types(c), func(t *Type) bool { return c.isTypeParameterAtTopLevel(t, tp, depth) }) ||
 		depth < 3 && t.flags&TypeFlagsConditional != 0 &&
 			(c.isTypeParameterAtTopLevel(c.getTrueTypeFromConditionalType(t), tp, depth+1) ||
 				c.isTypeParameterAtTopLevel(c.getFalseTypeFromConditionalType(t), tp, depth+1))
@@ -1552,9 +1552,9 @@ func (c *Checker) getTypeFromInference(inference *InferenceInfo) *Type {
 	return nil
 }
 
-func getInferenceInfoForType(n *InferenceState, t *Type) *InferenceInfo {
+func getInferenceInfoForType(c *Checker, n *InferenceState, t *Type) *InferenceInfo {
 	if t.flags&TypeFlagsTypeVariable != 0 {
-		t = getNonDistributedTypeParameter(t)
+		t = getNonDistributedTypeParameter(c, t)
 		for _, inference := range n.inferences {
 			if t == inference.typeParameter {
 				return inference
@@ -1630,7 +1630,7 @@ func (c *Checker) getCombinedTypeFlags(types []TypeId) TypeFlags {
 	for _, tId := range types {
 		t := c.typ(tId)
 		if t.flags&TypeFlagsUnion != 0 {
-			flags |= c.getCombinedTypeFlags(t.Types())
+			flags |= c.getCombinedTypeFlags(t.Types(c))
 		} else {
 			flags |= t.flags
 		}

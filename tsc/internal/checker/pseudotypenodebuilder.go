@@ -524,13 +524,13 @@ func (b *NodeBuilderImpl) pseudoTypeEquivalentToType(t *pseudochecker.PseudoType
 		return true
 	case pseudochecker.PseudoTypeKindTuple:
 		pt := t.AsPseudoTypeTuple()
-		if undefinedStripped == nil || !isTupleType(undefinedStripped) {
+		if undefinedStripped == nil || !b.ch.isTupleType(undefinedStripped) {
 			return false
 		}
-		tupleTarget := undefinedStripped.TargetTupleType()
+		tupleTarget := undefinedStripped.TargetTupleType(b.ch)
 		// Pseudo-tuples come from `as const` array literals, so they only ever have required elements.
 		// If the target tuple has optional, rest, or variadic elements, the structures can't match.
-		if tupleTarget.tuple().combinedFlags&ElementFlagsNonRequired != 0 {
+		if tupleTarget.tuple(b.ch).combinedFlags&ElementFlagsNonRequired != 0 {
 			return false
 		}
 		elementTypes := b.ch.getTypeArguments(undefinedStripped)

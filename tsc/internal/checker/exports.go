@@ -102,8 +102,8 @@ func IsTypeUsableAsPropertyName(t *Type) bool {
 	return isTypeUsableAsPropertyName(t)
 }
 
-func GetPropertyNameFromType(t *Type) ast.SymbolName {
-	return getPropertyNameFromType(t)
+func GetPropertyNameFromType(c *Checker, t *Type) ast.SymbolName {
+	return getPropertyNameFromType(c, t)
 }
 
 func (c *Checker) getGlobalSymbolId(name ast.SymbolName, meaning ast.SymbolFlags, diagnostic *diagnostics.Message) ast.SymbolId {
@@ -258,16 +258,16 @@ func (c *Checker) GetTypePredicateOfSignature(sig *Signature) *TypePredicate {
 	return c.getTypePredicateOfSignature(sig)
 }
 
-func IsTupleType(t *Type) bool {
-	return isTupleType(t)
+func IsTupleType(c *Checker, t *Type) bool {
+	return c.isTupleType(t)
 }
 
-func GetEndElementCount(t *TupleType, flags ElementFlags) int {
-	return getEndElementCount(t, flags)
+func GetEndElementCount(c *Checker, t *TupleType, flags ElementFlags) int {
+	return getEndElementCount(c, t, flags)
 }
 
-func IsTupleTypeTarget(t *Type) bool {
-	return isTupleType(t) && t.Target() == t
+func IsTupleTypeTarget(c *Checker, t *Type) bool {
+	return c.isTupleType(t) && t.Target(c) == t
 }
 
 func (c *Checker) IsArrayType(t *Type) bool {

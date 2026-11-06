@@ -1,6 +1,9 @@
 package checker
 
-import "slices"
+import (
+	"slices"
+	"sync/atomic"
+)
 
 // Helpers over lists of type ids whose callbacks take the types themselves. They follow the semantics of the
 // generic helpers in core.
@@ -232,4 +235,71 @@ func (c *Checker) TypeOf(id TypeId) *Type {
 func typeLookup[K comparable](c *Checker, m map[K]TypeId, k K) (*Type, bool) {
 	id, ok := m[k]
 	return c.typ(id), ok
+}
+
+const (
+	listPageShift = 14
+	listPageSize  = 1 << listPageShift
+)
+
+// listStore holds immutable lists in large pages, so a list costs no allocation of its own and is named by an 8-byte
+// handle: its position and length. Position 0 is the nil list and position 1 an empty one. A list never straddles two
+// pages; a list longer than a page gets a contiguous block of whole pages. The page directory is replaced rather than
+// grown in place, so a reader holding a handle from an earlier allocation can read concurrently with later ones.
+type listStore[T any] struct {
+	dir  atomic.Pointer[[][]T]
+	next uint32
+}
+
+// alloc reserves room for a list of n elements and returns its position and the room.
+func (s *listStore[T]) alloc(n int) (uint32, []T) {
+	if s.next == 0 {
+		s.grow(1)
+		s.next = 2
+	}
+	if n == 0 {
+		return 1, (*s.dir.Load())[0][1:1:1]
+	}
+	off := s.next & (listPageSize - 1)
+	if n > listPageSize {
+		pages := len(*s.dir.Load())
+		k := (n + listPageSize - 1) >> listPageShift
+		s.grow(k)
+		pos := uint32(pages) << listPageShift
+		s.next = uint32(pages+k) << listPageShift
+		return pos, (*s.dir.Load())[pages][:n:n]
+	}
+	if int(off)+n > listPageSize {
+		s.next = (s.next | (listPageSize - 1)) + 1
+		off = 0
+	}
+	page := s.next >> listPageShift
+	if int(page) >= len(*s.dir.Load()) {
+		s.grow(1)
+	}
+	pos := s.next
+	s.next += uint32(n)
+	return pos, (*s.dir.Load())[page][off : int(off)+n : int(off)+n]
+}
+
+// grow appends k pages, allocated as one block so that a list longer than a page is contiguous.
+func (s *listStore[T]) grow(k int) {
+	block := make([]T, k*listPageSize)
+	var grown [][]T
+	if d := s.dir.Load(); d != nil {
+		grown = slices.Clip(*d)
+	}
+	for i := range k {
+		grown = append(grown, block[i*listPageSize:])
+	}
+	s.dir.Store(&grown)
+}
+
+// slice returns the list at a position, or nil for position 0.
+func (s *listStore[T]) slice(pos uint32, n uint32) []T {
+	if pos == 0 {
+		return nil
+	}
+	off := pos & (listPageSize - 1)
+	return (*s.dir.Load())[pos>>listPageShift][off : off+n : off+n]
 }

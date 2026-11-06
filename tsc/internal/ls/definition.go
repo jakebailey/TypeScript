@@ -336,7 +336,7 @@ func getDeclarationsFromLocation(c *checker.Checker, node ast.Node) []ast.Node {
 				t := c.GetTypeAtLocation(node.Parent().Parent())
 				types := []*checker.Type{t}
 				if t.IsUnion() {
-					types = c.TypesOf(t.Types())
+					types = c.TypesOf(t.Types(c))
 				}
 				var result []ast.Node
 				for _, unionType := range types {
@@ -505,7 +505,7 @@ func getTypeOfSymbolAtLocation(c *checker.Checker, symbol ast.Symbol, node ast.N
 
 func getDeclarationsFromType(c *checker.Checker, t *checker.Type) []ast.Node {
 	var result []ast.Node
-	for _, t := range c.TypesOf(t.Distributed()) {
+	for _, t := range c.TypesOf(t.Distributed(c)) {
 		if !c.SymbolOfType(t).IsNil() {
 			for _, decl := range c.SymbolOfType(t).Declarations().All() {
 				result = core.AppendIfUnique(result, decl)

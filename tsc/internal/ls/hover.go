@@ -786,7 +786,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol ast.Symbol,
 			writeTypeClassified(t, container, typeFormatFlags)
 			if t.Flags()&checker.TypeFlagsLiteral != 0 {
 				dpw.WriteOperator(" = ")
-				dpw.WriteLiteral(t.AsLiteralType().String())
+				dpw.WriteLiteral(checker.ValueToString(t.AsLiteralType().Value(c)))
 			}
 			setDeclaration(symbol.ValueDeclaration())
 		}
@@ -846,14 +846,14 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol ast.Symbol,
 								dpw.WriteKeyword("class ")
 							}
 							writeSymbolClassified(symbol, container, ast.SymbolFlagsNone, symbolFormatFlags)
-							params := c.TypesOf(c.GetDeclaredTypeOfSymbol(symbol).AsInterfaceType().LocalTypeParameters())
+							params := c.TypesOf(c.GetDeclaredTypeOfSymbol(symbol).AsInterfaceType().LocalTypeParameters(c))
 							writeTypeParams(params)
 						}
 					} else {
 						if !tryExpandSymbol(symbol, flags) {
 							dpw.WriteKeyword("interface ")
 							writeSymbolClassified(symbol, container, ast.SymbolFlagsNone, symbolFormatFlags)
-							params := c.TypesOf(c.GetDeclaredTypeOfSymbol(symbol).AsInterfaceType().LocalTypeParameters())
+							params := c.TypesOf(c.GetDeclaredTypeOfSymbol(symbol).AsInterfaceType().LocalTypeParameters(c))
 							writeTypeParams(params)
 						}
 					}
@@ -911,7 +911,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol ast.Symbol,
 				dpw.WriteKeyword(" in ")
 				writeSymbolClassified(symbol.Parent(), container, ast.SymbolFlagsNone, symbolFormatFlags)
 				if parentType := c.GetDeclaredTypeOfSymbol(symbol.Parent()); parentType.AsInterfaceType() != nil {
-					parentParams := c.TypesOf(parentType.AsInterfaceType().LocalTypeParameters())
+					parentParams := c.TypesOf(parentType.AsInterfaceType().LocalTypeParameters(c))
 					writeTypeParams(parentParams)
 				}
 			} else {

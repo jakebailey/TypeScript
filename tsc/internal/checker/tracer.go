@@ -96,17 +96,17 @@ func (a *tracedTypeAdapter) Symbol() ast.Symbol {
 }
 
 func (a *tracedTypeAdapter) AliasSymbol() ast.Symbol {
-	if a.t.Alias() == nil {
+	if a.t.Alias(a.checker) == nil {
 		return ast.Symbol{}
 	}
-	return a.checker.symbolOf(a.t.Alias().Symbol())
+	return a.checker.symbolOf(a.t.Alias(a.checker).Symbol())
 }
 
 func (a *tracedTypeAdapter) AliasTypeArguments() []tracing.TracedType {
-	if a.t.Alias() == nil {
+	if a.t.Alias(a.checker) == nil {
 		return nil
 	}
-	return wrapTypes(a.checker, a.t.Alias().TypeArguments())
+	return wrapTypes(a.checker, a.t.Alias(a.checker).TypeArguments())
 }
 
 func (a *tracedTypeAdapter) IntrinsicName() string {
@@ -116,28 +116,28 @@ func (a *tracedTypeAdapter) IntrinsicName() string {
 	if a.t.kind() != typeKindIntrinsic {
 		return ""
 	}
-	return a.t.AsIntrinsicType().IntrinsicName()
+	return a.t.AsIntrinsicType().IntrinsicName(a.checker)
 }
 
 func (a *tracedTypeAdapter) UnionTypes() []tracing.TracedType {
 	if a.t.flags&TypeFlagsUnion == 0 {
 		return nil
 	}
-	return wrapTypes(a.checker, a.t.AsUnionType().types())
+	return wrapTypes(a.checker, a.t.AsUnionType().types(a.checker))
 }
 
 func (a *tracedTypeAdapter) IntersectionTypes() []tracing.TracedType {
 	if a.t.flags&TypeFlagsIntersection == 0 {
 		return nil
 	}
-	return wrapTypes(a.checker, a.t.AsIntersectionType().types())
+	return wrapTypes(a.checker, a.t.AsIntersectionType().types(a.checker))
 }
 
 func (a *tracedTypeAdapter) IndexType() tracing.TracedType {
 	if a.t.flags&TypeFlagsIndex == 0 {
 		return nil
 	}
-	t := a.t.AsIndexType().target()
+	t := a.t.AsIndexType().target(a.checker)
 	if t == nil {
 		return nil
 	}
@@ -148,7 +148,7 @@ func (a *tracedTypeAdapter) IndexedAccessObjectType() tracing.TracedType {
 	if a.t.flags&TypeFlagsIndexedAccess == 0 {
 		return nil
 	}
-	t := a.t.AsIndexedAccessType().objectType()
+	t := a.t.AsIndexedAccessType().objectType(a.checker)
 	if t == nil {
 		return nil
 	}
@@ -159,7 +159,7 @@ func (a *tracedTypeAdapter) IndexedAccessIndexType() tracing.TracedType {
 	if a.t.flags&TypeFlagsIndexedAccess == 0 {
 		return nil
 	}
-	t := a.t.AsIndexedAccessType().indexType()
+	t := a.t.AsIndexedAccessType().indexType(a.checker)
 	if t == nil {
 		return nil
 	}
@@ -170,7 +170,7 @@ func (a *tracedTypeAdapter) ConditionalCheckType() tracing.TracedType {
 	if a.t.flags&TypeFlagsConditional == 0 {
 		return nil
 	}
-	t := a.t.AsConditionalType().checkType()
+	t := a.t.AsConditionalType().checkType(a.checker)
 	if t == nil {
 		return nil
 	}
@@ -181,7 +181,7 @@ func (a *tracedTypeAdapter) ConditionalExtendsType() tracing.TracedType {
 	if a.t.flags&TypeFlagsConditional == 0 {
 		return nil
 	}
-	t := a.t.AsConditionalType().extendsType()
+	t := a.t.AsConditionalType().extendsType(a.checker)
 	if t == nil {
 		return nil
 	}
@@ -192,7 +192,7 @@ func (a *tracedTypeAdapter) ConditionalTrueType() tracing.TracedType {
 	if a.t.flags&TypeFlagsConditional == 0 {
 		return nil
 	}
-	t := a.checker.typ(a.t.AsConditionalType().cond().resolvedTrueType)
+	t := a.checker.typ(a.t.AsConditionalType().cond(a.checker).resolvedTrueType)
 	if t == nil {
 		return nil
 	}
@@ -203,7 +203,7 @@ func (a *tracedTypeAdapter) ConditionalFalseType() tracing.TracedType {
 	if a.t.flags&TypeFlagsConditional == 0 {
 		return nil
 	}
-	t := a.checker.typ(a.t.AsConditionalType().cond().resolvedFalseType)
+	t := a.checker.typ(a.t.AsConditionalType().cond(a.checker).resolvedFalseType)
 	if t == nil {
 		return nil
 	}
@@ -214,7 +214,7 @@ func (a *tracedTypeAdapter) SubstitutionBaseType() tracing.TracedType {
 	if a.t.flags&TypeFlagsSubstitution == 0 {
 		return nil
 	}
-	t := a.t.AsSubstitutionType().baseType()
+	t := a.t.AsSubstitutionType().baseType(a.checker)
 	if t == nil {
 		return nil
 	}
@@ -225,7 +225,7 @@ func (a *tracedTypeAdapter) SubstitutionConstraintType() tracing.TracedType {
 	if a.t.flags&TypeFlagsSubstitution == 0 {
 		return nil
 	}
-	t := a.t.AsSubstitutionType().constraint()
+	t := a.t.AsSubstitutionType().constraint(a.checker)
 	if t == nil {
 		return nil
 	}
@@ -236,7 +236,7 @@ func (a *tracedTypeAdapter) ReferenceTarget() tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsReference == 0 {
 		return nil
 	}
-	t := a.t.AsTypeReference().target()
+	t := a.t.AsTypeReference().target(a.checker)
 	if t == nil {
 		return nil
 	}
@@ -247,21 +247,21 @@ func (a *tracedTypeAdapter) ReferenceTypeArguments() []tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsReference == 0 {
 		return nil
 	}
-	return wrapTypes(a.checker, a.t.AsTypeReference().resolvedTypeArguments())
+	return wrapTypes(a.checker, a.t.AsTypeReference().resolvedTypeArguments(a.checker))
 }
 
 func (a *tracedTypeAdapter) ReferenceNode() ast.Node {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsReference == 0 {
 		return ast.Node{}
 	}
-	return a.checker.nodeOf(a.t.AsTypeReference().node())
+	return a.checker.nodeOf(a.t.AsTypeReference().node(a.checker))
 }
 
 func (a *tracedTypeAdapter) ReverseMappedSourceType() tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsReverseMapped == 0 {
 		return nil
 	}
-	t := a.t.AsReverseMappedType().source()
+	t := a.t.AsReverseMappedType().source(a.checker)
 	if t == nil {
 		return nil
 	}
@@ -272,7 +272,7 @@ func (a *tracedTypeAdapter) ReverseMappedMappedType() tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsReverseMapped == 0 {
 		return nil
 	}
-	t := a.t.AsReverseMappedType().mappedType()
+	t := a.t.AsReverseMappedType().mappedType(a.checker)
 	if t == nil {
 		return nil
 	}
@@ -283,7 +283,7 @@ func (a *tracedTypeAdapter) ReverseMappedConstraintType() tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsReverseMapped == 0 {
 		return nil
 	}
-	t := a.t.AsReverseMappedType().constraintType()
+	t := a.t.AsReverseMappedType().constraintType(a.checker)
 	if t == nil {
 		return nil
 	}
@@ -294,7 +294,7 @@ func (a *tracedTypeAdapter) EvolvingArrayElementType() tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsEvolvingArray == 0 {
 		return nil
 	}
-	t := a.t.AsEvolvingArrayType().elementType()
+	t := a.t.AsEvolvingArrayType().elementType(a.checker)
 	if t == nil {
 		return nil
 	}
@@ -305,7 +305,7 @@ func (a *tracedTypeAdapter) EvolvingArrayFinalType() tracing.TracedType {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsEvolvingArray == 0 {
 		return nil
 	}
-	t := a.t.AsEvolvingArrayType().finalArrayType()
+	t := a.t.AsEvolvingArrayType().finalArrayType(a.checker)
 	if t == nil {
 		return nil
 	}

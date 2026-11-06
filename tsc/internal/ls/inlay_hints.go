@@ -176,12 +176,12 @@ func (s *inlayHintState) visitCallOrNewExpression(expr ast.CallOrNewExpression) 
 		skipSpreadHint := false
 		if ast.IsSpreadElement(arg) {
 			spreadType := s.checker.GetTypeAtLocation(arg.Expression())
-			if spreadType.IsTupleType() {
-				tupleType := spreadType.Target().AsTupleType()
-				spreadArgs = getRequiredTupleElementCount(tupleType)
+			if spreadType.IsTupleType(s.checker) {
+				tupleType := spreadType.Target(s.checker).AsTupleType()
+				spreadArgs = getRequiredTupleElementCount(s.checker, tupleType)
 				// Optional or variable tuple elements make subsequent positional hints ambiguous.
-				hasUncertainTupleSpread = hasUncertainTupleSpread || spreadArgs < len(tupleType.ElementInfos())
-				skipSpreadHint = tupleType.FixedLength() == 0
+				hasUncertainTupleSpread = hasUncertainTupleSpread || spreadArgs < len(tupleType.ElementInfos(s.checker))
+				skipSpreadHint = tupleType.FixedLength(s.checker) == 0
 			}
 		}
 		if shouldShowLiteralParameterNameHintsOnly(s.preferences) && !isHintableLiteral(arg) {
@@ -874,15 +874,15 @@ func (s *inlayHintState) getParameterIdentifierInfoAtPosition(signature *checker
 	}
 
 	restType := s.checker.GetTypeOfSymbol(restParameter)
-	if restType.IsTupleType() {
-		tupleType := restType.Target().AsTupleType()
-		elementInfos := tupleType.ElementInfos()
+	if restType.IsTupleType(s.checker) {
+		tupleType := restType.Target(s.checker).AsTupleType()
+		elementInfos := tupleType.ElementInfos(s.checker)
 		index := pos - paramCount
 		restArgumentCount := argumentCount - paramCount
-		firstVariableIndex := tupleType.FixedLength()
-		trailingFixedCount := checker.GetEndElementCount(tupleType, checker.ElementFlagsFixed)
+		firstVariableIndex := tupleType.FixedLength(s.checker)
+		trailingFixedCount := checker.GetEndElementCount(s.checker, tupleType, checker.ElementFlagsFixed)
 		// Optional trailing elements may be omitted, so only required ones can be aligned from the end.
-		requiredTrailingCount := checker.GetEndElementCount(tupleType, checker.ElementFlagsRequired)
+		requiredTrailingCount := checker.GetEndElementCount(s.checker, tupleType, checker.ElementFlagsRequired)
 		// With [...head: T, first?: number], optional<T>(...x, 1) might consume 1 in T.
 		if uncertainTupleSpread && (offsetFromEnd <= 0 || offsetFromEnd > requiredTrailingCount) {
 			return nil

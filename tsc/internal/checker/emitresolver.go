@@ -342,7 +342,7 @@ func (r *EmitResolver) IsLiteralConstDeclaration(node ast.Node) bool {
 		if s == 0 {
 			return false
 		}
-		return isFreshLiteralType(r.checker.getTypeOfSymbol(s))
+		return isFreshLiteralType(r.checker, r.checker.getTypeOfSymbol(s))
 	}
 	return false
 }
@@ -710,7 +710,7 @@ func (r *EmitResolver) CreateLiteralConstValue(node ast.Node, tracker nodebuilde
 	if t.flags&TypeFlagsLiteral == 0 {
 		return ast.Node{} // non-literal type
 	}
-	switch value := t.AsLiteralType().Value().(type) {
+	switch value := t.AsLiteralType().Value(r.checker).(type) {
 	case string:
 		return r.emitContext.Factory.NewStringLiteral(value, ast.TokenFlagsNone)
 	case jsnum.Number:
@@ -937,7 +937,7 @@ func (r *EmitResolver) GetTypeReferenceSerializationKind(typeName ast.Node, loca
 		return printer.TypeReferenceSerializationKindBigIntLikeType
 	} else if r.checker.isTypeAssignableToKind(type_, TypeFlagsStringLike) {
 		return printer.TypeReferenceSerializationKindStringLikeType
-	} else if isTupleType(type_) {
+	} else if r.checker.isTupleType(type_) {
 		return printer.TypeReferenceSerializationKindArrayLikeType
 	} else if r.checker.isTypeAssignableToKind(type_, TypeFlagsESSymbolLike) {
 		return printer.TypeReferenceSerializationKindESSymbolType

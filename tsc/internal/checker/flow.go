@@ -522,7 +522,7 @@ func (c *Checker) narrowTypeByBinaryExpression(f *FlowState, t *Type, expr ast.B
 		if c.containsMissingType(t) && ast.IsAccessExpression(f.reference) && c.isMatchingReference(f.reference.Expression(), target) {
 			leftType := c.getTypeOfExpression(expr.Left())
 			if isTypeUsableAsPropertyName(leftType) {
-				if accessedName, ok := c.getAccessedPropertyName(f.reference); ok && accessedName == getPropertyNameFromType(leftType) {
+				if accessedName, ok := c.getAccessedPropertyName(f.reference); ok && accessedName == getPropertyNameFromType(c, leftType) {
 					return c.getTypeWithFacts(t, core.IfElse(assumeTrue, TypeFactsNEUndefined, TypeFactsEQUndefined))
 				}
 			}
@@ -998,7 +998,7 @@ func (c *Checker) narrowTypeByPrivateIdentifierInInExpression(f *FlowState, t *T
 }
 
 func (c *Checker) narrowTypeByInKeyword(f *FlowState, t *Type, nameType *Type, assumeTrue bool) *Type {
-	name := getPropertyNameFromType(nameType)
+	name := getPropertyNameFromType(c, nameType)
 	isKnownProperty := c.someType(t, func(t *Type) bool {
 		return c.isTypePresencePossible(t, name, true /*assumeTrue*/)
 	})
@@ -1075,7 +1075,7 @@ func (c *Checker) getTypeAtSwitchClause(f *FlowState, flow ast.FlowNode) FlowTyp
 				})
 			} else if ast.IsTypeOfExpression(expr) && c.optionalChainContainsReference(expr.Expression(), f.reference) {
 				t = c.narrowTypeBySwitchOptionalChainContainment(t, data, func(t *Type) bool {
-					return !(t.flags&TypeFlagsNever != 0 || t.flags&TypeFlagsStringLiteral != 0 && getStringLiteralValue(t) == "undefined")
+					return !(t.flags&TypeFlagsNever != 0 || t.flags&TypeFlagsStringLiteral != 0 && c.getStringLiteralValue(t) == "undefined")
 				})
 			}
 		}
@@ -1316,7 +1316,7 @@ func (c *Checker) getUnionOrEvolvingArrayType(f *FlowState, types []TypeId, subt
 		return c.getEvolvingArrayType(c.getUnionType(c.typesMap(types, c.getElementTypeOfEvolvingArrayType)))
 	}
 	result := c.recombineUnknownType(c.getUnionTypeEx(c.typesSameMap(types, c.finalizeEvolvingArrayType), subtypeReduction, nil, nil))
-	if result != f.declaredType && result.flags&f.declaredType.flags&TypeFlagsUnion != 0 && slices.Equal(result.AsUnionType().types(), f.declaredType.AsUnionType().types()) {
+	if result != f.declaredType && result.flags&f.declaredType.flags&TypeFlagsUnion != 0 && slices.Equal(result.AsUnionType().types(c), f.declaredType.AsUnionType().types(c)) {
 		return f.declaredType
 	}
 	return result
@@ -1519,7 +1519,7 @@ func (c *Checker) getEvolvingArrayType(elementType *Type) *Type {
 
 func (c *Checker) getElementTypeOfEvolvingArrayType(t *Type) *Type {
 	if t.objectFlags&ObjectFlagsEvolvingArray != 0 {
-		return t.AsEvolvingArrayType().elementType()
+		return t.AsEvolvingArrayType().elementType(c)
 	}
 	return c.neverType
 }
@@ -1557,7 +1557,7 @@ func (c *Checker) isEvolvingArrayOperationTarget(node ast.Node) bool {
 // array type.
 func (c *Checker) addEvolvingArrayElementType(evolvingArrayType *Type, node ast.Node) *Type {
 	newElementType := c.getRegularTypeOfObjectLiteral(c.getBaseTypeOfLiteralType(c.getContextFreeTypeOfExpression(node)))
-	elementType := evolvingArrayType.AsEvolvingArrayType().elementType()
+	elementType := evolvingArrayType.AsEvolvingArrayType().elementType(c)
 	if c.isTypeSubsetOf(newElementType, elementType) {
 		return evolvingArrayType
 	}
@@ -1572,10 +1572,10 @@ func (c *Checker) finalizeEvolvingArrayType(t *Type) *Type {
 }
 
 func (c *Checker) getFinalArrayType(t *EvolvingArrayType) *Type {
-	if t.finalArrayType() == nil {
-		t.setFinalArrayType(c.createFinalArrayType(t.elementType()))
+	if t.finalArrayType(c) == nil {
+		t.setFinalArrayType(c.createFinalArrayType(t.elementType(c)))
 	}
-	return t.finalArrayType()
+	return t.finalArrayType(c)
 }
 
 func (c *Checker) createFinalArrayType(elementType *Type) *Type {
@@ -1583,7 +1583,7 @@ func (c *Checker) createFinalArrayType(elementType *Type) *Type {
 	case elementType.flags&TypeFlagsNever != 0:
 		return c.autoArrayType
 	case elementType.flags&TypeFlagsUnion != 0:
-		return c.createArrayType(c.getUnionTypeEx(elementType.Types(), UnionReductionSubtype, nil, nil))
+		return c.createArrayType(c.getUnionTypeEx(elementType.Types(c), UnionReductionSubtype, nil, nil))
 	}
 	return c.createArrayType(elementType)
 }
@@ -1774,7 +1774,7 @@ func (c *Checker) tryGetNameFromEntityNameExpression(node ast.Node) (ast.SymbolN
 	}
 	t := c.tryGetTypeFromTypeNode(declaration)
 	if t != nil {
-		if name, ok := tryGetNameFromType(t); ok {
+		if name, ok := tryGetNameFromType(c, t); ok {
 			return name, true
 		}
 	}
@@ -1783,7 +1783,7 @@ func (c *Checker) tryGetNameFromEntityNameExpression(node ast.Node) (ast.SymbolN
 	if hasOnlyExpressionInitializer(declaration) && !ast.IsBindingElement(declaration) && c.isBlockScopedNameDeclaredBeforeUse(declaration, node) {
 		if initializer := declaration.Initializer(); !initializer.IsNil() {
 			if initializerType := c.getTypeOfExpression(initializer); initializerType != nil {
-				return tryGetNameFromType(initializerType)
+				return tryGetNameFromType(c, initializerType)
 			}
 		} else if ast.IsEnumMember(declaration) {
 			name, ok := ast.TryGetTextOfPropertyName(declaration.Name())
@@ -1793,12 +1793,12 @@ func (c *Checker) tryGetNameFromEntityNameExpression(node ast.Node) (ast.SymbolN
 	return ast.EmptySymbolName, false
 }
 
-func tryGetNameFromType(t *Type) (ast.SymbolName, bool) {
+func tryGetNameFromType(c *Checker, t *Type) (ast.SymbolName, bool) {
 	switch {
 	case t.flags&TypeFlagsUniqueESSymbol != 0:
 		return t.AsUniqueESSymbolType().name(), true
 	case t.flags&TypeFlagsStringOrNumberLiteral != 0:
-		return ast.MakeSymbolName(evaluator.AnyToString(t.AsLiteralType().Value())), true
+		return ast.MakeSymbolName(evaluator.AnyToString(t.AsLiteralType().Value(c))), true
 	}
 	return ast.EmptySymbolName, false
 }
@@ -1820,7 +1820,7 @@ func (c *Checker) getDestructuringPropertyName(node ast.Node) (ast.SymbolName, b
 func (c *Checker) getLiteralPropertyNameText(name ast.Node) (ast.SymbolName, bool) {
 	t := c.getLiteralTypeFromPropertyName(name)
 	if t.flags&(TypeFlagsStringLiteral|TypeFlagsNumberLiteral) != 0 {
-		return ast.MakeSymbolName(evaluator.AnyToString(t.AsLiteralType().Value())), true
+		return ast.MakeSymbolName(evaluator.AnyToString(t.AsLiteralType().Value(c))), true
 	}
 	return ast.EmptySymbolName, false
 }
@@ -1991,7 +1991,7 @@ func (c *Checker) computeExhaustiveSwitchStatement(node ast.Node) bool {
 
 func (c *Checker) eachTypeContainedIn(source *Type, types []TypeId) bool {
 	if source.flags&TypeFlagsUnion != 0 {
-		return !c.typesSome(source.AsUnionType().types(), func(t *Type) bool {
+		return !c.typesSome(source.AsUnionType().types(c), func(t *Type) bool {
 			return !slices.Contains(types, t.ref())
 		})
 	}
@@ -2122,7 +2122,7 @@ func (c *Checker) getPropertyNameForKnownSymbolName(symbolName ast.SymbolName) a
 	if ctorType != 0 {
 		uniqueType := c.getTypeOfPropertyOfType(c.getTypeOfSymbol(ctorType), symbolName)
 		if uniqueType != nil && isTypeUsableAsPropertyName(uniqueType) {
-			return getPropertyNameFromType(uniqueType)
+			return getPropertyNameFromType(c, uniqueType)
 		}
 	}
 	return ast.MakeSymbolName(ast.InternalSymbolNamePrefix + "@" + symbolName.String())
@@ -2238,7 +2238,7 @@ func (c *Checker) getExplicitThisType(node ast.Node) *Type {
 		if ast.IsStatic(container) {
 			return c.getTypeOfSymbol(symbol)
 		} else {
-			return c.typ(c.getDeclaredTypeOfSymbol(symbol).AsInterfaceType().iface().thisType)
+			return c.typ(c.getDeclaredTypeOfSymbol(symbol).AsInterfaceType().iface(c).thisType)
 		}
 	}
 	return nil
@@ -2377,7 +2377,7 @@ func (c *Checker) getTypeOfDestructuredProperty(t *Type, name ast.Node) *Type {
 	if !isTypeUsableAsPropertyName(nameType) {
 		return c.errorType
 	}
-	text := getPropertyNameFromType(nameType)
+	text := getPropertyNameFromType(c, nameType)
 	if propType := c.getTypeOfPropertyOfType(t, text); propType != nil {
 		return propType
 	}
@@ -2428,7 +2428,7 @@ func (c *Checker) getAssignmentReducedTypeWorker(declaredType *Type, assignedTyp
 	})
 	// Ensure that we narrow to fresh types if the assignment is a fresh boolean literal type.
 	reducedType := filteredType
-	if assignedType.flags&TypeFlagsBooleanLiteral != 0 && isFreshLiteralType(assignedType) {
+	if assignedType.flags&TypeFlagsBooleanLiteral != 0 && isFreshLiteralType(c, assignedType) {
 		reducedType = c.mapType(filteredType, c.getFreshTypeOfLiteralType)
 	}
 	// Our crude heuristic produces an invalid result in some cases: see GH#26130.
@@ -2446,11 +2446,11 @@ func (c *Checker) typeMaybeAssignableTo(source *Type, target *Type) bool {
 		return c.isTypeAssignableTo(source, target)
 	}
 	// Quick exit when source union contains the target type
-	if c.containsType(source.Types(), target) {
+	if c.containsType(source.Types(c), target) {
 		return true
 	}
 	// Otherwise, check if any constituent type of the source union is assignable to the target type
-	for _, tId := range source.Types() {
+	for _, tId := range source.Types(c) {
 		t := c.typ(tId)
 		if c.isTypeAssignableTo(t, target) {
 			return true

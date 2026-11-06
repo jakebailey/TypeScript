@@ -1212,12 +1212,12 @@ func endOfRequiredTypeParameters(ch *checker.Checker, t *checker.Type) int {
 	if len(typeArgs) == 0 {
 		return 0
 	}
-	target := t.Target()
+	target := t.Target(ch)
 	if target == nil || target.AsInterfaceType() == nil {
 		return len(typeArgs)
 	}
-	typeParams := ch.TypesOf(target.AsInterfaceType().TypeParameters())
-	localTypeParams := ch.TypesOf(target.AsInterfaceType().LocalTypeParameters())
+	typeParams := ch.TypesOf(target.AsInterfaceType().TypeParameters(ch))
+	localTypeParams := ch.TypesOf(target.AsInterfaceType().LocalTypeParameters(ch))
 	outerCount := len(typeParams) - len(localTypeParams)
 	for cutoff := range typeArgs {
 		// Skip cutoff positions where the local type parameter has no default.

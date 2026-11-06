@@ -425,7 +425,7 @@ func reclassifyByType(c *checker.Checker, node ast.Node, tt tokenType) tokenType
 					return true
 				}
 				if typ.Flags()&checker.TypeFlagsUnion != 0 {
-					if slices.ContainsFunc(c.TypesOf(typ.AsUnionType().Types()), condition) {
+					if slices.ContainsFunc(c.TypesOf(typ.AsUnionType().Types(c)), condition) {
 						return true
 					}
 				}

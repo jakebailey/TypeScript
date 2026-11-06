@@ -747,26 +747,24 @@ const (
 	typeIdMask    = 1<<typeKindShift - 1
 )
 
-// A Type is a 64-byte record in a checker-owned slab. The header holds what every type has; resolved holds the
-// members, properties, signatures and index infos of object, union and intersection types once they are resolved;
-// extra holds fields few types have; and data is a 32-byte payload whose meaning depends on the kind. Kinds with more
-// state than fits keep it in a record the payload points to.
+// A Type is a 56-byte record in a checker-owned slab, with no Go pointers. The header holds what every type has;
+// resolved names the members, properties, signatures and index infos of object, union and intersection types once
+// they are resolved; extra names a record of fields few types have; and data is a 32-byte payload whose meaning
+// depends on the kind. Kinds with more state than fits keep it in a side record whose index the payload holds.
 type Type struct {
 	flags       TypeFlags
 	objectFlags ObjectFlags
 	id          TypeId // The type's id, with its typeKind in the high bits
 	symbol      ast.SymbolId
-	resolved    *structuredMembers
-	extra       *typeExtra
+	resolved    uint32 // Resolved members: an index in the checker's resolved records plus one, 0 for none
+	extra       uint32 // Rarely set fields: an index in the checker's type extras plus one, 0 for none
 	data        typeData
 }
 
-// typeData is a type's per-kind payload. The garbage collector must know which words of a record hold pointers, so
-// every kind keeps its pointers in p0, p1 and p2 and its scalars in w0 and w1.
-type typeData struct {
-	p0, p1, p2 unsafe.Pointer
-	w0, w1     uint32
-}
+// typeData is a type's per-kind payload: eight 32-bit words holding type ids, mapper ids, list handles and indices of
+// side records, laid out per kind as described at each kind. It holds no Go pointers, so the type slabs are not
+// scanned by the garbage collector.
+type typeData [8]uint32
 
 // Enforce the layout required by the pointer conversions, on every architecture: every concrete type is a Type at
 // offset zero with no further fields.
@@ -838,7 +836,7 @@ type typeExtra struct {
 	alias                  *TypeAlias
 	resolvedBaseConstraint TypeId
 	instantiations         map[CacheHashKey]TypeId // Map of type instantiations
-	mapper                 *TypeMapper             // Type mapper of a deferred type reference
+	mapper                 TypeMapperId            // Type mapper of a deferred type reference
 	node                   ast.NodeRef             // TypeReferenceNode | ArrayTypeNode | TupleTypeNode of a deferred type reference
 	resolvedDefaultType    TypeId                  // Default of a type parameter
 	distributedType        TypeId                  // Distributed form of a type parameter
@@ -930,54 +928,57 @@ func (t *Type) ObjectFlags() ObjectFlags {
 	return t.objectFlags
 }
 
+// ext returns the type's rarely set fields, or nil if none is set.
+func (t *Type) ext(c *Checker) *typeExtra {
+	return pageAt(&c.typeExtras, t.extra)
+}
+
 func (t *Type) ensureExtra(c *Checker) *typeExtra {
-	if t.extra == nil {
-		t.extra = c.typeExtraArena.New()
+	if t.extra == 0 {
+		var e *typeExtra
+		t.extra, e = pageAdd(&c.typeExtras)
+		return e
 	}
-	return t.extra
+	return c.typeExtras.At(t.extra - 1)
+}
+
+// res returns the type's resolved members, or nil if none is set.
+func (t *Type) res(c *Checker) *structuredMembers {
+	return pageAt(&c.typeResolved, t.resolved)
 }
 
 func (t *Type) ensureResolved(c *Checker) *structuredMembers {
-	if t.resolved == nil {
-		// Allocated individually: in a shared chunk, one live record would keep its neighbours' member tables alive
-		// after their types become garbage.
-		t.resolved = new(structuredMembers)
+	if t.resolved == 0 {
+		var r *structuredMembers
+		t.resolved, r = pageAdd(&c.typeResolved)
+		return r
 	}
-	return t.resolved
+	return c.typeResolved.At(t.resolved - 1)
 }
 
-// fromPayload reads a pointer word of a type's payload.
-func fromPayload[T any](p unsafe.Pointer) *T {
-	// SAFETY: Each kind keeps pointers of a single type in each pointer word, and only the accessors of that kind,
-	// which pair the word with that type, read or write it.
-	return (*T)(p)
-}
-
-// toPayload converts a pointer for storage in a pointer word of a type's payload.
-func toPayload[T any](v *T) unsafe.Pointer {
-	// SAFETY: The word keeps the pointer visible to the garbage collector, and fromPayload converts it back to *T.
-	return unsafe.Pointer(v)
-}
-
-// sliceFromPayload rebuilds a slice from a pointer word and a length word of a type's payload. It returns nil for a
-// nil pointer, which keeps a nil slice distinct from an empty one.
-func sliceFromPayload[T any](p unsafe.Pointer, n uint32) []T {
-	if p == nil {
+// pageAt returns the record at a stored index (position plus one), or nil for 0.
+func pageAt[T any](p *core.Pages[T], i uint32) *T {
+	if i == 0 {
 		return nil
 	}
-	// SAFETY: sliceToPayload stored the data pointer and length of a []T, and the length and capacity are equal.
-	return unsafe.Slice(fromPayload[T](p), n)
+	return p.At(i - 1)
 }
 
-// sliceToPayload splits a slice into a pointer word and a length word of a type's payload. The capacity is
-// dropped, so the slice must not be appended to through the payload.
-func sliceToPayload[T any](s []T) (unsafe.Pointer, uint32) {
-	// SAFETY: The data pointer keeps the backing array alive, and sliceFromPayload rebuilds the slice from it.
-	return toPayload(unsafe.SliceData(s)), uint32(len(s))
+// pageAdd appends a zero record and returns its stored index (position plus one) and address.
+func pageAdd[T any](p *core.Pages[T]) (uint32, *T) {
+	i, r := p.Add()
+	return i + 1, r
 }
 
-func typeSlice(p unsafe.Pointer, n uint32) []TypeId {
-	return sliceFromPayload[TypeId](p, n)
+// typeListOf copies a list of types into the checker's list store and returns its handle. A nil list stays nil and an
+// empty one stays empty.
+func (c *Checker) typeListOf(s []TypeId) (uint32, uint32) {
+	if s == nil {
+		return 0, 0
+	}
+	pos, list := c.typeLists.alloc(len(s))
+	copy(list, s)
+	return pos, uint32(len(s))
 }
 
 // Casts for concrete struct types
@@ -1078,10 +1079,10 @@ func (t *Type) AsUnionOrIntersectionType() *UnionOrIntersectionType {
 	return nil
 }
 
-func (t *Type) Distributed() []TypeId {
+func (t *Type) Distributed(c *Checker) []TypeId {
 	switch {
 	case t.flags&TypeFlagsUnion != 0:
-		return t.AsUnionType().types()
+		return t.AsUnionType().types(c)
 	case t.flags&TypeFlagsNever != 0:
 		return nil
 	}
@@ -1090,16 +1091,16 @@ func (t *Type) Distributed() []TypeId {
 
 // Common accessors
 
-func (t *Type) Target() *Type {
+func (t *Type) Target(c *Checker) *Type {
 	switch {
 	case t.flags&TypeFlagsObject != 0:
-		return t.AsObjectType().target()
+		return c.typ(t.AsObjectType().targetId())
 	case t.flags&TypeFlagsTypeParameter != 0:
-		return t.AsTypeParameter().target()
+		return c.typ(t.AsTypeParameter().targetId())
 	case t.flags&TypeFlagsIndex != 0:
-		return t.AsIndexType().target()
+		return c.typ(t.AsIndexType().targetId())
 	case t.flags&TypeFlagsStringMapping != 0:
-		return t.AsStringMappingType().target()
+		return c.typ(t.AsStringMappingType().targetId())
 	}
 	panic("Unhandled case in Type.Target")
 }
@@ -1107,31 +1108,31 @@ func (t *Type) Target() *Type {
 func (t *Type) Mapper(c *Checker) *TypeMapper {
 	switch {
 	case t.flags&TypeFlagsObject != 0:
-		return t.AsObjectType().mapper()
+		return t.AsObjectType().mapper(c)
 	case t.flags&TypeFlagsTypeParameter != 0:
-		return t.AsTypeParameter().mapper()
+		return t.AsTypeParameter().mapper(c)
 	case t.flags&TypeFlagsConditional != 0:
-		return c.mapperOf(t.AsConditionalType().cond().mapper)
+		return c.mapperOf(t.AsConditionalType().cond(c).mapper)
 	}
 	panic("Unhandled case in Type.Mapper")
 }
 
-func (t *Type) Types() []TypeId {
+func (t *Type) Types(c *Checker) []TypeId {
 	switch {
 	case t.flags&TypeFlagsUnionOrIntersection != 0:
-		return t.AsUnionOrIntersectionType().types()
+		return t.AsUnionOrIntersectionType().types(c)
 	case t.flags&TypeFlagsTemplateLiteral != 0:
-		return t.AsTemplateLiteralType().types()
+		return t.AsTemplateLiteralType().types(c)
 	}
 	panic("Unhandled case in Type.Types")
 }
 
-func (t *Type) TargetInterfaceType() *InterfaceType {
-	return t.AsTypeReference().target().AsInterfaceType()
+func (t *Type) TargetInterfaceType(c *Checker) *InterfaceType {
+	return c.typ(t.AsTypeReference().targetId()).AsInterfaceType()
 }
 
-func (t *Type) TargetTupleType() *TupleType {
-	return t.AsTypeReference().target().AsTupleType()
+func (t *Type) TargetTupleType(c *Checker) *TupleType {
+	return c.typ(t.AsTypeReference().targetId()).AsTupleType()
 }
 
 // SymbolOfType returns the symbol of a type, or the zero Symbol if it has none.
@@ -1150,15 +1151,15 @@ func (t *Type) setSymbol(c *Checker, symbol ast.SymbolId) {
 	t.symbol = symbol
 }
 
-func (t *Type) Alias() *TypeAlias {
-	if t.extra == nil {
+func (t *Type) Alias(c *Checker) *TypeAlias {
+	if t.extra == 0 {
 		return nil
 	}
-	return t.extra.alias
+	return t.ext(c).alias
 }
 
 func (t *Type) setAlias(c *Checker, alias *TypeAlias) {
-	if alias == nil && t.extra == nil {
+	if alias == nil && t.extra == 0 {
 		return
 	}
 	t.ensureExtra(c).alias = alias
@@ -1212,8 +1213,8 @@ func (t *Type) IsIndex() bool {
 	return t.flags&TypeFlagsIndex != 0
 }
 
-func (t *Type) IsTupleType() bool {
-	return isTupleType(t)
+func (t *Type) IsTupleType(c *Checker) bool {
+	return c.isTupleType(t)
 }
 
 // TypeBase
@@ -1230,25 +1231,24 @@ func (t *TypeBase) AsTypeReference() *TypeReference                     { return
 func (t *TypeBase) AsInterfaceType() *InterfaceType                     { return nil }
 func (t *TypeBase) AsUnionOrIntersectionType() *UnionOrIntersectionType { return nil }
 
-// IntrinsicType: the name in p0 and w0.
+// IntrinsicType: in word 0 the index of the name in the checker's intrinsic names.
 
 type IntrinsicType struct {
 	TypeBase
 }
 
-func (t *IntrinsicType) IntrinsicName() string {
-	// SAFETY: setIntrinsicName stored the data pointer and length of an immutable string.
-	return unsafe.String(fromPayload[byte](t.data.p0), t.data.w0)
+func (t *IntrinsicType) IntrinsicName(c *Checker) string {
+	return c.intrinsicNames[t.data[0]]
 }
 
-func (t *IntrinsicType) setIntrinsicName(name string) {
-	// SAFETY: Strings are immutable, and the data pointer keeps the bytes alive.
-	t.data.p0 = toPayload(unsafe.StringData(name))
-	t.data.w0 = uint32(len(name))
+func (t *IntrinsicType) setIntrinsicName(c *Checker, name string) {
+	t.data[0] = uint32(len(c.intrinsicNames))
+	c.intrinsicNames = append(c.intrinsicNames, name)
 }
 
-// LiteralType: the value (string | jsnum.Number | bool | PseudoBigInt | nil for a computed enum) in p0 and p1, and in
-// p2 the regular version of a fresh type or the fresh version of a regular type. Bit 0 of w0 marks a fresh type.
+// LiteralType: in word 0 the index of the value (string | jsnum.Number | bool | PseudoBigInt) in the checker's literal
+// values plus one, or 0 for the nil value of a computed enum; in word 1 the regular version of a fresh type or the
+// fresh version of a regular type; bit 0 of word 2 marks a fresh type.
 
 type LiteralType struct {
 	TypeBase
@@ -1256,66 +1256,69 @@ type LiteralType struct {
 
 const literalTypeFresh = 1
 
-func (t *LiteralType) Value() any {
-	// SAFETY: p0 and p1 are two adjacent pointer words, laid out like an interface value.
-	return *(*any)(unsafe.Pointer(&t.data.p0))
+func (t *LiteralType) Value(c *Checker) any {
+	if t.data[0] == 0 {
+		return nil
+	}
+	return *c.literalValues.At(t.data[0] - 1)
 }
 
-func (t *LiteralType) setValue(value any) {
-	// SAFETY: p0 and p1 are two adjacent pointer words, laid out like an interface value.
-	*(*any)(unsafe.Pointer(&t.data.p0)) = value
+func (t *LiteralType) setValue(c *Checker, value any) {
+	if value == nil {
+		t.data[0] = 0
+		return
+	}
+	var v *any
+	t.data[0], v = pageAdd(&c.literalValues)
+	*v = value
 }
 
 // FreshType returns the fresh version of the type.
-func (t *LiteralType) FreshType() *Type {
-	if t.data.w0&literalTypeFresh != 0 {
+func (t *LiteralType) FreshType(c *Checker) *Type {
+	if t.data[2]&literalTypeFresh != 0 {
 		return &t.Type
 	}
-	return fromPayload[Type](t.data.p2)
+	return c.typ(TypeId(t.data[1]))
 }
 
 // RegularType returns the regular version of the type.
-func (t *LiteralType) RegularType() *Type {
-	if t.data.w0&literalTypeFresh != 0 {
-		return fromPayload[Type](t.data.p2)
+func (t *LiteralType) RegularType(c *Checker) *Type {
+	if t.data[2]&literalTypeFresh != 0 {
+		return c.typ(TypeId(t.data[1]))
 	}
 	return &t.Type
 }
 
 func (t *LiteralType) setFreshType(fresh *Type) {
 	if fresh == &t.Type {
-		t.data.w0 |= literalTypeFresh
+		t.data[2] |= literalTypeFresh
 	} else {
-		t.data.p2 = toPayload(fresh)
+		t.data[1] = uint32(fresh.ref())
 	}
 }
 
 func (t *LiteralType) setRegularType(regular *Type) {
 	if regular == &t.Type {
-		t.data.w0 &^= literalTypeFresh
+		t.data[2] &^= literalTypeFresh
 	} else {
-		t.data.w0 |= literalTypeFresh
-		t.data.p2 = toPayload(regular)
+		t.data[2] |= literalTypeFresh
+		t.data[1] = uint32(regular.ref())
 	}
 }
 
-func (t *LiteralType) String() string {
-	return ValueToString(t.Value())
-}
-
-// UniqueESSymbolType: the name in w0 and w1.
+// UniqueESSymbolType: the name in words 0 and 1.
 
 type UniqueESSymbolType struct {
 	TypeBase
 }
 
 func (t *UniqueESSymbolType) name() ast.SymbolName {
-	return ast.SymbolName(uint64(t.data.w1)<<32 | uint64(t.data.w0))
+	return ast.SymbolName(uint64(t.data[1])<<32 | uint64(t.data[0]))
 }
 
 func (t *UniqueESSymbolType) setName(name ast.SymbolName) {
-	t.data.w0 = uint32(name)
-	t.data.w1 = uint32(name >> 32)
+	t.data[0] = uint32(name)
+	t.data[1] = uint32(name >> 32)
 }
 
 // ConstrainedType (type with computed base constraint)
@@ -1327,14 +1330,14 @@ type ConstrainedType struct {
 func (t *ConstrainedType) AsConstrainedType() *ConstrainedType { return t }
 
 func (t *ConstrainedType) resolvedBaseConstraint(c *Checker) *Type {
-	if t.extra == nil {
+	if t.extra == 0 {
 		return nil
 	}
-	return c.typ(t.extra.resolvedBaseConstraint)
+	return c.typ(t.ext(c).resolvedBaseConstraint)
 }
 
 func (t *ConstrainedType) setResolvedBaseConstraint(c *Checker, constraint *Type) {
-	if constraint == nil && t.extra == nil {
+	if constraint == nil && t.extra == 0 {
 		return
 	}
 	t.ensureExtra(c).resolvedBaseConstraint = constraint.ref()
@@ -1348,43 +1351,43 @@ type StructuredType struct {
 
 func (t *StructuredType) AsStructuredType() *StructuredType { return t }
 
-func (t *StructuredType) members() ast.SymbolTable {
-	if t.resolved == nil {
+func (t *StructuredType) members(c *Checker) ast.SymbolTable {
+	if t.resolved == 0 {
 		return nil
 	}
-	return t.resolved.members
+	return t.res(c).members
 }
 
 func (t *StructuredType) setMembers(c *Checker, members ast.SymbolTable) {
-	if members == nil && t.resolved == nil {
+	if members == nil && t.resolved == 0 {
 		return
 	}
 	t.ensureResolved(c).members = members
 }
 
-func (t *StructuredType) properties() []ast.SymbolId {
-	if t.resolved == nil {
+func (t *StructuredType) properties(c *Checker) []ast.SymbolId {
+	if t.resolved == 0 {
 		return nil
 	}
-	return t.resolved.properties
+	return t.res(c).properties
 }
 
 func (t *StructuredType) setProperties(c *Checker, properties []ast.SymbolId) {
-	if properties == nil && t.resolved == nil {
+	if properties == nil && t.resolved == 0 {
 		return
 	}
 	t.ensureResolved(c).properties = properties
 }
 
-func (t *StructuredType) resolvedExtra() *structuredTypeExtra {
-	if t.resolved == nil {
+func (t *StructuredType) resolvedExtra(c *Checker) *structuredTypeExtra {
+	if t.resolved == 0 {
 		return nil
 	}
-	return t.resolved.extra
+	return t.res(c).extra
 }
 
 func (t *StructuredType) setResolvedExtra(c *Checker, extra *structuredTypeExtra) {
-	if extra == nil && t.resolved == nil {
+	if extra == nil && t.resolved == 0 {
 		return
 	}
 	t.ensureResolved(c).extra = extra
@@ -1398,16 +1401,16 @@ func (t *StructuredType) ensureResolvedExtra(c *Checker) *structuredTypeExtra {
 	return resolved.extra
 }
 
-func (t *StructuredType) CallSignatures() []*Signature {
-	extra := t.resolvedExtra()
+func (t *StructuredType) CallSignatures(c *Checker) []*Signature {
+	extra := t.resolvedExtra(c)
 	if extra == nil {
 		return nil
 	}
 	return slices.Clip(extra.signatures[:extra.callSignatureCount])
 }
 
-func (t *StructuredType) ConstructSignatures() []*Signature {
-	extra := t.resolvedExtra()
+func (t *StructuredType) ConstructSignatures(c *Checker) []*Signature {
+	extra := t.resolvedExtra(c)
 	if extra == nil {
 		return nil
 	}
@@ -1415,10 +1418,10 @@ func (t *StructuredType) ConstructSignatures() []*Signature {
 }
 
 func (t *StructuredType) getMember(c *Checker, name ast.SymbolName) ast.SymbolId {
-	if members := t.members(); members != nil {
+	if members := t.members(c); members != nil {
 		return members.GetId(c.symbols, name)
 	}
-	lazy := t.getLazyState()
+	lazy := t.getLazyState(c)
 	if lazy == nil {
 		return 0
 	}
@@ -1430,7 +1433,7 @@ func (t *StructuredType) getMember(c *Checker, name ast.SymbolName) ast.SymbolId
 }
 
 func (t *StructuredType) getMembers(c *Checker) ast.SymbolTable {
-	if t.members() == nil {
+	if t.members(c) == nil {
 		if properties := t.getProperties(c); len(properties) != 0 {
 			members := ast.NewSymbolTableWithCapacity(len(properties))
 			for _, member := range properties {
@@ -1439,18 +1442,18 @@ func (t *StructuredType) getMembers(c *Checker) ast.SymbolTable {
 			t.setMembers(c, members)
 		}
 	}
-	return t.members()
+	return t.members(c)
 }
 
 func (t *StructuredType) getPropertyAt(c *Checker, index int) ast.SymbolId {
-	lazy := t.getLazyState()
+	lazy := t.getLazyState(c)
 	if lazy == nil {
-		return t.properties()[index]
+		return t.properties(c)[index]
 	}
-	if t.properties() == nil {
+	if t.properties(c) == nil {
 		t.setProperties(c, make([]ast.SymbolId, lazy.layout.members.Len()))
 	}
-	properties := t.properties()
+	properties := t.properties(c)
 	member := properties[index]
 	if member == 0 {
 		symbol := lazy.layout.members.IdAt(c.symbols, index)
@@ -1466,43 +1469,43 @@ func (t *StructuredType) getPropertyAt(c *Checker, index int) ast.SymbolId {
 }
 
 func (t *StructuredType) getProperties(c *Checker) []ast.SymbolId {
-	if lazy := t.getLazyState(); lazy != nil && !lazy.propertiesResolved {
+	if lazy := t.getLazyState(c); lazy != nil && !lazy.propertiesResolved {
 		for i := range lazy.layout.members.Len() {
 			t.getPropertyAt(c, i)
 		}
 		lazy.propertiesResolved = true
 	}
-	return t.properties()
+	return t.properties(c)
 }
 
-func (t *StructuredType) hasProperties() bool {
-	if len(t.properties()) != 0 {
+func (t *StructuredType) hasProperties(c *Checker) bool {
+	if len(t.properties(c)) != 0 {
 		return true
 	}
-	lazy := t.getLazyState()
+	lazy := t.getLazyState(c)
 	if lazy == nil {
 		return false
 	}
 	return lazy.layout.members.Len() != 0
 }
 
-func (t *StructuredType) getLazyState() *LazyState {
+func (t *StructuredType) getLazyState(c *Checker) *LazyState {
 	if t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsReference) != 0 {
-		return t.AsType().AsTypeReference().lazy()
+		return t.AsType().AsTypeReference().lazy(c)
 	}
 	return nil
 }
 
-func (t *StructuredType) getSignatures() []*Signature {
-	extra := t.resolvedExtra()
+func (t *StructuredType) getSignatures(c *Checker) []*Signature {
+	extra := t.resolvedExtra(c)
 	if extra == nil {
 		return nil
 	}
 	return extra.signatures
 }
 
-func (t *StructuredType) getIndexInfos() []*IndexInfo {
-	extra := t.resolvedExtra()
+func (t *StructuredType) getIndexInfos(c *Checker) []*IndexInfo {
+	extra := t.resolvedExtra(c)
 	if extra == nil {
 		return nil
 	}
@@ -1546,9 +1549,9 @@ func (t *StructuredType) propertiesId(c *Checker) []ast.SymbolId {
 // EvolvingArrayType:
 // ObjectFlagsEvolvingArray: Evolving array type
 
-// ObjectType: the target of an instantiated type in p0, except for reverse mapped and evolving array types, and the
-// mapper of an anonymous, mapped or instantiation expression type in p1. A deferred type reference keeps its mapper
-// in extra.
+// ObjectType: the target of an instantiated type in word 0, except for reverse mapped and evolving array types, and
+// the mapper of an anonymous, mapped or instantiation expression type in word 1. A deferred type reference keeps its
+// mapper in extra.
 
 type ObjectType struct {
 	StructuredType
@@ -1557,28 +1560,32 @@ type ObjectType struct {
 func (t *ObjectType) AsObjectType() *ObjectType { return t }
 
 // Target of instantiated type
-func (t *ObjectType) target() *Type {
+func (t *ObjectType) target(c *Checker) *Type {
+	return c.typ(t.targetId())
+}
+
+func (t *ObjectType) targetId() TypeId {
 	if t.kind() >= typeKindReverseMapped {
-		return nil
+		return 0
 	}
-	return fromPayload[Type](t.data.p0)
+	return TypeId(t.data[0])
 }
 
 func (t *ObjectType) setTarget(target *Type) {
 	if t.kind() >= typeKindReverseMapped {
 		panic("Type has no target")
 	}
-	t.data.p0 = toPayload(target)
+	t.data[0] = uint32(target.ref())
 }
 
 // Type mapper for instantiated type
-func (t *ObjectType) mapper() *TypeMapper {
+func (t *ObjectType) mapper(c *Checker) *TypeMapper {
 	switch t.kind() {
 	case typeKindObject, typeKindInstantiationExpression, typeKindMapped:
-		return fromPayload[TypeMapper](t.data.p1)
+		return c.mapperOf(TypeMapperId(t.data[1]))
 	case typeKindTypeReference:
-		if t.extra != nil {
-			return t.extra.mapper
+		if t.extra != 0 {
+			return c.mapperOf(t.ext(c).mapper)
 		}
 	}
 	return nil
@@ -1587,10 +1594,10 @@ func (t *ObjectType) mapper() *TypeMapper {
 func (t *ObjectType) setMapper(c *Checker, mapper *TypeMapper) {
 	switch t.kind() {
 	case typeKindObject, typeKindInstantiationExpression, typeKindMapped:
-		t.data.p1 = toPayload(mapper)
+		t.data[1] = uint32(c.mapperId(mapper))
 	case typeKindTypeReference:
-		if mapper != nil || t.extra != nil {
-			t.ensureExtra(c).mapper = mapper
+		if mapper != nil || t.extra != 0 {
+			t.ensureExtra(c).mapper = c.mapperId(mapper)
 		}
 	default:
 		if mapper != nil {
@@ -1600,22 +1607,23 @@ func (t *ObjectType) setMapper(c *Checker, mapper *TypeMapper) {
 }
 
 // Map of type instantiations
-func (t *ObjectType) instantiations() map[CacheHashKey]TypeId {
-	if t.extra == nil {
+func (t *ObjectType) instantiations(c *Checker) map[CacheHashKey]TypeId {
+	if t.extra == 0 {
 		return nil
 	}
-	return t.extra.instantiations
+	return t.ext(c).instantiations
 }
 
 func (t *ObjectType) setInstantiations(c *Checker, instantiations map[CacheHashKey]TypeId) {
-	if instantiations == nil && t.extra == nil {
+	if instantiations == nil && t.extra == 0 {
 		return
 	}
 	t.ensureExtra(c).instantiations = instantiations
 }
 
-// TypeReference (instantiation of an InterfaceType): the target in p0, the type arguments in p1 and w0, and the lazy
-// state in p2. Interface and tuple types keep the lazy state in their own record in p2.
+// TypeReference (instantiation of an InterfaceType): the target in word 0, the type arguments' list handle in words 2
+// and 3, and in word 4 the index of the lazy state plus one. Interface and tuple types add their own record's index
+// plus one in word 5.
 
 type TypeReference struct {
 	ObjectType
@@ -1638,42 +1646,38 @@ type MemberLayout struct {
 func (t *TypeReference) AsTypeReference() *TypeReference { return t }
 
 // TypeReferenceNode | ArrayTypeNode | TupleTypeNode when deferred, else the zero NodeRef
-func (t *TypeReference) node() ast.NodeRef {
-	if t.extra == nil {
+func (t *TypeReference) node(c *Checker) ast.NodeRef {
+	if t.extra == 0 {
 		return ast.NodeRef{}
 	}
-	return t.extra.node
+	return t.ext(c).node
 }
 
 func (t *TypeReference) setNode(c *Checker, node ast.NodeRef) {
-	if node == (ast.NodeRef{}) && t.extra == nil {
+	if node == (ast.NodeRef{}) && t.extra == 0 {
 		return
 	}
 	t.ensureExtra(c).node = node
 }
 
-func (t *TypeReference) resolvedTypeArguments() []TypeId {
-	return typeSlice(t.data.p1, t.data.w0)
+func (t *TypeReference) resolvedTypeArguments(c *Checker) []TypeId {
+	return c.typeLists.slice(t.data[2], t.data[3])
 }
 
-func (t *TypeReference) setResolvedTypeArguments(typeArguments []TypeId) {
-	t.data.p1, t.data.w0 = sliceToPayload(typeArguments)
+func (t *TypeReference) setResolvedTypeArguments(c *Checker, typeArguments []TypeId) {
+	t.data[2], t.data[3] = c.typeListOf(typeArguments)
 }
 
 // Resolved member layout and instantiation state
-func (t *TypeReference) lazy() *LazyState {
-	if t.kind() == typeKindTypeReference {
-		return fromPayload[LazyState](t.data.p2)
-	}
-	return fromPayload[interfaceData](t.data.p2).lazy
+func (t *TypeReference) lazy(c *Checker) *LazyState {
+	return pageAt(&c.lazyStates, t.data[4])
 }
 
-func (t *TypeReference) setLazy(lazy *LazyState) {
-	if t.kind() == typeKindTypeReference {
-		t.data.p2 = toPayload(lazy)
-	} else {
-		fromPayload[interfaceData](t.data.p2).lazy = lazy
-	}
+// newLazy gives the type a zero lazy state and returns it.
+func (t *TypeReference) newLazy(c *Checker) *LazyState {
+	var lazy *LazyState
+	t.data[4], lazy = pageAdd(&c.lazyStates)
+	return lazy
 }
 
 // InterfaceType (when generic, serves as reference to instantiation of itself): its own record in p2.
@@ -1683,7 +1687,6 @@ type InterfaceType struct {
 }
 
 type interfaceData struct {
-	lazy                        *LazyState
 	allTypeParameters           []TypeId // Type parameters (outer + local + thisType)
 	outerTypeParameterCount     int      // Count of outer type parameters
 	thisType                    TypeId   // The "this" type (nil if none)
@@ -1699,28 +1702,31 @@ type interfaceData struct {
 
 func (t *InterfaceType) AsInterfaceType() *InterfaceType { return t }
 
-func (t *InterfaceType) iface() *interfaceData {
-	return fromPayload[interfaceData](t.data.p2)
+func (t *InterfaceType) iface(c *Checker) *interfaceData {
+	if t.kind() == typeKindTuple {
+		return &c.tupleDatas.At(t.data[5] - 1).interfaceData
+	}
+	return c.interfaceDatas.At(t.data[5] - 1)
 }
 
-func (t *InterfaceType) OuterTypeParameters() []TypeId {
-	d := t.iface()
+func (t *InterfaceType) OuterTypeParameters(c *Checker) []TypeId {
+	d := t.iface(c)
 	if len(d.allTypeParameters) == 0 {
 		return nil
 	}
 	return slices.Clip(d.allTypeParameters[:d.outerTypeParameterCount])
 }
 
-func (t *InterfaceType) LocalTypeParameters() []TypeId {
-	d := t.iface()
+func (t *InterfaceType) LocalTypeParameters(c *Checker) []TypeId {
+	d := t.iface(c)
 	if len(d.allTypeParameters) == 0 {
 		return nil
 	}
 	return slices.Clip(d.allTypeParameters[d.outerTypeParameterCount : len(d.allTypeParameters)-1])
 }
 
-func (t *InterfaceType) TypeParameters() []TypeId {
-	d := t.iface()
+func (t *InterfaceType) TypeParameters(c *Checker) []TypeId {
+	d := t.iface(c)
 	if len(d.allTypeParameters) == 0 {
 		return nil
 	}
@@ -1728,7 +1734,7 @@ func (t *InterfaceType) TypeParameters() []TypeId {
 }
 
 func (t *InterfaceType) ThisType(c *Checker) *Type {
-	return c.typ(t.iface().thisType)
+	return c.typ(t.iface(c).thisType)
 }
 
 // TupleType
@@ -1755,7 +1761,7 @@ type TupleElementInfo struct {
 func (t *TupleElementInfo) TupleElementFlags() ElementFlags { return t.flags }
 func (t *TupleElementInfo) LabeledDeclaration() ast.Node    { return t.labeledDeclaration }
 
-// TupleType: like InterfaceType, with a larger record in p2.
+// TupleType: like InterfaceType, with a larger record.
 
 type TupleType struct {
 	InterfaceType
@@ -1770,39 +1776,39 @@ type tupleData struct {
 	readonly      bool
 }
 
-func (t *TupleType) tuple() *tupleData {
-	return fromPayload[tupleData](t.data.p2)
+func (t *TupleType) tuple(c *Checker) *tupleData {
+	return c.tupleDatas.At(t.data[5] - 1)
 }
 
-func (t *TupleType) FixedLength() int { return t.tuple().fixedLength }
-func (t *TupleType) IsReadonly() bool { return t.tuple().readonly }
-func (t *TupleType) ElementFlags() []ElementFlags {
-	elementInfos := t.tuple().elementInfos
+func (t *TupleType) FixedLength(c *Checker) int { return t.tuple(c).fixedLength }
+func (t *TupleType) IsReadonly(c *Checker) bool { return t.tuple(c).readonly }
+func (t *TupleType) ElementFlags(c *Checker) []ElementFlags {
+	elementInfos := t.tuple(c).elementInfos
 	elementFlags := make([]ElementFlags, len(elementInfos))
 	for i, info := range elementInfos {
 		elementFlags[i] = info.flags
 	}
 	return elementFlags
 }
-func (t *TupleType) ElementInfos() []TupleElementInfo { return t.tuple().elementInfos }
+func (t *TupleType) ElementInfos(c *Checker) []TupleElementInfo { return t.tuple(c).elementInfos }
 
-// InstantiationExpressionType: the node in w0 and w1.
+// InstantiationExpressionType: the node in words 2 and 3.
 
 type InstantiationExpressionType struct {
 	ObjectType
 }
 
 func (t *InstantiationExpressionType) node() ast.NodeRef {
-	// SAFETY: w0 and w1 are two adjacent 32-bit scalar words, laid out like a NodeRef.
-	return *(*ast.NodeRef)(unsafe.Pointer(&t.data.w0))
+	// SAFETY: Words 2 and 3 are two adjacent 32-bit words, laid out like a NodeRef.
+	return *(*ast.NodeRef)(unsafe.Pointer(&t.data[2]))
 }
 
 func (t *InstantiationExpressionType) setNode(node ast.NodeRef) {
-	// SAFETY: w0 and w1 are two adjacent 32-bit scalar words, laid out like a NodeRef.
-	*(*ast.NodeRef)(unsafe.Pointer(&t.data.w0)) = node
+	// SAFETY: Words 2 and 3 are two adjacent 32-bit words, laid out like a NodeRef.
+	*(*ast.NodeRef)(unsafe.Pointer(&t.data[2])) = node
 }
 
-// MappedType: its own record in p2.
+// MappedType: its own record's index plus one in word 5.
 
 type MappedType struct {
 	ObjectType
@@ -1819,14 +1825,14 @@ type mappedData struct {
 	containsError        bool
 }
 
-func (t *MappedType) mapped() *mappedData {
-	return fromPayload[mappedData](t.data.p2)
+func (t *MappedType) mapped(c *Checker) *mappedData {
+	return c.mappedDatas.At(t.data[5] - 1)
 }
 
-func (t *MappedType) TypeParameter(c *Checker) *Type  { return c.typ(t.mapped().typeParameter) }
-func (t *MappedType) ConstraintType(c *Checker) *Type { return c.typ(t.mapped().constraintType) }
-func (t *MappedType) NameType(c *Checker) *Type       { return c.typ(t.mapped().nameType) }
-func (t *MappedType) TemplateType(c *Checker) *Type   { return c.typ(t.mapped().templateType) }
+func (t *MappedType) TypeParameter(c *Checker) *Type  { return c.typ(t.mapped(c).typeParameter) }
+func (t *MappedType) ConstraintType(c *Checker) *Type { return c.typ(t.mapped(c).constraintType) }
+func (t *MappedType) NameType(c *Checker) *Type       { return c.typ(t.mapped(c).nameType) }
+func (t *MappedType) TemplateType(c *Checker) *Type   { return c.typ(t.mapped(c).templateType) }
 func (t *MappedType) ResolveComponents(c *Checker, typ *Type) {
 	c.getTypeParameterFromMappedType(typ)
 	c.getConstraintTypeFromMappedType(typ)
@@ -1834,31 +1840,32 @@ func (t *MappedType) ResolveComponents(c *Checker, typ *Type) {
 	c.getTemplateTypeFromMappedType(typ)
 }
 
-// ReverseMappedType: the source, mapped type and constraint type in p0, p1 and p2.
+// ReverseMappedType: the source, mapped type and constraint type in words 0, 1 and 2.
 
 type ReverseMappedType struct {
 	ObjectType
 }
 
-func (t *ReverseMappedType) source() *Type             { return fromPayload[Type](t.data.p0) }
-func (t *ReverseMappedType) setSource(v *Type)         { t.data.p0 = toPayload(v) }
-func (t *ReverseMappedType) mappedType() *Type         { return fromPayload[Type](t.data.p1) }
-func (t *ReverseMappedType) setMappedType(v *Type)     { t.data.p1 = toPayload(v) }
-func (t *ReverseMappedType) constraintType() *Type     { return fromPayload[Type](t.data.p2) }
-func (t *ReverseMappedType) setConstraintType(v *Type) { t.data.p2 = toPayload(v) }
+func (t *ReverseMappedType) source(c *Checker) *Type         { return c.typ(TypeId(t.data[0])) }
+func (t *ReverseMappedType) setSource(v *Type)               { t.data[0] = uint32(v.ref()) }
+func (t *ReverseMappedType) mappedType(c *Checker) *Type     { return c.typ(TypeId(t.data[1])) }
+func (t *ReverseMappedType) setMappedType(v *Type)           { t.data[1] = uint32(v.ref()) }
+func (t *ReverseMappedType) constraintType(c *Checker) *Type { return c.typ(TypeId(t.data[2])) }
+func (t *ReverseMappedType) setConstraintType(v *Type)       { t.data[2] = uint32(v.ref()) }
 
-// EvolvingArrayType: the element type and final array type in p0 and p1.
+// EvolvingArrayType: the element type and final array type in words 0 and 1.
 
 type EvolvingArrayType struct {
 	ObjectType
 }
 
-func (t *EvolvingArrayType) elementType() *Type        { return fromPayload[Type](t.data.p0) }
-func (t *EvolvingArrayType) setElementType(v *Type)    { t.data.p0 = toPayload(v) }
-func (t *EvolvingArrayType) finalArrayType() *Type     { return fromPayload[Type](t.data.p1) }
-func (t *EvolvingArrayType) setFinalArrayType(v *Type) { t.data.p1 = toPayload(v) }
+func (t *EvolvingArrayType) elementType(c *Checker) *Type    { return c.typ(TypeId(t.data[0])) }
+func (t *EvolvingArrayType) setElementType(v *Type)          { t.data[0] = uint32(v.ref()) }
+func (t *EvolvingArrayType) finalArrayType(c *Checker) *Type { return c.typ(TypeId(t.data[1])) }
+func (t *EvolvingArrayType) setFinalArrayType(v *Type)       { t.data[1] = uint32(v.ref()) }
 
-// UnionOrIntersectionType: the types in p0 and w0, and in p2 a record of rarer fields allocated on first use.
+// UnionOrIntersectionType: the types' list handle in words 0 and 1, and in word 3 the index plus one of a record of
+// rarer fields allocated on first use.
 
 type UnionOrIntersectionType struct {
 	StructuredType
@@ -1872,35 +1879,41 @@ type unionOrIntersectionData struct {
 
 func (t *UnionOrIntersectionType) AsUnionOrIntersectionType() *UnionOrIntersectionType { return t }
 
-func (t *UnionOrIntersectionType) types() []TypeId {
-	return typeSlice(t.data.p0, t.data.w0)
+func (t *UnionOrIntersectionType) types(c *Checker) []TypeId {
+	return c.typeLists.slice(t.data[0], t.data[1])
 }
 
-func (t *UnionOrIntersectionType) setTypes(types []TypeId) {
-	t.data.p0, t.data.w0 = sliceToPayload(types)
+func (t *UnionOrIntersectionType) setTypes(c *Checker, types []TypeId) {
+	t.data[0], t.data[1] = c.typeListOf(types)
 }
 
-func (t *UnionOrIntersectionType) Types() []TypeId {
-	return t.types()
+func (t *UnionOrIntersectionType) Types(c *Checker) []TypeId {
+	return t.types(c)
 }
 
-func (t *UnionOrIntersectionType) more() *unionOrIntersectionData {
-	return fromPayload[unionOrIntersectionData](t.data.p2)
+func (t *UnionOrIntersectionType) more(c *Checker) *unionOrIntersectionData {
+	if t.data[3] == 0 {
+		return nil
+	}
+	if t.kind() == typeKindUnion {
+		return &c.unionDatas.At(t.data[3] - 1).unionOrIntersectionData
+	}
+	return &c.intersectionDatas.At(t.data[3] - 1).unionOrIntersectionData
 }
 
 func (t *UnionOrIntersectionType) ensureMore(c *Checker) *unionOrIntersectionData {
-	if t.data.p2 == nil {
+	if t.data[3] == 0 {
 		if t.kind() == typeKindUnion {
-			t.data.p2 = toPayload(c.unionDataArena.New())
+			t.data[3], _ = pageAdd(&c.unionDatas)
 		} else {
-			t.data.p2 = toPayload(c.intersectionDataArena.New())
+			t.data[3], _ = pageAdd(&c.intersectionDatas)
 		}
 	}
-	return t.more()
+	return t.more(c)
 }
 
-func (t *UnionOrIntersectionType) propertyCache() ast.SymbolTable {
-	if more := t.more(); more != nil {
+func (t *UnionOrIntersectionType) propertyCache(c *Checker) ast.SymbolTable {
+	if more := t.more(c); more != nil {
 		return more.propertyCache
 	}
 	return nil
@@ -1910,8 +1923,8 @@ func (t *UnionOrIntersectionType) setPropertyCache(c *Checker, v ast.SymbolTable
 	t.ensureMore(c).propertyCache = v
 }
 
-func (t *UnionOrIntersectionType) propertyCacheWithoutFunctionPropertyAugment() ast.SymbolTable {
-	if more := t.more(); more != nil {
+func (t *UnionOrIntersectionType) propertyCacheWithoutFunctionPropertyAugment(c *Checker) ast.SymbolTable {
+	if more := t.more(c); more != nil {
 		return more.propertyCacheWithoutFunctionPropertyAugment
 	}
 	return nil
@@ -1921,8 +1934,8 @@ func (t *UnionOrIntersectionType) setPropertyCacheWithoutFunctionPropertyAugment
 	t.ensureMore(c).propertyCacheWithoutFunctionPropertyAugment = v
 }
 
-func (t *UnionOrIntersectionType) resolvedProperties() []ast.SymbolId {
-	if more := t.more(); more != nil {
+func (t *UnionOrIntersectionType) resolvedProperties(c *Checker) []ast.SymbolId {
+	if more := t.more(c); more != nil {
 		return more.resolvedProperties
 	}
 	return nil
@@ -1932,7 +1945,7 @@ func (t *UnionOrIntersectionType) setResolvedProperties(c *Checker, v []ast.Symb
 	t.ensureMore(c).resolvedProperties = v
 }
 
-// UnionType: the origin in p1.
+// UnionType: the origin in word 2.
 
 type UnionType struct {
 	UnionOrIntersectionType
@@ -1946,16 +1959,16 @@ type unionData struct {
 	constituentMap      map[TypeId]TypeId // Constituents keyed by unit type discriminants
 }
 
-func (t *UnionType) union() *unionData {
-	return fromPayload[unionData](t.data.p2)
+func (t *UnionType) union(c *Checker) *unionData {
+	return pageAt(&c.unionDatas, t.data[3])
 }
 
 // Denormalized union, intersection, or index type in which union originates
-func (t *UnionType) origin() *Type     { return fromPayload[Type](t.data.p1) }
-func (t *UnionType) setOrigin(v *Type) { t.data.p1 = toPayload(v) }
+func (t *UnionType) origin(c *Checker) *Type { return c.typ(TypeId(t.data[2])) }
+func (t *UnionType) setOrigin(v *Type)       { t.data[2] = uint32(v.ref()) }
 
 func (t *UnionType) resolvedReducedType(c *Checker) *Type {
-	if d := t.union(); d != nil {
+	if d := t.union(c); d != nil {
 		return c.typ(d.resolvedReducedType)
 	}
 	return nil
@@ -1963,11 +1976,11 @@ func (t *UnionType) resolvedReducedType(c *Checker) *Type {
 
 func (t *UnionType) setResolvedReducedType(c *Checker, v *Type) {
 	t.ensureMore(c)
-	t.union().resolvedReducedType = v.ref()
+	t.union(c).resolvedReducedType = v.ref()
 }
 
 func (t *UnionType) regularType(c *Checker) *Type {
-	if d := t.union(); d != nil {
+	if d := t.union(c); d != nil {
 		return c.typ(d.regularType)
 	}
 	return nil
@@ -1975,11 +1988,11 @@ func (t *UnionType) regularType(c *Checker) *Type {
 
 func (t *UnionType) setRegularType(c *Checker, v *Type) {
 	t.ensureMore(c)
-	t.union().regularType = v.ref()
+	t.union(c).regularType = v.ref()
 }
 
-func (t *UnionType) keyPropertyName() ast.SymbolName {
-	if d := t.union(); d != nil {
+func (t *UnionType) keyPropertyName(c *Checker) ast.SymbolName {
+	if d := t.union(c); d != nil {
 		return d.keyPropertyName
 	}
 	return ast.SymbolName(0)
@@ -1987,11 +2000,11 @@ func (t *UnionType) keyPropertyName() ast.SymbolName {
 
 func (t *UnionType) setKeyPropertyName(c *Checker, v ast.SymbolName) {
 	t.ensureMore(c)
-	t.union().keyPropertyName = v
+	t.union(c).keyPropertyName = v
 }
 
-func (t *UnionType) constituentMap() map[TypeId]TypeId {
-	if d := t.union(); d != nil {
+func (t *UnionType) constituentMap(c *Checker) map[TypeId]TypeId {
+	if d := t.union(c); d != nil {
 		return d.constituentMap
 	}
 	return nil
@@ -1999,10 +2012,10 @@ func (t *UnionType) constituentMap() map[TypeId]TypeId {
 
 func (t *UnionType) setConstituentMap(c *Checker, v map[TypeId]TypeId) {
 	t.ensureMore(c)
-	t.union().constituentMap = v
+	t.union(c).constituentMap = v
 }
 
-// IntersectionType: the resolved apparent type in p1.
+// IntersectionType: the resolved apparent type in word 2.
 
 type IntersectionType struct {
 	UnionOrIntersectionType
@@ -2013,11 +2026,11 @@ type intersectionData struct {
 	uniqueLiteralFilledInstantiation TypeId // Instantiation with type parameters mapped to never type
 }
 
-func (t *IntersectionType) resolvedApparentType() *Type     { return fromPayload[Type](t.data.p1) }
-func (t *IntersectionType) setResolvedApparentType(v *Type) { t.data.p1 = toPayload(v) }
+func (t *IntersectionType) resolvedApparentType(c *Checker) *Type { return c.typ(TypeId(t.data[2])) }
+func (t *IntersectionType) setResolvedApparentType(v *Type)       { t.data[2] = uint32(v.ref()) }
 
 func (t *IntersectionType) uniqueLiteralFilledInstantiation(c *Checker) *Type {
-	if d := fromPayload[intersectionData](t.data.p2); d != nil {
+	if d := pageAt(&c.intersectionDatas, t.data[3]); d != nil {
 		return c.typ(d.uniqueLiteralFilledInstantiation)
 	}
 	return nil
@@ -2025,11 +2038,11 @@ func (t *IntersectionType) uniqueLiteralFilledInstantiation(c *Checker) *Type {
 
 func (t *IntersectionType) setUniqueLiteralFilledInstantiation(c *Checker, v *Type) {
 	t.ensureMore(c)
-	fromPayload[intersectionData](t.data.p2).uniqueLiteralFilledInstantiation = v.ref()
+	c.intersectionDatas.At(t.data[3] - 1).uniqueLiteralFilledInstantiation = v.ref()
 }
 
-// TypeParameter: the constraint, target and mapper in p0, p1 and p2, and flags in w0. The default and distributed
-// type are in extra.
+// TypeParameter: the constraint, target and mapper in words 0, 1 and 2, and flags in word 3. The default and
+// distributed type are in extra.
 
 type TypeParameter struct {
 	ConstrainedType
@@ -2040,48 +2053,49 @@ const (
 	typeParameterIsDistributed
 )
 
-func (t *TypeParameter) constraint() *Type       { return fromPayload[Type](t.data.p0) }
-func (t *TypeParameter) setConstraint(v *Type)   { t.data.p0 = toPayload(v) }
-func (t *TypeParameter) target() *Type           { return fromPayload[Type](t.data.p1) }
-func (t *TypeParameter) setTarget(v *Type)       { t.data.p1 = toPayload(v) }
-func (t *TypeParameter) mapper() *TypeMapper     { return fromPayload[TypeMapper](t.data.p2) }
-func (t *TypeParameter) setMapper(v *TypeMapper) { t.data.p2 = toPayload(v) }
-func (t *TypeParameter) IsThisType() bool        { return t.data.w0&typeParameterIsThisType != 0 }
-func (t *TypeParameter) isDistributed() bool     { return t.data.w0&typeParameterIsDistributed != 0 }
-func (t *TypeParameter) setIsThisType(v bool)    { t.setFlag(typeParameterIsThisType, v) }
-func (t *TypeParameter) setIsDistributed(v bool) { t.setFlag(typeParameterIsDistributed, v) }
+func (t *TypeParameter) constraint(c *Checker) *Type         { return c.typ(TypeId(t.data[0])) }
+func (t *TypeParameter) setConstraint(v *Type)               { t.data[0] = uint32(v.ref()) }
+func (t *TypeParameter) target(c *Checker) *Type             { return c.typ(t.targetId()) }
+func (t *TypeParameter) targetId() TypeId                    { return TypeId(t.data[1]) }
+func (t *TypeParameter) setTarget(v *Type)                   { t.data[1] = uint32(v.ref()) }
+func (t *TypeParameter) mapper(c *Checker) *TypeMapper       { return c.mapperOf(TypeMapperId(t.data[2])) }
+func (t *TypeParameter) setMapper(c *Checker, v *TypeMapper) { t.data[2] = uint32(c.mapperId(v)) }
+func (t *TypeParameter) IsThisType() bool                    { return t.data[3]&typeParameterIsThisType != 0 }
+func (t *TypeParameter) isDistributed() bool                 { return t.data[3]&typeParameterIsDistributed != 0 }
+func (t *TypeParameter) setIsThisType(v bool)                { t.setFlag(typeParameterIsThisType, v) }
+func (t *TypeParameter) setIsDistributed(v bool)             { t.setFlag(typeParameterIsDistributed, v) }
 
 func (t *TypeParameter) setFlag(flag uint32, v bool) {
 	if v {
-		t.data.w0 |= flag
+		t.data[3] |= flag
 	} else {
-		t.data.w0 &^= flag
+		t.data[3] &^= flag
 	}
 }
 
 func (t *TypeParameter) resolvedDefaultType(c *Checker) *Type {
-	if t.extra == nil {
+	if t.extra == 0 {
 		return nil
 	}
-	return c.typ(t.extra.resolvedDefaultType)
+	return c.typ(t.ext(c).resolvedDefaultType)
 }
 
 func (t *TypeParameter) setResolvedDefaultType(c *Checker, v *Type) {
-	if v == nil && t.extra == nil {
+	if v == nil && t.extra == 0 {
 		return
 	}
 	t.ensureExtra(c).resolvedDefaultType = v.ref()
 }
 
 func (t *TypeParameter) distributedType(c *Checker) *Type {
-	if t.extra == nil {
+	if t.extra == 0 {
 		return nil
 	}
-	return c.typ(t.extra.distributedType)
+	return c.typ(t.ext(c).distributedType)
 }
 
 func (t *TypeParameter) setDistributedType(c *Checker, v *Type) {
-	if v == nil && t.extra == nil {
+	if v == nil && t.extra == 0 {
 		return
 	}
 	t.ensureExtra(c).distributedType = v.ref()
@@ -2098,81 +2112,86 @@ const (
 	IndexFlagsNoReducibleCheck  IndexFlags = 1 << 2
 )
 
-// IndexType: the target in p0 and the flags in w0.
+// IndexType: the target in word 0 and the flags in word 1.
 
 type IndexType struct {
 	ConstrainedType
 }
 
-func (t *IndexType) Target() *Type              { return t.target() }
-func (t *IndexType) target() *Type              { return fromPayload[Type](t.data.p0) }
-func (t *IndexType) setTarget(v *Type)          { t.data.p0 = toPayload(v) }
-func (t *IndexType) indexFlags() IndexFlags     { return IndexFlags(t.data.w0) }
-func (t *IndexType) setIndexFlags(v IndexFlags) { t.data.w0 = uint32(v) }
+func (t *IndexType) Target(c *Checker) *Type    { return t.target(c) }
+func (t *IndexType) target(c *Checker) *Type    { return c.typ(t.targetId()) }
+func (t *IndexType) targetId() TypeId           { return TypeId(t.data[0]) }
+func (t *IndexType) setTarget(v *Type)          { t.data[0] = uint32(v.ref()) }
+func (t *IndexType) indexFlags() IndexFlags     { return IndexFlags(t.data[1]) }
+func (t *IndexType) setIndexFlags(v IndexFlags) { t.data[1] = uint32(v) }
 
-// IndexedAccessType: the object and index types in p0 and p1, and the access flags (only AccessFlags.Persistent) in w0.
+// IndexedAccessType: the object and index types in words 0 and 1, and the access flags (only AccessFlags.Persistent)
+// in word 2.
 
 type IndexedAccessType struct {
 	ConstrainedType
 }
 
-func (t *IndexedAccessType) ObjectType() *Type            { return t.objectType() }
-func (t *IndexedAccessType) IndexType() *Type             { return t.indexType() }
-func (t *IndexedAccessType) objectType() *Type            { return fromPayload[Type](t.data.p0) }
-func (t *IndexedAccessType) setObjectType(v *Type)        { t.data.p0 = toPayload(v) }
-func (t *IndexedAccessType) indexType() *Type             { return fromPayload[Type](t.data.p1) }
-func (t *IndexedAccessType) setIndexType(v *Type)         { t.data.p1 = toPayload(v) }
-func (t *IndexedAccessType) accessFlags() AccessFlags     { return AccessFlags(t.data.w0) }
-func (t *IndexedAccessType) setAccessFlags(v AccessFlags) { t.data.w0 = uint32(v) }
+func (t *IndexedAccessType) ObjectType(c *Checker) *Type  { return t.objectType(c) }
+func (t *IndexedAccessType) IndexType(c *Checker) *Type   { return t.indexType(c) }
+func (t *IndexedAccessType) objectType(c *Checker) *Type  { return c.typ(TypeId(t.data[0])) }
+func (t *IndexedAccessType) setObjectType(v *Type)        { t.data[0] = uint32(v.ref()) }
+func (t *IndexedAccessType) indexType(c *Checker) *Type   { return c.typ(TypeId(t.data[1])) }
+func (t *IndexedAccessType) setIndexType(v *Type)         { t.data[1] = uint32(v.ref()) }
+func (t *IndexedAccessType) accessFlags() AccessFlags     { return AccessFlags(t.data[2]) }
+func (t *IndexedAccessType) setAccessFlags(v AccessFlags) { t.data[2] = uint32(v) }
 
-// TemplateLiteralType: the texts in p0 and w0 (always one element longer than the types), the types (always at least
-// one) in p1 and w1.
+// TemplateLiteralType: in word 0 the index plus one of the texts (always one element longer than the types) in the
+// checker's template texts, and the types' list handle (always at least one) in words 1 and 2.
 
 type TemplateLiteralType struct {
 	ConstrainedType
 }
 
-func (t *TemplateLiteralType) Texts() []string { return t.texts() }
-func (t *TemplateLiteralType) Types() []TypeId { return t.types() }
+func (t *TemplateLiteralType) Texts(c *Checker) []string { return t.texts(c) }
+func (t *TemplateLiteralType) Types(c *Checker) []TypeId { return t.types(c) }
 
-func (t *TemplateLiteralType) texts() []string {
-	return sliceFromPayload[string](t.data.p0, t.data.w0)
+func (t *TemplateLiteralType) texts(c *Checker) []string {
+	return *c.templateTexts.At(t.data[0] - 1)
 }
 
-func (t *TemplateLiteralType) setTexts(texts []string) {
-	t.data.p0, t.data.w0 = sliceToPayload(texts)
+func (t *TemplateLiteralType) setTexts(c *Checker, texts []string) {
+	var p *[]string
+	t.data[0], p = pageAdd(&c.templateTexts)
+	*p = texts
 }
 
-func (t *TemplateLiteralType) types() []TypeId {
-	return typeSlice(t.data.p1, t.data.w1)
+func (t *TemplateLiteralType) types(c *Checker) []TypeId {
+	return c.typeLists.slice(t.data[1], t.data[2])
 }
 
-func (t *TemplateLiteralType) setTypes(types []TypeId) {
-	t.data.p1, t.data.w1 = sliceToPayload(types)
+func (t *TemplateLiteralType) setTypes(c *Checker, types []TypeId) {
+	t.data[1], t.data[2] = c.typeListOf(types)
 }
 
-// StringMappingType: the target in p0.
+// StringMappingType: the target in word 0.
 
 type StringMappingType struct {
 	ConstrainedType
 }
 
-func (t *StringMappingType) Target() *Type     { return t.target() }
-func (t *StringMappingType) target() *Type     { return fromPayload[Type](t.data.p0) }
-func (t *StringMappingType) setTarget(v *Type) { t.data.p0 = toPayload(v) }
+func (t *StringMappingType) Target(c *Checker) *Type { return t.target(c) }
+func (t *StringMappingType) target(c *Checker) *Type { return c.typ(t.targetId()) }
+func (t *StringMappingType) targetId() TypeId        { return TypeId(t.data[0]) }
+func (t *StringMappingType) setTarget(v *Type)       { t.data[0] = uint32(v.ref()) }
 
-// SubstitutionType: the base type (the target type) and the constraint it is known to satisfy in p0 and p1.
+// SubstitutionType: the base type (the target type) and the constraint it is known to satisfy in words 0 and 1.
 
 type SubstitutionType struct {
 	ConstrainedType
 }
 
-func (t *SubstitutionType) BaseType() *Type        { return t.baseType() }
-func (t *SubstitutionType) SubstConstraint() *Type { return t.constraint() }
-func (t *SubstitutionType) baseType() *Type        { return fromPayload[Type](t.data.p0) }
-func (t *SubstitutionType) setBaseType(v *Type)    { t.data.p0 = toPayload(v) }
-func (t *SubstitutionType) constraint() *Type      { return fromPayload[Type](t.data.p1) }
-func (t *SubstitutionType) setConstraint(v *Type)  { t.data.p1 = toPayload(v) }
+func (t *SubstitutionType) BaseType(c *Checker) *Type        { return t.baseType(c) }
+func (t *SubstitutionType) SubstConstraint(c *Checker) *Type { return t.constraint(c) }
+func (t *SubstitutionType) baseType(c *Checker) *Type        { return c.typ(TypeId(t.data[0])) }
+func (t *SubstitutionType) setBaseType(v *Type)              { t.data[0] = uint32(v.ref()) }
+func (t *SubstitutionType) constraint(c *Checker) *Type      { return c.typ(TypeId(t.data[1])) }
+func (t *SubstitutionType) setConstraint(v *Type)            { t.data[1] = uint32(v.ref()) }
 
 type ConditionalRoot struct {
 	node                ast.ConditionalTypeNode
@@ -2185,7 +2204,7 @@ type ConditionalRoot struct {
 	alias               *TypeAlias
 }
 
-// ConditionalType: its own record in p0, and the check and extends types in p1 and p2.
+// ConditionalType: its own record's index plus one in word 0, and the check and extends types in words 1 and 2.
 
 type ConditionalType struct {
 	ConstrainedType
@@ -2202,13 +2221,15 @@ type conditionalData struct {
 	combinedMapper                   TypeMapperId
 }
 
-func (t *ConditionalType) cond() *conditionalData { return fromPayload[conditionalData](t.data.p0) }
-func (t *ConditionalType) CheckType() *Type       { return t.checkType() }
-func (t *ConditionalType) ExtendsType() *Type     { return t.extendsType() }
-func (t *ConditionalType) checkType() *Type       { return fromPayload[Type](t.data.p1) }
-func (t *ConditionalType) setCheckType(v *Type)   { t.data.p1 = toPayload(v) }
-func (t *ConditionalType) extendsType() *Type     { return fromPayload[Type](t.data.p2) }
-func (t *ConditionalType) setExtendsType(v *Type) { t.data.p2 = toPayload(v) }
+func (t *ConditionalType) cond(c *Checker) *conditionalData {
+	return c.conditionalDatas.At(t.data[0] - 1)
+}
+func (t *ConditionalType) CheckType(c *Checker) *Type   { return t.checkType(c) }
+func (t *ConditionalType) ExtendsType(c *Checker) *Type { return t.extendsType(c) }
+func (t *ConditionalType) checkType(c *Checker) *Type   { return c.typ(TypeId(t.data[1])) }
+func (t *ConditionalType) setCheckType(v *Type)         { t.data[1] = uint32(v.ref()) }
+func (t *ConditionalType) extendsType(c *Checker) *Type { return c.typ(TypeId(t.data[2])) }
+func (t *ConditionalType) setExtendsType(v *Type)       { t.data[2] = uint32(v.ref()) }
 
 // SignatureFlags
 

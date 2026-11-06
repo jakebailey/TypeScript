@@ -1252,45 +1252,45 @@ func newTypeResponse(c *checker.Checker, t *checker.Type, id TypeID) *TypeRespon
 		Flags: uint32(t.Flags()),
 	}
 
-	if t.Alias() != nil {
-		resp.AliasTypeArguments = typeHandles(t.Alias().TypeArguments())
+	if t.Alias(c) != nil {
+		resp.AliasTypeArguments = typeHandles(t.Alias(c).TypeArguments())
 	}
 
 	switch flags := t.Flags(); {
 	case flags&checker.TypeFlagsFreshable != 0:
 		lit := t.AsLiteralType()
 		if flags&checker.TypeFlagsLiteral != 0 {
-			resp.Value = literalValueToJSON(lit.Value())
+			resp.Value = literalValueToJSON(lit.Value(c))
 		}
-		if lit.FreshType() != nil {
-			resp.FreshType = TypeHandle(lit.FreshType())
+		if lit.FreshType(c) != nil {
+			resp.FreshType = TypeHandle(lit.FreshType(c))
 		}
-		if lit.RegularType() != nil {
-			resp.RegularType = TypeHandle(lit.RegularType())
+		if lit.RegularType(c) != nil {
+			resp.RegularType = TypeHandle(lit.RegularType(c))
 		}
 	case flags&checker.TypeFlagsObject != 0:
 		resp.ObjectFlags = uint32(t.ObjectFlags())
-		resp.IsTupleType = checker.IsTupleType(t)
+		resp.IsTupleType = checker.IsTupleType(c, t)
 		objectFlags := t.ObjectFlags()
 		if objectFlags&checker.ObjectFlagsReference != 0 {
 			ref := t.AsTypeReference()
-			if checker.IsTupleTypeTarget(t) {
+			if checker.IsTupleTypeTarget(c, t) {
 				tuple := t.AsTupleType()
-				resp.ElementFlags = tuple.ElementFlags()
-				fixedLen := tuple.FixedLength()
+				resp.ElementFlags = tuple.ElementFlags(c)
+				fixedLen := tuple.FixedLength(c)
 				resp.FixedLength = &fixedLen
-				isReadonly := tuple.IsReadonly()
+				isReadonly := tuple.IsReadonly(c)
 				resp.TupleReadonly = &isReadonly
 			}
-			if ref.Target() != nil {
-				resp.Target = TypeHandle(ref.Target())
+			if ref.Target(c) != nil {
+				resp.Target = TypeHandle(ref.Target(c))
 			}
 		}
 		if objectFlags&checker.ObjectFlagsClassOrInterface != 0 {
 			iface := t.AsInterfaceType()
-			resp.TypeParameters = typeHandles(iface.TypeParameters())
-			resp.OuterTypeParameters = typeHandles(iface.OuterTypeParameters())
-			resp.LocalTypeParameters = typeHandles(iface.LocalTypeParameters())
+			resp.TypeParameters = typeHandles(iface.TypeParameters(c))
+			resp.OuterTypeParameters = typeHandles(iface.OuterTypeParameters(c))
+			resp.LocalTypeParameters = typeHandles(iface.LocalTypeParameters(c))
 			if thisType := iface.ThisType(c); thisType != nil {
 				resp.ThisType = TypeHandle(thisType)
 			}
@@ -1298,29 +1298,29 @@ func newTypeResponse(c *checker.Checker, t *checker.Type, id TypeID) *TypeRespon
 	case flags&checker.TypeFlagsUnionOrIntersection != 0:
 		// types omitted; fetched via separate request
 	case flags&checker.TypeFlagsIndex != 0:
-		resp.Target = TypeHandle(t.AsIndexType().Target())
+		resp.Target = TypeHandle(t.AsIndexType().Target(c))
 	case flags&checker.TypeFlagsIndexedAccess != 0:
 		data := t.AsIndexedAccessType()
-		resp.ObjectType = TypeHandle(data.ObjectType())
-		resp.IndexType = TypeHandle(data.IndexType())
+		resp.ObjectType = TypeHandle(data.ObjectType(c))
+		resp.IndexType = TypeHandle(data.IndexType(c))
 	case flags&checker.TypeFlagsConditional != 0:
 		data := t.AsConditionalType()
-		resp.CheckType = TypeHandle(data.CheckType())
-		resp.ExtendsType = TypeHandle(data.ExtendsType())
+		resp.CheckType = TypeHandle(data.CheckType(c))
+		resp.ExtendsType = TypeHandle(data.ExtendsType(c))
 	case flags&checker.TypeFlagsSubstitution != 0:
 		data := t.AsSubstitutionType()
-		resp.BaseType = TypeHandle(data.BaseType())
-		resp.SubstConstraint = TypeHandle(data.SubstConstraint())
+		resp.BaseType = TypeHandle(data.BaseType(c))
+		resp.SubstConstraint = TypeHandle(data.SubstConstraint(c))
 	case flags&checker.TypeFlagsTemplateLiteral != 0:
 		tl := t.AsTemplateLiteralType()
-		resp.Texts = tl.Texts()
+		resp.Texts = tl.Texts(c)
 		// types omitted; fetched via separate request
 	case flags&checker.TypeFlagsStringMapping != 0:
-		resp.Target = TypeHandle(t.AsStringMappingType().Target())
+		resp.Target = TypeHandle(t.AsStringMappingType().Target(c))
 	case flags&checker.TypeFlagsTypeParameter != 0:
 		resp.IsThisType = t.AsTypeParameter().IsThisType()
 	case flags&checker.TypeFlagsIntrinsic != 0:
-		resp.IntrinsicName = t.AsIntrinsicType().IntrinsicName()
+		resp.IntrinsicName = t.AsIntrinsicType().IntrinsicName(c)
 	}
 
 	return resp

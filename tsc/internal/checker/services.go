@@ -324,7 +324,7 @@ func (c *Checker) shouldTreatPropertiesOfExternalModuleAsExports(resolvedExterna
 		resolvedExternalModuleType.objectFlags&ObjectFlagsClass != 0 ||
 		// `isArrayOrTupleLikeType` is too expensive to use in this auto-imports hot path.
 		c.isArrayType(resolvedExternalModuleType) ||
-		isTupleType(resolvedExternalModuleType)
+		c.isTupleType(resolvedExternalModuleType)
 }
 
 func (c *Checker) GetContextualType(node ast.Expression, contextFlags ContextFlags) *Type {
@@ -427,7 +427,7 @@ func (c *Checker) getMappedTypeSymbolOfProperty(symbol ast.SymbolId) ast.SymbolI
 
 func (c *Checker) getImmediateRootSymbols(symbol ast.SymbolId) []ast.SymbolId {
 	if c.symbolCheckFlags(symbol)&ast.CheckFlagsSynthetic != 0 {
-		return typesMapNonNilTo(c, c.valueSymbolLinks.Get(symbol).getContainingType(c).Types(), func(t *Type) ast.SymbolId {
+		return typesMapNonNilTo(c, c.valueSymbolLinks.Get(symbol).getContainingType(c).Types(c), func(t *Type) ast.SymbolId {
 			return c.getPropertyOfType(t, c.symbolName(symbol))
 		})
 	}
@@ -834,7 +834,7 @@ func (c *Checker) IsTypeInvalidDueToUnionDiscriminant(contextualType *Type, obj 
 		}
 		name := ast.EmptySymbolName
 		if nameType != nil && isTypeUsableAsPropertyName(nameType) {
-			name = getPropertyNameFromType(nameType)
+			name = getPropertyNameFromType(c, nameType)
 		}
 		var expected *Type
 		if name != ast.EmptySymbolName {
@@ -945,8 +945,8 @@ func (c *Checker) GetTypeAtPosition(s *Signature, pos int) *Type {
 
 func (c *Checker) GetTypeParameterAtPosition(s *Signature, pos int) *Type {
 	t := c.getTypeAtPosition(s, pos)
-	if t.IsIndex() && isThisTypeParameter(t.AsIndexType().target()) {
-		constraint := c.getBaseConstraintOfType(t.AsIndexType().target())
+	if t.IsIndex() && isThisTypeParameter(t.AsIndexType().target(c)) {
+		constraint := c.getBaseConstraintOfType(t.AsIndexType().target(c))
 		if constraint != nil {
 			return c.getIndexType(constraint)
 		}
@@ -1015,14 +1015,14 @@ func isKnownGenericTypeName(name ast.SymbolName) bool {
 func (c *Checker) GetFirstTypeArgumentFromKnownType(t *Type) *Type {
 	if t.objectFlags&ObjectFlagsReference != 0 && c.symbolOfType(t) != 0 && isKnownGenericTypeName(c.symbolName(c.symbolOfType(t))) {
 		symbol := c.getGlobalSymbol(c.symbolName(c.symbolOfType(t)), ast.SymbolFlagsType, nil)
-		if symbol != 0 && symbol == c.symbolOfType(t.Target()) {
+		if symbol != 0 && symbol == c.symbolOfType(t.Target(c)) {
 			return c.typ(core.FirstOrNil(c.getTypeArguments(t)))
 		}
 	}
-	if t.Alias() != nil && isKnownGenericTypeName(c.symbolName(t.Alias().symbol)) {
-		symbol := c.getGlobalSymbol(c.symbolName(t.Alias().symbol), ast.SymbolFlagsType, nil)
-		if symbol != 0 && symbol == t.Alias().symbol {
-			return c.typ(core.FirstOrNil(t.Alias().typeArguments))
+	if t.Alias(c) != nil && isKnownGenericTypeName(c.symbolName(t.Alias(c).symbol)) {
+		symbol := c.getGlobalSymbol(c.symbolName(t.Alias(c).symbol), ast.SymbolFlagsType, nil)
+		if symbol != 0 && symbol == t.Alias(c).symbol {
+			return c.typ(core.FirstOrNil(t.Alias(c).typeArguments))
 		}
 	}
 	return nil
@@ -1040,7 +1040,7 @@ func (c *Checker) getPropertySymbolsFromContextualType(node ast.Node, contextual
 		}
 		return nil
 	}
-	filteredTypes := contextualType.Types()
+	filteredTypes := contextualType.Types(c)
 	if ast.IsObjectLiteralExpression(node.Parent()) || ast.IsJsxAttributes(node.Parent()) {
 		filteredTypes = c.typesFilter(filteredTypes, func(t *Type) bool {
 			return !c.IsTypeInvalidDueToUnionDiscriminant(t, node.Parent())
@@ -1049,14 +1049,14 @@ func (c *Checker) getPropertySymbolsFromContextualType(node ast.Node, contextual
 	discriminatedPropertySymbols := typesMapNonNilTo(c, filteredTypes, func(t *Type) ast.SymbolId {
 		return c.getPropertyOfType(t, ast.MakeSymbolName(name))
 	})
-	if unionSymbolOk && (len(discriminatedPropertySymbols) == 0 || len(discriminatedPropertySymbols) == len(contextualType.Types())) {
+	if unionSymbolOk && (len(discriminatedPropertySymbols) == 0 || len(discriminatedPropertySymbols) == len(contextualType.Types(c))) {
 		if symbol := c.getPropertyOfType(contextualType, ast.MakeSymbolName(name)); symbol != 0 {
 			return []ast.SymbolId{symbol}
 		}
 	}
 	if len(filteredTypes) == 0 && len(discriminatedPropertySymbols) == 0 {
 		// Bad discriminant -- do again without discriminating
-		return typesMapNonNilTo(c, contextualType.Types(), func(t *Type) ast.SymbolId {
+		return typesMapNonNilTo(c, contextualType.Types(c), func(t *Type) ast.SymbolId {
 			return c.getPropertyOfType(t, ast.MakeSymbolName(name))
 		})
 	}
@@ -1150,14 +1150,14 @@ func (c *Checker) isLibSymbolForHoverVerbosity(symbol ast.SymbolId) bool {
 func (c *Checker) IsLibTypeForHoverVerbosity(t *Type) bool {
 	var symbol ast.SymbolId
 	if t.objectFlags&ObjectFlagsReference != 0 {
-		symbol = c.symbolOfType(t.Target())
+		symbol = c.symbolOfType(t.Target(c))
 	} else {
 		symbol = c.symbolOfType(t)
 	}
 	if c.isLibSymbolForHoverVerbosity(symbol) {
 		return true
 	}
-	return isTupleType(t)
+	return c.isTupleType(t)
 }
 
 func (c *Checker) GetSymbolsInScope(location ast.Node, meaning ast.SymbolFlags) []ast.Symbol {

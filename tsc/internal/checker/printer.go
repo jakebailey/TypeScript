@@ -265,8 +265,8 @@ func (c *Checker) formatUnionTypes(types []TypeId, expandingEnum bool) []TypeId 
 					baseType = c.getBaseTypeOfEnumLikeType(t)
 				}
 				if baseType.flags&TypeFlagsUnion != 0 {
-					count := len(baseType.AsUnionType().types())
-					if i+count <= len(types) && c.getRegularTypeOfLiteralType(c.typ(types[i+count-1])) == c.getRegularTypeOfLiteralType(c.typ(baseType.AsUnionType().types()[count-1])) {
+					count := len(baseType.AsUnionType().types(c))
+					if i+count <= len(types) && c.getRegularTypeOfLiteralType(c.typ(types[i+count-1])) == c.getRegularTypeOfLiteralType(c.typ(baseType.AsUnionType().types(c)[count-1])) {
 						result = append(result, baseType.ref())
 						i += count - 1
 						continue
