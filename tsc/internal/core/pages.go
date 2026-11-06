@@ -21,16 +21,20 @@ type Pages[T any] struct {
 // Add appends a zero record and returns its index and address.
 func (p *Pages[T]) Add() (uint32, *T) {
 	i := p.count
-	var pages []*[pageSize]T
-	if ps := p.pages.Load(); ps != nil {
-		pages = *ps
-	}
-	if int(i>>pageShift) == len(pages) {
-		pages = append(slices.Clip(pages), new([pageSize]T))
-		p.pages.Store(&pages)
+	ps := p.pages.Load()
+	if ps == nil || int(i>>pageShift) == len(*ps) {
+		// grown is declared here so that only growing allocates the
+		// header that the directory pointer refers to.
+		var grown []*[pageSize]T
+		if ps != nil {
+			grown = slices.Clip(*ps)
+		}
+		grown = append(grown, new([pageSize]T))
+		p.pages.Store(&grown)
+		ps = &grown
 	}
 	p.count++
-	return i, &pages[i>>pageShift][i&(pageSize-1)]
+	return i, &(*ps)[i>>pageShift][i&(pageSize-1)]
 }
 
 // At returns the address of the record at index i.

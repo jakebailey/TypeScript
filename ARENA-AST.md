@@ -596,6 +596,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 10. packed relation keys | 2,784,099K (−49MB) | 1,679,415K (−70MB) | 1,167,338K (−19MB) | 19.75–20.66s (19.99) |
 | 11. packed interning keys | 2,783,162K (−1MB) | 1,677,740K (−2MB) | 1,166,235K (−1MB) | 19.98–20.21s (20.00) |
 | 12. bitmap-ranked container table | 2,785,906K (+3MB) | 1,678,874K (+1MB) | 1,166,731K (+0.5MB) | 19.50–20.13s (19.75) |
+| 13. page directory allocated only on growth | 2,785,830K (−0.1MB) | 1,678,753K (−0.1MB) | 1,166,863K (+0.1MB) | 19.10–20.02s (19.63) |
 
 ### Deviations forced by the language
 
