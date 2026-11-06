@@ -239,7 +239,7 @@ func (r *EmitResolver) IsImplementationOfOverload(node ast.SignatureDeclaration)
 			if signature == r.checker.getSignatureOfFullSignatureType(node) {
 				return false
 			}
-			declaration := signature.declaration
+			declaration := r.checker.nodeOf(signature.declaration)
 			if declaration != node && declaration.Flags()&ast.NodeFlagsJSDoc == 0 {
 				return true
 			}

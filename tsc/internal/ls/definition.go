@@ -426,8 +426,8 @@ func tryGetSignatureDeclaration(typeChecker *checker.Checker, node ast.Node) ast
 	}
 	// Don't go to a function type, go to the value having that type.
 	var declaration ast.Node
-	if signature != nil && !signature.Declaration().IsNil() {
-		declaration = signature.Declaration()
+	if signature != nil && !typeChecker.GetSignatureDeclaration(signature).IsNil() {
+		declaration = typeChecker.GetSignatureDeclaration(signature)
 		if ast.IsFunctionLike(declaration) && !ast.IsFunctionTypeNode(declaration) {
 			return declaration
 		}

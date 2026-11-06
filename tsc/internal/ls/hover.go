@@ -235,7 +235,7 @@ func documentationFromSignature(getMappedLocation documentationLocationMapper, c
 	if signature == nil {
 		return ""
 	}
-	declaration := signature.Declaration()
+	declaration := c.GetSignatureDeclaration(signature)
 	if declaration.IsNil() {
 		return ""
 	}
@@ -800,7 +800,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol *ast.Symbol
 			} else {
 				signatures := getSignaturesAtLocation(c, symbol, checker.SignatureKindCall, node)
 				if len(signatures) == 1 {
-					if d := signatures[0].Declaration(); !d.IsNil() && d.Flags()&ast.NodeFlagsJSDoc == 0 {
+					if d := c.GetSignatureDeclaration(signatures[0]); !d.IsNil() && d.Flags()&ast.NodeFlagsJSDoc == 0 {
 						setDeclaration(d)
 					}
 				}
@@ -822,7 +822,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol *ast.Symbol
 					signatures = getSignaturesAtLocation(c, symbol, checker.SignatureKindConstruct, node)
 				}
 				if len(signatures) == 1 {
-					if d := signatures[0].Declaration(); !d.IsNil() && d.Flags()&ast.NodeFlagsJSDoc == 0 {
+					if d := c.GetSignatureDeclaration(signatures[0]); !d.IsNil() && d.Flags()&ast.NodeFlagsJSDoc == 0 {
 						setDeclaration(d)
 					}
 					writeSignatures(signatures, "constructor ", false, symbol)

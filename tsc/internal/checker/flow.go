@@ -2221,7 +2221,7 @@ func (c *Checker) isExpandoPropertyFunctionWithReturnTypeAnnotation(node ast.Nod
 }
 
 func (c *Checker) hasTypePredicateOrNeverReturnType(sig *Signature) bool {
-	return c.getTypePredicateOfSignature(sig) != nil || !sig.declaration.IsNil() && core.OrElse(c.getReturnTypeFromAnnotation(sig.declaration), c.unknownType).flags&TypeFlagsNever != 0
+	return c.getTypePredicateOfSignature(sig) != nil || !sig.declaration.IsNil() && core.OrElse(c.getReturnTypeFromAnnotation(c.nodeOf(sig.declaration)), c.unknownType).flags&TypeFlagsNever != 0
 }
 
 func (c *Checker) getExplicitThisType(node ast.Node) *Type {

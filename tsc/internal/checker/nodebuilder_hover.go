@@ -345,7 +345,7 @@ func (b *NodeBuilderImpl) serializeConstructors(staticType *Type, staticBaseType
 		var privateProtected ast.ModifierFlags
 		for _, sig := range signatures {
 			if !sig.declaration.IsNil() {
-				privateProtected |= sig.declaration.ModifierFlags() & (ast.ModifierFlagsPrivate | ast.ModifierFlagsProtected)
+				privateProtected |= b.ch.nodeOf(sig.declaration).ModifierFlags() & (ast.ModifierFlagsPrivate | ast.ModifierFlagsProtected)
 			}
 		}
 		if privateProtected != 0 {

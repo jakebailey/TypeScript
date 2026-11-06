@@ -424,3 +424,13 @@ func (c *Checker) CompareSymbols(s1, s2 *ast.Symbol) int {
 func IsDistributedTypeParameter(t *Type) bool {
 	return t.flags&TypeFlagsTypeParameter != 0 && t.AsTypeParameter().isDistributed
 }
+
+func (c *Checker) GetSignatureDeclaration(sig *Signature) ast.Node {
+	return c.nodeOf(sig.declaration)
+}
+
+// SignatureDeclaration returns sig's declaration, for callers that hold the
+// program's file table but no checker.
+func SignatureDeclaration(files *ast.FileTable, sig *Signature) ast.Node {
+	return files.Node(sig.declaration)
+}

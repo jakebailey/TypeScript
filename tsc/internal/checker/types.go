@@ -1295,7 +1295,7 @@ func (t *ObjectType) AsObjectType() *ObjectType { return t }
 
 type TypeReference struct {
 	ObjectType
-	node                  ast.Node // TypeReferenceNode | ArrayTypeNode | TupleTypeNode when deferred, else nil
+	node                  ast.NodeRef // TypeReferenceNode | ArrayTypeNode | TupleTypeNode when deferred, else nil
 	resolvedTypeArguments []*Type
 	lazy                  *LazyState // Resolved member layout and instantiation state
 }
@@ -1621,7 +1621,7 @@ type Signature struct {
 	flags                    SignatureFlags
 	minArgumentCount         int32
 	resolvedMinArgumentCount int32
-	declaration              ast.Node
+	declaration              ast.NodeRef
 	parameters               []*ast.Symbol
 	resolvedReturnType       *Type
 	target                   *Signature
@@ -1710,10 +1710,6 @@ func (s *Signature) TypeParameters() []*Type {
 		return nil
 	}
 	return s.extra.typeParameters
-}
-
-func (s *Signature) Declaration() ast.Node {
-	return s.declaration
 }
 
 func (s *Signature) Target() *Signature {

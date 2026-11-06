@@ -493,6 +493,10 @@ A symbol's declarations used to be a `[]Node` (24 bytes plus a separate array) a
 
 `Symbol.Declarations()` returns an `ast.Declarations`, a 24-byte read-only snapshot with `Len`, `At`, `All`, `Values` and the search helpers the callers used (`Some`, `Find`, `Every`, `Filter`, ...). Adding a declaration copies the list, so a snapshot never changes; the checker used to clip slices by hand before sharing them for the same reason. The call sites were rewritten mechanically with a type-checked rewriter; code that needs a slice, mostly in the language service, calls `Nodes()`.
 
+### Nodes in checker records
+
+The checker records that hold a node are type references (the node of a deferred reference) and signatures (their declaration). Both now hold a `NodeRef`, resolved through the checker's file table, which takes type references from 160 to 152 bytes and signatures from 88 to 80. Object types hold no node of their own. Index infos, tuple element infos and instantiation expression types still hold views: they are far fewer, and item 6 revisits index infos. Callers outside the checker read a signature's declaration through `Checker.GetSignatureDeclaration`, or `SignatureDeclaration` with the program's file table. The saving is 6MB on vscode, 3MB on sentry and under 1MB on mui, with no change in check time, so it was kept.
+
 ### Progress
 
 Memory used (median) and vscode check time (n=5 alternating against the previous row, min–max and median).
@@ -503,6 +507,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | `new-ast-index` (`5e349ab704f`) | 3,189,024K | 1,818,226K | 1,170,655K | 20.93–22.25s (21.25) |
 | views and refs (`9a6514702b3`) | 3,286,921K | 1,882,903K | 1,216,591K | 18.49–19.91s (18.81) |
 | 1. compact declarations | 3,174,055K (−113MB) | 1,815,998K (−67MB) | 1,163,930K (−53MB) | 18.13–18.69s (18.39) |
+| 1b. node refs in checker records | 3,167,665K (−6MB) | 1,813,326K (−3MB) | 1,163,323K (−0.4MB) | 18.19–19.81s (18.40) |
 
 ## Historical: earlier measurements (step 9 vs main, vscode, n=10, interleaved)
 

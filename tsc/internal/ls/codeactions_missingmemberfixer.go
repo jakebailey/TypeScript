@@ -135,7 +135,7 @@ func (f *missingMemberFixer) createMemberFromSymbol(symbol *ast.Symbol, enclosin
 		}
 
 		for _, signature := range signatures {
-			if !signature.Declaration().IsNil() && signature.Declaration().Flags()&ast.NodeFlagsAmbient != 0 {
+			if d := f.typeChecker.GetSignatureDeclaration(signature); !d.IsNil() && d.Flags()&ast.NodeFlagsAmbient != 0 {
 				continue
 			}
 

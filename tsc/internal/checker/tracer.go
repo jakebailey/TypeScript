@@ -253,7 +253,7 @@ func (a *tracedTypeAdapter) ReferenceNode() ast.Node {
 	if a.t.flags&TypeFlagsObject == 0 || a.t.objectFlags&ObjectFlagsReference == 0 {
 		return ast.Node{}
 	}
-	return a.t.AsTypeReference().node
+	return a.checker.nodeOf(a.t.AsTypeReference().node)
 }
 
 func (a *tracedTypeAdapter) ReverseMappedSourceType() tracing.TracedType {

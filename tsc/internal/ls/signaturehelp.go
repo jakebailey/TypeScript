@@ -308,8 +308,8 @@ func (l *LanguageService) createSignatureHelpItems(ctx context.Context, candidat
 		callTargetSymbol = argumentInfo.invocation.contextualInvocation.symbol
 	} else {
 		callTargetSymbol = c.GetSymbolAtLocation(getExpressionFromInvocation(argumentInfo))
-		if callTargetSymbol == nil && useFullPrefix && !resolvedSignature.Declaration().IsNil() {
-			callTargetSymbol = resolvedSignature.Declaration().Symbol()
+		if callTargetSymbol == nil && useFullPrefix && !c.GetSignatureDeclaration(resolvedSignature).IsNil() {
+			callTargetSymbol = c.GetSignatureDeclaration(resolvedSignature).Symbol()
 		}
 	}
 
@@ -461,7 +461,7 @@ func (l *LanguageService) getSignatureHelpItem(candidate *checker.Signature, isT
 
 	// Generate documentation from the signature's declaration
 	var documentation *string
-	if declaration := candidate.Declaration(); !declaration.IsNil() {
+	if declaration := c.GetSignatureDeclaration(candidate); !declaration.IsNil() {
 		doc := getDocumentationFromDeclaration(l.documentationLocationMapper(spanmap.FeatureSignatureHelp), c, nil, declaration, ast.Node{}, docFormat, true /*commentOnly*/)
 		if doc != "" {
 			documentation = &doc

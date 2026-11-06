@@ -2083,7 +2083,7 @@ func (b *NodeBuilderImpl) tryGetThisParameterDeclaration(signature *Signature) a
 	if signature.ThisParameter() != nil {
 		return b.symbolToParameterDeclaration(signature.ThisParameter(), false)
 	}
-	if !signature.declaration.IsNil() && ast.IsInJSFile(signature.declaration) {
+	if !signature.declaration.IsNil() && ast.IsInJSFile(b.ch.nodeOf(signature.declaration)) {
 		// !!! JSDoc Support
 		// thisTag := getJSDocThisTag(signature.declaration)
 		// if (thisTag && thisTag.typeExpression) {
@@ -2111,8 +2111,8 @@ func (b *NodeBuilderImpl) serializeReturnTypeForSignature(signature *Signature, 
 	var returnTypeNode ast.Node
 
 	var returnType *Type
-	if !signature.declaration.IsNil() && !ast.NodeIsSynthesized(signature.declaration) {
-		symbol := b.ch.getSymbolOfDeclaration(signature.declaration)
+	if !signature.declaration.IsNil() && !ast.NodeIsSynthesized(b.ch.nodeOf(signature.declaration)) {
+		symbol := b.ch.getSymbolOfDeclaration(b.ch.nodeOf(signature.declaration))
 		var ok bool
 		returnType, ok = b.ctx.enclosingSymbolTypes[ast.GetSymbolId(symbol)]
 		if !ok || returnType == nil {
@@ -2122,10 +2122,10 @@ func (b *NodeBuilderImpl) serializeReturnTypeForSignature(signature *Signature, 
 		returnType = b.ch.getReturnTypeOfSignature(signature)
 	}
 	if !(suppressAny && IsTypeAny(returnType)) {
-		if !b.isActivelyExpanding() && tryReuse && !b.ctx.enclosingDeclaration.IsNil() && !signature.declaration.IsNil() && !ast.NodeIsSynthesized(signature.declaration) {
-			declarationSymbol := b.ch.getSymbolOfDeclaration(signature.declaration)
+		if !b.isActivelyExpanding() && tryReuse && !b.ctx.enclosingDeclaration.IsNil() && !signature.declaration.IsNil() && !ast.NodeIsSynthesized(b.ch.nodeOf(signature.declaration)) {
+			declarationSymbol := b.ch.getSymbolOfDeclaration(b.ch.nodeOf(signature.declaration))
 			restore := b.addSymbolTypeToContext(declarationSymbol, returnType)
-			pt := b.pc.GetReturnTypeOfSignature(signature.declaration)
+			pt := b.pc.GetReturnTypeOfSignature(b.ch.nodeOf(signature.declaration))
 			if b.pseudoTypeEquivalentToType(pt, returnType, false, !b.ctx.suppressReportInferenceFallback) {
 				// Also verify the pseudo type captures any inferred type predicate, not just the boolean return type.
 				// The pseudochecker is unaware of inferred type predicates, so it produces boolean where
@@ -2133,7 +2133,7 @@ func (b *NodeBuilderImpl) serializeReturnTypeForSignature(signature *Signature, 
 				typePredicate := b.ch.getTypePredicateOfSignature(signature)
 				if typePredicate != nil && !b.pseudoReturnTypeMatchesPredicate(pt, typePredicate) {
 					if !b.ctx.suppressReportInferenceFallback {
-						b.ctx.tracker.ReportInferenceFallback(signature.declaration)
+						b.ctx.tracker.ReportInferenceFallback(b.ch.nodeOf(signature.declaration))
 					}
 					pt = nil
 				}
@@ -2690,7 +2690,7 @@ func (b *NodeBuilderImpl) addPropertyToElementList(propertySymbol *ast.Symbol, t
 				name:          propertyName,
 				questionToken: optionalToken,
 			})
-			b.setCommentRange(methodDeclaration, core.Coalesce(signature.declaration, propertySymbol.ValueDeclaration()))
+			b.setCommentRange(methodDeclaration, core.Coalesce(b.ch.nodeOf(signature.declaration), propertySymbol.ValueDeclaration()))
 			typeElements = append(typeElements, methodDeclaration)
 		}
 		if len(signatures) != 0 || optionalToken.IsNil() {
@@ -3211,7 +3211,7 @@ func (b *NodeBuilderImpl) typeReferenceToTypeNode(t *Type) ast.TypeNode {
 				// `AsyncIterable`, and `AsyncIterableIterator` to provide backwards-compatible .d.ts emit due
 				// to each now having three type parameters instead of only one.
 				if b.ch.isReferenceToType(t, b.ch.getGlobalIterableType()) || b.ch.isReferenceToType(t, b.ch.getGlobalIterableIteratorType()) || b.ch.isReferenceToType(t, b.ch.getGlobalAsyncIterableType()) || b.ch.isReferenceToType(t, b.ch.getGlobalAsyncIterableIteratorType()) {
-					if t.AsTypeReference().node.IsNil() || !ast.IsTypeReferenceNode(t.AsTypeReference().node) || t.AsTypeReference().node.TypeArguments() == nil || t.AsTypeReference().node.TypeArgumentList().Len() < typeParameterCount {
+					if b.ch.nodeOf(t.AsTypeReference().node).IsNil() || !ast.IsTypeReferenceNode(b.ch.nodeOf(t.AsTypeReference().node)) || b.ch.nodeOf(t.AsTypeReference().node).TypeArguments() == nil || b.ch.nodeOf(t.AsTypeReference().node).TypeArgumentList().Len() < typeParameterCount {
 						for typeParameterCount > 0 {
 							typeArgument := typeArguments[typeParameterCount-1]
 							typeParameter := t.Target().AsInterfaceType().TypeParameters()[typeParameterCount-1]
@@ -3260,8 +3260,8 @@ func (b *NodeBuilderImpl) visitAndTransformType(t *Type, transform func(b *NodeB
 	case isArrayOrTuple:
 		// Do not bound finite container nesting by the shared Array symbol or tuple origin.
 		id = nil
-	case t.objectFlags&ObjectFlagsReference != 0 && !t.AsTypeReference().node.IsNil():
-		id = &CompositeSymbolIdentity{false, 0, ast.GetNodeId(t.AsTypeReference().node)}
+	case t.objectFlags&ObjectFlagsReference != 0 && !b.ch.nodeOf(t.AsTypeReference().node).IsNil():
+		id = &CompositeSymbolIdentity{false, 0, ast.GetNodeId(b.ch.nodeOf(t.AsTypeReference().node))}
 	case t.flags&TypeFlagsConditional != 0:
 		id = &CompositeSymbolIdentity{false, 0, ast.GetNodeId(t.AsConditionalType().root.node.AsNode())}
 	case t.symbol != nil:
@@ -3552,7 +3552,7 @@ func (b *NodeBuilderImpl) typeToTypeNode(t *Type) ast.TypeNode {
 		}
 		if b.ch.isArrayOrTupleType(t) {
 			return b.visitAndTransformType(t, (*NodeBuilderImpl).arrayOrTupleTypeToNode)
-		} else if !t.AsTypeReference().node.IsNil() {
+		} else if !b.ch.nodeOf(t.AsTypeReference().node).IsNil() {
 			return b.visitAndTransformType(t, (*NodeBuilderImpl).typeReferenceToTypeNode)
 		} else {
 			return b.typeReferenceToTypeNode(t)

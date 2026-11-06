@@ -501,8 +501,10 @@ func (sd *snapshotData) newSignatureResponse(projectID project.Handle, sig *chec
 		Flags: uint32(sig.Flags()),
 	}
 
-	if !sig.Declaration().IsNil() {
-		resp.Declaration = sd.nodeHandleFrom(sig.Declaration())
+	if program, err := sd.getProgram(projectID); err == nil {
+		if declaration := checker.SignatureDeclaration(program.FileTable(), sig); !declaration.IsNil() {
+			resp.Declaration = sd.nodeHandleFrom(declaration)
+		}
 	}
 
 	if len(sig.TypeParameters()) > 0 {

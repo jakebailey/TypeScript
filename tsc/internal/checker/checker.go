@@ -3773,7 +3773,7 @@ func (c *Checker) checkFunctionOrConstructorSymbolWorker(symbol *ast.Symbol) {
 			bodySignature := c.getSignatureFromDeclaration(bodyDeclaration)
 			for _, signature := range signatures {
 				if !c.isImplementationCompatibleWithOverload(bodySignature, signature) {
-					errorNode := signature.declaration
+					errorNode := c.nodeOf(signature.declaration)
 					c.error(errorNode, diagnostics.This_overload_signature_is_not_compatible_with_its_implementation_signature).AddRelatedInfo(createDiagnosticForNode(bodyDeclaration, diagnostics.The_implementation_signature_is_declared_here))
 					break
 				}
@@ -8576,7 +8576,7 @@ func (c *Checker) checkCallExpression(node ast.Node, checkMode CheckMode) *Type 
 		return c.voidType
 	}
 	if ast.IsNewExpression(node) {
-		declaration := signature.declaration
+		declaration := c.nodeOf(signature.declaration)
 		if !declaration.IsNil() && !ast.IsConstructorDeclaration(declaration) && !ast.IsConstructSignatureDeclaration(declaration) && !ast.IsConstructorTypeNode(declaration) {
 			// When resolved signature is a call signature (and not a construct signature) the result type is any
 			if c.noImplicitAny {
@@ -8609,10 +8609,10 @@ func (c *Checker) checkDeprecatedSignature(sig *Signature, node ast.Node) {
 	if sig.flags&SignatureFlagsIsSignatureCandidateForOverloadFailure != 0 {
 		return
 	}
-	if !sig.declaration.IsNil() && c.IsDeprecatedDeclaration(sig.declaration) {
+	if !sig.declaration.IsNil() && c.IsDeprecatedDeclaration(c.nodeOf(sig.declaration)) {
 		suggestionNode := c.getDeprecatedSuggestionNode(node)
 		name := tryGetPropertyAccessOrIdentifierToString(ast.GetInvokedExpression(node))
-		c.addDeprecatedSuggestionWithSignature(suggestionNode, sig.declaration, name, c.signatureToString(sig))
+		c.addDeprecatedSuggestionWithSignature(suggestionNode, c.nodeOf(sig.declaration), name, c.signatureToString(sig))
 	}
 }
 
@@ -8906,7 +8906,7 @@ func (c *Checker) getConstructorAccessibilityError(node ast.Node, signatures []*
 		if signature.declaration.IsNil() {
 			continue
 		}
-		declaration := signature.declaration
+		declaration := c.nodeOf(signature.declaration)
 		modifiers := getSelectedModifierFlags(declaration, modifiersMask)
 		// (1) Public constructors and (2) constructor functions are always accessible.
 		if modifiers == 0 || !ast.IsConstructorDeclaration(declaration) {
@@ -9224,8 +9224,8 @@ func (c *Checker) reorderCandidates(signatures []*Signature, callChainFlags Sign
 		var symbol *ast.Symbol
 		var parent ast.Node
 		if !signature.declaration.IsNil() {
-			symbol = c.getSymbolOfDeclaration(signature.declaration)
-			parent = signature.declaration.Parent()
+			symbol = c.getSymbolOfDeclaration(c.nodeOf(signature.declaration))
+			parent = c.nodeOf(signature.declaration).Parent()
 		}
 		if lastSymbol == nil || symbol == lastSymbol {
 			if !lastParent.IsNil() && parent == lastParent {
@@ -9324,7 +9324,7 @@ func (c *Checker) chooseOverload(s *CallState, relation *Relation) *Signature {
 			if inferenceContext != nil {
 				inferredTypeParameters = inferenceContext.inferredTypeParameters
 			}
-			checkCandidate = c.getSignatureInstantiation(candidate, typeArgumentTypes, ast.IsInJSFile(candidate.declaration), inferredTypeParameters)
+			checkCandidate = c.getSignatureInstantiation(candidate, typeArgumentTypes, ast.IsInJSFile(c.nodeOf(candidate.declaration)), inferredTypeParameters)
 			// If the original signature has a generic rest type, instantiation may produce a
 			// signature with different arity and we need to perform another arity check.
 			if c.getNonArrayRestType(candidate) != nil && !c.hasCorrectArity(s.node, s.args, checkCandidate, s.signatureHelpTrailingComma) {
@@ -9346,7 +9346,7 @@ func (c *Checker) chooseOverload(s *CallState, relation *Relation) *Signature {
 			s.argCheckMode = CheckModeNormal
 			if inferenceContext != nil {
 				typeArgumentTypes := c.inferTypeArguments(s.node, candidate, s.args, s.argCheckMode, inferenceContext)
-				checkCandidate = c.getSignatureInstantiation(candidate, typeArgumentTypes, ast.IsInJSFile(candidate.declaration), inferenceContext.inferredTypeParameters)
+				checkCandidate = c.getSignatureInstantiation(candidate, typeArgumentTypes, ast.IsInJSFile(c.nodeOf(candidate.declaration)), inferenceContext.inferredTypeParameters)
 				// If the original signature has a generic rest type, instantiation may produce a
 				// signature with different arity and we need to perform another arity check.
 				if c.getNonArrayRestType(candidate) != nil && !c.hasCorrectArity(s.node, s.args, checkCandidate, s.signatureHelpTrailingComma) {
@@ -9482,7 +9482,7 @@ func (c *Checker) hasCorrectTypeArgumentArity(signature *Signature, typeArgument
 }
 
 func (c *Checker) checkTypeArguments(signature *Signature, typeArgumentNodes []ast.Node, reportErrors bool, headMessage *diagnostics.Message) []*Type {
-	isJavaScript := ast.IsInJSFile(signature.declaration)
+	isJavaScript := ast.IsInJSFile(c.nodeOf(signature.declaration))
 	typeParameters := signature.TypeParameters()
 	typeArgumentTypes := c.fillMissingTypeArguments(core.Map(typeArgumentNodes, c.getTypeFromTypeNode), typeParameters, c.getMinTypeArgumentCount(typeParameters), isJavaScript)
 	var mapper *TypeMapper
@@ -9879,7 +9879,7 @@ func (c *Checker) createUnionOfSignaturesForOverloadFailure(candidates []*Signat
 	if core.Some(candidates, signatureHasLiteralTypes) {
 		flags |= SignatureFlagsHasLiteralTypes
 	}
-	return c.newSignature(flags, candidates[0].declaration, nil, thisParameter, parameters, c.getIntersectionType(core.Map(candidates, c.getReturnTypeOfSignature)), nil, minArgumentCount)
+	return c.newSignature(flags, c.nodeOf(candidates[0].declaration), nil, thisParameter, parameters, c.getIntersectionType(core.Map(candidates, c.getReturnTypeOfSignature)), nil, minArgumentCount)
 }
 
 func (c *Checker) createCombinedSymbolFromTypes(sources []*ast.Symbol, types []*Type) *ast.Symbol {
@@ -9924,7 +9924,7 @@ func (c *Checker) reportCallResolutionErrors(node ast.Node, s *CallState, signat
 				diagnostic = ast.NewDiagnosticChain(diagnostic, headMessage)
 			}
 			if !last.declaration.IsNil() && len(s.candidatesForArgumentError) > 1 {
-				diagnostic.AddRelatedInfo(NewDiagnosticForNode(last.declaration, diagnostics.The_last_overload_is_declared_here))
+				diagnostic.AddRelatedInfo(NewDiagnosticForNode(c.nodeOf(last.declaration), diagnostics.The_last_overload_is_declared_here))
 			}
 			c.addImplementationSuccessElaboration(s, last, diagnostic)
 			c.addDiagnostic(diagnostic)
@@ -9946,8 +9946,8 @@ func (c *Checker) reportCallResolutionErrors(node ast.Node, s *CallState, signat
 }
 
 func (c *Checker) addImplementationSuccessElaboration(s *CallState, failed *Signature, diagnostic *ast.Diagnostic) {
-	if !failed.declaration.IsNil() && failed.declaration.Symbol() != nil {
-		declarations := failed.declaration.Symbol().Declarations()
+	if !failed.declaration.IsNil() && c.nodeOf(failed.declaration).Symbol() != nil {
+		declarations := c.nodeOf(failed.declaration).Symbol().Declarations()
 		if declarations.Len() > 1 {
 			implementation := declarations.Find(func(d ast.Declaration) bool {
 				return ast.IsFunctionLikeDeclaration(d) && ast.NodeIsPresent(d.Body())
@@ -10038,7 +10038,7 @@ func (c *Checker) getArgumentArityError(node ast.Node, signatures []*Signature, 
 		}
 		var parameter ast.Node
 		if closestSignature != nil && !closestSignature.declaration.IsNil() {
-			parameter = core.ElementOrNil(closestSignature.declaration.Parameters(), len(args)+core.IfElse(closestSignature.ThisParameter() != nil, 1, 0))
+			parameter = core.ElementOrNil(c.nodeOf(closestSignature.declaration).Parameters(), len(args)+core.IfElse(closestSignature.ThisParameter() != nil, 1, 0))
 		}
 		if !parameter.IsNil() {
 			var related *ast.Diagnostic
@@ -10516,7 +10516,7 @@ func (c *Checker) inferFromAnnotatedParametersAndReturn(sig *Signature, context 
 			c.inferTypes(inferenceContext.inferences, source, target, InferencePriorityNone, false)
 		}
 	}
-	if declaration := sig.Declaration(); !declaration.IsNil() {
+	if declaration := c.nodeOf(sig.declaration); !declaration.IsNil() {
 		if returnTypeNode := declaration.Type(); !returnTypeNode.IsNil() {
 			source := c.getTypeFromTypeNode(returnTypeNode)
 			target := c.getReturnTypeOfSignature(context)
@@ -10944,7 +10944,7 @@ func (c *Checker) getInstantiationExpressionType(exprType *Type, node ast.Node) 
 		return core.SameMap(applicableSignatures, func(sig *Signature) *Signature {
 			typeArgumentTypes := c.checkTypeArguments(sig, typeArguments.Slice(), true /*reportErrors*/, nil)
 			if typeArgumentTypes != nil {
-				return c.getSignatureInstantiation(sig, typeArgumentTypes, ast.IsInJSFile(sig.declaration), nil)
+				return c.getSignatureInstantiation(sig, typeArgumentTypes, ast.IsInJSFile(c.nodeOf(sig.declaration)), nil)
 			}
 			return sig
 		})
@@ -18123,7 +18123,7 @@ func isTypeReferenceWithGenericArguments(t *Type) bool {
 }
 
 func isNonDeferredTypeReference(t *Type) bool {
-	return t.objectFlags&ObjectFlagsReference != 0 && t.AsTypeReference().node.IsNil()
+	return t.objectFlags&ObjectFlagsReference != 0 && t.checker.nodeOf(t.AsTypeReference().node).IsNil()
 }
 
 // Return true if type parameter originates in an unconstrained declaration in a type parameter list
@@ -19945,7 +19945,7 @@ func (c *Checker) getSignatureInstantiation(sig *Signature, typeArguments []*Typ
 }
 
 func (c *Checker) cloneSignature(sig *Signature) *Signature {
-	result := c.newSignature(sig.flags&SignatureFlagsPropagatingFlags, sig.declaration, sig.TypeParameters(), sig.ThisParameter(), sig.parameters, nil, nil, int(sig.minArgumentCount))
+	result := c.newSignature(sig.flags&SignatureFlagsPropagatingFlags, c.nodeOf(sig.declaration), sig.TypeParameters(), sig.ThisParameter(), sig.parameters, nil, nil, int(sig.minArgumentCount))
 	result.target = sig.target
 	result.mapper = sig.mapper
 	result.setComposite(c, sig.getComposite())
@@ -20010,14 +20010,14 @@ func (c *Checker) getOrCreateTypeFromSignature(sig *Signature) *Type {
 	if sig.getIsolatedSignatureType() == nil {
 		var kind ast.Kind
 		if !sig.declaration.IsNil() {
-			kind = sig.declaration.Kind()
+			kind = c.nodeOf(sig.declaration).Kind()
 		}
 		// If declaration is undefined, it is likely to be the signature of the default constructor.
 		isConstructor := kind == ast.KindUnknown || kind == ast.KindConstructor || kind == ast.KindConstructSignature || kind == ast.KindConstructorType
 
 		var symbol *ast.Symbol
 		if !sig.declaration.IsNil() {
-			symbol = sig.declaration.Symbol()
+			symbol = c.nodeOf(sig.declaration).Symbol()
 		}
 		t := c.newObjectType(ObjectFlagsAnonymous|ObjectFlagsSingleSignatureType, symbol)
 		if isConstructor {
@@ -20069,7 +20069,7 @@ func (c *Checker) createCanonicalSignature(signature *Signature) *Signature {
 		}
 		return tp
 	})
-	return c.getSignatureInstantiation(signature, typeArguments, ast.IsInJSFile(signature.declaration), nil /*inferredTypeParameters*/)
+	return c.getSignatureInstantiation(signature, typeArguments, ast.IsInJSFile(c.nodeOf(signature.declaration)), nil /*inferredTypeParameters*/)
 }
 
 func (c *Checker) getBaseSignature(signature *Signature) *Signature {
@@ -20129,7 +20129,7 @@ func (c *Checker) instantiateSignatureInContextOf(signature *Signature, contextu
 			c.inferTypes(context.inferences, source, target, InferencePriorityReturnType, false)
 		})
 	}
-	return c.getSignatureInstantiation(signature, c.getInferredTypes(context), ast.IsInJSFile(contextualSignature.declaration), nil /*inferredTypeParameters*/)
+	return c.getSignatureInstantiation(signature, c.getInferredTypes(context), ast.IsInJSFile(c.nodeOf(contextualSignature.declaration)), nil /*inferredTypeParameters*/)
 }
 
 func (c *Checker) resolveBaseTypesOfInterface(t *Type) {
@@ -20657,10 +20657,10 @@ func (c *Checker) getReturnTypeOfSignature(sig *Signature) *Type {
 	case sig.getComposite() != nil:
 		t = c.instantiateType(c.getUnionOrIntersectionType(core.Map(sig.getComposite().signatures, c.getReturnTypeOfSignature), sig.getComposite().isUnion, UnionReductionSubtype), sig.mapper)
 	default:
-		t = c.getReturnTypeFromAnnotation(sig.declaration)
+		t = c.getReturnTypeFromAnnotation(c.nodeOf(sig.declaration))
 		if t == nil {
-			if !ast.NodeIsMissing(sig.declaration.Body()) {
-				t = c.getReturnTypeFromBody(sig.declaration, CheckModeNormal)
+			if !ast.NodeIsMissing(c.nodeOf(sig.declaration).Body()) {
+				t = c.getReturnTypeFromBody(c.nodeOf(sig.declaration), CheckModeNormal)
 			} else {
 				t = c.anyType
 			}
@@ -20673,15 +20673,15 @@ func (c *Checker) getReturnTypeOfSignature(sig *Signature) *Type {
 	}
 	if !c.popTypeResolution() {
 		if !sig.declaration.IsNil() {
-			typeNode := sig.declaration.Type()
+			typeNode := c.nodeOf(sig.declaration).Type()
 			if !typeNode.IsNil() {
 				c.error(typeNode, diagnostics.Return_type_annotation_circularly_references_itself)
 			} else if c.noImplicitAny {
-				name := ast.GetNameOfDeclaration(sig.declaration)
+				name := ast.GetNameOfDeclaration(c.nodeOf(sig.declaration))
 				if !name.IsNil() {
 					c.error(name, diagnostics.X_0_implicitly_has_return_type_any_because_it_does_not_have_a_return_type_annotation_and_is_referenced_directly_or_indirectly_in_one_of_its_return_expressions, scanner.DeclarationNameToString(name))
 				} else {
-					c.error(sig.declaration, diagnostics.Function_implicitly_has_return_type_any_because_it_does_not_have_a_return_type_annotation_and_is_referenced_directly_or_indirectly_in_one_of_its_return_expressions)
+					c.error(c.nodeOf(sig.declaration), diagnostics.Function_implicitly_has_return_type_any_because_it_does_not_have_a_return_type_annotation_and_is_referenced_directly_or_indirectly_in_one_of_its_return_expressions)
 				}
 			}
 		}
@@ -21276,7 +21276,7 @@ func (c *Checker) instantiateSignatureEx(sig *Signature, m *TypeMapper, eraseTyp
 	// Don't compute resolvedReturnType and resolvedTypePredicate now,
 	// because using `mapper` now could trigger inferences to become fixed. (See `createInferenceContext`.)
 	// See GH#17600.
-	result := c.newSignature(sig.flags&SignatureFlagsPropagatingFlags, sig.declaration, freshTypeParameters,
+	result := c.newSignature(sig.flags&SignatureFlagsPropagatingFlags, c.nodeOf(sig.declaration), freshTypeParameters,
 		c.instantiateSymbol(sig.ThisParameter(), m), c.instantiateSymbols(sig.parameters, m),
 		nil /*resolvedReturnType*/, nil /*resolvedTypePredicate*/, int(sig.minArgumentCount))
 	result.target = sig
@@ -21826,7 +21826,7 @@ func (c *Checker) combineUnionOrIntersectionMemberSignatures(left *Signature, ri
 		paramMapper = newTypeMapper(right.TypeParameters(), left.TypeParameters())
 	}
 	flags := (left.flags | right.flags) & (SignatureFlagsPropagatingFlags & ^SignatureFlagsHasRestParameter)
-	declaration := left.declaration
+	declaration := c.nodeOf(left.declaration)
 	params := c.combineUnionOrIntersectionParameters(left, right, paramMapper, isUnion)
 	lastParam := core.LastOrNil(params)
 	if lastParam != nil && lastParam.CheckFlags()&ast.CheckFlagsRestParameter != 0 {
@@ -22598,7 +22598,7 @@ func (c *Checker) getTypeArguments(t *Type) []*Type {
 			return slices.Repeat([]*Type{c.errorType}, len(n.TypeParameters()))
 		}
 		var typeArguments []*Type
-		node := t.AsTypeReference().node
+		node := c.nodeOf(t.AsTypeReference().node)
 		if !node.IsNil() {
 			switch node.Kind() {
 			case ast.KindTypeReference:
@@ -22903,7 +22903,7 @@ func (c *Checker) couldContainTypeVariablesWorker(t *Type) bool {
 		return objectFlags&ObjectFlagsCouldContainTypeVariables != 0
 	}
 	result := t.flags&TypeFlagsInstantiable != 0 ||
-		t.flags&TypeFlagsObject != 0 && !c.isNonGenericTopLevelType(t) && (objectFlags&ObjectFlagsReference != 0 && (!t.AsTypeReference().node.IsNil() || core.Some(c.getTypeArguments(t), c.couldContainTypeVariables)) ||
+		t.flags&TypeFlagsObject != 0 && !c.isNonGenericTopLevelType(t) && (objectFlags&ObjectFlagsReference != 0 && (!c.nodeOf(t.AsTypeReference().node).IsNil() || core.Some(c.getTypeArguments(t), c.couldContainTypeVariables)) ||
 			objectFlags&ObjectFlagsAnonymous != 0 && t.symbol != nil && t.symbol.Flags()&(ast.SymbolFlagsFunction|ast.SymbolFlagsMethod|ast.SymbolFlagsClass|ast.SymbolFlagsTypeLiteral|ast.SymbolFlagsObjectLiteral) != 0 && t.symbol.Declarations().Len() != 0 ||
 			objectFlags&(ObjectFlagsMapped|ObjectFlagsReverseMapped|ObjectFlagsObjectRestType|ObjectFlagsInstantiationExpressionType) != 0) ||
 		t.flags&TypeFlagsUnionOrIntersection != 0 && t.flags&TypeFlagsEnumLiteral == 0 && !c.isNonGenericTopLevelType(t) && core.Some(t.Types(), c.couldContainTypeVariables)
@@ -22938,7 +22938,7 @@ func (c *Checker) instantiateTypeWorker(t *Type, m *TypeMapper, alias *TypeAlias
 	case flags&TypeFlagsObject != 0:
 		objectFlags := t.objectFlags
 		if objectFlags&(ObjectFlagsReference|ObjectFlagsAnonymous|ObjectFlagsMapped) != 0 {
-			if objectFlags&ObjectFlagsReference != 0 && t.AsTypeReference().node.IsNil() {
+			if objectFlags&ObjectFlagsReference != 0 && c.nodeOf(t.AsTypeReference().node).IsNil() {
 				resolvedTypeArguments := t.AsTypeReference().resolvedTypeArguments
 				newTypeArguments := c.instantiateTypes(resolvedTypeArguments, m)
 				if core.Same(newTypeArguments, resolvedTypeArguments) {
@@ -23020,7 +23020,7 @@ func (c *Checker) getObjectTypeInstantiation(t *Type, m *TypeMapper, alias *Type
 	var typeParameters []*Type
 	switch {
 	case t.objectFlags&ObjectFlagsReference != 0: // Deferred type reference
-		declaration = t.AsTypeReference().node
+		declaration = c.nodeOf(t.AsTypeReference().node)
 	case t.objectFlags&ObjectFlagsInstantiationExpressionType != 0:
 		declaration = t.AsInstantiationExpressionType().node
 	default:
@@ -23088,7 +23088,7 @@ func (c *Checker) getObjectTypeInstantiation(t *Type, m *TypeMapper, alias *Type
 		}
 		switch {
 		case target.objectFlags&ObjectFlagsReference != 0:
-			result = c.createDeferredTypeReference(t.Target(), t.AsTypeReference().node, newMapper, newAlias)
+			result = c.createDeferredTypeReference(t.Target(), c.nodeOf(t.AsTypeReference().node), newMapper, newAlias)
 		case target.objectFlags&ObjectFlagsMapped != 0:
 			result = c.instantiateMappedType(target, newMapper, newAlias)
 		default:
@@ -25890,7 +25890,7 @@ func (c *Checker) createDeferredTypeReference(target *Type, node ast.Node, mappe
 	d := t.AsTypeReference()
 	d.target = target
 	d.mapper = mapper
-	d.node = node
+	d.node = c.refOf(node)
 	return t
 }
 
@@ -26017,7 +26017,7 @@ func (c *Checker) newSignature(flags SignatureFlags, declaration ast.Node, typeP
 	sig := c.signatureArena.New()
 	sig.id = SignatureId(c.SignatureCount)
 	sig.flags = flags
-	sig.declaration = declaration
+	sig.declaration = c.refOf(declaration)
 	sig.setTypeParameters(c, typeParameters)
 	sig.parameters = parameters
 	sig.setThisParameter(c, thisParameter)
@@ -28656,7 +28656,7 @@ func (c *Checker) getNormalizedType(t *Type, writing bool) *Type {
 		case c.isGenericTupleType(t):
 			n = c.getNormalizedTupleType(t, writing)
 		case t.objectFlags&ObjectFlagsReference != 0:
-			if !t.AsTypeReference().node.IsNil() {
+			if !c.nodeOf(t.AsTypeReference().node).IsNil() {
 				n = c.createTypeReference(t.Target(), c.getTypeArguments(t))
 			} else {
 				n = c.getSingleBaseForNonAugmentingSubtype(t)

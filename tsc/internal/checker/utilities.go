@@ -479,7 +479,7 @@ func CompareTypes(t1, t2 *Type) int {
 				}
 			} else {
 				// Deferred type references with the same target are ordered by the source location of the reference.
-				if c := t1.checker.compareNodes(r1.node, r2.node); c != 0 {
+				if c := t1.checker.compareNodes(t1.checker.nodeOf(r1.node), t1.checker.nodeOf(r2.node)); c != 0 {
 					return c
 				}
 				// Instantiations of the same deferred type reference are ordered by their associated type mappers

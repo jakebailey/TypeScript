@@ -842,11 +842,11 @@ func getRecursionIdentityTarget(t *Type) *Type {
 func getRecursionIdentityFromTarget(t *Type) RecursionId {
 	// Object and array literals are known not to contain recursive references and don't need a recursion identity.
 	if t.flags&TypeFlagsObject != 0 && !isObjectOrArrayLiteralType(t) {
-		if t.objectFlags&ObjectFlagsReference != 0 && !t.AsTypeReference().node.IsNil() {
+		if t.objectFlags&ObjectFlagsReference != 0 && !t.checker.nodeOf(t.AsTypeReference().node).IsNil() {
 			// Deferred type references are tracked through their associated AST node. This gives us finer
 			// granularity than using their associated target because each manifest type reference has a
 			// unique AST node.
-			return asRecursionId(t.AsTypeReference().node)
+			return asRecursionId(t.checker.nodeOf(t.AsTypeReference().node))
 		}
 		if t.symbol != nil && !(t.objectFlags&ObjectFlagsAnonymous != 0 && t.symbol.Flags()&ast.SymbolFlagsClass != 0) && t.objectFlags&ObjectFlagsFromTypeNode == 0 {
 			// We track object types that have a symbol by that symbol (representing the origin of the type), but
@@ -1531,7 +1531,7 @@ func (c *Checker) compareSignaturesRelated(source *Signature, target *Signature,
 	}
 	kind := ast.KindUnknown
 	if !target.declaration.IsNil() {
-		kind = target.declaration.Kind()
+		kind = c.nodeOf(target.declaration).Kind()
 	}
 	strictVariance := checkMode&SignatureCheckModeCallback == 0 && c.strictFunctionTypes && kind != ast.KindMethodDeclaration && kind != ast.KindMethodSignature && kind != ast.KindConstructor
 	result := TernaryTrue
@@ -2060,15 +2060,15 @@ func (c *Checker) getTypePredicateOfSignature(sig *Signature) *TypePredicate {
 			sig.setResolvedTypePredicate(c, c.getUnionOrIntersectionTypePredicate(sig.getComposite().signatures, sig.getComposite().isUnion))
 		default:
 			if !sig.declaration.IsNil() {
-				typeNode := sig.declaration.Type()
+				typeNode := c.nodeOf(sig.declaration).Type()
 				switch {
 				case !typeNode.IsNil():
 					if ast.IsTypePredicateNode(typeNode) {
 						sig.setResolvedTypePredicate(c, c.createTypePredicateFromTypePredicateNode(typeNode, sig))
 					}
-				case ast.IsFunctionLikeDeclaration(sig.declaration) && (sig.resolvedReturnType == nil || sig.resolvedReturnType.flags&TypeFlagsBoolean != 0) && c.getParameterCount(sig) > 0:
+				case ast.IsFunctionLikeDeclaration(c.nodeOf(sig.declaration)) && (sig.resolvedReturnType == nil || sig.resolvedReturnType.flags&TypeFlagsBoolean != 0) && c.getParameterCount(sig) > 0:
 					sig.setResolvedTypePredicate(c, c.noTypePredicate) // avoid infinite loop
-					sig.setResolvedTypePredicate(c, c.getTypePredicateFromBody(sig.declaration))
+					sig.setResolvedTypePredicate(c, c.getTypePredicateFromBody(c.nodeOf(sig.declaration)))
 				}
 			}
 		}
@@ -4573,8 +4573,8 @@ func (r *Relater) constructorVisibilitiesAreCompatible(sourceSignature *Signatur
 	if sourceSignature.declaration.IsNil() || targetSignature.declaration.IsNil() {
 		return true
 	}
-	sourceAccessibility := sourceSignature.declaration.ModifierFlags() & ast.ModifierFlagsNonPublicAccessibilityModifier
-	targetAccessibility := targetSignature.declaration.ModifierFlags() & ast.ModifierFlagsNonPublicAccessibilityModifier
+	sourceAccessibility := r.c.nodeOf(sourceSignature.declaration).ModifierFlags() & ast.ModifierFlagsNonPublicAccessibilityModifier
+	targetAccessibility := r.c.nodeOf(targetSignature.declaration).ModifierFlags() & ast.ModifierFlagsNonPublicAccessibilityModifier
 	// A public, protected and private signature is assignable to a private signature.
 	if targetAccessibility == ast.ModifierFlagsPrivate {
 		return true

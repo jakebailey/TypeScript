@@ -128,3 +128,13 @@ func (s *symbolLinkStore[V]) TryGet(symbol *ast.Symbol) *V {
 	}
 	return s.links.TryGet(id)
 }
+
+// nodeOf resolves a ref held by a checker record.
+func (c *Checker) nodeOf(r ast.NodeRef) ast.Node {
+	return c.refs.Table().Node(r)
+}
+
+// refOf makes a ref for a checker record to hold.
+func (c *Checker) refOf(n ast.Node) ast.NodeRef {
+	return c.refs.Ref(n)
+}

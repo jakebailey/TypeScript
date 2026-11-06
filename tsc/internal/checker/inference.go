@@ -225,7 +225,7 @@ func (c *Checker) inferFromTypes(n *InferenceState, source *Type, target *Type) 
 		}
 	}
 	switch {
-	case source.objectFlags&ObjectFlagsReference != 0 && target.objectFlags&ObjectFlagsReference != 0 && (source.AsTypeReference().target == target.AsTypeReference().target || c.isArrayType(source) && c.isArrayType(target)) && !(!source.AsTypeReference().node.IsNil() && !target.AsTypeReference().node.IsNil()):
+	case source.objectFlags&ObjectFlagsReference != 0 && target.objectFlags&ObjectFlagsReference != 0 && (source.AsTypeReference().target == target.AsTypeReference().target || c.isArrayType(source) && c.isArrayType(target)) && !(!c.nodeOf(source.AsTypeReference().node).IsNil() && !c.nodeOf(target.AsTypeReference().node).IsNil()):
 		// If source and target are references to the same generic type, infer from type arguments
 		c.invokeOnce(n, source, target, (*Checker).inferFromReferenceTypeArguments)
 	case source.flags&TypeFlagsIndex != 0 && target.flags&TypeFlagsIndex != 0:
@@ -866,7 +866,7 @@ func (c *Checker) inferFromSignature(n *InferenceState, source *Signature, targe
 		saveBivariant := n.bivariant
 		kind := ast.KindUnknown
 		if !target.declaration.IsNil() {
-			kind = target.declaration.Kind()
+			kind = c.nodeOf(target.declaration).Kind()
 		}
 		// Once we descend into a bivariant signature we remain bivariant for all nested inferences
 		n.bivariant = n.bivariant || kind == ast.KindMethodDeclaration || kind == ast.KindMethodSignature || kind == ast.KindConstructor
