@@ -345,6 +345,82 @@ Final vscode heap (in-use space at exit):
 | Symbol-of-node maps | 132 |
 | Symbol links (`PagedLinkStore`, by symbol id) | 196 |
 
+## Views and refs, no global table
+
+Branch `new-ast-view`, from `new-ast-index` at `5e349ab704f`. The layout above stays: 24-byte headers, `dataWords`, 16-byte `nodeList`s, sparse binder side tables and lazy facts. What changes is how a node names its store. An 8-byte `{store id, index}` handle has to find its store through the process-wide store table on every access: the table page, the entry, then the header, plus the generation check. That is about 7% of CPU samples, and the check alone is about 1s on vscode. The table also forces explicit ownership: a handle can't keep its store alive, so every store needs an owner that releases it, owners that never release leak, and the language service has no safe point to release at.
+
+The fix is to split the two jobs a handle does. Code that works on nodes holds a *view*, which carries a real pointer to its store. Code that keeps many nodes for a long time holds a *ref*, which is 8 bytes and is resolved through a table that its owner holds.
+
+### The store is a plain struct
+
+`NodeStore` (the old `nodeStore`, now exported) owns one file's tables, or a factory's or a transform's: `nodes`, `dataWords`, `lists`, `listNodes`, the side tables, the far tables, the binder data and the facts cache. It has no id, no slot, no generation and no `Release`. It lives as long as anything references it, like any Go object.
+
+A store still publishes the bases of its four tables through atomic pointers, since a few stores are read by other goroutines while they grow (a source file's token cache). On amd64 an atomic load is a plain load.
+
+### Views
+
+```go
+type Node struct {
+    s    *NodeStore
+    node uint32 // index in s.nodes, never 0 for a node
+}                // 16 bytes, 4 of them padding
+type NodeList struct {
+    s    *NodeStore
+    list uint32
+}
+```
+
+`n.Kind()` is the store pointer's `nodes` base plus the index: two dependent loads, no table and no check. Methods keep their shape (`n.Kind()`, `n.Parent()`, `n.AsX().Field()`), so call sites don't change. Children, parents and list elements are views on the same store. The zero view is the absent node; reading a header through it panics, as on `new-ast`. The absent list still reads as empty.
+
+Views are canonical: the padding is never used, so two views of a node are equal and views stay usable as map keys.
+
+A field that refers to a node of another store (a factory node pointing at a parsed node, or a parsed node reused under a transformed parent) holds an index into its store's `far []Node`, as before. Those are real views, so the collector sees them and the referenced store stays alive as long as the referring one.
+
+### Lifetime is reachability
+
+Factories and transformers append into a store they are given. The emit context holds one working store per file's transform and emit, the checker one for its synthetic nodes, and language-service code makes stores where it needs them. A view of a node in any of them carries the store, so nothing else is needed: the store is collected when the last view, far slot or owner pointer goes away. `SourceFile.Release`, `EmitContext.Release`, `Checker.Release`, `NodeStore.Release`, `Node.IsLive`, the program's synthetic import stores and every `defer store.Release()` go away.
+
+`GetSourceFileOfNode(n)` is `n.s.file`, or a walk up the parents for factory nodes, as before.
+
+`GetNodeId` needs a number unique among live nodes, for names that embed it (pattern ambient modules, generated names), the checker's cache keys and the API's file handles. A store takes a 32-bit serial from a counter when it is made, and the id is `serial<<32 | index`. Nothing maps a serial back to a store.
+
+### Refs
+
+```go
+type NodeRef struct {
+    file uint32 // index in a FileTable
+    node uint32
+} // 8 bytes
+```
+
+A `FileTable` numbers stores for one program and is shared by the program's checkers. Indices `0..len(files)` are the program's files, in the program's order; the checkers' synthetic stores and any other store a checker meets (lazily parsed JSDoc, emit or language-service nodes passed to the checker) are numbered after them, the first time they are met. A ref is resolved with the table: a file's store is one slice index, `t.files[r.file]`; later stores are in fixed-size pages, so that readers need no lock while another checker adds one.
+
+Going from a view to a ref needs the store's number in the table. A store can be in several programs at once (the language service shares parsed files between projects), at different positions, so the number can't be a field of the store alone. Each store instead caches the slot it has in the table that numbered it most recently: one atomic pointer to `{table, index}`. Converting a view is a load of that pointer and a compare with the table. A miss (a store first met, or one claimed since by another program) takes a lock, looks the store up or numbers it, and claims the cache. In a CLI build every store is in one program, so misses happen once per store.
+
+There is no package-level registry: refs are meaningless without the table, and only the checker, which holds the program, resolves them. Code outside the checker (printer, transformers, language service, tests) uses views only.
+
+### Which holder gets which
+
+The checker keeps the most nodes for longest, so its bulk structures take refs:
+
+- node links (`nodeLinks`, `signatureLinks`, `typeNodeLinks` and the other link stores keyed by node): maps keyed by `NodeRef`;
+- symbol-of-node: a slice of per-file `map[uint32]*Symbol` indexed by `ref.file`, which the target layout asked for and the process-wide store ids ruled out;
+- maps keyed by node (`moduleSymbols`, `contextFreeTypes`, `flowTypeCache`, `cachedArgumentsReferenced` and the like) and cache keys that hold node ids;
+- symbol declarations and `valueDeclaration`, and `[]Node` held by types and symbols, where measurement shows it pays. The binder makes a file's symbols when the file is parsed, before any program numbers it, so binder symbols can't hold program refs; they keep views unless a cheaper per-file encoding pays for itself.
+
+Everything else keeps views: the AST's own tables, the binder's side tables (which are indexed by node within their store), the printer, transformers and language service, and short-lived checker state.
+
+The 8-byte handle was 16 bytes once before, padded everywhere, which cost +106MB on vscode. Each holder above is measured with views and with refs, and the choice recorded here.
+
+### What gets deleted
+
+The store table (`storePages`, `storeEntry`, `slotEntry`, `storeEntryOf`), store ids and their free list, generations and `checkStoreIDs`, `LiveNodeStores`, `StoreSlot`/`StoreID`, `IsLive`, every `Release`, the ownership table above and the symbol-of-node map keyed by store id.
+
+### Steps
+
+1. Views replace the store-table handle. The table, ids, generations and releases are deleted; checker structures keep views.
+2. The checker's bulk structures hold `NodeRef`s through a per-program `FileTable`.
+
 ## Historical: earlier measurements (step 9 vs main, vscode, n=10, interleaved)
 
 ### Branch tip vs main
