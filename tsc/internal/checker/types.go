@@ -178,7 +178,7 @@ type ValueSymbolLinks struct {
 	resolvedType TypeId // Type of value symbol
 	target       ast.SymbolId
 	mapper       TypeMapperId
-	extra        *valueSymbolExtra
+	extra        uint32 // Index+1 into Checker.valueSymbolExtras, 0 = none
 }
 
 type valueSymbolExtra struct {
@@ -188,54 +188,54 @@ type valueSymbolExtra struct {
 }
 
 func (links *ValueSymbolLinks) getWriteType(c *Checker) *Type {
-	if links.extra == nil {
+	if links.extra == 0 {
 		return nil
 	}
-	return c.typ(links.extra.writeType)
+	return c.typ(pageAt(&c.valueSymbolExtras, links.extra).writeType)
 }
 
 func (links *ValueSymbolLinks) getNameType(c *Checker) *Type {
-	if links.extra == nil {
+	if links.extra == 0 {
 		return nil
 	}
-	return c.typ(links.extra.nameType)
+	return c.typ(pageAt(&c.valueSymbolExtras, links.extra).nameType)
 }
 
 func (links *ValueSymbolLinks) getContainingType(c *Checker) *Type {
-	if links.extra == nil {
+	if links.extra == 0 {
 		return nil
 	}
-	return c.typ(links.extra.containingType)
+	return c.typ(pageAt(&c.valueSymbolExtras, links.extra).containingType)
+}
+
+func (links *ValueSymbolLinks) ensureExtra(c *Checker) *valueSymbolExtra {
+	if links.extra == 0 {
+		i, extra := pageAdd(&c.valueSymbolExtras)
+		links.extra = i
+		return extra
+	}
+	return pageAt(&c.valueSymbolExtras, links.extra)
 }
 
 func (links *ValueSymbolLinks) setWriteType(c *Checker, typ *Type) {
-	if links.extra == nil {
-		if typ == nil {
-			return
-		}
-		links.extra = c.valueSymbolExtraArena.New()
+	if links.extra == 0 && typ == nil {
+		return
 	}
-	links.extra.writeType = typ.ref()
+	links.ensureExtra(c).writeType = typ.ref()
 }
 
 func (links *ValueSymbolLinks) setNameType(c *Checker, typ *Type) {
-	if links.extra == nil {
-		if typ == nil {
-			return
-		}
-		links.extra = c.valueSymbolExtraArena.New()
+	if links.extra == 0 && typ == nil {
+		return
 	}
-	links.extra.nameType = typ.ref()
+	links.ensureExtra(c).nameType = typ.ref()
 }
 
 func (links *ValueSymbolLinks) setContainingType(c *Checker, typ *Type) {
-	if links.extra == nil {
-		if typ == nil {
-			return
-		}
-		links.extra = c.valueSymbolExtraArena.New()
+	if links.extra == 0 && typ == nil {
+		return
 	}
-	links.extra.containingType = typ.ref()
+	links.ensureExtra(c).containingType = typ.ref()
 }
 
 // Additional links for mapped symbols

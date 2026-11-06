@@ -744,7 +744,7 @@ type Checker struct {
 	symbolListArena                             core.Arena[ast.SymbolId]
 	signatureListArena                          core.Arena[*Signature]
 	indexInfoListArena                          core.Arena[*IndexInfo]
-	valueSymbolExtraArena                       core.Arena[valueSymbolExtra]
+	valueSymbolExtras                           core.Pages[valueSymbolExtra]
 	structuredTypeExtraArena                    core.Arena[structuredTypeExtra]
 	memberLayoutArena                           core.Arena[MemberLayout]
 	layoutMembers                               ast.SymbolTable

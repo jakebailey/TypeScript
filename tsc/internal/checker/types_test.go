@@ -492,7 +492,7 @@ func TestInferenceContextMappers(t *testing.T) { //nolint:paralleltest
 
 func TestCompactValueSymbolLinksLayout(t *testing.T) {
 	t.Parallel()
-	assert.Equal(t, unsafe.Sizeof(ValueSymbolLinks{}), 3*unsafe.Sizeof(uintptr(0)))
+	assert.Equal(t, unsafe.Sizeof(ValueSymbolLinks{}), 4*unsafe.Sizeof(TypeId(0)))
 	assert.Equal(t, unsafe.Sizeof(valueSymbolExtra{}), 3*unsafe.Sizeof(TypeId(0)))
 	c, types := newCompositeTestChecker()
 	var links ValueSymbolLinks
@@ -502,7 +502,7 @@ func TestCompactValueSymbolLinksLayout(t *testing.T) {
 	links.setWriteType(c, nil)
 	links.setNameType(c, nil)
 	links.setContainingType(c, nil)
-	assert.Assert(t, links.extra == nil)
+	assert.Assert(t, links.extra == 0)
 	links.setWriteType(c, c.typ(types[0]))
 	extra := links.extra
 	links.setNameType(c, c.typ(types[1]))

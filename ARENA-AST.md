@@ -639,6 +639,17 @@ Every stored reference to a type outside the type records is an id as well: the 
 
 The type record itself then holds no Go pointers, so the type slabs are never scanned. `resolved` and `extra` are indices (plus one) into checker pages instead of pointers, which shrinks the record to 56 bytes, and the payload is eight 32-bit words. Each kind lays out its words as type ids, mapper ids, a `NodeRef`, flags, or the index plus one of its side record (interface, tuple, mapped, conditional, the rarer union and intersection fields, a type reference's lazy member state) in a per-kind page store. A list of types in the payload (union and intersection constituents, type arguments, a template literal's types) is an 8-byte {position, length} handle into the checker's list store: 16K-entry pages of type ids where a list never straddles a page, and a longer list gets whole contiguous pages. Values that are not ids live in small side stores: a literal's value (an `any`) in a page store indexed from word 0, a template literal's texts in another, and intrinsic names in a slice. Every payload accessor resolves through the checker, so `t.Types(c)`, `t.Target(c)`, `lit.Value(c)` and the like take it; the checker's own call sites gained the argument mechanically, and the few callers in the language service and API pass the checker they hold. Memory falls 23MB on vscode, 15MB on sentry and 7MB on mui; vscode check time rises 0.34s (19.71s to 20.05s median), from the extra page lookups behind `resolved`, `extra` and the side records.
 
+### The scan set
+
+The collector traces every heap object that may hold pointers; pointer-free objects (slabs of ids, swiss maps whose keys and values hold no pointers) are skipped. The runtime reports the scannable part as `/gc/scan/heap:bytes`, sampled here at the point where `--extendedDiagnostics` collects its statistics, next to `/gc/heap/live:bytes`. At the pointer-free type records, vscode had 774MB of scannable heap out of 2,675MB live (29%). The work below takes the largest pointer-bearing records first.
+
+| Step | vscode scan heap | live heap | share |
+|---|---|---|---|
+| pointer-free type records | 774,518K | 2,675,048K | 29% |
+| value links | 637,048K | 2,639,774K | 24% |
+
+- Value links: the rare write, name and containing types hang off a 4-byte index into a checker page store instead of a pointer, so the value link pages (130MB on vscode) carry no pointers. The link shrinks from 24 to 16 bytes.
+
 ### Progress
 
 Memory used (median) and vscode check time (n=5 alternating against the previous row, min–max and median).
@@ -667,6 +678,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 16. type lists as type ids | 2,712,297K (−11MB) | 1,580,666K (+3MB) | 1,037,484K (+16MB) | 19.34–19.71s (19.65) |
 | 17. types as ids in links and caches | 2,696,966K (−15MB) | 1,563,516K (−17MB) | 1,007,160K (−30MB) | 19.39–19.91s (19.55) |
 | 18. pointer-free type records | 2,674,191K (−23MB) | 1,548,297K (−15MB) | 1,000,530K (−7MB) | 19.95–20.07s (20.05) |
+| 19. pointer-free value links | 2,639,332K (−35MB) | 1,525,564K (−23MB) | 980,885K (−20MB) | 19.81–20.06s (19.93) |
 
 ### Deviations forced by the language
 
