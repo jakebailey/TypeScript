@@ -42,8 +42,6 @@ type emitter struct {
 	writeFile          WriteFile
 	tr                 *tracing.Tracing
 	prints             []func()
-	// emitContext owns the nodes made for the file, which print releases.
-	emitContext *printer.EmitContext
 }
 
 // transform runs the JS and declaration transformers for the file, the part of emit that uses the checker. print
@@ -53,7 +51,6 @@ func (e *emitter) transform() {
 		defer e.tr.Push(tracing.PhaseEmit, "emit", map[string]any{"path": string(e.sourceFile.PathKey())}, true)()
 	}
 	emitContext := printer.NewEmitContext()
-	e.emitContext = emitContext
 	emitResolver := e.host.NewEmitResolver(emitContext)
 	e.emitJSFile(emitResolver, e.sourceFile, e.paths.JsFilePath(), e.paths.SourceMapFilePath())
 	e.emitDeclarationFile(emitResolver, e.sourceFile, e.paths.DeclarationFilePath(), e.paths.DeclarationMapPath())
@@ -69,10 +66,6 @@ func (e *emitter) print() {
 		print()
 	}
 	e.prints = nil
-	if e.emitContext != nil {
-		e.emitContext.Release()
-		e.emitContext = nil
-	}
 	e.emitResult.Diagnostics = e.emitterDiagnostics.GetDiagnostics()
 }
 
@@ -583,7 +576,6 @@ func getDeclarationDiagnostics(host EmitHost, file *ast.SourceFile) []*ast.Diagn
 	}
 	options := host.Options()
 	emitContext := printer.NewEmitContext()
-	defer emitContext.Release()
 	emitResolver := host.NewEmitResolver(emitContext)
 	transform := declarations.NewDeclarationTransformer(host, emitResolver, options, "")
 	transform.TransformSourceFile(file)

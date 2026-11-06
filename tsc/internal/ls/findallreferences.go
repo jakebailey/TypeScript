@@ -509,9 +509,7 @@ func (l *LanguageService) getNonLocalDefinition(ctx context.Context, entry *Symb
 	program := l.GetProgram()
 	checker, done := program.GetTypeChecker(ctx)
 	defer done()
-	emitContext := printer.NewEmitContext()
-	defer emitContext.Release()
-	emitResolver := checker.NewEmitResolver(emitContext)
+	emitResolver := checker.NewEmitResolver(printer.NewEmitContext())
 	for _, d := range entry.definition.symbol.Declarations() {
 		if isDefinitionVisible(emitResolver, d) {
 			file, startPos := getFileAndStartPosFromDeclaration(d)

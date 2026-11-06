@@ -228,10 +228,6 @@ func (w *formatSpanWorker) execute(s *formattingScanner) []core.TextChange {
 	w.lastIndentedLine = -1
 	opt := GetFormatCodeSettingsFromContext(w.ctx)
 	w.formattingContext = NewFormattingContext(w.sourceFile, w.requestKind, opt)
-	// Visiting may update nodes whose children it skips; the updated nodes
-	// are unused, and are released when formatting is done.
-	var store ast.NodeStore
-	defer store.Release()
 	// formatting context is used by rules provider
 	w.visitor = ast.NewNodeVisitor(func(child ast.Node) ast.Node {
 		if child.IsNil() {
@@ -239,7 +235,7 @@ func (w *formatSpanWorker) execute(s *formattingScanner) []core.TextChange {
 		}
 		w.processChildNode(w.visitingNode, w.visitingIndenter, w.visitingNodeStartLine, w.visitingUndecoratedNodeStartLine, child, -1, w.visitingNode, w.visitingIndenter, w.visitingNodeStartLine, w.visitingUndecoratedNodeStartLine, false, false)
 		return child
-	}, ast.NewNodeFactory(&store, ast.NodeFactoryHooks{}), ast.NodeVisitorHooks{
+	}, &ast.NodeFactory{}, ast.NodeVisitorHooks{
 		VisitNodes: func(nodes ast.NodeList, v *ast.NodeVisitor) ast.NodeList {
 			if nodes.IsNil() {
 				return nodes

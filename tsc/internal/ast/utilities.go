@@ -19,10 +19,14 @@ var (
 	nextSymbolBlockId atomic.Uint64
 )
 
-// GetNodeId returns the node's id: the id of its store and its index
-// there, which are unique among the nodes alive. It is never zero.
+// GetNodeId returns the node's id: its store's serial and its index there,
+// which are unique among all nodes. It is never zero for a node, and zero
+// for the absent node.
 func GetNodeId(node Node) NodeId {
-	return NodeId(uint64(node.file)<<32 | uint64(node.node))
+	if node.s == nil {
+		return 0
+	}
+	return NodeId(uint64(node.s.serialNumber())<<32 | uint64(node.node))
 }
 
 func GetSymbolId(symbol *Symbol) SymbolId {

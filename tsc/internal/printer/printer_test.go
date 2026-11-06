@@ -593,7 +593,7 @@ func TestEmit(t *testing.T) {
 func TestParenthesizeDecorator(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewClassDeclaration(
@@ -625,7 +625,7 @@ func TestParenthesizeDecorator(t *testing.T) {
 func TestParenthesizeComputedPropertyName(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewClassDeclaration(
@@ -662,7 +662,7 @@ func TestParenthesizeComputedPropertyName(t *testing.T) {
 func TestParenthesizeArrayLiteral(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -692,7 +692,7 @@ func TestParenthesizeArrayLiteral(t *testing.T) {
 func TestParenthesizePropertyAccess1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -720,7 +720,7 @@ func TestParenthesizePropertyAccess1(t *testing.T) {
 func TestParenthesizePropertyAccess2(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -747,7 +747,7 @@ func TestParenthesizePropertyAccess2(t *testing.T) {
 func TestParenthesizePropertyAccess3(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -773,7 +773,7 @@ func TestParenthesizePropertyAccess3(t *testing.T) {
 func TestParenthesizeElementAccess1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -801,7 +801,7 @@ func TestParenthesizeElementAccess1(t *testing.T) {
 func TestParenthesizeElementAccess2(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -828,7 +828,7 @@ func TestParenthesizeElementAccess2(t *testing.T) {
 func TestParenthesizeElementAccess3(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -854,7 +854,7 @@ func TestParenthesizeElementAccess3(t *testing.T) {
 func TestParenthesizeCall1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -883,7 +883,7 @@ func TestParenthesizeCall1(t *testing.T) {
 func TestParenthesizeCall2(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -911,7 +911,7 @@ func TestParenthesizeCall2(t *testing.T) {
 func TestParenthesizeCall3(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -938,7 +938,7 @@ func TestParenthesizeCall3(t *testing.T) {
 func TestParenthesizeCall4(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -968,7 +968,7 @@ func TestParenthesizeCall4(t *testing.T) {
 func TestParenthesizeNew1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -995,7 +995,7 @@ func TestParenthesizeNew1(t *testing.T) {
 func TestParenthesizeNew2(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1022,7 +1022,7 @@ func TestParenthesizeNew2(t *testing.T) {
 func TestParenthesizeNew3(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1050,7 +1050,7 @@ func TestParenthesizeNew3(t *testing.T) {
 func TestParenthesizeTaggedTemplate1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1079,7 +1079,7 @@ func TestParenthesizeTaggedTemplate1(t *testing.T) {
 func TestParenthesizeTaggedTemplate2(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1107,7 +1107,7 @@ func TestParenthesizeTaggedTemplate2(t *testing.T) {
 func TestParenthesizeTypeAssertion1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1136,7 +1136,7 @@ func TestParenthesizeTypeAssertion1(t *testing.T) {
 func TestParenthesizeArrowFunction1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1164,7 +1164,7 @@ func TestParenthesizeArrowFunction1(t *testing.T) {
 func TestParenthesizeArrowFunction2(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1197,7 +1197,7 @@ func TestParenthesizeArrowFunction2(t *testing.T) {
 func TestParenthesizeDelete(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1222,7 +1222,7 @@ func TestParenthesizeDelete(t *testing.T) {
 func TestParenthesizeVoid(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1247,7 +1247,7 @@ func TestParenthesizeVoid(t *testing.T) {
 func TestParenthesizeTypeOf(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1272,7 +1272,7 @@ func TestParenthesizeTypeOf(t *testing.T) {
 func TestParenthesizeAwait(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1399,7 +1399,7 @@ func TestParenthesizeBinary(t *testing.T) {
 		t.Run(rec.output, func(t *testing.T) {
 			t.Parallel()
 
-			factory := parsetestutil.NewNodeFactory(t)
+			factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 			file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 				[]ast.Node{
 					factory.NewExpressionStatement(
@@ -1423,7 +1423,7 @@ func TestParenthesizeBinary(t *testing.T) {
 func TestParenthesizeConditional1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1452,7 +1452,7 @@ func TestParenthesizeConditional1(t *testing.T) {
 func TestParenthesizeConditional2(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1481,7 +1481,7 @@ func TestParenthesizeConditional2(t *testing.T) {
 func TestParenthesizeConditional3(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1515,7 +1515,7 @@ func TestParenthesizeConditional3(t *testing.T) {
 func TestParenthesizeConditional4(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1538,7 +1538,7 @@ func TestParenthesizeConditional4(t *testing.T) {
 func TestParenthesizeConditional5(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1567,7 +1567,7 @@ func TestParenthesizeConditional5(t *testing.T) {
 func TestParenthesizeConditional6(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1596,7 +1596,7 @@ func TestParenthesizeConditional6(t *testing.T) {
 func TestParenthesizeYield1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1626,7 +1626,7 @@ func TestParenthesizeYield1(t *testing.T) {
 func TestParenthesizeSpreadElement1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1658,7 +1658,7 @@ func TestParenthesizeSpreadElement1(t *testing.T) {
 func TestParenthesizeSpreadElement2(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1693,7 +1693,7 @@ func TestParenthesizeSpreadElement2(t *testing.T) {
 func TestParenthesizeSpreadElement3(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1726,7 +1726,7 @@ func TestParenthesizeSpreadElement3(t *testing.T) {
 func TestParenthesizeExpressionWithTypeArguments(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1759,7 +1759,7 @@ func TestParenthesizeExpressionWithTypeArguments(t *testing.T) {
 func TestParenthesizeAsExpression(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1788,7 +1788,7 @@ func TestParenthesizeAsExpression(t *testing.T) {
 func TestParenthesizeSatisfiesExpression(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1817,7 +1817,7 @@ func TestParenthesizeSatisfiesExpression(t *testing.T) {
 func TestParenthesizeNonNullExpression(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1843,7 +1843,7 @@ func TestParenthesizeNonNullExpression(t *testing.T) {
 func TestParenthesizeExpressionStatement1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1864,7 +1864,7 @@ func TestParenthesizeExpressionStatement1(t *testing.T) {
 func TestParenthesizeExpressionStatement2(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1894,7 +1894,7 @@ func TestParenthesizeExpressionStatement2(t *testing.T) {
 func TestParenthesizeExpressionStatement3(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExpressionStatement(
@@ -1918,7 +1918,7 @@ func TestParenthesizeExpressionStatement3(t *testing.T) {
 func TestParenthesizeExpressionDefault1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExportAssignment(
@@ -1946,7 +1946,7 @@ func TestParenthesizeExpressionDefault1(t *testing.T) {
 func TestParenthesizeExpressionDefault2(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExportAssignment(
@@ -1982,7 +1982,7 @@ func TestParenthesizeExpressionDefault2(t *testing.T) {
 func TestParenthesizeExpressionDefault3(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewExportAssignment(
@@ -2008,7 +2008,7 @@ func TestParenthesizeExpressionDefault3(t *testing.T) {
 func TestParenthesizeArrayType(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewTypeAliasDeclaration(
@@ -2037,7 +2037,7 @@ func TestParenthesizeArrayType(t *testing.T) {
 func TestParenthesizeOptionalType(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewTypeAliasDeclaration(
@@ -2072,7 +2072,7 @@ func TestParenthesizeOptionalType(t *testing.T) {
 func TestParenthesizeUnionType1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewTypeAliasDeclaration(
@@ -2105,7 +2105,7 @@ func TestParenthesizeUnionType1(t *testing.T) {
 func TestParenthesizeUnionType2(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewTypeAliasDeclaration(
@@ -2140,7 +2140,7 @@ func TestParenthesizeUnionType2(t *testing.T) {
 func TestParenthesizeIntersectionType(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewTypeAliasDeclaration(
@@ -2174,7 +2174,7 @@ func TestParenthesizeIntersectionType(t *testing.T) {
 func TestParenthesizeReadonlyTypeOperator1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewTypeAliasDeclaration(
@@ -2204,7 +2204,7 @@ func TestParenthesizeReadonlyTypeOperator1(t *testing.T) {
 func TestParenthesizeReadonlyTypeOperator2(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewTypeAliasDeclaration(
@@ -2230,7 +2230,7 @@ func TestParenthesizeReadonlyTypeOperator2(t *testing.T) {
 func TestParenthesizeKeyofTypeOperator(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewTypeAliasDeclaration(
@@ -2260,7 +2260,7 @@ func TestParenthesizeKeyofTypeOperator(t *testing.T) {
 func TestParenthesizeIndexedAccessType(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewTypeAliasDeclaration(
@@ -2290,7 +2290,7 @@ func TestParenthesizeIndexedAccessType(t *testing.T) {
 func TestParenthesizeConditionalType1(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewTypeAliasDeclaration(
@@ -2321,7 +2321,7 @@ func TestParenthesizeConditionalType1(t *testing.T) {
 func TestParenthesizeConditionalType2(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewTypeAliasDeclaration(
@@ -2351,7 +2351,7 @@ func TestParenthesizeConditionalType2(t *testing.T) {
 func TestParenthesizeConditionalType3(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList(
 		[]ast.Node{
 			factory.NewTypeAliasDeclaration(
@@ -2390,7 +2390,7 @@ func TestParenthesizeConditionalType3(t *testing.T) {
 func TestParenthesizeConditionalType4(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	file := factory.NewSourceFile(ast.SourceFileParseOptions{FileName: "/file.ts", PathKey: "/file.ts"}, "", factory.NewNodeList([]ast.Node{
 		factory.NewTypeAliasDeclaration(
 			ast.ModifierList{},         /*modifiers*/
@@ -2551,7 +2551,7 @@ func TestParenthesizeBinaryExpressionMixingNullishCoalescing(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.title, func(t *testing.T) {
 			t.Parallel()
-			factory := parsetestutil.NewNodeFactory(t)
+			factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 			innerExpr := factory.NewBinaryExpression(
 				ast.ModifierList{}, /*modifiers*/
 				factory.NewIdentifier("a"),
@@ -2595,7 +2595,7 @@ func TestParenthesizeBinaryExpressionMixingNullishCoalescing(t *testing.T) {
 func TestOmitTrailingSemicolon(t *testing.T) {
 	t.Parallel()
 
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	methodSignature := factory.NewMethodSignatureDeclaration(
 		ast.ModifierList{}, /*modifiers*/
 		factory.NewIdentifier("m"),

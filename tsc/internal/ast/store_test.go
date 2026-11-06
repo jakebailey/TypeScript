@@ -2,6 +2,7 @@ package ast
 
 import (
 	"reflect"
+	"runtime"
 	"strconv"
 	"testing"
 
@@ -54,9 +55,8 @@ func findPointer(typ reflect.Type, path string) string {
 }
 
 func newTestFactory(t *testing.T) *NodeFactory {
-	store := NewNodeStore()
-	t.Cleanup(store.Release)
-	return NewNodeFactory(store, NodeFactoryHooks{})
+	t.Helper()
+	return NewNodeFactory(nil, NodeFactoryHooks{})
 }
 
 // Nodes keep their handles as the store's tables grow and are trimmed.
@@ -196,40 +196,20 @@ func TestNodeTextRefs(t *testing.T) {
 	}
 }
 
-func TestStoreIDReuseChangesGeneration(t *testing.T) {
+// A node keeps its store alive, and node ids stay unique across stores.
+func TestNodeKeepsStoreAlive(t *testing.T) {
 	t.Parallel()
-	released := map[uint32]uint32{}
-	for range 2 * storeIDReuseDelay {
-		s := newNodeStore()
-		released[s.id&storeSlotMask] = s.id
-		s.release()
+	var nodes []Node
+	ids := map[NodeId]bool{}
+	for i := range 100 {
+		node := NewNodeFactory(nil, NodeFactoryHooks{}).NewIdentifier(strconv.Itoa(i))
+		nodes = append(nodes, node)
+		ids[GetNodeId(node)] = true
 	}
-	reused := 0
-	var stores []*nodeStore
-	for range 4 * storeIDReuseDelay {
-		s := newNodeStore()
-		stores = append(stores, s)
-		if old, ok := released[s.id&storeSlotMask]; ok {
-			assert.Assert(t, s.id != old)
-			reused++
-		}
+	runtime.GC()
+	for i, node := range nodes {
+		assert.Equal(t, node.Text(), strconv.Itoa(i))
 	}
-	assert.Assert(t, reused > 0)
-	for _, s := range stores {
-		s.release()
-	}
-}
-
-// A handle into a released store panics rather than reading whatever store
-// has its slot now.
-func TestReleasedStorePanics(t *testing.T) {
-	t.Parallel()
-	store := NewNodeStore()
-	node := NewNodeFactory(store, NodeFactoryHooks{}).NewIdentifier("x")
-	assert.Equal(t, node.Text(), "x")
-	assert.Assert(t, node.IsLive())
-	store.Release()
-	assert.Assert(t, !node.IsLive())
-	testutil.AssertPanics(t, func() { _ = node.Kind() }, "ast: use of a node or list whose node store was released")
-	store.Release()
+	assert.Equal(t, len(ids), len(nodes))
+	assert.Equal(t, GetNodeId(Node{}), NodeId(0))
 }

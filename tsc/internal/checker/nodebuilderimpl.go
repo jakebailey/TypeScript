@@ -3285,9 +3285,7 @@ func (b *NodeBuilderImpl) visitAndTransformType(t *Type, transform func(b *NodeB
 	if canUseCache && !b.ctx.enclosingDeclaration.IsNil() && b.links.Has(b.ctx.enclosingDeclaration) {
 		links := b.links.Get(b.ctx.enclosingDeclaration)
 		cachedResult, ok := links.serializedTypes[key]
-		// The store of a cached node may have been released since; the
-		// entry is then replaced below.
-		if ok && cachedResult.node.IsLive() {
+		if ok {
 			// TODO:: check if we instead store late painted statements associated with this?
 			for _, arg := range cachedResult.trackedSymbols {
 				b.ctx.tracker.TrackSymbol(arg.symbol, arg.enclosingDeclaration, arg.meaning)

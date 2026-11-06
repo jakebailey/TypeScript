@@ -12,7 +12,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/parser"
 	"github.com/microsoft/TypeScript/tsc/internal/repo"
-	"github.com/microsoft/TypeScript/tsc/internal/testutil/parsetestutil"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
 	"gotest.tools/v3/assert"
 )
@@ -103,14 +102,14 @@ func TestDecodeNodesRejectsInvalidStringOffsets(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			factory := parsetestutil.NewNodeFactory(t)
+			factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 			buf, _, err := encoder.EncodeNode(factory.NewIdentifier("x"), nil)
 			assert.NilError(t, err)
 			offset := readUint32(buf, encoder.HeaderOffsetStringOffsets)
 			binary.LittleEndian.PutUint32(buf[offset:], tt.start)
 			binary.LittleEndian.PutUint32(buf[offset+4:], tt.end)
 
-			_, err = encoder.DecodeNodes(buf, parsetestutil.NewNodeStore(t))
+			_, err = encoder.DecodeNodes(buf, ast.NewNodeStore())
 			assert.ErrorContains(t, err, "invalid string offsets")
 		})
 	}
@@ -118,7 +117,7 @@ func TestDecodeNodesRejectsInvalidStringOffsets(t *testing.T) {
 
 func TestDecodeNodesRejectsInvalidStringIndices(t *testing.T) {
 	t.Parallel()
-	factory := parsetestutil.NewNodeFactory(t)
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	sourceFile := parseSourceFile("")
 	tests := []struct {
 		name    string
@@ -152,7 +151,7 @@ func TestDecodeNodesRejectsInvalidStringIndices(t *testing.T) {
 					binary.LittleEndian.PutUint32(buf[extOffset+uint32(i)*4:], ^uint32(0))
 				}
 
-				_, err = encoder.DecodeNodes(buf, parsetestutil.NewNodeStore(t))
+				_, err = encoder.DecodeNodes(buf, ast.NewNodeStore())
 				assert.ErrorContains(t, err, "invalid string index")
 			}
 		})
@@ -389,7 +388,7 @@ func TestDecodeNodes_SubtreeRoundTrip(t *testing.T) {
 	buf, _, err := encoder.EncodeNode(funcNode, sf)
 	assert.NilError(t, err)
 
-	decoded, err := encoder.DecodeNodes(buf, parsetestutil.NewNodeStore(t))
+	decoded, err := encoder.DecodeNodes(buf, ast.NewNodeStore())
 	assert.NilError(t, err)
 
 	assert.Equal(t, decoded.Kind(), ast.KindFunctionDeclaration)

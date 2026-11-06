@@ -10,7 +10,6 @@ import (
 	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
-	"github.com/microsoft/TypeScript/tsc/internal/testutil/parsetestutil"
 	"github.com/microsoft/TypeScript/tsc/internal/testutil/race"
 	"github.com/zeebo/xxh3"
 	"gotest.tools/v3/assert"
@@ -18,7 +17,7 @@ import (
 
 func TestCheckerNodeLinkStores(t *testing.T) {
 	t.Parallel()
-	f := parsetestutil.NewNodeFactory(t)
+	f := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	first := &Checker{}
 	second := &Checker{}
 	nodes := make([]ast.Node, 4096)

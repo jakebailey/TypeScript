@@ -506,10 +506,8 @@ func (p *Program) hasSameSyntheticImports(oldFile *ast.SourceFile, newFile *ast.
 // parented to the old versions of those files.
 func (p *Program) replaceSyntheticImports(newFile *ast.SourceFile, newSupplementalFiles []*ast.SourceFile) {
 	// The old store may be shared with the old program, so the new imports
-	// go in a store of their own, owned by this program.
-	store := ast.NewNodeStore()
-	factory := ast.NewNodeFactory(store, ast.NodeFactoryHooks{})
-	p.syntheticImportStores = append(slices.Clip(p.syntheticImportStores), store)
+	// go in a store of their own.
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	clonedImportHelpers := false
 	clonedJSXRuntime := false
 	for _, file := range core.Concatenate([]*ast.SourceFile{newFile}, newSupplementalFiles) {
@@ -2603,7 +2601,5 @@ var plainJSErrors = collections.NewSetFromItems(
 )
 
 func isInvalidEntityName(text string) bool {
-	store := ast.NewNodeStore()
-	defer store.Release()
-	return parser.ParseIsolatedEntityName(text, store).IsNil()
+	return parser.ParseIsolatedEntityName(text, nil).IsNil()
 }

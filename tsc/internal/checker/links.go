@@ -14,22 +14,20 @@ import (
 const maxPageLinkCount = 0x100_0000 // 16M
 
 // symbolNodeLinkStore holds the symbol a node resolves to, if any, in a
-// map per store keyed by node index. Store ids are process-wide, so the
-// maps are found by id rather than in a slice indexed by store slot, which
-// would grow with the number of stores alive in the process.
+// map per store keyed by node index.
 type symbolNodeLinkStore struct {
-	stores map[uint32]map[uint32]*ast.Symbol
+	stores map[*ast.NodeStore]map[uint32]*ast.Symbol
 	// last caches the most recently used store's map, since nodes are
 	// mostly resolved file by file.
-	lastStore uint32
+	lastStore *ast.NodeStore
 	last      map[uint32]*ast.Symbol
 }
 
 func (s *symbolNodeLinkStore) storeLinks(node ast.Node) map[uint32]*ast.Symbol {
-	id := node.StoreID()
-	if id != s.lastStore || s.last == nil {
-		s.lastStore = id
-		s.last = s.stores[id]
+	store := node.Store()
+	if store != s.lastStore || s.last == nil {
+		s.lastStore = store
+		s.last = s.stores[store]
 	}
 	return s.last
 }
@@ -42,10 +40,10 @@ func (s *symbolNodeLinkStore) set(node ast.Node, symbol *ast.Symbol) {
 	m := s.storeLinks(node)
 	if m == nil {
 		if s.stores == nil {
-			s.stores = make(map[uint32]map[uint32]*ast.Symbol)
+			s.stores = make(map[*ast.NodeStore]map[uint32]*ast.Symbol)
 		}
 		m = make(map[uint32]*ast.Symbol)
-		s.stores[node.StoreID()] = m
+		s.stores[node.Store()] = m
 		s.last = m
 	}
 	m[node.Index()] = symbol

@@ -130,8 +130,6 @@ type processedFiles struct {
 	sourceFileMetaDatas           map[tspath.PathKey]ast.SourceFileMetaData
 	jsxRuntimeImportSpecifiers    map[tspath.PathKey]*jsxRuntimeImportSpecifier
 	importHelpersImportSpecifiers map[tspath.PathKey]ast.StringLiteralNode
-	// syntheticImportStores own the nodes of the synthetic imports.
-	syntheticImportStores []*ast.NodeStore
 	libFiles              map[tspath.PathKey]*LibFile
 	// List of present unsupported extensions
 	sourceFilesFoundSearchingNodeModules collections.Set[tspath.PathKey]
@@ -193,7 +191,6 @@ func processAllProgramFiles(
 		supportedExtensionsWithJsonIfResolveJsonModule: supportedExtensionsWithJsonIfResolveJsonModule,
 		contentMapperExtensions:                        opts.Config.ContentMapperExtensions(),
 	}
-	loader.factory.SetStore(ast.NewNodeStore())
 	loader.addProjectReferenceTasks(singleThreaded)
 	resolverOptions := module.ResolverOptions{
 		Host:            loader.projectReferences.host,

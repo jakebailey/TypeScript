@@ -575,7 +575,7 @@ func TestDeepCloneNodeSanityCheck(t *testing.T) {
 		t.Run("Clone "+rec.title, func(t *testing.T) {
 			t.Parallel()
 
-			factory := parsetestutil.NewNodeFactory(t)
+			factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 			file := parsetestutil.ParseTypeScript(rec.input, false).AsNode()
 			clone := factory.DeepCloneNode(file.AsNode()).AsNode()
 

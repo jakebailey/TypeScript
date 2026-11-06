@@ -8,11 +8,10 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
-// A NodeList is a handle to a list of nodes: the id of the store holding
-// it and its index in the store's lists. The zero NodeList is the absent
-// list.
+// A NodeList is a list of nodes: the store holding it and its index in the
+// store's lists. The zero NodeList is the absent list, which is empty.
 type NodeList struct {
-	file uint32
+	s    *NodeStore
 	list uint32
 }
 
@@ -44,7 +43,7 @@ func (f *NodeFactory) NewModifierListAt(loc core.TextRange, nodes []Node) Modifi
 }
 
 // newNodeList returns a new list of nodes spanning loc.
-func (s *nodeStore) newNodeList(nodes []Node, loc core.TextRange) NodeList {
+func (s *NodeStore) newNodeList(nodes []Node, loc core.TextRange) NodeList {
 	s.checkMutable()
 	if len(s.lists) == 0 {
 		// The first list is the absent one, so that no list ref is zero.
@@ -69,28 +68,32 @@ func (s *nodeStore) newNodeList(nodes []Node, loc core.TextRange) NodeList {
 		s.setLists(slices.Grow(s.lists, 1))
 	}
 	s.lists = append(s.lists, nodeList{loc: loc, start: uint32(start), len: uint32(len(nodes))})
-	return NodeList{s.id, uint32(i)}
+	return NodeList{s, uint32(i)}
 }
 
 func (l NodeList) IsNil() bool { return l.list == 0 }
 
+// nilList is the header of the absent list.
+var nilList nodeList
+
 func (l NodeList) hdr() *nodeList {
+	if l.s == nil {
+		return &nilList
+	}
 	// SAFETY: A list's index is within its store's lists.
-	return (*nodeList)(unsafe.Add(unsafe.Pointer(storeEntryOf(l.file).lists.Load()), uintptr(l.list)*nodeListSize))
+	return (*nodeList)(unsafe.Add(unsafe.Pointer(l.s.listsBase.Load()), uintptr(l.list)*nodeListSize))
 }
 
-func (l NodeList) store() *nodeStore {
-	return storeEntryOf(l.file).store.Load()
-}
+func (l NodeList) store() *NodeStore { return l.s }
 
 // slot returns the ref of the element at index k of l, which must be in
 // range.
 func (l NodeList) slot(k int) *nodeRef {
-	e := storeEntryOf(l.file)
+	s := l.s
 	// SAFETY: A list's index is within its store's lists.
-	h := (*nodeList)(unsafe.Add(unsafe.Pointer(e.lists.Load()), uintptr(l.list)*nodeListSize))
+	h := (*nodeList)(unsafe.Add(unsafe.Pointer(s.listsBase.Load()), uintptr(l.list)*nodeListSize))
 	// SAFETY: A list's elements are within its store's listNodes.
-	return (*nodeRef)(unsafe.Add(unsafe.Pointer(e.listNodes.Load()), (uintptr(h.start)+uintptr(k))*4))
+	return (*nodeRef)(unsafe.Add(unsafe.Pointer(s.listNodesBase.Load()), (uintptr(h.start)+uintptr(k))*4))
 }
 
 func (l NodeList) Loc() core.TextRange { return l.hdr().loc }
@@ -119,7 +122,7 @@ func (l NodeList) at(k int) Node {
 		if r == 0 {
 			return Node{}
 		}
-		return Node{l.file, uint32(r)}
+		return Node{l.s, uint32(r)}
 	}
 	return l.store().far[r&^refFar]
 }
@@ -245,7 +248,7 @@ func (n Node) derefList(f *listRef) NodeList {
 		if r == 0 {
 			return NodeList{}
 		}
-		return NodeList{n.file, uint32(r)}
+		return NodeList{n.s, uint32(r)}
 	}
 	return n.store().farLists[r&^refFar]
 }
@@ -262,7 +265,7 @@ func (n Node) setModifiersRef(f *listRef, v ModifierList) { setListRefAt(f, n, v
 // setListRefAt makes the field f of owner refer to v.
 func setListRefAt(f *listRef, owner Node, v NodeList) {
 	switch {
-	case v.file == owner.file:
+	case v.s == owner.s:
 		*f = listRef(v.list)
 	case v.list == 0:
 		*f = 0

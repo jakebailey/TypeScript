@@ -45,13 +45,13 @@ func CheckDiagnosticsMessage(t *testing.T, file *ast.SourceFile, message string)
 	}
 }
 
-func newSyntheticRecursiveVisitor(store *ast.NodeStore) *ast.NodeVisitor {
+func newSyntheticRecursiveVisitor() *ast.NodeVisitor {
 	var v *ast.NodeVisitor
 	v = ast.NewNodeVisitor(
 		func(node ast.Node) ast.Node {
 			return v.VisitEachChild(node)
 		},
-		ast.NewNodeFactory(store, ast.NodeFactoryHooks{}),
+		&ast.NodeFactory{},
 		ast.NodeVisitorHooks{
 			VisitNode: func(node ast.Node, v *ast.NodeVisitor) ast.Node {
 				if !node.IsNil() {
@@ -84,21 +84,5 @@ func newSyntheticRecursiveVisitor(store *ast.NodeStore) *ast.NodeVisitor {
 
 // Sets the Loc of the given node and every Node in its subtree to an undefined TextRange (-1,-1).
 func MarkSyntheticRecursive(node ast.Node) {
-	// Visiting makes updated nodes that are unused.
-	var store ast.NodeStore
-	defer store.Release()
-	newSyntheticRecursiveVisitor(&store).VisitNode(node)
-}
-
-// NewNodeStore makes a node store that is released when the test finishes.
-func NewNodeStore(tb testing.TB) *ast.NodeStore {
-	store := ast.NewNodeStore()
-	tb.Cleanup(store.Release)
-	return store
-}
-
-// NewNodeFactory makes a node factory whose nodes stay valid until the test
-// finishes.
-func NewNodeFactory(tb testing.TB) *ast.NodeFactory {
-	return ast.NewNodeFactory(NewNodeStore(tb), ast.NodeFactoryHooks{})
+	newSyntheticRecursiveVisitor().VisitNode(node)
 }

@@ -289,30 +289,16 @@ func (c *Checker) getNodeBuilder() (*NodeBuilder, func()) {
 	if c.typeToStringNodebuilder == nil {
 		c.typeToStringNodebuilder = NewNodeBuilderEx(c, printer.NewEmitContext(), nil /*idToSymbol*/)
 	}
-	c.typeToStringDepth++
 	return c.typeToStringNodebuilder, func() {
-		// The nodes are only printed, so they are released once the
-		// outermost use of the builder is done (serializing a type can
-		// report diagnostics that serialize types again); cache entries
-		// holding them are dropped when next looked up.
-		c.typeToStringDepth--
-		if c.typeToStringDepth == 0 {
-			c.typeToStringNodebuilder.EmitContext().Release()
-		}
+		// The nodes are only printed, so later ones go in a new store and
+		// the old one is collected once nothing, such as a cache entry,
+		// references its nodes.
+		c.typeToStringNodebuilder.EmitContext().NewStore()
 	}
 }
 
 // getNodeBuilderEx returns a builder making its nodes in the checker's
-// store, so that they stay valid until the checker is released.
+// store of synthetic nodes.
 func (c *Checker) getNodeBuilderEx(idToSymbol map[ast.IdentifierNode]*ast.Symbol) *NodeBuilder {
-	return NewNodeBuilderEx(c, printer.NewEmitContextInStore(&c.nodeStore), idToSymbol)
-}
-
-// Release releases the nodes the checker has made, which must no longer be
-// used. The checker must no longer be used either.
-func (c *Checker) Release() {
-	if c.typeToStringNodebuilder != nil {
-		c.typeToStringNodebuilder.EmitContext().Release()
-	}
-	c.nodeStore.Release()
+	return NewNodeBuilderEx(c, printer.NewEmitContextInStore(c.nodeStore), idToSymbol)
 }

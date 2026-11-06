@@ -3982,7 +3982,6 @@ func (s *Session) handleTypeToString(ctx context.Context, params *TypeToTypeNode
 // handlePrintNode decodes a binary-encoded AST node and prints it to text.
 func (s *Session) handlePrintNode(_ context.Context, params *PrintNodeParams) (string, error) {
 	store := ast.NewNodeStore()
-	defer store.Release()
 	node, err := decodePrintNode(params.Data, store)
 	if err != nil {
 		return "", err
@@ -4199,7 +4198,6 @@ func (s *Session) handleFormatNodeForInsertion(ctx context.Context, params *Form
 	}
 
 	store := ast.NewNodeStore()
-	defer store.Release()
 	node, err := encoder.DecodeNodes(data, store)
 	if err != nil {
 		return "", fmt.Errorf("%w: failed to decode AST: %w", ErrClientError, err)

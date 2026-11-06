@@ -29,7 +29,6 @@ func (l *LanguageService) OrganizeImports(
 	kind lsproto.CodeActionKind,
 ) map[tspath.RootedFilePath][]*lsproto.TextEdit {
 	changeTracker := change.NewTracker(ctx, program.Options(), l.FormatOptions(), l.converters)
-	defer changeTracker.Release()
 	shouldSort := kind == lsproto.CodeActionKindSourceSortImportsTs || kind == lsproto.CodeActionKindSourceOrganizeImportsTs
 	shouldCombine := shouldSort
 	shouldRemove := kind == lsproto.CodeActionKindSourceRemoveUnusedImportsTs || kind == lsproto.CodeActionKindSourceOrganizeImportsTs

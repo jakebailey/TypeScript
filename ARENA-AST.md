@@ -226,32 +226,22 @@ What Go forces:
 
 ### Ownership
 
-The one rule is that **a store's owner outlives the uses of its nodes**. There is no `KeepAlive` or pinning anywhere: a node is valid exactly as long as whatever owns its store has not released it. A factory owns nothing; it is only an appender into a store that something with a clear lifetime owns (`ast.NewNodeFactory(store, hooks)`).
+Lifetime is now plain reachability; see "Views and refs, no global table" below. A `Node` carries a pointer to its store, so a store lives exactly as long as some view, far slot or other pointer refers to it, and nothing is released explicitly. A factory with no store makes one on first use; whoever holds the factory, or any node it made, keeps that store alive.
 
-| Owner | Store(s) | Released by |
-|---|---|---|
-| Parsed `SourceFile` (held by its program or parse cache) | its own store, its lazily parsed JSDoc stores, and its token cache's store | `SourceFile.Release()` |
-| `EmitContext` from `printer.NewEmitContext()` (one per file's transform and emit, per declaration-diagnostics query, per language-service request) | one working store, which its factory appends to; originals stay in the file's store | `EmitContext.Release()`, when emit for the file is done |
-| `Checker` | one store for its synthetic nodes, isolated entity names, and node builder results kept by the caller | `Checker.Release()` |
-| The checker's `typeToString` builder | its own context's store, whose nodes are only printed | at the end of the outermost `typeToString`-style call |
-| `change.Tracker` | its `EmitContext`'s store, which fixes and organize imports build their nodes in | `Tracker.Release()`, after its changes are taken |
-| Language-service request code that builds nodes (exhaustive case snippets, selection ranges, `printNode` and the API decoder) | a local `NodeStore` | `defer store.Release()` |
-| Tree walks whose visitor may update nodes it skips (`astnav`, formatting, selection ranges) | a local, lazily created `NodeStore`; the updated nodes are never used | `defer store.Release()` |
-| Program | the stores of synthetic import declarations | never (see below) |
-| Tests | `parsetestutil.NewNodeStore(t)` and `NewNodeFactory(t)` | `t.Cleanup` |
+Where stores come from:
 
-A store refers into other stores freely (originals, reused children, parents of reused nodes) through its far table. It does not keep them alive: whoever uses a working store's nodes must also hold the owners of the stores they refer into, which in practice holds already (emit and the checker hold the program).
+| Maker | Store(s) |
+|---|---|
+| Parser | one per parsed file, one per lazily parsed JSDoc comment group, and one for a file's token cache |
+| `EmitContext` (one per file's transform and emit, per declaration-diagnostics query, per language-service request) | one working store, made on first node; originals stay in the file's store |
+| `Checker` | one store for its synthetic nodes, isolated entity names and node builder results kept by the caller |
+| The checker's `typeToString` builder | a fresh store after each use, so that the nodes, which are only printed, can be collected |
+| `change.Tracker` | its `EmitContext`'s store |
+| Other factories (synthetic imports, the API decoder, language-service snippets, tree walks whose visitor may update the nodes it skips, tests) | their own, made on first node |
 
-Not released yet, so they leak rather than break:
+A store refers into other stores (originals, reused children, parents of reused nodes) through its far table, which holds views, so the stores it refers into stay alive with it.
 
-- **The CLI's program and checkers**: they live until the process exits.
-- **Language-service source files and checkers.** The parse cache drops a file when its refcount reaches zero, but `RefCountCache.Ref` can resurrect a dropped entry and in-flight requests may still hold the old program, so releasing on drop could panic a request. Each reparse of an edited file leaks its store until a safe release point exists.
-- **Program synthetic import stores**: a cloned program shares them and programs have no close. They are small.
-- **Watch and build mode programs**, for the same reason as the CLI.
-
-Misuse is caught, not silently wrong: making a node with a factory that has no store panics ("node factory has no store"), and reading a node of a released store panics as above. A missed release leaks memory, never corrupts it.
-
-The serialized-type cache of the node builder may hold nodes of a released `typeToString` store; a lookup that finds one recomputes the entry (`Node.IsLive`), which loses some cache hits compared with before but changes no output.
+The previous design gave each store an owner that released it, with a generation in each store id so that a stale handle panicked. Owners that never released leaked (the CLI's program and checkers, the language service's reparsed files, programs' synthetic import stores), and the language service had no safe point to release a file at, since a dropped parse-cache entry can be resurrected and in-flight requests may still hold the old program. Reachability has neither problem.
 
 ### Cross-store refs and lists
 
@@ -382,7 +372,7 @@ Factories and transformers append into a store they are given. The emit context 
 
 `GetSourceFileOfNode(n)` is `n.s.file`, or a walk up the parents for factory nodes, as before.
 
-`GetNodeId` needs a number unique among live nodes, for names that embed it (pattern ambient modules, generated names), the checker's cache keys and the API's file handles. A store takes a 32-bit serial from a counter when it is made, and the id is `serial<<32 | index`. Nothing maps a serial back to a store.
+`GetNodeId` needs a number unique among live nodes, for names that embed it (pattern ambient modules, generated names), the checker's cache keys and the API's file handles. A store takes a 32-bit serial from a counter the first time an id of one of its nodes is asked for, and the id is `serial<<32 | index`; the absent node's id is 0. Nothing maps a serial back to a store.
 
 ### Refs
 
@@ -420,6 +410,18 @@ The store table (`storePages`, `storeEntry`, `slotEntry`, `storeEntryOf`), store
 
 1. Views replace the store-table handle. The table, ids, generations and releases are deleted; checker structures keep views.
 2. The checker's bulk structures hold `NodeRef`s through a per-program `FileTable`.
+
+### Progress
+
+Memory used from `--extendedDiagnostics`, single-threaded check, median of the runs. Check time is n=5 alternating with `taskset -c 2` (min–max).
+
+| | vscode | sentry | mui | vscode check |
+|---|---|---|---|---|
+| `new-ast` (`1fce2af19c3`) | 3,167,713K | 1,829,551K | 1,174,592K | 16.82–18.29s |
+| `new-ast-index` (`5e349ab704f`) | 3,189,024K | 1,818,226K | 1,170,655K | 21.04–21.99s |
+| 1. views | 3,317,141K (+128MB) | 1,895,679K (+77MB) | 1,212,642K (+42MB) | 18.79–21.24s |
+
+Step 1 gives back most of the time the table cost: the median vscode check is 18.9s against 21.4s for `new-ast-index` and 17.8s for `new-ast`. Every node held anywhere grew from 8 to 16 bytes, which costs about what padding the handle did before (+106MB then, +128MB now, with the node links also keyed by node). Step 2 moves the checker's bulk holders to 8-byte refs.
 
 ## Historical: earlier measurements (step 9 vs main, vscode, n=10, interleaved)
 

@@ -31,7 +31,7 @@ const (
 // private, and checkers add synthetic ones to their own stores. The zero
 // FlowNode is no flow node.
 type FlowNode struct {
-	s *nodeStore
+	s *NodeStore
 	i uint32
 }
 
@@ -73,7 +73,7 @@ func (f FlowNode) SetAntecedent(v FlowNode) { f.s.setFlowRef(&f.data().anteceden
 
 func (f FlowNode) SetAntecedents(v FlowList) { f.data().antecedents = f.s.flowListRef(v) }
 
-func (s *nodeStore) derefFlow(r flowRef) FlowNode {
+func (s *NodeStore) derefFlow(r flowRef) FlowNode {
 	if r&flowReused == 0 {
 		if r == 0 {
 			return FlowNode{}
@@ -84,7 +84,7 @@ func (s *nodeStore) derefFlow(r flowRef) FlowNode {
 }
 
 // setFlowRef makes the field f of a record or flow node of s refer to v.
-func (s *nodeStore) setFlowRef(f *flowRef, v FlowNode) {
+func (s *NodeStore) setFlowRef(f *flowRef, v FlowNode) {
 	switch {
 	case v.s == s:
 		*f = flowRef(v.i)
@@ -116,7 +116,7 @@ func setFlowRef(f *flowRef, owner Node, v FlowNode) {
 	owner.store().setFlowRef(f, v)
 }
 
-func newFlowNode(s *nodeStore, flags FlowFlags, node Node, antecedent FlowNode) FlowNode {
+func newFlowNode(s *NodeStore, flags FlowFlags, node Node, antecedent FlowNode) FlowNode {
 	if s.frozen {
 		panic("node store is frozen")
 	}
@@ -147,7 +147,7 @@ func (f *NodeFactory) NewFlowNode(flags FlowFlags, node Node, antecedent FlowNod
 // A FlowList is a linked list of flow nodes of one store. The zero
 // FlowList is the empty list.
 type FlowList struct {
-	s *nodeStore
+	s *NodeStore
 	i uint32
 }
 
@@ -164,14 +164,14 @@ func (l FlowList) Flow() FlowNode     { return l.s.derefFlow(l.data().flow) }
 func (l FlowList) Next() FlowList     { return l.s.flowList(l.data().next) }
 func (l FlowList) SetNext(v FlowList) { l.data().next = l.s.flowListRef(v) }
 
-func (s *nodeStore) flowList(r flowListRef) FlowList {
+func (s *NodeStore) flowList(r flowListRef) FlowList {
 	if r == 0 {
 		return FlowList{}
 	}
 	return FlowList{s, uint32(r)}
 }
 
-func (s *nodeStore) flowListRef(l FlowList) flowListRef {
+func (s *NodeStore) flowListRef(l FlowList) flowListRef {
 	if l.s == nil {
 		return 0
 	}

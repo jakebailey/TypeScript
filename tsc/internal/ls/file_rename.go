@@ -38,7 +38,6 @@ func (l *LanguageService) GetEditsForFileRename(ctx context.Context, oldURI lspr
 	oldToNew := l.createPathUpdater(oldPath, newPath)
 
 	changeTracker := change.NewTracker(ctx, program.Options(), l.FormatOptions(), l.converters)
-	defer changeTracker.Release()
 	l.updateTsconfigFiles(program, changeTracker, oldToNew, tspath.RootedFilePathFromPath(oldPath), tspath.RootedFilePathFromPath(newPath))
 	l.updateImportsForFileRename(program, changeTracker, oldToNew)
 

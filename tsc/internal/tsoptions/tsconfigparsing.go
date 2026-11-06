@@ -923,8 +923,7 @@ func readJsonConfigFile(fileName tspath.RootedFilePath, path tspath.PathKey, rea
 			}, text, core.ScriptKindJSON),
 		}, diagnostic
 	} else {
-		// The file owns the store its nodes are made in.
-		factory := ast.NewNodeFactory(ast.NewNodeStore(), ast.NodeFactoryHooks{})
+		factory := &ast.NodeFactory{}
 		file := &TsConfigSourceFile{
 			SourceFile: factory.NewSourceFile(ast.SourceFileParseOptions{FileName: fileName, PathKey: path}, "", factory.NewNodeList([]ast.Node{}), factory.NewToken(ast.KindEndOfFile)).AsSourceFile(),
 		}

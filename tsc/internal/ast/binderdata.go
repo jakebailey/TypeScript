@@ -128,7 +128,7 @@ func (m *sparseMap[T]) pack() {
 
 // finishBinding packs the binder's data of a parsed file. It must be
 // called before the file is shared with other goroutines.
-func (s *nodeStore) finishBinding() {
+func (s *NodeStore) finishBinding() {
 	b := &s.binder
 	b.symbols.pack()
 	b.flowNodes.pack()
@@ -146,7 +146,7 @@ func (s *nodeStore) finishBinding() {
 
 // denseBinderSize returns the size of the dense maps of s while it is
 // being bound, and zero otherwise.
-func (s *nodeStore) denseBinderSize() int {
+func (s *NodeStore) denseBinderSize() int {
 	if s.file == nil || s.binder.done {
 		return 0
 	}

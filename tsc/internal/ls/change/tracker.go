@@ -126,16 +126,10 @@ func NewTracker(ctx context.Context, compilerOptions *core.CompilerOptions, form
 	}
 }
 
-// Store returns the store owning the nodes made for the tracker, in which
-// code building nodes given to the tracker makes them.
+// Store returns the store the nodes made for the tracker are made in, in
+// which code building nodes given to the tracker makes them.
 func (t *Tracker) Store() *ast.NodeStore {
 	return t.EmitContext.Store()
-}
-
-// Release releases the nodes made for the tracker, once its changes have
-// been gotten.
-func (t *Tracker) Release() {
-	t.EmitContext.Release()
 }
 
 // GetChanges returns the accumulated text edits grouped by file name. Any file whose edits could not be

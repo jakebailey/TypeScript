@@ -15,8 +15,6 @@ import (
 // NOTE: EmitContext is not guaranteed to be thread-safe.
 type EmitContext struct {
 	Factory       *NodeFactory // Required. The NodeFactory to use to create new nodes
-	store         *ast.NodeStore
-	ownsStore     bool
 	autoGenerate  map[ast.MemberName]*AutoGenerateInfo
 	textSource    map[ast.StringLiteralNode]ast.Node
 	original      map[ast.Node]ast.Node
@@ -43,36 +41,29 @@ type varScope struct {
 	initializationStatements []ast.Node
 }
 
-// NewEmitContext returns a context owning the store its nodes are made in,
-// which Release releases. Nodes of other stores, such as those of the files
-// being transformed, must outlive the context's nodes.
+// NewEmitContext returns a context making its nodes in a store of its own.
 func NewEmitContext() *EmitContext {
-	return newEmitContext(ast.NewNodeStore(), true)
+	return NewEmitContextInStore(nil)
 }
 
-// NewEmitContextInStore returns a context making its nodes in store, which
-// its owner must keep until it is done with them.
+// NewEmitContextInStore returns a context making its nodes in store, or, if
+// store is nil, in a store of its own.
 func NewEmitContextInStore(store *ast.NodeStore) *EmitContext {
-	return newEmitContext(store, false)
-}
-
-func newEmitContext(store *ast.NodeStore, owns bool) *EmitContext {
-	c := &EmitContext{store: store, ownsStore: owns}
+	c := &EmitContext{}
 	c.Factory = NewNodeFactory(c)
+	c.Factory.SetStore(store)
 	return c
 }
 
-// Release releases the nodes made in the context's store, if it owns it.
-// The context may go on making nodes.
-func (c *EmitContext) Release() {
-	if c.ownsStore {
-		c.store.Release()
-	}
+// NewStore makes the context make its further nodes in a new store of its
+// own. The nodes made so far stay valid as long as they are referenced.
+func (c *EmitContext) NewStore() {
+	c.Factory.SetStore(nil)
 }
 
 // Store returns the store the context makes its nodes in.
 func (c *EmitContext) Store() *ast.NodeStore {
-	return c.store
+	return c.Factory.Store()
 }
 
 func (c *EmitContext) onCreate(node ast.Node) {

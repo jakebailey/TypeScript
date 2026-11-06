@@ -158,7 +158,6 @@ func parseSourceFile(opts ast.SourceFileParseOptions, sourceText string, scriptK
 	p := getParser()
 	defer putParser(p)
 	p.initializeState(opts, sourceText, scriptKind)
-	// The file owns the store its nodes are made in; see SourceFile.Release.
 	p.factory.SetStore(ast.NewNodeStore())
 	p.factory.SetSourceText(sourceText)
 	p.factory.BuildInScratch()
@@ -321,7 +320,7 @@ func (p *Parser) validateJsonObjectLiteral(sourceFile *ast.SourceFile, node ast.
 }
 
 // ParseIsolatedEntityName parses text as an entity name, making its nodes
-// in store.
+// in store, or, if store is nil, in a new store.
 func ParseIsolatedEntityName(text string, store *ast.NodeStore) ast.EntityName {
 	p := getParser()
 	defer putParser(p)

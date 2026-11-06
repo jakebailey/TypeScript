@@ -30,23 +30,20 @@ type astDecoder struct {
 }
 
 // DecodeSourceFile decodes binary-encoded data into an *ast.SourceFile.
-// The file owns its nodes; see ast.SourceFile.Release.
 func DecodeSourceFile(data []byte) (*ast.SourceFile, error) {
 	store := ast.NewNodeStore()
 	node, err := DecodeNodes(data, store)
 	if err != nil {
-		store.Release()
 		return nil, err
 	}
 	if node.Kind() != ast.KindSourceFile {
-		store.Release()
 		return nil, fmt.Errorf("expected SourceFile root, got %v", node.Kind())
 	}
 	return node.AsSourceFile(), nil
 }
 
 // DecodeNodes decodes binary-encoded AST data into a tree of ast.Node objects,
-// made in store.
+// made in store, or, if store is nil, in a new store.
 func DecodeNodes(data []byte, store *ast.NodeStore) (ast.Node, error) {
 	d, err := newASTDecoder(data, store)
 	if err != nil {

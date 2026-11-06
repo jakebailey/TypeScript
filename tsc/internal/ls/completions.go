@@ -2654,7 +2654,6 @@ func (l *LanguageService) getEntryForMemberCompletion(ctx context.Context, typeC
 	}
 
 	changeTracker := change.NewTracker(ctx, l.GetProgram().Options(), l.FormatOptions(), l.converters)
-	defer changeTracker.Release()
 	fixer := newMissingMemberFixer(changeTracker, l.GetProgram(), typeChecker, l.UserPreferences(), importAdder, locale.FromContext(ctx))
 
 	presentModifiers := l.getPresentMemberModifiers(contextToken, file, position)
@@ -6623,9 +6622,7 @@ func (l *LanguageService) getExhaustiveCaseSnippets(
 		}
 
 		var elements []ast.Expression
-		store := ast.NewNodeStore()
-		defer store.Release()
-		factory := ast.NewNodeFactory(store, ast.NodeFactoryHooks{})
+		factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 		for _, t := range switchType.Types() {
 			// Enums
 			if t.IsEnumLiteral() {

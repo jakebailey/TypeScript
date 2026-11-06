@@ -580,7 +580,6 @@ func (w *filesParser) getProcessedFiles(loader *fileLoader) processedFiles {
 		sourceFileMetaDatas:                  sourceFileMetaDatas,
 		jsxRuntimeImportSpecifiers:           jsxRuntimeImportSpecifiers,
 		importHelpersImportSpecifiers:        importHelpersImportSpecifiers,
-		syntheticImportStores:                []*ast.NodeStore{loader.factory.Store()},
 		sourceFilesFoundSearchingNodeModules: sourceFilesFoundSearchingNodeModules,
 		libFiles:                             libFilesMap,
 		missingFiles:                         missingFiles,

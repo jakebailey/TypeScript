@@ -119,7 +119,6 @@ func (adder *importAdder) AddImportFromExportedSymbol(exportedSymbol *ast.Symbol
 func (adder *importAdder) Edits() []*lsproto.TextEdit {
 	// !!! organize imports?
 	tracker := change.NewTracker(adder.ctx, adder.view.program.Options(), adder.formatOptions, adder.converters)
-	defer tracker.Release()
 	quotePreference := lsutil.GetQuotePreference(adder.view.importingFile, adder.preferences)
 	for _, fix := range adder.addToNamespace {
 		addNamespaceQualifier(fix, tracker, adder.view.importingFile, locale.Default)

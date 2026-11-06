@@ -31,7 +31,6 @@ func TestProgramSharedData(t *testing.T) {
 	// These types use tagged or JSON payloads.
 	leaves := []reflect.Type{
 		reflect.TypeFor[ast.Node](),
-		reflect.TypeFor[ast.NodeStore](),
 		reflect.TypeFor[ast.SourceFile](),
 		reflect.TypeFor[ast.Diagnostic](),
 		reflect.TypeFor[tsoptions.ParsedCommandLine](),
