@@ -696,6 +696,9 @@ type Checker struct {
 	intersectionDataArena                       core.Arena[intersectionData]
 	conditionalDataArena                        core.Arena[conditionalData]
 	typeListArena                               core.Arena[*Type]
+	symbolListArena                             core.Arena[ast.Symbol]
+	signatureListArena                          core.Arena[*Signature]
+	indexInfoListArena                          core.Arena[*IndexInfo]
 	outerTypeParameterListArena                 core.Arena[[]*Type]
 	valueSymbolExtraArena                       core.Arena[valueSymbolExtra]
 	structuredTypeExtraArena                    core.Arena[structuredTypeExtra]
@@ -19407,7 +19410,7 @@ func (c *Checker) getPropertiesOfUnionOrIntersectionType(t *Type) []ast.Symbol {
 				break
 			}
 		}
-		d.setResolvedProperties(c, props)
+		d.setResolvedProperties(c, listOf(&c.symbolListArena, props))
 	}
 	return d.resolvedProperties()
 }
@@ -20571,7 +20574,7 @@ func (c *Checker) getSignatureFromDeclaration(declaration ast.Node) *Signature {
 	if ast.IsConstructorTypeNode(declaration) && ast.HasSyntacticModifier(declaration, ast.ModifierFlagsAbstract) || ast.IsConstructorDeclaration(declaration) && ast.HasSyntacticModifier(declaration.Parent(), ast.ModifierFlagsAbstract) {
 		flags |= SignatureFlagsAbstract
 	}
-	links.resolvedSignature = signatureIdOf(c.newSignature(flags, declaration, typeParameters, thisParameter, parameters, nil /*resolvedReturnType*/, nil /*resolvedTypePredicate*/, minArgumentCount))
+	links.resolvedSignature = signatureIdOf(c.newSignature(flags, declaration, typeParameters, thisParameter, listOf(&c.symbolListArena, parameters), nil /*resolvedReturnType*/, nil /*resolvedTypePredicate*/, minArgumentCount))
 	return c.signatureOf(links.resolvedSignature)
 }
 
@@ -21371,7 +21374,7 @@ func (c *Checker) resolveAnonymousTypeMembers(t *Type) {
 		}
 	}
 	if len(indexInfos) != 0 {
-		d.ensureResolvedExtra(c).indexInfos = indexInfos
+		d.ensureResolvedExtra(c).indexInfos = listOf(&c.indexInfoListArena, indexInfos)
 	}
 	// We resolve the members before computing the signatures because a signature may use
 	// typeof with a qualified name expression that circularly references the type we are
@@ -21394,7 +21397,7 @@ func (c *Checker) resolveAnonymousTypeMembers(t *Type) {
 		}
 		if len(constructSignatures) != 0 {
 			extra := d.ensureResolvedExtra(c)
-			extra.signatures = append(extra.signatures, constructSignatures...)
+			extra.signatures = concatList(&c.signatureListArena, extra.signatures, constructSignatures)
 		}
 	}
 }
@@ -22634,11 +22637,11 @@ func (c *Checker) getTypeArguments(t *Type) []*Type {
 		}
 		if c.popTypeResolution() {
 			if d.resolvedTypeArguments() == nil {
-				d.setResolvedTypeArguments(c.instantiateTypes(typeArguments, d.mapper()))
+				d.setResolvedTypeArguments(listOf(&c.typeListArena, c.instantiateTypes(typeArguments, d.mapper())))
 			}
 		} else {
 			if d.resolvedTypeArguments() == nil {
-				d.setResolvedTypeArguments(slices.Repeat([]*Type{c.errorType}, len(n.TypeParameters())))
+				d.setResolvedTypeArguments(listOf(&c.typeListArena, slices.Repeat([]*Type{c.errorType}, len(n.TypeParameters()))))
 			}
 			errorNode := core.IfElse(!node.IsNil(), node, c.currentNode)
 			if !c.symbolOfType(d.target()).IsNil() {
@@ -25904,7 +25907,7 @@ func (c *Checker) createTypeReferenceEx(target *Type, typeArguments []*Type, obj
 	t := c.newObjectType(ObjectFlagsReference|objectFlags|c.getPropagatingFlagsOfTypes(typeArguments, TypeFlagsNone), c.symbolOfType(target))
 	d := t.AsTypeReference()
 	d.setTarget(target)
-	d.setResolvedTypeArguments(typeArguments)
+	d.setResolvedTypeArguments(listOf(&c.typeListArena, typeArguments))
 	intf.instantiations()[id] = t
 	return t
 }
@@ -25937,7 +25940,7 @@ func (c *Checker) setStructuredTypeMembers(t *Type, members ast.SymbolTable, cal
 	t.objectFlags |= ObjectFlagsMembersResolved
 	data := t.AsStructuredType()
 	data.setMembers(c, members)
-	data.setProperties(c, c.getNamedMembers(members))
+	data.setProperties(c, listOf(&c.symbolListArena, c.getNamedMembers(members)))
 	c.setStructuredTypeSignatures(data, callSignatures, constructSignatures, indexInfos)
 }
 
@@ -25948,20 +25951,20 @@ func (c *Checker) setStructuredTypeSignatures(data *StructuredType, callSignatur
 	extra := data.ensureResolvedExtra(c)
 	if len(callSignatures) != 0 {
 		if len(constructSignatures) != 0 {
-			extra.signatures = core.Concatenate(callSignatures, constructSignatures)
+			extra.signatures = concatList(&c.signatureListArena, callSignatures, constructSignatures)
 		} else {
-			extra.signatures = slices.Clip(callSignatures)
+			extra.signatures = listOf(&c.signatureListArena, callSignatures)
 		}
 		extra.callSignatureCount = len(callSignatures)
 	} else {
 		if len(constructSignatures) != 0 {
-			extra.signatures = slices.Clip(constructSignatures)
+			extra.signatures = listOf(&c.signatureListArena, constructSignatures)
 		} else {
 			extra.signatures = nil
 		}
 		extra.callSignatureCount = 0
 	}
-	extra.indexInfos = slices.Clip(indexInfos)
+	extra.indexInfos = listOf(&c.indexInfoListArena, indexInfos)
 }
 
 func (c *Checker) newTypeParameter(symbol ast.Symbol) *Type {
@@ -26042,6 +26045,34 @@ func (c *Checker) newSubstitutionType(baseType *Type, constraint *Type) *Type {
 	data.setBaseType(baseType)
 	data.setConstraint(constraint)
 	return c.newType(TypeFlagsSubstitution, ObjectFlagsNone, data.AsType(), typeKindSubstitution)
+}
+
+// listOf copies an immutable list into one of the checker's list arenas, so
+// stored lists are carved from shared chunks instead of each being its own
+// allocation, rounded up to a size class and often carrying spare capacity
+// from being built by append. A nil list stays nil and an empty one stays
+// empty.
+func listOf[T any](a *core.Arena[T], s []T) []T {
+	if len(s) == 0 {
+		if s == nil {
+			return nil
+		}
+		return []T{}
+	}
+	return a.Clone(s)
+}
+
+// concatList is listOf for the concatenation of two lists.
+func concatList[T any](a *core.Arena[T], s1 []T, s2 []T) []T {
+	if len(s1) == 0 {
+		return listOf(a, s2)
+	}
+	if len(s2) == 0 {
+		return listOf(a, s1)
+	}
+	result := a.NewSlice(len(s1) + len(s2))
+	copy(result[copy(result, s1):], s2)
+	return result
 }
 
 func (c *Checker) newSignature(flags SignatureFlags, declaration ast.Node, typeParameters []*Type, thisParameter ast.Symbol, parameters []ast.Symbol, resolvedReturnType *Type, resolvedTypePredicate *TypePredicate, minArgumentCount int) *Signature {

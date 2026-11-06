@@ -541,7 +541,12 @@ Signatures and index infos live in checker-owned pages (`core.Pages`, 1024 recor
 
 The signature drops from 80 to 72 bytes and value links from 32 to 24, and the signature cache's keys and values no longer hold pointers, so the collector skips it. This saves 54MB on vscode, 27MB on sentry and 20MB on mui; check time is neutral.
 
-Lists of signatures and index infos (`[]*Signature`, `[]*IndexInfo`) are item 7.
+### Lists
+
+Immutable lists that a record keeps are carved from per-checker list arenas (`core.Arena`, chunks of up to 512 bytes) instead of each being its own allocation: union and intersection constituents (already so before), a type reference's type arguments, an object's property list, a union's or intersection's resolved properties, a resolved type's call and construct signatures and its index infos, and a declared signature's parameters. `listOf` copies a list in, keeping nil and empty apart; `concatList` builds a concatenation in place. Lists that are shared between records (a cloned signature's parameters, a class's type parameters reused as a signature's) stay shared rather than copied, and lists a record fills in after storing them (the lazily resolved property slots of an instantiated type) stay separate allocations: from a shared chunk they kept dead neighbours alive and cost 3MB on vscode.
+
+The effect is within noise: vscode +2MB, sentry +1MB, mui −3MB, check time unchanged. Allocator size-class rounding, the main thing this removes, is small for 8- and 16-byte elements, and the tail of each chunk is wasted instead. Larger chunks (2KB, 8KB) made it worse: mui grew by 13–24MB, because a list that stays alive keeps its whole chunk alive.
+
 
 ### Progress
 
@@ -559,11 +564,13 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 4. small-map symbol tables | 3,060,303K (−44MB) | 1,817,581K (−28MB) | 1,222,318K (−11MB) | 20.43–20.95s (20.76) |
 | 5. 64-byte types in slabs | 2,989,022K (−71MB) | 1,808,456K (−9MB) | 1,218,870K (−3MB) | 20.51–21.68s (21.27) |
 | 6. signature, index info and mapper ids | 2,935,087K (−54MB) | 1,781,170K (−27MB) | 1,198,541K (−20MB) | 20.23–21.12s (20.85) |
+| 7. lists from per-checker arenas | 2,937,281K (+2MB) | 1,781,930K (+1MB) | 1,195,336K (−3MB) | 20.16–21.37s (21.02) |
 
 ### Deviations forced by the language
 
 - Working handles are views (`ast.Node`, `ast.Symbol`: a store pointer and an index, 16 bytes), not bare ids. Go has no way to resolve an id to its store without either a registry or a pointer, and a registry is what this design removes; the pointer also keeps the store alive under the garbage collector and keeps the method-call style at every call site. Ids and refs are what gets stored in bulk.
-- Slices are 24-byte headers. Lists that the target layout holds as one handle take a slice header unless the structure stores an index instead.
+- Slices are 24-byte headers. Lists that the target layout holds as one handle take a slice header unless the structure stores an index instead. A list carved from a chunk is still a slice into that chunk; an 8-byte {chunk, offset, length} handle would need the checker to read every list, and the accessors that read lists (`t.Types()`, `sig.Parameters()`, a type's properties) are called without one.
+- A list arena can't free a list, and an interior pointer keeps its whole chunk alive under the garbage collector, so chunks stay small (512 bytes) and lists that are filled in after being stored, or that may die before their neighbours, are allocated individually.
 - No niche optimisations: an optional id costs a reserved zero value, and optional records cost a pointer.
 - A type's 32-byte payload is split into three pointer words and two 32-bit words, because Go has no unions and the garbage collector needs a fixed pointer map for every word. A literal's value, an `any`, takes two of the pointer words.
 - A type's kind lives in the top 5 bits of its id rather than in its own byte, since the record has no spare byte once the payload's words are fixed.
