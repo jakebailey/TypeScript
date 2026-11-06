@@ -22,25 +22,25 @@ func isExpanding(ctx *NodeBuilderContext) bool {
 // machinery used by declaration emit — it directly builds the declaration nodes hover needs
 // without the declaration-emit scaffolding (deferred privates, symbol name remapping, export
 // modifier computation, alias resolution, visited symbols tracking).
-func (b *NodeBuilderImpl) expandSymbolForHover(symbol ast.Symbol) []ast.Node {
+func (b *NodeBuilderImpl) expandSymbolForHover(symbol ast.SymbolId) []ast.Node {
 	var results []ast.Node
-	if symbol.Flags()&ast.SymbolFlagsEnum != 0 {
+	if b.ch.symbolFlags(symbol)&ast.SymbolFlagsEnum != 0 {
 		if node := b.expandEnumDecl(symbol); !node.IsNil() {
 			results = append(results, node)
 		}
 	}
-	if symbol.Flags()&ast.SymbolFlagsClass != 0 {
+	if b.ch.symbolFlags(symbol)&ast.SymbolFlagsClass != 0 {
 		if node := b.expandClassDecl(symbol); !node.IsNil() {
 			results = append(results, node)
 		}
 	}
 	// Module/namespace before interface (matching Strada ordering for merged declarations)
-	if symbol.Flags()&(ast.SymbolFlagsValueModule|ast.SymbolFlagsNamespaceModule) != 0 {
+	if b.ch.symbolFlags(symbol)&(ast.SymbolFlagsValueModule|ast.SymbolFlagsNamespaceModule) != 0 {
 		if node := b.expandModuleDecl(symbol); !node.IsNil() {
 			results = append(results, node)
 		}
 	}
-	if symbol.Flags()&ast.SymbolFlagsInterface != 0 && symbol.Flags()&ast.SymbolFlagsClass == 0 {
+	if b.ch.symbolFlags(symbol)&ast.SymbolFlagsInterface != 0 && b.ch.symbolFlags(symbol)&ast.SymbolFlagsClass == 0 {
 		if node := b.expandInterfaceDecl(symbol); !node.IsNil() {
 			results = append(results, node)
 		}
@@ -49,11 +49,11 @@ func (b *NodeBuilderImpl) expandSymbolForHover(symbol ast.Symbol) []ast.Node {
 }
 
 // expandEnumDecl produces an EnumDeclaration node with all members.
-func (b *NodeBuilderImpl) expandEnumDecl(symbol ast.Symbol) ast.Node {
-	name := ast.SymbolNameText(symbol)
+func (b *NodeBuilderImpl) expandEnumDecl(symbol ast.SymbolId) ast.Node {
+	name := ast.SymbolNameText(b.ch.symbolOf(symbol))
 	b.ctx.approximateLength += 9 + len(name)
-	memberProps := core.Filter(b.ch.getPropertiesOfType(b.ch.getTypeOfSymbol(symbol)), func(p ast.Symbol) bool {
-		return p.Flags()&ast.SymbolFlagsEnumMember != 0
+	memberProps := core.Filter(b.ch.getPropertiesOfType(b.ch.getTypeOfSymbol(symbol)), func(p ast.SymbolId) bool {
+		return b.ch.symbolFlags(p)&ast.SymbolFlagsEnumMember != 0
 	})
 	var members []ast.Node
 	for i, p := range memberProps {
@@ -61,25 +61,25 @@ func (b *NodeBuilderImpl) expandEnumDecl(symbol ast.Symbol) ast.Node {
 			b.ctx.expansionTruncated = true
 			members = append(members, b.f.NewEnumMember(b.f.NewStringLiteral(fmt.Sprintf(" ... %d more ... ", len(memberProps)-i-1), 0), ast.Node{}))
 			last := memberProps[len(memberProps)-1]
-			members = append(members, b.f.NewEnumMember(b.f.NewIdentifier(last.Name().String()), b.enumMemberInitializer(last)))
+			members = append(members, b.f.NewEnumMember(b.f.NewIdentifier(b.ch.symbolName(last).String()), b.enumMemberInitializer(last)))
 			break
 		}
-		memberDecl := p.Declarations().Find(ast.IsEnumMember)
+		memberDecl := b.ch.symbolDeclarations(p).Find(ast.IsEnumMember)
 		var initializer ast.Node
 		if !memberDecl.IsNil() && !memberDecl.AsEnumMember().Initializer().IsNil() {
 			initializer = b.f.DeepCloneNode(memberDecl.AsEnumMember().Initializer())
 		} else {
 			initializer = b.enumMemberInitializer(p)
 		}
-		b.ctx.approximateLength += 4 + len(p.Name().String())
+		b.ctx.approximateLength += 4 + len(b.ch.symbolName(p).String())
 		if !initializer.IsNil() {
 			b.ctx.approximateLength += 5 // " = " + value estimate
 		}
-		members = append(members, b.f.NewEnumMember(b.f.NewIdentifier(p.Name().String()), initializer))
+		members = append(members, b.f.NewEnumMember(b.f.NewIdentifier(b.ch.symbolName(p).String()), initializer))
 	}
 
 	constModifier := ast.ModifierFlagsNone
-	if isConstEnumSymbol(symbol) {
+	if b.ch.isConstEnumSymbol(symbol) {
 		constModifier = ast.ModifierFlagsConst
 	}
 	var mods ast.ModifierList
@@ -89,8 +89,8 @@ func (b *NodeBuilderImpl) expandEnumDecl(symbol ast.Symbol) ast.Node {
 	return b.f.NewEnumDeclaration(mods, b.f.NewIdentifier(name), b.f.NewNodeList(members))
 }
 
-func (b *NodeBuilderImpl) enumMemberInitializer(p ast.Symbol) ast.Node {
-	memberDecl := p.Declarations().Find(ast.IsEnumMember)
+func (b *NodeBuilderImpl) enumMemberInitializer(p ast.SymbolId) ast.Node {
+	memberDecl := b.ch.symbolDeclarations(p).Find(ast.IsEnumMember)
 	if memberDecl.IsNil() {
 		return ast.Node{}
 	}
@@ -108,11 +108,11 @@ func (b *NodeBuilderImpl) enumMemberInitializer(p ast.Symbol) ast.Node {
 }
 
 // expandClassDecl produces a ClassDeclaration node with heritage clauses and members.
-func (b *NodeBuilderImpl) expandClassDecl(symbol ast.Symbol) ast.Node {
-	name := ast.SymbolNameText(symbol)
+func (b *NodeBuilderImpl) expandClassDecl(symbol ast.SymbolId) ast.Node {
+	name := ast.SymbolNameText(b.ch.symbolOf(symbol))
 	b.ctx.approximateLength += 9 + len(name)
 
-	classLikeDeclarations := symbol.Declarations().Filter(ast.IsClassLike)
+	classLikeDeclarations := b.ch.symbolDeclarations(symbol).Filter(ast.IsClassLike)
 	originalDecl := core.FirstOrNil(classLikeDeclarations)
 	oldEnclosing := b.ctx.enclosingDeclaration
 	if !originalDecl.IsNil() {
@@ -127,7 +127,7 @@ func (b *NodeBuilderImpl) expandClassDecl(symbol ast.Symbol) ast.Node {
 	classType := b.ch.getTypeWithThisArgument(declaredType, nil, false)
 	baseTypes := b.ch.getBaseTypes(b.ch.getTargetType(classType))
 	staticType := b.ch.getTypeOfSymbol(symbol)
-	isClass := !b.ch.symbolOfType(staticType).IsNil() && !b.ch.symbolOfType(staticType).ValueDeclaration().IsNil() && ast.IsClassLike(b.ch.symbolOfType(staticType).ValueDeclaration())
+	isClass := b.ch.symbolOfType(staticType) != 0 && !b.ch.symbolValueDeclaration(b.ch.symbolOfType(staticType)).IsNil() && ast.IsClassLike(b.ch.symbolValueDeclaration(b.ch.symbolOfType(staticType)))
 	var staticBaseType *Type
 	if isClass {
 		staticBaseType = b.ch.getBaseConstructorTypeOfClass(declaredType)
@@ -142,8 +142,8 @@ func (b *NodeBuilderImpl) expandClassDecl(symbol ast.Symbol) ast.Node {
 	// then convert TypeElements to ClassElements and add class-specific modifiers
 	allProps := b.ch.getPropertiesOfType(classType)
 	symbolProps := b.filterInheritedProperties(classType, baseTypes, allProps)
-	publicProps := core.Filter(symbolProps, func(s ast.Symbol) bool { return !isHashPrivate(s) })
-	hasPrivate := core.Some(symbolProps, isHashPrivate)
+	publicProps := core.Filter(symbolProps, func(s ast.SymbolId) bool { return !b.ch.isHashPrivate(s) })
+	hasPrivate := core.Some(symbolProps, b.ch.isHashPrivate)
 
 	var instanceMembers []ast.Node
 	instanceMembers = b.serializePropertiesWithTruncation(publicProps, instanceMembers)
@@ -151,8 +151,8 @@ func (b *NodeBuilderImpl) expandClassDecl(symbol ast.Symbol) ast.Node {
 	instanceMembers = b.addClassModifiers(instanceMembers, false)
 
 	// Static members
-	staticProps := core.Filter(b.ch.getPropertiesOfType(staticType), func(p ast.Symbol) bool {
-		return p.Flags()&ast.SymbolFlagsPrototype == 0 && p.Name() != ast.SymbolNamePrototype && !b.isNamespaceMember(p)
+	staticProps := core.Filter(b.ch.getPropertiesOfType(staticType), func(p ast.SymbolId) bool {
+		return b.ch.symbolFlags(p)&ast.SymbolFlagsPrototype == 0 && b.ch.symbolName(p) != ast.SymbolNamePrototype && !b.isNamespaceMember(p)
 	})
 	var staticMembers []ast.Node
 	staticMembers = b.serializePropertiesWithTruncation(staticProps, staticMembers)
@@ -162,7 +162,7 @@ func (b *NodeBuilderImpl) expandClassDecl(symbol ast.Symbol) ast.Node {
 	// Hash-private members
 	var privateMembers []ast.Node
 	if hasPrivate {
-		privateMembers = b.serializePropertiesWithTruncation(core.Filter(symbolProps, isHashPrivate), privateMembers)
+		privateMembers = b.serializePropertiesWithTruncation(core.Filter(symbolProps, b.ch.isHashPrivate), privateMembers)
 		privateMembers = typeElementsToClassElements(b.f, privateMembers)
 	}
 
@@ -187,17 +187,17 @@ func (b *NodeBuilderImpl) expandClassDecl(symbol ast.Symbol) ast.Node {
 func (b *NodeBuilderImpl) addClassModifiers(members []ast.Node, isStatic bool) []ast.Node {
 	for i, m := range members {
 		// Find the symbol for this member by matching the property name
-		var memberSymbol ast.Symbol
+		var memberSymbol ast.SymbolId
 		memberName := m.Name()
 		if !memberName.IsNil() {
 			if sym, ok := b.idToSymbol[memberName]; ok {
-				memberSymbol = sym
+				memberSymbol = b.ch.symbolId(sym)
 			}
 		}
-		if memberSymbol.IsNil() {
+		if memberSymbol == 0 {
 			continue
 		}
-		modFlags := getDeclarationModifierFlagsFromSymbol(memberSymbol) &^ ast.ModifierFlagsAsync
+		modFlags := b.ch.getDeclarationModifierFlagsFromSymbol(memberSymbol) &^ ast.ModifierFlagsAsync
 		if isStatic {
 			modFlags |= ast.ModifierFlagsStatic
 		}
@@ -231,12 +231,12 @@ func typeElementsToClassElements(f *ast.NodeFactory, members []ast.Node) []ast.N
 // expandInterfaceDecl produces an InterfaceDeclaration with members.
 // Reuses addPropertyToElementList for property serialization and
 // signatureToSignatureDeclarationHelper for signatures.
-func (b *NodeBuilderImpl) expandInterfaceDecl(symbol ast.Symbol) ast.Node {
-	name := ast.SymbolNameText(symbol)
+func (b *NodeBuilderImpl) expandInterfaceDecl(symbol ast.SymbolId) ast.Node {
+	name := ast.SymbolNameText(b.ch.symbolOf(symbol))
 	b.ctx.approximateLength += 14 + len(name)
 
 	interfaceType := b.ch.getDeclaredTypeOfClassOrInterface(symbol)
-	interfaceDeclarations := symbol.Declarations().Filter(ast.IsInterfaceDeclaration)
+	interfaceDeclarations := b.ch.symbolDeclarations(symbol).Filter(ast.IsInterfaceDeclaration)
 	localParams := b.ch.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol)
 	typeParamDecls := core.Map(localParams, func(p *Type) ast.Node { return b.typeParameterToDeclaration(p) })
 	baseTypes := b.ch.getBaseTypes(interfaceType)
@@ -296,9 +296,9 @@ func (b *NodeBuilderImpl) hoverHeritageClauses(declarations []ast.Node) []ast.No
 
 // serializePropertiesWithTruncation iterates properties using addPropertyToElementList,
 // with truncation checks matching Strada's createTypeNodesFromResolvedType behavior.
-func (b *NodeBuilderImpl) serializePropertiesWithTruncation(properties []ast.Symbol, elements []ast.Node) []ast.Node {
-	properties = core.Filter(properties, func(p ast.Symbol) bool {
-		return p.Flags()&ast.SymbolFlagsPrototype == 0
+func (b *NodeBuilderImpl) serializePropertiesWithTruncation(properties []ast.SymbolId, elements []ast.Node) []ast.Node {
+	properties = core.Filter(properties, func(p ast.SymbolId) bool {
+		return b.ch.symbolFlags(p)&ast.SymbolFlagsPrototype == 0
 	})
 	for i, p := range properties {
 		if b.checkTruncationLengthIfExpanding() && (i+3 < len(properties)-1) {
@@ -314,10 +314,10 @@ func (b *NodeBuilderImpl) serializePropertiesWithTruncation(properties []ast.Sym
 }
 
 // serializeConstructors builds constructor signature(s) for a class, with base type filtering.
-func (b *NodeBuilderImpl) serializeConstructors(staticType *Type, staticBaseType *Type, isClass bool, symbol ast.Symbol) []ast.Node {
+func (b *NodeBuilderImpl) serializeConstructors(staticType *Type, staticBaseType *Type, isClass bool, symbol ast.SymbolId) []ast.Node {
 	isNonConstructable := !isClass &&
-		!symbol.ValueDeclaration().IsNil() &&
-		ast.IsInJSFile(symbol.ValueDeclaration()) &&
+		!b.ch.symbolValueDeclaration(symbol).IsNil() &&
+		ast.IsInJSFile(b.ch.symbolValueDeclaration(symbol)) &&
 		len(b.ch.getSignaturesOfType(staticType, SignatureKindConstruct)) == 0
 	if isNonConstructable {
 		b.ctx.approximateLength += 21
@@ -382,17 +382,17 @@ func (b *NodeBuilderImpl) serializeIndexSignaturesOfType(input *Type, baseType *
 
 // serializeNamespaceMember produces the appropriate declaration node for a namespace member
 // based on its symbol flags (type alias, enum, class, interface, nested namespace, or variable).
-func (b *NodeBuilderImpl) serializeNamespaceMember(resolved ast.Symbol, name string) ast.Node {
+func (b *NodeBuilderImpl) serializeNamespaceMember(resolved ast.SymbolId, name string) ast.Node {
 	switch {
-	case resolved.Flags()&ast.SymbolFlagsTypeAlias != 0:
+	case b.ch.symbolFlags(resolved)&ast.SymbolFlagsTypeAlias != 0:
 		return b.serializeTypeAliasForNamespace(resolved, name)
-	case resolved.Flags()&ast.SymbolFlagsEnum != 0:
+	case b.ch.symbolFlags(resolved)&ast.SymbolFlagsEnum != 0:
 		return b.expandEnumDecl(resolved)
-	case resolved.Flags()&ast.SymbolFlagsClass != 0:
+	case b.ch.symbolFlags(resolved)&ast.SymbolFlagsClass != 0:
 		return b.expandClassDecl(resolved)
-	case resolved.Flags()&ast.SymbolFlagsInterface != 0:
+	case b.ch.symbolFlags(resolved)&ast.SymbolFlagsInterface != 0:
 		return b.expandInterfaceDecl(resolved)
-	case resolved.Flags()&(ast.SymbolFlagsValueModule|ast.SymbolFlagsNamespaceModule) != 0:
+	case b.ch.symbolFlags(resolved)&(ast.SymbolFlagsValueModule|ast.SymbolFlagsNamespaceModule) != 0:
 		return b.expandModuleDecl(resolved)
 	default:
 		t := b.ch.getWidenedType(b.ch.getTypeOfSymbol(resolved))
@@ -410,15 +410,15 @@ func (b *NodeBuilderImpl) serializeNamespaceMember(resolved ast.Symbol, name str
 }
 
 // expandModuleDecl produces a ModuleDeclaration with exported members.
-func (b *NodeBuilderImpl) expandModuleDecl(symbol ast.Symbol) ast.Node {
+func (b *NodeBuilderImpl) expandModuleDecl(symbol ast.SymbolId) ast.Node {
 	exports := b.ch.getExportsOfSymbol(symbol)
-	var members []ast.Symbol
-	for _, sym := range exports.All() {
+	var members []ast.SymbolId
+	for _, sym := range exports.AllIds(b.ch.symbols) {
 		// Filter to namespace-relevant members
 		if !b.isNamespaceMember(sym) {
 			continue
 		}
-		if !scanner.IsIdentifierText(sym.Name().String(), core.LanguageVariantStandard) {
+		if !scanner.IsIdentifierText(b.ch.symbolName(sym).String(), core.LanguageVariantStandard) {
 			continue
 		}
 		members = append(members, sym)
@@ -438,7 +438,7 @@ func (b *NodeBuilderImpl) expandModuleDecl(symbol ast.Symbol) ast.Node {
 		isLocal bool // local declarations (e.g. alias targets) should not get export modifier
 	}
 	var bodyStmts []hoverStatement
-	var emittedLocals collections.Set[ast.Symbol]
+	var emittedLocals collections.Set[ast.SymbolId]
 	for i := 0; i < len(members); i++ {
 		m := members[i]
 		if b.checkTruncationLengthIfExpanding() && i+3 < len(members)-1 {
@@ -449,32 +449,32 @@ func (b *NodeBuilderImpl) expandModuleDecl(symbol ast.Symbol) ast.Node {
 		}
 
 		// Handle alias/re-export symbols
-		if m.Flags()&ast.SymbolFlagsAlias != 0 {
+		if b.ch.symbolFlags(m)&ast.SymbolFlagsAlias != 0 {
 			aliasDecl := b.ch.getDeclarationOfAliasSymbol(m)
 			target := b.ch.getMergedSymbol(b.ch.getTargetOfAliasDeclaration(aliasDecl, false /*dontRecursivelyResolve*/))
-			if !target.IsNil() {
+			if target != 0 {
 				// If the alias target is a local symbol (not itself an export), emit its declaration first
-				if target.Flags()&(ast.SymbolFlagsBlockScopedVariable|ast.SymbolFlagsFunctionScopedVariable|ast.SymbolFlagsProperty) != 0 {
+				if b.ch.symbolFlags(target)&(ast.SymbolFlagsBlockScopedVariable|ast.SymbolFlagsFunctionScopedVariable|ast.SymbolFlagsProperty) != 0 {
 					if emittedLocals.AddIfAbsent(target) {
 						localType := b.ch.getWidenedType(b.ch.getTypeOfSymbol(target))
-						b.ctx.approximateLength += len(target.Name().String()) + 5
+						b.ctx.approximateLength += len(b.ch.symbolName(target).String()) + 5
 						localStmt := b.f.NewVariableStatement(ast.ModifierList{},
 							b.f.NewVariableDeclarationList(b.f.NewNodeList([]ast.Node{
-								b.f.NewVariableDeclaration(b.f.NewIdentifier(target.Name().String()), ast.Node{}, b.serializeTypeForDeclaration(ast.Node{}, localType, target, true), ast.Node{}),
+								b.f.NewVariableDeclaration(b.f.NewIdentifier(b.ch.symbolName(target).String()), ast.Node{}, b.serializeTypeForDeclaration(ast.Node{}, localType, target, true), ast.Node{}),
 							}), ast.NodeFlagsLet))
 						bodyStmts = append(bodyStmts, hoverStatement{node: localStmt, isLocal: true})
 					}
 				}
-				targetName := target.Name()
-				b.ctx.approximateLength += 16 + len(m.Name().String())
+				targetName := b.ch.symbolName(target)
+				b.ctx.approximateLength += 16 + len(b.ch.symbolName(m).String())
 				var propertyName ast.Node
-				if m.Name() != targetName {
+				if b.ch.symbolName(m) != targetName {
 					propertyName = b.f.NewIdentifier(targetName.String())
 				}
 				stmt := b.f.NewExportDeclaration(
 					ast.ModifierList{}, false,
 					b.f.NewNamedExports(b.f.NewNodeList([]ast.Node{
-						b.f.NewExportSpecifier(false, propertyName, b.f.NewIdentifier(m.Name().String())),
+						b.f.NewExportSpecifier(false, propertyName, b.f.NewIdentifier(b.ch.symbolName(m).String())),
 					})),
 					ast.Node{}, ast.Node{},
 				)
@@ -486,27 +486,27 @@ func (b *NodeBuilderImpl) expandModuleDecl(symbol ast.Symbol) ast.Node {
 		resolved := b.ch.resolveSymbol(m)
 
 		// Handle functions as function declarations
-		if resolved.Flags()&(ast.SymbolFlagsFunction|ast.SymbolFlagsMethod) != 0 {
+		if b.ch.symbolFlags(resolved)&(ast.SymbolFlagsFunction|ast.SymbolFlagsMethod) != 0 {
 			t := b.ch.getTypeOfSymbol(resolved)
 			sigs := b.ch.getSignaturesOfType(t, SignatureKindCall)
 			for _, sig := range sigs {
 				b.ctx.approximateLength++
 				decl := b.signatureToSignatureDeclarationHelper(sig, ast.KindFunctionDeclaration, &SignatureToSignatureDeclarationOptions{
-					name: b.f.NewIdentifier(m.Name().String()),
+					name: b.f.NewIdentifier(b.ch.symbolName(m).String()),
 				})
 				bodyStmts = append(bodyStmts, hoverStatement{node: decl})
 			}
 			// If the function also has namespace characteristics, emit an empty namespace.
 			merged := b.ch.getMergedSymbol(resolved)
-			hasModuleExports := merged.Flags()&(ast.SymbolFlagsValueModule|ast.SymbolFlagsNamespaceModule) != 0 && merged.Exports() != nil && merged.Exports().Len() != 0
+			hasModuleExports := b.ch.symbolFlags(merged)&(ast.SymbolFlagsValueModule|ast.SymbolFlagsNamespaceModule) != 0 && b.ch.symbolExports(merged) != nil && b.ch.symbolExports(merged).Len() != 0
 			if !hasModuleExports {
-				bodyStmts = append(bodyStmts, hoverStatement{node: b.f.NewModuleDeclaration(ast.ModifierList{}, ast.KindNamespaceKeyword, b.f.NewIdentifier(m.Name().String()), ast.Node{} /*attributes*/, b.f.NewModuleBlock(b.f.NewNodeList(nil)))})
+				bodyStmts = append(bodyStmts, hoverStatement{node: b.f.NewModuleDeclaration(ast.ModifierList{}, ast.KindNamespaceKeyword, b.f.NewIdentifier(b.ch.symbolName(m).String()), ast.Node{} /*attributes*/, b.f.NewModuleBlock(b.f.NewNodeList(nil)))})
 			}
 			continue
 		}
 
 		// Handle remaining member kinds (type alias, enum, class, interface, namespace, variable)
-		if node := b.serializeNamespaceMember(resolved, m.Name().String()); !node.IsNil() {
+		if node := b.serializeNamespaceMember(resolved, b.ch.symbolName(m).String()); !node.IsNil() {
 			bodyStmts = append(bodyStmts, hoverStatement{node: node})
 		}
 	}
@@ -545,7 +545,7 @@ func (b *NodeBuilderImpl) expandModuleDecl(symbol ast.Symbol) ast.Node {
 		keyword = ast.KindModuleKeyword
 	}
 	var attributes ast.TypeLiteralNodeNode
-	if declaration := symbol.Declarations().Find(func(declaration ast.Node) bool {
+	if declaration := b.ch.symbolDeclarations(symbol).Find(func(declaration ast.Node) bool {
 		return ast.IsModuleDeclaration(declaration) && !declaration.AsModuleDeclaration().Attributes().IsNil()
 	}); !declaration.IsNil() {
 		attributes = b.f.DeepCloneNode(declaration.AsModuleDeclaration().Attributes())
@@ -555,7 +555,7 @@ func (b *NodeBuilderImpl) expandModuleDecl(symbol ast.Symbol) ast.Node {
 }
 
 // serializeTypeAliasForNamespace produces a TypeAliasDeclaration for a type alias inside a namespace body.
-func (b *NodeBuilderImpl) serializeTypeAliasForNamespace(symbol ast.Symbol, name string) ast.Node {
+func (b *NodeBuilderImpl) serializeTypeAliasForNamespace(symbol ast.SymbolId, name string) ast.Node {
 	aliasType := b.ch.getDeclaredTypeOfTypeAlias(symbol)
 	typeParams := b.ch.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol)
 	typeParamDecls := core.Map(typeParams, func(p *Type) ast.Node { return b.typeParameterToDeclaration(p) })
@@ -568,38 +568,38 @@ func (b *NodeBuilderImpl) serializeTypeAliasForNamespace(symbol ast.Symbol, name
 }
 
 // filterInheritedProperties removes properties already present in base types.
-func (b *NodeBuilderImpl) filterInheritedProperties(t *Type, baseTypes []*Type, properties []ast.Symbol) []ast.Symbol {
+func (b *NodeBuilderImpl) filterInheritedProperties(t *Type, baseTypes []*Type, properties []ast.SymbolId) []ast.SymbolId {
 	if len(baseTypes) == 0 {
 		return properties
 	}
 	// Build a lookup from property name to symbol for parent-identity comparison.
-	propsByName := make(map[ast.SymbolName]ast.Symbol, len(properties))
+	propsByName := make(map[ast.SymbolName]ast.SymbolId, len(properties))
 	for _, p := range properties {
-		propsByName[p.Name()] = p
+		propsByName[b.ch.symbolName(p)] = p
 	}
 	// Collect names of properties inherited unchanged from base types.
 	var inherited collections.Set[ast.SymbolName]
 	for _, base := range baseTypes {
 		baseWithThis := b.ch.getTypeWithThisArgument(base, b.ch.getTargetType(t).AsInterfaceType().iface().thisType, false)
 		for _, prop := range b.ch.getPropertiesOfType(baseWithThis) {
-			if existing, ok := propsByName[prop.Name()]; ok && prop.Parent() == existing.Parent() {
-				inherited.Add(prop.Name())
+			if existing, ok := propsByName[b.ch.symbolName(prop)]; ok && b.ch.symbolParent(prop) == b.ch.symbolParent(existing) {
+				inherited.Add(b.ch.symbolName(prop))
 			}
 		}
 	}
 	if inherited.Len() == 0 {
 		return properties
 	}
-	return core.Filter(properties, func(p ast.Symbol) bool {
-		return !inherited.Has(p.Name())
+	return core.Filter(properties, func(p ast.SymbolId) bool {
+		return !inherited.Has(b.ch.symbolName(p))
 	})
 }
 
-func (b *NodeBuilderImpl) isNamespaceMember(p ast.Symbol) bool {
-	return p.Flags()&(ast.SymbolFlagsType|ast.SymbolFlagsNamespace|ast.SymbolFlagsAlias) != 0 ||
-		!(p.Flags()&ast.SymbolFlagsPrototype != 0 || p.Name() == ast.SymbolNamePrototype || (!p.ValueDeclaration().IsNil() && ast.HasStaticModifier(p.ValueDeclaration()) && ast.IsClassLike(p.ValueDeclaration().Parent())))
+func (b *NodeBuilderImpl) isNamespaceMember(p ast.SymbolId) bool {
+	return b.ch.symbolFlags(p)&(ast.SymbolFlagsType|ast.SymbolFlagsNamespace|ast.SymbolFlagsAlias) != 0 ||
+		!(b.ch.symbolFlags(p)&ast.SymbolFlagsPrototype != 0 || b.ch.symbolName(p) == ast.SymbolNamePrototype || (!b.ch.symbolValueDeclaration(p).IsNil() && ast.HasStaticModifier(b.ch.symbolValueDeclaration(p)) && ast.IsClassLike(b.ch.symbolValueDeclaration(p).Parent())))
 }
 
-func isHashPrivate(s ast.Symbol) bool {
-	return !s.ValueDeclaration().IsNil() && !s.ValueDeclaration().Name().IsNil() && ast.IsPrivateIdentifier(s.ValueDeclaration().Name())
+func (c *Checker) isHashPrivate(s ast.SymbolId) bool {
+	return !c.symbolValueDeclaration(s).IsNil() && !c.symbolValueDeclaration(s).Name().IsNil() && ast.IsPrivateIdentifier(c.symbolValueDeclaration(s).Name())
 }

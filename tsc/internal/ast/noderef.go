@@ -43,6 +43,9 @@ type FileTable struct {
 	// readers need no lock.
 	pages atomic.Pointer[[]*fileTablePage]
 	count uint32
+
+	binderOnce sync.Once
+	binder     *BinderSymbols
 }
 
 // A fileSlot is a store's number in the table that last numbered it.

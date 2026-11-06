@@ -68,8 +68,8 @@ func hasReadonlyModifier(node ast.Node) bool {
 	return ast.HasModifier(node, ast.ModifierFlagsReadonly)
 }
 
-func isStaticPrivateIdentifierProperty(s ast.Symbol) bool {
-	return !s.ValueDeclaration().IsNil() && ast.IsPrivateIdentifierClassElementDeclaration(s.ValueDeclaration()) && ast.IsStatic(s.ValueDeclaration())
+func (c *Checker) isStaticPrivateIdentifierProperty(s ast.SymbolId) bool {
+	return !c.symbolValueDeclaration(s).IsNil() && ast.IsPrivateIdentifierClassElementDeclaration(c.symbolValueDeclaration(s)) && ast.IsStatic(c.symbolValueDeclaration(s))
 }
 
 func isEmptyObjectLiteral(expression ast.Node) bool {
@@ -194,8 +194,8 @@ func canHaveLocals(node ast.Node) bool {
 	return false
 }
 
-func isShorthandAmbientModuleSymbol(moduleSymbol ast.Symbol) bool {
-	return isShorthandAmbientModule(moduleSymbol.ValueDeclaration())
+func (c *Checker) isShorthandAmbientModuleSymbol(moduleSymbol ast.SymbolId) bool {
+	return isShorthandAmbientModule(c.symbolValueDeclaration(moduleSymbol))
 }
 
 func isShorthandAmbientModule(node ast.Node) bool {
@@ -253,8 +253,8 @@ func isSyntacticDefault(node ast.Node) bool {
 		ast.IsNamespaceExport(node)
 }
 
-func hasExportAssignmentSymbol(moduleSymbol ast.Symbol) bool {
-	return !moduleSymbol.Exports().Get(ast.InternalSymbolNameExportEquals).IsNil()
+func (c *Checker) hasExportAssignmentSymbol(moduleSymbol ast.SymbolId) bool {
+	return c.symbolExports(moduleSymbol).GetId(c.symbols, ast.InternalSymbolNameExportEquals) != 0
 }
 
 func isTypeAlias(node ast.Node) bool {
@@ -347,46 +347,46 @@ func isTypeAssertion(node ast.Node) bool {
 	return ast.IsAssertionExpression(ast.SkipParentheses(node))
 }
 
-func createSymbolTable(symbols []ast.Symbol) ast.SymbolTable {
+func (c *Checker) createSymbolTable(symbols []ast.SymbolId) ast.SymbolTable {
 	if len(symbols) == 0 {
 		return nil
 	}
 	result := ast.NewSymbolTable()
 	for _, symbol := range symbols {
-		result.Set(symbol.Name(), symbol)
+		result.SetId(c.symbols, c.symbolName(symbol), symbol)
 	}
 	return result
 }
 
-func (c *Checker) sortSymbols(symbols []ast.Symbol) {
+func (c *Checker) sortSymbols(symbols []ast.SymbolId) {
 	slices.SortFunc(symbols, c.compareSymbols)
 }
 
-func (c *Checker) compareSymbolsWorker(s1, s2 ast.Symbol) int {
+func (c *Checker) compareSymbolsWorker(s1, s2 ast.SymbolId) int {
 	if s1 == s2 {
 		return 0
 	}
-	if s1.IsNil() {
+	if s1 == 0 {
 		return 1
 	}
-	if s2.IsNil() {
+	if s2 == 0 {
 		return -1
 	}
-	if s1.Declarations().Len() != 0 && s2.Declarations().Len() != 0 {
-		if r := c.compareNodes(s1.Declarations().At(0), s2.Declarations().At(0)); r != 0 {
+	if c.symbolDeclarations(s1).Len() != 0 && c.symbolDeclarations(s2).Len() != 0 {
+		if r := c.compareNodes(c.symbolDeclarations(s1).At(0), c.symbolDeclarations(s2).At(0)); r != 0 {
 			return r
 		}
-	} else if s1.Declarations().Len() != 0 {
+	} else if c.symbolDeclarations(s1).Len() != 0 {
 		return -1
-	} else if s2.Declarations().Len() != 0 {
+	} else if c.symbolDeclarations(s2).Len() != 0 {
 		return 1
 	}
-	if r := strings.Compare(s1.Name().String(), s2.Name().String()); r != 0 {
+	if r := strings.Compare(c.symbolName(s1).String(), c.symbolName(s2).String()); r != 0 {
 		return r
 	}
 	// Fall back to symbol IDs. This is a last resort that should happen only when symbols have
 	// no declaration and duplicate names.
-	return cmp.Compare(ast.GetSymbolSerial(s1), ast.GetSymbolSerial(s2))
+	return cmp.Compare(ast.GetSymbolSerial(c.symbolOf(s1)), ast.GetSymbolSerial(c.symbolOf(s2)))
 }
 
 func (c *Checker) compareNodes(n1, n2 ast.Node) int {
@@ -441,11 +441,11 @@ func (c *Checker) CompareTypes(t1, t2 *Type) int {
 		// Order other unnamed or identically named object types by symbol.
 		if t1.objectFlags&ObjectFlagsInstantiationExpressionType != 0 && t2.objectFlags&ObjectFlagsInstantiationExpressionType != 0 {
 			var declaration1, declaration2 ast.Node
-			if !c.symbolOfType(t1).IsNil() && c.symbolOfType(t1).Declarations().Len() != 0 {
-				declaration1 = c.symbolOfType(t1).Declarations().At(0)
+			if c.symbolOfType(t1) != 0 && c.symbolDeclarations(c.symbolOfType(t1)).Len() != 0 {
+				declaration1 = c.symbolDeclarations(c.symbolOfType(t1)).At(0)
 			}
-			if !c.symbolOfType(t2).IsNil() && c.symbolOfType(t2).Declarations().Len() != 0 {
-				declaration2 = c.symbolOfType(t2).Declarations().At(0)
+			if c.symbolOfType(t2) != 0 && c.symbolDeclarations(c.symbolOfType(t2)).Len() != 0 {
+				declaration2 = c.symbolDeclarations(c.symbolOfType(t2)).At(0)
 			}
 			// A single instantiation expression can produce multiple types for union constituents,
 			// so compare their source declarations before comparing the shared expression node.
@@ -635,34 +635,34 @@ func (c *Checker) compareTypeNames(t1, t2 *Type) int {
 	if s1 == s2 {
 		return c.compareTypeLists(t1.Alias().TypeArguments(), t2.Alias().TypeArguments())
 	}
-	if s1.IsNil() {
+	if s1 == 0 {
 		return 1
 	}
-	if s2.IsNil() {
+	if s2 == 0 {
 		return -1
 	}
-	if r := strings.Compare(s1.Name().String(), s2.Name().String()); r != 0 {
+	if r := strings.Compare(c.symbolName(s1).String(), c.symbolName(s2).String()); r != 0 {
 		return r
 	}
 	// Keep distinct same-named declarations together before comparing alias arguments or structure.
 	return c.compareSymbols(s1, s2)
 }
 
-func (c *Checker) getTypeNameSymbol(t *Type) ast.Symbol {
+func (c *Checker) getTypeNameSymbol(t *Type) ast.SymbolId {
 	if t.Alias() != nil {
 		return t.Alias().symbol
 	}
 	if t.flags&(TypeFlagsTypeParameter|TypeFlagsStringMapping) != 0 || t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsReference) != 0 {
 		return c.symbolOfType(t)
 	}
-	return ast.Symbol{}
+	return 0
 }
 
-func (c *Checker) getObjectTypeName(t *Type) ast.Symbol {
+func (c *Checker) getObjectTypeName(t *Type) ast.SymbolId {
 	if t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsReference) != 0 {
 		return c.symbolOfType(t)
 	}
-	return ast.Symbol{}
+	return 0
 }
 
 func (c *Checker) compareTupleTypes(t1, t2 *TupleType) int {
@@ -764,44 +764,44 @@ func comparableMapperKind(kind TypeMapperKind) TypeMapperKind {
 	return TypeMapperKindUnknown
 }
 
-func getDeclarationModifierFlagsFromSymbol(s ast.Symbol) ast.ModifierFlags {
-	return getDeclarationModifierFlagsFromSymbolEx(s, false /*isWrite*/)
+func (c *Checker) getDeclarationModifierFlagsFromSymbol(s ast.SymbolId) ast.ModifierFlags {
+	return c.getDeclarationModifierFlagsFromSymbolEx(s, false /*isWrite*/)
 }
 
-func getDeclarationModifierFlagsFromSymbolEx(s ast.Symbol, isWrite bool) ast.ModifierFlags {
-	if s.CheckFlags()&ast.CheckFlagsSynthetic != 0 {
+func (c *Checker) getDeclarationModifierFlagsFromSymbolEx(s ast.SymbolId, isWrite bool) ast.ModifierFlags {
+	if c.symbolCheckFlags(s)&ast.CheckFlagsSynthetic != 0 {
 		var accessModifier ast.ModifierFlags
 		switch {
-		case !isWrite && s.CheckFlags()&ast.CheckFlagsContainsPublic != 0 || isWrite && s.CheckFlags()&ast.CheckFlagsContainsWritePublic != 0:
+		case !isWrite && c.symbolCheckFlags(s)&ast.CheckFlagsContainsPublic != 0 || isWrite && c.symbolCheckFlags(s)&ast.CheckFlagsContainsWritePublic != 0:
 			accessModifier = ast.ModifierFlagsPublic
-		case !isWrite && s.CheckFlags()&ast.CheckFlagsContainsProtected != 0 || isWrite && s.CheckFlags()&ast.CheckFlagsContainsWriteProtected != 0:
+		case !isWrite && c.symbolCheckFlags(s)&ast.CheckFlagsContainsProtected != 0 || isWrite && c.symbolCheckFlags(s)&ast.CheckFlagsContainsWriteProtected != 0:
 			accessModifier = ast.ModifierFlagsProtected
-		case !isWrite && s.CheckFlags()&ast.CheckFlagsContainsPrivate != 0 || isWrite && s.CheckFlags()&ast.CheckFlagsContainsWritePrivate != 0:
+		case !isWrite && c.symbolCheckFlags(s)&ast.CheckFlagsContainsPrivate != 0 || isWrite && c.symbolCheckFlags(s)&ast.CheckFlagsContainsWritePrivate != 0:
 			accessModifier = ast.ModifierFlagsPrivate
 		}
-		if s.CheckFlags()&ast.CheckFlagsContainsStatic != 0 {
+		if c.symbolCheckFlags(s)&ast.CheckFlagsContainsStatic != 0 {
 			return accessModifier | ast.ModifierFlagsStatic
 		}
 		return accessModifier
 	}
-	if !s.ValueDeclaration().IsNil() {
+	if !c.symbolValueDeclaration(s).IsNil() {
 		var declaration ast.Node
 		if isWrite {
-			declaration = s.Declarations().Find(ast.IsSetAccessorDeclaration)
+			declaration = c.symbolDeclarations(s).Find(ast.IsSetAccessorDeclaration)
 		}
-		if declaration.IsNil() && s.Flags()&ast.SymbolFlagsGetAccessor != 0 {
-			declaration = s.Declarations().Find(ast.IsGetAccessorDeclaration)
+		if declaration.IsNil() && c.symbolFlags(s)&ast.SymbolFlagsGetAccessor != 0 {
+			declaration = c.symbolDeclarations(s).Find(ast.IsGetAccessorDeclaration)
 		}
 		if declaration.IsNil() {
-			declaration = s.ValueDeclaration()
+			declaration = c.symbolValueDeclaration(s)
 		}
 		flags := ast.GetCombinedModifierFlags(declaration)
-		if !s.Parent().IsNil() && s.Parent().Flags()&ast.SymbolFlagsClass != 0 {
+		if c.symbolParent(s) != 0 && c.symbolFlags(c.symbolParent(s))&ast.SymbolFlagsClass != 0 {
 			return flags
 		}
 		return flags & ^ast.ModifierFlagsAccessibilityModifier
 	}
-	if s.Flags()&ast.SymbolFlagsPrototype != 0 {
+	if c.symbolFlags(s)&ast.SymbolFlagsPrototype != 0 {
 		return ast.ModifierFlagsPublic | ast.ModifierFlagsStatic
 	}
 	return ast.ModifierFlagsNone
@@ -1131,15 +1131,19 @@ func isVariableDeclarationInVariableStatement(node ast.Node) bool {
 	return ast.IsVariableDeclarationList(node.Parent()) && ast.IsVariableStatement(node.Parent().Parent())
 }
 
-func IsKnownSymbol(symbol ast.Symbol) bool {
-	return symbol.Name().IsLateBoundName()
+func (c *Checker) isKnownSymbol(symbol ast.SymbolId) bool {
+	return c.symbolName(symbol).IsLateBoundName()
 }
 
-func IsPrivateIdentifierSymbol(symbol ast.Symbol) bool {
-	if symbol.IsNil() {
+func (c *Checker) IsPrivateIdentifierSymbol(symbol ast.Symbol) bool {
+	return c.isPrivateIdentifierSymbol(c.symbolId(symbol))
+}
+
+func (c *Checker) isPrivateIdentifierSymbol(symbol ast.SymbolId) bool {
+	if symbol == 0 {
 		return false
 	}
-	return symbol.Name().IsPrivateName()
+	return c.symbolName(symbol).IsPrivateName()
 }
 
 func isObjectOrArrayLiteralType(t *Type) bool {
@@ -1192,14 +1196,14 @@ func isInfinityOrNaNString(name string) bool {
 	return name == "Infinity" || name == "-Infinity" || name == "NaN"
 }
 
-func (c *Checker) isConstantVariable(symbol ast.Symbol) bool {
-	return symbol.Flags()&ast.SymbolFlagsVariable != 0 && (c.getDeclarationNodeFlagsFromSymbol(symbol)&ast.NodeFlagsConstant) != 0
+func (c *Checker) isConstantVariable(symbol ast.SymbolId) bool {
+	return c.symbolFlags(symbol)&ast.SymbolFlagsVariable != 0 && (c.getDeclarationNodeFlagsFromSymbol(symbol)&ast.NodeFlagsConstant) != 0
 }
 
-func (c *Checker) isParameterOrMutableLocalVariable(symbol ast.Symbol) bool {
+func (c *Checker) isParameterOrMutableLocalVariable(symbol ast.SymbolId) bool {
 	// Return true if symbol is a parameter, a catch clause variable, or a mutable local variable
-	if !symbol.ValueDeclaration().IsNil() {
-		declaration := ast.GetRootDeclaration(symbol.ValueDeclaration())
+	if !c.symbolValueDeclaration(symbol).IsNil() {
+		declaration := ast.GetRootDeclaration(c.symbolValueDeclaration(symbol))
 		return !declaration.IsNil() && (ast.IsParameterDeclaration(declaration) || ast.IsVariableDeclaration(declaration) && (ast.IsCatchClause(declaration.Parent()) || c.isMutableLocalVariableDeclaration(declaration)))
 	}
 	return false
@@ -1306,8 +1310,8 @@ func isInNameOfExpressionWithTypeArgumentsOrHeritageTypeReference(node ast.Node)
 		ast.IsNameOfHeritageClauseTypeReference(node)
 }
 
-func getIndexSymbolFromSymbolTable(symbolTable ast.SymbolTable) ast.Symbol {
-	return symbolTable.Get(ast.InternalSymbolNameIndex)
+func (c *Checker) getIndexSymbolFromSymbolTable(symbolTable ast.SymbolTable) ast.SymbolId {
+	return symbolTable.GetId(c.symbols, ast.InternalSymbolNameIndex)
 }
 
 // Indicates whether the result of an `Expression` will be unused.
@@ -1413,8 +1417,8 @@ func getEnclosingContainer(node ast.Node) ast.Node {
 	})
 }
 
-func getDeclarationsOfKind(symbol ast.Symbol, kind ast.Kind) []ast.Node {
-	return symbol.Declarations().Filter(func(d ast.Node) bool { return d.Kind() == kind })
+func (c *Checker) getDeclarationsOfKind(symbol ast.SymbolId, kind ast.Kind) []ast.Node {
+	return c.symbolDeclarations(symbol).Filter(func(d ast.Node) bool { return d.Kind() == kind })
 }
 
 func hasType(node ast.Node) bool {
@@ -1742,10 +1746,10 @@ func tryGetPropertyAccessOrIdentifierToString(expr ast.Node) string {
 	return ""
 }
 
-func allDeclarationsInSameSourceFile(symbol ast.Symbol) bool {
-	if symbol.Declarations().Len() > 1 {
+func (c *Checker) allDeclarationsInSameSourceFile(symbol ast.SymbolId) bool {
+	if c.symbolDeclarations(symbol).Len() > 1 {
 		var sourceFile *ast.SourceFile
-		for i, d := range symbol.Declarations().All() {
+		for i, d := range c.symbolDeclarations(symbol).All() {
 			if i == 0 {
 				sourceFile = ast.GetSourceFileOfNode(d)
 			} else if ast.GetSourceFileOfNode(d) != sourceFile {
@@ -1792,9 +1796,9 @@ func introducesArgumentsExoticObject(node ast.Node) bool {
 	return false
 }
 
-func symbolsToArray(symbols ast.SymbolTable) []ast.Symbol {
-	var result []ast.Symbol
-	for id, symbol := range symbols.All() {
+func (c *Checker) symbolsToArray(symbols ast.SymbolTable) []ast.SymbolId {
+	var result []ast.SymbolId
+	for id, symbol := range symbols.AllIds(c.symbols) {
 		if !id.IsReservedMemberName() {
 			result = append(result, symbol)
 		}
@@ -1802,16 +1806,16 @@ func symbolsToArray(symbols ast.SymbolTable) []ast.Symbol {
 	return result
 }
 
-func SkipAlias(symbol ast.Symbol, checker *Checker) ast.Symbol {
-	if symbol.Flags()&ast.SymbolFlagsAlias != 0 {
-		return checker.GetAliasedSymbol(symbol)
+func skipAlias(symbol ast.SymbolId, checker *Checker) ast.SymbolId {
+	if checker.symbolFlags(symbol)&ast.SymbolFlagsAlias != 0 {
+		return checker.getAliasedSymbol(symbol)
 	}
 	return symbol
 }
 
 // True if the symbol is for an external module, as opposed to a namespace.
-func IsExternalModuleSymbol(moduleSymbol ast.Symbol) bool {
-	return moduleSymbol.IsExternalModule()
+func (c *Checker) isExternalModuleSymbol(moduleSymbol ast.SymbolId) bool {
+	return c.symbolIsExternalModule(moduleSymbol)
 }
 
 func (c *Checker) isCanceled() bool {
@@ -1879,23 +1883,23 @@ func nodeStartsNewLexicalEnvironment(node ast.Node) bool {
 // It does not suggest when the suggestion:
 // - Is from a global file that is different from the reference file, or
 // - (optionally) Is a class, or is a this.x property access expression
-func (c *Checker) isUncheckedJSSuggestion(node ast.Node, suggestion ast.Symbol, excludeClasses bool) bool {
+func (c *Checker) isUncheckedJSSuggestion(node ast.Node, suggestion ast.SymbolId, excludeClasses bool) bool {
 	file := ast.GetSourceFileOfNode(node)
 	if file != nil {
 		if c.compilerOptions.CheckJs.IsUnknown() && file.CheckJsDirective == nil && (file.ScriptKind == core.ScriptKindJS || file.ScriptKind == core.ScriptKindJSX) {
 			var declarationFile *ast.SourceFile
-			if !suggestion.IsNil() {
-				if firstDeclaration := suggestion.Declarations().FirstOrNil(); !firstDeclaration.IsNil() {
+			if suggestion != 0 {
+				if firstDeclaration := c.symbolDeclarations(suggestion).FirstOrNil(); !firstDeclaration.IsNil() {
 					declarationFile = ast.GetSourceFileOfNode(firstDeclaration)
 				}
 			}
-			suggestionHasNoExtendsOrDecorators := suggestion.IsNil() ||
-				suggestion.ValueDeclaration().IsNil() ||
-				!ast.IsClassLike(suggestion.ValueDeclaration()) ||
-				len(ast.GetExtendsHeritageClauseElements(suggestion.ValueDeclaration())) != 0 ||
-				ast.ClassOrConstructorParameterIsDecorated(false, suggestion.ValueDeclaration())
+			suggestionHasNoExtendsOrDecorators := suggestion == 0 ||
+				c.symbolValueDeclaration(suggestion).IsNil() ||
+				!ast.IsClassLike(c.symbolValueDeclaration(suggestion)) ||
+				len(ast.GetExtendsHeritageClauseElements(c.symbolValueDeclaration(suggestion))) != 0 ||
+				ast.ClassOrConstructorParameterIsDecorated(false, c.symbolValueDeclaration(suggestion))
 			return !(file != declarationFile && declarationFile != nil && ast.IsGlobalSourceFile(declarationFile.AsNode())) &&
-				!(excludeClasses && !suggestion.IsNil() && suggestion.Flags()&ast.SymbolFlagsClass != 0 && suggestionHasNoExtendsOrDecorators) &&
+				!(excludeClasses && suggestion != 0 && c.symbolFlags(suggestion)&ast.SymbolFlagsClass != 0 && suggestionHasNoExtendsOrDecorators) &&
 				!(!node.IsNil() && excludeClasses && ast.IsPropertyAccessExpression(node) && node.Expression().Kind() == ast.KindThisKeyword && suggestionHasNoExtendsOrDecorators)
 		}
 	}
@@ -2027,4 +2031,16 @@ func GetSetAccessorValueParameter(accessor ast.Node) ast.Node {
 
 func quotedAndCommaSeparated(items []string) string {
 	return strings.Join(core.Map(items, func(item string) string { return "'" + item + "'" }), ", ")
+}
+
+func IsKnownSymbol(symbol ast.Symbol) bool {
+	return symbol.Name().IsLateBoundName()
+}
+
+func IsExternalModuleSymbol(moduleSymbol ast.Symbol) bool {
+	return moduleSymbol.IsExternalModule()
+}
+
+func SkipAlias(symbol ast.Symbol, checker *Checker) ast.Symbol {
+	return checker.symbolOf(skipAlias(checker.symbolId(symbol), checker))
 }

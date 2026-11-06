@@ -34,11 +34,11 @@ func cloneNodeBuilderContext(context *NodeBuilderContext) func() {
 
 type localsRecord struct {
 	name      ast.SymbolName
-	oldSymbol ast.Symbol
+	oldSymbol ast.SymbolId
 }
 
-func (b *NodeBuilderImpl) addSymbolTypeToContext(symbol ast.Symbol, t *Type) func() {
-	id := ast.GetSymbolSerial(symbol)
+func (b *NodeBuilderImpl) addSymbolTypeToContext(symbol ast.SymbolId, t *Type) func() {
+	id := ast.GetSymbolSerial(b.ch.symbolOf(symbol))
 	oldType, oldTypeExists := b.ctx.enclosingSymbolTypes[id]
 	b.ctx.enclosingSymbolTypes[id] = t
 	return func() {
@@ -50,13 +50,13 @@ func (b *NodeBuilderImpl) addSymbolTypeToContext(symbol ast.Symbol, t *Type) fun
 	}
 }
 
-func (b *NodeBuilderImpl) enterSignatureScope(signature *Signature) (expandedParams []ast.Symbol, cleanup func()) {
+func (b *NodeBuilderImpl) enterSignatureScope(signature *Signature) (expandedParams []ast.SymbolId, cleanup func()) {
 	expandedParams = b.ch.getExpandedParameters(signature, true /*skipUnionExpanding*/)[0]
 	cleanup = b.enterNewScope(b.ch.nodeOf(signature.declaration), expandedParams, signature.TypeParameters(), signature.parameters, b.ch.mapperOf(signature.mapper))
 	return expandedParams, cleanup
 }
 
-func (b *NodeBuilderImpl) enterNewScope(declaration ast.Node, expandedParams []ast.Symbol, typeParameters []*Type, originalParameters []ast.Symbol, mapper *TypeMapper) func() {
+func (b *NodeBuilderImpl) enterNewScope(declaration ast.Node, expandedParams []ast.SymbolId, typeParameters []*Type, originalParameters []ast.SymbolId, mapper *TypeMapper) func() {
 	cleanupContext := cloneNodeBuilderContext(b.ctx)
 	// For regular function/method declarations, the enclosing declaration will already be signature.declaration,
 	// so this is a no-op, but for arrow functions and function expressions, the enclosing declaration will be
@@ -94,7 +94,7 @@ func (b *NodeBuilderImpl) enterNewScope(declaration ast.Node, expandedParams []a
 		// Note that we only check the most immediate enclosingDeclaration; the only place we
 		// could potentially add another fake scope into the chain is right here, so we don't
 		// traverse all ancestors.
-		pushFakeScope := func(kind string, addAll func(addSymbol func(name ast.SymbolName, symbol ast.Symbol))) func() {
+		pushFakeScope := func(kind string, addAll func(addSymbol func(name ast.SymbolName, symbol ast.SymbolId))) func() {
 			// We only ever need to look two declarations upward.
 			debug.Assert(!b.ctx.enclosingDeclaration.IsNil())
 			var existingFakeScope ast.Node
@@ -123,17 +123,17 @@ func (b *NodeBuilderImpl) enterNewScope(declaration ast.Node, expandedParams []a
 			}
 			newLocals := []ast.SymbolName{}
 			oldLocals := []localsRecord{}
-			addAll(func(name ast.SymbolName, symbol ast.Symbol) {
+			addAll(func(name ast.SymbolName, symbol ast.SymbolId) {
 				// Add cleanup information only if we don't own the fake scope
 				if !existingFakeScope.IsNil() {
-					oldSymbol, ok := locals.Lookup(name)
-					if !ok || oldSymbol.IsNil() {
+					oldSymbol, ok := locals.LookupId(b.ch.symbols, name)
+					if !ok || oldSymbol == 0 {
 						newLocals = append(newLocals, name)
 					} else {
 						oldLocals = append(oldLocals, localsRecord{name, oldSymbol})
 					}
 				}
-				locals.Set(name, symbol)
+				locals.SetId(b.ch.symbols, name, symbol)
 			})
 
 			if existingFakeScope.IsNil() {
@@ -153,31 +153,31 @@ func (b *NodeBuilderImpl) enterNewScope(declaration ast.Node, expandedParams []a
 						locals.Delete(s)
 					}
 					for _, s := range oldLocals {
-						locals.Set(s.name, s.oldSymbol)
+						locals.SetId(b.ch.symbols, s.name, s.oldSymbol)
 					}
 				}
 				return undo
 			}
 		}
 
-		if expandedParams == nil || !core.Some(expandedParams, func(p ast.Symbol) bool { return !p.IsNil() }) {
+		if expandedParams == nil || !core.Some(expandedParams, func(p ast.SymbolId) bool { return p != 0 }) {
 			cleanupParams = nil
 		} else {
-			cleanupParams = pushFakeScope("params", func(add func(name ast.SymbolName, symbol ast.Symbol)) {
+			cleanupParams = pushFakeScope("params", func(add func(name ast.SymbolName, symbol ast.SymbolId)) {
 				if expandedParams == nil {
 					return
 				}
 				for pIndex, param := range expandedParams {
-					var originalParam ast.Symbol
+					var originalParam ast.SymbolId
 					if pIndex < len(originalParameters) {
 						originalParam = originalParameters[pIndex]
 					}
 					if originalParameters != nil && originalParam != param {
 						// Can't reference the expanded parameter name, just the original, unless we've expanded the param list for some reason
-						if !originalParam.IsNil() {
-							add(originalParam.Name(), originalParam)
+						if originalParam != 0 {
+							add(b.ch.symbolName(originalParam), originalParam)
 						}
-					} else if !param.Declarations().Some(func(d ast.Node) bool {
+					} else if !b.ch.symbolDeclarations(param).Some(func(d ast.Node) bool {
 						var bindElement func(e ast.BindingElement)
 						var bindPattern func(e ast.BindingPattern)
 
@@ -201,8 +201,8 @@ func (b *NodeBuilderImpl) enterNewScope(declaration ast.Node, expandedParams []a
 								return
 							}
 							symbol := b.ch.getSymbolOfDeclaration(e.AsNode())
-							if !symbol.IsNil() { // omitted expressions are now parsed as nameless binding patterns and also have no symbol
-								add(symbol.Name(), symbol)
+							if symbol != 0 { // omitted expressions are now parsed as nameless binding patterns and also have no symbol
+								add(b.ch.symbolName(symbol), symbol)
 							}
 						}
 						bindElement = bindElementWorker
@@ -214,14 +214,14 @@ func (b *NodeBuilderImpl) enterNewScope(declaration ast.Node, expandedParams []a
 						}
 						return false
 					}) {
-						add(param.Name(), param)
+						add(b.ch.symbolName(param), param)
 					}
 				}
 			})
 		}
 
 		if b.ctx.flags&nodebuilder.FlagsGenerateNamesForShadowedTypeParams != 0 && typeParameters != nil && core.Some(typeParameters, func(p *Type) bool { return p != nil }) {
-			cleanupTypeParams = pushFakeScope("typeParams", func(add func(name ast.SymbolName, symbol ast.Symbol)) {
+			cleanupTypeParams = pushFakeScope("typeParams", func(add func(name ast.SymbolName, symbol ast.SymbolId)) {
 				if typeParameters == nil {
 					return
 				}

@@ -92,14 +92,14 @@ func (a *tracedTypeAdapter) IsConditional() bool {
 }
 
 func (a *tracedTypeAdapter) Symbol() ast.Symbol {
-	return a.checker.symbolOfType(a.t)
+	return a.checker.symbolOf(a.checker.symbolOfType(a.t))
 }
 
 func (a *tracedTypeAdapter) AliasSymbol() ast.Symbol {
 	if a.t.Alias() == nil {
 		return ast.Symbol{}
 	}
-	return a.t.Alias().Symbol()
+	return a.checker.symbolOf(a.t.Alias().Symbol())
 }
 
 func (a *tracedTypeAdapter) AliasTypeArguments() []tracing.TracedType {

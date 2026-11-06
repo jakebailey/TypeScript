@@ -529,8 +529,8 @@ func (l *LanguageService) itemInfoForTypeParameters(candidateSignature *checker.
 	}
 
 	thisParameter := []signatureHelpParameter{}
-	if !candidateSignature.ThisParameter().IsNil() {
-		thisParameter = []signatureHelpParameter{l.createSignatureHelpParameterForParameter(candidateSignature.ThisParameter(), enclosingDeclaration, builder, p, sourceFile, c, docFormat)}
+	if candidateSignature.ThisParameter() != 0 {
+		thisParameter = []signatureHelpParameter{l.createSignatureHelpParameterForParameter(c.SymbolView(candidateSignature.ThisParameter()), enclosingDeclaration, builder, p, sourceFile, c, docFormat)}
 	}
 
 	// Creating type parameter display label

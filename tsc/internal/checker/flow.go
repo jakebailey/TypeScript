@@ -385,7 +385,7 @@ func (c *Checker) narrowType(f *FlowState, t *Type, expr ast.Node, assumeTrue bo
 		if !c.isMatchingReference(f.reference, expr) && c.inlineLevel < 5 {
 			symbol := c.getResolvedSymbol(expr)
 			if c.isConstantVariable(symbol) {
-				declaration := symbol.ValueDeclaration()
+				declaration := c.symbolValueDeclaration(symbol)
 				if !declaration.IsNil() && ast.IsVariableDeclaration(declaration) && declaration.Type().IsNil() && !declaration.Initializer().IsNil() && c.isConstantReference(f.reference) {
 					c.inlineLevel++
 					result := c.narrowType(f, t, declaration.Initializer(), assumeTrue)
@@ -768,7 +768,7 @@ func (c *Checker) narrowTypeByConstructor(t *Type, operator ast.Kind, identifier
 	}
 	// Get the prototype property of the type identifier so we can find out its type.
 	prototypeProperty := c.getPropertyOfType(identifierType, ast.SymbolNamePrototype)
-	if prototypeProperty.IsNil() {
+	if prototypeProperty == 0 {
 		return t
 	}
 	// Get the type of the prototype, if it is undefined, or the global `Object` or `Function` types then do not narrow.
@@ -984,12 +984,12 @@ func (c *Checker) narrowTypeByPrivateIdentifierInInExpression(f *FlowState, t *T
 		return t
 	}
 	symbol := c.getSymbolForPrivateIdentifierExpression(expr.Left())
-	if symbol.IsNil() {
+	if symbol == 0 {
 		return t
 	}
-	classSymbol := symbol.Parent()
+	classSymbol := c.symbolParent(symbol)
 	var targetType *Type
-	if ast.HasStaticModifier(symbol.ValueDeclaration()) {
+	if ast.HasStaticModifier(c.symbolValueDeclaration(symbol)) {
 		targetType = c.getTypeOfSymbol(classSymbol)
 	} else {
 		targetType = c.getDeclaredTypeOfSymbol(classSymbol)
@@ -1013,7 +1013,7 @@ func (c *Checker) narrowTypeByInKeyword(f *FlowState, t *Type, nameType *Type, a
 		// If the check is for an unknown property, we intersect the target type with `Record<X, unknown>`,
 		// where X is the name of the property.
 		recordSymbol := c.getGlobalRecordSymbol()
-		if !recordSymbol.IsNil() {
+		if recordSymbol != 0 {
 			return c.getIntersectionType([]*Type{t, c.getTypeAliasInstantiation(recordSymbol, []*Type{nameType, c.unknownType}, nil)})
 		}
 	}
@@ -1022,8 +1022,8 @@ func (c *Checker) narrowTypeByInKeyword(f *FlowState, t *Type, nameType *Type, a
 
 func (c *Checker) isTypePresencePossible(t *Type, propName ast.SymbolName, assumeTrue bool) bool {
 	prop := c.getPropertyOfType(t, propName)
-	if !prop.IsNil() {
-		return prop.Flags()&ast.SymbolFlagsOptional != 0 || prop.CheckFlags()&ast.CheckFlagsPartial != 0 || assumeTrue
+	if prop != 0 {
+		return c.symbolFlags(prop)&ast.SymbolFlagsOptional != 0 || c.symbolCheckFlags(prop)&ast.CheckFlagsPartial != 0 || assumeTrue
 	}
 	return c.getApplicableIndexInfoForName(t, propName) != nil || !assumeTrue
 }
@@ -1461,7 +1461,7 @@ func (c *Checker) getCandidateDiscriminantPropertyAccess(f *FlowState, expr ast.
 		// parameter declared in the same parameter list is a candidate.
 		if ast.IsIdentifier(expr) {
 			symbol := c.getResolvedSymbol(expr)
-			declaration := c.getExportSymbolOfValueSymbolIfExported(symbol).ValueDeclaration()
+			declaration := c.symbolValueDeclaration(c.getExportSymbolOfValueSymbolIfExported(symbol))
 			if !declaration.IsNil() && (ast.IsBindingElement(declaration) || ast.IsParameterDeclaration(declaration)) && f.reference == declaration.Parent() && declaration.Initializer().IsNil() && !hasDotDotDotToken(declaration) {
 				return declaration
 			}
@@ -1474,7 +1474,7 @@ func (c *Checker) getCandidateDiscriminantPropertyAccess(f *FlowState, expr ast.
 	case ast.IsIdentifier(expr):
 		symbol := c.getResolvedSymbol(expr)
 		if c.isConstantVariable(symbol) {
-			declaration := symbol.ValueDeclaration()
+			declaration := c.symbolValueDeclaration(symbol)
 			initializer := getCandidateVariableDeclarationInitializer(declaration)
 			// Given 'const x = obj.kind', allow 'x' as an alias for 'obj.kind'
 			if !initializer.IsNil() && ast.IsAccessExpression(initializer) && c.isMatchingReference(f.reference, initializer.Expression()) {
@@ -1509,7 +1509,7 @@ func (c *Checker) getEvolvingArrayType(elementType *Type) *Type {
 	key := CachedTypeKey{kind: CachedTypeKindEvolvingArrayType, typeId: elementType.Id()}
 	result := c.cachedTypes[key]
 	if result == nil {
-		result = c.newObjectType(ObjectFlagsEvolvingArray, ast.Symbol{})
+		result = c.newObjectType(ObjectFlagsEvolvingArray, 0)
 		result.AsEvolvingArrayType().setElementType(elementType)
 		c.cachedTypes[key] = result
 	}
@@ -1763,10 +1763,10 @@ func (c *Checker) tryGetElementAccessExpressionName(node ast.ElementAccessExpres
 
 func (c *Checker) tryGetNameFromEntityNameExpression(node ast.Node) (ast.SymbolName, bool) {
 	symbol := c.resolveEntityName(node, ast.SymbolFlagsValue, true /*ignoreErrors*/, false, ast.Node{})
-	if symbol.IsNil() || !(c.isConstantVariable(symbol) || (symbol.Flags()&ast.SymbolFlagsEnumMember != 0)) {
+	if symbol == 0 || !(c.isConstantVariable(symbol) || (c.symbolFlags(symbol)&ast.SymbolFlagsEnumMember != 0)) {
 		return ast.EmptySymbolName, false
 	}
-	declaration := symbol.ValueDeclaration()
+	declaration := c.symbolValueDeclaration(symbol)
 	if declaration.IsNil() {
 		return ast.EmptySymbolName, false
 	}
@@ -1830,13 +1830,13 @@ func (c *Checker) isConstantReference(node ast.Node) bool {
 	case ast.KindIdentifier:
 		if !ast.IsThisInTypeQuery(node) {
 			symbol := c.getResolvedSymbol(node)
-			return c.isConstantVariable(symbol) || c.isParameterOrMutableLocalVariable(symbol) && !c.isSymbolAssigned(symbol) || !symbol.ValueDeclaration().IsNil() && ast.IsFunctionExpression(symbol.ValueDeclaration())
+			return c.isConstantVariable(symbol) || c.isParameterOrMutableLocalVariable(symbol) && !c.isSymbolAssigned(symbol) || !c.symbolValueDeclaration(symbol).IsNil() && ast.IsFunctionExpression(c.symbolValueDeclaration(symbol))
 		}
 	case ast.KindPropertyAccessExpression, ast.KindElementAccessExpression:
 		// The resolvedSymbol property is initialized by checkPropertyAccess or checkElementAccess before we get here.
 		if c.isConstantReference(node.Expression()) {
 			symbol := c.getResolvedSymbolOrNil(node)
-			if !symbol.IsNil() {
+			if symbol != 0 {
 				return c.isReadonlySymbol(symbol)
 			}
 		}
@@ -2105,7 +2105,7 @@ func (c *Checker) getSymbolHasInstanceMethodOfObjectType(t *Type) *Type {
 	hasInstancePropertyName := c.getPropertyNameForKnownSymbolName(ast.SymbolNameHasInstance)
 	if c.allTypesAssignableToKind(t, TypeFlagsNonPrimitive) {
 		hasInstanceProperty := c.getPropertyOfType(t, hasInstancePropertyName)
-		if !hasInstanceProperty.IsNil() {
+		if hasInstanceProperty != 0 {
 			hasInstancePropertyType := c.getTypeOfSymbol(hasInstanceProperty)
 			if hasInstancePropertyType != nil && len(c.getSignaturesOfType(hasInstancePropertyType, SignatureKindCall)) != 0 {
 				return hasInstancePropertyType
@@ -2117,7 +2117,7 @@ func (c *Checker) getSymbolHasInstanceMethodOfObjectType(t *Type) *Type {
 
 func (c *Checker) getPropertyNameForKnownSymbolName(symbolName ast.SymbolName) ast.SymbolName {
 	ctorType := c.getGlobalESSymbolConstructorSymbolOrNil()
-	if !ctorType.IsNil() {
+	if ctorType != 0 {
 		uniqueType := c.getTypeOfPropertyOfType(c.getTypeOfSymbol(ctorType), symbolName)
 		if uniqueType != nil && isTypeUsableAsPropertyName(uniqueType) {
 			return getPropertyNameFromType(uniqueType)
@@ -2144,15 +2144,15 @@ func (c *Checker) getTypeOfDottedName(node ast.Node, diagnostic *ast.Diagnostic)
 			t := c.getTypeOfDottedName(node.Expression(), diagnostic)
 			if t != nil {
 				name := node.Name()
-				var prop ast.Symbol
+				var prop ast.SymbolId
 				if ast.IsPrivateIdentifier(name) {
-					if !c.symbolOfType(t).IsNil() {
-						prop = c.getPropertyOfType(t, binder.GetSymbolNameForPrivateIdentifier(c.symbolOfType(t), name.Text()))
+					if c.symbolOfType(t) != 0 {
+						prop = c.getPropertyOfType(t, binder.GetSymbolNameForPrivateIdentifier(c.symbolOf(c.symbolOfType(t)), name.Text()))
 					}
 				} else {
 					prop = c.getPropertyOfType(t, name.TextSymbolName())
 				}
-				if !prop.IsNil() {
+				if prop != 0 {
 					return c.getExplicitTypeOfSymbol(prop, diagnostic)
 				}
 			}
@@ -2163,23 +2163,23 @@ func (c *Checker) getTypeOfDottedName(node ast.Node, diagnostic *ast.Diagnostic)
 	return nil
 }
 
-func (c *Checker) getExplicitTypeOfSymbol(symbol ast.Symbol, diagnostic *ast.Diagnostic) *Type {
+func (c *Checker) getExplicitTypeOfSymbol(symbol ast.SymbolId, diagnostic *ast.Diagnostic) *Type {
 	symbol = c.resolveSymbol(symbol)
 	if !c.resolvingExplicitTypeOfSymbol.AddIfAbsent(symbol) {
 		return nil
 	}
 	defer c.resolvingExplicitTypeOfSymbol.Delete(symbol)
-	if symbol.Flags()&(ast.SymbolFlagsFunction|ast.SymbolFlagsMethod|ast.SymbolFlagsClass|ast.SymbolFlagsValueModule) != 0 {
+	if c.symbolFlags(symbol)&(ast.SymbolFlagsFunction|ast.SymbolFlagsMethod|ast.SymbolFlagsClass|ast.SymbolFlagsValueModule) != 0 {
 		return c.getTypeOfSymbol(symbol)
 	}
-	if symbol.Flags()&(ast.SymbolFlagsVariable|ast.SymbolFlagsProperty) != 0 {
-		if symbol.CheckFlags()&ast.CheckFlagsMapped != 0 {
+	if c.symbolFlags(symbol)&(ast.SymbolFlagsVariable|ast.SymbolFlagsProperty) != 0 {
+		if c.symbolCheckFlags(symbol)&ast.CheckFlagsMapped != 0 {
 			origin := c.mappedSymbolLinks.Get(symbol).syntheticOrigin
-			if !origin.IsNil() && c.getExplicitTypeOfSymbol(origin, diagnostic) != nil {
+			if origin != 0 && c.getExplicitTypeOfSymbol(origin, diagnostic) != nil {
 				return c.getTypeOfSymbol(symbol)
 			}
 		}
-		declaration := symbol.ValueDeclaration()
+		declaration := c.symbolValueDeclaration(symbol)
 		if !declaration.IsNil() {
 			if c.isDeclarationWithExplicitTypeAnnotation(declaration) {
 				return c.getTypeOfSymbol(symbol)
@@ -2227,7 +2227,7 @@ func (c *Checker) getExplicitThisType(node ast.Node) *Type {
 	container := ast.GetThisContainer(node, false /*includeArrowFunctions*/, false /*includeClassComputedPropertyName*/)
 	if ast.IsFunctionLike(container) {
 		signature := c.getSignatureFromDeclaration(container)
-		if !signature.ThisParameter().IsNil() {
+		if signature.ThisParameter() != 0 {
 			return c.getExplicitTypeOfSymbol(signature.ThisParameter(), nil)
 		}
 	}
@@ -2471,12 +2471,12 @@ func (c *Checker) getTypePredicateArgument(predicate *TypePredicate, callExpress
 	return ast.Node{}
 }
 
-func (c *Checker) getFlowTypeInConstructor(symbol ast.Symbol, constructor ast.Node) *Type {
+func (c *Checker) getFlowTypeInConstructor(symbol ast.SymbolId, constructor ast.Node) *Type {
 	var accessName ast.Node
-	if description, ok := symbol.Name().PrivateNameDescription(); ok {
+	if description, ok := c.symbolName(symbol).PrivateNameDescription(); ok {
 		accessName = c.factory.NewPrivateIdentifier(description)
 	} else {
-		accessName = c.factory.NewIdentifier(symbol.Name().String())
+		accessName = c.factory.NewIdentifier(c.symbolName(symbol).String())
 	}
 	reference := c.factory.NewPropertyAccessExpression(c.factory.NewKeywordExpression(ast.KindThisKeyword), ast.Node{}, accessName, ast.NodeFlagsNone)
 	reference.Expression().SetParent(reference)
@@ -2484,7 +2484,7 @@ func (c *Checker) getFlowTypeInConstructor(symbol ast.Symbol, constructor ast.No
 	reference.FlowNodeData().SetFlowNode(constructor.AsConstructorDeclaration().ReturnFlowNode())
 	flowType := c.getFlowTypeOfProperty(reference, symbol)
 	if c.noImplicitAny && (flowType == c.autoType || flowType == c.autoArrayType) {
-		c.error(symbol.ValueDeclaration(), diagnostics.Member_0_implicitly_has_an_1_type, c.symbolToString(symbol), c.TypeToString(flowType))
+		c.error(c.symbolValueDeclaration(symbol), diagnostics.Member_0_implicitly_has_an_1_type, c.symbolToString(symbol), c.TypeToString(flowType))
 	}
 	// We don't infer a type if assignments are only null or undefined.
 	if everyType(flowType, c.IsNullableType) {
@@ -2493,12 +2493,12 @@ func (c *Checker) getFlowTypeInConstructor(symbol ast.Symbol, constructor ast.No
 	return c.convertAutoToAny(flowType)
 }
 
-func (c *Checker) getFlowTypeInStaticBlocks(symbol ast.Symbol, staticBlocks []ast.Node) *Type {
+func (c *Checker) getFlowTypeInStaticBlocks(symbol ast.SymbolId, staticBlocks []ast.Node) *Type {
 	var accessName ast.Node
-	if description, ok := symbol.Name().PrivateNameDescription(); ok {
+	if description, ok := c.symbolName(symbol).PrivateNameDescription(); ok {
 		accessName = c.factory.NewPrivateIdentifier(description)
 	} else {
-		accessName = c.factory.NewIdentifier(symbol.Name().String())
+		accessName = c.factory.NewIdentifier(c.symbolName(symbol).String())
 	}
 	for _, staticBlock := range staticBlocks {
 		reference := c.factory.NewPropertyAccessExpression(c.factory.NewKeywordExpression(ast.KindThisKeyword), ast.Node{}, accessName, ast.NodeFlagsNone)
@@ -2507,7 +2507,7 @@ func (c *Checker) getFlowTypeInStaticBlocks(symbol ast.Symbol, staticBlocks []as
 		reference.FlowNodeData().SetFlowNode(staticBlock.AsClassStaticBlockDeclaration().ReturnFlowNode())
 		flowType := c.getFlowTypeOfProperty(reference, symbol)
 		if c.noImplicitAny && (flowType == c.autoType || flowType == c.autoArrayType) {
-			c.error(symbol.ValueDeclaration(), diagnostics.Member_0_implicitly_has_an_1_type, c.symbolToString(symbol), c.TypeToString(flowType))
+			c.error(c.symbolValueDeclaration(symbol), diagnostics.Member_0_implicitly_has_an_1_type, c.symbolToString(symbol), c.TypeToString(flowType))
 		}
 		// We don't infer a type if assignments are only null or undefined.
 		if everyType(flowType, c.IsNullableType) {
@@ -2660,27 +2660,27 @@ func (c *Checker) isPostSuperFlowNodeWorker(f *FlowState, flow ast.FlowNode, noC
 }
 
 // Check if a parameter, catch variable, or mutable local variable is definitely assigned anywhere
-func (c *Checker) isSymbolAssignedDefinitely(symbol ast.Symbol) bool {
+func (c *Checker) isSymbolAssignedDefinitely(symbol ast.SymbolId) bool {
 	c.ensureAssignmentsMarked(symbol)
 	return c.markedAssignmentSymbolLinks.Get(symbol).hasDefiniteAssignment
 }
 
 // Check if a parameter, catch variable, or mutable local variable is assigned anywhere
-func (c *Checker) isSymbolAssigned(symbol ast.Symbol) bool {
+func (c *Checker) isSymbolAssigned(symbol ast.SymbolId) bool {
 	c.ensureAssignmentsMarked(symbol)
 	return c.markedAssignmentSymbolLinks.Get(symbol).lastAssignmentPos != 0
 }
 
 // Return true if there are no assignments to the given symbol or if the given location
 // is past the last assignment to the symbol.
-func (c *Checker) isPastLastAssignment(symbol ast.Symbol, location ast.Node) bool {
+func (c *Checker) isPastLastAssignment(symbol ast.SymbolId, location ast.Node) bool {
 	c.ensureAssignmentsMarked(symbol)
 	lastAssignmentPos := c.markedAssignmentSymbolLinks.Get(symbol).lastAssignmentPos
 	return lastAssignmentPos == 0 || !location.IsNil() && int(lastAssignmentPos) < location.Pos()
 }
 
-func (c *Checker) ensureAssignmentsMarked(symbol ast.Symbol) {
-	parent := ast.FindAncestor(symbol.ValueDeclaration(), ast.IsFunctionOrSourceFile)
+func (c *Checker) ensureAssignmentsMarked(symbol ast.SymbolId) {
+	parent := ast.FindAncestor(c.symbolValueDeclaration(symbol), ast.IsFunctionOrSourceFile)
 	if parent.IsNil() {
 		return
 	}
@@ -2715,9 +2715,9 @@ func (c *Checker) markNodeAssignmentsWorker(node ast.Node) bool {
 				links := c.markedAssignmentSymbolLinks.Get(symbol)
 				if pos := links.lastAssignmentPos; pos == 0 || pos != math.MaxInt32 {
 					referencingFunction := ast.FindAncestor(node, ast.IsFunctionOrSourceFile)
-					declaringFunction := ast.FindAncestor(symbol.ValueDeclaration(), ast.IsFunctionOrSourceFile)
+					declaringFunction := ast.FindAncestor(c.symbolValueDeclaration(symbol), ast.IsFunctionOrSourceFile)
 					if referencingFunction == declaringFunction {
-						links.lastAssignmentPos = int32(c.extendAssignmentPosition(node, symbol.ValueDeclaration()))
+						links.lastAssignmentPos = int32(c.extendAssignmentPosition(node, c.symbolValueDeclaration(symbol)))
 					} else {
 						links.lastAssignmentPos = math.MaxInt32
 					}
@@ -2733,7 +2733,7 @@ func (c *Checker) markNodeAssignmentsWorker(node ast.Node) bool {
 		name := node.PropertyNameOrName()
 		if !node.IsTypeOnly() && !exportDeclaration.IsTypeOnly() && exportDeclaration.ModuleSpecifier().IsNil() && !ast.IsStringLiteral(name) {
 			symbol := c.resolveEntityName(name, ast.SymbolFlagsValue, true /*ignoreErrors*/, true /*dontResolveAlias*/, ast.Node{})
-			if !symbol.IsNil() && c.isParameterOrMutableLocalVariable(symbol) {
+			if symbol != 0 && c.isParameterOrMutableLocalVariable(symbol) {
 				links := c.markedAssignmentSymbolLinks.Get(symbol)
 				links.lastAssignmentPos = math.MaxInt32
 			}

@@ -109,7 +109,7 @@ func (c *Checker) checkGrammarPrivateIdentifierExpression(privId ast.PrivateIden
 		}
 
 		isInOperation := ast.IsBinaryExpression(privId.Parent()) && privId.Parent().AsBinaryExpression().OperatorToken().Kind() == ast.KindInKeyword
-		if c.getSymbolForPrivateIdentifierExpression(privIdAsNode).IsNil() && !isInOperation {
+		if c.getSymbolForPrivateIdentifierExpression(privIdAsNode) == 0 && !isInOperation {
 			return c.grammarErrorOnNode(privIdAsNode, diagnostics.Cannot_find_name_0, privId.Text())
 		}
 	}
@@ -246,7 +246,7 @@ func (c *Checker) checkGrammarModifiers(node ast.Node /*Union[HasModifiers, HasD
 					return c.grammarErrorOnFirstToken(node, diagnostics.Decorators_are_not_valid_here)
 				}
 			} else if c.legacyDecorators && (node.Kind() == ast.KindGetAccessor || node.Kind() == ast.KindSetAccessor) {
-				accessors := ast.GetAllAccessorDeclarationsForDeclaration(node, c.getSymbolOfDeclaration(node).Declarations())
+				accessors := ast.GetAllAccessorDeclarationsForDeclaration(node, c.symbolDeclarations(c.getSymbolOfDeclaration(node)))
 				if ast.HasDecorators(accessors.FirstAccessor) && node == accessors.SecondAccessor {
 					return c.grammarErrorOnFirstToken(node, diagnostics.Decorators_cannot_be_applied_to_multiple_get_Slashset_accessors_of_the_same_name)
 				}

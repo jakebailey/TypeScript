@@ -88,15 +88,8 @@ type symbolRare struct {
 	exports SymbolTable
 }
 
-// The symbols a checker makes, and its other per-symbol tables, are kept in
-// fixed-size pages, so that they never move and readers in other goroutines
-// need no lock.
-const (
-	symbolIdPageShift = 6
-	// lateSymbolIdBase is the first id of the symbols numbered as they are
-	// met.
-	lateSymbolIdBase = 1 << 31
-)
+// lateSymbolIdBase is the first id of the symbols numbered as they are met.
+const lateSymbolIdBase = 1 << 31
 
 // A checker's symbol is 32 bytes and holds no pointers. Its declarations
 // are refs in the checker's file table: one inline, or a list kept aside,
@@ -128,11 +121,6 @@ type symbolExtra struct {
 	exportSymbol SymbolId
 }
 
-type symbolIdPage struct {
-	s    *SymbolStore
-	base uint32
-}
-
 type checkerSymbols struct {
 	recs core.Pages[checkerSymbolRecord]
 	// names interns the names of the checker's symbols.
@@ -144,19 +132,13 @@ type checkerSymbols struct {
 	extraMu sync.RWMutex
 	extra   map[uint32]*symbolExtra
 
-	// The program's files' symbols have ids from 1, each file's from a
-	// multiple of 1<<symbolIdPageShift, so that dir finds a file's store from
-	// an id in one index. The checker's own symbols follow them from
-	// binderCount. Symbols of other stores are numbered from
-	// lateSymbolIdBase, as they are met.
-	dir         []symbolIdPage
-	bases       map[*SymbolStore]uint32
+	// The program's binder symbols have ids from 1 to binderCount; the
+	// checker's own symbols follow them from binderCount. Symbols of other
+	// stores are numbered from lateSymbolIdBase, as they are met.
+	binder      *BinderSymbols
 	binderCount uint32
-	// table numbers the stores of the checker's symbols' declarations, and
-	// with fileBases gives the base of a file's store from its number there,
-	// without a map lookup.
-	table     *FileTable
-	fileBases []uint32
+	// table numbers the stores of the checker's symbols' declarations.
+	table *FileTable
 
 	mu       sync.Mutex
 	lateSyms core.Pages[Symbol]
@@ -169,28 +151,8 @@ func NewCheckerSymbolStore(t *FileTable) *SymbolStore {
 	if t == nil {
 		t = NewFileTable(nil)
 	}
-	c := &checkerSymbols{}
-	c.bases = make(map[*SymbolStore]uint32, len(t.files))
-	c.table = t
-	c.fileBases = make([]uint32, len(t.files))
-	next := uint32(1)
-	for i, f := range t.files {
-		s := &f.symbols
-		if len(s.recs) == 0 {
-			continue
-		}
-		base := (next + 1<<symbolIdPageShift - 1) &^ (1<<symbolIdPageShift - 1)
-		c.bases[s] = base
-		c.fileBases[i] = base
-		for int(base+uint32(len(s.recs))) > len(c.dir)<<symbolIdPageShift {
-			c.dir = append(c.dir, symbolIdPage{s, base})
-		}
-		next = base + uint32(len(s.recs))
-	}
-	c.binderCount = uint32(len(c.dir)) << symbolIdPageShift
-	if c.binderCount == 0 {
-		c.binderCount = 1
-	}
+	c := &checkerSymbols{table: t, binder: t.BinderSymbols()}
+	c.binderCount = c.binder.count
 	c.nameIndex = make(map[SymbolName]uint32)
 	return &SymbolStore{checker: c}
 }
@@ -264,15 +226,7 @@ func (st *SymbolStore) BaseOf(s *SymbolStore) (uint32, bool) {
 	if s == st {
 		return c.binderCount, true
 	}
-	if s.nodes != nil {
-		if slot := s.nodes.slot.Load(); slot != nil && slot.table == c.table && slot.file < uint32(len(c.fileBases)) {
-			if base := c.fileBases[slot.file]; base != 0 {
-				return base, true
-			}
-		}
-	}
-	base, ok := c.bases[s]
-	return base, ok
+	return c.binder.BaseOf(s)
 }
 
 // late numbers a symbol of a store that is neither the checker's nor one of
@@ -307,8 +261,7 @@ func (st *SymbolStore) SymbolOf(id SymbolId) Symbol {
 	if i >= c.binderCount {
 		return Symbol{st, i - c.binderCount}
 	}
-	p := c.dir[i>>symbolIdPageShift]
-	return Symbol{p.s, i - p.base}
+	return c.binder.Symbol(id)
 }
 
 // Symbols returns the symbol store of the file whose tree s holds, made on

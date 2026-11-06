@@ -44,7 +44,7 @@ func (b *NodeBuilderImpl) reuseName(node ast.Node, isMethod bool) ast.Node {
 	var renamed ast.Node
 	switch kind {
 	case propertyNameNodeKindIdentifier:
-		renamed = b.newIdentifier(text, ast.Symbol{})
+		renamed = b.newIdentifier(text, 0)
 	case propertyNameNodeKindStringLiteral:
 		renamed = b.f.NewStringLiteral(text, ast.TokenFlagsNone)
 	default:
@@ -215,7 +215,7 @@ func (b *NodeBuilderImpl) finalizeBoundary(bound *recoveryBoundary) bool {
 		return false
 	}
 	for _, a := range bound.trackedSymbols {
-		b.ctx.tracker.TrackSymbol(a.symbol, a.enclosingDeclaration, a.meaning)
+		b.ctx.tracker.TrackSymbol(b.ch.symbolOf(b.ch.symbolId(a.symbol)), a.enclosingDeclaration, a.meaning)
 	}
 	return true
 }
@@ -223,7 +223,7 @@ func (b *NodeBuilderImpl) finalizeBoundary(bound *recoveryBoundary) bool {
 func (b *NodeBuilderImpl) tryReuseExistingNodeHelper(existing ast.TypeNode) ast.TypeNode {
 	bound := b.createRecoveryBoundary()
 	var transformed ast.Node
-	v := getExistingNodeTreeVisitor(b, bound) // !!! TODO: Cache visitor and just reset bound+host builder? We try this for a *lot* of nodes.
+	v := b.ch.getExistingNodeTreeVisitor(b, bound) // !!! TODO: Cache visitor and just reset bound+host builder? We try this for a *lot* of nodes.
 	transformed = v.VisitNode(existing)
 	if !b.finalizeBoundary(bound) {
 		return ast.Node{}
@@ -245,16 +245,16 @@ func (b *NodeBuilderImpl) getModuleSpecifierOverride(parent ast.Node, lit ast.No
 		if parent.AsImportTypeNode().IsTypeOf() {
 			meaning = ast.SymbolFlagsValue
 		}
-		var parentSymbol ast.Symbol
-		if !nodeSymbol.IsNil() && b.ch.IsSymbolAccessible(nodeSymbol, b.ctx.enclosingDeclaration, meaning, false).Accessibility == printer.SymbolAccessibilityAccessible {
+		var parentSymbol ast.SymbolId
+		if nodeSymbol != 0 && b.ch.isSymbolAccessible(nodeSymbol, b.ctx.enclosingDeclaration, meaning, false).Accessibility == printer.SymbolAccessibilityAccessible {
 			parentSymbol = b.lookupSymbolChain(nodeSymbol, meaning, true)[0]
 		}
-		if !parentSymbol.IsNil() && IsExternalModuleSymbol(parentSymbol) {
+		if parentSymbol != 0 && b.ch.isExternalModuleSymbol(parentSymbol) {
 			name = b.getSpecifierForModuleSymbol(parentSymbol, mode).specifier.AsString()
 		} else {
 			targetFile := b.ch.getExternalModuleFileFromDeclaration(parent)
 			if targetFile != nil {
-				name = b.getSpecifierForModuleSymbol(targetFile.Symbol(), mode).specifier.AsString()
+				name = b.getSpecifierForModuleSymbol(b.ch.nodeSymbol(targetFile.AsNode()), mode).specifier.AsString()
 			}
 		}
 		if len(name) > 0 && strings.Contains(name, "/node_modules/") {
@@ -289,20 +289,20 @@ func (b *NodeBuilderImpl) getEnclosingDeclarationIgnoringFakeScope() ast.Node {
 	return enc
 }
 
-func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *ast.NodeVisitor {
+func (c *Checker) getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *ast.NodeVisitor {
 	// TODO: wrap all these closures into methods on an object so we can guarantee we reuse the same memory on each invocation by reusing/resetting the object
 	// instead of re-closing-over all of these each time we need a visitor. In theory the compiler could handle this, but in practice closure inlining hasn't been reliable
 	var visitor *ast.NodeVisitor
 	// note: also handles renaming type parameters renamed within the current context
-	attachSymbolToLeftmostIdentifier := func(leftmost ast.Node, node ast.Node, sym ast.Symbol) ast.Node {
+	attachSymbolToLeftmostIdentifier := func(leftmost ast.Node, node ast.Node, sym ast.SymbolId) ast.Node {
 		var vis *ast.NodeVisitor
 		visitorFunc := func(node ast.Node) ast.Node {
 			if node == leftmost {
 				var type_ *Type
 				var name ast.Node
-				if !sym.IsNil() {
+				if sym != 0 {
 					type_ = b.ch.getDeclaredTypeOfSymbol(sym)
-					if sym.Flags()&ast.SymbolFlagsTypeParameter != 0 {
+					if c.symbolFlags(sym)&ast.SymbolFlagsTypeParameter != 0 {
 						name = b.typeParameterToName(type_).AsNode()
 					}
 				}
@@ -318,7 +318,7 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 		vis = ast.NewNodeVisitor(visitorFunc, b.f, ast.NodeVisitorHooks{})
 		return visitorFunc(node)
 	}
-	trackExistingEntityName := func(node ast.Node, overrideEnclosing ast.Node) (bool, ast.Node, ast.Symbol) {
+	trackExistingEntityName := func(node ast.Node, overrideEnclosing ast.Node) (bool, ast.Node, ast.SymbolId) {
 		enclosingDeclaration := b.ctx.enclosingDeclaration
 		if !overrideEnclosing.IsNil() {
 			enclosingDeclaration = overrideEnclosing
@@ -327,21 +327,21 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 		leftmost := ast.GetFirstIdentifier(node)
 		if ast.IsInJSFile(node) && (ast.IsExportsIdentifier(leftmost) || ast.IsModuleExportsAccessExpression(leftmost.Parent()) || (ast.IsQualifiedName(leftmost.Parent()) && ast.IsModuleIdentifier(leftmost.Parent().AsQualifiedName().Left()) && ast.IsExportsIdentifier(leftmost.Parent().AsQualifiedName().Right()))) {
 			introducesError = true
-			return introducesError, b.setTextRange(b.f.DeepCloneNode(node), node), ast.Symbol{}
+			return introducesError, b.setTextRange(b.f.DeepCloneNode(node), node), 0
 		}
 		meaning := getMeaningOfEntityNameReference(node)
-		var sym ast.Symbol
+		var sym ast.SymbolId
 		if ast.IsThisIdentifier(leftmost) {
 			// `this` isn't a bindable identifier - skip resolution, find a relevant `this` symbol directly and avoid exhaustive scope traversal
 			sym = b.ch.getSymbolOfDeclaration(b.ch.getThisContainer(leftmost, false, false))
-			if b.ch.IsSymbolAccessible(sym, leftmost, meaning, false).Accessibility != printer.SymbolAccessibilityAccessible {
+			if b.ch.isSymbolAccessible(sym, leftmost, meaning, false).Accessibility != printer.SymbolAccessibilityAccessible {
 				introducesError = true
 				b.ctx.tracker.ReportInaccessibleThisError()
 			}
-			return introducesError, attachSymbolToLeftmostIdentifier(leftmost, node, sym), ast.Symbol{}
+			return introducesError, attachSymbolToLeftmostIdentifier(leftmost, node, sym), 0
 		}
 		sym = b.ch.resolveEntityName(leftmost, meaning, true, true, ast.Node{})
-		if !b.ctx.enclosingDeclaration.IsNil() && !(!sym.IsNil() && sym.Flags()&ast.SymbolFlagsTypeParameter != 0) {
+		if !b.ctx.enclosingDeclaration.IsNil() && !(sym != 0 && c.symbolFlags(sym)&ast.SymbolFlagsTypeParameter != 0) {
 			sym = b.ch.getExportSymbolOfValueSymbolIfExported(sym)
 			// Some declarations may be transplanted to a new location.
 			// When this happens we need to make sure that the name has the same meaning at both locations
@@ -353,9 +353,9 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 			// Check for unusable parameters symbols
 			symAtLocation == b.ch.unknownSymbol ||
 				// If the symbol is not found, but was not found in the original scope either we probably have an error, don't reuse the node
-				(symAtLocation.IsNil() && !sym.IsNil()) ||
+				(symAtLocation == 0 && sym != 0) ||
 				// If the symbol is found both in declaration scope and in current scope then it should point to the same reference
-				(!symAtLocation.IsNil() && !sym.IsNil() && b.ch.getSymbolIfSameReference(b.ch.getExportSymbolOfValueSymbolIfExported(symAtLocation), sym).IsNil()) {
+				(symAtLocation != 0 && sym != 0 && b.ch.getSymbolIfSameReference(b.ch.getExportSymbolOfValueSymbolIfExported(symAtLocation), sym) == 0) {
 				// In isolated declaration we will not do rest parameter expansion so there is no need to report on these.
 				if symAtLocation != b.ch.unknownSymbol {
 					b.ctx.tracker.ReportInferenceFallback(node)
@@ -367,23 +367,23 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 			}
 		}
 
-		if !sym.IsNil() {
+		if sym != 0 {
 			// If a parameter is resolvable in the current context it is also visible, so no need to go to symbol accesibility
-			if sym.Flags()&ast.SymbolFlagsFunctionScopedVariable != 0 && !sym.ValueDeclaration().IsNil() {
-				if ast.IsPartOfParameterDeclaration(sym.ValueDeclaration()) || ast.IsJSDocParameterTag(sym.ValueDeclaration()) {
-					return introducesError, attachSymbolToLeftmostIdentifier(leftmost, node, sym), ast.Symbol{}
+			if c.symbolFlags(sym)&ast.SymbolFlagsFunctionScopedVariable != 0 && !c.symbolValueDeclaration(sym).IsNil() {
+				if ast.IsPartOfParameterDeclaration(c.symbolValueDeclaration(sym)) || ast.IsJSDocParameterTag(c.symbolValueDeclaration(sym)) {
+					return introducesError, attachSymbolToLeftmostIdentifier(leftmost, node, sym), 0
 				}
 			}
-			if sym.Flags()&ast.SymbolFlagsTypeParameter == 0 /* Type parameters are visible in the current context if they are are resolvable */ && !ast.IsDeclarationName(node) &&
-				b.ch.IsSymbolAccessible(sym, enclosingDeclaration, meaning, false).Accessibility != printer.SymbolAccessibilityAccessible {
+			if c.symbolFlags(sym)&ast.SymbolFlagsTypeParameter == 0 /* Type parameters are visible in the current context if they are are resolvable */ && !ast.IsDeclarationName(node) &&
+				b.ch.isSymbolAccessible(sym, enclosingDeclaration, meaning, false).Accessibility != printer.SymbolAccessibilityAccessible {
 				b.ctx.tracker.ReportInferenceFallback(node)
 				introducesError = true
 			} else {
-				b.ctx.tracker.TrackSymbol(sym, enclosingDeclaration, meaning)
+				b.ctx.tracker.TrackSymbol(c.symbolOf(sym), enclosingDeclaration, meaning)
 			}
-			return introducesError, attachSymbolToLeftmostIdentifier(leftmost, node, sym), ast.Symbol{}
+			return introducesError, attachSymbolToLeftmostIdentifier(leftmost, node, sym), 0
 		}
-		return introducesError, b.setTextRange(b.f.DeepCloneNode(node), node), ast.Symbol{}
+		return introducesError, b.setTextRange(b.f.DeepCloneNode(node), node), 0
 	}
 	var tryVisitSimpleTypeNode func(node ast.Node) ast.Node
 	tryVisitIndexedAccess := func(node ast.Node) ast.Node {
@@ -422,10 +422,10 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 			return ast.Node{}
 		}
 		s := b.tryGetResolvedSymbolFromTypeNode(node)
-		if s.IsNil() {
+		if s == 0 {
 			return ast.Node{} // ???
 		}
-		if s.Flags()&ast.SymbolFlagsTypeParameter != 0 {
+		if c.symbolFlags(s)&ast.SymbolFlagsTypeParameter != 0 {
 			declaredType := b.ch.getDeclaredTypeOfSymbol(s)
 			if b.ctx.mapper != nil && getMappedType(declaredType, b.ctx.mapper) != declaredType {
 				return ast.Node{} // refers to type parameter remapped by context (TODO improvement: just return the remapped param name?)
@@ -837,7 +837,7 @@ func getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recoveryBoundary) *as
 		introducesNewScope := ast.IsFunctionLike(node) || ast.IsMappedTypeNode(node)
 		var exit func()
 		if introducesNewScope {
-			var params []ast.Symbol
+			var params []ast.SymbolId
 			var typeParams []*Type
 			if ast.IsFunctionLike(node) {
 				sig := b.ch.getSignatureFromDeclaration(node)

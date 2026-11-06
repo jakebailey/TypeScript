@@ -117,19 +117,19 @@ func (c *Checker) typeToStringEx(t *Type, enclosingDeclaration ast.Node, flags T
 	return result
 }
 
-func (c *Checker) SymbolToString(s ast.Symbol) string {
+func (c *Checker) symbolToStringId(s ast.SymbolId) string {
 	return c.symbolToString(s)
 }
 
-func (c *Checker) symbolToString(symbol ast.Symbol) string {
+func (c *Checker) symbolToString(symbol ast.SymbolId) string {
 	return c.symbolToStringEx(symbol, ast.Node{}, ast.SymbolFlagsAll, SymbolFormatFlagsAllowAnyNodeKind)
 }
 
-func (c *Checker) SymbolToStringEx(symbol ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
+func (c *Checker) symbolToStringExId(symbol ast.SymbolId, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
 	return c.symbolToStringEx(symbol, enclosingDeclaration, meaning, flags)
 }
 
-func (c *Checker) symbolToStringEx(symbol ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
+func (c *Checker) symbolToStringEx(symbol ast.SymbolId, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
 	writer, putWriter := printer.GetSingleLineStringWriter()
 	defer putWriter()
 
@@ -165,11 +165,11 @@ func (c *Checker) symbolToStringEx(symbol ast.Symbol, enclosingDeclaration ast.N
 		printer_ = createPrinterWithRemoveCommentsOmitTrailingSemicolon(nodeBuilder.EmitContext())
 	}
 
-	var builder func(symbol ast.Symbol, meaning ast.SymbolFlags, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Node
+	var builder func(symbol ast.SymbolId, meaning ast.SymbolFlags, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Node
 	if flags&SymbolFormatFlagsAllowAnyNodeKind != 0 {
-		builder = nodeBuilder.SymbolToNode
+		builder = nodeBuilder.symbolToNode
 	} else {
-		builder = nodeBuilder.SymbolToEntityName
+		builder = nodeBuilder.symbolToEntityName
 	}
 	entity := builder(symbol, meaning, enclosingDeclaration, nodeFlags, internalNodeFlags, nil) // TODO: GH#18217
 	printer_.Write(entity /*sourceFile*/, sourceFile, writer, nil)                              // TODO: GH#18217
@@ -296,7 +296,7 @@ func (c *Checker) SignatureToSignatureDeclaration(signature *Signature, kind ast
 }
 
 // ExpandSymbolForHover produces declaration strings for a symbol with verbosity support for expandable hover.
-func (c *Checker) ExpandSymbolForHover(symbol ast.Symbol, meaning ast.SymbolFlags, vc *VerbosityContext) string {
+func (c *Checker) expandSymbolForHover(symbol ast.SymbolId, meaning ast.SymbolFlags, vc *VerbosityContext) string {
 	nodeBuilder, release := c.getNodeBuilder()
 	defer release()
 	oldVerbosity := nodeBuilder.verbosity
@@ -304,14 +304,14 @@ func (c *Checker) ExpandSymbolForHover(symbol ast.Symbol, meaning ast.SymbolFlag
 	defer func() {
 		nodeBuilder.verbosity = oldVerbosity
 	}()
-	nodes := nodeBuilder.ExpandSymbolForHover(symbol, meaning)
+	nodes := nodeBuilder.expandSymbolForHover(symbol, meaning)
 	if len(nodes) == 0 {
 		return ""
 	}
 	p := createPrinterWithRemoveComments(nodeBuilder.EmitContext())
 	var sourceFile *ast.SourceFile
-	if !symbol.ValueDeclaration().IsNil() {
-		sourceFile = ast.GetSourceFileOfNode(symbol.ValueDeclaration())
+	if !c.symbolValueDeclaration(symbol).IsNil() {
+		sourceFile = ast.GetSourceFileOfNode(c.symbolValueDeclaration(symbol))
 	}
 	var b strings.Builder
 	for i, node := range nodes {
@@ -352,4 +352,20 @@ func (c *Checker) TypeToTypeNodeEx(t *Type, enclosingDeclaration ast.Node, flags
 func (c *Checker) TypePredicateToTypePredicateNode(t *TypePredicate, enclosingDeclaration ast.Node, flags nodebuilder.Flags, idToSymbol map[ast.IdentifierNode]ast.Symbol) ast.TypePredicateNodeNode {
 	nodeBuilder := c.getNodeBuilderEx(idToSymbol)
 	return nodeBuilder.TypePredicateToTypePredicateNode(t, enclosingDeclaration, flags, nodebuilder.InternalFlagsNone, nil)
+}
+
+func (c *Checker) SymbolToString(s ast.Symbol) string {
+	return c.symbolToStringId(c.symbolId(s))
+}
+
+func (c *Checker) SymbolToStringEx(symbol ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
+	return c.symbolToStringExId(c.symbolId(symbol), enclosingDeclaration, meaning, flags)
+}
+
+func (c *Checker) ExpandSymbolForHover(symbol ast.Symbol, meaning ast.SymbolFlags, vc *VerbosityContext) string {
+	return c.expandSymbolForHoverId(symbol, meaning, vc)
+}
+
+func (c *Checker) expandSymbolForHoverId(symbol ast.Symbol, meaning ast.SymbolFlags, vc *VerbosityContext) string {
+	return c.expandSymbolForHover(c.symbolId(symbol), meaning, vc)
 }

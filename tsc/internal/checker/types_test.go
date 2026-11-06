@@ -211,9 +211,9 @@ func TestCompositeTypeOwnsConstituents(t *testing.T) {
 	borrowed[0] = c.neverType
 	assert.Assert(t, slices.Equal(union.Types(), types))
 	objects := []*Type{
-		c.newObjectType(ObjectFlagsInterface, ast.Symbol{}),
-		c.newObjectType(ObjectFlagsInterface, ast.Symbol{}),
-		c.newObjectType(ObjectFlagsInterface, ast.Symbol{}),
+		c.newObjectType(ObjectFlagsInterface, 0),
+		c.newObjectType(ObjectFlagsInterface, 0),
+		c.newObjectType(ObjectFlagsInterface, 0),
 	}
 	intersection := c.getIntersectionType(objects)
 	objects[0] = c.neverType
@@ -232,9 +232,9 @@ func TestCompositeTypeCacheHitAllocations(t *testing.T) { //nolint:paralleltest
 	union := c.getUnionType(types)
 	filtered := c.removeType(union, types[1])
 	objects := []*Type{
-		c.newObjectType(ObjectFlagsInterface, ast.Symbol{}),
-		c.newObjectType(ObjectFlagsInterface, ast.Symbol{}),
-		c.newObjectType(ObjectFlagsInterface, ast.Symbol{}),
+		c.newObjectType(ObjectFlagsInterface, 0),
+		c.newObjectType(ObjectFlagsInterface, 0),
+		c.newObjectType(ObjectFlagsInterface, 0),
 	}
 	intersection := c.getIntersectionType(objects)
 	assert.Equal(t, testing.AllocsPerRun(10, func() { c.getUnionType(types) }), float64(0))
@@ -259,7 +259,7 @@ func TestTemporaryTypeSetReuse(t *testing.T) {
 	for _, count := range []int{3, 17, 80, 300, 5000, 3} {
 		objects := make([]*Type, count)
 		for i := range objects {
-			objects[i] = c.newObjectType(ObjectFlagsInterface, ast.Symbol{})
+			objects[i] = c.newObjectType(ObjectFlagsInterface, 0)
 		}
 		intersection := c.getIntersectionType(objects)
 		assert.Assert(t, slices.Equal(intersection.Types(), objects))
@@ -303,9 +303,9 @@ func TestIntersectionReductionAllocations(t *testing.T) { //nolint:paralleltest
 	members := ast.NewSymbolTable()
 	for i := range 128 {
 		name := ast.MakeSymbolName(strconv.Itoa(i))
-		members.Set(name, c.newSymbol(ast.SymbolFlagsProperty, name))
+		members.SetId(c.symbols, name, c.newSymbol(ast.SymbolFlagsProperty, name))
 	}
-	object := c.newAnonymousType(ast.Symbol{}, members, nil, nil, nil)
+	object := c.newAnonymousType(0, members, nil, nil, nil)
 	intersection := c.newIntersectionType(ObjectFlagsNone, []*Type{object, object})
 	assert.Assert(t, !c.somePropertyReducesToNever(intersection))
 	assert.Equal(t, testing.AllocsPerRun(10, func() {
@@ -365,7 +365,7 @@ func TestIntersectionReductionReentrancy(t *testing.T) {
 	t.Parallel()
 	c, _ := newCompositeTestChecker()
 	property := c.newSymbol(ast.SymbolFlagsProperty, ast.MakeSymbolName("value"))
-	object := c.newAnonymousType(ast.Symbol{}, ast.SymbolTableOf(ast.MakeSymbolName("value"), property), nil, nil, nil)
+	object := c.newAnonymousType(0, c.symbols.TableOfId(ast.MakeSymbolName("value"), property), nil, nil, nil)
 	inner := c.newIntersectionType(ObjectFlagsNone, []*Type{object, object})
 	outer := c.newIntersectionType(ObjectFlagsNone, []*Type{inner, object})
 	assert.Equal(t, c.getReducedType(outer), outer)
@@ -375,7 +375,7 @@ func TestIntersectionReductionReentrancy(t *testing.T) {
 	assert.Assert(t, c.freePropertyCounts.next != nil)
 	workspace := c.freePropertyCounts
 	conflicting := c.newSymbolEx(ast.SymbolFlagsProperty, ast.MakeSymbolName("value"), ast.CheckFlagsContainsPrivate)
-	outer.AsUnionOrIntersectionType().propertyCacheWithoutFunctionPropertyAugment().Set(ast.MakeSymbolName("value"), conflicting)
+	outer.AsUnionOrIntersectionType().propertyCacheWithoutFunctionPropertyAugment().SetId(c.symbols, ast.MakeSymbolName("value"), conflicting)
 	assert.Assert(t, c.somePropertyReducesToNever(outer))
 	assert.Equal(t, c.freePropertyCounts, workspace)
 	for counts := c.freePropertyCounts; counts != nil; counts = counts.next {
@@ -388,9 +388,9 @@ func BenchmarkCompositeTypeCacheHit(b *testing.B) {
 	c, types := newCompositeTestChecker()
 	union := c.getUnionType(types)
 	objects := []*Type{
-		c.newObjectType(ObjectFlagsInterface, ast.Symbol{}),
-		c.newObjectType(ObjectFlagsInterface, ast.Symbol{}),
-		c.newObjectType(ObjectFlagsInterface, ast.Symbol{}),
+		c.newObjectType(ObjectFlagsInterface, 0),
+		c.newObjectType(ObjectFlagsInterface, 0),
+		c.newObjectType(ObjectFlagsInterface, 0),
 	}
 
 	c.getIntersectionType(objects)
@@ -436,7 +436,7 @@ func TestTypeMapperDispatch(t *testing.T) {
 	assert.Equal(t, c.compareTypeMappers(simple, newSimpleTypeMapper(source, target)), 0)
 	assert.Equal(t, c.compareTypeMappers(array, newArrayTypeMapper([]*Type{source, other}, []*Type{target, source})), 0)
 	assert.Equal(t, c.compareTypeMappers(merged, newMergedTypeMapper(simple, array)), 0)
-	this := c.newTypeParameter(ast.Symbol{})
+	this := c.newTypeParameter(0)
 	this.AsTypeParameter().setIsThisType(true)
 	for _, mapper := range []*TypeMapper{
 		newSimpleTypeMapper(this, target),
@@ -533,10 +533,10 @@ func TestUnionIntersectionPropertyCacheSharing(t *testing.T) {
 				members := ast.NewSymbolTable()
 				for i := range 300 {
 					name := ast.MakeSymbolName(strconv.Itoa(i))
-					members.Set(name, c.newSymbol(ast.SymbolFlagsProperty, name))
+					members.SetId(c.symbols, name, c.newSymbol(ast.SymbolFlagsProperty, name))
 				}
-				members.Set(ast.EmptySymbolName, c.newSymbol(ast.SymbolFlagsProperty, ast.EmptySymbolName))
-				object := c.newAnonymousType(ast.Symbol{}, members, nil, nil, nil)
+				members.SetId(c.symbols, ast.EmptySymbolName, c.newSymbol(ast.SymbolFlagsProperty, ast.EmptySymbolName))
+				object := c.newAnonymousType(0, members, nil, nil, nil)
 				var typ *Type
 				if intersection {
 					typ = c.newIntersectionType(ObjectFlagsNone, []*Type{object, object})
@@ -544,7 +544,7 @@ func TestUnionIntersectionPropertyCacheSharing(t *testing.T) {
 					typ = c.newUnionType(ObjectFlagsNone, []*Type{object, object})
 				}
 				data := typ.AsUnionOrIntersectionType()
-				for name, symbol := range members.All() {
+				for name, symbol := range members.AllIds(c.symbols) {
 					assert.Equal(t, c.getUnionOrIntersectionProperty(typ, name, !augmentedFirst), symbol)
 					assert.Equal(t, c.getUnionOrIntersectionProperty(typ, name, augmentedFirst), symbol)
 				}
@@ -553,7 +553,7 @@ func TestUnionIntersectionPropertyCacheSharing(t *testing.T) {
 					assert.Assert(t, data.propertyCache() == nil)
 				}
 				runtime.GC()
-				for name, symbol := range members.All() {
+				for name, symbol := range members.AllIds(c.symbols) {
 					assert.Equal(t, c.getUnionOrIntersectionProperty(typ, name, true), symbol)
 					assert.Equal(t, c.getUnionOrIntersectionProperty(typ, name, false), symbol)
 				}
@@ -576,8 +576,8 @@ func TestUnionIntersectionPropertyCacheModes(t *testing.T) {
 				typ = c.newUnionType(ObjectFlagsNone, nil)
 			}
 			data := typ.AsUnionOrIntersectionType()
-			assert.Assert(t, c.getUnionOrIntersectionProperty(typ, ast.MakeSymbolName("missing"), true).IsNil())
-			assert.Assert(t, c.getUnionOrIntersectionProperty(typ, ast.MakeSymbolName("missing"), false).IsNil())
+			assert.Assert(t, c.getUnionOrIntersectionProperty(typ, ast.MakeSymbolName("missing"), true) == 0)
+			assert.Assert(t, c.getUnionOrIntersectionProperty(typ, ast.MakeSymbolName("missing"), false) == 0)
 			assert.Assert(t, data.propertyCache() == nil)
 			assert.Assert(t, data.propertyCacheWithoutFunctionPropertyAugment() == nil)
 			data.setPropertyCacheWithoutFunctionPropertyAugment(c, ast.NewSymbolTable())
@@ -586,18 +586,18 @@ func TestUnionIntersectionPropertyCacheModes(t *testing.T) {
 				name := ast.MakeSymbolName(strconv.Itoa(int(flags)))
 				partial := c.newSymbolEx(ast.SymbolFlagsProperty, name, flags)
 				complete := c.newSymbol(ast.SymbolFlagsProperty, name)
-				data.propertyCacheWithoutFunctionPropertyAugment().Set(name, partial)
+				data.propertyCacheWithoutFunctionPropertyAugment().SetId(c.symbols, name, partial)
 				assert.Equal(t, c.getUnionOrIntersectionProperty(typ, name, true), partial)
-				assert.Assert(t, c.getUnionOrIntersectionProperty(typ, name, false).IsNil())
-				assert.Equal(t, c.getPropertyOfUnionOrIntersectionType(typ, name, true).IsNil(), flags&ast.CheckFlagsReadPartial != 0)
-				data.propertyCache().Set(name, complete)
+				assert.Assert(t, c.getUnionOrIntersectionProperty(typ, name, false) == 0)
+				assert.Equal(t, c.getPropertyOfUnionOrIntersectionType(typ, name, true) == 0, flags&ast.CheckFlagsReadPartial != 0)
+				data.propertyCache().SetId(c.symbols, name, complete)
 				assert.Equal(t, c.getUnionOrIntersectionProperty(typ, name, false), complete)
 			}
 			name := ast.MakeSymbolName("different")
 			nonAugmented := c.newSymbol(ast.SymbolFlagsProperty, name)
 			augmented := c.newSymbol(ast.SymbolFlagsProperty, name)
-			data.propertyCacheWithoutFunctionPropertyAugment().Set(name, nonAugmented)
-			data.propertyCache().Set(name, augmented)
+			data.propertyCacheWithoutFunctionPropertyAugment().SetId(c.symbols, name, nonAugmented)
+			data.propertyCache().SetId(c.symbols, name, augmented)
 			assert.Equal(t, c.getUnionOrIntersectionProperty(typ, name, true), nonAugmented)
 			assert.Equal(t, c.getUnionOrIntersectionProperty(typ, name, false), augmented)
 		})
@@ -607,7 +607,7 @@ func TestUnionIntersectionPropertyCacheModes(t *testing.T) {
 func TestStructuredTypeExtra(t *testing.T) {
 	t.Parallel()
 	c, types := newCompositeTestChecker()
-	data := c.newAnonymousType(ast.Symbol{}, nil, nil, nil, nil).AsStructuredType()
+	data := c.newAnonymousType(0, nil, nil, nil, nil).AsStructuredType()
 	assert.Assert(t, data.resolvedExtra() == nil)
 	assert.Assert(t, data.CallSignatures() == nil)
 	assert.Assert(t, data.ConstructSignatures() == nil)
@@ -627,7 +627,7 @@ func TestStructuredTypeExtra(t *testing.T) {
 	extra := data.resolvedExtra()
 	extra.objectTypeWithoutAbstractConstructSignatures = types[2]
 	for range 1024 {
-		other := c.newAnonymousType(ast.Symbol{}, nil, []*Signature{call}, nil, nil)
+		other := c.newAnonymousType(0, nil, []*Signature{call}, nil, nil)
 		assert.Assert(t, other.AsStructuredType().resolvedExtra() != extra)
 	}
 	runtime.GC()
@@ -652,23 +652,23 @@ func TestStructuredTypeExtra(t *testing.T) {
 func TestCompactSignatureLayout(t *testing.T) {
 	t.Parallel()
 	assert.Equal(t, unsafe.Sizeof(Signature{}), 24+5*unsafe.Sizeof(uintptr(0))+unsafe.Sizeof(ast.NodeRef{}))
-	assert.Equal(t, unsafe.Sizeof(signatureExtra{}), 8*unsafe.Sizeof(uintptr(0)))
+	assert.Equal(t, unsafe.Sizeof(signatureExtra{}), 7*unsafe.Sizeof(uintptr(0)))
 }
 
 func TestSignatureExtra(t *testing.T) {
 	t.Parallel()
 	c, types := newCompositeTestChecker()
 	c.noTypePredicate = &TypePredicate{}
-	sig := c.newSignature(SignatureFlagsHasRestParameter, ast.Node{}, nil, ast.Symbol{}, nil, types[0], nil, 1)
+	sig := c.newSignature(SignatureFlagsHasRestParameter, ast.Node{}, nil, 0, nil, types[0], nil, 1)
 	assert.Assert(t, sig.extra == nil)
 	assert.Assert(t, sig.TypeParameters() == nil)
-	assert.Assert(t, sig.ThisParameter().IsNil())
+	assert.Assert(t, sig.ThisParameter() == 0)
 	assert.Assert(t, sig.getComposite() == nil)
 	assert.Assert(t, sig.getIsolatedSignatureType() == nil)
 	assert.Assert(t, sig.getResolvedTypePredicate(c) == nil)
 	assert.Equal(t, sig.resolvedMinArgumentCount, int32(-1))
 	sig.setTypeParameters(c, nil)
-	sig.setThisParameter(c, ast.Symbol{})
+	sig.setThisParameter(c, 0)
 	sig.setComposite(c, nil)
 	sig.setResolvedTypePredicate(c, nil)
 	assert.Assert(t, sig.extra == nil)
@@ -686,7 +686,7 @@ func TestSignatureExtra(t *testing.T) {
 	sig.setTypeParameters(c, list)
 	list[0] = types[1]
 	assert.Equal(t, sig.TypeParameters()[0], types[1])
-	parameter := ast.NewSymbol()
+	parameter := c.symbolId(ast.NewSymbol())
 	sig.setThisParameter(c, parameter)
 	predicate := c.newTypePredicate(TypePredicateKindIdentifier, ast.MakeSymbolName("p"), 0, types[0])
 	sig.setResolvedTypePredicate(c, predicate)
@@ -701,7 +701,7 @@ func TestSignatureExtra(t *testing.T) {
 	assert.Equal(t, clone.TypeParameters()[0], types[1])
 	assert.Assert(t, clone.getResolvedTypePredicate(c) == nil)
 	assert.Assert(t, clone.getIsolatedSignatureType() == nil)
-	clone.setThisParameter(c, ast.Symbol{})
+	clone.setThisParameter(c, 0)
 	assert.Equal(t, sig.ThisParameter(), parameter)
 	sig.setResolvedTypePredicate(c, c.noTypePredicate)
 	assert.Assert(t, c.getTypePredicateOfSignature(sig) == nil)
@@ -717,7 +717,7 @@ func TestSignatureExtra(t *testing.T) {
 	assert.Equal(t, sig.Flags(), SignatureFlagsHasRestParameter)
 	assert.Equal(t, sig.getIsolatedSignatureType(), types[2])
 	sig.setTypeParameters(c, nil)
-	sig.setThisParameter(c, ast.Symbol{})
+	sig.setThisParameter(c, 0)
 	sig.setComposite(c, nil)
 	assert.Equal(t, sig.extra, entry)
 	assert.Assert(t, sig.TypeParameters() == nil)

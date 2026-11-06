@@ -337,7 +337,7 @@ func (sd *snapshotData) newTypeResponse(projectID project.Handle, t *checker.Typ
 	resp := newTypeResponse(t, sd.registerType(projectID, c, t))
 	resp.Symbol = newSymbolReference(c.SymbolOfType(t))
 	if t.Alias() != nil {
-		resp.AliasSymbol = newSymbolReference(t.Alias().Symbol())
+		resp.AliasSymbol = newSymbolReference(c.SymbolView(t.Alias().Symbol()))
 	}
 	if t.ObjectFlags()&checker.ObjectFlagsMapped != 0 {
 		mapped := t.AsMappedType()
@@ -538,12 +538,12 @@ func (sd *snapshotData) newSignatureResponse(projectID project.Handle, c *checke
 	if len(sig.Parameters()) > 0 {
 		resp.Parameters = make([]CompactSymbolReference, len(sig.Parameters()))
 		for i, parameter := range sig.Parameters() {
-			resp.Parameters[i] = *newSymbolReference(parameter)
+			resp.Parameters[i] = *newSymbolReference(c.SymbolView(parameter))
 		}
 	}
 
-	if !sig.ThisParameter().IsNil() {
-		resp.ThisParameter = newSymbolReference(sig.ThisParameter())
+	if sig.ThisParameter() != 0 {
+		resp.ThisParameter = newSymbolReference(c.SymbolView(sig.ThisParameter()))
 	}
 
 	if target := sig.Target(c); target != nil {
@@ -3201,11 +3201,11 @@ func (s *Session) handleGetAliasTypeArgumentsOfType(ctx context.Context, params 
 
 // @gen-proto-nullable
 func (s *Session) handleGetAliasSymbolOfType(_ context.Context, params *GetTypePropertyParams) (*SymbolResponse, error) {
-	return s.resolveSymbolPropertyOfType(params, func(_ *checker.Checker, t *checker.Type) ast.Symbol {
+	return s.resolveSymbolPropertyOfType(params, func(c *checker.Checker, t *checker.Type) ast.Symbol {
 		if t.Alias() == nil {
 			return ast.Symbol{}
 		}
-		return t.Alias().Symbol()
+		return c.SymbolView(t.Alias().Symbol())
 	})
 }
 
@@ -3259,12 +3259,16 @@ func (s *Session) handleGetTypeParametersOfSignature(ctx context.Context, params
 
 // @gen-proto-nullable
 func (s *Session) handleGetParametersOfSignature(_ context.Context, params *GetSignaturePropertyParams) ([]*SymbolResponse, error) {
-	return s.resolveSymbolArrayPropertyOfSignature(params, (*checker.Signature).Parameters)
+	return s.resolveSymbolArrayPropertyOfSignature(params, func(c *checker.Checker, sig *checker.Signature) []ast.Symbol {
+		return c.SymbolViews(sig.Parameters())
+	})
 }
 
 // @gen-proto-nullable
 func (s *Session) handleGetThisParameterOfSignature(_ context.Context, params *GetSignaturePropertyParams) (*SymbolResponse, error) {
-	return s.resolveSymbolPropertyOfSignature(params, (*checker.Signature).ThisParameter)
+	return s.resolveSymbolPropertyOfSignature(params, func(c *checker.Checker, sig *checker.Signature) ast.Symbol {
+		return c.SymbolView(sig.ThisParameter())
+	})
 }
 
 // @gen-proto-nullable
@@ -3569,18 +3573,18 @@ func (s *Session) resolveSymbolTablePropertyOfSymbol(ctx context.Context, params
 }
 
 // resolveSymbolArrayPropertyOfSignature resolves a signature property of an array of symbols and returns an array of symbol responses.
-func (s *Session) resolveSymbolArrayPropertyOfSignature(params *GetSignaturePropertyParams, getter func(*checker.Signature) []ast.Symbol) ([]*SymbolResponse, error) {
+func (s *Session) resolveSymbolArrayPropertyOfSignature(params *GetSignaturePropertyParams, getter func(*checker.Checker, *checker.Signature) []ast.Symbol) ([]*SymbolResponse, error) {
 	sd, err := s.getSnapshotData(params.Snapshot)
 	if err != nil {
 		return nil, err
 	}
 
-	sig, err := sd.resolveSignatureHandle(params.Project, params.Signature)
+	entry, err := sd.resolveRegisteredSignature(params.Project, params.Signature)
 	if err != nil {
 		return nil, err
 	}
 
-	symbols := getter(sig)
+	symbols := getter(entry.checker, entry.sig)
 	if len(symbols) == 0 {
 		return nil, nil
 	}
@@ -3593,18 +3597,18 @@ func (s *Session) resolveSymbolArrayPropertyOfSignature(params *GetSignatureProp
 }
 
 // resolveSymbolPropertyOfSignature resolves a signature property of type `Symbol` and returns a symbol response.
-func (s *Session) resolveSymbolPropertyOfSignature(params *GetSignaturePropertyParams, getter func(*checker.Signature) ast.Symbol) (*SymbolResponse, error) {
+func (s *Session) resolveSymbolPropertyOfSignature(params *GetSignaturePropertyParams, getter func(*checker.Checker, *checker.Signature) ast.Symbol) (*SymbolResponse, error) {
 	sd, err := s.getSnapshotData(params.Snapshot)
 	if err != nil {
 		return nil, err
 	}
 
-	sig, err := sd.resolveSignatureHandle(params.Project, params.Signature)
+	entry, err := sd.resolveRegisteredSignature(params.Project, params.Signature)
 	if err != nil {
 		return nil, err
 	}
 
-	result := getter(sig)
+	result := getter(entry.checker, entry.sig)
 	if result.IsNil() {
 		return nil, nil
 	}

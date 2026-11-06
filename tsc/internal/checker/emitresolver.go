@@ -7,6 +7,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/binder"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
+	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
 	"github.com/microsoft/TypeScript/tsc/internal/evaluator"
 	"github.com/microsoft/TypeScript/tsc/internal/jsnum"
 	"github.com/microsoft/TypeScript/tsc/internal/nodebuilder"
@@ -98,10 +99,10 @@ func (r *EmitResolver) IsLateBound(node ast.Node) bool {
 	r.checkerMu.Lock()
 	defer r.checkerMu.Unlock()
 	symbol := r.checker.getSymbolOfDeclaration(node)
-	if symbol.IsNil() {
+	if symbol == 0 {
 		return false
 	}
-	return symbol.CheckFlags()&ast.CheckFlagsLate != 0
+	return r.checker.symbolCheckFlags(symbol)&ast.CheckFlagsLate != 0
 }
 
 func (r *EmitResolver) GetEnumMemberValue(node ast.Node) evaluator.Result {
@@ -169,7 +170,7 @@ func (r *EmitResolver) aliasMarkingVisitorWorker(node ast.Node) bool {
 // Sets the isVisible link on statements the Identifier or ExportName node points at
 // Follows chains of import d = a.b.c
 func (r *EmitResolver) markLinkedAliases(node ast.Node) {
-	var exportSymbol ast.Symbol
+	var exportSymbol ast.SymbolId
 	if node.Kind() != ast.KindStringLiteral && !node.Parent().IsNil() && (ast.IsExportAssignment(node.Parent()) || isCommonJSModuleExports(node.Parent())) {
 		exportSymbol = r.checker.resolveName(node, node.TextSymbolName(), ast.SymbolFlagsValue|ast.SymbolFlagsType|ast.SymbolFlagsNamespace|ast.SymbolFlagsAlias /*nameNotFoundMessage*/, nil /*isUse*/, false, false)
 	} else if node.Parent().Kind() == ast.KindExportSpecifier {
@@ -177,15 +178,15 @@ func (r *EmitResolver) markLinkedAliases(node ast.Node) {
 	}
 
 	visited := make(map[ast.SymbolSerial]struct{}, 2) // guard against circular imports
-	for !exportSymbol.IsNil() {
-		_, seen := visited[ast.GetSymbolSerial(exportSymbol)]
+	for exportSymbol != 0 {
+		_, seen := visited[ast.GetSymbolSerial(r.checker.symbolOf(exportSymbol))]
 		if seen {
 			break
 		}
-		visited[ast.GetSymbolSerial(exportSymbol)] = struct{}{}
+		visited[ast.GetSymbolSerial(r.checker.symbolOf(exportSymbol))] = struct{}{}
 
-		var nextSymbol ast.Symbol
-		for _, declaration := range exportSymbol.Declarations().All() {
+		var nextSymbol ast.SymbolId
+		for _, declaration := range r.checker.symbolDeclarations(exportSymbol).All() {
 			r.checker.emitResolverLinks.declarationLinks.Get(declaration).isVisible = core.TSTrue
 
 			if ast.IsInternalModuleImportEqualsDeclaration(declaration) {
@@ -254,7 +255,7 @@ func (r *EmitResolver) IsImportRequiredByAugmentation(decl ast.ImportDeclaration
 		return false
 	}
 	file := ast.GetSourceFileOfNode(decl.AsNode())
-	if file.Symbol().IsNil() {
+	if r.checker.nodeSymbol(file.AsNode()) == 0 {
 		// script file
 		return false
 	}
@@ -267,12 +268,12 @@ func (r *EmitResolver) IsImportRequiredByAugmentation(decl ast.ImportDeclaration
 	}
 	r.checkerMu.Lock()
 	defer r.checkerMu.Unlock()
-	exports := r.checker.getExportsOfModule(file.Symbol())
-	for s := range exports.Values() {
+	exports := r.checker.getExportsOfModule(r.checker.nodeSymbol(file.AsNode()))
+	for s := range exports.ValueIds(r.checker.symbols) {
 		merged := r.checker.getMergedSymbol(s)
 		if merged != s {
-			if merged.Declarations().Len() > 0 {
-				for _, d := range merged.Declarations().All() {
+			if r.checker.symbolDeclarations(merged).Len() > 0 {
+				for _, d := range r.checker.symbolDeclarations(merged).All() {
 					declFile := ast.GetSourceFileOfNode(d)
 					if declFile == importTarget {
 						return true
@@ -314,7 +315,7 @@ func (r *EmitResolver) RequiresAddingImplicitUndefined(declaration ast.Node, sym
 	}
 	r.checkerMu.Lock()
 	defer r.checkerMu.Unlock()
-	return r.checker.requiresAddingImplicitUndefined(declaration, symbol, enclosingDeclaration)
+	return r.checker.requiresAddingImplicitUndefined(declaration, r.checker.symbolId(symbol), enclosingDeclaration)
 }
 
 func (r *EmitResolver) RequiresAddingImplicitUndefinedUnsafe(declaration ast.Node, symbol ast.Symbol, enclosingDeclaration ast.Node) bool {
@@ -322,7 +323,7 @@ func (r *EmitResolver) RequiresAddingImplicitUndefinedUnsafe(declaration ast.Nod
 		return false
 	}
 	// NO LOCKING - only should be called in contexts that already have a checker lock
-	return r.checker.requiresAddingImplicitUndefined(declaration, symbol, enclosingDeclaration)
+	return r.checker.requiresAddingImplicitUndefined(declaration, r.checker.symbolId(symbol), enclosingDeclaration)
 }
 
 func (r *EmitResolver) isOptionalParameter(node ast.Node) bool {
@@ -338,7 +339,7 @@ func (r *EmitResolver) IsLiteralConstDeclaration(node ast.Node) bool {
 		r.checkerMu.Lock()
 		defer r.checkerMu.Unlock()
 		s := r.checker.getSymbolOfDeclaration(node)
-		if s.IsNil() {
+		if s == 0 {
 			return false
 		}
 		return isFreshLiteralType(r.checker.getTypeOfSymbol(s))
@@ -352,9 +353,9 @@ func (r *EmitResolver) IsExpandoFunctionDeclarationUnsafe(node ast.Node) bool {
 		return false
 	}
 	// this is substantially different from strada, but so is expando property checking
-	props := r.GetPropertiesOfContainerFunction(node)
+	props := r.getPropertiesOfContainerFunction(node)
 	for _, p := range props {
-		if ast.IsExpandoPropertyDeclaration(p.ValueDeclaration()) {
+		if ast.IsExpandoPropertyDeclaration(r.checker.symbolValueDeclaration(p)) {
 			return true
 		}
 	}
@@ -367,20 +368,24 @@ func (r *EmitResolver) IsExpandoFunctionDeclaration(node ast.Node) bool {
 	return r.IsExpandoFunctionDeclarationUnsafe(node)
 }
 
-func (r *EmitResolver) isSymbolAccessible(symbol ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, shouldComputeAliasToMarkVisible bool) printer.SymbolAccessibilityResult {
-	return r.checker.IsSymbolAccessible(symbol, enclosingDeclaration, meaning, shouldComputeAliasToMarkVisible)
+func (r *EmitResolver) isSymbolAccessible(symbol ast.SymbolId, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, shouldComputeAliasToMarkVisible bool) printer.SymbolAccessibilityResult {
+	return r.checker.isSymbolAccessible(symbol, enclosingDeclaration, meaning, shouldComputeAliasToMarkVisible)
 }
 
 func (r *EmitResolver) IsSymbolAccessible(symbol ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, shouldComputeAliasToMarkVisible bool) printer.SymbolAccessibilityResult {
+	return r.isSymbolAccessibleId(symbol, enclosingDeclaration, meaning, shouldComputeAliasToMarkVisible)
+}
+
+func (r *EmitResolver) isSymbolAccessibleId(symbol ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, shouldComputeAliasToMarkVisible bool) printer.SymbolAccessibilityResult {
 	// TODO: Split into locking and non-locking API methods - only current usage is the symbol tracker, which is non-locking,
 	// as all tracker calls happen within a CreateX call below, which already holds a lock
 	// r.checkerMu.Lock()
 	// defer r.checkerMu.Unlock()
-	return r.isSymbolAccessible(symbol, enclosingDeclaration, meaning, shouldComputeAliasToMarkVisible)
+	return r.isSymbolAccessible(r.checker.symbolId(symbol), enclosingDeclaration, meaning, shouldComputeAliasToMarkVisible)
 }
 
-func isConstEnumOrConstEnumOnlyModule(s ast.Symbol) bool {
-	return isConstEnumSymbol(s) || s.Flags()&ast.SymbolFlagsConstEnumOnlyModule != 0
+func (c *Checker) isConstEnumOrConstEnumOnlyModule(s ast.SymbolId) bool {
+	return c.isConstEnumSymbol(s) || c.symbolFlags(s)&ast.SymbolFlagsConstEnumOnlyModule != 0
 }
 
 func (r *EmitResolver) IsReferencedAliasDeclaration(node ast.Node) bool {
@@ -393,15 +398,15 @@ func (r *EmitResolver) IsReferencedAliasDeclaration(node ast.Node) bool {
 	defer r.checkerMu.Unlock()
 
 	if ast.IsAliasSymbolDeclaration(node) {
-		if symbol := c.getSymbolOfDeclaration(node); !symbol.IsNil() {
+		if symbol := c.getSymbolOfDeclaration(node); symbol != 0 {
 			aliasLinks := c.aliasSymbolLinks.Get(symbol)
 			if aliasLinks.referenced {
 				return true
 			}
 			target := aliasLinks.aliasTarget
-			if !target.IsNil() && node.ModifierFlags()&ast.ModifierFlagsExport != 0 &&
+			if target != 0 && node.ModifierFlags()&ast.ModifierFlagsExport != 0 &&
 				c.getSymbolFlags(target)&ast.SymbolFlagsValue != 0 &&
-				(c.compilerOptions.ShouldPreserveConstEnums() || !isConstEnumOrConstEnumOnlyModule(target)) {
+				(c.compilerOptions.ShouldPreserveConstEnums() || !r.checker.isConstEnumOrConstEnumOnlyModule(target)) {
 				return true
 			}
 		}
@@ -432,7 +437,7 @@ func (r *EmitResolver) isValueAliasDeclarationWorker(node ast.Node) bool {
 		ast.KindImportSpecifier,
 		ast.KindExportSpecifier:
 		symbol := c.getSymbolOfDeclaration(node)
-		return !symbol.IsNil() && r.isAliasResolvedToValue(symbol, true /*excludeTypeOnlyValues*/)
+		return symbol != 0 && r.isAliasResolvedToValue(symbol, true /*excludeTypeOnlyValues*/)
 	case ast.KindExportDeclaration:
 		exportClause := node.AsExportDeclaration().ExportClause()
 		return !exportClause.IsNil() && (ast.IsNamespaceExport(exportClause) ||
@@ -450,13 +455,13 @@ func (r *EmitResolver) isValueAliasDeclarationWorker(node ast.Node) bool {
 	return false
 }
 
-func (r *EmitResolver) isAliasResolvedToValue(symbol ast.Symbol, excludeTypeOnlyValues bool) bool {
+func (r *EmitResolver) isAliasResolvedToValue(symbol ast.SymbolId, excludeTypeOnlyValues bool) bool {
 	c := r.checker
-	if symbol.IsNil() {
+	if symbol == 0 {
 		return false
 	}
-	if !symbol.ValueDeclaration().IsNil() {
-		if container := ast.GetSourceFileOfNode(symbol.ValueDeclaration()); container != nil {
+	if !r.checker.symbolValueDeclaration(symbol).IsNil() {
+		if container := ast.GetSourceFileOfNode(r.checker.symbolValueDeclaration(symbol)); container != nil {
 			fileSymbol := c.getSymbolOfDeclaration(container.AsNode())
 			// Ensures cjs export assignment is setup, since this symbol may point at, and merge with, the file itself.
 			// If we don't, the merge may not have yet occurred, and the flags check below will be missing flags that
@@ -472,7 +477,7 @@ func (r *EmitResolver) isAliasResolvedToValue(symbol ast.Symbol, excludeTypeOnly
 	// unless 'preserveConstEnums' option is set to true
 	return c.getSymbolFlagsEx(symbol, excludeTypeOnlyValues, true /*excludeLocalMeanings*/)&ast.SymbolFlagsValue != 0 &&
 		(c.compilerOptions.ShouldPreserveConstEnums() ||
-			!isConstEnumOrConstEnumOnlyModule(target))
+			!r.checker.isConstEnumOrConstEnumOnlyModule(target))
 }
 
 func (r *EmitResolver) IsTopLevelValueImportEqualsWithEntityName(node ast.Node) bool {
@@ -510,7 +515,7 @@ func (r *EmitResolver) MarkLinkedReferencesRecursively(file *ast.SourceFile) {
 			if ast.IsImportDeclaration(n) {
 				return false // likewise, these are ultimately what get marked by calls on other nodes - we want to skip them
 			}
-			r.checker.markLinkedReferences(n, ReferenceHintUnspecified, ast.Symbol{} /*propSymbol*/, nil /*parentType*/)
+			r.checker.markLinkedReferences(n, ReferenceHintUnspecified, 0 /*propSymbol*/, nil /*parentType*/)
 			n.ForEachChild(visit)
 			return false
 		}
@@ -530,15 +535,22 @@ func (r *EmitResolver) GetExternalModuleFileFromDeclaration(declaration ast.Node
 
 func (r *EmitResolver) getReferenceResolver() binder.ReferenceResolver {
 	if r.referenceResolver == nil {
+		c := r.checker
 		r.referenceResolver = binder.NewReferenceResolver(r.checker.compilerOptions, binder.ReferenceResolverHooks{
-			ResolveName:                            r.checker.resolveName,
-			GetResolvedSymbol:                      r.checker.getResolvedSymbolOrNil,
-			GetMergedSymbol:                        r.checker.getMergedSymbol,
-			GetParentOfSymbol:                      r.checker.getParentOfSymbol,
-			GetSymbolOfDeclaration:                 r.checker.getSymbolOfDeclaration,
-			GetTypeOnlyAliasDeclaration:            r.checker.getTypeOnlyAliasDeclarationEx,
-			GetExportSymbolOfValueSymbolIfExported: r.checker.getExportSymbolOfValueSymbolIfExported,
-			GetElementAccessExpressionName:         r.checker.tryGetElementAccessExpressionName,
+			ResolveName: func(location ast.Node, name ast.SymbolName, meaning ast.SymbolFlags, nameNotFoundMessage *diagnostics.Message, isUse bool, excludeGlobals bool) ast.Symbol {
+				return c.symbolOf(c.resolveName(location, name, meaning, nameNotFoundMessage, isUse, excludeGlobals))
+			},
+			GetResolvedSymbol:      func(node ast.Node) ast.Symbol { return c.symbolOf(c.getResolvedSymbolOrNil(node)) },
+			GetMergedSymbol:        func(s ast.Symbol) ast.Symbol { return c.symbolOf(c.getMergedSymbol(c.symbolId(s))) },
+			GetParentOfSymbol:      func(s ast.Symbol) ast.Symbol { return c.symbolOf(c.getParentOfSymbol(c.symbolId(s))) },
+			GetSymbolOfDeclaration: c.getSymbolViewOfDeclaration,
+			GetTypeOnlyAliasDeclaration: func(s ast.Symbol, include ast.SymbolFlags) ast.Declaration {
+				return c.getTypeOnlyAliasDeclarationEx(c.symbolId(s), include)
+			},
+			GetExportSymbolOfValueSymbolIfExported: func(s ast.Symbol) ast.Symbol {
+				return c.symbolOf(c.getExportSymbolOfValueSymbolIfExported(c.symbolId(s)))
+			},
+			GetElementAccessExpressionName: r.checker.tryGetElementAccessExpressionName,
 		})
 	}
 	return r.referenceResolver
@@ -569,7 +581,7 @@ func (r *EmitResolver) GetReferencedImportDeclaration(node ast.IdentifierNode) a
 	}
 
 	symbol := r.checker.getReferencedValueOrAliasSymbol(node)
-	if ast.IsNonLocalAlias(symbol, ast.SymbolFlagsValue) && r.checker.getTypeOnlyAliasDeclarationEx(symbol, ast.SymbolFlagsValue).IsNil() {
+	if ast.IsNonLocalAlias(r.checker.symbolOf(symbol), ast.SymbolFlagsValue) && r.checker.getTypeOnlyAliasDeclarationEx(symbol, ast.SymbolFlagsValue).IsNil() {
 		return r.checker.getDeclarationOfAliasSymbol(symbol)
 	}
 	return ast.Node{}
@@ -607,7 +619,7 @@ func (r *EmitResolver) IsNameResolvable(location ast.Node, name ast.SymbolName) 
 	defer r.checkerMu.Unlock()
 
 	symbol := r.checker.resolveName(location, name, ast.SymbolFlagsValue|ast.SymbolFlagsType|ast.SymbolFlagsNamespace, nil /*nameNotFoundMessage*/, false /*isUse*/, false /*excludeGlobals*/)
-	return !symbol.IsNil()
+	return symbol != 0
 }
 
 func (r *EmitResolver) GetElementAccessExpressionName(expression ast.ElementAccessExpression) ast.SymbolName {
@@ -668,7 +680,7 @@ func (r *EmitResolver) CreateTypeOfDeclaration(declaration ast.Node, enclosingDe
 	defer r.checkerMu.Unlock()
 	// // Get type of the symbol if this is the valid symbol otherwise get type at location
 	symbol := r.checker.getSymbolOfDeclaration(declaration)
-	return r.nodeBuilder().SerializeTypeForDeclaration(declaration, symbol, enclosingDeclaration, flags|nodebuilder.FlagsMultilineObjectLiterals, internalFlags, tracker)
+	return r.nodeBuilder().serializeTypeForDeclaration(declaration, symbol, enclosingDeclaration, flags|nodebuilder.FlagsMultilineObjectLiterals, internalFlags, tracker)
 }
 
 func (r *EmitResolver) CreateLiteralConstValue(node ast.Node, tracker nodebuilder.SymbolTracker) ast.Node {
@@ -684,7 +696,7 @@ func (r *EmitResolver) CreateLiteralConstValue(node ast.Node, tracker nodebuilde
 	if t.flags&TypeFlagsEnumLike != 0 {
 		r.checkerMu.Lock()
 		defer r.checkerMu.Unlock()
-		enumResult = r.nodeBuilder().SymbolToExpression(r.checker.symbolOfType(t), ast.SymbolFlagsValue, node, nodebuilder.FlagsNone, nodebuilder.InternalFlagsNone, tracker)
+		enumResult = r.nodeBuilder().symbolToExpression(r.checker.symbolOfType(t), ast.SymbolFlagsValue, node, nodebuilder.FlagsNone, nodebuilder.InternalFlagsNone, tracker)
 		// What about regularTrueType/regularFalseType - since those aren't fresh, we never make initializers from them
 		// TODO: handle those if this function is ever used for more than initializers in declaration emit
 	} else if t == r.checker.trueType {
@@ -747,12 +759,12 @@ func (r *EmitResolver) CreateLateBoundIndexSignatures(container ast.Node, enclos
 	r.checkerMu.Lock()
 	defer r.checkerMu.Unlock()
 
-	sym := container.Symbol()
+	sym := r.checker.nodeSymbol(container)
 	staticInfos := r.checker.getIndexInfosOfType(r.checker.getTypeOfSymbol(sym))
 	instanceIndexSymbol := r.checker.getIndexSymbol(sym)
 	var instanceInfos []*IndexInfo
-	if !instanceIndexSymbol.IsNil() {
-		siblingSymbols := slices.Collect(r.checker.getMembersOfSymbol(sym).Values())
+	if instanceIndexSymbol != 0 {
+		siblingSymbols := slices.Collect(r.checker.getMembersOfSymbol(sym).ValueIds(r.checker.symbols))
 		instanceInfos = r.checker.getIndexInfosOfIndexSymbol(instanceIndexSymbol, siblingSymbols)
 	}
 
@@ -791,8 +803,8 @@ func (r *EmitResolver) CreateLateBoundIndexSignatures(container ast.Node, enclos
 
 						firstIdentifier := ast.GetFirstIdentifier(c.Name().Expression())
 						name := r.checker.resolveName(firstIdentifier, firstIdentifier.TextSymbolName(), ast.SymbolFlagsValue|ast.SymbolFlagsExportValue, nil /*nameNotFoundMessage*/, true /*isUse*/, false /*excludeGlobals*/)
-						if !name.IsNil() {
-							tracker.TrackSymbol(name, enclosingDeclaration, ast.SymbolFlagsValue)
+						if name != 0 {
+							tracker.TrackSymbol(r.checker.symbolOf(name), enclosingDeclaration, ast.SymbolFlagsValue)
 						}
 
 						mods := core.IfElse(isStatic, []ast.Node{r.emitContext.Factory.NewModifier(ast.KindStaticKeyword)}, nil)
@@ -804,7 +816,7 @@ func (r *EmitResolver) CreateLateBoundIndexSignatures(container ast.Node, enclos
 							core.IfElse(mods != nil, r.emitContext.Factory.NewModifierList(mods), ast.ModifierList{}),
 							c.Name(),
 							c.QuestionToken(),
-							requestNodeBuilder.TypeToTypeNode(r.checker.getTypeOfSymbol(c.Symbol()), enclosingDeclaration, flags, internalFlags, tracker),
+							requestNodeBuilder.TypeToTypeNode(r.checker.getTypeOfSymbol(r.checker.nodeSymbol(c)), enclosingDeclaration, flags, internalFlags, tracker),
 							ast.Node{},
 						)
 						result = append(result, decl)
@@ -861,30 +873,30 @@ func (r *EmitResolver) GetTypeReferenceSerializationKind(typeName ast.Node, loca
 	if ast.IsQualifiedName(typeName) {
 		rootValueSymbol := r.checker.resolveEntityName(ast.GetFirstIdentifier(typeName), ast.SymbolFlagsValue, true, true, location)
 
-		if !rootValueSymbol.IsNil() && rootValueSymbol.Declarations().Len() > 0 {
-			isTypeOnly = rootValueSymbol.Declarations().Every(ast.IsTypeOnlyImportOrExportDeclaration)
+		if rootValueSymbol != 0 && r.checker.symbolDeclarations(rootValueSymbol).Len() > 0 {
+			isTypeOnly = r.checker.symbolDeclarations(rootValueSymbol).Every(ast.IsTypeOnlyImportOrExportDeclaration)
 		}
 	}
 	valueSymbol := r.checker.resolveEntityName(typeName, ast.SymbolFlagsValue, true, true, location)
 	resolvedValueSymbol := valueSymbol
-	if !valueSymbol.IsNil() && valueSymbol.Flags()&ast.SymbolFlagsAlias != 0 {
+	if valueSymbol != 0 && r.checker.symbolFlags(valueSymbol)&ast.SymbolFlagsAlias != 0 {
 		resolvedValueSymbol = r.checker.resolveAlias(valueSymbol)
 	}
 
-	isTypeOnly = isTypeOnly || (!valueSymbol.IsNil() && !r.checker.getTypeOnlyAliasDeclarationEx(valueSymbol, ast.SymbolFlagsValue).IsNil())
+	isTypeOnly = isTypeOnly || (valueSymbol != 0 && !r.checker.getTypeOnlyAliasDeclarationEx(valueSymbol, ast.SymbolFlagsValue).IsNil())
 
 	// Resolve the symbol as a type so that we can provide a more useful hint for the type serializer.
 	typeSymbol := r.checker.resolveEntityName(typeName, ast.SymbolFlagsType, true, true, location)
 	resolvedTypeSymbol := typeSymbol
-	if !typeSymbol.IsNil() && typeSymbol.Flags()&ast.SymbolFlagsAlias != 0 {
+	if typeSymbol != 0 && r.checker.symbolFlags(typeSymbol)&ast.SymbolFlagsAlias != 0 {
 		resolvedTypeSymbol = r.checker.resolveAlias(typeSymbol)
 	}
 	// In case the value symbol can't be resolved (e.g. because of missing declarations), use type symbol for reachability check.
-	isTypeOnly = isTypeOnly || (!typeSymbol.IsNil() && !r.checker.getTypeOnlyAliasDeclarationEx(typeSymbol, ast.SymbolFlagsType).IsNil())
+	isTypeOnly = isTypeOnly || (typeSymbol != 0 && !r.checker.getTypeOnlyAliasDeclarationEx(typeSymbol, ast.SymbolFlagsType).IsNil())
 
-	if !resolvedValueSymbol.IsNil() && resolvedValueSymbol == resolvedTypeSymbol {
+	if resolvedValueSymbol != 0 && resolvedValueSymbol == resolvedTypeSymbol {
 		globalPromiseSymbol := r.checker.getGlobalPromiseConstructorSymbol()
-		if !globalPromiseSymbol.IsNil() && resolvedValueSymbol == globalPromiseSymbol {
+		if globalPromiseSymbol != 0 && resolvedValueSymbol == globalPromiseSymbol {
 			return printer.TypeReferenceSerializationKindPromise
 		}
 
@@ -898,7 +910,7 @@ func (r *EmitResolver) GetTypeReferenceSerializationKind(typeName ast.Node, loca
 	}
 
 	// We might not be able to resolve type symbol so use unknown type in that case (eg error case)
-	if resolvedTypeSymbol.IsNil() {
+	if resolvedTypeSymbol == 0 {
 		if isTypeOnly {
 			return printer.TypeReferenceSerializationKindObjectType
 		}
@@ -939,16 +951,20 @@ func (r *EmitResolver) GetTypeReferenceSerializationKind(typeName ast.Node, loca
 }
 
 func (r *EmitResolver) GetPropertiesOfContainerFunction(node ast.Node) []ast.Symbol {
+	return r.checker.symbolsOf(r.getPropertiesOfContainerFunction(node))
+}
+
+func (r *EmitResolver) getPropertiesOfContainerFunction(node ast.Node) []ast.SymbolId {
 	// This is explicitly _not locked_ because it is only called via error reporters invoked via node builder calls
 	// to the symbol tracker already within locked contexts.
 	// r.checkerMu.Lock()
 	// defer r.checkerMu.Unlock()
 	if node.IsNil() {
-		return []ast.Symbol{}
+		return []ast.SymbolId{}
 	}
 	s := r.checker.getSymbolOfDeclaration(node)
-	if s.IsNil() {
-		return []ast.Symbol{}
+	if s == 0 {
+		return []ast.SymbolId{}
 	}
 	return r.checker.getPropertiesOfType(r.checker.getTypeOfSymbol(s))
 }
@@ -981,23 +997,23 @@ func (r *EmitResolver) IsThisPropertyAssignmentDeclarationRedundant(node ast.Nod
 	defer r.checkerMu.Unlock()
 
 	s := r.checker.getSymbolOfDeclaration(node)
-	if s.IsNil() || s.Parent().IsNil() {
+	if s == 0 || r.checker.symbolParent(s) == 0 {
 		return false
 	}
-	parentType := r.checker.getDeclaredTypeOfSymbol(s.Parent())
+	parentType := r.checker.getDeclaredTypeOfSymbol(r.checker.symbolParent(s))
 	if parentType == nil {
 		return false
 	}
 	for _, base := range r.checker.getBaseTypes(parentType) {
-		baseProp := r.checker.getPropertyOfType(base, s.Name())
-		if baseProp.IsNil() {
+		baseProp := r.checker.getPropertyOfType(base, r.checker.symbolName(s))
+		if baseProp == 0 {
 			continue
 		}
-		if baseProp.Flags()&(ast.SymbolFlagsAccessor|ast.SymbolFlagsMethod|ast.SymbolFlagsFunction) != 0 {
+		if r.checker.symbolFlags(baseProp)&(ast.SymbolFlagsAccessor|ast.SymbolFlagsMethod|ast.SymbolFlagsFunction) != 0 {
 			return true
 		}
 		if r.checker.isReadonlySymbol(baseProp) == r.checker.isReadonlySymbol(s) &&
-			(s.Flags()&ast.SymbolFlagsOptional) == (baseProp.Flags()&ast.SymbolFlagsOptional) &&
+			(r.checker.symbolFlags(s)&ast.SymbolFlagsOptional) == (r.checker.symbolFlags(baseProp)&ast.SymbolFlagsOptional) &&
 			r.checker.isTypeIdenticalTo(r.checker.getTypeOfSymbol(s), r.checker.getTypeOfSymbol(baseProp)) {
 			return true
 		}

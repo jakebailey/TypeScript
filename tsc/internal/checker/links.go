@@ -141,40 +141,38 @@ func (s *sourceFileLinkStore) Get(file *ast.SourceFile) *SourceFileLinks {
 // symbolValueMap holds one small value per symbol, keyed by SymbolId, for
 // links that few symbols have.
 type symbolValueMap[V any] struct {
-	ids     *symbolIds
 	entries map[ast.SymbolId]V
 }
 
-func (s *symbolValueMap[V]) get(symbol ast.Symbol) V {
-	return s.entries[s.ids.id(symbol)]
+func (s *symbolValueMap[V]) get(symbol ast.SymbolId) V {
+	return s.entries[symbol]
 }
 
-func (s *symbolValueMap[V]) set(symbol ast.Symbol, value V) {
+func (s *symbolValueMap[V]) set(symbol ast.SymbolId, value V) {
 	if s.entries == nil {
 		s.entries = make(map[ast.SymbolId]V)
 	}
-	s.entries[s.ids.id(symbol)] = value
+	s.entries[symbol] = value
 }
 
 // symbolNodeLinkStore holds the symbol a node resolves to, if any, in a
 // map per file keyed by node index.
 type symbolNodeLinkStore struct {
 	refs  *ast.RefCache
-	ids   *symbolIds
 	files []map[uint32]ast.SymbolId
 }
 
-func (s *symbolNodeLinkStore) get(node ast.Node) ast.Symbol {
+func (s *symbolNodeLinkStore) get(node ast.Node) ast.SymbolId {
 	r := s.refs.Ref(node)
 	if int(r.File()) < len(s.files) {
 		if id := s.files[r.File()][r.Index()]; id != 0 {
-			return s.ids.symbol(id)
+			return id
 		}
 	}
-	return ast.Symbol{}
+	return 0
 }
 
-func (s *symbolNodeLinkStore) set(node ast.Node, symbol ast.Symbol) {
+func (s *symbolNodeLinkStore) set(node ast.Node, symbol ast.SymbolId) {
 	r := s.refs.Ref(node)
 	if int(r.File()) >= len(s.files) {
 		s.files = slices.Grow(s.files, int(r.File())+1-len(s.files))[:r.File()+1]
@@ -184,7 +182,7 @@ func (s *symbolNodeLinkStore) set(node ast.Node, symbol ast.Symbol) {
 		m = make(map[uint32]ast.SymbolId)
 		s.files[r.File()] = m
 	}
-	m[r.Index()] = s.ids.id(symbol)
+	m[r.Index()] = symbol
 }
 
 // symbolIds numbers symbols for a checker, caching the base id of the store
@@ -231,47 +229,43 @@ func (c *Checker) symbolId(symbol ast.Symbol) ast.SymbolId {
 }
 
 type symbolLinkStore[V any] struct {
-	ids   *symbolIds
 	links core.LinkStore[ast.SymbolId, V]
 	pages core.PagedLinkStore[V]
 }
 
-func (s *symbolLinkStore[V]) Get(symbol ast.Symbol) *V {
-	id := s.ids.id(symbol)
-	if id < maxPageLinkCount {
-		return s.pages.Get(uint64(id))
+func (s *symbolLinkStore[V]) Get(symbol ast.SymbolId) *V {
+	if symbol < maxPageLinkCount {
+		return s.pages.Get(uint64(symbol))
 	}
-	return s.links.Get(id)
+	return s.links.Get(symbol)
 }
 
-func (s *symbolLinkStore[V]) Has(symbol ast.Symbol) bool {
+func (s *symbolLinkStore[V]) Has(symbol ast.SymbolId) bool {
 	return s.TryGet(symbol) != nil
 }
 
-func (s *symbolLinkStore[V]) TryGet(symbol ast.Symbol) *V {
-	id := s.ids.id(symbol)
-	if id < maxPageLinkCount {
-		return s.pages.TryGet(uint64(id))
+func (s *symbolLinkStore[V]) TryGet(symbol ast.SymbolId) *V {
+	if symbol < maxPageLinkCount {
+		return s.pages.TryGet(uint64(symbol))
 	}
-	return s.links.TryGet(id)
+	return s.links.TryGet(symbol)
 }
 
 // symbolMapLinks holds links that few symbols have, keyed by SymbolId.
 type symbolMapLinks[V any] struct {
-	ids   *symbolIds
 	links core.LinkStore[ast.SymbolId, V]
 }
 
-func (s *symbolMapLinks[V]) Get(symbol ast.Symbol) *V {
-	return s.links.Get(s.ids.id(symbol))
+func (s *symbolMapLinks[V]) Get(symbol ast.SymbolId) *V {
+	return s.links.Get(symbol)
 }
 
-func (s *symbolMapLinks[V]) Has(symbol ast.Symbol) bool {
-	return s.links.Has(s.ids.id(symbol))
+func (s *symbolMapLinks[V]) Has(symbol ast.SymbolId) bool {
+	return s.links.Has(symbol)
 }
 
-func (s *symbolMapLinks[V]) TryGet(symbol ast.Symbol) *V {
-	return s.links.TryGet(s.ids.id(symbol))
+func (s *symbolMapLinks[V]) TryGet(symbol ast.SymbolId) *V {
+	return s.links.TryGet(symbol)
 }
 
 // nodeOf resolves a ref held by a checker record.

@@ -241,8 +241,8 @@ func (links *ValueSymbolLinks) setContainingType(c *Checker, typ *Type) {
 // Additional links for mapped symbols
 
 type MappedSymbolLinks struct {
-	keyType         *Type      // Key type for mapped type member
-	syntheticOrigin ast.Symbol // For a property on a mapped or spread type, points back to the original property
+	keyType         *Type        // Key type for mapped type member
+	syntheticOrigin ast.SymbolId // For a property on a mapped or spread type, points back to the original property
 }
 
 // Additional links for deferred type symbols
@@ -256,10 +256,10 @@ type DeferredSymbolLinks struct {
 // Links for alias symbols
 
 type AliasSymbolLinks struct {
-	immediateTarget     ast.Symbol // Immediate target of an alias. May be another alias. Do not access directly, use `checker.getImmediateAliasedSymbol` instead.
-	aliasTarget         ast.Symbol // Resolved (non-alias) target of an alias
-	referenced          bool       // True if alias symbol has been referenced as a value that can be emitted
-	typeOnlyDeclaration ast.Node   // First resolved alias declaration that makes the symbol only usable in type constructs
+	immediateTarget     ast.SymbolId // Immediate target of an alias. May be another alias. Do not access directly, use `checker.getImmediateAliasedSymbol` instead.
+	aliasTarget         ast.SymbolId // Resolved (non-alias) target of an alias
+	referenced          bool         // True if alias symbol has been referenced as a value that can be emitted
+	typeOnlyDeclaration ast.Node     // First resolved alias declaration that makes the symbol only usable in type constructs
 }
 
 // Links for module symbols
@@ -279,14 +279,14 @@ type ReverseMappedSymbolLinks struct {
 // Links for late-bound symbols
 
 type LateBoundLinks struct {
-	lateSymbol ast.Symbol
+	lateSymbol ast.SymbolId
 }
 
 // Links for export type symbols
 
 type ExportTypeLinks struct {
-	target            ast.Symbol // Target symbol
-	originatingImport ast.Node   // Import declaration which produced the symbol, present if the symbol is marked as uncallable but had call signatures in `resolveESModuleSymbol`
+	target            ast.SymbolId // Target symbol
+	originatingImport ast.Node     // Import declaration which produced the symbol, present if the symbol is marked as uncallable but had call signatures in `resolveESModuleSymbol`
 }
 
 // Links for type aliases
@@ -347,8 +347,8 @@ type MembersAndExportsLinks [2]ast.SymbolTable // Indexed by MembersOrExportsRes
 // Links for synthetic spread properties
 
 type SpreadLinks struct {
-	leftSpread  ast.Symbol // Left source for synthetic spread property
-	rightSpread ast.Symbol // Right source for synthetic spread property
+	leftSpread  ast.SymbolId // Left source for synthetic spread property
+	rightSpread ast.SymbolId // Right source for synthetic spread property
 }
 
 // Links for variances of type aliases and interface types
@@ -383,9 +383,9 @@ type accessibleChainCacheKey struct {
 }
 
 type ContainingSymbolLinks struct {
-	extendedContainersByFile map[ast.NodeId][]ast.Symbol // Symbols of nodes which which logically contain this one, cached by file the request is made within
-	extendedContainers       *[]ast.Symbol               // Containers (other than the parent) which this symbol is aliased in
-	accessibleChainCache     map[accessibleChainCacheKey][]ast.Symbol
+	extendedContainersByFile map[ast.NodeId][]ast.SymbolId // Symbols of nodes which which logically contain this one, cached by file the request is made within
+	extendedContainers       *[]ast.SymbolId               // Containers (other than the parent) which this symbol is aliased in
+	accessibleChainCache     map[accessibleChainCacheKey][]ast.SymbolId
 }
 
 type AccessFlags uint32
@@ -449,7 +449,7 @@ type AssertionLinks struct {
 type SourceFileLinks struct {
 	typeChecked                  bool
 	unusedChecked                bool
-	externalHelpersModule        ast.Symbol
+	externalHelpersModule        ast.SymbolId
 	requestedExternalEmitHelpers ExternalEmitHelpers
 	deferredNodes                collections.OrderedSet[ast.Node]
 	identifierCheckNodes         []ast.Node
@@ -694,13 +694,13 @@ const (
 // TypeAlias
 
 type TypeAlias struct {
-	symbol        ast.Symbol
+	symbol        ast.SymbolId
 	typeArguments []*Type
 }
 
-func (a *TypeAlias) Symbol() ast.Symbol {
+func (a *TypeAlias) Symbol() ast.SymbolId {
 	if a == nil {
-		return ast.Symbol{}
+		return 0
 	}
 	return a.symbol
 }
@@ -847,7 +847,7 @@ type typeExtra struct {
 // structuredMembers holds the resolved members of an object, union or intersection type.
 type structuredMembers struct {
 	members    ast.SymbolTable
-	properties []ast.Symbol
+	properties []ast.SymbolId
 	extra      *structuredTypeExtra
 }
 
@@ -1088,19 +1088,19 @@ func (t *Type) TargetTupleType() *TupleType {
 }
 
 // SymbolOfType returns the symbol of a type, or the zero Symbol if it has none.
-func (c *Checker) SymbolOfType(t *Type) ast.Symbol {
+func (c *Checker) symbolOfTypeId(t *Type) ast.SymbolId {
 	return c.symbolOfType(t)
 }
 
-func (c *Checker) symbolOfType(t *Type) ast.Symbol {
+func (c *Checker) symbolOfType(t *Type) ast.SymbolId {
 	if t.symbol == 0 {
-		return ast.Symbol{}
+		return 0
 	}
-	return c.symbolIds.symbol(t.symbol)
+	return c.symbolId(c.symbolIds.symbol(t.symbol))
 }
 
-func (t *Type) setSymbol(c *Checker, symbol ast.Symbol) {
-	t.symbol = c.symbolId(symbol)
+func (t *Type) setSymbol(c *Checker, symbol ast.SymbolId) {
+	t.symbol = symbol
 }
 
 func (t *Type) Alias() *TypeAlias {
@@ -1315,14 +1315,14 @@ func (t *StructuredType) setMembers(c *Checker, members ast.SymbolTable) {
 	t.ensureResolved(c).members = members
 }
 
-func (t *StructuredType) properties() []ast.Symbol {
+func (t *StructuredType) properties() []ast.SymbolId {
 	if t.resolved == nil {
 		return nil
 	}
 	return t.resolved.properties
 }
 
-func (t *StructuredType) setProperties(c *Checker, properties []ast.Symbol) {
+func (t *StructuredType) setProperties(c *Checker, properties []ast.SymbolId) {
 	if properties == nil && t.resolved == nil {
 		return
 	}
@@ -1367,17 +1367,17 @@ func (t *StructuredType) ConstructSignatures() []*Signature {
 	return slices.Clip(extra.signatures[extra.callSignatureCount:])
 }
 
-func (t *StructuredType) getMember(c *Checker, name ast.SymbolName) ast.Symbol {
+func (t *StructuredType) getMember(c *Checker, name ast.SymbolName) ast.SymbolId {
 	if members := t.members(); members != nil {
-		return members.Get(name)
+		return members.GetId(c.symbols, name)
 	}
 	lazy := t.getLazyState()
 	if lazy == nil {
-		return ast.Symbol{}
+		return 0
 	}
 	index := lazy.layout.members.Find(name)
 	if index < 0 {
-		return ast.Symbol{}
+		return 0
 	}
 	return t.getPropertyAt(c, index)
 }
@@ -1387,7 +1387,7 @@ func (t *StructuredType) getMembers(c *Checker) ast.SymbolTable {
 		if properties := t.getProperties(c); len(properties) != 0 {
 			members := ast.NewSymbolTableWithCapacity(len(properties))
 			for _, member := range properties {
-				members.Set(member.Name(), member)
+				members.SetId(c.symbols, c.symbolName(member), member)
 			}
 			t.setMembers(c, members)
 		}
@@ -1395,30 +1395,30 @@ func (t *StructuredType) getMembers(c *Checker) ast.SymbolTable {
 	return t.members()
 }
 
-func (t *StructuredType) getPropertyAt(c *Checker, index int) ast.Symbol {
+func (t *StructuredType) getPropertyAt(c *Checker, index int) ast.SymbolId {
 	lazy := t.getLazyState()
 	if lazy == nil {
 		return t.properties()[index]
 	}
 	if t.properties() == nil {
-		t.setProperties(c, make([]ast.Symbol, lazy.layout.members.Len()))
+		t.setProperties(c, make([]ast.SymbolId, lazy.layout.members.Len()))
 	}
 	properties := t.properties()
 	member := properties[index]
-	if member.IsNil() {
-		symbol := lazy.layout.members.SymbolAt(index)
+	if member == 0 {
+		symbol := lazy.layout.members.IdAt(c.symbols, index)
 		baseIndex := lazy.layout.baseIndices[index]
 		if baseIndex < 0 {
 			member = c.instantiateSymbol(symbol, c.mapperOf(lazy.mapper))
 		} else {
-			member = c.getPropertyOfType(lazy.baseTypes[baseIndex], symbol.Name())
+			member = c.getPropertyOfType(lazy.baseTypes[baseIndex], c.symbolName(symbol))
 		}
 		properties[index] = member
 	}
 	return member
 }
 
-func (t *StructuredType) getProperties(c *Checker) []ast.Symbol {
+func (t *StructuredType) getProperties(c *Checker) []ast.SymbolId {
 	if lazy := t.getLazyState(); lazy != nil && !lazy.propertiesResolved {
 		for i := range lazy.layout.members.Len() {
 			t.getPropertyAt(c, i)
@@ -1462,7 +1462,7 @@ func (t *StructuredType) getIndexInfos() []*IndexInfo {
 	return extra.indexInfos
 }
 
-func (t *StructuredType) Properties(c *Checker) []ast.Symbol {
+func (t *StructuredType) propertiesId(c *Checker) []ast.SymbolId {
 	return t.getProperties(c)
 }
 
@@ -1585,7 +1585,7 @@ type MemberLayout struct {
 	id               uint32          // Unique identifier for the member layout
 	members          ast.SymbolTable // MemberInfos keyed by property name
 	baseIndices      []int32         // Indices of base types for each member (-1 if locally declared)
-	layoutProperties []ast.Symbol    // Lazily created list of layout properties (the symbols in members)
+	layoutProperties []ast.SymbolId  // Lazily created list of layout properties (the symbols in members)
 }
 
 func (t *TypeReference) AsTypeReference() *TypeReference { return t }
@@ -1820,7 +1820,7 @@ type UnionOrIntersectionType struct {
 type unionOrIntersectionData struct {
 	propertyCache                               ast.SymbolTable // Augmented entries, except complete ones already in the non-augmented cache.
 	propertyCacheWithoutFunctionPropertyAugment ast.SymbolTable
-	resolvedProperties                          []ast.Symbol
+	resolvedProperties                          []ast.SymbolId
 }
 
 func (t *UnionOrIntersectionType) AsUnionOrIntersectionType() *UnionOrIntersectionType { return t }
@@ -1874,14 +1874,14 @@ func (t *UnionOrIntersectionType) setPropertyCacheWithoutFunctionPropertyAugment
 	t.ensureMore(c).propertyCacheWithoutFunctionPropertyAugment = v
 }
 
-func (t *UnionOrIntersectionType) resolvedProperties() []ast.Symbol {
+func (t *UnionOrIntersectionType) resolvedProperties() []ast.SymbolId {
 	if more := t.more(); more != nil {
 		return more.resolvedProperties
 	}
 	return nil
 }
 
-func (t *UnionOrIntersectionType) setResolvedProperties(c *Checker, v []ast.Symbol) {
+func (t *UnionOrIntersectionType) setResolvedProperties(c *Checker, v []ast.SymbolId) {
 	t.ensureMore(c).resolvedProperties = v
 }
 
@@ -2196,7 +2196,7 @@ type Signature struct {
 	minArgumentCount         int32
 	resolvedMinArgumentCount int32
 	declaration              ast.NodeRef
-	parameters               []ast.Symbol
+	parameters               []ast.SymbolId
 	resolvedReturnType       *Type
 	target                   SignatureId
 	mapper                   TypeMapperId
@@ -2205,7 +2205,7 @@ type Signature struct {
 
 type signatureExtra struct {
 	typeParameters        []*Type
-	thisParameter         ast.Symbol
+	thisParameter         ast.SymbolId
 	resolvedTypePredicate *TypePredicate
 	isolatedSignatureType *Type
 	composite             *CompositeSignature
@@ -2224,8 +2224,8 @@ func (s *Signature) setTypeParameters(c *Checker, types []*Type) {
 	}
 }
 
-func (s *Signature) setThisParameter(c *Checker, parameter ast.Symbol) {
-	if !parameter.IsNil() || s.extra != nil {
+func (s *Signature) setThisParameter(c *Checker, parameter ast.SymbolId) {
+	if parameter != 0 || s.extra != nil {
 		s.ensureExtra(c).thisParameter = parameter
 	}
 }
@@ -2290,14 +2290,14 @@ func (s *Signature) Target(c *Checker) *Signature {
 	return c.signatureOf(s.target)
 }
 
-func (s *Signature) ThisParameter() ast.Symbol {
+func (s *Signature) ThisParameter() ast.SymbolId {
 	if s.extra == nil {
-		return ast.Symbol{}
+		return 0
 	}
 	return s.extra.thisParameter
 }
 
-func (s *Signature) Parameters() []ast.Symbol {
+func (s *Signature) Parameters() []ast.SymbolId {
 	return s.parameters
 }
 
@@ -2356,9 +2356,9 @@ type IndexInfo struct {
 	valueType   *Type
 	id          IndexInfoId
 	isReadonly  bool
-	declaration ast.Node   // IndexSignatureDeclaration
-	indexSymbol ast.Symbol // Synthetic property symbol for this index signature
-	components  []ast.Node // ElementWithComputedPropertyName
+	declaration ast.Node     // IndexSignatureDeclaration
+	indexSymbol ast.SymbolId // Synthetic property symbol for this index signature
+	components  []ast.Node   // ElementWithComputedPropertyName
 }
 
 func (info *IndexInfo) KeyType() *Type {
@@ -2444,3 +2444,11 @@ var LanguageFeatureMinimumTarget = LanguageFeatureMinimumTargetMap{
 
 // Aliases for types
 type StringLiteralType = Type
+
+func (c *Checker) SymbolOfType(t *Type) ast.Symbol {
+	return c.symbolOf(c.symbolOfTypeId(t))
+}
+
+func (t *StructuredType) Properties(c *Checker) []ast.Symbol {
+	return c.symbolsOf(t.propertiesId(c))
+}

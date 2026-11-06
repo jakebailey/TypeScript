@@ -284,12 +284,17 @@ func (m *SymbolMap) setOrAdd(key SymbolName, symbol Symbol, replace bool) bool {
 	}
 	id := m.idOf(symbol)
 	m.entries = append(m.entries, symbolEntry{uint32(key), uint32(key >> 32), id})
+	m.grewTo(key, i)
+	return true
+}
+
+// grewTo indexes the entry for key just added at position i.
+func (m *SymbolMap) grewTo(key SymbolName, i int) {
 	if index := m.index(); len(index) != 0 && len(m.entries)*4 <= len(index)*3 {
 		m.insertIndex(key, i)
 	} else if len(m.entries) > symbolTableLinearMax {
 		m.buildIndex()
 	}
-	return true
 }
 
 func indexSizeFor(n int) int {
@@ -445,4 +450,114 @@ func UnescapeSymbolName(name string) SymbolName {
 		name = InternalSymbolNamePrefix + rest
 	}
 	return MakeSymbolName(name)
+}
+
+// The methods below read and write a table in the ids of a checker's store
+// st. A table that is not yet st's, or a binder store's, is read through its
+// own store; writing an id moves it to st.
+
+// checkerId returns the id in st of the symbol id names in m.
+func (m *SymbolMap) checkerId(st *SymbolStore, id uint32) SymbolId {
+	s := m.store
+	switch {
+	case s == st:
+		return SymbolId(id)
+	case s == nil || id == 0:
+		return 0
+	case s.checker == nil && id&foreignSymbol == 0:
+		if base, ok := st.BaseOf(s); ok {
+			return SymbolId(base + id)
+		}
+	}
+	return st.IdOf(m.symbolOf(id))
+}
+
+func (m *SymbolMap) GetId(st *SymbolStore, key SymbolName) SymbolId {
+	if i := m.Find(key); i >= 0 {
+		return m.checkerId(st, m.entries[i].id)
+	}
+	return 0
+}
+
+func (m *SymbolMap) LookupId(st *SymbolStore, key SymbolName) (SymbolId, bool) {
+	if i := m.Find(key); i >= 0 {
+		return m.checkerId(st, m.entries[i].id), true
+	}
+	return 0, false
+}
+
+func (m *SymbolMap) IdAt(st *SymbolStore, i int) SymbolId {
+	return m.checkerId(st, m.entries[i].id)
+}
+
+func (m *SymbolMap) AllIds(st *SymbolStore) iter.Seq2[SymbolName, SymbolId] {
+	return func(yield func(SymbolName, SymbolId) bool) {
+		if m == nil {
+			return
+		}
+		entries := m.entries
+		for i := range entries {
+			if !yield(entries[i].name(), m.checkerId(st, entries[i].id)) {
+				return
+			}
+		}
+	}
+}
+
+func (m *SymbolMap) ValueIds(st *SymbolStore) iter.Seq[SymbolId] {
+	return func(yield func(SymbolId) bool) {
+		if m == nil {
+			return
+		}
+		entries := m.entries
+		for i := range entries {
+			if !yield(m.checkerId(st, entries[i].id)) {
+				return
+			}
+		}
+	}
+}
+
+func (m *SymbolMap) SetId(st *SymbolStore, key SymbolName, id SymbolId) {
+	m.setOrAddId(st, key, id, true)
+}
+
+func (m *SymbolMap) AddIfAbsentId(st *SymbolStore, key SymbolName, id SymbolId) bool {
+	return m.setOrAddId(st, key, id, false)
+}
+
+func (m *SymbolMap) setOrAddId(st *SymbolStore, key SymbolName, id SymbolId, replace bool) bool {
+	if m.store != st {
+		if m.store == nil || m.store.checker == nil {
+			if id == 0 {
+				return m.setOrAdd(key, Symbol{}, replace)
+			}
+			if m.store != nil {
+				m.moveTo(st)
+			}
+			m.store = st
+		} else {
+			return m.setOrAdd(key, st.SymbolOf(id), replace)
+		}
+	}
+	if i := m.Find(key); i >= 0 {
+		if replace {
+			m.entries[i].id = uint32(id)
+		}
+		return replace
+	}
+	if cap(m.entries) == 0 {
+		m.entries = make([]symbolEntry, 0, 2)
+	}
+	m.entries = append(m.entries, symbolEntry{uint32(key), uint32(key >> 32), uint32(id)})
+	m.grewTo(key, len(m.entries)-1)
+	return true
+}
+
+// TableOfId returns a table of a checker's store st holding the symbol id
+// names under name.
+func (st *SymbolStore) TableOfId(name SymbolName, id SymbolId) SymbolTable {
+	m := newSymbolTable(st, 1)
+	m.SetId(st, name, id)
+	return m
 }

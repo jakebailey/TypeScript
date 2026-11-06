@@ -69,7 +69,7 @@ func (b *NodeBuilderImpl) pseudoTypeToNode(t *pseudochecker.PseudoType) ast.Node
 		if ast.IsReturnStatement(node.Parent()) {
 			enclosing := ast.GetContainingFunction(node)
 			if ast.IsAccessor(enclosing) {
-				return b.serializeTypeForDeclaration(enclosing, nil, ast.Symbol{}, false)
+				return b.serializeTypeForDeclaration(enclosing, nil, 0, false)
 			}
 			return b.serializeReturnTypeForSignature(b.ch.getSignatureFromDeclaration(enclosing), false)
 		}
@@ -77,7 +77,7 @@ func (b *NodeBuilderImpl) pseudoTypeToNode(t *pseudochecker.PseudoType) ast.Node
 			return b.serializeReturnTypeForSignature(b.ch.getSignatureFromDeclaration(node.Parent()), false)
 		}
 		if ast.IsDeclaration(node.Parent()) {
-			return b.serializeTypeForDeclaration(node.Parent(), nil, ast.Symbol{}, false)
+			return b.serializeTypeForDeclaration(node.Parent(), nil, 0, false)
 		}
 		// This might be effectively unreachable. If it's not, it may need more widening rules to mirror checker behavior for whatever expressions are serialized here
 		ty := b.ch.getTypeOfExpression(node)
@@ -88,7 +88,7 @@ func (b *NodeBuilderImpl) pseudoTypeToNode(t *pseudochecker.PseudoType) ast.Node
 		if ast.IsFunctionLike(node) && !ast.IsAccessor(node) {
 			return b.serializeReturnTypeForSignature(b.ch.getSignatureFromDeclaration(node), false)
 		}
-		return b.serializeTypeForDeclaration(node, nil, ast.Symbol{}, false)
+		return b.serializeTypeForDeclaration(node, nil, 0, false)
 	case pseudochecker.PseudoTypeKindMaybeConstLocation:
 		d := t.AsPseudoTypeMaybeConstLocation()
 		// see checkExpressionWithContextualType for general literal widening rules which need to be emulated here, plus
@@ -345,7 +345,7 @@ func (b *NodeBuilderImpl) pseudoParameterToNode(p *pseudochecker.PseudoParameter
 		ast.ModifierList{},
 		dotDotDot,
 		// matches strada behavior of always reserializing param names from scratch
-		b.parameterToParameterDeclarationName(p.Name.Parent().Symbol(), p.Name.Parent()),
+		b.parameterToParameterDeclarationName(b.ch.nodeSymbol(p.Name.Parent()), p.Name.Parent()),
 		questionMark,
 		b.pseudoTypeToNode(p.Type),
 		ast.Node{},
@@ -425,34 +425,34 @@ func (b *NodeBuilderImpl) pseudoTypeEquivalentToType(t *pseudochecker.PseudoType
 		// which are two elements in pt.Elements but only one symbol in targetProps.
 		targetDeclCount := 0
 		for _, prop := range targetProps {
-			targetDeclCount += prop.Declarations().Len()
+			targetDeclCount += b.ch.symbolDeclarations(prop).Len()
 		}
 		if len(pt.Elements) != targetDeclCount {
 			return false
 		}
 		for _, e := range pt.Elements {
-			var targetProp ast.Symbol
-			elemSymbol := e.Name.Parent().Symbol()
-			if !elemSymbol.IsNil() {
-				targetProp = b.ch.getPropertyOfType(undefinedStripped, elemSymbol.Name())
+			var targetProp ast.SymbolId
+			elemSymbol := b.ch.nodeSymbol(e.Name.Parent())
+			if elemSymbol != 0 {
+				targetProp = b.ch.getPropertyOfType(undefinedStripped, b.ch.symbolName(elemSymbol))
 			}
-			if targetProp.IsNil() {
+			if targetProp == 0 {
 				// Name lookup failed or returned no result; search target properties
 				// for one whose declaration name node matches the one we have
 				for _, prop := range targetProps {
-					if !prop.ValueDeclaration().IsNil() && prop.ValueDeclaration().Name() == e.Name {
+					if !b.ch.symbolValueDeclaration(prop).IsNil() && b.ch.symbolValueDeclaration(prop).Name() == e.Name {
 						targetProp = prop
 						break
 					}
 				}
-				if targetProp.IsNil() {
+				if targetProp == 0 {
 					if reportErrors {
 						b.ctx.tracker.ReportInferenceFallback(e.Name.Parent())
 					}
 					return false
 				}
 			}
-			targetIsOptional := targetProp.Flags()&ast.SymbolFlagsOptional != 0
+			targetIsOptional := b.ch.symbolFlags(targetProp)&ast.SymbolFlagsOptional != 0
 			if e.Optional != targetIsOptional {
 				if reportErrors {
 					b.ctx.tracker.ReportInferenceFallback(e.Name.Parent())
@@ -583,12 +583,12 @@ func (b *NodeBuilderImpl) pseudoTypeEquivalentToType(t *pseudochecker.PseudoType
 }
 
 func (b *NodeBuilderImpl) pseudoParametersEquivalentToParameters(params []*pseudochecker.PseudoParameter, targetSig *Signature, reportErrors bool, nonParamErrorLocation ast.Node) bool {
-	if !targetSig.ThisParameter().IsNil() && len(params) == 0 {
+	if targetSig.ThisParameter() != 0 && len(params) == 0 {
 		if reportErrors {
 			b.ctx.tracker.ReportInferenceFallback(nonParamErrorLocation) // missing `this` param
 		}
 		return false
-	} else if !targetSig.ThisParameter().IsNil() && ast.IsThisIdentifier(params[0].Name) {
+	} else if targetSig.ThisParameter() != 0 && ast.IsThisIdentifier(params[0].Name) {
 		targetParam := targetSig.ThisParameter()
 		paramType := b.ch.getTypeOfParameter(targetParam)
 		if !b.pseudoTypeEquivalentToType(params[0].Type, paramType, params[0].Optional, false) {
@@ -598,7 +598,7 @@ func (b *NodeBuilderImpl) pseudoParametersEquivalentToParameters(params []*pseud
 			return false
 		}
 		params = params[1:]
-	} else if !targetSig.ThisParameter().IsNil() {
+	} else if targetSig.ThisParameter() != 0 {
 		if reportErrors {
 			b.ctx.tracker.ReportInferenceFallback(nonParamErrorLocation)
 		}
@@ -612,7 +612,7 @@ func (b *NodeBuilderImpl) pseudoParametersEquivalentToParameters(params []*pseud
 	}
 	for i, p := range params {
 		targetParam := targetSig.parameters[i]
-		if p.Optional != b.ch.isOptionalParameter(targetParam.ValueDeclaration()) {
+		if p.Optional != b.ch.isOptionalParameter(b.ch.symbolValueDeclaration(targetParam)) {
 			if reportErrors {
 				b.ctx.tracker.ReportInferenceFallback(p.Name.Parent())
 			}
