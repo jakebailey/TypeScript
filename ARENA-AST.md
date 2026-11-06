@@ -648,9 +648,11 @@ The collector traces every heap object that may hold pointers; pointer-free obje
 | pointer-free type records | 774,518K | 2,675,048K | 29% |
 | value links | 637,048K | 2,639,774K | 24% |
 | resolved members | 588,604K | 2,611,134K | 23% |
+| signature records | 533,219K | 2,590,731K | 21% |
 
 - Value links: the rare write, name and containing types hang off a 4-byte index into a checker page store instead of a pointer, so the value link pages (130MB on vscode) carry no pointers. The link shrinks from 24 to 16 bytes.
 - Resolved members: the record of an object type's resolved members held a table pointer, a slice and an extra pointer (56 bytes). It now holds an index into the checker's member tables, an 8-byte handle into a symbol list store like the type list store, and an index into the extra records: 16 bytes and no pointers.
+- Signature records: a signature held its declaration view, parameter slice, return type, target, mapper and an extra pointer (24 bytes plus five pointer words plus a node ref). It now holds a node ref, an 8-byte handle into the symbol list store, and ids for the return type, target, mapper and extra record: 48 bytes and no pointers. The extra record keeps the type parameter list handle, this-parameter, and indices of the type predicate and composite signature, which live in checker pages. Signatures compare type parameter lists by identity, so storing a list that already came from the type list store reuses its handle rather than copying it; the store finds the page by address. Check time rose about 0.25s from the indirect parameter reads.
 
 ### Progress
 
@@ -682,6 +684,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 18. pointer-free type records | 2,674,191K (−23MB) | 1,548,297K (−15MB) | 1,000,530K (−7MB) | 19.95–20.07s (20.05) |
 | 19. pointer-free value links | 2,639,332K (−35MB) | 1,525,564K (−23MB) | 980,885K (−20MB) | 19.81–20.06s (19.93) |
 | 20. pointer-free resolved members | 2,610,574K (−29MB) | 1,508,279K (−17MB) | 975,480K (−5MB) | 19.90–20.10s (19.96) |
+| 21. pointer-free signature records | 2,589,902K (−21MB) | 1,499,501K (−9MB) | 973,389K (−2MB) | 20.02–20.29s (20.18) |
 
 ### Deviations forced by the language
 

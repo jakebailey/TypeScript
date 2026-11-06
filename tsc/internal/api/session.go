@@ -531,19 +531,19 @@ func (sd *snapshotData) newSignatureResponse(projectID project.Handle, c *checke
 		}
 	}
 
-	if len(sig.TypeParameters()) > 0 {
-		resp.TypeParameters = typeHandles(sig.TypeParameters())
+	if len(sig.TypeParameters(c)) > 0 {
+		resp.TypeParameters = typeHandles(sig.TypeParameters(c))
 	}
 
-	if len(sig.Parameters()) > 0 {
-		resp.Parameters = make([]CompactSymbolReference, len(sig.Parameters()))
-		for i, parameter := range sig.Parameters() {
+	if len(sig.Parameters(c)) > 0 {
+		resp.Parameters = make([]CompactSymbolReference, len(sig.Parameters(c)))
+		for i, parameter := range sig.Parameters(c) {
 			resp.Parameters[i] = *newSymbolReference(c.SymbolView(parameter))
 		}
 	}
 
-	if sig.ThisParameter() != 0 {
-		resp.ThisParameter = newSymbolReference(c.SymbolView(sig.ThisParameter()))
+	if sig.ThisParameter(c) != 0 {
+		resp.ThisParameter = newSymbolReference(c.SymbolView(sig.ThisParameter(c)))
 	}
 
 	if target := sig.Target(c); target != nil {
@@ -3268,14 +3268,14 @@ func (s *Session) handleGetTypeParametersOfSignature(ctx context.Context, params
 // @gen-proto-nullable
 func (s *Session) handleGetParametersOfSignature(_ context.Context, params *GetSignaturePropertyParams) ([]*SymbolResponse, error) {
 	return s.resolveSymbolArrayPropertyOfSignature(params, func(c *checker.Checker, sig *checker.Signature) []ast.Symbol {
-		return c.SymbolViews(sig.Parameters())
+		return c.SymbolViews(sig.Parameters(c))
 	})
 }
 
 // @gen-proto-nullable
 func (s *Session) handleGetThisParameterOfSignature(_ context.Context, params *GetSignaturePropertyParams) (*SymbolResponse, error) {
 	return s.resolveSymbolPropertyOfSignature(params, func(c *checker.Checker, sig *checker.Signature) ast.Symbol {
-		return c.SymbolView(sig.ThisParameter())
+		return c.SymbolView(sig.ThisParameter(c))
 	})
 }
 
@@ -3623,7 +3623,7 @@ func (s *Session) resolveSymbolPropertyOfSignature(params *GetSignaturePropertyP
 	return sd.newSymbolResponse(result, params.Project), nil
 }
 
-func (s *Session) resolveTypeArrayPropertyOfSignature(ctx context.Context, params *GetSignaturePropertyParams, getter func(signature *checker.Signature) []checker.TypeId) ([]*TypeResponse, error) {
+func (s *Session) resolveTypeArrayPropertyOfSignature(ctx context.Context, params *GetSignaturePropertyParams, getter func(signature *checker.Signature, c *checker.Checker) []checker.TypeId) ([]*TypeResponse, error) {
 	setup, err := s.setupChecker(ctx, params.Snapshot, params.Project)
 	if err != nil {
 		return nil, err
@@ -3635,7 +3635,7 @@ func (s *Session) resolveTypeArrayPropertyOfSignature(ctx context.Context, param
 		return nil, err
 	}
 
-	types := getter(sig)
+	types := getter(sig, setup.checker)
 	if len(types) == 0 {
 		return nil, nil
 	}

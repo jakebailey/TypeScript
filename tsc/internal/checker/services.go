@@ -734,10 +734,10 @@ func (c *Checker) getUninstantiatedSignatures(node ast.Node) []*Signature {
 func (c *Checker) getTypeParameterConstraintForPositionAcrossSignatures(signatures []*Signature, position int) *Type {
 	var relevantConstraints []TypeId
 	for _, signature := range signatures {
-		if position >= len(signature.TypeParameters()) {
+		if position >= len(signature.TypeParameters(c)) {
 			continue
 		}
-		relevantTypeParameter := c.typ(signature.TypeParameters()[position])
+		relevantTypeParameter := c.typ(signature.TypeParameters(c)[position])
 		relevantConstraint := c.getConstraintOfTypeParameter(relevantTypeParameter)
 		if relevantConstraint != nil {
 			relevantConstraints = append(relevantConstraints, relevantConstraint.ref())

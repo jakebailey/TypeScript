@@ -317,14 +317,14 @@ func (f *missingMemberFixer) createSignatureDeclarationFromSignatures(signatures
 		if signature.HasRestParameter() {
 			hasRestParameter = true
 		}
-		if len(signature.Parameters()) >= len(maxArgsSignature.Parameters()) && (!signature.HasRestParameter() || maxArgsSignature.HasRestParameter()) {
+		if len(signature.Parameters(f.typeChecker)) >= len(maxArgsSignature.Parameters(f.typeChecker)) && (!signature.HasRestParameter() || maxArgsSignature.HasRestParameter()) {
 			maxArgsSignature = signature
 		}
 	}
 
-	maxNonRestArgs := len(maxArgsSignature.Parameters()) - core.IfElse(maxArgsSignature.HasRestParameter(), 1, 0)
-	parameterNames := make([]ast.SymbolName, 0, len(maxArgsSignature.Parameters()))
-	for _, symbol := range f.typeChecker.SymbolViews(maxArgsSignature.Parameters()) {
+	maxNonRestArgs := len(maxArgsSignature.Parameters(f.typeChecker)) - core.IfElse(maxArgsSignature.HasRestParameter(), 1, 0)
+	parameterNames := make([]ast.SymbolName, 0, len(maxArgsSignature.Parameters(f.typeChecker)))
+	for _, symbol := range f.typeChecker.SymbolViews(maxArgsSignature.Parameters(f.typeChecker)) {
 		parameterNames = append(parameterNames, symbol.Name())
 	}
 	parameters := createDummyParameters(f.changeTracker.NodeFactory, maxNonRestArgs, parameterNames, nil /*types*/, minArgumentCount, ast.IsInJSFile(enclosingDeclaration))

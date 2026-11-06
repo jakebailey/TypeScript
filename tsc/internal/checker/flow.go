@@ -2084,7 +2084,7 @@ func (c *Checker) getEffectsSignature(node ast.Node) *Signature {
 		}
 		signatures := c.getSignaturesOfType(core.OrElse(apparentType, c.unknownType), SignatureKindCall)
 		switch {
-		case len(signatures) == 1 && len(signatures[0].TypeParameters()) == 0:
+		case len(signatures) == 1 && len(signatures[0].TypeParameters(c)) == 0:
 			signature = signatureIdOf(signatures[0])
 		case core.Some(signatures, c.hasTypePredicateOrNeverReturnType):
 			signature = signatureIdOf(c.getResolvedSignature(node, nil, CheckModeNormal))
@@ -2229,8 +2229,8 @@ func (c *Checker) getExplicitThisType(node ast.Node) *Type {
 	container := ast.GetThisContainer(node, false /*includeArrowFunctions*/, false /*includeClassComputedPropertyName*/)
 	if ast.IsFunctionLike(container) {
 		signature := c.getSignatureFromDeclaration(container)
-		if signature.ThisParameter() != 0 {
-			return c.getExplicitTypeOfSymbol(signature.ThisParameter(), nil)
+		if signature.ThisParameter(c) != 0 {
+			return c.getExplicitTypeOfSymbol(signature.ThisParameter(c), nil)
 		}
 	}
 	if !container.Parent().IsNil() && ast.IsClassLike(container.Parent()) {

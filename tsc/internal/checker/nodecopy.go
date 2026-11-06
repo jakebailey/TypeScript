@@ -841,8 +841,8 @@ func (c *Checker) getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recovery
 			var typeParams []TypeId
 			if ast.IsFunctionLike(node) {
 				sig := b.ch.getSignatureFromDeclaration(node)
-				params = sig.parameters
-				typeParams = sig.TypeParameters()
+				params = sig.Parameters(c)
+				typeParams = sig.TypeParameters(c)
 			} else if ast.IsConditionalTypeNode(node) { // !!! TODO: impossible in combination with the scope start check???
 				typeParams = b.ch.getInferTypeParameters(node)
 			} else if ast.IsMappedTypeNode(node) {

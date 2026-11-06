@@ -1677,7 +1677,7 @@ func (c *Checker) compareSignaturesRelated(source *Signature, target *Signature,
 		}
 		return TernaryFalse
 	}
-	if len(source.TypeParameters()) != 0 && !core.Same(source.TypeParameters(), target.TypeParameters()) {
+	if len(source.TypeParameters(c)) != 0 && !core.Same(source.TypeParameters(c), target.TypeParameters(c)) {
 		target = c.getCanonicalSignature(target)
 		source = c.instantiateSignatureInContextOf(source, target /*inferenceContext*/, nil, compareTypes)
 	}
@@ -1818,7 +1818,7 @@ func (c *Checker) compareSignaturesRelated(source *Signature, target *Signature,
 				// The errors reported here serve as markers that trigger error chain reduction in the (*Relater).reportError
 				// method. The markers are elided in the final diagnostic chain and never actually reported.
 				var message *diagnostics.Message
-				if len(source.parameters) == 0 && len(target.parameters) == 0 {
+				if len(source.Parameters(c)) == 0 && len(target.Parameters(c)) == 0 {
 					message = core.IfElse(source.flags&SignatureFlagsConstruct != 0,
 						diagnostics.Construct_signatures_with_no_arguments_have_incompatible_return_types_0_and_1,
 						diagnostics.Call_signatures_with_no_arguments_have_incompatible_return_types_0_and_1)
@@ -1868,8 +1868,8 @@ func (c *Checker) compareTypePredicateRelatedTo(source *TypePredicate, target *T
 
 // Returns true if `s` is `(...args: A) => R` where `A` is `any`, `any[]`, `never`, or `never[]`, and `R` is `any` or `unknown`.
 func (c *Checker) isTopSignature(s *Signature) bool {
-	if len(s.TypeParameters()) == 0 && (s.ThisParameter() == 0 || IsTypeAny(c.getTypeOfParameter(s.ThisParameter()))) && len(s.parameters) == 1 && signatureHasRestParameter(s) {
-		paramType := c.getTypeOfParameter(s.parameters[0])
+	if len(s.TypeParameters(c)) == 0 && (s.ThisParameter(c) == 0 || IsTypeAny(c.getTypeOfParameter(s.ThisParameter(c)))) && len(s.Parameters(c)) == 1 && signatureHasRestParameter(s) {
+		paramType := c.getTypeOfParameter(s.Parameters(c)[0])
 		var restType *Type
 		if c.isArrayType(paramType) {
 			restType = c.typ(c.getTypeArguments(paramType)[0])
@@ -1886,9 +1886,9 @@ func (c *Checker) isTopSignature(s *Signature) bool {
 // the parameter count of (x: number, ...args: [number, ...string[], boolean])) is also 3. In the
 // latter example, the effective rest type is [...string[], boolean].
 func (c *Checker) getParameterCount(signature *Signature) int {
-	length := len(signature.parameters)
+	length := len(signature.Parameters(c))
 	if signatureHasRestParameter(signature) {
-		restType := c.getTypeOfSymbol(signature.parameters[length-1])
+		restType := c.getTypeOfSymbol(signature.Parameters(c)[length-1])
 		if c.isTupleType(restType) {
 			return length + restType.TargetTupleType(c).tuple(c).fixedLength - core.IfElse(restType.TargetTupleType(c).tuple(c).combinedFlags&ElementFlagsVariable != 0, 0, 1)
 		}
@@ -1906,7 +1906,7 @@ func (c *Checker) getMinArgumentCountEx(signature *Signature, flags MinArgumentC
 	if voidIsNonOptional != 0 || signature.resolvedMinArgumentCount == -1 {
 		minArgumentCount := -1
 		if signatureHasRestParameter(signature) {
-			restType := c.getTypeOfSymbol(signature.parameters[len(signature.parameters)-1])
+			restType := c.getTypeOfSymbol(signature.Parameters(c)[len(signature.Parameters(c))-1])
 			if c.isTupleType(restType) {
 				firstOptionalIndex := core.FindIndex(restType.TargetTupleType(c).tuple(c).elementInfos, func(info TupleElementInfo) bool {
 					return info.flags&ElementFlagsRequired == 0
@@ -1916,7 +1916,7 @@ func (c *Checker) getMinArgumentCountEx(signature *Signature, flags MinArgumentC
 					requiredCount = restType.TargetTupleType(c).tuple(c).fixedLength
 				}
 				if requiredCount > 0 {
-					minArgumentCount = len(signature.parameters) - 1 + requiredCount
+					minArgumentCount = len(signature.Parameters(c)) - 1 + requiredCount
 				}
 			}
 		}
@@ -1943,7 +1943,7 @@ func (c *Checker) getMinArgumentCountEx(signature *Signature, flags MinArgumentC
 
 func (c *Checker) hasEffectiveRestParameter(signature *Signature) bool {
 	if signatureHasRestParameter(signature) {
-		restType := c.getTypeOfSymbol(signature.parameters[len(signature.parameters)-1])
+		restType := c.getTypeOfSymbol(signature.Parameters(c)[len(signature.Parameters(c))-1])
 		return !c.isTupleType(restType) || restType.TargetTupleType(c).tuple(c).combinedFlags&ElementFlagsVariable != 0
 	}
 	return false
@@ -1958,15 +1958,15 @@ func (c *Checker) getTypeAtPosition(signature *Signature, pos int) *Type {
 }
 
 func (c *Checker) tryGetTypeAtPosition(signature *Signature, pos int) *Type {
-	paramCount := len(signature.parameters) - core.IfElse(signatureHasRestParameter(signature), 1, 0)
+	paramCount := len(signature.Parameters(c)) - core.IfElse(signatureHasRestParameter(signature), 1, 0)
 	if pos < paramCount {
-		return c.getTypeOfParameter(signature.parameters[pos])
+		return c.getTypeOfParameter(signature.Parameters(c)[pos])
 	}
 	if signatureHasRestParameter(signature) {
 		// We want to return the value undefined for an out of bounds parameter position,
 		// so we need to check bounds here before calling getIndexedAccessType (which
 		// otherwise would return the type 'undefined').
-		restType := c.getTypeOfSymbol(signature.parameters[paramCount])
+		restType := c.getTypeOfSymbol(signature.Parameters(c)[paramCount])
 		index := pos - paramCount
 		if !c.isTupleType(restType) || restType.TargetTupleType(c).tuple(c).combinedFlags&ElementFlagsVariable != 0 || index < restType.TargetTupleType(c).tuple(c).fixedLength {
 			return c.getIndexedAccessType(restType, c.getNumberLiteralType(jsnum.Number(index)))
@@ -2020,16 +2020,16 @@ func (c *Checker) getRestTypeAtPosition(source *Signature, pos int, readonly boo
 }
 
 func (c *Checker) getNameableDeclarationAtPosition(signature *Signature, pos int) ast.Node {
-	paramCount := len(signature.parameters) - core.IfElse(signatureHasRestParameter(signature), 1, 0)
+	paramCount := len(signature.Parameters(c)) - core.IfElse(signatureHasRestParameter(signature), 1, 0)
 	if pos < paramCount {
-		decl := c.symbolValueDeclaration(signature.parameters[pos])
+		decl := c.symbolValueDeclaration(signature.Parameters(c)[pos])
 		if !decl.IsNil() && c.isValidDeclarationForTupleLabel(decl) {
 			return decl
 		}
 		return ast.Node{}
 	}
 	if signatureHasRestParameter(signature) {
-		restParameter := signature.parameters[paramCount]
+		restParameter := signature.Parameters(c)[paramCount]
 		restType := c.getTypeOfSymbol(restParameter)
 		if c.isTupleType(restType) {
 			elementInfos := restType.TargetTupleType(c).tuple(c).elementInfos
@@ -2060,7 +2060,7 @@ func (c *Checker) getNonArrayRestType(signature *Signature) *Type {
 
 func (c *Checker) getEffectiveRestType(signature *Signature) *Type {
 	if signatureHasRestParameter(signature) {
-		restType := c.getTypeOfSymbol(signature.parameters[len(signature.parameters)-1])
+		restType := c.getTypeOfSymbol(signature.Parameters(c)[len(signature.Parameters(c))-1])
 		if !c.isTupleType(restType) {
 			if IsTypeAny(restType) {
 				return c.anyArrayType
@@ -2107,8 +2107,8 @@ func (c *Checker) getRestArrayTypeOfTupleType(t *Type) *Type {
 }
 
 func (c *Checker) getThisTypeOfSignature(signature *Signature) *Type {
-	if signature.ThisParameter() != 0 {
-		return c.getTypeOfSymbol(signature.ThisParameter())
+	if signature.ThisParameter(c) != 0 {
+		return c.getTypeOfSymbol(signature.ThisParameter(c))
 	}
 	return nil
 }
@@ -2122,11 +2122,11 @@ func (c *Checker) isInstantiatedGenericParameter(signature *Signature, pos int) 
 }
 
 func (c *Checker) getParameterNameAtPosition(signature *Signature, pos int) ast.SymbolName {
-	paramCount := len(signature.parameters) - core.IfElse(signatureHasRestParameter(signature), 1, 0)
+	paramCount := len(signature.Parameters(c)) - core.IfElse(signatureHasRestParameter(signature), 1, 0)
 	if pos < paramCount {
-		return c.symbolName(signature.parameters[pos])
+		return c.symbolName(signature.Parameters(c)[pos])
 	}
-	restParameter := signature.parameters[paramCount]
+	restParameter := signature.Parameters(c)[paramCount]
 	restType := c.getTypeOfSymbol(restParameter)
 	if c.isTupleType(restType) {
 		index := pos - paramCount
@@ -2214,8 +2214,8 @@ func (c *Checker) getTypePredicateOfSignature(sig *Signature) *TypePredicate {
 			if targetTypePredicate != nil {
 				sig.setResolvedTypePredicate(c, c.instantiateTypePredicate(targetTypePredicate, c.mapperOf(sig.mapper)))
 			}
-		case sig.getComposite() != nil:
-			sig.setResolvedTypePredicate(c, c.getUnionOrIntersectionTypePredicate(sig.getComposite().signatures, sig.getComposite().isUnion))
+		case sig.getComposite(c) != nil:
+			sig.setResolvedTypePredicate(c, c.getUnionOrIntersectionTypePredicate(sig.getComposite(c).signatures(c), sig.getComposite(c).isUnion))
 		default:
 			if !sig.declaration.IsNil() {
 				typeNode := c.nodeOf(sig.declaration).Type()
@@ -2287,7 +2287,7 @@ func (c *Checker) createTypePredicateFromTypePredicateNode(node ast.Node, signat
 	}
 	kind := core.IfElse(!predicateNode.AssertsModifier().IsNil(), TypePredicateKindAssertsIdentifier, TypePredicateKindIdentifier)
 	name := predicateNode.ParameterName().Text()
-	index := core.FindIndex(signature.parameters, func(p ast.SymbolId) bool { return c.symbolName(p) == ast.MakeSymbolName(name) })
+	index := core.FindIndex(signature.Parameters(c), func(p ast.SymbolId) bool { return c.symbolName(p) == ast.MakeSymbolName(name) })
 	return c.newTypePredicate(kind, ast.MakeSymbolName(name), int32(index), t)
 }
 
@@ -2300,18 +2300,18 @@ func (c *Checker) instantiateTypePredicate(predicate *TypePredicate, mapper *Typ
 }
 
 func (c *Checker) newTypePredicate(kind TypePredicateKind, parameterName ast.SymbolName, parameterIndex int32, t *Type) *TypePredicate {
-	return &TypePredicate{kind: kind, parameterIndex: parameterIndex, parameterName: parameterName, t: t.ref()}
+	return c.allocTypePredicate(kind, parameterName, parameterIndex, t.ref())
 }
 
 func (c *Checker) isResolvingReturnTypeOfSignature(signature *Signature) bool {
-	if signature.getComposite() != nil && core.Some(signature.getComposite().signatures, c.isResolvingReturnTypeOfSignature) {
+	if signature.getComposite(c) != nil && core.Some(signature.getComposite(c).signatures(c), c.isResolvingReturnTypeOfSignature) {
 		return true
 	}
 	return signature.resolvedReturnType == 0 && c.findResolutionCycleStartIndex(entityOf(signature), TypeSystemPropertyNameResolvedReturnType) >= 0
 }
 
 func (c *Checker) findMatchingSignatures(signatureLists [][]*Signature, signature *Signature, listIndex int) []*Signature {
-	if len(signature.TypeParameters()) != 0 {
+	if len(signature.TypeParameters(c)) != 0 {
 		// We require an exact match for generic signatures, so we only return signatures from the first
 		// signature list and only if they have exact matches in the other signature lists.
 		if listIndex > 0 {
@@ -2366,16 +2366,16 @@ func (c *Checker) compareSignaturesIdentical(source *Signature, target *Signatur
 		return TernaryFalse
 	}
 	// Check that the two signatures have the same number of type parameters.
-	if len(source.TypeParameters()) != len(target.TypeParameters()) {
+	if len(source.TypeParameters(c)) != len(target.TypeParameters(c)) {
 		return TernaryFalse
 	}
 	// Check that type parameter constraints and defaults match. If they do, instantiate the source
 	// signature with the type parameters of the target signature and continue the comparison.
-	if len(target.TypeParameters()) != 0 {
-		mapper := c.newTypeMapper(source.TypeParameters(), target.TypeParameters())
-		for i := range len(target.TypeParameters()) {
-			s := c.typ(source.TypeParameters()[i])
-			t := c.typ(target.TypeParameters()[i])
+	if len(target.TypeParameters(c)) != 0 {
+		mapper := c.newTypeMapper(source.TypeParameters(c), target.TypeParameters(c))
+		for i := range len(target.TypeParameters(c)) {
+			s := c.typ(source.TypeParameters(c)[i])
+			t := c.typ(target.TypeParameters(c)[i])
 			if !(s == t || compareTypes(c.instantiateType(c.getConstraintOrUnknownFromTypeParameter(s), mapper), c.getConstraintOrUnknownFromTypeParameter(t)) != TernaryFalse &&
 				compareTypes(c.instantiateType(c.getDefaultOrUnknownFromTypeParameter(s), mapper), c.getDefaultOrUnknownFromTypeParameter(t)) != TernaryFalse) {
 				return TernaryFalse

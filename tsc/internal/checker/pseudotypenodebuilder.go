@@ -178,7 +178,7 @@ func (b *NodeBuilderImpl) pseudoTypeToNode(t *pseudochecker.PseudoType) ast.Node
 		d := t.AsPseudoTypeSingleCallSignature()
 		signature := b.ch.getSignatureFromDeclaration(d.Signature)
 		expandedParams := b.ch.getExpandedParameters(signature, true /*skipUnionExpanding*/)[0]
-		cleanup := b.enterNewScope(d.Signature, expandedParams, signature.TypeParameters(), signature.parameters, b.ch.mapperOf(signature.mapper))
+		cleanup := b.enterNewScope(d.Signature, expandedParams, signature.TypeParameters(b.ch), signature.Parameters(b.ch), b.ch.mapperOf(signature.mapper))
 		defer cleanup()
 		var typeParams ast.NodeList
 		if len(d.TypeParameters) > 0 {
@@ -233,7 +233,7 @@ func (b *NodeBuilderImpl) pseudoTypeToNode(t *pseudochecker.PseudoType) ast.Node
 			if e.Kind != pseudochecker.PseudoObjectElementKindPropertyAssignment {
 				signature := b.ch.getSignatureFromDeclaration(e.Signature())
 				expandedParams := b.ch.getExpandedParameters(signature, true /*skipUnionExpanding*/)[0]
-				cleanup = b.enterNewScope(e.Signature(), expandedParams, signature.TypeParameters(), signature.parameters, b.ch.mapperOf(signature.mapper))
+				cleanup = b.enterNewScope(e.Signature(), expandedParams, signature.TypeParameters(b.ch), signature.Parameters(b.ch), b.ch.mapperOf(signature.mapper))
 			}
 			var newProp ast.Node
 			switch e.Kind {
@@ -549,7 +549,7 @@ func (b *NodeBuilderImpl) pseudoTypeEquivalentToType(t *pseudochecker.PseudoType
 			return false
 		}
 		pt := t.AsPseudoTypeSingleCallSignature()
-		if len(targetSig.TypeParameters()) != len(pt.TypeParameters) {
+		if len(targetSig.TypeParameters(b.ch)) != len(pt.TypeParameters) {
 			if reportErrors {
 				b.ctx.tracker.ReportInferenceFallback(pt.Signature)
 			}
@@ -583,13 +583,13 @@ func (b *NodeBuilderImpl) pseudoTypeEquivalentToType(t *pseudochecker.PseudoType
 }
 
 func (b *NodeBuilderImpl) pseudoParametersEquivalentToParameters(params []*pseudochecker.PseudoParameter, targetSig *Signature, reportErrors bool, nonParamErrorLocation ast.Node) bool {
-	if targetSig.ThisParameter() != 0 && len(params) == 0 {
+	if targetSig.ThisParameter(b.ch) != 0 && len(params) == 0 {
 		if reportErrors {
 			b.ctx.tracker.ReportInferenceFallback(nonParamErrorLocation) // missing `this` param
 		}
 		return false
-	} else if targetSig.ThisParameter() != 0 && ast.IsThisIdentifier(params[0].Name) {
-		targetParam := targetSig.ThisParameter()
+	} else if targetSig.ThisParameter(b.ch) != 0 && ast.IsThisIdentifier(params[0].Name) {
+		targetParam := targetSig.ThisParameter(b.ch)
 		paramType := b.ch.getTypeOfParameter(targetParam)
 		if !b.pseudoTypeEquivalentToType(params[0].Type, paramType, params[0].Optional, false) {
 			if reportErrors {
@@ -598,20 +598,20 @@ func (b *NodeBuilderImpl) pseudoParametersEquivalentToParameters(params []*pseud
 			return false
 		}
 		params = params[1:]
-	} else if targetSig.ThisParameter() != 0 {
+	} else if targetSig.ThisParameter(b.ch) != 0 {
 		if reportErrors {
 			b.ctx.tracker.ReportInferenceFallback(nonParamErrorLocation)
 		}
 		return false
 	}
-	if len(targetSig.parameters) != len(params) {
+	if len(targetSig.Parameters(b.ch)) != len(params) {
 		if reportErrors {
 			b.ctx.tracker.ReportInferenceFallback(nonParamErrorLocation)
 		}
 		return false // TODO: spread tuple params may mess with this check
 	}
 	for i, p := range params {
-		targetParam := targetSig.parameters[i]
+		targetParam := targetSig.Parameters(b.ch)[i]
 		if p.Optional != b.ch.isOptionalParameter(b.ch.symbolValueDeclaration(targetParam)) {
 			if reportErrors {
 				b.ctx.tracker.ReportInferenceFallback(p.Name.Parent())

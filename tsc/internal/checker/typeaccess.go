@@ -1,8 +1,10 @@
 package checker
 
 import (
+	"cmp"
 	"slices"
 	"sync/atomic"
+	"unsafe"
 )
 
 // Helpers over lists of type ids whose callbacks take the types themselves. They follow the semantics of the
@@ -247,8 +249,14 @@ const (
 // pages; a list longer than a page gets a contiguous block of whole pages. The page directory is replaced rather than
 // grown in place, so a reader holding a handle from an earlier allocation can read concurrently with later ones.
 type listStore[T any] struct {
-	dir  atomic.Pointer[[][]T]
-	next uint32
+	dir   atomic.Pointer[[][]T]
+	next  uint32
+	bases []listPageBase // page start addresses, sorted, for find
+}
+
+type listPageBase struct {
+	addr uintptr
+	page uint32
 }
 
 // alloc reserves room for a list of n elements and returns its position and the room.
@@ -290,9 +298,40 @@ func (s *listStore[T]) grow(k int) {
 		grown = slices.Clip(*d)
 	}
 	for i := range k {
-		grown = append(grown, block[i*listPageSize:])
+		page := block[i*listPageSize:]
+		// SAFETY: the address is only used as a sort key by find.
+		base := listPageBase{uintptr(unsafe.Pointer(unsafe.SliceData(page))), uint32(len(grown))}
+		at, _ := slices.BinarySearchFunc(s.bases, base.addr, func(b listPageBase, a uintptr) int { return cmp.Compare(b.addr, a) })
+		s.bases = slices.Insert(s.bases, at, base)
+		grown = append(grown, page)
 	}
 	s.dir.Store(&grown)
+}
+
+// find returns the handle of a non-empty list that was returned by slice, so that storing it again keeps its
+// identity, as sharing the slice did. It reports false for a list held anywhere else.
+func (s *listStore[T]) find(list []T) (uint32, bool) {
+	if len(list) == 0 || len(list) != cap(list) {
+		return 0, false
+	}
+	var zero T
+	size := unsafe.Sizeof(zero)
+	// SAFETY: addresses are only compared, never turned back into pointers. Pages are never freed while the store
+	// lives and Go does not move heap objects, so an address inside a page always names that page's element.
+	addr := uintptr(unsafe.Pointer(unsafe.SliceData(list)))
+	at, found := slices.BinarySearchFunc(s.bases, addr, func(b listPageBase, a uintptr) int { return cmp.Compare(b.addr, a) })
+	if !found {
+		if at == 0 {
+			return 0, false
+		}
+		at--
+	}
+	base := s.bases[at]
+	off := (addr - base.addr) / size
+	if off >= listPageSize {
+		return 0, false
+	}
+	return base.page<<listPageShift + uint32(off), true
 }
 
 // slice returns the list at a position, or nil for position 0.

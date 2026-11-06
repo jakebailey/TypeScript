@@ -282,9 +282,9 @@ func (s *inlayHintState) visitFunctionLikeForParameterType(node ast.FunctionLike
 		if isHintableDeclaration(param) {
 			var symbol ast.Symbol
 			if ast.IsThisParameter(param) {
-				symbol = s.checker.SymbolView(signature.ThisParameter())
+				symbol = s.checker.SymbolView(signature.ThisParameter(s.checker))
 			} else {
-				symbol = s.checker.SymbolView(signature.Parameters()[pos])
+				symbol = s.checker.SymbolView(signature.Parameters(s.checker)[pos])
 			}
 			s.addParameterTypeHint(param, symbol)
 		}
@@ -844,7 +844,7 @@ type parameterInfo struct {
 }
 
 func (s *inlayHintState) getParameterIdentifierInfoAtPosition(signature *checker.Signature, pos int, argumentCount int, offsetFromEnd int, uncertainTupleSpread bool) *parameterInfo {
-	parameters := s.checker.SymbolViews(signature.Parameters())
+	parameters := s.checker.SymbolViews(signature.Parameters(s.checker))
 	paramCount := len(parameters) - core.IfElse(signature.HasRestParameter(), 1, 0)
 	if pos < paramCount {
 		// In g(a, b?, ...rest), g(...x, "end") can't assign "end" to b when x is [number, number?].

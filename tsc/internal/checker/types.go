@@ -974,6 +974,37 @@ func pageAdd[T any](p *core.Pages[T]) (uint32, *T) {
 	return i + 1, r
 }
 
+// signatureListOf stores a list of signatures as ids in the checker's signature list store and returns its handle.
+func (c *Checker) signatureListOf(s []*Signature) (uint32, uint32) {
+	if s == nil {
+		return 0, 0
+	}
+	pos, room := c.signatureLists.alloc(len(s))
+	for i, sig := range s {
+		room[i] = sig.id
+	}
+	return pos, uint32(len(s))
+}
+
+// allocTypePredicate allocates a type predicate in the checker's type predicates.
+func (c *Checker) allocTypePredicate(kind TypePredicateKind, parameterName ast.SymbolName, parameterIndex int32, t TypeId) *TypePredicate {
+	i, p := pageAdd(&c.typePredicates)
+	*p = TypePredicate{id: i, kind: kind, parameterIndex: parameterIndex, parameterName: parameterName, t: t}
+	return p
+}
+
+// typePredicateId returns the stored index of a predicate, copying it into the checker's type predicates if it was
+// made elsewhere.
+func (c *Checker) typePredicateId(p *TypePredicate) uint32 {
+	if p == nil {
+		return 0
+	}
+	if p.id == 0 {
+		p = c.allocTypePredicate(p.kind, p.parameterName, p.parameterIndex, p.t)
+	}
+	return p.id
+}
+
 // symbolListOf copies a list of symbols into the checker's symbol list store and returns its handle. A nil list stays
 // nil and an empty one stays empty.
 func (c *Checker) symbolListOf(s []ast.SymbolId) (uint32, uint32) {
@@ -2298,54 +2329,74 @@ const (
 
 // Signature
 
+// Signature is a signature record in the checker's signature pages. It holds no pointers: its parameters are a list
+// in the checker's symbol list store, and its rarer fields an index (plus one) into its extra records.
 type Signature struct {
 	id                       SignatureId
 	flags                    SignatureFlags
 	minArgumentCount         int32
 	resolvedMinArgumentCount int32
 	declaration              ast.NodeRef
-	parameters               []ast.SymbolId
+	paramPos                 uint32
+	paramLen                 uint32
 	resolvedReturnType       TypeId
 	target                   SignatureId
 	mapper                   TypeMapperId
-	extra                    *signatureExtra
+	extra                    uint32
 }
 
 type signatureExtra struct {
-	typeParameters        []TypeId
+	typeParamPos          uint32
+	typeParamLen          uint32
 	thisParameter         ast.SymbolId
-	resolvedTypePredicate *TypePredicate
+	resolvedTypePredicate uint32 // index plus one in the checker's type predicates
 	isolatedSignatureType TypeId
-	composite             *CompositeSignature
+	composite             uint32 // index plus one in the checker's composite signatures
+}
+
+func (s *Signature) ext(c *Checker) *signatureExtra {
+	return pageAt(&c.signatureExtras, s.extra)
 }
 
 func (s *Signature) ensureExtra(c *Checker) *signatureExtra {
-	if s.extra == nil {
-		s.extra = c.signatureExtraArena.New()
+	if s.extra == 0 {
+		i, extra := pageAdd(&c.signatureExtras)
+		s.extra = i
+		return extra
 	}
-	return s.extra
+	return s.ext(c)
 }
 
 func (s *Signature) setTypeParameters(c *Checker, types []TypeId) {
-	if types != nil || s.extra != nil {
-		s.ensureExtra(c).typeParameters = types
+	if types != nil || s.extra != 0 {
+		extra := s.ensureExtra(c)
+		// Signatures compare type parameter lists by identity, so a list that is already stored keeps its handle.
+		if pos, ok := c.typeLists.find(types); ok {
+			extra.typeParamPos, extra.typeParamLen = pos, uint32(len(types))
+		} else {
+			extra.typeParamPos, extra.typeParamLen = c.typeListOf(types)
+		}
 	}
 }
 
 func (s *Signature) setThisParameter(c *Checker, parameter ast.SymbolId) {
-	if parameter != 0 || s.extra != nil {
+	if parameter != 0 || s.extra != 0 {
 		s.ensureExtra(c).thisParameter = parameter
 	}
+}
+
+func (s *Signature) setParameters(c *Checker, parameters []ast.SymbolId) {
+	s.paramPos, s.paramLen = c.symbolListOf(parameters)
 }
 
 func (s *Signature) getResolvedTypePredicate(c *Checker) *TypePredicate {
 	if s.flags&signatureFlagsNoTypePredicate != 0 {
 		return c.noTypePredicate
 	}
-	if s.extra == nil {
+	if s.extra == 0 {
 		return nil
 	}
-	return s.extra.resolvedTypePredicate
+	return pageAt(&c.typePredicates, s.ext(c).resolvedTypePredicate)
 }
 
 func (s *Signature) setResolvedTypePredicate(c *Checker, predicate *TypePredicate) {
@@ -2354,29 +2405,36 @@ func (s *Signature) setResolvedTypePredicate(c *Checker, predicate *TypePredicat
 		s.flags |= signatureFlagsNoTypePredicate
 		predicate = nil
 	}
-	if predicate != nil || s.extra != nil {
-		s.ensureExtra(c).resolvedTypePredicate = predicate
+	if predicate != nil || s.extra != 0 {
+		s.ensureExtra(c).resolvedTypePredicate = c.typePredicateId(predicate)
 	}
 }
 
-func (s *Signature) getComposite() *CompositeSignature {
-	if s.extra == nil {
+func (s *Signature) getComposite(c *Checker) *CompositeSignature {
+	if s.extra == 0 {
 		return nil
 	}
-	return s.extra.composite
+	return pageAt(&c.compositeSignatures, s.ext(c).composite)
 }
 
-func (s *Signature) setComposite(c *Checker, composite *CompositeSignature) {
-	if composite != nil || s.extra != nil {
-		s.ensureExtra(c).composite = composite
+func (s *Signature) setComposite(c *Checker, isUnion bool, signatures []*Signature) {
+	i, composite := pageAdd(&c.compositeSignatures)
+	composite.isUnion = isUnion
+	composite.sigPos, composite.sigLen = c.signatureListOf(signatures)
+	s.ensureExtra(c).composite = i
+}
+
+func (s *Signature) shareComposite(c *Checker, from *Signature) {
+	if from.extra != 0 && from.ext(c).composite != 0 {
+		s.ensureExtra(c).composite = from.ext(c).composite
 	}
 }
 
 func (s *Signature) getIsolatedSignatureType(c *Checker) *Type {
-	if s.extra == nil {
+	if s.extra == 0 {
 		return nil
 	}
-	return c.typ(s.extra.isolatedSignatureType)
+	return c.typ(s.ext(c).isolatedSignatureType)
 }
 
 func (s *Signature) Id() SignatureId {
@@ -2387,26 +2445,27 @@ func (s *Signature) Flags() SignatureFlags {
 	return s.flags &^ signatureFlagsNoTypePredicate
 }
 
-func (s *Signature) TypeParameters() []TypeId {
-	if s.extra == nil {
+func (s *Signature) TypeParameters(c *Checker) []TypeId {
+	if s.extra == 0 {
 		return nil
 	}
-	return s.extra.typeParameters
+	extra := s.ext(c)
+	return c.typeLists.slice(extra.typeParamPos, extra.typeParamLen)
 }
 
 func (s *Signature) Target(c *Checker) *Signature {
 	return c.signatureOf(s.target)
 }
 
-func (s *Signature) ThisParameter() ast.SymbolId {
-	if s.extra == nil {
+func (s *Signature) ThisParameter(c *Checker) ast.SymbolId {
+	if s.extra == 0 {
 		return 0
 	}
-	return s.extra.thisParameter
+	return s.ext(c).thisParameter
 }
 
-func (s *Signature) Parameters() []ast.SymbolId {
-	return s.parameters
+func (s *Signature) Parameters(c *Checker) []ast.SymbolId {
+	return c.symbolLists.slice(s.paramPos, s.paramLen)
 }
 
 func (s *Signature) HasRestParameter() bool {
@@ -2418,8 +2477,18 @@ func (s *Signature) MinArgumentCount() int {
 }
 
 type CompositeSignature struct {
-	isUnion    bool         // True for union, false for intersection
-	signatures []*Signature // Individual signatures
+	isUnion bool   // True for union, false for intersection
+	sigPos  uint32 // Individual signatures, a list in the checker's signature list store
+	sigLen  uint32
+}
+
+func (comp *CompositeSignature) signatures(c *Checker) []*Signature {
+	ids := c.signatureLists.slice(comp.sigPos, comp.sigLen)
+	result := make([]*Signature, len(ids))
+	for i, id := range ids {
+		result[i] = c.signatureOf(id)
+	}
+	return result
 }
 
 type TypePredicateKind int32
@@ -2432,6 +2501,7 @@ const (
 )
 
 type TypePredicate struct {
+	id             uint32 // index plus one in the checker's type predicates
 	kind           TypePredicateKind
 	parameterIndex int32
 	parameterName  ast.SymbolName

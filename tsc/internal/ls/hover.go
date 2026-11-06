@@ -1005,7 +1005,7 @@ func getSymbolAtLocationForQuickInfo(c *checker.Checker, node ast.Node) ast.Symb
 
 func getSignaturesAtLocation(c *checker.Checker, symbol ast.Symbol, kind checker.SignatureKind, node ast.Node) []*checker.Signature {
 	signatures := c.GetSignaturesOfType(c.RemoveMissingOrUndefinedType(c.GetTypeOfSymbol(symbol)), kind)
-	if len(signatures) > 1 || len(signatures) == 1 && len(signatures[0].TypeParameters()) != 0 {
+	if len(signatures) > 1 || len(signatures) == 1 && len(signatures[0].TypeParameters(c)) != 0 {
 		if callNode := getCallOrNewExpression(node); !callNode.IsNil() {
 			// We have a call or new expression, return the resolved signature
 			return []*checker.Signature{c.GetResolvedSignature(callNode)}

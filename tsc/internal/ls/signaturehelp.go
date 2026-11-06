@@ -519,9 +519,9 @@ func (l *LanguageService) itemInfoForTypeParameters(candidateSignature *checker.
 
 	var typeParameters []*checker.Type
 	if candidateSignature.Target(c) != nil {
-		typeParameters = c.TypesOf(candidateSignature.Target(c).TypeParameters())
+		typeParameters = c.TypesOf(candidateSignature.Target(c).TypeParameters(c))
 	} else {
-		typeParameters = c.TypesOf(candidateSignature.TypeParameters())
+		typeParameters = c.TypesOf(candidateSignature.TypeParameters(c))
 	}
 	signatureHelpTypeParameters := make([]signatureHelpParameter, len(typeParameters))
 	for i, typeParameter := range typeParameters {
@@ -529,8 +529,8 @@ func (l *LanguageService) itemInfoForTypeParameters(candidateSignature *checker.
 	}
 
 	thisParameter := []signatureHelpParameter{}
-	if candidateSignature.ThisParameter() != 0 {
-		thisParameter = []signatureHelpParameter{l.createSignatureHelpParameterForParameter(c.SymbolView(candidateSignature.ThisParameter()), enclosingDeclaration, builder, p, sourceFile, c, docFormat)}
+	if candidateSignature.ThisParameter(c) != 0 {
+		thisParameter = []signatureHelpParameter{l.createSignatureHelpParameterForParameter(c.SymbolView(candidateSignature.ThisParameter(c)), enclosingDeclaration, builder, p, sourceFile, c, docFormat)}
 	}
 
 	// Creating type parameter display label
@@ -593,9 +593,9 @@ func (l *LanguageService) itemInfoForParameters(candidateSignature *checker.Sign
 	builder := checker.NewNodeBuilder(c, emitContext)
 	p := printer.NewPrinter(printer.PrinterOptions{NewLine: core.NewLineKindLF}, printer.PrintHandlers{}, emitContext)
 
-	signatureHelpTypeParameters := make([]signatureHelpParameter, len(candidateSignature.TypeParameters()))
-	if len(candidateSignature.TypeParameters()) != 0 {
-		for i, typeParameter := range c.TypesOf(candidateSignature.TypeParameters()) {
+	signatureHelpTypeParameters := make([]signatureHelpParameter, len(candidateSignature.TypeParameters(c)))
+	if len(candidateSignature.TypeParameters(c)) != 0 {
+		for i, typeParameter := range c.TypesOf(candidateSignature.TypeParameters(c)) {
 			signatureHelpTypeParameters[i] = createSignatureHelpParameterForTypeParameter(typeParameter, sourceFile, enclosingDeclaratipn, builder, p)
 		}
 	}

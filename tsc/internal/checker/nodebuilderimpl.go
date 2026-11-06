@@ -1875,13 +1875,13 @@ func (b *NodeBuilderImpl) signatureToSignatureDeclarationHelper(signature *Signa
 	b.ctx.approximateLength += 3
 	// Usually a signature contributes a few more characters than this, but 3 is the minimum
 
-	if b.ctx.flags&nodebuilder.FlagsWriteTypeArgumentsOfSignature != 0 && signature.target != 0 && signature.mapper != 0 && len(b.ch.signatureOf(signature.target).TypeParameters()) != 0 {
-		for _, parameterId := range b.ch.signatureOf(signature.target).TypeParameters() {
+	if b.ctx.flags&nodebuilder.FlagsWriteTypeArgumentsOfSignature != 0 && signature.target != 0 && signature.mapper != 0 && len(b.ch.signatureOf(signature.target).TypeParameters(b.ch)) != 0 {
+		for _, parameterId := range b.ch.signatureOf(signature.target).TypeParameters(b.ch) {
 			parameter := b.ch.typ(parameterId)
 			typeParameters = append(typeParameters, b.typeToTypeNode(b.ch.instantiateType(parameter, b.ch.mapperOf(signature.mapper))))
 		}
 	} else {
-		for _, parameterId := range signature.TypeParameters() {
+		for _, parameterId := range signature.TypeParameters(b.ch) {
 			parameter := b.ch.typ(parameterId)
 			typeParameters = append(typeParameters, b.typeParameterToDeclaration(parameter))
 		}
@@ -1892,7 +1892,7 @@ func (b *NodeBuilderImpl) signatureToSignatureDeclarationHelper(signature *Signa
 	// If the expanded parameter list had a variadic in a non-trailing position, don't expand it
 	parameters := core.Map(core.IfElse(core.Some(expandedParams, func(p ast.SymbolId) bool {
 		return p != expandedParams[len(expandedParams)-1] && b.ch.symbolCheckFlags(p)&ast.CheckFlagsRestParameter != 0
-	}), signature.parameters, expandedParams), func(parameter ast.SymbolId) ast.Node {
+	}), signature.Parameters(b.ch), expandedParams), func(parameter ast.SymbolId) ast.Node {
 		return b.symbolToParameterDeclaration(parameter, kind == ast.KindConstructor)
 	})
 	var thisParameter ast.Node
@@ -1992,8 +1992,8 @@ func (b *NodeBuilderImpl) signatureToSignatureDeclarationHelper(signature *Signa
 
 func (c *Checker) getExpandedParameters(sig *Signature, skipUnionExpanding bool) [][]ast.SymbolId {
 	if signatureHasRestParameter(sig) {
-		restIndex := len(sig.parameters) - 1
-		restSymbol := sig.parameters[restIndex]
+		restIndex := len(sig.Parameters(c)) - 1
+		restSymbol := sig.Parameters(c)[restIndex]
 		restType := c.getTypeOfSymbol(restSymbol)
 		getUniqAssociatedNamesFromTupleType := func(t *Type, restSymbol ast.SymbolId) []ast.SymbolName {
 			names := core.MapIndex(t.Target(c).AsTupleType().tuple(c).elementInfos, func(info TupleElementInfo, i int) ast.SymbolName {
@@ -2064,7 +2064,7 @@ func (c *Checker) getExpandedParameters(sig *Signature, skipUnionExpanding bool)
 				}
 				return symbol
 			})
-			return core.Concatenate(sig.parameters[0:restIndex], restParams)
+			return core.Concatenate(sig.Parameters(c)[0:restIndex], restParams)
 		}
 
 		if c.isTupleType(restType) {
@@ -2075,12 +2075,12 @@ func (c *Checker) getExpandedParameters(sig *Signature, skipUnionExpanding bool)
 			})
 		}
 	}
-	return [][]ast.SymbolId{sig.parameters}
+	return [][]ast.SymbolId{sig.Parameters(c)}
 }
 
 func (b *NodeBuilderImpl) tryGetThisParameterDeclaration(signature *Signature) ast.Node {
-	if signature.ThisParameter() != 0 {
-		return b.symbolToParameterDeclaration(signature.ThisParameter(), false)
+	if signature.ThisParameter(b.ch) != 0 {
+		return b.symbolToParameterDeclaration(signature.ThisParameter(b.ch), false)
 	}
 	if !signature.declaration.IsNil() && ast.IsInJSFile(b.ch.nodeOf(signature.declaration)) {
 		// !!! JSDoc Support

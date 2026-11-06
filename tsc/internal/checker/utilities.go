@@ -1434,8 +1434,8 @@ func hasType(node ast.Node) bool {
 	return !node.Type().IsNil()
 }
 
-func getNonRestParameterCount(sig *Signature) int {
-	return len(sig.parameters) - core.IfElse(signatureHasRestParameter(sig), 1, 0)
+func getNonRestParameterCount(c *Checker, sig *Signature) int {
+	return len(sig.Parameters(c)) - core.IfElse(signatureHasRestParameter(sig), 1, 0)
 }
 
 func minAndMax[T any](slice []T, getValue func(value T) int) (int, int) {

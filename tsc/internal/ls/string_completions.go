@@ -2024,7 +2024,7 @@ func getStringLiteralCompletionsFromSignature(
 	candidates := typeChecker.GetCandidateSignaturesForStringLiteralCompletions(call, editingArgument)
 	var types []*checker.StringLiteralType
 	for _, candidate := range candidates {
-		if !candidate.HasRestParameter() && argumentInfo.argumentCount > len(candidate.Parameters()) {
+		if !candidate.HasRestParameter() && argumentInfo.argumentCount > len(candidate.Parameters(typeChecker)) {
 			continue
 		}
 		t := typeChecker.GetTypeParameterAtPosition(candidate, argumentInfo.argumentIndex)

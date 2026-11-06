@@ -327,7 +327,7 @@ func (b *NodeBuilderImpl) serializeConstructors(staticType *Type, staticBaseType
 	signatures := b.ch.getSignaturesOfType(staticType, SignatureKindConstruct)
 	if staticBaseType != nil {
 		baseSigs := b.ch.getSignaturesOfType(staticBaseType, SignatureKindConstruct)
-		if len(baseSigs) == 0 && core.Every(signatures, func(sig *Signature) bool { return len(sig.parameters) == 0 }) {
+		if len(baseSigs) == 0 && core.Every(signatures, func(sig *Signature) bool { return len(sig.Parameters(b.ch)) == 0 }) {
 			return nil
 		}
 		if len(baseSigs) == len(signatures) {
@@ -354,7 +354,7 @@ func (b *NodeBuilderImpl) serializeConstructors(staticType *Type, staticBaseType
 				ast.TypeParameterList{}, b.f.NewNodeList(nil), ast.Node{}, ast.Node{}, ast.Node{},
 			)}
 		}
-	} else if core.Every(signatures, func(sig *Signature) bool { return len(sig.parameters) == 0 }) {
+	} else if core.Every(signatures, func(sig *Signature) bool { return len(sig.Parameters(b.ch)) == 0 }) {
 		return nil
 	}
 	var result []ast.Node

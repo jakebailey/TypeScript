@@ -1122,7 +1122,7 @@ func getPossibleGenericSignatures(called ast.Expression, typeArgumentCount int, 
 		signatures = c.GetSignaturesOfType(typeAtLocation, checker.SignatureKindCall)
 	}
 	return core.Filter(signatures, func(s *checker.Signature) bool {
-		return s.TypeParameters() != nil && len(s.TypeParameters()) >= typeArgumentCount
+		return s.TypeParameters(c) != nil && len(s.TypeParameters(c)) >= typeArgumentCount
 	})
 }
 
