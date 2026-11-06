@@ -1004,7 +1004,8 @@ func (r *EmitResolver) IsThisPropertyAssignmentDeclarationRedundant(node ast.Nod
 	if parentType == nil {
 		return false
 	}
-	for _, base := range r.checker.getBaseTypes(parentType) {
+	for _, baseId := range r.checker.getBaseTypes(parentType) {
+		base := r.checker.typ(baseId)
 		baseProp := r.checker.getPropertyOfType(base, r.checker.symbolName(s))
 		if baseProp == 0 {
 			continue

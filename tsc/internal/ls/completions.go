@@ -1749,7 +1749,7 @@ func (l *LanguageService) getCompletionData(
 	if isLiteralExpected {
 		var types []*checker.Type
 		if contextualTypeOrConstraint != nil && contextualTypeOrConstraint.IsUnion() {
-			types = contextualTypeOrConstraint.Types()
+			types = typeChecker.TypesOf(contextualTypeOrConstraint.Types())
 		} else if contextualTypeOrConstraint != nil {
 			types = []*checker.Type{contextualTypeOrConstraint}
 		}
@@ -2375,11 +2375,11 @@ func (l *LanguageService) createCompletionItem(
 		// If is boolean like or undefined, don't return a snippet, we want to return just the completion.
 		if preferences.JsxAttributeCompletionStyle == lsutil.JsxAttributeCompletionStyleAuto &&
 			!t.IsBooleanLike() &&
-			!(t.IsUnion() && core.Some(t.Types(), (*checker.Type).IsBooleanLike)) {
+			!(t.IsUnion() && core.Some(typeChecker.TypesOf(t.Types()), (*checker.Type).IsBooleanLike)) {
 			if t.IsStringLike() ||
 				t.IsUnion() &&
 					core.Every(
-						t.Types(),
+						typeChecker.TypesOf(t.Types()),
 						func(t *checker.Type) bool {
 							return t.Flags()&(checker.TypeFlagsStringLike|checker.TypeFlagsUndefined) != 0 ||
 								isStringAndEmptyAnonymousObjectIntersection(typeChecker, t)
@@ -2507,11 +2507,11 @@ func (l *LanguageService) createObjectLiteralMethod(snippetPrinter *snippetPrint
 
 	effectiveType := typeChecker.GetWidenedType(typeChecker.GetTypeOfSymbolAtLocation(symbol, enclosingDeclaration))
 	if effectiveType.Flags()&checker.TypeFlagsUnion != 0 && len(effectiveType.Types()) < 10 {
-		effectiveType = typeChecker.GetUnionTypeEx(effectiveType.Types(), checker.UnionReductionSubtype)
+		effectiveType = typeChecker.GetUnionTypeEx(typeChecker.TypesOf(effectiveType.Types()), checker.UnionReductionSubtype)
 	}
 	if effectiveType.Flags()&checker.TypeFlagsUnion != 0 {
 		var functionType *checker.Type
-		for _, unionType := range effectiveType.Types() {
+		for _, unionType := range typeChecker.TypesOf(effectiveType.Types()) {
 			if len(typeChecker.GetSignaturesOfType(unionType, checker.SignatureKindCall)) == 0 {
 				continue
 			}
@@ -3397,7 +3397,7 @@ func nonAliasCanBeReferencedAtTypeLocation(symbol ast.Symbol, typeChecker *check
 // excludes array-like types or callable/constructable types.
 func getPropertiesForCompletion(t *checker.Type, typeChecker *checker.Checker) []ast.Symbol {
 	if t.IsUnion() {
-		return core.CheckEachDefined(typeChecker.GetAllPossiblePropertiesOfTypes(t.Types()), "getAllPossiblePropertiesOfTypes() should all be defined.")
+		return core.CheckEachDefined(typeChecker.GetAllPossiblePropertiesOfTypes(typeChecker.TypesOf(t.Types())), "getAllPossiblePropertiesOfTypes() should all be defined.")
 	} else {
 		return core.CheckEachDefined(typeChecker.GetApparentProperties(t), "getApparentProperties() should all be defined.")
 	}
@@ -3576,7 +3576,7 @@ func isLiteral(t *checker.Type) bool {
 func getRecommendedCompletion(previousToken ast.Node, contextualType *checker.Type, typeChecker *checker.Checker) ast.Symbol {
 	var types []*checker.Type
 	if contextualType.IsUnion() {
-		types = contextualType.Types()
+		types = typeChecker.TypesOf(contextualType.Types())
 	} else {
 		types = []*checker.Type{contextualType}
 	}
@@ -3723,8 +3723,8 @@ func isStringAndEmptyAnonymousObjectIntersection(typeChecker *checker.Checker, t
 	}
 
 	return len(t.Types()) == 2 &&
-		(areIntersectedTypesAvoidingStringReduction(typeChecker, t.Types()[0], t.Types()[1]) ||
-			areIntersectedTypesAvoidingStringReduction(typeChecker, t.Types()[1], t.Types()[0]))
+		(areIntersectedTypesAvoidingStringReduction(typeChecker, typeChecker.TypeOf(t.Types()[0]), typeChecker.TypeOf(t.Types()[1])) ||
+			areIntersectedTypesAvoidingStringReduction(typeChecker, typeChecker.TypeOf(t.Types()[1]), typeChecker.TypeOf(t.Types()[0])))
 }
 
 func areIntersectedTypesAvoidingStringReduction(typeChecker *checker.Checker, t1 *checker.Type, t2 *checker.Type) bool {
@@ -4423,7 +4423,7 @@ func getPropertiesForObjectExpression(
 	hasCompletionsType := completionsType != nil && completionsType != contextualType
 	var types []*checker.Type
 	if contextualType.IsUnion() {
-		types = contextualType.Types()
+		types = typeChecker.TypesOf(contextualType.Types())
 	} else {
 		types = []*checker.Type{contextualType}
 	}
@@ -4464,7 +4464,7 @@ func getApparentProperties(t *checker.Type, node ast.Node, typeChecker *checker.
 	if !t.IsUnion() {
 		return typeChecker.GetApparentProperties(t)
 	}
-	return typeChecker.GetAllPossiblePropertiesOfTypes(core.Filter(t.Types(), func(memberType *checker.Type) bool {
+	return typeChecker.GetAllPossiblePropertiesOfTypes(core.Filter(typeChecker.TypesOf(t.Types()), func(memberType *checker.Type) bool {
 		return !(memberType.Flags()&checker.TypeFlagsPrimitive != 0 ||
 			typeChecker.IsArrayLikeType(memberType) ||
 			typeChecker.IsTypeInvalidDueToUnionDiscriminant(memberType, node) ||
@@ -6594,7 +6594,7 @@ func (l *LanguageService) getExhaustiveCaseSnippets(
 ) (*lsproto.CompletionItem, error) {
 	clauses := caseBlock.Clauses().Slice()
 	switchType := c.GetTypeAtLocation(caseBlock.AsNode().Parent().Expression())
-	if switchType != nil && switchType.IsUnion() && core.Every(switchType.Types(), isLiteral) {
+	if switchType != nil && switchType.IsUnion() && core.Every(c.TypesOf(switchType.Types()), isLiteral) {
 		// Collect constant values in existing clauses.
 		tracker := newCaseClauseTracker(c, clauses)
 		quotePreference := lsutil.GetQuotePreference(file, l.UserPreferences())
@@ -6621,7 +6621,7 @@ func (l *LanguageService) getExhaustiveCaseSnippets(
 
 		var elements []ast.Expression
 		factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
-		for _, t := range switchType.Types() {
+		for _, t := range c.TypesOf(switchType.Types()) {
 			// Enums
 			if t.IsEnumLiteral() {
 				debug.Assert(!c.SymbolOfType(t).IsNil(), "An enum member type should have a symbol")

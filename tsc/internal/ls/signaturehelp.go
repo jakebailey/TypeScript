@@ -519,9 +519,9 @@ func (l *LanguageService) itemInfoForTypeParameters(candidateSignature *checker.
 
 	var typeParameters []*checker.Type
 	if candidateSignature.Target(c) != nil {
-		typeParameters = candidateSignature.Target(c).TypeParameters()
+		typeParameters = c.TypesOf(candidateSignature.Target(c).TypeParameters())
 	} else {
-		typeParameters = candidateSignature.TypeParameters()
+		typeParameters = c.TypesOf(candidateSignature.TypeParameters())
 	}
 	signatureHelpTypeParameters := make([]signatureHelpParameter, len(typeParameters))
 	for i, typeParameter := range typeParameters {
@@ -595,7 +595,7 @@ func (l *LanguageService) itemInfoForParameters(candidateSignature *checker.Sign
 
 	signatureHelpTypeParameters := make([]signatureHelpParameter, len(candidateSignature.TypeParameters()))
 	if len(candidateSignature.TypeParameters()) != 0 {
-		for i, typeParameter := range candidateSignature.TypeParameters() {
+		for i, typeParameter := range c.TypesOf(candidateSignature.TypeParameters()) {
 			signatureHelpTypeParameters[i] = createSignatureHelpParameterForTypeParameter(typeParameter, sourceFile, enclosingDeclaratipn, builder, p)
 		}
 	}

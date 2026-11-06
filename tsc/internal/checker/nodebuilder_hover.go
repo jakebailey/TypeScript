@@ -121,7 +121,7 @@ func (b *NodeBuilderImpl) expandClassDecl(symbol ast.SymbolId) ast.Node {
 	defer func() { b.ctx.enclosingDeclaration = oldEnclosing }()
 
 	localParams := b.ch.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol)
-	typeParamDecls := core.Map(localParams, func(p *Type) ast.Node { return b.typeParameterToDeclaration(p) })
+	typeParamDecls := typesMapTo(b.ch, localParams, func(p *Type) ast.Node { return b.typeParameterToDeclaration(p) })
 
 	declaredType := b.ch.getDeclaredTypeOfClassOrInterface(symbol)
 	classType := b.ch.getTypeWithThisArgument(declaredType, nil, false)
@@ -170,7 +170,7 @@ func (b *NodeBuilderImpl) expandClassDecl(symbol ast.SymbolId) ast.Node {
 	constructors := b.serializeConstructors(staticType, staticBaseType, isClass, symbol)
 
 	// Index signatures
-	indexSigs := b.serializeIndexSignaturesOfType(classType, core.FirstOrNil(baseTypes))
+	indexSigs := b.serializeIndexSignaturesOfType(classType, b.ch.typ(core.FirstOrNil(baseTypes)))
 
 	allMembers := make([]ast.Node, 0, len(indexSigs)+len(staticMembers)+len(constructors)+len(instanceMembers)+len(privateMembers))
 	allMembers = append(allMembers, indexSigs...)
@@ -238,7 +238,7 @@ func (b *NodeBuilderImpl) expandInterfaceDecl(symbol ast.SymbolId) ast.Node {
 	interfaceType := b.ch.getDeclaredTypeOfClassOrInterface(symbol)
 	interfaceDeclarations := b.ch.symbolDeclarations(symbol).Filter(ast.IsInterfaceDeclaration)
 	localParams := b.ch.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol)
-	typeParamDecls := core.Map(localParams, func(p *Type) ast.Node { return b.typeParameterToDeclaration(p) })
+	typeParamDecls := typesMapTo(b.ch, localParams, func(p *Type) ast.Node { return b.typeParameterToDeclaration(p) })
 	baseTypes := b.ch.getBaseTypes(interfaceType)
 	var baseType *Type
 	if len(baseTypes) > 0 {
@@ -558,7 +558,7 @@ func (b *NodeBuilderImpl) expandModuleDecl(symbol ast.SymbolId) ast.Node {
 func (b *NodeBuilderImpl) serializeTypeAliasForNamespace(symbol ast.SymbolId, name string) ast.Node {
 	aliasType := b.ch.getDeclaredTypeOfTypeAlias(symbol)
 	typeParams := b.ch.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol)
-	typeParamDecls := core.Map(typeParams, func(p *Type) ast.Node { return b.typeParameterToDeclaration(p) })
+	typeParamDecls := typesMapTo(b.ch, typeParams, func(p *Type) ast.Node { return b.typeParameterToDeclaration(p) })
 	restoreFlags := b.saveRestoreFlags()
 	b.ctx.flags |= nodebuilder.FlagsInTypeAlias
 	typeNode := b.typeToTypeNode(aliasType)
@@ -568,7 +568,7 @@ func (b *NodeBuilderImpl) serializeTypeAliasForNamespace(symbol ast.SymbolId, na
 }
 
 // filterInheritedProperties removes properties already present in base types.
-func (b *NodeBuilderImpl) filterInheritedProperties(t *Type, baseTypes []*Type, properties []ast.SymbolId) []ast.SymbolId {
+func (b *NodeBuilderImpl) filterInheritedProperties(t *Type, baseTypes []TypeId, properties []ast.SymbolId) []ast.SymbolId {
 	if len(baseTypes) == 0 {
 		return properties
 	}
@@ -579,7 +579,8 @@ func (b *NodeBuilderImpl) filterInheritedProperties(t *Type, baseTypes []*Type, 
 	}
 	// Collect names of properties inherited unchanged from base types.
 	var inherited collections.Set[ast.SymbolName]
-	for _, base := range baseTypes {
+	for _, baseId := range baseTypes {
+		base := b.ch.typ(baseId)
 		baseWithThis := b.ch.getTypeWithThisArgument(base, b.ch.getTargetType(t).AsInterfaceType().iface().thisType, false)
 		for _, prop := range b.ch.getPropertiesOfType(baseWithThis) {
 			if existing, ok := propsByName[b.ch.symbolName(prop)]; ok && b.ch.symbolParent(prop) == b.ch.symbolParent(existing) {

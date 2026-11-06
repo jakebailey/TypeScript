@@ -46,7 +46,7 @@ func (b *NodeBuilder) enterContext(enclosingDeclaration ast.Node, flags nodebuil
 		maxTruncationLength:      maxTruncationLength,
 		enclosingDeclaration:     enclosingDeclaration,
 		enclosingFile:            ast.GetSourceFileOfNode(enclosingDeclaration),
-		inferTypeParameters:      make([]*Type, 0),
+		inferTypeParameters:      make([]TypeId, 0),
 		symbolDepth:              make(map[CompositeSymbolIdentity]int),
 		trackedSymbols:           make([]*TrackedSymbolArgs, 0),
 		reverseMappedStack:       make([]ast.SymbolId, 0),
@@ -163,8 +163,8 @@ func (b *NodeBuilder) expandSymbolForHover(symbol ast.SymbolId, meaning ast.Symb
 	// We push a nil sentinel after the real type so that isTypeOnStack
 	// (which skips the last element) still checks declaredType.
 	declaredType := b.impl.ch.getDeclaredTypeOfSymbol(symbol)
-	b.impl.ctx.typeStack = append(b.impl.ctx.typeStack, declaredType)
-	b.impl.ctx.typeStack = append(b.impl.ctx.typeStack, nil)
+	b.impl.ctx.typeStack = append(b.impl.ctx.typeStack, declaredType.ref())
+	b.impl.ctx.typeStack = append(b.impl.ctx.typeStack, 0)
 
 	nodes := b.impl.expandSymbolForHover(symbol)
 

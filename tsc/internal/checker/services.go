@@ -205,14 +205,15 @@ func (c *Checker) isValidPropertyAccessForCompletionsId(node ast.Node, t *Type, 
 	// Previously we validated the 'this' type of methods but this adversely affected performance. See #31377 for more context.
 }
 
-func (c *Checker) getAllPossiblePropertiesOfTypes(types []*Type) []ast.SymbolId {
+func (c *Checker) getAllPossiblePropertiesOfTypes(types []TypeId) []ast.SymbolId {
 	unionType := c.getUnionType(types)
 	if unionType.flags&TypeFlagsUnion == 0 {
 		return c.getAugmentedPropertiesOfType(unionType)
 	}
 
 	props := c.symbols.NewTable(0)
-	for _, memberType := range types {
+	for _, memberTypeId := range types {
+		memberType := c.typ(memberTypeId)
 		augmentedProps := c.getAugmentedPropertiesOfType(memberType)
 		for _, p := range augmentedProps {
 			if _, ok := props.LookupId(c.symbols, c.symbolName(p)); !ok {
@@ -426,12 +427,9 @@ func (c *Checker) getMappedTypeSymbolOfProperty(symbol ast.SymbolId) ast.SymbolI
 
 func (c *Checker) getImmediateRootSymbols(symbol ast.SymbolId) []ast.SymbolId {
 	if c.symbolCheckFlags(symbol)&ast.CheckFlagsSynthetic != 0 {
-		return core.MapNonNil(
-			c.valueSymbolLinks.Get(symbol).getContainingType().Types(),
-			func(t *Type) ast.SymbolId {
-				return c.getPropertyOfType(t, c.symbolName(symbol))
-			},
-		)
+		return typesMapNonNilTo(c, c.valueSymbolLinks.Get(symbol).getContainingType().Types(), func(t *Type) ast.SymbolId {
+			return c.getPropertyOfType(t, c.symbolName(symbol))
+		})
 	}
 	if c.symbolFlags(symbol)&ast.SymbolFlagsTransient != 0 {
 		if c.spreadLinks.Has(symbol) {
@@ -734,15 +732,15 @@ func (c *Checker) getUninstantiatedSignatures(node ast.Node) []*Signature {
 }
 
 func (c *Checker) getTypeParameterConstraintForPositionAcrossSignatures(signatures []*Signature, position int) *Type {
-	var relevantConstraints []*Type
+	var relevantConstraints []TypeId
 	for _, signature := range signatures {
 		if position >= len(signature.TypeParameters()) {
 			continue
 		}
-		relevantTypeParameter := signature.TypeParameters()[position]
+		relevantTypeParameter := c.typ(signature.TypeParameters()[position])
 		relevantConstraint := c.getConstraintOfTypeParameter(relevantTypeParameter)
 		if relevantConstraint != nil {
-			relevantConstraints = append(relevantConstraints, relevantConstraint)
+			relevantConstraints = append(relevantConstraints, relevantConstraint.ref())
 		}
 	}
 	return c.getUnionType(relevantConstraints)
@@ -798,7 +796,7 @@ func (c *Checker) getTypeArgumentConstraint(node ast.Node) *Type {
 			if callConstraint.flags&TypeFlagsNever != 0 {
 				return constructConstraint
 			}
-			return c.getIntersectionType([]*Type{callConstraint, constructConstraint})
+			return c.getIntersectionType([]TypeId{callConstraint.ref(), constructConstraint.ref()})
 		}
 
 		if ast.IsTypeReferenceType(node.Parent()) {
@@ -809,12 +807,12 @@ func (c *Checker) getTypeArgumentConstraint(node ast.Node) *Type {
 			if typeArgumentPosition >= len(typeParameters) {
 				return nil
 			}
-			relevantTypeParameter := typeParameters[typeArgumentPosition]
+			relevantTypeParameter := c.typ(typeParameters[typeArgumentPosition])
 			constraint := c.getConstraintOfTypeParameter(relevantTypeParameter)
 			if constraint != nil {
 				return c.instantiateType(
 					constraint,
-					newTypeMapper(typeParameters, c.getEffectiveTypeArguments(node.Parent(), typeParameters)),
+					c.newTypeMapper(typeParameters, c.getEffectiveTypeArguments(node.Parent(), typeParameters)),
 				)
 			}
 		}
@@ -842,7 +840,7 @@ func (c *Checker) IsTypeInvalidDueToUnionDiscriminant(contextualType *Type, obj 
 		if name != ast.EmptySymbolName {
 			expected = c.getTypeOfPropertyOfType(contextualType, name)
 		}
-		return expected != nil && isLiteralType(expected) && !c.isTypeAssignableTo(c.getTypeOfNode(property), expected)
+		return expected != nil && c.isLiteralType(expected) && !c.isTypeAssignableTo(c.getTypeOfNode(property), expected)
 	})
 }
 
@@ -1018,13 +1016,13 @@ func (c *Checker) GetFirstTypeArgumentFromKnownType(t *Type) *Type {
 	if t.objectFlags&ObjectFlagsReference != 0 && c.symbolOfType(t) != 0 && isKnownGenericTypeName(c.symbolName(c.symbolOfType(t))) {
 		symbol := c.getGlobalSymbol(c.symbolName(c.symbolOfType(t)), ast.SymbolFlagsType, nil)
 		if symbol != 0 && symbol == c.symbolOfType(t.Target()) {
-			return core.FirstOrNil(c.getTypeArguments(t))
+			return c.typ(core.FirstOrNil(c.getTypeArguments(t)))
 		}
 	}
 	if t.Alias() != nil && isKnownGenericTypeName(c.symbolName(t.Alias().symbol)) {
 		symbol := c.getGlobalSymbol(c.symbolName(t.Alias().symbol), ast.SymbolFlagsType, nil)
 		if symbol != 0 && symbol == t.Alias().symbol {
-			return core.FirstOrNil(t.Alias().typeArguments)
+			return c.typ(core.FirstOrNil(t.Alias().typeArguments))
 		}
 	}
 	return nil
@@ -1044,11 +1042,11 @@ func (c *Checker) getPropertySymbolsFromContextualType(node ast.Node, contextual
 	}
 	filteredTypes := contextualType.Types()
 	if ast.IsObjectLiteralExpression(node.Parent()) || ast.IsJsxAttributes(node.Parent()) {
-		filteredTypes = core.Filter(filteredTypes, func(t *Type) bool {
+		filteredTypes = c.typesFilter(filteredTypes, func(t *Type) bool {
 			return !c.IsTypeInvalidDueToUnionDiscriminant(t, node.Parent())
 		})
 	}
-	discriminatedPropertySymbols := core.MapNonNil(filteredTypes, func(t *Type) ast.SymbolId {
+	discriminatedPropertySymbols := typesMapNonNilTo(c, filteredTypes, func(t *Type) ast.SymbolId {
 		return c.getPropertyOfType(t, ast.MakeSymbolName(name))
 	})
 	if unionSymbolOk && (len(discriminatedPropertySymbols) == 0 || len(discriminatedPropertySymbols) == len(contextualType.Types())) {
@@ -1058,7 +1056,7 @@ func (c *Checker) getPropertySymbolsFromContextualType(node ast.Node, contextual
 	}
 	if len(filteredTypes) == 0 && len(discriminatedPropertySymbols) == 0 {
 		// Bad discriminant -- do again without discriminating
-		return core.MapNonNil(contextualType.Types(), func(t *Type) ast.SymbolId {
+		return typesMapNonNilTo(c, contextualType.Types(), func(t *Type) ast.SymbolId {
 			return c.getPropertyOfType(t, ast.MakeSymbolName(name))
 		})
 	}
@@ -1175,7 +1173,7 @@ func (c *Checker) IsValidPropertyAccessForCompletions(node ast.Node, t *Type, pr
 }
 
 func (c *Checker) GetAllPossiblePropertiesOfTypes(types []*Type) []ast.Symbol {
-	return c.symbolsOf(c.getAllPossiblePropertiesOfTypes(types))
+	return c.symbolsOf(c.getAllPossiblePropertiesOfTypes(typeIdsOf(types)))
 }
 
 func (c *Checker) IsUnknownSymbol(symbol ast.Symbol) bool {

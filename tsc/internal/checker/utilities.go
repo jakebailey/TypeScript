@@ -414,6 +414,14 @@ func (c *Checker) compareNodes(n1, n2 ast.Node) int {
 	return n1.Pos() - n2.Pos()
 }
 
+func (c *Checker) compareTypeIds(t1, t2 TypeId) int {
+	return c.CompareTypes(c.typ(t1), c.typ(t2))
+}
+
+func (c *Checker) compareTypeIdToType(t1 TypeId, t2 *Type) int {
+	return c.CompareTypes(c.typ(t1), t2)
+}
+
 func (c *Checker) CompareTypes(t1, t2 *Type) int {
 	if t1 == t2 {
 		return 0
@@ -701,12 +709,13 @@ func compareElementLabels(n1, n2 ast.Node) int {
 	return strings.Compare(n1.Name().Text(), n2.Name().Text())
 }
 
-func (c *Checker) compareTypeLists(s1, s2 []*Type) int {
+func (c *Checker) compareTypeLists(s1, s2 []TypeId) int {
 	if len(s1) != len(s2) {
 		return len(s1) - len(s2)
 	}
-	for i, t1 := range s1 {
-		if r := c.CompareTypes(t1, s2[i]); r != 0 {
+	for i, t1Id := range s1 {
+		t1 := c.typ(t1Id)
+		if r := c.CompareTypes(t1, c.typ(s2[i])); r != 0 {
 			return r
 		}
 	}
@@ -895,8 +904,8 @@ type orderedSet[T comparable] struct {
 // workspace for normalization, and copy constituents only when publishing a
 // new type. Each recursive construction borrows a separate set.
 type temporaryTypeSet struct {
-	orderedSet[*Type]
-	inline [16]*Type
+	orderedSet[TypeId]
+	inline [16]TypeId
 	next   *temporaryTypeSet
 }
 
@@ -1763,7 +1772,7 @@ func (c *Checker) allDeclarationsInSameSourceFile(symbol ast.SymbolId) bool {
 func containsNonMissingUndefinedType(c *Checker, t *Type) bool {
 	var candidate *Type
 	if t.flags&TypeFlagsUnion != 0 {
-		candidate = t.AsUnionType().types()[0]
+		candidate = c.typ(t.AsUnionType().types()[0])
 	} else {
 		candidate = t
 	}
@@ -1922,10 +1931,10 @@ func (c *Checker) isJSLiteralType(t *Type) bool {
 		return true
 	}
 	if t.flags&TypeFlagsUnion != 0 {
-		return core.Every(t.AsUnionType().types(), c.isJSLiteralType)
+		return c.typesEvery(t.AsUnionType().types(), c.isJSLiteralType)
 	}
 	if t.flags&TypeFlagsIntersection != 0 {
-		return core.Some(t.AsIntersectionType().types(), c.isJSLiteralType)
+		return c.typesSome(t.AsIntersectionType().types(), c.isJSLiteralType)
 	}
 	if t.flags&TypeFlagsInstantiable != 0 {
 		constraint := c.getResolvedBaseConstraint(t, nil)

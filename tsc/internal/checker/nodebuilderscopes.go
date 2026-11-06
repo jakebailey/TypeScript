@@ -56,7 +56,7 @@ func (b *NodeBuilderImpl) enterSignatureScope(signature *Signature) (expandedPar
 	return expandedParams, cleanup
 }
 
-func (b *NodeBuilderImpl) enterNewScope(declaration ast.Node, expandedParams []ast.SymbolId, typeParameters []*Type, originalParameters []ast.SymbolId, mapper *TypeMapper) func() {
+func (b *NodeBuilderImpl) enterNewScope(declaration ast.Node, expandedParams []ast.SymbolId, typeParameters []TypeId, originalParameters []ast.SymbolId, mapper *TypeMapper) func() {
 	cleanupContext := cloneNodeBuilderContext(b.ctx)
 	// For regular function/method declarations, the enclosing declaration will already be signature.declaration,
 	// so this is a no-op, but for arrow functions and function expressions, the enclosing declaration will be
@@ -220,12 +220,13 @@ func (b *NodeBuilderImpl) enterNewScope(declaration ast.Node, expandedParams []a
 			})
 		}
 
-		if b.ctx.flags&nodebuilder.FlagsGenerateNamesForShadowedTypeParams != 0 && typeParameters != nil && core.Some(typeParameters, func(p *Type) bool { return p != nil }) {
+		if b.ctx.flags&nodebuilder.FlagsGenerateNamesForShadowedTypeParams != 0 && typeParameters != nil && b.ch.typesSome(typeParameters, func(p *Type) bool { return p != nil }) {
 			cleanupTypeParams = pushFakeScope("typeParams", func(add func(name ast.SymbolName, symbol ast.SymbolId)) {
 				if typeParameters == nil {
 					return
 				}
-				for _, typeParam := range typeParameters {
+				for _, typeParamId := range typeParameters {
+					typeParam := b.ch.typ(typeParamId)
 					if typeParam == nil {
 						continue
 					}

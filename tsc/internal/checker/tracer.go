@@ -354,12 +354,13 @@ func wrapType(c *Checker, t *Type) tracing.TracedType {
 	return &tracedTypeAdapter{t: t, checker: c}
 }
 
-func wrapTypes(c *Checker, types []*Type) []tracing.TracedType {
+func wrapTypes(c *Checker, types []TypeId) []tracing.TracedType {
 	if len(types) == 0 {
 		return nil
 	}
 	result := make([]tracing.TracedType, len(types))
-	for i, t := range types {
+	for i, tId := range types {
+		t := c.typ(tId)
 		result[i] = wrapType(c, t)
 	}
 	return result

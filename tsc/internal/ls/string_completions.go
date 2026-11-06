@@ -1932,7 +1932,7 @@ func getStringLiteralTypes(t *checker.Type, uniques *collections.Set[string], ty
 	t = skipConstraint(t, typeChecker)
 	if t.IsUnion() {
 		var types []*checker.StringLiteralType
-		for _, elementType := range t.Types() {
+		for _, elementType := range typeChecker.TypesOf(t.Types()) {
 			types = append(types, getStringLiteralTypes(elementType, uniques, typeChecker)...)
 		}
 		return types

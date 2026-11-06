@@ -823,12 +823,12 @@ func (c *Checker) checkGrammarIndexSignatureParameters(node ast.IndexSignatureDe
 		return c.grammarErrorOnNode(parameter.Name(), diagnostics.An_index_signature_parameter_must_have_a_type_annotation)
 	}
 	t := c.getTypeFromTypeNode(typeNode)
-	if someType(t, func(t *Type) bool {
+	if c.someType(t, func(t *Type) bool {
 		return t.flags&TypeFlagsStringOrNumberLiteralOrUnique != 0
 	}) || c.isGenericType(t) {
 		return c.grammarErrorOnNode(parameter.Name(), diagnostics.An_index_signature_parameter_type_cannot_be_a_literal_type_or_generic_type_Consider_using_a_mapped_object_type_instead)
 	}
-	if !everyType(t, c.isValidIndexKeyType) {
+	if !c.everyType(t, c.isValidIndexKeyType) {
 		return c.grammarErrorOnNode(parameter.Name(), diagnostics.An_index_signature_parameter_type_must_be_string_number_symbol_or_a_template_literal_type)
 	}
 	return false

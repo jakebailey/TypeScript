@@ -88,7 +88,7 @@ func (c *Checker) GetUnknownSignature() *Signature {
 }
 
 func (c *Checker) GetUnionType(types []*Type) *Type {
-	return c.getUnionType(types)
+	return c.getUnionType(typeIdsOf(types))
 }
 
 func (c *Checker) getNameTypeOfSymbol(symbol ast.SymbolId) *Type {
@@ -290,7 +290,7 @@ func (c *Checker) HasEffectiveRestParameter(signature *Signature) bool {
 	return c.hasEffectiveRestParameter(signature)
 }
 
-func (c *Checker) getLocalTypeParametersOfClassOrInterfaceOrTypeAliasId(symbol ast.SymbolId) []*Type {
+func (c *Checker) getLocalTypeParametersOfClassOrInterfaceOrTypeAliasId(symbol ast.SymbolId) []TypeId {
 	return c.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol)
 }
 
@@ -357,7 +357,7 @@ func (c *Checker) getSymbolFlagsId(symbol ast.SymbolId) ast.SymbolFlags {
 }
 
 func (c *Checker) GetBaseTypes(t *Type) []*Type {
-	return c.getBaseTypes(t)
+	return c.typesOf(c.getBaseTypes(t))
 }
 
 func (c *Checker) GetApparentType(t *Type) *Type {
@@ -391,7 +391,7 @@ func (c *Checker) GetRestTypeOfSignature(sig *Signature) *Type {
 }
 
 func (c *Checker) GetTypeArguments(t *Type) []*Type {
-	return c.getTypeArguments(t)
+	return c.typesOf(c.getTypeArguments(t))
 }
 
 func (c *Checker) GetIndexInfoOfType(t *Type, keyType *Type) *IndexInfo {
@@ -419,11 +419,11 @@ func (c *Checker) IsContextSensitive(node ast.Node) bool {
 }
 
 func (c *Checker) FillMissingTypeArguments(typeArguments []*Type, typeParameters []*Type, minTypeArgumentCount int, isJavaScriptImplicitAny bool) []*Type {
-	return c.fillMissingTypeArguments(typeArguments, typeParameters, minTypeArgumentCount, isJavaScriptImplicitAny)
+	return c.typesOf(c.fillMissingTypeArguments(typeIdsOf(typeArguments), typeIdsOf(typeParameters), minTypeArgumentCount, isJavaScriptImplicitAny))
 }
 
 func (c *Checker) GetMinTypeArgumentCount(typeParameters []*Type) int {
-	return c.getMinTypeArgumentCount(typeParameters)
+	return c.getMinTypeArgumentCount(typeIdsOf(typeParameters))
 }
 
 func (c *Checker) GetWidenedLiteralType(t *Type) *Type {
@@ -435,7 +435,7 @@ func (c *Checker) IsTypeAssignableTo(source *Type, target *Type) bool {
 }
 
 func (c *Checker) GetUnionTypeEx(types []*Type, unionReduction UnionReduction) *Type {
-	return c.getUnionTypeEx(types, unionReduction, nil, nil)
+	return c.getUnionTypeEx(typeIdsOf(types), unionReduction, nil, nil)
 }
 
 func (c *Checker) RequiresAddingImplicitUndefined(node ast.Node) bool {
@@ -578,7 +578,7 @@ func (c *Checker) GetTypeOfSymbol(symbol ast.Symbol) *Type {
 }
 
 func (c *Checker) GetLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol ast.Symbol) []*Type {
-	return c.getLocalTypeParametersOfClassOrInterfaceOrTypeAliasId(c.symbolId(symbol))
+	return c.typesOf(c.getLocalTypeParametersOfClassOrInterfaceOrTypeAliasId(c.symbolId(symbol)))
 }
 
 func (c *Checker) GetResolvedSymbol(node ast.Node) ast.Symbol {

@@ -248,9 +248,9 @@ type MappedSymbolLinks struct {
 // Additional links for deferred type symbols
 
 type DeferredSymbolLinks struct {
-	parent            *Type   // Source union/intersection of a deferred type
-	constituents      []*Type // Calculated list of constituents for a deferred type
-	writeConstituents []*Type // Constituents of a deferred `writeType`
+	parent            *Type    // Source union/intersection of a deferred type
+	constituents      []TypeId // Calculated list of constituents for a deferred type
+	writeConstituents []TypeId // Constituents of a deferred `writeType`
 }
 
 // Links for alias symbols
@@ -293,7 +293,7 @@ type ExportTypeLinks struct {
 
 type TypeAliasLinks struct {
 	declaredType                  *Type
-	typeParameters                []*Type                // Type parameters of type alias (undefined if non-generic)
+	typeParameters                []TypeId               // Type parameters of type alias (undefined if non-generic)
 	instantiations                map[CacheHashKey]*Type // Instantiations of generic type alias (undefined if non-generic)
 	isConstructorDeclaredProperty bool
 }
@@ -323,7 +323,7 @@ type SwitchStatementLinks struct {
 	exhaustiveState     ExhaustiveState // Switch statement exhaustiveness
 	switchTypesComputed bool
 	witnessesComputed   bool
-	switchTypes         []*Type
+	switchTypes         []TypeId
 	witnesses           []string
 }
 
@@ -695,7 +695,7 @@ const (
 
 type TypeAlias struct {
 	symbol        ast.SymbolId
-	typeArguments []*Type
+	typeArguments []TypeId
 }
 
 func (a *TypeAlias) Symbol() ast.SymbolId {
@@ -705,7 +705,7 @@ func (a *TypeAlias) Symbol() ast.SymbolId {
 	return a.symbol
 }
 
-func (a *TypeAlias) TypeArguments() []*Type {
+func (a *TypeAlias) TypeArguments() []TypeId {
 	if a == nil {
 		return nil
 	}
@@ -859,6 +859,53 @@ type structuredTypeExtra struct {
 	objectTypeWithoutAbstractConstructSignatures *Type
 }
 
+// typeSlab holds a checker's types in fixed chunks behind a directory, so a TypeId (a type's position, from 1)
+// finds its record with one load from the directory and one from the chunk. Chunks never move, so a *Type stays
+// valid for the checker's life.
+type typeSlab struct {
+	dir []*typeChunk
+	n   uint32
+}
+
+const (
+	typeChunkShift = 12
+	typeChunkSize  = 1 << typeChunkShift
+	typeChunkMask  = typeChunkSize - 1
+)
+
+type typeChunk [typeChunkSize]Type
+
+func (s *typeSlab) add(kind typeKind) *Type {
+	s.n++
+	id := s.n
+	if id > typeIdMask {
+		panic("Too many types")
+	}
+	k := int(id >> typeChunkShift)
+	if k == len(s.dir) {
+		s.dir = append(s.dir, new(typeChunk))
+	}
+	t := &s.dir[k][id&typeChunkMask]
+	t.id = TypeId(kind)<<typeKindShift | TypeId(id)
+	return t
+}
+
+// typ returns the type with the given id, or nil for 0.
+func (c *Checker) typ(id TypeId) *Type {
+	if id == 0 {
+		return nil
+	}
+	return &c.types.dir[id>>typeChunkShift][id&typeChunkMask]
+}
+
+// ref returns the id of t, or 0 for nil.
+func (t *Type) ref() TypeId {
+	if t == nil {
+		return 0
+	}
+	return t.id & typeIdMask
+}
+
 func castType[T any](t *Type, kind typeKind) *T {
 	if t.kind() != kind {
 		panic("Invalid type cast")
@@ -929,8 +976,8 @@ func sliceToPayload[T any](s []T) (unsafe.Pointer, uint32) {
 	return toPayload(unsafe.SliceData(s)), uint32(len(s))
 }
 
-func typeSlice(p unsafe.Pointer, n uint32) []*Type {
-	return sliceFromPayload[*Type](p, n)
+func typeSlice(p unsafe.Pointer, n uint32) []TypeId {
+	return sliceFromPayload[TypeId](p, n)
 }
 
 // Casts for concrete struct types
@@ -1031,14 +1078,14 @@ func (t *Type) AsUnionOrIntersectionType() *UnionOrIntersectionType {
 	return nil
 }
 
-func (t *Type) Distributed() []*Type {
+func (t *Type) Distributed() []TypeId {
 	switch {
 	case t.flags&TypeFlagsUnion != 0:
 		return t.AsUnionType().types()
 	case t.flags&TypeFlagsNever != 0:
 		return nil
 	}
-	return []*Type{t}
+	return []TypeId{t.ref()}
 }
 
 // Common accessors
@@ -1069,7 +1116,7 @@ func (t *Type) Mapper(c *Checker) *TypeMapper {
 	panic("Unhandled case in Type.Mapper")
 }
 
-func (t *Type) Types() []*Type {
+func (t *Type) Types() []TypeId {
 	switch {
 	case t.flags&TypeFlagsUnionOrIntersection != 0:
 		return t.AsUnionOrIntersectionType().types()
@@ -1411,7 +1458,7 @@ func (t *StructuredType) getPropertyAt(c *Checker, index int) ast.SymbolId {
 		if baseIndex < 0 {
 			member = c.instantiateSymbol(symbol, c.mapperOf(lazy.mapper))
 		} else {
-			member = c.getPropertyOfType(lazy.baseTypes[baseIndex], c.symbolName(symbol))
+			member = c.getPropertyOfType(c.typ(lazy.baseTypes[baseIndex]), c.symbolName(symbol))
 		}
 		properties[index] = member
 	}
@@ -1577,7 +1624,7 @@ type TypeReference struct {
 type LazyState struct {
 	layout             *MemberLayout
 	mapper             TypeMapperId
-	baseTypes          []*Type
+	baseTypes          []TypeId
 	propertiesResolved bool
 }
 
@@ -1605,11 +1652,11 @@ func (t *TypeReference) setNode(c *Checker, node ast.NodeRef) {
 	t.ensureExtra(c).node = node
 }
 
-func (t *TypeReference) resolvedTypeArguments() []*Type {
+func (t *TypeReference) resolvedTypeArguments() []TypeId {
 	return typeSlice(t.data.p1, t.data.w0)
 }
 
-func (t *TypeReference) setResolvedTypeArguments(typeArguments []*Type) {
+func (t *TypeReference) setResolvedTypeArguments(typeArguments []TypeId) {
 	t.data.p1, t.data.w0 = sliceToPayload(typeArguments)
 }
 
@@ -1637,13 +1684,13 @@ type InterfaceType struct {
 
 type interfaceData struct {
 	lazy                        *LazyState
-	allTypeParameters           []*Type // Type parameters (outer + local + thisType)
-	outerTypeParameterCount     int     // Count of outer type parameters
-	thisType                    *Type   // The "this" type (nil if none)
+	allTypeParameters           []TypeId // Type parameters (outer + local + thisType)
+	outerTypeParameterCount     int      // Count of outer type parameters
+	thisType                    *Type    // The "this" type (nil if none)
 	baseTypesResolved           bool
 	declaredMembersResolved     bool
 	resolvedBaseConstructorType *Type
-	resolvedBaseTypes           []*Type
+	resolvedBaseTypes           []TypeId
 	declaredMembers             ast.SymbolTable // Declared members
 	declaredCallSignatures      []*Signature    // Declared call signatures
 	declaredConstructSignatures []*Signature    // Declared construct signatures
@@ -1656,7 +1703,7 @@ func (t *InterfaceType) iface() *interfaceData {
 	return fromPayload[interfaceData](t.data.p2)
 }
 
-func (t *InterfaceType) OuterTypeParameters() []*Type {
+func (t *InterfaceType) OuterTypeParameters() []TypeId {
 	d := t.iface()
 	if len(d.allTypeParameters) == 0 {
 		return nil
@@ -1664,7 +1711,7 @@ func (t *InterfaceType) OuterTypeParameters() []*Type {
 	return slices.Clip(d.allTypeParameters[:d.outerTypeParameterCount])
 }
 
-func (t *InterfaceType) LocalTypeParameters() []*Type {
+func (t *InterfaceType) LocalTypeParameters() []TypeId {
 	d := t.iface()
 	if len(d.allTypeParameters) == 0 {
 		return nil
@@ -1672,7 +1719,7 @@ func (t *InterfaceType) LocalTypeParameters() []*Type {
 	return slices.Clip(d.allTypeParameters[d.outerTypeParameterCount : len(d.allTypeParameters)-1])
 }
 
-func (t *InterfaceType) TypeParameters() []*Type {
+func (t *InterfaceType) TypeParameters() []TypeId {
 	d := t.iface()
 	if len(d.allTypeParameters) == 0 {
 		return nil
@@ -1825,15 +1872,15 @@ type unionOrIntersectionData struct {
 
 func (t *UnionOrIntersectionType) AsUnionOrIntersectionType() *UnionOrIntersectionType { return t }
 
-func (t *UnionOrIntersectionType) types() []*Type {
+func (t *UnionOrIntersectionType) types() []TypeId {
 	return typeSlice(t.data.p0, t.data.w0)
 }
 
-func (t *UnionOrIntersectionType) setTypes(types []*Type) {
+func (t *UnionOrIntersectionType) setTypes(types []TypeId) {
 	t.data.p0, t.data.w0 = sliceToPayload(types)
 }
 
-func (t *UnionOrIntersectionType) Types() []*Type {
+func (t *UnionOrIntersectionType) Types() []TypeId {
 	return t.types()
 }
 
@@ -2086,7 +2133,7 @@ type TemplateLiteralType struct {
 }
 
 func (t *TemplateLiteralType) Texts() []string { return t.texts() }
-func (t *TemplateLiteralType) Types() []*Type  { return t.types() }
+func (t *TemplateLiteralType) Types() []TypeId { return t.types() }
 
 func (t *TemplateLiteralType) texts() []string {
 	return sliceFromPayload[string](t.data.p0, t.data.w0)
@@ -2096,11 +2143,11 @@ func (t *TemplateLiteralType) setTexts(texts []string) {
 	t.data.p0, t.data.w0 = sliceToPayload(texts)
 }
 
-func (t *TemplateLiteralType) types() []*Type {
+func (t *TemplateLiteralType) types() []TypeId {
 	return typeSlice(t.data.p1, t.data.w1)
 }
 
-func (t *TemplateLiteralType) setTypes(types []*Type) {
+func (t *TemplateLiteralType) setTypes(types []TypeId) {
 	t.data.p1, t.data.w1 = sliceToPayload(types)
 }
 
@@ -2132,8 +2179,8 @@ type ConditionalRoot struct {
 	checkType           *Type
 	extendsType         *Type
 	isDistributive      bool
-	inferTypeParameters []*Type
-	outerTypeParameters []*Type
+	inferTypeParameters []TypeId
+	outerTypeParameters []TypeId
 	instantiations      map[CacheHashKey]*Type
 	alias               *TypeAlias
 }
@@ -2204,7 +2251,7 @@ type Signature struct {
 }
 
 type signatureExtra struct {
-	typeParameters        []*Type
+	typeParameters        []TypeId
 	thisParameter         ast.SymbolId
 	resolvedTypePredicate *TypePredicate
 	isolatedSignatureType *Type
@@ -2218,7 +2265,7 @@ func (s *Signature) ensureExtra(c *Checker) *signatureExtra {
 	return s.extra
 }
 
-func (s *Signature) setTypeParameters(c *Checker, types []*Type) {
+func (s *Signature) setTypeParameters(c *Checker, types []TypeId) {
 	if types != nil || s.extra != nil {
 		s.ensureExtra(c).typeParameters = types
 	}
@@ -2279,7 +2326,7 @@ func (s *Signature) Flags() SignatureFlags {
 	return s.flags &^ signatureFlagsNoTypePredicate
 }
 
-func (s *Signature) TypeParameters() []*Type {
+func (s *Signature) TypeParameters() []TypeId {
 	if s.extra == nil {
 		return nil
 	}

@@ -427,7 +427,7 @@ func (c *Checker) getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recovery
 		}
 		if c.symbolFlags(s)&ast.SymbolFlagsTypeParameter != 0 {
 			declaredType := b.ch.getDeclaredTypeOfSymbol(s)
-			if b.ctx.mapper != nil && getMappedType(declaredType, b.ctx.mapper) != declaredType {
+			if b.ctx.mapper != nil && b.ch.getMappedType(declaredType, b.ctx.mapper) != declaredType {
 				return ast.Node{} // refers to type parameter remapped by context (TODO improvement: just return the remapped param name?)
 			}
 		}
@@ -838,7 +838,7 @@ func (c *Checker) getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recovery
 		var exit func()
 		if introducesNewScope {
 			var params []ast.SymbolId
-			var typeParams []*Type
+			var typeParams []TypeId
 			if ast.IsFunctionLike(node) {
 				sig := b.ch.getSignatureFromDeclaration(node)
 				params = sig.parameters
@@ -846,7 +846,7 @@ func (c *Checker) getExistingNodeTreeVisitor(b *NodeBuilderImpl, bound *recovery
 			} else if ast.IsConditionalTypeNode(node) { // !!! TODO: impossible in combination with the scope start check???
 				typeParams = b.ch.getInferTypeParameters(node)
 			} else if ast.IsMappedTypeNode(node) {
-				typeParams = []*Type{b.ch.getDeclaredTypeOfTypeParameter(b.ch.getSymbolOfDeclaration(node.AsMappedTypeNode().TypeParameter()))}
+				typeParams = []TypeId{b.ch.getDeclaredTypeOfTypeParameter(b.ch.getSymbolOfDeclaration(node.AsMappedTypeNode().TypeParameter())).ref()}
 			}
 			exit = b.enterNewScope(node, params, typeParams, nil, nil)
 		}

@@ -250,11 +250,11 @@ func (c *Checker) valueToString(value any) string {
 	return ValueToString(value)
 }
 
-func (c *Checker) formatUnionTypes(types []*Type, expandingEnum bool) []*Type {
-	var result []*Type
+func (c *Checker) formatUnionTypes(types []TypeId, expandingEnum bool) []TypeId {
+	var result []TypeId
 	var flags TypeFlags
 	for i := 0; i < len(types); i++ {
-		t := types[i]
+		t := c.typ(types[i])
 		flags |= t.flags
 		if t.flags&TypeFlagsNullable == 0 {
 			if t.flags&TypeFlagsBooleanLiteral != 0 || (!expandingEnum && t.flags&TypeFlagsEnumLike != 0) {
@@ -266,21 +266,21 @@ func (c *Checker) formatUnionTypes(types []*Type, expandingEnum bool) []*Type {
 				}
 				if baseType.flags&TypeFlagsUnion != 0 {
 					count := len(baseType.AsUnionType().types())
-					if i+count <= len(types) && c.getRegularTypeOfLiteralType(types[i+count-1]) == c.getRegularTypeOfLiteralType(baseType.AsUnionType().types()[count-1]) {
-						result = append(result, baseType)
+					if i+count <= len(types) && c.getRegularTypeOfLiteralType(c.typ(types[i+count-1])) == c.getRegularTypeOfLiteralType(c.typ(baseType.AsUnionType().types()[count-1])) {
+						result = append(result, baseType.ref())
 						i += count - 1
 						continue
 					}
 				}
 			}
-			result = append(result, t)
+			result = append(result, t.ref())
 		}
 	}
 	if flags&TypeFlagsNull != 0 {
-		result = append(result, c.nullType)
+		result = append(result, c.nullType.ref())
 	}
 	if flags&TypeFlagsUndefined != 0 {
-		result = append(result, c.undefinedType)
+		result = append(result, c.undefinedType.ref())
 	}
 	return result
 }

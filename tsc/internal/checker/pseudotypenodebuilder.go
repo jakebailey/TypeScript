@@ -538,7 +538,7 @@ func (b *NodeBuilderImpl) pseudoTypeEquivalentToType(t *pseudochecker.PseudoType
 			return false
 		}
 		for i, elem := range pt.Elements {
-			if !b.pseudoTypeEquivalentToType(elem, elementTypes[i], false, reportErrors) {
+			if !b.pseudoTypeEquivalentToType(elem, b.ch.typ(elementTypes[i]), false, reportErrors) {
 				return false
 			}
 		}
@@ -709,7 +709,7 @@ func (b *NodeBuilderImpl) pseudoTypeToType(t *pseudochecker.PseudoType) *Type {
 		}
 		return b.pseudoTypeToType(d.RegularType)
 	case pseudochecker.PseudoTypeKindUnion:
-		var res []*Type
+		var res []TypeId
 		var hasElidedType bool
 		members := t.AsPseudoTypeUnion().Types
 		for _, m := range members {
@@ -723,10 +723,10 @@ func (b *NodeBuilderImpl) pseudoTypeToType(t *pseudochecker.PseudoType) *Type {
 			if t == nil {
 				return nil // propagate failure
 			}
-			res = append(res, t)
+			res = append(res, t.ref())
 		}
 		if len(res) == 1 {
-			return res[0]
+			return b.ch.typ(res[0])
 		}
 		if len(res) == 0 {
 			if hasElidedType {

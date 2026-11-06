@@ -169,7 +169,7 @@ func (f *missingMemberFixer) createMemberFromSymbol(symbol ast.Symbol, enclosing
 
 func (f *missingMemberFixer) getCallSignatures(t *checker.Type) []*checker.Signature {
 	if t.IsUnion() {
-		return core.FlatMap(t.Types(), f.typeChecker.GetCallSignatures)
+		return core.FlatMap(f.typeChecker.TypesOf(t.Types()), f.typeChecker.GetCallSignatures)
 	}
 	return f.typeChecker.GetCallSignatures(t)
 }

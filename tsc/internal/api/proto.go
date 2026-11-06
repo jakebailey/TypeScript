@@ -1326,13 +1326,13 @@ func newTypeResponse(t *checker.Type, id TypeID) *TypeResponse {
 	return resp
 }
 
-func typeHandles(types []*checker.Type) []TypeID {
+func typeHandles(types []checker.TypeId) []TypeID {
 	if len(types) == 0 {
 		return nil
 	}
 	handles := make([]TypeID, len(types))
 	for i, t := range types {
-		handles[i] = TypeHandle(t)
+		handles[i] = TypeID(t)
 	}
 	return handles
 }

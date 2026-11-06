@@ -175,7 +175,7 @@ func (l *LanguageService) getRenameInfoForNode(ctx context.Context, newName stri
 			// Allow renaming of string literal types with contextual string literal types
 			typ := getContextualTypeFromParentOrAncestorTypeNode(node, ch)
 			if typ != nil && (typ.IsStringLiteral() ||
-				(typ.IsUnion() && core.Every(typ.Types(), func(t *checker.Type) bool {
+				(typ.IsUnion() && core.Every(ch.TypesOf(typ.Types()), func(t *checker.Type) bool {
 					return t.IsStringLiteral()
 				}))) {
 				return getRenameInfoSuccess(node, sourceFile, node.Text(), l.converters), true

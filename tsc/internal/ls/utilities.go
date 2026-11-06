@@ -942,7 +942,7 @@ func getParentSymbolsOfPropertyAccess(location ast.Node, symbol ast.Symbol, ch *
 	}
 	var possibleSymbols []*checker.Type
 	if lhsType.Flags()&checker.TypeFlagsUnionOrIntersection != 0 {
-		possibleSymbols = lhsType.Types()
+		possibleSymbols = ch.TypesOf(lhsType.Types())
 	} else if ch.SymbolOfType(lhsType) != symbol.Parent() {
 		possibleSymbols = []*checker.Type{lhsType}
 	}

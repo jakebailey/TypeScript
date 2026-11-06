@@ -187,7 +187,7 @@ func (c *Checker) checkJsxReturnAssignableToAppropriateBound(refKind JsxReferenc
 		if sfcReturnConstraint == nil || classConstraint == nil {
 			return
 		}
-		combined := c.getUnionType([]*Type{sfcReturnConstraint, classConstraint})
+		combined := c.getUnionType([]TypeId{sfcReturnConstraint.ref(), classConstraint.ref()})
 		c.checkTypeRelatedToEx(elemInstanceType, combined, c.assignableRelation, openingLikeElement.TagName(), diagnostics.Its_element_type_0_is_not_a_valid_JSX_element, &diags)
 	}
 	if len(diags) != 0 {
@@ -195,7 +195,7 @@ func (c *Checker) checkJsxReturnAssignableToAppropriateBound(refKind JsxReferenc
 	}
 }
 
-func (c *Checker) inferJsxTypeArguments(node ast.Node, signature *Signature, checkMode CheckMode, context *InferenceContext) []*Type {
+func (c *Checker) inferJsxTypeArguments(node ast.Node, signature *Signature, checkMode CheckMode, context *InferenceContext) []TypeId {
 	paramType := c.getEffectiveFirstArgumentForJsxSignature(signature, node)
 	checkAttrType := c.checkExpressionWithContextualType(node.Attributes(), paramType, context, checkMode)
 	c.inferTypes(context.inferences, checkAttrType, paramType, InferencePriorityNone, false)
@@ -437,7 +437,7 @@ func (c *Checker) elaborateIterableOrArrayLikeTargetElementwise(iterator iter.Se
 		}
 		if targetIndexedPropType != nil && targetIndexedPropType.flags&TypeFlagsIndexedAccess == 0 {
 			if iterationType != nil {
-				targetPropType = c.getUnionType([]*Type{iterationType, targetIndexedPropType})
+				targetPropType = c.getUnionType([]TypeId{iterationType.ref(), targetIndexedPropType.ref()})
 			} else {
 				targetPropType = targetIndexedPropType
 			}
@@ -782,7 +782,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 				} else {
 					c.error(attributeDecl.Expression(), diagnostics.Spread_types_may_only_be_created_from_object_types)
 					if typeToIntersect != nil {
-						typeToIntersect = c.getIntersectionType([]*Type{typeToIntersect, exprType})
+						typeToIntersect = c.getIntersectionType([]TypeId{typeToIntersect.ref(), exprType.ref()})
 					} else {
 						typeToIntersect = exprType
 					}
@@ -817,7 +817,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 		return len(ast.GetSemanticJsxChildren(children)) != 0
 	}
 	if parentHasSemanticJsxChildren(openingLikeElement) {
-		var childTypes []*Type = c.checkJsxChildren(openingLikeElement.Parent(), checkMode)
+		var childTypes []TypeId = c.checkJsxChildren(openingLikeElement.Parent(), checkMode)
 		if !hasSpreadAnyType && jsxChildrenPropertyName != ast.InternalSymbolNameMissing && jsxChildrenPropertyName != ast.EmptySymbolName {
 			// Error if there is a attribute named "children" explicitly specified and children element.
 			// This is because children element will overwrite the value from attributes.
@@ -836,8 +836,8 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 			links := c.valueSymbolLinks.Get(childrenPropSymbol)
 			switch {
 			case len(childTypes) == 1:
-				links.resolvedType = childTypes[0]
-			case childrenContextualType != nil && someType(childrenContextualType, c.isTupleLikeType):
+				links.resolvedType = c.typ(childTypes[0])
+			case childrenContextualType != nil && c.someType(childrenContextualType, c.isTupleLikeType):
 				links.resolvedType = c.createTupleType(childTypes)
 			default:
 				links.resolvedType = c.createArrayType(c.getUnionType(childTypes))
@@ -856,7 +856,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 	}
 	if typeToIntersect != nil {
 		if spread != c.emptyJsxObjectType {
-			return c.getIntersectionType([]*Type{typeToIntersect, spread})
+			return c.getIntersectionType([]TypeId{typeToIntersect.ref(), spread.ref()})
 		}
 		return typeToIntersect
 	}
@@ -874,20 +874,20 @@ func (c *Checker) checkJsxAttribute(node ast.Node, checkMode CheckMode) *Type {
 	return c.trueType
 }
 
-func (c *Checker) checkJsxChildren(node ast.Node, checkMode CheckMode) []*Type {
-	var childTypes []*Type
+func (c *Checker) checkJsxChildren(node ast.Node, checkMode CheckMode) []TypeId {
+	var childTypes []TypeId
 	for _, child := range node.Children().All() {
 		// In React, JSX text that contains only whitespaces will be ignored so we don't want to type-check that
 		// because then type of children property will have constituent of string type.
 		if ast.IsJsxText(child) {
 			if !child.AsJsxText().ContainsOnlyTriviaWhiteSpaces() {
-				childTypes = append(childTypes, c.stringType)
+				childTypes = append(childTypes, c.stringType.ref())
 			}
 		} else if ast.IsJsxExpression(child) && child.Expression().IsNil() {
 			// empty jsx expressions don't *really* count as present children
 			continue
 		} else {
-			childTypes = append(childTypes, c.checkExpressionForMutableLocation(child, checkMode))
+			childTypes = append(childTypes, c.checkExpressionForMutableLocation(child, checkMode).ref())
 		}
 	}
 	return childTypes
@@ -915,7 +915,7 @@ func (c *Checker) getUninstantiatedJsxSignaturesOfType(elementType *Type, caller
 	}
 	if len(signatures) == 0 && apparentElemType.flags&TypeFlagsUnion != 0 {
 		// If each member has some combination of new/call signatures; make a union signature list for those
-		signatures = c.getUnionSignatures(core.Map(apparentElemType.Types(), func(t *Type) []*Signature {
+		signatures = c.getUnionSignatures(typesMapTo(c, apparentElemType.Types(), func(t *Type) []*Signature {
 			return c.getUninstantiatedJsxSignaturesOfType(t, caller)
 		}))
 	}
@@ -972,8 +972,8 @@ func (c *Checker) getJsxPropsTypeFromClassType(sig *Signature, context ast.Node)
 		var libraryManagedAttributeType *Type
 		if typeParams != nil {
 			// apply JSX.IntrinsicClassAttributes<hostClassType, ...>
-			inferredArgs := c.fillMissingTypeArguments([]*Type{hostClassType}, typeParams, c.getMinTypeArgumentCount(typeParams), ast.IsInJSFile(context))
-			libraryManagedAttributeType = c.instantiateType(intrinsicClassAttribs, newTypeMapper(typeParams, inferredArgs))
+			inferredArgs := c.fillMissingTypeArguments([]TypeId{hostClassType.ref()}, typeParams, c.getMinTypeArgumentCount(typeParams), ast.IsInJSFile(context))
+			libraryManagedAttributeType = c.instantiateType(intrinsicClassAttribs, c.newTypeMapper(typeParams, inferredArgs))
 		} else {
 			libraryManagedAttributeType = intrinsicClassAttribs
 		}
@@ -993,7 +993,7 @@ func (c *Checker) getJsxPropsTypeForSignatureFromMember(sig *Signature, forcedLo
 		// get the type of `props` on each return type individually, and then _intersect them_, rather than union them (as would normally occur
 		// for a union signature). It's an unfortunate quirk of looking in the output of the signature for the type we want to use for the input.
 		// The default behavior of `getTypeOfFirstParameterOfSignatureWithFallback` when no `props` member name is defined is much more sane.
-		var results []*Type
+		var results []TypeId
 		for _, signature := range sig.getComposite().signatures {
 			instance := c.getReturnTypeOfSignature(signature)
 			if IsTypeAny(instance) {
@@ -1003,7 +1003,7 @@ func (c *Checker) getJsxPropsTypeForSignatureFromMember(sig *Signature, forcedLo
 			if propType == nil {
 				return nil
 			}
-			results = append(results, propType)
+			results = append(results, propType.ref())
 		}
 		return c.getIntersectionType(results)
 		// Same result for both union and intersection signatures
@@ -1019,7 +1019,7 @@ func (c *Checker) getJsxManagedAttributesFromLocatedAttributes(context ast.Node,
 	managedSym := c.getJsxLibraryManagedAttributes(ns)
 	if managedSym != 0 {
 		ctorType := c.getStaticTypeOfReferencedJsxConstructor(context)
-		result := c.instantiateAliasOrInterfaceWithDefaults(managedSym, []*Type{ctorType, attributesType}, ast.IsInJSFile(context))
+		result := c.instantiateAliasOrInterfaceWithDefaults(managedSym, []TypeId{ctorType.ref(), attributesType.ref()}, ast.IsInJSFile(context))
 		if result != nil {
 			return result
 		}
@@ -1027,7 +1027,7 @@ func (c *Checker) getJsxManagedAttributesFromLocatedAttributes(context ast.Node,
 	return attributesType
 }
 
-func (c *Checker) instantiateAliasOrInterfaceWithDefaults(managedSym ast.SymbolId, typeArguments []*Type, inJavaScript bool) *Type {
+func (c *Checker) instantiateAliasOrInterfaceWithDefaults(managedSym ast.SymbolId, typeArguments []TypeId, inJavaScript bool) *Type {
 	declaredManagedType := c.getDeclaredTypeOfSymbol(managedSym)
 	// fetches interface type, or initializes symbol links type parameters
 	if c.symbolFlags(managedSym)&ast.SymbolFlagsTypeAlias != 0 {
@@ -1258,7 +1258,7 @@ func (c *Checker) getJsxStatelessElementTypeAt(location ast.Node) *Type {
 	if jsxElementType == nil {
 		return nil
 	}
-	return c.getUnionType([]*Type{jsxElementType, c.nullType})
+	return c.getUnionType([]TypeId{jsxElementType.ref(), c.nullType.ref()})
 }
 
 func (c *Checker) getJsxElementClassTypeAt(location ast.Node) *Type {

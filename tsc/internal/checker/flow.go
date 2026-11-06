@@ -320,7 +320,7 @@ func (c *Checker) narrowTypeByTypePredicate(f *FlowState, t *Type, predicate *Ty
 			if c.isMatchingReference(f.reference, predicateArgument) {
 				return c.getNarrowedType(t, predicate.t, assumeTrue, false /*checkDerived*/)
 			}
-			if c.strictNullChecks && c.optionalChainContainsReference(predicateArgument, f.reference) && (assumeTrue && !c.hasTypeFacts(predicate.t, TypeFactsEQUndefined) || !assumeTrue && everyType(predicate.t, c.IsNullableType)) {
+			if c.strictNullChecks && c.optionalChainContainsReference(predicateArgument, f.reference) && (assumeTrue && !c.hasTypeFacts(predicate.t, TypeFactsEQUndefined) || !assumeTrue && c.everyType(predicate.t, c.IsNullableType)) {
 				t = c.getAdjustedTypeWithFacts(t, TypeFactsNEUndefinedOrNull)
 			}
 			access := c.getDiscriminantPropertyAccess(f, predicateArgument, t)
@@ -344,7 +344,7 @@ func (c *Checker) narrowTypeByAssertion(f *FlowState, t *Type, expr ast.Node) *T
 			return c.narrowTypeByAssertion(f, c.narrowTypeByAssertion(f, t, node.AsBinaryExpression().Left()), node.AsBinaryExpression().Right())
 		}
 		if node.AsBinaryExpression().OperatorToken().Kind() == ast.KindBarBarToken {
-			return c.getUnionType([]*Type{c.narrowTypeByAssertion(f, t, node.AsBinaryExpression().Left()), c.narrowTypeByAssertion(f, t, node.AsBinaryExpression().Right())})
+			return c.getUnionType([]TypeId{c.narrowTypeByAssertion(f, t, node.AsBinaryExpression().Left()).ref(), c.narrowTypeByAssertion(f, t, node.AsBinaryExpression().Right()).ref()})
 		}
 	}
 	return c.narrowType(f, t, node, true /*assumeTrue*/)
@@ -542,10 +542,10 @@ func (c *Checker) narrowTypeByBinaryExpression(f *FlowState, t *Type, expr ast.B
 		if assumeTrue {
 			return c.narrowType(f, c.narrowType(f, t, expr.Left(), true /*assumeTrue*/), expr.Right(), true /*assumeTrue*/)
 		}
-		return c.getUnionType([]*Type{c.narrowType(f, t, expr.Left(), false /*assumeTrue*/), c.narrowType(f, t, expr.Right(), false /*assumeTrue*/)})
+		return c.getUnionType([]TypeId{c.narrowType(f, t, expr.Left(), false /*assumeTrue*/).ref(), c.narrowType(f, t, expr.Right(), false /*assumeTrue*/).ref()})
 	case ast.KindBarBarToken:
 		if assumeTrue {
-			return c.getUnionType([]*Type{c.narrowType(f, t, expr.Left(), true /*assumeTrue*/), c.narrowType(f, t, expr.Right(), true /*assumeTrue*/)})
+			return c.getUnionType([]TypeId{c.narrowType(f, t, expr.Left(), true /*assumeTrue*/).ref(), c.narrowType(f, t, expr.Right(), true /*assumeTrue*/).ref()})
 		}
 		return c.narrowType(f, c.narrowType(f, t, expr.Left(), false /*assumeTrue*/), expr.Right(), false /*assumeTrue*/)
 	}
@@ -577,7 +577,7 @@ func (c *Checker) narrowTypeByEquality(t *Type, operator ast.Kind, value ast.Nod
 		return c.getAdjustedTypeWithFacts(t, facts)
 	}
 	if assumeTrue {
-		if !doubleEquals && (t.flags&TypeFlagsUnknown != 0 || someType(t, c.IsEmptyAnonymousObjectType)) {
+		if !doubleEquals && (t.flags&TypeFlagsUnknown != 0 || c.someType(t, c.IsEmptyAnonymousObjectType)) {
 			if valueType.flags&(TypeFlagsPrimitive|TypeFlagsNonPrimitive) != 0 || c.IsEmptyAnonymousObjectType(valueType) {
 				return valueType
 			}
@@ -669,7 +669,7 @@ func (c *Checker) narrowTypeByTypeName(t *Type, typeName string) *Type {
 		if t.flags&TypeFlagsAny != 0 {
 			return t
 		}
-		return c.getUnionType([]*Type{c.narrowTypeByTypeFacts(t, c.nonPrimitiveType, TypeFactsTypeofEQObject), c.narrowTypeByTypeFacts(t, c.nullType, TypeFactsEQNull)})
+		return c.getUnionType([]TypeId{c.narrowTypeByTypeFacts(t, c.nonPrimitiveType, TypeFactsTypeofEQObject).ref(), c.narrowTypeByTypeFacts(t, c.nullType, TypeFactsEQNull).ref()})
 	case "function":
 		if t.flags&TypeFlagsAny != 0 {
 			return t
@@ -692,7 +692,7 @@ func (c *Checker) narrowTypeByTypeFacts(t *Type, impliedType *Type, facts TypeFa
 		case c.isTypeSubtypeOf(impliedType, t):
 			return impliedType
 		case c.hasTypeFacts(t, facts):
-			return c.getIntersectionType([]*Type{t, impliedType})
+			return c.getIntersectionType([]TypeId{t.ref(), impliedType.ref()})
 		}
 		return c.neverType
 	})
@@ -941,7 +941,7 @@ func (c *Checker) getNarrowedTypeWorker(t *Type, candidate *Type, assumeTrue boo
 			if c.maybeTypeOfKind(t, TypeFlagsInstantiable) {
 				constraint := c.getBaseConstraintOfType(t)
 				if constraint == nil || isRelated(n, constraint) {
-					return c.getIntersectionType([]*Type{t, n})
+					return c.getIntersectionType([]TypeId{t.ref(), n.ref()})
 				}
 			}
 			return c.neverType
@@ -959,7 +959,7 @@ func (c *Checker) getNarrowedTypeWorker(t *Type, candidate *Type, assumeTrue boo
 	case c.isTypeAssignableTo(candidate, t):
 		return candidate
 	}
-	return c.getIntersectionType([]*Type{t, candidate})
+	return c.getIntersectionType([]TypeId{t.ref(), candidate.ref()})
 }
 
 func (c *Checker) getInstanceType(constructorType *Type) *Type {
@@ -969,7 +969,7 @@ func (c *Checker) getInstanceType(constructorType *Type) *Type {
 	}
 	constructSignatures := c.getSignaturesOfType(constructorType, SignatureKindConstruct)
 	if len(constructSignatures) != 0 {
-		return c.getUnionType(core.Map(constructSignatures, func(signature *Signature) *Type {
+		return c.getUnionType(mapToTypeIds(constructSignatures, func(signature *Signature) *Type {
 			return c.getReturnTypeOfSignature(c.getErasedSignature(signature))
 		}))
 	}
@@ -999,7 +999,7 @@ func (c *Checker) narrowTypeByPrivateIdentifierInInExpression(f *FlowState, t *T
 
 func (c *Checker) narrowTypeByInKeyword(f *FlowState, t *Type, nameType *Type, assumeTrue bool) *Type {
 	name := getPropertyNameFromType(nameType)
-	isKnownProperty := someType(t, func(t *Type) bool {
+	isKnownProperty := c.someType(t, func(t *Type) bool {
 		return c.isTypePresencePossible(t, name, true /*assumeTrue*/)
 	})
 	if isKnownProperty {
@@ -1014,7 +1014,7 @@ func (c *Checker) narrowTypeByInKeyword(f *FlowState, t *Type, nameType *Type, a
 		// where X is the name of the property.
 		recordSymbol := c.getGlobalRecordSymbol()
 		if recordSymbol != 0 {
-			return c.getIntersectionType([]*Type{t, c.getTypeAliasInstantiation(recordSymbol, []*Type{nameType, c.unknownType}, nil)})
+			return c.getIntersectionType([]TypeId{t.ref(), c.getTypeAliasInstantiation(recordSymbol, []TypeId{nameType.ref(), c.unknownType.ref()}, nil).ref()})
 		}
 	}
 	return t
@@ -1047,8 +1047,8 @@ func (c *Checker) narrowTypeByOptionalChainContainment(f *FlowState, t *Type, op
 	}
 	valueType := c.getTypeOfExpression(value)
 	// Note that we include any and unknown in the exclusion test because their domain includes null and undefined.
-	removeNullable := equalsOperator != assumeTrue && everyType(valueType, func(t *Type) bool { return t.flags&nullableFlags != 0 }) ||
-		equalsOperator == assumeTrue && everyType(valueType, func(t *Type) bool { return t.flags&(TypeFlagsAnyOrUnknown|nullableFlags) == 0 })
+	removeNullable := equalsOperator != assumeTrue && c.everyType(valueType, func(t *Type) bool { return t.flags&nullableFlags != 0 }) ||
+		equalsOperator == assumeTrue && c.everyType(valueType, func(t *Type) bool { return t.flags&(TypeFlagsAnyOrUnknown|nullableFlags) == 0 })
 	if removeNullable {
 		return c.getAdjustedTypeWithFacts(t, TypeFactsNEUndefinedOrNull)
 	}
@@ -1097,19 +1097,20 @@ func (c *Checker) narrowTypeBySwitchOnDiscriminant(t *Type, data ast.FlowSwitchC
 		return t
 	}
 	clauseTypes := switchTypes[data.ClauseStart():data.ClauseEnd()]
-	hasDefaultClause := data.ClauseStart() == data.ClauseEnd() || slices.Contains(clauseTypes, c.neverType)
+	hasDefaultClause := data.ClauseStart() == data.ClauseEnd() || slices.Contains(clauseTypes, c.neverType.ref())
 	if (t.flags&TypeFlagsUnknown != 0) && !hasDefaultClause {
-		var groundClauseTypes []*Type
-		for i, s := range clauseTypes {
+		var groundClauseTypes []TypeId
+		for i, sId := range clauseTypes {
+			s := c.typ(sId)
 			if s.flags&(TypeFlagsPrimitive|TypeFlagsNonPrimitive) != 0 {
 				if groundClauseTypes != nil {
-					groundClauseTypes = append(groundClauseTypes, s)
+					groundClauseTypes = append(groundClauseTypes, s.ref())
 				}
 			} else if s.flags&TypeFlagsObject != 0 {
 				if groundClauseTypes == nil {
 					groundClauseTypes = clauseTypes[:i:i]
 				}
-				groundClauseTypes = append(groundClauseTypes, c.nonPrimitiveType)
+				groundClauseTypes = append(groundClauseTypes, c.nonPrimitiveType.ref())
 			} else {
 				return t
 			}
@@ -1143,14 +1144,14 @@ func (c *Checker) narrowTypeBySwitchOnDiscriminant(t *Type, data ast.FlowSwitchC
 		if t.flags&TypeFlagsUndefined == 0 {
 			u = c.getRegularTypeOfLiteralType(c.extractUnitType(t))
 		}
-		return !slices.ContainsFunc(switchTypes, func(st *Type) bool {
+		return !c.typesSome(switchTypes, func(st *Type) bool {
 			return isUnitType(st) && c.areTypesComparable(st, u)
 		})
 	})
 	if caseType.flags&TypeFlagsNever != 0 {
 		return defaultType
 	}
-	return c.getUnionType([]*Type{caseType, defaultType})
+	return c.getUnionType([]TypeId{caseType.ref(), defaultType.ref()})
 }
 
 func (c *Checker) narrowTypeBySwitchOnTypeOf(t *Type, data ast.FlowSwitchClauseData) *Type {
@@ -1175,7 +1176,7 @@ func (c *Checker) narrowTypeBySwitchOnTypeOf(t *Type, data ast.FlowSwitchClauseD
 	}
 	// In the non-default cause we create a union of the type narrowed by each of the listed cases.
 	clauseWitnesses := witnesses[clauseStart:clauseEnd]
-	return c.getUnionType(core.Map(clauseWitnesses, func(text string) *Type {
+	return c.getUnionType(mapToTypeIds(clauseWitnesses, func(text string) *Type {
 		if text != "" {
 			return c.narrowTypeByTypeName(t, text)
 		}
@@ -1211,7 +1212,7 @@ func (c *Checker) narrowTypeBySwitchOnTrue(f *FlowState, t *Type, data ast.FlowS
 		return t
 	}
 	// Now, narrow based on the cases in this set.
-	return c.getUnionType(core.Map(clauses[clauseStart:clauseEnd], func(clause ast.Node) *Type {
+	return c.getUnionType(mapToTypeIds(clauses[clauseStart:clauseEnd], func(clause ast.Node) *Type {
 		if clause.Kind() == ast.KindCaseClause {
 			return c.narrowType(f, t, clause.Expression(), true /*assumeTrue*/)
 		}
@@ -1220,7 +1221,7 @@ func (c *Checker) narrowTypeBySwitchOnTrue(f *FlowState, t *Type, data ast.FlowS
 }
 
 func (c *Checker) narrowTypeBySwitchOptionalChainContainment(t *Type, data ast.FlowSwitchClauseData, clauseCheck func(t *Type) bool) *Type {
-	everyClauseChecks := data.ClauseStart() != data.ClauseEnd() && core.Every(c.getSwitchClauseTypes(data.SwitchStatement())[data.ClauseStart():data.ClauseEnd()], clauseCheck)
+	everyClauseChecks := data.ClauseStart() != data.ClauseEnd() && c.typesEvery(c.getSwitchClauseTypes(data.SwitchStatement())[data.ClauseStart():data.ClauseEnd()], clauseCheck)
 	if everyClauseChecks {
 		return c.getTypeWithFacts(t, TypeFactsNEUndefinedOrNull)
 	}
@@ -1232,7 +1233,7 @@ func (c *Checker) narrowTypeBySwitchOnDiscriminantProperty(t *Type, access ast.N
 		accessedName, _ := c.getAccessedPropertyName(access)
 		if accessedName != ast.EmptySymbolName && c.getKeyPropertyName(t) == accessedName {
 			clauseTypes := c.getSwitchClauseTypes(data.SwitchStatement())[data.ClauseStart():data.ClauseEnd()]
-			candidate := c.getUnionType(core.Map(clauseTypes, func(s *Type) *Type {
+			candidate := c.getUnionType(c.typesMap(clauseTypes, func(s *Type) *Type {
 				result := c.getConstituentTypeForKeyType(t, s)
 				if result != nil {
 					return result
@@ -1270,8 +1271,8 @@ func (c *Checker) getTypeAtFlowBranchLabel(f *FlowState, flow ast.FlowNode, ante
 			c.antecedentTypes = c.antecedentTypes[:antecedentStart]
 			return FlowType{t: flowType.t}
 		}
-		if !slices.Contains(c.antecedentTypes[antecedentStart:], flowType.t) {
-			c.antecedentTypes = append(c.antecedentTypes, flowType.t)
+		if !slices.Contains(c.antecedentTypes[antecedentStart:], flowType.t.ref()) {
+			c.antecedentTypes = append(c.antecedentTypes, flowType.t.ref())
 		}
 		// If an antecedent type is not a subset of the declared type, we need to perform
 		// subtype reduction. This happens when a "foreign" type is injected into the control
@@ -1288,12 +1289,12 @@ func (c *Checker) getTypeAtFlowBranchLabel(f *FlowState, flow ast.FlowNode, ante
 		// If the bypass flow contributes a type we haven't seen yet and the switch statement
 		// isn't exhaustive, process the bypass flow type. Since exhaustiveness checks increase
 		// the risk of circularities, we only want to perform them when they make a difference.
-		if flowType.t.flags&TypeFlagsNever == 0 && !slices.Contains(c.antecedentTypes[antecedentStart:], flowType.t) && !c.isExhaustiveSwitchStatement(bypassFlow.Node().AsFlowSwitchClauseData().SwitchStatement()) {
+		if flowType.t.flags&TypeFlagsNever == 0 && !slices.Contains(c.antecedentTypes[antecedentStart:], flowType.t.ref()) && !c.isExhaustiveSwitchStatement(bypassFlow.Node().AsFlowSwitchClauseData().SwitchStatement()) {
 			if flowType.t == f.declaredType && f.declaredType == f.initialType {
 				c.antecedentTypes = c.antecedentTypes[:antecedentStart]
 				return FlowType{t: flowType.t}
 			}
-			c.antecedentTypes = append(c.antecedentTypes, flowType.t)
+			c.antecedentTypes = append(c.antecedentTypes, flowType.t.ref())
 			if !c.isTypeSubsetOf(flowType.t, f.initialType) {
 				subtypeReduction = true
 			}
@@ -1310,11 +1311,11 @@ func (c *Checker) getTypeAtFlowBranchLabel(f *FlowState, flow ast.FlowNode, ante
 // At flow control branch or loop junctions, if the type along every antecedent code path
 // is an evolving array type, we construct a combined evolving array type. Otherwise we
 // finalize all evolving array types.
-func (c *Checker) getUnionOrEvolvingArrayType(f *FlowState, types []*Type, subtypeReduction UnionReduction) *Type {
-	if isEvolvingArrayTypeList(types) {
-		return c.getEvolvingArrayType(c.getUnionType(core.Map(types, c.getElementTypeOfEvolvingArrayType)))
+func (c *Checker) getUnionOrEvolvingArrayType(f *FlowState, types []TypeId, subtypeReduction UnionReduction) *Type {
+	if c.isEvolvingArrayTypeList(types) {
+		return c.getEvolvingArrayType(c.getUnionType(c.typesMap(types, c.getElementTypeOfEvolvingArrayType)))
 	}
-	result := c.recombineUnknownType(c.getUnionTypeEx(core.SameMap(types, c.finalizeEvolvingArrayType), subtypeReduction, nil, nil))
+	result := c.recombineUnknownType(c.getUnionTypeEx(c.typesSameMap(types, c.finalizeEvolvingArrayType), subtypeReduction, nil, nil))
 	if result != f.declaredType && result.flags&f.declaredType.flags&TypeFlagsUnion != 0 && slices.Equal(result.AsUnionType().types(), f.declaredType.AsUnionType().types()) {
 		return f.declaredType
 	}
@@ -1350,7 +1351,7 @@ func (c *Checker) getTypeAtFlowLoopLabel(f *FlowState, flow ast.FlowNode) FlowTy
 	}
 	// Add the flow loop junction and reference to the in-process stack and analyze
 	// each antecedent code path.
-	antecedentTypes := make([]*Type, 0, 4)
+	antecedentTypes := make([]TypeId, 0, 4)
 	subtypeReduction := false
 	var firstAntecedentType FlowType
 	for list := flow.Antecedents(); !list.IsNil(); list = list.Next() {
@@ -1376,7 +1377,7 @@ func (c *Checker) getTypeAtFlowLoopLabel(f *FlowState, flow ast.FlowNode) FlowTy
 				return FlowType{t: cached}
 			}
 		}
-		antecedentTypes = core.AppendIfUnique(antecedentTypes, flowType.t)
+		antecedentTypes = core.AppendIfUnique(antecedentTypes, flowType.t.ref())
 		// If an antecedent type is not a subset of the declared type, we need to perform
 		// subtype reduction. This happens when a "foreign" type is injected into the control
 		// flow using the instanceof operator or a user defined type predicate.
@@ -1523,9 +1524,10 @@ func (c *Checker) getElementTypeOfEvolvingArrayType(t *Type) *Type {
 	return c.neverType
 }
 
-func isEvolvingArrayTypeList(types []*Type) bool {
+func (c *Checker) isEvolvingArrayTypeList(types []TypeId) bool {
 	hasEvolvingArrayType := false
-	for _, t := range types {
+	for _, tId := range types {
+		t := c.typ(tId)
 		if t.flags&TypeFlagsNever == 0 {
 			if t.objectFlags&ObjectFlagsEvolvingArray == 0 {
 				return false
@@ -1559,7 +1561,7 @@ func (c *Checker) addEvolvingArrayElementType(evolvingArrayType *Type, node ast.
 	if c.isTypeSubsetOf(newElementType, elementType) {
 		return evolvingArrayType
 	}
-	return c.getEvolvingArrayType(c.getUnionType([]*Type{elementType, newElementType}))
+	return c.getEvolvingArrayType(c.getUnionType([]TypeId{elementType.ref(), newElementType.ref()}))
 }
 
 func (c *Checker) finalizeEvolvingArrayType(t *Type) *Type {
@@ -1972,28 +1974,28 @@ func (c *Checker) computeExhaustiveSwitchStatement(node ast.Node) bool {
 			return TypeFactsAllTypeofNE&notEqualFacts == TypeFactsAllTypeofNE
 		}
 		// A missing not-equal flag indicates that the type wasn't handled by some case.
-		return !someType(operandConstraint, func(t *Type) bool {
+		return !c.someType(operandConstraint, func(t *Type) bool {
 			return c.getTypeFacts(t, notEqualFacts) == notEqualFacts
 		})
 	}
 	t := c.getBaseConstraintOrType(c.checkExpressionCached(node.Expression()))
-	if !isLiteralType(t) {
+	if !c.isLiteralType(t) {
 		return false
 	}
 	switchTypes := c.getSwitchClauseTypes(node)
-	if len(switchTypes) == 0 || core.Some(switchTypes, isNeitherUnitTypeNorNever) {
+	if len(switchTypes) == 0 || c.typesSome(switchTypes, isNeitherUnitTypeNorNever) {
 		return false
 	}
 	return c.eachTypeContainedIn(c.mapType(t, c.getRegularTypeOfLiteralType), switchTypes)
 }
 
-func (c *Checker) eachTypeContainedIn(source *Type, types []*Type) bool {
+func (c *Checker) eachTypeContainedIn(source *Type, types []TypeId) bool {
 	if source.flags&TypeFlagsUnion != 0 {
-		return !core.Some(source.AsUnionType().types(), func(t *Type) bool {
-			return !slices.Contains(types, t)
+		return !c.typesSome(source.AsUnionType().types(), func(t *Type) bool {
+			return !slices.Contains(types, t.ref())
 		})
 	}
-	return slices.Contains(types, source)
+	return slices.Contains(types, source.ref())
 }
 
 // Get the type names from all cases in a switch on `typeof`. The default clause and/or duplicate type names are
@@ -2035,13 +2037,13 @@ func (c *Checker) getNotEqualFactsFromTypeofSwitch(start int, end int, witnesses
 	return facts
 }
 
-func (c *Checker) getSwitchClauseTypes(node ast.Node) []*Type {
+func (c *Checker) getSwitchClauseTypes(node ast.Node) []TypeId {
 	links := c.switchStatementLinks.Get(node)
 	if !links.switchTypesComputed {
 		clauses := node.AsSwitchStatement().CaseBlock().AsCaseBlock().Clauses().Slice()
-		types := make([]*Type, len(clauses))
+		types := make([]TypeId, len(clauses))
 		for i, clause := range clauses {
-			types[i] = c.getTypeOfSwitchClause(clause)
+			types[i] = c.getTypeOfSwitchClause(clause).ref()
 		}
 		links.switchTypes = types
 		links.switchTypesComputed = true
@@ -2333,7 +2335,7 @@ func (c *Checker) getAssignedTypeOfArrayLiteralElement(node ast.Node, element as
 }
 
 func (c *Checker) getTypeOfDestructuredArrayElement(t *Type, index int) *Type {
-	if everyType(t, c.isTupleLikeType) {
+	if c.everyType(t, c.isTupleLikeType) {
 		if elementType := c.getTupleElementType(t, index); elementType != nil {
 			return elementType
 		}
@@ -2349,7 +2351,7 @@ func (c *Checker) includeUndefinedInIndexSignature(t *Type) *Type {
 		return nil
 	}
 	if c.compilerOptions.NoUncheckedIndexedAccess == core.TSTrue {
-		return c.getUnionType([]*Type{t, c.missingType})
+		return c.getUnionType([]TypeId{t.ref(), c.missingType.ref()})
 	}
 	return t
 }
@@ -2396,7 +2398,7 @@ func (c *Checker) isDestructuringAssignmentTarget(parent ast.Node) bool {
 
 func (c *Checker) getTypeWithDefault(t *Type, defaultExpression ast.Node) *Type {
 	if !defaultExpression.IsNil() {
-		return c.getUnionType([]*Type{c.getNonUndefinedType(t), c.getTypeOfExpression(defaultExpression)})
+		return c.getUnionType([]TypeId{c.getNonUndefinedType(t).ref(), c.getTypeOfExpression(defaultExpression).ref()})
 	}
 	return t
 }
@@ -2448,7 +2450,8 @@ func (c *Checker) typeMaybeAssignableTo(source *Type, target *Type) bool {
 		return true
 	}
 	// Otherwise, check if any constituent type of the source union is assignable to the target type
-	for _, t := range source.Types() {
+	for _, tId := range source.Types() {
+		t := c.typ(tId)
 		if c.isTypeAssignableTo(t, target) {
 			return true
 		}
@@ -2487,7 +2490,7 @@ func (c *Checker) getFlowTypeInConstructor(symbol ast.SymbolId, constructor ast.
 		c.error(c.symbolValueDeclaration(symbol), diagnostics.Member_0_implicitly_has_an_1_type, c.symbolToString(symbol), c.TypeToString(flowType))
 	}
 	// We don't infer a type if assignments are only null or undefined.
-	if everyType(flowType, c.IsNullableType) {
+	if c.everyType(flowType, c.IsNullableType) {
 		return nil
 	}
 	return c.convertAutoToAny(flowType)
@@ -2510,7 +2513,7 @@ func (c *Checker) getFlowTypeInStaticBlocks(symbol ast.SymbolId, staticBlocks []
 			c.error(c.symbolValueDeclaration(symbol), diagnostics.Member_0_implicitly_has_an_1_type, c.symbolToString(symbol), c.TypeToString(flowType))
 		}
 		// We don't infer a type if assignments are only null or undefined.
-		if everyType(flowType, c.IsNullableType) {
+		if c.everyType(flowType, c.IsNullableType) {
 			continue
 		}
 		return c.convertAutoToAny(flowType)

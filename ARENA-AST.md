@@ -627,6 +627,14 @@ Code outside the checker (the language service, the API, the declaration emitter
 
 Compared with the view handle, this saves 63MB on vscode, 101MB on sentry and 146MB on mui. Lists of symbols (properties, parameters, table entries, members of resolved types) now hold 4-byte ids instead of 16-byte views, and the view arena for symbol lists is gone. The table's entries cost 12MB on vscode. vscode check time is up 0.6s (19.33s to 19.96s, median). Reads that the entry doesn't copy (declarations, value declaration, parent) take one more dependent load than through a view in hand, and the external API converts ids to views at the boundary. A microbenchmark predicted about zero net change: flag and name reads got as cheap as through a view, but other field reads cost about twice as much. The full program shows that the extra cost of the other field reads wins. The handle is kept because it saves memory on every project, and its time cost is a target of the profiling step.
 
+### Type ids
+
+A `TypeId` is a type's position in the checker's type slabs, counted from 1, with 0 for none. The slabs are fixed chunks of 4096 types behind a directory, so `c.typ(id)` is one load from the directory and one from the chunk, and a type never moves. The record's `id` field holds the same number below its 5 kind bits, and `t.ref()` reads it back. Slab order is creation order: union constituents sort by id, so the checker asserts that each new type takes the next slab slot.
+
+Every list of types (union and intersection constituents, type arguments and parameters, mapper sources and targets, inference candidates, the checker's temporary sets) holds 4-byte ids instead of 8-byte pointers. Working code resolves elements as it reads them, and the list helpers (`c.typesSome`, `c.typesMap` and the like) take the checker so their callbacks still see `*Type`. The checker's exported methods keep taking and returning `[]*Type` and convert at the boundary; callers outside the checker resolve the lists that `Type` accessors return with `Checker.TypesOf`. The keys built from type lists read the ids directly.
+
+Halving the lists saves 11MB on vscode, but sentry grows 3MB and mui 16MB. Pointer-free list chunks are not the cause; the growth is checked against a heap profile in the pointer-free step that follows, which changes the same lists' surroundings. vscode check time drops 0.25s (19.89s to 19.65s, median), since key building and sorting no longer dereference each element.
+
 ### Progress
 
 Memory used (median) and vscode check time (n=5 alternating against the previous row, min–max and median).
@@ -652,6 +660,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 13. page directory allocated only on growth | 2,785,830K (−0.1MB) | 1,678,753K (−0.1MB) | 1,166,863K (+0.1MB) | 19.10–20.02s (19.63) |
 | 14. unboxed type resolution targets | 2,785,674K (−0.2MB) | 1,678,971K (+0.2MB) | 1,166,975K (+0.1MB) | 18.85–19.87s (18.88) |
 | 15. symbol id as the working handle | 2,723,118K (−63MB) | 1,577,330K (−101MB) | 1,021,427K (−146MB) | 19.74–20.36s (19.96) |
+| 16. type lists as type ids | 2,712,297K (−11MB) | 1,580,666K (+3MB) | 1,037,484K (+16MB) | 19.34–19.71s (19.65) |
 
 ### Deviations forced by the language
 

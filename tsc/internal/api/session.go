@@ -3171,17 +3171,17 @@ func (s *Session) handleGetTypesOfType(ctx context.Context, params *GetTypePrope
 
 // @gen-proto-nullable
 func (s *Session) handleGetTypeParametersOfType(ctx context.Context, params *GetTypePropertyParams) ([]*TypeResponse, error) {
-	return s.resolveTypeArrayPropertyOfType(ctx, params, func(t *checker.Type) []*checker.Type { return t.AsInterfaceType().TypeParameters() })
+	return s.resolveTypeArrayPropertyOfType(ctx, params, func(t *checker.Type) []checker.TypeId { return t.AsInterfaceType().TypeParameters() })
 }
 
 // @gen-proto-nullable
 func (s *Session) handleGetOuterTypeParametersOfType(ctx context.Context, params *GetTypePropertyParams) ([]*TypeResponse, error) {
-	return s.resolveTypeArrayPropertyOfType(ctx, params, func(t *checker.Type) []*checker.Type { return t.AsInterfaceType().OuterTypeParameters() })
+	return s.resolveTypeArrayPropertyOfType(ctx, params, func(t *checker.Type) []checker.TypeId { return t.AsInterfaceType().OuterTypeParameters() })
 }
 
 // @gen-proto-nullable
 func (s *Session) handleGetLocalTypeParametersOfType(ctx context.Context, params *GetTypePropertyParams) ([]*TypeResponse, error) {
-	return s.resolveTypeArrayPropertyOfType(ctx, params, func(t *checker.Type) []*checker.Type { return t.AsInterfaceType().LocalTypeParameters() })
+	return s.resolveTypeArrayPropertyOfType(ctx, params, func(t *checker.Type) []checker.TypeId { return t.AsInterfaceType().LocalTypeParameters() })
 }
 
 // @gen-proto-nullable
@@ -3191,7 +3191,7 @@ func (s *Session) handleGetThisTypeOfType(ctx context.Context, params *GetTypePr
 
 // @gen-proto-nullable
 func (s *Session) handleGetAliasTypeArgumentsOfType(ctx context.Context, params *GetTypePropertyParams) ([]*TypeResponse, error) {
-	return s.resolveTypeArrayPropertyOfType(ctx, params, func(t *checker.Type) []*checker.Type {
+	return s.resolveTypeArrayPropertyOfType(ctx, params, func(t *checker.Type) []checker.TypeId {
 		if t.Alias() == nil {
 			return nil
 		}
@@ -3435,7 +3435,7 @@ func (s *Session) resolveTypePropertyOfType(ctx context.Context, params *GetType
 }
 
 // resolveTypeArrayPropertyOfType resolves a type property of an array of types and returns an array of type responses.
-func (s *Session) resolveTypeArrayPropertyOfType(ctx context.Context, params *GetTypePropertyParams, getter func(*checker.Type) []*checker.Type) ([]*TypeResponse, error) {
+func (s *Session) resolveTypeArrayPropertyOfType(ctx context.Context, params *GetTypePropertyParams, getter func(*checker.Type) []checker.TypeId) ([]*TypeResponse, error) {
 	setup, err := s.setupChecker(ctx, params.Snapshot, params.Project)
 	if err != nil {
 		return nil, err
@@ -3454,7 +3454,7 @@ func (s *Session) resolveTypeArrayPropertyOfType(ctx context.Context, params *Ge
 
 	results := make([]*TypeResponse, len(types))
 	for i, sub := range types {
-		results[i] = setup.sd.newTypeResponse(setup.projectID, sub, setup.checker)
+		results[i] = setup.sd.newTypeResponse(setup.projectID, setup.checker.TypeOf(sub), setup.checker)
 	}
 	return results, nil
 }
@@ -3615,7 +3615,7 @@ func (s *Session) resolveSymbolPropertyOfSignature(params *GetSignaturePropertyP
 	return sd.newSymbolResponse(result, params.Project), nil
 }
 
-func (s *Session) resolveTypeArrayPropertyOfSignature(ctx context.Context, params *GetSignaturePropertyParams, getter func(signature *checker.Signature) []*checker.Type) ([]*TypeResponse, error) {
+func (s *Session) resolveTypeArrayPropertyOfSignature(ctx context.Context, params *GetSignaturePropertyParams, getter func(signature *checker.Signature) []checker.TypeId) ([]*TypeResponse, error) {
 	setup, err := s.setupChecker(ctx, params.Snapshot, params.Project)
 	if err != nil {
 		return nil, err
@@ -3634,7 +3634,7 @@ func (s *Session) resolveTypeArrayPropertyOfSignature(ctx context.Context, param
 
 	results := make([]*TypeResponse, len(types))
 	for i, sub := range types {
-		results[i] = setup.sd.newTypeResponse(setup.projectID, sub, setup.checker)
+		results[i] = setup.sd.newTypeResponse(setup.projectID, setup.checker.TypeOf(sub), setup.checker)
 	}
 	return results, nil
 }
