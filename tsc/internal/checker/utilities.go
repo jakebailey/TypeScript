@@ -349,7 +349,7 @@ func isTypeAssertion(node ast.Node) bool {
 
 func (c *Checker) createSymbolTable(symbols []ast.SymbolId) ast.SymbolTable {
 	if len(symbols) == 0 {
-		return nil
+		return ast.SymbolTable{}
 	}
 	result := ast.NewSymbolTable()
 	for _, symbol := range symbols {

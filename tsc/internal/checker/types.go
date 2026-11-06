@@ -265,7 +265,7 @@ type AliasSymbolLinks struct {
 // Links for module symbols
 
 type ModuleSymbolLinks struct {
-	resolvedExports       ast.SymbolTable             // Resolved exports of module or combined early- and late-bound static members of a class.
+	resolvedExports       ast.TableRef                // Resolved exports of module or combined early- and late-bound static members of a class.
 	typeOnlyExportStarMap map[ast.SymbolName]ast.Node // Set on a module symbol when some of its exports were resolved through a 'export type * from "mod"' declaration
 	exportsChecked        bool
 }
@@ -342,7 +342,7 @@ const (
 	MembersOrExportsResolutionKindResolvedMembers MembersOrExportsResolutionKind = 1
 )
 
-type MembersAndExportsLinks [2]ast.SymbolTable // Indexed by MembersOrExportsResolutionKind
+type MembersAndExportsLinks [2]ast.TableRef // Indexed by MembersOrExportsResolutionKind
 
 // Links for synthetic spread properties
 
@@ -1399,16 +1399,16 @@ func (t *StructuredType) AsStructuredType() *StructuredType { return t }
 
 func (t *StructuredType) members(c *Checker) ast.SymbolTable {
 	if t.resolved == 0 {
-		return nil
+		return ast.SymbolTable{}
 	}
 	if i := t.res(c).members; i != 0 {
-		return *c.memberTables.At(i - 1)
+		return c.symbols.TableOfRef(*c.memberTables.At(i - 1))
 	}
-	return nil
+	return ast.SymbolTable{}
 }
 
 func (t *StructuredType) setMembers(c *Checker, members ast.SymbolTable) {
-	if members == nil {
+	if members.IsNil() {
 		if t.resolved != 0 {
 			t.res(c).members = 0
 		}
@@ -1416,11 +1416,11 @@ func (t *StructuredType) setMembers(c *Checker, members ast.SymbolTable) {
 	}
 	r := t.ensureResolved(c)
 	if r.members != 0 {
-		*c.memberTables.At(r.members - 1) = members
+		*c.memberTables.At(r.members - 1) = c.symbols.RefOfTable(members)
 		return
 	}
 	i, m := pageAdd(&c.memberTables)
-	*m = members
+	*m = c.symbols.RefOfTable(members)
 	r.members = i
 }
 
@@ -1489,14 +1489,14 @@ func (t *StructuredType) ConstructSignatures(c *Checker) []*Signature {
 }
 
 func (t *StructuredType) getMember(c *Checker, name ast.SymbolName) ast.SymbolId {
-	if members := t.members(c); members != nil {
+	if members := t.members(c); !members.IsNil() {
 		return members.GetId(c.symbols, name)
 	}
 	lazy := t.getLazyState(c)
 	if lazy == nil {
 		return 0
 	}
-	index := lazy.layout.members.Find(name)
+	index := lazy.layout.table(c).Find(name)
 	if index < 0 {
 		return 0
 	}
@@ -1504,7 +1504,7 @@ func (t *StructuredType) getMember(c *Checker, name ast.SymbolName) ast.SymbolId
 }
 
 func (t *StructuredType) getMembers(c *Checker) ast.SymbolTable {
-	if t.members(c) == nil {
+	if t.members(c).IsNil() {
 		if properties := t.getProperties(c); len(properties) != 0 {
 			members := ast.NewSymbolTableWithCapacity(len(properties))
 			for _, member := range properties {
@@ -1522,12 +1522,12 @@ func (t *StructuredType) getPropertyAt(c *Checker, index int) ast.SymbolId {
 		return t.properties(c)[index]
 	}
 	if t.properties(c) == nil {
-		t.setProperties(c, make([]ast.SymbolId, lazy.layout.members.Len()))
+		t.setProperties(c, make([]ast.SymbolId, lazy.layout.table(c).Len()))
 	}
 	properties := t.properties(c)
 	member := properties[index]
 	if member == 0 {
-		symbol := lazy.layout.members.IdAt(c.symbols, index)
+		symbol := lazy.layout.table(c).IdAt(c.symbols, index)
 		baseIndex := lazy.layout.baseIndices[index]
 		if baseIndex < 0 {
 			member = c.instantiateSymbol(symbol, c.mapperOf(lazy.mapper))
@@ -1541,7 +1541,7 @@ func (t *StructuredType) getPropertyAt(c *Checker, index int) ast.SymbolId {
 
 func (t *StructuredType) getProperties(c *Checker) []ast.SymbolId {
 	if lazy := t.getLazyState(c); lazy != nil && !lazy.propertiesResolved {
-		for i := range lazy.layout.members.Len() {
+		for i := range lazy.layout.table(c).Len() {
 			t.getPropertyAt(c, i)
 		}
 		lazy.propertiesResolved = true
@@ -1557,7 +1557,7 @@ func (t *StructuredType) hasProperties(c *Checker) bool {
 	if lazy == nil {
 		return false
 	}
-	return lazy.layout.members.Len() != 0
+	return lazy.layout.table(c).Len() != 0
 }
 
 func (t *StructuredType) getLazyState(c *Checker) *LazyState {
@@ -1707,9 +1707,11 @@ type LazyState struct {
 	propertiesResolved bool
 }
 
+func (l *MemberLayout) table(c *Checker) ast.SymbolTable { return c.symbols.TableOfRef(l.members) }
+
 type MemberLayout struct {
 	id               uint32          // Unique identifier for the member layout
-	members          ast.SymbolTable // MemberInfos keyed by property name
+	members          ast.TableRef    // MemberInfos keyed by property name
 	baseIndices      []int32         // Indices of base types for each member (-1 if locally declared)
 	layoutProperties []ast.SymbolId  // Lazily created list of layout properties (the symbols in members)
 }
@@ -1757,6 +1759,10 @@ type InterfaceType struct {
 	TypeReference
 }
 
+func (d *interfaceData) declaredMembersTable(c *Checker) ast.SymbolTable {
+	return c.symbols.TableOfRef(d.declaredMembers)
+}
+
 type interfaceData struct {
 	allTypeParameters           []TypeId // Type parameters (outer + local + thisType)
 	outerTypeParameterCount     int      // Count of outer type parameters
@@ -1765,7 +1771,7 @@ type interfaceData struct {
 	declaredMembersResolved     bool
 	resolvedBaseConstructorType TypeId
 	resolvedBaseTypes           []TypeId
-	declaredMembers             ast.SymbolTable // Declared members
+	declaredMembers             ast.TableRef    // Declared members
 	declaredCallSignatures      []*Signature    // Declared call signatures
 	declaredConstructSignatures []*Signature    // Declared construct signatures
 	declaredIndexInfos          []*IndexInfo    // Declared index signatures
@@ -1943,8 +1949,8 @@ type UnionOrIntersectionType struct {
 }
 
 type unionOrIntersectionData struct {
-	propertyCache                               ast.SymbolTable // Augmented entries, except complete ones already in the non-augmented cache.
-	propertyCacheWithoutFunctionPropertyAugment ast.SymbolTable
+	propertyCache                               ast.TableRef // Augmented entries, except complete ones already in the non-augmented cache.
+	propertyCacheWithoutFunctionPropertyAugment ast.TableRef
 	resolvedProperties                          []ast.SymbolId
 }
 
@@ -1985,24 +1991,24 @@ func (t *UnionOrIntersectionType) ensureMore(c *Checker) *unionOrIntersectionDat
 
 func (t *UnionOrIntersectionType) propertyCache(c *Checker) ast.SymbolTable {
 	if more := t.more(c); more != nil {
-		return more.propertyCache
+		return c.symbols.TableOfRef(more.propertyCache)
 	}
-	return nil
+	return ast.SymbolTable{}
 }
 
 func (t *UnionOrIntersectionType) setPropertyCache(c *Checker, v ast.SymbolTable) {
-	t.ensureMore(c).propertyCache = v
+	t.ensureMore(c).propertyCache = c.symbols.RefOfTable(v)
 }
 
 func (t *UnionOrIntersectionType) propertyCacheWithoutFunctionPropertyAugment(c *Checker) ast.SymbolTable {
 	if more := t.more(c); more != nil {
-		return more.propertyCacheWithoutFunctionPropertyAugment
+		return c.symbols.TableOfRef(more.propertyCacheWithoutFunctionPropertyAugment)
 	}
-	return nil
+	return ast.SymbolTable{}
 }
 
 func (t *UnionOrIntersectionType) setPropertyCacheWithoutFunctionPropertyAugment(c *Checker, v ast.SymbolTable) {
-	t.ensureMore(c).propertyCacheWithoutFunctionPropertyAugment = v
+	t.ensureMore(c).propertyCacheWithoutFunctionPropertyAugment = c.symbols.RefOfTable(v)
 }
 
 func (t *UnionOrIntersectionType) resolvedProperties(c *Checker) []ast.SymbolId {

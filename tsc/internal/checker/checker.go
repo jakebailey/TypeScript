@@ -749,7 +749,7 @@ type Checker struct {
 	indexInfoListArena                          core.Arena[*IndexInfo]
 	valueSymbolExtras                           core.Pages[valueSymbolExtra]
 	structuredTypeExtras                        core.Pages[structuredTypeExtra]
-	memberTables                                core.Pages[ast.SymbolTable]
+	memberTables                                core.Pages[ast.TableRef]
 	symbolLists                                 listStore[ast.SymbolId]
 	memberLayoutArena                           core.Arena[MemberLayout]
 	layoutMembers                               ast.SymbolTable
@@ -1136,19 +1136,19 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.reportUnmeasurableMapper = newFunctionTypeMapper(c.reportUnmeasurableWorker)
 	c.restrictiveMapper = newFunctionTypeMapper(c.restrictiveMapperWorker)
 	c.permissiveMapper = newFunctionTypeMapper(c.permissiveMapperWorker)
-	c.emptyObjectType = c.newAnonymousType(0 /*symbol*/, nil, nil, nil, nil)
-	c.emptyJsxObjectType = c.newAnonymousType(0 /*symbol*/, nil, nil, nil, nil)
-	c.emptyFreshJsxObjectType = c.newAnonymousType(0 /*symbol*/, nil, nil, nil, nil)
-	c.emptyTypeLiteralType = c.newAnonymousType(c.newSymbol(ast.SymbolFlagsTypeLiteral, ast.InternalSymbolNameType), nil, nil, nil, nil)
-	c.unknownEmptyObjectType = c.newAnonymousType(0 /*symbol*/, nil, nil, nil, nil)
+	c.emptyObjectType = c.newAnonymousType(0 /*symbol*/, ast.SymbolTable{}, nil, nil, nil)
+	c.emptyJsxObjectType = c.newAnonymousType(0 /*symbol*/, ast.SymbolTable{}, nil, nil, nil)
+	c.emptyFreshJsxObjectType = c.newAnonymousType(0 /*symbol*/, ast.SymbolTable{}, nil, nil, nil)
+	c.emptyTypeLiteralType = c.newAnonymousType(c.newSymbol(ast.SymbolFlagsTypeLiteral, ast.InternalSymbolNameType), ast.SymbolTable{}, nil, nil, nil)
+	c.unknownEmptyObjectType = c.newAnonymousType(0 /*symbol*/, ast.SymbolTable{}, nil, nil, nil)
 	c.unknownUnionType = c.createUnknownUnionType()
-	c.emptyGenericType = c.newAnonymousType(0 /*symbol*/, nil, nil, nil, nil)
+	c.emptyGenericType = c.newAnonymousType(0 /*symbol*/, ast.SymbolTable{}, nil, nil, nil)
 	c.emptyGenericType.AsObjectType().setInstantiations(c, make(map[CacheHashKey]TypeId))
-	c.anyFunctionType = c.newAnonymousType(0 /*symbol*/, nil, nil, nil, nil)
+	c.anyFunctionType = c.newAnonymousType(0 /*symbol*/, ast.SymbolTable{}, nil, nil, nil)
 	c.anyFunctionType.objectFlags |= ObjectFlagsNonInferrableType
-	c.noConstraintType = c.newAnonymousType(0 /*symbol*/, nil, nil, nil, nil)
-	c.circularConstraintType = c.newAnonymousType(0 /*symbol*/, nil, nil, nil, nil)
-	c.resolvingDefaultType = c.newAnonymousType(0 /*symbol*/, nil, nil, nil, nil)
+	c.noConstraintType = c.newAnonymousType(0 /*symbol*/, ast.SymbolTable{}, nil, nil, nil)
+	c.circularConstraintType = c.newAnonymousType(0 /*symbol*/, ast.SymbolTable{}, nil, nil, nil)
+	c.resolvingDefaultType = c.newAnonymousType(0 /*symbol*/, ast.SymbolTable{}, nil, nil, nil)
 	c.markerSuperType = c.newTypeParameter(0)
 	c.markerSubType = c.newTypeParameter(0)
 	c.markerSubType.AsTypeParameter().setConstraint(c.markerSuperType)
@@ -1480,7 +1480,7 @@ func (c *Checker) initializeChecker() {
 	c.autoArrayType = c.createArrayType(c.autoType)
 	if c.autoArrayType == c.emptyObjectType {
 		// autoArrayType is used as a marker, so even if global Array type is not defined, it needs to be a unique type
-		c.autoArrayType = c.newAnonymousType(0, nil, nil, nil, nil)
+		c.autoArrayType = c.newAnonymousType(0, ast.SymbolTable{}, nil, nil, nil)
 	}
 	c.globalReadonlyArrayType = c.getGlobalType(ast.SymbolNameReadonlyArray, 1 /*arity*/, false /*reportErrors*/)
 	if c.globalReadonlyArrayType == c.emptyGenericType {
@@ -1579,8 +1579,8 @@ func (c *Checker) mergeModuleAugmentation(moduleName ast.Node) {
 			}) {
 				merged := c.mergeSymbol(c.symbolId(moduleAugmentation.Symbol()), mainModule, true /*unidirectional*/)
 				// moduleName will be a StringLiteral since this is not `declare global`.
-				ast.GetSymbolTable(&c.patternAmbientModuleAugmentations).SetId(c.symbols, moduleName.TextSymbolName(), merged)
-				ast.GetSymbolTable(&c.patternAmbientModuleAugmentationTargets).SetId(c.symbols, moduleName.TextSymbolName(), mainModule)
+				ast.GetSymbolTable(c.symbols, &c.patternAmbientModuleAugmentations).SetId(c.symbols, moduleName.TextSymbolName(), merged)
+				ast.GetSymbolTable(c.symbols, &c.patternAmbientModuleAugmentationTargets).SetId(c.symbols, moduleName.TextSymbolName(), mainModule)
 			} else {
 				if c.symbolExports(mainModule).GetId(c.symbols, ast.InternalSymbolNameExportStar) != 0 && c.symbolExports(c.symbolId(moduleAugmentation.Symbol())).Len() != 0 {
 					// We may need to merge the module augmentation's exports into the target symbols of the resolved exports
@@ -2000,7 +2000,7 @@ func (c *Checker) onSuccessfullyResolvedSymbol(errorLocation ast.Node, result as
 	if isInExternalModule && (meaning&ast.SymbolFlagsValue) == ast.SymbolFlagsValue && errorLocation.Flags()&ast.NodeFlagsJSDoc == 0 {
 		merged := c.getMergedSymbol(result)
 		if c.symbolDeclarations(merged).Len() != 0 && c.symbolDeclarations(merged).Every(func(d ast.Node) bool {
-			return ast.IsNamespaceExportDeclaration(d) || ast.IsSourceFile(d) && d.AsSourceFile().GlobalExports != nil
+			return ast.IsNamespaceExportDeclaration(d) || ast.IsSourceFile(d) && !d.AsSourceFile().GlobalExports.IsNil()
 		}) {
 			c.errorOrSuggestion(c.compilerOptions.AllowUmdGlobalAccess != core.TSTrue, errorLocation, diagnostics.X_0_refers_to_a_UMD_global_but_the_current_file_is_a_module_Consider_adding_an_import_instead, name.String())
 		}
@@ -2012,7 +2012,7 @@ func (c *Checker) onSuccessfullyResolvedSymbol(errorLocation ast.Node, result as
 		// A parameter initializer or binding pattern initializer within a parameter cannot refer to itself
 		if candidate == c.getSymbolOfDeclaration(associatedDeclarationForContainingInitializerOrBindingName) {
 			c.error(errorLocation, diagnostics.Parameter_0_cannot_reference_itself, scanner.DeclarationNameToString(associatedDeclarationForContainingInitializerOrBindingName.Name()))
-		} else if !c.symbolValueDeclaration(candidate).IsNil() && c.symbolValueDeclaration(candidate).Pos() > associatedDeclarationForContainingInitializerOrBindingName.Pos() && root.Parent().Locals() != nil && c.getSymbol(root.Parent().Locals(), c.symbolName(candidate), meaning) == candidate {
+		} else if !c.symbolValueDeclaration(candidate).IsNil() && c.symbolValueDeclaration(candidate).Pos() > associatedDeclarationForContainingInitializerOrBindingName.Pos() && !root.Parent().Locals().IsNil() && c.getSymbol(root.Parent().Locals(), c.symbolName(candidate), meaning) == candidate {
 			c.error(errorLocation, diagnostics.Parameter_0_cannot_reference_identifier_1_declared_after_it, scanner.DeclarationNameToString(associatedDeclarationForContainingInitializerOrBindingName.Name()), scanner.DeclarationNameToString(errorLocation))
 		}
 	}
@@ -4134,7 +4134,7 @@ func (c *Checker) checkForStatement(node ast.Node) {
 		c.checkExpression(data.Incrementor())
 	}
 	c.checkSourceElement(data.Statement())
-	if node.Locals() != nil {
+	if !node.Locals().IsNil() {
 		c.registerForUnusedIdentifiersCheck(node)
 	}
 }
@@ -4176,7 +4176,7 @@ func (c *Checker) checkForInStatement(node ast.Node) {
 		c.error(data.Expression(), diagnostics.The_right_hand_side_of_a_for_in_statement_must_be_of_type_any_an_object_type_or_a_type_parameter_but_here_has_type_0, c.TypeToString(rightType))
 	}
 	c.checkSourceElement(data.Statement())
-	if node.Locals() != nil {
+	if !node.Locals().IsNil() {
 		c.registerForUnusedIdentifiersCheck(node)
 	}
 }
@@ -4229,7 +4229,7 @@ func (c *Checker) checkForOfStatement(node ast.Node) {
 		}
 	}
 	c.checkSourceElement(data.Statement())
-	if node.Locals() != nil {
+	if !node.Locals().IsNil() {
 		c.registerForUnusedIdentifiersCheck(node)
 	}
 }
@@ -4356,7 +4356,7 @@ func (c *Checker) checkSwitchStatement(node ast.Node) {
 			}
 		}
 	}
-	if caseBlock.Locals() != nil {
+	if !caseBlock.Locals().IsNil() {
 		c.registerForUnusedIdentifiersCheck(caseBlock)
 	}
 }
@@ -4415,7 +4415,7 @@ func (c *Checker) checkCatchClause(node ast.Node) {
 			c.grammarErrorOnFirstToken(declaration.Initializer(), diagnostics.Catch_clause_variable_cannot_have_an_initializer)
 		} else {
 			blockLocals := node.AsCatchClause().Block().Locals()
-			if blockLocals != nil {
+			if !blockLocals.IsNil() {
 				for caughtName := range node.Locals().AllIds(c.symbols) {
 					if blockLocal := blockLocals.GetId(c.symbols, caughtName); blockLocal != 0 && !c.symbolValueDeclaration(blockLocal).IsNil() && c.symbolFlags(blockLocal)&ast.SymbolFlagsBlockScopedVariable != 0 {
 						c.grammarErrorOnNode(c.symbolValueDeclaration(blockLocal), diagnostics.Cannot_redeclare_identifier_0_in_catch_clause, caughtName.String())
@@ -5255,7 +5255,7 @@ func (c *Checker) checkInheritedPropertiesAreIdentical(t *Type, typeNode ast.Nod
 		return true
 	}
 	seen := make(map[ast.SymbolName]InheritanceInfo)
-	for id, p := range c.resolveDeclaredMembers(t).iface(c).declaredMembers.AllIds(c.symbols) {
+	for id, p := range c.resolveDeclaredMembers(t).iface(c).declaredMembersTable(c).AllIds(c.symbols) {
 		if c.isNamedMember(p, id) {
 			seen[c.symbolName(p)] = InheritanceInfo{prop: p, containingType: t}
 		}
@@ -10476,7 +10476,7 @@ func (c *Checker) checkFunctionExpressionOrObjectLiteralMethod(node ast.Node, ch
 				}
 				returnType := c.getReturnTypeFromBody(node, checkMode)
 				returnOnlySignature := c.newSignature(SignatureFlagsIsNonInferrable, ast.Node{}, nil /*typeParameters*/, 0 /*thisParameter*/, nil, returnType, nil /*resolvedTypePredicate*/, 0)
-				returnOnlyType := c.newAnonymousType(c.nodeSymbol(node), nil, []*Signature{returnOnlySignature}, nil, nil)
+				returnOnlyType := c.newAnonymousType(c.nodeSymbol(node), ast.SymbolTable{}, []*Signature{returnOnlySignature}, nil, nil)
 				returnOnlyType.objectFlags |= ObjectFlagsNonInferrableType
 				c.contextFreeTypes[c.refs.Ref(node)] = returnOnlyType.ref()
 				return returnOnlyType
@@ -13633,7 +13633,7 @@ func (c *Checker) checkObjectLiteral(node ast.Node, checkMode CheckMode) *Type {
 			links.resolvedType = t.ref()
 			links.target = member
 			member = prop
-			if allPropertiesTable != nil {
+			if !allPropertiesTable.IsNil() {
 				allPropertiesTable.SetId(c.symbols, c.symbolName(prop), prop)
 			}
 			if contextualType != nil && checkMode&CheckModeInferential != 0 && checkMode&CheckModeSkipContextSensitive == 0 && (ast.IsPropertyAssignment(memberDecl) || ast.IsMethodDeclaration(memberDecl)) && c.isContextSensitive(memberDecl) {
@@ -13657,7 +13657,7 @@ func (c *Checker) checkObjectLiteral(node ast.Node, checkMode CheckMode) *Type {
 			t := c.getReducedType(c.checkExpressionEx(memberDecl.Expression(), checkMode&CheckModeInferential))
 			if c.isValidSpreadType(t) {
 				mergedType := c.tryMergeUnionOfObjectTypeAndEmptyObject(t, inConstContext)
-				if allPropertiesTable != nil {
+				if !allPropertiesTable.IsNil() {
 					c.checkSpreadPropOverrides(mergedType, allPropertiesTable, memberDecl)
 				}
 				offset = len(propertiesArray)
@@ -14584,10 +14584,10 @@ func (c *Checker) mergeSymbol(target ast.SymbolId, source ast.SymbolId, unidirec
 			binder.SetValueDeclaration(c.symbolOf(target), c.symbolValueDeclaration(source))
 		}
 		c.setSymbolDeclarations(target, c.symbolDeclarations(target).Concat(c.symbolDeclarations(source)))
-		if c.symbolMembers(source) != nil {
+		if !c.symbolMembers(source).IsNil() {
 			c.mergeSymbolTable(ast.GetMembers(c.symbolOf(target)), c.symbolMembers(source), unidirectional, 0)
 		}
-		if c.symbolExports(source) != nil {
+		if !c.symbolExports(source).IsNil() {
 			c.mergeSymbolTable(ast.GetExports(c.symbolOf(target)), c.symbolExports(source), unidirectional, target)
 		}
 		if !unidirectional {
@@ -14747,8 +14747,8 @@ func (c *Checker) cloneSymbol(symbol ast.SymbolId) ast.SymbolId {
 	c.setSymbolDeclarations(result, c.symbolDeclarations(symbol))
 	c.setSymbolParent(result, c.symbolParent(symbol))
 	c.setSymbolValueDeclaration(result, c.symbolValueDeclaration(symbol))
-	c.setSymbolMembers(result, c.symbolMembers(symbol).Clone())
-	c.setSymbolExports(result, c.symbolExports(symbol).Clone())
+	c.setSymbolMembers(result, c.symbolMembers(symbol).CloneTo(c.symbols))
+	c.setSymbolExports(result, c.symbolExports(symbol).CloneTo(c.symbols))
 	c.recordMergedSymbol(result, symbol)
 	return result
 }
@@ -15013,12 +15013,12 @@ func (c *Checker) getTargetOfModuleDefault(moduleSymbol ast.SymbolId, node ast.N
 }
 
 func (c *Checker) reportNonDefaultExport(moduleSymbol ast.SymbolId, node ast.Node) {
-	if c.symbolExports(moduleSymbol) != nil && c.symbolExports(moduleSymbol).GetId(c.symbols, c.symbolName(c.nodeSymbol(node))) != 0 {
+	if !c.symbolExports(moduleSymbol).IsNil() && c.symbolExports(moduleSymbol).GetId(c.symbols, c.symbolName(c.nodeSymbol(node))) != 0 {
 		c.error(node, diagnostics.Module_0_has_no_default_export_Did_you_mean_to_use_import_1_from_0_instead, c.symbolToString(moduleSymbol), c.symbolToString(c.nodeSymbol(node)))
 	} else {
 		diagnostic := c.error(node.Name(), diagnostics.Module_0_has_no_default_export, c.symbolToString(moduleSymbol))
 		var exportStar ast.SymbolId
-		if c.symbolExports(moduleSymbol) != nil {
+		if !c.symbolExports(moduleSymbol).IsNil() {
 			exportStar = c.symbolExports(moduleSymbol).GetId(c.symbols, ast.InternalSymbolNameExportStar)
 		}
 		if exportStar != 0 {
@@ -15210,8 +15210,8 @@ func (c *Checker) combineValueAndTypeSymbols(valueSymbol ast.SymbolId, typeSymbo
 		c.setSymbolParent(result, c.symbolParent(typeSymbol))
 	}
 	c.setSymbolValueDeclaration(result, c.symbolValueDeclaration(valueSymbol))
-	c.setSymbolMembers(result, c.symbolMembers(typeSymbol).Clone())
-	c.setSymbolExports(result, c.symbolExports(valueSymbol).Clone())
+	c.setSymbolMembers(result, c.symbolMembers(typeSymbol).CloneTo(c.symbols))
+	c.setSymbolExports(result, c.symbolExports(valueSymbol).CloneTo(c.symbols))
 	return result
 }
 
@@ -15337,7 +15337,7 @@ func (c *Checker) errorNoModuleMemberSymbol(moduleSymbol ast.SymbolId, targetSym
 
 func (c *Checker) reportNonExportedMember(name ast.Node, declarationName string, moduleSymbol ast.SymbolId, moduleName string) {
 	var localSymbol ast.SymbolId
-	if locals := c.symbolValueDeclaration(moduleSymbol).Locals(); locals != nil {
+	if locals := c.symbolValueDeclaration(moduleSymbol).Locals(); !locals.IsNil() {
 		localSymbol = locals.GetId(c.symbols, name.TextSymbolName())
 	}
 	exports := c.symbolExports(moduleSymbol)
@@ -16269,8 +16269,8 @@ func (c *Checker) cloneTypeAsModuleType(symbol ast.SymbolId, moduleType *Type, r
 	result := c.newSymbol(c.symbolFlags(symbol), c.symbolName(symbol))
 	c.setSymbolDeclarations(result, c.symbolDeclarations(symbol))
 	c.setSymbolValueDeclaration(result, c.symbolValueDeclaration(symbol))
-	c.setSymbolMembers(result, c.symbolMembers(symbol).Clone())
-	c.setSymbolExports(result, c.symbolExports(symbol).Clone())
+	c.setSymbolMembers(result, c.symbolMembers(symbol).CloneTo(c.symbols))
+	c.setSymbolExports(result, c.symbolExports(symbol).CloneTo(c.symbols))
 	c.setSymbolParent(result, c.symbolParent(symbol))
 	links := c.exportTypeLinks.Get(result)
 	links.target = symbol
@@ -16476,7 +16476,7 @@ func (c *Checker) getExportsOfSymbol(symbol ast.SymbolId) ast.SymbolTable {
 
 func (c *Checker) getResolvedMembersOrExportsOfSymbol(symbol ast.SymbolId, resolutionKind MembersOrExportsResolutionKind) ast.SymbolTable {
 	links := c.membersAndExportsLinks.Get(symbol)
-	if links[resolutionKind] == nil {
+	if links[resolutionKind].IsNil() {
 		isStatic := resolutionKind == MembersOrExportsResolutionKindResolvedExports
 		earlySymbols := c.symbolExports(symbol)
 		switch {
@@ -16485,7 +16485,7 @@ func (c *Checker) getResolvedMembersOrExportsOfSymbol(symbol ast.SymbolId, resol
 		case c.symbolFlags(symbol)&ast.SymbolFlagsModule != 0:
 			earlySymbols, _ = c.getExportsOfModuleWorker(symbol)
 		}
-		links[resolutionKind] = earlySymbols
+		links[resolutionKind] = c.symbols.RefOfTable(earlySymbols)
 		// fill in any as-yet-unresolved late-bound members.
 		var lateSymbols ast.SymbolTable
 		for _, decl := range c.symbolDeclarations(symbol).All() {
@@ -16493,12 +16493,12 @@ func (c *Checker) getResolvedMembersOrExportsOfSymbol(symbol ast.SymbolId, resol
 				if isStatic == ast.HasStaticModifier(member) {
 					switch {
 					case c.hasLateBindableName(member):
-						if lateSymbols == nil {
+						if lateSymbols.IsNil() {
 							lateSymbols = c.symbols.NewTable(0)
 						}
 						c.lateBindMember(symbol, earlySymbols, lateSymbols, member)
 					case c.hasLateBindableIndexSignature(member):
-						if lateSymbols == nil {
+						if lateSymbols.IsNil() {
 							lateSymbols = c.symbols.NewTable(0)
 						}
 						c.lateBindIndexSignature(symbol, earlySymbols, lateSymbols, member.AsNode() /* as LateBoundDeclaration | LateBoundBinaryExpressionDeclaration */)
@@ -16510,7 +16510,7 @@ func (c *Checker) getResolvedMembersOrExportsOfSymbol(symbol ast.SymbolId, resol
 			if assignmentSymbol := c.symbolExports(symbol).GetId(c.symbols, ast.InternalSymbolNameAssignmentDeclaration); assignmentSymbol != 0 {
 				for _, member := range c.symbolDeclarations(assignmentSymbol).All() {
 					if c.hasLateBindableName(member) {
-						if lateSymbols == nil {
+						if lateSymbols.IsNil() {
 							lateSymbols = c.symbols.NewTable(0)
 						}
 						c.lateBindMember(symbol, earlySymbols, lateSymbols, member)
@@ -16518,9 +16518,11 @@ func (c *Checker) getResolvedMembersOrExportsOfSymbol(symbol ast.SymbolId, resol
 				}
 			}
 		}
-		links[resolutionKind] = c.combineSymbolTables(earlySymbols, lateSymbols)
+		combined := c.combineSymbolTables(earlySymbols, lateSymbols)
+		links[resolutionKind] = c.symbols.RefOfTable(combined)
+		return combined
 	}
-	return links[resolutionKind]
+	return c.symbols.TableOfRef(links[resolutionKind])
 }
 
 // Performs late-binding of a dynamic member. This performs the same function for
@@ -16676,12 +16678,13 @@ func (c *Checker) getMembersOfSymbol(symbol ast.SymbolId) ast.SymbolTable {
 
 func (c *Checker) getExportsOfModule(moduleSymbol ast.SymbolId) ast.SymbolTable {
 	links := c.moduleSymbolLinks.Get(moduleSymbol)
-	if links.resolvedExports == nil {
+	if links.resolvedExports.IsNil() {
 		exports, typeOnlyExportStarMap := c.getExportsOfModuleWorker(moduleSymbol)
-		links.resolvedExports = exports
+		links.resolvedExports = c.symbols.RefOfTable(exports)
 		links.typeOnlyExportStarMap = typeOnlyExportStarMap
+		return exports
 	}
-	return links.resolvedExports
+	return c.symbols.TableOfRef(links.resolvedExports)
 }
 
 type ExportCollision struct {
@@ -16707,11 +16710,11 @@ func (c *Checker) getExportsOfModuleWorker(moduleSymbol ast.SymbolId) (exports a
 				nonTypeOnlyNames.Add(name)
 			}
 		}
-		if symbol == 0 || c.symbolExports(symbol) == nil || slices.Contains(visitedSymbols, symbol) {
-			return nil
+		if symbol == 0 || c.symbolExports(symbol).IsNil() || slices.Contains(visitedSymbols, symbol) {
+			return ast.SymbolTable{}
 		}
 		visitedSymbols = append(visitedSymbols, symbol)
-		symbols := c.symbolExports(symbol).Clone()
+		symbols := c.symbolExports(symbol).CloneTo(c.symbols)
 		// All export * declarations are collected in an __export symbol by the binder
 		exportStars := c.symbolExports(symbol).GetId(c.symbols, ast.InternalSymbolNameExportStar)
 		if exportStars != 0 {
@@ -16752,7 +16755,7 @@ func (c *Checker) getExportsOfModuleWorker(moduleSymbol ast.SymbolId) (exports a
 	// A module defined by an 'export=' consists of one export that needs to be resolved
 	moduleSymbol = c.resolveExternalModuleSymbol(moduleSymbol, false /*dontResolveAlias*/)
 	exports = visit(moduleSymbol, ast.Node{}, false)
-	if exports == nil {
+	if exports.IsNil() {
 		exports = c.symbols.NewTable(0)
 	}
 	// A CommonJS module defined by an 'export=' might also export typedefs, stored on the original module
@@ -19488,7 +19491,7 @@ func (c *Checker) getLayoutPropertiesOfType(t *Type) []ast.SymbolId {
 	}
 	layout := lazy.layout
 	if layout.layoutProperties == nil {
-		layout.layoutProperties = slices.AppendSeq(make([]ast.SymbolId, 0, layout.members.Len()), layout.members.ValueIds(c.symbols))
+		layout.layoutProperties = slices.AppendSeq(make([]ast.SymbolId, 0, layout.table(c).Len()), layout.table(c).ValueIds(c.symbols))
 	}
 	return layout.layoutProperties
 }
@@ -19604,7 +19607,7 @@ func (c *Checker) getDeclaredPropertyOfResolvingType(t *Type, name ast.SymbolNam
 		if c.resolvingObjectTypeStack[i].t == t {
 			resolved := c.resolvingObjectTypeStack[i].resolvedMembers.GetId(c.symbols, name)
 			if resolved == 0 {
-				if symbol := c.resolveDeclaredMembers(getTargetType(c, t)).iface(c).declaredMembers.GetId(c.symbols, name); symbol != 0 && c.isNamedMember(symbol, name) {
+				if symbol := c.resolveDeclaredMembers(getTargetType(c, t)).iface(c).declaredMembersTable(c).GetId(c.symbols, name); symbol != 0 && c.isNamedMember(symbol, name) {
 					resolved = c.instantiateSymbol(symbol, c.resolvingObjectTypeStack[i].mapper)
 				} else {
 					for _, baseTypeId := range c.resolvingObjectTypeStack[i].baseTypes {
@@ -19616,7 +19619,7 @@ func (c *Checker) getDeclaredPropertyOfResolvingType(t *Type, name ast.SymbolNam
 					}
 				}
 				if resolved != 0 {
-					if c.resolvingObjectTypeStack[i].resolvedMembers == nil {
+					if c.resolvingObjectTypeStack[i].resolvedMembers.IsNil() {
 						c.resolvingObjectTypeStack[i].resolvedMembers = c.symbols.NewTable(1)
 					}
 					c.resolvingObjectTypeStack[i].resolvedMembers.SetId(c.symbols, name, resolved)
@@ -19823,7 +19826,7 @@ func (c *Checker) resolveObjectTypeMembers(t *Type) {
 			return findIndexInfo(indexInfos, c.typ(info.keyType)) == nil
 		}))
 	}
-	c.setStructuredTypeMembers(t, nil, callSignatures, constructSignatures, indexInfos)
+	c.setStructuredTypeMembers(t, ast.SymbolTable{}, callSignatures, constructSignatures, indexInfos)
 	lazyState := t.AsTypeReference().newLazy(c)
 	lazyState.layout = layout
 	lazyState.mapper = c.mapperId(mapper)
@@ -19837,14 +19840,14 @@ func (c *Checker) propagateResolvedDeclaredMembers() {
 	r := &c.resolvingObjectTypeStack[len(c.resolvingObjectTypeStack)-1]
 	s := r.t.AsTypeReference()
 	for symbol := range r.resolvedMembers.ValueIds(c.symbols) {
-		if index := s.lazy(c).layout.members.Find(c.symbolName(symbol)); index >= 0 {
+		if index := s.lazy(c).layout.table(c).Find(c.symbolName(symbol)); index >= 0 {
 			if s.properties(c) == nil {
-				s.setProperties(c, make([]ast.SymbolId, s.lazy(c).layout.members.Len()))
+				s.setProperties(c, make([]ast.SymbolId, s.lazy(c).layout.table(c).Len()))
 			}
 			s.properties(c)[index] = symbol
 		}
 	}
-	r.resolvedMembers = nil
+	r.resolvedMembers = ast.SymbolTable{}
 }
 
 func (c *Checker) getMemberLayout(t *Type, baseTypes []TypeId) *MemberLayout {
@@ -19869,7 +19872,7 @@ func (c *Checker) getMemberLayoutKey(t *Type, baseTypes []TypeId) CacheHashKey {
 	b.reserve(20 + 5*len(baseTypes))
 	b.writeType(t)
 	// Late binding may add new declared members, so include the declared member count in the key
-	b.writeInt(t.AsInterfaceType().iface(c).declaredMembers.Len())
+	b.writeInt(t.AsInterfaceType().iface(c).declaredMembersTable(c).Len())
 	b.writeInt(len(baseTypes))
 	for _, baseTypeId := range baseTypes {
 		baseType := c.typ(baseTypeId)
@@ -19888,9 +19891,9 @@ func (c *Checker) getMemberLayoutKey(t *Type, baseTypes []TypeId) CacheHashKey {
 func (c *Checker) createMemberLayout(t *Type, baseTypes []TypeId) *MemberLayout {
 	// Reuse c.layoutMembers and c.layoutBaseIndices to avoid repeated allocations
 	layoutMembers, layoutBaseIndices := c.layoutMembers, c.layoutBaseIndices
-	c.layoutMembers, c.layoutBaseIndices = nil, nil
+	c.layoutMembers, c.layoutBaseIndices = ast.SymbolTable{}, nil
 	addMember := func(symbol ast.SymbolId, baseIndex int) {
-		if layoutMembers == nil {
+		if layoutMembers.IsNil() {
 			layoutMembers = c.symbols.NewTable(0)
 		}
 		if layoutMembers.AddIfAbsentId(c.symbols, c.symbolName(symbol), symbol) {
@@ -19898,7 +19901,7 @@ func (c *Checker) createMemberLayout(t *Type, baseTypes []TypeId) *MemberLayout 
 		}
 	}
 	// Add declared members
-	for id, symbol := range t.AsInterfaceType().iface(c).declaredMembers.AllIds(c.symbols) {
+	for id, symbol := range t.AsInterfaceType().iface(c).declaredMembersTable(c).AllIds(c.symbols) {
 		if c.isNamedMember(symbol, id) {
 			addMember(symbol, -1)
 		}
@@ -19908,7 +19911,7 @@ func (c *Checker) createMemberLayout(t *Type, baseTypes []TypeId) *MemberLayout 
 		baseType := c.typ(baseTypeId)
 		if baseType.objectFlags&(ObjectFlagsReference|ObjectFlagsClassOrInterface) != 0 {
 			c.resolveStructuredTypeMembers(baseType)
-			for symbol := range baseType.AsTypeReference().lazy(c).layout.members.ValueIds(c.symbols) {
+			for symbol := range baseType.AsTypeReference().lazy(c).layout.table(c).ValueIds(c.symbols) {
 				if !c.isStaticPrivateIdentifierProperty(symbol) {
 					addMember(symbol, baseIndex)
 				}
@@ -19923,7 +19926,7 @@ func (c *Checker) createMemberLayout(t *Type, baseTypes []TypeId) *MemberLayout 
 	}
 	layout := c.memberLayoutArena.New()
 	layout.id = c.memberLayoutCount
-	layout.members = layoutMembers.Clone()
+	layout.members = c.symbols.RefOfTable(layoutMembers.CloneTo(c.symbols))
 	layout.baseIndices = slices.Clone(layoutBaseIndices)
 	c.memberLayoutCount++
 	layoutMembers.Clear()
@@ -20162,9 +20165,9 @@ func (c *Checker) getOrCreateTypeFromSignature(sig *Signature) *Type {
 		}
 		t := c.newObjectType(ObjectFlagsAnonymous|ObjectFlagsSingleSignatureType, symbol)
 		if isConstructor {
-			c.setStructuredTypeMembers(t, nil, nil, []*Signature{sig}, nil)
+			c.setStructuredTypeMembers(t, ast.SymbolTable{}, nil, []*Signature{sig}, nil)
 		} else {
-			c.setStructuredTypeMembers(t, nil, []*Signature{sig}, nil, nil)
+			c.setStructuredTypeMembers(t, ast.SymbolTable{}, []*Signature{sig}, nil, nil)
 		}
 		sig.ensureExtra(c).isolatedSignatureType = t.ref()
 	}
@@ -20385,7 +20388,7 @@ func (c *Checker) addInheritedMembers(symbols ast.SymbolTable, baseSymbols []ast
 	for _, base := range baseSymbols {
 		if !c.isStaticPrivateIdentifierProperty(base) {
 			if s, ok := symbols.LookupId(c.symbols, c.symbolName(base)); !ok || c.symbolFlags(s)&ast.SymbolFlagsValue == 0 {
-				if symbols == nil {
+				if symbols.IsNil() {
 					symbols = c.symbols.NewTable(0)
 				}
 				symbols.SetId(c.symbols, c.symbolName(base), base)
@@ -20400,9 +20403,9 @@ func (c *Checker) resolveDeclaredMembers(t *Type) *InterfaceType {
 	if !d.iface(c).declaredMembersResolved {
 		members := c.getMembersOfSymbol(c.symbolOfType(t))
 		d.iface(c).declaredMembersResolved = true
-		d.iface(c).declaredMembers = members
-		d.iface(c).declaredCallSignatures = c.getSignaturesOfSymbol(d.iface(c).declaredMembers.GetId(c.symbols, ast.InternalSymbolNameCall))
-		d.iface(c).declaredConstructSignatures = c.getSignaturesOfSymbol(d.iface(c).declaredMembers.GetId(c.symbols, ast.InternalSymbolNameNew))
+		d.iface(c).declaredMembers = c.symbols.RefOfTable(members)
+		d.iface(c).declaredCallSignatures = c.getSignaturesOfSymbol(d.iface(c).declaredMembersTable(c).GetId(c.symbols, ast.InternalSymbolNameCall))
+		d.iface(c).declaredConstructSignatures = c.getSignaturesOfSymbol(d.iface(c).declaredMembersTable(c).GetId(c.symbols, ast.InternalSymbolNameNew))
 		d.iface(c).declaredIndexInfos = c.getIndexInfosOfSymbol(c.symbolOfType(t))
 	}
 	return d
@@ -21438,7 +21441,7 @@ func (c *Checker) instantiateIndexInfo(info *IndexInfo, m *TypeMapper) *IndexInf
 func (c *Checker) resolveAnonymousTypeMembers(t *Type) {
 	d := t.AsObjectType()
 	if d.target(c) != nil {
-		c.setStructuredTypeMembers(t, nil, nil, nil, nil)
+		c.setStructuredTypeMembers(t, ast.SymbolTable{}, nil, nil, nil)
 		members := c.createInstantiatedSymbolTable(c.getPropertiesOfObjectType(d.target(c)), d.mapper(c))
 		callSignatures := c.instantiateSignatures(c.getSignaturesOfType(d.target(c), SignatureKindCall), d.mapper(c))
 		constructSignatures := c.instantiateSignatures(c.getSignaturesOfType(d.target(c), SignatureKindConstruct), d.mapper(c))
@@ -21448,7 +21451,7 @@ func (c *Checker) resolveAnonymousTypeMembers(t *Type) {
 	}
 	symbol := c.getMergedSymbol(c.symbolOfType(t))
 	if c.symbolFlags(symbol)&ast.SymbolFlagsTypeLiteral != 0 {
-		c.setStructuredTypeMembers(t, nil, nil, nil, nil)
+		c.setStructuredTypeMembers(t, ast.SymbolTable{}, nil, nil, nil)
 		members := c.getMembersOfSymbol(symbol)
 		callSignatures := c.getSignaturesOfSymbol(members.GetId(c.symbols, ast.InternalSymbolNameCall))
 		constructSignatures := c.getSignaturesOfSymbol(members.GetId(c.symbols, ast.InternalSymbolNameNew))
@@ -21472,7 +21475,7 @@ func (c *Checker) resolveAnonymousTypeMembers(t *Type) {
 		classType := c.getDeclaredTypeOfClassOrInterface(symbol)
 		baseConstructorType := c.getBaseConstructorTypeOfClass(classType)
 		if baseConstructorType.flags&(TypeFlagsObject|TypeFlagsIntersection|TypeFlagsTypeVariable) != 0 {
-			members = members.Clone()
+			members = members.CloneTo(c.symbols)
 			c.addInheritedMembers(members, c.getPropertiesOfType(baseConstructorType))
 		} else if baseConstructorType == c.anyType {
 			baseConstructorIndexInfo = c.anyBaseTypeIndexInfo
@@ -21523,7 +21526,7 @@ func (c *Checker) resolveAnonymousTypeMembers(t *Type) {
 
 func (c *Checker) createInstantiatedSymbolTable(symbols []ast.SymbolId, m *TypeMapper) ast.SymbolTable {
 	if len(symbols) == 0 {
-		return nil
+		return ast.SymbolTable{}
 	}
 	result := c.symbols.NewTable(len(symbols))
 	for _, symbol := range symbols {
@@ -21673,7 +21676,7 @@ func (c *Checker) resolveMappedTypeMembers(t *Type) {
 	members := c.symbols.NewTable(0)
 	var indexInfos []*IndexInfo
 	// Resolve upfront such that recursive references see an empty object type.
-	c.setStructuredTypeMembers(t, nil, nil, nil, nil)
+	c.setStructuredTypeMembers(t, ast.SymbolTable{}, nil, nil, nil)
 	// In { [P in K]: T }, we refer to P as the type parameter type, K as the constraint type,
 	// and T as the template type.
 	typeParameter := c.getTypeParameterFromMappedType(t)
@@ -21843,7 +21846,7 @@ func (c *Checker) resolveUnionTypeMembers(t *Type) {
 		return c.getSignaturesOfType(t, SignatureKindConstruct)
 	}))
 	indexInfos := c.getUnionIndexInfos(t.Types(c))
-	c.setStructuredTypeMembers(t, nil, callSignatures, constructSignatures, indexInfos)
+	c.setStructuredTypeMembers(t, ast.SymbolTable{}, callSignatures, constructSignatures, indexInfos)
 }
 
 func (c *Checker) getArrayMemberCallSignatures(t *Type) []*Signature {
@@ -22109,7 +22112,7 @@ func (c *Checker) resolveIntersectionTypeMembers(t *Type) {
 			indexInfos = c.appendIndexInfo(indexInfos, info, false /*union*/)
 		}
 	}
-	c.setStructuredTypeMembers(t, nil, callSignatures, constructSignatures, indexInfos)
+	c.setStructuredTypeMembers(t, ast.SymbolTable{}, callSignatures, constructSignatures, indexInfos)
 }
 
 func (c *Checker) appendSignatures(signatures []*Signature, newSignatures []*Signature) []*Signature {
@@ -22225,9 +22228,19 @@ func (c *Checker) getUnionOrIntersectionProperty(t *Type, name ast.SymbolName, s
 	prop := c.createUnionOrIntersectionProperty(t, name, skipObjectFunctionPropertyAugment)
 	if prop != 0 {
 		if skipObjectFunctionPropertyAugment {
-			ast.GetSymbolTable(&data.ensureMore(c).propertyCacheWithoutFunctionPropertyAugment).SetId(c.symbols, name, prop)
+			cache := data.propertyCacheWithoutFunctionPropertyAugment(c)
+			if cache.IsNil() {
+				cache = c.symbols.NewTable(0)
+				data.setPropertyCacheWithoutFunctionPropertyAugment(c, cache)
+			}
+			cache.SetId(c.symbols, name, prop)
 		} else {
-			ast.GetSymbolTable(&data.ensureMore(c).propertyCache).SetId(c.symbols, name, prop)
+			cache := data.propertyCache(c)
+			if cache.IsNil() {
+				cache = c.symbols.NewTable(0)
+				data.setPropertyCache(c, cache)
+			}
+			cache.SetId(c.symbols, name, prop)
 		}
 	}
 	return prop
@@ -25711,7 +25724,7 @@ func (c *Checker) createTupleTargetType(elementInfos []TupleElementInfo, readonl
 	d.setTarget(t)
 	d.setResolvedTypeArguments(c, d.TypeParameters(c))
 	d.iface(c).declaredMembersResolved = true
-	d.iface(c).declaredMembers = members
+	d.iface(c).declaredMembers = c.symbols.RefOfTable(members)
 	d.tuple(c).elementInfos = elementInfos
 	d.tuple(c).minLength = minLength
 	d.tuple(c).fixedLength = fixedLength

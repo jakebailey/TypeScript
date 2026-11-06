@@ -50,7 +50,7 @@ loop:
 			lastLocation == location.AsModuleDeclaration().Attributes()
 		locals := location.Locals()
 		// Locals of a source file are not in scope (because they get merged into the global symbol table)
-		if locals != nil && !ast.IsGlobalSourceFile(location) {
+		if !locals.IsNil() && !ast.IsGlobalSourceFile(location) {
 			result = r.lookup(locals, name, meaning)
 			if !result.IsNil() {
 				useResult := true
@@ -168,7 +168,7 @@ loop:
 		case ast.KindPropertyDeclaration:
 			if !ast.IsStatic(location) {
 				ctor := ast.FindConstructorDeclaration(location.Parent())
-				if !ctor.IsNil() && ctor.Locals() != nil {
+				if !ctor.IsNil() && !ctor.Locals().IsNil() {
 					if !r.lookup(ctor.Locals(), name, meaning&ast.SymbolFlagsValue).IsNil() {
 						// Remember the property node, it will be used later to report appropriate error
 						propertyWithInvalidInitializer = location

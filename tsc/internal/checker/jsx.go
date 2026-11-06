@@ -751,7 +751,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 				links.resolvedType = exprType.ref()
 				links.target = member
 				attributesTable.SetId(c.symbols, c.symbolName(attributeSymbol), attributeSymbol)
-				if allAttributesTable != nil {
+				if !allAttributesTable.IsNil() {
 					allAttributesTable.SetId(c.symbols, c.symbolName(attributeSymbol), attributeSymbol)
 				}
 				if attributeDecl.Name().TextSymbolName() == jsxChildrenPropertyName {
@@ -776,7 +776,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 				}
 				if c.isValidSpreadType(exprType) {
 					spread = c.getSpreadType(spread, exprType, attributesSymbol, objectFlags, false /*readonly*/)
-					if allAttributesTable != nil {
+					if !allAttributesTable.IsNil() {
 						c.checkSpreadPropOverrides(exprType, allAttributesTable, attributeDecl)
 					}
 				} else {
@@ -1291,7 +1291,7 @@ func (c *Checker) getJsxElementTypeTypeAt(location ast.Node) *Type {
 
 func (c *Checker) getJsxType(name ast.SymbolName, location ast.Node) *Type {
 	if namespace := c.getJsxNamespaceAt(location); namespace != 0 {
-		if exports := c.getExportsOfSymbol(namespace); exports != nil {
+		if exports := c.getExportsOfSymbol(namespace); !exports.IsNil() {
 			if typeSymbol := c.getSymbol(exports, name, ast.SymbolFlagsType); typeSymbol != 0 {
 				return c.getDeclaredTypeOfSymbol(typeSymbol)
 			}

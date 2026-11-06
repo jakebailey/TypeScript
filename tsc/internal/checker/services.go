@@ -72,7 +72,7 @@ func (c *Checker) getSymbolsInScope(location ast.Node, meaning ast.SymbolFlags) 
 				continue
 			}
 
-			if canHaveLocals(location) && location.Locals() != nil && !ast.IsGlobalSourceFile(location) {
+			if canHaveLocals(location) && !location.Locals().IsNil() && !ast.IsGlobalSourceFile(location) {
 				copySymbols(location.Locals(), meaning)
 			}
 
@@ -279,7 +279,7 @@ func (c *Checker) getAugmentedPropertiesOfType(t *Type) []ast.SymbolId {
 		functionType = c.globalNewableFunctionType
 	}
 
-	if propsByName == nil {
+	if propsByName.IsNil() {
 		propsByName = c.symbols.NewTable(0)
 	}
 	if functionType != nil {

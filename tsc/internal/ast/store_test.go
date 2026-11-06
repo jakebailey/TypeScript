@@ -136,13 +136,13 @@ func TestNodeSideTableZeroValues(t *testing.T) {
 	factory := newTestFactory(t)
 	node := factory.NewBlock(StatementList{}, false)
 	assert.Assert(t, node.AsBlock().Statements().IsNil())
-	assert.Assert(t, node.AsBlock().Locals() == nil)
+	assert.Assert(t, node.AsBlock().Locals().IsNil())
 
 	locals := NewSymbolTable()
 	node.AsBlock().SetLocals(locals)
-	assert.Assert(t, node.AsBlock().Locals() != nil)
-	node.AsBlock().SetLocals(nil)
-	assert.Assert(t, node.AsBlock().Locals() == nil)
+	assert.Assert(t, !node.AsBlock().Locals().IsNil())
+	node.AsBlock().SetLocals(SymbolTable{})
+	assert.Assert(t, node.AsBlock().Locals().IsNil())
 	assert.Equal(t, len(factory.nodeStore().binder.containers.extra), 0)
 }
 

@@ -190,7 +190,7 @@ func getMissingMembers(typeChecker *checker.Checker, classDeclaration ast.Node, 
 			if symbol.IsNil() {
 				continue
 			}
-			if classMembers != nil && !classMembers.Get(symbol.Name()).IsNil() {
+			if !classMembers.IsNil() && !classMembers.Get(symbol.Name()).IsNil() {
 				continue
 			}
 			if !inheritedMembers.Get(symbol.Name()).IsNil() || !seenMembers[symbol.Name()].IsNil() {

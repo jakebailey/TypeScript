@@ -1408,5 +1408,5 @@ func getAncestorTypeNode(node ast.Node) ast.Node {
 }
 
 func isSourceFileWithGlobalExports(node ast.Node) bool {
-	return !node.IsNil() && ast.IsSourceFile(node) && node.AsSourceFile().GlobalExports != nil
+	return !node.IsNil() && ast.IsSourceFile(node) && !node.AsSourceFile().GlobalExports.IsNil()
 }

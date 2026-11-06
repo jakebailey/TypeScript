@@ -263,8 +263,8 @@ func TestSymbolAccessors(t *testing.T) {
 	assert.Equal(t, symbol.Name().String(), "")
 	assert.Assert(t, symbol.Declarations().Len() == 0)
 	assert.Assert(t, symbol.ValueDeclaration().IsNil())
-	assert.Assert(t, symbol.Members() == nil)
-	assert.Assert(t, symbol.Exports() == nil)
+	assert.Assert(t, symbol.Members().IsNil())
+	assert.Assert(t, symbol.Exports().IsNil())
 	assert.Assert(t, symbol.Parent().IsNil())
 	assert.Assert(t, symbol.ExportSymbol().IsNil())
 
@@ -308,8 +308,8 @@ func TestSymbolAccessors(t *testing.T) {
 	symbol.SetName(ast.MakeSymbolName(""))
 	symbol.SetDeclarations(ast.Declarations{})
 	symbol.SetValueDeclaration(ast.Node{})
-	symbol.SetMembers(nil)
-	symbol.SetExports(nil)
+	symbol.SetMembers(ast.SymbolTable{})
+	symbol.SetExports(ast.SymbolTable{})
 	symbol.SetParent(ast.Symbol{})
 	symbol.SetExportSymbol(ast.Symbol{})
 
@@ -318,8 +318,8 @@ func TestSymbolAccessors(t *testing.T) {
 	assert.Equal(t, symbol.Name().String(), "")
 	assert.Assert(t, symbol.Declarations().Len() == 0)
 	assert.Assert(t, symbol.ValueDeclaration().IsNil())
-	assert.Assert(t, symbol.Members() == nil)
-	assert.Assert(t, symbol.Exports() == nil)
+	assert.Assert(t, symbol.Members().IsNil())
+	assert.Assert(t, symbol.Exports().IsNil())
 	assert.Assert(t, symbol.Parent().IsNil())
 	assert.Assert(t, symbol.ExportSymbol().IsNil())
 }
@@ -340,10 +340,10 @@ func TestSymbolTableInitialization(t *testing.T) {
 	assert.Equal(t, symbol.Exports().Get(ast.MakeSymbolName("export")), export)
 	assert.Equal(t, ast.GetExports(symbol).Get(ast.MakeSymbolName("export")), export)
 
-	symbol.SetMembers(nil)
-	symbol.SetExports(nil)
-	assert.Assert(t, ast.GetMembers(symbol) != nil)
-	assert.Assert(t, ast.GetExports(symbol) != nil)
+	symbol.SetMembers(ast.SymbolTable{})
+	symbol.SetExports(ast.SymbolTable{})
+	assert.Assert(t, !ast.GetMembers(symbol).IsNil())
+	assert.Assert(t, !ast.GetExports(symbol).IsNil())
 	assert.Equal(t, symbol.Members().Len(), 0)
 	assert.Equal(t, symbol.Exports().Len(), 0)
 }
@@ -351,8 +351,8 @@ func TestSymbolTableInitialization(t *testing.T) {
 func TestSymbolNilExtraFieldsDoNotAllocate(t *testing.T) { //nolint:paralleltest
 	symbol := ast.NewSymbol()
 	allocs := testing.AllocsPerRun(10, func() {
-		symbol.SetMembers(nil)
-		symbol.SetExports(nil)
+		symbol.SetMembers(ast.SymbolTable{})
+		symbol.SetExports(ast.SymbolTable{})
 		symbol.SetExportSymbol(ast.Symbol{})
 	})
 	assert.Equal(t, allocs, float64(0))
@@ -371,11 +371,11 @@ func TestSymbolSharedExtraData(t *testing.T) {
 	assert.Equal(t, symbol.Members().Get(ast.MakeSymbolName("member")), member)
 	assert.Equal(t, alias.Exports().Get(ast.MakeSymbolName("export")), export)
 	assert.Equal(t, symbol.ExportSymbol(), export)
-	symbol.SetMembers(nil)
-	alias.SetExports(nil)
+	symbol.SetMembers(ast.SymbolTable{})
+	alias.SetExports(ast.SymbolTable{})
 	symbol.SetExportSymbol(ast.Symbol{})
-	assert.Assert(t, alias.Members() == nil)
-	assert.Assert(t, symbol.Exports() == nil)
+	assert.Assert(t, alias.Members().IsNil())
+	assert.Assert(t, symbol.Exports().IsNil())
 	assert.Assert(t, alias.ExportSymbol().IsNil())
 	ast.GetMembers(alias).Set(ast.MakeSymbolName("new"), export)
 	ast.GetExports(symbol).Set(ast.MakeSymbolName("new"), member)
@@ -449,7 +449,7 @@ func TestSymbolTableStores(t *testing.T) {
 		own.NewBinderSymbol(ast.SymbolFlagsProperty, ast.MakeSymbolName("c")),
 		checker.NewSymbol(ast.SymbolFlagsTransient, ast.MakeSymbolName("d")),
 	}
-	table := ast.NewSymbolTable()
+	table := own.NewTable(0)
 	check := func(n int) {
 		assert.Equal(t, table.Len(), n)
 		for i, symbol := range symbols[:n] {
@@ -457,16 +457,59 @@ func TestSymbolTableStores(t *testing.T) {
 			assert.Equal(t, table.SymbolAt(i), symbol)
 		}
 	}
-	// A table of a binder store keeps symbols of other stores aside, and
-	// takes a checker's ids once it holds one of the checker's symbols.
+	// A table of a binder store keeps symbols of other stores aside.
 	for i, symbol := range symbols {
 		table.Set(symbol.Name(), symbol)
 		check(i + 1)
 	}
 	clone := table.Clone()
+	moved := table.CloneTo(checker)
 	table.Delete(ast.MakeSymbolName("a"))
 	assert.Equal(t, clone.Get(ast.MakeSymbolName("a")), symbols[0])
 	assert.Equal(t, table.Get(ast.MakeSymbolName("d")), symbols[3])
+	for i, symbol := range symbols {
+		assert.Equal(t, moved.SymbolAt(i), symbol)
+		assert.Equal(t, moved.GetId(checker, symbol.Name()), checker.IdOf(symbol))
+	}
+}
+
+func TestSymbolTablePools(t *testing.T) {
+	t.Parallel()
+	st := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{}).NewIdentifier("a").Store().Symbols()
+	names := make([]ast.SymbolName, 5000)
+	symbols := make([]ast.Symbol, len(names))
+	for i := range names {
+		names[i] = ast.MakeSymbolName(fmt.Sprint("p", i))
+		symbols[i] = st.NewBinderSymbol(ast.SymbolFlagsProperty, names[i])
+	}
+	// Tables grown in turn reuse each other's freed blocks across pages.
+	tables := make([]ast.SymbolTable, 200)
+	for i := range tables {
+		tables[i] = st.NewTable(0)
+	}
+	for n := range 40 {
+		for i, table := range tables {
+			if n < 10+i%31 {
+				table.Set(names[n], symbols[(n+i)%len(symbols)])
+			}
+		}
+	}
+	big := st.NewTable(0)
+	for i, name := range names {
+		big.Set(name, symbols[i])
+	}
+	for i, table := range tables {
+		assert.Equal(t, table.Len(), min(40, 10+i%31))
+		for n := range table.Len() {
+			assert.Equal(t, table.KeyAt(n), names[n])
+			assert.Equal(t, table.Get(names[n]), symbols[(n+i)%len(symbols)])
+		}
+		assert.Assert(t, table.Get(names[45]).IsNil())
+	}
+	assert.Equal(t, big.Len(), len(names))
+	for i, name := range names {
+		assert.Equal(t, big.Get(name), symbols[i])
+	}
 }
 
 func TestSymbolDeclarationsAcrossStores(t *testing.T) {

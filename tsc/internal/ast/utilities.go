@@ -21,16 +21,18 @@ func GetNodeId(node Node) NodeId {
 	return NodeId(uint64(node.s.serialNumber())<<32 | uint64(node.node))
 }
 
-func GetSymbolTable(data *SymbolTable) SymbolTable {
-	if *data == nil {
-		*data = NewSymbolTable()
+// GetSymbolTable returns *data, first set to a new table of st if it is
+// nil.
+func GetSymbolTable(st *SymbolStore, data *SymbolTable) SymbolTable {
+	if data.IsNil() {
+		*data = st.NewTable(0)
 	}
 	return *data
 }
 
 func GetMembers(symbol Symbol) SymbolTable {
 	members := symbol.Members()
-	if members == nil {
+	if members.IsNil() {
 		members = symbol.Store().NewTable(0)
 		symbol.SetMembers(members)
 	}
@@ -39,7 +41,7 @@ func GetMembers(symbol Symbol) SymbolTable {
 
 func GetExports(symbol Symbol) SymbolTable {
 	exports := symbol.Exports()
-	if exports == nil {
+	if exports.IsNil() {
 		exports = symbol.Store().NewTable(0)
 		symbol.SetExports(exports)
 	}
@@ -49,8 +51,8 @@ func GetExports(symbol Symbol) SymbolTable {
 func GetLocals(container Node) SymbolTable {
 	data := container.LocalsContainerData()
 	locals := data.Locals()
-	if locals == nil {
-		locals = NewSymbolTable()
+	if locals.IsNil() {
+		locals = container.store().Symbols().NewTable(0)
 		data.SetLocals(locals)
 	}
 	return locals

@@ -338,7 +338,7 @@ func (c *Checker) getExternalModuleContainer(declaration ast.Node) ast.SymbolId 
 
 func (c *Checker) getFileSymbolIfFileSymbolExportEqualsContainer(d ast.Node, container ast.SymbolId) ast.SymbolId {
 	fileSymbol := c.getExternalModuleContainer(d)
-	if fileSymbol == 0 || c.symbolExports(fileSymbol) == nil {
+	if fileSymbol == 0 || c.symbolExports(fileSymbol).IsNil() {
 		return 0
 	}
 	exported, ok := c.symbolExports(fileSymbol).LookupId(c.symbols, ast.InternalSymbolNameExportEquals)
@@ -424,7 +424,7 @@ func (c *Checker) getAliasForSymbolInContainer(container ast.SymbolId, symbol as
 	}
 	// Check if container is a thing with an `export=` which points directly at `symbol`, and if so, return
 	// the container itself as the alias for the symbol
-	if c.symbolExports(container) != nil {
+	if !c.symbolExports(container).IsNil() {
 		exportEquals, ok := c.symbolExports(container).LookupId(c.symbols, ast.InternalSymbolNameExportEquals)
 		if ok && exportEquals != 0 && c.getSymbolIfSameReference(exportEquals, symbol) != 0 {
 			return container
@@ -708,7 +708,7 @@ func (c *Checker) getCandidateListForSymbol(
 	// Look in the exported members, if we can find accessibleSymbolChain, symbol is accessible using this chain
 	// but only if the symbolFromSymbolTable can be qualified
 	candidateTable := c.getExportsOfSymbol(resolvedImportedSymbol)
-	if candidateTable == nil {
+	if candidateTable.IsNil() {
 		return nil
 	}
 	candidateTableId := c.symbolTableIDFromResolvedExports(resolvedImportedSymbol)
@@ -838,7 +838,7 @@ func (c *Checker) someSymbolTableInScope(
 ) bool {
 	for location := enclosingDeclaration; !location.IsNil(); location = location.Parent() {
 		// Locals of a source file are not in scope (because they get merged into the global symbol table)
-		if canHaveLocals(location) && location.Locals() != nil && !ast.IsGlobalSourceFile(location) {
+		if canHaveLocals(location) && !location.Locals().IsNil() && !ast.IsGlobalSourceFile(location) {
 			if callback(location.Locals(), symbolTableIDFromLocals(location.AsNode()), false, true, location) {
 				return true
 			}
@@ -865,13 +865,13 @@ func (c *Checker) someSymbolTableInScope(
 			// TODO: Should this filtered table be cached in some way?
 			for key, memberSymbol := range c.symbolMembers(sym).AllIds(c.symbols) {
 				if c.symbolFlags(memberSymbol)&(ast.SymbolFlagsType & ^ast.SymbolFlagsAssignment) != 0 {
-					if table == nil {
+					if table.IsNil() {
 						table = c.symbols.NewTable(0)
 					}
 					table.SetId(c.symbols, key, memberSymbol)
 				}
 			}
-			if table != nil && callback(table, c.symbolTableIDFromMembers(sym), false, false, location) {
+			if !table.IsNil() && callback(table, c.symbolTableIDFromMembers(sym), false, false, location) {
 				return true
 			}
 			// Class expression names (e.g., `B` in `class B {}`) are not stored in any
@@ -882,7 +882,7 @@ func (c *Checker) someSymbolTableInScope(
 			// (e.g., via class-local type aliases), both sites should be updated.
 			if ast.IsClassExpression(location) && !location.AsClassExpression().Name().IsNil() {
 				nameTable := c.getClassExpressionNameTable(location)
-				if nameTable != nil && callback(nameTable, symbolTableIDFromLocals(location.AsNode()), false, true, location) {
+				if !nameTable.IsNil() && callback(nameTable, symbolTableIDFromLocals(location.AsNode()), false, true, location) {
 					return true
 				}
 			}
@@ -906,7 +906,7 @@ func (c *Checker) getClassExpressionNameTable(location ast.Node) ast.SymbolTable
 	classSymbol := c.getSymbolOfDeclaration(location)
 	nameText := location.AsClassExpression().Name().Text()
 	if len(nameText) == 0 || classSymbol == 0 {
-		return nil
+		return ast.SymbolTable{}
 	}
 	table := c.symbols.TableOfId(ast.MakeSymbolName(nameText), classSymbol)
 	if c.classExpressionNameTables == nil {

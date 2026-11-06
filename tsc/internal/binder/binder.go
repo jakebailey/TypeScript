@@ -830,7 +830,7 @@ func (b *Binder) bindNamespaceExportDeclaration(node ast.Node) {
 	case !node.Parent().AsSourceFile().IsDeclarationFile:
 		b.errorOnNode(node, diagnostics.Global_module_exports_may_only_appear_in_declaration_files)
 	default:
-		b.declareSymbol(ast.GetSymbolTable(&b.file.GlobalExports), b.file.Symbol(), node, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes)
+		b.declareSymbol(ast.GetSymbolTable(b.symbols, &b.file.GlobalExports), b.file.Symbol(), node, ast.SymbolFlagsAlias, ast.SymbolFlagsAliasExcludes)
 	}
 }
 
@@ -1007,7 +1007,7 @@ func (b *Binder) bindFunctionOrConstructorType(node ast.Node) {
 	b.addDeclarationToSymbol(symbol, node, ast.SymbolFlagsSignature)
 	typeLiteralSymbol := b.newSymbol(ast.SymbolFlagsTypeLiteral, ast.InternalSymbolNameType)
 	b.addDeclarationToSymbol(typeLiteralSymbol, node, ast.SymbolFlagsTypeLiteral)
-	typeLiteralSymbol.SetMembers(ast.NewSymbolTable())
+	typeLiteralSymbol.SetMembers(b.symbols.NewTable(0))
 	typeLiteralSymbol.Members().Set(symbol.Name(), symbol)
 }
 
@@ -1135,7 +1135,7 @@ func (b *Binder) bindThisPropertyAssignment(node ast.Node) {
 		b.thisContainer.IsNil() {
 		return
 	}
-	if classSymbol, symbolTable := b.getThisClassAndSymbolTable(); symbolTable != nil {
+	if classSymbol, symbolTable := b.getThisClassAndSymbolTable(); !symbolTable.IsNil() {
 		if ast.HasDynamicName(node) {
 			b.declareSymbolEx(symbolTable, classSymbol, node, ast.SymbolFlagsProperty, ast.SymbolFlagsNone, true /*isReplaceableByMethod*/, true /*isComputedName*/)
 			b.addLateBoundAssignmentDeclarationToSymbol(node, classSymbol)
@@ -1150,7 +1150,7 @@ func (b *Binder) bindThisPropertyAssignment(node ast.Node) {
 
 func (b *Binder) getThisClassAndSymbolTable() (classSymbol ast.Symbol, symbolTable ast.SymbolTable) {
 	if b.thisContainer.IsNil() {
-		return ast.Symbol{}, nil
+		return ast.Symbol{}, ast.SymbolTable{}
 	}
 	switch b.thisContainer.Kind() {
 	case ast.KindFunctionDeclaration, ast.KindFunctionExpression:
@@ -1282,14 +1282,14 @@ func (b *Binder) lookupEntity(node ast.Node, container ast.Node) ast.Symbol {
 		return b.lookupName(node.TextSymbolName(), container)
 	}
 	if node.Expression().Kind() == ast.KindThisKeyword {
-		if _, symbolTable := b.getThisClassAndSymbolTable(); symbolTable != nil {
+		if _, symbolTable := b.getThisClassAndSymbolTable(); !symbolTable.IsNil() {
 			if name := ast.GetElementOrPropertyAccessName(node); !name.IsNil() {
 				return symbolTable.Get(name.TextSymbolName())
 			}
 		}
 		return ast.Symbol{}
 	}
-	if symbol := getInitializerSymbol(b.lookupEntity(node.Expression(), container)); !symbol.IsNil() && symbol.Exports() != nil {
+	if symbol := getInitializerSymbol(b.lookupEntity(node.Expression(), container)); !symbol.IsNil() && !symbol.Exports().IsNil() {
 		if name := ast.GetElementOrPropertyAccessName(node); !name.IsNil() {
 			return symbol.Exports().Get(name.TextSymbolName())
 		}
@@ -1643,7 +1643,7 @@ func (b *Binder) declareCommonJSVariable(name ast.SymbolName) {
 			exportsProperty.SetDeclarations(symbol.Declarations())
 			exportsProperty.SetValueDeclaration(symbol.ValueDeclaration())
 			exportsProperty.SetParent(symbol)
-			symbol.SetMembers(ast.NewSymbolTableWithCapacity(1))
+			symbol.SetMembers(b.symbols.NewTable(1))
 			symbol.Members().Set(ast.SymbolNameExports, exportsProperty)
 		}
 		locals.Set(name, symbol)

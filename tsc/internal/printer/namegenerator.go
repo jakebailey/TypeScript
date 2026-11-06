@@ -364,7 +364,7 @@ func isUniqueLocalName(name string, container ast.Node) bool {
 	node := container
 	for !node.IsNil() && ast.IsNodeDescendantOf(node, container) && !node.LocalsContainerData().IsNil() {
 		locals := node.Locals()
-		if locals != nil {
+		if !locals.IsNil() {
 			// We conservatively include alias symbols to cover cases where they're emitted as locals
 			if local, ok := locals.Lookup(ast.MakeSymbolName(name)); ok && local.Flags()&(ast.SymbolFlagsValue|ast.SymbolFlagsExportValue|ast.SymbolFlagsAlias) != 0 {
 				return false

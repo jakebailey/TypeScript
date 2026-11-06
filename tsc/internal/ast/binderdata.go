@@ -158,7 +158,7 @@ func (m *sparseMap[T]) packExtra() {
 // containerData holds the binder's fields of a container, a function or a
 // case clause.
 type containerData struct {
-	locals              SymbolTable
+	locals              uint32 // as the store's symbols keep tables; see tableIndex
 	nextContainer       nodeRef
 	endFlowNode         flowRef
 	returnFlowNode      flowRef
@@ -332,11 +332,12 @@ func (n Node) updateBinderContainer(update func(d *containerData)) {
 }
 
 func (n Node) binderLocals() SymbolTable {
-	return n.binderContainer().locals
+	return n.store().symbols.tableAt(n.binderContainer().locals)
 }
 
 func (n Node) setBinderLocals(v SymbolTable) {
-	n.updateBinderContainer(func(d *containerData) { d.locals = v })
+	x := n.store().Symbols().tableIndex(v)
+	n.updateBinderContainer(func(d *containerData) { d.locals = x })
 }
 
 func (n Node) binderNextContainer() Node {

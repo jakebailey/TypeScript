@@ -2038,7 +2038,7 @@ func tryGetClassByExtendingIdentifier(node ast.Node) ast.ClassLikeDeclaration {
 }
 
 func getClassConstructorSymbol(classSymbol ast.Symbol) ast.Symbol {
-	if classSymbol.Members() == nil {
+	if classSymbol.Members().IsNil() {
 		return ast.Symbol{}
 	}
 	return classSymbol.Members().Get(ast.InternalSymbolNameConstructor)
@@ -2060,7 +2060,7 @@ func findOwnConstructorReferences(classSymbol ast.Symbol, sourceFile *ast.Source
 		}
 	}
 
-	if classSymbol.Exports() != nil {
+	if !classSymbol.Exports().IsNil() {
 		for _, member := range classSymbol.Exports().All() {
 			decl := member.ValueDeclaration()
 			if !decl.IsNil() && decl.Kind() == ast.KindMethodDeclaration {

@@ -498,7 +498,7 @@ func (b *NodeBuilderImpl) expandModuleDecl(symbol ast.SymbolId) ast.Node {
 			}
 			// If the function also has namespace characteristics, emit an empty namespace.
 			merged := b.ch.getMergedSymbol(resolved)
-			hasModuleExports := b.ch.symbolFlags(merged)&(ast.SymbolFlagsValueModule|ast.SymbolFlagsNamespaceModule) != 0 && b.ch.symbolExports(merged) != nil && b.ch.symbolExports(merged).Len() != 0
+			hasModuleExports := b.ch.symbolFlags(merged)&(ast.SymbolFlagsValueModule|ast.SymbolFlagsNamespaceModule) != 0 && !b.ch.symbolExports(merged).IsNil() && b.ch.symbolExports(merged).Len() != 0
 			if !hasModuleExports {
 				bodyStmts = append(bodyStmts, hoverStatement{node: b.f.NewModuleDeclaration(ast.ModifierList{}, ast.KindNamespaceKeyword, b.f.NewIdentifier(b.ch.symbolName(m).String()), ast.Node{} /*attributes*/, b.f.NewModuleBlock(b.f.NewNodeList(nil)))})
 			}

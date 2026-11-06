@@ -58,6 +58,9 @@ type SymbolStore struct {
 	// checker is set in a checker's store.
 	checker *checkerSymbols
 
+	// tables holds the symbol tables of the store.
+	tables symbolTables
+
 	serialsMu sync.Mutex
 	serials   map[uint32]SymbolSerial
 }
@@ -84,8 +87,10 @@ type symbolRare struct {
 	// the file's node store.
 	rest    *declRest
 	general bool
-	members SymbolTable
-	exports SymbolTable
+	// members and exports are tables as the store's records keep them; see
+	// tableIndex.
+	members uint32
+	exports uint32
 }
 
 // lateSymbolIdBase is the first id of the symbols numbered as they are met.
@@ -116,8 +121,8 @@ const (
 )
 
 type symbolExtra struct {
-	members      SymbolTable
-	exports      SymbolTable
+	members      TableRef
+	exports      TableRef
 	exportSymbol SymbolId
 }
 
@@ -143,6 +148,9 @@ type checkerSymbols struct {
 	mu       sync.Mutex
 	lateSyms core.Pages[Symbol]
 	lateIds  map[Symbol]SymbolId
+	// heldIndex numbers the tables of stores outside the file table that
+	// TableRefs name.
+	heldIndex map[SymbolTable]uint32
 }
 
 // NewCheckerSymbolStore returns a store for a checker's symbols, whose ids
@@ -289,6 +297,7 @@ func (st *SymbolStore) finishBinding() {
 	if len(st.rare) != cap(st.rare) {
 		st.rare = slices.Clip(slices.Clone(st.rare))
 	}
+	st.tables.trim()
 }
 
 func (s Symbol) record() *symbolRecord { return &s.s.recs[s.i] }
@@ -453,14 +462,14 @@ func (s Symbol) Members() SymbolTable {
 			if o.s.checker == nil {
 				return o.Members()
 			}
-			return nil
+			return SymbolTable{}
 		}
-		return e.members
+		return s.s.TableOfRef(e.members)
 	}
 	if rare := s.rareOf(); rare != nil {
-		return rare.members
+		return s.s.tableAt(rare.members)
 	}
-	return nil
+	return SymbolTable{}
 }
 
 func (s Symbol) Exports() SymbolTable {
@@ -470,14 +479,14 @@ func (s Symbol) Exports() SymbolTable {
 			if o.s.checker == nil {
 				return o.Exports()
 			}
-			return nil
+			return SymbolTable{}
 		}
-		return e.exports
+		return s.s.TableOfRef(e.exports)
 	}
 	if rare := s.rareOf(); rare != nil {
-		return rare.exports
+		return s.s.tableAt(rare.exports)
 	}
-	return nil
+	return SymbolTable{}
 }
 
 func (s Symbol) ExportSymbol() Symbol {
@@ -614,7 +623,7 @@ func (s Symbol) SetParent(value Symbol) {
 
 func (s Symbol) SetMembers(value SymbolTable) {
 	if s.s.checker != nil {
-		if value == nil && s.Members() == nil {
+		if value.IsNil() && s.Members().IsNil() {
 			return
 		}
 		e, o := s.ensureExtra()
@@ -622,17 +631,17 @@ func (s Symbol) SetMembers(value SymbolTable) {
 			o.SetMembers(value)
 			return
 		}
-		e.members = value
+		e.members = s.s.RefOfTable(value)
 		return
 	}
-	if value != nil || s.s.recs[s.i].rare != 0 {
-		s.ensureRare().members = value
+	if !value.IsNil() || s.s.recs[s.i].rare != 0 {
+		s.ensureRare().members = s.s.tableIndex(value)
 	}
 }
 
 func (s Symbol) SetExports(value SymbolTable) {
 	if s.s.checker != nil {
-		if value == nil && s.Exports() == nil {
+		if value.IsNil() && s.Exports().IsNil() {
 			return
 		}
 		e, o := s.ensureExtra()
@@ -640,11 +649,11 @@ func (s Symbol) SetExports(value SymbolTable) {
 			o.SetExports(value)
 			return
 		}
-		e.exports = value
+		e.exports = s.s.RefOfTable(value)
 		return
 	}
-	if value != nil || s.s.recs[s.i].rare != 0 {
-		s.ensureRare().exports = value
+	if !value.IsNil() || s.s.recs[s.i].rare != 0 {
+		s.ensureRare().exports = s.s.tableIndex(value)
 	}
 }
 

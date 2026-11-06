@@ -81,6 +81,14 @@ func (t *FileTable) Ref(n Node) NodeRef {
 	return NodeRef{t.number(n.s), n.node}
 }
 
+// StoreNumber returns s's number in t, numbering it if t has not yet.
+func (t *FileTable) StoreNumber(s *NodeStore) uint32 {
+	if slot := s.slot.Load(); slot != nil && slot.table == t {
+		return slot.file
+	}
+	return t.number(s)
+}
+
 func (t *FileTable) number(s *NodeStore) uint32 {
 	t.mu.Lock()
 	defer t.mu.Unlock()

@@ -551,7 +551,7 @@ func TestUnionIntersectionPropertyCacheSharing(t *testing.T) {
 				}
 				assert.Equal(t, data.propertyCacheWithoutFunctionPropertyAugment(c).Len(), members.Len())
 				if !augmentedFirst {
-					assert.Assert(t, data.propertyCache(c) == nil)
+					assert.Assert(t, data.propertyCache(c).IsNil())
 				}
 				runtime.GC()
 				for name, symbol := range members.AllIds(c.symbols) {
@@ -579,8 +579,8 @@ func TestUnionIntersectionPropertyCacheModes(t *testing.T) {
 			data := typ.AsUnionOrIntersectionType()
 			assert.Assert(t, c.getUnionOrIntersectionProperty(typ, ast.MakeSymbolName("missing"), true) == 0)
 			assert.Assert(t, c.getUnionOrIntersectionProperty(typ, ast.MakeSymbolName("missing"), false) == 0)
-			assert.Assert(t, data.propertyCache(c) == nil)
-			assert.Assert(t, data.propertyCacheWithoutFunctionPropertyAugment(c) == nil)
+			assert.Assert(t, data.propertyCache(c).IsNil())
+			assert.Assert(t, data.propertyCacheWithoutFunctionPropertyAugment(c).IsNil())
 			data.setPropertyCacheWithoutFunctionPropertyAugment(c, ast.NewSymbolTable())
 			data.setPropertyCache(c, ast.NewSymbolTable())
 			for _, flags := range []ast.CheckFlags{ast.CheckFlagsReadPartial, ast.CheckFlagsWritePartial} {
@@ -608,7 +608,7 @@ func TestUnionIntersectionPropertyCacheModes(t *testing.T) {
 func TestStructuredTypeExtra(t *testing.T) {
 	t.Parallel()
 	c, types := newCompositeTestChecker()
-	data := c.newAnonymousType(0, nil, nil, nil, nil).AsStructuredType()
+	data := c.newAnonymousType(0, ast.SymbolTable{}, nil, nil, nil).AsStructuredType()
 	assert.Assert(t, data.resolvedExtra(c) == nil)
 	assert.Assert(t, data.CallSignatures(c) == nil)
 	assert.Assert(t, data.ConstructSignatures(c) == nil)
@@ -628,7 +628,7 @@ func TestStructuredTypeExtra(t *testing.T) {
 	extra := data.resolvedExtra(c)
 	extra.objectTypeWithoutAbstractConstructSignatures = c.typ(types[2]).ref()
 	for range 1024 {
-		other := c.newAnonymousType(0, nil, []*Signature{call}, nil, nil)
+		other := c.newAnonymousType(0, ast.SymbolTable{}, []*Signature{call}, nil, nil)
 		assert.Assert(t, other.AsStructuredType().resolvedExtra(c) != extra)
 	}
 	runtime.GC()
