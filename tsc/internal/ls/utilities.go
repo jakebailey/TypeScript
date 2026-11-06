@@ -943,12 +943,12 @@ func getParentSymbolsOfPropertyAccess(location ast.Node, symbol ast.Symbol, ch *
 	var possibleSymbols []*checker.Type
 	if lhsType.Flags()&checker.TypeFlagsUnionOrIntersection != 0 {
 		possibleSymbols = lhsType.Types()
-	} else if lhsType.Symbol() != symbol.Parent() {
+	} else if ch.SymbolOfType(lhsType) != symbol.Parent() {
 		possibleSymbols = []*checker.Type{lhsType}
 	}
 	return core.MapNonNil(possibleSymbols, func(t *checker.Type) ast.Symbol {
-		if !t.Symbol().IsNil() && t.Symbol().Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface) != 0 {
-			return t.Symbol()
+		if !ch.SymbolOfType(t).IsNil() && ch.SymbolOfType(t).Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface) != 0 {
+			return ch.SymbolOfType(t)
 		}
 		return ast.Symbol{}
 	})
@@ -973,7 +973,7 @@ func getPropertySymbolsFromBaseTypes(symbol ast.Symbol, propertyName ast.SymbolN
 		}
 		for _, declaration := range symbol.Declarations().All() {
 			for _, typeReference := range getAllSuperTypeNodes(declaration) {
-				if propertyType := checker.GetTypeAtLocation(typeReference); propertyType != nil && !propertyType.Symbol().IsNil() {
+				if propertyType := checker.GetTypeAtLocation(typeReference); propertyType != nil && !checker.SymbolOfType(propertyType).IsNil() {
 					// Visit the typeReference as well to see if it directly or indirectly uses that property
 					if propertySymbol := checker.GetPropertyOfType(propertyType, propertyName); !propertySymbol.IsNil() {
 						for _, rootSymbol := range checker.GetRootSymbols(propertySymbol) {
@@ -982,7 +982,7 @@ func getPropertySymbolsFromBaseTypes(symbol ast.Symbol, propertyName ast.SymbolN
 							}
 						}
 					}
-					if result := recur(propertyType.Symbol()); !result.IsNil() {
+					if result := recur(checker.SymbolOfType(propertyType)); !result.IsNil() {
 						return result
 					}
 				}

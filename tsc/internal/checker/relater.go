@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/binder"
@@ -87,13 +88,30 @@ type ErrorOutputContainer struct {
 
 type ErrorReporter func(message *diagnostics.Message, args ...any)
 
+// RecursionId is the identity of a node, symbol or type: the owning store or type pointer plus an index. Node and
+// symbol stores and types are distinct allocations, so identities of different kinds never collide. Holding the
+// identity directly, rather than boxing it in an interface, keeps recursion checks free of allocations.
 type RecursionId struct {
-	value any
+	p unsafe.Pointer
+	i uint32
 }
+
+// Node and Symbol handles are a store pointer followed by a uint32 index, which is the layout of RecursionId.
+var (
+	_ [unsafe.Sizeof(ast.Node{}) - unsafe.Sizeof(RecursionId{})]byte
+	_ [unsafe.Sizeof(RecursionId{}) - unsafe.Sizeof(ast.Node{})]byte
+	_ [unsafe.Sizeof(ast.Symbol{}) - unsafe.Sizeof(RecursionId{})]byte
+	_ [unsafe.Sizeof(RecursionId{}) - unsafe.Sizeof(ast.Symbol{})]byte
+)
 
 // This function exists to constrain the types of values that can be used as recursion IDs.
 func asRecursionId[T ast.Node | ast.Symbol | *Type](value T) RecursionId {
-	return RecursionId{value: value}
+	if unsafe.Sizeof(value) == unsafe.Sizeof(RecursionId{}) {
+		// SAFETY: T is ast.Node or ast.Symbol, both a pointer followed by a uint32, as asserted above.
+		return *(*RecursionId)(unsafe.Pointer(&value))
+	}
+	// SAFETY: T is *Type, a single pointer.
+	return RecursionId{p: *(*unsafe.Pointer)(unsafe.Pointer(&value))}
 }
 
 type Relation struct {
@@ -169,10 +187,10 @@ func (c *Checker) areTypesComparable(type1 *Type, type2 *Type) bool {
 
 func (c *Checker) isTypeRelatedTo(source *Type, target *Type, relation *Relation) bool {
 	if isFreshLiteralType(source) {
-		source = source.AsLiteralType().regularType
+		source = source.AsLiteralType().RegularType()
 	}
 	if isFreshLiteralType(target) {
-		target = target.AsLiteralType().regularType
+		target = target.AsLiteralType().RegularType()
 	}
 	if source == target {
 		return true
@@ -191,7 +209,7 @@ func (c *Checker) isTypeRelatedTo(source *Type, target *Type, relation *Relation
 		}
 	}
 	if source.flags&TypeFlagsObject != 0 && target.flags&TypeFlagsObject != 0 {
-		id, _ := getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false)
+		id, _ := c.getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false)
 		related := relation.get(id)
 		if related != RelationComparisonResultNone {
 			return related&RelationComparisonResultSucceeded != 0
@@ -218,13 +236,13 @@ func (c *Checker) isSimpleTypeRelatedTo(source *Type, target *Type, relation *Re
 	if s&TypeFlagsStringLike != 0 && t&TypeFlagsString != 0 {
 		return true
 	}
-	if s&TypeFlagsStringLiteral != 0 && s&TypeFlagsEnumLiteral != 0 && t&TypeFlagsStringLiteral != 0 && t&TypeFlagsEnumLiteral == 0 && source.AsLiteralType().value == target.AsLiteralType().value {
+	if s&TypeFlagsStringLiteral != 0 && s&TypeFlagsEnumLiteral != 0 && t&TypeFlagsStringLiteral != 0 && t&TypeFlagsEnumLiteral == 0 && source.AsLiteralType().Value() == target.AsLiteralType().Value() {
 		return true
 	}
 	if s&TypeFlagsNumberLike != 0 && t&TypeFlagsNumber != 0 {
 		return true
 	}
-	if s&TypeFlagsNumberLiteral != 0 && s&TypeFlagsEnumLiteral != 0 && t&TypeFlagsNumberLiteral != 0 && t&TypeFlagsEnumLiteral == 0 && source.AsLiteralType().value == target.AsLiteralType().value {
+	if s&TypeFlagsNumberLiteral != 0 && s&TypeFlagsEnumLiteral != 0 && t&TypeFlagsNumberLiteral != 0 && t&TypeFlagsEnumLiteral == 0 && source.AsLiteralType().Value() == target.AsLiteralType().Value() {
 		return true
 	}
 	if s&TypeFlagsBigIntLike != 0 && t&TypeFlagsBigInt != 0 {
@@ -236,14 +254,14 @@ func (c *Checker) isSimpleTypeRelatedTo(source *Type, target *Type, relation *Re
 	if s&TypeFlagsESSymbolLike != 0 && t&TypeFlagsESSymbol != 0 {
 		return true
 	}
-	if s&TypeFlagsEnum != 0 && t&TypeFlagsEnum != 0 && source.Symbol().Name() == target.Symbol().Name() && c.isEnumTypeRelatedTo(source.Symbol(), target.Symbol(), errorReporter) {
+	if s&TypeFlagsEnum != 0 && t&TypeFlagsEnum != 0 && c.symbolOfType(source).Name() == c.symbolOfType(target).Name() && c.isEnumTypeRelatedTo(c.symbolOfType(source), c.symbolOfType(target), errorReporter) {
 		return true
 	}
 	if s&TypeFlagsEnumLiteral != 0 && t&TypeFlagsEnumLiteral != 0 {
-		if s&TypeFlagsUnion != 0 && t&TypeFlagsUnion != 0 && c.isEnumTypeRelatedTo(source.Symbol(), target.Symbol(), errorReporter) {
+		if s&TypeFlagsUnion != 0 && t&TypeFlagsUnion != 0 && c.isEnumTypeRelatedTo(c.symbolOfType(source), c.symbolOfType(target), errorReporter) {
 			return true
 		}
-		if s&TypeFlagsLiteral != 0 && t&TypeFlagsLiteral != 0 && source.AsLiteralType().value == target.AsLiteralType().value && c.isEnumTypeRelatedTo(source.Symbol(), target.Symbol(), errorReporter) {
+		if s&TypeFlagsLiteral != 0 && t&TypeFlagsLiteral != 0 && source.AsLiteralType().Value() == target.AsLiteralType().Value() && c.isEnumTypeRelatedTo(c.symbolOfType(source), c.symbolOfType(target), errorReporter) {
 			return true
 		}
 	}
@@ -268,7 +286,7 @@ func (c *Checker) isSimpleTypeRelatedTo(source *Type, target *Type, relation *Re
 		if s&TypeFlagsNumber != 0 && (t&TypeFlagsEnum != 0 || t&TypeFlagsNumberLiteral != 0 && t&TypeFlagsEnumLiteral != 0) {
 			return true
 		}
-		if s&TypeFlagsNumberLiteral != 0 && s&TypeFlagsEnumLiteral == 0 && (t&TypeFlagsEnum != 0 || t&TypeFlagsNumberLiteral != 0 && t&TypeFlagsEnumLiteral != 0 && source.AsLiteralType().value == target.AsLiteralType().value) {
+		if s&TypeFlagsNumberLiteral != 0 && s&TypeFlagsEnumLiteral == 0 && (t&TypeFlagsEnum != 0 || t&TypeFlagsNumberLiteral != 0 && t&TypeFlagsEnumLiteral != 0 && source.AsLiteralType().Value() == target.AsLiteralType().Value()) {
 			return true
 		}
 		// Anything is assignable to a union containing undefined, null, and {}
@@ -371,10 +389,10 @@ func (c *Checker) checkTypeRelatedToEx(
 	result := r.isRelatedToEx(source, target, RecursionFlagsBoth, !errorNode.IsNil() /*reportErrors*/, headMessage, IntersectionStateNone)
 	if r.overflow {
 		// Record this relation as having failed such that we don't attempt the overflowing operation again.
-		id, _ := getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
+		id, _ := c.getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false /*ignoreConstraints*/)
 		relation.set(id, RelationComparisonResultFailed|RelationComparisonResultComplexityOverflow)
 		if tr := c.tracer; tr != nil {
-			tr.Instant(tracing.PhaseCheckTypes, "checkTypeRelatedTo_DepthLimit", map[string]any{"sourceId": source.id, "targetId": target.id, "depth": len(r.sourceStack), "targetDepth": len(r.targetStack)})
+			tr.Instant(tracing.PhaseCheckTypes, "checkTypeRelatedTo_DepthLimit", map[string]any{"sourceId": source.Id(), "targetId": target.Id(), "depth": len(r.sourceStack), "targetDepth": len(r.targetStack)})
 		}
 		if errorNode.IsNil() {
 			errorNode = c.currentNode
@@ -382,8 +400,8 @@ func (c *Checker) checkTypeRelatedToEx(
 		c.reportDiagnostic(NewDiagnosticForNode(errorNode, diagnostics.Excessive_complexity_comparing_types_0_and_1, c.TypeToString(source), c.TypeToString(target)), diagnosticOutput)
 	} else if r.errorChain != nil {
 		// Check if we should issue an extra diagnostic to produce a quickfix for a slightly incorrect import statement
-		if headMessage != nil && !errorNode.IsNil() && result == TernaryFalse && !source.Symbol().IsNil() && c.exportTypeLinks.Has(source.Symbol()) {
-			links := c.exportTypeLinks.Get(source.Symbol())
+		if headMessage != nil && !errorNode.IsNil() && result == TernaryFalse && !c.symbolOfType(source).IsNil() && c.exportTypeLinks.Has(c.symbolOfType(source)) {
+			links := c.exportTypeLinks.Get(c.symbolOfType(source))
 			if !links.originatingImport.IsNil() && !ast.IsImportCall(links.originatingImport) {
 				helpfulRetry := c.checkTypeRelatedTo(c.getTypeOfSymbol(links.target), target, relation /*errorNode*/, ast.Node{})
 				if helpfulRetry {
@@ -598,12 +616,12 @@ func (c *Checker) elaborateElement(source *Type, target *Type, relation *Relatio
 			diagnostic.AddRelatedInfo(createDiagnosticForNode(indexInfo.declaration, diagnostics.The_expected_type_comes_from_this_index_signature))
 		}
 	}
-	if !issuedElaboration && (!targetProp.IsNil() && targetProp.Declarations().Len() != 0 || !target.Symbol().IsNil() && target.Symbol().Declarations().Len() != 0) {
+	if !issuedElaboration && (!targetProp.IsNil() && targetProp.Declarations().Len() != 0 || !c.symbolOfType(target).IsNil() && c.symbolOfType(target).Declarations().Len() != 0) {
 		var targetNode ast.Node
 		if !targetProp.IsNil() && targetProp.Declarations().Len() != 0 {
 			targetNode = targetProp.Declarations().At(0)
 		} else {
-			targetNode = target.Symbol().Declarations().At(0)
+			targetNode = c.symbolOfType(target).Declarations().At(0)
 		}
 		propertyNameText := propertyName.String()
 		if propertyName == ast.EmptySymbolName || nameType.flags&TypeFlagsUniqueESSymbol != 0 {
@@ -664,8 +682,8 @@ func (c *Checker) elaborateArrowFunction(node ast.Node, source *Type, target *Ty
 	c.checkTypeRelatedToEx(sourceReturn, targetReturn, relation, returnExpression, nil /*headMessage*/, &diags)
 	if len(diags) != 0 {
 		diagnostic := diags[0]
-		if !target.Symbol().IsNil() && target.Symbol().Declarations().Len() != 0 {
-			diagnostic.AddRelatedInfo(createDiagnosticForNode(target.Symbol().Declarations().At(0), diagnostics.The_expected_type_comes_from_the_return_type_of_this_signature))
+		if !c.symbolOfType(target).IsNil() && c.symbolOfType(target).Declarations().Len() != 0 {
+			diagnostic.AddRelatedInfo(createDiagnosticForNode(c.symbolOfType(target).Declarations().At(0), diagnostics.The_expected_type_comes_from_the_return_type_of_this_signature))
 		}
 		if ast.GetFunctionFlags(node)&ast.FunctionFlagsAsync == 0 && c.getTypeOfPropertyOfType(sourceReturn, ast.SymbolNameThen) == nil && c.checkTypeRelatedTo(c.createPromiseType(sourceReturn), targetReturn, relation, ast.Node{} /*errorNode*/) {
 			diagnostic.AddRelatedInfo(createDiagnosticForNode(node, diagnostics.Did_you_mean_to_mark_this_function_as_async))
@@ -686,7 +704,7 @@ func (c *Checker) isWeakType(t *Type) bool {
 		})
 	}
 	if t.flags&TypeFlagsSubstitution != 0 {
-		return c.isWeakType(t.AsSubstitutionType().baseType)
+		return c.isWeakType(t.AsSubstitutionType().baseType())
 	}
 	if t.flags&TypeFlagsIntersection != 0 {
 		return core.Every(t.Types(), c.isWeakType)
@@ -730,7 +748,7 @@ func (c *Checker) isKnownProperty(targetType *Type, name ast.SymbolName, isCompa
 		}
 	}
 	if targetType.flags&TypeFlagsSubstitution != 0 {
-		return c.isKnownProperty(targetType.AsSubstitutionType().baseType, name, isComparingJsxAttributes)
+		return c.isKnownProperty(targetType.AsSubstitutionType().baseType(), name, isComparingJsxAttributes)
 	}
 	if targetType.flags&TypeFlagsUnionOrIntersection != 0 && isExcessPropertyCheckTarget(targetType) {
 		for _, t := range targetType.Types() {
@@ -749,7 +767,7 @@ func isHyphenatedJsxName(name string) bool {
 func isExcessPropertyCheckTarget(t *Type) bool {
 	return t.flags&TypeFlagsObject != 0 && t.objectFlags&ObjectFlagsObjectLiteralPatternWithComputedProperties == 0 ||
 		t.flags&TypeFlagsNonPrimitive != 0 ||
-		t.flags&TypeFlagsSubstitution != 0 && isExcessPropertyCheckTarget(t.AsSubstitutionType().baseType) ||
+		t.flags&TypeFlagsSubstitution != 0 && isExcessPropertyCheckTarget(t.AsSubstitutionType().baseType()) ||
 		t.flags&TypeFlagsUnion != 0 && core.Some(t.Types(), isExcessPropertyCheckTarget) ||
 		t.flags&TypeFlagsIntersection != 0 && core.Every(t.Types(), isExcessPropertyCheckTarget)
 }
@@ -767,7 +785,7 @@ func isExcessPropertyCheckTarget(t *Type) bool {
 // structurally equal to at least maxDepth levels, but unequal at some level beyond that.
 func (c *Checker) isDeeplyNestedType(t *Type, stack []*Type, maxDepth int) bool {
 	if len(stack) >= maxDepth {
-		target := getRecursionIdentityTarget(t)
+		target := c.getRecursionIdentityTarget(t)
 		if target.flags&TypeFlagsIntersection != 0 {
 			for _, t := range target.Types() {
 				if c.isDeeplyNestedType(t, stack, maxDepth) {
@@ -775,20 +793,20 @@ func (c *Checker) isDeeplyNestedType(t *Type, stack []*Type, maxDepth int) bool 
 				}
 			}
 		} else {
-			identity := getRecursionIdentityFromTarget(target)
+			identity := c.getRecursionIdentityFromTarget(target)
 			count := 0
 			lastTypeId := TypeId(0)
 			for _, t := range stack {
-				if hasMatchingRecursionIdentity(t, identity) {
+				if c.hasMatchingRecursionIdentity(t, identity) {
 					// We only count occurrences with a higher type id than the previous occurrence, since higher
 					// type ids are an indicator of newer instantiations caused by recursion.
-					if t.id >= lastTypeId {
+					if t.Id() >= lastTypeId {
 						count++
 						if count >= maxDepth {
 							return true
 						}
 					}
-					lastTypeId = t.id
+					lastTypeId = t.Id()
 				}
 			}
 		}
@@ -796,21 +814,21 @@ func (c *Checker) isDeeplyNestedType(t *Type, stack []*Type, maxDepth int) bool 
 	return false
 }
 
-func hasMatchingRecursionIdentity(t *Type, identity RecursionId) bool {
-	target := getRecursionIdentityTarget(t)
+func (c *Checker) hasMatchingRecursionIdentity(t *Type, identity RecursionId) bool {
+	target := c.getRecursionIdentityTarget(t)
 	if target.flags&TypeFlagsIntersection != 0 {
 		for _, t := range target.Types() {
-			if hasMatchingRecursionIdentity(t, identity) {
+			if c.hasMatchingRecursionIdentity(t, identity) {
 				return true
 			}
 		}
 		return false
 	}
-	return getRecursionIdentityFromTarget(target) == identity
+	return c.getRecursionIdentityFromTarget(target) == identity
 }
 
-func getRecursionIdentity(t *Type) RecursionId {
-	return getRecursionIdentityFromTarget(getRecursionIdentityTarget(t))
+func (c *Checker) getRecursionIdentity(t *Type) RecursionId {
+	return c.getRecursionIdentityFromTarget(c.getRecursionIdentityTarget(t))
 }
 
 // Get the recursion identity target type from a type. Recursively (a) obtain the target object type of an
@@ -819,15 +837,15 @@ func getRecursionIdentity(t *Type) RecursionId {
 // to explicitly written object literals. For example in `Mapped<{ x: Mapped<{ x: Mapped<{ x: string }>}>}>`,
 // each of the mapped type applications will have a unique recursion identity (that of their target object type
 // literal) and thus avoid appearing deeply nested.
-func getRecursionIdentityTarget(t *Type) *Type {
+func (c *Checker) getRecursionIdentityTarget(t *Type) *Type {
 	if t.flags&TypeFlagsIndexedAccess != 0 {
-		return getRecursionIdentityTarget(t.AsIndexedAccessType().objectType)
+		return c.getRecursionIdentityTarget(t.AsIndexedAccessType().objectType())
 	}
 	if t.objectFlags&ObjectFlagsInstantiatedMapped == ObjectFlagsInstantiatedMapped {
-		target := t.checker.getModifiersTypeFromMappedType(t)
-		if target != nil && (!target.Symbol().IsNil() || target.flags&TypeFlagsIntersection != 0 &&
-			core.Some(target.Types(), func(t *Type) bool { return !t.Symbol().IsNil() })) {
-			return getRecursionIdentityTarget(target)
+		target := c.getModifiersTypeFromMappedType(t)
+		if target != nil && (!c.symbolOfType(target).IsNil() || target.flags&TypeFlagsIntersection != 0 &&
+			core.Some(target.Types(), func(t *Type) bool { return !c.symbolOfType(t).IsNil() })) {
+			return c.getRecursionIdentityTarget(target)
 		}
 	}
 	return t
@@ -839,34 +857,34 @@ func getRecursionIdentityTarget(t *Type) *Type {
 // instantiations of that type have the same recursion identity. The default recursion identity is the object
 // identity of the type, meaning that every type is unique. Generally, types with constituents that could circularly
 // reference the type have a recursion identity that differs from the object identity.
-func getRecursionIdentityFromTarget(t *Type) RecursionId {
+func (c *Checker) getRecursionIdentityFromTarget(t *Type) RecursionId {
 	// Object and array literals are known not to contain recursive references and don't need a recursion identity.
 	if t.flags&TypeFlagsObject != 0 && !isObjectOrArrayLiteralType(t) {
-		if t.objectFlags&ObjectFlagsReference != 0 && !t.checker.nodeOf(t.AsTypeReference().node).IsNil() {
+		if t.objectFlags&ObjectFlagsReference != 0 && !c.nodeOf(t.AsTypeReference().node()).IsNil() {
 			// Deferred type references are tracked through their associated AST node. This gives us finer
 			// granularity than using their associated target because each manifest type reference has a
 			// unique AST node.
-			return asRecursionId(t.checker.nodeOf(t.AsTypeReference().node))
+			return asRecursionId(c.nodeOf(t.AsTypeReference().node()))
 		}
-		if !t.Symbol().IsNil() && !(t.objectFlags&ObjectFlagsAnonymous != 0 && t.Symbol().Flags()&ast.SymbolFlagsClass != 0) && t.objectFlags&ObjectFlagsFromTypeNode == 0 {
+		if !c.symbolOfType(t).IsNil() && !(t.objectFlags&ObjectFlagsAnonymous != 0 && c.symbolOfType(t).Flags()&ast.SymbolFlagsClass != 0) && t.objectFlags&ObjectFlagsFromTypeNode == 0 {
 			// We track object types that have a symbol by that symbol (representing the origin of the type), but
 			// exclude the static sides of classes (since they share their symbols with the instance sides) and type
 			// references that originate in resolution of AST type nodes (since such type nodes cannot be the source
 			// of generative recursion without first being instantiated).
-			return asRecursionId(t.Symbol())
+			return asRecursionId(c.symbolOfType(t))
 		}
 		if isTupleType(t) && t.objectFlags&ObjectFlagsFromTypeNode == 0 {
 			return asRecursionId(t.Target())
 		}
 	}
-	if t.flags&TypeFlagsTypeParameter != 0 && !t.Symbol().IsNil() {
+	if t.flags&TypeFlagsTypeParameter != 0 && !c.symbolOfType(t).IsNil() {
 		// We use the symbol of the type parameter such that all "fresh" instantiations of that type parameter
 		// have the same recursion identity.
-		return asRecursionId(t.Symbol())
+		return asRecursionId(c.symbolOfType(t))
 	}
 	if t.flags&TypeFlagsConditional != 0 {
 		// The root object represents the origin of the conditional type
-		return asRecursionId(t.AsConditionalType().root.node.AsNode())
+		return asRecursionId(t.AsConditionalType().cond().root.node.AsNode())
 	}
 	return asRecursionId(t)
 }
@@ -899,7 +917,7 @@ func (c *Checker) findMatchingTypeReferenceOrTypeAliasReference(source *Type, un
 				if overlapObjFlags&ObjectFlagsReference != 0 && source.Target() == target.Target() {
 					return target
 				}
-				if overlapObjFlags&ObjectFlagsAnonymous != 0 && source.alias != nil && target.alias != nil && source.alias.symbol == target.alias.symbol {
+				if overlapObjFlags&ObjectFlagsAnonymous != 0 && source.Alias() != nil && target.Alias() != nil && source.Alias().symbol == target.Alias().symbol {
 					return target
 				}
 			}
@@ -1114,19 +1132,21 @@ func (c *Checker) getMatchingUnionConstituentForType(unionType *Type, t *Type) *
 // an empty name if no such discriminant property exists.
 func (c *Checker) getKeyPropertyName(t *Type) ast.SymbolName {
 	u := t.AsUnionType()
-	if u.keyPropertyName == ast.EmptySymbolName {
-		u.keyPropertyName, u.constituentMap = c.computeKeyPropertyNameAndMap(t)
+	if u.keyPropertyName() == ast.EmptySymbolName {
+		keyPropertyName, constituentMap := c.computeKeyPropertyNameAndMap(t)
+		u.setKeyPropertyName(c, keyPropertyName)
+		u.setConstituentMap(c, constituentMap)
 	}
-	if u.keyPropertyName == ast.InternalSymbolNameMissing {
+	if u.keyPropertyName() == ast.InternalSymbolNameMissing {
 		return ast.EmptySymbolName
 	}
-	return u.keyPropertyName
+	return u.keyPropertyName()
 }
 
 // Given a union type for which getKeyPropertyName returned a non-empty name, return the constituent
 // that corresponds to the given key type for that property name.
 func (c *Checker) getConstituentTypeForKeyType(t *Type, keyType *Type) *Type {
-	result := t.AsUnionType().constituentMap[c.getRegularTypeOfLiteralType(keyType)]
+	result := t.AsUnionType().constituentMap()[c.getRegularTypeOfLiteralType(keyType)]
 	if result != c.unknownType {
 		return result
 	}
@@ -1273,14 +1293,14 @@ func isNonPrimitiveType(t *Type) bool {
 
 func (c *Checker) getTypeNamesForErrorDisplay(left *Type, right *Type) (string, string) {
 	var leftStr string
-	if c.symbolValueDeclarationIsContextSensitive(left.Symbol()) {
-		leftStr = c.typeToString(left, left.Symbol().ValueDeclaration())
+	if c.symbolValueDeclarationIsContextSensitive(c.symbolOfType(left)) {
+		leftStr = c.typeToString(left, c.symbolOfType(left).ValueDeclaration())
 	} else {
 		leftStr = c.TypeToString(left)
 	}
 	var rightStr string
-	if c.symbolValueDeclarationIsContextSensitive(right.Symbol()) {
-		rightStr = c.typeToString(right, right.Symbol().ValueDeclaration())
+	if c.symbolValueDeclarationIsContextSensitive(c.symbolOfType(right)) {
+		rightStr = c.typeToString(right, c.symbolOfType(right).ValueDeclaration())
 	} else {
 		rightStr = c.TypeToString(right)
 	}
@@ -1323,7 +1343,7 @@ func (c *Checker) getVariances(t *Type) []VarianceFlags {
 	if t == c.globalArrayType || t == c.globalReadonlyArrayType || t.objectFlags&ObjectFlagsTuple != 0 {
 		return c.arrayVariances
 	}
-	return c.getVariancesWorker(t.Symbol(), t.AsInterfaceType().TypeParameters())
+	return c.getVariancesWorker(c.symbolOfType(t), t.AsInterfaceType().TypeParameters())
 }
 
 func (c *Checker) getAliasVariances(symbol ast.Symbol) []VarianceFlags {
@@ -1340,7 +1360,7 @@ func (c *Checker) getVariancesWorker(symbol ast.Symbol, typeParameters []*Type) 
 	if links.variances == nil {
 		var traceArgs map[string]any
 		if tr := c.tracer; tr != nil {
-			traceArgs = map[string]any{"arity": len(typeParameters), "id": c.getDeclaredTypeOfSymbol(symbol).id}
+			traceArgs = map[string]any{"arity": len(typeParameters), "id": c.getDeclaredTypeOfSymbol(symbol).Id()}
 			popFn := tr.Push(tracing.PhaseCheckTypes, "getVariancesWorker", traceArgs, true)
 			defer func() {
 				formatted := make([]string, len(links.variances))
@@ -1469,8 +1489,8 @@ func (c *Checker) isMarkerType(t *Type) bool {
 
 func (c *Checker) getTypeParameterModifiers(tp *Type) ast.ModifierFlags {
 	var flags ast.ModifierFlags
-	if !tp.Symbol().IsNil() {
-		for _, d := range tp.Symbol().Declarations().All() {
+	if !c.symbolOfType(tp).IsNil() {
+		for _, d := range c.symbolOfType(tp).Declarations().All() {
 			flags |= d.ModifierFlags()
 		}
 	}
@@ -1732,7 +1752,7 @@ func (c *Checker) getParameterCount(signature *Signature) int {
 	if signatureHasRestParameter(signature) {
 		restType := c.getTypeOfSymbol(signature.parameters[length-1])
 		if isTupleType(restType) {
-			return length + restType.TargetTupleType().fixedLength - core.IfElse(restType.TargetTupleType().combinedFlags&ElementFlagsVariable != 0, 0, 1)
+			return length + restType.TargetTupleType().tuple().fixedLength - core.IfElse(restType.TargetTupleType().tuple().combinedFlags&ElementFlagsVariable != 0, 0, 1)
 		}
 	}
 	return length
@@ -1750,12 +1770,12 @@ func (c *Checker) getMinArgumentCountEx(signature *Signature, flags MinArgumentC
 		if signatureHasRestParameter(signature) {
 			restType := c.getTypeOfSymbol(signature.parameters[len(signature.parameters)-1])
 			if isTupleType(restType) {
-				firstOptionalIndex := core.FindIndex(restType.TargetTupleType().elementInfos, func(info TupleElementInfo) bool {
+				firstOptionalIndex := core.FindIndex(restType.TargetTupleType().tuple().elementInfos, func(info TupleElementInfo) bool {
 					return info.flags&ElementFlagsRequired == 0
 				})
 				requiredCount := firstOptionalIndex
 				if firstOptionalIndex < 0 {
-					requiredCount = restType.TargetTupleType().fixedLength
+					requiredCount = restType.TargetTupleType().tuple().fixedLength
 				}
 				if requiredCount > 0 {
 					minArgumentCount = len(signature.parameters) - 1 + requiredCount
@@ -1786,7 +1806,7 @@ func (c *Checker) getMinArgumentCountEx(signature *Signature, flags MinArgumentC
 func (c *Checker) hasEffectiveRestParameter(signature *Signature) bool {
 	if signatureHasRestParameter(signature) {
 		restType := c.getTypeOfSymbol(signature.parameters[len(signature.parameters)-1])
-		return !isTupleType(restType) || restType.TargetTupleType().combinedFlags&ElementFlagsVariable != 0
+		return !isTupleType(restType) || restType.TargetTupleType().tuple().combinedFlags&ElementFlagsVariable != 0
 	}
 	return false
 }
@@ -1810,7 +1830,7 @@ func (c *Checker) tryGetTypeAtPosition(signature *Signature, pos int) *Type {
 		// otherwise would return the type 'undefined').
 		restType := c.getTypeOfSymbol(signature.parameters[paramCount])
 		index := pos - paramCount
-		if !isTupleType(restType) || restType.TargetTupleType().combinedFlags&ElementFlagsVariable != 0 || index < restType.TargetTupleType().fixedLength {
+		if !isTupleType(restType) || restType.TargetTupleType().tuple().combinedFlags&ElementFlagsVariable != 0 || index < restType.TargetTupleType().tuple().fixedLength {
 			return c.getIndexedAccessType(restType, c.getNumberLiteralType(jsnum.Number(index)))
 		}
 	}
@@ -1874,7 +1894,7 @@ func (c *Checker) getNameableDeclarationAtPosition(signature *Signature, pos int
 		restParameter := signature.parameters[paramCount]
 		restType := c.getTypeOfSymbol(restParameter)
 		if isTupleType(restType) {
-			elementInfos := restType.TargetTupleType().elementInfos
+			elementInfos := restType.TargetTupleType().tuple().elementInfos
 			index := pos - paramCount
 			if index < len(elementInfos) {
 				return elementInfos[index].labeledDeclaration
@@ -1909,8 +1929,8 @@ func (c *Checker) getEffectiveRestType(signature *Signature) *Type {
 			}
 			return restType
 		}
-		if restType.TargetTupleType().combinedFlags&ElementFlagsVariable != 0 {
-			return c.sliceTupleType(restType, restType.TargetTupleType().fixedLength, 0)
+		if restType.TargetTupleType().tuple().combinedFlags&ElementFlagsVariable != 0 {
+			return c.sliceTupleType(restType, restType.TargetTupleType().tuple().fixedLength, 0)
 		}
 	}
 	return nil
@@ -1919,7 +1939,7 @@ func (c *Checker) getEffectiveRestType(signature *Signature) *Type {
 func (c *Checker) sliceTupleType(t *Type, index int, endSkipCount int) *Type {
 	target := t.TargetTupleType()
 	endIndex := c.getTypeReferenceArity(t) - max(endSkipCount, 0)
-	if index > target.fixedLength {
+	if index > target.tuple().fixedLength {
 		if restArrayType := c.getRestArrayTypeOfTupleType(t); restArrayType != nil {
 			return restArrayType
 		}
@@ -1928,16 +1948,16 @@ func (c *Checker) sliceTupleType(t *Type, index int, endSkipCount int) *Type {
 	if index >= endIndex {
 		return c.createTupleType(nil)
 	}
-	return c.createTupleTypeEx(c.getTypeArguments(t)[index:endIndex], target.elementInfos[index:endIndex], false /*readonly*/)
+	return c.createTupleTypeEx(c.getTypeArguments(t)[index:endIndex], target.tuple().elementInfos[index:endIndex], false /*readonly*/)
 }
 
 func (c *Checker) getKnownKeysOfTupleType(t *Type) *Type {
-	fixedLength := t.TargetTupleType().fixedLength
+	fixedLength := t.TargetTupleType().tuple().fixedLength
 	keys := make([]*Type, fixedLength+1)
 	for i := range fixedLength {
 		keys[i] = c.getStringLiteralType(strconv.Itoa(i))
 	}
-	keys[fixedLength] = c.getIndexType(core.IfElse(t.TargetTupleType().readonly, c.globalReadonlyArrayType, c.globalArrayType))
+	keys[fixedLength] = c.getIndexType(core.IfElse(t.TargetTupleType().tuple().readonly, c.globalReadonlyArrayType, c.globalArrayType))
 	return c.getUnionType(keys)
 }
 
@@ -1972,7 +1992,7 @@ func (c *Checker) getParameterNameAtPosition(signature *Signature, pos int) ast.
 	restType := c.getTypeOfSymbol(restParameter)
 	if isTupleType(restType) {
 		index := pos - paramCount
-		return c.getTupleElementLabel(restType.TargetTupleType().elementInfos[index], restParameter, index)
+		return c.getTupleElementLabel(restType.TargetTupleType().tuple().elementInfos[index], restParameter, index)
 	}
 	return restParameter.Name()
 }
@@ -2356,10 +2376,10 @@ func (c *Checker) getEffectiveConstraintOfIntersection(types []*Type, targetIsUn
 
 func (c *Checker) templateLiteralTypesDefinitelyUnrelated(source *TemplateLiteralType, target *TemplateLiteralType) bool {
 	// Two template literal types with differences in their starting or ending text spans are definitely unrelated.
-	sourceStart := source.texts[0]
-	targetStart := target.texts[0]
-	sourceEnd := source.texts[len(source.texts)-1]
-	targetEnd := target.texts[len(target.texts)-1]
+	sourceStart := source.texts()[0]
+	targetStart := target.texts()[0]
+	sourceEnd := source.texts()[len(source.texts())-1]
+	targetEnd := target.texts()[len(target.texts())-1]
 	startLen := min(len(sourceStart), len(targetStart))
 	endLen := min(len(sourceEnd), len(targetEnd))
 	return sourceStart[:startLen] != targetStart[:startLen] || sourceEnd[len(sourceEnd)-endLen:] != targetEnd[len(targetEnd)-endLen:]
@@ -2369,7 +2389,7 @@ func (c *Checker) isTypeMatchedByTemplateLiteralType(source *Type, target *Templ
 	inferences := c.inferTypesFromTemplateLiteralType(source, target, compareTypes)
 	if inferences != nil {
 		for i, inference := range inferences {
-			if !c.isValidTypeForTemplateLiteralPlaceholder(inference, target.types[i], compareTypes) {
+			if !c.isValidTypeForTemplateLiteralPlaceholder(inference, target.types()[i], compareTypes) {
 				return false
 			}
 		}
@@ -2383,15 +2403,15 @@ func (c *Checker) inferTypesFromTemplateLiteralType(source *Type, target *Templa
 	case source.flags&TypeFlagsStringLiteral != 0:
 		return c.inferFromLiteralPartsToTemplateLiteral([]string{getStringLiteralValue(source)}, nil, target)
 	case source.flags&TypeFlagsTemplateLiteral != 0:
-		if slices.Equal(source.AsTemplateLiteralType().texts, target.texts) {
-			return core.MapIndex(source.AsTemplateLiteralType().types, func(s *Type, i int) *Type {
-				if compareTypes(c.getBaseConstraintOrType(s), c.getBaseConstraintOrType(target.types[i]), false /*partialMatch*/) != TernaryFalse {
+		if slices.Equal(source.AsTemplateLiteralType().texts(), target.texts()) {
+			return core.MapIndex(source.AsTemplateLiteralType().types(), func(s *Type, i int) *Type {
+				if compareTypes(c.getBaseConstraintOrType(s), c.getBaseConstraintOrType(target.types()[i]), false /*partialMatch*/) != TernaryFalse {
 					return s
 				}
 				return c.getStringLikeTypeForType(s)
 			})
 		}
-		return c.inferFromLiteralPartsToTemplateLiteral(source.AsTemplateLiteralType().texts, source.AsTemplateLiteralType().types, target)
+		return c.inferFromLiteralPartsToTemplateLiteral(source.AsTemplateLiteralType().texts(), source.AsTemplateLiteralType().types(), target)
 	default:
 		return nil
 	}
@@ -2422,7 +2442,7 @@ func (c *Checker) inferFromLiteralPartsToTemplateLiteral(sourceTexts []string, s
 	lastSourceIndex := len(sourceTexts) - 1
 	sourceStartText := sourceTexts[0]
 	sourceEndText := sourceTexts[lastSourceIndex]
-	targetTexts := target.texts
+	targetTexts := target.texts()
 	lastTargetIndex := len(targetTexts) - 1
 	targetStartText := targetTexts[0]
 	targetEndText := targetTexts[lastTargetIndex]
@@ -2521,12 +2541,12 @@ func (c *Checker) isValidTypeForTemplateLiteralPlaceholder(source *Type, target 
 		value := getStringLiteralValue(source)
 		return target.flags&TypeFlagsNumber != 0 && isValidNumberString(value, false /*roundTripOnly*/) ||
 			target.flags&TypeFlagsBigInt != 0 && isValidBigIntString(value, false /*roundTripOnly*/) ||
-			target.flags&(TypeFlagsBooleanLiteral|TypeFlagsNullable) != 0 && value == target.AsIntrinsicType().intrinsicName ||
+			target.flags&(TypeFlagsBooleanLiteral|TypeFlagsNullable) != 0 && value == target.AsIntrinsicType().IntrinsicName() ||
 			target.flags&TypeFlagsStringMapping != 0 && c.isMemberOfStringMapping(source, target) ||
 			target.flags&TypeFlagsTemplateLiteral != 0 && c.isTypeMatchedByTemplateLiteralType(source, target.AsTemplateLiteralType(), compareTypes)
 	case source.flags&TypeFlagsTemplateLiteral != 0:
-		texts := source.AsTemplateLiteralType().texts
-		return len(texts) == 2 && texts[0] == "" && texts[1] == "" && compareTypes(source.AsTemplateLiteralType().types[0], target, false) != TernaryFalse
+		texts := source.AsTemplateLiteralType().texts()
+		return len(texts) == 2 && texts[0] == "" && texts[1] == "" && compareTypes(source.AsTemplateLiteralType().types()[0], target, false) != TernaryFalse
 	}
 	return false
 }
@@ -2552,11 +2572,11 @@ func (c *Checker) isMemberOfStringMapping(source *Type, target *Type) bool {
 }
 
 func (c *Checker) applyTargetStringMappingToSource(source *Type, target *Type) (*Type, *Type) {
-	inner := target.AsStringMappingType().target
+	inner := target.AsStringMappingType().target()
 	if inner.flags&TypeFlagsStringMapping != 0 {
 		source, inner = c.applyTargetStringMappingToSource(source, inner)
 	}
-	return c.getStringMappingType(target.Symbol(), source), inner
+	return c.getStringMappingType(c.symbolOfType(target), source), inner
 }
 
 func visibilityToString(flags ast.ModifierFlags) string {
@@ -2703,7 +2723,7 @@ func (r *Relater) isRelatedToEx(originalSource *Type, originalTarget *Type, recu
 		if isPerformingExcessPropertyChecks {
 			if r.hasExcessProperties(source, target, reportErrors) {
 				if reportErrors {
-					r.reportRelationError(headMessage, source, core.IfElse(originalTarget.alias != nil, originalTarget, target))
+					r.reportRelationError(headMessage, source, core.IfElse(originalTarget.Alias() != nil, originalTarget, target))
 				}
 				return TernaryFalse
 			}
@@ -2715,8 +2735,8 @@ func (r *Relater) isRelatedToEx(originalSource *Type, originalTarget *Type, recu
 		isComparingJsxAttributes := source.objectFlags&ObjectFlagsJsxAttributes != 0
 		if isPerformingCommonPropertyChecks && !r.c.hasCommonProperties(source, target, isComparingJsxAttributes) {
 			if reportErrors {
-				sourceString := r.c.TypeToString(core.IfElse(originalSource.alias != nil, originalSource, source))
-				targetString := r.c.TypeToString(core.IfElse(originalTarget.alias != nil, originalTarget, target))
+				sourceString := r.c.TypeToString(core.IfElse(originalSource.Alias() != nil, originalSource, source))
+				targetString := r.c.TypeToString(core.IfElse(originalTarget.Alias() != nil, originalTarget, target))
 				calls := r.c.getSignaturesOfType(source, SignatureKindCall)
 				constructs := r.c.getSignaturesOfType(source, SignatureKindConstruct)
 				if len(calls) > 0 && r.isRelatedTo(r.c.getReturnTypeOfSignature(calls[0]), target, RecursionFlagsSource, false /*reportErrors*/) != TernaryFalse ||
@@ -2766,7 +2786,7 @@ func (r *Relater) hasExcessProperties(source *Type, target *Type, reportErrors b
 		checkTypes = reducedTarget.Distributed()
 	}
 	for _, prop := range r.c.getPropertiesOfType(source) {
-		if shouldCheckAsExcessProperty(prop, source.Symbol()) && !isIgnoredJsxProperty(source, prop) {
+		if shouldCheckAsExcessProperty(prop, r.c.symbolOfType(source)) && !isIgnoredJsxProperty(source, prop) {
 			if !r.c.isKnownProperty(reducedTarget, prop.Name(), isComparingJsxAttributes) {
 				if reportErrors {
 					// Report error in terms of object types in the target as those are the only ones
@@ -2796,8 +2816,8 @@ func (r *Relater) hasExcessProperties(source *Type, target *Type, reportErrors b
 					} else {
 						// use the property's value declaration if the property is assigned inside the literal itself
 						var objectLiteralDeclaration ast.Node
-						if !source.Symbol().IsNil() {
-							objectLiteralDeclaration = source.Symbol().Declarations().FirstOrNil()
+						if !r.c.symbolOfType(source).IsNil() {
+							objectLiteralDeclaration = r.c.symbolOfType(source).Declarations().FirstOrNil()
 						}
 						var suggestion string
 						if !prop.ValueDeclaration().IsNil() && ast.IsObjectLiteralElement(prop.ValueDeclaration()) &&
@@ -2873,7 +2893,7 @@ func (c *Checker) isTypeSubsetOfUnion(source *Type, target *Type) bool {
 		if len(sourceTypes) > len(targetTypes) {
 			return false
 		}
-		// Scan by identity unless a few source types are looked for in a large target. A CompareTypes call costs
+		// Scan by identity unless a few source types are looked for in a large target. A c.CompareTypes call costs
 		// roughly 8 pointer comparisons, so there a binary search is cheaper than walking the target.
 		if len(sourceTypes)*bits.Len(uint(len(targetTypes)))*8 >= len(targetTypes) {
 			for _, t := range sourceTypes {
@@ -2881,13 +2901,13 @@ func (c *Checker) isTypeSubsetOfUnion(source *Type, target *Type) bool {
 				if i < 0 {
 					return false
 				}
-				// Union types are sorted by CompareTypes, so the next source type can only appear after this one.
+				// Union types are sorted by c.CompareTypes, so the next source type can only appear after this one.
 				targetTypes = targetTypes[i+1:]
 			}
 			return true
 		}
 		for _, t := range sourceTypes {
-			i, found := slices.BinarySearchFunc(targetTypes, t, CompareTypes)
+			i, found := slices.BinarySearchFunc(targetTypes, t, c.CompareTypes)
 			if !found {
 				return false
 			}
@@ -2898,7 +2918,7 @@ func (c *Checker) isTypeSubsetOfUnion(source *Type, target *Type) bool {
 	if source.flags&TypeFlagsEnumLike != 0 && c.getBaseTypeOfEnumLikeType(source) == target {
 		return true
 	}
-	return containsType(target.Types(), source)
+	return c.containsType(target.Types(), source)
 }
 
 func (r *Relater) unionOrIntersectionRelatedTo(source *Type, target *Type, reportErrors bool, intersectionState IntersectionState) Ternary {
@@ -2911,14 +2931,14 @@ func (r *Relater) unionOrIntersectionRelatedTo(source *Type, target *Type, repor
 			// unions can get very large and expensive to relate. The following fast path checks if the source union
 			// originated in an intersection. If so, and if that intersection contains the target type, then we know
 			// the result to be true (for any two types A and B, A & B is related to both A and B).
-			sourceOrigin := source.AsUnionType().origin
-			if sourceOrigin != nil && sourceOrigin.flags&TypeFlagsIntersection != 0 && target.alias != nil && slices.Contains(sourceOrigin.Types(), target) {
+			sourceOrigin := source.AsUnionType().origin()
+			if sourceOrigin != nil && sourceOrigin.flags&TypeFlagsIntersection != 0 && target.Alias() != nil && slices.Contains(sourceOrigin.Types(), target) {
 				return TernaryTrue
 			}
 			// Similarly, in unions of unions the we preserve the original list of unions. This original list is often
 			// much shorter than the normalized result, so we scan it in the following fast path.
-			targetOrigin := target.AsUnionType().origin
-			if targetOrigin != nil && targetOrigin.flags&TypeFlagsUnion != 0 && source.alias != nil && slices.Contains(targetOrigin.Types(), source) {
+			targetOrigin := target.AsUnionType().origin()
+			if targetOrigin != nil && targetOrigin.flags&TypeFlagsUnion != 0 && source.Alias() != nil && slices.Contains(targetOrigin.Types(), source) {
 				return TernaryTrue
 			}
 		}
@@ -2972,7 +2992,7 @@ func (r *Relater) unionOrIntersectionRelatedTo(source *Type, target *Type, repor
 
 func (r *Relater) someTypeRelatedToType(source *Type, target *Type, reportErrors bool, intersectionState IntersectionState) Ternary {
 	sourceTypes := source.Types()
-	if source.flags&TypeFlagsUnion != 0 && containsType(sourceTypes, target) {
+	if source.flags&TypeFlagsUnion != 0 && r.c.containsType(sourceTypes, target) {
 		return TernaryTrue
 	}
 	for i, t := range sourceTypes {
@@ -3026,7 +3046,7 @@ func (r *Relater) getUndefinedStrippedTargetIfNeeded(source *Type, target *Type)
 func (r *Relater) typeRelatedToSomeType(source *Type, target *Type, reportErrors bool, intersectionState IntersectionState) Ternary {
 	targetTypes := target.Types()
 	if target.flags&TypeFlagsUnion != 0 {
-		if containsType(targetTypes, source) {
+		if r.c.containsType(targetTypes, source) {
 			return TernaryTrue
 		}
 		if r.relation != r.c.comparableRelation && target.objectFlags&ObjectFlagsPrimitiveUnion != 0 && source.flags&TypeFlagsEnumLiteral == 0 &&
@@ -3039,10 +3059,10 @@ func (r *Relater) typeRelatedToSomeType(source *Type, target *Type, reportErrors
 			// identically named enum types are related (see isEnumTypeRelatedTo). We exclude the comparable
 			// relation in entirety because it needs to be checked in both directions.
 			var alternateForm *Type
-			if source == source.AsLiteralType().regularType {
-				alternateForm = source.AsLiteralType().freshType
+			if source == source.AsLiteralType().RegularType() {
+				alternateForm = source.AsLiteralType().FreshType()
 			} else {
-				alternateForm = source.AsLiteralType().regularType
+				alternateForm = source.AsLiteralType().RegularType()
 			}
 			var primitive *Type
 			switch {
@@ -3053,7 +3073,7 @@ func (r *Relater) typeRelatedToSomeType(source *Type, target *Type, reportErrors
 			case source.flags&TypeFlagsBigIntLiteral != 0:
 				primitive = r.c.bigintType
 			}
-			if primitive != nil && containsType(targetTypes, primitive) || alternateForm != nil && containsType(targetTypes, alternateForm) {
+			if primitive != nil && r.c.containsType(targetTypes, primitive) || alternateForm != nil && r.c.containsType(targetTypes, alternateForm) {
 				return TernaryTrue
 			}
 			return TernaryFalse
@@ -3119,7 +3139,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		// important to have well-defined behavior even in cases that shouldn't normally occur.
 		return TernaryFalse
 	}
-	id, constrained := getRelationKey(source, target, intersectionState, r.relation == r.c.identityRelation, false /*ignoreConstraints*/)
+	id, constrained := r.c.getRelationKey(source, target, intersectionState, r.relation == r.c.identityRelation, false /*ignoreConstraints*/)
 	if entry := r.relation.get(id); entry != RelationComparisonResultNone {
 		if reportErrors && entry&RelationComparisonResultFailed != 0 && entry&RelationComparisonResultOverflow == 0 {
 			// We are elaborating errors and the cached result is a failure not due to a comparison overflow,
@@ -3147,7 +3167,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	// type parameters. For such keys we also check against the key we would have gotten if all type parameters
 	// were unconstrained.
 	if constrained {
-		broadestEquivalentId, _ := getRelationKey(source, target, intersectionState, r.relation == r.c.identityRelation, true /*ignoreConstraints*/)
+		broadestEquivalentId, _ := r.c.getRelationKey(source, target, intersectionState, r.relation == r.c.identityRelation, true /*ignoreConstraints*/)
 		if r.maybeKeysSet.Has(broadestEquivalentId) {
 			return TernaryMaybe
 		}
@@ -3179,12 +3199,12 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	var result Ternary
 	if r.expandingFlags == ExpandingFlagsBoth {
 		if tr := r.c.tracer; tr != nil {
-			tr.Instant(tracing.PhaseCheckTypes, "recursiveTypeRelatedTo_DepthLimit", map[string]any{"sourceId": source.id, "targetId": target.id, "depth": len(r.sourceStack), "targetDepth": len(r.targetStack)})
+			tr.Instant(tracing.PhaseCheckTypes, "recursiveTypeRelatedTo_DepthLimit", map[string]any{"sourceId": source.Id(), "targetId": target.Id(), "depth": len(r.sourceStack), "targetDepth": len(r.targetStack)})
 		}
 		result = TernaryMaybe
 	} else {
 		if tr := r.c.tracer; tr != nil {
-			defer tr.Push(tracing.PhaseCheckTypes, "structuredTypeRelatedTo", map[string]any{"sourceId": source.id, "targetId": target.id}, false)()
+			defer tr.Push(tracing.PhaseCheckTypes, "structuredTypeRelatedTo", map[string]any{"sourceId": source.Id(), "targetId": target.Id()}, false)()
 		}
 		result = r.structuredTypeRelatedTo(source, target, reportErrors, intersectionState)
 	}
@@ -3372,18 +3392,18 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 		case source.flags&TypeFlagsIndex != 0:
 			return r.isRelatedTo(source.Target(), target.Target(), RecursionFlagsBoth, false /*reportErrors*/)
 		case source.flags&TypeFlagsIndexedAccess != 0:
-			result = r.isRelatedTo(source.AsIndexedAccessType().objectType, target.AsIndexedAccessType().objectType, RecursionFlagsBoth, false /*reportErrors*/)
+			result = r.isRelatedTo(source.AsIndexedAccessType().objectType(), target.AsIndexedAccessType().objectType(), RecursionFlagsBoth, false /*reportErrors*/)
 			if result != TernaryFalse {
-				result &= r.isRelatedTo(source.AsIndexedAccessType().indexType, target.AsIndexedAccessType().indexType, RecursionFlagsBoth, false /*reportErrors*/)
+				result &= r.isRelatedTo(source.AsIndexedAccessType().indexType(), target.AsIndexedAccessType().indexType(), RecursionFlagsBoth, false /*reportErrors*/)
 				if result != TernaryFalse {
 					return result
 				}
 			}
 		case source.flags&TypeFlagsConditional != 0:
-			if source.AsConditionalType().root.isDistributive == target.AsConditionalType().root.isDistributive {
-				result = r.isRelatedTo(source.AsConditionalType().checkType, target.AsConditionalType().checkType, RecursionFlagsBoth, false /*reportErrors*/)
+			if source.AsConditionalType().cond().root.isDistributive == target.AsConditionalType().cond().root.isDistributive {
+				result = r.isRelatedTo(source.AsConditionalType().checkType(), target.AsConditionalType().checkType(), RecursionFlagsBoth, false /*reportErrors*/)
 				if result != TernaryFalse {
-					result &= r.isRelatedTo(source.AsConditionalType().extendsType, target.AsConditionalType().extendsType, RecursionFlagsBoth, false /*reportErrors*/)
+					result &= r.isRelatedTo(source.AsConditionalType().extendsType(), target.AsConditionalType().extendsType(), RecursionFlagsBoth, false /*reportErrors*/)
 					if result != TernaryFalse {
 						result &= r.isRelatedTo(r.c.getTrueTypeFromConditionalType(source), r.c.getTrueTypeFromConditionalType(target), RecursionFlagsBoth, false /*reportErrors*/)
 						if result != TernaryFalse {
@@ -3396,18 +3416,18 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 				}
 			}
 		case source.flags&TypeFlagsSubstitution != 0:
-			result = r.isRelatedTo(source.AsSubstitutionType().baseType, target.AsSubstitutionType().baseType, RecursionFlagsBoth, false /*reportErrors*/)
+			result = r.isRelatedTo(source.AsSubstitutionType().baseType(), target.AsSubstitutionType().baseType(), RecursionFlagsBoth, false /*reportErrors*/)
 			if result != TernaryFalse {
-				result &= r.isRelatedTo(source.AsSubstitutionType().constraint, target.AsSubstitutionType().constraint, RecursionFlagsBoth, false /*reportErrors*/)
+				result &= r.isRelatedTo(source.AsSubstitutionType().constraint(), target.AsSubstitutionType().constraint(), RecursionFlagsBoth, false /*reportErrors*/)
 				if result != TernaryFalse {
 					return result
 				}
 			}
 		case source.flags&TypeFlagsTemplateLiteral != 0:
-			if slices.Equal(source.AsTemplateLiteralType().texts, target.AsTemplateLiteralType().texts) {
+			if slices.Equal(source.AsTemplateLiteralType().texts(), target.AsTemplateLiteralType().texts()) {
 				result = TernaryTrue
-				for i, sourceType := range source.AsTemplateLiteralType().types {
-					targetType := target.AsTemplateLiteralType().types[i]
+				for i, sourceType := range source.AsTemplateLiteralType().types() {
+					targetType := target.AsTemplateLiteralType().types()[i]
 					result &= r.isRelatedTo(sourceType, targetType, RecursionFlagsBoth, false /*reportErrors*/)
 					if result == TernaryFalse {
 						return result
@@ -3416,8 +3436,8 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 				return result
 			}
 		case source.flags&TypeFlagsStringMapping != 0:
-			if source.AsStringMappingType().Symbol() == target.AsStringMappingType().Symbol() {
-				return r.isRelatedTo(source.AsStringMappingType().target, target.AsStringMappingType().target, RecursionFlagsBoth, false /*reportErrors*/)
+			if r.c.symbolOfType(source) == r.c.symbolOfType(target) {
+				return r.isRelatedTo(source.AsStringMappingType().target(), target.AsStringMappingType().target(), RecursionFlagsBoth, false /*reportErrors*/)
 			}
 		}
 		if source.flags&TypeFlagsObject == 0 {
@@ -3443,17 +3463,17 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 	// We limit alias variance probing to only object and conditional types since their alias behavior
 	// is more predictable than other, interned types, which may or may not have an alias depending on
 	// the order in which things were checked.
-	if source.flags&(TypeFlagsObject|TypeFlagsConditional) != 0 && source.alias != nil && len(source.alias.typeArguments) != 0 &&
-		target.alias != nil && source.alias.symbol == target.alias.symbol && !(r.c.isMarkerType(source) || r.c.isMarkerType(target)) {
-		variances := r.c.getAliasVariances(source.alias.symbol)
+	if source.flags&(TypeFlagsObject|TypeFlagsConditional) != 0 && source.Alias() != nil && len(source.Alias().typeArguments) != 0 &&
+		target.Alias() != nil && source.Alias().symbol == target.Alias().symbol && !(r.c.isMarkerType(source) || r.c.isMarkerType(target)) {
+		variances := r.c.getAliasVariances(source.Alias().symbol)
 		if len(variances) == 0 {
 			return TernaryUnknown
 		}
-		params := r.c.typeAliasLinks.Get(source.alias.symbol).typeParameters
+		params := r.c.typeAliasLinks.Get(source.Alias().symbol).typeParameters
 		minParams := r.c.getMinTypeArgumentCount(params)
-		nodeIsInJsFile := ast.IsInJSFile(source.alias.symbol.ValueDeclaration())
-		sourceTypes := r.c.fillMissingTypeArguments(source.alias.typeArguments, params, minParams, nodeIsInJsFile)
-		targetTypes := r.c.fillMissingTypeArguments(target.alias.typeArguments, params, minParams, nodeIsInJsFile)
+		nodeIsInJsFile := ast.IsInJSFile(source.Alias().symbol.ValueDeclaration())
+		sourceTypes := r.c.fillMissingTypeArguments(source.Alias().typeArguments, params, minParams, nodeIsInJsFile)
+		targetTypes := r.c.fillMissingTypeArguments(target.Alias().typeArguments, params, minParams, nodeIsInJsFile)
 		varianceResult, ok := relateVariances(sourceTypes, targetTypes, variances, intersectionState)
 		if ok {
 			return varianceResult
@@ -3461,13 +3481,13 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 	}
 	// For a generic type T and a type U that is assignable to T, [...U] is assignable to T, U is assignable to readonly [...T],
 	// and U is assignable to [...T] when U is constrained to a mutable array or tuple type.
-	if isSingleElementGenericTupleType(source) && !source.TargetTupleType().readonly {
+	if isSingleElementGenericTupleType(source) && !source.TargetTupleType().tuple().readonly {
 		result = r.isRelatedTo(r.c.getTypeArguments(source)[0], target, RecursionFlagsSource, false /*reportErrors*/)
 		if result != TernaryFalse {
 			return result
 		}
 	}
-	if isSingleElementGenericTupleType(target) && (target.TargetTupleType().readonly || r.c.isMutableArrayOrTuple(r.c.getBaseConstraintOrType(source))) {
+	if isSingleElementGenericTupleType(target) && (target.TargetTupleType().tuple().readonly || r.c.isMutableArrayOrTuple(r.c.getBaseConstraintOrType(source))) {
 		result = r.isRelatedTo(source, r.c.getTypeArguments(target)[0], RecursionFlagsTarget, false /*reportErrors*/)
 		if result != TernaryFalse {
 			return result
@@ -3476,7 +3496,7 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 	switch {
 	case target.flags&TypeFlagsTypeParameter != 0:
 		// A source type { [P in Q]: X } is related to a target type T if keyof T is related to Q and X is related to T[Q].
-		if source.objectFlags&ObjectFlagsMapped != 0 && source.AsMappedType().declaration.NameType().IsNil() && r.isRelatedTo(r.c.getIndexType(target), r.c.getConstraintTypeFromMappedType(source), RecursionFlagsBoth, false) != TernaryFalse {
+		if source.objectFlags&ObjectFlagsMapped != 0 && source.AsMappedType().mapped().declaration.NameType().IsNil() && r.isRelatedTo(r.c.getIndexType(target), r.c.getConstraintTypeFromMappedType(source), RecursionFlagsBoth, false) != TernaryFalse {
 			if getMappedTypeModifiers(source)&MappedTypeModifiersIncludeOptional == 0 {
 				templateType := r.c.getTemplateTypeFromMappedType(source)
 				indexedAccessType := r.c.getIndexedAccessType(target, r.c.getTypeParameterFromMappedType(source))
@@ -3498,9 +3518,9 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 		if source.flags&TypeFlagsIndexedAccess != 0 {
 			// Relate components directly before falling back to constraint relationships
 			// A type S[K] is related to a type T[J] if S is related to T and K is related to J.
-			result = r.isRelatedTo(source.AsIndexedAccessType().objectType, target.AsIndexedAccessType().objectType, RecursionFlagsBoth, reportErrors)
+			result = r.isRelatedTo(source.AsIndexedAccessType().objectType(), target.AsIndexedAccessType().objectType(), RecursionFlagsBoth, reportErrors)
 			if result != TernaryFalse {
-				result &= r.isRelatedTo(source.AsIndexedAccessType().indexType, target.AsIndexedAccessType().indexType, RecursionFlagsBoth, reportErrors)
+				result &= r.isRelatedTo(source.AsIndexedAccessType().indexType(), target.AsIndexedAccessType().indexType(), RecursionFlagsBoth, reportErrors)
 			}
 			if result != TernaryFalse {
 				return result
@@ -3512,8 +3532,8 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 		// A type S is related to a type T[K] if S is related to C, where C is the base
 		// constraint of T[K] for writing.
 		if r.relation == r.c.assignableRelation || r.relation == r.c.comparableRelation {
-			objectType := target.AsIndexedAccessType().objectType
-			indexType := target.AsIndexedAccessType().indexType
+			objectType := target.AsIndexedAccessType().objectType()
+			indexType := target.AsIndexedAccessType().indexType()
 			baseObjectType := r.c.getBaseConstraintOrType(objectType)
 			baseIndexType := r.c.getBaseConstraintOrType(indexType)
 			if !r.c.isGenericObjectType(baseObjectType) && !r.c.isGenericIndexType(baseIndexType) {
@@ -3541,10 +3561,10 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 			originalErrorChain = nil
 		}
 	case target.flags&TypeFlagsIndex != 0:
-		targetType := target.AsIndexType().target
+		targetType := target.AsIndexType().target()
 		// A keyof S is related to a keyof T if T is related to S.
 		if source.flags&TypeFlagsIndex != 0 {
-			result = r.isRelatedTo(targetType, source.AsIndexType().target, RecursionFlagsBoth, false /*reportErrors*/)
+			result = r.isRelatedTo(targetType, source.AsIndexType().target(), RecursionFlagsBoth, false /*reportErrors*/)
 			if result != TernaryFalse {
 				return result
 			}
@@ -3565,7 +3585,7 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 				// false positives. For example, given 'T extends { [K in keyof T]: string }',
 				// 'keyof T' has itself as its constraint and produces a Ternary.Maybe when
 				// related to other types.
-				if r.isRelatedTo(source, r.c.getIndexTypeEx(constraint, target.AsIndexType().indexFlags|IndexFlagsNoReducibleCheck), RecursionFlagsTarget, reportErrors) == TernaryTrue {
+				if r.isRelatedTo(source, r.c.getIndexTypeEx(constraint, target.AsIndexType().indexFlags()|IndexFlagsNoReducibleCheck), RecursionFlagsTarget, reportErrors) == TernaryTrue {
 					return TernaryTrue
 				}
 			} else if r.c.isGenericMappedType(targetType) {
@@ -3602,10 +3622,10 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 		// 'infer' positions, is not distributive or is distributive but doesn't reference the check type
 		// parameter in either of the result types, and the source isn't an instantiation of the same
 		// conditional type (as happens when computing variance).
-		if c.root.inferTypeParameters == nil && !r.c.isDistributionDependent(c.root) && !(source.flags&TypeFlagsConditional != 0 && source.AsConditionalType().root == c.root) {
+		if c.cond().root.inferTypeParameters == nil && !r.c.isDistributionDependent(c.cond().root) && !(source.flags&TypeFlagsConditional != 0 && source.AsConditionalType().cond().root == c.cond().root) {
 			// Check if the conditional is always true or always false but still deferred for distribution purposes.
-			skipTrue := !r.c.isTypeAssignableTo(r.c.getPermissiveInstantiation(c.checkType), r.c.getPermissiveInstantiation(c.extendsType))
-			skipFalse := !skipTrue && r.c.isTypeAssignableTo(r.c.getRestrictiveInstantiation(c.checkType), r.c.getRestrictiveInstantiation(c.extendsType))
+			skipTrue := !r.c.isTypeAssignableTo(r.c.getPermissiveInstantiation(c.checkType()), r.c.getPermissiveInstantiation(c.extendsType()))
+			skipFalse := !skipTrue && r.c.isTypeAssignableTo(r.c.getRestrictiveInstantiation(c.checkType()), r.c.getRestrictiveInstantiation(c.extendsType()))
 			// TODO: Find a nice way to include potential conditional type breakdowns in error output, if they seem good (they usually don't)
 			if skipTrue {
 				result = TernaryTrue
@@ -3646,13 +3666,13 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 		}
 	case r.c.isGenericMappedType(target) && r.relation != r.c.identityRelation:
 		// Check if source type `S` is related to target type `{ [P in Q]: T }` or `{ [P in Q as R]: T}`.
-		keysRemapped := !target.AsMappedType().declaration.NameType().IsNil()
+		keysRemapped := !target.AsMappedType().mapped().declaration.NameType().IsNil()
 		templateType := r.c.getTemplateTypeFromMappedType(target)
 		modifiers := getMappedTypeModifiers(target)
 		if modifiers&MappedTypeModifiersExcludeOptional == 0 {
 			// If the mapped type has shape `{ [P in Q]: T[P] }`,
 			// source `S` is related to target if `T` = `S`, i.e. `S` is related to `{ [P in Q]: S[P] }`.
-			if !keysRemapped && templateType.flags&TypeFlagsIndexedAccess != 0 && templateType.AsIndexedAccessType().objectType == source && templateType.AsIndexedAccessType().indexType == r.c.getTypeParameterFromMappedType(target) {
+			if !keysRemapped && templateType.flags&TypeFlagsIndexedAccess != 0 && templateType.AsIndexedAccessType().objectType() == source && templateType.AsIndexedAccessType().indexType() == r.c.getTypeParameterFromMappedType(target) {
 				return TernaryTrue
 			}
 			if !r.c.isGenericMappedType(source) {
@@ -3681,8 +3701,8 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 					// Fastpath: When the template type has the form `Obj[P]` where `P` is the mapped type parameter, directly compare source `S` with `Obj`
 					// to avoid creating the (potentially very large) number of new intermediate types made by manufacturing `S[P]`.
 					nonNullComponent := r.c.extractTypesOfKind(templateType, ^TypeFlagsNullable)
-					if !keysRemapped && nonNullComponent.flags&TypeFlagsIndexedAccess != 0 && nonNullComponent.AsIndexedAccessType().indexType == typeParameter {
-						result = r.isRelatedTo(source, nonNullComponent.AsIndexedAccessType().objectType, RecursionFlagsTarget, reportErrors)
+					if !keysRemapped && nonNullComponent.flags&TypeFlagsIndexedAccess != 0 && nonNullComponent.AsIndexedAccessType().indexType() == typeParameter {
+						result = r.isRelatedTo(source, nonNullComponent.AsIndexedAccessType().objectType(), RecursionFlagsTarget, reportErrors)
 						if result != TernaryFalse {
 							return result
 						}
@@ -3736,9 +3756,9 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 			if r.c.isMappedTypeGenericIndexedAccess(source) {
 				// For an indexed access type { [P in K]: E}[X], above we have already explored an instantiation of E with X
 				// substituted for P. We also want to explore type { [P in K]: E }[C], where C is the constraint of X.
-				indexConstraint := r.c.getConstraintOfType(source.AsIndexedAccessType().indexType)
+				indexConstraint := r.c.getConstraintOfType(source.AsIndexedAccessType().indexType())
 				if indexConstraint != nil {
-					result = r.isRelatedTo(r.c.getIndexedAccessType(source.AsIndexedAccessType().objectType, indexConstraint), target, RecursionFlagsSource, reportErrors)
+					result = r.isRelatedTo(r.c.getIndexedAccessType(source.AsIndexedAccessType().objectType(), indexConstraint), target, RecursionFlagsSource, reportErrors)
 					if result != TernaryFalse {
 						return result
 					}
@@ -3746,13 +3766,13 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 			}
 		}
 	case source.flags&TypeFlagsIndex != 0:
-		isDeferredMappedIndex := r.c.shouldDeferIndexType(source.AsIndexType().target, source.AsIndexType().indexFlags) && source.AsIndexType().target.objectFlags&ObjectFlagsMapped != 0
+		isDeferredMappedIndex := r.c.shouldDeferIndexType(source.AsIndexType().target(), source.AsIndexType().indexFlags()) && source.AsIndexType().target().objectFlags&ObjectFlagsMapped != 0
 		result = r.isRelatedTo(r.c.stringNumberSymbolType, target, RecursionFlagsSource, reportErrors && !isDeferredMappedIndex)
 		if result != TernaryFalse {
 			return result
 		}
 		if isDeferredMappedIndex {
-			mappedType := source.AsIndexType().target
+			mappedType := source.AsIndexType().target()
 			nameType := r.c.getNameTypeFromMappedType(mappedType)
 			// Unlike on the target side, on the source side we do *not* include the generic part of the `nameType`, since that comes from a
 			// (potentially anonymous) mapped type local type parameter, so that'd never assign outside the mapped type body, but we still want to
@@ -3782,17 +3802,17 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 			// Two conditional types 'T1 extends U1 ? X1 : Y1' and 'T2 extends U2 ? X2 : Y2' are related if
 			// one of T1 and T2 is related to the other, U1 and U2 are identical types, X1 is related to X2,
 			// and Y1 is related to Y2.
-			sourceParams := source.AsConditionalType().root.inferTypeParameters
-			sourceExtends := source.AsConditionalType().extendsType
+			sourceParams := source.AsConditionalType().cond().root.inferTypeParameters
+			sourceExtends := source.AsConditionalType().extendsType()
 			var mapper *TypeMapper
 			if len(sourceParams) != 0 {
 				// If the source has infer type parameters, we instantiate them in the context of the target
 				ctx := r.c.newInferenceContext(sourceParams, nil /*signature*/, InferenceFlagsNone, r.isRelatedToWorker)
-				r.c.inferTypes(ctx.inferences, target.AsConditionalType().extendsType, sourceExtends, InferencePriorityNoConstraints|InferencePriorityAlwaysStrict, false)
+				r.c.inferTypes(ctx.inferences, target.AsConditionalType().extendsType(), sourceExtends, InferencePriorityNoConstraints|InferencePriorityAlwaysStrict, false)
 				sourceExtends = r.c.instantiateType(sourceExtends, ctx.mapper)
 				mapper = ctx.mapper
 			}
-			if r.c.isTypeIdenticalTo(sourceExtends, target.AsConditionalType().extendsType) && (r.isRelatedTo(source.AsConditionalType().checkType, target.AsConditionalType().checkType, RecursionFlagsBoth, false) != 0 || r.isRelatedTo(target.AsConditionalType().checkType, source.AsConditionalType().checkType, RecursionFlagsBoth, false) != 0) {
+			if r.c.isTypeIdenticalTo(sourceExtends, target.AsConditionalType().extendsType()) && (r.isRelatedTo(source.AsConditionalType().checkType(), target.AsConditionalType().checkType(), RecursionFlagsBoth, false) != 0 || r.isRelatedTo(target.AsConditionalType().checkType(), source.AsConditionalType().checkType(), RecursionFlagsBoth, false) != 0) {
 				result = r.isRelatedTo(r.c.instantiateType(r.c.getTrueTypeFromConditionalType(source), mapper), r.c.getTrueTypeFromConditionalType(target), RecursionFlagsBoth, reportErrors)
 				if result != TernaryFalse {
 					result &= r.isRelatedTo(r.c.getFalseTypeFromConditionalType(source), r.c.getFalseTypeFromConditionalType(target), RecursionFlagsBoth, reportErrors)
@@ -3835,10 +3855,10 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 		}
 	case source.flags&TypeFlagsStringMapping != 0:
 		if target.flags&TypeFlagsStringMapping != 0 {
-			if source.AsStringMappingType().Symbol() != target.AsStringMappingType().Symbol() {
+			if r.c.symbolOfType(source) != r.c.symbolOfType(target) {
 				return TernaryFalse
 			}
-			result = r.isRelatedTo(source.AsStringMappingType().target, target.AsStringMappingType().target, RecursionFlagsBoth, reportErrors)
+			result = r.isRelatedTo(source.AsStringMappingType().target(), target.AsStringMappingType().target(), RecursionFlagsBoth, reportErrors)
 			if result != TernaryFalse {
 				return result
 			}
@@ -4065,7 +4085,7 @@ func (r *Relater) typeRelatedToDiscriminatedType(source *Type, target *Type) Ter
 		numCombinations *= countTypes(r.c.getNonMissingTypeOfSymbol(sourceProperty))
 		if numCombinations > 25 {
 			if tr := r.c.tracer; tr != nil {
-				tr.Instant(tracing.PhaseCheckTypes, "typeRelatedToDiscriminatedType_DepthLimit", map[string]any{"sourceId": source.id, "targetId": target.id, "numCombinations": numCombinations})
+				tr.Instant(tracing.PhaseCheckTypes, "typeRelatedToDiscriminatedType_DepthLimit", map[string]any{"sourceId": source.Id(), "targetId": target.Id(), "numCombinations": numCombinations})
 			}
 			return TernaryFalse
 		}
@@ -4158,26 +4178,26 @@ func (r *Relater) propertiesRelatedTo(source *Type, target *Type, reportErrors b
 	result := TernaryTrue
 	if isTupleType(target) {
 		if r.c.isArrayOrTupleType(source) {
-			if !target.TargetTupleType().readonly && (r.c.isReadonlyArrayType(source) || isTupleType(source) && source.TargetTupleType().readonly) {
+			if !target.TargetTupleType().tuple().readonly && (r.c.isReadonlyArrayType(source) || isTupleType(source) && source.TargetTupleType().tuple().readonly) {
 				return TernaryFalse
 			}
 			sourceArity := r.c.getTypeReferenceArity(source)
 			targetArity := r.c.getTypeReferenceArity(target)
 			var sourceRest bool
 			if isTupleType(source) {
-				sourceRest = source.TargetTupleType().combinedFlags&ElementFlagsRest != 0
+				sourceRest = source.TargetTupleType().tuple().combinedFlags&ElementFlagsRest != 0
 			} else {
 				sourceRest = true
 			}
-			targetHasRestElement := target.TargetTupleType().combinedFlags&ElementFlagsRest != 0
-			targetHasVariableElement := target.TargetTupleType().combinedFlags&ElementFlagsVariable != 0
+			targetHasRestElement := target.TargetTupleType().tuple().combinedFlags&ElementFlagsRest != 0
+			targetHasVariableElement := target.TargetTupleType().tuple().combinedFlags&ElementFlagsVariable != 0
 			var sourceMinLength int
 			if isTupleType(source) {
-				sourceMinLength = source.TargetTupleType().minLength
+				sourceMinLength = source.TargetTupleType().tuple().minLength
 			} else {
 				sourceMinLength = 0
 			}
-			targetMinLength := target.TargetTupleType().minLength
+			targetMinLength := target.TargetTupleType().tuple().minLength
 			if !sourceRest && sourceArity < targetMinLength {
 				if reportErrors {
 					r.reportError(diagnostics.Source_has_0_element_s_but_target_requires_1, sourceArity, targetMinLength)
@@ -4208,7 +4228,7 @@ func (r *Relater) propertiesRelatedTo(source *Type, target *Type, reportErrors b
 			for sourcePosition := range sourceArity {
 				var sourceFlags ElementFlags
 				if isTupleType(source) {
-					sourceFlags = source.TargetTupleType().elementInfos[sourcePosition].flags
+					sourceFlags = source.TargetTupleType().tuple().elementInfos[sourcePosition].flags
 				} else {
 					sourceFlags = ElementFlagsRest
 				}
@@ -4227,7 +4247,7 @@ func (r *Relater) propertiesRelatedTo(source *Type, target *Type, reportErrors b
 				}
 				targetFlags := ElementFlagsNone
 				if targetPosition >= 0 {
-					targetFlags = target.TargetTupleType().elementInfos[targetPosition].flags
+					targetFlags = target.TargetTupleType().tuple().elementInfos[targetPosition].flags
 				}
 				if targetFlags&ElementFlagsVariadic != 0 && sourceFlags&ElementFlagsVariadic == 0 {
 					if reportErrors {
@@ -4279,7 +4299,7 @@ func (r *Relater) propertiesRelatedTo(source *Type, target *Type, reportErrors b
 			}
 			return result
 		}
-		if target.TargetTupleType().combinedFlags&ElementFlagsVariable != 0 {
+		if target.TargetTupleType().tuple().combinedFlags&ElementFlagsVariable != 0 {
 			return TernaryFalse
 		}
 	}
@@ -4401,12 +4421,12 @@ func (r *Relater) reportUnmatchedProperty(source *Type, target *Type, unmatchedP
 	if !unmatchedProperty.ValueDeclaration().IsNil() &&
 		!unmatchedProperty.ValueDeclaration().Name().IsNil() &&
 		ast.IsPrivateIdentifier(unmatchedProperty.ValueDeclaration().Name()) &&
-		!source.Symbol().IsNil() &&
-		source.Symbol().Flags()&ast.SymbolFlagsClass != 0 {
+		!r.c.symbolOfType(source).IsNil() &&
+		r.c.symbolOfType(source).Flags()&ast.SymbolFlagsClass != 0 {
 		privateIdentifierDescription := unmatchedProperty.ValueDeclaration().Name().Text()
-		symbolTableKey := binder.GetSymbolNameForPrivateIdentifier(source.Symbol(), privateIdentifierDescription)
+		symbolTableKey := binder.GetSymbolNameForPrivateIdentifier(r.c.symbolOfType(source), privateIdentifierDescription)
 		if !r.c.getPropertyOfType(source, symbolTableKey).IsNil() {
-			r.reportError(diagnostics.Property_0_in_type_1_refers_to_a_different_member_that_cannot_be_accessed_from_within_type_2, privateIdentifierDescription, r.c.SymbolToString(source.Symbol()), r.c.SymbolToString(target.Symbol()))
+			r.reportError(diagnostics.Property_0_in_type_1_refers_to_a_different_member_that_cannot_be_accessed_from_within_type_2, privateIdentifierDescription, r.c.SymbolToString(r.c.symbolOfType(source)), r.c.SymbolToString(r.c.symbolOfType(target)))
 			return
 		}
 	}
@@ -4439,7 +4459,7 @@ func (r *Relater) tryElaborateArrayLikeErrors(source *Type, target *Type, report
 	 * - If the source an array then skip property elaborations if the target is a tuple.
 	 */
 	if isTupleType(source) {
-		if source.TargetTupleType().readonly && r.c.isMutableArrayOrTuple(target) {
+		if source.TargetTupleType().tuple().readonly && r.c.isMutableArrayOrTuple(target) {
 			if reportErrors {
 				r.reportError(diagnostics.The_type_0_is_readonly_and_cannot_be_assigned_to_the_mutable_type_1, r.c.TypeToString(source), r.c.TypeToString(target))
 			}
@@ -4524,7 +4544,7 @@ func (r *Relater) signaturesRelatedTo(source *Type, target *Type, kind Signature
 	}
 	result := TernaryTrue
 	switch {
-	case source.objectFlags&ObjectFlagsInstantiated != 0 && target.objectFlags&ObjectFlagsInstantiated != 0 && source.Symbol() == target.Symbol() ||
+	case source.objectFlags&ObjectFlagsInstantiated != 0 && target.objectFlags&ObjectFlagsInstantiated != 0 && r.c.symbolOfType(source) == r.c.symbolOfType(target) ||
 		source.objectFlags&ObjectFlagsReference != 0 && target.objectFlags&ObjectFlagsReference != 0 && source.Target() == target.Target():
 		// We have instantiations of the same anonymous type (which typically will be the type of a
 		// method). Simply do a pairwise comparison of the signatures in the two signature lists instead
@@ -4679,10 +4699,10 @@ func (c *Checker) isObjectTypeWithInferableIndex(t *Type) bool {
 	if t.flags&TypeFlagsIntersection != 0 {
 		return core.Every(t.Types(), c.isObjectTypeWithInferableIndex)
 	}
-	return !t.Symbol().IsNil() &&
-		t.Symbol().Flags()&(ast.SymbolFlagsObjectLiteral|ast.SymbolFlagsTypeLiteral|ast.SymbolFlagsEnum|ast.SymbolFlagsValueModule) != 0 && t.Symbol().Flags()&ast.SymbolFlagsClass == 0 && !c.typeHasCallOrConstructSignatures(t) ||
+	return !c.symbolOfType(t).IsNil() &&
+		c.symbolOfType(t).Flags()&(ast.SymbolFlagsObjectLiteral|ast.SymbolFlagsTypeLiteral|ast.SymbolFlagsEnum|ast.SymbolFlagsValueModule) != 0 && c.symbolOfType(t).Flags()&ast.SymbolFlagsClass == 0 && !c.typeHasCallOrConstructSignatures(t) ||
 		t.objectFlags&(ObjectFlagsJSLiteral|ObjectFlagsObjectRestType) != 0 ||
-		t.objectFlags&ObjectFlagsReverseMapped != 0 && c.isObjectTypeWithInferableIndex(t.AsReverseMappedType().source)
+		t.objectFlags&ObjectFlagsReverseMapped != 0 && c.isObjectTypeWithInferableIndex(t.AsReverseMappedType().source())
 }
 
 func (r *Relater) membersRelatedToIndexInfo(source *Type, targetInfo *IndexInfo, reportErrors bool, intersectionState IntersectionState) Ternary {
@@ -4759,10 +4779,10 @@ func (r *Relater) indexSignaturesIdenticalTo(source *Type, target *Type) Ternary
 func (r *Relater) reportErrorResults(originalSource *Type, originalTarget *Type, source *Type, target *Type, headMessage *diagnostics.Message) {
 	sourceHasBase := r.c.getSingleBaseForNonAugmentingSubtype(originalSource) != nil
 	targetHasBase := r.c.getSingleBaseForNonAugmentingSubtype(originalTarget) != nil
-	if originalSource.alias != nil || sourceHasBase {
+	if originalSource.Alias() != nil || sourceHasBase {
 		source = originalSource
 	}
-	if originalTarget.alias != nil || targetHasBase {
+	if originalTarget.Alias() != nil || targetHasBase {
 		target = originalTarget
 	}
 	if source.flags&TypeFlagsObject != 0 && target.flags&TypeFlagsObject != 0 {
@@ -4771,7 +4791,7 @@ func (r *Relater) reportErrorResults(originalSource *Type, originalTarget *Type,
 	switch {
 	case source.flags&TypeFlagsObject != 0 && target.flags&TypeFlagsPrimitive != 0:
 		r.tryElaborateErrorsForPrimitivesAndObjects(source, target)
-	case !source.Symbol().IsNil() && source.flags&TypeFlagsObject != 0 && r.c.globalObjectType == source:
+	case !r.c.symbolOfType(source).IsNil() && source.flags&TypeFlagsObject != 0 && r.c.globalObjectType == source:
 		r.reportError(diagnostics.The_Object_type_is_assignable_to_very_few_other_types_Did_you_mean_to_use_the_any_type_instead)
 	case source.objectFlags&ObjectFlagsJsxAttributes != 0 && target.flags&TypeFlagsIntersection != 0:
 		targetTypes := target.Types()
@@ -4792,12 +4812,12 @@ func (r *Relater) reportErrorResults(originalSource *Type, originalTarget *Type,
 		}
 	}
 	r.reportRelationError(headMessage, source, target)
-	if source.flags&TypeFlagsTypeParameter != 0 && !source.Symbol().IsNil() && source.Symbol().Declarations().Len() != 0 && r.c.getConstraintOfType(source) == nil {
+	if source.flags&TypeFlagsTypeParameter != 0 && !r.c.symbolOfType(source).IsNil() && r.c.symbolOfType(source).Declarations().Len() != 0 && r.c.getConstraintOfType(source) == nil {
 		syntheticParam := r.c.cloneTypeParameter(source)
-		syntheticParam.AsTypeParameter().constraint = r.c.instantiateType(target, newSimpleTypeMapper(source, syntheticParam))
+		syntheticParam.AsTypeParameter().setConstraint(r.c.instantiateType(target, newSimpleTypeMapper(source, syntheticParam)))
 		if r.c.hasNonCircularBaseConstraint(syntheticParam) {
 			targetConstraintString := r.c.TypeToString(target)
-			r.relatedInfo = append(r.relatedInfo, NewDiagnosticForNode(source.Symbol().Declarations().At(0), diagnostics.This_type_parameter_might_need_an_extends_0_constraint, targetConstraintString))
+			r.relatedInfo = append(r.relatedInfo, NewDiagnosticForNode(r.c.symbolOfType(source).Declarations().At(0), diagnostics.This_type_parameter_might_need_an_extends_0_constraint, targetConstraintString))
 		}
 	}
 }
@@ -4815,14 +4835,14 @@ func (r *Relater) reportRelationError(message *diagnostics.Message, source *Type
 	// If `target` is of indexed access type (and `source` it is not), we use the object type of `target` for better error reporting
 	var targetFlags TypeFlags
 	if target.flags&TypeFlagsIndexedAccess != 0 && source.flags&TypeFlagsIndexedAccess == 0 {
-		targetFlags = target.AsIndexedAccessType().objectType.flags
+		targetFlags = target.AsIndexedAccessType().objectType().flags
 	} else {
 		targetFlags = target.flags
 	}
 	if targetFlags&TypeFlagsTypeParameter != 0 && target != r.c.markerSuperTypeForCheck && target != r.c.markerSubTypeForCheck {
 		constraint := r.c.getBaseConstraintOfType(target)
 		switch {
-		case IsDistributedTypeParameter(target) && r.c.isTypeAssignableTo(generalizedSource, target.AsTypeParameter().constraint):
+		case IsDistributedTypeParameter(target) && r.c.isTypeAssignableTo(generalizedSource, target.AsTypeParameter().constraint()):
 			r.reportError(diagnostics.X_0_is_only_assignable_to_the_non_distributed_1_but_1_has_been_distributed_here, generalizedSourceType, targetType)
 		case constraint != nil && r.c.isTypeAssignableTo(generalizedSource, constraint):
 			r.reportError(diagnostics.X_0_is_assignable_to_the_constraint_of_type_1_but_1_could_be_instantiated_with_a_different_subtype_of_constraint_2, generalizedSourceType, targetType, r.c.TypeToString(constraint))
@@ -5017,15 +5037,15 @@ func chainDepth(chain *ErrorChain) int {
 func (c *Checker) isTypeDerivedFrom(source *Type, target *Type) bool {
 	switch {
 	case source.flags&TypeFlagsUnion != 0:
-		return core.Every(source.AsUnionType().types, func(t *Type) bool {
+		return core.Every(source.AsUnionType().types(), func(t *Type) bool {
 			return c.isTypeDerivedFrom(t, target)
 		})
 	case target.flags&TypeFlagsUnion != 0:
-		return core.Some(target.AsUnionType().types, func(t *Type) bool {
+		return core.Some(target.AsUnionType().types(), func(t *Type) bool {
 			return c.isTypeDerivedFrom(source, t)
 		})
 	case source.flags&TypeFlagsIntersection != 0:
-		return core.Some(source.AsIntersectionType().types, func(t *Type) bool {
+		return core.Some(source.AsIntersectionType().types(), func(t *Type) bool {
 			return c.isTypeDerivedFrom(t, target)
 		})
 	case source.flags&TypeFlagsInstantiableNonPrimitive != 0:
@@ -5062,7 +5082,7 @@ func (r *Relater) traceUnionsOrIntersectionsTooLarge(source *Type, target *Type)
 		sourceSize := len(source.Types())
 		targetSize := len(target.Types())
 		if sourceSize*targetSize > 1_000_000 {
-			tr.Instant(tracing.PhaseCheckTypes, "traceUnionsOrIntersectionsTooLarge_DepthLimit", map[string]any{"sourceId": source.id, "sourceSize": sourceSize, "targetId": target.id, "targetSize": targetSize})
+			tr.Instant(tracing.PhaseCheckTypes, "traceUnionsOrIntersectionsTooLarge_DepthLimit", map[string]any{"sourceId": source.Id(), "sourceSize": sourceSize, "targetId": target.Id(), "targetSize": targetSize})
 		}
 	}
 }

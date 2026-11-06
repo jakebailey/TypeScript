@@ -1494,10 +1494,10 @@ func (l *LanguageService) getCompletionData(
 			for _, baseTypeNode := range baseTypeNodes {
 				t := typeChecker.GetTypeAtLocation(baseTypeNode)
 				if classElementModifierFlags&ast.ModifierFlagsStatic != 0 {
-					if !t.Symbol().IsNil() {
+					if !typeChecker.SymbolOfType(t).IsNil() {
 						baseSymbols = append(
 							baseSymbols,
-							typeChecker.GetPropertiesOfType(typeChecker.GetTypeOfSymbolAtLocation(t.Symbol(), decl))...,
+							typeChecker.GetPropertiesOfType(typeChecker.GetTypeOfSymbolAtLocation(typeChecker.SymbolOfType(t), decl))...,
 						)
 					}
 				} else if t != nil {
@@ -3584,7 +3584,7 @@ func getRecommendedCompletion(previousToken ast.Node, contextualType *checker.Ty
 	return core.FirstNonNil(
 		types,
 		func(t *checker.Type) ast.Symbol {
-			symbol := t.Symbol()
+			symbol := typeChecker.SymbolOfType(t)
 			// Don't make a recommended completion for an abstract class.
 			if !symbol.IsNil() &&
 				symbol.Flags()&(ast.SymbolFlagsEnumMember|ast.SymbolFlagsEnum|ast.SymbolFlagsClass) != 0 &&
@@ -4556,7 +4556,7 @@ func setMemberDeclaredBySpreadAssignment(declaration ast.Node, members *collecti
 	}
 	var properties []ast.Symbol
 	if t != nil && t.Flags()&checker.TypeFlagsStructuredType != 0 {
-		properties = t.AsStructuredType().Properties()
+		properties = t.AsStructuredType().Properties(typeChecker)
 	}
 	for _, property := range properties {
 		members.Add(property.Name())
@@ -6624,12 +6624,12 @@ func (l *LanguageService) getExhaustiveCaseSnippets(
 		for _, t := range switchType.Types() {
 			// Enums
 			if t.IsEnumLiteral() {
-				debug.Assert(!t.Symbol().IsNil(), "An enum member type should have a symbol")
-				debug.Assert(!t.Symbol().Parent().IsNil(), "An enum member type should have a parent symbol (the enum symbol)")
+				debug.Assert(!c.SymbolOfType(t).IsNil(), "An enum member type should have a symbol")
+				debug.Assert(!c.SymbolOfType(t).Parent().IsNil(), "An enum member type should have a parent symbol (the enum symbol)")
 				// Filter existing enums by their values
 				var enumValue any
-				if !t.Symbol().ValueDeclaration().IsNil() {
-					enumValue = c.GetConstantValue(t.Symbol().ValueDeclaration())
+				if !c.SymbolOfType(t).ValueDeclaration().IsNil() {
+					enumValue = c.GetConstantValue(c.SymbolOfType(t).ValueDeclaration())
 				}
 				if enumValue != nil {
 					if tracker.hasValue(enumValue) {

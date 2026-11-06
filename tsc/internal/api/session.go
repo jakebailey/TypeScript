@@ -139,7 +139,7 @@ type moduleResolverRegistration struct {
 // can appear in multiple projects. Separate maps per project prevent collisions
 // and allow clean teardown when a project is removed.
 type projectRegistryData struct {
-	typeRegistry   map[TypeID]*checker.Type
+	typeRegistry   map[TypeID]registeredType
 	typeRegistryMu sync.RWMutex
 
 	signatureRegistry   map[SignatureID]*checker.Signature
@@ -192,7 +192,7 @@ func (sd *snapshotData) getOrCreateProjectRegistry(projectID project.Handle) *pr
 	defer sd.projectRegistriesMu.Unlock()
 	if sd.projectRegistries[projectID] == nil {
 		sd.projectRegistries[projectID] = &projectRegistryData{
-			typeRegistry:      make(map[TypeID]*checker.Type),
+			typeRegistry:      make(map[TypeID]registeredType),
 			signatureRegistry: make(map[SignatureID]*checker.Signature),
 		}
 	}
@@ -334,18 +334,18 @@ func (sd *snapshotData) newTypeResponse(projectID project.Handle, t *checker.Typ
 	if t == nil {
 		return nil
 	}
-	resp := newTypeResponse(t, sd.registerType(projectID, t))
-	resp.Symbol = newSymbolReference(t.Symbol())
+	resp := newTypeResponse(t, sd.registerType(projectID, c, t))
+	resp.Symbol = newSymbolReference(c.SymbolOfType(t))
 	if t.Alias() != nil {
 		resp.AliasSymbol = newSymbolReference(t.Alias().Symbol())
 	}
 	if t.ObjectFlags()&checker.ObjectFlagsMapped != 0 {
 		mapped := t.AsMappedType()
 		mapped.ResolveComponents(c, t)
-		resp.TypeParameter = sd.registerType(projectID, mapped.TypeParameter())
-		resp.ConstraintType = sd.registerType(projectID, mapped.ConstraintType())
-		resp.NameType = sd.registerType(projectID, mapped.NameType())
-		resp.TemplateType = sd.registerType(projectID, mapped.TemplateType())
+		resp.TypeParameter = sd.registerType(projectID, c, mapped.TypeParameter())
+		resp.ConstraintType = sd.registerType(projectID, c, mapped.ConstraintType())
+		resp.NameType = sd.registerType(projectID, c, mapped.NameType())
+		resp.TemplateType = sd.registerType(projectID, c, mapped.TemplateType())
 	}
 	if checker.IsTupleTypeTarget(t) {
 		elementInfos := t.AsTupleType().ElementInfos()
@@ -361,7 +361,13 @@ func (sd *snapshotData) newTypeResponse(projectID project.Handle, t *checker.Typ
 	return resp
 }
 
-func (sd *snapshotData) registerType(projectID project.Handle, t *checker.Type) TypeID {
+// registeredType is a type in a project's registry, with the checker that created it.
+type registeredType struct {
+	t *checker.Type
+	c *checker.Checker
+}
+
+func (sd *snapshotData) registerType(projectID project.Handle, c *checker.Checker, t *checker.Type) TypeID {
 	if t == nil {
 		return 0
 	}
@@ -371,13 +377,13 @@ func (sd *snapshotData) registerType(projectID project.Handle, t *checker.Type) 
 	defer reg.typeRegistryMu.Unlock()
 	existing := reg.typeRegistry[id]
 
-	if existing != nil {
-		if existing != t {
+	if existing.t != nil {
+		if existing.t != t {
 			panic("duplicate type")
 		}
 		return id
 	}
-	reg.typeRegistry[id] = t
+	reg.typeRegistry[id] = registeredType{t: t, c: c}
 	return id
 }
 
@@ -437,11 +443,17 @@ func (s *Session) resolveSymbolReference(ref SymbolReference) (ast.Symbol, *snap
 
 // resolveTypeHandle resolves a type handle within the project's registry.
 func (sd *snapshotData) resolveTypeHandle(projectID project.Handle, handle TypeID) (*checker.Type, error) {
+	t, _, err := sd.resolveTypeHandleWithChecker(projectID, handle)
+	return t, err
+}
+
+// resolveTypeHandleWithChecker resolves a type handle to the type and the checker that created it.
+func (sd *snapshotData) resolveTypeHandleWithChecker(projectID project.Handle, handle TypeID) (*checker.Type, *checker.Checker, error) {
 	if handle == 0 {
-		return nil, fmt.Errorf("%w: empty type handle", ErrClientError)
+		return nil, nil, fmt.Errorf("%w: empty type handle", ErrClientError)
 	}
 	if projectID == 0 {
-		return nil, fmt.Errorf("%w: empty project ID for type handle %d", ErrClientError, handle)
+		return nil, nil, fmt.Errorf("%w: empty project ID for type handle %d", ErrClientError, handle)
 	}
 
 	sd.projectRegistriesMu.RLock()
@@ -449,18 +461,18 @@ func (sd *snapshotData) resolveTypeHandle(projectID project.Handle, handle TypeI
 	sd.projectRegistriesMu.RUnlock()
 
 	if reg == nil {
-		return nil, fmt.Errorf("%w: type handle %d not found (no registry for project %d)", ErrClientError, handle, projectID)
+		return nil, nil, fmt.Errorf("%w: type handle %d not found (no registry for project %d)", ErrClientError, handle, projectID)
 	}
 
 	reg.typeRegistryMu.RLock()
-	t, ok := reg.typeRegistry[handle]
+	entry, ok := reg.typeRegistry[handle]
 	reg.typeRegistryMu.RUnlock()
 
 	if !ok {
-		return nil, fmt.Errorf("%w: type handle %d not found in project registry", ErrClientError, handle)
+		return nil, nil, fmt.Errorf("%w: type handle %d not found in project registry", ErrClientError, handle)
 	}
 
-	return t, nil
+	return entry.t, entry.c, nil
 }
 
 // resolveSignatureHandle resolves a signature handle within the project's registry.
@@ -3123,7 +3135,7 @@ func (s *Session) handleGetExportSymbolOfSymbol(_ context.Context, params *GetSy
 
 // @gen-proto-nullable
 func (s *Session) handleGetSymbolOfType(_ context.Context, params *GetTypePropertyParams) (*SymbolResponse, error) {
-	return s.resolveSymbolPropertyOfType(params, (*checker.Type).Symbol)
+	return s.resolveSymbolPropertyOfType(params, (*checker.Checker).SymbolOfType)
 }
 
 func (s *Session) handleGetTargetOfType(ctx context.Context, params *GetTypePropertyParams) (*TypeResponse, error) {
@@ -3177,7 +3189,7 @@ func (s *Session) handleGetAliasTypeArgumentsOfType(ctx context.Context, params 
 
 // @gen-proto-nullable
 func (s *Session) handleGetAliasSymbolOfType(_ context.Context, params *GetTypePropertyParams) (*SymbolResponse, error) {
-	return s.resolveSymbolPropertyOfType(params, func(t *checker.Type) ast.Symbol {
+	return s.resolveSymbolPropertyOfType(params, func(_ *checker.Checker, t *checker.Type) ast.Symbol {
 		if t.Alias() == nil {
 			return ast.Symbol{}
 		}
@@ -3432,18 +3444,18 @@ func (s *Session) resolveTypeArrayPropertyOfType(ctx context.Context, params *Ge
 }
 
 // resolveSymbolPropertyOfType resolves a type property of type `Symbol` and returns a symbol response.
-func (s *Session) resolveSymbolPropertyOfType(params *GetTypePropertyParams, getter func(*checker.Type) ast.Symbol) (*SymbolResponse, error) {
+func (s *Session) resolveSymbolPropertyOfType(params *GetTypePropertyParams, getter func(*checker.Checker, *checker.Type) ast.Symbol) (*SymbolResponse, error) {
 	sd, err := s.getSnapshotData(params.Snapshot)
 	if err != nil {
 		return nil, err
 	}
 
-	t, err := sd.resolveTypeHandle(params.Project, params.Type)
+	t, c, err := sd.resolveTypeHandleWithChecker(params.Project, params.Type)
 	if err != nil {
 		return nil, err
 	}
 
-	result := getter(t)
+	result := getter(c, t)
 	if result.IsNil() {
 		return nil, nil
 	}

@@ -684,7 +684,7 @@ func (r *EmitResolver) CreateLiteralConstValue(node ast.Node, tracker nodebuilde
 	if t.flags&TypeFlagsEnumLike != 0 {
 		r.checkerMu.Lock()
 		defer r.checkerMu.Unlock()
-		enumResult = r.nodeBuilder().SymbolToExpression(t.Symbol(), ast.SymbolFlagsValue, node, nodebuilder.FlagsNone, nodebuilder.InternalFlagsNone, tracker)
+		enumResult = r.nodeBuilder().SymbolToExpression(r.checker.symbolOfType(t), ast.SymbolFlagsValue, node, nodebuilder.FlagsNone, nodebuilder.InternalFlagsNone, tracker)
 		// What about regularTrueType/regularFalseType - since those aren't fresh, we never make initializers from them
 		// TODO: handle those if this function is ever used for more than initializers in declaration emit
 	} else if t == r.checker.trueType {
@@ -698,7 +698,7 @@ func (r *EmitResolver) CreateLiteralConstValue(node ast.Node, tracker nodebuilde
 	if t.flags&TypeFlagsLiteral == 0 {
 		return ast.Node{} // non-literal type
 	}
-	switch value := t.AsLiteralType().value.(type) {
+	switch value := t.AsLiteralType().Value().(type) {
 	case string:
 		return r.emitContext.Factory.NewStringLiteral(value, ast.TokenFlagsNone)
 	case jsnum.Number:

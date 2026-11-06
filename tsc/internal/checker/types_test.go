@@ -39,9 +39,9 @@ func TestCheckerNodeLinkStores(t *testing.T) {
 	}
 	runtime.GC()
 	for i, node := range nodes {
-		assert.Equal(t, first.typeNodeLinks.Get(node).resolvedType.id, TypeId(i+1))
+		assert.Equal(t, first.typeNodeLinks.Get(node).resolvedType.Id(), TypeId(i+1))
 		assert.Equal(t, first.signatureLinks.Get(node).resolvedSignature.id, SignatureId(i+1))
-		assert.Equal(t, second.typeNodeLinks.Get(node).resolvedType.id, TypeId(i+2))
+		assert.Equal(t, second.typeNodeLinks.Get(node).resolvedType.Id(), TypeId(i+2))
 		assert.Equal(t, second.signatureLinks.Get(node).resolvedSignature.id, SignatureId(i+2))
 	}
 	clone := nodes[0].Clone(f)
@@ -112,7 +112,11 @@ func didPanic(f func()) (panicked bool) {
 
 func TestTypeHeaderSize(t *testing.T) {
 	t.Parallel()
-	assert.Equal(t, unsafe.Sizeof(Type{}), 16+3*unsafe.Sizeof((*Checker)(nil)))
+	ptr := unsafe.Sizeof((*Checker)(nil))
+	assert.Equal(t, unsafe.Sizeof(Type{}), 16+5*ptr+8)
+	if ptr == 8 {
+		assert.Equal(t, unsafe.Sizeof(Type{}), uintptr(64))
+	}
 }
 
 func TestKeyBuilder(t *testing.T) {
@@ -369,7 +373,7 @@ func TestIntersectionReductionReentrancy(t *testing.T) {
 	assert.Assert(t, c.freePropertyCounts.next != nil)
 	workspace := c.freePropertyCounts
 	conflicting := c.newSymbolEx(ast.SymbolFlagsProperty, ast.MakeSymbolName("value"), ast.CheckFlagsContainsPrivate)
-	outer.AsUnionOrIntersectionType().propertyCacheWithoutFunctionPropertyAugment.Set(ast.MakeSymbolName("value"), conflicting)
+	outer.AsUnionOrIntersectionType().propertyCacheWithoutFunctionPropertyAugment().Set(ast.MakeSymbolName("value"), conflicting)
 	assert.Assert(t, c.somePropertyReducesToNever(outer))
 	assert.Equal(t, c.freePropertyCounts, workspace)
 	for counts := c.freePropertyCounts; counts != nil; counts = counts.next {
@@ -427,11 +431,11 @@ func TestTypeMapperDispatch(t *testing.T) {
 		assert.Equal(t, test.mapper.Map(source), test.result)
 		assert.Assert(t, !test.mapper.MapsThisOnly())
 	}
-	assert.Equal(t, compareTypeMappers(simple, newSimpleTypeMapper(source, target)), 0)
-	assert.Equal(t, compareTypeMappers(array, newArrayTypeMapper([]*Type{source, other}, []*Type{target, source})), 0)
-	assert.Equal(t, compareTypeMappers(merged, newMergedTypeMapper(simple, array)), 0)
+	assert.Equal(t, c.compareTypeMappers(simple, newSimpleTypeMapper(source, target)), 0)
+	assert.Equal(t, c.compareTypeMappers(array, newArrayTypeMapper([]*Type{source, other}, []*Type{target, source})), 0)
+	assert.Equal(t, c.compareTypeMappers(merged, newMergedTypeMapper(simple, array)), 0)
 	this := c.newTypeParameter(ast.Symbol{})
-	this.AsTypeParameter().isThisType = true
+	this.AsTypeParameter().setIsThisType(true)
 	for _, mapper := range []*TypeMapper{
 		newSimpleTypeMapper(this, target),
 		newArrayTypeMapper([]*Type{this}, []*Type{target}),
@@ -542,9 +546,9 @@ func TestUnionIntersectionPropertyCacheSharing(t *testing.T) {
 					assert.Equal(t, c.getUnionOrIntersectionProperty(typ, name, !augmentedFirst), symbol)
 					assert.Equal(t, c.getUnionOrIntersectionProperty(typ, name, augmentedFirst), symbol)
 				}
-				assert.Equal(t, data.propertyCacheWithoutFunctionPropertyAugment.Len(), members.Len())
+				assert.Equal(t, data.propertyCacheWithoutFunctionPropertyAugment().Len(), members.Len())
 				if !augmentedFirst {
-					assert.Assert(t, data.propertyCache == nil)
+					assert.Assert(t, data.propertyCache() == nil)
 				}
 				runtime.GC()
 				for name, symbol := range members.All() {
@@ -572,47 +576,42 @@ func TestUnionIntersectionPropertyCacheModes(t *testing.T) {
 			data := typ.AsUnionOrIntersectionType()
 			assert.Assert(t, c.getUnionOrIntersectionProperty(typ, ast.MakeSymbolName("missing"), true).IsNil())
 			assert.Assert(t, c.getUnionOrIntersectionProperty(typ, ast.MakeSymbolName("missing"), false).IsNil())
-			assert.Assert(t, data.propertyCache == nil)
-			assert.Assert(t, data.propertyCacheWithoutFunctionPropertyAugment == nil)
-			data.propertyCacheWithoutFunctionPropertyAugment = ast.NewSymbolTable()
-			data.propertyCache = ast.NewSymbolTable()
+			assert.Assert(t, data.propertyCache() == nil)
+			assert.Assert(t, data.propertyCacheWithoutFunctionPropertyAugment() == nil)
+			data.setPropertyCacheWithoutFunctionPropertyAugment(c, ast.NewSymbolTable())
+			data.setPropertyCache(c, ast.NewSymbolTable())
 			for _, flags := range []ast.CheckFlags{ast.CheckFlagsReadPartial, ast.CheckFlagsWritePartial} {
 				name := ast.MakeSymbolName(strconv.Itoa(int(flags)))
 				partial := c.newSymbolEx(ast.SymbolFlagsProperty, name, flags)
 				complete := c.newSymbol(ast.SymbolFlagsProperty, name)
-				data.propertyCacheWithoutFunctionPropertyAugment.Set(name, partial)
+				data.propertyCacheWithoutFunctionPropertyAugment().Set(name, partial)
 				assert.Equal(t, c.getUnionOrIntersectionProperty(typ, name, true), partial)
 				assert.Assert(t, c.getUnionOrIntersectionProperty(typ, name, false).IsNil())
 				assert.Equal(t, c.getPropertyOfUnionOrIntersectionType(typ, name, true).IsNil(), flags&ast.CheckFlagsReadPartial != 0)
-				data.propertyCache.Set(name, complete)
+				data.propertyCache().Set(name, complete)
 				assert.Equal(t, c.getUnionOrIntersectionProperty(typ, name, false), complete)
 			}
 			name := ast.MakeSymbolName("different")
 			nonAugmented := c.newSymbol(ast.SymbolFlagsProperty, name)
 			augmented := c.newSymbol(ast.SymbolFlagsProperty, name)
-			data.propertyCacheWithoutFunctionPropertyAugment.Set(name, nonAugmented)
-			data.propertyCache.Set(name, augmented)
+			data.propertyCacheWithoutFunctionPropertyAugment().Set(name, nonAugmented)
+			data.propertyCache().Set(name, augmented)
 			assert.Equal(t, c.getUnionOrIntersectionProperty(typ, name, true), nonAugmented)
 			assert.Equal(t, c.getUnionOrIntersectionProperty(typ, name, false), augmented)
 		})
 	}
 }
 
-func TestCompactStructuredTypeLayout(t *testing.T) {
-	t.Parallel()
-	assert.Equal(t, unsafe.Sizeof(StructuredType{}), unsafe.Sizeof(ConstrainedType{})+5*unsafe.Sizeof(uintptr(0)))
-}
-
 func TestStructuredTypeExtra(t *testing.T) {
 	t.Parallel()
 	c, types := newCompositeTestChecker()
 	data := c.newAnonymousType(ast.Symbol{}, nil, nil, nil, nil).AsStructuredType()
-	assert.Assert(t, data.extra == nil)
+	assert.Assert(t, data.resolvedExtra() == nil)
 	assert.Assert(t, data.CallSignatures() == nil)
 	assert.Assert(t, data.ConstructSignatures() == nil)
 	assert.Assert(t, data.getIndexInfos() == nil)
 	c.setStructuredTypeSignatures(data, nil, nil, nil)
-	assert.Assert(t, data.extra == nil)
+	assert.Assert(t, data.resolvedExtra() == nil)
 
 	call := &Signature{}
 	construct := &Signature{}
@@ -623,17 +622,17 @@ func TestStructuredTypeExtra(t *testing.T) {
 	assert.Equal(t, cap(data.CallSignatures()), 1)
 	assert.Equal(t, cap(data.ConstructSignatures()), 1)
 	assert.Equal(t, data.getIndexInfos()[0], info)
-	extra := data.extra
+	extra := data.resolvedExtra()
 	extra.objectTypeWithoutAbstractConstructSignatures = types[2]
 	for range 1024 {
 		other := c.newAnonymousType(ast.Symbol{}, nil, []*Signature{call}, nil, nil)
-		assert.Assert(t, other.AsStructuredType().extra != extra)
+		assert.Assert(t, other.AsStructuredType().resolvedExtra() != extra)
 	}
 	runtime.GC()
 	assert.Equal(t, data.CallSignatures()[0], call)
 	assert.Equal(t, data.ConstructSignatures()[0], construct)
 	assert.Equal(t, data.getIndexInfos()[0], info)
-	assert.Equal(t, data.extra.objectTypeWithoutAbstractConstructSignatures, types[2])
+	assert.Equal(t, data.resolvedExtra().objectTypeWithoutAbstractConstructSignatures, types[2])
 	c.setStructuredTypeSignatures(data, nil, []*Signature{construct}, nil)
 	assert.Equal(t, len(data.CallSignatures()), 0)
 	assert.Equal(t, data.ConstructSignatures()[0], construct)
@@ -641,7 +640,7 @@ func TestStructuredTypeExtra(t *testing.T) {
 	c.setStructuredTypeSignatures(data, nil, nil, nil)
 	assert.Assert(t, data.CallSignatures() == nil)
 	assert.Assert(t, data.ConstructSignatures() == nil)
-	assert.Equal(t, data.extra, extra)
+	assert.Equal(t, data.resolvedExtra(), extra)
 	assert.Equal(t, extra.objectTypeWithoutAbstractConstructSignatures, types[2])
 	c.setStructuredTypeSignatures(data, nil, nil, []*IndexInfo{})
 	assert.Assert(t, data.getIndexInfos() != nil)

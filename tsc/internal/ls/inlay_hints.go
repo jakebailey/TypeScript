@@ -139,7 +139,7 @@ func (s *inlayHintState) visitFunctionDeclarationLikeForReturnType(decl ast.Func
 	}
 
 	returnType := s.checker.GetReturnTypeOfSignature(signature)
-	if isModuleReferenceType(returnType) {
+	if isModuleReferenceType(s.checker, returnType) {
 		return
 	}
 
@@ -248,7 +248,7 @@ func (s *inlayHintState) visitVariableLikeDeclaration(decl ast.VariableOrPropert
 	}
 
 	declarationType := s.checker.GetTypeAtLocation(decl)
-	if isModuleReferenceType(declarationType) {
+	if isModuleReferenceType(s.checker, declarationType) {
 		return
 	}
 
@@ -320,7 +320,7 @@ func (s *inlayHintState) getParameterDeclarationTypeHints(symbol ast.Symbol) *ls
 	}
 
 	signatureParamType := s.checker.GetTypeOfSymbolAtLocation(symbol, valueDeclaration)
-	if isModuleReferenceType(signatureParamType) {
+	if isModuleReferenceType(s.checker, signatureParamType) {
 		return nil
 	}
 
@@ -445,8 +445,8 @@ func isHintableLiteral(node ast.Node) bool {
 	return ast.IsLiteralExpression(node)
 }
 
-func isModuleReferenceType(t *checker.Type) bool {
-	symbol := t.Symbol()
+func isModuleReferenceType(c *checker.Checker, t *checker.Type) bool {
+	symbol := c.SymbolOfType(t)
 	return !symbol.IsNil() && symbol.Flags()&ast.SymbolFlagsModule != 0
 }
 

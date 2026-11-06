@@ -1275,7 +1275,7 @@ func tryGetParameterInfo(startingToken ast.Node, sourceFile *ast.SourceFile, c *
 		return nil
 	}
 
-	symbol := nonNullableContextualType.Symbol()
+	symbol := c.SymbolOfType(nonNullableContextualType)
 	if symbol.IsNil() {
 		return nil
 	}

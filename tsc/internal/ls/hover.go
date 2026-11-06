@@ -591,7 +591,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol ast.Symbol,
 				if i != 0 {
 					dpw.WritePunctuation(", ")
 				}
-				writeSymbolClassified(tp.Symbol(), ast.Node{}, ast.SymbolFlagsNone, symbolFormatFlags)
+				writeSymbolClassified(c.SymbolOfType(tp), ast.Node{}, ast.SymbolFlagsNone, symbolFormatFlags)
 				cons := c.GetConstraintOfTypeParameter(tp)
 				if cons != nil {
 					dpw.WriteKeyword(" extends ")
@@ -758,7 +758,7 @@ func getQuickInfoAndDeclarationAtLocation(c *checker.Checker, symbol ast.Symbol,
 				// If the type is a constrained type parameter, support expansion:
 				// Level 0: show just "T", signal canIncreaseVerbosity
 				// Level 1+: show "T extends Constraint" with the constraint expanded at level-1
-				if vc != nil && !t.Symbol().IsNil() && t.Symbol().Flags()&ast.SymbolFlagsTypeParameter != 0 && c.GetConstraintOfTypeParameter(t) != nil {
+				if vc != nil && !c.SymbolOfType(t).IsNil() && c.SymbolOfType(t).Flags()&ast.SymbolFlagsTypeParameter != 0 && c.GetConstraintOfTypeParameter(t) != nil {
 					if vc.Level > 0 {
 						expandVC := &checker.VerbosityContext{
 							Level:               vc.Level - 1,

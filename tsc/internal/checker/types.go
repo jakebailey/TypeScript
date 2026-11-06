@@ -500,7 +500,7 @@ type SignatureLinks struct {
 type TypeFlags uint32
 
 // Note that for types of different kinds, the numeric values of TypeFlags determine the order
-// computed by the CompareTypes function and therefore the order of constituent types in union types.
+// computed by the c.CompareTypes function and therefore the order of constituent types in union types.
 // Since union type processing often bails out early when a result is known, it is important to order
 // TypeFlags in increasing order of potential type complexity. In particular, indexed access and
 // conditional types should sort last as those types are potentially recursive and possibly infinite.
@@ -751,9 +751,9 @@ func (a *TypeAlias) TypeArguments() []*Type {
 
 // Type
 
-// The concrete kind is separate from mutable semantic flags. All concrete types
-// embed Type at offset zero, so a tag replaces the self-referential interface.
-// The ordering groups types by their embedded bases for the base casts below.
+// The concrete kind names the layout of a type's payload. It is kept in the high bits of the type's id. All concrete
+// types are views of the same 64-byte Type record, so a kind replaces the self-referential interface. The ordering
+// groups types by their embedded bases for the base casts below.
 type typeKind uint8
 
 const (
@@ -779,51 +779,137 @@ const (
 	typeKindIntersection
 )
 
+const (
+	typeKindShift = 27
+	typeIdMask    = 1<<typeKindShift - 1
+)
+
+// A Type is a 64-byte record in a checker-owned slab. The header holds what every type has; resolved holds the
+// members, properties, signatures and index infos of object, union and intersection types once they are resolved;
+// extra holds fields few types have; and data is a 32-byte payload whose meaning depends on the kind. Kinds with more
+// state than fits keep it in a record the payload points to.
 type Type struct {
 	flags       TypeFlags
 	objectFlags ObjectFlags
-	id          TypeId
+	id          TypeId // The type's id, with its typeKind in the high bits
 	symbol      ast.SymbolId
-	kind        typeKind `customlint:"protected"`
-	alias       *TypeAlias
-	checker     *Checker
+	resolved    *structuredMembers
+	extra       *typeExtra
+	data        typeData
 }
 
-// Enforce the layout required by the pointer conversions, on every architecture.
+// typeData is a type's per-kind payload. The garbage collector must know which words of a record hold pointers, so
+// every kind keeps its pointers in p0, p1 and p2 and its scalars in w0 and w1.
+type typeData struct {
+	p0, p1, p2 unsafe.Pointer
+	w0, w1     uint32
+}
+
+// Enforce the layout required by the pointer conversions, on every architecture: every concrete type is a Type at
+// offset zero with no further fields.
 var (
 	_ [0 - unsafe.Offsetof(IntrinsicType{}.Type)]byte
+	_ [unsafe.Sizeof(IntrinsicType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(IntrinsicType{})]byte
 	_ [0 - unsafe.Offsetof(LiteralType{}.Type)]byte
+	_ [unsafe.Sizeof(LiteralType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(LiteralType{})]byte
 	_ [0 - unsafe.Offsetof(UniqueESSymbolType{}.Type)]byte
+	_ [unsafe.Sizeof(UniqueESSymbolType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(UniqueESSymbolType{})]byte
 	_ [0 - unsafe.Offsetof(TypeParameter{}.Type)]byte
+	_ [unsafe.Sizeof(TypeParameter{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(TypeParameter{})]byte
 	_ [0 - unsafe.Offsetof(IndexType{}.Type)]byte
+	_ [unsafe.Sizeof(IndexType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(IndexType{})]byte
 	_ [0 - unsafe.Offsetof(IndexedAccessType{}.Type)]byte
+	_ [unsafe.Sizeof(IndexedAccessType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(IndexedAccessType{})]byte
 	_ [0 - unsafe.Offsetof(TemplateLiteralType{}.Type)]byte
+	_ [unsafe.Sizeof(TemplateLiteralType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(TemplateLiteralType{})]byte
 	_ [0 - unsafe.Offsetof(StringMappingType{}.Type)]byte
+	_ [unsafe.Sizeof(StringMappingType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(StringMappingType{})]byte
 	_ [0 - unsafe.Offsetof(SubstitutionType{}.Type)]byte
+	_ [unsafe.Sizeof(SubstitutionType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(SubstitutionType{})]byte
 	_ [0 - unsafe.Offsetof(ConditionalType{}.Type)]byte
+	_ [unsafe.Sizeof(ConditionalType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(ConditionalType{})]byte
 	_ [0 - unsafe.Offsetof(ObjectType{}.Type)]byte
+	_ [unsafe.Sizeof(ObjectType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(ObjectType{})]byte
 	_ [0 - unsafe.Offsetof(TypeReference{}.Type)]byte
+	_ [unsafe.Sizeof(TypeReference{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(TypeReference{})]byte
 	_ [0 - unsafe.Offsetof(InterfaceType{}.Type)]byte
+	_ [unsafe.Sizeof(InterfaceType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(InterfaceType{})]byte
 	_ [0 - unsafe.Offsetof(TupleType{}.Type)]byte
+	_ [unsafe.Sizeof(TupleType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(TupleType{})]byte
 	_ [0 - unsafe.Offsetof(InstantiationExpressionType{}.Type)]byte
+	_ [unsafe.Sizeof(InstantiationExpressionType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(InstantiationExpressionType{})]byte
 	_ [0 - unsafe.Offsetof(MappedType{}.Type)]byte
+	_ [unsafe.Sizeof(MappedType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(MappedType{})]byte
 	_ [0 - unsafe.Offsetof(ReverseMappedType{}.Type)]byte
+	_ [unsafe.Sizeof(ReverseMappedType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(ReverseMappedType{})]byte
 	_ [0 - unsafe.Offsetof(EvolvingArrayType{}.Type)]byte
+	_ [unsafe.Sizeof(EvolvingArrayType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(EvolvingArrayType{})]byte
 	_ [0 - unsafe.Offsetof(UnionType{}.Type)]byte
+	_ [unsafe.Sizeof(UnionType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(UnionType{})]byte
 	_ [0 - unsafe.Offsetof(IntersectionType{}.Type)]byte
+	_ [unsafe.Sizeof(IntersectionType{}) - unsafe.Sizeof(Type{})]byte
+	_ [unsafe.Sizeof(Type{}) - unsafe.Sizeof(IntersectionType{})]byte
 )
 
+// typeExtra holds the fields of a type that few types set.
+type typeExtra struct {
+	alias                  *TypeAlias
+	resolvedBaseConstraint *Type
+	instantiations         map[CacheHashKey]*Type // Map of type instantiations
+	mapper                 *TypeMapper            // Type mapper of a deferred type reference
+	node                   ast.NodeRef            // TypeReferenceNode | ArrayTypeNode | TupleTypeNode of a deferred type reference
+	resolvedDefaultType    *Type                  // Default of a type parameter
+	distributedType        *Type                  // Distributed form of a type parameter
+}
+
+// structuredMembers holds the resolved members of an object, union or intersection type.
+type structuredMembers struct {
+	members    ast.SymbolTable
+	properties []ast.Symbol
+	extra      *structuredTypeExtra
+}
+
+type structuredTypeExtra struct {
+	signatures         []*Signature // Signatures (call + construct)
+	callSignatureCount int          // Count of call signatures
+	indexInfos         []*IndexInfo
+
+	objectTypeWithoutAbstractConstructSignatures *Type
+}
+
 func castType[T any](t *Type, kind typeKind) *T {
-	if t.kind != kind {
+	if t.kind() != kind {
 		panic("Invalid type cast")
 	}
-	// SAFETY: Each kind is only assigned by newType to a Type embedded at offset zero of the
-	// struct for that kind, and every caller pairs T with its kind.
+	// SAFETY: Every concrete type is a struct that embeds Type and adds no fields, and every caller pairs T with its kind.
 	return (*T)(unsafe.Pointer(t))
 }
 
+func (t *Type) kind() typeKind {
+	return typeKind(t.id >> typeKindShift)
+}
+
 func (t *Type) Id() TypeId {
-	return t.id
+	return t.id & typeIdMask
 }
 
 func (t *Type) Flags() TypeFlags {
@@ -832,6 +918,56 @@ func (t *Type) Flags() TypeFlags {
 
 func (t *Type) ObjectFlags() ObjectFlags {
 	return t.objectFlags
+}
+
+func (t *Type) ensureExtra(c *Checker) *typeExtra {
+	if t.extra == nil {
+		t.extra = c.typeExtraArena.New()
+	}
+	return t.extra
+}
+
+func (t *Type) ensureResolved(c *Checker) *structuredMembers {
+	if t.resolved == nil {
+		// Allocated individually: in a shared chunk, one live record would keep its neighbours' member tables alive
+		// after their types become garbage.
+		t.resolved = new(structuredMembers)
+	}
+	return t.resolved
+}
+
+// fromPayload reads a pointer word of a type's payload.
+func fromPayload[T any](p unsafe.Pointer) *T {
+	// SAFETY: Each kind keeps pointers of a single type in each pointer word, and only the accessors of that kind,
+	// which pair the word with that type, read or write it.
+	return (*T)(p)
+}
+
+// toPayload converts a pointer for storage in a pointer word of a type's payload.
+func toPayload[T any](v *T) unsafe.Pointer {
+	// SAFETY: The word keeps the pointer visible to the garbage collector, and fromPayload converts it back to *T.
+	return unsafe.Pointer(v)
+}
+
+// sliceFromPayload rebuilds a slice from a pointer word and a length word of a type's payload. It returns nil for a
+// nil pointer, which keeps a nil slice distinct from an empty one.
+func sliceFromPayload[T any](p unsafe.Pointer, n uint32) []T {
+	if p == nil {
+		return nil
+	}
+	// SAFETY: sliceToPayload stored the data pointer and length of a []T, and the length and capacity are equal.
+	return unsafe.Slice(fromPayload[T](p), n)
+}
+
+// sliceToPayload splits a slice into a pointer word and a length word of a type's payload. The capacity is
+// dropped, so the slice must not be appended to through the payload.
+func sliceToPayload[T any](s []T) (unsafe.Pointer, uint32) {
+	// SAFETY: The data pointer keeps the backing array alive, and sliceFromPayload rebuilds the slice from it.
+	return toPayload(unsafe.SliceData(s)), uint32(len(s))
+}
+
+func typeSlice(p unsafe.Pointer, n uint32) []*Type {
+	return sliceFromPayload[*Type](p, n)
 }
 
 // Casts for concrete struct types
@@ -885,7 +1021,7 @@ func (t *Type) AsConditionalType() *ConditionalType {
 // Casts for embedded struct types
 
 func (t *Type) AsConstrainedType() *ConstrainedType {
-	if t.kind >= typeKindTypeParameter && t.kind <= typeKindIntersection {
+	if kind := t.kind(); kind >= typeKindTypeParameter && kind <= typeKindIntersection {
 		// SAFETY: Types of these kinds are structs that embed ConstrainedType at offset zero.
 		return (*ConstrainedType)(unsafe.Pointer(t))
 	}
@@ -893,7 +1029,7 @@ func (t *Type) AsConstrainedType() *ConstrainedType {
 }
 
 func (t *Type) AsStructuredType() *StructuredType {
-	if t.kind >= typeKindObject && t.kind <= typeKindIntersection {
+	if kind := t.kind(); kind >= typeKindObject && kind <= typeKindIntersection {
 		// SAFETY: Types of these kinds are structs that embed StructuredType at offset zero.
 		return (*StructuredType)(unsafe.Pointer(t))
 	}
@@ -901,7 +1037,7 @@ func (t *Type) AsStructuredType() *StructuredType {
 }
 
 func (t *Type) AsObjectType() *ObjectType {
-	if t.kind >= typeKindObject && t.kind <= typeKindEvolvingArray {
+	if kind := t.kind(); kind >= typeKindObject && kind <= typeKindEvolvingArray {
 		// SAFETY: Types of these kinds are structs that embed ObjectType at offset zero.
 		return (*ObjectType)(unsafe.Pointer(t))
 	}
@@ -909,7 +1045,7 @@ func (t *Type) AsObjectType() *ObjectType {
 }
 
 func (t *Type) AsTypeReference() *TypeReference {
-	if t.kind >= typeKindTypeReference && t.kind <= typeKindTuple {
+	if kind := t.kind(); kind >= typeKindTypeReference && kind <= typeKindTuple {
 		// SAFETY: Types of these kinds are structs that embed TypeReference at offset zero.
 		return (*TypeReference)(unsafe.Pointer(t))
 	}
@@ -917,7 +1053,7 @@ func (t *Type) AsTypeReference() *TypeReference {
 }
 
 func (t *Type) AsInterfaceType() *InterfaceType {
-	if t.kind >= typeKindInterface && t.kind <= typeKindTuple {
+	if kind := t.kind(); kind >= typeKindInterface && kind <= typeKindTuple {
 		// SAFETY: Types of these kinds are structs that embed InterfaceType at offset zero.
 		return (*InterfaceType)(unsafe.Pointer(t))
 	}
@@ -925,7 +1061,7 @@ func (t *Type) AsInterfaceType() *InterfaceType {
 }
 
 func (t *Type) AsUnionOrIntersectionType() *UnionOrIntersectionType {
-	if t.kind >= typeKindUnion && t.kind <= typeKindIntersection {
+	if kind := t.kind(); kind >= typeKindUnion && kind <= typeKindIntersection {
 		// SAFETY: Types of these kinds are structs that embed UnionOrIntersectionType at offset zero.
 		return (*UnionOrIntersectionType)(unsafe.Pointer(t))
 	}
@@ -935,7 +1071,7 @@ func (t *Type) AsUnionOrIntersectionType() *UnionOrIntersectionType {
 func (t *Type) Distributed() []*Type {
 	switch {
 	case t.flags&TypeFlagsUnion != 0:
-		return t.AsUnionType().types
+		return t.AsUnionType().types()
 	case t.flags&TypeFlagsNever != 0:
 		return nil
 	}
@@ -947,15 +1083,13 @@ func (t *Type) Distributed() []*Type {
 func (t *Type) Target() *Type {
 	switch {
 	case t.flags&TypeFlagsObject != 0:
-		return t.AsObjectType().target
+		return t.AsObjectType().target()
 	case t.flags&TypeFlagsTypeParameter != 0:
-		return t.AsTypeParameter().target
+		return t.AsTypeParameter().target()
 	case t.flags&TypeFlagsIndex != 0:
-		return t.AsIndexType().target
+		return t.AsIndexType().target()
 	case t.flags&TypeFlagsStringMapping != 0:
-		return t.AsStringMappingType().target
-	case t.flags&TypeFlagsObject != 0 && t.objectFlags&ObjectFlagsMapped != 0:
-		return t.AsMappedType().target
+		return t.AsStringMappingType().target()
 	}
 	panic("Unhandled case in Type.Target")
 }
@@ -963,11 +1097,11 @@ func (t *Type) Target() *Type {
 func (t *Type) Mapper() *TypeMapper {
 	switch {
 	case t.flags&TypeFlagsObject != 0:
-		return t.AsObjectType().mapper
+		return t.AsObjectType().mapper()
 	case t.flags&TypeFlagsTypeParameter != 0:
-		return t.AsTypeParameter().mapper
+		return t.AsTypeParameter().mapper()
 	case t.flags&TypeFlagsConditional != 0:
-		return t.AsConditionalType().mapper
+		return t.AsConditionalType().cond().mapper
 	}
 	panic("Unhandled case in Type.Mapper")
 }
@@ -975,34 +1109,49 @@ func (t *Type) Mapper() *TypeMapper {
 func (t *Type) Types() []*Type {
 	switch {
 	case t.flags&TypeFlagsUnionOrIntersection != 0:
-		return t.AsUnionOrIntersectionType().types
+		return t.AsUnionOrIntersectionType().types()
 	case t.flags&TypeFlagsTemplateLiteral != 0:
-		return t.AsTemplateLiteralType().types
+		return t.AsTemplateLiteralType().types()
 	}
 	panic("Unhandled case in Type.Types")
 }
 
 func (t *Type) TargetInterfaceType() *InterfaceType {
-	return t.AsTypeReference().target.AsInterfaceType()
+	return t.AsTypeReference().target().AsInterfaceType()
 }
 
 func (t *Type) TargetTupleType() *TupleType {
-	return t.AsTypeReference().target.AsTupleType()
+	return t.AsTypeReference().target().AsTupleType()
 }
 
-func (t *Type) Symbol() ast.Symbol {
+// SymbolOfType returns the symbol of a type, or the zero Symbol if it has none.
+func (c *Checker) SymbolOfType(t *Type) ast.Symbol {
+	return c.symbolOfType(t)
+}
+
+func (c *Checker) symbolOfType(t *Type) ast.Symbol {
 	if t.symbol == 0 {
 		return ast.Symbol{}
 	}
-	return t.checker.symbolIds.symbol(t.symbol)
+	return c.symbolIds.symbol(t.symbol)
 }
 
-func (t *Type) setSymbol(symbol ast.Symbol) {
-	t.symbol = t.checker.symbolId(symbol)
+func (t *Type) setSymbol(c *Checker, symbol ast.Symbol) {
+	t.symbol = c.symbolId(symbol)
 }
 
 func (t *Type) Alias() *TypeAlias {
-	return t.alias
+	if t.extra == nil {
+		return nil
+	}
+	return t.extra.alias
+}
+
+func (t *Type) setAlias(c *Checker, alias *TypeAlias) {
+	if alias == nil && t.extra == nil {
+		return
+	}
+	t.ensureExtra(c).alias = alias
 }
 
 func (t *Type) IsUnion() bool {
@@ -1071,92 +1220,193 @@ func (t *TypeBase) AsTypeReference() *TypeReference                     { return
 func (t *TypeBase) AsInterfaceType() *InterfaceType                     { return nil }
 func (t *TypeBase) AsUnionOrIntersectionType() *UnionOrIntersectionType { return nil }
 
-// IntrinsicTypeData
+// IntrinsicType: the name in p0 and w0.
 
 type IntrinsicType struct {
 	TypeBase
-	intrinsicName string
 }
 
-func (t *IntrinsicType) IntrinsicName() string { return t.intrinsicName }
+func (t *IntrinsicType) IntrinsicName() string {
+	// SAFETY: setIntrinsicName stored the data pointer and length of an immutable string.
+	return unsafe.String(fromPayload[byte](t.data.p0), t.data.w0)
+}
 
-// LiteralTypeData
+func (t *IntrinsicType) setIntrinsicName(name string) {
+	// SAFETY: Strings are immutable, and the data pointer keeps the bytes alive.
+	t.data.p0 = toPayload(unsafe.StringData(name))
+	t.data.w0 = uint32(len(name))
+}
+
+// LiteralType: the value (string | jsnum.Number | bool | PseudoBigInt | nil for a computed enum) in p0 and p1, and in
+// p2 the regular version of a fresh type or the fresh version of a regular type. Bit 0 of w0 marks a fresh type.
 
 type LiteralType struct {
 	TypeBase
-	value       any   // string | jsnum.Number | bool | PseudoBigInt | nil (computed enum)
-	freshType   *Type // Fresh version of type
-	regularType *Type // Regular version of type
 }
+
+const literalTypeFresh = 1
 
 func (t *LiteralType) Value() any {
-	return t.value
+	// SAFETY: p0 and p1 are two adjacent pointer words, laid out like an interface value.
+	return *(*any)(unsafe.Pointer(&t.data.p0))
 }
 
+func (t *LiteralType) setValue(value any) {
+	// SAFETY: p0 and p1 are two adjacent pointer words, laid out like an interface value.
+	*(*any)(unsafe.Pointer(&t.data.p0)) = value
+}
+
+// FreshType returns the fresh version of the type.
 func (t *LiteralType) FreshType() *Type {
-	return t.freshType
+	if t.data.w0&literalTypeFresh != 0 {
+		return &t.Type
+	}
+	return fromPayload[Type](t.data.p2)
 }
 
+// RegularType returns the regular version of the type.
 func (t *LiteralType) RegularType() *Type {
-	return t.regularType
+	if t.data.w0&literalTypeFresh != 0 {
+		return fromPayload[Type](t.data.p2)
+	}
+	return &t.Type
+}
+
+func (t *LiteralType) setFreshType(fresh *Type) {
+	if fresh == &t.Type {
+		t.data.w0 |= literalTypeFresh
+	} else {
+		t.data.p2 = toPayload(fresh)
+	}
+}
+
+func (t *LiteralType) setRegularType(regular *Type) {
+	if regular == &t.Type {
+		t.data.w0 &^= literalTypeFresh
+	} else {
+		t.data.w0 |= literalTypeFresh
+		t.data.p2 = toPayload(regular)
+	}
 }
 
 func (t *LiteralType) String() string {
-	return ValueToString(t.value)
+	return ValueToString(t.Value())
 }
 
-// UniqueESSymbolTypeData
+// UniqueESSymbolType: the name in w0 and w1.
 
 type UniqueESSymbolType struct {
 	TypeBase
-	name ast.SymbolName
+}
+
+func (t *UniqueESSymbolType) name() ast.SymbolName {
+	return ast.SymbolName(uint64(t.data.w1)<<32 | uint64(t.data.w0))
+}
+
+func (t *UniqueESSymbolType) setName(name ast.SymbolName) {
+	t.data.w0 = uint32(name)
+	t.data.w1 = uint32(name >> 32)
 }
 
 // ConstrainedType (type with computed base constraint)
 
 type ConstrainedType struct {
 	TypeBase
-	resolvedBaseConstraint *Type
 }
 
 func (t *ConstrainedType) AsConstrainedType() *ConstrainedType { return t }
+
+func (t *ConstrainedType) resolvedBaseConstraint() *Type {
+	if t.extra == nil {
+		return nil
+	}
+	return t.extra.resolvedBaseConstraint
+}
+
+func (t *ConstrainedType) setResolvedBaseConstraint(c *Checker, constraint *Type) {
+	if constraint == nil && t.extra == nil {
+		return
+	}
+	t.ensureExtra(c).resolvedBaseConstraint = constraint
+}
 
 // StructuredType (base of all types with members)
 
 type StructuredType struct {
 	ConstrainedType
-	members    ast.SymbolTable
-	properties []ast.Symbol
-	extra      *structuredTypeExtra
-}
-
-type structuredTypeExtra struct {
-	signatures         []*Signature // Signatures (call + construct)
-	callSignatureCount int          // Count of call signatures
-	indexInfos         []*IndexInfo
-
-	objectTypeWithoutAbstractConstructSignatures *Type
 }
 
 func (t *StructuredType) AsStructuredType() *StructuredType { return t }
 
-func (t *StructuredType) CallSignatures() []*Signature {
-	if t.extra == nil {
+func (t *StructuredType) members() ast.SymbolTable {
+	if t.resolved == nil {
 		return nil
 	}
-	return slices.Clip(t.extra.signatures[:t.extra.callSignatureCount])
+	return t.resolved.members
+}
+
+func (t *StructuredType) setMembers(c *Checker, members ast.SymbolTable) {
+	if members == nil && t.resolved == nil {
+		return
+	}
+	t.ensureResolved(c).members = members
+}
+
+func (t *StructuredType) properties() []ast.Symbol {
+	if t.resolved == nil {
+		return nil
+	}
+	return t.resolved.properties
+}
+
+func (t *StructuredType) setProperties(c *Checker, properties []ast.Symbol) {
+	if properties == nil && t.resolved == nil {
+		return
+	}
+	t.ensureResolved(c).properties = properties
+}
+
+func (t *StructuredType) resolvedExtra() *structuredTypeExtra {
+	if t.resolved == nil {
+		return nil
+	}
+	return t.resolved.extra
+}
+
+func (t *StructuredType) setResolvedExtra(c *Checker, extra *structuredTypeExtra) {
+	if extra == nil && t.resolved == nil {
+		return
+	}
+	t.ensureResolved(c).extra = extra
+}
+
+func (t *StructuredType) ensureResolvedExtra(c *Checker) *structuredTypeExtra {
+	resolved := t.ensureResolved(c)
+	if resolved.extra == nil {
+		resolved.extra = c.structuredTypeExtraArena.New()
+	}
+	return resolved.extra
+}
+
+func (t *StructuredType) CallSignatures() []*Signature {
+	extra := t.resolvedExtra()
+	if extra == nil {
+		return nil
+	}
+	return slices.Clip(extra.signatures[:extra.callSignatureCount])
 }
 
 func (t *StructuredType) ConstructSignatures() []*Signature {
-	if t.extra == nil {
+	extra := t.resolvedExtra()
+	if extra == nil {
 		return nil
 	}
-	return slices.Clip(t.extra.signatures[t.extra.callSignatureCount:])
+	return slices.Clip(extra.signatures[extra.callSignatureCount:])
 }
 
-func (t *StructuredType) getMember(name ast.SymbolName) ast.Symbol {
-	if t.members != nil {
-		return t.members.Get(name)
+func (t *StructuredType) getMember(c *Checker, name ast.SymbolName) ast.Symbol {
+	if members := t.members(); members != nil {
+		return members.Get(name)
 	}
 	lazy := t.getLazyState()
 	if lazy == nil {
@@ -1166,55 +1416,57 @@ func (t *StructuredType) getMember(name ast.SymbolName) ast.Symbol {
 	if index < 0 {
 		return ast.Symbol{}
 	}
-	return t.getPropertyAt(index)
+	return t.getPropertyAt(c, index)
 }
 
-func (t *StructuredType) getMembers() ast.SymbolTable {
-	if t.members == nil {
-		if properties := t.getProperties(); len(properties) != 0 {
-			t.members = ast.NewSymbolTableWithCapacity(len(properties))
+func (t *StructuredType) getMembers(c *Checker) ast.SymbolTable {
+	if t.members() == nil {
+		if properties := t.getProperties(c); len(properties) != 0 {
+			members := ast.NewSymbolTableWithCapacity(len(properties))
 			for _, member := range properties {
-				t.members.Set(member.Name(), member)
+				members.Set(member.Name(), member)
 			}
+			t.setMembers(c, members)
 		}
 	}
-	return t.members
+	return t.members()
 }
 
-func (t *StructuredType) getPropertyAt(index int) ast.Symbol {
+func (t *StructuredType) getPropertyAt(c *Checker, index int) ast.Symbol {
 	lazy := t.getLazyState()
 	if lazy == nil {
-		return t.properties[index]
+		return t.properties()[index]
 	}
-	if t.properties == nil {
-		t.properties = make([]ast.Symbol, lazy.layout.members.Len())
+	if t.properties() == nil {
+		t.setProperties(c, make([]ast.Symbol, lazy.layout.members.Len()))
 	}
-	member := t.properties[index]
+	properties := t.properties()
+	member := properties[index]
 	if member.IsNil() {
 		symbol := lazy.layout.members.SymbolAt(index)
 		baseIndex := lazy.layout.baseIndices[index]
 		if baseIndex < 0 {
-			member = t.checker.instantiateSymbol(symbol, lazy.mapper)
+			member = c.instantiateSymbol(symbol, lazy.mapper)
 		} else {
-			member = t.checker.getPropertyOfType(lazy.baseTypes[baseIndex], symbol.Name())
+			member = c.getPropertyOfType(lazy.baseTypes[baseIndex], symbol.Name())
 		}
-		t.properties[index] = member
+		properties[index] = member
 	}
 	return member
 }
 
-func (t *StructuredType) getProperties() []ast.Symbol {
+func (t *StructuredType) getProperties(c *Checker) []ast.Symbol {
 	if lazy := t.getLazyState(); lazy != nil && !lazy.propertiesResolved {
 		for i := range lazy.layout.members.Len() {
-			t.getPropertyAt(i)
+			t.getPropertyAt(c, i)
 		}
 		lazy.propertiesResolved = true
 	}
-	return t.AsStructuredType().properties
+	return t.properties()
 }
 
 func (t *StructuredType) hasProperties() bool {
-	if len(t.properties) != 0 {
+	if len(t.properties()) != 0 {
 		return true
 	}
 	lazy := t.getLazyState()
@@ -1226,34 +1478,29 @@ func (t *StructuredType) hasProperties() bool {
 
 func (t *StructuredType) getLazyState() *LazyState {
 	if t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsReference) != 0 {
-		return t.AsType().AsTypeReference().lazy
+		return t.AsType().AsTypeReference().lazy()
 	}
 	return nil
 }
 
 func (t *StructuredType) getSignatures() []*Signature {
-	if t.extra == nil {
+	extra := t.resolvedExtra()
+	if extra == nil {
 		return nil
 	}
-	return t.extra.signatures
+	return extra.signatures
 }
 
 func (t *StructuredType) getIndexInfos() []*IndexInfo {
-	if t.extra == nil {
+	extra := t.resolvedExtra()
+	if extra == nil {
 		return nil
 	}
-	return t.extra.indexInfos
+	return extra.indexInfos
 }
 
-func (t *StructuredType) ensureExtra() *structuredTypeExtra {
-	if t.extra == nil {
-		t.extra = t.checker.structuredTypeExtraArena.New()
-	}
-	return t.extra
-}
-
-func (t *StructuredType) Properties() []ast.Symbol {
-	return t.getProperties()
+func (t *StructuredType) Properties(c *Checker) []ast.Symbol {
+	return t.getProperties(c)
 }
 
 // Except for tuple type references and reverse mapped types, all object types have an associated symbol.
@@ -1289,22 +1536,79 @@ func (t *StructuredType) Properties() []ast.Symbol {
 // EvolvingArrayType:
 // ObjectFlagsEvolvingArray: Evolving array type
 
+// ObjectType: the target of an instantiated type in p0, except for reverse mapped and evolving array types, and the
+// mapper of an anonymous, mapped or instantiation expression type in p1. A deferred type reference keeps its mapper
+// in extra.
+
 type ObjectType struct {
 	StructuredType
-	target         *Type                  // Target of instantiated type
-	mapper         *TypeMapper            // Type mapper for instantiated type
-	instantiations map[CacheHashKey]*Type // Map of type instantiations
 }
 
 func (t *ObjectType) AsObjectType() *ObjectType { return t }
 
-// TypeReference (instantiation of an InterfaceType)
+// Target of instantiated type
+func (t *ObjectType) target() *Type {
+	if t.kind() >= typeKindReverseMapped {
+		return nil
+	}
+	return fromPayload[Type](t.data.p0)
+}
+
+func (t *ObjectType) setTarget(target *Type) {
+	if t.kind() >= typeKindReverseMapped {
+		panic("Type has no target")
+	}
+	t.data.p0 = toPayload(target)
+}
+
+// Type mapper for instantiated type
+func (t *ObjectType) mapper() *TypeMapper {
+	switch t.kind() {
+	case typeKindObject, typeKindInstantiationExpression, typeKindMapped:
+		return fromPayload[TypeMapper](t.data.p1)
+	case typeKindTypeReference:
+		if t.extra != nil {
+			return t.extra.mapper
+		}
+	}
+	return nil
+}
+
+func (t *ObjectType) setMapper(c *Checker, mapper *TypeMapper) {
+	switch t.kind() {
+	case typeKindObject, typeKindInstantiationExpression, typeKindMapped:
+		t.data.p1 = toPayload(mapper)
+	case typeKindTypeReference:
+		if mapper != nil || t.extra != nil {
+			t.ensureExtra(c).mapper = mapper
+		}
+	default:
+		if mapper != nil {
+			panic("Type has no mapper")
+		}
+	}
+}
+
+// Map of type instantiations
+func (t *ObjectType) instantiations() map[CacheHashKey]*Type {
+	if t.extra == nil {
+		return nil
+	}
+	return t.extra.instantiations
+}
+
+func (t *ObjectType) setInstantiations(c *Checker, instantiations map[CacheHashKey]*Type) {
+	if instantiations == nil && t.extra == nil {
+		return
+	}
+	t.ensureExtra(c).instantiations = instantiations
+}
+
+// TypeReference (instantiation of an InterfaceType): the target in p0, the type arguments in p1 and w0, and the lazy
+// state in p2. Interface and tuple types keep the lazy state in their own record in p2.
 
 type TypeReference struct {
 	ObjectType
-	node                  ast.NodeRef // TypeReferenceNode | ArrayTypeNode | TupleTypeNode when deferred, else nil
-	resolvedTypeArguments []*Type
-	lazy                  *LazyState // Resolved member layout and instantiation state
 }
 
 type LazyState struct {
@@ -1323,10 +1627,53 @@ type MemberLayout struct {
 
 func (t *TypeReference) AsTypeReference() *TypeReference { return t }
 
-// InterfaceType (when generic, serves as reference to instantiation of itself)
+// TypeReferenceNode | ArrayTypeNode | TupleTypeNode when deferred, else the zero NodeRef
+func (t *TypeReference) node() ast.NodeRef {
+	if t.extra == nil {
+		return ast.NodeRef{}
+	}
+	return t.extra.node
+}
+
+func (t *TypeReference) setNode(c *Checker, node ast.NodeRef) {
+	if node == (ast.NodeRef{}) && t.extra == nil {
+		return
+	}
+	t.ensureExtra(c).node = node
+}
+
+func (t *TypeReference) resolvedTypeArguments() []*Type {
+	return typeSlice(t.data.p1, t.data.w0)
+}
+
+func (t *TypeReference) setResolvedTypeArguments(typeArguments []*Type) {
+	t.data.p1, t.data.w0 = sliceToPayload(typeArguments)
+}
+
+// Resolved member layout and instantiation state
+func (t *TypeReference) lazy() *LazyState {
+	if t.kind() == typeKindTypeReference {
+		return fromPayload[LazyState](t.data.p2)
+	}
+	return fromPayload[interfaceData](t.data.p2).lazy
+}
+
+func (t *TypeReference) setLazy(lazy *LazyState) {
+	if t.kind() == typeKindTypeReference {
+		t.data.p2 = toPayload(lazy)
+	} else {
+		fromPayload[interfaceData](t.data.p2).lazy = lazy
+	}
+}
+
+// InterfaceType (when generic, serves as reference to instantiation of itself): its own record in p2.
 
 type InterfaceType struct {
 	TypeReference
+}
+
+type interfaceData struct {
+	lazy                        *LazyState
 	allTypeParameters           []*Type // Type parameters (outer + local + thisType)
 	outerTypeParameterCount     int     // Count of outer type parameters
 	thisType                    *Type   // The "this" type (nil if none)
@@ -1342,29 +1689,36 @@ type InterfaceType struct {
 
 func (t *InterfaceType) AsInterfaceType() *InterfaceType { return t }
 
+func (t *InterfaceType) iface() *interfaceData {
+	return fromPayload[interfaceData](t.data.p2)
+}
+
 func (t *InterfaceType) OuterTypeParameters() []*Type {
-	if len(t.allTypeParameters) == 0 {
+	d := t.iface()
+	if len(d.allTypeParameters) == 0 {
 		return nil
 	}
-	return slices.Clip(t.allTypeParameters[:t.outerTypeParameterCount])
+	return slices.Clip(d.allTypeParameters[:d.outerTypeParameterCount])
 }
 
 func (t *InterfaceType) LocalTypeParameters() []*Type {
-	if len(t.allTypeParameters) == 0 {
+	d := t.iface()
+	if len(d.allTypeParameters) == 0 {
 		return nil
 	}
-	return slices.Clip(t.allTypeParameters[t.outerTypeParameterCount : len(t.allTypeParameters)-1])
+	return slices.Clip(d.allTypeParameters[d.outerTypeParameterCount : len(d.allTypeParameters)-1])
 }
 
 func (t *InterfaceType) TypeParameters() []*Type {
-	if len(t.allTypeParameters) == 0 {
+	d := t.iface()
+	if len(d.allTypeParameters) == 0 {
 		return nil
 	}
-	return slices.Clip(t.allTypeParameters[:len(t.allTypeParameters)-1])
+	return slices.Clip(d.allTypeParameters[:len(d.allTypeParameters)-1])
 }
 
 func (t *InterfaceType) ThisType() *Type {
-	return t.thisType
+	return t.iface().thisType
 }
 
 // TupleType
@@ -1391,8 +1745,14 @@ type TupleElementInfo struct {
 func (t *TupleElementInfo) TupleElementFlags() ElementFlags { return t.flags }
 func (t *TupleElementInfo) LabeledDeclaration() ast.Node    { return t.labeledDeclaration }
 
+// TupleType: like InterfaceType, with a larger record in p2.
+
 type TupleType struct {
 	InterfaceType
+}
+
+type tupleData struct {
+	interfaceData
 	elementInfos  []TupleElementInfo
 	minLength     int // Number of required or variadic elements
 	fixedLength   int // Number of initial required or optional elements
@@ -1400,28 +1760,45 @@ type TupleType struct {
 	readonly      bool
 }
 
-func (t *TupleType) FixedLength() int { return t.fixedLength }
-func (t *TupleType) IsReadonly() bool { return t.readonly }
+func (t *TupleType) tuple() *tupleData {
+	return fromPayload[tupleData](t.data.p2)
+}
+
+func (t *TupleType) FixedLength() int { return t.tuple().fixedLength }
+func (t *TupleType) IsReadonly() bool { return t.tuple().readonly }
 func (t *TupleType) ElementFlags() []ElementFlags {
-	elementFlags := make([]ElementFlags, len(t.elementInfos))
-	for i, info := range t.elementInfos {
+	elementInfos := t.tuple().elementInfos
+	elementFlags := make([]ElementFlags, len(elementInfos))
+	for i, info := range elementInfos {
 		elementFlags[i] = info.flags
 	}
 	return elementFlags
 }
-func (t *TupleType) ElementInfos() []TupleElementInfo { return t.elementInfos }
+func (t *TupleType) ElementInfos() []TupleElementInfo { return t.tuple().elementInfos }
 
-// InstantiationExpressionType
+// InstantiationExpressionType: the node in w0 and w1.
 
 type InstantiationExpressionType struct {
 	ObjectType
-	node ast.Node
 }
 
-// MappedType
+func (t *InstantiationExpressionType) node() ast.NodeRef {
+	// SAFETY: w0 and w1 are two adjacent 32-bit scalar words, laid out like a NodeRef.
+	return *(*ast.NodeRef)(unsafe.Pointer(&t.data.w0))
+}
+
+func (t *InstantiationExpressionType) setNode(node ast.NodeRef) {
+	// SAFETY: w0 and w1 are two adjacent 32-bit scalar words, laid out like a NodeRef.
+	*(*ast.NodeRef)(unsafe.Pointer(&t.data.w0)) = node
+}
+
+// MappedType: its own record in p2.
 
 type MappedType struct {
 	ObjectType
+}
+
+type mappedData struct {
 	declaration          ast.MappedTypeNode
 	typeParameter        *Type
 	constraintType       *Type
@@ -1432,10 +1809,14 @@ type MappedType struct {
 	containsError        bool
 }
 
-func (t *MappedType) TypeParameter() *Type  { return t.typeParameter }
-func (t *MappedType) ConstraintType() *Type { return t.constraintType }
-func (t *MappedType) NameType() *Type       { return t.nameType }
-func (t *MappedType) TemplateType() *Type   { return t.templateType }
+func (t *MappedType) mapped() *mappedData {
+	return fromPayload[mappedData](t.data.p2)
+}
+
+func (t *MappedType) TypeParameter() *Type  { return t.mapped().typeParameter }
+func (t *MappedType) ConstraintType() *Type { return t.mapped().constraintType }
+func (t *MappedType) NameType() *Type       { return t.mapped().nameType }
+func (t *MappedType) TemplateType() *Type   { return t.mapped().templateType }
 func (t *MappedType) ResolveComponents(c *Checker, typ *Type) {
 	c.getTypeParameterFromMappedType(typ)
 	c.getConstraintTypeFromMappedType(typ)
@@ -1443,28 +1824,37 @@ func (t *MappedType) ResolveComponents(c *Checker, typ *Type) {
 	c.getTemplateTypeFromMappedType(typ)
 }
 
-// ReverseMappedType
+// ReverseMappedType: the source, mapped type and constraint type in p0, p1 and p2.
 
 type ReverseMappedType struct {
 	ObjectType
-	source         *Type
-	mappedType     *Type
-	constraintType *Type
 }
 
-// EvolvingArrayType
+func (t *ReverseMappedType) source() *Type             { return fromPayload[Type](t.data.p0) }
+func (t *ReverseMappedType) setSource(v *Type)         { t.data.p0 = toPayload(v) }
+func (t *ReverseMappedType) mappedType() *Type         { return fromPayload[Type](t.data.p1) }
+func (t *ReverseMappedType) setMappedType(v *Type)     { t.data.p1 = toPayload(v) }
+func (t *ReverseMappedType) constraintType() *Type     { return fromPayload[Type](t.data.p2) }
+func (t *ReverseMappedType) setConstraintType(v *Type) { t.data.p2 = toPayload(v) }
+
+// EvolvingArrayType: the element type and final array type in p0 and p1.
 
 type EvolvingArrayType struct {
 	ObjectType
-	elementType    *Type
-	finalArrayType *Type
 }
 
-// UnionOrIntersectionTypeData
+func (t *EvolvingArrayType) elementType() *Type        { return fromPayload[Type](t.data.p0) }
+func (t *EvolvingArrayType) setElementType(v *Type)    { t.data.p0 = toPayload(v) }
+func (t *EvolvingArrayType) finalArrayType() *Type     { return fromPayload[Type](t.data.p1) }
+func (t *EvolvingArrayType) setFinalArrayType(v *Type) { t.data.p1 = toPayload(v) }
+
+// UnionOrIntersectionType: the types in p0 and w0, and in p2 a record of rarer fields allocated on first use.
 
 type UnionOrIntersectionType struct {
 	StructuredType
-	types                                       []*Type
+}
+
+type unionOrIntersectionData struct {
 	propertyCache                               ast.SymbolTable // Augmented entries, except complete ones already in the non-augmented cache.
 	propertyCacheWithoutFunctionPropertyAugment ast.SymbolTable
 	resolvedProperties                          []ast.Symbol
@@ -1472,43 +1862,220 @@ type UnionOrIntersectionType struct {
 
 func (t *UnionOrIntersectionType) AsUnionOrIntersectionType() *UnionOrIntersectionType { return t }
 
-func (t *UnionOrIntersectionType) Types() []*Type {
-	return t.types
+func (t *UnionOrIntersectionType) types() []*Type {
+	return typeSlice(t.data.p0, t.data.w0)
 }
 
-// UnionType
+func (t *UnionOrIntersectionType) setTypes(types []*Type) {
+	t.data.p0, t.data.w0 = sliceToPayload(types)
+}
+
+func (t *UnionOrIntersectionType) Types() []*Type {
+	return t.types()
+}
+
+func (t *UnionOrIntersectionType) more() *unionOrIntersectionData {
+	return fromPayload[unionOrIntersectionData](t.data.p2)
+}
+
+func (t *UnionOrIntersectionType) ensureMore(c *Checker) *unionOrIntersectionData {
+	if t.data.p2 == nil {
+		if t.kind() == typeKindUnion {
+			t.data.p2 = toPayload(c.unionDataArena.New())
+		} else {
+			t.data.p2 = toPayload(c.intersectionDataArena.New())
+		}
+	}
+	return t.more()
+}
+
+func (t *UnionOrIntersectionType) propertyCache() ast.SymbolTable {
+	if more := t.more(); more != nil {
+		return more.propertyCache
+	}
+	return nil
+}
+
+func (t *UnionOrIntersectionType) setPropertyCache(c *Checker, v ast.SymbolTable) {
+	t.ensureMore(c).propertyCache = v
+}
+
+func (t *UnionOrIntersectionType) propertyCacheWithoutFunctionPropertyAugment() ast.SymbolTable {
+	if more := t.more(); more != nil {
+		return more.propertyCacheWithoutFunctionPropertyAugment
+	}
+	return nil
+}
+
+func (t *UnionOrIntersectionType) setPropertyCacheWithoutFunctionPropertyAugment(c *Checker, v ast.SymbolTable) {
+	t.ensureMore(c).propertyCacheWithoutFunctionPropertyAugment = v
+}
+
+func (t *UnionOrIntersectionType) resolvedProperties() []ast.Symbol {
+	if more := t.more(); more != nil {
+		return more.resolvedProperties
+	}
+	return nil
+}
+
+func (t *UnionOrIntersectionType) setResolvedProperties(c *Checker, v []ast.Symbol) {
+	t.ensureMore(c).resolvedProperties = v
+}
+
+// UnionType: the origin in p1.
 
 type UnionType struct {
 	UnionOrIntersectionType
+}
+
+type unionData struct {
+	unionOrIntersectionData
 	resolvedReducedType *Type
 	regularType         *Type
-	origin              *Type           // Denormalized union, intersection, or index type in which union originates
 	keyPropertyName     ast.SymbolName  // Property with unique unit type that exists in every object/intersection in union type
 	constituentMap      map[*Type]*Type // Constituents keyed by unit type discriminants
 }
 
-// IntersectionType
+func (t *UnionType) union() *unionData {
+	return fromPayload[unionData](t.data.p2)
+}
+
+// Denormalized union, intersection, or index type in which union originates
+func (t *UnionType) origin() *Type     { return fromPayload[Type](t.data.p1) }
+func (t *UnionType) setOrigin(v *Type) { t.data.p1 = toPayload(v) }
+
+func (t *UnionType) resolvedReducedType() *Type {
+	if d := t.union(); d != nil {
+		return d.resolvedReducedType
+	}
+	return nil
+}
+
+func (t *UnionType) setResolvedReducedType(c *Checker, v *Type) {
+	t.ensureMore(c)
+	t.union().resolvedReducedType = v
+}
+
+func (t *UnionType) regularType() *Type {
+	if d := t.union(); d != nil {
+		return d.regularType
+	}
+	return nil
+}
+
+func (t *UnionType) setRegularType(c *Checker, v *Type) {
+	t.ensureMore(c)
+	t.union().regularType = v
+}
+
+func (t *UnionType) keyPropertyName() ast.SymbolName {
+	if d := t.union(); d != nil {
+		return d.keyPropertyName
+	}
+	return ast.SymbolName(0)
+}
+
+func (t *UnionType) setKeyPropertyName(c *Checker, v ast.SymbolName) {
+	t.ensureMore(c)
+	t.union().keyPropertyName = v
+}
+
+func (t *UnionType) constituentMap() map[*Type]*Type {
+	if d := t.union(); d != nil {
+		return d.constituentMap
+	}
+	return nil
+}
+
+func (t *UnionType) setConstituentMap(c *Checker, v map[*Type]*Type) {
+	t.ensureMore(c)
+	t.union().constituentMap = v
+}
+
+// IntersectionType: the resolved apparent type in p1.
 
 type IntersectionType struct {
 	UnionOrIntersectionType
-	resolvedApparentType             *Type
+}
+
+type intersectionData struct {
+	unionOrIntersectionData
 	uniqueLiteralFilledInstantiation *Type // Instantiation with type parameters mapped to never type
 }
 
-// TypeParameter
+func (t *IntersectionType) resolvedApparentType() *Type     { return fromPayload[Type](t.data.p1) }
+func (t *IntersectionType) setResolvedApparentType(v *Type) { t.data.p1 = toPayload(v) }
+
+func (t *IntersectionType) uniqueLiteralFilledInstantiation() *Type {
+	if d := fromPayload[intersectionData](t.data.p2); d != nil {
+		return d.uniqueLiteralFilledInstantiation
+	}
+	return nil
+}
+
+func (t *IntersectionType) setUniqueLiteralFilledInstantiation(c *Checker, v *Type) {
+	t.ensureMore(c)
+	fromPayload[intersectionData](t.data.p2).uniqueLiteralFilledInstantiation = v
+}
+
+// TypeParameter: the constraint, target and mapper in p0, p1 and p2, and flags in w0. The default and distributed
+// type are in extra.
 
 type TypeParameter struct {
 	ConstrainedType
-	constraint          *Type
-	target              *Type
-	mapper              *TypeMapper
-	isThisType          bool
-	isDistributed       bool
-	resolvedDefaultType *Type
-	distributedType     *Type
 }
 
-func (t *TypeParameter) IsThisType() bool { return t.isThisType }
+const (
+	typeParameterIsThisType = 1 << iota
+	typeParameterIsDistributed
+)
+
+func (t *TypeParameter) constraint() *Type       { return fromPayload[Type](t.data.p0) }
+func (t *TypeParameter) setConstraint(v *Type)   { t.data.p0 = toPayload(v) }
+func (t *TypeParameter) target() *Type           { return fromPayload[Type](t.data.p1) }
+func (t *TypeParameter) setTarget(v *Type)       { t.data.p1 = toPayload(v) }
+func (t *TypeParameter) mapper() *TypeMapper     { return fromPayload[TypeMapper](t.data.p2) }
+func (t *TypeParameter) setMapper(v *TypeMapper) { t.data.p2 = toPayload(v) }
+func (t *TypeParameter) IsThisType() bool        { return t.data.w0&typeParameterIsThisType != 0 }
+func (t *TypeParameter) isDistributed() bool     { return t.data.w0&typeParameterIsDistributed != 0 }
+func (t *TypeParameter) setIsThisType(v bool)    { t.setFlag(typeParameterIsThisType, v) }
+func (t *TypeParameter) setIsDistributed(v bool) { t.setFlag(typeParameterIsDistributed, v) }
+
+func (t *TypeParameter) setFlag(flag uint32, v bool) {
+	if v {
+		t.data.w0 |= flag
+	} else {
+		t.data.w0 &^= flag
+	}
+}
+
+func (t *TypeParameter) resolvedDefaultType() *Type {
+	if t.extra == nil {
+		return nil
+	}
+	return t.extra.resolvedDefaultType
+}
+
+func (t *TypeParameter) setResolvedDefaultType(c *Checker, v *Type) {
+	if v == nil && t.extra == nil {
+		return
+	}
+	t.ensureExtra(c).resolvedDefaultType = v
+}
+
+func (t *TypeParameter) distributedType() *Type {
+	if t.extra == nil {
+		return nil
+	}
+	return t.extra.distributedType
+}
+
+func (t *TypeParameter) setDistributedType(c *Checker, v *Type) {
+	if v == nil && t.extra == nil {
+		return
+	}
+	t.ensureExtra(c).distributedType = v
+}
 
 // IndexFlags
 
@@ -1521,52 +2088,81 @@ const (
 	IndexFlagsNoReducibleCheck  IndexFlags = 1 << 2
 )
 
-// IndexType
+// IndexType: the target in p0 and the flags in w0.
 
 type IndexType struct {
 	ConstrainedType
-	target     *Type
-	indexFlags IndexFlags
 }
 
-func (t *IndexType) Target() *Type { return t.target }
+func (t *IndexType) Target() *Type              { return t.target() }
+func (t *IndexType) target() *Type              { return fromPayload[Type](t.data.p0) }
+func (t *IndexType) setTarget(v *Type)          { t.data.p0 = toPayload(v) }
+func (t *IndexType) indexFlags() IndexFlags     { return IndexFlags(t.data.w0) }
+func (t *IndexType) setIndexFlags(v IndexFlags) { t.data.w0 = uint32(v) }
 
-// IndexedAccessType
+// IndexedAccessType: the object and index types in p0 and p1, and the access flags (only AccessFlags.Persistent) in w0.
 
 type IndexedAccessType struct {
 	ConstrainedType
-	objectType  *Type
-	indexType   *Type
-	accessFlags AccessFlags // Only includes AccessFlags.Persistent
 }
 
-func (t *IndexedAccessType) ObjectType() *Type { return t.objectType }
-func (t *IndexedAccessType) IndexType() *Type  { return t.indexType }
+func (t *IndexedAccessType) ObjectType() *Type            { return t.objectType() }
+func (t *IndexedAccessType) IndexType() *Type             { return t.indexType() }
+func (t *IndexedAccessType) objectType() *Type            { return fromPayload[Type](t.data.p0) }
+func (t *IndexedAccessType) setObjectType(v *Type)        { t.data.p0 = toPayload(v) }
+func (t *IndexedAccessType) indexType() *Type             { return fromPayload[Type](t.data.p1) }
+func (t *IndexedAccessType) setIndexType(v *Type)         { t.data.p1 = toPayload(v) }
+func (t *IndexedAccessType) accessFlags() AccessFlags     { return AccessFlags(t.data.w0) }
+func (t *IndexedAccessType) setAccessFlags(v AccessFlags) { t.data.w0 = uint32(v) }
+
+// TemplateLiteralType: the texts in p0 and w0 (always one element longer than the types), the types (always at least
+// one) in p1 and w1.
 
 type TemplateLiteralType struct {
 	ConstrainedType
-	texts []string // Always one element longer than types
-	types []*Type  // Always at least one element
 }
 
-func (t *TemplateLiteralType) Texts() []string { return t.texts }
-func (t *TemplateLiteralType) Types() []*Type  { return t.types }
+func (t *TemplateLiteralType) Texts() []string { return t.texts() }
+func (t *TemplateLiteralType) Types() []*Type  { return t.types() }
+
+func (t *TemplateLiteralType) texts() []string {
+	return sliceFromPayload[string](t.data.p0, t.data.w0)
+}
+
+func (t *TemplateLiteralType) setTexts(texts []string) {
+	t.data.p0, t.data.w0 = sliceToPayload(texts)
+}
+
+func (t *TemplateLiteralType) types() []*Type {
+	return typeSlice(t.data.p1, t.data.w1)
+}
+
+func (t *TemplateLiteralType) setTypes(types []*Type) {
+	t.data.p1, t.data.w1 = sliceToPayload(types)
+}
+
+// StringMappingType: the target in p0.
 
 type StringMappingType struct {
 	ConstrainedType
-	target *Type
 }
 
-func (t *StringMappingType) Target() *Type { return t.target }
+func (t *StringMappingType) Target() *Type     { return t.target() }
+func (t *StringMappingType) target() *Type     { return fromPayload[Type](t.data.p0) }
+func (t *StringMappingType) setTarget(v *Type) { t.data.p0 = toPayload(v) }
+
+// SubstitutionType: the base type (the target type) and the constraint it is known to satisfy in p0 and p1.
 
 type SubstitutionType struct {
 	ConstrainedType
-	baseType   *Type // Target type
-	constraint *Type // Constraint that target type is known to satisfy
 }
 
-func (t *SubstitutionType) BaseType() *Type        { return t.baseType }
-func (t *SubstitutionType) SubstConstraint() *Type { return t.constraint }
+func (t *SubstitutionType) BaseType() *Type        { return t.baseType() }
+func (t *SubstitutionType) SubstConstraint() *Type { return t.constraint() }
+func (t *SubstitutionType) baseType() *Type        { return fromPayload[Type](t.data.p0) }
+func (t *SubstitutionType) setBaseType(v *Type)    { t.data.p0 = toPayload(v) }
+func (t *SubstitutionType) constraint() *Type      { return fromPayload[Type](t.data.p1) }
+func (t *SubstitutionType) setConstraint(v *Type)  { t.data.p1 = toPayload(v) }
 
 type ConditionalRoot struct {
 	node                ast.ConditionalTypeNode
@@ -1579,11 +2175,14 @@ type ConditionalRoot struct {
 	alias               *TypeAlias
 }
 
+// ConditionalType: its own record in p0, and the check and extends types in p1 and p2.
+
 type ConditionalType struct {
 	ConstrainedType
+}
+
+type conditionalData struct {
 	root                             *ConditionalRoot
-	checkType                        *Type
-	extendsType                      *Type
 	resolvedTrueType                 *Type
 	resolvedFalseType                *Type
 	resolvedInferredTrueType         *Type // The `trueType` instantiated with the `combinedMapper`, if present
@@ -1593,8 +2192,13 @@ type ConditionalType struct {
 	combinedMapper                   *TypeMapper
 }
 
-func (t *ConditionalType) CheckType() *Type   { return t.checkType }
-func (t *ConditionalType) ExtendsType() *Type { return t.extendsType }
+func (t *ConditionalType) cond() *conditionalData { return fromPayload[conditionalData](t.data.p0) }
+func (t *ConditionalType) CheckType() *Type       { return t.checkType() }
+func (t *ConditionalType) ExtendsType() *Type     { return t.extendsType() }
+func (t *ConditionalType) checkType() *Type       { return fromPayload[Type](t.data.p1) }
+func (t *ConditionalType) setCheckType(v *Type)   { t.data.p1 = toPayload(v) }
+func (t *ConditionalType) extendsType() *Type     { return fromPayload[Type](t.data.p2) }
+func (t *ConditionalType) setExtendsType(v *Type) { t.data.p2 = toPayload(v) }
 
 // SignatureFlags
 

@@ -796,7 +796,7 @@ func (c *Checker) isConstructedBy(source *Type, target *Type) bool {
 	// that defines the same set of properties as class `A`, in that case they are structurally the same
 	// type, but when you do something like `instanceOfA.constructor === B` it will return false.
 	if source.flags&TypeFlagsObject != 0 && source.objectFlags&ObjectFlagsClass != 0 || target.flags&TypeFlagsObject != 0 && target.objectFlags&ObjectFlagsClass != 0 {
-		return source.Symbol() == target.Symbol()
+		return c.symbolOfType(source) == c.symbolOfType(target)
 	}
 	// For all other types just check that the `source` type is a subtype of the `target` type.
 	return c.isTypeSubtypeOf(source, target)
@@ -1315,7 +1315,7 @@ func (c *Checker) getUnionOrEvolvingArrayType(f *FlowState, types []*Type, subty
 		return c.getEvolvingArrayType(c.getUnionType(core.Map(types, c.getElementTypeOfEvolvingArrayType)))
 	}
 	result := c.recombineUnknownType(c.getUnionTypeEx(core.SameMap(types, c.finalizeEvolvingArrayType), subtypeReduction, nil, nil))
-	if result != f.declaredType && result.flags&f.declaredType.flags&TypeFlagsUnion != 0 && slices.Equal(result.AsUnionType().types, f.declaredType.AsUnionType().types) {
+	if result != f.declaredType && result.flags&f.declaredType.flags&TypeFlagsUnion != 0 && slices.Equal(result.AsUnionType().types(), f.declaredType.AsUnionType().types()) {
 		return f.declaredType
 	}
 	return result
@@ -1506,11 +1506,11 @@ func getCandidateVariableDeclarationInitializer(node ast.Node) ast.Node {
 // array types are ultimately converted into manifest array types (using getFinalArrayType)
 // and never escape the getFlowTypeOfReference function.
 func (c *Checker) getEvolvingArrayType(elementType *Type) *Type {
-	key := CachedTypeKey{kind: CachedTypeKindEvolvingArrayType, typeId: elementType.id}
+	key := CachedTypeKey{kind: CachedTypeKindEvolvingArrayType, typeId: elementType.Id()}
 	result := c.cachedTypes[key]
 	if result == nil {
 		result = c.newObjectType(ObjectFlagsEvolvingArray, ast.Symbol{})
-		result.AsEvolvingArrayType().elementType = elementType
+		result.AsEvolvingArrayType().setElementType(elementType)
 		c.cachedTypes[key] = result
 	}
 	return result
@@ -1518,7 +1518,7 @@ func (c *Checker) getEvolvingArrayType(elementType *Type) *Type {
 
 func (c *Checker) getElementTypeOfEvolvingArrayType(t *Type) *Type {
 	if t.objectFlags&ObjectFlagsEvolvingArray != 0 {
-		return t.AsEvolvingArrayType().elementType
+		return t.AsEvolvingArrayType().elementType()
 	}
 	return c.neverType
 }
@@ -1555,7 +1555,7 @@ func (c *Checker) isEvolvingArrayOperationTarget(node ast.Node) bool {
 // array type.
 func (c *Checker) addEvolvingArrayElementType(evolvingArrayType *Type, node ast.Node) *Type {
 	newElementType := c.getRegularTypeOfObjectLiteral(c.getBaseTypeOfLiteralType(c.getContextFreeTypeOfExpression(node)))
-	elementType := evolvingArrayType.AsEvolvingArrayType().elementType
+	elementType := evolvingArrayType.AsEvolvingArrayType().elementType()
 	if c.isTypeSubsetOf(newElementType, elementType) {
 		return evolvingArrayType
 	}
@@ -1570,10 +1570,10 @@ func (c *Checker) finalizeEvolvingArrayType(t *Type) *Type {
 }
 
 func (c *Checker) getFinalArrayType(t *EvolvingArrayType) *Type {
-	if t.finalArrayType == nil {
-		t.finalArrayType = c.createFinalArrayType(t.elementType)
+	if t.finalArrayType() == nil {
+		t.setFinalArrayType(c.createFinalArrayType(t.elementType()))
 	}
-	return t.finalArrayType
+	return t.finalArrayType()
 }
 
 func (c *Checker) createFinalArrayType(elementType *Type) *Type {
@@ -1794,9 +1794,9 @@ func (c *Checker) tryGetNameFromEntityNameExpression(node ast.Node) (ast.SymbolN
 func tryGetNameFromType(t *Type) (ast.SymbolName, bool) {
 	switch {
 	case t.flags&TypeFlagsUniqueESSymbol != 0:
-		return t.AsUniqueESSymbolType().name, true
+		return t.AsUniqueESSymbolType().name(), true
 	case t.flags&TypeFlagsStringOrNumberLiteral != 0:
-		return ast.MakeSymbolName(evaluator.AnyToString(t.AsLiteralType().value)), true
+		return ast.MakeSymbolName(evaluator.AnyToString(t.AsLiteralType().Value())), true
 	}
 	return ast.EmptySymbolName, false
 }
@@ -1818,7 +1818,7 @@ func (c *Checker) getDestructuringPropertyName(node ast.Node) (ast.SymbolName, b
 func (c *Checker) getLiteralPropertyNameText(name ast.Node) (ast.SymbolName, bool) {
 	t := c.getLiteralTypeFromPropertyName(name)
 	if t.flags&(TypeFlagsStringLiteral|TypeFlagsNumberLiteral) != 0 {
-		return ast.MakeSymbolName(evaluator.AnyToString(t.AsLiteralType().value)), true
+		return ast.MakeSymbolName(evaluator.AnyToString(t.AsLiteralType().Value())), true
 	}
 	return ast.EmptySymbolName, false
 }
@@ -1989,7 +1989,7 @@ func (c *Checker) computeExhaustiveSwitchStatement(node ast.Node) bool {
 
 func (c *Checker) eachTypeContainedIn(source *Type, types []*Type) bool {
 	if source.flags&TypeFlagsUnion != 0 {
-		return !core.Some(source.AsUnionType().types, func(t *Type) bool {
+		return !core.Some(source.AsUnionType().types(), func(t *Type) bool {
 			return !slices.Contains(types, t)
 		})
 	}
@@ -2147,8 +2147,8 @@ func (c *Checker) getTypeOfDottedName(node ast.Node, diagnostic *ast.Diagnostic)
 				name := node.Name()
 				var prop ast.Symbol
 				if ast.IsPrivateIdentifier(name) {
-					if !t.Symbol().IsNil() {
-						prop = c.getPropertyOfType(t, binder.GetSymbolNameForPrivateIdentifier(t.Symbol(), name.Text()))
+					if !c.symbolOfType(t).IsNil() {
+						prop = c.getPropertyOfType(t, binder.GetSymbolNameForPrivateIdentifier(c.symbolOfType(t), name.Text()))
 					}
 				} else {
 					prop = c.getPropertyOfType(t, name.TextSymbolName())
@@ -2237,7 +2237,7 @@ func (c *Checker) getExplicitThisType(node ast.Node) *Type {
 		if ast.IsStatic(container) {
 			return c.getTypeOfSymbol(symbol)
 		} else {
-			return c.getDeclaredTypeOfSymbol(symbol).AsInterfaceType().thisType
+			return c.getDeclaredTypeOfSymbol(symbol).AsInterfaceType().iface().thisType
 		}
 	}
 	return nil
@@ -2415,7 +2415,7 @@ func (c *Checker) getAssignmentReducedType(declaredType *Type, assignedType *Typ
 	if assignedType.flags&TypeFlagsNever != 0 {
 		return assignedType
 	}
-	key := AssignmentReducedKey{id1: declaredType.id, id2: assignedType.id}
+	key := AssignmentReducedKey{id1: declaredType.Id(), id2: assignedType.Id()}
 	result := c.assignmentReducedTypes[key]
 	if result == nil {
 		result = c.getAssignmentReducedTypeWorker(declaredType, assignedType)
@@ -2448,7 +2448,7 @@ func (c *Checker) typeMaybeAssignableTo(source *Type, target *Type) bool {
 		return c.isTypeAssignableTo(source, target)
 	}
 	// Quick exit when source union contains the target type
-	if containsType(source.Types(), target) {
+	if c.containsType(source.Types(), target) {
 		return true
 	}
 	// Otherwise, check if any constituent type of the source union is assignable to the target type

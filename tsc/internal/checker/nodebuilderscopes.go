@@ -230,7 +230,7 @@ func (b *NodeBuilderImpl) enterNewScope(declaration ast.Node, expandedParams []a
 						continue
 					}
 					typeParamName := b.typeParameterToName(typeParam).Text()
-					add(typeParamName, typeParam.Symbol())
+					add(typeParamName, b.ch.symbolOfType(typeParam))
 				}
 			})
 		}

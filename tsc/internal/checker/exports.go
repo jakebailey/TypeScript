@@ -422,7 +422,7 @@ func (c *Checker) CompareSymbols(s1, s2 ast.Symbol) int {
 }
 
 func IsDistributedTypeParameter(t *Type) bool {
-	return t.flags&TypeFlagsTypeParameter != 0 && t.AsTypeParameter().isDistributed
+	return t.flags&TypeFlagsTypeParameter != 0 && t.AsTypeParameter().isDistributed()
 }
 
 func (c *Checker) GetSignatureDeclaration(sig *Signature) ast.Node {

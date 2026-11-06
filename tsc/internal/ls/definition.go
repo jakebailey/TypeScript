@@ -144,9 +144,9 @@ func (l *LanguageService) provideTypeDefinitionAtPosition(ctx context.Context, p
 
 	if symbol := c.GetSymbolAtLocation(node); !symbol.IsNil() {
 		symbolType := getTypeOfSymbolAtLocation(c, symbol, node)
-		declarations := getDeclarationsFromType(symbolType)
+		declarations := getDeclarationsFromType(c, symbolType)
 		if typeArgument := c.GetFirstTypeArgumentFromKnownType(symbolType); typeArgument != nil {
-			declarations = core.Concatenate(getDeclarationsFromType(typeArgument), declarations)
+			declarations = core.Concatenate(getDeclarationsFromType(c, typeArgument), declarations)
 		}
 		if len(declarations) != 0 {
 			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, declarations, nil /*reference*/, spanmap.FeatureTypeDefinition)
@@ -494,7 +494,7 @@ func getTypeOfSymbolAtLocation(c *checker.Checker, symbol ast.Symbol, node ast.N
 	t := c.GetTypeOfSymbolAtLocation(symbol, node)
 	// If the type is just a function's inferred type, go-to-type should go to the return type instead since
 	// go-to-definition takes you to the function anyway.
-	if t.Symbol() == symbol || !t.Symbol().IsNil() && !symbol.ValueDeclaration().IsNil() && ast.IsVariableDeclaration(symbol.ValueDeclaration()) && symbol.ValueDeclaration().Initializer() == t.Symbol().ValueDeclaration() {
+	if c.SymbolOfType(t) == symbol || !c.SymbolOfType(t).IsNil() && !symbol.ValueDeclaration().IsNil() && ast.IsVariableDeclaration(symbol.ValueDeclaration()) && symbol.ValueDeclaration().Initializer() == c.SymbolOfType(t).ValueDeclaration() {
 		sigs := c.GetCallSignatures(t)
 		if len(sigs) == 1 {
 			return c.GetReturnTypeOfSignature(sigs[0])
@@ -503,11 +503,11 @@ func getTypeOfSymbolAtLocation(c *checker.Checker, symbol ast.Symbol, node ast.N
 	return t
 }
 
-func getDeclarationsFromType(t *checker.Type) []ast.Node {
+func getDeclarationsFromType(c *checker.Checker, t *checker.Type) []ast.Node {
 	var result []ast.Node
 	for _, t := range t.Distributed() {
-		if !t.Symbol().IsNil() {
-			for _, decl := range t.Symbol().Declarations().All() {
+		if !c.SymbolOfType(t).IsNil() {
+			for _, decl := range c.SymbolOfType(t).Declarations().All() {
 				result = core.AppendIfUnique(result, decl)
 			}
 		}

@@ -523,6 +523,18 @@ A symbol the checker creates is one 32-byte, pointer-free record in checker-owne
 
 This replaces a 32-byte record plus a 48-byte data record, and saves 74MB on vscode, 57MB on sentry and 89MB on mui with no change in check time.
 
+### Types
+
+A type is one 64-byte record: flags, object flags, id, the symbol's id, a pointer to its resolved structured members, a pointer to its rare fields, and a 32-byte per-kind payload. The checker allocates types in chunked slabs (`[]Type` chunks), never one allocation per type. The payload holds what each kind needs inline: an intrinsic name, a literal's value and its fresh and regular types, a type parameter's constraint, target and mapper, a union's or intersection's constituents and its origin, the object and index types of an indexed access, and so on. Kinds with more state point from the payload to a box from a per-kind arena: interface and tuple types (type parameters, base types, element flags), mapped and conditional types, and the rarer fields of unions and intersections (key property map, resolved apparent and base types, property caches), allocated on first write.
+
+`resolved` (members, properties, and a pointer to call and construct signatures and index infos) exists only for object, union and intersection types whose members have been resolved, and is allocated individually: from a shared chunk, one live record kept its neighbours' member tables alive after their types became garbage, which cost 12MB on mui. `extra` holds the alias, the resolved base constraint, the instantiation cache, a type reference's mapper and deferred node (as a `NodeRef`), and a few rarely set caches.
+
+A type no longer points to its checker. Code that read `t.checker` takes the checker as an argument or became a checker method, and `t.Symbol()` became `c.symbolOfType(t)` (`Checker.SymbolOfType` outside the package), since the record holds only the symbol's id. The API's type registry stores each type with its checker for the same reason.
+
+Recursion identities used to box a node, symbol or type in an interface, which allocated once the identity functions became checker methods and stopped inlining. A `RecursionId` is now the store or type pointer plus an index, which compares the same way without allocating: 5.6M fewer allocations on mui.
+
+This replaces the per-kind type structs, each a 40-byte header plus its kind's fields (56 bytes for an intrinsic, 72 for a literal, 112 for an anonymous object, 152 for a type reference, 192 for a union), and saves 71MB on vscode, 9MB on sentry and 3MB on mui. Check time goes up by about 0.4s on vscode (2%), from the accessors that decode the payload and the extra indirection to resolved members.
+
 ### Progress
 
 Memory used (median) and vscode check time (n=5 alternating against the previous row, min–max and median).
@@ -537,12 +549,17 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 2. symbol ids, 32-byte binder symbols | 3,177,879K (+10MB) | 1,902,763K (+89MB) | 1,322,226K (+159MB) | 20.53–21.76s (21.01) |
 | 3. 32-byte transient symbols | 3,104,289K (−74MB) | 1,845,503K (−57MB) | 1,232,855K (−89MB) | 20.61–21.61s (20.91) |
 | 4. small-map symbol tables | 3,060,303K (−44MB) | 1,817,581K (−28MB) | 1,222,318K (−11MB) | 20.43–20.95s (20.76) |
+| 5. 64-byte types in slabs | 2,989,022K (−71MB) | 1,808,456K (−9MB) | 1,218,870K (−3MB) | 20.51–21.68s (21.27) |
 
 ### Deviations forced by the language
 
 - Working handles are views (`ast.Node`, `ast.Symbol`: a store pointer and an index, 16 bytes), not bare ids. Go has no way to resolve an id to its store without either a registry or a pointer, and a registry is what this design removes; the pointer also keeps the store alive under the garbage collector and keeps the method-call style at every call site. Ids and refs are what gets stored in bulk.
 - Slices are 24-byte headers. Lists that the target layout holds as one handle take a slice header unless the structure stores an index instead.
 - No niche optimisations: an optional id costs a reserved zero value, and optional records cost a pointer.
+- A type's 32-byte payload is split into three pointer words and two 32-bit words, because Go has no unions and the garbage collector needs a fixed pointer map for every word. A literal's value, an `any`, takes two of the pointer words.
+- A type's kind lives in the top 5 bits of its id rather than in its own byte, since the record has no spare byte once the payload's words are fixed.
+- Slices stored in a type's payload keep a pointer and a 32-bit length and drop the capacity, so one fits in one pointer word and one scalar word; a nil slice stays distinct from an empty one.
+- Each kind is a distinct Go type that embeds `Type` and adds no fields, so `AsUnionType()` and the like stay typed casts of the same record.
 
 ### Other deviations
 
@@ -551,6 +568,8 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 - Symbols from stores outside the program's file table are numbered on first use from 2^31 up, under a lock, rather than refused.
 - Symbol table entries are 12 bytes (an 8-byte name and a 4-byte id) rather than 8, since names are not interned atoms (see above). A binder store's table keeps symbols of other stores as views in its rare part rather than as program-wide ids, because a binder store has no program to number them.
 - A binder record refers to its rare part by index into a per-file slice, not by pointer, so the record array has no pointers for the garbage collector to scan.
+- Signatures and index infos of a resolved type stay in a lazily allocated record hanging off `resolved` rather than in `resolved` itself, so types without them don't pay for the slots. Item 6 revisits them as ids.
+- Interface, tuple, mapped and conditional types, and the rarer fields of unions and intersections, keep their extra state in per-kind boxes pointed to from the payload rather than in a shared extra record, since those kinds read the state on hot paths and the boxes are sized to the kind.
 - The transient symbols' side map of rare fields (members, exports, export symbol) is keyed by the symbol's index in the checker's store rather than by its program-wide id; the two differ by a constant. It is guarded by a read-write lock, and the checker's records, names and declaration lists sit in fixed-size pages that never move, because the language service reads symbols it cached from a checker while another request may be using that checker.
 
 ## Historical: earlier measurements (step 9 vs main, vscode, n=10, interleaved)

@@ -447,7 +447,7 @@ func reclassifyByType(c *checker.Checker, node ast.Node, tt tokenType) tokenType
 			if hasCallSignatures {
 				hasNoProperties := !test(func(t *checker.Type) bool {
 					objType := t.AsObjectType()
-					return objType != nil && len(objType.Properties()) > 0
+					return objType != nil && len(objType.Properties(c)) > 0
 				})
 				if hasNoProperties || isExpressionInCallExpression(node) {
 					if tt == tokenTypeProperty {

@@ -530,7 +530,7 @@ func (b *NodeBuilderImpl) pseudoTypeEquivalentToType(t *pseudochecker.PseudoType
 		tupleTarget := undefinedStripped.TargetTupleType()
 		// Pseudo-tuples come from `as const` array literals, so they only ever have required elements.
 		// If the target tuple has optional, rest, or variadic elements, the structures can't match.
-		if tupleTarget.combinedFlags&ElementFlagsNonRequired != 0 {
+		if tupleTarget.tuple().combinedFlags&ElementFlagsNonRequired != 0 {
 			return false
 		}
 		elementTypes := b.ch.getTypeArguments(undefinedStripped)

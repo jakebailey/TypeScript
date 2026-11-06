@@ -153,7 +153,7 @@ func (c *Checker) ForEachExportAndPropertyOfModule(moduleSymbol ast.Symbol, cb f
 	if reducedType.flags&TypeFlagsStructuredType == 0 {
 		return
 	}
-	for name, symbol := range c.resolveStructuredTypeMembers(reducedType).getMembers().All() {
+	for name, symbol := range c.resolveStructuredTypeMembers(reducedType).getMembers(c).All() {
 		if c.isNamedMember(symbol, name) {
 			cb(symbol, name)
 		}
@@ -412,7 +412,7 @@ func (c *Checker) GetRootSymbols(symbol ast.Symbol) []ast.Symbol {
 
 func (c *Checker) GetMappedTypeSymbolOfProperty(symbol ast.Symbol) ast.Symbol {
 	if valueLinks := c.valueSymbolLinks.TryGet(symbol); valueLinks != nil {
-		return valueLinks.getContainingType().Symbol()
+		return c.symbolOfType(valueLinks.getContainingType())
 	}
 	return ast.Symbol{}
 }
@@ -936,8 +936,8 @@ func (c *Checker) GetTypeAtPosition(s *Signature, pos int) *Type {
 
 func (c *Checker) GetTypeParameterAtPosition(s *Signature, pos int) *Type {
 	t := c.getTypeAtPosition(s, pos)
-	if t.IsIndex() && isThisTypeParameter(t.AsIndexType().target) {
-		constraint := c.getBaseConstraintOfType(t.AsIndexType().target)
+	if t.IsIndex() && isThisTypeParameter(t.AsIndexType().target()) {
+		constraint := c.getBaseConstraintOfType(t.AsIndexType().target())
 		if constraint != nil {
 			return c.getIndexType(constraint)
 		}
@@ -1004,16 +1004,16 @@ func isKnownGenericTypeName(name ast.SymbolName) bool {
 }
 
 func (c *Checker) GetFirstTypeArgumentFromKnownType(t *Type) *Type {
-	if t.objectFlags&ObjectFlagsReference != 0 && !t.Symbol().IsNil() && isKnownGenericTypeName(t.Symbol().Name()) {
-		symbol := c.getGlobalSymbol(t.Symbol().Name(), ast.SymbolFlagsType, nil)
-		if !symbol.IsNil() && symbol == t.Target().Symbol() {
+	if t.objectFlags&ObjectFlagsReference != 0 && !c.symbolOfType(t).IsNil() && isKnownGenericTypeName(c.symbolOfType(t).Name()) {
+		symbol := c.getGlobalSymbol(c.symbolOfType(t).Name(), ast.SymbolFlagsType, nil)
+		if !symbol.IsNil() && symbol == c.symbolOfType(t.Target()) {
 			return core.FirstOrNil(c.getTypeArguments(t))
 		}
 	}
-	if t.alias != nil && isKnownGenericTypeName(t.alias.symbol.Name()) {
-		symbol := c.getGlobalSymbol(t.alias.symbol.Name(), ast.SymbolFlagsType, nil)
-		if !symbol.IsNil() && symbol == t.alias.symbol {
-			return core.FirstOrNil(t.alias.typeArguments)
+	if t.Alias() != nil && isKnownGenericTypeName(t.Alias().symbol.Name()) {
+		symbol := c.getGlobalSymbol(t.Alias().symbol.Name(), ast.SymbolFlagsType, nil)
+		if !symbol.IsNil() && symbol == t.Alias().symbol {
+			return core.FirstOrNil(t.Alias().typeArguments)
 		}
 	}
 	return nil
@@ -1137,9 +1137,9 @@ func (c *Checker) IsLibSymbolForHoverVerbosity(symbol ast.Symbol) bool {
 func (c *Checker) IsLibTypeForHoverVerbosity(t *Type) bool {
 	var symbol ast.Symbol
 	if t.objectFlags&ObjectFlagsReference != 0 {
-		symbol = t.Target().Symbol()
+		symbol = c.symbolOfType(t.Target())
 	} else {
-		symbol = t.Symbol()
+		symbol = c.symbolOfType(t)
 	}
 	if c.IsLibSymbolForHoverVerbosity(symbol) {
 		return true

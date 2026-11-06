@@ -2754,7 +2754,7 @@ func (state *refState) explicitlyInheritsFrom(symbol ast.Symbol, parent ast.Symb
 		superTypeNodes := getAllSuperTypeNodes(declaration)
 		return core.Some(superTypeNodes, func(typeReference ast.TypeNode) bool {
 			typ := state.checker.GetTypeAtLocation(typeReference.AsNode())
-			return typ != nil && !typ.Symbol().IsNil() && state.explicitlyInheritsFrom(typ.Symbol(), parent)
+			return typ != nil && !state.checker.SymbolOfType(typ).IsNil() && state.explicitlyInheritsFrom(state.checker.SymbolOfType(typ), parent)
 		})
 	})
 

@@ -127,7 +127,7 @@ func (b *NodeBuilderImpl) expandClassDecl(symbol ast.Symbol) ast.Node {
 	classType := b.ch.getTypeWithThisArgument(declaredType, nil, false)
 	baseTypes := b.ch.getBaseTypes(b.ch.getTargetType(classType))
 	staticType := b.ch.getTypeOfSymbol(symbol)
-	isClass := !staticType.Symbol().IsNil() && !staticType.Symbol().ValueDeclaration().IsNil() && ast.IsClassLike(staticType.Symbol().ValueDeclaration())
+	isClass := !b.ch.symbolOfType(staticType).IsNil() && !b.ch.symbolOfType(staticType).ValueDeclaration().IsNil() && ast.IsClassLike(b.ch.symbolOfType(staticType).ValueDeclaration())
 	var staticBaseType *Type
 	if isClass {
 		staticBaseType = b.ch.getBaseConstructorTypeOfClass(declaredType)
@@ -263,7 +263,7 @@ func (b *NodeBuilderImpl) expandInterfaceDecl(symbol ast.Symbol) ast.Node {
 		members = append(members, b.signatureToSignatureDeclarationHelper(sig, ast.KindCallSignature, nil))
 	}
 	// Properties, filtering inherited
-	filteredProps := b.filterInheritedProperties(interfaceType, baseTypes, resolved.getProperties())
+	filteredProps := b.filterInheritedProperties(interfaceType, baseTypes, resolved.getProperties(b.ch))
 	members = b.serializePropertiesWithTruncation(filteredProps, members)
 
 	// Heritage clauses
@@ -580,7 +580,7 @@ func (b *NodeBuilderImpl) filterInheritedProperties(t *Type, baseTypes []*Type, 
 	// Collect names of properties inherited unchanged from base types.
 	var inherited collections.Set[ast.SymbolName]
 	for _, base := range baseTypes {
-		baseWithThis := b.ch.getTypeWithThisArgument(base, b.ch.getTargetType(t).AsInterfaceType().thisType, false)
+		baseWithThis := b.ch.getTypeWithThisArgument(base, b.ch.getTargetType(t).AsInterfaceType().iface().thisType, false)
 		for _, prop := range b.ch.getPropertiesOfType(baseWithThis) {
 			if existing, ok := propsByName[prop.Name()]; ok && prop.Parent() == existing.Parent() {
 				inherited.Add(prop.Name())

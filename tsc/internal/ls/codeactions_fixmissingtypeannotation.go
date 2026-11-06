@@ -532,7 +532,7 @@ func findExpandoFunction(ch *checker.Checker, node ast.Node) ast.Node {
 		return ast.Node{}
 	}
 
-	symbol := targetType.Symbol()
+	symbol := ch.SymbolOfType(targetType)
 	if symbol.IsNil() || symbol.ValueDeclaration().IsNil() {
 		return ast.Node{}
 	}
@@ -1225,7 +1225,7 @@ func endOfRequiredTypeParameters(ch *checker.Checker, t *checker.Type) int {
 		// which in practice skips type parameters without defaults (e.g. Set<T>
 		// where T has no default should not have <unknown> elided).
 		localIdx := cutoff - outerCount
-		if localIdx < 0 || localIdx >= len(localTypeParams) || !typeParamHasDefault(localTypeParams[localIdx]) {
+		if localIdx < 0 || localIdx >= len(localTypeParams) || !typeParamHasDefault(ch, localTypeParams[localIdx]) {
 			continue
 		}
 		filledIn := ch.FillMissingTypeArguments(typeArgs[:cutoff], typeParams, cutoff, false)
@@ -1244,8 +1244,8 @@ func endOfRequiredTypeParameters(ch *checker.Checker, t *checker.Type) int {
 }
 
 // typeParamHasDefault checks if a type parameter has a default type declaration.
-func typeParamHasDefault(tp *checker.Type) bool {
-	sym := tp.Symbol()
+func typeParamHasDefault(ch *checker.Checker, tp *checker.Type) bool {
+	sym := ch.SymbolOfType(tp)
 	if sym.IsNil() {
 		return false
 	}

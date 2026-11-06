@@ -264,7 +264,7 @@ func (c *Checker) getContextualTypeForChildJsxExpression(node ast.Node, child as
 }
 
 func (c *Checker) discriminateContextualTypeByJSXAttributes(node ast.Node, contextualType *Type) *Type {
-	key := DiscriminatedContextualTypeKey{nodeId: ast.GetNodeId(node), typeId: contextualType.id}
+	key := DiscriminatedContextualTypeKey{nodeId: ast.GetNodeId(node), typeId: contextualType.Id()}
 	if discriminated := c.discriminatedContextualTypes[key]; discriminated != nil {
 		return discriminated
 	}
@@ -967,7 +967,7 @@ func (c *Checker) getJsxPropsTypeFromClassType(sig *Signature, context ast.Node)
 	apparentAttributesType := attributesType
 	intrinsicClassAttribs := c.getJsxType(JsxNames.IntrinsicClassAttributes, context)
 	if !c.isErrorType(intrinsicClassAttribs) {
-		typeParams := c.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(intrinsicClassAttribs.Symbol())
+		typeParams := c.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(c.symbolOfType(intrinsicClassAttribs))
 		hostClassType := c.getReturnTypeOfSignature(sig)
 		var libraryManagedAttributeType *Type
 		if typeParams != nil {
@@ -1238,7 +1238,7 @@ func (c *Checker) getIntrinsicTagSymbol(node ast.Node) ast.Symbol {
 		}
 		if c.getTypeOfPropertyOrIndexSignatureOfType(intrinsicElementsType, ast.MakeSymbolName(propName)) != nil {
 			c.jsxElementLinks.Get(node).jsxFlags |= JsxFlagsIntrinsicIndexedElement
-			c.symbolNodeLinks.set(node, intrinsicElementsType.Symbol())
+			c.symbolNodeLinks.set(node, c.symbolOfType(intrinsicElementsType))
 			return c.symbolNodeLinks.get(node)
 		}
 		// Wasn't found
