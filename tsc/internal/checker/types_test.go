@@ -2,6 +2,7 @@ package checker
 
 import (
 	"encoding/binary"
+	"math/rand/v2"
 	"runtime"
 	"slices"
 	"strconv"
@@ -723,4 +724,29 @@ func TestSignatureExtra(t *testing.T) {
 	assert.Equal(t, sig.minArgumentCount, int32(1))
 	assert.Equal(t, sig.getResolvedTypePredicate(c), predicate)
 	runtime.KeepAlive(c)
+}
+
+func TestRelationTable(t *testing.T) {
+	t.Parallel()
+	var table relationTable[uint32]
+	want := map[RelationKey]uint32{}
+	rng := rand.New(rand.NewPCG(1, 2))
+	for i := range 20000 {
+		key := RelationKey(rng.IntN(3000) + 1)
+		if rng.IntN(3) == 0 {
+			table.delete(key)
+			delete(want, key)
+		} else {
+			table.set(key, uint32(i))
+			want[key] = uint32(i)
+		}
+	}
+	assert.Equal(t, table.count, len(want))
+	for key := RelationKey(1); key <= 3000; key++ {
+		assert.Equal(t, table.get(key), want[key])
+		_, ok := want[key]
+		assert.Equal(t, table.has(key), ok)
+	}
+	table.clear()
+	assert.Assert(t, !table.has(1))
 }

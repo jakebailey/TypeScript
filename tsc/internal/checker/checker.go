@@ -874,6 +874,7 @@ type Checker struct {
 	comparableRelation                          *Relation
 	identityRelation                            *Relation
 	enumRelation                                map[EnumRelationKey]RelationComparisonResult
+	complexRelationKeys                         map[CacheHashKey]RelationKey // Numbers the relation keys of pairs of generic type references
 	getGlobalESSymbolType                       func() *Type
 	getGlobalBigIntType                         func() *Type
 	getGlobalImportMetaType                     func() *Type
@@ -18112,22 +18113,27 @@ func (c *Checker) getConditionalTypeKey(typeArguments []*Type, alias *TypeAlias,
 	return b.hash()
 }
 
-func (c *Checker) getRelationKey(source *Type, target *Type, intersectionState IntersectionState, isIdentity bool, ignoreConstraints bool) (CacheHashKey, bool) {
+func (c *Checker) getRelationKey(source *Type, target *Type, intersectionState IntersectionState, isIdentity bool, ignoreConstraints bool) (RelationKey, bool) {
 	if isIdentity && source.Id() > target.Id() {
 		source, target = target, source
 	}
-	var b keyBuilder
-	var constrained bool
-	if c.isTypeReferenceWithGenericArguments(source) && c.isTypeReferenceWithGenericArguments(target) {
-		b.writeByte('g')
-		constrained = b.writeGenericTypeReferences(c, source, target, ignoreConstraints)
-	} else {
-		b.writeByte('s')
-		b.writeType(source)
-		b.writeType(target)
+	if !(c.isTypeReferenceWithGenericArguments(source) && c.isTypeReferenceWithGenericArguments(target)) {
+		return packRelationKey(source.Id(), target.Id(), intersectionState), false
 	}
+	var b keyBuilder
+	b.writeByte('g')
+	constrained := b.writeGenericTypeReferences(c, source, target, ignoreConstraints)
 	b.writeUint32(uint32(intersectionState))
-	return b.hash(), constrained
+	hash := b.hash()
+	key, ok := c.complexRelationKeys[hash]
+	if !ok {
+		key = relationKeyComplex | RelationKey(len(c.complexRelationKeys)+1)
+		if c.complexRelationKeys == nil {
+			c.complexRelationKeys = make(map[CacheHashKey]RelationKey)
+		}
+		c.complexRelationKeys[hash] = key
+	}
+	return key, constrained
 }
 
 func getNodeListKey(nodes []ast.Node) CacheHashKey {
