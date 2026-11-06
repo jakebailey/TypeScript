@@ -311,6 +311,10 @@ A relation cache key used to be a 128-bit xxh3 hash of a byte string (a tag, the
 
 This saves 49MB on vscode, 70MB on sentry and 21MB on mui, and about 0.6s of vscode check time.
 
+### Interning keys
+
+The maps that intern types keep one type per key. Keys of up to two types (a type reference's type arguments, a union's constituents without origin or alias, an anonymous type's instantiation arguments without alias) are now packed, the type ids in the low word and a per-function tag in the high word, instead of hashed with xxh3; longer lists and keys with an alias, origin or flags are hashed as before. A union of a union with one other type and no alias, the commonest union, is keyed by a packed `uint64` of the two ids and the reduction. The effect is within noise: memory 1–2MB less, check time unchanged; the hashing these skip was not a measurable cost.
+
 ### Progress
 
 Memory used from `--extendedDiagnostics`, single-threaded check. Base is `1fce2af19c3`; main is 3,792,305K on vscode.
@@ -588,6 +592,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 8. link stores | 2,837,832K (−99MB) | 1,752,047K (−30MB) | 1,187,507K (−8MB) | 20.33–20.69s (20.48) |
 | 9. binder side tables | 2,832,808K (−5MB) | 1,749,019K (−3MB) | 1,186,661K (−1MB) | 19.90–21.24s (20.49) |
 | 10. packed relation keys | 2,784,099K (−49MB) | 1,679,415K (−70MB) | 1,167,338K (−19MB) | 19.75–20.66s (19.99) |
+| 11. packed interning keys | 2,783,162K (−1MB) | 1,677,740K (−2MB) | 1,166,235K (−1MB) | 19.98–20.21s (20.00) |
 
 ### Deviations forced by the language
 
@@ -604,6 +609,8 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 - Multi-field links stay records in a per-checker arena with the map holding a pointer, because Go map values aren't addressable: a link updated field by field in place can't live in the map itself. Only links of one small field are stored inline in their maps.
 
 ### Other deviations
+
+- String literal types are interned by their string, not by an atom, since names and strings are not interned (see the symbol name entry below). Packed interning keys keep the 16-byte hashed key's shape, with the ids in one word and a tag in the other, so packed and hashed keys share one map per kind; a separate `uint64` map with a fallback for long lists would cost a second map per type for no measured gain.
 
 - The binder fields that only containers have share one record per node in one sorted table, rather than each being its own sparse map, since they are set on the same few nodes and a separate map per field cost more in bitmaps and headers than it saved.
 

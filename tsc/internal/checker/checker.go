@@ -677,7 +677,8 @@ type Checker struct {
 	resolveNameForSymbolSuggestion              func(location ast.Node, name ast.SymbolName, meaning ast.SymbolFlags, nameNotFoundMessage *diagnostics.Message, isUse bool, excludeGlobals bool) ast.Symbol
 	tupleTypes                                  map[CacheHashKey]*Type
 	unionTypes                                  map[CacheHashKey]*Type
-	unionOfUnionTypes                           map[UnionOfUnionKey]*Type
+	unionOfUnionTypes                           map[uint64]*Type // Packed ids and reduction of unions of two types without an alias
+	aliasedUnionOfUnionTypes                    map[UnionOfUnionKey]*Type
 	intersectionTypes                           map[CacheHashKey]*Type
 	propertiesTypes                             map[PropertiesTypesKey]*Type
 	diagnostics                                 ast.DiagnosticsCollection
@@ -1029,7 +1030,8 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.resolveNameForSymbolSuggestion = c.createNameResolverForSuggestion().Resolve
 	c.tupleTypes = make(map[CacheHashKey]*Type)
 	c.unionTypes = make(map[CacheHashKey]*Type)
-	c.unionOfUnionTypes = make(map[UnionOfUnionKey]*Type)
+	c.unionOfUnionTypes = make(map[uint64]*Type)
+	c.aliasedUnionOfUnionTypes = make(map[UnionOfUnionKey]*Type)
 	c.intersectionTypes = make(map[CacheHashKey]*Type)
 	c.propertiesTypes = make(map[PropertiesTypesKey]*Type)
 	c.patternForType = make(map[*Type]ast.Node)
@@ -17996,7 +17998,32 @@ func (b *keyBuilder) writeNode(node ast.Node) {
 	}
 }
 
+// Keys of up to two types are packed rather than hashed: the type ids go in
+// the low word and the high word holds a tag that a hashed key's high word
+// matches with negligible probability. Each key function has its own tag,
+// so packed keys of different shapes never meet in one map.
+const (
+	packedTypeListKey          = 0xffff_fff0_0000_0000
+	packedUnionKey             = 0xffff_fff1_0000_0000
+	packedTypeInstantiationKey = 0xffff_fff2_0000_0000
+)
+
+func packTypeListKey(tag uint64, types []*Type) (CacheHashKey, bool) {
+	switch len(types) {
+	case 0:
+		return CacheHashKey{Hi: tag}, true
+	case 1:
+		return CacheHashKey{Hi: tag | 1, Lo: uint64(types[0].Id())}, true
+	case 2:
+		return CacheHashKey{Hi: tag | 2, Lo: uint64(types[0].Id()) | uint64(types[1].Id())<<32}, true
+	}
+	return CacheHashKey{}, false
+}
+
 func getTypeListKey(types []*Type) CacheHashKey {
+	if key, ok := packTypeListKey(packedTypeListKey, types); ok {
+		return key
+	}
 	var b keyBuilder
 	b.writeTypes(types)
 	return b.hash()
@@ -18009,6 +18036,11 @@ func (c *Checker) getAliasKey(alias *TypeAlias) CacheHashKey {
 }
 
 func (c *Checker) getUnionKey(types []*Type, origin *Type, alias *TypeAlias) CacheHashKey {
+	if origin == nil && alias == nil {
+		if key, ok := packTypeListKey(packedUnionKey, types); ok {
+			return key
+		}
+	}
 	var b keyBuilder
 	switch {
 	case origin == nil:
@@ -18071,6 +18103,11 @@ func (c *Checker) getTypeAliasInstantiationKey(typeArguments []*Type, alias *Typ
 }
 
 func (c *Checker) getTypeInstantiationKey(typeArguments []*Type, alias *TypeAlias, singleSignature bool) CacheHashKey {
+	if alias == nil && !singleSignature {
+		if key, ok := packTypeListKey(packedTypeInstantiationKey, typeArguments); ok {
+			return key
+		}
+	}
 	var b keyBuilder
 	b.writeTypes(typeArguments)
 	b.writeAlias(c, alias)
@@ -26516,11 +26553,20 @@ func (c *Checker) getUnionTypeEx(types []*Type, unionReduction UnionReduction, a
 		if id1 > id2 {
 			id1, id2 = id2, id1
 		}
+		if alias == nil {
+			key := uint64(id1) | uint64(id2)<<typeKindShift | uint64(unionReduction)<<(2*typeKindShift)
+			t := c.unionOfUnionTypes[key]
+			if t == nil {
+				t = c.getUnionTypeWorker(types, unionReduction, alias, nil /*origin*/)
+				c.unionOfUnionTypes[key] = t
+			}
+			return t
+		}
 		key := UnionOfUnionKey{id1: id1, id2: id2, r: unionReduction, a: c.getAliasKey(alias)}
-		t := c.unionOfUnionTypes[key]
+		t := c.aliasedUnionOfUnionTypes[key]
 		if t == nil {
 			t = c.getUnionTypeWorker(types, unionReduction, alias, nil /*origin*/)
-			c.unionOfUnionTypes[key] = t
+			c.aliasedUnionOfUnionTypes[key] = t
 		}
 		return t
 	}
