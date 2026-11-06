@@ -430,6 +430,49 @@ The link stores were measured both ways. One `map[NodeRef]*V` per store is 10MB 
 
 Symbol declarations and `valueDeclaration` stay views. The binder makes them per file, before any program exists, and a file's symbols are shared by every program that contains it, so they can't hold one program's refs; a store-relative encoding would change the `Declarations()` and `ValueDeclaration()` API at about 750 call sites. On vscode this costs the binder's declaration slices (42MB) and 8 more bytes per symbol in the symbol slab (229MB for binder symbols, 139MB for the checker's), about 47MB in all against 8-byte handles.
 
+### Final state, views and refs
+
+Sizes: `Node` and `NodeList` are 16 bytes (a store pointer and an index, 4 bytes of padding), `NodeRef` is 8, the node header 24 and `nodeList` 16. There is no store table: a store is reclaimed when nothing reaches it.
+
+Refs: node links, symbol-of-node and the checker's node-keyed maps and sets. Views: everything else, including symbol declarations and `valueDeclaration`, `[]Node` held by types and symbols, the `node` of object types, the binder's side tables, flow nodes and all code outside the checker.
+
+Memory used (median) and vscode check time (n=5 alternating, min–max):
+
+| | vscode | sentry | mui | vscode check |
+|---|---|---|---|---|
+| `new-ast` (`1fce2af19c3`) | 3,167,713K | 1,829,551K | 1,174,592K | 17.39–18.35s |
+| `new-ast-index` (`5e349ab704f`) | 3,189,024K | 1,818,226K | 1,170,655K | 20.93–22.25s |
+| views and refs | 3,286,921K | 1,882,903K | 1,216,591K | 17.87–19.89s |
+| vs `new-ast` | +119MB (+3.8%) | +53MB (+2.9%) | +42MB (+3.6%) | |
+| vs `new-ast-index` | +98MB (+3.1%) | +65MB (+3.6%) | +46MB (+3.9%) | |
+
+Against main's 3,792,305K, vscode is −505MB (−13.3%). Check time is back within about a second of `new-ast`, from 3.5s behind it. Views did not make the collector slower: background marking is 4.9s of vscode's CPU samples here against 5.2s on `new-ast`. Most of what is left is hash lookups in the side tables that `new-ast-index` introduced and this branch keeps: symbol-of-node lookups take 0.5s and binder locals 0.35s, which `new-ast` read from node fields.
+
+vscode heap at the end of the check (inuse_space, sampled, MB):
+
+| | `new-ast-index` | views | views and refs |
+|---|---|---|---|
+| node headers | 479 | 458 | 460 |
+| `dataWords` and `listNodes` | 161 | 166 | 149 |
+| lists | 64 | 55 | 57 |
+| flow nodes | 53 | 57 | 58 |
+| binder side tables | 91 | 112 | 99 |
+| binder declarations (`[]Node`) | 17 | 48 | 47 |
+| symbols, binder | 225 | 264 | 224 |
+| symbols, checker | 126 | 154 | 145 |
+| symbol tables | 177 | 183 | 168 |
+| symbol links | 269 | 266 | 273 |
+| node links | 148 | 179 | 150 |
+| symbol-of-node | 135 | 132 | 129 |
+| other checker (types, relations) | 945 | 982 | 973 |
+| source text | 166 | 165 | 157 |
+| other | 110 | 122 | 117 |
+| total | 3,165 | 3,343 | 3,206 |
+
+Heap profiles sample one allocation per 512KB, so rows move by a few MB between runs of the same binary. The growth over `new-ast-index` that is left sits in the holders that keep views: binder declarations (+30MB), the symbol slabs (8 bytes more per symbol for `valueDeclaration`) and checker structures that hold a node, such as object types.
+
+Left to do: symbol declarations could hold a store pointer and `[]uint32` of indices, since a binder symbol's declarations are all in its file, at the cost of changing `Declarations()` at every call site; object types and other checker records that hold a node could take a `NodeRef` and resolve through the checker.
+
 ## Historical: earlier measurements (step 9 vs main, vscode, n=10, interleaved)
 
 ### Branch tip vs main
