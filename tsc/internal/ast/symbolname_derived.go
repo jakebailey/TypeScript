@@ -101,7 +101,7 @@ func encodeDerivedName(kind derivedNameKind, num uint64, base string) (SymbolNam
 
 // MakePrivateSymbolName returns the name of private identifier description in
 // the class with the given symbol ID.
-func MakePrivateSymbolName(classSymbolId SymbolId, description string) SymbolName {
+func MakePrivateSymbolName(classSymbolId SymbolSerial, description string) SymbolName {
 	if name, ok := encodeDerivedName(derivedNamePrivate, uint64(classSymbolId), description); ok {
 		return name
 	}
@@ -110,7 +110,7 @@ func MakePrivateSymbolName(classSymbolId SymbolId, description string) SymbolNam
 
 // MakeUniqueESSymbolName returns the property name of a unique symbol declared
 // by the symbol with the given name and ID.
-func MakeUniqueESSymbolName(symbolName SymbolName, symbolId SymbolId) SymbolName {
+func MakeUniqueESSymbolName(symbolName SymbolName, symbolId SymbolSerial) SymbolName {
 	if symbolName.isInterned() {
 		if name, ok := encodeDerivedName(derivedNameUniqueESSymbol, uint64(symbolId), symbolName.String()); ok {
 			return name

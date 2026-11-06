@@ -75,6 +75,10 @@ type NodeStore struct {
 
 	binder binderData
 
+	// symbols holds the binder symbols of the file whose tree the store
+	// holds.
+	symbols SymbolStore
+
 	// facts caches the subtree facts of nodes, by index; see factsCache.
 	facts atomic.Pointer[[]atomic.Uint32]
 

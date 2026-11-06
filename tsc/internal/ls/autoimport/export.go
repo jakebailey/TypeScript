@@ -140,8 +140,8 @@ func (e *Export) IsUnresolvedAlias() bool {
 	return e.Flags == ast.SymbolFlagsAlias
 }
 
-func SymbolToExport(symbol *ast.Symbol, ch *checker.Checker) *Export {
-	if symbol.Parent() != nil && checker.IsExternalModuleSymbol(symbol.Parent()) {
+func SymbolToExport(symbol ast.Symbol, ch *checker.Checker) *Export {
+	if !symbol.Parent().IsNil() && checker.IsExternalModuleSymbol(symbol.Parent()) {
 		if moduleID, moduleFileName, ok := tryGetModuleIDAndFileNameOfModuleSymbol(symbol.Parent()); ok {
 			return extractFirstExport(symbol, ch, moduleID, moduleFileName, ast.GetSourceFileOfModule(symbol.Parent()))
 		}
@@ -154,7 +154,7 @@ func SymbolToExport(symbol *ast.Symbol, ch *checker.Checker) *Export {
 	}
 
 	file := ast.GetSourceFileOfNode(declaration)
-	if file.Symbol() == nil {
+	if file.Symbol().IsNil() {
 		return nil
 	}
 
@@ -172,15 +172,15 @@ func SymbolToExport(symbol *ast.Symbol, ch *checker.Checker) *Export {
 	return tryGetModuleExport(symbol.Name(), target, moduleSymbol, ch, moduleID, moduleFileName, file)
 }
 
-func tryGetModuleExport(exportName ast.SymbolName, target *ast.Symbol, moduleSymbol *ast.Symbol, ch *checker.Checker, moduleID ModuleID, moduleFileName tspath.RootedFilePath, file *ast.SourceFile) *Export {
+func tryGetModuleExport(exportName ast.SymbolName, target ast.Symbol, moduleSymbol ast.Symbol, ch *checker.Checker, moduleID ModuleID, moduleFileName tspath.RootedFilePath, file *ast.SourceFile) *Export {
 	exported := ch.TryGetMemberInModuleExportsAndProperties(exportName, moduleSymbol)
-	if exported != nil && ch.GetMergedSymbol(ch.SkipAlias(exported)) == target {
+	if !exported.IsNil() && ch.GetMergedSymbol(ch.SkipAlias(exported)) == target {
 		return extractFirstExport(exported, ch, moduleID, moduleFileName, file)
 	}
 	return nil
 }
 
-func extractFirstExport(symbol *ast.Symbol, ch *checker.Checker, moduleID ModuleID, moduleFileName tspath.RootedFilePath, file *ast.SourceFile) *Export {
+func extractFirstExport(symbol ast.Symbol, ch *checker.Checker, moduleID ModuleID, moduleFileName tspath.RootedFilePath, file *ast.SourceFile) *Export {
 	var exports []*Export
 	extractor := newSymbolExtractor("", ch, tspath.CaseInsensitive, nil)
 	extractor.extractFromSymbol(symbol.Name(), symbol, moduleID, moduleFileName, file, &exports)

@@ -49,9 +49,9 @@ func (b *NodeBuilder) enterContext(enclosingDeclaration ast.Node, flags nodebuil
 		inferTypeParameters:      make([]*Type, 0),
 		symbolDepth:              make(map[CompositeSymbolIdentity]int),
 		trackedSymbols:           make([]*TrackedSymbolArgs, 0),
-		reverseMappedStack:       make([]*ast.Symbol, 0),
-		enclosingSymbolTypes:     make(map[ast.SymbolId]*Type),
-		remappedSymbolReferences: make(map[ast.SymbolId]*ast.Symbol),
+		reverseMappedStack:       make([]ast.Symbol, 0),
+		enclosingSymbolTypes:     make(map[ast.SymbolSerial]*Type),
+		remappedSymbolReferences: make(map[ast.SymbolSerial]ast.Symbol),
 	}
 	tracker = NewSymbolTrackerImpl(b.impl.ctx, tracker)
 	b.impl.ctx.tracker = tracker
@@ -130,7 +130,7 @@ func (b *NodeBuilder) SerializeTypeParametersForSignature(signatureDeclaration a
 }
 
 // SerializeTypeForDeclaration implements NodeBuilderInterface.
-func (b *NodeBuilder) SerializeTypeForDeclaration(declaration ast.Node, symbol *ast.Symbol, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Node {
+func (b *NodeBuilder) SerializeTypeForDeclaration(declaration ast.Node, symbol ast.Symbol, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Node {
 	b.enterContext(enclosingDeclaration, flags, internalFlags, tracker)
 	return b.exitContext(b.impl.serializeTypeForDeclaration(declaration, nil, symbol, true))
 }
@@ -148,7 +148,7 @@ func (b *NodeBuilder) SignatureToSignatureDeclaration(signature *Signature, kind
 }
 
 // ExpandSymbolForHover produces declaration nodes for a symbol with verbosity level support.
-func (b *NodeBuilder) ExpandSymbolForHover(symbol *ast.Symbol, meaning ast.SymbolFlags) []ast.Node {
+func (b *NodeBuilder) ExpandSymbolForHover(symbol ast.Symbol, meaning ast.SymbolFlags) []ast.Node {
 	b.enterContext(ast.Node{}, nodebuilder.FlagsIgnoreErrors|nodebuilder.FlagsMultilineObjectLiterals|nodebuilder.FlagsUseAliasDefinedOutsideCurrentScope, nodebuilder.InternalFlagsNone, nil)
 
 	// Push the declared type onto the type stack to prevent re-expansion.
@@ -184,7 +184,7 @@ func (b *NodeBuilder) ExpandSymbolForHover(symbol *ast.Symbol, meaning ast.Symbo
 	return b.exitContextSlice(result)
 }
 
-func simplifyClassDeclaration(f *ast.NodeFactory, classDecl ast.Node, symbol *ast.Symbol) ast.Node {
+func simplifyClassDeclaration(f *ast.NodeFactory, classDecl ast.Node, symbol ast.Symbol) ast.Node {
 	classDeclarations := symbol.Declarations().Filter(ast.IsClassLike)
 	var originalClassDecl ast.Node
 	if len(classDeclarations) > 0 {
@@ -208,7 +208,7 @@ func simplifyClassDeclaration(f *ast.NodeFactory, classDecl ast.Node, symbol *as
 	return ast.ReplaceModifiers(f, classDecl, f.NewModifierList(ast.CreateModifiersFromModifierFlags(modifiers, f.NewModifier)))
 }
 
-func simplifyModifiers(f *ast.NodeFactory, newDecl ast.Node, isDeclKind func(ast.Node) bool, symbol *ast.Symbol) ast.Node {
+func simplifyModifiers(f *ast.NodeFactory, newDecl ast.Node, isDeclKind func(ast.Node) bool, symbol ast.Symbol) ast.Node {
 	decls := symbol.Declarations().Filter(isDeclKind)
 	var declWithModifiers ast.Node
 	if len(decls) > 0 {
@@ -221,31 +221,31 @@ func simplifyModifiers(f *ast.NodeFactory, newDecl ast.Node, isDeclKind func(ast
 }
 
 // SymbolToEntityName implements NodeBuilderInterface.
-func (b *NodeBuilder) SymbolToEntityName(symbol *ast.Symbol, meaning ast.SymbolFlags, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Node {
+func (b *NodeBuilder) SymbolToEntityName(symbol ast.Symbol, meaning ast.SymbolFlags, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Node {
 	b.enterContext(enclosingDeclaration, flags, internalFlags, tracker)
 	return b.exitContext(b.impl.symbolToName(symbol, meaning, false))
 }
 
 // SymbolToExpression implements NodeBuilderInterface.
-func (b *NodeBuilder) SymbolToExpression(symbol *ast.Symbol, meaning ast.SymbolFlags, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Node {
+func (b *NodeBuilder) SymbolToExpression(symbol ast.Symbol, meaning ast.SymbolFlags, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Node {
 	b.enterContext(enclosingDeclaration, flags, internalFlags, tracker)
 	return b.exitContext(b.impl.symbolToExpression(symbol, meaning))
 }
 
 // SymbolToNode implements NodeBuilderInterface.
-func (b *NodeBuilder) SymbolToNode(symbol *ast.Symbol, meaning ast.SymbolFlags, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Node {
+func (b *NodeBuilder) SymbolToNode(symbol ast.Symbol, meaning ast.SymbolFlags, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Node {
 	b.enterContext(enclosingDeclaration, flags, internalFlags, tracker)
 	return b.exitContext(b.impl.symbolToNode(symbol, meaning))
 }
 
 // SymbolToParameterDeclaration implements NodeBuilderInterface.
-func (b NodeBuilder) SymbolToParameterDeclaration(symbol *ast.Symbol, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Node {
+func (b NodeBuilder) SymbolToParameterDeclaration(symbol ast.Symbol, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Node {
 	b.enterContext(enclosingDeclaration, flags, internalFlags, tracker)
 	return b.exitContext(b.impl.symbolToParameterDeclaration(symbol, false))
 }
 
 // SymbolToTypeParameterDeclarations implements NodeBuilderInterface.
-func (b *NodeBuilder) SymbolToTypeParameterDeclarations(symbol *ast.Symbol, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) []ast.Node {
+func (b *NodeBuilder) SymbolToTypeParameterDeclarations(symbol ast.Symbol, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) []ast.Node {
 	b.enterContext(enclosingDeclaration, flags, internalFlags, tracker)
 	return b.exitContextSlice(b.impl.symbolToTypeParameterDeclarations(symbol))
 }
@@ -279,7 +279,7 @@ func NewNodeBuilder(ch *Checker, e *printer.EmitContext) *NodeBuilder {
 	return NewNodeBuilderEx(ch, e, nil /*idToSymbol*/)
 }
 
-func NewNodeBuilderEx(ch *Checker, e *printer.EmitContext, idToSymbol map[ast.IdentifierNode]*ast.Symbol) *NodeBuilder {
+func NewNodeBuilderEx(ch *Checker, e *printer.EmitContext, idToSymbol map[ast.IdentifierNode]ast.Symbol) *NodeBuilder {
 	impl := newNodeBuilderImpl(ch, e, idToSymbol)
 	return &NodeBuilder{impl: impl, ctxStack: make([]*NodeBuilderContext, 0, 1), host: ch.program}
 }
@@ -298,6 +298,6 @@ func (c *Checker) getNodeBuilder() (*NodeBuilder, func()) {
 
 // getNodeBuilderEx returns a builder making its nodes in the checker's
 // store of synthetic nodes.
-func (c *Checker) getNodeBuilderEx(idToSymbol map[ast.IdentifierNode]*ast.Symbol) *NodeBuilder {
+func (c *Checker) getNodeBuilderEx(idToSymbol map[ast.IdentifierNode]ast.Symbol) *NodeBuilder {
 	return NewNodeBuilderEx(c, printer.NewEmitContextInStore(c.nodeStore), idToSymbol)
 }

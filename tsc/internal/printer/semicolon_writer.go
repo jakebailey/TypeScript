@@ -70,7 +70,7 @@ func (w *trailingSemicolonDeferringWriter) WriteProperty(text string) {
 	w.inner.WriteProperty(text)
 }
 
-func (w *trailingSemicolonDeferringWriter) WriteSymbol(text string, symbol *ast.Symbol) {
+func (w *trailingSemicolonDeferringWriter) WriteSymbol(text string, symbol ast.Symbol) {
 	w.commitSemicolon()
 	w.inner.WriteSymbol(text, symbol)
 }

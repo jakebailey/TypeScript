@@ -170,7 +170,7 @@ func (l *LanguageService) getRenameInfoForNode(ctx context.Context, newName stri
 	defer done()
 
 	symbol := ch.GetSymbolAtLocation(node)
-	if symbol == nil {
+	if symbol.IsNil() {
 		if ast.IsStringLiteralLike(node) {
 			// Allow renaming of string literal types with contextual string literal types
 			typ := getContextualTypeFromParentOrAncestorTypeNode(node, ch)
@@ -226,7 +226,7 @@ func nodeIsEligibleForRename(node ast.Node) bool {
 
 // renameBlockedReason returns a non-nil diagnostic message if the rename should be blocked
 // because the symbol is a library definition, a default keyword, or would cross node_modules boundaries.
-func (l *LanguageService) renameBlockedReason(sourceFile *ast.SourceFile, node ast.Node, symbol *ast.Symbol, ch *checker.Checker, program *compiler.Program) *diagnostics.Message {
+func (l *LanguageService) renameBlockedReason(sourceFile *ast.SourceFile, node ast.Node, symbol ast.Symbol, ch *checker.Checker, program *compiler.Program) *diagnostics.Message {
 	for _, declaration := range symbol.Declarations().All() {
 		if isDefinedInLibraryFile(program, declaration) {
 			return diagnostics.You_cannot_rename_elements_that_are_defined_in_the_standard_TypeScript_library
@@ -234,7 +234,7 @@ func (l *LanguageService) renameBlockedReason(sourceFile *ast.SourceFile, node a
 	}
 
 	// Cannot rename `default` as in `import { default as foo } from "./someModule"`
-	if ast.IsIdentifier(node) && node.Text() == "default" && symbol.Parent() != nil && symbol.Parent().Flags()&ast.SymbolFlagsModule != 0 {
+	if ast.IsIdentifier(node) && node.Text() == "default" && !symbol.Parent().IsNil() && symbol.Parent().Flags()&ast.SymbolFlagsModule != 0 {
 		return diagnostics.You_cannot_rename_this_element
 	}
 
@@ -252,7 +252,7 @@ func isDefinedInLibraryFile(program *compiler.Program, declaration ast.Node) boo
 }
 
 // wouldRenameInOtherNodeModules checks if renaming the symbol would affect node_modules.
-func wouldRenameInOtherNodeModules(originalFile *ast.SourceFile, symbol *ast.Symbol, ch *checker.Checker, preferences lsutil.UserPreferences) *diagnostics.Message {
+func wouldRenameInOtherNodeModules(originalFile *ast.SourceFile, symbol ast.Symbol, ch *checker.Checker, preferences lsutil.UserPreferences) *diagnostics.Message {
 	sym := symbol
 	if !preferences.ProvidePrefixAndSuffixTextForRename.IsTrueOrUnknown() && sym.Flags()&ast.SymbolFlagsAlias != 0 {
 		importSpecifier := sym.Declarations().Find(ast.IsImportSpecifier)
@@ -300,7 +300,7 @@ func ClientSupportsRenameResourceOperations(ctx context.Context) bool {
 }
 
 // getRenameInfoForModule handles rename validation for module specifiers.
-func (l *LanguageService) getRenameInfoForModule(ctx context.Context, newName string, specifier ast.StringLiteralLike, sourceFile *ast.SourceFile, moduleSymbol *ast.Symbol) (RenameInfo, bool) {
+func (l *LanguageService) getRenameInfoForModule(ctx context.Context, newName string, specifier ast.StringLiteralLike, sourceFile *ast.SourceFile, moduleSymbol ast.Symbol) (RenameInfo, bool) {
 	if !tspath.IsExternalModuleNameRelative(specifier.Text()) {
 		return getRenameInfoError(ctx, diagnostics.You_cannot_rename_a_module_via_a_global_import), true
 	}
@@ -401,13 +401,13 @@ func (l *LanguageService) getTextForRename(originalNode ast.Node, entry *Referen
 			return name + ": " + newText
 		case ast.IsImportSpecifier(parent) && parent.PropertyName().IsNil():
 			// If the original symbol was using this alias, just rename the alias.
-			var originalSymbol *ast.Symbol
+			var originalSymbol ast.Symbol
 			if ast.IsExportSpecifier(originalNode.Parent()) {
 				originalSymbol = ch.GetExportSpecifierLocalTargetSymbol(originalNode.Parent())
 			} else {
 				originalSymbol = ch.GetSymbolAtLocation(originalNode)
 			}
-			if originalSymbol != nil && originalSymbol.Declarations().Contains(parent) {
+			if !originalSymbol.IsNil() && originalSymbol.Declarations().Contains(parent) {
 				return name + " as " + newText
 			}
 			return newText

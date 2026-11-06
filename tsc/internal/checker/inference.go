@@ -237,7 +237,7 @@ func (c *Checker) inferFromTypes(n *InferenceState, source *Type, target *Type) 
 		c.inferFromTypes(n, source.AsIndexedAccessType().objectType, target.AsIndexedAccessType().objectType)
 		c.inferFromTypes(n, source.AsIndexedAccessType().indexType, target.AsIndexedAccessType().indexType)
 	case source.flags&TypeFlagsStringMapping != 0 && target.flags&TypeFlagsStringMapping != 0:
-		if source.symbol == target.symbol {
+		if source.Symbol() == target.Symbol() {
 			c.inferFromTypes(n, source.AsStringMappingType().target, target.AsStringMappingType().target)
 		}
 	case source.flags&TypeFlagsSubstitution != 0:
@@ -625,7 +625,7 @@ func (c *Checker) inferToTemplateLiteralType(n *InferenceState, source *Type, ta
 									return source
 								case left.flags&TypeFlagsStringMapping != 0:
 									return left
-								case right.flags&TypeFlagsStringMapping != 0 && str == applyStringMapping(right.symbol, str):
+								case right.flags&TypeFlagsStringMapping != 0 && str == applyStringMapping(right.Symbol(), str):
 									return source
 								case left.flags&TypeFlagsStringLiteral != 0:
 									return left
@@ -840,7 +840,7 @@ func (c *Checker) inferFromProperties(n *InferenceState, source *Type, target *T
 	properties := c.getPropertiesOfObjectType(target)
 	for _, targetProp := range properties {
 		sourceProp := c.getPropertyOfType(source, targetProp.Name())
-		if sourceProp != nil && !sourceProp.Declarations().Some(c.isSkipDirectInferenceNode) {
+		if !sourceProp.IsNil() && !sourceProp.Declarations().Some(c.isSkipDirectInferenceNode) {
 			c.inferFromTypes(n, c.removeMissingType(c.getTypeOfSymbol(sourceProp), sourceProp.Flags()&ast.SymbolFlagsOptional != 0), c.removeMissingType(c.getTypeOfSymbol(targetProp), targetProp.Flags()&ast.SymbolFlagsOptional != 0))
 		}
 	}
@@ -1057,7 +1057,7 @@ func (c *Checker) createReverseMappedType(source *Type, target *Type, constraint
 	}
 	// For all other object types we infer a new object type where the reverse mapping has been
 	// applied to the type of each property.
-	reversed := c.newObjectType(ObjectFlagsReverseMapped|ObjectFlagsAnonymous, nil /*symbol*/)
+	reversed := c.newObjectType(ObjectFlagsReverseMapped|ObjectFlagsAnonymous, ast.Symbol{} /*symbol*/)
 	reversed.AsReverseMappedType().source = source
 	reversed.AsReverseMappedType().mappedType = target
 	reversed.AsReverseMappedType().constraintType = constraint
@@ -1069,7 +1069,7 @@ func (c *Checker) createReverseMappedType(source *Type, target *Type, constraint
 // literal { a: 123, b: x => true } is marked non-inferable because it contains a context sensitive
 // arrow function, but is considered partially inferable because property 'a' has an inferable type.
 func (c *Checker) isPartiallyInferableType(t *Type) bool {
-	return t.objectFlags&ObjectFlagsNonInferrableType == 0 || isObjectLiteralType(t) && core.Some(c.getPropertiesOfType(t), func(prop *ast.Symbol) bool {
+	return t.objectFlags&ObjectFlagsNonInferrableType == 0 || isObjectLiteralType(t) && core.Some(c.getPropertiesOfType(t), func(prop ast.Symbol) bool {
 		return c.isPartiallyInferableType(c.getTypeOfSymbol(prop))
 	}) || isTupleType(t) && core.Some(c.getElementTypes(t), c.isPartiallyInferableType)
 }
@@ -1138,7 +1138,7 @@ func (c *Checker) resolveReverseMappedTypeMembers(t *Type) {
 		inferredProp := c.newSymbolEx(ast.SymbolFlagsProperty|prop.Flags()&optionalMask, prop.Name(), checkFlags)
 		inferredProp.SetDeclarations(prop.Declarations())
 		c.valueSymbolLinks.Get(inferredProp).setNameType(c, c.valueSymbolLinks.Get(prop).getNameType())
-		links := c.ReverseMappedSymbolLinks.Get(inferredProp)
+		links := c.reverseMappedSymbolLinks.Get(inferredProp)
 		links.propertyType = c.getTypeOfSymbol(prop)
 		constraintTarget := r.constraintType.AsIndexType().target
 		if constraintTarget.flags&TypeFlagsIndexedAccess != 0 && constraintTarget.AsIndexedAccessType().objectType.flags&TypeFlagsTypeParameter != 0 && constraintTarget.AsIndexedAccessType().indexType.flags&TypeFlagsTypeParameter != 0 {
@@ -1158,10 +1158,10 @@ func (c *Checker) resolveReverseMappedTypeMembers(t *Type) {
 	c.setStructuredTypeMembers(t, members, nil, nil, indexInfos)
 }
 
-func (c *Checker) getTypeOfReverseMappedSymbol(symbol *ast.Symbol) *Type {
+func (c *Checker) getTypeOfReverseMappedSymbol(symbol ast.Symbol) *Type {
 	links := c.valueSymbolLinks.Get(symbol)
 	if links.resolvedType == nil {
-		reverseLinks := c.ReverseMappedSymbolLinks.Get(symbol)
+		reverseLinks := c.reverseMappedSymbolLinks.Get(symbol)
 		links.resolvedType = core.OrElse(c.inferReverseMappedType(reverseLinks.propertyType, reverseLinks.mappedType, reverseLinks.constraintType), c.unknownType)
 	}
 	return links.resolvedType
@@ -1204,8 +1204,8 @@ func (c *Checker) typesDefinitelyUnrelated(source *Type, target *Type) bool {
 	if isTupleType(source) && isTupleType(target) {
 		return tupleTypesDefinitelyUnrelated(source, target)
 	}
-	return c.getUnmatchedProperty(source, target, false /*requireOptionalProperties*/, true /*matchDiscriminantProperties*/) != nil &&
-		c.getUnmatchedProperty(target, source, false /*requireOptionalProperties*/, false /*matchDiscriminantProperties*/) != nil
+	return !c.getUnmatchedProperty(source, target, false /*requireOptionalProperties*/, true /*matchDiscriminantProperties*/).IsNil() &&
+		!c.getUnmatchedProperty(target, source, false /*requireOptionalProperties*/, false /*matchDiscriminantProperties*/).IsNil()
 }
 
 func tupleTypesDefinitelyUnrelated(source *Type, target *Type) bool {
@@ -1237,7 +1237,7 @@ func (c *Checker) isTypeOrBaseIdenticalTo(s *Type, t *Type) bool {
 }
 
 func (c *Checker) isTypeCloselyMatchedBy(s *Type, t *Type) bool {
-	return s.flags&TypeFlagsObject != 0 && t.flags&TypeFlagsObject != 0 && s.symbol != nil && s.symbol == t.symbol ||
+	return s.flags&TypeFlagsObject != 0 && t.flags&TypeFlagsObject != 0 && !s.Symbol().IsNil() && s.Symbol() == t.Symbol() ||
 		s.alias != nil && t.alias != nil && len(s.alias.typeArguments) != 0 && s.alias.symbol == t.alias.symbol
 }
 
@@ -1251,9 +1251,9 @@ func (c *Checker) createEmptyObjectTypeFromStringLiteral(t *Type) *Type {
 		name := getStringLiteralValue(t)
 		literalProp := c.newSymbol(ast.SymbolFlagsProperty, ast.MakeSymbolName(name))
 		c.valueSymbolLinks.Get(literalProp).resolvedType = c.anyType
-		if t.symbol != nil {
-			literalProp.SetDeclarations(t.symbol.Declarations())
-			literalProp.SetValueDeclaration(t.symbol.ValueDeclaration())
+		if !t.Symbol().IsNil() {
+			literalProp.SetDeclarations(t.Symbol().Declarations())
+			literalProp.SetValueDeclaration(t.Symbol().ValueDeclaration())
 		}
 		members.Set(literalProp.Name(), literalProp)
 	}
@@ -1261,7 +1261,7 @@ func (c *Checker) createEmptyObjectTypeFromStringLiteral(t *Type) *Type {
 	if t.flags&TypeFlagsString != 0 {
 		indexInfos = []*IndexInfo{c.newIndexInfo(c.stringType, c.emptyObjectType, false /*isReadonly*/, ast.Node{}, nil)}
 	}
-	return c.newAnonymousType(nil, members, nil, nil, indexInfos)
+	return c.newAnonymousType(ast.Symbol{}, members, nil, nil, indexInfos)
 }
 
 func (c *Checker) newInferenceContext(typeParameters []*Type, signature *Signature, flags InferenceFlags, compareTypes TypeComparer) *InferenceContext {
@@ -1633,7 +1633,7 @@ func (c *Checker) literalTypesWithSameBaseType(types []*Type) bool {
 }
 
 func (c *Checker) isFromInferenceBlockedSource(t *Type) bool {
-	return t.symbol != nil && t.symbol.Declarations().Some(c.isSkipDirectInferenceNode)
+	return !t.Symbol().IsNil() && t.Symbol().Declarations().Some(c.isSkipDirectInferenceNode)
 }
 
 func (c *Checker) isSkipDirectInferenceNode(node ast.Node) bool {
@@ -1674,8 +1674,8 @@ func hasInferenceCandidatesOrDefault(info *InferenceInfo) bool {
 }
 
 func hasTypeParameterDefault(tp *Type) bool {
-	if tp.symbol != nil {
-		for _, d := range tp.symbol.Declarations().All() {
+	if !tp.Symbol().IsNil() {
+		for _, d := range tp.Symbol().Declarations().All() {
 			if ast.IsTypeParameterDeclaration(d) && !d.AsTypeParameterDeclaration().DefaultType().IsNil() {
 				return true
 			}

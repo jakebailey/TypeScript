@@ -1263,13 +1263,13 @@ type JSDocTypeBase struct{ Node }
 
 type DeclarationBase struct{ Node }
 
-func (node DeclarationBase) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node DeclarationBase) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node DeclarationBase) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node DeclarationBase) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 
 type ExportableBase struct{ Node }
 
-func (node ExportableBase) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
-func (node ExportableBase) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node ExportableBase) LocalSymbol() Symbol         { return node.Node.binderLocalSymbol() }
+func (node ExportableBase) SetLocalSymbol(value Symbol) { node.Node.setBinderLocalSymbol(value) }
 
 var modifiersBaseModifiersOffsets = [kindFlowReduceLabelData + 1]uint8{
 	KindVariableStatement:           uint8(unsafe.Offsetof(variableStatementData{}.modifiers) + 1),
@@ -1631,9 +1631,9 @@ func (n Node) classLikeBaseMembers() *listRef {
 
 type ClassLikeBase struct{ Node }
 
-func (node ClassLikeBase) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
-func (node ClassLikeBase) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
-func (node ClassLikeBase) Modifiers() ModifierList      { return node.Node.Modifiers() }
+func (node ClassLikeBase) LocalSymbol() Symbol         { return node.Node.binderLocalSymbol() }
+func (node ClassLikeBase) SetLocalSymbol(value Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node ClassLikeBase) Modifiers() ModifierList     { return node.Node.Modifiers() }
 func (node ClassLikeBase) setModifiers(value ModifierList) {
 	node.setModifiersRef(node.modifiersBaseModifiers(), value)
 }
@@ -1868,8 +1868,8 @@ type ObjectLiteralElementBase struct{ Node }
 
 type AccessorDeclarationBase struct{ Node }
 
-func (node AccessorDeclarationBase) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node AccessorDeclarationBase) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node AccessorDeclarationBase) Symbol() Symbol          { return node.Node.binderSymbol() }
+func (node AccessorDeclarationBase) SetSymbol(value Symbol)  { node.Node.setBinderSymbol(value) }
 func (node AccessorDeclarationBase) Modifiers() ModifierList { return node.Node.Modifiers() }
 func (node AccessorDeclarationBase) setModifiers(value ModifierList) {
 	node.setModifiersRef(node.modifiersBaseModifiers(), value)
@@ -1953,8 +1953,8 @@ func (node AccessorDeclarationBase) SetFlowNode(value FlowNode) { node.Node.setB
 
 type FunctionOrConstructorTypeNodeBase struct{ Node }
 
-func (node FunctionOrConstructorTypeNodeBase) Symbol() *Symbol { return node.Node.binderSymbol() }
-func (node FunctionOrConstructorTypeNodeBase) SetSymbol(value *Symbol) {
+func (node FunctionOrConstructorTypeNodeBase) Symbol() Symbol { return node.Node.binderSymbol() }
+func (node FunctionOrConstructorTypeNodeBase) SetSymbol(value Symbol) {
 	node.Node.setBinderSymbol(value)
 }
 
@@ -4154,11 +4154,11 @@ func (node VariableDeclaration) data() *variableDeclarationData {
 	return (*variableDeclarationData)(node.payload(unsafe.Sizeof(variableDeclarationData{}) <= 4))
 }
 
-func (node VariableDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node VariableDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
-func (node VariableDeclaration) LocalSymbol() *Symbol    { return node.Node.binderLocalSymbol() }
+func (node VariableDeclaration) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node VariableDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
+func (node VariableDeclaration) LocalSymbol() Symbol    { return node.Node.binderLocalSymbol() }
 
-func (node VariableDeclaration) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node VariableDeclaration) SetLocalSymbol(value Symbol) { node.Node.setBinderLocalSymbol(value) }
 
 func (node VariableDeclaration) Name() BindingName { return node.deref(&node.data().name) }
 
@@ -4352,8 +4352,8 @@ func (node ParameterDeclaration) data() *parameterDeclarationData {
 	return (*parameterDeclarationData)(node.payload(unsafe.Sizeof(parameterDeclarationData{}) <= 4))
 }
 
-func (node ParameterDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node ParameterDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node ParameterDeclaration) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node ParameterDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node ParameterDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -4449,12 +4449,12 @@ func (node BindingElement) data() *bindingElementData {
 	return (*bindingElementData)(node.payload(unsafe.Sizeof(bindingElementData{}) <= 4))
 }
 
-func (node BindingElement) Symbol() *Symbol              { return node.Node.binderSymbol() }
-func (node BindingElement) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
-func (node BindingElement) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
-func (node BindingElement) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
-func (node BindingElement) FlowNode() FlowNode           { return node.Node.binderFlowNode() }
-func (node BindingElement) SetFlowNode(value FlowNode)   { node.Node.setBinderFlowNode(value) }
+func (node BindingElement) Symbol() Symbol              { return node.Node.binderSymbol() }
+func (node BindingElement) SetSymbol(value Symbol)      { node.Node.setBinderSymbol(value) }
+func (node BindingElement) LocalSymbol() Symbol         { return node.Node.binderLocalSymbol() }
+func (node BindingElement) SetLocalSymbol(value Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node BindingElement) FlowNode() FlowNode          { return node.Node.binderFlowNode() }
+func (node BindingElement) SetFlowNode(value FlowNode)  { node.Node.setBinderFlowNode(value) }
 func (node BindingElement) DotDotDotToken() DotDotDotToken {
 	return node.deref(&node.data().dotDotDotToken)
 }
@@ -4528,8 +4528,8 @@ func (node MissingDeclaration) data() *missingDeclarationData {
 
 func (node MissingDeclaration) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
 func (node MissingDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
-func (node MissingDeclaration) Symbol() *Symbol            { return node.Node.binderSymbol() }
-func (node MissingDeclaration) SetSymbol(value *Symbol)    { node.Node.setBinderSymbol(value) }
+func (node MissingDeclaration) Symbol() Symbol             { return node.Node.binderSymbol() }
+func (node MissingDeclaration) SetSymbol(value Symbol)     { node.Node.setBinderSymbol(value) }
 func (node MissingDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -4591,11 +4591,11 @@ func (node FunctionDeclaration) data() *functionDeclarationData {
 
 func (node FunctionDeclaration) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
 func (node FunctionDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
-func (node FunctionDeclaration) Symbol() *Symbol            { return node.Node.binderSymbol() }
-func (node FunctionDeclaration) SetSymbol(value *Symbol)    { node.Node.setBinderSymbol(value) }
-func (node FunctionDeclaration) LocalSymbol() *Symbol       { return node.Node.binderLocalSymbol() }
+func (node FunctionDeclaration) Symbol() Symbol             { return node.Node.binderSymbol() }
+func (node FunctionDeclaration) SetSymbol(value Symbol)     { node.Node.setBinderSymbol(value) }
+func (node FunctionDeclaration) LocalSymbol() Symbol        { return node.Node.binderLocalSymbol() }
 
-func (node FunctionDeclaration) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node FunctionDeclaration) SetLocalSymbol(value Symbol) { node.Node.setBinderLocalSymbol(value) }
 
 func (node FunctionDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
@@ -4726,12 +4726,12 @@ func (node ClassDeclaration) data() *classDeclarationData {
 	return (*classDeclarationData)(node.payload(unsafe.Sizeof(classDeclarationData{}) <= 4))
 }
 
-func (node ClassDeclaration) FlowNode() FlowNode           { return node.Node.binderFlowNode() }
-func (node ClassDeclaration) SetFlowNode(value FlowNode)   { node.Node.setBinderFlowNode(value) }
-func (node ClassDeclaration) Symbol() *Symbol              { return node.Node.binderSymbol() }
-func (node ClassDeclaration) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
-func (node ClassDeclaration) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
-func (node ClassDeclaration) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node ClassDeclaration) FlowNode() FlowNode          { return node.Node.binderFlowNode() }
+func (node ClassDeclaration) SetFlowNode(value FlowNode)  { node.Node.setBinderFlowNode(value) }
+func (node ClassDeclaration) Symbol() Symbol              { return node.Node.binderSymbol() }
+func (node ClassDeclaration) SetSymbol(value Symbol)      { node.Node.setBinderSymbol(value) }
+func (node ClassDeclaration) LocalSymbol() Symbol         { return node.Node.binderLocalSymbol() }
+func (node ClassDeclaration) SetLocalSymbol(value Symbol) { node.Node.setBinderLocalSymbol(value) }
 func (node ClassDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -4824,10 +4824,10 @@ func (node ClassExpression) data() *classExpressionData {
 	return (*classExpressionData)(node.payload(unsafe.Sizeof(classExpressionData{}) <= 4))
 }
 
-func (node ClassExpression) Symbol() *Symbol              { return node.Node.binderSymbol() }
-func (node ClassExpression) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
-func (node ClassExpression) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
-func (node ClassExpression) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node ClassExpression) Symbol() Symbol              { return node.Node.binderSymbol() }
+func (node ClassExpression) SetSymbol(value Symbol)      { node.Node.setBinderSymbol(value) }
+func (node ClassExpression) LocalSymbol() Symbol         { return node.Node.binderLocalSymbol() }
+func (node ClassExpression) SetLocalSymbol(value Symbol) { node.Node.setBinderLocalSymbol(value) }
 func (node ClassExpression) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -4977,11 +4977,11 @@ func (node InterfaceDeclaration) data() *interfaceDeclarationData {
 
 func (node InterfaceDeclaration) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
 func (node InterfaceDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
-func (node InterfaceDeclaration) Symbol() *Symbol            { return node.Node.binderSymbol() }
-func (node InterfaceDeclaration) SetSymbol(value *Symbol)    { node.Node.setBinderSymbol(value) }
-func (node InterfaceDeclaration) LocalSymbol() *Symbol       { return node.Node.binderLocalSymbol() }
+func (node InterfaceDeclaration) Symbol() Symbol             { return node.Node.binderSymbol() }
+func (node InterfaceDeclaration) SetSymbol(value Symbol)     { node.Node.setBinderSymbol(value) }
+func (node InterfaceDeclaration) LocalSymbol() Symbol        { return node.Node.binderLocalSymbol() }
 
-func (node InterfaceDeclaration) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node InterfaceDeclaration) SetLocalSymbol(value Symbol) { node.Node.setBinderLocalSymbol(value) }
 
 func (node InterfaceDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
@@ -5076,11 +5076,11 @@ func (node TypeAliasDeclaration) data() *typeAliasDeclarationData {
 
 func (node TypeAliasDeclaration) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
 func (node TypeAliasDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
-func (node TypeAliasDeclaration) Symbol() *Symbol            { return node.Node.binderSymbol() }
-func (node TypeAliasDeclaration) SetSymbol(value *Symbol)    { node.Node.setBinderSymbol(value) }
-func (node TypeAliasDeclaration) LocalSymbol() *Symbol       { return node.Node.binderLocalSymbol() }
+func (node TypeAliasDeclaration) Symbol() Symbol             { return node.Node.binderSymbol() }
+func (node TypeAliasDeclaration) SetSymbol(value Symbol)     { node.Node.setBinderSymbol(value) }
+func (node TypeAliasDeclaration) LocalSymbol() Symbol        { return node.Node.binderLocalSymbol() }
 
-func (node TypeAliasDeclaration) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node TypeAliasDeclaration) SetLocalSymbol(value Symbol) { node.Node.setBinderLocalSymbol(value) }
 
 func (node TypeAliasDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
@@ -5199,8 +5199,8 @@ func (node EnumMember) data() *enumMemberData {
 	return (*enumMemberData)(node.payload(unsafe.Sizeof(enumMemberData{}) <= 4))
 }
 
-func (node EnumMember) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node EnumMember) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node EnumMember) Symbol() Symbol          { return node.Node.binderSymbol() }
+func (node EnumMember) SetSymbol(value Symbol)  { node.Node.setBinderSymbol(value) }
 func (node EnumMember) Modifiers() ModifierList { return node.derefModifiers(&node.data().modifiers) }
 
 func (node EnumMember) setModifiers(value ModifierList) {
@@ -5264,12 +5264,12 @@ func (node EnumDeclaration) data() *enumDeclarationData {
 	return (*enumDeclarationData)(node.payload(unsafe.Sizeof(enumDeclarationData{}) <= 4))
 }
 
-func (node EnumDeclaration) FlowNode() FlowNode           { return node.Node.binderFlowNode() }
-func (node EnumDeclaration) SetFlowNode(value FlowNode)   { node.Node.setBinderFlowNode(value) }
-func (node EnumDeclaration) Symbol() *Symbol              { return node.Node.binderSymbol() }
-func (node EnumDeclaration) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
-func (node EnumDeclaration) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
-func (node EnumDeclaration) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node EnumDeclaration) FlowNode() FlowNode          { return node.Node.binderFlowNode() }
+func (node EnumDeclaration) SetFlowNode(value FlowNode)  { node.Node.setBinderFlowNode(value) }
+func (node EnumDeclaration) Symbol() Symbol              { return node.Node.binderSymbol() }
+func (node EnumDeclaration) SetSymbol(value Symbol)      { node.Node.setBinderSymbol(value) }
+func (node EnumDeclaration) LocalSymbol() Symbol         { return node.Node.binderLocalSymbol() }
+func (node EnumDeclaration) SetLocalSymbol(value Symbol) { node.Node.setBinderLocalSymbol(value) }
 func (node EnumDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -5413,8 +5413,8 @@ func (node NotEmittedTypeElement) data() *notEmittedTypeElementData {
 	return (*notEmittedTypeElementData)(node.payload(unsafe.Sizeof(notEmittedTypeElementData{}) <= 4))
 }
 
-func (node NotEmittedTypeElement) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node NotEmittedTypeElement) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node NotEmittedTypeElement) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node NotEmittedTypeElement) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 
 func (f *NodeFactory) NewNotEmittedTypeElement() Node {
 	_, i := newRecord[notEmittedTypeElementData](f.nodeStore(), layoutNotEmittedTypeElement)
@@ -5455,8 +5455,8 @@ func (node ImportDeclaration) Modifiers() ModifierList {
 func (node ImportDeclaration) setModifiers(value ModifierList) {
 	node.setModifiersRef(&node.data().modifiers, value)
 }
-func (node ImportDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node ImportDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node ImportDeclaration) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node ImportDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node ImportDeclaration) ImportClause() ImportClauseNode {
 	return node.deref(&node.data().importClause)
 }
@@ -5625,10 +5625,10 @@ func (node NamespaceImport) data() *namespaceImportData {
 	return (*namespaceImportData)(node.payload(unsafe.Sizeof(namespaceImportData{}) <= 4))
 }
 
-func (node NamespaceImport) Symbol() *Symbol              { return node.Node.binderSymbol() }
-func (node NamespaceImport) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
-func (node NamespaceImport) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
-func (node NamespaceImport) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node NamespaceImport) Symbol() Symbol               { return node.Node.binderSymbol() }
+func (node NamespaceImport) SetSymbol(value Symbol)       { node.Node.setBinderSymbol(value) }
+func (node NamespaceImport) LocalSymbol() Symbol          { return node.Node.binderLocalSymbol() }
+func (node NamespaceImport) SetLocalSymbol(value Symbol)  { node.Node.setBinderLocalSymbol(value) }
 func (node NamespaceImport) Name() IdentifierNode         { return node.deref(&node.data().name) }
 func (node NamespaceImport) setName(value IdentifierNode) { node.setRef(&node.data().name, value) }
 
@@ -5739,8 +5739,8 @@ func (node ExportAssignment) data() *exportAssignmentData {
 
 func (node ExportAssignment) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
 func (node ExportAssignment) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
-func (node ExportAssignment) Symbol() *Symbol            { return node.Node.binderSymbol() }
-func (node ExportAssignment) SetSymbol(value *Symbol)    { node.Node.setBinderSymbol(value) }
+func (node ExportAssignment) Symbol() Symbol             { return node.Node.binderSymbol() }
+func (node ExportAssignment) SetSymbol(value Symbol)     { node.Node.setBinderSymbol(value) }
 func (node ExportAssignment) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -5812,8 +5812,8 @@ func (node NamespaceExportDeclaration) FlowNode() FlowNode { return node.Node.bi
 func (node NamespaceExportDeclaration) SetFlowNode(value FlowNode) {
 	node.Node.setBinderFlowNode(value)
 }
-func (node NamespaceExportDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node NamespaceExportDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node NamespaceExportDeclaration) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node NamespaceExportDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node NamespaceExportDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -5873,8 +5873,8 @@ func (node NamespaceExport) data() *namespaceExportData {
 	return (*namespaceExportData)(node.payload(unsafe.Sizeof(namespaceExportData{}) <= 4))
 }
 
-func (node NamespaceExport) Symbol() *Symbol                { return node.Node.binderSymbol() }
-func (node NamespaceExport) SetSymbol(value *Symbol)        { node.Node.setBinderSymbol(value) }
+func (node NamespaceExport) Symbol() Symbol                 { return node.Node.binderSymbol() }
+func (node NamespaceExport) SetSymbol(value Symbol)         { node.Node.setBinderSymbol(value) }
 func (node NamespaceExport) Name() ModuleExportName         { return node.deref(&node.data().name) }
 func (node NamespaceExport) setName(value ModuleExportName) { node.setRef(&node.data().name, value) }
 
@@ -5982,12 +5982,12 @@ func (node ExportSpecifier) data() *exportSpecifierData {
 	return (*exportSpecifierData)(node.payload(unsafe.Sizeof(exportSpecifierData{}) <= 4))
 }
 
-func (node ExportSpecifier) Symbol() *Symbol              { return node.Node.binderSymbol() }
-func (node ExportSpecifier) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
-func (node ExportSpecifier) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
-func (node ExportSpecifier) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
-func (node ExportSpecifier) IsTypeOnly() bool             { return node.data().isTypeOnly }
-func (node ExportSpecifier) SetIsTypeOnly(value bool)     { node.data().isTypeOnly = value }
+func (node ExportSpecifier) Symbol() Symbol              { return node.Node.binderSymbol() }
+func (node ExportSpecifier) SetSymbol(value Symbol)      { node.Node.setBinderSymbol(value) }
+func (node ExportSpecifier) LocalSymbol() Symbol         { return node.Node.binderLocalSymbol() }
+func (node ExportSpecifier) SetLocalSymbol(value Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node ExportSpecifier) IsTypeOnly() bool            { return node.data().isTypeOnly }
+func (node ExportSpecifier) SetIsTypeOnly(value bool)    { node.data().isTypeOnly = value }
 func (node ExportSpecifier) PropertyName() ModuleExportName {
 	return node.deref(&node.data().propertyName)
 }
@@ -6047,9 +6047,9 @@ func (node CallSignatureDeclaration) data() *callSignatureDeclarationData {
 	return (*callSignatureDeclarationData)(node.payload(unsafe.Sizeof(callSignatureDeclarationData{}) <= 4))
 }
 
-func (node CallSignatureDeclaration) Symbol() *Symbol { return node.Node.binderSymbol() }
+func (node CallSignatureDeclaration) Symbol() Symbol { return node.Node.binderSymbol() }
 
-func (node CallSignatureDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node CallSignatureDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 
 func (node CallSignatureDeclaration) Locals() SymbolTable { return node.Node.binderLocals() }
 
@@ -6138,9 +6138,9 @@ func (node ConstructSignatureDeclaration) data() *constructSignatureDeclarationD
 	return (*constructSignatureDeclarationData)(node.payload(unsafe.Sizeof(constructSignatureDeclarationData{}) <= 4))
 }
 
-func (node ConstructSignatureDeclaration) Symbol() *Symbol { return node.Node.binderSymbol() }
+func (node ConstructSignatureDeclaration) Symbol() Symbol { return node.Node.binderSymbol() }
 
-func (node ConstructSignatureDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node ConstructSignatureDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 
 func (node ConstructSignatureDeclaration) Locals() SymbolTable { return node.Node.binderLocals() }
 
@@ -6238,8 +6238,8 @@ func (node ConstructorDeclaration) data() *constructorDeclarationData {
 	return (*constructorDeclarationData)(node.payload(unsafe.Sizeof(constructorDeclarationData{}) <= 4))
 }
 
-func (node ConstructorDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node ConstructorDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node ConstructorDeclaration) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node ConstructorDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node ConstructorDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -6365,8 +6365,8 @@ func (node GetAccessorDeclaration) data() *getAccessorDeclarationData {
 	return (*getAccessorDeclarationData)(node.payload(unsafe.Sizeof(getAccessorDeclarationData{}) <= 4))
 }
 
-func (node GetAccessorDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node GetAccessorDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node GetAccessorDeclaration) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node GetAccessorDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node GetAccessorDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -6502,8 +6502,8 @@ func (node SetAccessorDeclaration) data() *setAccessorDeclarationData {
 	return (*setAccessorDeclarationData)(node.payload(unsafe.Sizeof(setAccessorDeclarationData{}) <= 4))
 }
 
-func (node SetAccessorDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node SetAccessorDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node SetAccessorDeclaration) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node SetAccessorDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node SetAccessorDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -6635,8 +6635,8 @@ func (node IndexSignatureDeclaration) data() *indexSignatureDeclarationData {
 	return (*indexSignatureDeclarationData)(node.payload(unsafe.Sizeof(indexSignatureDeclarationData{}) <= 4))
 }
 
-func (node IndexSignatureDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node IndexSignatureDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node IndexSignatureDeclaration) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node IndexSignatureDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node IndexSignatureDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -6735,8 +6735,8 @@ func (node MethodSignatureDeclaration) data() *methodSignatureDeclarationData {
 	return (*methodSignatureDeclarationData)(node.payload(unsafe.Sizeof(methodSignatureDeclarationData{}) <= 4))
 }
 
-func (node MethodSignatureDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node MethodSignatureDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node MethodSignatureDeclaration) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node MethodSignatureDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node MethodSignatureDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -6857,8 +6857,8 @@ func (node MethodDeclaration) data() *methodDeclarationData {
 	return (*methodDeclarationData)(node.payload(unsafe.Sizeof(methodDeclarationData{}) <= 4))
 }
 
-func (node MethodDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node MethodDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node MethodDeclaration) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node MethodDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node MethodDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -6985,9 +6985,8 @@ func (node PropertySignatureDeclaration) data() *propertySignatureDeclarationDat
 	return (*propertySignatureDeclarationData)(node.payload(unsafe.Sizeof(propertySignatureDeclarationData{}) <= 4))
 }
 
-func (node PropertySignatureDeclaration) Symbol() *Symbol { return node.Node.binderSymbol() }
-
-func (node PropertySignatureDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node PropertySignatureDeclaration) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node PropertySignatureDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 
 func (node PropertySignatureDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
@@ -7081,8 +7080,8 @@ func (node PropertyDeclaration) data() *propertyDeclarationData {
 	return (*propertyDeclarationData)(node.payload(unsafe.Sizeof(propertyDeclarationData{}) <= 4))
 }
 
-func (node PropertyDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node PropertyDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node PropertyDeclaration) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node PropertyDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node PropertyDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -7161,8 +7160,8 @@ func (node SemicolonClassElement) data() *semicolonClassElementData {
 	return (*semicolonClassElementData)(node.payload(unsafe.Sizeof(semicolonClassElementData{}) <= 4))
 }
 
-func (node SemicolonClassElement) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node SemicolonClassElement) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node SemicolonClassElement) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node SemicolonClassElement) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 
 func (f *NodeFactory) NewSemicolonClassElement() Node {
 	_, i := newRecord[semicolonClassElementData](f.nodeStore(), layoutSemicolonClassElement)
@@ -7192,9 +7191,8 @@ func (node ClassStaticBlockDeclaration) data() *classStaticBlockDeclarationData 
 	return (*classStaticBlockDeclarationData)(node.payload(unsafe.Sizeof(classStaticBlockDeclarationData{}) <= 4))
 }
 
-func (node ClassStaticBlockDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node ClassStaticBlockDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
-
+func (node ClassStaticBlockDeclaration) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node ClassStaticBlockDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node ClassStaticBlockDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -7522,9 +7520,9 @@ func (node NoSubstitutionTemplateLiteral) SetTemplateFlags(value TokenFlags) {
 	node.data().templateFlags = value
 }
 
-func (node NoSubstitutionTemplateLiteral) Symbol() *Symbol { return node.Node.binderSymbol() }
+func (node NoSubstitutionTemplateLiteral) Symbol() Symbol { return node.Node.binderSymbol() }
 
-func (node NoSubstitutionTemplateLiteral) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node NoSubstitutionTemplateLiteral) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 
 func (f *NodeFactory) NewNoSubstitutionTemplateLiteral(text string, templateFlags TokenFlags) Node {
 	s := f.nodeStore()
@@ -7561,8 +7559,8 @@ func (node BinaryExpression) data() *binaryExpressionData {
 	return (*binaryExpressionData)(node.payload(unsafe.Sizeof(binaryExpressionData{}) <= 4))
 }
 
-func (node BinaryExpression) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node BinaryExpression) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node BinaryExpression) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node BinaryExpression) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node BinaryExpression) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -7817,8 +7815,8 @@ func (node ArrowFunction) data() *arrowFunctionData {
 	return (*arrowFunctionData)(node.payload(unsafe.Sizeof(arrowFunctionData{}) <= 4))
 }
 
-func (node ArrowFunction) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node ArrowFunction) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node ArrowFunction) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node ArrowFunction) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node ArrowFunction) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -7937,8 +7935,8 @@ func (node FunctionExpression) data() *functionExpressionData {
 	return (*functionExpressionData)(node.payload(unsafe.Sizeof(functionExpressionData{}) <= 4))
 }
 
-func (node FunctionExpression) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node FunctionExpression) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node FunctionExpression) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node FunctionExpression) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node FunctionExpression) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -8428,9 +8426,9 @@ func (node CallExpression) data() *callExpressionData {
 	return (*callExpressionData)(node.payload(unsafe.Sizeof(callExpressionData{}) <= 4))
 }
 
-func (node CallExpression) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node CallExpression) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
-func (node CallExpression) Expression() Expression  { return node.deref(&node.data().expression) }
+func (node CallExpression) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node CallExpression) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
+func (node CallExpression) Expression() Expression { return node.deref(&node.data().expression) }
 func (node CallExpression) SetExpression(value Expression) {
 	node.setRef(&node.data().expression, value)
 }
@@ -9045,8 +9043,8 @@ func (node ObjectLiteralExpression) data() *objectLiteralExpressionData {
 	return (*objectLiteralExpressionData)(node.payload(unsafe.Sizeof(objectLiteralExpressionData{}) <= 4))
 }
 
-func (node ObjectLiteralExpression) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node ObjectLiteralExpression) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node ObjectLiteralExpression) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node ObjectLiteralExpression) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node ObjectLiteralExpression) Properties() NodeList {
 	return node.derefList(&node.data().properties)
 }
@@ -9106,9 +9104,9 @@ func (node SpreadAssignment) data() *spreadAssignmentData {
 	return (*spreadAssignmentData)(node.payload(unsafe.Sizeof(spreadAssignmentData{}) <= 4))
 }
 
-func (node SpreadAssignment) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node SpreadAssignment) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
-func (node SpreadAssignment) Expression() Expression  { return node.deref(&node.data().expression) }
+func (node SpreadAssignment) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node SpreadAssignment) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
+func (node SpreadAssignment) Expression() Expression { return node.deref(&node.data().expression) }
 func (node SpreadAssignment) SetExpression(value Expression) {
 	node.setRef(&node.data().expression, value)
 }
@@ -9161,8 +9159,8 @@ func (node PropertyAssignment) data() *propertyAssignmentData {
 	return (*propertyAssignmentData)(node.payload(unsafe.Sizeof(propertyAssignmentData{}) <= 4))
 }
 
-func (node PropertyAssignment) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node PropertyAssignment) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node PropertyAssignment) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node PropertyAssignment) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node PropertyAssignment) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -9243,9 +9241,8 @@ func (node ShorthandPropertyAssignment) data() *shorthandPropertyAssignmentData 
 	return (*shorthandPropertyAssignmentData)(node.payload(unsafe.Sizeof(shorthandPropertyAssignmentData{}) <= 4))
 }
 
-func (node ShorthandPropertyAssignment) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node ShorthandPropertyAssignment) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
-
+func (node ShorthandPropertyAssignment) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node ShorthandPropertyAssignment) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node ShorthandPropertyAssignment) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -10459,8 +10456,8 @@ func (node MappedTypeNode) data() *mappedTypeNodeData {
 	return (*mappedTypeNodeData)(node.payload(unsafe.Sizeof(mappedTypeNodeData{}) <= 4))
 }
 
-func (node MappedTypeNode) Symbol() *Symbol             { return node.Node.binderSymbol() }
-func (node MappedTypeNode) SetSymbol(value *Symbol)     { node.Node.setBinderSymbol(value) }
+func (node MappedTypeNode) Symbol() Symbol              { return node.Node.binderSymbol() }
+func (node MappedTypeNode) SetSymbol(value Symbol)      { node.Node.setBinderSymbol(value) }
 func (node MappedTypeNode) Locals() SymbolTable         { return node.Node.binderLocals() }
 func (node MappedTypeNode) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
 func (node MappedTypeNode) NextContainer() Node         { return node.Node.binderNextContainer() }
@@ -10546,8 +10543,8 @@ func (node TypeLiteralNode) data() *typeLiteralNodeData {
 	return (*typeLiteralNodeData)(node.payload(unsafe.Sizeof(typeLiteralNodeData{}) <= 4))
 }
 
-func (node TypeLiteralNode) Symbol() *Symbol          { return node.Node.binderSymbol() }
-func (node TypeLiteralNode) SetSymbol(value *Symbol)  { node.Node.setBinderSymbol(value) }
+func (node TypeLiteralNode) Symbol() Symbol           { return node.Node.binderSymbol() }
+func (node TypeLiteralNode) SetSymbol(value Symbol)   { node.Node.setBinderSymbol(value) }
 func (node TypeLiteralNode) Members() TypeElementList { return node.derefList(&node.data().members) }
 
 func (node TypeLiteralNode) SetMembers(value TypeElementList) {
@@ -10649,8 +10646,8 @@ func (node NamedTupleMember) data() *namedTupleMemberData {
 	return (*namedTupleMemberData)(node.payload(unsafe.Sizeof(namedTupleMemberData{}) <= 4))
 }
 
-func (node NamedTupleMember) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node NamedTupleMember) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node NamedTupleMember) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node NamedTupleMember) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node NamedTupleMember) DotDotDotToken() DotDotDotToken {
 	return node.deref(&node.data().dotDotDotToken)
 }
@@ -10866,8 +10863,8 @@ func (node FunctionTypeNode) data() *functionTypeNodeData {
 	return (*functionTypeNodeData)(node.payload(unsafe.Sizeof(functionTypeNodeData{}) <= 4))
 }
 
-func (node FunctionTypeNode) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node FunctionTypeNode) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node FunctionTypeNode) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node FunctionTypeNode) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node FunctionTypeNode) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -10953,8 +10950,8 @@ func (node ConstructorTypeNode) data() *constructorTypeNodeData {
 	return (*constructorTypeNodeData)(node.payload(unsafe.Sizeof(constructorTypeNodeData{}) <= 4))
 }
 
-func (node ConstructorTypeNode) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node ConstructorTypeNode) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node ConstructorTypeNode) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node ConstructorTypeNode) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node ConstructorTypeNode) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -11497,8 +11494,8 @@ func (node JsxAttributes) data() *jsxAttributesData {
 	return (*jsxAttributesData)(node.payload(unsafe.Sizeof(jsxAttributesData{}) <= 4))
 }
 
-func (node JsxAttributes) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node JsxAttributes) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node JsxAttributes) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node JsxAttributes) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node JsxAttributes) Properties() JsxAttributeList {
 	return node.derefList(&node.data().properties)
 }
@@ -11866,8 +11863,8 @@ func (node JsxAttribute) data() *jsxAttributeData {
 	return (*jsxAttributeData)(node.payload(unsafe.Sizeof(jsxAttributeData{}) <= 4))
 }
 
-func (node JsxAttribute) Symbol() *Symbol                { return node.Node.binderSymbol() }
-func (node JsxAttribute) SetSymbol(value *Symbol)        { node.Node.setBinderSymbol(value) }
+func (node JsxAttribute) Symbol() Symbol                 { return node.Node.binderSymbol() }
+func (node JsxAttribute) SetSymbol(value Symbol)         { node.Node.setBinderSymbol(value) }
 func (node JsxAttribute) Name() JsxAttributeName         { return node.deref(&node.data().name) }
 func (node JsxAttribute) setName(value JsxAttributeName) { node.setRef(&node.data().name, value) }
 func (node JsxAttribute) Initializer() JsxAttributeValue { return node.deref(&node.data().initializer) }
@@ -11921,9 +11918,9 @@ func (node JsxSpreadAttribute) data() *jsxSpreadAttributeData {
 	return (*jsxSpreadAttributeData)(node.payload(unsafe.Sizeof(jsxSpreadAttributeData{}) <= 4))
 }
 
-func (node JsxSpreadAttribute) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node JsxSpreadAttribute) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
-func (node JsxSpreadAttribute) Expression() Expression  { return node.deref(&node.data().expression) }
+func (node JsxSpreadAttribute) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node JsxSpreadAttribute) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
+func (node JsxSpreadAttribute) Expression() Expression { return node.deref(&node.data().expression) }
 
 func (node JsxSpreadAttribute) SetExpression(value Expression) {
 	node.setRef(&node.data().expression, value)
@@ -13752,8 +13749,8 @@ func (node JSDocSignature) data() *jsDocSignatureData {
 	return (*jsDocSignatureData)(node.payload(unsafe.Sizeof(jsDocSignatureData{}) <= 4))
 }
 
-func (node JSDocSignature) Symbol() *Symbol             { return node.Node.binderSymbol() }
-func (node JSDocSignature) SetSymbol(value *Symbol)     { node.Node.setBinderSymbol(value) }
+func (node JSDocSignature) Symbol() Symbol              { return node.Node.binderSymbol() }
+func (node JSDocSignature) SetSymbol(value Symbol)      { node.Node.setBinderSymbol(value) }
 func (node JSDocSignature) Locals() SymbolTable         { return node.Node.binderLocals() }
 func (node JSDocSignature) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
 func (node JSDocSignature) NextContainer() Node         { return node.Node.binderNextContainer() }
@@ -13886,13 +13883,12 @@ func (node ModuleDeclaration) data() *moduleDeclarationData {
 	return (*moduleDeclarationData)(node.payload(unsafe.Sizeof(moduleDeclarationData{}) <= 4))
 }
 
-func (node ModuleDeclaration) FlowNode() FlowNode           { return node.Node.binderFlowNode() }
-func (node ModuleDeclaration) SetFlowNode(value FlowNode)   { node.Node.setBinderFlowNode(value) }
-func (node ModuleDeclaration) Symbol() *Symbol              { return node.Node.binderSymbol() }
-func (node ModuleDeclaration) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
-func (node ModuleDeclaration) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
-func (node ModuleDeclaration) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
-
+func (node ModuleDeclaration) FlowNode() FlowNode          { return node.Node.binderFlowNode() }
+func (node ModuleDeclaration) SetFlowNode(value FlowNode)  { node.Node.setBinderFlowNode(value) }
+func (node ModuleDeclaration) Symbol() Symbol              { return node.Node.binderSymbol() }
+func (node ModuleDeclaration) SetSymbol(value Symbol)      { node.Node.setBinderSymbol(value) }
+func (node ModuleDeclaration) LocalSymbol() Symbol         { return node.Node.binderLocalSymbol() }
+func (node ModuleDeclaration) SetLocalSymbol(value Symbol) { node.Node.setBinderLocalSymbol(value) }
 func (node ModuleDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -13992,11 +13988,11 @@ func (node ImportEqualsDeclaration) data() *importEqualsDeclarationData {
 func (node ImportEqualsDeclaration) FlowNode() FlowNode { return node.Node.binderFlowNode() }
 
 func (node ImportEqualsDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
-func (node ImportEqualsDeclaration) Symbol() *Symbol            { return node.Node.binderSymbol() }
-func (node ImportEqualsDeclaration) SetSymbol(value *Symbol)    { node.Node.setBinderSymbol(value) }
-func (node ImportEqualsDeclaration) LocalSymbol() *Symbol       { return node.Node.binderLocalSymbol() }
+func (node ImportEqualsDeclaration) Symbol() Symbol             { return node.Node.binderSymbol() }
+func (node ImportEqualsDeclaration) SetSymbol(value Symbol)     { node.Node.setBinderSymbol(value) }
+func (node ImportEqualsDeclaration) LocalSymbol() Symbol        { return node.Node.binderLocalSymbol() }
 
-func (node ImportEqualsDeclaration) SetLocalSymbol(value *Symbol) {
+func (node ImportEqualsDeclaration) SetLocalSymbol(value Symbol) {
 	node.Node.setBinderLocalSymbol(value)
 }
 
@@ -14076,8 +14072,8 @@ func (node ExportDeclaration) data() *exportDeclarationData {
 
 func (node ExportDeclaration) FlowNode() FlowNode         { return node.Node.binderFlowNode() }
 func (node ExportDeclaration) SetFlowNode(value FlowNode) { node.Node.setBinderFlowNode(value) }
-func (node ExportDeclaration) Symbol() *Symbol            { return node.Node.binderSymbol() }
-func (node ExportDeclaration) SetSymbol(value *Symbol)    { node.Node.setBinderSymbol(value) }
+func (node ExportDeclaration) Symbol() Symbol             { return node.Node.binderSymbol() }
+func (node ExportDeclaration) SetSymbol(value Symbol)     { node.Node.setBinderSymbol(value) }
 func (node ExportDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -14242,10 +14238,10 @@ func (node ImportClause) data() *importClauseData {
 	return (*importClauseData)(node.payload(unsafe.Sizeof(importClauseData{}) <= 4))
 }
 
-func (node ImportClause) Symbol() *Symbol              { return node.Node.binderSymbol() }
-func (node ImportClause) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
-func (node ImportClause) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
-func (node ImportClause) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node ImportClause) Symbol() Symbol              { return node.Node.binderSymbol() }
+func (node ImportClause) SetSymbol(value Symbol)      { node.Node.setBinderSymbol(value) }
+func (node ImportClause) LocalSymbol() Symbol         { return node.Node.binderLocalSymbol() }
+func (node ImportClause) SetLocalSymbol(value Symbol) { node.Node.setBinderLocalSymbol(value) }
 func (node ImportClause) PhaseModifier() ImportPhaseModifierSyntaxKind {
 	return node.data().phaseModifier
 }
@@ -14311,12 +14307,12 @@ func (node ImportSpecifier) data() *importSpecifierData {
 	return (*importSpecifierData)(node.payload(unsafe.Sizeof(importSpecifierData{}) <= 4))
 }
 
-func (node ImportSpecifier) Symbol() *Symbol              { return node.Node.binderSymbol() }
-func (node ImportSpecifier) SetSymbol(value *Symbol)      { node.Node.setBinderSymbol(value) }
-func (node ImportSpecifier) LocalSymbol() *Symbol         { return node.Node.binderLocalSymbol() }
-func (node ImportSpecifier) SetLocalSymbol(value *Symbol) { node.Node.setBinderLocalSymbol(value) }
-func (node ImportSpecifier) IsTypeOnly() bool             { return node.data().isTypeOnly }
-func (node ImportSpecifier) SetIsTypeOnly(value bool)     { node.data().isTypeOnly = value }
+func (node ImportSpecifier) Symbol() Symbol              { return node.Node.binderSymbol() }
+func (node ImportSpecifier) SetSymbol(value Symbol)      { node.Node.setBinderSymbol(value) }
+func (node ImportSpecifier) LocalSymbol() Symbol         { return node.Node.binderLocalSymbol() }
+func (node ImportSpecifier) SetLocalSymbol(value Symbol) { node.Node.setBinderLocalSymbol(value) }
+func (node ImportSpecifier) IsTypeOnly() bool            { return node.data().isTypeOnly }
+func (node ImportSpecifier) SetIsTypeOnly(value bool)    { node.data().isTypeOnly = value }
 func (node ImportSpecifier) PropertyName() ModuleExportName {
 	return node.deref(&node.data().propertyName)
 }
@@ -14574,8 +14570,8 @@ func (node TypeParameterDeclaration) data() *typeParameterDeclarationData {
 	return (*typeParameterDeclarationData)(node.payload(unsafe.Sizeof(typeParameterDeclarationData{}) <= 4))
 }
 
-func (node TypeParameterDeclaration) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node TypeParameterDeclaration) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node TypeParameterDeclaration) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node TypeParameterDeclaration) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node TypeParameterDeclaration) Modifiers() ModifierList {
 	return node.derefModifiers(&node.data().modifiers)
 }
@@ -14732,8 +14728,8 @@ func (node JSDocTypeLiteral) data() *jsDocTypeLiteralData {
 	return (*jsDocTypeLiteralData)(node.payload(unsafe.Sizeof(jsDocTypeLiteralData{}) <= 4))
 }
 
-func (node JSDocTypeLiteral) Symbol() *Symbol         { return node.Node.binderSymbol() }
-func (node JSDocTypeLiteral) SetSymbol(value *Symbol) { node.Node.setBinderSymbol(value) }
+func (node JSDocTypeLiteral) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node JSDocTypeLiteral) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
 func (node JSDocTypeLiteral) JSDocPropertyTags() []Node {
 	return node.store().nodeSlices.get(node.data().jsDocPropertyTags)
 }

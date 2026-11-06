@@ -166,18 +166,18 @@ func (c *Checker) isEntityNameVisible(entityName ast.Node, enclosingDeclaration 
 
 	symbol := c.resolveName(enclosingDeclaration, firstIdentifier.TextSymbolName(), meaning, nil, false, false)
 
-	if symbol != nil && symbol.Flags()&ast.SymbolFlagsTypeParameter != 0 && meaning&ast.SymbolFlagsType != 0 {
+	if !symbol.IsNil() && symbol.Flags()&ast.SymbolFlagsTypeParameter != 0 && meaning&ast.SymbolFlagsType != 0 {
 		return printer.SymbolAccessibilityResult{Accessibility: printer.SymbolAccessibilityAccessible}
 	}
 
-	if symbol == nil && ast.IsThisIdentifier(firstIdentifier) {
+	if symbol.IsNil() && ast.IsThisIdentifier(firstIdentifier) {
 		sym := c.getSymbolOfDeclaration(c.getThisContainer(firstIdentifier, false, false))
 		if c.IsSymbolAccessible(sym, enclosingDeclaration, meaning, false).Accessibility == printer.SymbolAccessibilityAccessible {
 			return printer.SymbolAccessibilityResult{Accessibility: printer.SymbolAccessibilityAccessible}
 		}
 	}
 
-	if symbol == nil {
+	if symbol.IsNil() {
 		return printer.SymbolAccessibilityResult{
 			Accessibility:   printer.SymbolAccessibilityNotResolved,
 			ErrorSymbolName: firstIdentifier.Text(),
@@ -199,7 +199,7 @@ func (c *Checker) isEntityNameVisible(entityName ast.Node, enclosingDeclaration 
 
 func noopAddVisibleAlias(declaration ast.Node, aliasingStatement ast.Node) {}
 
-func (c *Checker) hasVisibleDeclarations(symbol *ast.Symbol, shouldComputeAliasToMakeVisible bool) *printer.SymbolAccessibilityResult {
+func (c *Checker) hasVisibleDeclarations(symbol ast.Symbol, shouldComputeAliasToMakeVisible bool) *printer.SymbolAccessibilityResult {
 	var aliasesToMakeVisibleSet map[ast.NodeId]ast.Node
 
 	var addVisibleAlias func(declaration ast.Node, aliasingStatement ast.Node)
@@ -282,18 +282,18 @@ func (c *Checker) hasVisibleDeclarations(symbol *ast.Symbol, shouldComputeAliasT
 	}
 }
 
-func (c *Checker) requiresAddingImplicitUndefined(declaration ast.Node, symbol *ast.Symbol, enclosingDeclaration ast.Node) bool {
+func (c *Checker) requiresAddingImplicitUndefined(declaration ast.Node, symbol ast.Symbol, enclosingDeclaration ast.Node) bool {
 	if !ast.IsParseTreeNode(declaration) {
 		return false
 	}
 	switch declaration.Kind() {
 	case ast.KindPropertyDeclaration, ast.KindPropertySignature, ast.KindJSDocPropertyTag:
-		if symbol == nil {
+		if symbol.IsNil() {
 			symbol = c.getSymbolOfDeclaration(declaration)
 		}
 		t := c.getTypeOfSymbol(symbol)
 		c.mappedSymbolLinks.Has(symbol)
-		return (symbol.Flags()&ast.SymbolFlagsProperty != 0) && (symbol.Flags()&ast.SymbolFlagsOptional != 0) && isOptionalDeclaration(declaration) && c.ReverseMappedSymbolLinks.Has(symbol) && c.ReverseMappedSymbolLinks.Get(symbol).mappedType != nil && containsNonMissingUndefinedType(c, t)
+		return (symbol.Flags()&ast.SymbolFlagsProperty != 0) && (symbol.Flags()&ast.SymbolFlagsOptional != 0) && isOptionalDeclaration(declaration) && c.reverseMappedSymbolLinks.Has(symbol) && c.reverseMappedSymbolLinks.Get(symbol).mappedType != nil && containsNonMissingUndefinedType(c, t)
 	case ast.KindParameter, ast.KindJSDocParameterTag:
 		return c.requiresAddingImplicitUndefinedWorker(declaration, enclosingDeclaration)
 	default:

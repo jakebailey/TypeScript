@@ -175,25 +175,25 @@ func getConstructor(classDeclaration ast.Node) ast.Node {
 	return ast.Node{}
 }
 
-func getMissingMembers(typeChecker *checker.Checker, classDeclaration ast.Node, implementedTypes []*checker.Type) []*ast.Symbol {
+func getMissingMembers(typeChecker *checker.Checker, classDeclaration ast.Node, implementedTypes []*checker.Type) []ast.Symbol {
 	inheritedMembers := getInheritedMembers(typeChecker, classDeclaration)
-	seenMembers := make(map[ast.SymbolName]*ast.Symbol)
+	seenMembers := make(map[ast.SymbolName]ast.Symbol)
 
 	var classMembers ast.SymbolTable
-	if classDeclaration.Symbol() != nil {
+	if !classDeclaration.Symbol().IsNil() {
 		classMembers = classDeclaration.Symbol().Members()
 	}
 
-	var missingMembers []*ast.Symbol
+	var missingMembers []ast.Symbol
 	for _, implementedType := range implementedTypes {
 		for _, symbol := range typeChecker.GetPropertiesOfType(implementedType) {
-			if symbol == nil {
+			if symbol.IsNil() {
 				continue
 			}
-			if classMembers != nil && classMembers.Get(symbol.Name()) != nil {
+			if classMembers != nil && !classMembers.Get(symbol.Name()).IsNil() {
 				continue
 			}
-			if inheritedMembers.Get(symbol.Name()) != nil || seenMembers[symbol.Name()] != nil {
+			if !inheritedMembers.Get(symbol.Name()).IsNil() || !seenMembers[symbol.Name()].IsNil() {
 				continue
 			}
 			flags := checker.GetDeclarationModifierFlagsFromSymbol(symbol)
@@ -219,7 +219,7 @@ func getInheritedMembers(typeChecker *checker.Checker, classDeclaration ast.Node
 
 	inheritedMembers := ast.NewSymbolTable()
 	for _, symbol := range typeChecker.GetPropertiesOfType(baseType) {
-		if symbol == nil {
+		if symbol.IsNil() {
 			continue
 		}
 		flags := checker.GetDeclarationModifierFlagsFromSymbol(symbol)

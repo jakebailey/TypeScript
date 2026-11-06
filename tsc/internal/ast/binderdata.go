@@ -10,10 +10,15 @@ import (
 // flow nodes, which many nodes have, are in sparse maps; the other fields,
 // which few nodes have, are in hash maps.
 type binderData struct {
-	symbols   sparseMap[*Symbol]
+	symbols   sparseMap[uint32]
 	flowNodes sparseMap[flowRef]
 
-	localSymbols         map[uint32]*Symbol
+	// foreignSymbols holds the symbols, and foreignLocalSymbols the local
+	// symbols, of nodes whose symbol is not one of the store's own, which
+	// symbols and localSymbols hold by index.
+	foreignSymbols       map[uint32]Symbol
+	localSymbols         map[uint32]uint32
+	foreignLocalSymbols  map[uint32]Symbol
 	locals               map[uint32]SymbolTable
 	nextContainers       map[uint32]nodeRef
 	endFlowNodes         map[uint32]flowRef
@@ -132,6 +137,7 @@ func (s *NodeStore) finishBinding() {
 	b := &s.binder
 	b.symbols.pack()
 	b.flowNodes.pack()
+	s.symbols.finishBinding()
 	b.done = true
 	if len(s.flows) != cap(s.flows) {
 		s.flows = slices.Clip(slices.Clone(s.flows))
@@ -165,13 +171,27 @@ func setBinderMap[T comparable](m *map[uint32]T, i uint32, v T) {
 	(*m)[i] = v
 }
 
-func (n Node) binderSymbol() *Symbol {
-	return n.store().binder.symbols.get(n.node)
+func (n Node) binderSymbol() Symbol {
+	s := n.store()
+	if i := s.binder.symbols.get(n.node); i != 0 {
+		return Symbol{&s.symbols, i}
+	}
+	if s.binder.foreignSymbols != nil {
+		return s.binder.foreignSymbols[n.node]
+	}
+	return Symbol{}
 }
 
-func (n Node) setBinderSymbol(v *Symbol) {
+func (n Node) setBinderSymbol(v Symbol) {
 	s := n.store()
-	s.binder.symbols.set(n.node, v, s.denseBinderSize())
+	var i uint32
+	if v.s == &s.symbols {
+		i = v.i
+	}
+	s.binder.symbols.set(n.node, i, s.denseBinderSize())
+	if i == 0 && (!v.IsNil() || s.binder.foreignSymbols != nil) {
+		setBinderMap(&s.binder.foreignSymbols, n.node, v)
+	}
 }
 
 func (n Node) binderFlowNode() FlowNode {
@@ -186,12 +206,27 @@ func (n Node) setBinderFlowNode(v FlowNode) {
 	s.binder.flowNodes.set(n.node, r, s.denseBinderSize())
 }
 
-func (n Node) binderLocalSymbol() *Symbol {
-	return n.store().binder.localSymbols[n.node]
+func (n Node) binderLocalSymbol() Symbol {
+	s := n.store()
+	if i := s.binder.localSymbols[n.node]; i != 0 {
+		return Symbol{&s.symbols, i}
+	}
+	if s.binder.foreignLocalSymbols != nil {
+		return s.binder.foreignLocalSymbols[n.node]
+	}
+	return Symbol{}
 }
 
-func (n Node) setBinderLocalSymbol(v *Symbol) {
-	setBinderMap(&n.store().binder.localSymbols, n.node, v)
+func (n Node) setBinderLocalSymbol(v Symbol) {
+	s := n.store()
+	var i uint32
+	if v.s == &s.symbols {
+		i = v.i
+	}
+	setBinderMap(&s.binder.localSymbols, n.node, i)
+	if i == 0 && (!v.IsNil() || s.binder.foreignLocalSymbols != nil) {
+		setBinderMap(&s.binder.foreignLocalSymbols, n.node, v)
+	}
 }
 
 func (n Node) binderLocals() SymbolTable {

@@ -17,7 +17,7 @@ type SymbolTrackerImpl struct {
 
 	// For detecting class expression self-references during member serialization.
 	// When set, TrackSymbol will record usage without reporting accessibility errors.
-	watchedClassSymbol *ast.Symbol
+	watchedClassSymbol ast.Symbol
 	classSymbolTracked bool
 
 	getIsolatedDeclarationError func(node ast.Node) *ast.Diagnostic
@@ -120,7 +120,7 @@ func (s *SymbolTrackerImpl) ReportNonSerializableProperty(propertyName string) {
 }
 
 // ReportNonlocalAugmentation implements checker.SymbolTracker.
-func (s *SymbolTrackerImpl) ReportNonlocalAugmentation(containingFile *ast.SourceFile, parentSymbol *ast.Symbol, augmentingSymbol *ast.Symbol) {
+func (s *SymbolTrackerImpl) ReportNonlocalAugmentation(containingFile *ast.SourceFile, parentSymbol ast.Symbol, augmentingSymbol ast.Symbol) {
 	primaryDeclaration := parentSymbol.Declarations().Find(func(d ast.Node) bool { return ast.GetSourceFileOfNode(d) == containingFile })
 	augmentingDeclarations := augmentingSymbol.Declarations().Filter(func(d ast.Node) bool { return ast.GetSourceFileOfNode(d) != containingFile })
 	if !primaryDeclaration.IsNil() && len(augmentingDeclarations) > 0 {
@@ -186,14 +186,14 @@ func (s *SymbolTrackerImpl) errorDeclarationNameWithFallback() string {
 }
 
 // TrackSymbol implements checker.SymbolTracker.
-func (s *SymbolTrackerImpl) TrackSymbol(symbol *ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags) bool {
+func (s *SymbolTrackerImpl) TrackSymbol(symbol ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags) bool {
 	if symbol.Flags()&ast.SymbolFlagsTypeParameter != 0 {
 		return false
 	}
 	// When watching for a class expression symbol, record its usage without
 	// reporting accessibility errors — the caller will handle visibility by
 	// wrapping the class in a namespace.
-	if s.watchedClassSymbol != nil && symbol == s.watchedClassSymbol {
+	if !s.watchedClassSymbol.IsNil() && symbol == s.watchedClassSymbol {
 		s.classSymbolTracked = true
 		return false
 	}

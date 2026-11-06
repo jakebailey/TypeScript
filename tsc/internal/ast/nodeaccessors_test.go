@@ -72,7 +72,7 @@ func TestNodeAccessors(t *testing.T) {
 	assert.Equal(t, node.BodyData(), ast.BodyBase{Node: node})
 	assert.Assert(t, node.LiteralLikeData().IsNil())
 
-	symbol := &ast.Symbol{}
+	symbol := ast.NewSymbol()
 	node.DeclarationData().SetSymbol(symbol)
 	assert.Equal(t, node.Symbol(), symbol)
 	assert.Equal(t, node.AsFunctionDeclaration().Symbol(), symbol)

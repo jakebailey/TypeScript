@@ -28,7 +28,7 @@ func (l *LanguageService) ProvideCodeLenses(ctx context.Context, documentURI lsp
 	projections := append([]*ast.SourceFile{file}, file.SupplementalSourceFiles()...)
 	for _, projection := range projections {
 		// Keeps track of the last symbol to avoid duplicating code lenses across overloads.
-		var lastSymbol *ast.Symbol
+		var lastSymbol ast.Symbol
 		var visit func(node ast.Node) bool
 		visit = func(node ast.Node) bool {
 			if ctx.Err() != nil {

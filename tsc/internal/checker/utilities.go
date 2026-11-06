@@ -68,7 +68,7 @@ func hasReadonlyModifier(node ast.Node) bool {
 	return ast.HasModifier(node, ast.ModifierFlagsReadonly)
 }
 
-func isStaticPrivateIdentifierProperty(s *ast.Symbol) bool {
+func isStaticPrivateIdentifierProperty(s ast.Symbol) bool {
 	return !s.ValueDeclaration().IsNil() && ast.IsPrivateIdentifierClassElementDeclaration(s.ValueDeclaration()) && ast.IsStatic(s.ValueDeclaration())
 }
 
@@ -194,7 +194,7 @@ func canHaveLocals(node ast.Node) bool {
 	return false
 }
 
-func isShorthandAmbientModuleSymbol(moduleSymbol *ast.Symbol) bool {
+func isShorthandAmbientModuleSymbol(moduleSymbol ast.Symbol) bool {
 	return isShorthandAmbientModule(moduleSymbol.ValueDeclaration())
 }
 
@@ -253,8 +253,8 @@ func isSyntacticDefault(node ast.Node) bool {
 		ast.IsNamespaceExport(node)
 }
 
-func hasExportAssignmentSymbol(moduleSymbol *ast.Symbol) bool {
-	return moduleSymbol.Exports().Get(ast.InternalSymbolNameExportEquals) != nil
+func hasExportAssignmentSymbol(moduleSymbol ast.Symbol) bool {
+	return !moduleSymbol.Exports().Get(ast.InternalSymbolNameExportEquals).IsNil()
 }
 
 func isTypeAlias(node ast.Node) bool {
@@ -347,7 +347,7 @@ func isTypeAssertion(node ast.Node) bool {
 	return ast.IsAssertionExpression(ast.SkipParentheses(node))
 }
 
-func createSymbolTable(symbols []*ast.Symbol) ast.SymbolTable {
+func createSymbolTable(symbols []ast.Symbol) ast.SymbolTable {
 	if len(symbols) == 0 {
 		return nil
 	}
@@ -358,18 +358,18 @@ func createSymbolTable(symbols []*ast.Symbol) ast.SymbolTable {
 	return result
 }
 
-func (c *Checker) sortSymbols(symbols []*ast.Symbol) {
+func (c *Checker) sortSymbols(symbols []ast.Symbol) {
 	slices.SortFunc(symbols, c.compareSymbols)
 }
 
-func (c *Checker) compareSymbolsWorker(s1, s2 *ast.Symbol) int {
+func (c *Checker) compareSymbolsWorker(s1, s2 ast.Symbol) int {
 	if s1 == s2 {
 		return 0
 	}
-	if s1 == nil {
+	if s1.IsNil() {
 		return 1
 	}
-	if s2 == nil {
+	if s2.IsNil() {
 		return -1
 	}
 	if s1.Declarations().Len() != 0 && s2.Declarations().Len() != 0 {
@@ -386,7 +386,7 @@ func (c *Checker) compareSymbolsWorker(s1, s2 *ast.Symbol) int {
 	}
 	// Fall back to symbol IDs. This is a last resort that should happen only when symbols have
 	// no declaration and duplicate names.
-	return cmp.Compare(ast.GetSymbolId(s1), ast.GetSymbolId(s2))
+	return cmp.Compare(ast.GetSymbolSerial(s1), ast.GetSymbolSerial(s2))
 }
 
 func (c *Checker) compareNodes(n1, n2 ast.Node) int {
@@ -444,11 +444,11 @@ func CompareTypes(t1, t2 *Type) int {
 		// Order other unnamed or identically named object types by symbol.
 		if t1.objectFlags&ObjectFlagsInstantiationExpressionType != 0 && t2.objectFlags&ObjectFlagsInstantiationExpressionType != 0 {
 			var declaration1, declaration2 ast.Node
-			if t1.symbol != nil && t1.symbol.Declarations().Len() != 0 {
-				declaration1 = t1.symbol.Declarations().At(0)
+			if !t1.Symbol().IsNil() && t1.Symbol().Declarations().Len() != 0 {
+				declaration1 = t1.Symbol().Declarations().At(0)
 			}
-			if t2.symbol != nil && t2.symbol.Declarations().Len() != 0 {
-				declaration2 = t2.symbol.Declarations().At(0)
+			if !t2.Symbol().IsNil() && t2.Symbol().Declarations().Len() != 0 {
+				declaration2 = t2.Symbol().Declarations().At(0)
 			}
 			// A single instantiation expression can produce multiple types for union constituents,
 			// so compare their source declarations before comparing the shared expression node.
@@ -458,7 +458,7 @@ func CompareTypes(t1, t2 *Type) int {
 			if c := t1.checker.compareNodes(t1.AsInstantiationExpressionType().node, t2.AsInstantiationExpressionType().node); c != 0 {
 				return c
 			}
-		} else if c := t1.checker.compareSymbols(t1.symbol, t2.symbol); c != 0 {
+		} else if c := t1.checker.compareSymbols(t1.Symbol(), t2.Symbol()); c != 0 {
 			return c
 		}
 		// When object types have the same or no symbol, order by kind. We order type references before other kinds.
@@ -550,7 +550,7 @@ func CompareTypes(t1, t2 *Type) int {
 		}
 	case t1.flags&(TypeFlagsEnum|TypeFlagsEnumLiteral|TypeFlagsUniqueESSymbol) != 0:
 		// Enum members are ordered by their symbol (and thus their declaration order).
-		if c := t1.checker.compareSymbols(t1.symbol, t2.symbol); c != 0 {
+		if c := t1.checker.compareSymbols(t1.Symbol(), t2.Symbol()); c != 0 {
 			return c
 		}
 	case t1.flags&TypeFlagsStringLiteral != 0:
@@ -577,7 +577,7 @@ func CompareTypes(t1, t2 *Type) int {
 			return -1
 		}
 	case t1.flags&TypeFlagsTypeParameter != 0:
-		if c := t1.checker.compareSymbols(t1.symbol, t2.symbol); c != 0 {
+		if c := t1.checker.compareSymbols(t1.Symbol(), t2.Symbol()); c != 0 {
 			return c
 		}
 	case t1.flags&TypeFlagsIndex != 0:
@@ -638,10 +638,10 @@ func compareTypeNames(t1, t2 *Type) int {
 	if s1 == s2 {
 		return compareTypeLists(t1.alias.TypeArguments(), t2.alias.TypeArguments())
 	}
-	if s1 == nil {
+	if s1.IsNil() {
 		return 1
 	}
-	if s2 == nil {
+	if s2.IsNil() {
 		return -1
 	}
 	if c := strings.Compare(s1.Name().String(), s2.Name().String()); c != 0 {
@@ -651,21 +651,21 @@ func compareTypeNames(t1, t2 *Type) int {
 	return t1.checker.compareSymbols(s1, s2)
 }
 
-func getTypeNameSymbol(t *Type) *ast.Symbol {
+func getTypeNameSymbol(t *Type) ast.Symbol {
 	if t.alias != nil {
 		return t.alias.symbol
 	}
 	if t.flags&(TypeFlagsTypeParameter|TypeFlagsStringMapping) != 0 || t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsReference) != 0 {
-		return t.symbol
+		return t.Symbol()
 	}
-	return nil
+	return ast.Symbol{}
 }
 
-func getObjectTypeName(t *Type) *ast.Symbol {
+func getObjectTypeName(t *Type) ast.Symbol {
 	if t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsReference) != 0 {
-		return t.symbol
+		return t.Symbol()
 	}
-	return nil
+	return ast.Symbol{}
 }
 
 func compareTupleTypes(t1, t2 *TupleType) int {
@@ -767,11 +767,11 @@ func comparableMapperKind(kind TypeMapperKind) TypeMapperKind {
 	return TypeMapperKindUnknown
 }
 
-func getDeclarationModifierFlagsFromSymbol(s *ast.Symbol) ast.ModifierFlags {
+func getDeclarationModifierFlagsFromSymbol(s ast.Symbol) ast.ModifierFlags {
 	return getDeclarationModifierFlagsFromSymbolEx(s, false /*isWrite*/)
 }
 
-func getDeclarationModifierFlagsFromSymbolEx(s *ast.Symbol, isWrite bool) ast.ModifierFlags {
+func getDeclarationModifierFlagsFromSymbolEx(s ast.Symbol, isWrite bool) ast.ModifierFlags {
 	if s.CheckFlags()&ast.CheckFlagsSynthetic != 0 {
 		var accessModifier ast.ModifierFlags
 		switch {
@@ -799,7 +799,7 @@ func getDeclarationModifierFlagsFromSymbolEx(s *ast.Symbol, isWrite bool) ast.Mo
 			declaration = s.ValueDeclaration()
 		}
 		flags := ast.GetCombinedModifierFlags(declaration)
-		if s.Parent() != nil && s.Parent().Flags()&ast.SymbolFlagsClass != 0 {
+		if !s.Parent().IsNil() && s.Parent().Flags()&ast.SymbolFlagsClass != 0 {
 			return flags
 		}
 		return flags & ^ast.ModifierFlagsAccessibilityModifier
@@ -1134,12 +1134,12 @@ func isVariableDeclarationInVariableStatement(node ast.Node) bool {
 	return ast.IsVariableDeclarationList(node.Parent()) && ast.IsVariableStatement(node.Parent().Parent())
 }
 
-func IsKnownSymbol(symbol *ast.Symbol) bool {
+func IsKnownSymbol(symbol ast.Symbol) bool {
 	return symbol.Name().IsLateBoundName()
 }
 
-func IsPrivateIdentifierSymbol(symbol *ast.Symbol) bool {
-	if symbol == nil {
+func IsPrivateIdentifierSymbol(symbol ast.Symbol) bool {
+	if symbol.IsNil() {
 		return false
 	}
 	return symbol.Name().IsPrivateName()
@@ -1195,11 +1195,11 @@ func isInfinityOrNaNString(name string) bool {
 	return name == "Infinity" || name == "-Infinity" || name == "NaN"
 }
 
-func (c *Checker) isConstantVariable(symbol *ast.Symbol) bool {
+func (c *Checker) isConstantVariable(symbol ast.Symbol) bool {
 	return symbol.Flags()&ast.SymbolFlagsVariable != 0 && (c.getDeclarationNodeFlagsFromSymbol(symbol)&ast.NodeFlagsConstant) != 0
 }
 
-func (c *Checker) isParameterOrMutableLocalVariable(symbol *ast.Symbol) bool {
+func (c *Checker) isParameterOrMutableLocalVariable(symbol ast.Symbol) bool {
 	// Return true if symbol is a parameter, a catch clause variable, or a mutable local variable
 	if !symbol.ValueDeclaration().IsNil() {
 		declaration := ast.GetRootDeclaration(symbol.ValueDeclaration())
@@ -1309,7 +1309,7 @@ func isInNameOfExpressionWithTypeArgumentsOrHeritageTypeReference(node ast.Node)
 		ast.IsNameOfHeritageClauseTypeReference(node)
 }
 
-func getIndexSymbolFromSymbolTable(symbolTable ast.SymbolTable) *ast.Symbol {
+func getIndexSymbolFromSymbolTable(symbolTable ast.SymbolTable) ast.Symbol {
 	return symbolTable.Get(ast.InternalSymbolNameIndex)
 }
 
@@ -1416,7 +1416,7 @@ func getEnclosingContainer(node ast.Node) ast.Node {
 	})
 }
 
-func getDeclarationsOfKind(symbol *ast.Symbol, kind ast.Kind) []ast.Node {
+func getDeclarationsOfKind(symbol ast.Symbol, kind ast.Kind) []ast.Node {
 	return symbol.Declarations().Filter(func(d ast.Node) bool { return d.Kind() == kind })
 }
 
@@ -1745,7 +1745,7 @@ func tryGetPropertyAccessOrIdentifierToString(expr ast.Node) string {
 	return ""
 }
 
-func allDeclarationsInSameSourceFile(symbol *ast.Symbol) bool {
+func allDeclarationsInSameSourceFile(symbol ast.Symbol) bool {
 	if symbol.Declarations().Len() > 1 {
 		var sourceFile *ast.SourceFile
 		for i, d := range symbol.Declarations().All() {
@@ -1795,8 +1795,8 @@ func introducesArgumentsExoticObject(node ast.Node) bool {
 	return false
 }
 
-func symbolsToArray(symbols ast.SymbolTable) []*ast.Symbol {
-	var result []*ast.Symbol
+func symbolsToArray(symbols ast.SymbolTable) []ast.Symbol {
+	var result []ast.Symbol
 	for id, symbol := range symbols.All() {
 		if !id.IsReservedMemberName() {
 			result = append(result, symbol)
@@ -1805,7 +1805,7 @@ func symbolsToArray(symbols ast.SymbolTable) []*ast.Symbol {
 	return result
 }
 
-func SkipAlias(symbol *ast.Symbol, checker *Checker) *ast.Symbol {
+func SkipAlias(symbol ast.Symbol, checker *Checker) ast.Symbol {
 	if symbol.Flags()&ast.SymbolFlagsAlias != 0 {
 		return checker.GetAliasedSymbol(symbol)
 	}
@@ -1813,7 +1813,7 @@ func SkipAlias(symbol *ast.Symbol, checker *Checker) *ast.Symbol {
 }
 
 // True if the symbol is for an external module, as opposed to a namespace.
-func IsExternalModuleSymbol(moduleSymbol *ast.Symbol) bool {
+func IsExternalModuleSymbol(moduleSymbol ast.Symbol) bool {
 	return moduleSymbol.IsExternalModule()
 }
 
@@ -1882,23 +1882,23 @@ func nodeStartsNewLexicalEnvironment(node ast.Node) bool {
 // It does not suggest when the suggestion:
 // - Is from a global file that is different from the reference file, or
 // - (optionally) Is a class, or is a this.x property access expression
-func (c *Checker) isUncheckedJSSuggestion(node ast.Node, suggestion *ast.Symbol, excludeClasses bool) bool {
+func (c *Checker) isUncheckedJSSuggestion(node ast.Node, suggestion ast.Symbol, excludeClasses bool) bool {
 	file := ast.GetSourceFileOfNode(node)
 	if file != nil {
 		if c.compilerOptions.CheckJs.IsUnknown() && file.CheckJsDirective == nil && (file.ScriptKind == core.ScriptKindJS || file.ScriptKind == core.ScriptKindJSX) {
 			var declarationFile *ast.SourceFile
-			if suggestion != nil {
+			if !suggestion.IsNil() {
 				if firstDeclaration := suggestion.Declarations().FirstOrNil(); !firstDeclaration.IsNil() {
 					declarationFile = ast.GetSourceFileOfNode(firstDeclaration)
 				}
 			}
-			suggestionHasNoExtendsOrDecorators := suggestion == nil ||
+			suggestionHasNoExtendsOrDecorators := suggestion.IsNil() ||
 				suggestion.ValueDeclaration().IsNil() ||
 				!ast.IsClassLike(suggestion.ValueDeclaration()) ||
 				len(ast.GetExtendsHeritageClauseElements(suggestion.ValueDeclaration())) != 0 ||
 				ast.ClassOrConstructorParameterIsDecorated(false, suggestion.ValueDeclaration())
 			return !(file != declarationFile && declarationFile != nil && ast.IsGlobalSourceFile(declarationFile.AsNode())) &&
-				!(excludeClasses && suggestion != nil && suggestion.Flags()&ast.SymbolFlagsClass != 0 && suggestionHasNoExtendsOrDecorators) &&
+				!(excludeClasses && !suggestion.IsNil() && suggestion.Flags()&ast.SymbolFlagsClass != 0 && suggestionHasNoExtendsOrDecorators) &&
 				!(!node.IsNil() && excludeClasses && ast.IsPropertyAccessExpression(node) && node.Expression().Kind() == ast.KindThisKeyword && suggestionHasNoExtendsOrDecorators)
 		}
 	}

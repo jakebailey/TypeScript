@@ -207,7 +207,7 @@ func (w *textWriter) WriteStringLiteral(text string) {
 	w.Write(text)
 }
 
-func (w *textWriter) WriteSymbol(text string, symbol *ast.Symbol) {
+func (w *textWriter) WriteSymbol(text string, symbol ast.Symbol) {
 	w.Write(text)
 }
 

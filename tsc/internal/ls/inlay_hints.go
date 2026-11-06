@@ -280,7 +280,7 @@ func (s *inlayHintState) visitFunctionLikeForParameterType(node ast.FunctionLike
 	pos := 0
 	for _, param := range node.ParameterList().All() {
 		if isHintableDeclaration(param) {
-			var symbol *ast.Symbol
+			var symbol ast.Symbol
 			if ast.IsThisParameter(param) {
 				symbol = signature.ThisParameter()
 			} else {
@@ -295,9 +295,9 @@ func (s *inlayHintState) visitFunctionLikeForParameterType(node ast.FunctionLike
 	}
 }
 
-func (s *inlayHintState) addParameterTypeHint(node ast.ParameterDeclarationNode, symbol *ast.Symbol) {
+func (s *inlayHintState) addParameterTypeHint(node ast.ParameterDeclarationNode, symbol ast.Symbol) {
 	typeAnnotation := node.Type()
-	if !typeAnnotation.IsNil() || symbol == nil {
+	if !typeAnnotation.IsNil() || symbol.IsNil() {
 		return
 	}
 	typeHints := s.getParameterDeclarationTypeHints(symbol)
@@ -313,7 +313,7 @@ func (s *inlayHintState) addParameterTypeHint(node ast.ParameterDeclarationNode,
 	s.addTypeHints(*typeHints, pos)
 }
 
-func (s *inlayHintState) getParameterDeclarationTypeHints(symbol *ast.Symbol) *lsproto.StringOrInlayHintLabelParts {
+func (s *inlayHintState) getParameterDeclarationTypeHints(symbol ast.Symbol) *lsproto.StringOrInlayHintLabelParts {
 	valueDeclaration := symbol.ValueDeclaration()
 	if valueDeclaration.IsNil() || !ast.IsParameterDeclaration(valueDeclaration) {
 		return nil
@@ -330,7 +330,7 @@ func (s *inlayHintState) getParameterDeclarationTypeHints(symbol *ast.Symbol) *l
 func (s *inlayHintState) typeToInlayHintParts(t *checker.Type) lsproto.StringOrInlayHintLabelParts {
 	flags := nodebuilder.FlagsIgnoreErrors | nodebuilder.FlagsAllowUniqueESSymbolType |
 		nodebuilder.FlagsUseAliasDefinedOutsideCurrentScope
-	idToSymbol := make(map[ast.IdentifierNode]*ast.Symbol)
+	idToSymbol := make(map[ast.IdentifierNode]ast.Symbol)
 	// !!! Avoid type node reuse so we collect identifier symbols.
 	typeNode := s.checker.TypeToTypeNode(t, ast.Node{} /*enclosingDeclaration*/, flags, idToSymbol)
 	debug.Assert(!typeNode.IsNil(), "should always get typenode")
@@ -342,7 +342,7 @@ func (s *inlayHintState) typeToInlayHintParts(t *checker.Type) lsproto.StringOrI
 func (s *inlayHintState) typePredicateToInlayHintParts(typePredicate *checker.TypePredicate) lsproto.StringOrInlayHintLabelParts {
 	flags := nodebuilder.FlagsIgnoreErrors | nodebuilder.FlagsAllowUniqueESSymbolType |
 		nodebuilder.FlagsUseAliasDefinedOutsideCurrentScope
-	idToSymbol := make(map[ast.IdentifierNode]*ast.Symbol)
+	idToSymbol := make(map[ast.IdentifierNode]ast.Symbol)
 	// !!! Avoid type node reuse so we collect identifier symbols.
 	typeNode := s.checker.TypePredicateToTypePredicateNode(typePredicate, ast.Node{} /*enclosingDeclaration*/, flags, idToSymbol)
 	debug.Assert(!typeNode.IsNil(), "should always get typePredicateNode")
@@ -447,10 +447,10 @@ func isHintableLiteral(node ast.Node) bool {
 
 func isModuleReferenceType(t *checker.Type) bool {
 	symbol := t.Symbol()
-	return symbol != nil && symbol.Flags()&ast.SymbolFlagsModule != 0
+	return !symbol.IsNil() && symbol.Flags()&ast.SymbolFlagsModule != 0
 }
 
-func (s *inlayHintState) getInlayHintLabelParts(node ast.Node, idToSymbol map[ast.IdentifierNode]*ast.Symbol) []*lsproto.InlayHintLabelPart {
+func (s *inlayHintState) getInlayHintLabelParts(node ast.Node, idToSymbol map[ast.IdentifierNode]ast.Symbol) []*lsproto.InlayHintLabelPart {
 	var parts []*lsproto.InlayHintLabelPart
 
 	var visitForDisplayParts func(node ast.Node)
@@ -477,7 +477,7 @@ func (s *inlayHintState) getInlayHintLabelParts(node ast.Node, idToSymbol map[as
 		case ast.KindIdentifier:
 			identifierText := node.Text()
 			var name ast.Node
-			if symbol := idToSymbol[node]; symbol != nil && symbol.Declarations().Len() != 0 {
+			if symbol := idToSymbol[node]; !symbol.IsNil() && symbol.Declarations().Len() != 0 {
 				name = ast.GetNameOfDeclaration(symbol.Declarations().At(0))
 			}
 			if !name.IsNil() {
@@ -863,7 +863,7 @@ func (s *inlayHintState) getParameterIdentifierInfoAtPosition(signature *checker
 		}
 	}
 
-	var restParameter *ast.Symbol
+	var restParameter ast.Symbol
 	var restId ast.IdentifierNode
 	if paramCount < len(parameters) {
 		restParameter = parameters[paramCount]
@@ -945,7 +945,7 @@ func (s *inlayHintState) getParameterIdentifierInfoAtPosition(signature *checker
 	return nil
 }
 
-func getParameterDeclarationIdentifier(symbol *ast.Symbol) ast.IdentifierNode {
+func getParameterDeclarationIdentifier(symbol ast.Symbol) ast.IdentifierNode {
 	if !symbol.ValueDeclaration().IsNil() && ast.IsParameterDeclaration(symbol.ValueDeclaration()) && ast.IsIdentifier(symbol.ValueDeclaration().Name()) {
 		return symbol.ValueDeclaration().Name()
 	}

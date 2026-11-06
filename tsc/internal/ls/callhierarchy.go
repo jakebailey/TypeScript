@@ -148,13 +148,13 @@ func getCallHierarchyDeclarationReferenceNode(node ast.Node) ast.Node {
 }
 
 // Gets the symbol for a call hierarchy declaration.
-func getSymbolOfCallHierarchyDeclaration(c *checker.Checker, node ast.Node) *ast.Symbol {
+func getSymbolOfCallHierarchyDeclaration(c *checker.Checker, node ast.Node) ast.Symbol {
 	if ast.IsClassStaticBlockDeclaration(node) {
-		return nil
+		return ast.Symbol{}
 	}
 	location := getCallHierarchyDeclarationReferenceNode(node)
 	if location.IsNil() {
-		return nil
+		return ast.Symbol{}
 	}
 	return c.GetSymbolAtLocation(location)
 }
@@ -186,7 +186,7 @@ func getCallHierarchyItemName(program *compiler.Program, node ast.Node) (text st
 		defer done()
 		symbol := c.GetSymbolAtLocation(node.Parent())
 		prefix := ""
-		if symbol != nil {
+		if !symbol.IsNil() {
 			prefix = c.SymbolToString(symbol) + " "
 		}
 		return prefix + "static {}", pos, end
@@ -234,7 +234,7 @@ func getTextOfCallHierarchyName(program *compiler.Program, sourceNode ast.Node, 
 	c, done := program.GetTypeCheckerForFile(context.Background(), ast.GetSourceFileOfNode(sourceNode))
 	defer done()
 	symbol := c.GetSymbolAtLocation(name)
-	if symbol != nil {
+	if !symbol.IsNil() {
 		text := c.SymbolToString(symbol)
 		if text != "" {
 			return text
@@ -325,7 +325,7 @@ func findImplementation(c *checker.Checker, node ast.Node) ast.Node {
 
 	if ast.IsFunctionDeclaration(node) || ast.IsMethodDeclaration(node) {
 		symbol := getSymbolOfCallHierarchyDeclaration(c, node)
-		if symbol != nil && !symbol.ValueDeclaration().IsNil() {
+		if !symbol.IsNil() && !symbol.ValueDeclaration().IsNil() {
 			if ast.IsFunctionLikeDeclaration(symbol.ValueDeclaration()) && !symbol.ValueDeclaration().Body().IsNil() {
 				return symbol.ValueDeclaration()
 			}
@@ -342,7 +342,7 @@ func findAllInitialDeclarations(c *checker.Checker, node ast.Node) []ast.Node {
 	}
 
 	symbol := getSymbolOfCallHierarchyDeclaration(c, node)
-	if symbol == nil || symbol.Declarations().Len() == 0 {
+	if symbol.IsNil() || symbol.Declarations().Len() == 0 {
 		return nil
 	}
 
@@ -481,7 +481,7 @@ func resolveCallHierarchyDeclaration(program *compiler.Program, location ast.Nod
 
 		if !followingSymbol {
 			symbol := c.GetSymbolAtLocation(location)
-			if symbol != nil {
+			if !symbol.IsNil() {
 				if (symbol.Flags() & ast.SymbolFlagsAlias) != 0 {
 					symbol = c.GetAliasedSymbol(symbol)
 				}

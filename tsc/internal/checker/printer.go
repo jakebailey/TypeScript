@@ -117,19 +117,19 @@ func (c *Checker) typeToStringEx(t *Type, enclosingDeclaration ast.Node, flags T
 	return result
 }
 
-func (c *Checker) SymbolToString(s *ast.Symbol) string {
+func (c *Checker) SymbolToString(s ast.Symbol) string {
 	return c.symbolToString(s)
 }
 
-func (c *Checker) symbolToString(symbol *ast.Symbol) string {
+func (c *Checker) symbolToString(symbol ast.Symbol) string {
 	return c.symbolToStringEx(symbol, ast.Node{}, ast.SymbolFlagsAll, SymbolFormatFlagsAllowAnyNodeKind)
 }
 
-func (c *Checker) SymbolToStringEx(symbol *ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
+func (c *Checker) SymbolToStringEx(symbol ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
 	return c.symbolToStringEx(symbol, enclosingDeclaration, meaning, flags)
 }
 
-func (c *Checker) symbolToStringEx(symbol *ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
+func (c *Checker) symbolToStringEx(symbol ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, flags SymbolFormatFlags) string {
 	writer, putWriter := printer.GetSingleLineStringWriter()
 	defer putWriter()
 
@@ -165,7 +165,7 @@ func (c *Checker) symbolToStringEx(symbol *ast.Symbol, enclosingDeclaration ast.
 		printer_ = createPrinterWithRemoveCommentsOmitTrailingSemicolon(nodeBuilder.EmitContext())
 	}
 
-	var builder func(symbol *ast.Symbol, meaning ast.SymbolFlags, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Node
+	var builder func(symbol ast.Symbol, meaning ast.SymbolFlags, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, tracker nodebuilder.SymbolTracker) ast.Node
 	if flags&SymbolFormatFlagsAllowAnyNodeKind != 0 {
 		builder = nodeBuilder.SymbolToNode
 	} else {
@@ -285,7 +285,7 @@ func (c *Checker) formatUnionTypes(types []*Type, expandingEnum bool) []*Type {
 	return result
 }
 
-func (c *Checker) TypeToTypeNode(t *Type, enclosingDeclaration ast.Node, flags nodebuilder.Flags, idToSymbol map[ast.IdentifierNode]*ast.Symbol) ast.TypeNode {
+func (c *Checker) TypeToTypeNode(t *Type, enclosingDeclaration ast.Node, flags nodebuilder.Flags, idToSymbol map[ast.IdentifierNode]ast.Symbol) ast.TypeNode {
 	nodeBuilder := c.getNodeBuilderEx(idToSymbol)
 	return nodeBuilder.TypeToTypeNode(t, enclosingDeclaration, flags, nodebuilder.InternalFlagsNone, nil)
 }
@@ -296,7 +296,7 @@ func (c *Checker) SignatureToSignatureDeclaration(signature *Signature, kind ast
 }
 
 // ExpandSymbolForHover produces declaration strings for a symbol with verbosity support for expandable hover.
-func (c *Checker) ExpandSymbolForHover(symbol *ast.Symbol, meaning ast.SymbolFlags, vc *VerbosityContext) string {
+func (c *Checker) ExpandSymbolForHover(symbol ast.Symbol, meaning ast.SymbolFlags, vc *VerbosityContext) string {
 	nodeBuilder, release := c.getNodeBuilder()
 	defer release()
 	oldVerbosity := nodeBuilder.verbosity
@@ -344,12 +344,12 @@ func (c *Checker) TypeParameterToStringEx(t *Type, enclosingDeclaration ast.Node
 	return p.Emit(typeParamNode, sourceFile)
 }
 
-func (c *Checker) TypeToTypeNodeEx(t *Type, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, idToSymbol map[ast.IdentifierNode]*ast.Symbol) ast.TypeNode {
+func (c *Checker) TypeToTypeNodeEx(t *Type, enclosingDeclaration ast.Node, flags nodebuilder.Flags, internalFlags nodebuilder.InternalFlags, idToSymbol map[ast.IdentifierNode]ast.Symbol) ast.TypeNode {
 	nodeBuilder := c.getNodeBuilderEx(idToSymbol)
 	return nodeBuilder.TypeToTypeNode(t, enclosingDeclaration, flags, internalFlags, nil)
 }
 
-func (c *Checker) TypePredicateToTypePredicateNode(t *TypePredicate, enclosingDeclaration ast.Node, flags nodebuilder.Flags, idToSymbol map[ast.IdentifierNode]*ast.Symbol) ast.TypePredicateNodeNode {
+func (c *Checker) TypePredicateToTypePredicateNode(t *TypePredicate, enclosingDeclaration ast.Node, flags nodebuilder.Flags, idToSymbol map[ast.IdentifierNode]ast.Symbol) ast.TypePredicateNodeNode {
 	nodeBuilder := c.getNodeBuilderEx(idToSymbol)
 	return nodeBuilder.TypePredicateToTypePredicateNode(t, enclosingDeclaration, flags, nodebuilder.InternalFlagsNone, nil)
 }

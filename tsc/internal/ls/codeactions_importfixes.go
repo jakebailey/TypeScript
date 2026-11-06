@@ -243,7 +243,7 @@ func getFixInfos(ch *checker.Checker, fixContext *CodeFixContext, errorCode int3
 
 func getFixesInfoForUMDImport(token ast.Node, view *autoimport.View, ch *checker.Checker) []*fixInfo {
 	umdSymbol := getUmdSymbol(token, ch)
-	if umdSymbol == nil {
+	if umdSymbol.IsNil() {
 		return nil
 	}
 
@@ -265,9 +265,9 @@ func getFixesInfoForUMDImport(token ast.Node, view *autoimport.View, ch *checker
 	return result
 }
 
-func getUmdSymbol(token ast.Node, ch *checker.Checker) *ast.Symbol {
+func getUmdSymbol(token ast.Node, ch *checker.Checker) ast.Symbol {
 	// try the identifier to see if it is the umd symbol
-	var umdSymbol *ast.Symbol
+	var umdSymbol ast.Symbol
 	if ast.IsIdentifier(token) {
 		umdSymbol = ch.GetResolvedSymbol(token)
 	}
@@ -291,11 +291,11 @@ func getUmdSymbol(token ast.Node, ch *checker.Checker) *ast.Symbol {
 			return parentSymbol
 		}
 	}
-	return nil
+	return ast.Symbol{}
 }
 
-func isUMDExportSymbol(symbol *ast.Symbol) bool {
-	return symbol != nil && symbol.Declarations().Len() > 0 &&
+func isUMDExportSymbol(symbol ast.Symbol) bool {
+	return !symbol.IsNil() && symbol.Declarations().Len() > 0 &&
 		!symbol.Declarations().At(0).IsNil() &&
 		ast.IsNamespaceExportDeclaration(symbol.Declarations().At(0))
 }
@@ -355,7 +355,7 @@ func getFixesInfoForNonUMDImport(fixContext *CodeFixContext, symbolToken ast.Nod
 func getTypeOnlyPromotionFix(sourceFile *ast.SourceFile, symbolToken ast.Node, symbolName string, ch *checker.Checker) *autoimport.Fix {
 	// Get the symbol at the token location
 	symbol := ch.ResolveName(ast.MakeSymbolName(symbolName), symbolToken, ast.SymbolFlagsValue, true /* excludeGlobals */)
-	if symbol == nil {
+	if symbol.IsNil() {
 		return nil
 	}
 
@@ -388,14 +388,14 @@ func getSymbolNamesToImport(sourceFile *ast.SourceFile, ch *checker.Checker, sym
 			var result []symbolNameInfo
 			if !scanner.IsIntrinsicJsxName(symbolToken.Text()) {
 				compSymbol := ch.ResolveName(symbolToken.TextSymbolName(), symbolToken, ast.SymbolFlagsValue, false /* excludeGlobals */)
-				if compSymbol == nil {
+				if compSymbol.IsNil() {
 					result = append(result, symbolNameInfo{name: symbolToken.Text()})
 				} else if !ch.GetTypeOnlyAliasDeclaration(compSymbol).IsNil() {
 					result = append(result, symbolNameInfo{name: symbolToken.Text(), isTypeOnly: true})
 				}
 			}
 			nsIsTypeOnly := false
-			if nsSymbol := ch.ResolveName(ast.MakeSymbolName(jsxNamespace), symbolToken, ast.SymbolFlagsValue, true /* excludeGlobals */); nsSymbol != nil {
+			if nsSymbol := ch.ResolveName(ast.MakeSymbolName(jsxNamespace), symbolToken, ast.SymbolFlagsValue, true /* excludeGlobals */); !nsSymbol.IsNil() {
 				nsIsTypeOnly = !ch.GetTypeOnlyAliasDeclaration(nsSymbol).IsNil()
 			}
 			result = append(result, symbolNameInfo{name: jsxNamespace, isTypeOnly: nsIsTypeOnly})
@@ -403,7 +403,7 @@ func getSymbolNamesToImport(sourceFile *ast.SourceFile, ch *checker.Checker, sym
 		}
 	}
 	tokenIsTypeOnly := false
-	if sym := ch.ResolveName(symbolToken.TextSymbolName(), symbolToken, ast.SymbolFlagsValue, true /* excludeGlobals */); sym != nil {
+	if sym := ch.ResolveName(symbolToken.TextSymbolName(), symbolToken, ast.SymbolFlagsValue, true /* excludeGlobals */); !sym.IsNil() {
 		tokenIsTypeOnly = !ch.GetTypeOnlyAliasDeclaration(sym).IsNil()
 	}
 	return []symbolNameInfo{{name: symbolToken.Text(), isTypeOnly: tokenIsTypeOnly}}
@@ -414,7 +414,7 @@ func needsJsxNamespaceFix(jsxNamespace string, symbolToken ast.Node, ch *checker
 		return true
 	}
 	namespaceSymbol := ch.ResolveName(ast.MakeSymbolName(jsxNamespace), symbolToken, ast.SymbolFlagsValue, true /* excludeGlobals */)
-	if namespaceSymbol == nil {
+	if namespaceSymbol.IsNil() {
 		return true
 	}
 	if namespaceSymbol.Declarations().Some(ast.IsTypeOnlyImportOrExportDeclaration) {

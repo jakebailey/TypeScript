@@ -64,7 +64,7 @@ func (l *LanguageService) provideDefinitionAtPosition(ctx context.Context, progr
 	defer done()
 
 	if node.Kind() == ast.KindOverrideKeyword {
-		if sym := getSymbolForOverriddenMember(c, node); sym != nil {
+		if sym := getSymbolForOverriddenMember(c, node); !sym.IsNil() {
 			return l.createDefinitionLocations(originSelectionRange, clientSupportsLink, sym.Declarations().Nodes(), nil /*reference*/, spanmap.FeatureDefinition)
 		}
 	}
@@ -92,7 +92,7 @@ func (l *LanguageService) provideDefinitionAtPosition(ctx context.Context, progr
 	calledDeclaration := tryGetSignatureDeclaration(c, node)
 	if !calledDeclaration.IsNil() && !(ast.IsJsxOpeningLikeElement(node.Parent()) && isJsxConstructorLike(calledDeclaration)) {
 		symbol := c.GetSymbolAtLocation(getDeclarationNameForKeyword(node))
-		if symbol != nil && core.Some(c.GetRootSymbols(symbol), func(rootSymbol *ast.Symbol) bool {
+		if !symbol.IsNil() && core.Some(c.GetRootSymbols(symbol), func(rootSymbol ast.Symbol) bool {
 			return symbolMatchesSignature(rootSymbol, calledDeclaration)
 		}) {
 			if !ast.IsConstructorDeclaration(calledDeclaration) {
@@ -142,7 +142,7 @@ func (l *LanguageService) provideTypeDefinitionAtPosition(ctx context.Context, p
 
 	node = getDeclarationNameForKeyword(node)
 
-	if symbol := c.GetSymbolAtLocation(node); symbol != nil {
+	if symbol := c.GetSymbolAtLocation(node); !symbol.IsNil() {
 		symbolType := getTypeOfSymbolAtLocation(c, symbol, node)
 		declarations := getDeclarationsFromType(symbolType)
 		if typeArgument := c.GetFirstTypeArgumentFromKnownType(symbolType); typeArgument != nil {
@@ -313,7 +313,7 @@ func getDeclarationsFromLocation(c *checker.Checker, node ast.Node) []ast.Node {
 		// and the contextual type's property declarations
 		shorthandSymbol := c.GetResolvedSymbol(node)
 		var declarations []ast.Node
-		if shorthandSymbol != nil {
+		if !shorthandSymbol.IsNil() {
 			declarations = shorthandSymbol.Declarations().Nodes()
 		}
 		contextualDeclarations := getDeclarationsFromObjectLiteralElement(c, node)
@@ -340,7 +340,7 @@ func getDeclarationsFromLocation(c *checker.Checker, node ast.Node) []ast.Node {
 				}
 				var result []ast.Node
 				for _, unionType := range types {
-					if prop := c.GetPropertyOfType(unionType, ast.MakeSymbolName(name)); prop != nil {
+					if prop := c.GetPropertyOfType(unionType, ast.MakeSymbolName(name)); !prop.IsNil() {
 						result = slices.AppendSeq(result, prop.Declarations().Values())
 					}
 				}
@@ -350,9 +350,9 @@ func getDeclarationsFromLocation(c *checker.Checker, node ast.Node) []ast.Node {
 	}
 
 	node = getDeclarationNameForKeyword(node)
-	if symbol := c.GetSymbolAtLocation(node); symbol != nil {
+	if symbol := c.GetSymbolAtLocation(node); !symbol.IsNil() {
 		if symbol.Flags()&ast.SymbolFlagsClass != 0 && symbol.Flags()&(ast.SymbolFlagsFunction|ast.SymbolFlagsVariable) == 0 && node.Kind() == ast.KindConstructorKeyword {
-			if constructor := symbol.Members().Get(ast.InternalSymbolNameConstructor); constructor != nil {
+			if constructor := symbol.Members().Get(ast.InternalSymbolNameConstructor); !constructor.IsNil() {
 				symbol = constructor
 			}
 		}
@@ -389,7 +389,7 @@ func getDeclarationsFromObjectLiteralElement(c *checker.Checker, node ast.Node) 
 	}
 
 	properties := c.GetPropertySymbolsFromContextualType(element, contextualType, false /*unionSymbolOk*/)
-	if core.Some(properties, func(p *ast.Symbol) bool {
+	if core.Some(properties, func(p ast.Symbol) bool {
 		return !p.ValueDeclaration().IsNil() && ast.IsObjectLiteralExpression(p.ValueDeclaration().Parent()) && ast.IsObjectLiteralElement(p.ValueDeclaration()) && p.ValueDeclaration().Name() == node
 	}) {
 		if withoutNodeInferencesType := c.GetContextualType(element.Parent(), checker.ContextFlagsIgnoreNodeInferences); withoutNodeInferencesType != nil {
@@ -447,12 +447,12 @@ func isJsxConstructorLike(node ast.Node) bool {
 	}
 }
 
-func symbolMatchesSignature(symbol *ast.Symbol, calledDeclaration ast.Node) bool {
-	if symbol == nil || calledDeclaration.IsNil() {
+func symbolMatchesSignature(symbol ast.Symbol, calledDeclaration ast.Node) bool {
+	if symbol.IsNil() || calledDeclaration.IsNil() {
 		return false
 	}
 	calledSymbol := calledDeclaration.Symbol()
-	if symbol == calledSymbol || calledSymbol != nil && symbol == calledSymbol.Parent() {
+	if symbol == calledSymbol || !calledSymbol.IsNil() && symbol == calledSymbol.Parent() {
 		return true
 	}
 	parent := calledDeclaration.Parent()
@@ -460,28 +460,28 @@ func symbolMatchesSignature(symbol *ast.Symbol, calledDeclaration ast.Node) bool
 		!ast.IsCallLikeExpression(parent) && ast.CanHaveSymbol(parent) && symbol == parent.Symbol())
 }
 
-func getSymbolForOverriddenMember(typeChecker *checker.Checker, node ast.Node) *ast.Symbol {
+func getSymbolForOverriddenMember(typeChecker *checker.Checker, node ast.Node) ast.Symbol {
 	classElement := ast.FindAncestor(node, ast.IsClassElement)
 	if classElement.IsNil() || classElement.Name().IsNil() {
-		return nil
+		return ast.Symbol{}
 	}
 	baseDeclaration := ast.FindAncestor(classElement, ast.IsClassLike)
 	if baseDeclaration.IsNil() {
-		return nil
+		return ast.Symbol{}
 	}
 	baseTypeNode := ast.GetClassExtendsHeritageElement(baseDeclaration)
 	if baseTypeNode.IsNil() {
-		return nil
+		return ast.Symbol{}
 	}
 	expression := ast.SkipParentheses(baseTypeNode.Expression())
-	var base *ast.Symbol
+	var base ast.Symbol
 	if ast.IsClassExpression(expression) {
 		base = expression.Symbol()
 	} else {
 		base = typeChecker.GetSymbolAtLocation(expression)
 	}
-	if base == nil {
-		return nil
+	if base.IsNil() {
+		return ast.Symbol{}
 	}
 	name := ast.GetTextOfPropertyName(classElement.Name())
 	if ast.HasStaticModifier(classElement) {
@@ -490,11 +490,11 @@ func getSymbolForOverriddenMember(typeChecker *checker.Checker, node ast.Node) *
 	return typeChecker.GetPropertyOfType(typeChecker.GetDeclaredTypeOfSymbol(base), ast.MakeSymbolName(name))
 }
 
-func getTypeOfSymbolAtLocation(c *checker.Checker, symbol *ast.Symbol, node ast.Node) *checker.Type {
+func getTypeOfSymbolAtLocation(c *checker.Checker, symbol ast.Symbol, node ast.Node) *checker.Type {
 	t := c.GetTypeOfSymbolAtLocation(symbol, node)
 	// If the type is just a function's inferred type, go-to-type should go to the return type instead since
 	// go-to-definition takes you to the function anyway.
-	if t.Symbol() == symbol || t.Symbol() != nil && !symbol.ValueDeclaration().IsNil() && ast.IsVariableDeclaration(symbol.ValueDeclaration()) && symbol.ValueDeclaration().Initializer() == t.Symbol().ValueDeclaration() {
+	if t.Symbol() == symbol || !t.Symbol().IsNil() && !symbol.ValueDeclaration().IsNil() && ast.IsVariableDeclaration(symbol.ValueDeclaration()) && symbol.ValueDeclaration().Initializer() == t.Symbol().ValueDeclaration() {
 		sigs := c.GetCallSignatures(t)
 		if len(sigs) == 1 {
 			return c.GetReturnTypeOfSignature(sigs[0])
@@ -506,7 +506,7 @@ func getTypeOfSymbolAtLocation(c *checker.Checker, symbol *ast.Symbol, node ast.
 func getDeclarationsFromType(t *checker.Type) []ast.Node {
 	var result []ast.Node
 	for _, t := range t.Distributed() {
-		if t.Symbol() != nil {
+		if !t.Symbol().IsNil() {
 			for _, decl := range t.Symbol().Declarations().All() {
 				result = core.AppendIfUnique(result, decl)
 			}

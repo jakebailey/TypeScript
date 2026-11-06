@@ -7,14 +7,14 @@ import (
 
 // TODO: previously all symboltracker methods were optional, but now they're required.
 type SymbolTracker interface {
-	TrackSymbol(symbol *ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags) bool
+	TrackSymbol(symbol ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags) bool
 	ReportInaccessibleThisError()
 	ReportPrivateInBaseOfClassExpression(propertyName string)
 	ReportInaccessibleUniqueSymbolError()
 	ReportCyclicStructureError()
 	ReportLikelyUnsafeImportRequiredError(specifier string, symbolName string)
 	ReportTruncationError()
-	ReportNonlocalAugmentation(containingFile *ast.SourceFile, parentSymbol *ast.Symbol, augmentingSymbol *ast.Symbol)
+	ReportNonlocalAugmentation(containingFile *ast.SourceFile, parentSymbol ast.Symbol, augmentingSymbol ast.Symbol)
 	ReportNonSerializableProperty(propertyName string)
 
 	ReportInferenceFallback(node ast.Node)

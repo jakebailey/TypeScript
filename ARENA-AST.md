@@ -497,6 +497,18 @@ A symbol's declarations used to be a `[]Node` (24 bytes plus a separate array) a
 
 The checker records that hold a node are type references (the node of a deferred reference) and signatures (their declaration). Both now hold a `NodeRef`, resolved through the checker's file table, which takes type references from 160 to 152 bytes and signatures from 88 to 80. Object types hold no node of their own. Index infos, tuple element infos and instantiation expression types still hold views: they are far fewer, and item 6 revisits index infos. Callers outside the checker read a signature's declaration through `Checker.GetSignatureDeclaration`, or `SignatureDeclaration` with the program's file table. The saving is 6MB on vscode, 3MB on sentry and under 1MB on mui, with no change in check time, so it was kept.
 
+### Symbol ids
+
+A symbol is named by a program-wide `ast.SymbolId`, a `uint32` with 0 meaning none. Each file's binder symbols take a contiguous range starting at that file's base; symbols the checker creates are numbered after all binder symbols. Stored symbol references that the checker holds in bulk are ids: a type's symbol, a value link's target, symbol-of-node, and the keys of every symbol link store. Links for binder ids are pages allocated lazily; rarer links are maps keyed by id.
+
+Each file's `NodeStore` owns its binder symbols as a `[]symbolRecord` of 32-byte, pointer-free records: flags, the value declaration's file-local node index, name, parent and export symbol (file-local symbol indices), the first declaration's file-local node index, and an index into a rare slice holding further declarations, members and exports. The binder never needs more than a file-local index, because a binder symbol's declarations are all in its file. The checker's symbols live in a checker-owned store of chunked 32-byte records (flags, check flags, a data pointer and a shared-data owner); the data record (48 bytes) holds what a binder record holds plus spanning declarations. Item 3 folds the two into one record.
+
+The working handle is `ast.Symbol{store *SymbolStore; index uint32}`, a 16-byte view like `ast.Node`, so `symbol.Flags()`, `symbol.Name()` and `symbol.Parent()` read the record directly and keep the method-call style. A checker turns a view into an id by adding the store's base (cached for the last store seen) and an id back into a view through a directory with one entry per 64 ids. Symbols from stores the program doesn't know (a lazily parsed JSDoc store, a symbol made by the language service) get ids from 2^31 up, numbered on first use.
+
+Symbol tables keep insertion order in a `[]Symbol` with a hash index once they pass 16 entries; item 4 replaces them. Symbol-of-node was already one map per file keyed by node index, which matches the target layout, and now holds ids.
+
+This step costs memory and time on its own, and the later items are what pay it back. Lists of symbols (properties, parameters, table entries) hold 16-byte views where they held 8-byte pointers; on mui that is about 100MB of the 159MB growth. Items 4 and 7 make them ids. The checker's symbols take a 32-byte record plus a 48-byte data record, about as much as the old pointer-linked symbol; item 3 shrinks them. Value links are paged over every binder id rather than allocated per symbol, about 40MB on mui; item 8 splits them by binder and transient symbols. Check time goes up by about 2.6s on vscode. The cost is spread over every symbol access, which now indexes a record rather than following a pointer: symbol table lookups that read each candidate's name through its record (+0.5s, fixed by item 4's inline keys), name and flag reads, and the id conversions.
+
 ### Progress
 
 Memory used (median) and vscode check time (n=5 alternating against the previous row, min–max and median).
@@ -508,6 +520,20 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | views and refs (`9a6514702b3`) | 3,286,921K | 1,882,903K | 1,216,591K | 18.49–19.91s (18.81) |
 | 1. compact declarations | 3,174,055K (−113MB) | 1,815,998K (−67MB) | 1,163,930K (−53MB) | 18.13–18.69s (18.39) |
 | 1b. node refs in checker records | 3,167,665K (−6MB) | 1,813,326K (−3MB) | 1,163,323K (−0.4MB) | 18.19–19.81s (18.40) |
+| 2. symbol ids, 32-byte binder symbols | 3,177,879K (+10MB) | 1,902,763K (+89MB) | 1,322,226K (+159MB) | 20.53–21.76s (21.01) |
+
+### Deviations forced by the language
+
+- Working handles are views (`ast.Node`, `ast.Symbol`: a store pointer and an index, 16 bytes), not bare ids. Go has no way to resolve an id to its store without either a registry or a pointer, and a registry is what this design removes; the pointer also keeps the store alive under the garbage collector and keeps the method-call style at every call site. Ids and refs are what gets stored in bulk.
+- Slices are 24-byte headers. Lists that the target layout holds as one handle take a slice header unless the structure stores an index instead.
+- No niche optimisations: an optional id costs a reserved zero value, and optional records cost a pointer.
+
+### Other deviations
+
+- A symbol's name stays an 8-byte `SymbolName` rather than an interned 4-byte atom. Most names are already packed into the eight bytes without interning, and derived names (`__@iterator@12`, late-bound names) would grow an intern table without bound across a long-lived language service.
+- File bases are aligned to 64 ids so an id finds its file with one directory load instead of a binary search over offsets.
+- Symbols from stores outside the program's file table are numbered on first use from 2^31 up, under a lock, rather than refused.
+- A binder record refers to its rare part by index into a per-file slice, not by pointer, so the record array has no pointers for the garbage collector to scan.
 
 ## Historical: earlier measurements (step 9 vs main, vscode, n=10, interleaved)
 

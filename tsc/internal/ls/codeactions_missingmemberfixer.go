@@ -43,13 +43,13 @@ func newMissingMemberFixer(changeTracker *change.Tracker, program *compiler.Prog
 	}
 }
 
-func (f *missingMemberFixer) createNodeBuilder() (*checker.NodeBuilder, map[ast.IdentifierNode]*ast.Symbol) {
-	idToSymbol := make(map[ast.IdentifierNode]*ast.Symbol)
+func (f *missingMemberFixer) createNodeBuilder() (*checker.NodeBuilder, map[ast.IdentifierNode]ast.Symbol) {
+	idToSymbol := make(map[ast.IdentifierNode]ast.Symbol)
 	nodeBuilder := checker.NewNodeBuilderEx(f.typeChecker, f.changeTracker.EmitContext, idToSymbol)
 	return nodeBuilder, idToSymbol
 }
 
-func (f *missingMemberFixer) createMemberFromSymbol(symbol *ast.Symbol, enclosingDeclaration ast.Node, sourceFile *ast.SourceFile, body ast.FunctionBody, preserveOptional preserveOptionalFlags, abstract bool) []ast.Node {
+func (f *missingMemberFixer) createMemberFromSymbol(symbol ast.Symbol, enclosingDeclaration ast.Node, sourceFile *ast.SourceFile, body ast.FunctionBody, preserveOptional preserveOptionalFlags, abstract bool) []ast.Node {
 	declarations := symbol.Declarations()
 	declaration := declarations.FirstOrNil()
 
@@ -174,11 +174,11 @@ func (f *missingMemberFixer) getCallSignatures(t *checker.Type) []*checker.Signa
 	return f.typeChecker.GetCallSignatures(t)
 }
 
-func (f *missingMemberFixer) createTypeNode(t *checker.Type, enclosingDeclaration ast.Node, flags nodebuilder.Flags, nodeBuilder *checker.NodeBuilder, idToSymbol map[ast.IdentifierNode]*ast.Symbol) ast.TypeNode {
+func (f *missingMemberFixer) createTypeNode(t *checker.Type, enclosingDeclaration ast.Node, flags nodebuilder.Flags, nodeBuilder *checker.NodeBuilder, idToSymbol map[ast.IdentifierNode]ast.Symbol) ast.TypeNode {
 	return f.importTypeNode(nodeBuilder.TypeToTypeNode(t, enclosingDeclaration, flags, nodebuilder.InternalFlagsNone, nil /*tracker*/), idToSymbol)
 }
 
-func (f *missingMemberFixer) createModifiers(symbol *ast.Symbol, declaration ast.Node) ast.ModifierList {
+func (f *missingMemberFixer) createModifiers(symbol ast.Symbol, declaration ast.Node) ast.ModifierList {
 	modifierFlags := ast.ModifierFlagsNone
 	if !declaration.IsNil() {
 		effective := checker.GetDeclarationModifierFlagsFromSymbol(symbol)
@@ -358,7 +358,7 @@ func (f *missingMemberFixer) createSignatureDeclarationFromSignatures(signatures
 	)
 }
 
-func (f *missingMemberFixer) getReturnTypeFromSignatures(signatures []*checker.Signature, enclosingDeclaration ast.Node, nodeBuilder *checker.NodeBuilder, idToSymbol map[ast.IdentifierNode]*ast.Symbol) ast.TypeNode {
+func (f *missingMemberFixer) getReturnTypeFromSignatures(signatures []*checker.Signature, enclosingDeclaration ast.Node, nodeBuilder *checker.NodeBuilder, idToSymbol map[ast.IdentifierNode]ast.Symbol) ast.TypeNode {
 	if len(signatures) == 0 {
 		return ast.Node{}
 	}
@@ -372,7 +372,7 @@ func (f *missingMemberFixer) getReturnTypeFromSignatures(signatures []*checker.S
 	return f.importTypeNode(nodeBuilder.TypeToTypeNode(unionType, enclosingDeclaration, nodebuilder.FlagsNoTruncation, nodebuilder.InternalFlagsAllowUnresolvedNames, nil /*typeArguments*/), idToSymbol)
 }
 
-func (f *missingMemberFixer) importTypeNode(typeNode ast.TypeNode, idToSymbol map[ast.IdentifierNode]*ast.Symbol) ast.TypeNode {
+func (f *missingMemberFixer) importTypeNode(typeNode ast.TypeNode, idToSymbol map[ast.IdentifierNode]ast.Symbol) ast.TypeNode {
 	if typeNode.IsNil() || f.importAdder == nil {
 		return typeNode
 	}
@@ -381,7 +381,7 @@ func (f *missingMemberFixer) importTypeNode(typeNode ast.TypeNode, idToSymbol ma
 	if !importedTypeNode.IsNil() {
 		for _, symbol := range symbols {
 			exportSymbol := f.getExportedSymbol(symbol)
-			if exportSymbol == nil {
+			if exportSymbol.IsNil() {
 				continue
 			}
 			f.importAdder.AddImportFromExportedSymbol(exportSymbol, true /*isValidTypeOnlyUseSite*/)
@@ -389,14 +389,14 @@ func (f *missingMemberFixer) importTypeNode(typeNode ast.TypeNode, idToSymbol ma
 		return importedTypeNode
 	}
 
-	seen := make(map[*ast.Symbol]bool)
+	seen := make(map[ast.Symbol]bool)
 	for _, symbol := range idToSymbol {
-		if symbol == nil || seen[symbol] {
+		if symbol.IsNil() || seen[symbol] {
 			continue
 		}
 		seen[symbol] = true
 		exportSymbol := f.getExportedSymbol(symbol)
-		if exportSymbol == nil {
+		if exportSymbol.IsNil() {
 			continue
 		}
 		f.importAdder.AddImportFromExportedSymbol(exportSymbol, true /*isValidTypeOnlyUseSite*/)
@@ -404,10 +404,10 @@ func (f *missingMemberFixer) importTypeNode(typeNode ast.TypeNode, idToSymbol ma
 	return typeNode
 }
 
-func (f *missingMemberFixer) getExportedSymbol(symbol *ast.Symbol) *ast.Symbol {
+func (f *missingMemberFixer) getExportedSymbol(symbol ast.Symbol) ast.Symbol {
 	symbol = f.typeChecker.GetExportSymbolOfSymbol(symbol)
-	if symbol == nil || symbol.Parent() == nil {
-		return nil
+	if symbol.IsNil() || symbol.Parent().IsNil() {
+		return ast.Symbol{}
 	}
 	return symbol
 }
@@ -488,8 +488,8 @@ func createDummyParameters(factory *ast.NodeFactory, argCount int, names []ast.S
 	return factory.NewNodeList(parameters)
 }
 
-func createDeclarationName(factory *ast.NodeFactory, typeChecker *checker.Checker, symbol *ast.Symbol, declaration ast.Node) ast.PropertyName {
-	if symbol != nil && symbol.CheckFlags()&ast.CheckFlagsMapped != 0 {
+func createDeclarationName(factory *ast.NodeFactory, typeChecker *checker.Checker, symbol ast.Symbol, declaration ast.Node) ast.PropertyName {
+	if !symbol.IsNil() && symbol.CheckFlags()&ast.CheckFlagsMapped != 0 {
 		nameType := typeChecker.GetNameTypeOfSymbol(symbol)
 		if nameType != nil && checker.IsTypeUsableAsPropertyName(nameType) {
 			return factory.NewIdentifier(checker.GetPropertyNameFromType(nameType).String())
@@ -498,7 +498,7 @@ func createDeclarationName(factory *ast.NodeFactory, typeChecker *checker.Checke
 	if !declaration.IsNil() && !declaration.Name().IsNil() {
 		return declaration.Name().Clone(factory)
 	}
-	if symbol != nil {
+	if !symbol.IsNil() {
 		return factory.NewIdentifier(symbol.Name().String())
 	}
 	return ast.Node{}

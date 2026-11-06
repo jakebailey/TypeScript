@@ -37,7 +37,7 @@ export class Second { #value = 2; }
 	name := ast.MakeSymbolName("named")
 	local := file.Locals().Get(name)
 	exported := file.Symbol().Exports().Get(name)
-	assert.Assert(t, local != nil && exported != nil)
+	assert.Assert(t, !local.IsNil() && !exported.IsNil())
 	assert.Assert(t, local.Name() == name && exported.Name() == name)
 	assert.Equal(t, local.Declarations().Len(), 2)
 	assert.Equal(t, exported.Declarations().Len(), 2)
@@ -45,7 +45,7 @@ export class Second { #value = 2; }
 
 	members := file.Symbol().Exports().Get(ast.MakeSymbolName("Shape")).Members()
 	for _, name := range []ast.SymbolName{ast.InternalSymbolNameCall, ast.MakeSymbolName("__call"), ast.MakeSymbolName("literal"), ast.MakeSymbolName("0")} {
-		assert.Assert(t, members.Get(name) != nil)
+		assert.Assert(t, !members.Get(name).IsNil())
 		assert.Assert(t, members.Get(name).Name() == name)
 	}
 	assert.Assert(t, members.Get(ast.InternalSymbolNameCall) != members.Get(ast.MakeSymbolName("__call")))
@@ -56,8 +56,8 @@ export class Second { #value = 2; }
 	firstPrivate := GetSymbolNameForPrivateIdentifier(first, "#value")
 	secondPrivate := GetSymbolNameForPrivateIdentifier(second, "#value")
 	assert.Assert(t, firstPrivate != secondPrivate)
-	assert.Assert(t, first.Members().Get(firstPrivate) != nil)
-	assert.Assert(t, second.Members().Get(secondPrivate) != nil)
+	assert.Assert(t, !first.Members().Get(firstPrivate).IsNil())
+	assert.Assert(t, !second.Members().Get(secondPrivate).IsNil())
 
 	resolver := NameResolver{CompilerOptions: core.EmptyCompilerOptions}
 	assert.Equal(t, resolver.Resolve(file.AsNode(), name, ast.SymbolFlagsValue|ast.SymbolFlagsExportValue, nil, false, false), local)

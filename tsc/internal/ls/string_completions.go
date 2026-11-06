@@ -33,7 +33,7 @@ type completionsFromTypes struct {
 }
 
 type completionsFromProperties struct {
-	symbols           []*ast.Symbol
+	symbols           []ast.Symbol
 	hasIndexSignature bool
 }
 
@@ -392,14 +392,14 @@ func (l *LanguageService) getStringLiteralCompletionEntries(
 			return nil
 		}
 		moduleSpecifierSymbol := typeChecker.GetSymbolAtLocation(moduleSpecifier)
-		if moduleSpecifierSymbol == nil {
+		if moduleSpecifierSymbol.IsNil() {
 			return nil
 		}
 		exports := typeChecker.GetExportsAndPropertiesOfModule(moduleSpecifierSymbol)
 		existing := collections.NewSetFromItems(core.Map(namedImportsOrExports.Elements(), func(n ast.Node) ast.SymbolName {
 			return n.PropertyNameOrName().TextSymbolName()
 		})...)
-		uniques := core.Filter(exports, func(e *ast.Symbol) bool {
+		uniques := core.Filter(exports, func(e ast.Symbol) bool {
 			return e.Name() != ast.InternalSymbolNameDefault && !existing.Has(e.Name())
 		})
 		return &stringLiteralCompletions{
@@ -414,7 +414,7 @@ func (l *LanguageService) getStringLiteralCompletionEntries(
 			properties := getPropertiesForCompletion(t, typeChecker)
 			return &stringLiteralCompletions{
 				fromProperties: &completionsFromProperties{
-					symbols: core.Filter(properties, func(s *ast.Symbol) bool {
+					symbols: core.Filter(properties, func(s ast.Symbol) bool {
 						return s.ValueDeclaration().IsNil() || !ast.IsPrivateIdentifierClassElementDeclaration(s.ValueDeclaration())
 					}),
 					hasIndexSignature: false,
@@ -523,7 +523,7 @@ func fromUnionableLiteralType(
 				fromProperties: &completionsFromProperties{
 					symbols: core.Filter(
 						result.symbols,
-						func(s *ast.Symbol) bool { return !alreadyUsedNames.Has(s.Name()) },
+						func(s ast.Symbol) bool { return !alreadyUsedNames.Has(s.Name()) },
 					),
 					hasIndexSignature: result.hasIndexSignature,
 				},
@@ -578,7 +578,7 @@ func stringLiteralCompletionsForObjectLiteral(
 
 func stringLiteralCompletionsFromProperties(t *checker.Type, typeChecker *checker.Checker) *completionsFromProperties {
 	return &completionsFromProperties{
-		symbols: core.Filter(typeChecker.GetApparentProperties(t), func(s *ast.Symbol) bool {
+		symbols: core.Filter(typeChecker.GetApparentProperties(t), func(s ast.Symbol) bool {
 			return !(!s.ValueDeclaration().IsNil() && ast.IsPrivateIdentifierClassElementDeclaration(s.ValueDeclaration()))
 		}),
 		hasIndexSignature: hasIndexSignature(t, typeChecker),
@@ -925,7 +925,7 @@ func getAmbientModuleCompletions(fragment string, fragmentDirectory string, type
 	return nonRelativeModuleNames
 }
 
-func getAmbientModuleName(symbol *ast.Symbol) string {
+func getAmbientModuleName(symbol ast.Symbol) string {
 	declaration := ast.GetNonAugmentationDeclaration(symbol)
 	if !declaration.IsNil() && ast.IsModuleWithStringLiteralName(declaration) {
 		return declaration.Name().Text()

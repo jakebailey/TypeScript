@@ -413,7 +413,7 @@ func (walker *typeWriterWalker) writeTypeOrSymbol(node ast.Node, isSymbolWalk bo
 	}
 
 	symbol := fileChecker.GetSymbolAtLocation(node)
-	if symbol == nil {
+	if symbol.IsNil() {
 		return nil
 	}
 

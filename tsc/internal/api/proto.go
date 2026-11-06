@@ -55,8 +55,8 @@ func NewBuildOrchestratorID() BuildOrchestratorID {
 	return BuildOrchestratorID(nextBuildOrchestratorId.Add(1))
 }
 
-func SymbolHandle(symbol *ast.Symbol) SymbolID {
-	return SymbolID(ast.GetSymbolId(symbol))
+func SymbolHandle(symbol ast.Symbol) SymbolID {
+	return SymbolID(ast.GetSymbolSerial(symbol))
 }
 
 func TypeHandle(t *checker.Type) TypeID {

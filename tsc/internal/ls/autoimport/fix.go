@@ -869,13 +869,13 @@ func (v *View) getExistingImports() *collections.MultiMap[ModuleID, existingImpo
 		if node.IsNil() {
 			panic("error: did not expect node kind " + moduleSpecifier.Kind().String())
 		} else if ast.IsVariableDeclarationInitializedToRequire(node.Parent()) {
-			if moduleSymbol := v.checker.ResolveExternalModuleName(moduleSpecifier, nil /*importAttributesType*/); moduleSymbol != nil {
+			if moduleSymbol := v.checker.ResolveExternalModuleName(moduleSpecifier, nil /*importAttributesType*/); !moduleSymbol.IsNil() {
 				if moduleID, _, ok := tryGetModuleIDAndFileNameOfModuleSymbol(moduleSymbol); ok {
 					result.Add(moduleID, existingImport{node: node.Parent(), moduleSpecifier: moduleSpecifier.Text(), index: i})
 				}
 			}
 		} else if node.Kind() == ast.KindImportDeclaration || node.Kind() == ast.KindImportEqualsDeclaration || node.Kind() == ast.KindJSDocImportTag {
-			if moduleSymbol := v.checker.GetSymbolAtLocation(moduleSpecifier); moduleSymbol != nil {
+			if moduleSymbol := v.checker.GetSymbolAtLocation(moduleSpecifier); !moduleSymbol.IsNil() {
 				if moduleID, _, ok := tryGetModuleIDAndFileNameOfModuleSymbol(moduleSymbol); ok {
 					result.Add(moduleID, existingImport{node: node, moduleSpecifier: moduleSpecifier.Text(), index: i})
 				}

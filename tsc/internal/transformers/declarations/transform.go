@@ -355,7 +355,7 @@ func (tx *DeclarationTransformer) transformSourceFile(node *ast.SourceFile) ast.
 	combinedStatements.SetLoc(statements.Loc()) // setTextRange
 	if ast.IsExternalOrCommonJSModule(node) {
 		if ast.IsInJSFile(node.AsNode()) {
-			if exportEquals := node.Symbol().Exports().Get(ast.InternalSymbolNameExportEquals); exportEquals != nil && exportEquals.Declarations().Len() > 1 {
+			if exportEquals := node.Symbol().Exports().Get(ast.InternalSymbolNameExportEquals); !exportEquals.IsNil() && exportEquals.Declarations().Len() > 1 {
 				for _, node := range exportEquals.Declarations().All() {
 					tx.state.addDiagnostic(createDiagnosticForNode(node, diagnostics.Multiple_module_exports_assignments_cannot_be_serialized_for_declaration_emit))
 				}
@@ -1089,7 +1089,7 @@ func (tx *DeclarationTransformer) transformConstructSignatureDeclaration(input a
 }
 
 func (tx *DeclarationTransformer) omitPrivateMethodType(input ast.Node) ast.Node {
-	if input.Symbol() != nil && input.Symbol().Declarations().Len() > 0 && input.Symbol().Declarations().At(0) != input {
+	if !input.Symbol().IsNil() && input.Symbol().Declarations().Len() > 0 && input.Symbol().Declarations().At(0) != input {
 		return ast.Node{}
 	}
 	var result ast.Node
@@ -1381,7 +1381,7 @@ func (tx *DeclarationTransformer) transformCommonJSExportWorker(input ast.Node, 
 				tx.tracker.watchedClassSymbol = rhs.Symbol()
 				tx.tracker.classSymbolTracked = false
 				defer func() {
-					tx.tracker.watchedClassSymbol = nil
+					tx.tracker.watchedClassSymbol = ast.Symbol{}
 					tx.tracker.classSymbolTracked = false
 				}()
 
@@ -1563,7 +1563,7 @@ func (tx *DeclarationTransformer) wrapInCJSExportNamespace(content ast.Node) ast
 
 func isCommonJSAliasExport(node ast.Node) bool {
 	if ast.IsBinaryExpression(node) && ast.IsIdentifier(node.AsBinaryExpression().Right()) {
-		if symbol := node.Symbol(); symbol != nil && symbol.Declarations().Len() == 1 {
+		if symbol := node.Symbol(); !symbol.IsNil() && symbol.Declarations().Len() == 1 {
 			return true
 		}
 	}
@@ -1663,7 +1663,7 @@ func (tx *DeclarationTransformer) ensureType(node ast.Node, ignorePrivate bool) 
 
 	// Should be removed createTypeOfDeclaration will actually now reuse the existing annotation so there is no real need to duplicate type walking
 	// Left in for now to minimize diff during syntactic type node builder refactor
-	if !ast.IsExportAssignment(node) && !ast.IsBindingElement(node) && !node.Type().IsNil() && (!ast.IsParameterDeclaration(node) || !tx.resolver.RequiresAddingImplicitUndefined(node, nil, tx.enclosingDeclaration)) {
+	if !ast.IsExportAssignment(node) && !ast.IsBindingElement(node) && !node.Type().IsNil() && (!ast.IsParameterDeclaration(node) || !tx.resolver.RequiresAddingImplicitUndefined(node, ast.Symbol{}, tx.enclosingDeclaration)) {
 		if tx.state.currentSourceFile.IsJS() {
 			// JS types have a heap of constructs we can't directly emit into .d.ts files; the node builder contains logic to remap those where possible, so we invoke it here
 			// In strada we always built js declarations symbolically, so all js type nodes went through this postprocessing
@@ -2753,7 +2753,7 @@ func (tx *DeclarationTransformer) transformExpandoAssignment(node ast.BinaryExpr
 	left := node.Left()
 
 	symbol := node.Symbol()
-	if symbol == nil || symbol.Flags()&ast.SymbolFlagsAssignment == 0 {
+	if symbol.IsNil() || symbol.Flags()&ast.SymbolFlagsAssignment == 0 {
 		return
 	}
 
@@ -2784,7 +2784,7 @@ func (tx *DeclarationTransformer) transformExpandoAssignment(node ast.BinaryExpr
 	}
 
 	host := declaration.Symbol()
-	if host == nil {
+	if host.IsNil() {
 		return
 	}
 

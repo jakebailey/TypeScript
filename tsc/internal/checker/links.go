@@ -79,54 +79,118 @@ func (s *nodeLinkStore[V]) TryGet(node ast.Node) *V {
 // map per file keyed by node index.
 type symbolNodeLinkStore struct {
 	refs  *ast.RefCache
-	files []map[uint32]*ast.Symbol
+	ids   *symbolIds
+	files []map[uint32]ast.SymbolId
 }
 
-func (s *symbolNodeLinkStore) get(node ast.Node) *ast.Symbol {
+func (s *symbolNodeLinkStore) get(node ast.Node) ast.Symbol {
 	r := s.refs.Ref(node)
 	if int(r.File()) < len(s.files) {
-		return s.files[r.File()][r.Index()]
+		if id := s.files[r.File()][r.Index()]; id != 0 {
+			return s.ids.symbol(id)
+		}
 	}
-	return nil
+	return ast.Symbol{}
 }
 
-func (s *symbolNodeLinkStore) set(node ast.Node, symbol *ast.Symbol) {
+func (s *symbolNodeLinkStore) set(node ast.Node, symbol ast.Symbol) {
 	r := s.refs.Ref(node)
 	if int(r.File()) >= len(s.files) {
 		s.files = slices.Grow(s.files, int(r.File())+1-len(s.files))[:r.File()+1]
 	}
 	m := s.files[r.File()]
 	if m == nil {
-		m = make(map[uint32]*ast.Symbol)
+		m = make(map[uint32]ast.SymbolId)
 		s.files[r.File()] = m
 	}
-	m[r.Index()] = symbol
+	m[r.Index()] = s.ids.id(symbol)
+}
+
+// symbolIds numbers symbols for a checker, caching the base id of the store
+// it numbered last.
+type symbolIds struct {
+	store *ast.SymbolStore
+	last  *ast.SymbolStore
+	base  uint32
+}
+
+func (s *symbolIds) id(symbol ast.Symbol) ast.SymbolId {
+	st := symbol.Store()
+	if st == s.last {
+		return ast.SymbolId(s.base + symbol.Index())
+	}
+	if st == nil {
+		return 0
+	}
+	return s.idSlow(symbol)
+}
+
+func (s *symbolIds) idSlow(symbol ast.Symbol) ast.SymbolId {
+	st := symbol.Store()
+	if base, ok := s.store.BaseOf(st); ok {
+		s.last = st
+		s.base = base
+		return ast.SymbolId(base + symbol.Index())
+	}
+	return s.store.IdOf(symbol)
+}
+
+func (s *symbolIds) symbol(id ast.SymbolId) ast.Symbol {
+	return s.store.SymbolOf(id)
+}
+
+// symbolOf returns the symbol id names among the checker's symbols.
+func (c *Checker) symbolOf(id ast.SymbolId) ast.Symbol {
+	return c.symbolIds.symbol(id)
+}
+
+// symbolId returns the id of symbol among the checker's symbols.
+func (c *Checker) symbolId(symbol ast.Symbol) ast.SymbolId {
+	return c.symbolIds.id(symbol)
 }
 
 type symbolLinkStore[V any] struct {
-	gen   ast.SymbolIdGenerator
-	links core.LinkStore[uint64, V]
+	ids   *symbolIds
+	links core.LinkStore[ast.SymbolId, V]
 	pages core.PagedLinkStore[V]
 }
 
-func (s *symbolLinkStore[V]) Get(symbol *ast.Symbol) *V {
-	id := uint64(s.gen.GetSymbolId(symbol))
-	if id >= ast.BlockIdOffset && id < ast.BlockIdOffset+maxPageLinkCount {
-		return s.pages.Get(id - ast.BlockIdOffset)
+func (s *symbolLinkStore[V]) Get(symbol ast.Symbol) *V {
+	id := s.ids.id(symbol)
+	if id < maxPageLinkCount {
+		return s.pages.Get(uint64(id))
 	}
 	return s.links.Get(id)
 }
 
-func (s *symbolLinkStore[V]) Has(symbol *ast.Symbol) bool {
+func (s *symbolLinkStore[V]) Has(symbol ast.Symbol) bool {
 	return s.TryGet(symbol) != nil
 }
 
-func (s *symbolLinkStore[V]) TryGet(symbol *ast.Symbol) *V {
-	id := uint64(s.gen.GetSymbolId(symbol))
-	if id >= ast.BlockIdOffset && id < ast.BlockIdOffset+maxPageLinkCount {
-		return s.pages.TryGet(id - ast.BlockIdOffset)
+func (s *symbolLinkStore[V]) TryGet(symbol ast.Symbol) *V {
+	id := s.ids.id(symbol)
+	if id < maxPageLinkCount {
+		return s.pages.TryGet(uint64(id))
 	}
 	return s.links.TryGet(id)
+}
+
+// symbolMapLinks holds links that few symbols have, keyed by SymbolId.
+type symbolMapLinks[V any] struct {
+	ids   *symbolIds
+	links core.LinkStore[ast.SymbolId, V]
+}
+
+func (s *symbolMapLinks[V]) Get(symbol ast.Symbol) *V {
+	return s.links.Get(s.ids.id(symbol))
+}
+
+func (s *symbolMapLinks[V]) Has(symbol ast.Symbol) bool {
+	return s.links.Has(s.ids.id(symbol))
+}
+
+func (s *symbolMapLinks[V]) TryGet(symbol ast.Symbol) *V {
+	return s.links.TryGet(s.ids.id(symbol))
 }
 
 // nodeOf resolves a ref held by a checker record.

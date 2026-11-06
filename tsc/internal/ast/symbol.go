@@ -3,216 +3,13 @@ package ast
 import (
 	"errors"
 	"iter"
+	"maps"
 	"slices"
 	"strings"
-	"sync/atomic"
 	"unicode/utf8"
 
-	"github.com/microsoft/TypeScript/tsc/internal/core"
-	"github.com/microsoft/TypeScript/tsc/internal/debug"
 	"github.com/microsoft/TypeScript/tsc/internal/json"
 )
-
-// Symbol stores flags, checkFlags, and id uniquely for every symbol instance, but may share
-// symbolData with other symbols. This is done so that instantiated symbols in the checker can
-// all share the same underlying symbolData. Every Symbol needs its data field initialized either
-// through SymbolWithData.Initialize or by explicitly setting it with Symbol.SetSymbolData.
-type Symbol struct {
-	flags      SymbolFlags
-	checkFlags CheckFlags // Non-zero only in transient symbols created by Checker
-	id         atomic.Uint64
-	data       *symbolData
-}
-
-// Every symbol references a symbolData structure that may be shared with other symbols.
-//
-// The declarations and the value declaration share one store pointer in the compact form of
-// Declarations: s is their store, first the first declaration's index, rest the others, and value
-// the value declaration's index. When they span stores, s is nil and rest holds the nodes.
-type symbolData struct {
-	name   SymbolName
-	s      *NodeStore
-	rest   *declRest
-	first  uint32
-	value  uint32
-	parent *Symbol
-	extra  *symbolExtra
-}
-
-type symbolExtra struct {
-	members      SymbolTable
-	exports      SymbolTable
-	exportSymbol *Symbol
-}
-
-// SymbolExtraArena batches optional symbol metadata without adding an allocator
-// pointer to every symbol. References from symbolData keep its blocks alive.
-type SymbolExtraArena struct {
-	arena core.Arena[symbolExtra]
-}
-
-func (s *Symbol) Flags() SymbolFlags     { return s.flags }
-func (s *Symbol) CheckFlags() CheckFlags { return s.checkFlags }
-func (s *Symbol) Name() SymbolName       { return s.data.name }
-func (s *Symbol) Parent() *Symbol        { return s.data.parent }
-
-func (s *Symbol) Declarations() Declarations {
-	return Declarations{s: s.data.s, rest: s.data.rest, first: s.data.first}
-}
-
-func (s *Symbol) ValueDeclaration() Node {
-	d := s.data
-	if d.s != nil {
-		if d.value == 0 {
-			return Node{}
-		}
-		return Node{d.s, d.value}
-	}
-	if d.rest != nil {
-		return d.rest.value
-	}
-	return Node{}
-}
-
-func (s *Symbol) Members() SymbolTable {
-	if s.data.extra == nil {
-		return nil
-	}
-	return s.data.extra.members
-}
-
-func (s *Symbol) Exports() SymbolTable {
-	if s.data.extra == nil {
-		return nil
-	}
-	return s.data.extra.exports
-}
-
-func (s *Symbol) ExportSymbol() *Symbol {
-	if s.data.extra == nil {
-		return nil
-	}
-	return s.data.extra.exportSymbol
-}
-
-func (s *Symbol) SetFlags(value SymbolFlags)     { s.flags = value }
-func (s *Symbol) SetCheckFlags(value CheckFlags) { s.checkFlags = value }
-func (s *Symbol) SetName(value SymbolName)       { s.data.name = value }
-
-func (s *Symbol) SetDeclarations(value Declarations) {
-	valueDeclaration := s.ValueDeclaration()
-	d := s.data
-	d.s, d.rest, d.first, d.value = value.s, value.rest, value.first, 0
-	s.SetValueDeclaration(valueDeclaration)
-}
-
-func (s *Symbol) SetValueDeclaration(value Node) {
-	d := s.data
-	switch {
-	case d.s == nil && d.rest != nil:
-		d.rest = &declRest{nodes: d.rest.nodes, value: value}
-	case value.IsNil():
-		d.value = 0
-	case d.s == nil:
-		d.s, d.value = value.s, value.node
-	case d.s == value.s:
-		d.value = value.node
-	default:
-		nodes := s.Declarations().Nodes()
-		d.s, d.first, d.value = nil, 0, 0
-		d.rest = &declRest{nodes: nodes, value: value}
-	}
-}
-func (s *Symbol) SetParent(value *Symbol) { s.data.parent = value }
-
-func (s *Symbol) ensureExtra(arena *SymbolExtraArena) *symbolExtra {
-	if s.data.extra == nil {
-		s.data.extra = arena.arena.New()
-	}
-	return s.data.extra
-}
-
-func (s *Symbol) SetMembers(value SymbolTable, arena *SymbolExtraArena) {
-	if value != nil || s.data.extra != nil {
-		s.ensureExtra(arena).members = value
-	}
-}
-
-func (s *Symbol) SetExports(value SymbolTable, arena *SymbolExtraArena) {
-	if value != nil || s.data.extra != nil {
-		s.ensureExtra(arena).exports = value
-	}
-}
-
-func (s *Symbol) SetExportSymbol(value *Symbol, arena *SymbolExtraArena) {
-	if value != nil || s.data.extra != nil {
-		s.ensureExtra(arena).exportSymbol = value
-	}
-}
-
-// SymbolWithData is a helper structure that contains both a Symbol and its associated symbolData.
-type SymbolWithData struct {
-	s Symbol
-	d symbolData
-}
-
-// Initializes a SymbolWithData instance and returns the embedded Symbol.
-func (sd *SymbolWithData) Initialize() *Symbol {
-	sd.s.data = &sd.d
-	sd.d.name = EmptySymbolName
-	return &sd.s
-}
-
-func NewSymbol() *Symbol {
-	return (&SymbolWithData{}).Initialize()
-}
-
-// Initializes a Symbol's data field with the data from another Symbol. This allows multiple
-// symbols to share the same underlying symbolData.
-func (s *Symbol) SetSymbolData(other *Symbol) {
-	s.data = other.data
-}
-
-// GetSourceFileOfSymbol returns the owning file of a published binder symbol, or
-// nil for a non-file-owned symbol, even if it borrows declarations from a file.
-// Ownership recovery walks only the first declaration's AST parents.
-func GetSourceFileOfSymbol(symbol *Symbol) *SourceFile {
-	debug.Assert(symbol != nil, "Expected a symbol")
-	if symbol.Flags()&SymbolFlagsTransient != 0 {
-		return nil
-	}
-	if symbol.Declarations().Len() == 0 {
-		// A class's implicit prototype has no declaration of its own.
-		debug.Assert(symbol.Flags()&SymbolFlagsPrototype != 0, "File-bound symbol has no declarations")
-		debug.Assert(symbol.Parent() != nil && symbol.Parent().Flags()&SymbolFlagsClass != 0, "Prototype has no declaring class")
-		symbol = symbol.Parent()
-		debug.Assert(symbol.Flags()&SymbolFlagsTransient == 0, "Prototype parent is not file-bound")
-		debug.Assert(symbol.Declarations().Len() != 0, "Prototype parent has no declarations")
-	}
-	file := GetSourceFileOfNode(symbol.Declarations().At(0))
-	debug.Assert(file != nil, "File-bound declaration has no source file")
-	return file
-}
-
-func (s *Symbol) IsExternalModule() bool {
-	return s.Flags()&SymbolFlagsModule != 0 && IsAmbientModuleSymbolName(s.Name())
-}
-
-func (s *Symbol) IsStatic() bool {
-	if s.ValueDeclaration().IsNil() {
-		return false
-	}
-	modifierFlags := s.ValueDeclaration().ModifierFlags()
-	return modifierFlags&ModifierFlagsStatic != 0
-}
-
-// See comment on `declareModuleMember` in `binder.go`.
-func (s *Symbol) CombinedLocalAndExportSymbolFlags() SymbolFlags {
-	if s.ExportSymbol() != nil {
-		return s.Flags() | s.ExportSymbol().Flags()
-	}
-	return s.Flags()
-}
 
 // SymbolName is an interned name used for symbol identity and lookup.
 // Its zero value is EmptySymbolName.
@@ -280,11 +77,13 @@ type SymbolTable = *SymbolMap
 const symbolTableLinearMax = 16
 
 type SymbolMap struct {
-	entries []*Symbol
-	index   []int32 // open addressing table of entry positions plus one (0 is empty), only past symbolTableLinearMax
+	entries []Symbol
+	// names holds the keys of the entries whose key is not their symbol's
+	// name, by position.
+	names map[int32]SymbolName
+	index []int32 // open addressing table of entry positions plus one (0 is empty), only past symbolTableLinearMax
 }
 
-// hashSymbolTableKey spreads interned name IDs, which are small and dense, across the index.
 func hashSymbolTableKey(name SymbolName) uint64 {
 	h := uint64(name) * 0x9e3779b97f4a7c15
 	return h ^ h>>32
@@ -297,7 +96,7 @@ func NewSymbolTable() SymbolTable {
 func NewSymbolTableWithCapacity(capacity int) SymbolTable {
 	m := &SymbolMap{}
 	if capacity > 0 {
-		m.entries = make([]*Symbol, 0, capacity)
+		m.entries = make([]Symbol, 0, capacity)
 		if capacity > symbolTableLinearMax {
 			m.index = make([]int32, indexSizeFor(capacity))
 		}
@@ -305,23 +104,23 @@ func NewSymbolTableWithCapacity(capacity int) SymbolTable {
 	return m
 }
 
-// SymbolTableOf returns a new table holding symbol under name.
-func SymbolTableOf(name SymbolName, symbol *Symbol) SymbolTable {
+func SymbolTableOf(name SymbolName, symbol Symbol) SymbolTable {
 	m := NewSymbolTableWithCapacity(1)
 	m.Set(name, symbol)
 	return m
 }
 
 func (m *SymbolMap) KeyAt(i int) SymbolName {
+	if m.names != nil {
+		if name, ok := m.names[int32(i)]; ok {
+			return name
+		}
+	}
 	return m.entries[i].Name()
 }
 
-func (m *SymbolMap) SymbolAt(i int) *Symbol {
-	symbol := m.entries[i]
-	if symbol.flags == SymbolFlagsNameProxy {
-		symbol = symbol.data.parent
-	}
-	return symbol
+func (m *SymbolMap) SymbolAt(i int) Symbol {
+	return m.entries[i]
 }
 
 func (m *SymbolMap) Find(key SymbolName) int {
@@ -355,43 +154,41 @@ func (m *SymbolMap) Len() int {
 	return len(m.entries)
 }
 
-func (m *SymbolMap) Get(key SymbolName) *Symbol {
+func (m *SymbolMap) Get(key SymbolName) Symbol {
 	if i := m.Find(key); i >= 0 {
 		return m.SymbolAt(i)
 	}
-	return nil
+	return Symbol{}
 }
 
-func (m *SymbolMap) Lookup(key SymbolName) (*Symbol, bool) {
+func (m *SymbolMap) Lookup(key SymbolName) (Symbol, bool) {
 	if i := m.Find(key); i >= 0 {
 		return m.SymbolAt(i), true
 	}
-	return nil, false
+	return Symbol{}, false
 }
 
-// Set replaces the symbol of an existing key in place, keeping its position, or adds the key at the end.
-func (m *SymbolMap) Set(key SymbolName, symbol *Symbol) {
+func (m *SymbolMap) Set(key SymbolName, symbol Symbol) {
 	m.setOrAdd(key, symbol, true)
 }
 
-// AddIfAbsent adds the symbol only if the key is not already present and returns true if the symbol was added.
-func (m *SymbolMap) AddIfAbsent(key SymbolName, symbol *Symbol) bool {
+func (m *SymbolMap) AddIfAbsent(key SymbolName, symbol Symbol) bool {
 	return m.setOrAdd(key, symbol, false)
 }
 
-func (m *SymbolMap) setOrAdd(key SymbolName, symbol *Symbol, replace bool) bool {
+func (m *SymbolMap) setOrAdd(key SymbolName, symbol Symbol, replace bool) bool {
 	if i := m.Find(key); i >= 0 {
 		if replace {
-			m.entries[i] = makeEntry(key, symbol)
+			m.setEntry(i, key, symbol)
 		}
 		return replace
 	}
 	i := len(m.entries)
 	if cap(m.entries) == 0 {
-		// Most tables hold one or two entries, so start with room for two rather than growing from one.
-		m.entries = make([]*Symbol, 0, 2)
+		m.entries = make([]Symbol, 0, 2)
 	}
-	m.entries = append(m.entries, makeEntry(key, symbol))
+	m.entries = append(m.entries, Symbol{})
+	m.setEntry(i, key, symbol)
 	if len(m.index) != 0 && len(m.entries)*4 <= len(m.index)*3 {
 		m.insertIndex(key, i)
 	} else if len(m.entries) > symbolTableLinearMax {
@@ -400,15 +197,16 @@ func (m *SymbolMap) setOrAdd(key SymbolName, symbol *Symbol, replace bool) bool 
 	return true
 }
 
-func makeEntry(key SymbolName, symbol *Symbol) *Symbol {
-	if key == symbol.Name() {
-		return symbol
+func (m *SymbolMap) setEntry(i int, key SymbolName, symbol Symbol) {
+	m.entries[i] = symbol
+	if key != symbol.Name() {
+		if m.names == nil {
+			m.names = make(map[int32]SymbolName)
+		}
+		m.names[int32(i)] = key
+	} else if m.names != nil {
+		delete(m.names, int32(i))
 	}
-	proxy := NewSymbol()
-	proxy.flags = SymbolFlagsNameProxy
-	proxy.data.name = key
-	proxy.data.parent = symbol
-	return proxy
 }
 
 func indexSizeFor(n int) int {
@@ -443,6 +241,18 @@ func (m *SymbolMap) Delete(key SymbolName) {
 	if d < 0 {
 		return
 	}
+	if m.names != nil {
+		names := m.names
+		m.names = nil
+		for i, name := range names {
+			switch {
+			case int(i) < d:
+				m.names = setName(m.names, i, name)
+			case int(i) > d:
+				m.names = setName(m.names, i-1, name)
+			}
+		}
+	}
 	m.entries = slices.Delete(m.entries, d, d+1)
 	if len(m.index) != 0 {
 		clear(m.index)
@@ -450,9 +260,16 @@ func (m *SymbolMap) Delete(key SymbolName) {
 	}
 }
 
-// All iterates over the keys and symbols of the table in insertion order.
-func (m *SymbolMap) All() iter.Seq2[SymbolName, *Symbol] {
-	return func(yield func(SymbolName, *Symbol) bool) {
+func setName(names map[int32]SymbolName, i int32, name SymbolName) map[int32]SymbolName {
+	if names == nil {
+		names = make(map[int32]SymbolName)
+	}
+	names[i] = name
+	return names
+}
+
+func (m *SymbolMap) All() iter.Seq2[SymbolName, Symbol] {
+	return func(yield func(SymbolName, Symbol) bool) {
 		if m == nil {
 			return
 		}
@@ -479,8 +296,8 @@ func (m *SymbolMap) Keys() iter.Seq[SymbolName] {
 	}
 }
 
-func (m *SymbolMap) Values() iter.Seq[*Symbol] {
-	return func(yield func(*Symbol) bool) {
+func (m *SymbolMap) Values() iter.Seq[Symbol] {
+	return func(yield func(Symbol) bool) {
 		if m == nil {
 			return
 		}
@@ -499,6 +316,9 @@ func (m *SymbolMap) Clone() SymbolTable {
 	}
 	clone := &SymbolMap{}
 	clone.entries = slices.Clone(m.entries)
+	if m.names != nil {
+		clone.names = maps.Clone(m.names)
+	}
 	if len(m.entries) > symbolTableLinearMax {
 		clone.buildIndex()
 	}
@@ -510,13 +330,14 @@ func (m *SymbolMap) Clear() {
 		clear(m.entries)
 		clear(m.index)
 		m.entries = m.entries[:0]
+		m.names = nil
 	}
 }
 
 const InternalSymbolNamePrefix = "\xFE" // Invalid UTF8 sequence, will never occur as IdentifierName
 
 // SymbolNameText returns a display name, preserving private identifier spelling.
-func SymbolNameText(symbol *Symbol) string {
+func SymbolNameText(symbol Symbol) string {
 	if !symbol.ValueDeclaration().IsNil() && IsPrivateIdentifierClassElementDeclaration(symbol.ValueDeclaration()) {
 		return symbol.ValueDeclaration().Name().Text()
 	}

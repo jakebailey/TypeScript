@@ -59,20 +59,20 @@ func isModuleSpecifierLike(node ast.Node) bool {
 		node.Parent().Kind() == ast.KindJSImportDeclaration
 }
 
-func getNonModuleSymbolOfMergedModuleSymbol(symbol *ast.Symbol) *ast.Symbol {
+func getNonModuleSymbolOfMergedModuleSymbol(symbol ast.Symbol) ast.Symbol {
 	if symbol.Declarations().Len() == 0 || (symbol.Flags()&(ast.SymbolFlagsModule|ast.SymbolFlagsTransient)) == 0 {
-		return nil
+		return ast.Symbol{}
 	}
 
 	if decl := symbol.Declarations().Find(func(d ast.Node) bool { return !ast.IsSourceFile(d) && !ast.IsModuleDeclaration(d) }); !decl.IsNil() {
 		return decl.Symbol()
 	}
-	return nil
+	return ast.Symbol{}
 }
 
-func getLocalSymbolForExportSpecifier(referenceLocation ast.Node, referenceSymbol *ast.Symbol, exportSpecifier ast.ExportSpecifier, ch *checker.Checker) *ast.Symbol {
+func getLocalSymbolForExportSpecifier(referenceLocation ast.Node, referenceSymbol ast.Symbol, exportSpecifier ast.ExportSpecifier, ch *checker.Checker) ast.Symbol {
 	if isExportSpecifierAlias(referenceLocation, exportSpecifier) {
-		if symbol := ch.GetExportSpecifierLocalTargetSymbol(exportSpecifier.AsNode()); symbol != nil {
+		if symbol := ch.GetExportSpecifierLocalTargetSymbol(exportSpecifier.AsNode()); !symbol.IsNil() {
 			return symbol
 		}
 	}
@@ -385,7 +385,7 @@ func isRightSideOfPropertyAccess(node ast.Node) bool {
 	return !node.Parent().IsNil() && node.Parent().Kind() == ast.KindPropertyAccessExpression && node.Parent().Name() == node
 }
 
-func isStaticSymbol(symbol *ast.Symbol) bool {
+func isStaticSymbol(symbol ast.Symbol) bool {
 	if symbol.ValueDeclaration().IsNil() {
 		return false
 	}
@@ -878,7 +878,7 @@ func getMeaningFromDeclaration(node ast.Node) ast.SemanticMeaning {
 	return ast.SemanticMeaningAll
 }
 
-func getIntersectingMeaningFromDeclarations(node ast.Node, symbol *ast.Symbol, defaultMeaning ast.SemanticMeaning) ast.SemanticMeaning {
+func getIntersectingMeaningFromDeclarations(node ast.Node, symbol ast.Symbol, defaultMeaning ast.SemanticMeaning) ast.SemanticMeaning {
 	if node.IsNil() {
 		return defaultMeaning
 	}
@@ -932,7 +932,7 @@ func getAllSuperTypeNodes(node ast.Node) []ast.HeritageClauseElement {
 	return nil
 }
 
-func getParentSymbolsOfPropertyAccess(location ast.Node, symbol *ast.Symbol, ch *checker.Checker) []*ast.Symbol {
+func getParentSymbolsOfPropertyAccess(location ast.Node, symbol ast.Symbol, ch *checker.Checker) []ast.Symbol {
 	if !isRightSideOfPropertyAccess(location) {
 		return nil
 	}
@@ -946,11 +946,11 @@ func getParentSymbolsOfPropertyAccess(location ast.Node, symbol *ast.Symbol, ch 
 	} else if lhsType.Symbol() != symbol.Parent() {
 		possibleSymbols = []*checker.Type{lhsType}
 	}
-	return core.MapNonNil(possibleSymbols, func(t *checker.Type) *ast.Symbol {
-		if t.Symbol() != nil && t.Symbol().Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface) != 0 {
+	return core.MapNonNil(possibleSymbols, func(t *checker.Type) ast.Symbol {
+		if !t.Symbol().IsNil() && t.Symbol().Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface) != 0 {
 			return t.Symbol()
 		}
-		return nil
+		return ast.Symbol{}
 	})
 }
 
@@ -960,52 +960,52 @@ func getParentSymbolsOfPropertyAccess(location ast.Node, symbol *ast.Symbol, ch 
 // @param cb a cache of symbol from previous iterations of calling this function to prevent infinite revisiting of the same symbol.
 //
 //	The value of previousIterationSymbol is undefined when the function is first called.
-func getPropertySymbolsFromBaseTypes(symbol *ast.Symbol, propertyName ast.SymbolName, checker *checker.Checker, cb func(base *ast.Symbol) *ast.Symbol) *ast.Symbol {
-	var seen collections.Set[*ast.Symbol]
-	var recur func(*ast.Symbol) *ast.Symbol
-	recur = func(symbol *ast.Symbol) *ast.Symbol {
+func getPropertySymbolsFromBaseTypes(symbol ast.Symbol, propertyName ast.SymbolName, checker *checker.Checker, cb func(base ast.Symbol) ast.Symbol) ast.Symbol {
+	var seen collections.Set[ast.Symbol]
+	var recur func(ast.Symbol) ast.Symbol
+	recur = func(symbol ast.Symbol) ast.Symbol {
 		// Use `addToSeen` to ensure we don't infinitely recurse in this situation:
 		//      interface C extends C {
 		//          /*findRef*/propName: string;
 		//      }
 		if symbol.Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface) == 0 || !seen.AddIfAbsent(symbol) {
-			return nil
+			return ast.Symbol{}
 		}
 		for _, declaration := range symbol.Declarations().All() {
 			for _, typeReference := range getAllSuperTypeNodes(declaration) {
-				if propertyType := checker.GetTypeAtLocation(typeReference); propertyType != nil && propertyType.Symbol() != nil {
+				if propertyType := checker.GetTypeAtLocation(typeReference); propertyType != nil && !propertyType.Symbol().IsNil() {
 					// Visit the typeReference as well to see if it directly or indirectly uses that property
-					if propertySymbol := checker.GetPropertyOfType(propertyType, propertyName); propertySymbol != nil {
+					if propertySymbol := checker.GetPropertyOfType(propertyType, propertyName); !propertySymbol.IsNil() {
 						for _, rootSymbol := range checker.GetRootSymbols(propertySymbol) {
-							if result := cb(rootSymbol); result != nil {
+							if result := cb(rootSymbol); !result.IsNil() {
 								return result
 							}
 						}
 					}
-					if result := recur(propertyType.Symbol()); result != nil {
+					if result := recur(propertyType.Symbol()); !result.IsNil() {
 						return result
 					}
 				}
 			}
 		}
-		return nil
+		return ast.Symbol{}
 	}
 	return recur(symbol)
 }
 
-func getPropertySymbolFromBindingElement(checker *checker.Checker, bindingElement ast.Node) *ast.Symbol {
+func getPropertySymbolFromBindingElement(checker *checker.Checker, bindingElement ast.Node) ast.Symbol {
 	if typeOfPattern := checker.GetTypeAtLocation(bindingElement.Parent()); typeOfPattern != nil {
 		return checker.GetPropertyOfType(typeOfPattern, bindingElement.Name().TextSymbolName())
 	}
-	return nil
+	return ast.Symbol{}
 }
 
-func getPropertySymbolOfObjectBindingPatternWithoutPropertyName(symbol *ast.Symbol, checker *checker.Checker) *ast.Symbol {
+func getPropertySymbolOfObjectBindingPatternWithoutPropertyName(symbol ast.Symbol, checker *checker.Checker) ast.Symbol {
 	bindingElement := ast.GetDeclarationOfKind(symbol, ast.KindBindingElement)
 	if !bindingElement.IsNil() && isObjectBindingElementWithoutPropertyName(bindingElement) {
 		return getPropertySymbolFromBindingElement(checker, bindingElement)
 	}
-	return nil
+	return ast.Symbol{}
 }
 
 func getTargetLabel(referenceNode ast.Node, labelName string) ast.Node {
@@ -1090,7 +1090,7 @@ func newCaseClauseTracker(typeChecker *checker.Checker, clauses []ast.CaseOrDefa
 				}
 			} else {
 				symbol := typeChecker.GetSymbolAtLocation(clause.Expression())
-				if symbol != nil && !symbol.ValueDeclaration().IsNil() && ast.IsEnumMember(symbol.ValueDeclaration()) {
+				if !symbol.IsNil() && !symbol.ValueDeclaration().IsNil() && ast.IsEnumMember(symbol.ValueDeclaration()) {
 					enumValue := typeChecker.GetConstantValue(symbol.ValueDeclaration())
 					if enumValue != nil {
 						c.addValue(enumValue)

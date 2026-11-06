@@ -37,7 +37,7 @@ type typeArgsInvocation struct {
 type contextualInvocation struct {
 	signature *checker.Signature
 	node      ast.Node // Just for enclosingDeclaration for printing types
-	symbol    *ast.Symbol
+	symbol    ast.Symbol
 }
 
 type invocation struct {
@@ -166,7 +166,7 @@ func (l *LanguageService) GetSignatureHelpItems(
 	return createTypeHelpItems(ctx, candidateInfo.typeInfo, argumentInfo, sourceFile, typeChecker)
 }
 
-func createTypeHelpItems(ctx context.Context, symbol *ast.Symbol, argumentInfo *argumentListInfo, sourceFile *ast.SourceFile, c *checker.Checker) *lsproto.SignatureHelp {
+func createTypeHelpItems(ctx context.Context, symbol ast.Symbol, argumentInfo *argumentListInfo, sourceFile *ast.SourceFile, c *checker.Checker) *lsproto.SignatureHelp {
 	typeParameters := c.GetLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol)
 	if typeParameters == nil {
 		return nil
@@ -208,7 +208,7 @@ func createTypeHelpItems(ctx context.Context, symbol *ast.Symbol, argumentInfo *
 	return help
 }
 
-func getTypeHelpItem(symbol *ast.Symbol, typeParameter []*checker.Type, enclosingDeclaration ast.Node, sourceFile *ast.SourceFile, c *checker.Checker) signatureInformation {
+func getTypeHelpItem(symbol ast.Symbol, typeParameter []*checker.Type, enclosingDeclaration ast.Node, sourceFile *ast.SourceFile, c *checker.Checker) signatureInformation {
 	emitContext := printer.NewEmitContext()
 	builder := checker.NewNodeBuilder(c, emitContext)
 	printer := printer.NewPrinter(printer.PrinterOptions{NewLine: core.NewLineKindLF}, printer.PrintHandlers{}, emitContext)
@@ -274,7 +274,7 @@ func (l *LanguageService) findSignatureHelpFromNamedDeclarations(ctx context.Con
 			return true
 		}
 		if ast.GetDeclarationName(node) == name {
-			if symbol := node.Symbol(); symbol != nil {
+			if symbol := node.Symbol(); !symbol.IsNil() {
 				if t := c.GetTypeOfSymbolAtLocation(symbol, node); t != nil {
 					if callSignatures := c.GetCallSignatures(t); len(callSignatures) > 0 {
 						result = l.createSignatureHelpItems(ctx, callSignatures, callSignatures[0], argumentInfo, sourceFile, c, true /*useFullPrefix*/)
@@ -303,12 +303,12 @@ func (l *LanguageService) createSignatureHelpItems(ctx context.Context, candidat
 	if enclosingDeclaration.IsNil() {
 		return nil
 	}
-	var callTargetSymbol *ast.Symbol
+	var callTargetSymbol ast.Symbol
 	if argumentInfo.invocation.contextualInvocation != nil {
 		callTargetSymbol = argumentInfo.invocation.contextualInvocation.symbol
 	} else {
 		callTargetSymbol = c.GetSymbolAtLocation(getExpressionFromInvocation(argumentInfo))
-		if callTargetSymbol == nil && useFullPrefix && !c.GetSignatureDeclaration(resolvedSignature).IsNil() {
+		if callTargetSymbol.IsNil() && useFullPrefix && !c.GetSignatureDeclaration(resolvedSignature).IsNil() {
 			callTargetSymbol = c.GetSignatureDeclaration(resolvedSignature).Symbol()
 		}
 	}
@@ -319,7 +319,7 @@ func (l *LanguageService) createSignatureHelpItems(ctx context.Context, candidat
 	// "\xFEtype". There is no meaningful name to show, so render the signature with
 	// no prefix (as we already do when there is no call target symbol) rather than
 	// leaking the internal name.
-	if callTargetSymbol != nil && !callTargetSymbol.Name().IsInternal() {
+	if !callTargetSymbol.IsNil() && !callTargetSymbol.Name().IsInternal() {
 		if useFullPrefix {
 			callTargetDisplayParts.WriteString(c.SymbolToStringEx(callTargetSymbol, sourceFile.AsNode(), ast.SymbolFlagsNone, checker.SymbolFormatFlagsUseAliasDefinedOutsideCurrentScope))
 		} else {
@@ -448,7 +448,7 @@ func (l *LanguageService) computeActiveParameter(sig signatureInformation, argum
 	return &lsproto.UintegerOrNull{Uinteger: new(activeParam)}
 }
 
-func (l *LanguageService) getSignatureHelpItem(candidate *checker.Signature, isTypeParameterList bool, callTargetSymbol string, callTargetSym *ast.Symbol, enclosingDeclaration ast.Node, sourceFile *ast.SourceFile, c *checker.Checker, docFormat lsproto.MarkupKind, vsCapability bool) []signatureInformation {
+func (l *LanguageService) getSignatureHelpItem(candidate *checker.Signature, isTypeParameterList bool, callTargetSymbol string, callTargetSym ast.Symbol, enclosingDeclaration ast.Node, sourceFile *ast.SourceFile, c *checker.Checker, docFormat lsproto.MarkupKind, vsCapability bool) []signatureInformation {
 	emitContext := printer.NewEmitContext()
 	var infos []*signatureHelpItemInfo
 	if isTypeParameterList {
@@ -462,7 +462,7 @@ func (l *LanguageService) getSignatureHelpItem(candidate *checker.Signature, isT
 	// Generate documentation from the signature's declaration
 	var documentation *string
 	if declaration := c.GetSignatureDeclaration(candidate); !declaration.IsNil() {
-		doc := getDocumentationFromDeclaration(l.documentationLocationMapper(spanmap.FeatureSignatureHelp), c, nil, declaration, ast.Node{}, docFormat, true /*commentOnly*/)
+		doc := getDocumentationFromDeclaration(l.documentationLocationMapper(spanmap.FeatureSignatureHelp), c, ast.Symbol{}, declaration, ast.Node{}, docFormat, true /*commentOnly*/)
 		if doc != "" {
 			documentation = &doc
 		}
@@ -529,7 +529,7 @@ func (l *LanguageService) itemInfoForTypeParameters(candidateSignature *checker.
 	}
 
 	thisParameter := []signatureHelpParameter{}
-	if candidateSignature.ThisParameter() != nil {
+	if !candidateSignature.ThisParameter().IsNil() {
 		thisParameter = []signatureHelpParameter{l.createSignatureHelpParameterForParameter(candidateSignature.ThisParameter(), enclosingDeclaration, builder, p, sourceFile, c, docFormat)}
 	}
 
@@ -624,14 +624,14 @@ func (l *LanguageService) itemInfoForParameters(candidateSignature *checker.Sign
 		dpw.WritePunctuation(openParen)
 	}
 
-	isVariadic := func(parameterList []*ast.Symbol) bool {
+	isVariadic := func(parameterList []ast.Symbol) bool {
 		if !c.HasEffectiveRestParameter(candidateSignature) {
 			return false
 		}
 		if len(lists) == 1 {
 			return true
 		}
-		return len(parameterList) != 0 && parameterList[len(parameterList)-1] != nil && (parameterList[len(parameterList)-1].CheckFlags()&ast.CheckFlagsRestParameter != 0)
+		return len(parameterList) != 0 && !parameterList[len(parameterList)-1].IsNil() && (parameterList[len(parameterList)-1].CheckFlags()&ast.CheckFlagsRestParameter != 0)
 	}
 
 	result := make([]*signatureHelpItemInfo, len(lists))
@@ -671,12 +671,12 @@ func (l *LanguageService) itemInfoForParameters(candidateSignature *checker.Sign
 const signatureHelpNodeBuilderFlags = nodebuilder.FlagsOmitParameterModifiers | nodebuilder.FlagsIgnoreErrors | nodebuilder.FlagsUseAliasDefinedOutsideCurrentScope
 
 // createSignatureHelpParameterFromLabel creates a signatureHelpParameter from a pre-computed label string.
-func (l *LanguageService) createSignatureHelpParameterFromLabel(parameter *ast.Symbol, label string, c *checker.Checker, docFormat lsproto.MarkupKind) signatureHelpParameter {
+func (l *LanguageService) createSignatureHelpParameterFromLabel(parameter ast.Symbol, label string, c *checker.Checker, docFormat lsproto.MarkupKind) signatureHelpParameter {
 	isOptional := parameter.CheckFlags()&ast.CheckFlagsOptionalParameter != 0
 	isRest := parameter.CheckFlags()&ast.CheckFlagsRestParameter != 0
 	var documentation *lsproto.StringOrMarkupContent
 	if !parameter.ValueDeclaration().IsNil() {
-		doc := getDocumentationFromDeclaration(l.documentationLocationMapper(spanmap.FeatureSignatureHelp), c, nil, parameter.ValueDeclaration(), ast.Node{}, docFormat, true /*commentOnly*/)
+		doc := getDocumentationFromDeclaration(l.documentationLocationMapper(spanmap.FeatureSignatureHelp), c, ast.Symbol{}, parameter.ValueDeclaration(), ast.Node{}, docFormat, true /*commentOnly*/)
 		if doc != "" {
 			documentation = &lsproto.StringOrMarkupContent{
 				MarkupContent: &lsproto.MarkupContent{
@@ -696,7 +696,7 @@ func (l *LanguageService) createSignatureHelpParameterFromLabel(parameter *ast.S
 	}
 }
 
-func (l *LanguageService) createSignatureHelpParameterForParameter(parameter *ast.Symbol, enclosingDeclaratipn ast.Node, builder *checker.NodeBuilder, p *printer.Printer, sourceFile *ast.SourceFile, c *checker.Checker, docFormat lsproto.MarkupKind) signatureHelpParameter {
+func (l *LanguageService) createSignatureHelpParameterForParameter(parameter ast.Symbol, enclosingDeclaratipn ast.Node, builder *checker.NodeBuilder, p *printer.Printer, sourceFile *ast.SourceFile, c *checker.Checker, docFormat lsproto.MarkupKind) signatureHelpParameter {
 	display := p.Emit(builder.SymbolToParameterDeclaration(parameter, enclosingDeclaratipn, signatureHelpNodeBuilderFlags, nodebuilder.InternalFlagsNone, nil), sourceFile)
 	return l.createSignatureHelpParameterFromLabel(parameter, display, c, docFormat)
 }
@@ -766,7 +766,7 @@ type candidateInfo struct {
 
 type CandidateOrTypeInfo struct {
 	candidateInfo *candidateInfo
-	typeInfo      *ast.Symbol
+	typeInfo      ast.Symbol
 }
 
 func getCandidateOrTypeInfo(info *argumentListInfo, c *checker.Checker, sourceFile *ast.SourceFile, startingToken ast.Node, onlyUseSyntacticOwners bool) *CandidateOrTypeInfo {
@@ -808,7 +808,7 @@ func getCandidateOrTypeInfo(info *argumentListInfo, c *checker.Checker, sourceFi
 			}
 		}
 
-		if symbol := c.GetSymbolAtLocation(called); symbol != nil {
+		if symbol := c.GetSymbolAtLocation(called); !symbol.IsNil() {
 			return &CandidateOrTypeInfo{
 				typeInfo: symbol,
 			}
@@ -1276,7 +1276,7 @@ func tryGetParameterInfo(startingToken ast.Node, sourceFile *ast.SourceFile, c *
 	}
 
 	symbol := nonNullableContextualType.Symbol()
-	if symbol == nil {
+	if symbol.IsNil() {
 		return nil
 	}
 
@@ -1300,7 +1300,7 @@ func tryGetParameterInfo(startingToken ast.Node, sourceFile *ast.SourceFile, c *
 	}
 }
 
-func chooseBetterSymbol(s *ast.Symbol) *ast.Symbol {
+func chooseBetterSymbol(s ast.Symbol) ast.Symbol {
 	if s.Name() == ast.InternalSymbolNameType {
 		for _, d := range s.Declarations().All() {
 			if ast.IsFunctionTypeNode(d) && ast.CanHaveSymbol(d.Parent()) {

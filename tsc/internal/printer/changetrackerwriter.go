@@ -218,7 +218,7 @@ func (ct *ChangeTrackerWriter) WriteProperty(text string) {
 	ct.setLastNonTriviaPosition(text, false)
 }
 
-func (ct *ChangeTrackerWriter) WriteSymbol(text string, symbol *ast.Symbol) {
+func (ct *ChangeTrackerWriter) WriteSymbol(text string, symbol ast.Symbol) {
 	ct.textWriter.WriteSymbol(text, symbol)
 	ct.setLastNonTriviaPosition(text, false)
 }

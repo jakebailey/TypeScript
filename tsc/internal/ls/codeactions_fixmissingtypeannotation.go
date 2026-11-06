@@ -223,7 +223,7 @@ type isolatedDeclarationsFixer struct {
 	locale          locale.Locale
 	fixedNodes      map[ast.Node]bool
 	typePrintMode   typePrintMode
-	symbolsToImport []*ast.Symbol
+	symbolsToImport []ast.Symbol
 	mutatedTarget   bool // set by inferType/relativeType when the target was mutated (e.g., spread decomposition)
 }
 
@@ -533,7 +533,7 @@ func findExpandoFunction(ch *checker.Checker, node ast.Node) ast.Node {
 	}
 
 	symbol := targetType.Symbol()
-	if symbol == nil || symbol.ValueDeclaration().IsNil() {
+	if symbol.IsNil() || symbol.ValueDeclaration().IsNil() {
 		return ast.Node{}
 	}
 
@@ -1171,7 +1171,7 @@ func (f *isolatedDeclarationsFixer) relativeType(node ast.Node) ast.TypeNode {
 // type arguments that match their defaults. Ported from TS's
 // services/codefixes/helpers.ts typeToMinimizedReferenceType.
 func (f *isolatedDeclarationsFixer) typeToMinimizedReferenceType(t *checker.Type, enclosingDecl ast.Node, flags nodebuilder.Flags) ast.TypeNode {
-	idToSymbol := make(map[ast.IdentifierNode]*ast.Symbol)
+	idToSymbol := make(map[ast.IdentifierNode]ast.Symbol)
 	// !!! When truncation tracking is supported, check if the type was truncated
 	// and return factory.NewKeywordTypeNode(ast.KindAnyKeyword) instead of the truncated node.
 	typeNode := f.checker.TypeToTypeNodeEx(t, enclosingDecl, flags, nodebuilder.InternalFlagsWriteComputedProps, idToSymbol)
@@ -1246,7 +1246,7 @@ func endOfRequiredTypeParameters(ch *checker.Checker, t *checker.Type) int {
 // typeParamHasDefault checks if a type parameter has a default type declaration.
 func typeParamHasDefault(tp *checker.Type) bool {
 	sym := tp.Symbol()
-	if sym == nil {
+	if sym.IsNil() {
 		return false
 	}
 	for _, decl := range sym.Declarations().All() {
@@ -1378,8 +1378,8 @@ func getIdentifierNameForNode(node ast.Node) string {
 
 // addSymbolToExistingImport finds the existing import declaration for the symbol's module
 // and adds the symbol name to the named imports.
-func (f *isolatedDeclarationsFixer) addSymbolToExistingImport(sym *ast.Symbol) {
-	if sym == nil || sym.Parent() == nil {
+func (f *isolatedDeclarationsFixer) addSymbolToExistingImport(sym ast.Symbol) {
+	if sym.IsNil() || sym.Parent().IsNil() {
 		return
 	}
 
@@ -1399,7 +1399,7 @@ func (f *isolatedDeclarationsFixer) addSymbolToExistingImport(sym *ast.Symbol) {
 
 		// Check if this import is from the same module
 		importModuleSymbol := f.checker.GetSymbolAtLocation(importDecl.ModuleSpecifier())
-		if importModuleSymbol == nil || f.checker.GetMergedSymbol(importModuleSymbol) != f.checker.GetMergedSymbol(moduleSymbol) {
+		if importModuleSymbol.IsNil() || f.checker.GetMergedSymbol(importModuleSymbol) != f.checker.GetMergedSymbol(moduleSymbol) {
 			continue
 		}
 

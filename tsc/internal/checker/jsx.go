@@ -32,11 +32,11 @@ const (
 )
 
 type JsxElementLinks struct {
-	jsxFlags                         JsxFlags    // Flags for the JSX element
-	resolvedJsxElementAttributesType *Type       // Resolved element attributes type of a JSX opening-like element
-	jsxNamespace                     *ast.Symbol // Resolved JSX namespace symbol for this node
-	jsxImplicitImportContainer       *ast.Symbol // Resolved module symbol the implicit JSX import of this file should refer to
-	firstJSXTagInFile                ast.Node    // The first JSX tag in the file
+	jsxFlags                         JsxFlags   // Flags for the JSX element
+	resolvedJsxElementAttributesType *Type      // Resolved element attributes type of a JSX opening-like element
+	jsxNamespace                     ast.Symbol // Resolved JSX namespace symbol for this node
+	jsxImplicitImportContainer       ast.Symbol // Resolved module symbol the implicit JSX import of this file should refer to
+	firstJSXTagInFile                ast.Node   // The first JSX tag in the file
 }
 
 var JsxNames = struct {
@@ -271,21 +271,21 @@ func (c *Checker) discriminateContextualTypeByJSXAttributes(node ast.Node, conte
 	jsxChildrenPropertyName := c.getJsxElementChildrenPropertyName(c.getJsxNamespaceAt(node))
 	discriminantProperties := core.Filter(node.Properties(), func(p ast.Node) bool {
 		symbol := p.Symbol()
-		if symbol == nil || !ast.IsJsxAttribute(p) {
+		if symbol.IsNil() || !ast.IsJsxAttribute(p) {
 			return false
 		}
 		initializer := p.Initializer()
 		return (initializer.IsNil() || c.isPossiblyDiscriminantValue(initializer)) && c.isDiscriminantProperty(contextualType, symbol.Name())
 	})
-	discriminantMembers := core.Filter(c.getPropertiesOfType(contextualType), func(s *ast.Symbol) bool {
-		if s.Flags()&ast.SymbolFlagsOptional == 0 || node.Symbol() == nil {
+	discriminantMembers := core.Filter(c.getPropertiesOfType(contextualType), func(s ast.Symbol) bool {
+		if s.Flags()&ast.SymbolFlagsOptional == 0 || node.Symbol().IsNil() {
 			return false
 		}
 		element := node.Parent().Parent()
 		if s.Name() == jsxChildrenPropertyName && ast.IsJsxElement(element) && len(ast.GetSemanticJsxChildren(element.Children().Slice())) != 0 {
 			return false
 		}
-		return node.Symbol().Members().Get(s.Name()) == nil && c.isDiscriminantProperty(contextualType, s.Name())
+		return node.Symbol().Members().Get(s.Name()).IsNil() && c.isDiscriminantProperty(contextualType, s.Name())
 	})
 	discriminator := &ObjectLiteralDiscriminator{c: c, props: discriminantProperties, members: discriminantMembers}
 	discriminated := c.discriminateTypeByDiscriminableItems(contextualType, discriminator)
@@ -482,16 +482,16 @@ func (c *Checker) elaborateIterableOrArrayLikeTargetElementwise(iterator iter.Se
 	return reportedError
 }
 
-func (c *Checker) getSuggestedSymbolForNonexistentJSXAttribute(name ast.SymbolName, containingType *Type) *ast.Symbol {
+func (c *Checker) getSuggestedSymbolForNonexistentJSXAttribute(name ast.SymbolName, containingType *Type) ast.Symbol {
 	properties := c.getPropertiesOfType(containingType)
-	var jsxSpecific *ast.Symbol
+	var jsxSpecific ast.Symbol
 	switch name {
 	case ast.SymbolNameFor:
-		jsxSpecific = core.Find(properties, func(x *ast.Symbol) bool { return x.Name() == ast.SymbolNameHtmlFor })
+		jsxSpecific = core.Find(properties, func(x ast.Symbol) bool { return x.Name() == ast.SymbolNameHtmlFor })
 	case ast.SymbolNameClass:
-		jsxSpecific = core.Find(properties, func(x *ast.Symbol) bool { return x.Name() == ast.SymbolNameClassName })
+		jsxSpecific = core.Find(properties, func(x ast.Symbol) bool { return x.Name() == ast.SymbolNameClassName })
 	}
-	if jsxSpecific != nil {
+	if !jsxSpecific.IsNil() {
 		return jsxSpecific
 	}
 	return c.getSpellingSuggestionForName(name, slices.Values(properties), ast.SymbolFlagsValue)
@@ -511,7 +511,7 @@ func (c *Checker) getJSXFragmentType(node ast.Node) *Type {
 		return links.jsxFragmentType
 	}
 	jsxFactorySymbol := c.getJsxNamespaceContainerForImplicitImport(node)
-	if jsxFactorySymbol == nil {
+	if jsxFactorySymbol.IsNil() {
 		shouldModuleRefErr := c.compilerOptions.Jsx != core.JsxEmitPreserve && c.compilerOptions.Jsx != core.JsxEmitReactNative
 		flags := ast.SymbolFlagsValue
 		if !shouldModuleRefErr {
@@ -519,7 +519,7 @@ func (c *Checker) getJSXFragmentType(node ast.Node) *Type {
 		}
 		jsxFactorySymbol = c.resolveName(node, ast.MakeSymbolName(jsxFragmentFactoryName), flags, diagnostics.Using_JSX_fragments_requires_fragment_factory_0_to_be_in_scope_but_it_could_not_be_found, true /*isUse*/, false /*excludeGlobals*/)
 	}
-	if jsxFactorySymbol == nil {
+	if jsxFactorySymbol.IsNil() {
 		links.jsxFragmentType = c.errorType
 		return links.jsxFragmentType
 	}
@@ -534,7 +534,7 @@ func (c *Checker) getJSXFragmentType(node ast.Node) *Type {
 
 	reactExports := c.getExportsOfSymbol(resolvedAlias)
 	typeSymbol := c.getSymbol(reactExports, ast.MakeSymbolName(ReactNames.Fragment), ast.SymbolFlagsBlockScopedVariable)
-	if typeSymbol != nil {
+	if !typeSymbol.IsNil() {
 		links.jsxFragmentType = c.getTypeOfSymbol(typeSymbol)
 	} else {
 		links.jsxFragmentType = c.errorType
@@ -601,7 +601,7 @@ func (c *Checker) checkApplicableSignatureForJsxCallLikeElement(node ast.Node, s
 	}
 	var checkAttributesType *Type
 	checkTagNameDoesNotExpectTooManyArguments := func() bool {
-		if c.getJsxNamespaceContainerForImplicitImport(node) != nil {
+		if !c.getJsxNamespaceContainerForImplicitImport(node).IsNil() {
 			return true // factory is implicitly jsx/jsxdev - assume it fits the bill, since we don't strongly look for the jsx/jsxs/jsxDEV factory APIs anywhere else (at least not yet)
 		}
 		// We assume fragments have the correct arity since the node does not have attributes
@@ -621,7 +621,7 @@ func (c *Checker) checkApplicableSignatureForJsxCallLikeElement(node ast.Node, s
 			return true
 		}
 		factorySymbol := c.resolveEntityName(factory, ast.SymbolFlagsValue, true /*ignoreErrors*/, false /*dontResolveAlias*/, node)
-		if factorySymbol == nil {
+		if factorySymbol.IsNil() {
 			return true
 		}
 
@@ -670,7 +670,7 @@ func (c *Checker) checkApplicableSignatureForJsxCallLikeElement(node ast.Node, s
 			// We will not report errors in this function for fragments, since we do not check them in this function
 			diag := NewDiagnosticForNode(tagName, diagnostics.Tag_0_expects_at_least_1_arguments_but_the_JSX_factory_2_provides_at_most_3, entityNameToString(tagName), absoluteMinArgCount, entityNameToString(factory), maxParamCount)
 			tagNameSymbol := c.getSymbolAtLocation(tagName, false)
-			if tagNameSymbol != nil && !tagNameSymbol.ValueDeclaration().IsNil() {
+			if !tagNameSymbol.IsNil() && !tagNameSymbol.ValueDeclaration().IsNil() {
 				diag.AddRelatedInfo(NewDiagnosticForNode(tagNameSymbol.ValueDeclaration(), diagnostics.X_0_is_declared_here, entityNameToString(tagName)))
 			}
 			c.reportDiagnostic(diag, diagnosticOutput)
@@ -713,7 +713,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 		allAttributesTable = ast.NewSymbolTable()
 	}
 	attributesTable := ast.NewSymbolTable()
-	var attributesSymbol *ast.Symbol
+	var attributesSymbol ast.Symbol
 	attributeParent := openingLikeElement
 	spread := c.emptyJsxObjectType
 	var hasSpreadAnyType bool
@@ -749,7 +749,7 @@ func (c *Checker) createJsxAttributesTypeFromAttributesProperty(openingLikeEleme
 				}
 				links := c.valueSymbolLinks.Get(attributeSymbol)
 				links.resolvedType = exprType
-				links.target = member
+				links.target = c.symbolId(member)
 				attributesTable.Set(attributeSymbol.Name(), attributeSymbol)
 				if allAttributesTable != nil {
 					allAttributesTable.Set(attributeSymbol.Name(), attributeSymbol)
@@ -967,7 +967,7 @@ func (c *Checker) getJsxPropsTypeFromClassType(sig *Signature, context ast.Node)
 	apparentAttributesType := attributesType
 	intrinsicClassAttribs := c.getJsxType(JsxNames.IntrinsicClassAttributes, context)
 	if !c.isErrorType(intrinsicClassAttribs) {
-		typeParams := c.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(intrinsicClassAttribs.symbol)
+		typeParams := c.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(intrinsicClassAttribs.Symbol())
 		hostClassType := c.getReturnTypeOfSignature(sig)
 		var libraryManagedAttributeType *Type
 		if typeParams != nil {
@@ -1015,9 +1015,9 @@ func (c *Checker) getJsxPropsTypeForSignatureFromMember(sig *Signature, forcedLo
 	return c.getTypeOfPropertyOfType(instanceType, forcedLookupLocation)
 }
 
-func (c *Checker) getJsxManagedAttributesFromLocatedAttributes(context ast.Node, ns *ast.Symbol, attributesType *Type) *Type {
+func (c *Checker) getJsxManagedAttributesFromLocatedAttributes(context ast.Node, ns ast.Symbol, attributesType *Type) *Type {
 	managedSym := c.getJsxLibraryManagedAttributes(ns)
-	if managedSym != nil {
+	if !managedSym.IsNil() {
 		ctorType := c.getStaticTypeOfReferencedJsxConstructor(context)
 		result := c.instantiateAliasOrInterfaceWithDefaults(managedSym, []*Type{ctorType, attributesType}, ast.IsInJSFile(context))
 		if result != nil {
@@ -1027,7 +1027,7 @@ func (c *Checker) getJsxManagedAttributesFromLocatedAttributes(context ast.Node,
 	return attributesType
 }
 
-func (c *Checker) instantiateAliasOrInterfaceWithDefaults(managedSym *ast.Symbol, typeArguments []*Type, inJavaScript bool) *Type {
+func (c *Checker) instantiateAliasOrInterfaceWithDefaults(managedSym ast.Symbol, typeArguments []*Type, inJavaScript bool) *Type {
 	declaredManagedType := c.getDeclaredTypeOfSymbol(managedSym)
 	// fetches interface type, or initializes symbol links type parameters
 	if managedSym.Flags()&ast.SymbolFlagsTypeAlias != 0 {
@@ -1047,19 +1047,19 @@ func (c *Checker) instantiateAliasOrInterfaceWithDefaults(managedSym *ast.Symbol
 	return nil
 }
 
-func (c *Checker) getJsxLibraryManagedAttributes(jsxNamespace *ast.Symbol) *ast.Symbol {
-	if jsxNamespace != nil {
+func (c *Checker) getJsxLibraryManagedAttributes(jsxNamespace ast.Symbol) ast.Symbol {
+	if !jsxNamespace.IsNil() {
 		return c.getSymbol(jsxNamespace.Exports(), JsxNames.LibraryManagedAttributes, ast.SymbolFlagsType)
 	}
-	return nil
+	return ast.Symbol{}
 }
 
-func (c *Checker) getJsxElementTypeSymbol(jsxNamespace *ast.Symbol) *ast.Symbol {
+func (c *Checker) getJsxElementTypeSymbol(jsxNamespace ast.Symbol) ast.Symbol {
 	// JSX.ElementType [symbol]
-	if jsxNamespace != nil {
+	if !jsxNamespace.IsNil() {
 		return c.getSymbol(jsxNamespace.Exports(), JsxNames.ElementType, ast.SymbolFlagsType)
 	}
-	return nil
+	return ast.Symbol{}
 }
 
 // e.g. "props" for React.d.ts,
@@ -1070,11 +1070,11 @@ func (c *Checker) getJsxElementTypeSymbol(jsxNamespace *ast.Symbol) *ast.Symbol 
 // or "" if it has 0 properties (which means every
 //
 //	non-intrinsic elements' attributes type is the element instance type)
-func (c *Checker) getJsxElementPropertiesName(jsxNamespace *ast.Symbol) ast.SymbolName {
+func (c *Checker) getJsxElementPropertiesName(jsxNamespace ast.Symbol) ast.SymbolName {
 	return c.getNameFromJsxElementAttributesContainer(JsxNames.ElementAttributesPropertyNameContainer, jsxNamespace)
 }
 
-func (c *Checker) getJsxElementChildrenPropertyName(jsxNamespace *ast.Symbol) ast.SymbolName {
+func (c *Checker) getJsxElementChildrenPropertyName(jsxNamespace ast.Symbol) ast.SymbolName {
 	if c.compilerOptions.Jsx == core.JsxEmitReactJSX || c.compilerOptions.Jsx == core.JsxEmitReactJSXDev {
 		// In these JsxEmit modes the children property is fixed to 'children'
 		return ast.SymbolNameChildren
@@ -1088,11 +1088,11 @@ func (c *Checker) getJsxElementChildrenPropertyName(jsxNamespace *ast.Symbol) as
 // @param nameOfAttribPropContainer a string of value JsxNames.ElementAttributesPropertyNameContainer or JsxNames.ElementChildrenAttributeNameContainer
 //
 //	if other string is given or the container doesn't exist, return undefined.
-func (c *Checker) getNameFromJsxElementAttributesContainer(nameOfAttribPropContainer ast.SymbolName, jsxNamespace *ast.Symbol) ast.SymbolName {
+func (c *Checker) getNameFromJsxElementAttributesContainer(nameOfAttribPropContainer ast.SymbolName, jsxNamespace ast.Symbol) ast.SymbolName {
 	// JSX.ElementAttributesProperty | JSX.ElementChildrenAttribute [symbol]
-	if jsxNamespace != nil {
+	if !jsxNamespace.IsNil() {
 		jsxElementAttribPropInterfaceSym := c.getSymbol(jsxNamespace.Exports(), nameOfAttribPropContainer, ast.SymbolFlagsType)
-		if jsxElementAttribPropInterfaceSym != nil {
+		if !jsxElementAttribPropInterfaceSym.IsNil() {
 			jsxElementAttribPropInterfaceType := c.getDeclaredTypeOfSymbol(jsxElementAttribPropInterfaceSym)
 			propertiesOfJsxElementAttribPropInterface := c.getPropertiesOfType(jsxElementAttribPropInterfaceType)
 			// Element Attributes has zero properties, so the element attributes type will be the class instance type
@@ -1141,7 +1141,7 @@ func (c *Checker) getIntrinsicAttributesTypeFromStringLiteralType(t *Type, locat
 	if !c.isErrorType(intrinsicElementsType) {
 		stringLiteralTypeName := getStringLiteralValue(t)
 		intrinsicProp := c.getPropertyOfType(intrinsicElementsType, ast.MakeSymbolName(stringLiteralTypeName))
-		if intrinsicProp != nil {
+		if !intrinsicProp.IsNil() {
 			return c.getTypeOfSymbol(intrinsicProp)
 		}
 		indexSignatureType := c.getIndexTypeOfType(intrinsicElementsType, c.stringType)
@@ -1170,8 +1170,8 @@ func (c *Checker) getJsxReferenceKind(node ast.Node) JsxReferenceKind {
 
 func (c *Checker) createSignatureForJSXIntrinsic(node ast.Node, result *Type) *Signature {
 	elementType := c.errorType
-	if namespace := c.getJsxNamespaceAt(node); namespace != nil {
-		if typeSymbol := c.getSymbol(c.getExportsOfSymbol(namespace), JsxNames.Element, ast.SymbolFlagsType); typeSymbol != nil {
+	if namespace := c.getJsxNamespaceAt(node); !namespace.IsNil() {
+		if typeSymbol := c.getSymbol(c.getExportsOfSymbol(namespace), JsxNames.Element, ast.SymbolFlagsType); !typeSymbol.IsNil() {
 			elementType = c.getDeclaredTypeOfSymbol(typeSymbol)
 		}
 	}
@@ -1179,7 +1179,7 @@ func (c *Checker) createSignatureForJSXIntrinsic(node ast.Node, result *Type) *S
 	// declaration := factory.createFunctionTypeNode(nil, []ParameterDeclaration{factory.createParameterDeclaration(nil, nil /*dotDotDotToken*/, "props", nil /*questionToken*/, c.nodeBuilder.typeToTypeNode(result, node))}, ifElse(returnNode != nil, factory.createTypeReferenceNode(returnNode, nil /*typeArguments*/), factory.createKeywordTypeNode(ast.KindAnyKeyword)))
 	parameterSymbol := c.newSymbol(ast.SymbolFlagsFunctionScopedVariable, ast.SymbolNameProps)
 	c.valueSymbolLinks.Get(parameterSymbol).resolvedType = result
-	return c.newSignature(SignatureFlagsNone, ast.Node{}, nil, nil, []*ast.Symbol{parameterSymbol}, elementType, nil, 1)
+	return c.newSignature(SignatureFlagsNone, ast.Node{}, nil, ast.Symbol{}, []ast.Symbol{parameterSymbol}, elementType, nil, 1)
 }
 
 // Get attributes type of the given intrinsic opening-like Jsx element by resolving the tag name.
@@ -1211,8 +1211,8 @@ func (c *Checker) getIntrinsicAttributesTypeFromJsxOpeningLikeElement(node ast.N
 // property (in which case nodeLinks.jsxFlags will be IntrinsicNamedElement) or an intrinsic
 // string index signature (in which case nodeLinks.jsxFlags will be IntrinsicIndexedElement).
 // May also return unknownSymbol if both of these lookups fail.
-func (c *Checker) getIntrinsicTagSymbol(node ast.Node) *ast.Symbol {
-	if c.symbolNodeLinks.get(node) != nil {
+func (c *Checker) getIntrinsicTagSymbol(node ast.Node) ast.Symbol {
+	if !c.symbolNodeLinks.get(node).IsNil() {
 		return c.symbolNodeLinks.get(node)
 	}
 	intrinsicElementsType := c.getJsxType(JsxNames.IntrinsicElements, node)
@@ -1224,21 +1224,21 @@ func (c *Checker) getIntrinsicTagSymbol(node ast.Node) *ast.Symbol {
 		}
 		propName := tagName.Text()
 		intrinsicProp := c.getPropertyOfType(intrinsicElementsType, ast.MakeSymbolName(propName))
-		if intrinsicProp != nil {
+		if !intrinsicProp.IsNil() {
 			c.jsxElementLinks.Get(node).jsxFlags |= JsxFlagsIntrinsicNamedElement
 			c.symbolNodeLinks.set(node, intrinsicProp)
 			return c.symbolNodeLinks.get(node)
 		}
 		// Intrinsic string indexer case
 		indexSymbol := c.getApplicableIndexSymbol(intrinsicElementsType, c.getStringLiteralType(propName))
-		if indexSymbol != nil {
+		if !indexSymbol.IsNil() {
 			c.jsxElementLinks.Get(node).jsxFlags |= JsxFlagsIntrinsicIndexedElement
 			c.symbolNodeLinks.set(node, indexSymbol)
 			return c.symbolNodeLinks.get(node)
 		}
 		if c.getTypeOfPropertyOrIndexSignatureOfType(intrinsicElementsType, ast.MakeSymbolName(propName)) != nil {
 			c.jsxElementLinks.Get(node).jsxFlags |= JsxFlagsIntrinsicIndexedElement
-			c.symbolNodeLinks.set(node, intrinsicElementsType.symbol)
+			c.symbolNodeLinks.set(node, intrinsicElementsType.Symbol())
 			return c.symbolNodeLinks.get(node)
 		}
 		// Wasn't found
@@ -1275,11 +1275,11 @@ func (c *Checker) getJsxElementTypeAt(location ast.Node) *Type {
 
 func (c *Checker) getJsxElementTypeTypeAt(location ast.Node) *Type {
 	ns := c.getJsxNamespaceAt(location)
-	if ns == nil {
+	if ns.IsNil() {
 		return nil
 	}
 	sym := c.getJsxElementTypeSymbol(ns)
-	if sym == nil {
+	if sym.IsNil() {
 		return nil
 	}
 	t := c.instantiateAliasOrInterfaceWithDefaults(sym, nil, ast.IsInJSFile(location))
@@ -1290,9 +1290,9 @@ func (c *Checker) getJsxElementTypeTypeAt(location ast.Node) *Type {
 }
 
 func (c *Checker) getJsxType(name ast.SymbolName, location ast.Node) *Type {
-	if namespace := c.getJsxNamespaceAt(location); namespace != nil {
+	if namespace := c.getJsxNamespaceAt(location); !namespace.IsNil() {
 		if exports := c.getExportsOfSymbol(namespace); exports != nil {
-			if typeSymbol := c.getSymbol(exports, name, ast.SymbolFlagsType); typeSymbol != nil {
+			if typeSymbol := c.getSymbol(exports, name, ast.SymbolFlagsType); !typeSymbol.IsNil() {
 				return c.getDeclaredTypeOfSymbol(typeSymbol)
 			}
 		}
@@ -1300,23 +1300,23 @@ func (c *Checker) getJsxType(name ast.SymbolName, location ast.Node) *Type {
 	return c.errorType
 }
 
-func (c *Checker) getJsxNamespaceAt(location ast.Node) *ast.Symbol {
+func (c *Checker) getJsxNamespaceAt(location ast.Node) ast.Symbol {
 	var links *JsxElementLinks
 	if !location.IsNil() {
 		links = c.jsxElementLinks.Get(location)
 	}
-	if links != nil && links.jsxNamespace != nil && links.jsxNamespace != c.unknownSymbol {
+	if links != nil && !links.jsxNamespace.IsNil() && links.jsxNamespace != c.unknownSymbol {
 		return links.jsxNamespace
 	}
 	if links == nil || links.jsxNamespace != c.unknownSymbol {
 		resolvedNamespace := c.getJsxNamespaceContainerForImplicitImport(location)
-		if resolvedNamespace == nil || resolvedNamespace == c.unknownSymbol {
+		if resolvedNamespace.IsNil() || resolvedNamespace == c.unknownSymbol {
 			namespaceName := c.getJsxNamespace(location)
 			resolvedNamespace = c.resolveName(location, ast.MakeSymbolName(namespaceName), ast.SymbolFlagsNamespace, nil /*nameNotFoundMessage*/, false /*isUse*/, false /*excludeGlobals*/)
 		}
-		if resolvedNamespace != nil {
+		if !resolvedNamespace.IsNil() {
 			candidate := c.resolveSymbol(c.getSymbol(c.getExportsOfSymbol(c.resolveSymbol(resolvedNamespace)), JsxNames.JSX, ast.SymbolFlagsNamespace))
-			if candidate != nil && candidate != c.unknownSymbol {
+			if !candidate.IsNil() && candidate != c.unknownSymbol {
 				if links != nil {
 					links.jsxNamespace = candidate
 				}
@@ -1330,7 +1330,7 @@ func (c *Checker) getJsxNamespaceAt(location ast.Node) *ast.Symbol {
 	// JSX global fallback
 	s := c.resolveSymbol(c.getGlobalSymbol(JsxNames.JSX, ast.SymbolFlagsNamespace, nil /*diagnostic*/))
 	if s == c.unknownSymbol {
-		return nil
+		return ast.Symbol{}
 	}
 	return s
 }
@@ -1445,11 +1445,11 @@ func markAsSynthetic(node ast.Node) bool {
 	return false
 }
 
-func (c *Checker) getJsxNamespaceContainerForImplicitImport(location ast.Node) *ast.Symbol {
+func (c *Checker) getJsxNamespaceContainerForImplicitImport(location ast.Node) ast.Symbol {
 	file := ast.GetSourceFileOfNode(location)
 	links := c.jsxElementLinks.Get(file.AsNode())
-	if links.jsxImplicitImportContainer != nil {
-		return core.IfElse(links.jsxImplicitImportContainer == c.unknownSymbol, nil, links.jsxImplicitImportContainer)
+	if !links.jsxImplicitImportContainer.IsNil() {
+		return core.IfElse(links.jsxImplicitImportContainer == c.unknownSymbol, ast.Symbol{}, links.jsxImplicitImportContainer)
 	}
 	canonicalErrorTag := links.firstJSXTagInFile
 	if canonicalErrorTag.IsNil() {
@@ -1470,12 +1470,12 @@ func (c *Checker) getJsxNamespaceContainerForImplicitImport(location ast.Node) *
 	}
 	moduleReference, specifier := c.getJSXRuntimeImportSpecifier(file)
 	if moduleReference == "" {
-		return nil
+		return ast.Symbol{}
 	}
 	errorMessage := diagnostics.This_JSX_tag_requires_the_module_path_0_to_exist_but_none_could_be_found_Make_sure_you_have_types_for_the_appropriate_package_installed
 	mod := c.resolveExternalModule(core.OrElse(specifier, canonicalErrorTag), moduleReference, errorMessage, canonicalErrorTag, false, nil /*importAttributesType*/)
-	var result *ast.Symbol
-	if mod != nil && mod != c.unknownSymbol {
+	var result ast.Symbol
+	if !mod.IsNil() && mod != c.unknownSymbol {
 		result = c.getMergedSymbol(c.resolveSymbol(mod))
 	}
 	links.jsxImplicitImportContainer = core.OrElse(result, c.unknownSymbol)

@@ -24,7 +24,7 @@ import (
 
 type ImportAdder interface {
 	HasFixes() bool
-	AddImportFromExportedSymbol(symbol *ast.Symbol, isValidTypeOnlyUseSite bool)
+	AddImportFromExportedSymbol(symbol ast.Symbol, isValidTypeOnlyUseSite bool)
 	AddImportFix(fix *Fix)
 	Edits() []*lsproto.TextEdit
 }
@@ -100,7 +100,7 @@ func (adder *importAdder) HasFixes() bool {
 }
 
 // !!! referenceImport
-func (adder *importAdder) AddImportFromExportedSymbol(exportedSymbol *ast.Symbol, isValidTypeOnlyUseSite bool) {
+func (adder *importAdder) AddImportFromExportedSymbol(exportedSymbol ast.Symbol, isValidTypeOnlyUseSite bool) {
 	symbol := adder.checker.GetMergedSymbol(adder.checker.SkipAlias(exportedSymbol))
 	exportInfos := adder.getAllExportsForSymbol(symbol)
 	if len(exportInfos) == 0 {
@@ -373,7 +373,7 @@ func (adder *importAdder) getNewImportEntry(moduleSpecifier string, importKind l
 	return newEntry
 }
 
-func (adder *importAdder) getAllExportsForSymbol(symbol *ast.Symbol) []*Export {
+func (adder *importAdder) getAllExportsForSymbol(symbol ast.Symbol) []*Export {
 	if export := SymbolToExport(symbol, adder.checker); export != nil {
 		return adder.view.SearchByExportID(export.ExportID)
 	}
@@ -387,7 +387,7 @@ func TypeToAutoImportableTypeNode(
 	t *checker.Type,
 	contextNode ast.Node, // !!! flags
 ) ast.TypeNode {
-	idToSymbol := make(map[ast.IdentifierNode]*ast.Symbol)
+	idToSymbol := make(map[ast.IdentifierNode]ast.Symbol)
 	typeNode := c.TypeToTypeNode(t, contextNode, nodebuilder.FlagsNone, idToSymbol)
 	if typeNode.IsNil() {
 		return ast.Node{}
@@ -402,7 +402,7 @@ func TypeNodeToAutoImportableTypeNode(
 	factory *ast.NodeFactory,
 	typeNode ast.TypeNode,
 	importAdder ImportAdder,
-	idToSymbol map[ast.IdentifierNode]*ast.Symbol,
+	idToSymbol map[ast.IdentifierNode]ast.Symbol,
 ) ast.TypeNode {
 	referenceTypeNode, importableSymbols := TryGetAutoImportableReferenceFromTypeNode(factory, typeNode, idToSymbol)
 	if !referenceTypeNode.IsNil() {
@@ -416,7 +416,7 @@ func TypeNodeToAutoImportableTypeNode(
 	return typeNode
 }
 
-func importSymbols(importAdder ImportAdder, symbols []*ast.Symbol) {
+func importSymbols(importAdder ImportAdder, symbols []ast.Symbol) {
 	for _, symbol := range symbols {
 		importAdder.AddImportFromExportedSymbol(symbol, true /*isValidTypeOnlyUseSite*/)
 	}
@@ -428,8 +428,8 @@ func importSymbols(importAdder ImportAdder, symbols []*ast.Symbol) {
 // TryGetAutoImportableReferenceFromTypeNode converts import type references in a type node
 // to simple type references and returns the transformed type node and the symbols that need
 // to be imported. The nodes it makes belong to factory.
-func TryGetAutoImportableReferenceFromTypeNode(factory *ast.NodeFactory, importTypeNode ast.TypeNode, idToSymbol map[ast.IdentifierNode]*ast.Symbol) (ast.TypeNode, []*ast.Symbol) {
-	var symbols []*ast.Symbol
+func TryGetAutoImportableReferenceFromTypeNode(factory *ast.NodeFactory, importTypeNode ast.TypeNode, idToSymbol map[ast.IdentifierNode]ast.Symbol) (ast.TypeNode, []ast.Symbol) {
+	var symbols []ast.Symbol
 	var visitor *ast.NodeVisitor
 	visit := func(node ast.Node) ast.Node {
 		if ast.IsLiteralImportTypeNode(node) && !node.AsImportTypeNode().Qualifier().IsNil() {
@@ -437,7 +437,7 @@ func TryGetAutoImportableReferenceFromTypeNode(factory *ast.NodeFactory, importT
 			// Symbol for the left-most thing after the dot
 			firstIdentifier := ast.GetFirstIdentifier(importTypeNode.Qualifier())
 			symbol := idToSymbol[firstIdentifier]
-			if symbol == nil {
+			if symbol.IsNil() {
 				// if symbol is missing then this doesn't come from a synthesized import type node
 				// it has to be an import type node authored by the user and thus it has to be valid
 				// it can't refer to reserved internal symbol names and such
@@ -465,7 +465,7 @@ func TryGetAutoImportableReferenceFromTypeNode(factory *ast.NodeFactory, importT
 
 // If a type checker and multiple files are available, consider using `forEachNameOfDefaultExport`
 // instead, which searches for names of re-exported defaults/namespaces in target files.
-func getNameForExportedSymbol(symbol *ast.Symbol, preferCapitalized bool) string {
+func getNameForExportedSymbol(symbol ast.Symbol, preferCapitalized bool) string {
 	if symbol.Name() == ast.InternalSymbolNameExportEquals || symbol.Name() == ast.InternalSymbolNameDefault {
 		// Names for default exports:
 		// - export default foo => foo
@@ -475,7 +475,7 @@ func getNameForExportedSymbol(symbol *ast.Symbol, preferCapitalized bool) string
 		if name != ast.EmptySymbolName {
 			return name.String()
 		}
-		debug.Assert(symbol.Parent() != nil, "Expected exported symbol to have module symbol as parent")
+		debug.Assert(!symbol.Parent().IsNil(), "Expected exported symbol to have module symbol as parent")
 		return lsutil.ModuleSymbolToValidIdentifier(symbol.Parent(), preferCapitalized)
 	}
 	return symbol.Name().String()

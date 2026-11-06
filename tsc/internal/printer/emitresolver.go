@@ -96,12 +96,12 @@ type EmitResolver interface {
 
 	// declaration emit checker functionality projections
 	PrecalculateDeclarationEmitVisibility(file *ast.SourceFile)
-	IsSymbolAccessible(symbol *ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, shouldComputeAliasToMarkVisible bool) SymbolAccessibilityResult
+	IsSymbolAccessible(symbol ast.Symbol, enclosingDeclaration ast.Node, meaning ast.SymbolFlags, shouldComputeAliasToMarkVisible bool) SymbolAccessibilityResult
 	IsEntityNameVisible(entityName ast.Node, enclosingDeclaration ast.Node) SymbolAccessibilityResult // previously SymbolVisibilityResult in strada - ErrorModuleName never set
 	IsExpandoFunctionDeclaration(node ast.Node) bool
 	IsExpandoFunctionDeclarationUnsafe(node ast.Node) bool
 	IsLiteralConstDeclaration(node ast.Node) bool
-	RequiresAddingImplicitUndefined(node ast.Node, symbol *ast.Symbol, enclosingDeclaration ast.Node) bool
+	RequiresAddingImplicitUndefined(node ast.Node, symbol ast.Symbol, enclosingDeclaration ast.Node) bool
 	IsDeclarationVisible(node ast.Node) bool
 	IsNameResolvable(location ast.Node, name ast.SymbolName) bool
 	IsImportRequiredByAugmentation(decl ast.ImportDeclaration) bool
@@ -113,8 +113,8 @@ type EmitResolver interface {
 	IsThisPropertyAssignmentDeclarationRedundant(node ast.Node) bool
 
 	// isolatedDeclarations-specific declaration emit
-	GetPropertiesOfContainerFunction(node ast.Node) []*ast.Symbol
-	RequiresAddingImplicitUndefinedUnsafe(node ast.Node, symbol *ast.Symbol, enclosingDeclaration ast.Node) bool
+	GetPropertiesOfContainerFunction(node ast.Node) []ast.Symbol
+	RequiresAddingImplicitUndefinedUnsafe(node ast.Node, symbol ast.Symbol, enclosingDeclaration ast.Node) bool
 	GetReferencedValueDeclarationUnsafe(node ast.IdentifierNode) ast.Declaration
 
 	// Node construction for declaration emit

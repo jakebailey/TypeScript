@@ -63,15 +63,15 @@ func (c *Checker) GetBaseTypeOfLiteralType(t *Type) *Type {
 	return c.getBaseTypeOfLiteralType(t)
 }
 
-func (c *Checker) GetUnknownSymbol() *ast.Symbol {
+func (c *Checker) GetUnknownSymbol() ast.Symbol {
 	return c.unknownSymbol
 }
 
-func (c *Checker) GetUndefinedSymbol() *ast.Symbol {
+func (c *Checker) GetUndefinedSymbol() ast.Symbol {
 	return c.undefinedSymbol
 }
 
-func (c *Checker) GetArgumentsSymbol() *ast.Symbol {
+func (c *Checker) GetArgumentsSymbol() ast.Symbol {
 	return c.argumentsSymbol
 }
 
@@ -83,7 +83,7 @@ func (c *Checker) GetUnionType(types []*Type) *Type {
 	return c.getUnionType(types)
 }
 
-func (c *Checker) GetNameTypeOfSymbol(symbol *ast.Symbol) *Type {
+func (c *Checker) GetNameTypeOfSymbol(symbol ast.Symbol) *Type {
 	if links := c.valueSymbolLinks.TryGet(symbol); links != nil {
 		return links.getNameType()
 	}
@@ -98,47 +98,47 @@ func GetPropertyNameFromType(t *Type) ast.SymbolName {
 	return getPropertyNameFromType(t)
 }
 
-func (c *Checker) GetGlobalSymbol(name ast.SymbolName, meaning ast.SymbolFlags, diagnostic *diagnostics.Message) *ast.Symbol {
+func (c *Checker) GetGlobalSymbol(name ast.SymbolName, meaning ast.SymbolFlags, diagnostic *diagnostics.Message) ast.Symbol {
 	return c.getGlobalSymbol(name, meaning, diagnostic)
 }
 
-func (c *Checker) GetMergedSymbol(symbol *ast.Symbol) *ast.Symbol {
+func (c *Checker) GetMergedSymbol(symbol ast.Symbol) ast.Symbol {
 	return c.getMergedSymbol(symbol)
 }
 
-func (c *Checker) GetSymbolOfNode(node ast.Node) *ast.Symbol {
+func (c *Checker) GetSymbolOfNode(node ast.Node) ast.Symbol {
 	return c.getSymbolOfNode(node)
 }
 
-func (c *Checker) GetSymbolOfDeclaration(node ast.Node) *ast.Symbol {
+func (c *Checker) GetSymbolOfDeclaration(node ast.Node) ast.Symbol {
 	return c.getSymbolOfDeclaration(node)
 }
 
-func (c *Checker) GetParentOfSymbol(symbol *ast.Symbol) *ast.Symbol {
+func (c *Checker) GetParentOfSymbol(symbol ast.Symbol) ast.Symbol {
 	return c.getParentOfSymbol(symbol)
 }
 
-func (c *Checker) TryFindAmbientModule(moduleName string) *ast.Symbol {
+func (c *Checker) TryFindAmbientModule(moduleName string) ast.Symbol {
 	return c.tryFindAmbientModule(moduleName, true /* withAugmentations */)
 }
 
-func (c *Checker) GetImmediateAliasedSymbol(symbol *ast.Symbol) *ast.Symbol {
+func (c *Checker) GetImmediateAliasedSymbol(symbol ast.Symbol) ast.Symbol {
 	return c.getImmediateAliasedSymbol(symbol)
 }
 
-func (c *Checker) GetTargetSymbol(symbol *ast.Symbol) *ast.Symbol {
+func (c *Checker) GetTargetSymbol(symbol ast.Symbol) ast.Symbol {
 	return c.getTargetSymbol(symbol)
 }
 
-func (c *Checker) GetTypeOnlyAliasDeclaration(symbol *ast.Symbol) ast.Node {
+func (c *Checker) GetTypeOnlyAliasDeclaration(symbol ast.Symbol) ast.Node {
 	return c.getTypeOnlyAliasDeclaration(symbol)
 }
 
-func (c *Checker) ResolveExternalModuleName(moduleSpecifier ast.Node, importAttributesType *Type) *ast.Symbol {
+func (c *Checker) ResolveExternalModuleName(moduleSpecifier ast.Node, importAttributesType *Type) ast.Symbol {
 	return c.resolveExternalModuleName(moduleSpecifier, moduleSpecifier, true /*ignoreErrors*/, importAttributesType)
 }
 
-func (c *Checker) ResolveExternalModuleSymbol(moduleSymbol *ast.Symbol) *ast.Symbol {
+func (c *Checker) ResolveExternalModuleSymbol(moduleSymbol ast.Symbol) ast.Symbol {
 	return c.resolveExternalModuleSymbol(moduleSymbol, false /*dontResolveAlias*/)
 }
 
@@ -150,11 +150,11 @@ func (c *Checker) IsArrayLikeType(t *Type) bool {
 	return c.isArrayLikeType(t)
 }
 
-func (c *Checker) GetPropertiesOfType(t *Type) []*ast.Symbol {
+func (c *Checker) GetPropertiesOfType(t *Type) []ast.Symbol {
 	return c.getPropertiesOfType(t)
 }
 
-func (c *Checker) GetPropertyOfType(t *Type, name ast.SymbolName) *ast.Symbol {
+func (c *Checker) GetPropertyOfType(t *Type, name ast.SymbolName) ast.Symbol {
 	return c.getPropertyOfType(t, name)
 }
 
@@ -170,7 +170,7 @@ func (c *Checker) TypeHasCallOrConstructSignatures(t *Type) bool {
 // @param isWrite whether this is a write access, e.g. `++foo.x`.
 // @param containingType type where the property comes from.
 // @param property property symbol.
-func (c *Checker) IsPropertyAccessible(node ast.Node, isSuper bool, isWrite bool, containingType *Type, property *ast.Symbol) bool {
+func (c *Checker) IsPropertyAccessible(node ast.Node, isSuper bool, isWrite bool, containingType *Type, property ast.Symbol) bool {
 	return c.isPropertyAccessible(node, isSuper, isWrite, containingType, property)
 }
 
@@ -178,7 +178,7 @@ func (c *Checker) GetTypeOfPropertyOfContextualType(t *Type, name ast.SymbolName
 	return c.getTypeOfPropertyOfContextualType(t, name)
 }
 
-func GetDeclarationModifierFlagsFromSymbol(s *ast.Symbol) ast.ModifierFlags {
+func GetDeclarationModifierFlagsFromSymbol(s ast.Symbol) ast.ModifierFlags {
 	return getDeclarationModifierFlagsFromSymbol(s)
 }
 
@@ -190,15 +190,15 @@ func (c *Checker) GetSignaturesOfType(t *Type, kind SignatureKind) []*Signature 
 	return c.getSignaturesOfType(t, kind)
 }
 
-func (c *Checker) GetDeclaredTypeOfSymbol(symbol *ast.Symbol) *Type {
+func (c *Checker) GetDeclaredTypeOfSymbol(symbol ast.Symbol) *Type {
 	return c.getDeclaredTypeOfSymbol(symbol)
 }
 
-func (c *Checker) GetTypeOfSymbol(symbol *ast.Symbol) *Type {
+func (c *Checker) GetTypeOfSymbol(symbol ast.Symbol) *Type {
 	return c.getTypeOfSymbol(symbol)
 }
 
-func (c *Checker) GetNonMissingTypeOfSymbol(symbol *ast.Symbol) *Type {
+func (c *Checker) GetNonMissingTypeOfSymbol(symbol ast.Symbol) *Type {
 	return c.getNonMissingTypeOfSymbol(symbol)
 }
 
@@ -246,7 +246,7 @@ func (c *Checker) IsArrayType(t *Type) bool {
 	return c.isArrayType(t)
 }
 
-func (c *Checker) IsReadonlySymbol(symbol *ast.Symbol) bool {
+func (c *Checker) IsReadonlySymbol(symbol ast.Symbol) bool {
 	return c.isReadonlySymbol(symbol)
 }
 
@@ -258,7 +258,7 @@ func (c *Checker) HasEffectiveRestParameter(signature *Signature) bool {
 	return c.hasEffectiveRestParameter(signature)
 }
 
-func (c *Checker) GetLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol *ast.Symbol) []*Type {
+func (c *Checker) GetLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol ast.Symbol) []*Type {
 	return c.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol)
 }
 
@@ -270,7 +270,7 @@ func (c *Checker) TypePredicateToString(t *TypePredicate) string {
 	return c.typePredicateToString(t)
 }
 
-func (c *Checker) GetExpandedParameters(signature *Signature, skipUnionExpanding bool) [][]*ast.Symbol {
+func (c *Checker) GetExpandedParameters(signature *Signature, skipUnionExpanding bool) [][]ast.Symbol {
 	return c.getExpandedParameters(signature, skipUnionExpanding)
 }
 
@@ -295,7 +295,7 @@ func (c *Checker) GetIndexSignaturesAtLocation(node ast.Node) []ast.Node {
 	return c.getIndexSignaturesAtLocation(node)
 }
 
-func (c *Checker) GetResolvedSymbol(node ast.Node) *ast.Symbol {
+func (c *Checker) GetResolvedSymbol(node ast.Node) ast.Symbol {
 	return c.getResolvedSymbol(node)
 }
 
@@ -311,11 +311,11 @@ func (c *Checker) GetJsxFragmentFactory(location ast.Node) string {
 	return ""
 }
 
-func (c *Checker) ResolveName(name ast.SymbolName, location ast.Node, meaning ast.SymbolFlags, excludeGlobals bool) *ast.Symbol {
+func (c *Checker) ResolveName(name ast.SymbolName, location ast.Node, meaning ast.SymbolFlags, excludeGlobals bool) ast.Symbol {
 	return c.resolveName(location, name, meaning, nil, true, excludeGlobals)
 }
 
-func (c *Checker) GetSymbolFlags(symbol *ast.Symbol) ast.SymbolFlags {
+func (c *Checker) GetSymbolFlags(symbol ast.Symbol) ast.SymbolFlags {
 	return c.getSymbolFlags(symbol)
 }
 
@@ -333,7 +333,7 @@ func (c *Checker) GetReducedType(t *Type) *Type {
 
 // GetFullyQualifiedName returns the fully qualified name of a symbol, walking up
 // its parent chain (e.g. `"/path/to/module".Namespace.Name`).
-func (c *Checker) GetFullyQualifiedName(symbol *ast.Symbol) string {
+func (c *Checker) GetFullyQualifiedName(symbol ast.Symbol) string {
 	return c.getFullyQualifiedName(symbol, ast.Node{} /*containingLocation*/)
 }
 
@@ -341,7 +341,7 @@ func (c *Checker) GetBaseConstructorTypeOfClass(t *Type) *Type {
 	return c.getBaseConstructorTypeOfClass(t)
 }
 
-func (c *Checker) GetMemberOverrideModifierStatus(node ast.Node, member ast.Node, memberSymbol *ast.Symbol) MemberOverrideStatus {
+func (c *Checker) GetMemberOverrideModifierStatus(node ast.Node, member ast.Node, memberSymbol ast.Symbol) MemberOverrideStatus {
 	return c.getMemberOverrideModifierStatus(node, member, memberSymbol)
 }
 
@@ -365,9 +365,9 @@ func (c *Checker) GetIndexInfosOfType(t *Type) []*IndexInfo {
 	return c.getIndexInfosOfType(t)
 }
 
-func (c *Checker) GetIndexInfosOfIndexSymbol(symbol *ast.Symbol) []*IndexInfo {
-	var siblingSymbols []*ast.Symbol
-	if symbol.Parent() != nil {
+func (c *Checker) GetIndexInfosOfIndexSymbol(symbol ast.Symbol) []*IndexInfo {
+	var siblingSymbols []ast.Symbol
+	if !symbol.Parent().IsNil() {
 		siblingSymbols = slices.Collect(c.getMembersOfSymbol(symbol.Parent()).Values())
 	}
 	return c.getIndexInfosOfIndexSymbol(symbol, siblingSymbols)
@@ -403,7 +403,7 @@ func (c *Checker) RequiresAddingImplicitUndefined(node ast.Node) bool {
 		enclosingDeclaration = ast.GetSourceFileOfNode(node).AsNode()
 	}
 	symbol := node.Symbol()
-	if symbol == nil {
+	if symbol.IsNil() {
 		return false
 	}
 	return c.requiresAddingImplicitUndefined(node, symbol, enclosingDeclaration)
@@ -417,7 +417,7 @@ func (c *Checker) GetWidenedType(t *Type) *Type {
 	return c.getWidenedType(t)
 }
 
-func (c *Checker) CompareSymbols(s1, s2 *ast.Symbol) int {
+func (c *Checker) CompareSymbols(s1, s2 ast.Symbol) int {
 	return c.compareSymbols(s1, s2)
 }
 

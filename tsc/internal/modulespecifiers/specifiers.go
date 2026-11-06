@@ -17,7 +17,7 @@ import (
 )
 
 func GetModuleSpecifiers(
-	moduleSymbol *ast.Symbol,
+	moduleSymbol ast.Symbol,
 	checker CheckerShape,
 	compilerOptions *core.CompilerOptions,
 	importingSourceFile SourceFileForSpecifierGeneration,
@@ -39,7 +39,7 @@ func GetModuleSpecifiers(
 }
 
 func GetModuleSpecifiersWithInfo(
-	moduleSymbol *ast.Symbol,
+	moduleSymbol ast.Symbol,
 	checker CheckerShape,
 	compilerOptions *core.CompilerOptions,
 	importingSourceFile SourceFileForSpecifierGeneration,
@@ -106,10 +106,10 @@ func GetModuleSpecifiersForFileWithInfo(
 
 type ambientModuleInfo struct {
 	name   tspath.ModuleSpecifier
-	symbol *ast.Symbol
+	symbol ast.Symbol
 }
 
-func tryGetModuleNameFromAmbientModule(moduleSymbol *ast.Symbol, checker CheckerShape) ambientModuleInfo {
+func tryGetModuleNameFromAmbientModule(moduleSymbol ast.Symbol, checker CheckerShape) ambientModuleInfo {
 	for _, decl := range moduleSymbol.Declarations().All() {
 		if ast.IsModuleWithStringLiteralName(decl) && (!ast.IsModuleAugmentationExternal(decl) || !tspath.IsExternalModuleNameRelative(decl.Name().Text())) {
 			return ambientModuleInfo{name: tspath.ToModuleSpecifier(decl.Name().Text()), symbol: moduleSymbol}
@@ -137,7 +137,7 @@ func tryGetModuleNameFromAmbientModule(moduleSymbol *ast.Symbol, checker Checker
 		}
 
 		sym, ok := possibleContainer.Symbol().Exports().Lookup(ast.InternalSymbolNameExportEquals)
-		if !ok || sym == nil {
+		if !ok || sym.IsNil() {
 			continue
 		}
 		exportAssignmentDecl := sym.ValueDeclaration()
@@ -145,7 +145,7 @@ func tryGetModuleNameFromAmbientModule(moduleSymbol *ast.Symbol, checker Checker
 			continue
 		}
 		exportSymbol := checker.GetSymbolAtLocation(exportAssignmentDecl.Expression())
-		if exportSymbol == nil {
+		if exportSymbol.IsNil() {
 			continue
 		}
 		if exportSymbol.Flags()&ast.SymbolFlagsAlias != 0 {

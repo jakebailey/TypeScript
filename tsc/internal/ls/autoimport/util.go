@@ -20,7 +20,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/vfs/wrapvfs"
 )
 
-func tryGetModuleIDAndFileNameOfModuleSymbol(symbol *ast.Symbol) (ModuleID, tspath.RootedFilePath, bool) {
+func tryGetModuleIDAndFileNameOfModuleSymbol(symbol ast.Symbol) (ModuleID, tspath.RootedFilePath, bool) {
 	if !symbol.IsExternalModule() {
 		return ModuleID{}, "", false
 	}
@@ -37,7 +37,7 @@ func tryGetModuleIDAndFileNameOfModuleSymbol(symbol *ast.Symbol) (ModuleID, tspa
 	return ModuleID{}, "", false
 }
 
-func getModuleIDAndFileNameOfModuleSymbol(symbol *ast.Symbol) (ModuleID, tspath.RootedFilePath) {
+func getModuleIDAndFileNameOfModuleSymbol(symbol ast.Symbol) (ModuleID, tspath.RootedFilePath) {
 	if !symbol.IsExternalModule() {
 		panic("symbol is not an external module")
 	}
@@ -114,7 +114,7 @@ func getPackageNamesInNodeModules(nodeModulesDir tspath.RootedDirectoryPath, fs 
 	return packageNames
 }
 
-func getDefaultLikeExportNameFromDeclaration(symbol *ast.Symbol) ast.SymbolName {
+func getDefaultLikeExportNameFromDeclaration(symbol ast.Symbol) ast.SymbolName {
 	for _, d := range symbol.Declarations().All() {
 		// "export default" in this case. See `ExportAssignment`for more details.
 		if ast.IsExportAssignment(d) {
@@ -134,7 +134,7 @@ func getDefaultLikeExportNameFromDeclaration(symbol *ast.Symbol) ast.SymbolName 
 		if name := ast.GetNameOfDeclaration(d); !name.IsNil() && name.Kind() == ast.KindIdentifier {
 			return name.TextSymbolName()
 		}
-		if symbol.Parent() != nil && !checker.IsExternalModuleSymbol(symbol.Parent()) {
+		if !symbol.Parent().IsNil() && !checker.IsExternalModuleSymbol(symbol.Parent()) {
 			return symbol.Parent().Name()
 		}
 	}
@@ -164,7 +164,7 @@ func getResolvedPackageNames(ctx context.Context, program *compiler.Program) *co
 		checker, done := program.GetTypeChecker(ctx)
 		defer done()
 		for name := range unresolvedPackageNames.Keys() {
-			if symbol := checker.TryFindAmbientModule(name); symbol != nil {
+			if symbol := checker.TryFindAmbientModule(name); !symbol.IsNil() {
 				declaringFile := ast.GetSourceFileOfModule(symbol)
 				if packageName := modulespecifiers.GetPackageNameFromDirectory(tspath.RootedPath(declaringFile.FileName())); packageName != "" {
 					resolvedPackageNames.Add(module.GetPackageNameFromTypesPackageName(packageName))

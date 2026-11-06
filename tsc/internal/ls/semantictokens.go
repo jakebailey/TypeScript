@@ -255,7 +255,7 @@ func (l *LanguageService) collectSemanticTokensInRange(ctx context.Context, c *c
 
 		if (ast.IsIdentifier(node) || ast.IsPrivateIdentifier(node)) && node.Text() != "" && !inJSXElement && !isInImportClause(node) && !isInfinityOrNaNString(node.Text()) {
 			symbol := c.GetSymbolAtLocation(node)
-			if symbol != nil {
+			if !symbol.IsNil() {
 				// Resolve aliases
 				if symbol.Flags()&ast.SymbolFlagsAlias != 0 {
 					symbol = c.GetAliasedSymbol(symbol)
@@ -339,7 +339,7 @@ func (l *LanguageService) collectSemanticTokensInRange(ctx context.Context, c *c
 	return tokens
 }
 
-func classifySymbol(symbol *ast.Symbol, meaning ast.SemanticMeaning) (tokenType, bool) {
+func classifySymbol(symbol ast.Symbol, meaning ast.SemanticMeaning) (tokenType, bool) {
 	flags := symbol.Flags()
 	if flags&ast.SymbolFlagsClass != 0 {
 		return tokenTypeClass, true

@@ -16,13 +16,13 @@ type ReferenceResolver interface {
 }
 
 type ReferenceResolverHooks struct {
-	ResolveName                            func(location ast.Node, name ast.SymbolName, meaning ast.SymbolFlags, nameNotFoundMessage *diagnostics.Message, isUse bool, excludeGlobals bool) *ast.Symbol
-	GetResolvedSymbol                      func(ast.Node) *ast.Symbol
-	GetMergedSymbol                        func(*ast.Symbol) *ast.Symbol
-	GetParentOfSymbol                      func(*ast.Symbol) *ast.Symbol
-	GetSymbolOfDeclaration                 func(ast.Declaration) *ast.Symbol
-	GetTypeOnlyAliasDeclaration            func(symbol *ast.Symbol, include ast.SymbolFlags) ast.Declaration
-	GetExportSymbolOfValueSymbolIfExported func(*ast.Symbol) *ast.Symbol
+	ResolveName                            func(location ast.Node, name ast.SymbolName, meaning ast.SymbolFlags, nameNotFoundMessage *diagnostics.Message, isUse bool, excludeGlobals bool) ast.Symbol
+	GetResolvedSymbol                      func(ast.Node) ast.Symbol
+	GetMergedSymbol                        func(ast.Symbol) ast.Symbol
+	GetParentOfSymbol                      func(ast.Symbol) ast.Symbol
+	GetSymbolOfDeclaration                 func(ast.Declaration) ast.Symbol
+	GetTypeOnlyAliasDeclaration            func(symbol ast.Symbol, include ast.SymbolFlags) ast.Declaration
+	GetExportSymbolOfValueSymbolIfExported func(ast.Symbol) ast.Symbol
 	GetElementAccessExpressionName         func(ast.ElementAccessExpression) (ast.SymbolName, bool)
 }
 
@@ -41,48 +41,48 @@ func NewReferenceResolver(options *core.CompilerOptions, hooks ReferenceResolver
 	}
 }
 
-func (r *referenceResolver) getResolvedSymbol(node ast.Node) *ast.Symbol {
+func (r *referenceResolver) getResolvedSymbol(node ast.Node) ast.Symbol {
 	if !node.IsNil() {
 		if r.hooks.GetResolvedSymbol != nil {
 			return r.hooks.GetResolvedSymbol(node)
 		}
 	}
-	return nil
+	return ast.Symbol{}
 }
 
-func (r *referenceResolver) getMergedSymbol(symbol *ast.Symbol) *ast.Symbol {
-	if symbol != nil {
+func (r *referenceResolver) getMergedSymbol(symbol ast.Symbol) ast.Symbol {
+	if !symbol.IsNil() {
 		if r.hooks.GetMergedSymbol != nil {
 			return r.hooks.GetMergedSymbol(symbol)
 		}
 		return symbol
 	}
-	return nil
+	return ast.Symbol{}
 }
 
-func (r *referenceResolver) getParentOfSymbol(symbol *ast.Symbol) *ast.Symbol {
-	if symbol != nil {
+func (r *referenceResolver) getParentOfSymbol(symbol ast.Symbol) ast.Symbol {
+	if !symbol.IsNil() {
 		if r.hooks.GetParentOfSymbol != nil {
 			return r.hooks.GetParentOfSymbol(symbol)
 		}
 		return symbol.Parent()
 	}
-	return nil
+	return ast.Symbol{}
 }
 
-func (r *referenceResolver) getSymbolOfDeclaration(declaration ast.Declaration) *ast.Symbol {
+func (r *referenceResolver) getSymbolOfDeclaration(declaration ast.Declaration) ast.Symbol {
 	if !declaration.IsNil() {
 		if r.hooks.GetSymbolOfDeclaration != nil {
 			return r.hooks.GetSymbolOfDeclaration(declaration)
 		}
 		return declaration.Symbol()
 	}
-	return nil
+	return ast.Symbol{}
 }
 
-func (r *referenceResolver) getReferencedValueSymbol(reference ast.IdentifierNode, startInDeclarationContainer bool) *ast.Symbol {
+func (r *referenceResolver) getReferencedValueSymbol(reference ast.IdentifierNode, startInDeclarationContainer bool) ast.Symbol {
 	resolvedSymbol := r.getResolvedSymbol(reference)
-	if resolvedSymbol != nil {
+	if !resolvedSymbol.IsNil() {
 		return resolvedSymbol
 	}
 
@@ -104,8 +104,8 @@ func (r *referenceResolver) getReferencedValueSymbol(reference ast.IdentifierNod
 	return r.resolver.Resolve(location, reference.TextSymbolName(), ast.SymbolFlagsExportValue|ast.SymbolFlagsValue|ast.SymbolFlagsAlias, nil /*nameNotFoundMessage*/, false /*isUse*/, false /*excludeGlobals*/)
 }
 
-func (r *referenceResolver) isTypeOnlyAliasDeclaration(symbol *ast.Symbol) bool {
-	if symbol != nil {
+func (r *referenceResolver) isTypeOnlyAliasDeclaration(symbol ast.Symbol) bool {
+	if !symbol.IsNil() {
 		if r.hooks.GetTypeOnlyAliasDeclaration != nil {
 			return !r.hooks.GetTypeOnlyAliasDeclaration(symbol, ast.SymbolFlagsValue).IsNil()
 		}
@@ -131,21 +131,21 @@ func (r *referenceResolver) isTypeOnlyAliasDeclaration(symbol *ast.Symbol) bool 
 	return false
 }
 
-func (r *referenceResolver) getDeclarationOfAliasSymbol(symbol *ast.Symbol) ast.Declaration {
+func (r *referenceResolver) getDeclarationOfAliasSymbol(symbol ast.Symbol) ast.Declaration {
 	return symbol.Declarations().FindLast(ast.IsAliasSymbolDeclaration)
 }
 
-func (r *referenceResolver) getExportSymbolOfValueSymbolIfExported(symbol *ast.Symbol) *ast.Symbol {
-	if symbol != nil {
+func (r *referenceResolver) getExportSymbolOfValueSymbolIfExported(symbol ast.Symbol) ast.Symbol {
+	if !symbol.IsNil() {
 		if r.hooks.GetExportSymbolOfValueSymbolIfExported != nil {
 			return r.hooks.GetExportSymbolOfValueSymbolIfExported(symbol)
 		}
-		if symbol.Flags()&ast.SymbolFlagsExportValue != 0 && symbol.ExportSymbol() != nil {
+		if symbol.Flags()&ast.SymbolFlagsExportValue != 0 && !symbol.ExportSymbol().IsNil() {
 			symbol = symbol.ExportSymbol()
 		}
 		return r.getMergedSymbol(symbol)
 	}
-	return nil
+	return ast.Symbol{}
 }
 
 func (r *referenceResolver) GetReferencedExportContainer(node ast.IdentifierNode, prefixLocals bool) ast.Node /*SourceFile|ModuleDeclaration|EnumDeclaration*/ {
@@ -154,7 +154,7 @@ func (r *referenceResolver) GetReferencedExportContainer(node ast.IdentifierNode
 	// Otherwise, we could incorrectly resolve the export as the
 	// declaration if it contains an exported member with the same name.
 	startInDeclarationContainer := !node.Parent().IsNil() && (node.Parent().Kind() == ast.KindModuleDeclaration || node.Parent().Kind() == ast.KindEnumDeclaration) && node == node.Parent().Name()
-	if symbol := r.getReferencedValueSymbol(node, startInDeclarationContainer); symbol != nil {
+	if symbol := r.getReferencedValueSymbol(node, startInDeclarationContainer); !symbol.IsNil() {
 		if symbol.Flags()&ast.SymbolFlagsExportValue != 0 {
 			// If we reference an exported entity within the same module declaration, then whether
 			// we prefix depends on the kind of entity. SymbolFlags.ExportHasLocal encompasses all the
@@ -166,7 +166,7 @@ func (r *referenceResolver) GetReferencedExportContainer(node ast.IdentifierNode
 			symbol = exportSymbol
 		}
 		parentSymbol := r.getParentOfSymbol(symbol)
-		if parentSymbol != nil {
+		if !parentSymbol.IsNil() {
 			if parentSymbol.Flags()&ast.SymbolFlagsValueModule != 0 && !parentSymbol.ValueDeclaration().IsNil() && parentSymbol.ValueDeclaration().Kind() == ast.KindSourceFile {
 				symbolFile := parentSymbol.ValueDeclaration().AsSourceFile()
 				referenceFile := ast.GetSourceFileOfNode(node)
@@ -188,7 +188,7 @@ func (r *referenceResolver) GetReferencedExportContainer(node ast.IdentifierNode
 }
 
 func (r *referenceResolver) GetReferencedImportDeclaration(node ast.IdentifierNode) ast.Declaration {
-	if symbol := r.getReferencedValueSymbol(node, false /*startInDeclarationContainer*/); symbol != nil {
+	if symbol := r.getReferencedValueSymbol(node, false /*startInDeclarationContainer*/); !symbol.IsNil() {
 		// We should only get the declaration of an alias if there isn't a local value
 		// declaration for the symbol
 		if ast.IsNonLocalAlias(symbol, ast.SymbolFlagsValue /*excludes*/) && !r.isTypeOnlyAliasDeclaration(symbol) {
@@ -200,7 +200,7 @@ func (r *referenceResolver) GetReferencedImportDeclaration(node ast.IdentifierNo
 }
 
 func (r *referenceResolver) GetReferencedValueDeclaration(node ast.IdentifierNode) ast.Declaration {
-	if symbol := r.getReferencedValueSymbol(node, false /*startInDeclarationContainer*/); symbol != nil {
+	if symbol := r.getReferencedValueSymbol(node, false /*startInDeclarationContainer*/); !symbol.IsNil() {
 		return r.getExportSymbolOfValueSymbolIfExported(symbol).ValueDeclaration()
 	}
 	return ast.Node{}
@@ -208,7 +208,7 @@ func (r *referenceResolver) GetReferencedValueDeclaration(node ast.IdentifierNod
 
 func (r *referenceResolver) GetReferencedValueDeclarations(node ast.IdentifierNode) []ast.Declaration {
 	var declarations []ast.Declaration
-	if symbol := r.getReferencedValueSymbol(node, false /*startInDeclarationContainer*/); symbol != nil {
+	if symbol := r.getReferencedValueSymbol(node, false /*startInDeclarationContainer*/); !symbol.IsNil() {
 		symbol = r.getExportSymbolOfValueSymbolIfExported(symbol)
 		for _, declaration := range symbol.Declarations().All() {
 			switch declaration.Kind() {
@@ -251,11 +251,11 @@ func (r *referenceResolver) GetElementAccessExpressionName(expression ast.Elemen
 func (r *referenceResolver) GetReferencedMemberValueDeclaration(node ast.Node) ast.Declaration {
 	// member references are `this.something` or `this[something]`, so should always simply have a resolved symbol
 	s := r.getResolvedSymbol(node)
-	if s == nil && node.Symbol() != nil {
+	if s.IsNil() && !node.Symbol().IsNil() {
 		// might be a declaration instead of a ref, get the merged declaration symbol
 		s = r.getMergedSymbol(node.Symbol())
 	}
-	if s == nil {
+	if s.IsNil() {
 		return ast.Node{}
 	}
 	return r.getExportSymbolOfValueSymbolIfExported(s).ValueDeclaration()

@@ -29,7 +29,7 @@ func parseAndBind(t *testing.T, fileName string, text string) *ast.SourceFile {
 func newTestSnapshotData() *snapshotData {
 	return &snapshotData{
 		handle:                  1,
-		symbolRegistry:          make(map[SymbolID]*ast.Symbol),
+		symbolRegistry:          make(map[SymbolID]ast.Symbol),
 		symbolCanonicalProjects: make(map[SymbolID]project.Handle),
 	}
 }

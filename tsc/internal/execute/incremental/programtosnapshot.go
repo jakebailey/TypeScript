@@ -320,8 +320,8 @@ func fileAffectsGlobalScope(file *ast.SourceFile) bool {
 		})
 }
 
-func addReferencedFilesFromSymbol(file *ast.SourceFile, referencedFiles *collections.Set[tspath.PathKey], symbol *ast.Symbol) {
-	if symbol == nil {
+func addReferencedFilesFromSymbol(file *ast.SourceFile, referencedFiles *collections.Set[tspath.PathKey], symbol ast.Symbol) {
+	if symbol.IsNil() {
 		return
 	}
 	for _, declaration := range symbol.Declarations().All() {

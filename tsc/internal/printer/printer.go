@@ -143,7 +143,7 @@ type Printer struct {
 	makeFileLevelOptimisticUniqueName func(string) string
 	commentStateArena                 core.Arena[commentState]
 	sourceMapStateArena               core.Arena[sourceMapState]
-	IdToSymbol                        map[ast.IdentifierNode]*ast.Symbol
+	IdToSymbol                        map[ast.IdentifierNode]ast.Symbol
 }
 
 type detachedCommentsInfo struct {
@@ -314,8 +314,8 @@ func (p *Printer) setWriteKind(kind WriteKind) WriteKind {
 	return previous
 }
 
-func (p *Printer) writeSymbol(text string, optSymbol *ast.Symbol) {
-	if optSymbol == nil {
+func (p *Printer) writeSymbol(text string, optSymbol ast.Symbol) {
+	if optSymbol.IsNil() {
 		p.write(text)
 	} else {
 		p.writer.WriteSymbol(text, optSymbol)

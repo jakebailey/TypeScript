@@ -231,7 +231,7 @@ func (h *affectedFilesHandler) handleDtsMayChangeOfAffectedFile(dtsMayChange dts
 	var typeChecker *checker.Checker
 	var done func()
 	// If exported const enum, we need to ensure that js files are emitted as well since the const enum value changed
-	if affectedFile.Symbol() != nil {
+	if !affectedFile.Symbol().IsNil() {
 		for _, exported := range affectedFile.Symbol().Exports().All() {
 			if exported.Flags()&ast.SymbolFlagsConstEnum != 0 {
 				invalidateJsFiles = true

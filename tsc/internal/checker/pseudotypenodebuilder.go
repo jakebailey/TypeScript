@@ -69,7 +69,7 @@ func (b *NodeBuilderImpl) pseudoTypeToNode(t *pseudochecker.PseudoType) ast.Node
 		if ast.IsReturnStatement(node.Parent()) {
 			enclosing := ast.GetContainingFunction(node)
 			if ast.IsAccessor(enclosing) {
-				return b.serializeTypeForDeclaration(enclosing, nil, nil, false)
+				return b.serializeTypeForDeclaration(enclosing, nil, ast.Symbol{}, false)
 			}
 			return b.serializeReturnTypeForSignature(b.ch.getSignatureFromDeclaration(enclosing), false)
 		}
@@ -77,7 +77,7 @@ func (b *NodeBuilderImpl) pseudoTypeToNode(t *pseudochecker.PseudoType) ast.Node
 			return b.serializeReturnTypeForSignature(b.ch.getSignatureFromDeclaration(node.Parent()), false)
 		}
 		if ast.IsDeclaration(node.Parent()) {
-			return b.serializeTypeForDeclaration(node.Parent(), nil, nil, false)
+			return b.serializeTypeForDeclaration(node.Parent(), nil, ast.Symbol{}, false)
 		}
 		// This might be effectively unreachable. If it's not, it may need more widening rules to mirror checker behavior for whatever expressions are serialized here
 		ty := b.ch.getTypeOfExpression(node)
@@ -88,7 +88,7 @@ func (b *NodeBuilderImpl) pseudoTypeToNode(t *pseudochecker.PseudoType) ast.Node
 		if ast.IsFunctionLike(node) && !ast.IsAccessor(node) {
 			return b.serializeReturnTypeForSignature(b.ch.getSignatureFromDeclaration(node), false)
 		}
-		return b.serializeTypeForDeclaration(node, nil, nil, false)
+		return b.serializeTypeForDeclaration(node, nil, ast.Symbol{}, false)
 	case pseudochecker.PseudoTypeKindMaybeConstLocation:
 		d := t.AsPseudoTypeMaybeConstLocation()
 		// see checkExpressionWithContextualType for general literal widening rules which need to be emulated here, plus
@@ -431,12 +431,12 @@ func (b *NodeBuilderImpl) pseudoTypeEquivalentToType(t *pseudochecker.PseudoType
 			return false
 		}
 		for _, e := range pt.Elements {
-			var targetProp *ast.Symbol
+			var targetProp ast.Symbol
 			elemSymbol := e.Name.Parent().Symbol()
-			if elemSymbol != nil {
+			if !elemSymbol.IsNil() {
 				targetProp = b.ch.getPropertyOfType(undefinedStripped, elemSymbol.Name())
 			}
-			if targetProp == nil {
+			if targetProp.IsNil() {
 				// Name lookup failed or returned no result; search target properties
 				// for one whose declaration name node matches the one we have
 				for _, prop := range targetProps {
@@ -445,7 +445,7 @@ func (b *NodeBuilderImpl) pseudoTypeEquivalentToType(t *pseudochecker.PseudoType
 						break
 					}
 				}
-				if targetProp == nil {
+				if targetProp.IsNil() {
 					if reportErrors {
 						b.ctx.tracker.ReportInferenceFallback(e.Name.Parent())
 					}
@@ -583,12 +583,12 @@ func (b *NodeBuilderImpl) pseudoTypeEquivalentToType(t *pseudochecker.PseudoType
 }
 
 func (b *NodeBuilderImpl) pseudoParametersEquivalentToParameters(params []*pseudochecker.PseudoParameter, targetSig *Signature, reportErrors bool, nonParamErrorLocation ast.Node) bool {
-	if targetSig.ThisParameter() != nil && len(params) == 0 {
+	if !targetSig.ThisParameter().IsNil() && len(params) == 0 {
 		if reportErrors {
 			b.ctx.tracker.ReportInferenceFallback(nonParamErrorLocation) // missing `this` param
 		}
 		return false
-	} else if targetSig.ThisParameter() != nil && ast.IsThisIdentifier(params[0].Name) {
+	} else if !targetSig.ThisParameter().IsNil() && ast.IsThisIdentifier(params[0].Name) {
 		targetParam := targetSig.ThisParameter()
 		paramType := b.ch.getTypeOfParameter(targetParam)
 		if !b.pseudoTypeEquivalentToType(params[0].Type, paramType, params[0].Optional, false) {
@@ -598,7 +598,7 @@ func (b *NodeBuilderImpl) pseudoParametersEquivalentToParameters(params []*pseud
 			return false
 		}
 		params = params[1:]
-	} else if targetSig.ThisParameter() != nil {
+	} else if !targetSig.ThisParameter().IsNil() {
 		if reportErrors {
 			b.ctx.tracker.ReportInferenceFallback(nonParamErrorLocation)
 		}

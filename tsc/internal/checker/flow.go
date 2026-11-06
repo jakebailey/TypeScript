@@ -768,7 +768,7 @@ func (c *Checker) narrowTypeByConstructor(t *Type, operator ast.Kind, identifier
 	}
 	// Get the prototype property of the type identifier so we can find out its type.
 	prototypeProperty := c.getPropertyOfType(identifierType, ast.SymbolNamePrototype)
-	if prototypeProperty == nil {
+	if prototypeProperty.IsNil() {
 		return t
 	}
 	// Get the type of the prototype, if it is undefined, or the global `Object` or `Function` types then do not narrow.
@@ -796,7 +796,7 @@ func (c *Checker) isConstructedBy(source *Type, target *Type) bool {
 	// that defines the same set of properties as class `A`, in that case they are structurally the same
 	// type, but when you do something like `instanceOfA.constructor === B` it will return false.
 	if source.flags&TypeFlagsObject != 0 && source.objectFlags&ObjectFlagsClass != 0 || target.flags&TypeFlagsObject != 0 && target.objectFlags&ObjectFlagsClass != 0 {
-		return source.symbol == target.symbol
+		return source.Symbol() == target.Symbol()
 	}
 	// For all other types just check that the `source` type is a subtype of the `target` type.
 	return c.isTypeSubtypeOf(source, target)
@@ -984,7 +984,7 @@ func (c *Checker) narrowTypeByPrivateIdentifierInInExpression(f *FlowState, t *T
 		return t
 	}
 	symbol := c.getSymbolForPrivateIdentifierExpression(expr.Left())
-	if symbol == nil {
+	if symbol.IsNil() {
 		return t
 	}
 	classSymbol := symbol.Parent()
@@ -1013,7 +1013,7 @@ func (c *Checker) narrowTypeByInKeyword(f *FlowState, t *Type, nameType *Type, a
 		// If the check is for an unknown property, we intersect the target type with `Record<X, unknown>`,
 		// where X is the name of the property.
 		recordSymbol := c.getGlobalRecordSymbol()
-		if recordSymbol != nil {
+		if !recordSymbol.IsNil() {
 			return c.getIntersectionType([]*Type{t, c.getTypeAliasInstantiation(recordSymbol, []*Type{nameType, c.unknownType}, nil)})
 		}
 	}
@@ -1022,7 +1022,7 @@ func (c *Checker) narrowTypeByInKeyword(f *FlowState, t *Type, nameType *Type, a
 
 func (c *Checker) isTypePresencePossible(t *Type, propName ast.SymbolName, assumeTrue bool) bool {
 	prop := c.getPropertyOfType(t, propName)
-	if prop != nil {
+	if !prop.IsNil() {
 		return prop.Flags()&ast.SymbolFlagsOptional != 0 || prop.CheckFlags()&ast.CheckFlagsPartial != 0 || assumeTrue
 	}
 	return c.getApplicableIndexInfoForName(t, propName) != nil || !assumeTrue
@@ -1509,7 +1509,7 @@ func (c *Checker) getEvolvingArrayType(elementType *Type) *Type {
 	key := CachedTypeKey{kind: CachedTypeKindEvolvingArrayType, typeId: elementType.id}
 	result := c.cachedTypes[key]
 	if result == nil {
-		result = c.newObjectType(ObjectFlagsEvolvingArray, nil)
+		result = c.newObjectType(ObjectFlagsEvolvingArray, ast.Symbol{})
 		result.AsEvolvingArrayType().elementType = elementType
 		c.cachedTypes[key] = result
 	}
@@ -1681,7 +1681,7 @@ func (c *Checker) writeFlowCacheKey(b *keyBuilder, node ast.Node, declaredType *
 			if symbol == c.unknownSymbol {
 				return false
 			}
-			b.writeSymbol(symbol)
+			b.writeSymbol(c, symbol)
 		}
 		fallthrough
 	case ast.KindThisKeyword:
@@ -1721,7 +1721,7 @@ func (c *Checker) writeFlowCacheKey(b *keyBuilder, node ast.Node, declaredType *
 					return false
 				}
 				b.writeString(".@")
-				b.writeSymbol(symbol)
+				b.writeSymbol(c, symbol)
 				return true
 			}
 		}
@@ -1763,7 +1763,7 @@ func (c *Checker) tryGetElementAccessExpressionName(node ast.ElementAccessExpres
 
 func (c *Checker) tryGetNameFromEntityNameExpression(node ast.Node) (ast.SymbolName, bool) {
 	symbol := c.resolveEntityName(node, ast.SymbolFlagsValue, true /*ignoreErrors*/, false, ast.Node{})
-	if symbol == nil || !(c.isConstantVariable(symbol) || (symbol.Flags()&ast.SymbolFlagsEnumMember != 0)) {
+	if symbol.IsNil() || !(c.isConstantVariable(symbol) || (symbol.Flags()&ast.SymbolFlagsEnumMember != 0)) {
 		return ast.EmptySymbolName, false
 	}
 	declaration := symbol.ValueDeclaration()
@@ -1836,7 +1836,7 @@ func (c *Checker) isConstantReference(node ast.Node) bool {
 		// The resolvedSymbol property is initialized by checkPropertyAccess or checkElementAccess before we get here.
 		if c.isConstantReference(node.Expression()) {
 			symbol := c.getResolvedSymbolOrNil(node)
-			if symbol != nil {
+			if !symbol.IsNil() {
 				return c.isReadonlySymbol(symbol)
 			}
 		}
@@ -2106,7 +2106,7 @@ func (c *Checker) getSymbolHasInstanceMethodOfObjectType(t *Type) *Type {
 	hasInstancePropertyName := c.getPropertyNameForKnownSymbolName(ast.SymbolNameHasInstance)
 	if c.allTypesAssignableToKind(t, TypeFlagsNonPrimitive) {
 		hasInstanceProperty := c.getPropertyOfType(t, hasInstancePropertyName)
-		if hasInstanceProperty != nil {
+		if !hasInstanceProperty.IsNil() {
 			hasInstancePropertyType := c.getTypeOfSymbol(hasInstanceProperty)
 			if hasInstancePropertyType != nil && len(c.getSignaturesOfType(hasInstancePropertyType, SignatureKindCall)) != 0 {
 				return hasInstancePropertyType
@@ -2118,7 +2118,7 @@ func (c *Checker) getSymbolHasInstanceMethodOfObjectType(t *Type) *Type {
 
 func (c *Checker) getPropertyNameForKnownSymbolName(symbolName ast.SymbolName) ast.SymbolName {
 	ctorType := c.getGlobalESSymbolConstructorSymbolOrNil()
-	if ctorType != nil {
+	if !ctorType.IsNil() {
 		uniqueType := c.getTypeOfPropertyOfType(c.getTypeOfSymbol(ctorType), symbolName)
 		if uniqueType != nil && isTypeUsableAsPropertyName(uniqueType) {
 			return getPropertyNameFromType(uniqueType)
@@ -2145,15 +2145,15 @@ func (c *Checker) getTypeOfDottedName(node ast.Node, diagnostic *ast.Diagnostic)
 			t := c.getTypeOfDottedName(node.Expression(), diagnostic)
 			if t != nil {
 				name := node.Name()
-				var prop *ast.Symbol
+				var prop ast.Symbol
 				if ast.IsPrivateIdentifier(name) {
-					if t.symbol != nil {
-						prop = c.getPropertyOfType(t, binder.GetSymbolNameForPrivateIdentifier(t.symbol, name.Text()))
+					if !t.Symbol().IsNil() {
+						prop = c.getPropertyOfType(t, binder.GetSymbolNameForPrivateIdentifier(t.Symbol(), name.Text()))
 					}
 				} else {
 					prop = c.getPropertyOfType(t, name.TextSymbolName())
 				}
-				if prop != nil {
+				if !prop.IsNil() {
 					return c.getExplicitTypeOfSymbol(prop, diagnostic)
 				}
 			}
@@ -2164,7 +2164,7 @@ func (c *Checker) getTypeOfDottedName(node ast.Node, diagnostic *ast.Diagnostic)
 	return nil
 }
 
-func (c *Checker) getExplicitTypeOfSymbol(symbol *ast.Symbol, diagnostic *ast.Diagnostic) *Type {
+func (c *Checker) getExplicitTypeOfSymbol(symbol ast.Symbol, diagnostic *ast.Diagnostic) *Type {
 	symbol = c.resolveSymbol(symbol)
 	if !c.resolvingExplicitTypeOfSymbol.AddIfAbsent(symbol) {
 		return nil
@@ -2176,7 +2176,7 @@ func (c *Checker) getExplicitTypeOfSymbol(symbol *ast.Symbol, diagnostic *ast.Di
 	if symbol.Flags()&(ast.SymbolFlagsVariable|ast.SymbolFlagsProperty) != 0 {
 		if symbol.CheckFlags()&ast.CheckFlagsMapped != 0 {
 			origin := c.mappedSymbolLinks.Get(symbol).syntheticOrigin
-			if origin != nil && c.getExplicitTypeOfSymbol(origin, diagnostic) != nil {
+			if !origin.IsNil() && c.getExplicitTypeOfSymbol(origin, diagnostic) != nil {
 				return c.getTypeOfSymbol(symbol)
 			}
 		}
@@ -2228,7 +2228,7 @@ func (c *Checker) getExplicitThisType(node ast.Node) *Type {
 	container := ast.GetThisContainer(node, false /*includeArrowFunctions*/, false /*includeClassComputedPropertyName*/)
 	if ast.IsFunctionLike(container) {
 		signature := c.getSignatureFromDeclaration(container)
-		if signature.ThisParameter() != nil {
+		if !signature.ThisParameter().IsNil() {
 			return c.getExplicitTypeOfSymbol(signature.ThisParameter(), nil)
 		}
 	}
@@ -2475,7 +2475,7 @@ func (c *Checker) getTypePredicateArgument(predicate *TypePredicate, callExpress
 	return ast.Node{}
 }
 
-func (c *Checker) getFlowTypeInConstructor(symbol *ast.Symbol, constructor ast.Node) *Type {
+func (c *Checker) getFlowTypeInConstructor(symbol ast.Symbol, constructor ast.Node) *Type {
 	var accessName ast.Node
 	if description, ok := symbol.Name().PrivateNameDescription(); ok {
 		accessName = c.factory.NewPrivateIdentifier(description)
@@ -2497,7 +2497,7 @@ func (c *Checker) getFlowTypeInConstructor(symbol *ast.Symbol, constructor ast.N
 	return c.convertAutoToAny(flowType)
 }
 
-func (c *Checker) getFlowTypeInStaticBlocks(symbol *ast.Symbol, staticBlocks []ast.Node) *Type {
+func (c *Checker) getFlowTypeInStaticBlocks(symbol ast.Symbol, staticBlocks []ast.Node) *Type {
 	var accessName ast.Node
 	if description, ok := symbol.Name().PrivateNameDescription(); ok {
 		accessName = c.factory.NewPrivateIdentifier(description)
@@ -2664,26 +2664,26 @@ func (c *Checker) isPostSuperFlowNodeWorker(f *FlowState, flow ast.FlowNode, noC
 }
 
 // Check if a parameter, catch variable, or mutable local variable is definitely assigned anywhere
-func (c *Checker) isSymbolAssignedDefinitely(symbol *ast.Symbol) bool {
+func (c *Checker) isSymbolAssignedDefinitely(symbol ast.Symbol) bool {
 	c.ensureAssignmentsMarked(symbol)
 	return c.markedAssignmentSymbolLinks.Get(symbol).hasDefiniteAssignment
 }
 
 // Check if a parameter, catch variable, or mutable local variable is assigned anywhere
-func (c *Checker) isSymbolAssigned(symbol *ast.Symbol) bool {
+func (c *Checker) isSymbolAssigned(symbol ast.Symbol) bool {
 	c.ensureAssignmentsMarked(symbol)
 	return c.markedAssignmentSymbolLinks.Get(symbol).lastAssignmentPos != 0
 }
 
 // Return true if there are no assignments to the given symbol or if the given location
 // is past the last assignment to the symbol.
-func (c *Checker) isPastLastAssignment(symbol *ast.Symbol, location ast.Node) bool {
+func (c *Checker) isPastLastAssignment(symbol ast.Symbol, location ast.Node) bool {
 	c.ensureAssignmentsMarked(symbol)
 	lastAssignmentPos := c.markedAssignmentSymbolLinks.Get(symbol).lastAssignmentPos
 	return lastAssignmentPos == 0 || !location.IsNil() && int(lastAssignmentPos) < location.Pos()
 }
 
-func (c *Checker) ensureAssignmentsMarked(symbol *ast.Symbol) {
+func (c *Checker) ensureAssignmentsMarked(symbol ast.Symbol) {
 	parent := ast.FindAncestor(symbol.ValueDeclaration(), ast.IsFunctionOrSourceFile)
 	if parent.IsNil() {
 		return
@@ -2737,7 +2737,7 @@ func (c *Checker) markNodeAssignmentsWorker(node ast.Node) bool {
 		name := node.PropertyNameOrName()
 		if !node.IsTypeOnly() && !exportDeclaration.IsTypeOnly() && exportDeclaration.ModuleSpecifier().IsNil() && !ast.IsStringLiteral(name) {
 			symbol := c.resolveEntityName(name, ast.SymbolFlagsValue, true /*ignoreErrors*/, true /*dontResolveAlias*/, ast.Node{})
-			if symbol != nil && c.isParameterOrMutableLocalVariable(symbol) {
+			if !symbol.IsNil() && c.isParameterOrMutableLocalVariable(symbol) {
 				links := c.markedAssignmentSymbolLinks.Get(symbol)
 				links.lastAssignmentPos = math.MaxInt32
 			}

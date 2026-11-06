@@ -154,7 +154,7 @@ func (w *displayPartsWriter) WriteStringLiteral(text string) {
 	w.addRun(lsproto.ClassificationTypeNameString, text)
 }
 
-func (w *displayPartsWriter) WriteSymbol(text string, symbol *ast.Symbol) {
+func (w *displayPartsWriter) WriteSymbol(text string, symbol ast.Symbol) {
 	classification := classificationForSymbol(symbol)
 	w.addRun(classification, text)
 }
@@ -165,8 +165,8 @@ func (w *displayPartsWriter) WriteTrailingSemicolon(text string) {
 
 // classificationForSymbol determines the Roslyn classification type name based on a symbol's flags.
 // Matches the Strada translation chain: displayPartKind() → GetClassificationName().
-func classificationForSymbol(symbol *ast.Symbol) lsproto.ClassificationTypeName {
-	if symbol == nil {
+func classificationForSymbol(symbol ast.Symbol) lsproto.ClassificationTypeName {
+	if symbol.IsNil() {
 		return lsproto.ClassificationTypeNameText
 	}
 	flags := symbol.Flags()
@@ -208,7 +208,7 @@ func classificationForSymbol(symbol *ast.Symbol) lsproto.ClassificationTypeName 
 }
 
 // isFirstDeclarationOfSymbolParameter checks if the symbol's first declaration is a parameter.
-func isFirstDeclarationOfSymbolParameter(symbol *ast.Symbol) bool {
+func isFirstDeclarationOfSymbolParameter(symbol ast.Symbol) bool {
 	declarations := symbol.Declarations()
 	if declarations.Len() == 0 {
 		return false

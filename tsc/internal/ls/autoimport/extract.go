@@ -88,7 +88,7 @@ func (e *symbolExtractor) getModuleID(file *ast.SourceFile) ModuleID {
 
 // getModuleIDForSymbol returns the ModuleID for a module symbol, using realpath
 // normalization when available for source files.
-func (e *symbolExtractor) getModuleIDForSymbol(symbol *ast.Symbol) (ModuleID, bool) {
+func (e *symbolExtractor) getModuleIDForSymbol(symbol ast.Symbol) (ModuleID, bool) {
 	moduleID, fileName, ok := tryGetModuleIDAndFileNameOfModuleSymbol(symbol)
 	if !ok {
 		return ModuleID{}, false
@@ -104,7 +104,7 @@ func (e *symbolExtractor) getModuleIDForSymbol(symbol *ast.Symbol) (ModuleID, bo
 }
 
 func (e *exportExtractor) extractFromFile(file *ast.SourceFile) []*Export {
-	if file.Symbol() != nil {
+	if !file.Symbol().IsNil() {
 		return e.extractFromModule(file)
 	}
 	if len(file.AmbientModuleNames) > 0 {
@@ -181,7 +181,7 @@ func (e *exportExtractor) extractFromModuleDeclaration(decl ast.ModuleDeclaratio
 	}
 }
 
-func (e *symbolExtractor) extractFromSymbol(name ast.SymbolName, symbol *ast.Symbol, moduleID ModuleID, moduleFileName tspath.RootedFilePath, file *ast.SourceFile, exports *[]*Export) {
+func (e *symbolExtractor) extractFromSymbol(name ast.SymbolName, symbol ast.Symbol, moduleID ModuleID, moduleFileName tspath.RootedFilePath, file *ast.SourceFile, exports *[]*Export) {
 	if shouldIgnoreSymbol(symbol) {
 		return
 	}
@@ -205,7 +205,7 @@ func (e *symbolExtractor) extractFromSymbol(name ast.SymbolName, symbol *ast.Sym
 			export, _ := e.createExport(reexportedSymbol, moduleID, moduleFileName, ExportSyntaxStar, file, checkerLease)
 			if export != nil {
 				parent := checkerLease.GetChecker().GetMergedSymbol(reexportedSymbol.Parent())
-				if parent != nil && parent.IsExternalModule() {
+				if !parent.IsNil() && parent.IsExternalModule() {
 					if targetModuleID, ok := e.getModuleIDForSymbol(parent); ok {
 						export.Target = ExportID{
 							ExportName: reexportedSymbol.Name(),
@@ -229,7 +229,7 @@ func (e *symbolExtractor) extractFromSymbol(name ast.SymbolName, symbol *ast.Sym
 
 	*exports = append(*exports, export)
 
-	if target != nil {
+	if !target.IsNil() {
 		if syntax == ExportSyntaxEquals && target.Flags()&ast.SymbolFlagsNamespace != 0 {
 			*exports = slices.Grow(*exports, target.Exports().Len())
 			for innerName, namedExport := range target.Exports().All() {
@@ -263,9 +263,9 @@ func (e *symbolExtractor) extractFromSymbol(name ast.SymbolName, symbol *ast.Sym
 }
 
 // createExport creates an Export for the given symbol, returning the Export and the target symbol if the export is an alias.
-func (e *symbolExtractor) createExport(symbol *ast.Symbol, moduleID ModuleID, moduleFileName tspath.RootedFilePath, syntax ExportSyntax, file *ast.SourceFile, checkerLease *checkerLease) (*Export, *ast.Symbol) {
+func (e *symbolExtractor) createExport(symbol ast.Symbol, moduleID ModuleID, moduleFileName tspath.RootedFilePath, syntax ExportSyntax, file *ast.SourceFile, checkerLease *checkerLease) (*Export, ast.Symbol) {
 	if shouldIgnoreSymbol(symbol) {
-		return nil, nil
+		return nil, ast.Symbol{}
 	}
 
 	export := &Export{
@@ -283,15 +283,15 @@ func (e *symbolExtractor) createExport(symbol *ast.Symbol, moduleID ModuleID, mo
 		export.localName = symbol.Name()
 	}
 
-	var targetSymbol *ast.Symbol
+	var targetSymbol ast.Symbol
 	if symbol.Flags()&ast.SymbolFlagsAlias != 0 {
 		targetSymbol = e.tryResolveSymbol(symbol, syntax, checkerLease)
-		if targetSymbol != nil {
+		if !targetSymbol.IsNil() {
 			var decl ast.Node
 			if targetSymbol.Declarations().Len() > 0 {
 				decl = targetSymbol.Declarations().At(0)
 			} else if targetSymbol.CheckFlags()&ast.CheckFlagsMapped != 0 {
-				if mappedDecl := checkerLease.GetChecker().GetMappedTypeSymbolOfProperty(targetSymbol); mappedDecl != nil && mappedDecl.Declarations().Len() > 0 {
+				if mappedDecl := checkerLease.GetChecker().GetMappedTypeSymbolOfProperty(targetSymbol); !mappedDecl.IsNil() && mappedDecl.Declarations().Len() > 0 {
 					decl = mappedDecl.Declarations().At(0)
 				}
 			}
@@ -315,7 +315,7 @@ func (e *symbolExtractor) createExport(symbol *ast.Symbol, moduleID ModuleID, mo
 			export.ScriptElementKind = lsutil.GetSymbolKind(checkerLease.TryChecker(), targetSymbol, decl)
 			export.ScriptElementKindModifiers = lsutil.GetSymbolModifiers(checkerLease.TryChecker(), targetSymbol)
 			targetModuleID := fileModuleID(ast.GetSourceFileOfNode(decl).PathKey())
-			if parent != nil && parent.IsExternalModule() {
+			if !parent.IsNil() && parent.IsExternalModule() {
 				if id, ok := e.getModuleIDForSymbol(parent); ok {
 					targetModuleID = id
 				}
@@ -332,7 +332,7 @@ func (e *symbolExtractor) createExport(symbol *ast.Symbol, moduleID ModuleID, mo
 
 	if symbol.Name() == ast.InternalSymbolNameDefault || symbol.Name() == ast.InternalSymbolNameExportEquals {
 		namedSymbol := symbol
-		if s := binder.GetLocalSymbolForExportDefault(symbol); s != nil {
+		if s := binder.GetLocalSymbolForExportDefault(symbol); !s.IsNil() {
 			namedSymbol = s
 		}
 		export.localName = getDefaultLikeExportNameFromDeclaration(namedSymbol)
@@ -340,9 +340,9 @@ func (e *symbolExtractor) createExport(symbol *ast.Symbol, moduleID ModuleID, mo
 			export.localName = export.Target.ExportName
 		}
 		if isUnusableName(export.localName) {
-			if targetSymbol != nil {
+			if !targetSymbol.IsNil() {
 				namedSymbol = targetSymbol
-				if s := binder.GetLocalSymbolForExportDefault(targetSymbol); s != nil {
+				if s := binder.GetLocalSymbolForExportDefault(targetSymbol); !s.IsNil() {
 					namedSymbol = s
 				}
 				export.localName = getDefaultLikeExportNameFromDeclaration(namedSymbol)
@@ -357,7 +357,7 @@ func (e *symbolExtractor) createExport(symbol *ast.Symbol, moduleID ModuleID, mo
 	}
 
 	if isUnusableName(export.Name()) {
-		return nil, nil
+		return nil, ast.Symbol{}
 	}
 
 	e.stats.exports.Add(1)
@@ -368,7 +368,7 @@ func (e *symbolExtractor) createExport(symbol *ast.Symbol, moduleID ModuleID, mo
 	return export, targetSymbol
 }
 
-func (e *symbolExtractor) tryResolveSymbol(symbol *ast.Symbol, syntax ExportSyntax, checkerLease *checkerLease) *ast.Symbol {
+func (e *symbolExtractor) tryResolveSymbol(symbol ast.Symbol, syntax ExportSyntax, checkerLease *checkerLease) ast.Symbol {
 	if !ast.IsNonLocalAlias(symbol, ast.SymbolFlagsNone) {
 		return symbol
 	}
@@ -400,7 +400,7 @@ func (e *symbolExtractor) tryResolveSymbol(symbol *ast.Symbol, syntax ExportSynt
 
 	if !loc.IsNil() {
 		local := e.localNameResolver.Resolve(loc, ast.MakeSymbolName(name), ast.SymbolFlagsAll, nil, false, false)
-		if local != nil && !ast.IsNonLocalAlias(local, ast.SymbolFlagsNone) {
+		if !local.IsNil() && !ast.IsNonLocalAlias(local, ast.SymbolFlagsNone) {
 			return local
 		}
 	}
@@ -409,17 +409,17 @@ func (e *symbolExtractor) tryResolveSymbol(symbol *ast.Symbol, syntax ExportSynt
 	if resolved := checker.GetAliasedSymbol(symbol); !checker.IsUnknownSymbol(resolved) {
 		return resolved
 	}
-	return nil
+	return ast.Symbol{}
 }
 
-func shouldIgnoreSymbol(symbol *ast.Symbol) bool {
+func shouldIgnoreSymbol(symbol ast.Symbol) bool {
 	if symbol.Flags()&ast.SymbolFlagsPrototype != 0 {
 		return true
 	}
 	return false
 }
 
-func getSyntax(symbol *ast.Symbol) ExportSyntax {
+func getSyntax(symbol ast.Symbol) ExportSyntax {
 	for _, decl := range symbol.Declarations().All() {
 		switch decl.Kind() {
 		case ast.KindExportSpecifier:
@@ -463,8 +463,8 @@ func isUnusableName(name ast.SymbolName) bool {
 // source file (closest to the export origin), falls back to the module's original
 // file name, and uses the lowercased moduleID only for ambient modules where no
 // original file name is available.
-func fileNameForDefaultExportName(targetSymbol *ast.Symbol, moduleFileName tspath.RootedFilePath, moduleID ModuleID) string {
-	if targetSymbol != nil && targetSymbol.Declarations().Len() > 0 {
+func fileNameForDefaultExportName(targetSymbol ast.Symbol, moduleFileName tspath.RootedFilePath, moduleID ModuleID) string {
+	if !targetSymbol.IsNil() && targetSymbol.Declarations().Len() > 0 {
 		if fn := ast.GetSourceFileOfNode(targetSymbol.Declarations().At(0)).FileName(); fn != "" {
 			return fn.AsString()
 		}

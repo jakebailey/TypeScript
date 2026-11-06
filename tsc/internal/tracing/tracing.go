@@ -35,8 +35,8 @@ type TracedType interface {
 	Id() uint32
 	FormatFlags() []string
 	IsConditional() bool
-	Symbol() *ast.Symbol
-	AliasSymbol() *ast.Symbol
+	Symbol() ast.Symbol
+	AliasSymbol() ast.Symbol
 	AliasTypeArguments() []TracedType
 
 	// Type-specific data accessors
@@ -604,9 +604,9 @@ func (t *typeTracer) buildTypeDescriptor(typ TracedType, recursionIdentityMap ma
 	}
 
 	// Symbol name - escape the internal symbol name prefix for valid JSON
-	if sym := aliasSymbol; sym != nil {
+	if sym := aliasSymbol; !sym.IsNil() {
 		desc.SymbolName = ast.EscapeAllInternalSymbolNames(sym.Name().String())
-	} else if symbol != nil {
+	} else if !symbol.IsNil() {
 		desc.SymbolName = ast.EscapeAllInternalSymbolNames(symbol.Name().String())
 	}
 
@@ -708,10 +708,10 @@ func (t *typeTracer) buildTypeDescriptor(typ TracedType, recursionIdentityMap ma
 
 	// First declaration - prefer aliasSymbol, matching TypeScript's `aliasSymbol ?? symbol`
 	firstDeclSymbol := aliasSymbol
-	if firstDeclSymbol == nil {
+	if firstDeclSymbol.IsNil() {
 		firstDeclSymbol = symbol
 	}
-	if firstDeclSymbol != nil && firstDeclSymbol.Declarations().Len() > 0 {
+	if !firstDeclSymbol.IsNil() && firstDeclSymbol.Declarations().Len() > 0 {
 		desc.FirstDeclaration = getLocation(firstDeclSymbol.Declarations().At(0))
 	}
 

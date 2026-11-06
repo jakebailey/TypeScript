@@ -5,18 +5,10 @@ import (
 	"slices"
 	"strings"
 	"sync"
-	"sync/atomic"
 
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
-)
-
-// Atomic ids
-
-var (
-	nextSymbolId      atomic.Uint64
-	nextSymbolBlockId atomic.Uint64
 )
 
 // GetNodeId returns the node's id: its store's serial and its index there,
@@ -29,44 +21,6 @@ func GetNodeId(node Node) NodeId {
 	return NodeId(uint64(node.s.serialNumber())<<32 | uint64(node.node))
 }
 
-func GetSymbolId(symbol *Symbol) SymbolId {
-	id := symbol.id.Load()
-	if id == 0 {
-		// Worst case, we burn a few ids if we have to CAS.
-		id = nextSymbolId.Add(1)
-		if !symbol.id.CompareAndSwap(0, id) {
-			id = symbol.id.Load()
-		}
-	}
-	return SymbolId(id)
-}
-
-const (
-	BlockIdOffset = 0x1_0000_0000_0000
-	BlockIdSize   = core.LinkPageSize
-)
-
-type SymbolIdGenerator struct {
-	nextId uint64
-	lastId uint64
-}
-
-func (a *SymbolIdGenerator) GetSymbolId(symbol *Symbol) SymbolId {
-	id := symbol.id.Load()
-	if id == 0 {
-		if a.nextId == a.lastId {
-			a.nextId = nextSymbolBlockId.Add(BlockIdSize) - BlockIdSize
-			a.lastId = a.nextId + BlockIdSize
-		}
-		id = a.nextId + BlockIdOffset
-		a.nextId++
-		if !symbol.id.CompareAndSwap(0, id) {
-			id = symbol.id.Load()
-		}
-	}
-	return SymbolId(id)
-}
-
 func GetSymbolTable(data *SymbolTable) SymbolTable {
 	if *data == nil {
 		*data = NewSymbolTable()
@@ -74,12 +28,22 @@ func GetSymbolTable(data *SymbolTable) SymbolTable {
 	return *data
 }
 
-func GetMembers(symbol *Symbol, arena *SymbolExtraArena) SymbolTable {
-	return GetSymbolTable(&symbol.ensureExtra(arena).members)
+func GetMembers(symbol Symbol) SymbolTable {
+	members := symbol.Members()
+	if members == nil {
+		members = NewSymbolTable()
+		symbol.SetMembers(members)
+	}
+	return members
 }
 
-func GetExports(symbol *Symbol, arena *SymbolExtraArena) SymbolTable {
-	return GetSymbolTable(&symbol.ensureExtra(arena).exports)
+func GetExports(symbol Symbol) SymbolTable {
+	exports := symbol.Exports()
+	if exports == nil {
+		exports = NewSymbolTable()
+		symbol.SetExports(exports)
+	}
+	return exports
 }
 
 func GetLocals(container Node) SymbolTable {
@@ -2607,7 +2571,7 @@ func IsParameterLike(node Node) bool {
 	return false
 }
 
-func GetDeclarationOfKind(symbol *Symbol, kind Kind) Node {
+func GetDeclarationOfKind(symbol Symbol, kind Kind) Node {
 	for _, declaration := range symbol.Declarations().All() {
 		if declaration.Kind() == kind {
 			return declaration
@@ -2726,8 +2690,8 @@ func GetDeclarationContainer(node Node) Node {
 
 // Indicates that a symbol is an alias that does not merge with a local declaration.
 // OR Is a JSContainer which may merge an alias with a local declaration
-func IsNonLocalAlias(symbol *Symbol, excludes SymbolFlags) bool {
-	if symbol == nil {
+func IsNonLocalAlias(symbol Symbol, excludes SymbolFlags) bool {
+	if symbol.IsNil() {
 		return false
 	}
 	return symbol.Flags()&(SymbolFlagsAlias|excludes) == SymbolFlagsAlias ||
@@ -3063,7 +3027,7 @@ func IsExclusivelyTypeOnlyImportOrExport(node Node) bool {
 	return false
 }
 
-func GetClassLikeDeclarationOfSymbol(symbol *Symbol) Node {
+func GetClassLikeDeclarationOfSymbol(symbol Symbol) Node {
 	return symbol.Declarations().Find(IsClassLike)
 }
 
@@ -3682,7 +3646,7 @@ func IsExternalModuleAugmentation(node Node) bool {
 	return IsAmbientModule(node) && IsModuleAugmentationExternal(node)
 }
 
-func GetSourceFileOfModule(module *Symbol) *SourceFile {
+func GetSourceFileOfModule(module Symbol) *SourceFile {
 	declaration := module.ValueDeclaration()
 	if declaration.IsNil() {
 		declaration = GetNonAugmentationDeclaration(module)
@@ -3690,7 +3654,7 @@ func GetSourceFileOfModule(module *Symbol) *SourceFile {
 	return GetSourceFileOfNode(declaration)
 }
 
-func GetNonAugmentationDeclaration(symbol *Symbol) Node {
+func GetNonAugmentationDeclaration(symbol Symbol) Node {
 	return symbol.Declarations().Find(func(d Node) bool {
 		return !IsExternalModuleAugmentation(d) && !IsGlobalScopeAugmentation(d)
 	})

@@ -90,13 +90,13 @@ func (a *tracedTypeAdapter) IsConditional() bool {
 	return a.t.flags&TypeFlagsConditional != 0
 }
 
-func (a *tracedTypeAdapter) Symbol() *ast.Symbol {
-	return a.t.symbol
+func (a *tracedTypeAdapter) Symbol() ast.Symbol {
+	return a.t.Symbol()
 }
 
-func (a *tracedTypeAdapter) AliasSymbol() *ast.Symbol {
+func (a *tracedTypeAdapter) AliasSymbol() ast.Symbol {
 	if a.t.alias == nil {
-		return nil
+		return ast.Symbol{}
 	}
 	return a.t.alias.Symbol()
 }

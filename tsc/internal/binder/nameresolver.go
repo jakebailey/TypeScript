@@ -8,22 +8,22 @@ import (
 
 type NameResolver struct {
 	CompilerOptions                  *core.CompilerOptions
-	GetSymbolOfDeclaration           func(node ast.Node) *ast.Symbol
+	GetSymbolOfDeclaration           func(node ast.Node) ast.Symbol
 	Error                            func(location ast.Node, message *diagnostics.Message, args ...any) *ast.Diagnostic
 	Globals                          ast.SymbolTable
-	ArgumentsSymbol                  *ast.Symbol
-	RequireSymbol                    *ast.Symbol
-	Lookup                           func(symbols ast.SymbolTable, name ast.SymbolName, meaning ast.SymbolFlags) *ast.Symbol
-	SymbolReferenced                 func(symbol *ast.Symbol, meaning ast.SymbolFlags)
+	ArgumentsSymbol                  ast.Symbol
+	RequireSymbol                    ast.Symbol
+	Lookup                           func(symbols ast.SymbolTable, name ast.SymbolName, meaning ast.SymbolFlags) ast.Symbol
+	SymbolReferenced                 func(symbol ast.Symbol, meaning ast.SymbolFlags)
 	SetRequiresScopeChangeCache      func(node ast.Node, value core.Tristate)
 	GetRequiresScopeChangeCache      func(node ast.Node) core.Tristate
-	OnPropertyWithInvalidInitializer func(location ast.Node, name ast.SymbolName, declaration ast.Node, result *ast.Symbol) bool
+	OnPropertyWithInvalidInitializer func(location ast.Node, name ast.SymbolName, declaration ast.Node, result ast.Symbol) bool
 	OnFailedToResolveSymbol          func(location ast.Node, name ast.SymbolName, meaning ast.SymbolFlags, nameNotFoundMessage *diagnostics.Message)
-	OnSuccessfullyResolvedSymbol     func(location ast.Node, result *ast.Symbol, meaning ast.SymbolFlags, lastLocation ast.Node, associatedDeclarationForContainingInitializerOrBindingName ast.Node, withinDeferredContext bool)
+	OnSuccessfullyResolvedSymbol     func(location ast.Node, result ast.Symbol, meaning ast.SymbolFlags, lastLocation ast.Node, associatedDeclarationForContainingInitializerOrBindingName ast.Node, withinDeferredContext bool)
 }
 
-func (r *NameResolver) Resolve(location ast.Node, name ast.SymbolName, meaning ast.SymbolFlags, nameNotFoundMessage *diagnostics.Message, isUse bool, excludeGlobals bool) *ast.Symbol {
-	var result *ast.Symbol
+func (r *NameResolver) Resolve(location ast.Node, name ast.SymbolName, meaning ast.SymbolFlags, nameNotFoundMessage *diagnostics.Message, isUse bool, excludeGlobals bool) ast.Symbol {
+	var result ast.Symbol
 	var lastLocation ast.Node
 	var lastSelfReferenceLocation ast.Node
 	var propertyWithInvalidInitializer ast.Node
@@ -37,7 +37,7 @@ loop:
 		if nameIsConst && ast.IsConstAssertion(location) {
 			// `const` in an `as const` has no symbol, but issues no error because there is no *actual* lookup of the type
 			// (it refers to the constant type of the expression instead)
-			return nil
+			return ast.Symbol{}
 		}
 		if ast.IsModuleOrEnumDeclaration(location) && !lastLocation.IsNil() && location.Name() == lastLocation {
 			// If lastLocation is the name of a namespace or enum, skip the parent since it will have is own locals that could
@@ -52,7 +52,7 @@ loop:
 		// Locals of a source file are not in scope (because they get merged into the global symbol table)
 		if locals != nil && !ast.IsGlobalSourceFile(location) {
 			result = r.lookup(locals, name, meaning)
-			if result != nil {
+			if !result.IsNil() {
 				useResult := true
 				if isModuleAttributes {
 					useResult = false
@@ -96,7 +96,7 @@ loop:
 				if useResult {
 					break loop
 				}
-				result = nil
+				result = ast.Symbol{}
 			}
 		}
 		withinDeferredContext = withinDeferredContext || getIsDeferredContext(location, lastLocation)
@@ -111,7 +111,7 @@ loop:
 				break
 			}
 			moduleSymbol := r.getSymbolOfDeclaration(location)
-			if moduleSymbol == nil {
+			if moduleSymbol.IsNil() {
 				break
 			}
 			moduleExports := moduleSymbol.Exports()
@@ -119,12 +119,12 @@ loop:
 				// It's an external module. First see if the module has an export default and if the local
 				// name of that export default matches.
 				result = moduleExports.Get(ast.InternalSymbolNameDefault)
-				if result != nil {
+				if !result.IsNil() {
 					localSymbol := GetLocalSymbolForExportDefault(result)
-					if localSymbol != nil && result.Flags()&meaning != 0 && localSymbol.Name() == name {
+					if !localSymbol.IsNil() && result.Flags()&meaning != 0 && localSymbol.Name() == name {
 						break loop
 					}
-					result = nil
+					result = ast.Symbol{}
 				}
 				// Because of module/namespace merging, a module's exports are in scope,
 				// yet we never want to treat an export specifier as putting a member in scope.
@@ -138,14 +138,14 @@ loop:
 				//        an alias. If we used &, we'd be throwing out symbols that have non alias aspects,
 				//        which is not the desired behavior.
 				moduleExport := moduleExports.Get(name)
-				if moduleExport != nil && moduleExport.Flags() == ast.SymbolFlagsAlias && (!ast.GetDeclarationOfKind(moduleExport, ast.KindExportSpecifier).IsNil() || !ast.GetDeclarationOfKind(moduleExport, ast.KindNamespaceExport).IsNil()) {
+				if !moduleExport.IsNil() && moduleExport.Flags() == ast.SymbolFlagsAlias && (!ast.GetDeclarationOfKind(moduleExport, ast.KindExportSpecifier).IsNil() || !ast.GetDeclarationOfKind(moduleExport, ast.KindNamespaceExport).IsNil()) {
 					break
 				}
 			}
 			if name != ast.InternalSymbolNameDefault {
-				if result = r.lookup(moduleExports, name, meaning&ast.SymbolFlagsModuleMember); result != nil {
+				if result = r.lookup(moduleExports, name, meaning&ast.SymbolFlagsModuleMember); !result.IsNil() {
 					if ast.IsSourceFile(location) && !location.AsSourceFile().CommonJSModuleIndicator.IsNil() && result.Flags()&ast.SymbolFlagsType == 0 {
-						result = nil
+						result = ast.Symbol{}
 					} else {
 						break loop
 					}
@@ -153,11 +153,11 @@ loop:
 			}
 		case ast.KindEnumDeclaration:
 			enumSymbol := r.getSymbolOfDeclaration(location)
-			if enumSymbol == nil {
+			if enumSymbol.IsNil() {
 				break
 			}
 			result = r.lookup(enumSymbol.Exports(), name, meaning&ast.SymbolFlagsEnumMember)
-			if result != nil {
+			if !result.IsNil() {
 				if nameNotFoundMessage != nil && r.CompilerOptions.GetIsolatedModules() && location.Flags()&ast.NodeFlagsAmbient == 0 && ast.GetSourceFileOfNode(location) != ast.GetSourceFileOfNode(result.ValueDeclaration()) {
 					isolatedModulesLikeFlagName := core.IfElse(r.CompilerOptions.VerbatimModuleSyntax == core.TSTrue, "verbatimModuleSyntax", "isolatedModules")
 					r.error(originalLocation, diagnostics.Cannot_access_0_from_another_file_without_qualification_when_1_is_enabled_Use_2_instead,
@@ -169,7 +169,7 @@ loop:
 			if !ast.IsStatic(location) {
 				ctor := ast.FindConstructorDeclaration(location.Parent())
 				if !ctor.IsNil() && ctor.Locals() != nil {
-					if r.lookup(ctor.Locals(), name, meaning&ast.SymbolFlagsValue) != nil {
+					if !r.lookup(ctor.Locals(), name, meaning&ast.SymbolFlagsValue).IsNil() {
 						// Remember the property node, it will be used later to report appropriate error
 						propertyWithInvalidInitializer = location
 					}
@@ -177,10 +177,10 @@ loop:
 			}
 		case ast.KindClassDeclaration, ast.KindClassExpression, ast.KindInterfaceDeclaration:
 			result = r.lookup(r.getSymbolOfDeclaration(location).Members(), name, meaning&ast.SymbolFlagsType)
-			if result != nil {
+			if !result.IsNil() {
 				if !isTypeParameterSymbolDeclaredInContainer(result, location) {
 					// ignore type parameters not declared in this container
-					result = nil
+					result = ast.Symbol{}
 					break
 				}
 				if !lastLocation.IsNil() && ast.IsStatic(lastLocation) {
@@ -190,7 +190,7 @@ loop:
 					if nameNotFoundMessage != nil {
 						r.error(originalLocation, diagnostics.Static_members_cannot_reference_class_type_parameters)
 					}
-					return nil
+					return ast.Symbol{}
 				}
 				break loop
 			}
@@ -206,11 +206,11 @@ loop:
 				container := location.Parent().Parent()
 				if ast.IsClassLike(container) {
 					result = r.lookup(r.getSymbolOfDeclaration(container).Members(), name, meaning&ast.SymbolFlagsType)
-					if result != nil {
+					if !result.IsNil() {
 						if nameNotFoundMessage != nil {
 							r.error(originalLocation, diagnostics.Base_class_expressions_cannot_reference_class_type_parameters)
 						}
-						return nil
+						return ast.Symbol{}
 					}
 				}
 			}
@@ -226,11 +226,11 @@ loop:
 			if ast.IsClassLike(grandparent) || ast.IsInterfaceDeclaration(grandparent) {
 				// A reference to this grandparent's type parameters would be an error
 				result = r.lookup(r.getSymbolOfDeclaration(grandparent).Members(), name, meaning&ast.SymbolFlagsType)
-				if result != nil {
+				if !result.IsNil() {
 					if nameNotFoundMessage != nil {
 						r.error(originalLocation, diagnostics.A_computed_property_name_cannot_reference_a_type_parameter_from_its_containing_type)
 					}
-					return nil
+					return ast.Symbol{}
 				}
 			}
 		case ast.KindMethodDeclaration, ast.KindConstructor, ast.KindGetAccessor, ast.KindSetAccessor, ast.KindFunctionDeclaration:
@@ -319,15 +319,15 @@ loop:
 	// We just climbed up parents looking for the name, meaning that we started in a descendant node of `lastLocation`.
 	// If `result === lastSelfReferenceLocation.symbol`, that means that we are somewhere inside `lastSelfReferenceLocation` looking up a name, and resolving to `lastLocation` itself.
 	// That means that this is a self-reference of `lastLocation`, and shouldn't count this when considering whether `lastLocation` is used.
-	if isUse && result != nil && (lastSelfReferenceLocation.IsNil() || result != lastSelfReferenceLocation.Symbol()) {
+	if isUse && !result.IsNil() && (lastSelfReferenceLocation.IsNil() || result != lastSelfReferenceLocation.Symbol()) {
 		if r.SymbolReferenced != nil {
 			r.SymbolReferenced(result, meaning)
 		}
 	}
-	if result == nil && !excludeGlobals {
+	if result.IsNil() && !excludeGlobals {
 		result = r.lookup(r.Globals, name, meaning|ast.SymbolFlagsGlobalLookup)
 	}
-	if result == nil {
+	if result.IsNil() {
 		if !originalLocation.IsNil() && ast.IsInJSFile(originalLocation) && !originalLocation.Parent().IsNil() {
 			if ast.IsRequireCall(originalLocation.Parent(), false /*requireStringLiteralLikeArgument*/) {
 				return r.RequireSymbol
@@ -336,9 +336,9 @@ loop:
 	}
 	if nameNotFoundMessage != nil {
 		if !propertyWithInvalidInitializer.IsNil() && r.OnPropertyWithInvalidInitializer != nil && r.OnPropertyWithInvalidInitializer(originalLocation, name, propertyWithInvalidInitializer, result) {
-			return nil
+			return ast.Symbol{}
 		}
-		if result == nil {
+		if result.IsNil() {
 			if r.OnFailedToResolveSymbol != nil {
 				r.OnFailedToResolveSymbol(originalLocation, name, meaning, nameNotFoundMessage)
 			}
@@ -351,7 +351,7 @@ loop:
 	return result
 }
 
-func (r *NameResolver) useOuterVariableScopeInParameter(result *ast.Symbol, location ast.Node, lastLocation ast.Node) bool {
+func (r *NameResolver) useOuterVariableScopeInParameter(result ast.Symbol, location ast.Node, lastLocation ast.Node) bool {
 	if ast.IsParameterDeclaration(lastLocation) {
 		body := location.Body()
 		if !body.IsNil() && !result.ValueDeclaration().IsNil() && result.ValueDeclaration().Pos() >= body.Pos() && result.ValueDeclaration().End() <= body.End() {
@@ -414,7 +414,7 @@ func (r *NameResolver) error(location ast.Node, message *diagnostics.Message, ar
 	// Default implementation does not report errors
 }
 
-func (r *NameResolver) getSymbolOfDeclaration(node ast.Node) *ast.Symbol {
+func (r *NameResolver) getSymbolOfDeclaration(node ast.Node) ast.Symbol {
 	if r.GetSymbolOfDeclaration != nil {
 		return r.GetSymbolOfDeclaration(node)
 	}
@@ -423,24 +423,24 @@ func (r *NameResolver) getSymbolOfDeclaration(node ast.Node) *ast.Symbol {
 	return node.Symbol()
 }
 
-func (r *NameResolver) lookup(symbols ast.SymbolTable, name ast.SymbolName, meaning ast.SymbolFlags) *ast.Symbol {
+func (r *NameResolver) lookup(symbols ast.SymbolTable, name ast.SymbolName, meaning ast.SymbolFlags) ast.Symbol {
 	if r.Lookup != nil {
 		return r.Lookup(symbols, name, meaning)
 	}
 	// Default implementation does not support following aliases or merged symbols
 	if meaning != 0 {
 		symbol := symbols.Get(name)
-		if symbol != nil {
+		if !symbol.IsNil() {
 			if symbol.Flags()&meaning != 0 {
 				return symbol
 			}
 		}
 	}
-	return nil
+	return ast.Symbol{}
 }
 
-func (r *NameResolver) argumentsSymbol() *ast.Symbol {
-	if r.ArgumentsSymbol == nil {
+func (r *NameResolver) argumentsSymbol() ast.Symbol {
+	if r.ArgumentsSymbol.IsNil() {
 		// Default implementation synthesizes a transient symbol for `arguments`
 		r.ArgumentsSymbol = ast.NewSymbol()
 		r.ArgumentsSymbol.SetName(ast.SymbolNameArguments)
@@ -449,21 +449,21 @@ func (r *NameResolver) argumentsSymbol() *ast.Symbol {
 	return r.ArgumentsSymbol
 }
 
-func GetLocalSymbolForExportDefault(symbol *ast.Symbol) *ast.Symbol {
+func GetLocalSymbolForExportDefault(symbol ast.Symbol) ast.Symbol {
 	if !isExportDefaultSymbol(symbol) || symbol.Declarations().Len() == 0 {
-		return nil
+		return ast.Symbol{}
 	}
 	for _, decl := range symbol.Declarations().All() {
 		localSymbol := decl.LocalSymbol()
-		if localSymbol != nil {
+		if !localSymbol.IsNil() {
 			return localSymbol
 		}
 	}
-	return nil
+	return ast.Symbol{}
 }
 
-func isExportDefaultSymbol(symbol *ast.Symbol) bool {
-	return symbol != nil && symbol.Declarations().Len() > 0 && ast.HasSyntacticModifier(symbol.Declarations().At(0), ast.ModifierFlagsDefault)
+func isExportDefaultSymbol(symbol ast.Symbol) bool {
+	return !symbol.IsNil() && symbol.Declarations().Len() > 0 && ast.HasSyntacticModifier(symbol.Declarations().At(0), ast.ModifierFlagsDefault)
 }
 
 func getIsDeferredContext(location ast.Node, lastLocation ast.Node) bool {
@@ -484,7 +484,7 @@ func getIsDeferredContext(location ast.Node, lastLocation ast.Node) bool {
 	return ast.GetImmediatelyInvokedFunctionExpression(location).IsNil()
 }
 
-func isTypeParameterSymbolDeclaredInContainer(symbol *ast.Symbol, container ast.Node) bool {
+func isTypeParameterSymbolDeclaredInContainer(symbol ast.Symbol, container ast.Node) bool {
 	for _, decl := range symbol.Declarations().All() {
 		if decl.Kind() == ast.KindTypeParameter {
 			parent := decl.Parent()

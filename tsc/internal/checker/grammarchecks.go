@@ -109,7 +109,7 @@ func (c *Checker) checkGrammarPrivateIdentifierExpression(privId ast.PrivateIden
 		}
 
 		isInOperation := ast.IsBinaryExpression(privId.Parent()) && privId.Parent().AsBinaryExpression().OperatorToken().Kind() == ast.KindInKeyword
-		if c.getSymbolForPrivateIdentifierExpression(privIdAsNode) == nil && !isInOperation {
+		if c.getSymbolForPrivateIdentifierExpression(privIdAsNode).IsNil() && !isInOperation {
 			return c.grammarErrorOnNode(privIdAsNode, diagnostics.Cannot_find_name_0, privId.Text())
 		}
 	}

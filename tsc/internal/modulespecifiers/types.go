@@ -18,8 +18,8 @@ type SourceFileForSpecifierGeneration interface {
 }
 
 type CheckerShape interface {
-	GetSymbolAtLocation(node ast.Node) *ast.Symbol
-	GetAliasedSymbol(symbol *ast.Symbol) *ast.Symbol
+	GetSymbolAtLocation(node ast.Node) ast.Symbol
+	GetAliasedSymbol(symbol ast.Symbol) ast.Symbol
 }
 
 type ResultKind uint8
@@ -36,7 +36,7 @@ const (
 type ModuleSpecifiersResult struct {
 	Specifiers          []tspath.ModuleSpecifier
 	Kind                ResultKind
-	AmbientModuleSymbol *ast.Symbol // used to construct an import attributes node, if one is needed
+	AmbientModuleSymbol ast.Symbol // used to construct an import attributes node, if one is needed
 }
 
 type ModulePath struct {

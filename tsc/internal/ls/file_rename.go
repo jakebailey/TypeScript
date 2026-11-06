@@ -396,8 +396,8 @@ func relativeImportPathFromDirectory(fromDirectory tspath.RootedDirectoryPath, t
 	return to.AsModuleSpecifier()
 }
 
-func isAmbientModuleSymbol(symbol *ast.Symbol) bool {
-	if symbol == nil {
+func isAmbientModuleSymbol(symbol ast.Symbol) bool {
+	if symbol.IsNil() {
 		return false
 	}
 	return symbol.Declarations().Some(ast.IsModuleWithStringLiteralName)

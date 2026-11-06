@@ -243,11 +243,11 @@ type MutableNode struct{ Node }
 
 func (n Node) AsMutable() MutableNode { return MutableNode{n} }
 
-func (n Node) Symbol() *Symbol {
+func (n Node) Symbol() Symbol {
 	return n.binderSymbol()
 }
 
-func (n Node) LocalSymbol() *Symbol {
+func (n Node) LocalSymbol() Symbol {
 	return n.binderLocalSymbol()
 }
 
@@ -1072,10 +1072,10 @@ func GetDeclarationFromName(name Node) Declaration {
 		if IsBinaryExpression(binExp) && GetAssignmentDeclarationKind(binExp) != JSDeclarationKindNone {
 			// (binExp.left as BindableStaticNameExpression).symbol || binExp.symbol
 			leftHasSymbol := false
-			if !binExp.AsBinaryExpression().Left().IsNil() && binExp.AsBinaryExpression().Left().Symbol() != nil {
+			if !binExp.AsBinaryExpression().Left().IsNil() && !binExp.AsBinaryExpression().Left().Symbol().IsNil() {
 				leftHasSymbol = true
 			}
-			if leftHasSymbol || binExp.Symbol() != nil {
+			if leftHasSymbol || !binExp.Symbol().IsNil() {
 				if GetNameOfDeclaration(binExp.AsNode()) == name {
 					return binExp.AsNode()
 				}
@@ -2075,7 +2075,7 @@ func (node Node) IsJSDoc() bool {
 
 type PatternAmbientModule struct {
 	Pattern core.Pattern
-	Symbol  *Symbol
+	Symbol  Symbol
 }
 
 type CommentDirectiveKind int32

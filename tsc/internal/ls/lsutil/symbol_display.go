@@ -159,7 +159,7 @@ var FileExtensionKindModifiers = ScriptElementKindModifierDts |
 	ScriptElementKindModifierCts |
 	ScriptElementKindModifierCjs
 
-func GetSymbolKind(typeChecker *checker.Checker, symbol *ast.Symbol, location ast.Node) ScriptElementKind {
+func GetSymbolKind(typeChecker *checker.Checker, symbol ast.Symbol, location ast.Node) ScriptElementKind {
 	result := getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker, symbol, location)
 	if result != ScriptElementKindUnknown {
 		return result
@@ -197,12 +197,12 @@ func GetSymbolKind(typeChecker *checker.Checker, symbol *ast.Symbol, location as
 	return ScriptElementKindUnknown
 }
 
-func getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker *checker.Checker, symbol *ast.Symbol, location ast.Node) ScriptElementKind {
-	var roots []*ast.Symbol
+func getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker *checker.Checker, symbol ast.Symbol, location ast.Node) ScriptElementKind {
+	var roots []ast.Symbol
 	if typeChecker != nil {
 		roots = typeChecker.GetRootSymbols(symbol)
 	} else {
-		roots = []*ast.Symbol{symbol}
+		roots = []ast.Symbol{symbol}
 	}
 
 	// If this is a method from a mapped type, leave as a method so long as it still has a call signature, as opposed to e.g.
@@ -296,7 +296,7 @@ func getSymbolKindOfConstructorPropertyMethodAccessorFunctionOrVar(typeChecker *
 	return ScriptElementKindUnknown
 }
 
-func isFirstDeclarationOfSymbolParameter(symbol *ast.Symbol) bool {
+func isFirstDeclarationOfSymbolParameter(symbol ast.Symbol) bool {
 	var declaration ast.Node
 	if symbol.Declarations().Len() > 0 {
 		declaration = symbol.Declarations().At(0)
@@ -314,8 +314,8 @@ func isFirstDeclarationOfSymbolParameter(symbol *ast.Symbol) bool {
 	return !result.IsNil()
 }
 
-func isLocalVariableOrFunction(symbol *ast.Symbol) bool {
-	if symbol.Parent() != nil {
+func isLocalVariableOrFunction(symbol ast.Symbol) bool {
+	if !symbol.Parent().IsNil() {
 		return false // This is exported symbol
 	}
 
@@ -346,8 +346,8 @@ func isLocalVariableOrFunction(symbol *ast.Symbol) bool {
 	return false
 }
 
-func GetSymbolModifiers(typeChecker *checker.Checker, symbol *ast.Symbol) ScriptElementKindModifier {
-	if symbol == nil {
+func GetSymbolModifiers(typeChecker *checker.Checker, symbol ast.Symbol) ScriptElementKindModifier {
+	if symbol.IsNil() {
 		return ScriptElementKindModifierNone
 	}
 
@@ -365,7 +365,7 @@ func GetSymbolModifiers(typeChecker *checker.Checker, symbol *ast.Symbol) Script
 	return modifiers
 }
 
-func getNormalizedSymbolModifiers(typeChecker *checker.Checker, symbol *ast.Symbol) ScriptElementKindModifier {
+func getNormalizedSymbolModifiers(typeChecker *checker.Checker, symbol ast.Symbol) ScriptElementKindModifier {
 	var modifierSet ScriptElementKindModifier
 	if symbol.Declarations().Len() > 0 {
 		declaration := symbol.Declarations().At(0)

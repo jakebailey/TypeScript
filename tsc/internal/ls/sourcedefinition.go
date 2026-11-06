@@ -229,7 +229,7 @@ func getSourceDefCheckerInfo(
 	isPropertyName := !node.Parent().IsNil() && ast.IsAccessExpression(node.Parent()) && node.Parent().Name() == node
 	if len(declarations) == 0 && isPropertyName {
 		if left := node.Parent().Expression(); !left.IsNil() {
-			if prop := c.GetPropertyOfType(c.GetTypeAtLocation(left), node.TextSymbolName()); prop != nil {
+			if prop := c.GetPropertyOfType(c.GetTypeAtLocation(left), node.TextSymbolName()); !prop.IsNil() {
 				declarations = prop.Declarations().Nodes()
 			}
 		}
@@ -253,7 +253,7 @@ func getSourceDefCheckerInfo(
 			resolveNode = expr
 		}
 	}
-	if sym := c.GetSymbolAtLocation(resolveNode); sym != nil {
+	if sym := c.GetSymbolAtLocation(resolveNode); !sym.IsNil() {
 		for _, d := range sym.Declarations().All() {
 			if !ast.IsImportSpecifier(d) && !ast.IsImportClause(d) && !ast.IsNamespaceImport(d) && !ast.IsImportEqualsDeclaration(d) {
 				continue
