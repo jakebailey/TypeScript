@@ -6,7 +6,6 @@ import (
 	"sync/atomic"
 	"unsafe"
 
-	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
 )
 
@@ -88,8 +87,9 @@ type symbolRare struct {
 	exports SymbolTable
 }
 
-// The symbols a checker makes are kept in fixed-size pages, so that they
-// never move and readers in other goroutines need no lock.
+// The symbols a checker makes, and its other per-symbol tables, are kept in
+// fixed-size pages, so that they never move and readers in other goroutines
+// need no lock.
 const (
 	checkerSymbolPageShift = 10
 	checkerSymbolPageSize  = 1 << checkerSymbolPageShift
@@ -99,26 +99,53 @@ const (
 	lateSymbolIdBase = 1 << 31
 )
 
-type checkerSymbolPage [checkerSymbolPageSize]checkerSymbolRecord
+// pagedSlice is an append-only sequence in fixed-size pages.
+type pagedSlice[T any] struct {
+	pages atomic.Pointer[[]*[checkerSymbolPageSize]T]
+	count uint32
+}
+
+func (p *pagedSlice[T]) add() (uint32, *T) {
+	i := p.count
+	var pages []*[checkerSymbolPageSize]T
+	if ps := p.pages.Load(); ps != nil {
+		pages = *ps
+	}
+	if int(i>>checkerSymbolPageShift) == len(pages) {
+		pages = append(slices.Clip(pages), new([checkerSymbolPageSize]T))
+		p.pages.Store(&pages)
+	}
+	p.count++
+	return i, &pages[i>>checkerSymbolPageShift][i&(checkerSymbolPageSize-1)]
+}
+
+func (p *pagedSlice[T]) at(i uint32) *T {
+	return &(*p.pages.Load())[i>>checkerSymbolPageShift][i&(checkerSymbolPageSize-1)]
+}
+
+// A checker's symbol is 32 bytes and holds no pointers. Its declarations
+// are refs in the checker's file table: one inline, or a list kept aside,
+// or, for a symbol that shares another's fields, none of its own.
+var _ [0]struct{} = [unsafe.Sizeof(checkerSymbolRecord{}) - 32]struct{}{}
 
 type checkerSymbolRecord struct {
 	flags      SymbolFlags
 	checkFlags CheckFlags
-	// data holds the symbol's fields, or is nil if the symbol shares the
-	// fields of owner.
-	data  *symbolData
-	owner Symbol
+	name       uint32 // index in the checker's names
+	parent     SymbolId
+	value      NodeRef
+	decl       NodeRef
 }
 
-type symbolData struct {
-	name   SymbolName
-	s      *NodeStore
-	rest   *declRest
-	first  uint32
-	value  uint32
-	parent SymbolId
-	extra  *symbolExtra
-}
+// Markers in the file of a checker symbol's decl.
+const (
+	// declShared marks a symbol that shares the fields of the symbol whose
+	// id is decl's index.
+	declShared = ^uint32(0)
+	// declList marks a symbol whose declarations are the list at decl's
+	// index in the checker's lists.
+	declList = ^uint32(0) - 1
+)
 
 type symbolExtra struct {
 	members      SymbolTable
@@ -132,10 +159,15 @@ type symbolIdPage struct {
 }
 
 type checkerSymbols struct {
-	pages atomic.Pointer[[]*checkerSymbolPage]
-	count uint32
-	data  core.Arena[symbolData]
-	extra core.Arena[symbolExtra]
+	recs pagedSlice[checkerSymbolRecord]
+	// names interns the names of the checker's symbols.
+	names     pagedSlice[SymbolName]
+	nameIndex map[SymbolName]uint32
+	// lists holds the declarations of symbols with more than one.
+	lists pagedSlice[Declarations]
+	// extra holds the rare fields of the checker's symbols, by index.
+	extraMu sync.RWMutex
+	extra   map[uint32]*symbolExtra
 
 	// The program's files' symbols have ids from 1, each file's from a
 	// multiple of 1<<symbolIdPageShift, so that dir finds a file's store from
@@ -145,32 +177,29 @@ type checkerSymbols struct {
 	dir         []symbolIdPage
 	bases       map[*SymbolStore]uint32
 	binderCount uint32
-	// table and fileBases give the base of a file's store from the number
-	// its node store has in table, without a map lookup.
+	// table numbers the stores of the checker's symbols' declarations, and
+	// with fileBases gives the base of a file's store from its number there,
+	// without a map lookup.
 	table     *FileTable
 	fileBases []uint32
 
-	mu        sync.Mutex
-	latePages atomic.Pointer[[]*lateSymbolPage]
-	lateIds   map[Symbol]SymbolId
-	lateCount uint32
+	mu       sync.Mutex
+	lateSyms pagedSlice[Symbol]
+	lateIds  map[Symbol]SymbolId
 }
-
-type lateSymbolPage [checkerSymbolPageSize]Symbol
 
 // NewCheckerSymbolStore returns a store for a checker's symbols, whose ids
 // number the symbols of the files of t first.
 func NewCheckerSymbolStore(t *FileTable) *SymbolStore {
-	c := &checkerSymbols{}
-	var files []*NodeStore
-	if t != nil {
-		files = t.files
+	if t == nil {
+		t = NewFileTable(nil)
 	}
-	c.bases = make(map[*SymbolStore]uint32, len(files))
+	c := &checkerSymbols{}
+	c.bases = make(map[*SymbolStore]uint32, len(t.files))
 	c.table = t
-	c.fileBases = make([]uint32, len(files))
+	c.fileBases = make([]uint32, len(t.files))
 	next := uint32(1)
-	for i, f := range files {
+	for i, f := range t.files {
 		s := &f.symbols
 		if len(s.recs) == 0 {
 			continue
@@ -187,58 +216,52 @@ func NewCheckerSymbolStore(t *FileTable) *SymbolStore {
 	if c.binderCount == 0 {
 		c.binderCount = 1
 	}
+	c.nameIndex = make(map[SymbolName]uint32)
 	return &SymbolStore{checker: c}
 }
 
 // NewSymbol returns a new symbol of a checker's store.
 func (st *SymbolStore) NewSymbol(flags SymbolFlags, name SymbolName) Symbol {
-	r := st.newCheckerRecord()
+	c := st.checker
+	i, r := c.recs.add()
 	r.flags = flags
-	r.data = st.checker.data.New()
-	r.data.name = name
-	return Symbol{st, st.checker.count - 1}
+	r.name = c.nameOf(name)
+	return Symbol{st, i}
 }
 
 // NewSharedDataSymbol returns a new symbol of a checker's store that shares
 // the fields other has besides its flags.
 func (st *SymbolStore) NewSharedDataSymbol(flags SymbolFlags, other Symbol) Symbol {
-	r := st.newCheckerRecord()
-	r.flags = flags
-	if other.s.checker != nil {
-		if o := other.s.checker.rec(other.i); o.data == nil {
-			other = o.owner
-		} else if other.s == st {
-			r.data = o.data
-			return Symbol{st, st.checker.count - 1}
+	if oc := other.s.checker; oc != nil {
+		if o := oc.recs.at(other.i); o.decl.file == declShared {
+			other = other.s.SymbolOf(SymbolId(o.decl.node))
 		}
 	}
-	r.owner = other
-	return Symbol{st, st.checker.count - 1}
+	i, r := st.checker.recs.add()
+	r.flags = flags
+	r.decl = NodeRef{declShared, uint32(st.IdOf(other))}
+	return Symbol{st, i}
 }
 
-func (st *SymbolStore) newCheckerRecord() *checkerSymbolRecord {
-	c := st.checker
-	i := c.count
-	var pages []*checkerSymbolPage
-	if p := c.pages.Load(); p != nil {
-		pages = *p
+// nameOf returns the index of name in c's names.
+func (c *checkerSymbols) nameOf(name SymbolName) uint32 {
+	if i, ok := c.nameIndex[name]; ok {
+		return i
 	}
-	if int(i>>checkerSymbolPageShift) == len(pages) {
-		pages = append(slices.Clip(pages), new(checkerSymbolPage))
-		c.pages.Store(&pages)
-	}
-	c.count++
-	return &pages[i>>checkerSymbolPageShift][i&(checkerSymbolPageSize-1)]
+	i, p := c.names.add()
+	*p = name
+	c.nameIndex[name] = i
+	return i
 }
 
 func (c *checkerSymbols) rec(i uint32) *checkerSymbolRecord {
-	return &(*c.pages.Load())[i>>checkerSymbolPageShift][i&(checkerSymbolPageSize-1)]
+	return c.recs.at(i)
 }
 
 // Count returns the number of symbols the store holds.
 func (st *SymbolStore) Count() int {
 	if st.checker != nil {
-		return int(st.checker.count)
+		return int(st.checker.recs.count)
 	}
 	return max(len(st.recs)-1, 0)
 }
@@ -289,17 +312,8 @@ func (c *checkerSymbols) late(s Symbol) SymbolId {
 	if c.lateIds == nil {
 		c.lateIds = make(map[Symbol]SymbolId)
 	}
-	k := c.lateCount
-	var pages []*lateSymbolPage
-	if p := c.latePages.Load(); p != nil {
-		pages = *p
-	}
-	if int(k>>checkerSymbolPageShift) == len(pages) {
-		pages = append(slices.Clip(pages), new(lateSymbolPage))
-		c.latePages.Store(&pages)
-	}
-	pages[k>>checkerSymbolPageShift][k&(checkerSymbolPageSize-1)] = s
-	c.lateCount++
+	k, p := c.lateSyms.add()
+	*p = s
 	id := SymbolId(lateSymbolIdBase + k)
 	c.lateIds[s] = id
 	return id
@@ -313,8 +327,7 @@ func (st *SymbolStore) SymbolOf(id SymbolId) Symbol {
 	c := st.checker
 	i := uint32(id)
 	if i >= lateSymbolIdBase {
-		k := i - lateSymbolIdBase
-		return (*c.latePages.Load())[k>>checkerSymbolPageShift][k&(checkerSymbolPageSize-1)]
+		return *c.lateSyms.at(i - lateSymbolIdBase)
 	}
 	if i >= c.binderCount {
 		return Symbol{st, i - c.binderCount}
@@ -368,17 +381,20 @@ func (s Symbol) ensureRare() *symbolRare {
 	return &s.s.rare[r.rare-1]
 }
 
-// data returns the fields of a symbol of a checker's store, and the symbol
-// whose fields they are, which differs from s if s shares another's.
-func (s Symbol) data() (*symbolData, Symbol) {
-	r := s.s.checker.rec(s.i)
-	if r.data == nil {
-		if r.owner.s.checker == nil {
-			return nil, r.owner
-		}
-		return r.owner.s.checker.rec(r.owner.i).data, r.owner
+// fields returns the record holding the fields of a symbol of a checker's
+// store besides its flags, and the symbol it belongs to, which differs from
+// s if s shares another's fields. The record is nil if that symbol is a
+// binder symbol.
+func (s Symbol) fields() (*checkerSymbolRecord, Symbol) {
+	r := s.s.checker.recs.at(s.i)
+	if r.decl.file != declShared {
+		return r, s
 	}
-	return r.data, s
+	o := s.s.SymbolOf(SymbolId(r.decl.node))
+	if o.s.checker == nil {
+		return nil, o
+	}
+	return o.s.checker.recs.at(o.i), o
 }
 
 // NewSymbol returns a symbol in a store of its own, for symbols made outside
@@ -389,36 +405,36 @@ func NewSymbol() Symbol {
 
 func (s Symbol) Flags() SymbolFlags {
 	if c := s.s.checker; c != nil {
-		return c.rec(s.i).flags
+		return c.recs.at(s.i).flags
 	}
 	return s.s.recs[s.i].flags
 }
 
 func (s Symbol) CheckFlags() CheckFlags {
 	if c := s.s.checker; c != nil {
-		return c.rec(s.i).checkFlags
+		return c.recs.at(s.i).checkFlags
 	}
 	return 0
 }
 
 func (s Symbol) Name() SymbolName {
 	if s.s.checker != nil {
-		if d, o := s.data(); d != nil {
-			return d.name
-		} else {
+		r, o := s.fields()
+		if r == nil {
 			return o.Name()
 		}
+		return *o.s.checker.names.at(r.name)
 	}
 	return s.s.recs[s.i].name
 }
 
 func (s Symbol) Parent() Symbol {
 	if s.s.checker != nil {
-		d, o := s.data()
-		if d == nil {
+		r, o := s.fields()
+		if r == nil {
 			return o.Parent()
 		}
-		return o.s.SymbolOf(d.parent)
+		return o.s.SymbolOf(r.parent)
 	}
 	if p := s.s.recs[s.i].parent; p != 0 {
 		return Symbol{s.s, p}
@@ -428,11 +444,18 @@ func (s Symbol) Parent() Symbol {
 
 func (s Symbol) Declarations() Declarations {
 	if s.s.checker != nil {
-		d, o := s.data()
-		if d == nil {
+		r, o := s.fields()
+		if r == nil {
 			return o.Declarations()
 		}
-		return Declarations{s: d.s, rest: d.rest, first: d.first}
+		c := o.s.checker
+		switch {
+		case r.decl.file == declList:
+			return *c.lists.at(r.decl.node)
+		case r.decl.node == 0:
+			return Declarations{}
+		}
+		return Declarations{s: c.table.Store(r.decl.file), first: r.decl.node}
 	}
 	r := s.record()
 	if rare := s.rareOf(); rare != nil && rare.rest != nil {
@@ -449,20 +472,11 @@ func (s Symbol) Declarations() Declarations {
 
 func (s Symbol) ValueDeclaration() Node {
 	if s.s.checker != nil {
-		d, o := s.data()
-		if d == nil {
+		r, o := s.fields()
+		if r == nil {
 			return o.ValueDeclaration()
 		}
-		if d.s != nil {
-			if d.value == 0 {
-				return Node{}
-			}
-			return Node{d.s, d.value}
-		}
-		if d.rest != nil {
-			return d.rest.value
-		}
-		return Node{}
+		return o.s.checker.table.Node(r.value)
 	}
 	if rare := s.rareOf(); rare != nil && rare.general {
 		return rare.rest.value
@@ -473,16 +487,47 @@ func (s Symbol) ValueDeclaration() Node {
 	return Node{}
 }
 
+// extraOf returns the rare fields of a symbol of a checker's store, or nil,
+// and the symbol they belong to.
+func (s Symbol) extraOf() (*symbolExtra, Symbol) {
+	r, o := s.fields()
+	if r == nil {
+		return nil, o
+	}
+	c := o.s.checker
+	c.extraMu.RLock()
+	e := c.extra[o.i]
+	c.extraMu.RUnlock()
+	return e, o
+}
+
+// ensureExtra returns the rare fields of a symbol of a checker's store,
+// making them if need be, or nil if the symbol is a binder symbol's.
+func (s Symbol) ensureExtra() (*symbolExtra, Symbol) {
+	e, o := s.extraOf()
+	if e == nil && o.s.checker != nil {
+		c := o.s.checker
+		e = &symbolExtra{}
+		c.extraMu.Lock()
+		if c.extra == nil {
+			c.extra = make(map[uint32]*symbolExtra)
+		}
+		c.extra[o.i] = e
+		c.extraMu.Unlock()
+	}
+	return e, o
+}
+
 func (s Symbol) Members() SymbolTable {
 	if s.s.checker != nil {
-		d, o := s.data()
-		if d == nil {
-			return o.Members()
-		}
-		if d.extra == nil {
+		e, o := s.extraOf()
+		if e == nil {
+			if o.s.checker == nil {
+				return o.Members()
+			}
 			return nil
 		}
-		return d.extra.members
+		return e.members
 	}
 	if rare := s.rareOf(); rare != nil {
 		return rare.members
@@ -492,14 +537,14 @@ func (s Symbol) Members() SymbolTable {
 
 func (s Symbol) Exports() SymbolTable {
 	if s.s.checker != nil {
-		d, o := s.data()
-		if d == nil {
-			return o.Exports()
-		}
-		if d.extra == nil {
+		e, o := s.extraOf()
+		if e == nil {
+			if o.s.checker == nil {
+				return o.Exports()
+			}
 			return nil
 		}
-		return d.extra.exports
+		return e.exports
 	}
 	if rare := s.rareOf(); rare != nil {
 		return rare.exports
@@ -509,14 +554,14 @@ func (s Symbol) Exports() SymbolTable {
 
 func (s Symbol) ExportSymbol() Symbol {
 	if s.s.checker != nil {
-		d, o := s.data()
-		if d == nil {
-			return o.ExportSymbol()
-		}
-		if d.extra == nil {
+		e, o := s.extraOf()
+		if e == nil {
+			if o.s.checker == nil {
+				return o.ExportSymbol()
+			}
 			return Symbol{}
 		}
-		return o.s.SymbolOf(d.extra.exportSymbol)
+		return o.s.SymbolOf(e.exportSymbol)
 	}
 	if e := s.s.recs[s.i].exportSymbol; e != 0 {
 		return Symbol{s.s, e}
@@ -526,7 +571,7 @@ func (s Symbol) ExportSymbol() Symbol {
 
 func (s Symbol) SetFlags(value SymbolFlags) {
 	if c := s.s.checker; c != nil {
-		c.rec(s.i).flags = value
+		c.recs.at(s.i).flags = value
 		return
 	}
 	s.s.recs[s.i].flags = value
@@ -534,7 +579,7 @@ func (s Symbol) SetFlags(value SymbolFlags) {
 
 func (s Symbol) SetCheckFlags(value CheckFlags) {
 	if c := s.s.checker; c != nil {
-		c.rec(s.i).checkFlags = value
+		c.recs.at(s.i).checkFlags = value
 		return
 	}
 	debug.Assert(value == 0, "A binder symbol has no check flags")
@@ -542,28 +587,40 @@ func (s Symbol) SetCheckFlags(value CheckFlags) {
 
 func (s Symbol) SetName(value SymbolName) {
 	if s.s.checker != nil {
-		if d, o := s.data(); d != nil {
-			d.name = value
-		} else {
+		r, o := s.fields()
+		if r == nil {
 			o.SetName(value)
+			return
 		}
+		r.name = o.s.checker.nameOf(value)
 		return
 	}
 	s.s.recs[s.i].name = value
 }
 
 func (s Symbol) SetDeclarations(value Declarations) {
-	valueDeclaration := s.ValueDeclaration()
 	if s.s.checker != nil {
-		d, o := s.data()
-		if d == nil {
+		r, o := s.fields()
+		if r == nil {
 			o.SetDeclarations(value)
 			return
 		}
-		d.s, d.rest, d.first, d.value = value.s, value.rest, value.first, 0
-		o.SetValueDeclaration(valueDeclaration)
+		c := o.s.checker
+		switch {
+		case value.rest == nil && (value.s == nil || value.first == 0):
+			r.decl = NodeRef{}
+		case value.rest == nil:
+			r.decl = c.table.Ref(Node{value.s, value.first})
+		case r.decl.file == declList:
+			*c.lists.at(r.decl.node) = value
+		default:
+			i, p := c.lists.add()
+			*p = value
+			r.decl = NodeRef{declList, i}
+		}
 		return
 	}
+	valueDeclaration := s.ValueDeclaration()
 	r := s.record()
 	switch {
 	case value.s == s.s.nodes:
@@ -588,25 +645,12 @@ func (s Symbol) SetDeclarations(value Declarations) {
 
 func (s Symbol) SetValueDeclaration(value Node) {
 	if s.s.checker != nil {
-		d, o := s.data()
-		if d == nil {
+		r, o := s.fields()
+		if r == nil {
 			o.SetValueDeclaration(value)
 			return
 		}
-		switch {
-		case d.s == nil && d.rest != nil:
-			d.rest = &declRest{nodes: d.rest.nodes, value: value}
-		case value.IsNil():
-			d.value = 0
-		case d.s == nil:
-			d.s, d.value = value.s, value.node
-		case d.s == value.s:
-			d.value = value.node
-		default:
-			nodes := o.Declarations().Nodes()
-			d.s, d.first, d.value = nil, 0, 0
-			d.rest = &declRest{nodes: nodes, value: value}
-		}
+		r.value = o.s.checker.table.Ref(value)
 		return
 	}
 	r := s.record()
@@ -628,27 +672,16 @@ func (s Symbol) SetValueDeclaration(value Node) {
 
 func (s Symbol) SetParent(value Symbol) {
 	if s.s.checker != nil {
-		d, o := s.data()
-		if d == nil {
+		r, o := s.fields()
+		if r == nil {
 			o.SetParent(value)
 			return
 		}
-		d.parent = o.s.IdOf(value)
+		r.parent = o.s.IdOf(value)
 		return
 	}
 	debug.Assert(value.IsNil() || value.s == s.s, "A binder symbol's parent is in its file")
 	s.s.recs[s.i].parent = value.i
-}
-
-func (s Symbol) extraOf() (*symbolExtra, Symbol) {
-	d, o := s.data()
-	if d == nil {
-		return nil, o
-	}
-	if d.extra == nil {
-		d.extra = o.s.checker.extra.New()
-	}
-	return d.extra, o
 }
 
 func (s Symbol) SetMembers(value SymbolTable) {
@@ -656,7 +689,7 @@ func (s Symbol) SetMembers(value SymbolTable) {
 		if value == nil && s.Members() == nil {
 			return
 		}
-		e, o := s.extraOf()
+		e, o := s.ensureExtra()
 		if e == nil {
 			o.SetMembers(value)
 			return
@@ -674,7 +707,7 @@ func (s Symbol) SetExports(value SymbolTable) {
 		if value == nil && s.Exports() == nil {
 			return
 		}
-		e, o := s.extraOf()
+		e, o := s.ensureExtra()
 		if e == nil {
 			o.SetExports(value)
 			return
@@ -692,7 +725,7 @@ func (s Symbol) SetExportSymbol(value Symbol) {
 		if value.IsNil() && s.ExportSymbol().IsNil() {
 			return
 		}
-		e, o := s.extraOf()
+		e, o := s.ensureExtra()
 		if e == nil {
 			o.SetExportSymbol(value)
 			return

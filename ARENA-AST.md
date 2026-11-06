@@ -509,6 +509,12 @@ Symbol tables keep insertion order in a `[]Symbol` with a hash index once they p
 
 This step costs memory and time on its own, and the later items are what pay it back. Lists of symbols (properties, parameters, table entries) hold 16-byte views where they held 8-byte pointers; on mui that is about 100MB of the 159MB growth. Items 4 and 7 make them ids. The checker's symbols take a 32-byte record plus a 48-byte data record, about as much as the old pointer-linked symbol; item 3 shrinks them. Value links are paged over every binder id rather than allocated per symbol, about 40MB on mui; item 8 splits them by binder and transient symbols. Check time goes up by about 2.6s on vscode. The cost is spread over every symbol access, which now indexes a record rather than following a pointer: symbol table lookups that read each candidate's name through its record (+0.5s, fixed by item 4's inline keys), name and flag reads, and the id conversions.
 
+### Transient symbols
+
+A symbol the checker creates is one 32-byte, pointer-free record in checker-owned pages: flags, check flags, a name, the parent's id, the value declaration as a `NodeRef` and the declarations as a `NodeRef`. The declarations field holds the only declaration inline, or, with a reserved file number, the index of a list in a checker-owned side table (an immutable `Declarations` snapshot, so reading the declarations never allocates), or the id of the symbol whose fields this one shares. Refs resolve through the checker's file table, which numbers any store it meets, so a declaration in a lazily parsed JSDoc store or a synthetic node needs no escape. The name is an index into the checker's interned names: transient symbols repeat a few names (instantiated properties, parameters), and the table dies with the checker. Members, exports and the export symbol live in a side map keyed by the symbol's index, since few transient symbols have them.
+
+This replaces a 32-byte record plus a 48-byte data record, and saves 74MB on vscode, 57MB on sentry and 89MB on mui with no change in check time.
+
 ### Progress
 
 Memory used (median) and vscode check time (n=5 alternating against the previous row, min–max and median).
@@ -521,6 +527,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 | 1. compact declarations | 3,174,055K (−113MB) | 1,815,998K (−67MB) | 1,163,930K (−53MB) | 18.13–18.69s (18.39) |
 | 1b. node refs in checker records | 3,167,665K (−6MB) | 1,813,326K (−3MB) | 1,163,323K (−0.4MB) | 18.19–19.81s (18.40) |
 | 2. symbol ids, 32-byte binder symbols | 3,177,879K (+10MB) | 1,902,763K (+89MB) | 1,322,226K (+159MB) | 20.53–21.76s (21.01) |
+| 3. 32-byte transient symbols | 3,104,289K (−74MB) | 1,845,503K (−57MB) | 1,232,855K (−89MB) | 20.61–21.61s (20.91) |
 
 ### Deviations forced by the language
 
@@ -534,6 +541,7 @@ Memory used (median) and vscode check time (n=5 alternating against the previous
 - File bases are aligned to 64 ids so an id finds its file with one directory load instead of a binary search over offsets.
 - Symbols from stores outside the program's file table are numbered on first use from 2^31 up, under a lock, rather than refused.
 - A binder record refers to its rare part by index into a per-file slice, not by pointer, so the record array has no pointers for the garbage collector to scan.
+- The transient symbols' side map of rare fields (members, exports, export symbol) is keyed by the symbol's index in the checker's store rather than by its program-wide id; the two differ by a constant. It is guarded by a read-write lock, and the checker's records, names and declaration lists sit in fixed-size pages that never move, because the language service reads symbols it cached from a checker while another request may be using that checker.
 
 ## Historical: earlier measurements (step 9 vs main, vscode, n=10, interleaved)
 
