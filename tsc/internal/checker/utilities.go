@@ -748,10 +748,10 @@ func (c *Checker) compareTypeMappers(m1, m2 *TypeMapper) int {
 	case TypeMapperKindArray:
 		m1 := castTypeMapper[ArrayTypeMapper](m1, TypeMapperKindArray)
 		m2 := castTypeMapper[ArrayTypeMapper](m2, TypeMapperKindArray)
-		if r := c.compareTypeLists(m1.sources, m2.sources); r != 0 {
+		if r := c.compareTypeLists(m1.Sources(c), m2.Sources(c)); r != 0 {
 			return r
 		}
-		return c.compareTypeLists(m1.targets, m2.targets)
+		return c.compareTypeLists(m1.Targets(c), m2.Targets(c))
 	case TypeMapperKindMerged:
 		m1 := castTypeMapper[MergedTypeMapper](m1, TypeMapperKindMerged)
 		m2 := castTypeMapper[MergedTypeMapper](m2, TypeMapperKindMerged)

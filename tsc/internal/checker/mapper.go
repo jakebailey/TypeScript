@@ -102,7 +102,7 @@ func (c *Checker) newTypeMapper(sources []TypeId, targets []TypeId) *TypeMapper 
 	if len(sources) == 1 {
 		return newSimpleTypeMapper(c.typ(sources[0]), c.typ(targets[0]))
 	}
-	return newArrayTypeMapper(sources, targets)
+	return c.newArrayTypeMapper(sources, targets)
 }
 
 func (c *Checker) combineTypeMappers(m1 *TypeMapper, m2 *TypeMapper) *TypeMapper {
@@ -151,7 +151,7 @@ func (c *Checker) newBackreferenceMapper(context *InferenceContext, index int) *
 	typeParameters := mapToTypeIds(forwardInferences, func(i *InferenceInfo) *Type {
 		return i.typeParameter
 	})
-	return newArrayToSingleTypeMapper(typeParameters, c.unknownType)
+	return c.newArrayToSingleTypeMapper(typeParameters, c.unknownType)
 }
 
 // TypeMapperBase
@@ -192,59 +192,80 @@ func (m *SimpleTypeMapper) MapsThisOnly(c *Checker) bool {
 
 // ArrayTypeMapper
 
+// The lists of an array mapper are handles into the checker's list store, so the mapper holds no pointers and the
+// collector doesn't scan it. Most lists, such as a declaration's type parameters and a reference's type arguments,
+// already live there and keep their handle; a list built elsewhere is copied in.
 type ArrayTypeMapper struct {
 	TypeMapperBase
-	sources []TypeId
-	targets []TypeId
+	sources uint32
+	targets uint32
+	n       uint32
 }
 
-func newArrayTypeMapper(sources []TypeId, targets []TypeId) *TypeMapper {
+// mapperListOf returns the position of list in the checker's list store, copying it in if it isn't stored there.
+func (c *Checker) mapperListOf(list []TypeId) uint32 {
+	if pos, ok := c.typeLists.find(list); ok {
+		return pos
+	}
+	pos, _ := c.typeListOf(list)
+	return pos
+}
+
+func (c *Checker) newArrayTypeMapper(sources []TypeId, targets []TypeId) *TypeMapper {
 	m := &ArrayTypeMapper{}
 	m.kind = TypeMapperKindArray //nolint:customlint
-	m.sources = sources
-	m.targets = targets
+	m.sources = c.mapperListOf(sources)
+	m.targets = c.mapperListOf(targets)
+	m.n = uint32(len(sources))
 	return &m.TypeMapper
 }
 
+func (m *ArrayTypeMapper) Sources(c *Checker) []TypeId { return c.typeLists.slice(m.sources, m.n) }
+func (m *ArrayTypeMapper) Targets(c *Checker) []TypeId { return c.typeLists.slice(m.targets, m.n) }
+
 func (m *ArrayTypeMapper) Map(c *Checker, t *Type) *Type {
-	for i, sId := range m.sources {
-		s := c.typ(sId)
-		if t == s {
-			return c.typ(m.targets[i])
+	id := t.ref()
+	for i, s := range m.Sources(c) {
+		if s == id {
+			return c.typ(m.Targets(c)[i])
 		}
 	}
 	return t
 }
 
 func (m *ArrayTypeMapper) MapsThisOnly(c *Checker) bool {
-	return len(m.sources) == 1 && isThisTypeParameter(c.typ(m.sources[0]))
+	return m.n == 1 && isThisTypeParameter(c.typ(m.Sources(c)[0]))
 }
 
 // ArrayToSingleTypeMapper
 
 type ArrayToSingleTypeMapper struct {
 	TypeMapperBase
-	sources []TypeId
+	sources uint32
+	n       uint32
 	target  TypeId
 }
 
-func newArrayToSingleTypeMapper(sources []TypeId, target *Type) *TypeMapper {
+func (c *Checker) newArrayToSingleTypeMapper(sources []TypeId, target *Type) *TypeMapper {
 	m := &ArrayToSingleTypeMapper{}
 	m.kind = TypeMapperKindArrayToSingle //nolint:customlint
-	m.sources = sources
+	m.sources = c.mapperListOf(sources)
+	m.n = uint32(len(sources))
 	m.target = target.ref()
 	return &m.TypeMapper
 }
 
+func (m *ArrayToSingleTypeMapper) Sources(c *Checker) []TypeId { return c.typeLists.slice(m.sources, m.n) }
+
 func (m *ArrayToSingleTypeMapper) Map(c *Checker, t *Type) *Type {
-	if slices.Contains(m.sources, t.ref()) {
+	if slices.Contains(m.Sources(c), t.ref()) {
 		return c.typ(m.target)
 	}
 	return t
 }
 
 func (m *ArrayToSingleTypeMapper) MapsThisOnly(c *Checker) bool {
-	return len(m.sources) == 1 && isThisTypeParameter(c.typ(m.sources[0]))
+	return m.n == 1 && isThisTypeParameter(c.typ(m.Sources(c)[0]))
 }
 
 // DeferredTypeMapper

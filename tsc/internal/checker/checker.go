@@ -20178,7 +20178,7 @@ func (c *Checker) getErasedSignature(signature *Signature) *Signature {
 	key := CachedSignatureKey{sig: signature.id, key: SignatureKeyErased}
 	erased := c.signatureOf(c.cachedSignatures[key])
 	if erased == nil {
-		erased = c.instantiateSignatureEx(signature, newArrayToSingleTypeMapper(signature.TypeParameters(c), c.anyType), true /*eraseTypeParameters*/)
+		erased = c.instantiateSignatureEx(signature, c.newArrayToSingleTypeMapper(signature.TypeParameters(c), c.anyType), true /*eraseTypeParameters*/)
 		c.cachedSignatures[key] = erased.id
 	}
 	return erased
@@ -20234,7 +20234,7 @@ func (c *Checker) getBaseSignature(signature *Signature) *Signature {
 		baseConstraints = c.instantiateTypes(baseConstraints, baseConstraintMapper)
 	}
 	// and then apply a type eraser to remove any remaining circularly dependent type parameters
-	baseConstraints = c.instantiateTypes(baseConstraints, newArrayToSingleTypeMapper(typeParameters, c.anyType))
+	baseConstraints = c.instantiateTypes(baseConstraints, c.newArrayToSingleTypeMapper(typeParameters, c.anyType))
 	result := c.instantiateSignatureEx(signature, c.newTypeMapper(typeParameters, baseConstraints), true /*eraseTypeParameters*/)
 	c.cachedSignatures[key] = result.id
 	return result

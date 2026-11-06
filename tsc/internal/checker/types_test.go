@@ -408,7 +408,7 @@ func TestTypeMapperDispatch(t *testing.T) {
 	c, types := newCompositeTestChecker()
 	source, target, other := c.typ(types[0]), c.typ(types[1]), c.typ(types[2])
 	simple := newSimpleTypeMapper(source, target)
-	array := newArrayTypeMapper([]TypeId{source.ref(), other.ref()}, []TypeId{target.ref(), source.ref()})
+	array := c.newArrayTypeMapper([]TypeId{source.ref(), other.ref()}, []TypeId{target.ref(), source.ref()})
 	merged := newMergedTypeMapper(simple, array)
 	for _, test := range []struct {
 		mapper *TypeMapper
@@ -418,7 +418,7 @@ func TestTypeMapperDispatch(t *testing.T) {
 		{simple, TypeMapperKindSimple, target},
 		{array, TypeMapperKindArray, target},
 		{merged, TypeMapperKindMerged, target},
-		{newArrayToSingleTypeMapper([]TypeId{source.ref()}, target), TypeMapperKindArrayToSingle, target},
+		{c.newArrayToSingleTypeMapper([]TypeId{source.ref()}, target), TypeMapperKindArrayToSingle, target},
 		{newDeferredTypeMapper([]TypeId{source.ref()}, []func() *Type{func() *Type { return target }}), TypeMapperKindDeferred, target},
 		{newFunctionTypeMapper(func(typ *Type) *Type {
 			if typ == source {
@@ -433,14 +433,14 @@ func TestTypeMapperDispatch(t *testing.T) {
 		assert.Assert(t, !test.mapper.MapsThisOnly(c))
 	}
 	assert.Equal(t, c.compareTypeMappers(simple, newSimpleTypeMapper(source, target)), 0)
-	assert.Equal(t, c.compareTypeMappers(array, newArrayTypeMapper([]TypeId{source.ref(), other.ref()}, []TypeId{target.ref(), source.ref()})), 0)
+	assert.Equal(t, c.compareTypeMappers(array, c.newArrayTypeMapper([]TypeId{source.ref(), other.ref()}, []TypeId{target.ref(), source.ref()})), 0)
 	assert.Equal(t, c.compareTypeMappers(merged, newMergedTypeMapper(simple, array)), 0)
 	this := c.newTypeParameter(0)
 	this.AsTypeParameter().setIsThisType(true)
 	for _, mapper := range []*TypeMapper{
 		newSimpleTypeMapper(this, target),
-		newArrayTypeMapper([]TypeId{this.ref()}, []TypeId{target.ref()}),
-		newArrayToSingleTypeMapper([]TypeId{this.ref()}, target),
+		c.newArrayTypeMapper([]TypeId{this.ref()}, []TypeId{target.ref()}),
+		c.newArrayToSingleTypeMapper([]TypeId{this.ref()}, target),
 		newDeferredTypeMapper([]TypeId{this.ref()}, []func() *Type{func() *Type { return target }}),
 	} {
 		assert.Assert(t, mapper.MapsThisOnly(c))
@@ -453,6 +453,8 @@ func TestCompactTypeMapperLayout(t *testing.T) {
 	t.Parallel()
 	assert.Assert(t, unsafe.Sizeof(SimpleTypeMapper{}) <= 3*unsafe.Sizeof(uintptr(0)))
 	assert.Assert(t, unsafe.Sizeof(MergedTypeMapper{}) <= 3*unsafe.Sizeof(uintptr(0)))
+	assert.Equal(t, unsafe.Sizeof(ArrayTypeMapper{}), uintptr(20))
+	assert.Equal(t, unsafe.Sizeof(ArrayToSingleTypeMapper{}), uintptr(20))
 	c, types := newCompositeTestChecker()
 	mapper := newSimpleTypeMapper(c.typ(types[0]), c.typ(types[1]))
 	assert.Assert(t, c.typ(castTypeMapper[SimpleTypeMapper](mapper, TypeMapperKindSimple).source) == c.typ(types[0]))
