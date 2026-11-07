@@ -34,87 +34,51 @@ func (c *Checker) initNodeLinks(refs ast.RefCache) {
 	c.computedNameLinks.refs = &c.refs
 }
 
-// nodeLinkStore holds links of nodes, in a map per file keyed by node
-// index. Files are numbered by the checker's FileTable, so a key is 4
-// bytes rather than a 16-byte Node.
+// nodeLinkStore holds links of nodes, keyed by NodeRef, in records from an
+// arena that the map points to. Callers keep a record across calls that
+// insert more links, so a record can't live in the map, whose entries move
+// when it grows.
 type nodeLinkStore[V any] struct {
 	refs  *ast.RefCache
-	files []map[uint32]*V
+	links core.IdMap[uint64, *V]
 	arena core.Arena[V]
 }
 
-func (s *nodeLinkStore[V]) fileLinks(r ast.NodeRef) map[uint32]*V {
-	if int(r.File()) < len(s.files) {
-		return s.files[r.File()]
-	}
-	return nil
-}
-
 func (s *nodeLinkStore[V]) Get(node ast.Node) *V {
-	r := s.refs.Ref(node)
-	m := s.fileLinks(r)
-	if value := m[r.Index()]; value != nil {
+	key := s.refs.Ref(node).Key()
+	if value := s.links.Get(key); value != nil {
 		return value
 	}
-	if m == nil {
-		if int(r.File()) >= len(s.files) {
-			s.files = slices.Grow(s.files, int(r.File())+1-len(s.files))[:r.File()+1]
-		}
-		m = make(map[uint32]*V)
-		s.files[r.File()] = m
-	}
 	value := s.arena.New()
-	m[r.Index()] = value
+	s.links.Set(key, value)
 	return value
 }
 
 func (s *nodeLinkStore[V]) Has(node ast.Node) bool {
-	r := s.refs.Ref(node)
-	_, ok := s.fileLinks(r)[r.Index()]
-	return ok
+	return s.links.Has(s.refs.Ref(node).Key())
 }
 
 func (s *nodeLinkStore[V]) TryGet(node ast.Node) *V {
-	r := s.refs.Ref(node)
-	return s.fileLinks(r)[r.Index()]
+	return s.links.Get(s.refs.Ref(node).Key())
 }
 
-// nodeValueMap holds one small value per node, in a map per file keyed by
-// node index. The value lives in the map itself rather than in a record the
-// map points to, so a link of one field costs one map slot, and a map whose
-// values hold no pointers is not scanned by the garbage collector.
+// nodeValueMap holds one small value per node, keyed by NodeRef, in the
+// map itself.
 type nodeValueMap[V any] struct {
-	refs  *ast.RefCache
-	files []map[uint32]V
+	refs   *ast.RefCache
+	values core.IdMap[uint64, V]
 }
 
 func (s *nodeValueMap[V]) get(node ast.Node) V {
-	r := s.refs.Ref(node)
-	if int(r.File()) < len(s.files) {
-		return s.files[r.File()][r.Index()]
-	}
-	var zero V
-	return zero
+	return s.values.Get(s.refs.Ref(node).Key())
 }
 
 func (s *nodeValueMap[V]) set(node ast.Node, value V) {
-	r := s.refs.Ref(node)
-	if int(r.File()) >= len(s.files) {
-		s.files = slices.Grow(s.files, int(r.File())+1-len(s.files))[:r.File()+1]
-	}
-	m := s.files[r.File()]
-	if m == nil {
-		m = make(map[uint32]V)
-		s.files[r.File()] = m
-	}
-	m[r.Index()] = value
+	s.values.Set(s.refs.Ref(node).Key(), value)
 }
 
 func (s *nodeValueMap[V]) delete(node ast.Node) {
-	r := s.refs.Ref(node)
-	if int(r.File()) < len(s.files) {
-		delete(s.files[r.File()], r.Index())
-	}
+	s.values.Delete(s.refs.Ref(node).Key())
 }
 
 // sourceFileLinkStore holds the links of source files, indexed by the
@@ -159,15 +123,13 @@ func (s *symbolValueMap[V]) set(symbol ast.SymbolId, value V) {
 // map per file keyed by node index.
 type symbolNodeLinkStore struct {
 	refs  *ast.RefCache
-	files []map[uint32]ast.SymbolId
+	files []core.IdMap[uint32, ast.SymbolId]
 }
 
 func (s *symbolNodeLinkStore) get(node ast.Node) ast.SymbolId {
 	r := s.refs.Ref(node)
 	if int(r.File()) < len(s.files) {
-		if id := s.files[r.File()][r.Index()]; id != 0 {
-			return id
-		}
+		return s.files[r.File()].Get(r.Index())
 	}
 	return 0
 }
@@ -177,12 +139,7 @@ func (s *symbolNodeLinkStore) set(node ast.Node, symbol ast.SymbolId) {
 	if int(r.File()) >= len(s.files) {
 		s.files = slices.Grow(s.files, int(r.File())+1-len(s.files))[:r.File()+1]
 	}
-	m := s.files[r.File()]
-	if m == nil {
-		m = make(map[uint32]ast.SymbolId)
-		s.files[r.File()] = m
-	}
-	m[r.Index()] = symbol
+	s.files[r.File()].Set(r.Index(), symbol)
 }
 
 // symbolIds numbers symbols for a checker, caching the base id of the store

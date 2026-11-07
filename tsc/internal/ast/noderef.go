@@ -17,6 +17,10 @@ type NodeRef struct {
 
 func (r NodeRef) IsNil() bool { return r.node == 0 }
 
+// Key returns r packed into one word, for maps keyed by node. It is zero
+// only for the absent node.
+func (r NodeRef) Key() uint64 { return uint64(r.file)<<32 | uint64(r.node) }
+
 // File returns the number of r's store in its table.
 func (r NodeRef) File() uint32 { return r.file }
 
