@@ -77,8 +77,9 @@ func getSetAccessorTypeAnnotationNode(node ast.SetAccessorDeclaration) ast.Node 
 
 func getAccessorTypeNode(node ast.Node, container ast.Node) ast.Node {
 	accessors := ast.GetAllAccessorDeclarations(container.Members(), node)
-	if !accessors.SetAccessor.IsNil() {
-		return getSetAccessorTypeAnnotationNode(accessors.SetAccessor)
+	typeNode := getSetAccessorTypeAnnotationNode(accessors.SetAccessor)
+	if !typeNode.IsNil() {
+		return typeNode
 	}
 	if !accessors.GetAccessor.IsNil() {
 		return accessors.GetAccessor.Type()
