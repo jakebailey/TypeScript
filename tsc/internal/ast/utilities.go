@@ -4236,7 +4236,12 @@ func IsExpandoInitializer(declaration Node, initializer Node) bool {
 }
 
 func GetContainingFunction(node Node) Node {
-	return FindAncestor(node.Parent(), IsFunctionLike)
+	for n := node.Parent(); !n.IsNil(); n = n.Parent() {
+		if IsFunctionLikeKind(n.Kind()) {
+			return n
+		}
+	}
+	return Node{}
 }
 
 func ImportFromModuleSpecifier(node Node) Node {

@@ -11569,9 +11569,7 @@ func (c *Checker) parameterInitializerContainsUndefined(declaration ast.Node) bo
 }
 
 func (c *Checker) isInAmbientOrTypeNode(node ast.Node) bool {
-	return node.Flags()&ast.NodeFlagsAmbient != 0 || !ast.FindAncestor(node, func(n ast.Node) bool {
-		return ast.IsInterfaceDeclaration(n) || ast.IsTypeAliasDeclaration(n) || ast.IsJSTypeAliasDeclaration(n) || ast.IsTypeLiteralNode(n)
-	}).IsNil()
+	return isInAmbientOrTypeNode(node)
 }
 
 func (c *Checker) checkPropertyAccessExpression(node ast.Node, checkMode CheckMode, writeOnly bool) *Type {
@@ -11770,9 +11768,16 @@ func (c *Checker) getFlowTypeOfAccessExpression(node ast.Node, prop ast.SymbolId
 }
 
 func (c *Checker) getControlFlowContainer(node ast.Node) ast.Node {
-	return ast.FindAncestor(node.Parent(), func(node ast.Node) bool {
-		return ast.IsFunctionLike(node) && ast.GetImmediatelyInvokedFunctionExpression(node).IsNil() || ast.IsModuleBlock(node) || ast.IsSourceFile(node) || ast.IsPropertyDeclaration(node)
-	})
+	for n := node.Parent(); !n.IsNil(); n = n.Parent() {
+		switch n.Kind() {
+		case ast.KindModuleBlock, ast.KindSourceFile, ast.KindPropertyDeclaration:
+			return n
+		}
+		if ast.IsFunctionLike(n) && ast.GetImmediatelyInvokedFunctionExpression(n).IsNil() {
+			return n
+		}
+	}
+	return ast.Node{}
 }
 
 func (c *Checker) getFlowTypeOfProperty(reference ast.Node, prop ast.SymbolId) *Type {
@@ -29360,18 +29365,23 @@ func (c *Checker) markLinkedReferences(location ast.Node, hint ReferenceHint, pr
 }
 
 func isExportOrExportExpression(location ast.Node) bool {
-	return !ast.FindAncestor(location, func(n ast.Node) bool {
+	for n := location; !n.IsNil(); {
 		parent := n.Parent()
-		if !parent.IsNil() {
-			if ast.IsAnyExportAssignment(parent) {
-				return parent.Expression() == n && ast.IsEntityNameExpression(n)
+		if parent.IsNil() {
+			break
+		}
+		if ast.IsAnyExportAssignment(parent) {
+			if parent.Expression() == n && ast.IsEntityNameExpression(n) {
+				return true
 			}
-			if ast.IsExportSpecifier(parent) {
-				return parent.AsExportSpecifier().Name() == n || parent.PropertyName() == n
+		} else if ast.IsExportSpecifier(parent) {
+			if parent.AsExportSpecifier().Name() == n || parent.PropertyName() == n {
+				return true
 			}
 		}
-		return false
-	}).IsNil()
+		n = parent
+	}
+	return false
 }
 
 func shouldMarkIdentifierAliasReferenced(node ast.IdentifierNode) bool {

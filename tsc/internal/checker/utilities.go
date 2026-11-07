@@ -1216,10 +1216,21 @@ func (c *Checker) isMutableLocalVariableDeclaration(declaration ast.Node) bool {
 	return declaration.Parent().Flags()&ast.NodeFlagsLet != 0 && !(ast.GetCombinedModifierFlags(declaration)&ast.ModifierFlagsExport != 0 || declaration.Parent().Parent().Kind() == ast.KindVariableStatement && ast.IsGlobalSourceFile(declaration.Parent().Parent().Parent()))
 }
 
+// The ancestor walks below are loops rather than FindAncestor calls: they
+// run for most identifiers checked, and a predicate passed as a function
+// value costs a call per ancestor.
+
 func isInAmbientOrTypeNode(node ast.Node) bool {
-	return node.Flags()&ast.NodeFlagsAmbient != 0 || !ast.FindAncestor(node, func(n ast.Node) bool {
-		return ast.IsInterfaceDeclaration(n) || ast.IsTypeOrJSTypeAliasDeclaration(n) || ast.IsTypeLiteralNode(n)
-	}).IsNil()
+	if node.Flags()&ast.NodeFlagsAmbient != 0 {
+		return true
+	}
+	for n := node; !n.IsNil(); n = n.Parent() {
+		switch n.Kind() {
+		case ast.KindInterfaceDeclaration, ast.KindTypeAliasDeclaration, ast.KindJSTypeAliasDeclaration, ast.KindTypeLiteral:
+			return true
+		}
+	}
+	return false
 }
 
 func isLiteralExpressionOfObject(node ast.Node) bool {
