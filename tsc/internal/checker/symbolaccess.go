@@ -6,29 +6,21 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 )
 
-// The checker handles symbols by their 4-byte SymbolId. Ids below
-// binderSymbolCount name the program's binder symbols, whose flags and name
-// the program's table copies; the ids above name the checker's own symbols.
+// The checker handles symbols by their 4-byte SymbolId. Ids below the
+// binder symbol count name the program's binder symbols, read through the
+// program's table, which copies their flags and name; the ids above name
+// the checker's own symbols, whose records the checker's store holds by id.
 // The accessors below read a symbol's fields from its id.
 
 func (c *Checker) symbolFlags(id ast.SymbolId) ast.SymbolFlags {
-	if uint32(id) < c.binderSymbolCount {
-		return c.binderSymbols.Flags(id)
-	}
 	return c.symbols.FlagsOf(id)
 }
 
 func (c *Checker) symbolName(id ast.SymbolId) ast.SymbolName {
-	if uint32(id) < c.binderSymbolCount {
-		return c.binderSymbols.Name(id)
-	}
 	return c.symbols.NameOf(id)
 }
 
 func (c *Checker) symbolCheckFlags(id ast.SymbolId) ast.CheckFlags {
-	if uint32(id) < c.binderSymbolCount {
-		return 0
-	}
 	return c.symbols.CheckFlagsOf(id)
 }
 

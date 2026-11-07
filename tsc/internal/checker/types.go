@@ -1085,10 +1085,7 @@ func (c *Checker) symbolOfTypeId(t *Type) ast.SymbolId {
 }
 
 func (c *Checker) symbolOfType(t *Type) ast.SymbolId {
-	if t.symbol == 0 {
-		return 0
-	}
-	return c.symbolId(c.symbolIds.symbol(t.symbol))
+	return t.symbol
 }
 
 func (t *Type) setSymbol(c *Checker, symbol ast.SymbolId) {

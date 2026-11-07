@@ -115,6 +115,10 @@ func (t *FileTable) Store(file uint32) *NodeStore {
 	if file < uint32(len(t.files)) {
 		return t.files[file]
 	}
+	return t.storeAfterFiles(file)
+}
+
+func (t *FileTable) storeAfterFiles(file uint32) *NodeStore {
 	k := file - uint32(len(t.files))
 	return (*t.pages.Load())[k>>fileTablePageShift][k&(fileTablePageSize-1)].Load()
 }
