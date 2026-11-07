@@ -472,18 +472,46 @@ func (m *SymbolMap) checkerId(st *SymbolStore, id uint32) SymbolId {
 	return st.IdOf(m.symbolOf(id))
 }
 
+// GetId searches and converts in one call, since it is the lookup the
+// checker makes most and Find with checkerId would be two more calls.
 func (m *SymbolMap) GetId(st *SymbolStore, key SymbolName) SymbolId {
-	if i := m.Find(key); i >= 0 {
-		return m.checkerId(st, m.entries[i].id)
-	}
-	return 0
+	id, _ := m.LookupId(st, key)
+	return id
 }
 
 func (m *SymbolMap) LookupId(st *SymbolStore, key SymbolName) (SymbolId, bool) {
-	if i := m.Find(key); i >= 0 {
-		return m.checkerId(st, m.entries[i].id), true
+	if m == nil {
+		return 0, false
 	}
-	return 0, false
+	lo, hi := uint32(key), uint32(key>>32)
+	var e *symbolEntry
+	if m.rare != nil && len(m.rare.index) != 0 {
+		index := m.rare.index
+		mask := uint64(len(index) - 1)
+		for slot := hashSymbolTableKey(key) & mask; ; slot = (slot + 1) & mask {
+			p := index[slot]
+			if p == 0 {
+				return 0, false
+			}
+			if e = &m.entries[p-1]; e.lo == lo && e.hi == hi {
+				break
+			}
+		}
+	} else {
+		i := 0
+		for ; i < len(m.entries); i++ {
+			if e = &m.entries[i]; e.lo == lo && e.hi == hi {
+				break
+			}
+		}
+		if i == len(m.entries) {
+			return 0, false
+		}
+	}
+	if m.store == st {
+		return SymbolId(e.id), true
+	}
+	return m.checkerId(st, e.id), true
 }
 
 func (m *SymbolMap) IdAt(st *SymbolStore, i int) SymbolId {
