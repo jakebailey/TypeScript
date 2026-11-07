@@ -2,7 +2,32 @@
 
 Branch: [`jakebailey/TypeScript@arena-ast`](https://github.com/jakebailey/TypeScript/tree/arena-ast) (previous attempt backed up at `arena-ast-old`). This file is the living design doc for the branch and is updated alongside it.
 
-## Goal
+## Checker ids (branch `checker-ids`)
+
+This branch starts from `27c26808a21` ("Use the SymbolId as the checker's symbol handle") and leaves the AST as it is there. The later pointer-free steps on `new-ast-view` made every symbol read several dependent loads, added a third id space and keyed most links by Go maps of ids; on vscode that run executes 6.7G calls and 257G instructions against main's 3.8G and 196G. Here the goal is the opposite trade: keep pointers where a pointer is one load, use ids where an id is what gets stored in bulk, and make the hot reads (a symbol's flags, name, declarations, value declaration, parent; a node's resolved symbol; a link) as few loads and calls as the language allows. Pointer-freedom is not a goal.
+
+### Plan
+
+| Structure | At `27c26808a21` | Target | Files |
+|---|---|---|---|
+| Id-keyed hash maps | Go maps (`map[uint32]V`, `map[SymbolId]V`), one hash call and a generic probe per access; one hand-written open-addressing table for relation keys | `core.IdMap[K, V]`: open addressing, linear probing, multiplicative hash taking the high bits, entries `{key, value}` inline, zero key as the empty slot, backward-shift delete; `Get` small enough to inline | `core/idmap.go`, `checker/relater.go` |
+| Binder symbol table entry | 24 bytes, no pointers: `{flags, file, base, index, name}`; a record read goes entry, then `stores[file]`, then `recs[index]` | 32 bytes: `{rec *symbolRecord, store *SymbolStore, base, flags, name}`; flags and name in one load, any other field in two | `ast/symbolids.go` |
+| Binder symbol record | 32 bytes; rare part is an index into a per-file slice | 32 bytes; rare part is a pointer | `ast/symbolstore.go` |
+| Symbol accessors | `c.symbols.FlagsOf(id)` etc., non-inlined, through a view for most fields | Checker methods that branch on `id < binderSymbolCount` and read the entry (binder) or the transient record (checker) directly, no view | `checker/symbolaccess.go`, `ast/symbolids.go` |
+| Transient symbols | 32-byte records in pages, name as an index into an interned name table, members/exports/export symbol in a locked side map | Same records, read directly by index; shared-data owners followed once | `ast/symbolstore.go` |
+| Third id space | Symbols from stores outside the program numbered from 2^31 on first use, under a lock | Two id spaces only; such symbols get transient ids | `ast/symbolstore.go` |
+| A node's binder symbol | `node.Symbol()` view, then view to id through a one-store cache | File-local index from the node's store plus the file's first id | `ast/binderdata.go`, `checker/symbolaccess.go` |
+| A type's symbol | id to view and back (`symbolOfType`) | The stored id | `checker/types.go` |
+| Symbol-of-node | per-file Go maps keyed by node index | per-file `IdMap[uint32, SymbolId]` | `checker/links.go` |
+| Node links | per-file Go maps to arena records, or values inline | one `IdMap[NodeRef, V]` per store, values inline for one-field links and arena pointers for multi-field ones | `checker/links.go` |
+| Symbol links | value links in 256-entry pages over all ids with a bitmap; rare links in Go maps to arena records | value links in pages for binder ids plus a chunked slice for transient ids; one-field links inline in `IdMap[SymbolId, V]`; multi-field ones `IdMap[SymbolId, *V]` | `checker/links.go`, `core/linkstore.go` |
+| Symbol tables | small map of `{name, id}` entries, hashed index past 8; ids rewritten to a checker's on first checker insert; `GetId` finds the store's base per call | Same entries; binder tables read through the store's base cached once per lookup | `ast/symbol.go` |
+| Types | `*Type`, 64-byte records in chunked slabs | unchanged | |
+| Relation, interning and flow caches | packed `uint64` relation keys in a custom table; packed interning keys in Go maps | relation table on `IdMap`; others where they are keyed by packed integers | `checker/relater.go`, `checker/checker.go`, `checker/flow.go` |
+
+Each row is one commit (or a few), validated by build, vet, the checker baselines and unit tests of the touched packages, and measured on vscode single threaded when it moves a hot path.
+
+## Goal (AST)
 
 Every `*ast.Node` is a heap object full of Go pointers: children, parent, symbol, flow node, lists, and so on. The GC has to trace all of them. The idea here is that a node is "a file plus an offset", and its fields are pointer-free data, so the GC barely sees the AST.
 
