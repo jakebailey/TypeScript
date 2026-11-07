@@ -4931,10 +4931,10 @@ func (p *Parser) parseUnaryExpressionOrHigher() ast.Expression {
 	return simpleUnaryExpression
 }
 
-func (p *Parser) reportInvalidExponentiationLeftOperand(expression *ast.Expression, unaryOperator ast.Kind) {
+func (p *Parser) reportInvalidExponentiationLeftOperand(expression ast.Expression, unaryOperator ast.Kind) {
 	pos := scanner.SkipTrivia(p.sourceText, expression.Pos())
 	end := expression.End()
-	if expression.Kind == ast.KindTypeAssertionExpression {
+	if expression.Kind() == ast.KindTypeAssertionExpression {
 		p.parseErrorAt(pos, end, diagnostics.A_type_assertion_expression_is_not_allowed_in_the_left_hand_side_of_an_exponentiation_expression_Consider_enclosing_the_expression_in_parentheses)
 	} else {
 		debug.Assert(isKeywordOrPunctuation(unaryOperator))
