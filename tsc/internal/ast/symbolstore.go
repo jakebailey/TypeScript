@@ -88,9 +88,6 @@ type symbolRare struct {
 	exports SymbolTable
 }
 
-// lateSymbolIdBase is the first id of the symbols numbered as they are met.
-const lateSymbolIdBase = 1 << 31
-
 // A checker's symbol is 32 bytes and holds no pointers. Its declarations
 // are refs in the checker's file table: one inline, or a list kept aside,
 // or, for a symbol that shares another's fields, none of its own.
@@ -113,6 +110,9 @@ const (
 	// declList marks a symbol whose declarations are the list at decl's
 	// index in the checker's lists.
 	declList = ^uint32(0) - 1
+	// declForeign marks a symbol that stands for the symbol of another
+	// store at decl's index in the checker's foreign symbols.
+	declForeign = ^uint32(0) - 2
 )
 
 type symbolExtra struct {
@@ -133,16 +133,17 @@ type checkerSymbols struct {
 	extra   map[uint32]*symbolExtra
 
 	// The program's binder symbols have ids from 1 to binderCount; the
-	// checker's own symbols follow them from binderCount. Symbols of other
-	// stores are numbered from lateSymbolIdBase, as they are met.
+	// checker's own symbols follow them from binderCount. A symbol of a
+	// store outside the program gets a checker symbol that stands for it the
+	// first time it is met.
 	binder      *BinderSymbols
 	binderCount uint32
 	// table numbers the stores of the checker's symbols' declarations.
 	table *FileTable
 
-	mu       sync.Mutex
-	lateSyms core.Pages[Symbol]
-	lateIds  map[Symbol]SymbolId
+	mu         sync.Mutex
+	foreign    core.Pages[Symbol]
+	foreignIds map[Symbol]SymbolId
 }
 
 // NewCheckerSymbolStore returns a store for a checker's symbols, whose ids
@@ -216,7 +217,7 @@ func (st *SymbolStore) IdOf(s Symbol) SymbolId {
 	if base, ok := st.BaseOf(s.s); ok {
 		return SymbolId(base + s.i)
 	}
-	return st.checker.late(s)
+	return st.foreignId(s)
 }
 
 // BaseOf returns the id of index 0 of a store of the program's files or of
@@ -229,22 +230,31 @@ func (st *SymbolStore) BaseOf(s *SymbolStore) (uint32, bool) {
 	return c.binder.BaseOf(s)
 }
 
-// late numbers a symbol of a store that is neither the checker's nor one of
-// the program's files'. Such stores may still grow, so their symbols are
-// numbered one by one, as they are met.
-func (c *checkerSymbols) late(s Symbol) SymbolId {
+// foreignId returns the id of a symbol of a store that is neither the
+// checker's nor one of the program's files' (a file outside the program, a
+// lazily parsed JSDoc store, a symbol made outside a checker). Such stores
+// may still grow, so their symbols can't be numbered as a block. Each gets
+// a checker symbol that stands for it: SymbolOf turns the id back into the
+// foreign symbol, and the record keeps a copy of its flags and check flags,
+// which the setters keep in step.
+func (st *SymbolStore) foreignId(s Symbol) SymbolId {
+	c := st.checker
 	c.mu.Lock()
 	defer c.mu.Unlock()
-	if id, ok := c.lateIds[s]; ok {
+	if id, ok := c.foreignIds[s]; ok {
 		return id
 	}
-	if c.lateIds == nil {
-		c.lateIds = make(map[Symbol]SymbolId)
+	if c.foreignIds == nil {
+		c.foreignIds = make(map[Symbol]SymbolId)
 	}
-	k, p := c.lateSyms.Add()
+	k, p := c.foreign.Add()
 	*p = s
-	id := SymbolId(lateSymbolIdBase + k)
-	c.lateIds[s] = id
+	i, r := c.recs.Add()
+	r.flags = s.Flags()
+	r.checkFlags = s.CheckFlags()
+	r.decl = NodeRef{declForeign, k}
+	id := SymbolId(c.binderCount + i)
+	c.foreignIds[s] = id
 	return id
 }
 
@@ -255,10 +265,10 @@ func (st *SymbolStore) SymbolOf(id SymbolId) Symbol {
 	}
 	c := st.checker
 	i := uint32(id)
-	if i >= lateSymbolIdBase {
-		return *c.lateSyms.At(i - lateSymbolIdBase)
-	}
 	if i >= c.binderCount {
+		if r := c.recs.At(i - c.binderCount); r.decl.file == declForeign {
+			return *c.foreign.At(r.decl.node)
+		}
 		return Symbol{st, i - c.binderCount}
 	}
 	return c.binder.Symbol(id)

@@ -142,10 +142,7 @@ func (st *SymbolStore) FlagsOf(id SymbolId) SymbolFlags {
 	if i < c.binderCount {
 		return c.binder.Flags(id)
 	}
-	if i < lateSymbolIdBase {
-		return c.recs.At(i - c.binderCount).flags
-	}
-	return st.SymbolOf(id).Flags()
+	return c.recs.At(i - c.binderCount).flags
 }
 
 func (st *SymbolStore) NameOf(id SymbolId) SymbolName {
@@ -161,10 +158,7 @@ func (st *SymbolStore) CheckFlagsOf(id SymbolId) CheckFlags {
 	if i < c.binderCount {
 		return 0
 	}
-	if i < lateSymbolIdBase {
-		return c.recs.At(i - c.binderCount).checkFlags
-	}
-	return st.SymbolOf(id).CheckFlags()
+	return c.recs.At(i - c.binderCount).checkFlags
 }
 
 func (st *SymbolStore) ParentOf(id SymbolId) SymbolId {
@@ -215,13 +209,21 @@ func (st *SymbolStore) ExportSymbolOf(id SymbolId) SymbolId {
 }
 
 func (st *SymbolStore) SetFlagsOf(id SymbolId, value SymbolFlags) {
-	if uint32(id) < st.checker.binderCount {
-		st.checker.binder.entry(id).flags = value
+	c := st.checker
+	if uint32(id) < c.binderCount {
+		c.binder.entry(id).flags = value
+	} else {
+		// A foreign symbol's record keeps a copy of its flags.
+		c.recs.At(uint32(id) - c.binderCount).flags = value
 	}
 	st.SymbolOf(id).SetFlags(value)
 }
 
 func (st *SymbolStore) SetCheckFlagsOf(id SymbolId, value CheckFlags) {
+	c := st.checker
+	if uint32(id) >= c.binderCount {
+		c.recs.At(uint32(id) - c.binderCount).checkFlags = value
+	}
 	st.SymbolOf(id).SetCheckFlags(value)
 }
 

@@ -771,6 +771,7 @@ type Checker struct {
 	moduleSymbolLinks                           symbolMapLinks[ModuleSymbolLinks]
 	lateBoundLinks                              symbolMapLinks[LateBoundLinks]
 	exportTypeLinks                             symbolMapLinks[ExportTypeLinks]
+	primitiveTypeAliasSuggestions               []primitiveTypeAliasSuggestion
 	membersAndExportsLinks                      symbolMapLinks[MembersAndExportsLinks]
 	typeAliasLinks                              symbolMapLinks[TypeAliasLinks]
 	declaredTypeLinks                           symbolMapLinks[DeclaredTypeLinks]
@@ -1890,29 +1891,32 @@ func (c *Checker) getSuggestedSymbolForNonexistentSymbol(location ast.Node, oute
 	return c.resolveNameForSymbolSuggestion(location, outerName, meaning, nil /*nameNotFoundMessage*/, false /*isUse*/, false /*excludeGlobals*/)
 }
 
-var primitiveTypeAliasSuggestions = sync.OnceValue(func() map[ast.SymbolName]ast.Symbol {
-	result := make(map[ast.SymbolName]ast.Symbol, 6)
-	for _, e := range []struct{ primitive, builtin string }{
-		{"string", "String"},
-		{"number", "Number"},
-		{"boolean", "Boolean"},
-		{"object", "Object"},
-		{"bigint", "BigInt"},
-		{"symbol", "Symbol"},
-	} {
-		sym := ast.NewSymbol()
-		sym.SetFlags(ast.SymbolFlagsTypeAlias | ast.SymbolFlagsTransient)
-		sym.SetName(ast.MakeSymbolName(e.primitive))
-		result[ast.MakeSymbolName(e.builtin)] = sym
-	}
-	return result
-})
+// primitiveTypeAliasSuggestion is a type alias symbol offered as a spelling
+// suggestion for a builtin type's name, made once per checker.
+type primitiveTypeAliasSuggestion struct {
+	builtin ast.SymbolName
+	symbol  ast.SymbolId
+}
 
 func (c *Checker) getPrimitiveTypeAliasSuggestions(symbols ast.SymbolTable) iter.Seq[ast.SymbolId] {
+	if c.primitiveTypeAliasSuggestions == nil {
+		for _, e := range []struct{ primitive, builtin string }{
+			{"string", "String"},
+			{"number", "Number"},
+			{"boolean", "Boolean"},
+			{"object", "Object"},
+			{"bigint", "BigInt"},
+			{"symbol", "Symbol"},
+		} {
+			// Not counted in SymbolCount: these are not symbols of the program.
+			symbol := c.symbolId(c.symbols.NewSymbol(ast.SymbolFlagsTypeAlias|ast.SymbolFlagsTransient, ast.MakeSymbolName(e.primitive)))
+			c.primitiveTypeAliasSuggestions = append(c.primitiveTypeAliasSuggestions, primitiveTypeAliasSuggestion{ast.MakeSymbolName(e.builtin), symbol})
+		}
+	}
 	return func(yield func(ast.SymbolId) bool) {
-		for builtinName, suggestion := range primitiveTypeAliasSuggestions() {
-			if _, ok := symbols.LookupId(c.symbols, builtinName); ok {
-				if !yield(c.symbolId(suggestion)) {
+		for _, e := range c.primitiveTypeAliasSuggestions {
+			if _, ok := symbols.LookupId(c.symbols, e.builtin); ok {
+				if !yield(e.symbol) {
 					return
 				}
 			}
