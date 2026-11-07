@@ -14259,15 +14259,17 @@ func (c *Checker) checkExpressionForMutableLocation(node ast.Node, checkMode Che
 }
 
 func (c *Checker) getResolvedSymbol(node ast.Node) ast.SymbolId {
-	if c.symbolNodeLinks.get(node) == 0 {
-		var symbol ast.SymbolId
-		if !ast.NodeIsMissing(node) {
-			symbol = c.resolveName(node, node.TextSymbolName(), ast.SymbolFlagsValue|ast.SymbolFlagsExportValue,
-				c.getCannotFindNameDiagnosticForName(node), !ast.IsWriteOnlyAccess(node), false /*excludeGlobals*/)
-		}
-		c.symbolNodeLinks.set(node, core.OrElse(symbol, c.unknownSymbol))
+	if resolved := c.symbolNodeLinks.get(node); resolved != 0 {
+		return resolved
 	}
-	return c.symbolNodeLinks.get(node)
+	var symbol ast.SymbolId
+	if !ast.NodeIsMissing(node) {
+		symbol = c.resolveName(node, node.TextSymbolName(), ast.SymbolFlagsValue|ast.SymbolFlagsExportValue,
+			c.getCannotFindNameDiagnosticForName(node), !ast.IsWriteOnlyAccess(node), false /*excludeGlobals*/)
+	}
+	symbol = core.OrElse(symbol, c.unknownSymbol)
+	c.symbolNodeLinks.set(node, symbol)
+	return symbol
 }
 
 func (c *Checker) getResolvedSymbolOrNil(node ast.Node) ast.SymbolId {
