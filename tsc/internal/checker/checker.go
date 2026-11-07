@@ -14730,11 +14730,22 @@ func (c *Checker) cloneSymbol(symbol ast.SymbolId) ast.SymbolId {
 	return result
 }
 
+// getMergedSymbol reads the binder symbol pages directly; the generic
+// store's lookup is too large to inline, and this is read for most
+// symbols the checker touches.
 func (c *Checker) getMergedSymbol(symbol ast.SymbolId) ast.SymbolId {
-	if symbol != 0 {
-		if merged := c.mergedSymbols.TryGet(symbol); merged != nil && (*merged) != 0 {
-			return *merged
-		}
+	if merged := c.mergedSymbols.bound.tryGet(symbol); merged != nil && *merged != 0 {
+		return *merged
+	}
+	if uint32(symbol) < c.mergedSymbols.binderSymbolCount {
+		return symbol
+	}
+	return c.getMergedTransientSymbol(symbol)
+}
+
+func (c *Checker) getMergedTransientSymbol(symbol ast.SymbolId) ast.SymbolId {
+	if merged := c.mergedSymbols.transient.TryGet(symbol); merged != nil && *merged != 0 {
+		return *merged
 	}
 	return symbol
 }
