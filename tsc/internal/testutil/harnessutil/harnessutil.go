@@ -387,6 +387,10 @@ var checkOrders = []string{
 	// type and resolved signature of every expression and name in each
 	// file, innermost and last first, as an editor might.
 	"typesfirst",
+	// Before checking or emitting, make the requests an editor makes of
+	// each file: signature help at every argument, its inlay hints, then
+	// hover over every name, innermost and last first.
+	"editorfirst",
 }
 
 func getHarnessOption(name string) *tsoptions.CommandLineOption {
@@ -764,6 +768,10 @@ func getCheckerDiagnostics(ctx context.Context, host compiler.CompilerHost, conf
 		}
 		result = append(result, program.GetSemanticDiagnostics(ctx, nil)...)
 		result = append(result, program.GetGlobalDiagnostics(ctx)...)
+	case "editorfirst":
+		makeEditorRequests(ctx, program, files)
+		result = append(result, program.GetSemanticDiagnostics(ctx, nil)...)
+		result = append(result, program.GetGlobalDiagnostics(ctx)...)
 	default:
 		panic("unknown check order " + order)
 	}
@@ -790,6 +798,12 @@ func emitInOrder(ctx context.Context, host compiler.CompilerHost, config *tsopti
 			queryNodes(c, file)
 			done()
 		}
+		return program.Emit(ctx, compiler.EmitOptions{})
+	}
+	if order == "editorfirst" {
+		makeEditorRequests(ctx, program, core.Filter(files, func(file *ast.SourceFile) bool {
+			return !program.Program().SkipTypeChecking(file, false)
+		}))
 		return program.Emit(ctx, compiler.EmitOptions{})
 	}
 	result := &compiler.EmitResult{}
@@ -832,6 +846,29 @@ func queryNodes(c *checker.Checker, file *ast.SourceFile) {
 		if ast.IsExpressionNode(n) || n.Kind == ast.KindIdentifier || ast.IsDeclarationName(n) {
 			for _, kind := range fuzzNodeQueryKinds(n) {
 				fuzzQueryResult(c, n, kind)
+			}
+		}
+	}
+}
+
+// makeEditorRequests asks for signature help at every argument of each of
+// files, its inlay hints, then hover over every name, innermost and last
+// first.
+func makeEditorRequests(ctx context.Context, program compiler.ProgramLike, files []*ast.SourceFile) {
+	lang := fuzzLanguageService(program.Program())
+	for _, file := range slices.Backward(files) {
+		nodes := core.Filter(fuzzNodes(file), func(n *ast.Node) bool {
+			return !ast.PositionIsSynthesized(n.Pos())
+		})
+		for _, n := range slices.Backward(nodes) {
+			if parent := n.Parent; parent != nil && ast.IsCallOrNewExpression(parent) && n != parent.Expression() {
+				fuzzLSResult(ctx, lang, file, n, fuzzQuerySignatureHelp)
+			}
+		}
+		fuzzLSResult(ctx, lang, file, nil, fuzzQueryInlayHints)
+		for _, n := range slices.Backward(nodes) {
+			if ast.IsIdentifier(n) {
+				fuzzLSResult(ctx, lang, file, n, fuzzQueryHover)
 			}
 		}
 	}
