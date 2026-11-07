@@ -120,19 +120,19 @@ func asRecursionId[T ast.Node | ast.SymbolId | *Type](value T) RecursionId {
 }
 
 type Relation struct {
-	results relationTable[RelationComparisonResult]
+	results core.IdMap[RelationKey, RelationComparisonResult]
 }
 
 func (r *Relation) get(key RelationKey) RelationComparisonResult {
-	return r.results.get(key)
+	return r.results.Get(key)
 }
 
 func (r *Relation) set(key RelationKey, result RelationComparisonResult) {
-	r.results.set(key, result)
+	r.results.Set(key, result)
 }
 
 func (r *Relation) size() int {
-	return r.results.count
+	return r.results.Len()
 }
 
 // A RelationKey names a pair of types being related. Nearly every key is
@@ -146,116 +146,6 @@ const relationKeyComplex RelationKey = 1 << 63
 
 func packRelationKey(source TypeId, target TypeId, intersectionState IntersectionState) RelationKey {
 	return RelationKey(source) | RelationKey(target)<<typeKindShift | RelationKey(intersectionState)<<(2*typeKindShift)
-}
-
-func (k RelationKey) hash() uint64 {
-	return bits.RotateLeft64(uint64(k)*0x9e3779b97f4a7c15, 32)
-}
-
-// A relationTable is an open-addressing hash table from relation keys to
-// values, probed linearly. A zero key marks an empty slot.
-type relationTable[V comparable] struct {
-	keys   []RelationKey
-	values []V
-	count  int
-}
-
-func (t *relationTable[V]) slot(key RelationKey) (int, bool) {
-	mask := len(t.keys) - 1
-	i := int(key.hash()) & mask
-	for {
-		switch t.keys[i] {
-		case key:
-			return i, true
-		case 0:
-			return i, false
-		}
-		i = (i + 1) & mask
-	}
-}
-
-func (t *relationTable[V]) get(key RelationKey) V {
-	if t.count != 0 {
-		if i, ok := t.slot(key); ok {
-			return t.values[i]
-		}
-	}
-	var zero V
-	return zero
-}
-
-func (t *relationTable[V]) has(key RelationKey) bool {
-	if t.count == 0 {
-		return false
-	}
-	_, ok := t.slot(key)
-	return ok
-}
-
-func (t *relationTable[V]) set(key RelationKey, value V) {
-	if (t.count+1)*4 > len(t.keys)*3 {
-		t.grow()
-	}
-	i, ok := t.slot(key)
-	if !ok {
-		t.keys[i] = key
-		t.count++
-	}
-	t.values[i] = value
-}
-
-func (t *relationTable[V]) grow() {
-	keys, values := t.keys, t.values
-	size := max(len(keys)*2, 16)
-	t.keys = make([]RelationKey, size)
-	t.values = make([]V, size)
-	for i, key := range keys {
-		if key != 0 {
-			j, _ := t.slot(key)
-			t.keys[j] = key
-			t.values[j] = values[i]
-		}
-	}
-}
-
-// delete removes key, shifting back the entries that probed past its slot
-// so that no probe sequence is broken.
-func (t *relationTable[V]) delete(key RelationKey) {
-	if t.count == 0 {
-		return
-	}
-	i, ok := t.slot(key)
-	if !ok {
-		return
-	}
-	mask := len(t.keys) - 1
-	var zero V
-	j := i
-	for {
-		j = (j + 1) & mask
-		k := t.keys[j]
-		if k == 0 {
-			break
-		}
-		home := int(k.hash()) & mask
-		// Move k into the hole at i unless its home lies cyclically in (i, j].
-		if (j > i && (home <= i || home > j)) || (j < i && home <= i && home > j) {
-			t.keys[i] = k
-			t.values[i] = t.values[j]
-			i = j
-		}
-	}
-	t.keys[i] = 0
-	t.values[i] = zero
-	t.count--
-}
-
-func (t *relationTable[V]) clear() {
-	if t.count != 0 {
-		clear(t.keys)
-		clear(t.values)
-		t.count = 0
-	}
 }
 
 func (c *Checker) isTypeIdenticalTo(source *Type, target *Type) bool {
@@ -2732,7 +2622,7 @@ type Relater struct {
 	errorChain     *ErrorChain
 	relatedInfo    []*ast.Diagnostic
 	maybeKeys      []RelationKey
-	maybeKeysSet   relationTable[struct{}]
+	maybeKeysSet   core.IdMap[RelationKey, struct{}]
 	sourceStack    []*Type
 	targetStack    []*Type
 	maybeCount     int
@@ -2754,7 +2644,7 @@ func (c *Checker) getRelater() *Relater {
 }
 
 func (c *Checker) putRelater(r *Relater) {
-	r.maybeKeysSet.clear()
+	r.maybeKeysSet.Clear()
 	*r = Relater{
 		c:            c,
 		maybeKeys:    r.maybeKeys[:0],
@@ -3285,7 +3175,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 		return TernaryFalse
 	}
 	// If source and target are already being compared, consider them related with assumptions
-	if r.maybeKeysSet.has(id) {
+	if r.maybeKeysSet.Has(id) {
 		return TernaryMaybe
 	}
 	// A constrained key indicates that we have type references that reference constrained
@@ -3293,7 +3183,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	// were unconstrained.
 	if constrained {
 		broadestEquivalentId, _ := r.c.getRelationKey(source, target, intersectionState, r.relation == r.c.identityRelation, true /*ignoreConstraints*/)
-		if r.maybeKeysSet.has(broadestEquivalentId) {
+		if r.maybeKeysSet.Has(broadestEquivalentId) {
 			return TernaryMaybe
 		}
 	}
@@ -3305,7 +3195,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 	}
 	maybeStart := len(r.maybeKeys)
 	r.maybeKeys = append(r.maybeKeys, id)
-	r.maybeKeysSet.set(id, struct{}{})
+	r.maybeKeysSet.Set(id, struct{}{})
 	saveExpandingFlags := r.expandingFlags
 	if recursionFlags&RecursionFlagsSource != 0 {
 		r.sourceStack = append(r.sourceStack, source)
@@ -3367,7 +3257,7 @@ func (r *Relater) recursiveTypeRelatedTo(source *Type, target *Type, reportError
 
 func (r *Relater) resetMaybeStack(maybeStart int, propagatingVarianceFlags RelationComparisonResult, markAllAsSucceeded bool) {
 	for i := maybeStart; i < len(r.maybeKeys); i++ {
-		r.maybeKeysSet.delete(r.maybeKeys[i])
+		r.maybeKeysSet.Delete(r.maybeKeys[i])
 		if markAllAsSucceeded {
 			r.relation.set(r.maybeKeys[i], RelationComparisonResultSucceeded|propagatingVarianceFlags)
 			r.relationCount--
