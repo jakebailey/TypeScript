@@ -68,7 +68,7 @@ func TestProgramStatisticsUseAPIChecker(t *testing.T) {
 	setup, err := session.setupChecker(context.Background(), params.Snapshot, params.Project)
 	assert.NilError(t, err)
 	file := setup.program.GetSourceFile(fileName)
-	setup.checker.GetTypeAtLocation(file.Statements.Nodes[0])
+	setup.checker.GetTypeAtLocation(file.Statements.At(0))
 	expected := ProgramStatisticsResponse{
 		NodeCount:          file.NodeCount,
 		IdentifierCount:    file.IdentifierCount,
