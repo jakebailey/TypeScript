@@ -99,13 +99,13 @@ func (c *Checker) GetBaseTypeOfLiteralType(t *Type) *Type {
 
 // GetPrivateIdentifierPropertyOfType looks up a private identifier named name (e.g. "#foo", including
 // the leading '#') lexically in scope at location, and if it resolves to a symbol, returns the
-// corresponding property of leftType (or nil if leftType has no such property).
-func (c *Checker) GetPrivateIdentifierPropertyOfType(leftType *Type, name string, location *ast.Node) *ast.Symbol {
-	lexicallyScopedIdentifier := c.lookupSymbolForPrivateIdentifierDeclaration(name, location)
-	if lexicallyScopedIdentifier == nil {
-		return nil
+// corresponding property of leftType (or a nil symbol if leftType has no such property).
+func (c *Checker) GetPrivateIdentifierPropertyOfType(leftType *Type, name string, location ast.Node) ast.Symbol {
+	lexicallyScopedIdentifier := c.lookupSymbolForPrivateIdentifierDeclaration(ast.MakeSymbolName(name), location)
+	if lexicallyScopedIdentifier == 0 {
+		return ast.Symbol{}
 	}
-	return c.getPrivateIdentifierPropertyOfType(leftType, lexicallyScopedIdentifier)
+	return c.symbolOf(c.getPrivateIdentifierPropertyOfType(leftType, lexicallyScopedIdentifier))
 }
 
 func (c *Checker) getUnknownSymbol() ast.SymbolId {

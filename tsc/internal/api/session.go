@@ -3879,7 +3879,7 @@ func (s *Session) handleGetJsxIntrinsicTagNamesAt(ctx context.Context, params *C
 	if err != nil {
 		return nil, err
 	}
-	if node == nil {
+	if node.IsNil() {
 		return nil, nil
 	}
 
@@ -3914,12 +3914,12 @@ func (s *Session) handleGetPrivateIdentifierPropertyOfType(ctx context.Context, 
 	if err != nil {
 		return nil, err
 	}
-	if node == nil {
+	if node.IsNil() {
 		return nil, nil
 	}
 
 	symbol := setup.checker.GetPrivateIdentifierPropertyOfType(t, params.Name, node)
-	if symbol == nil {
+	if symbol.IsNil() {
 		return nil, nil
 	}
 
@@ -4613,7 +4613,7 @@ func (s *Session) handleIsImplementationOfOverload(ctx context.Context, params *
 	if err != nil {
 		return false, err
 	}
-	if node == nil {
+	if node.IsNil() {
 		return false, nil
 	}
 
@@ -4635,12 +4635,12 @@ func (s *Session) handleGetPropertySymbolOfDestructuringAssignment(ctx context.C
 	if err != nil {
 		return nil, err
 	}
-	if node == nil {
+	if node.IsNil() {
 		return nil, nil
 	}
 
 	symbol := setup.checker.GetPropertySymbolOfDestructuringAssignment(node)
-	if symbol == nil {
+	if symbol.IsNil() {
 		return nil, nil
 	}
 
