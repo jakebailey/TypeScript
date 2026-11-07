@@ -27,6 +27,90 @@ This branch starts from `27c26808a21` ("Use the SymbolId as the checker's symbol
 
 Each row is one commit (or a few), validated by build, vet, the checker baselines and unit tests of the touched packages, and measured on vscode single threaded when it moves a hot path.
 
+### Where it stands
+
+| Structure | State |
+|---|---|
+| Id-keyed hash maps | Done. `core.IdMap` is used for node links, symbol links of transient symbols, symbol-of-node, the relation caches, and the caches keyed by a packed type id, symbol id or node ref (`cachedTypes`, flow reachability, iteration types, substitution and union-of-union types, and others). Maps whose keys don't fit in 64 bits (`CacheHashKey` instantiation keys, narrowed-type and reverse-mapped keys), string-keyed maps and cold maps stay built-in maps. |
+| Binder symbol table entry | Done: 32 bytes, `{rec *symbolRecord, nodes *NodeStore, flags, base, name}`. The name is 8 bytes, so the entry can't be smaller. |
+| Binder symbol record | 32 bytes, as planned, but the rare part is still an index into the file's rare slice, not a pointer. It's read only for symbols with members or exports, through the entry's store pointer, so it's one extra load on a cold path. |
+| Symbol accessors | Done. The `SymbolStore` id accessors read the binder entry or the transient record with no nested calls on the common cases. The checker wrappers inline, but the accessors themselves are calls (see below). |
+| Transient symbols | Done: records hold their name inline, in one growing slice indexed by `id - binderCount`. The record is 40 bytes because the name is 8. |
+| Third id space | Gone. A symbol of a store outside the program gets a transient id whose record points at it. |
+| A node's binder symbol | Kept as at the base: the node's store, its sparse map, then the cached store base plus the local index. That is the same number of loads as indexing a per-file offset table, so it wasn't rewritten. |
+| A type's symbol | Done: the stored id. |
+| Symbol-of-node | Done: per-file `IdMap[uint32, SymbolId]`, read once per `getResolvedSymbol`. |
+| Node links | Done: one `IdMap[uint64, V]` per link kind keyed by the packed `NodeRef`. Values are inline for one-field links; multi-field links hold arena pointers, because callers keep a link record across calls that add links, and map entries move when the map grows. |
+| Symbol links | Done. Binder symbols use pages of 64 with a presence word. Transient symbols use `IdMap[SymbolId, V]` with inline values for single values, and arena pointers for multi-field records (same reason as node links). Value links use a chunked slice for transient symbols. `getMergedSymbol` reads its page directly in one call. |
+| Symbol tables | Done: as at the base, plus the lookup and id conversion in one call. |
+| Types | Unchanged: `*Type`, 64-byte records in chunked slabs. |
+| Relation, interning and flow caches | The relation table and the packed-key caches are on `IdMap`. Interning maps keyed by type lists (`CacheHashKey`) stay built-in maps. |
+
+Beyond the plan, hot checks read a symbol's declarations once instead of repeatedly. Ancestor walks on the identifier path are loops rather than `FindAncestor` with a predicate function value, because Go doesn't specialize a function for the function value passed to it.
+
+#### What Go can't express here
+
+- **Inlining budget.** Go inlines functions up to a cost of 80, and a call costs 57. A lookup with an out-of-line slow path therefore can't inline once its fast path costs more than about 20. This covers the binder-or-transient link lookup, the binder sparse map (`sparseMap.get`), `Node.refAt` (cost 95) and the symbol accessors (`ValueDeclarationOf`, `DeclarationsOf`, `NameOf`). In functions past the "big function" size, which covers most of the checker's hot functions, Go inlines only callees of cost 20 or less. So `Node.Parent` (cost 55) stays a call from `checkIdentifier` and similar functions. Generic methods are compiled per shape with a dictionary, which adds cost, so a generic store's `TryGet` can exceed the budget where the same code written for one type wouldn't.
+- **PGO.** The checked-in profile is from main. Its hot edges name functions and call sites that differ here, so PGO doesn't raise the budget on the new paths.
+- **Closures.** A predicate passed as a function value is an indirect call per invocation unless the callee inlines. Walks that run per identifier are written as loops instead.
+- **Garbage collection.** Maps and pages whose values hold pointers (`*Type`, arena records) are scanned by the collector, and their stores take write barriers. Hence the write-barrier and span-scan functions in the profile (`wbBufFlush`, `tryDeferToSpanScan`, about 100M calls on vscode), and why GC-on instruction counts move by about 2% between runs.
+- **Map values move.** Go has no way to hand out a stable `&V` into a map that may grow while the pointer is held, and the checker's multi-field links are held across calls that add links. Those links stay in an arena with the map holding a pointer. That's one more load than an inline value.
+
+#### Measurements
+
+vscode `src`, single threaded, pinned to one core, two runs each (ranges where runs differed):
+
+| | cycles | instructions | calls | loads | peak RSS | GC mark CPU |
+|---|---|---|---|---|---|---|
+| main | 99.8-100.2G | 202.3-203.2G | 3.92-3.93G | 59.2-59.5G | 4.68-4.75G | 1909-2231ms |
+| `new-ast-view` (pointer-free) | 116.5-116.9G | 257.4-257.6G | 6.65-6.66G | 83.4-83.5G | 3.28G | 445-456ms |
+| base `27c26808a21` | 114-116G | 245-248G | 6.41-6.44G | | 3.34G | 1138ms |
+| this branch | 107.0-107.1G | 214.4-222.3G | 4.60-4.70G | 66.4-68.2G | 3.73-4.06G | 803-1088ms |
+
+With `GOGC=off`, which removes collection work and its run-to-run noise, this branch runs 97.2G cycles, 197.0G instructions, 4.43G calls and 61.9G loads.
+
+The per-commit numbers are in the commit messages:
+
+| Commit | calls | instructions |
+|---|---|---|
+| base | 6.41-6.44G | 245-248G |
+| node links in `IdMap` | 6.11-6.13G | 240-242G |
+| symbol links in pages and maps | 5.95-5.99G | 238-242G |
+| binder entries with a record pointer | 5.30G | 229.7G |
+| symbol table lookup and id in one call; resolved symbol read once | 5.20G | 224.9G |
+| GOGC=off from here: id-keyed caches in `IdMap` | 5.02 -> 4.98G | 205.6 -> 204.7G |
+| merged symbol read through the page | 4.95G | 204.4G |
+| declarations read once | 4.87G | 202.0G |
+| ancestor walks as loops | 4.43G | 197.0G |
+
+Peak RSS and cycles on other projects (single threaded, one run each):
+
+| | sentry cycles | sentry RSS | mui `docs` cycles | mui `docs` RSS |
+|---|---|---|---|---|
+| main | 84.2G | 3.23G | 36.7G | 1.79G |
+| pointer-free | 93.4G | 2.18G | 41.0G | 1.34G |
+| this branch | 83.2G | 2.52G | 35.1G | 1.73G |
+
+#### Where the remaining calls go
+
+These are return samples on vscode (`GOGC=off`, 4.43G calls in all). Of these, 1.94G are in the checker package, 1.22G in ast and 0.55G in the runtime. The functions called most, in millions of calls:
+
+- `inferFromTypes`: 102
+- `SymbolMap.Find`: 59. The lazy member layout lookup and `getPropertyOfObjectType` call it.
+- `Node.refAt`: 58. `Node.Expression` and `Node.Name` (about 45 each) call it.
+- `NameResolver.Resolve`: 55
+- `ValueDeclarationOf`: 52
+- `getTypeAtFlowAssignment`: 48
+- `symbolNodeLinkStore.get`: 43
+- `LookupId`: 37
+- `SymbolOf`: 32
+- `getSymbolOfDeclaration`: 32
+- `SymbolName.String`: 31. Almost all of it comes from `Node.computedText`.
+- Write barriers and span scanning: about 100
+- Built-in map hashing and access: about 85. These are the string-keyed maps and those with wide keys.
+
+Most of these are small accessors that miss the inlining budget for the reasons above. They aren't extra work done per symbol or node.
+
 ## Goal (AST)
 
 Every `*ast.Node` is a heap object full of Go pointers: children, parent, symbol, flow node, lists, and so on. The GC has to trace all of them. The idea here is that a node is "a file plus an offset", and its fields are pointer-free data, so the GC barely sees the AST.
