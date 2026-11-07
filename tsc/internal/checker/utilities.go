@@ -69,7 +69,8 @@ func hasReadonlyModifier(node ast.Node) bool {
 }
 
 func (c *Checker) isStaticPrivateIdentifierProperty(s ast.SymbolId) bool {
-	return !c.symbolValueDeclaration(s).IsNil() && ast.IsPrivateIdentifierClassElementDeclaration(c.symbolValueDeclaration(s)) && ast.IsStatic(c.symbolValueDeclaration(s))
+	declaration := c.symbolValueDeclaration(s)
+	return !declaration.IsNil() && ast.IsPrivateIdentifierClassElementDeclaration(declaration) && ast.IsStatic(declaration)
 }
 
 func isEmptyObjectLiteral(expression ast.Node) bool {
@@ -372,13 +373,14 @@ func (c *Checker) compareSymbolsWorker(s1, s2 ast.SymbolId) int {
 	if s2 == 0 {
 		return -1
 	}
-	if c.symbolDeclarations(s1).Len() != 0 && c.symbolDeclarations(s2).Len() != 0 {
-		if r := c.compareNodes(c.symbolDeclarations(s1).At(0), c.symbolDeclarations(s2).At(0)); r != 0 {
+	d1, d2 := c.symbolDeclarations(s1), c.symbolDeclarations(s2)
+	if d1.Len() != 0 && d2.Len() != 0 {
+		if r := c.compareNodes(d1.At(0), d2.At(0)); r != 0 {
 			return r
 		}
-	} else if c.symbolDeclarations(s1).Len() != 0 {
+	} else if d1.Len() != 0 {
 		return -1
-	} else if c.symbolDeclarations(s2).Len() != 0 {
+	} else if d2.Len() != 0 {
 		return 1
 	}
 	if r := strings.Compare(c.symbolName(s1).String(), c.symbolName(s2).String()); r != 0 {
@@ -784,7 +786,7 @@ func (c *Checker) getDeclarationModifierFlagsFromSymbolEx(s ast.SymbolId, isWrit
 		}
 		return accessModifier
 	}
-	if !c.symbolValueDeclaration(s).IsNil() {
+	if valueDeclaration := c.symbolValueDeclaration(s); !valueDeclaration.IsNil() {
 		var declaration ast.Node
 		if isWrite {
 			declaration = c.symbolDeclarations(s).Find(ast.IsSetAccessorDeclaration)
@@ -793,7 +795,7 @@ func (c *Checker) getDeclarationModifierFlagsFromSymbolEx(s ast.SymbolId, isWrit
 			declaration = c.symbolDeclarations(s).Find(ast.IsGetAccessorDeclaration)
 		}
 		if declaration.IsNil() {
-			declaration = c.symbolValueDeclaration(s)
+			declaration = valueDeclaration
 		}
 		flags := ast.GetCombinedModifierFlags(declaration)
 		if c.symbolParent(s) != 0 && c.symbolFlags(c.symbolParent(s))&ast.SymbolFlagsClass != 0 {

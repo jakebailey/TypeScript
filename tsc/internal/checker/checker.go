@@ -14422,14 +14422,16 @@ func (c *Checker) addDeprecatedSuggestionWorker(declarations ast.Declarations, d
 
 func (c *Checker) isDeprecatedSymbol(symbol ast.SymbolId) bool {
 	parentSymbol := c.getParentOfSymbol(symbol)
-	if parentSymbol != 0 && c.symbolDeclarations(symbol).Len() > 1 {
+	declarations := c.symbolDeclarations(symbol)
+	if parentSymbol != 0 && declarations.Len() > 1 {
 		if c.symbolFlags(parentSymbol)&ast.SymbolFlagsInterface != 0 {
-			return c.symbolDeclarations(symbol).Some(c.IsDeprecatedDeclaration)
+			return declarations.Some(c.IsDeprecatedDeclaration)
 		} else {
-			return c.symbolDeclarations(symbol).Every(c.IsDeprecatedDeclaration)
+			return declarations.Every(c.IsDeprecatedDeclaration)
 		}
 	}
-	return !c.symbolValueDeclaration(symbol).IsNil() && c.IsDeprecatedDeclaration(c.symbolValueDeclaration(symbol)) || c.symbolDeclarations(symbol).Len() != 0 && c.symbolDeclarations(symbol).Every(c.IsDeprecatedDeclaration)
+	valueDeclaration := c.symbolValueDeclaration(symbol)
+	return !valueDeclaration.IsNil() && c.IsDeprecatedDeclaration(valueDeclaration) || declarations.Len() != 0 && declarations.Every(c.IsDeprecatedDeclaration)
 }
 
 func (c *Checker) hasParseDiagnostics(sourceFile *ast.SourceFile) bool {
@@ -18789,7 +18791,7 @@ func (c *Checker) getTypeFromPropertyDescriptor(node ast.Node) *Type {
 // when no declaration sites have JSDoc type annotations, and when at least one declaration site is in the body of
 // a class constructor.
 func (c *Checker) isConstructorDeclaredThisProperty(symbol ast.SymbolId) (thisAssignmentDeclarationKind, ast.Node) {
-	if c.symbolValueDeclaration(symbol).IsNil() || !ast.IsBinaryExpression(c.symbolValueDeclaration(symbol)) {
+	if valueDeclaration := c.symbolValueDeclaration(symbol); valueDeclaration.IsNil() || !ast.IsBinaryExpression(valueDeclaration) {
 		return thisAssignmentDeclarationNone, ast.Node{}
 	}
 	if kind, ok := c.thisExpandoKinds.TryGet(symbol); ok {
@@ -28688,11 +28690,16 @@ func compareTypesEqual(s *Type, t *Type) Ternary {
 }
 
 func (c *Checker) markPropertyAsReferenced(prop ast.SymbolId, nodeForCheckWriteOnly ast.Node, isSelfTypeAccess bool) {
-	if c.symbolFlags(prop)&ast.SymbolFlagsClassMember == 0 || c.symbolValueDeclaration(prop).IsNil() {
+	if c.symbolFlags(prop)&ast.SymbolFlagsClassMember == 0 {
 		return
 	}
-	hasPrivateModifier := ast.HasModifier(c.symbolValueDeclaration(prop), ast.ModifierFlagsPrivate)
-	hasPrivateIdentifier := !c.symbolValueDeclaration(prop).Name().IsNil() && ast.IsPrivateIdentifier(c.symbolValueDeclaration(prop).Name())
+	valueDeclaration := c.symbolValueDeclaration(prop)
+	if valueDeclaration.IsNil() {
+		return
+	}
+	hasPrivateModifier := ast.HasModifier(valueDeclaration, ast.ModifierFlagsPrivate)
+	name := valueDeclaration.Name()
+	hasPrivateIdentifier := !name.IsNil() && ast.IsPrivateIdentifier(name)
 	if !hasPrivateModifier && !hasPrivateIdentifier {
 		return
 	}

@@ -2891,7 +2891,8 @@ func (c *Checker) getTypeOfPropertyInType(t *Type, name ast.SymbolName) *Type {
 }
 
 func (c *Checker) shouldCheckAsExcessProperty(prop ast.SymbolId, container ast.SymbolId) bool {
-	return !c.symbolValueDeclaration(prop).IsNil() && !c.symbolValueDeclaration(container).IsNil() && c.symbolValueDeclaration(prop).Parent() == c.symbolValueDeclaration(container)
+	propDeclaration, containerDeclaration := c.symbolValueDeclaration(prop), c.symbolValueDeclaration(container)
+	return !propDeclaration.IsNil() && !containerDeclaration.IsNil() && propDeclaration.Parent() == containerDeclaration
 }
 
 func (c *Checker) isIgnoredJsxProperty(source *Type, sourceProp ast.SymbolId) bool {
