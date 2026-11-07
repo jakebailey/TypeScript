@@ -276,12 +276,6 @@ type ReverseMappedSymbolLinks struct {
 	constraintType *Type // References an index type
 }
 
-// Links for late-bound symbols
-
-type LateBoundLinks struct {
-	lateSymbol ast.SymbolId
-}
-
 // Links for export type symbols
 
 type ExportTypeLinks struct {
@@ -341,8 +335,6 @@ const (
 	MembersOrExportsResolutionKindResolvedExports MembersOrExportsResolutionKind = 0
 	MembersOrExportsResolutionKindResolvedMembers MembersOrExportsResolutionKind = 1
 )
-
-type MembersAndExportsLinks [2]ast.SymbolTable // Indexed by MembersOrExportsResolutionKind
 
 // Links for synthetic spread properties
 

@@ -7,14 +7,6 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
 
-// When possible, symbolLinkStore stores Symbol links in an efficient and densely
-// packed paged array store. When a Symbol has not yet been assigned an ID, the store provides one
-// from a generator. The generator grabs chunks of 256 IDs from a central atomic counter, ensuring that each
-// block of 256 IDs is consecutive and causing Symbol links to be densely packed within a single page.
-// IDs from a generator are in a reserved range of the ID space.
-
-const maxPageLinkCount = 0x100_0000 // 16M
-
 // initNodeLinks makes the checker's node link stores number files with refs.
 func (c *Checker) initNodeLinks(refs ast.RefCache) {
 	c.refs = refs
@@ -102,21 +94,18 @@ func (s *sourceFileLinkStore) Get(file *ast.SourceFile) *SourceFileLinks {
 	return links
 }
 
-// symbolValueMap holds one small value per symbol, keyed by SymbolId, for
-// links that few symbols have.
+// symbolValueMap holds one small value per symbol, keyed by SymbolId, in
+// the map itself, for links that few symbols have.
 type symbolValueMap[V any] struct {
-	entries map[ast.SymbolId]V
+	values core.IdMap[ast.SymbolId, V]
 }
 
 func (s *symbolValueMap[V]) get(symbol ast.SymbolId) V {
-	return s.entries[symbol]
+	return s.values.Get(symbol)
 }
 
 func (s *symbolValueMap[V]) set(symbol ast.SymbolId, value V) {
-	if s.entries == nil {
-		s.entries = make(map[ast.SymbolId]V)
-	}
-	s.entries[symbol] = value
+	s.values.Set(symbol, value)
 }
 
 // symbolNodeLinkStore holds the symbol a node resolves to, if any, in a
@@ -185,36 +174,159 @@ func (c *Checker) symbolId(symbol ast.Symbol) ast.SymbolId {
 	return c.symbolIds.id(symbol)
 }
 
+// boundSymbolPages holds a link for each binder symbol, inline in pages of
+// 64 indexed by SymbolId and allocated on first use. A bit per link records
+// which links were made.
+type boundSymbolPages[V any] struct {
+	pages []*boundSymbolPage[V]
+}
+
+const (
+	boundSymbolPageShift = 6
+	boundSymbolPageSize  = 1 << boundSymbolPageShift
+)
+
+type boundSymbolPage[V any] struct {
+	present uint64
+	values  [boundSymbolPageSize]V
+}
+
+func (p *boundSymbolPages[V]) get(symbol ast.SymbolId, binderSymbolCount uint32) *V {
+	i := uint32(symbol)
+	if k := i >> boundSymbolPageShift; k < uint32(len(p.pages)) {
+		if page := p.pages[k]; page != nil {
+			page.present |= 1 << (i & (boundSymbolPageSize - 1))
+			return &page.values[i&(boundSymbolPageSize-1)]
+		}
+	}
+	return p.getSlow(symbol, binderSymbolCount)
+}
+
+func (p *boundSymbolPages[V]) getSlow(symbol ast.SymbolId, binderSymbolCount uint32) *V {
+	i := uint32(symbol)
+	k := int(i >> boundSymbolPageShift)
+	if k >= len(p.pages) {
+		p.pages = make([]*boundSymbolPage[V], max(k+1, int(binderSymbolCount+boundSymbolPageSize-1)>>boundSymbolPageShift))
+	}
+	page := new(boundSymbolPage[V])
+	p.pages[k] = page
+	page.present |= 1 << (i & (boundSymbolPageSize - 1))
+	return &page.values[i&(boundSymbolPageSize-1)]
+}
+
+func (p *boundSymbolPages[V]) tryGet(symbol ast.SymbolId) *V {
+	i := uint32(symbol)
+	if k := i >> boundSymbolPageShift; k < uint32(len(p.pages)) {
+		if page := p.pages[k]; page != nil && page.present&(1<<(i&(boundSymbolPageSize-1))) != 0 {
+			return &page.values[i&(boundSymbolPageSize-1)]
+		}
+	}
+	return nil
+}
+
+// symbolLinkStore holds links that binder symbols commonly have: inline in
+// pages for binder symbols, and in records the map points to for transient
+// ones.
 type symbolLinkStore[V any] struct {
-	links core.LinkStore[ast.SymbolId, V]
-	pages core.PagedLinkStore[V]
+	binderSymbolCount uint32
+	bound             boundSymbolPages[V]
+	transient         symbolMapLinks[V]
 }
 
 func (s *symbolLinkStore[V]) Get(symbol ast.SymbolId) *V {
-	if symbol < maxPageLinkCount {
-		return s.pages.Get(uint64(symbol))
+	if uint32(symbol) < s.binderSymbolCount {
+		return s.bound.get(symbol, s.binderSymbolCount)
 	}
-	return s.links.Get(symbol)
-}
-
-func (s *symbolLinkStore[V]) Has(symbol ast.SymbolId) bool {
-	return s.TryGet(symbol) != nil
+	return s.transient.Get(symbol)
 }
 
 func (s *symbolLinkStore[V]) TryGet(symbol ast.SymbolId) *V {
-	if symbol < maxPageLinkCount {
-		return s.pages.TryGet(uint64(symbol))
+	if uint32(symbol) < s.binderSymbolCount {
+		return s.bound.tryGet(symbol)
 	}
-	return s.links.TryGet(symbol)
+	return s.transient.TryGet(symbol)
 }
 
-// symbolMapLinks holds links that few symbols have, keyed by SymbolId.
+// valueSymbolStore holds the links of value symbols, which nearly every
+// symbol the checker reads has: inline in pages for binder symbols, and for
+// transient symbols inline in a chunked slice indexed by the symbol's
+// transient index, since transient symbols are made densely and most get
+// value links.
+type valueSymbolStore struct {
+	binderSymbolCount uint32
+	bound             boundSymbolPages[ValueSymbolLinks]
+	transient         []*valueSymbolChunk
+}
+
+const (
+	valueSymbolChunkShift = 10
+	valueSymbolChunkSize  = 1 << valueSymbolChunkShift
+)
+
+type valueSymbolChunk struct {
+	present [valueSymbolChunkSize / 64]uint64
+	values  [valueSymbolChunkSize]ValueSymbolLinks
+}
+
+func (s *valueSymbolStore) Get(symbol ast.SymbolId) *ValueSymbolLinks {
+	if uint32(symbol) < s.binderSymbolCount {
+		return s.bound.get(symbol, s.binderSymbolCount)
+	}
+	i := uint32(symbol) - s.binderSymbolCount
+	if k := i >> valueSymbolChunkShift; k < uint32(len(s.transient)) {
+		chunk := s.transient[k]
+		j := i & (valueSymbolChunkSize - 1)
+		chunk.present[j>>6] |= 1 << (j & 63)
+		return &chunk.values[j]
+	}
+	return s.getTransientSlow(i)
+}
+
+func (s *valueSymbolStore) getTransientSlow(i uint32) *ValueSymbolLinks {
+	for int(i>>valueSymbolChunkShift) >= len(s.transient) {
+		s.transient = append(s.transient, new(valueSymbolChunk))
+	}
+	chunk := s.transient[i>>valueSymbolChunkShift]
+	j := i & (valueSymbolChunkSize - 1)
+	chunk.present[j>>6] |= 1 << (j & 63)
+	return &chunk.values[j]
+}
+
+func (s *valueSymbolStore) Has(symbol ast.SymbolId) bool {
+	return s.TryGet(symbol) != nil
+}
+
+func (s *valueSymbolStore) TryGet(symbol ast.SymbolId) *ValueSymbolLinks {
+	if uint32(symbol) < s.binderSymbolCount {
+		return s.bound.tryGet(symbol)
+	}
+	i := uint32(symbol) - s.binderSymbolCount
+	if k := i >> valueSymbolChunkShift; k < uint32(len(s.transient)) {
+		chunk := s.transient[k]
+		j := i & (valueSymbolChunkSize - 1)
+		if chunk.present[j>>6]&(1<<(j&63)) != 0 {
+			return &chunk.values[j]
+		}
+	}
+	return nil
+}
+
+// symbolMapLinks holds links that few symbols have, keyed by SymbolId, in
+// records from an arena that the map points to. Callers keep a record
+// across calls that add links, so a record can't live in the map, whose
+// entries move when it grows.
 type symbolMapLinks[V any] struct {
-	links core.LinkStore[ast.SymbolId, V]
+	links core.IdMap[ast.SymbolId, *V]
+	arena core.Arena[V]
 }
 
 func (s *symbolMapLinks[V]) Get(symbol ast.SymbolId) *V {
-	return s.links.Get(symbol)
+	if value := s.links.Get(symbol); value != nil {
+		return value
+	}
+	value := s.arena.New()
+	s.links.Set(symbol, value)
+	return value
 }
 
 func (s *symbolMapLinks[V]) Has(symbol ast.SymbolId) bool {
@@ -222,7 +334,7 @@ func (s *symbolMapLinks[V]) Has(symbol ast.SymbolId) bool {
 }
 
 func (s *symbolMapLinks[V]) TryGet(symbol ast.SymbolId) *V {
-	return s.links.TryGet(symbol)
+	return s.links.Get(symbol)
 }
 
 // nodeOf resolves a ref held by a checker record.

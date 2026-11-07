@@ -764,15 +764,15 @@ type Checker struct {
 	jsxElementLinks                             nodeLinkStore[JsxElementLinks]
 	computedNameLinks                           nodeLinkStore[ComputedNameNodeLinks]
 	symbolReferenceKinds                        symbolValueMap[ast.SymbolFlags] // Flags for the meanings of the symbol that were referenced
-	valueSymbolLinks                            symbolLinkStore[ValueSymbolLinks]
+	valueSymbolLinks                            valueSymbolStore
 	mappedSymbolLinks                           symbolMapLinks[MappedSymbolLinks]
 	deferredSymbolLinks                         symbolMapLinks[DeferredSymbolLinks]
 	aliasSymbolLinks                            symbolMapLinks[AliasSymbolLinks]
 	moduleSymbolLinks                           symbolMapLinks[ModuleSymbolLinks]
-	lateBoundLinks                              symbolMapLinks[LateBoundLinks]
+	lateBoundSymbols                            symbolValueMap[ast.SymbolId] // The late-bound symbol of a class member with a computed name
 	exportTypeLinks                             symbolMapLinks[ExportTypeLinks]
 	primitiveTypeAliasSuggestions               []primitiveTypeAliasSuggestion
-	membersAndExportsLinks                      symbolMapLinks[MembersAndExportsLinks]
+	membersAndExports                           core.IdMap[uint64, ast.SymbolTable] // Resolved members or exports, keyed by symbol and MembersOrExportsResolutionKind
 	typeAliasLinks                              symbolMapLinks[TypeAliasLinks]
 	declaredTypeLinks                           symbolMapLinks[DeclaredTypeLinks]
 	spreadLinks                                 symbolMapLinks[SpreadLinks]
@@ -14446,6 +14446,8 @@ func (c *Checker) initSymbols(t *ast.FileTable) {
 	c.symbols = ast.NewCheckerSymbolStore(t)
 	c.binderSymbols = t.BinderSymbols()
 	c.binderSymbolCount = c.binderSymbols.Count()
+	c.valueSymbolLinks.binderSymbolCount = c.binderSymbolCount
+	c.mergedSymbols.binderSymbolCount = c.binderSymbolCount
 	c.symbolIds = symbolIds{store: c.symbols}
 }
 
@@ -14789,8 +14791,7 @@ func (c *Checker) getLateBoundSymbol(symbol ast.SymbolId) ast.SymbolId {
 	if c.symbolFlags(symbol)&ast.SymbolFlagsClassMember == 0 || c.symbolName(symbol) != ast.InternalSymbolNameComputed {
 		return symbol
 	}
-	links := c.lateBoundLinks.Get(symbol)
-	if links.lateSymbol == 0 && c.symbolDeclarations(symbol).Some(c.hasLateBindableName) {
+	if c.lateBoundSymbols.get(symbol) == 0 && c.symbolDeclarations(symbol).Some(c.hasLateBindableName) {
 		// force late binding of members/exports. This will set the late-bound symbol
 		parent := c.getMergedSymbol(c.symbolParent(symbol))
 		if c.symbolDeclarations(symbol).Some(ast.HasStaticModifier) {
@@ -14799,10 +14800,12 @@ func (c *Checker) getLateBoundSymbol(symbol ast.SymbolId) ast.SymbolId {
 			c.getMembersOfSymbol(parent)
 		}
 	}
-	if links.lateSymbol == 0 {
-		links.lateSymbol = symbol
+	lateSymbol := c.lateBoundSymbols.get(symbol)
+	if lateSymbol == 0 {
+		lateSymbol = symbol
+		c.lateBoundSymbols.set(symbol, lateSymbol)
 	}
-	return links.lateSymbol
+	return lateSymbol
 }
 
 func (c *Checker) resolveSymbol(symbol ast.SymbolId) ast.SymbolId {
@@ -16451,8 +16454,8 @@ func (c *Checker) getExportsOfSymbol(symbol ast.SymbolId) ast.SymbolTable {
 }
 
 func (c *Checker) getResolvedMembersOrExportsOfSymbol(symbol ast.SymbolId, resolutionKind MembersOrExportsResolutionKind) ast.SymbolTable {
-	links := c.membersAndExportsLinks.Get(symbol)
-	if links[resolutionKind] == nil {
+	key := uint64(symbol)<<8 | uint64(resolutionKind)
+	if c.membersAndExports.Get(key) == nil {
 		isStatic := resolutionKind == MembersOrExportsResolutionKindResolvedExports
 		earlySymbols := c.symbolExports(symbol)
 		switch {
@@ -16461,7 +16464,7 @@ func (c *Checker) getResolvedMembersOrExportsOfSymbol(symbol ast.SymbolId, resol
 		case c.symbolFlags(symbol)&ast.SymbolFlagsModule != 0:
 			earlySymbols, _ = c.getExportsOfModuleWorker(symbol)
 		}
-		links[resolutionKind] = earlySymbols
+		c.membersAndExports.Set(key, earlySymbols)
 		// fill in any as-yet-unresolved late-bound members.
 		var lateSymbols ast.SymbolTable
 		for _, decl := range c.symbolDeclarations(symbol).All() {
@@ -16494,9 +16497,9 @@ func (c *Checker) getResolvedMembersOrExportsOfSymbol(symbol ast.SymbolId, resol
 				}
 			}
 		}
-		links[resolutionKind] = c.combineSymbolTables(earlySymbols, lateSymbols)
+		c.membersAndExports.Set(key, c.combineSymbolTables(earlySymbols, lateSymbols))
 	}
-	return links[resolutionKind]
+	return c.membersAndExports.Get(key)
 }
 
 // Performs late-binding of a dynamic member. This performs the same function for
@@ -16617,7 +16620,7 @@ func (c *Checker) isNotReplacableByMethod(decl ast.Node) bool {
 // members.
 func (c *Checker) addDeclarationToLateBoundSymbol(symbol ast.SymbolId, member ast.Node, symbolFlags ast.SymbolFlags) {
 	debug.Assert(c.symbolCheckFlags(symbol)&ast.CheckFlagsLate != 0, "Expected a late-bound symbol.")
-	c.lateBoundLinks.Get(c.nodeSymbol(member)).lateSymbol = symbol
+	c.lateBoundSymbols.set(c.nodeSymbol(member), symbol)
 	if c.symbolDeclarations(symbol).Len() == 0 || c.symbolFlags(c.nodeSymbol(member))&ast.SymbolFlagsReplaceableByMethod == 0 {
 		c.setSymbolFlags(symbol, c.symbolFlags(symbol)|symbolFlags)
 		c.setSymbolDeclarations(symbol, c.symbolDeclarations(symbol).Append(member))
