@@ -10,8 +10,9 @@ export default function getExePath({ fs, module, path, url }) {
 
     const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "package.json"), "utf8"));
     const pkgName = pkg.name;
-    const baseName = pkgName.startsWith("@") ? pkgName.split("/")[1] : pkgName;
-    const expectedBinName = baseName === "typescript" ? "tsc" : "tsgo";
+    const [scope, baseName] = pkgName.startsWith("@") ? pkgName.split("/") : ["@typescript", pkgName];
+    // PR builds (@typescript-deploys/pr-build) are drop-in replacements for typescript.
+    const expectedBinName = baseName === "typescript" || baseName === "pr-build" ? "tsc" : "tsgo";
     const binNames = pkg.bin && typeof pkg.bin === "object" ? Object.keys(pkg.bin) : [];
     if (binNames.length !== 1 || binNames[0] !== expectedBinName) {
         throw new Error(`Expected ${pkgName} to declare exactly one bin entry named ${expectedBinName}.`);
@@ -34,7 +35,7 @@ export default function getExePath({ fs, module, path, url }) {
     }
     else {
         // We're actually running from an installed package.
-        const platformPackageName = "@typescript/" + expectedPackage;
+        const platformPackageName = scope + "/" + expectedPackage;
         try {
             if (typeof import.meta.resolve === "undefined") {
                 // v16.20.1
