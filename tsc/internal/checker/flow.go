@@ -1507,11 +1507,11 @@ func getCandidateVariableDeclarationInitializer(node ast.Node) ast.Node {
 // and never escape the getFlowTypeOfReference function.
 func (c *Checker) getEvolvingArrayType(elementType *Type) *Type {
 	key := CachedTypeKey{kind: CachedTypeKindEvolvingArrayType, typeId: elementType.Id()}
-	result := c.cachedTypes[key]
+	result := c.cachedTypes.Get(key.pack())
 	if result == nil {
 		result = c.newObjectType(ObjectFlagsEvolvingArray, 0)
 		result.AsEvolvingArrayType().setElementType(elementType)
-		c.cachedTypes[key] = result
+		c.cachedTypes.Set(key.pack(), result)
 	}
 	return result
 }
@@ -2412,10 +2412,10 @@ func (c *Checker) getAssignmentReducedType(declaredType *Type, assignedType *Typ
 		return assignedType
 	}
 	key := AssignmentReducedKey{id1: declaredType.Id(), id2: assignedType.Id()}
-	result := c.assignmentReducedTypes[key]
+	result := c.assignmentReducedTypes.Get(key.pack())
 	if result == nil {
 		result = c.getAssignmentReducedTypeWorker(declaredType, assignedType)
-		c.assignmentReducedTypes[key] = result
+		c.assignmentReducedTypes.Set(key.pack(), result)
 	}
 	return result
 }
@@ -2535,11 +2535,11 @@ func (c *Checker) isReachableFlowNodeWorker(f *FlowState, flow ast.FlowNode, noC
 		flags := flow.Flags()
 		if flags&ast.FlowFlagsShared != 0 {
 			if !noCacheCheck && len(f.reduceLabels) == 0 {
-				if reachable, ok := c.flowNodeReachable[flow]; ok {
+				if reachable, ok := c.flowNodeReachable.TryGet(c.refs.FlowKey(flow)); ok {
 					return reachable
 				}
 				reachable := c.isReachableFlowNodeWorker(f, flow, true /*noCacheCheck*/)
-				c.flowNodeReachable[flow] = reachable
+				c.flowNodeReachable.Set(c.refs.FlowKey(flow), reachable)
 				return reachable
 			}
 			noCacheCheck = false
@@ -2621,11 +2621,11 @@ func (c *Checker) isPostSuperFlowNodeWorker(f *FlowState, flow ast.FlowNode, noC
 		flags := flow.Flags()
 		if flags&ast.FlowFlagsShared != 0 {
 			if !noCacheCheck {
-				if postSuper, ok := c.flowNodePostSuper[flow]; ok {
+				if postSuper, ok := c.flowNodePostSuper.TryGet(c.refs.FlowKey(flow)); ok {
 					return postSuper
 				}
 				postSuper := c.isPostSuperFlowNodeWorker(f, flow, true /*noCacheCheck*/)
-				c.flowNodePostSuper[flow] = postSuper
+				c.flowNodePostSuper.Set(c.refs.FlowKey(flow), postSuper)
 			}
 			noCacheCheck = false
 		}

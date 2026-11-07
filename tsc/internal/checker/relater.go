@@ -322,7 +322,7 @@ func (c *Checker) isEnumTypeRelatedTo(source ast.SymbolId, target ast.SymbolId, 
 		return false
 	}
 	key := EnumRelationKey{sourceId: sourceSymbol, targetId: targetSymbol}
-	if entry := c.enumRelation[key]; entry != RelationComparisonResultNone && !(entry&RelationComparisonResultFailed != 0 && errorReporter != nil) {
+	if entry := c.enumRelation.Get(key.pack()); entry != RelationComparisonResultNone && !(entry&RelationComparisonResultFailed != 0 && errorReporter != nil) {
 		return entry&RelationComparisonResultSucceeded != 0
 	}
 	targetEnumType := c.getTypeOfSymbol(targetSymbol)
@@ -333,7 +333,7 @@ func (c *Checker) isEnumTypeRelatedTo(source ast.SymbolId, target ast.SymbolId, 
 				if errorReporter != nil {
 					errorReporter(diagnostics.Property_0_is_missing_in_type_1, c.symbolToString(sourceProperty), c.TypeToStringEx(c.getDeclaredTypeOfSymbol(targetSymbol), ast.Node{} /*enclosingDeclaration*/, TypeFormatFlagsUseFullyQualifiedType, nil))
 				}
-				c.enumRelation[key] = RelationComparisonResultFailed
+				c.enumRelation.Set(key.pack(), RelationComparisonResultFailed)
 				return false
 			}
 			sourceValue := c.getEnumMemberValue(ast.GetDeclarationOfKind(c.symbolOf(sourceProperty), ast.KindEnumMember)).Value
@@ -344,7 +344,7 @@ func (c *Checker) isEnumTypeRelatedTo(source ast.SymbolId, target ast.SymbolId, 
 					if errorReporter != nil {
 						errorReporter(diagnostics.Each_declaration_of_0_1_differs_in_its_value_where_2_was_expected_but_3_was_given, c.symbolToString(targetSymbol), c.symbolToString(targetProperty), c.valueToString(targetValue), c.valueToString(sourceValue))
 					}
-					c.enumRelation[key] = RelationComparisonResultFailed
+					c.enumRelation.Set(key.pack(), RelationComparisonResultFailed)
 					return false
 				}
 				// At this point we know that at least one of the values is 'undefined'.
@@ -360,13 +360,13 @@ func (c *Checker) isEnumTypeRelatedTo(source ast.SymbolId, target ast.SymbolId, 
 						knownStringValue := core.OrElse(sourceValue, targetValue)
 						errorReporter(diagnostics.One_value_of_0_1_is_the_string_2_and_the_other_is_assumed_to_be_an_unknown_numeric_value, c.symbolToString(targetSymbol), c.symbolToString(targetProperty), c.valueToString(knownStringValue))
 					}
-					c.enumRelation[key] = RelationComparisonResultFailed
+					c.enumRelation.Set(key.pack(), RelationComparisonResultFailed)
 					return false
 				}
 			}
 		}
 	}
-	c.enumRelation[key] = RelationComparisonResultSucceeded
+	c.enumRelation.Set(key.pack(), RelationComparisonResultSucceeded)
 	return true
 }
 

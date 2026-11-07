@@ -155,6 +155,12 @@ func (c *RefCache) Ref(n Node) NodeRef {
 	return c.refSlow(n)
 }
 
+// FlowKey returns a nonzero key for f that is unique within the table:
+// its store's file number and its index there, which starts at 1.
+func (c *RefCache) FlowKey(f FlowNode) uint64 {
+	return c.Ref(Node{f.s, f.i}).Key()
+}
+
 func (c *RefCache) refSlow(n Node) NodeRef {
 	r := c.table.Ref(n)
 	if n.s != nil {
