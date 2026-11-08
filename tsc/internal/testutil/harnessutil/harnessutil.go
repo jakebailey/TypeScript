@@ -731,6 +731,7 @@ func compileFilesWithHost(
 		errors = append(errors, diag)
 	}
 
+	assertCheckersAtRest(postProgram.Program())
 	return newCompilationResult(host, harnessOptions.CurrentDirectory, config.CompilerOptions(), postProgram, emitResult, errors, harnessOptions)
 }
 
