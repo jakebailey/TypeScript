@@ -1383,13 +1383,17 @@ type InterfaceType struct {
 	outerTypeParameterCount     int     // Count of outer type parameters
 	thisType                    *Type   // The "this" type (nil if none)
 	baseTypesResolved           bool
-	declaredMembersResolved     bool
 	resolvedBaseConstructorType memo[*Type]
 	resolvedBaseTypes           memo[[]*Type]
-	declaredMembers             ast.SymbolTable // Declared members
-	declaredCallSignatures      []*Signature    // Declared call signatures
-	declaredConstructSignatures []*Signature    // Declared construct signatures
-	declaredIndexInfos          []*IndexInfo    // Declared index signatures
+	declared                    memo[*DeclaredMembers]
+}
+
+// DeclaredMembers are the members an interface or class declares itself.
+type DeclaredMembers struct {
+	members             ast.SymbolTable
+	callSignatures      []*Signature
+	constructSignatures []*Signature
+	indexInfos          []*IndexInfo
 }
 
 func (t *InterfaceType) AsInterfaceType() *InterfaceType { return t }

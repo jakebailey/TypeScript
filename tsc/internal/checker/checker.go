@@ -5384,7 +5384,7 @@ func (c *Checker) checkInheritedPropertiesAreIdentical(t *Type, typeNode *ast.No
 		return true
 	}
 	seen := make(map[string]InheritanceInfo)
-	for id, p := range c.resolveDeclaredMembers(t).declaredMembers.All() {
+	for id, p := range c.resolveDeclaredMembers(t).members.All() {
 		if c.isNamedMember(p, id) {
 			seen[p.Name()] = InheritanceInfo{prop: p, containingType: t}
 		}
@@ -21286,7 +21286,7 @@ func (c *Checker) getDeclaredPropertyOfResolvingType(t *Type, name string) *ast.
 			}
 			resolved := c.resolvingObjectTypeStack[i].resolvedMembers.Get(name)
 			if resolved == nil {
-				if symbol := c.resolveDeclaredMembers(getTargetType(t)).declaredMembers.Get(name); symbol != nil && c.isNamedMember(symbol, name) {
+				if symbol := c.resolveDeclaredMembers(getTargetType(t)).members.Get(name); symbol != nil && c.isNamedMember(symbol, name) {
 					resolved = c.instantiateSymbol(symbol, c.resolvingObjectTypeStack[i].mapper)
 				} else {
 					for _, baseType := range c.resolvingObjectTypeStack[i].baseTypes {
@@ -21677,14 +21677,14 @@ func (c *Checker) resolveObjectTypeMembers(t *Type) {
 	}
 	resolved := c.resolveDeclaredMembers(source)
 	if slices.Equal(typeParameters, typeArguments) {
-		callSignatures = resolved.declaredCallSignatures
-		constructSignatures = resolved.declaredConstructSignatures
-		indexInfos = resolved.declaredIndexInfos
+		callSignatures = resolved.callSignatures
+		constructSignatures = resolved.constructSignatures
+		indexInfos = resolved.indexInfos
 	} else {
 		mapper = newTypeMapper(typeParameters, typeArguments)
-		callSignatures = c.instantiateSignatures(resolved.declaredCallSignatures, mapper)
-		constructSignatures = c.instantiateSignatures(resolved.declaredConstructSignatures, mapper)
-		indexInfos = c.instantiateIndexInfos(resolved.declaredIndexInfos, mapper)
+		callSignatures = c.instantiateSignatures(resolved.callSignatures, mapper)
+		constructSignatures = c.instantiateSignatures(resolved.constructSignatures, mapper)
+		indexInfos = c.instantiateIndexInfos(resolved.indexInfos, mapper)
 	}
 	baseTypes := c.getBaseTypes(source)
 	instantiatedBaseTypes := baseTypes
@@ -21755,7 +21755,7 @@ func (c *Checker) getMemberLayoutKey(t *Type, baseTypes []*Type) CacheHashKey {
 	b.reserve(20 + 5*len(baseTypes))
 	b.writeType(t)
 	// Late binding may add new declared members, so include the declared member count in the key
-	b.writeInt(t.AsInterfaceType().declaredMembers.Len())
+	b.writeInt(c.resolveDeclaredMembers(t).members.Len())
 	b.writeInt(len(baseTypes))
 	for _, baseType := range baseTypes {
 		if baseType.objectFlags&ObjectFlagsReference != 0 {
@@ -21783,7 +21783,7 @@ func (c *Checker) createMemberLayout(t *Type, baseTypes []*Type) *MemberLayout {
 		}
 	}
 	// Add declared members
-	for id, symbol := range t.AsInterfaceType().declaredMembers.All() {
+	for id, symbol := range c.resolveDeclaredMembers(t).members.All() {
 		if c.isNamedMember(symbol, id) {
 			addMember(symbol, -1)
 		}
@@ -22307,29 +22307,30 @@ func (c *Checker) addInheritedMembers(symbols ast.SymbolTable, baseSymbols []*as
 	return symbols
 }
 
-func (c *Checker) resolveDeclaredMembers(t *Type) *InterfaceType {
+func (c *Checker) resolveDeclaredMembers(t *Type) *DeclaredMembers {
 	d := t.AsInterfaceType()
-	key := memoKeyOf(t, memoDeclaredMembers)
-	if d.declaredMembersResolved {
-		c.observeFlagMemo(key)
-		return d
+	if r := d.declared.cached(c); r != nil {
+		return r
 	}
-	c.beginMemo(key)
-	c.resolveDeclaredMembersUncached(t)
+	d.declared.begin(c)
+	r := c.resolveDeclaredMembersUncached(t)
 	c.endMemo()
-	return d
+	return r
 }
 
-func (c *Checker) resolveDeclaredMembersUncached(t *Type) {
+func (c *Checker) resolveDeclaredMembersUncached(t *Type) *DeclaredMembers {
 	d := t.AsInterfaceType()
-	if !d.declaredMembersResolved {
-		members := c.getMembersOfSymbol(t.symbol)
-		c.setFlagMemoValue(memoKeyOf(t, memoDeclaredMembers), &d.declaredMembersResolved, true)
-		d.declaredMembers = members
-		d.declaredCallSignatures = c.getSignaturesOfSymbol(d.declaredMembers.Get(ast.InternalSymbolNameCall))
-		d.declaredConstructSignatures = c.getSignaturesOfSymbol(d.declaredMembers.Get(ast.InternalSymbolNameNew))
-		d.declaredIndexInfos = c.getIndexInfosOfSymbol(t.symbol)
+	if r := d.declared.peek(); r != nil {
+		return r
 	}
+	// The members are cached before the signatures are resolved, which may
+	// request them again.
+	r := &DeclaredMembers{members: c.getMembersOfSymbol(t.symbol)}
+	d.declared.set(c, r)
+	r.callSignatures = c.getSignaturesOfSymbol(r.members.Get(ast.InternalSymbolNameCall))
+	r.constructSignatures = c.getSignaturesOfSymbol(r.members.Get(ast.InternalSymbolNameNew))
+	r.indexInfos = c.getIndexInfosOfSymbol(t.symbol)
+	return r
 }
 
 func (c *Checker) getIndexInfosOfSymbol(symbol *ast.Symbol) []*IndexInfo {
@@ -27949,8 +27950,7 @@ func (c *Checker) createTupleTargetType(elementInfos []TupleElementInfo, readonl
 	d.instantiations.intern(getTypeListKey(d.TypeParameters()), t)
 	d.target = t
 	d.resolvedTypeArguments.intern(d.TypeParameters())
-	d.declaredMembersResolved = true
-	d.declaredMembers = members
+	d.declared.intern(&DeclaredMembers{members: members})
 	d.elementInfos = elementInfos
 	d.minLength = minLength
 	d.fixedLength = fixedLength

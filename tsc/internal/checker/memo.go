@@ -59,7 +59,6 @@ const (
 	memoModuleExports
 	memoInstantiationExpressionType
 	memoTypePredicate
-	memoDeclaredMembers
 	memoCouldContainTypeVariables
 	memoGenericObjectFlags
 	memoUnknownLikeUnion
