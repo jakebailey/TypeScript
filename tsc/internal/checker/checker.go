@@ -842,6 +842,7 @@ type memoStore struct {
 	files                                  []*ast.SourceFile
 	fileIndexMap                           map[*ast.SourceFile]int
 	publishMu                              sync.Mutex // Serializes publishing overlays; see overlay.go
+	frozen                                 bool       // Experiment: nothing is published; each checker keeps its overlay
 	TypeCount                              uint32
 	memberLayoutCount                      uint32
 	SymbolCount                            uint32

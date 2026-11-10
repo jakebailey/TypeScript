@@ -201,6 +201,12 @@ func (c *Checker) publishMidRequest() {
 	c.publishOverlayEx(false)
 }
 
+// FreezeStore stops publishing to the store of c, which checkers sharing it
+// then read without coordinating.
+func (c *Checker) FreezeStore() {
+	c.frozen = true
+}
+
 func (c *Checker) publishOverlay() {
 	c.publishOverlayEx(true)
 }
@@ -208,6 +214,9 @@ func (c *Checker) publishOverlay() {
 // publishOverlayEx publishes the overlay, or if it conflicts with the store
 // and final, drops it.
 func (c *Checker) publishOverlayEx(final bool) {
+	if c.frozen {
+		return
+	}
 	if c.overlay.len() == 0 && len(c.ownMaps) == 0 && len(c.memoStates) == 0 {
 		return
 	}

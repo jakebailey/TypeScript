@@ -9,6 +9,7 @@ import (
 	rpprof "runtime/pprof"
 	"slices"
 	"sort"
+	"strconv"
 	"sync"
 	"time"
 
@@ -35,6 +36,7 @@ type checkerPool struct {
 	tracing *tracing.Tracing
 
 	createCheckersOnce sync.Once
+	warmed             bool
 	checkers           []*checker.Checker
 	locks              []*sync.Mutex
 	fileAssociations   map[*ast.SourceFile]*checker.Checker
@@ -542,6 +544,26 @@ func (p *checkerPool) forEachCheckerGroupDo(ctx context.Context, files []*ast.So
 	p.createCheckers()
 
 	checkerCount := len(p.checkers)
+	warmed := map[*ast.SourceFile]bool{}
+	if sharedStoreConcurrent && os.Getenv("TSGO_WARM") != "" && !p.warmed {
+		p.warmed = true
+		k, _ := strconv.Atoi(os.Getenv("TSGO_WARM"))
+		start := time.Now()
+		for i, file := range files {
+			if k == 0 {
+				break
+			}
+			if c := p.checkers[0]; c == p.fileAssociations[file] && !file.IsDeclarationFile {
+				cb(c, i, file)
+				warmed[file] = true
+				k--
+			}
+		}
+		p.checkers[0].FreezeStore()
+		if os.Getenv("TSGO_OVERLAY_STATS") != "" {
+			fmt.Fprintf(os.Stderr, "warm: %v\n", time.Since(start))
+		}
+	}
 	wg := core.NewWorkGroup(core.WorkGroupConcurrency(singleThreaded))
 	for checkerIdx := range checkerCount {
 		wg.Queue(func() {
@@ -550,7 +572,7 @@ func (p *checkerPool) forEachCheckerGroupDo(ctx context.Context, files []*ast.So
 			start := time.Now()
 			n := 0
 			for i, file := range files {
-				if checker := p.checkers[checkerIdx]; checker == p.fileAssociations[file] {
+				if checker := p.checkers[checkerIdx]; checker == p.fileAssociations[file] && !warmed[file] {
 					cb(checker, i, file)
 					n++
 				}
