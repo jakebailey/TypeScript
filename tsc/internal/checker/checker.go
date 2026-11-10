@@ -696,33 +696,35 @@ type Checker struct {
 	permissiveMapper                            *TypeMapper
 	ownDeferredCallbacks                        []func(c *Checker) // See addDeferredDiagnostic
 	overlayDepth                                int                // Requests in progress writing to the overlay; see overlay.go
-	overlay                                     map[overlayKey]*overlayEntry
-	mapOverlay                                  map[mapOverlayKey]*overlayEntry
-	overlayPublishes                            int                          // Requests whose overlay was published
-	memoStates                                  map[memoKey]*memoState       // Memo state of results; see memo.go
-	stateFilter                                 stateKeyFilter               // Memo keys that may have a memo state; see memoState
-	memoPendingCount                            int                          // Number of memoStates with unreplayed effects
-	mapStates                                   map[mapOverlayKey]*memoState // Memo states of memo map entries held in the overlay
-	recent                                      *recentFilter                // Keys published since the request started; see overlay.go
-	resolvingMembers                            map[*Type]*ResolvedMembers   // Members of types whose resolution is in progress
-	overlayDrops                                int                          // Requests whose overlay conflicted with the store
-	resolving                                   resolvingTable               // Index in resolutions of the outermost computation of each key in progress
-	typeResolutionTop                           int                          // 1-based index in resolutions of the innermost resolution, or 0
-	resolutionStart                             int                          // Index in resolutions below which resolutions are not searched for cycles
-	visibleStart                                int                          // Index in resolutions below which nothing in progress is visible; see yieldCycle
-	cycleYields                                 []cycleYield                 // Canonical recomputations in progress; see yieldCycle
-	circularityStart                            int                          // 1-based index in resolutions of the outermost cycle in progress, or 0; see memo.go
-	currentNodeErrors                           []*currentNodeError          // Errors reported at the current node while collecting; see startCurrentNodeErrors
-	currentNodeErrorCollectors                  int                          // Number of computations collecting currentNodeErrors
-	currentNodeErrorsCyclic                     bool                         // Whether a cycle was observed while collecting currentNodeErrors; see endCurrentNodeErrors
-	discardLog                                  []discardEntry               // Restores what was cached while anything may be discarded; see "Discard log" in memo.go
-	discardLogFloor                             int                          // Length of the discard log kept for measurements hidden by a canonical variance remeasurement; see trimDiscardLog
-	circularityMark                             int                          // Length of discard log when the cycle in progress was detected
-	innerCycles                                 []innerCycle                 // Cycles detected inside the one in progress; see extendCircularity
-	flowDepthFailures                           map[FlowLoopKey]int          // Largest depth budget known to be too small for a flow walk from a node; see getTypeAtFlowNode
-	observedHead                                int32                        // 1 + index in resolutions of the lowest head of a cycle observed by the innermost type resolution in progress, or 0
-	cycleParticipants                           []*memoHeader                // Computations that observed a cycle in progress
-	effectsMarkDepth                            int                          // 1 + resolution index of the innermost effects mark that may be discarded, or 0
+	overlay                                     map[overlayKey]overlayEntry
+	overlayPublishes                            int                        // Requests whose overlay was published
+	memoStates                                  map[memoKey]*memoState     // Memo state of results; see memo.go
+	stateFilter                                 stateKeyFilter             // Memo keys that may have a memo state; see memoState
+	memoPendingCount                            int                        // Number of memoStates with unreplayed effects
+	ownMaps                                     []ownedMap                 // Maps whose entries c holds in its overlay; see mapOwners
+	ownFilter                                   ownFilter                  // Keys in the overlay; see overlayCell
+	requestEpoch                                uint64                     // The publishEpoch when the request started; see mapOwners
+	sharerIndex                                 int                        // Index among the checkers sharing the store
+	recent                                      *recentFilter              // Keys published since the request started; see overlay.go
+	resolvingMembers                            map[*Type]*ResolvedMembers // Members of types whose resolution is in progress
+	overlayDrops                                int                        // Requests whose overlay conflicted with the store
+	resolving                                   resolvingTable             // Index in resolutions of the outermost computation of each key in progress
+	typeResolutionTop                           int                        // 1-based index in resolutions of the innermost resolution, or 0
+	resolutionStart                             int                        // Index in resolutions below which resolutions are not searched for cycles
+	visibleStart                                int                        // Index in resolutions below which nothing in progress is visible; see yieldCycle
+	cycleYields                                 []cycleYield               // Canonical recomputations in progress; see yieldCycle
+	circularityStart                            int                        // 1-based index in resolutions of the outermost cycle in progress, or 0; see memo.go
+	currentNodeErrors                           []*currentNodeError        // Errors reported at the current node while collecting; see startCurrentNodeErrors
+	currentNodeErrorCollectors                  int                        // Number of computations collecting currentNodeErrors
+	currentNodeErrorsCyclic                     bool                       // Whether a cycle was observed while collecting currentNodeErrors; see endCurrentNodeErrors
+	discardLog                                  []discardEntry             // Restores what was cached while anything may be discarded; see "Discard log" in memo.go
+	discardLogFloor                             int                        // Length of the discard log kept for measurements hidden by a canonical variance remeasurement; see trimDiscardLog
+	circularityMark                             int                        // Length of discard log when the cycle in progress was detected
+	innerCycles                                 []innerCycle               // Cycles detected inside the one in progress; see extendCircularity
+	flowDepthFailures                           map[FlowLoopKey]int        // Largest depth budget known to be too small for a flow walk from a node; see getTypeAtFlowNode
+	observedHead                                int32                      // 1 + index in resolutions of the lowest head of a cycle observed by the innermost type resolution in progress, or 0
+	cycleParticipants                           []*memoHeader              // Computations that observed a cycle in progress
+	effectsMarkDepth                            int                        // 1 + resolution index of the innermost effects mark that may be discarded, or 0
 	varianceStack                               []VarianceStackEntry
 	varianceCycleRoot                           int                // 1 + index in varianceStack of the outermost measurement re-entered in progress, or 0; see getRecursiveVariances
 	heldEffects                                 []func(c *Checker) // See holdEffect
@@ -1070,6 +1072,7 @@ type memoStore struct {
 	memoErrorStates                         int64            // Number of memo states with reports; see setReported
 	sharedStates                            sharedMemoStates // Memo states published by checkers sharing the store; see overlay.go
 	sharers                                 []*Checker       // Checkers sharing the store concurrently
+	publishEpoch                            uint64           // Number of overlays published, under publishMu
 
 	mu sync.Mutex
 }
@@ -1197,6 +1200,10 @@ func NewChecker(program Program, tracer *Tracer) (*Checker, *sync.Mutex) {
 	c.mergesFrozen = true
 	c.checking = false
 	c.syncObserving()
+	if concurrentStores {
+		c.recent = new(recentFilter)
+		c.sharers = []*Checker{c}
+	}
 	return c, &c.mu
 }
 
@@ -1285,11 +1292,8 @@ func (c *Checker) Clone() *Checker {
 	clone.initCheckerState()
 	if concurrentStores {
 		c.publishMu.Lock()
-		if c.recent == nil {
-			c.recent = new(recentFilter)
-			c.sharers = append(c.sharers, c)
-		}
 		clone.recent = new(recentFilter)
+		clone.sharerIndex = len(c.sharers)
 		c.sharers = append(c.sharers, clone)
 		c.publishMu.Unlock()
 	}
@@ -21953,10 +21957,10 @@ func (c *Checker) getBaseTypesUncached(t *Type) []*Type {
 			c.clearResolvedMembers(t)
 		}
 		if c.overlaying() {
-			c.putOverlayCell(overlayKey{p: unsafe.Pointer(&data.baseTypesResolved)}, &overlayEntry{
-				value:     true,
-				publish:   func() { data.baseTypesResolved = true },
-				published: func() bool { return data.baseTypesResolved },
+			c.putOverlayCell(overlayKey{p: unsafe.Pointer(&data.baseTypesResolved)}, overlayEntry{
+				value: true,
+				p:     unsafe.Pointer(&data.baseTypesResolved),
+				ops:   cellOps[bool]{},
 			}, &data.resolvedBaseTypes.memoHeader, memoKeyOf(t, memoBaseTypes), true)
 		} else {
 			data.baseTypesResolved = true

@@ -1729,8 +1729,8 @@ func (s *Signature) setThisParameter(c *Checker, parameter *ast.Symbol) {
 
 func (s *Signature) getResolvedTypePredicate(c *Checker) *TypePredicate {
 	if c.overlaying() {
-		if e, ok := c.overlayCell(s.typePredicateOverlayKey()); ok {
-			return e.value.(*TypePredicate)
+		if v, ok := c.overlayCell(s.typePredicateOverlayKey()); ok {
+			return valueAs[*TypePredicate](v)
 		}
 		if c.recentlyPublished(s.typePredicateOverlayKey().hash()) {
 			return nil
@@ -1749,6 +1749,18 @@ func (s *Signature) getStoredTypePredicate(c *Checker) *TypePredicate {
 	return s.extra.resolvedTypePredicate
 }
 
+// typePredicateOps publishes the type predicate of a signature.
+type typePredicateOps struct{}
+
+func (typePredicateOps) publish(c *Checker, e *overlayEntry) {
+	(*Signature)(e.p).initResolvedTypePredicate(c, valueAs[*TypePredicate](e.value))
+}
+
+func (typePredicateOps) conflicts(c *Checker, e *overlayEntry) bool {
+	live := (*Signature)(e.p).getStoredTypePredicate(c)
+	return live != nil && live != valueAs[*TypePredicate](e.value)
+}
+
 func (s *Signature) typePredicateOverlayKey() overlayKey {
 	return overlayKey{unsafe.Pointer(s), uint32(signatureFlagsNoTypePredicate)}
 }
@@ -1757,10 +1769,10 @@ func (s *Signature) typePredicateOverlayKey() overlayKey {
 // memo; see initResolvedTypePredicate.
 func (s *Signature) setResolvedTypePredicate(c *Checker, predicate *TypePredicate) {
 	if c.overlaying() {
-		c.putOverlayCell(s.typePredicateOverlayKey(), &overlayEntry{
-			value:     predicate,
-			publish:   func() { s.initResolvedTypePredicate(c, predicate) },
-			published: func() bool { return s.getStoredTypePredicate(c) != nil },
+		c.putOverlayCell(s.typePredicateOverlayKey(), overlayEntry{
+			value: predicate,
+			p:     unsafe.Pointer(s),
+			ops:   typePredicateOps{},
 		}, nil, memoKeyOf(s, memoTypePredicate), true)
 		c.setFlagMemo(memoKeyOf(s, memoTypePredicate))
 		return

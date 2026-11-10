@@ -1270,6 +1270,20 @@ func (c *Checker) isDiscriminantProperty(t *Type, name string) bool {
 	return false
 }
 
+// discriminantOps publishes the flags of a synthetic property caching
+// whether it is a discriminant.
+type discriminantOps struct{}
+
+func (discriminantOps) publish(_ *Checker, e *overlayEntry) {
+	prop := (*ast.Symbol)(e.p)
+	prop.SetCheckFlags(prop.CheckFlags()&^ast.CheckFlags(e.mask) | valueAs[ast.CheckFlags](e.value))
+}
+
+func (discriminantOps) conflicts(_ *Checker, e *overlayEntry) bool {
+	live := (*ast.Symbol)(e.p).CheckFlags() & ast.CheckFlags(e.mask)
+	return live != 0 && live != valueAs[ast.CheckFlags](e.value)&ast.CheckFlags(e.mask)
+}
+
 const discriminantFlagsMask = ast.CheckFlagsIsDiscriminantComputed | ast.CheckFlagsIsDiscriminant
 
 // discriminantFlags returns the flags of the synthetic property prop caching
@@ -1278,8 +1292,8 @@ const discriminantFlagsMask = ast.CheckFlagsIsDiscriminantComputed | ast.CheckFl
 func (c *Checker) discriminantFlags(prop *ast.Symbol) ast.CheckFlags {
 	if c.overlaying() {
 		key := overlayKey{unsafe.Pointer(prop), uint32(discriminantFlagsMask)}
-		if e, ok := c.overlayCell(key); ok {
-			return e.value.(ast.CheckFlags)
+		if v, ok := c.overlayCell(key); ok {
+			return valueAs[ast.CheckFlags](v)
 		}
 		if c.recentlyPublished(key.hash()) {
 			return 0
@@ -1294,10 +1308,11 @@ func (c *Checker) setDiscriminantFlags(prop *ast.Symbol, flags ast.CheckFlags) {
 	const mask = discriminantFlagsMask
 	if c.overlaying() {
 		flags &= mask
-		c.putOverlayCell(overlayKey{unsafe.Pointer(prop), uint32(mask)}, &overlayEntry{
-			value:     flags,
-			publish:   func() { prop.SetCheckFlags(prop.CheckFlags()&^mask | flags) },
-			published: func() bool { return prop.CheckFlags()&mask != 0 },
+		c.putOverlayCell(overlayKey{unsafe.Pointer(prop), uint32(mask)}, overlayEntry{
+			value: flags,
+			p:     unsafe.Pointer(prop),
+			ops:   discriminantOps{},
+			mask:  uint32(mask),
 		}, nil, memoKeyOf(prop, memoDiscriminant), true)
 		c.setFlagMemo(memoKeyOf(prop, memoDiscriminant))
 		return

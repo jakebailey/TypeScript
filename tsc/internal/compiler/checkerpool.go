@@ -5,9 +5,12 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"runtime"
+	rpprof "runtime/pprof"
 	"slices"
 	"sort"
 	"sync"
+	"time"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
@@ -389,6 +392,13 @@ var sharedStoreExperiment = os.Getenv("TSGO_SHARED_STORE") != ""
 // in builds with the sharedstore tag; see checker.ConcurrentStores.
 var sharedStoreConcurrent = checker.ConcurrentStores()
 
+func init() {
+	if os.Getenv("TSGO_BLOCKPROF") != "" {
+		runtime.SetBlockProfileRate(1000)
+		runtime.SetMutexProfileFraction(1)
+	}
+}
+
 func (p *checkerPool) createCheckers() {
 	p.createCheckersOnce.Do(func() {
 		checkerCount := len(p.checkers)
@@ -507,6 +517,16 @@ func (p *checkerPool) GetGlobalDiagnostics() []*ast.Diagnostic {
 	if os.Getenv("TSGO_OVERLAY_STATS") != "" {
 		fmt.Fprintln(os.Stderr, checker.DebugOverlayStats())
 	}
+	if d := os.Getenv("TSGO_BLOCKPROF"); d != "" {
+		if f, err := os.Create(d + "/block.pb.gz"); err == nil {
+			rpprof.Lookup("block").WriteTo(f, 0)
+			f.Close()
+		}
+		if f, err := os.Create(d + "/mutex.pb.gz"); err == nil {
+			rpprof.Lookup("mutex").WriteTo(f, 0)
+			f.Close()
+		}
+	}
 	p.createCheckers()
 	globalDiagnostics := make([][]*ast.Diagnostic, len(p.checkers))
 	p.forEachCheckerParallel(func(idx int, checker *checker.Checker) {
@@ -527,10 +547,16 @@ func (p *checkerPool) forEachCheckerGroupDo(ctx context.Context, files []*ast.So
 		wg.Queue(func() {
 			p.locks[checkerIdx].Lock()
 			defer p.locks[checkerIdx].Unlock()
+			start := time.Now()
+			n := 0
 			for i, file := range files {
 				if checker := p.checkers[checkerIdx]; checker == p.fileAssociations[file] {
 					cb(checker, i, file)
+					n++
 				}
+			}
+			if os.Getenv("TSGO_OVERLAY_STATS") != "" {
+				fmt.Fprintf(os.Stderr, "checker %d: %d files %v\n", checkerIdx, n, time.Since(start))
 			}
 		})
 	}

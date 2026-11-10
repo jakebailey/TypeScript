@@ -237,8 +237,8 @@ func (m *memo[T]) load(c *Checker) T {
 		return loadLive(&m.memoValue)
 	}
 	if len(c.overlay) != 0 {
-		if e, ok := c.overlayCell(m.overlayKey()); ok {
-			return e.value.(T)
+		if v, ok := c.overlayCell(m.overlayKey()); ok {
+			return valueAs[T](v)
 		}
 	}
 	v := loadLive(&m.memoValue)
@@ -263,12 +263,8 @@ func (m *memo[T]) overlayKey() overlayKey {
 	return overlayKey{p: unsafe.Pointer(&m.memoValue)}
 }
 
-func (m *memo[T]) overlayEntry(v T) *overlayEntry {
-	return &overlayEntry{
-		value:     v,
-		publish:   func() { storeLive(&m.memoValue, v) },
-		published: func() bool { return !isZeroValue(&m.memoValue) },
-	}
+func (m *memo[T]) overlayEntry(v T) overlayEntry {
+	return overlayEntry{value: v, p: unsafe.Pointer(&m.memoValue), ops: cellOps[T]{}}
 }
 
 // set caches a result. When set outside the result's own computation (for
@@ -304,7 +300,7 @@ func setAfterMarker[T comparable, X any](c *Checker, m *memo[T], v T, x X, stale
 			if stale(c, x, m.load(c)) {
 				var zero T
 				if c.overlaying() {
-					c.overlay[m.overlayKey()] = &overlayEntry{value: zero, publish: func() {}, published: func() bool { return false }}
+					c.putOverlayEntry(m.overlayKey(), overlayEntry{value: zero, p: unsafe.Pointer(&m.memoValue), ops: noOps{}})
 				} else {
 					m.memoValue = zero
 				}
@@ -456,10 +452,7 @@ func (m *memo[T]) peekStore() T {
 func (m *memo[T]) swap(c *Checker, v T) T {
 	if c.overlaying() {
 		old := m.load(c)
-		if c.overlay == nil {
-			c.overlay = make(map[overlayKey]*overlayEntry)
-		}
-		c.overlay[m.overlayKey()] = m.overlayEntry(v)
+		c.putOverlayEntry(m.overlayKey(), m.overlayEntry(v))
 		return old
 	}
 	old := m.memoValue
@@ -510,19 +503,25 @@ type internMap[K comparable, V any] struct {
 	_       memoNoCopy
 	mu      sync.RWMutex // Guards entries if concurrentStores
 	entries map[K]V
+	owners  atomic.Pointer[mapOwners[K, V]] // See mapOwners
 }
 
 func (m *internMap[K, V]) get(c *Checker, k K) (V, bool) {
 	if concurrentStores {
-		if c.overlaying() && len(c.mapOverlay) != 0 {
-			if e, found := c.mapOverlay[mapOverlayKey{m, k}]; found {
-				return e.value.(V), true
+		o := m.owners.Load()
+		if o != nil && c.overlaying() {
+			if v, ok := o.own(c, k); ok {
+				return v, true
 			}
 		}
 		m.mu.RLock()
 		v, ok := m.entries[k]
+		var epoch uint64
+		if ok && o != nil {
+			epoch = o.epochs[k]
+		}
 		m.mu.RUnlock()
-		if ok && c.overlaying() && c.recentlyPublished(mapEntryHash(unsafe.Pointer(m), k)) {
+		if ok && !visible(c, epoch) && c.overlaying() {
 			var zero V
 			return zero, false
 		}
@@ -543,12 +542,7 @@ func (m *internMap[K, V]) has(c *Checker, k K) bool {
 // are published; see overlay.go.
 func (m *internMap[K, V]) intern(c *Checker, k K, v V) {
 	if c.overlaying() {
-		c.putOverlayMapEntry(mapOverlayKey{m, k}, &overlayEntry{
-			value:     v,
-			publish:   func() { m.store(k, v) },
-			published: func() bool { return m.storeHas(k) },
-			hash:      mapEntryHash(unsafe.Pointer(m), k),
-		}, false, false)
+		ownersOf(&m.owners, c, m).put(c, k, v, false, false)
 		return
 	}
 	m.store(k, v)
@@ -565,11 +559,26 @@ func (m *internMap[K, V]) store(k K, v V) {
 	m.entries[k] = v
 }
 
-func (m *internMap[K, V]) storeHas(k K) bool {
+// storeAt stores v for k, published at epoch; see mapOwners.
+func (m *internMap[K, V]) storeAt(k K, v V, epoch uint64) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.entries == nil {
+		m.entries = make(map[K]V)
+	}
+	m.entries[k] = v
+	o := m.owners.Load()
+	if o.epochs == nil {
+		o.epochs = make(map[K]uint64)
+	}
+	o.epochs[k] = epoch
+}
+
+func (m *internMap[K, V]) storeGet(k K) (V, bool) {
 	m.mu.RLock()
 	defer m.mu.RUnlock()
-	_, ok := m.entries[k]
-	return ok
+	v, ok := m.entries[k]
+	return v, ok
 }
 
 func (m *internMap[K, V]) isEmpty() bool {
@@ -606,6 +615,7 @@ type memoMap[K comparable, V any] struct {
 	mu          sync.RWMutex // Guards memoEntries, and the memo states and stateKeys of side, if concurrentStores
 	memoEntries map[K]V
 	side        atomic.Pointer[memoMapSide[K]]
+	owners      atomic.Pointer[mapOwners[K, V]] // See mapOwners
 	// The number of writes to memoEntries, with which a caller can tell
 	// that an entry it read is still current without reading it again.
 	writes atomic.Uint32
@@ -699,9 +709,11 @@ func (m *memoMap[K, V]) setKeyBits(keyBits func(K) uint64) {
 
 // stateOf returns the memo state of the entry for k, or nil.
 func (m *memoMap[K, V]) stateOf(c *Checker, k K) *memoState {
-	if c.overlaying() && c.mapStates != nil {
-		if state := c.mapStates[mapOverlayKey{m, k}]; state != nil {
-			return state
+	if c.overlaying() {
+		if o := m.owners.Load(); o != nil {
+			if state := o.ownState(c, k); state != nil {
+				return state
+			}
 		}
 	}
 	s := m.side.Load()
@@ -723,8 +735,10 @@ func (m *memoMap[K, V]) stateOf(c *Checker, k K) *memoState {
 
 // hasStates reports whether any entry has a memo state.
 func (m *memoMap[K, V]) hasStates(c *Checker) bool {
-	if c.overlaying() && len(c.mapStates) != 0 {
-		return true
+	if c.overlaying() {
+		if o := m.owners.Load(); o != nil && len(o.states[c.sharerIndex]) != 0 {
+			return true
+		}
 	}
 	s := m.side.Load()
 	if s == nil {
@@ -735,6 +749,26 @@ func (m *memoMap[K, V]) hasStates(c *Checker) bool {
 		defer m.mu.RUnlock()
 	}
 	return s.memoStates != nil
+}
+
+// storeAt stores v for k, published at epoch; see mapOwners.
+func (m *memoMap[K, V]) storeAt(k K, v V, epoch uint64) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if m.memoEntries == nil {
+		m.memoEntries = make(map[K]V)
+	}
+	m.memoEntries[k] = v
+	m.writes.Add(1)
+	o := m.owners.Load()
+	if o.epochs == nil {
+		o.epochs = make(map[K]uint64)
+	}
+	o.epochs[k] = epoch
+}
+
+func (m *memoMap[K, V]) storeGet(k K) (V, bool) {
+	return m.get(k)
 }
 
 // get returns the entry for k without accounting for anything.
@@ -764,13 +798,21 @@ func (m *memoMap[K, V]) load(c *Checker, k K) (V, bool) {
 	if !c.overlaying() {
 		return m.get(k)
 	}
-	if len(c.mapOverlay) != 0 {
-		if e, found := c.mapOverlay[mapOverlayKey{m, k}]; found {
-			return e.value.(V), true
-		}
+	o := m.owners.Load()
+	if o == nil {
+		return m.get(k)
 	}
-	v, ok := m.get(k)
-	if ok && c.recentlyPublished(mapEntryHash(unsafe.Pointer(m), k)) {
+	if v, ok := o.own(c, k); ok {
+		return v, true
+	}
+	m.mu.RLock()
+	v, ok := m.memoEntries[k]
+	var epoch uint64
+	if ok {
+		epoch = o.epochs[k]
+	}
+	m.mu.RUnlock()
+	if ok && !visible(c, epoch) {
 		var zero V
 		return zero, false
 	}
@@ -781,15 +823,7 @@ func (m *memoMap[K, V]) load(c *Checker, k K) (V, bool) {
 // discardable, discarding results discards it, as for set.
 func (m *memoMap[K, V]) put(c *Checker, k K, v V, discardable bool) {
 	if c.overlaying() {
-		c.putOverlayMapEntry(mapOverlayKey{m, k}, &overlayEntry{
-			value:   v,
-			publish: func() { m.store(k, v) },
-			published: func() bool {
-				_, ok := m.get(k)
-				return ok
-			},
-			hash: mapEntryHash(unsafe.Pointer(m), k),
-		}, c.memoTop != 0 && m.isOwnResolution(c, k), discardable)
+		ownersOf(&m.owners, c, m).put(c, k, v, c.memoTop != 0 && m.isOwnResolution(c, k), discardable)
 		return
 	}
 	if discardable && c.logResults() {
@@ -1078,18 +1112,15 @@ func (r *mapResolving[K]) countResolving(k K, i int) {
 func (m *memoMap[K, V]) state(c *Checker, k K) *memoState {
 	if c.overlaying() {
 		// Held in the overlay with the entry; see publishOverlay.
-		key := mapOverlayKey{m, k}
-		if state := c.mapStates[key]; state != nil {
+		o := ownersOf(&m.owners, c, m)
+		if state := o.ownState(c, k); state != nil {
 			return state
 		}
 		state := &memoState{}
 		if shared := m.stateOf(c, k); shared != nil {
 			*state = *shared
 		}
-		if c.mapStates == nil {
-			c.mapStates = make(map[mapOverlayKey]*memoState)
-		}
-		c.mapStates[key] = state
+		o.putState(c, k, state)
 		return state
 	}
 	if state := m.stateOf(c, k); state != nil {
@@ -2299,10 +2330,11 @@ func (c *Checker) objectFlagsCell(t *Type, field memoField, computed ObjectFlags
 func setFlagMemoBits[T ~uint32](c *Checker, key memoKey, p *T, mask T, bits T) {
 	if c.overlaying() {
 		bits &= mask
-		c.putOverlayCell(overlayKey{unsafe.Pointer(p), uint32(mask)}, &overlayEntry{
-			value:     bits,
-			publish:   func() { *p = *p&^mask | bits },
-			published: func() bool { return *p&mask != 0 },
+		c.putOverlayCell(overlayKey{unsafe.Pointer(p), uint32(mask)}, overlayEntry{
+			value: bits,
+			p:     unsafe.Pointer(p),
+			ops:   flagBitsOps[T]{},
+			mask:  uint32(mask),
 		}, nil, key, true)
 		c.setFlagMemo(key)
 		return
@@ -2319,10 +2351,10 @@ func setFlagMemoBits[T ~uint32](c *Checker, key memoKey, p *T, mask T, bits T) {
 // by key.
 func (c *Checker) setFlagMemoValue[T any](key memoKey, p *T, v T) {
 	if c.overlaying() {
-		c.putOverlayCell(overlayKey{p: unsafe.Pointer(p)}, &overlayEntry{
-			value:     v,
-			publish:   func() { storeLive(p, v) },
-			published: func() bool { return !isZeroValue(p) },
+		c.putOverlayCell(overlayKey{p: unsafe.Pointer(p)}, overlayEntry{
+			value: v,
+			p:     unsafe.Pointer(p),
+			ops:   cellOps[T]{},
 		}, nil, key, true)
 		c.setFlagMemo(key)
 		return
@@ -2342,10 +2374,11 @@ func (c *Checker) setIdentityFlagMemoBits(key memoKey, t *Type, bits ObjectFlags
 	const mask = ObjectFlagsCouldContainTypeVariablesComputed | ObjectFlagsCouldContainTypeVariables
 	if c.overlaying() {
 		p := &t.objectFlags
-		c.putOverlayCell(overlayKey{unsafe.Pointer(p), uint32(mask)}, &overlayEntry{
-			value:     bits,
-			publish:   func() { *p = *p&^mask | bits },
-			published: func() bool { return *p&mask != 0 },
+		c.putOverlayCell(overlayKey{unsafe.Pointer(p), uint32(mask)}, overlayEntry{
+			value: bits,
+			p:     unsafe.Pointer(p),
+			ops:   flagBitsOps[ObjectFlags]{},
+			mask:  uint32(mask),
 		}, nil, key, false)
 	} else {
 		t.objectFlags |= bits
@@ -2361,8 +2394,8 @@ func flagMemoBits[T ~uint32](c *Checker, p *T, mask T) T {
 	}
 	key := overlayKey{unsafe.Pointer(p), uint32(mask)}
 	if len(c.overlay) != 0 {
-		if e, ok := c.overlayCell(key); ok {
-			return e.value.(T)
+		if v, ok := c.overlayCell(key); ok {
+			return valueAs[T](v)
 		}
 	}
 	bits := loadLive(p) & mask
@@ -2377,10 +2410,10 @@ func flagMemoBits[T ~uint32](c *Checker, p *T, mask T) T {
 // with that result; see overlay.go.
 func setGuarded[T any](c *Checker, p *T, v T) {
 	if c.overlaying() {
-		c.putOverlayEntry(overlayKey{p: unsafe.Pointer(p)}, &overlayEntry{
-			value:     v,
-			publish:   func() { storeLive(p, v) },
-			published: func() bool { return !isZeroValue(p) },
+		c.putOverlayEntry(overlayKey{p: unsafe.Pointer(p)}, overlayEntry{
+			value: v,
+			p:     unsafe.Pointer(p),
+			ops:   cellOps[T]{},
 		})
 		return
 	}
@@ -2420,8 +2453,8 @@ func flagMemoValue[T any](c *Checker, p *T) T {
 	}
 	key := overlayKey{p: unsafe.Pointer(p)}
 	if len(c.overlay) != 0 {
-		if e, ok := c.overlayCell(key); ok {
-			return e.value.(T)
+		if v, ok := c.overlayCell(key); ok {
+			return valueAs[T](v)
 		}
 	}
 	v := loadLive(p)
