@@ -1279,6 +1279,10 @@ func (discriminantOps) publish(_ *Checker, e *overlayEntry) {
 	prop.SetCheckFlags(prop.CheckFlags()&^ast.CheckFlags(e.mask) | valueAs[ast.CheckFlags](e.value))
 }
 
+func (discriminantOps) live(e *overlayEntry) bool {
+	return (*ast.Symbol)(e.p).CheckFlags()&ast.CheckFlags(e.mask) != 0
+}
+
 func (discriminantOps) conflicts(_ *Checker, e *overlayEntry) bool {
 	live := (*ast.Symbol)(e.p).CheckFlags() & ast.CheckFlags(e.mask)
 	return live != 0 && live != valueAs[ast.CheckFlags](e.value)&ast.CheckFlags(e.mask)
@@ -1292,10 +1296,11 @@ const discriminantFlagsMask = ast.CheckFlagsIsDiscriminantComputed | ast.CheckFl
 func (c *Checker) discriminantFlags(prop *ast.Symbol) ast.CheckFlags {
 	if c.overlaying() {
 		key := overlayKey{unsafe.Pointer(prop), uint32(discriminantFlagsMask)}
-		if v, ok := c.overlayCell(key); ok {
+		h := key.hash()
+		if v, ok := c.overlayCell(key, h); ok {
 			return valueAs[ast.CheckFlags](v)
 		}
-		if c.recentlyPublished(key.hash()) {
+		if c.recentlyPublished(h) {
 			return 0
 		}
 	}

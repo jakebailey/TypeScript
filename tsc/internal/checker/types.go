@@ -1729,10 +1729,12 @@ func (s *Signature) setThisParameter(c *Checker, parameter *ast.Symbol) {
 
 func (s *Signature) getResolvedTypePredicate(c *Checker) *TypePredicate {
 	if c.overlaying() {
-		if v, ok := c.overlayCell(s.typePredicateOverlayKey()); ok {
+		k := s.typePredicateOverlayKey()
+		h := k.hash()
+		if v, ok := c.overlayCell(k, h); ok {
 			return valueAs[*TypePredicate](v)
 		}
-		if c.recentlyPublished(s.typePredicateOverlayKey().hash()) {
+		if c.recentlyPublished(h) {
 			return nil
 		}
 	}
@@ -1754,6 +1756,11 @@ type typePredicateOps struct{}
 
 func (typePredicateOps) publish(c *Checker, e *overlayEntry) {
 	(*Signature)(e.p).initResolvedTypePredicate(c, valueAs[*TypePredicate](e.value))
+}
+
+func (typePredicateOps) live(e *overlayEntry) bool {
+	s := (*Signature)(e.p)
+	return s.flags&signatureFlagsNoTypePredicate != 0 || s.extra != nil && s.extra.resolvedTypePredicate != nil
 }
 
 func (typePredicateOps) conflicts(c *Checker, e *overlayEntry) bool {

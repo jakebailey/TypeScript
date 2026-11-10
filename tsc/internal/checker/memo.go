@@ -236,13 +236,18 @@ func (m *memo[T]) load(c *Checker) T {
 	if !c.overlaying() {
 		return loadLive(&m.memoValue)
 	}
-	if len(c.overlay) != 0 {
-		if v, ok := c.overlayCell(m.overlayKey()); ok {
-			return valueAs[T](v)
-		}
-	}
+	k := m.overlayKey()
+	h := k.hash()
 	v := loadLive(&m.memoValue)
-	if !isZeroValue(&v) && c.recentlyPublished(m.overlayKey().hash()) {
+	if !isZeroValue(&v) && !c.overlay.shadows && !c.mayBeRecent(h) {
+		// Most reads find a result the store had before the request
+		// started, which c cannot hold one of its own over.
+		return v
+	}
+	if e, ok := c.overlay.get(k, h); ok {
+		return valueAs[T](e.value)
+	}
+	if !isZeroValue(&v) && c.recentExact(h) {
 		var zero T
 		return zero
 	}
@@ -425,7 +430,8 @@ func (t *Type) resolvedMembersFast() *ResolvedMembers {
 func (m *memo[T]) storeUnlogged(c *Checker, v T) {
 	if c.overlaying() {
 		if isZeroValue(&v) {
-			delete(c.overlay, m.overlayKey())
+			k := m.overlayKey()
+			c.overlay.remove(k, k.hash())
 		} else {
 			c.putOverlayEntry(m.overlayKey(), m.overlayEntry(v))
 		}
@@ -824,6 +830,8 @@ func (m *memoMap[K, V]) load(c *Checker, k K) (V, bool) {
 func (m *memoMap[K, V]) put(c *Checker, k K, v V, discardable bool) {
 	if c.overlaying() {
 		ownersOf(&m.owners, c, m).put(c, k, v, c.memoTop != 0 && m.isOwnResolution(c, k), discardable)
+		// Readers tell that an entry they read is current by the count.
+		m.writes.Add(1)
 		return
 	}
 	if discardable && c.logResults() {
@@ -1672,12 +1680,18 @@ func (c *Checker) endMemo() {
 			f.source.popState(c, int(f.index))
 		}
 		c.dropResolution(n)
+		if concurrentStores && c.memoTop == 0 {
+			c.publishMidRequest()
+		}
 		return
 	}
 	if f := c.stopEffects(); f != nil && f.effects != nil {
 		c.retainEffects(c.resolutionState(f), f.effects)
 	}
 	c.endResolution()
+	if concurrentStores && c.memoTop == 0 {
+		c.publishMidRequest()
+	}
 }
 
 // markReadIncomplete marks the computations in progress above the one at
@@ -2393,13 +2407,12 @@ func flagMemoBits[T ~uint32](c *Checker, p *T, mask T) T {
 		return loadLive(p) & mask
 	}
 	key := overlayKey{unsafe.Pointer(p), uint32(mask)}
-	if len(c.overlay) != 0 {
-		if v, ok := c.overlayCell(key); ok {
-			return valueAs[T](v)
-		}
+	h := key.hash()
+	if v, ok := c.overlayCell(key, h); ok {
+		return valueAs[T](v)
 	}
 	bits := loadLive(p) & mask
-	if bits != 0 && c.recentlyPublished(key.hash()) {
+	if bits != 0 && c.recentlyPublished(h) {
 		return 0
 	}
 	return bits
@@ -2425,13 +2438,17 @@ func setGuarded[T any](c *Checker, p *T, v T) {
 func (c *Checker) clearGuarded(p *ast.SymbolTable) func() {
 	if c.overlaying() {
 		k := overlayKey{p: unsafe.Pointer(p)}
-		e, had := c.overlay[k]
-		delete(c.overlay, k)
+		h := k.hash()
+		var e overlayEntry
+		if p, had := c.overlay.get(k, h); had {
+			e = *p
+		}
+		c.overlay.remove(k, h)
 		return func() {
-			if had {
-				c.overlay[k] = e
+			if e.ops != nil {
+				c.overlay.put(k, e)
 			} else {
-				delete(c.overlay, k)
+				c.overlay.remove(k, h)
 			}
 		}
 	}
@@ -2452,13 +2469,12 @@ func flagMemoValue[T any](c *Checker, p *T) T {
 		return loadLive(p)
 	}
 	key := overlayKey{p: unsafe.Pointer(p)}
-	if len(c.overlay) != 0 {
-		if v, ok := c.overlayCell(key); ok {
-			return valueAs[T](v)
-		}
+	h := key.hash()
+	if v, ok := c.overlayCell(key, h); ok {
+		return valueAs[T](v)
 	}
 	v := loadLive(p)
-	if !isZeroValue(&v) && c.recentlyPublished(key.hash()) {
+	if c.recentlyPublished(h) && !isZeroValue(&v) {
 		var zero T
 		return zero
 	}

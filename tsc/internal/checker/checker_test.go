@@ -435,7 +435,6 @@ var notCacheOwners = []string{"LanguageFeatureMinimumTargetMap", "accessibleChai
 // unmemoizedCheckerFields lists the fields of Checker, other than those in
 // checkerProgressFields, like unmemoizedCacheFields.
 var unmemoizedCheckerFields = map[string]string{
-	"Checker.ownFilter":                          unmemoizedMemoState,
 	"Checker.sharerIndex":                        unmemoizedMemoState,
 	"Checker.requestEpoch":                       unmemoizedMemoState,
 	"Checker.recent":                             unmemoizedMemoState,

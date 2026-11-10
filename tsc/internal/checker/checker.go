@@ -696,13 +696,12 @@ type Checker struct {
 	permissiveMapper                            *TypeMapper
 	ownDeferredCallbacks                        []func(c *Checker) // See addDeferredDiagnostic
 	overlayDepth                                int                // Requests in progress writing to the overlay; see overlay.go
-	overlay                                     map[overlayKey]overlayEntry
+	overlay                                     overlayTable
 	overlayPublishes                            int                        // Requests whose overlay was published
 	memoStates                                  map[memoKey]*memoState     // Memo state of results; see memo.go
 	stateFilter                                 stateKeyFilter             // Memo keys that may have a memo state; see memoState
 	memoPendingCount                            int                        // Number of memoStates with unreplayed effects
 	ownMaps                                     []ownedMap                 // Maps whose entries c holds in its overlay; see mapOwners
-	ownFilter                                   ownFilter                  // Keys in the overlay; see overlayCell
 	requestEpoch                                uint64                     // The publishEpoch when the request started; see mapOwners
 	sharerIndex                                 int                        // Index among the checkers sharing the store
 	recent                                      *recentFilter              // Keys published since the request started; see overlay.go
@@ -17406,7 +17405,8 @@ func (c *Checker) getResolvedMembersOrExportsOfSymbolUncached(symbol *ast.Symbol
 			overlaying := c.overlaying()
 			c.logMemoDiscard(nil, memoKeyOf(symbol, memoResolvedMembers+memoField(resolutionKind)), func() {
 				if overlaying {
-					delete(c.overlay, overlayKey{p: unsafe.Pointer(p)})
+					k := overlayKey{p: unsafe.Pointer(p)}
+					c.overlay.remove(k, k.hash())
 				} else {
 					*p = nil
 				}
@@ -21474,7 +21474,12 @@ func (c *Checker) isApplicableIndexType(source *Type, target *Type) bool {
 }
 
 func (c *Checker) resolveStructuredTypeMembers(t *Type) *ResolvedMembers {
-	r := t.resolvedMembersFast()
+	var r *ResolvedMembers
+	if concurrentStores {
+		r = t.AsStructuredType().resolved.load(c)
+	} else {
+		r = t.resolvedMembersFast()
+	}
 	if r == nil || c.observingMemos {
 		r = c.resolveStructuredTypeMembersSlow(t)
 	}

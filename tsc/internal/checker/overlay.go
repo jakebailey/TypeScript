@@ -1,6 +1,7 @@
 package checker
 
 import (
+	"strings"
 	"fmt"
 	"os"
 	"reflect"
@@ -39,6 +40,8 @@ type overlayEntry struct {
 // implementations have no fields, so that an entry needs no allocation.
 type overlayOps interface {
 	publish(c *Checker, e *overlayEntry)
+	// live reports whether the store has a result.
+	live(e *overlayEntry) bool
 	// conflicts reports whether the store has a different result: then the
 	// results of the overlay may refer to objects of which the store has
 	// other copies. A store holding the same result, which another checker
@@ -69,6 +72,11 @@ func valueAs[T any](v any) T {
 type cellOps[T any] struct{}
 
 func (cellOps[T]) publish(_ *Checker, e *overlayEntry) { storeLive((*T)(e.p), valueAs[T](e.value)) }
+func (cellOps[T]) live(e *overlayEntry) bool {
+	v := loadLive((*T)(e.p))
+	return !isZeroValue(&v)
+}
+
 func (cellOps[T]) conflicts(_ *Checker, e *overlayEntry) bool {
 	live := loadLive((*T)(e.p))
 	own := valueAs[T](e.value)
@@ -90,6 +98,10 @@ func (flagBitsOps[T]) publish(_ *Checker, e *overlayEntry) {
 	}
 }
 
+func (flagBitsOps[T]) live(e *overlayEntry) bool {
+	return atomic.LoadUint32((*uint32)(e.p))&e.mask != 0
+}
+
 func (flagBitsOps[T]) conflicts(_ *Checker, e *overlayEntry) bool {
 	live := atomic.LoadUint32((*uint32)(e.p)) & e.mask
 	return live != 0 && live != uint32(valueAs[T](e.value))&e.mask
@@ -100,6 +112,7 @@ type noOps struct{}
 
 func (noOps) publish(*Checker, *overlayEntry)        {}
 func (noOps) conflicts(*Checker, *overlayEntry) bool { return false }
+func (noOps) live(*overlayEntry) bool                { return false }
 
 // overlayKey identifies a memo cell or flag memo in an overlay by where its
 // result is stored: the cell, or the word and bits holding a flag memo.
@@ -157,16 +170,53 @@ func (c *Checker) publishCheckpoint() {
 	}
 }
 
+// midRequestBatch is the size of overlay at which a checker publishes it
+// in the middle of a request.
+const midRequestBatch = 512
+
+// publishMidRequest publishes the overlay in the middle of a request, once
+// it is large and no computation is in progress, so that results reach other
+// checkers sooner and a conflict at the end of the request drops less. The
+// request goes on holding the objects of its overlay, so on a conflict the
+// overlay is kept rather than dropped, and published or dropped with the
+// rest of the request.
+func (c *Checker) publishMidRequest() {
+	if c.overlayDepth != 1 || c.overlay.len() < midRequestBatch {
+		return
+	}
+	for _, b := range [...]struct {
+		name string
+		v    bool
+	}{
+		{"typeRes", c.typeResolutionTop != 0}, {"resolving", c.resolving.count != 0}, {"discard", len(c.discardLog) != 0},
+		{"circ", c.circularityStart != 0}, {"pending", c.memoPendingCount != 0}, {"held", len(c.heldEffects) != 0},
+		{"collect", c.currentNodeErrorCollectors != 0}, {"query", c.queryRoot != 0},
+	} {
+		if b.v {
+			dbgConflictKinds.Add("midblock "+b.name, 1)
+			return
+		}
+	}
+	dbgConflictKinds.Add("midpublish", 1)
+	c.publishOverlayEx(false)
+}
+
 func (c *Checker) publishOverlay() {
-	if len(c.overlay) == 0 && len(c.ownMaps) == 0 && len(c.memoStates) == 0 {
+	c.publishOverlayEx(true)
+}
+
+// publishOverlayEx publishes the overlay, or if it conflicts with the store
+// and final, drops it.
+func (c *Checker) publishOverlayEx(final bool) {
+	if c.overlay.len() == 0 && len(c.ownMaps) == 0 && len(c.memoStates) == 0 {
 		return
 	}
 	// Publishing must not interleave with another checker's, which could
 	// publish a result for one of the entries after it was checked.
 	c.publishMu.Lock()
 	conflict := false
-	for _, e := range c.overlay {
-		if e.ops.conflicts(c, &e) {
+	for i := range c.overlay.entries {
+		if e := &c.overlay.entries[i]; e.ops != nil && e.ops.conflicts(c, e) {
 			conflict = true
 			dbgConflictKinds.Add(fmt.Sprintf("%T", e.ops), 1)
 			break
@@ -181,6 +231,10 @@ func (c *Checker) publishOverlay() {
 			}
 		}
 	}
+	if conflict && !final {
+		c.publishMu.Unlock()
+		return
+	}
 	if !conflict {
 		c.markRecent()
 		c.publishStates()
@@ -188,14 +242,16 @@ func (c *Checker) publishOverlay() {
 	if conflict {
 		c.overlayDrops++
 		dbgDrops.Add(1)
-		dbgDropEntries.Add(int64(len(c.overlay)))
+		dbgDropEntries.Add(int64(c.overlay.len()))
 	} else {
 		c.overlayPublishes++
 		dbgPubs.Add(1)
-		dbgPubEntries.Add(int64(len(c.overlay)))
+		dbgPubEntries.Add(int64(c.overlay.len()))
 		c.publishEpoch++
-		for _, e := range c.overlay {
-			e.ops.publish(c, &e)
+		for i := range c.overlay.entries {
+			if e := &c.overlay.entries[i]; e.ops != nil {
+				e.ops.publish(c, e)
+			}
 		}
 		for _, m := range c.ownMaps {
 			m.publish(c)
@@ -218,16 +274,7 @@ func (c *Checker) publishOverlay() {
 	}
 	c.publishMu.Unlock()
 	c.dropStates()
-	// Clearing a map costs as much as its largest size, so a map that grew
-	// for a large request is dropped instead.
-	if len(c.overlay) != 0 {
-		c.ownFilter = ownFilter{}
-	}
-	if len(c.overlay) > 4096 {
-		c.overlay = nil
-	} else {
-		clear(c.overlay)
-	}
+	c.overlay.reset()
 	for _, m := range c.ownMaps {
 		m.drop(c)
 	}
@@ -263,7 +310,7 @@ type recentFilter struct {
 }
 
 func (k overlayKey) hash() uint64 {
-	return mixHash(uint64(uintptr(k.p)) ^ uint64(k.mask)*0xD6E8FEB86659FD93)
+	return (uint64(uintptr(k.p)) ^ uint64(k.mask)*0xD6E8FEB86659FD93) * 0x9E3779B97F4A7C15
 }
 
 func mixHash(h uint64) uint64 {
@@ -291,8 +338,10 @@ func (c *Checker) markRecent() {
 			i := mixHash(h) >> (64 - recentFilterBits)
 			r.bits[i/64].Or(1 << (i % 64))
 		}
-		for _, e := range c.overlay {
-			mark(e.hash)
+		for i := range c.overlay.entries {
+			if e := &c.overlay.entries[i]; e.ops != nil {
+				mark(e.hash)
+			}
 		}
 		r.mu.Unlock()
 
@@ -303,13 +352,23 @@ func (c *Checker) markRecent() {
 // published since the request of c started, in which case c reads it as if
 // the store had none.
 func (c *Checker) recentlyPublished(h uint64) bool {
+	return c.mayBeRecent(h) && c.recentExact(h)
+}
+
+// mayBeRecent reports whether the result with key hash h may have been
+// published since the request of c started, consulting only the filter.
+func (c *Checker) mayBeRecent(h uint64) bool {
 	r := c.recent
 	if r == nil {
 		return false
 	}
-	if i := mixHash(h) >> (64 - recentFilterBits); r.bits[i/64].Load()&(1<<(i%64)) == 0 {
-		return false
-	}
+	i := mixHash(h) >> (64 - recentFilterBits)
+	return r.bits[i/64].Load()&(1<<(i%64)) != 0
+}
+
+//go:noinline
+func (c *Checker) recentExact(h uint64) bool {
+	r := c.recent
 	r.mu.Lock()
 	_, ok := r.keys[h]
 	r.mu.Unlock()
@@ -406,24 +465,36 @@ func (c *Checker) dropStates() {
 	c.syncObserving()
 }
 
-// overlayCell returns the result c holds under k.
-func (c *Checker) overlayCell(k overlayKey) (any, bool) {
-	if i := k.hash() >> (64 - ownFilterBits); c.ownFilter[i/64]&(1<<(i%64)) == 0 {
-		return nil, false
+// putOwn caches e under key in the overlay. A result over one the store
+// has shadows it, which readers then look for first; see memo.load.
+func (c *Checker) putOwn(key overlayKey, e overlayEntry) {
+	if !c.overlay.shadows && e.ops.live(&e) {
+		c.overlay.shadows = true
+		if dbgShadow {
+			var pcs [8]uintptr
+			n := runtime.Callers(2, pcs[:])
+			fr := runtime.CallersFrames(pcs[:n])
+			var b []byte
+			for {
+				f, more := fr.Next()
+				b = append(b, f.Function[strings.LastIndexByte(f.Function, '.')+1:]...)
+				b = append(b, '<')
+				if !more {
+					break
+				}
+			}
+			dbgConflictKinds.Add("shadow "+string(b), 1)
+		}
 	}
-	e, ok := c.overlay[k]
-	return e.value, ok
+	c.overlay.put(key, e)
 }
 
-// ownFilterBits sizes the filter of the keys in the overlay, which rules out
-// most lookups of results the checker does not hold.
-const ownFilterBits = 14
-
-type ownFilter [1 << ownFilterBits / 64]uint64
-
-func (c *Checker) addOwn(k overlayKey) {
-	i := k.hash() >> (64 - ownFilterBits)
-	c.ownFilter[i/64] |= 1 << (i % 64)
+// overlayCell returns the result c holds under k, whose hash is h.
+func (c *Checker) overlayCell(k overlayKey, h uint64) (any, bool) {
+	if e, ok := c.overlay.get(k, h); ok {
+		return e.value, true
+	}
+	return nil, false
 }
 
 // putOverlayCell caches e for the memo cell or flag memo stored under key,
@@ -432,36 +503,42 @@ func (c *Checker) addOwn(k overlayKey) {
 // store.
 func (c *Checker) putOverlayCell(key overlayKey, e overlayEntry, memo *memoHeader, memoKey memoKey, discardable bool) {
 	e.hash = key.hash()
-	c.addOwn(key)
-	if c.overlay == nil {
-		c.overlay = make(map[overlayKey]overlayEntry)
-	}
 	if discardable && c.logResults() {
-		old, had := c.overlay[key]
+		var old overlayEntry
+		if p, had := c.overlay.get(key, e.hash); had {
+			old = *p
+		}
 		c.logMemoDiscard(memo, memoKey, func() {
-			if had {
-				c.overlay[key] = old
+			if old.ops != nil {
+				c.overlay.put(key, old)
 			} else {
-				delete(c.overlay, key)
+				c.overlay.remove(key, key.hash())
 			}
 		})
 	}
-	c.overlay[key] = e
+	c.putOwn(key, e)
 }
 
 // putOverlayEntry caches e under key in the overlay, without logging how to
 // discard it; the caller does.
 func (c *Checker) putOverlayEntry(key overlayKey, e overlayEntry) {
 	e.hash = key.hash()
-	c.addOwn(key)
-	if c.overlay == nil {
-		c.overlay = make(map[overlayKey]overlayEntry)
-	}
-	c.overlay[key] = e
+	c.putOwn(key, e)
 }
 
 // isZeroValue reports whether *v is the zero value of T.
 func isZeroValue[T any](v *T) bool {
+	// SAFETY: A value of T at most a word wide is a pointer, a number or a
+	// string header's half; none of the types of memoized results that small
+	// have padding.
+	switch unsafe.Sizeof(*v) {
+	case 1:
+		return *(*uint8)(unsafe.Pointer(v)) == 0
+	case 4:
+		return *(*uint32)(unsafe.Pointer(v)) == 0
+	case 8:
+		return *(*uint64)(unsafe.Pointer(v)) == 0
+	}
 	switch reflect.TypeFor[T]().Kind() {
 	case reflect.Struct, reflect.Array:
 		// Copies of a struct need not copy its padding, so its bytes do
@@ -505,3 +582,5 @@ func DebugOverlayStats() string {
 	dbgConflictKinds.mu.Unlock()
 	return fmt.Sprintf("publishes=%d (%d entries) drops=%d (%d entries) pendingPublished=%d", dbgPubs.Load(), dbgPubEntries.Load(), dbgDrops.Load(), dbgDropEntries.Load(), dbgPendingPublished.Load())
 }
+
+var dbgShadow = os.Getenv("TSGO_SHADOW") != ""
