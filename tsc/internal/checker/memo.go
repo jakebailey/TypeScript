@@ -4,7 +4,6 @@ import (
 	"iter"
 	"maps"
 	"math/bits"
-	"os"
 	"slices"
 	"sync"
 	"sync/atomic"
@@ -381,11 +380,6 @@ func (c *Checker) memoCompute[T comparable](m *memo[T], compute func() T) T {
 	c.endMemo()
 	return v
 }
-
-// concurrentStores reports whether checkers may share a store concurrently,
-// in which case its maps take locks. It is set once, before any checker is
-// created, so that checkers that do not share a store pay nothing for it.
-var concurrentStores = os.Getenv("TSGO_SHARED_STORE") == "concurrent"
 
 // ConcurrentStores reports whether checkers may share a store concurrently.
 func ConcurrentStores() bool {

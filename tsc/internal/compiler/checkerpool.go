@@ -385,8 +385,8 @@ func (p *checkerPool) getCheckerNonExclusive() (*checker.Checker, func()) {
 var sharedStoreExperiment = os.Getenv("TSGO_SHARED_STORE") != ""
 
 // sharedStoreConcurrent makes the checkers sharing a store run concurrently,
-// which the store does not support yet.
-var sharedStoreConcurrent = os.Getenv("TSGO_SHARED_STORE") == "concurrent"
+// in builds with the sharedstore tag; see checker.ConcurrentStores.
+var sharedStoreConcurrent = checker.ConcurrentStores()
 
 func (p *checkerPool) createCheckers() {
 	p.createCheckersOnce.Do(func() {
