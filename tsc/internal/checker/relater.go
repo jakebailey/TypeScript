@@ -5,6 +5,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/binder"
@@ -1253,9 +1254,9 @@ func (c *Checker) isDiscriminantProperty(t *Type, name string) bool {
 		prop := c.getUnionOrIntersectionProperty(t, name, false /*skipObjectFunctionPropertyAugment*/)
 		if prop != nil && prop.CheckFlags()&ast.CheckFlagsSyntheticProperty != 0 {
 			key := memoKeyOf(prop, memoDiscriminant)
-			if prop.CheckFlags()&ast.CheckFlagsIsDiscriminantComputed != 0 {
+			if flags := c.discriminantFlags(prop); flags&ast.CheckFlagsIsDiscriminantComputed != 0 {
 				c.observeFlagMemo(key)
-				return prop.CheckFlags()&ast.CheckFlagsIsDiscriminant != 0
+				return flags&ast.CheckFlagsIsDiscriminant != 0
 			}
 			c.beginMemo(key)
 			c.setDiscriminantFlags(prop, ast.CheckFlagsIsDiscriminantComputed)
@@ -1263,16 +1264,41 @@ func (c *Checker) isDiscriminantProperty(t *Type, name string) bool {
 				c.setDiscriminantFlags(prop, ast.CheckFlagsIsDiscriminantComputed|ast.CheckFlagsIsDiscriminant)
 			}
 			c.endMemo()
-			return prop.CheckFlags()&ast.CheckFlagsIsDiscriminant != 0
+			return c.discriminantFlags(prop)&ast.CheckFlagsIsDiscriminant != 0
 		}
 	}
 	return false
 }
 
+const discriminantFlagsMask = ast.CheckFlagsIsDiscriminantComputed | ast.CheckFlagsIsDiscriminant
+
+// discriminantFlags returns the flags of the synthetic property prop caching
+// whether it is a discriminant: the store's, or c's own while the store has
+// none; see overlay.go.
+func (c *Checker) discriminantFlags(prop *ast.Symbol) ast.CheckFlags {
+	flags := prop.CheckFlags() & discriminantFlagsMask
+	if flags == 0 && c.overlaying() {
+		if e, ok := c.overlayCell(overlayKey{unsafe.Pointer(prop), uint32(discriminantFlagsMask)}); ok {
+			return e.value.(ast.CheckFlags)
+		}
+	}
+	return flags
+}
+
 // setDiscriminantFlags caches whether the synthetic property prop is a
 // discriminant, a flag memo.
 func (c *Checker) setDiscriminantFlags(prop *ast.Symbol, flags ast.CheckFlags) {
-	const mask = ast.CheckFlagsIsDiscriminantComputed | ast.CheckFlagsIsDiscriminant
+	const mask = discriminantFlagsMask
+	if c.overlaying() {
+		flags &= mask
+		c.putOverlayCell(overlayKey{unsafe.Pointer(prop), uint32(mask)}, &overlayEntry{
+			value:     flags,
+			publish:   func() { prop.SetCheckFlags(prop.CheckFlags()&^mask | flags) },
+			published: func() bool { return prop.CheckFlags()&mask != 0 },
+		}, nil, memoKeyOf(prop, memoDiscriminant), true)
+		c.setFlagMemo(memoKeyOf(prop, memoDiscriminant))
+		return
+	}
 	if c.logResults() {
 		old := prop.CheckFlags() & mask
 		c.logMemoDiscard(nil, memoKeyOf(prop, memoDiscriminant), func() { prop.SetCheckFlags(prop.CheckFlags()&^mask | old) })
@@ -5374,7 +5400,7 @@ func (r *Relater) reportErrorResults(originalSource *Type, originalTarget *Type,
 		if !r.c.isErrorType(intrinsicAttributes) && !r.c.isErrorType(intrinsicClassAttributes) && (slices.Contains(targetTypes, intrinsicAttributes) || slices.Contains(targetTypes, intrinsicClassAttributes)) {
 			return
 		}
-	case originalTarget.flags&TypeFlagsIntersection != 0 && originalTarget.objectFlags&ObjectFlagsIsNeverIntersection != 0:
+	case originalTarget.flags&TypeFlagsIntersection != 0 && flagMemoBits(r.c, &originalTarget.objectFlags, ObjectFlagsIsNeverIntersectionComputed|ObjectFlagsIsNeverIntersection)&ObjectFlagsIsNeverIntersection != 0:
 		message := diagnostics.The_intersection_0_was_reduced_to_never_because_property_1_has_conflicting_types_in_some_constituents
 		prop := core.Find(r.c.getPropertiesOfUnionOrIntersectionType(originalTarget), r.c.isDiscriminantWithNeverType)
 		if prop == nil {

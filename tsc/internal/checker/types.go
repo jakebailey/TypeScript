@@ -211,17 +211,17 @@ func (links *ValueSymbolLinks) cachedWriteType(c *Checker) *Type {
 
 // typeOfCreation returns the type of a member its creator supplies, such as
 // a member of an object literal or of the type implied by a binding pattern.
-func (links *ValueSymbolLinks) typeOfCreation() *Type {
-	return links.resolvedType.peek()
+func (links *ValueSymbolLinks) typeOfCreation(c *Checker) *Type {
+	return links.resolvedType.peek(c)
 }
 
 // writeTypeOfCreation returns the write type of a synthetic property, which
 // its creator supplies.
-func (links *ValueSymbolLinks) writeTypeOfCreation() *Type {
+func (links *ValueSymbolLinks) writeTypeOfCreation(c *Checker) *Type {
 	if links.extra == nil {
 		return nil
 	}
-	return links.extra.writeType.peek()
+	return links.extra.writeType.peek(c)
 }
 
 func (links *ValueSymbolLinks) getNameType() *Type {
@@ -1372,7 +1372,8 @@ func (t *TypeReference) AsTypeReference() *TypeReference { return t }
 // not deferred, which its creator supplies.
 func (t *TypeReference) typeArgumentsOfCreation() []*Type {
 	debug.Assert(t.node == nil, "deferred type references compute their type arguments")
-	return t.resolvedTypeArguments.peek()
+	// Interned when the reference is created, so the store has them.
+	return t.resolvedTypeArguments.peekStore()
 }
 
 // InterfaceType (when generic, serves as reference to instantiation of itself)
@@ -1559,7 +1560,8 @@ func (t *TypeParameter) IsThisType() bool { return t.isThisType }
 // constraintOfCreation returns the constraint of a type parameter whose
 // creator supplies it, such as the this type of a tuple or a distributed type
 // parameter.
-func (t *TypeParameter) constraintOfCreation() *Type { return t.constraint.peek() }
+// Interned when the type parameter is created, so the store has it.
+func (t *TypeParameter) constraintOfCreation() *Type { return t.constraint.peekStore() }
 
 // IndexFlags
 
@@ -1716,6 +1718,16 @@ func (s *Signature) setThisParameter(c *Checker, parameter *ast.Symbol) {
 }
 
 func (s *Signature) getResolvedTypePredicate(c *Checker) *TypePredicate {
+	if p := s.getStoredTypePredicate(c); p != nil || !c.overlaying() {
+		return p
+	}
+	if e, ok := c.overlayCell(s.typePredicateOverlayKey()); ok {
+		return e.value.(*TypePredicate)
+	}
+	return nil
+}
+
+func (s *Signature) getStoredTypePredicate(c *Checker) *TypePredicate {
 	if s.flags&signatureFlagsNoTypePredicate != 0 {
 		return c.noTypePredicate
 	}
@@ -1725,9 +1737,22 @@ func (s *Signature) getResolvedTypePredicate(c *Checker) *TypePredicate {
 	return s.extra.resolvedTypePredicate
 }
 
+func (s *Signature) typePredicateOverlayKey() overlayKey {
+	return overlayKey{unsafe.Pointer(s), uint32(signatureFlagsNoTypePredicate)}
+}
+
 // setResolvedTypePredicate caches the type predicate of the signature, a flag
 // memo; see initResolvedTypePredicate.
 func (s *Signature) setResolvedTypePredicate(c *Checker, predicate *TypePredicate) {
+	if c.overlaying() {
+		c.putOverlayCell(s.typePredicateOverlayKey(), &overlayEntry{
+			value:     predicate,
+			publish:   func() { s.initResolvedTypePredicate(c, predicate) },
+			published: func() bool { return s.getStoredTypePredicate(c) != nil },
+		}, nil, memoKeyOf(s, memoTypePredicate), true)
+		c.setFlagMemo(memoKeyOf(s, memoTypePredicate))
+		return
+	}
 	if c.logResults() {
 		old := s.getResolvedTypePredicate(c)
 		c.logMemoDiscard(nil, memoKeyOf(s, memoTypePredicate), func() { s.initResolvedTypePredicate(c, old) })

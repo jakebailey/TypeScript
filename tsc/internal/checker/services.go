@@ -379,19 +379,19 @@ func runEditorRequest[T any](c *Checker, node *ast.Node, request *editorRequest,
 		cachedTypes := make(map[*ValueSymbolLinks]*Type)
 		for ancestorNode != nil {
 			signatureLinks := c.signatureLinks.Get(ancestorNode)
-			cachedResolvedSignatures[signatureLinks] = signatureLinks.resolvedSignature.swap(nil)
+			cachedResolvedSignatures[signatureLinks] = signatureLinks.resolvedSignature.swap(c, nil)
 			if ast.IsFunctionExpressionOrArrowFunction(ancestorNode) {
 				symbolLinks := c.valueSymbolLinks.Get(c.getSymbolOfDeclaration(ancestorNode))
-				cachedTypes[symbolLinks] = symbolLinks.resolvedType.swap(nil)
+				cachedTypes[symbolLinks] = symbolLinks.resolvedType.swap(c, nil)
 			}
 			ancestorNode = ast.FindAncestor(ancestorNode.Parent, ast.IsCallLikeOrFunctionLikeExpression)
 		}
 		result := runDiscardingCaches(c, request, fn)
 		for signatureLinks, resolvedSignature := range cachedResolvedSignatures {
-			signatureLinks.resolvedSignature.swap(resolvedSignature)
+			signatureLinks.resolvedSignature.swap(c, resolvedSignature)
 		}
 		for symbolLinks, resolvedType := range cachedTypes {
-			symbolLinks.resolvedType.swap(resolvedType)
+			symbolLinks.resolvedType.swap(c, resolvedType)
 		}
 		return result
 	}

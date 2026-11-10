@@ -435,6 +435,8 @@ var notCacheOwners = []string{"LanguageFeatureMinimumTargetMap", "accessibleChai
 // unmemoizedCheckerFields lists the fields of Checker, other than those in
 // checkerProgressFields, like unmemoizedCacheFields.
 var unmemoizedCheckerFields = map[string]string{
+	"Checker.overlayPublishes":                   unmemoizedCounter,
+	"Checker.overlayDrops":                       unmemoizedCounter,
 	"Checker.awaitedTypeErrors":                  "Counter compared only within one computation",
 	"Checker.flowInvocationCount":                "Counter compared only within one computation",
 	"Checker.resolutionSerials":                  unmemoizedCounter,
@@ -589,6 +591,7 @@ var unmemoizedCacheFields = map[string]string{
 	"memoStore.program":                                 unmemoizedImmutable,
 	"memoStore.compilerOptions":                         unmemoizedImmutable,
 	"memoStore.files":                                   unmemoizedImmutable,
+	"memoStore.publishMu":                               unmemoizedMemoState,
 	"DeclaredMembers.members":                           unmemoizedGuarded,
 	"DeclaredMembers.callSignatures":                    unmemoizedGuarded,
 	"DeclaredMembers.constructSignatures":               unmemoizedGuarded,

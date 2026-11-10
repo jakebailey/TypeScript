@@ -5,6 +5,6 @@ package checker
 import "os"
 
 // concurrentStores reports whether checkers may share a store concurrently,
-// in which case its maps take locks. It is set once, before any checker is
-// created.
+// in which case its maps take locks and checkers write results to their
+// overlays; see overlay.go. It is set once, before any checker is created.
 var concurrentStores = os.Getenv("TSGO_SHARED_STORE") == "concurrent"

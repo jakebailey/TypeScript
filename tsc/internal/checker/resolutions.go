@@ -343,30 +343,30 @@ func (c *Checker) findResolutionBelow(i int, target TypeSystemEntity, propertyNa
 func (c *Checker) typeResolutionHasProperty(r *TypeResolution) bool {
 	switch r.propertyName {
 	case TypeSystemPropertyNameType:
-		return c.valueSymbolLinks.Get(r.target.(*ast.Symbol)).resolvedType.peek() != nil
+		return c.valueSymbolLinks.Get(r.target.(*ast.Symbol)).resolvedType.peek(c) != nil
 	case TypeSystemPropertyNameDeclaredType:
-		return c.typeAliasLinks.Get(r.target.(*ast.Symbol)).declaredType.peek() != nil
+		return c.typeAliasLinks.Get(r.target.(*ast.Symbol)).declaredType.peek(c) != nil
 	case TypeSystemPropertyNameResolvedTypeArguments:
-		return r.target.(*Type).AsTypeReference().resolvedTypeArguments.peek() != nil
+		return r.target.(*Type).AsTypeReference().resolvedTypeArguments.peek(c) != nil
 	case TypeSystemPropertyNameResolvedBaseTypes:
-		return r.target.(*Type).AsInterfaceType().baseTypesResolved
+		return flagMemoValue(c, &r.target.(*Type).AsInterfaceType().baseTypesResolved)
 	case TypeSystemPropertyNameResolvedBaseConstructorType:
-		return r.target.(*Type).AsInterfaceType().resolvedBaseConstructorType.peek() != nil
+		return r.target.(*Type).AsInterfaceType().resolvedBaseConstructorType.peek(c) != nil
 	case TypeSystemPropertyNameResolvedReturnType:
-		return r.target.(*Signature).resolvedReturnType.peek() != nil
+		return r.target.(*Signature).resolvedReturnType.peek(c) != nil
 	case TypeSystemPropertyNameResolvedBaseConstraint:
-		return r.target.(*Type).AsConstrainedType().resolvedBaseConstraint.peek() != nil
+		return r.target.(*Type).AsConstrainedType().resolvedBaseConstraint.peek(c) != nil
 	case TypeSystemPropertyNameInitializerIsUndefined:
-		return c.nodeLinks.Get(r.target.(*ast.Node)).flags&NodeCheckFlagsInitializerIsUndefinedComputed != 0
+		return flagMemoBits(c, &c.nodeLinks.Get(r.target.(*ast.Node)).flags, NodeCheckFlagsInitializerIsUndefinedComputed|NodeCheckFlagsInitializerIsUndefined)&NodeCheckFlagsInitializerIsUndefinedComputed != 0
 	case TypeSystemPropertyNameWriteType:
 		extra := c.valueSymbolLinks.Get(r.target.(*ast.Symbol)).extra
-		return extra != nil && extra.writeType.peek() != nil
+		return extra != nil && extra.writeType.peek(c) != nil
 	case TypeSystemPropertyNameAliasTarget:
-		return c.aliasSymbolLinks.Get(r.target.(*ast.Symbol)).aliasTarget.peek() != nil
+		return c.aliasSymbolLinks.Get(r.target.(*ast.Symbol)).aliasTarget.peek(c) != nil
 	case TypeSystemPropertyNameComputedPropertyName:
-		return c.typeNodeLinks.Get(r.target.(*ast.Node)).resolvedType.peek() != nil
+		return c.typeNodeLinks.Get(r.target.(*ast.Node)).resolvedType.peek(c) != nil
 	case TypeSystemPropertyNameVariances:
-		return c.varianceLinks.Get(r.target.(*ast.Symbol)).variances.peek() != nil
+		return c.varianceLinks.Get(r.target.(*ast.Symbol)).variances.peek(c) != nil
 	default:
 		// Marked as checked or resolved on entry, so it is only on the stack
 		// while in progress.

@@ -13,6 +13,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/binder"
@@ -692,7 +693,12 @@ type Checker struct {
 	reportUnmeasurableMapper                    *TypeMapper
 	restrictiveMapper                           *TypeMapper
 	permissiveMapper                            *TypeMapper
-	ownDeferredCallbacks                        []func(c *Checker)  // See deferredCallbacks
+	ownDeferredCallbacks                        []func(c *Checker) // See addDeferredDiagnostic
+	overlayDepth                                int                // Requests in progress writing to the overlay; see overlay.go
+	overlay                                     map[overlayKey]*overlayEntry
+	mapOverlay                                  map[mapOverlayKey]*overlayEntry
+	overlayPublishes                            int                 // Requests whose overlay was published
+	overlayDrops                                int                 // Requests whose overlay conflicted with the store
 	resolving                                   resolvingTable      // Index in resolutions of the outermost computation of each key in progress
 	typeResolutionTop                           int                 // 1-based index in resolutions of the innermost resolution, or 0
 	resolutionStart                             int                 // Index in resolutions below which resolutions are not searched for cycles
@@ -827,6 +833,7 @@ type memoStore struct {
 	compilerOptions                        *core.CompilerOptions
 	files                                  []*ast.SourceFile
 	fileIndexMap                           map[*ast.SourceFile]int
+	publishMu                              sync.Mutex // Serializes publishing overlays; see overlay.go
 	TypeCount                              uint32
 	memberLayoutCount                      uint32
 	SymbolCount                            uint32
@@ -9041,7 +9048,7 @@ func (c *Checker) getResolvedSignatureUncached(node *ast.Node, candidatesOutArra
 		// the contextual type circularity.
 		c.resolutionStart = len(c.resolutions)
 	}
-	links.resolvedSignature.swap(c.resolvingSignature)
+	links.resolvedSignature.swap(c, c.resolvingSignature)
 	c.signaturesResolving = append(c.signaturesResolving, links)
 	result := c.resolveSignature(node, candidatesOutArray, checkMode)
 	c.signaturesResolving = c.signaturesResolving[:len(c.signaturesResolving)-1]
@@ -9051,7 +9058,7 @@ func (c *Checker) getResolvedSignatureUncached(node *ast.Node, candidatesOutArra
 	// re-entering this one resolved it.
 	if result == c.resolvingSignature {
 		if links.resolvedSignature.cached(c) == c.resolvingSignature {
-			links.resolvedSignature.swap(cached)
+			links.resolvedSignature.swap(c, cached)
 		}
 	} else {
 		// if the signature resolution originated on a node that itself depends on the contextual type
@@ -9068,7 +9075,7 @@ func (c *Checker) getResolvedSignatureUncached(node *ast.Node, candidatesOutArra
 		if len(c.flowLoopStack) == 0 {
 			c.setResolvedSignature(links, result)
 		} else {
-			links.resolvedSignature.swap(cached)
+			links.resolvedSignature.swap(c, cached)
 		}
 	}
 	return result
@@ -10841,7 +10848,7 @@ func (c *Checker) contextuallyCheckFunctionExpressionOrObjectLiteralMethod(node 
 
 func (c *Checker) contextuallyCheckFunctionExpressionOrObjectLiteralMethodUncached(node *ast.Node, checkMode CheckMode, hidden bool) {
 	links := c.nodeLinks.Get(node)
-	if links.flags&NodeCheckFlagsContextChecked == 0 || links.flags&NodeCheckFlagsSignatureContextChecked != 0 && !hidden {
+	if flagMemoBits(c, &links.flags, NodeCheckFlagsContextChecked) == 0 || flagMemoBits(c, &links.flags, NodeCheckFlagsSignatureContextChecked) != 0 && !hidden {
 		return
 	}
 	// The flag guards against checking the function again from within the
@@ -10886,12 +10893,12 @@ func (c *Checker) assignContextualParameterTypesOfFunction(node *ast.Node, check
 
 func (c *Checker) assignContextualParameterTypesOfFunctionUncached(node *ast.Node, checkMode CheckMode) {
 	links := c.nodeLinks.Get(node)
-	if links.flags&NodeCheckFlagsContextChecked == 0 {
+	if flagMemoBits(c, &links.flags, NodeCheckFlagsContextChecked) == 0 {
 		contextualSignature := c.getContextualSignature(node)
 		// If a type check is started at a function expression that is an argument of a function call, obtaining the
 		// contextual type may recursively get back to here during overload resolution of the call. If so, we will have
 		// already assigned contextual types.
-		if links.flags&NodeCheckFlagsContextChecked == 0 {
+		if flagMemoBits(c, &links.flags, NodeCheckFlagsContextChecked) == 0 {
 			setFlagMemoBits(c, memoKeyOf(node, memoContextualParameters), &links.flags, NodeCheckFlagsContextChecked, NodeCheckFlagsContextChecked)
 			// A JSDoc @type tag on the function supplies the signature of its
 			// symbol, and the types of its parameters.
@@ -11407,9 +11414,9 @@ func (c *Checker) getInstantiationExpressionType(exprType *Type, node *ast.Node)
 		entry = &instantiationExpressionEntry{}
 		c.instantiationExpressionTypes.intern(key, entry)
 	}
-	if entry.t != nil {
+	if t := flagMemoValue(c, &entry.t); t != nil {
 		c.observeFlagMemo(memoKeyOf(entry, memoInstantiationExpressionType))
-		return entry.t
+		return t
 	}
 	c.beginMemo(memoKeyOf(entry, memoInstantiationExpressionType))
 	result := c.getInstantiationExpressionTypeUncached(exprType, node, typeArguments, entry)
@@ -11987,7 +11994,8 @@ func (c *Checker) parameterInitializerContainsUndefined(declaration *ast.Node) b
 
 func (c *Checker) parameterInitializerContainsUndefinedUncached(declaration *ast.Node) bool {
 	links := c.nodeLinks.Get(declaration)
-	if links.flags&NodeCheckFlagsInitializerIsUndefinedComputed == 0 {
+	const mask = NodeCheckFlagsInitializerIsUndefinedComputed | NodeCheckFlagsInitializerIsUndefined
+	if flagMemoBits(c, &links.flags, mask)&NodeCheckFlagsInitializerIsUndefinedComputed == 0 {
 		if !c.pushTypeResolution(declaration, TypeSystemPropertyNameInitializerIsUndefined, nil) {
 			c.reportCircularityError(declaration.Symbol())
 			return true
@@ -11997,11 +12005,11 @@ func (c *Checker) parameterInitializerContainsUndefinedUncached(declaration *ast
 			c.reportCircularityError(declaration.Symbol())
 			return true
 		}
-		if links.flags&NodeCheckFlagsInitializerIsUndefinedComputed == 0 {
-			setFlagMemoBits(c, memoKeyOf(declaration, memoInitializerIsUndefined), &links.flags, NodeCheckFlagsInitializerIsUndefinedComputed|NodeCheckFlagsInitializerIsUndefined, NodeCheckFlagsInitializerIsUndefinedComputed|core.IfElse(containsUndefined, NodeCheckFlagsInitializerIsUndefined, 0))
+		if flagMemoBits(c, &links.flags, mask)&NodeCheckFlagsInitializerIsUndefinedComputed == 0 {
+			setFlagMemoBits(c, memoKeyOf(declaration, memoInitializerIsUndefined), &links.flags, mask, NodeCheckFlagsInitializerIsUndefinedComputed|core.IfElse(containsUndefined, NodeCheckFlagsInitializerIsUndefined, 0))
 		}
 	}
-	return links.flags&NodeCheckFlagsInitializerIsUndefined != 0
+	return flagMemoBits(c, &links.flags, mask)&NodeCheckFlagsInitializerIsUndefined != 0
 }
 
 func (c *Checker) isInAmbientOrTypeNode(node *ast.Node) bool {
@@ -16028,7 +16036,7 @@ func (c *Checker) getExportOfModule(symbol *ast.Symbol, nameText string, specifi
 	if symbol.Flags()&ast.SymbolFlagsModule != 0 {
 		exportSymbol := c.getExportsOfSymbol(symbol).Get(nameText)
 		resolved := c.resolveSymbolEx(exportSymbol, dontResolveAlias)
-		exportStarDeclaration := c.moduleSymbolLinks.Get(symbol).typeOnlyExportStarMap[nameText]
+		exportStarDeclaration := flagMemoValue(c, &c.moduleSymbolLinks.Get(symbol).typeOnlyExportStarMap)[nameText]
 		c.markSymbolOfAliasDeclarationIfTypeOnly(specifier, exportStarDeclaration)
 		return resolved
 	}
@@ -17569,8 +17577,8 @@ func (c *Checker) getMembersOfSymbol(symbol *ast.Symbol) ast.SymbolTable {
 func (c *Checker) getExportsOfModule(moduleSymbol *ast.Symbol) ast.SymbolTable {
 	links := c.moduleSymbolLinks.Get(moduleSymbol)
 	key := memoKeyOf(links, memoModuleExports)
-	if links.resolvedExports != nil && c.readsWithoutMemo(key) {
-		return links.resolvedExports
+	if exports := flagMemoValue(c, &links.resolvedExports); exports != nil && c.readsWithoutMemo(key) {
+		return exports
 	}
 	c.beginMemo(key)
 	result := c.getExportsOfModuleCached(moduleSymbol, links)
@@ -17579,13 +17587,13 @@ func (c *Checker) getExportsOfModule(moduleSymbol *ast.Symbol) ast.SymbolTable {
 }
 
 func (c *Checker) getExportsOfModuleCached(moduleSymbol *ast.Symbol, links *ModuleSymbolLinks) ast.SymbolTable {
-	if links.resolvedExports == nil {
+	if flagMemoValue(c, &links.resolvedExports) == nil {
 		exports, typeOnlyExportStarMap := c.getExportsOfModuleWorker(moduleSymbol)
 		key := memoKeyOf(links, memoModuleExports)
 		c.setFlagMemoValue(key, &links.typeOnlyExportStarMap, typeOnlyExportStarMap)
 		c.setFlagMemoValue(key, &links.resolvedExports, exports)
 	}
-	return links.resolvedExports
+	return flagMemoValue(c, &links.resolvedExports)
 }
 
 type ExportCollision struct {
@@ -17905,7 +17913,7 @@ func (c *Checker) getWriteTypeOfSymbolUncached(symbol *ast.Symbol) *Type {
 			return c.getWriteTypeOfSymbolWithDeferredType(symbol)
 		}
 		links := c.valueSymbolLinks.Get(symbol)
-		return core.OrElse(links.writeTypeOfCreation(), c.getTypeOfSymbol(symbol))
+		return core.OrElse(links.writeTypeOfCreation(c), c.getTypeOfSymbol(symbol))
 	}
 	if symbol.Flags()&ast.SymbolFlagsProperty != 0 {
 		return c.removeMissingType(c.getTypeOfSymbol(symbol), symbol.Flags()&ast.SymbolFlagsOptional != 0)
@@ -18623,7 +18631,7 @@ func (c *Checker) getConstraintOfType(t *Type) *Type {
 
 func (c *Checker) getConstraintOfTypeParameter(typeParameter *Type) *Type {
 	key := memoKeyOf(typeParameter, memoTypeParameterConstraint)
-	if typeParameter.flags&TypeFlagsTypeParameter != 0 && typeParameter.AsTypeParameter().resolvedBaseConstraint.peek() != nil && typeParameter.AsTypeParameter().constraint.peek() != nil && c.readsWithoutMemo(key) {
+	if typeParameter.flags&TypeFlagsTypeParameter != 0 && typeParameter.AsTypeParameter().resolvedBaseConstraint.peek(c) != nil && typeParameter.AsTypeParameter().constraint.peek(c) != nil && c.readsWithoutMemo(key) {
 		return c.getConstraintOfTypeParameterUncached(typeParameter)
 	}
 	c.beginMemo(key)
@@ -19127,7 +19135,7 @@ func (c *Checker) isSameObjectLiteralType(e objectLiteralType, flags ObjectFlags
 			}
 			continue
 		}
-		if links.getNameType() != otherLinks.getNameType() || links.typeOfCreation() != otherLinks.typeOfCreation() {
+		if links.getNameType() != otherLinks.getNameType() || links.typeOfCreation(c) != otherLinks.typeOfCreation(c) {
 			return false
 		}
 	}
@@ -19613,7 +19621,7 @@ func (c *Checker) getTypeFromObjectBindingPattern(pattern *ast.Node, includePatt
 		b.writeString(name)
 		b.writeByte(0)
 		b.writeUint32(uint32(member.Flags()))
-		b.writeType(c.valueSymbolLinks.Get(member).typeOfCreation())
+		b.writeType(c.valueSymbolLinks.Get(member).typeOfCreation(c))
 	}
 	key := b.hash()
 	if existing, _ := c.bindingPatternTypes.get(key); existing != nil {
@@ -21227,7 +21235,7 @@ func (c *Checker) getPropertyOfTypeEx(t *Type, name string, skipObjectFunctionPr
 		resolved := c.resolveStructuredTypeMembers(t)
 		symbol := resolved.getMember(c, name)
 		if symbol != nil {
-			if !includeTypeOnlyMembers && t.symbol != nil && t.symbol.Flags()&ast.SymbolFlagsValueModule != 0 && c.moduleSymbolLinks.Get(t.symbol).typeOnlyExportStarMap[name] != nil {
+			if !includeTypeOnlyMembers && t.symbol != nil && t.symbol.Flags()&ast.SymbolFlagsValueModule != 0 && flagMemoValue(c, &c.moduleSymbolLinks.Get(t.symbol).typeOnlyExportStarMap)[name] != nil {
 				// If this is the type of a module, `resolved.members.get(name)` might have effectively skipped over
 				// an `export type * from './foo'`, leaving `symbolIsValue` unable to see that the symbol is being
 				// viewed through a type-only export.
@@ -21828,7 +21836,7 @@ func (c *Checker) getBaseTypes(t *Type) []*Type {
 	if t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsTuple) == 0 {
 		return nil
 	}
-	if data := t.AsInterfaceType(); data.baseTypesResolved {
+	if data := t.AsInterfaceType(); flagMemoValue(c, &data.baseTypesResolved) {
 		// Observing the result is what re-entering its computation amounts
 		// to, without the resolution. Walks over base types such as
 		// hasBaseType revisit shared bases many times.
@@ -21848,7 +21856,7 @@ func (c *Checker) getBaseTypesUncached(t *Type) []*Type {
 		return nil
 	}
 	data := t.AsInterfaceType()
-	if !data.baseTypesResolved {
+	if !flagMemoValue(c, &data.baseTypesResolved) {
 		if !c.pushTypeResolution(t, TypeSystemPropertyNameResolvedBaseTypes, &data.resolvedBaseTypes.memoHeader) {
 			return data.resolvedBaseTypes.cached(c)
 		}
@@ -21876,10 +21884,20 @@ func (c *Checker) getBaseTypesUncached(t *Type) []*Type {
 		// for resolution of type parameter defaults to cause circularity errors, possibly leaving
 		// members partially resolved. Here we ensure any such partial resolution is reset.
 		// See https://github.com/microsoft/TypeScript/issues/16861 for an example.
-		t.objectFlags &^= ObjectFlagsMembersResolved
-		data.baseTypesResolved = true
-		if c.logResults() {
-			c.discardLog = append(c.discardLog, discardEntry{memo: &data.resolvedBaseTypes.memoHeader, restore: func() { data.baseTypesResolved = false }})
+		if t.objectFlags&ObjectFlagsMembersResolved != 0 {
+			t.objectFlags &^= ObjectFlagsMembersResolved
+		}
+		if c.overlaying() {
+			c.putOverlayCell(overlayKey{p: unsafe.Pointer(&data.baseTypesResolved)}, &overlayEntry{
+				value:     true,
+				publish:   func() { data.baseTypesResolved = true },
+				published: func() bool { return data.baseTypesResolved },
+			}, &data.resolvedBaseTypes.memoHeader, memoKeyOf(t, memoBaseTypes), true)
+		} else {
+			data.baseTypesResolved = true
+			if c.logResults() {
+				c.discardLog = append(c.discardLog, discardEntry{memo: &data.resolvedBaseTypes.memoHeader, restore: func() { data.baseTypesResolved = false }})
+			}
 		}
 	}
 	return data.resolvedBaseTypes.cached(c)
@@ -22320,7 +22338,7 @@ func (c *Checker) resolveDeclaredMembers(t *Type) *DeclaredMembers {
 
 func (c *Checker) resolveDeclaredMembersUncached(t *Type) *DeclaredMembers {
 	d := t.AsInterfaceType()
-	if r := d.declared.peek(); r != nil {
+	if r := d.declared.peek(c); r != nil {
 		return r
 	}
 	// The members are cached before the signatures are resolved, which may
@@ -24754,11 +24772,11 @@ func (c *Checker) getTypeArgumentsUncached(t *Type) []*Type {
 		}
 	}
 	if c.popTypeResolution() {
-		if d.resolvedTypeArguments.peek() == nil {
+		if d.resolvedTypeArguments.peek(c) == nil {
 			d.resolvedTypeArguments.set(c, c.instantiateTypes(typeArguments, d.mapper))
 		}
 	} else {
-		if d.resolvedTypeArguments.peek() == nil {
+		if d.resolvedTypeArguments.peek(c) == nil {
 			d.resolvedTypeArguments.set(c, slices.Repeat([]*Type{c.errorType}, len(n.TypeParameters())))
 		}
 		message := diagnostics.Tuple_type_arguments_circularly_reference_themselves
@@ -24773,7 +24791,7 @@ func (c *Checker) getTypeArgumentsUncached(t *Type) []*Type {
 			c.errorAtCurrentNode(message, args...)
 		}
 	}
-	return d.resolvedTypeArguments.peek()
+	return d.resolvedTypeArguments.peek(c)
 }
 
 func (c *Checker) getEffectiveTypeArguments(node *ast.Node, typeParameters []*Type) []*Type {
@@ -24841,7 +24859,7 @@ func (c *Checker) getDefaultTypeArgumentType(isInJavaScriptFile bool) *Type {
 // the default is circular, `undefined` is returned.
 func (c *Checker) getDefaultFromTypeParameter(t *Type) *Type {
 	key := memoKeyOf(t, memoTypeParameterDefault)
-	if t.flags&TypeFlagsTypeParameter != 0 && t.AsTypeParameter().resolvedDefaultType.peek() != nil && c.readsWithoutMemo(key) {
+	if t.flags&TypeFlagsTypeParameter != 0 && t.AsTypeParameter().resolvedDefaultType.peek(c) != nil && c.readsWithoutMemo(key) {
 		return c.getDefaultFromTypeParameterUncached(t)
 	}
 	c.beginMemo(key)
@@ -24877,7 +24895,7 @@ func (c *Checker) getResolvedTypeParameterDefault(t *Type) *Type {
 	} else if d.resolvedDefaultType.cached(c) == c.resolvingDefaultType {
 		// If we are called recursively for this type parameter, mark the default as circular.
 		c.observeCircularHead(t, TypeSystemPropertyNameDefaultType, c.compareTypeParameterDeclarations)
-		d.resolvedDefaultType.swap(c.circularConstraintType)
+		d.resolvedDefaultType.swap(c, c.circularConstraintType)
 		return c.circularConstraintType
 	}
 	return d.resolvedDefaultType.cached(c)
@@ -24895,7 +24913,7 @@ func (c *Checker) resolveTypeParameterDefault(t *Type) {
 		// To block recursion, set the initial value to the resolvingDefaultType.
 		// Markers of a resolution in progress are never observed once it
 		// finishes, so they are not results to discard.
-		d.resolvedDefaultType.swap(c.resolvingDefaultType)
+		d.resolvedDefaultType.swap(c, c.resolvingDefaultType)
 		c.beginTypeResolution(t, TypeSystemPropertyNameDefaultType, nil)
 		defaultType := c.noConstraintType
 		if t.symbol != nil {
@@ -24909,7 +24927,7 @@ func (c *Checker) resolveTypeParameterDefault(t *Type) {
 				defaultType = c.getTypeFromTypeNode(defaultDeclaration)
 			}
 		}
-		if d.resolvedDefaultType.swap(nil) != c.resolvingDefaultType {
+		if d.resolvedDefaultType.swap(c, nil) != c.resolvingDefaultType {
 			// We were called recursively, so the default is circular.
 			defaultType = c.circularConstraintType
 		}
@@ -25339,23 +25357,22 @@ func (c *Checker) getObjectTypeInstantiation(t *Type, m *TypeMapper, alias *Type
 		result = instantiate(newTypeMapper(typeParameters, typeArguments))
 		data.instantiations.setReported(c, key, result, c.endCurrentNodeErrors(reports))
 		c.endMemo()
-		if result.flags&TypeFlagsObjectFlagsType != 0 && result.objectFlags&ObjectFlagsCouldContainTypeVariablesComputed == 0 {
+		const mask = ObjectFlagsCouldContainTypeVariablesComputed | ObjectFlagsCouldContainTypeVariables
+		if result.flags&TypeFlagsObjectFlagsType != 0 && flagMemoBits(c, &result.objectFlags, mask)&ObjectFlagsCouldContainTypeVariablesComputed == 0 {
 			// if `result` is one of the object types we tried to make (it may not be, due to how `instantiateMappedType` works), we can carry forward the type variable containment check from the input type arguments
 			resultCouldContainObjectFlags := core.Some(typeArguments, c.couldContainTypeVariables)
-			if result.objectFlags&ObjectFlagsCouldContainTypeVariablesComputed == 0 {
+			if flagMemoBits(c, &result.objectFlags, mask)&ObjectFlagsCouldContainTypeVariablesComputed == 0 {
 				// The flags are part of creating the type, so they are kept for
 				// as long as the type is, even if created in a cycle that is
 				// discarded; computed again from the structure of the type, they
 				// may differ.
 				if result.objectFlags&(ObjectFlagsMapped|ObjectFlagsAnonymous|ObjectFlagsReference) != 0 {
-					result.objectFlags |= ObjectFlagsCouldContainTypeVariablesComputed | core.IfElse(resultCouldContainObjectFlags, ObjectFlagsCouldContainTypeVariables, 0)
-					c.setFlagMemo(memoKeyOf(result, memoCouldContainTypeVariables))
+					c.setIdentityFlagMemoBits(memoKeyOf(result, memoCouldContainTypeVariables), result, ObjectFlagsCouldContainTypeVariablesComputed|core.IfElse(resultCouldContainObjectFlags, ObjectFlagsCouldContainTypeVariables, 0))
 				} else if !resultCouldContainObjectFlags {
 					// If none of the type arguments for the outer type parameters contain type variables, it follows
 					// that the instantiated type doesn't reference type variables.
 					// Intrinsics have `CouldContainTypeVariablesComputed` pre-set, so this should only cover unions and intersections resulting from `instantiateMappedType`
-					result.objectFlags |= ObjectFlagsCouldContainTypeVariablesComputed
-					c.setFlagMemo(memoKeyOf(result, memoCouldContainTypeVariables))
+					c.setIdentityFlagMemoBits(memoKeyOf(result, memoCouldContainTypeVariables), result, ObjectFlagsCouldContainTypeVariablesComputed)
 				}
 			}
 		}
@@ -25779,7 +25796,7 @@ func (c *Checker) getTypeFromTypeNode(node *ast.Node) *Type {
 		ast.KindConditionalType, ast.KindIndexedAccessType, ast.KindArrayType, ast.KindTupleType, ast.KindThisType,
 		ast.KindTypeOperator, ast.KindLiteralType:
 		if links := c.typeNodeLinks.TryGet(node); links != nil {
-			if t := links.resolvedType.peek(); t != nil && !isConditionalFlowTypeLocation(node) && c.readsWithoutMemo(key) {
+			if t := links.resolvedType.peek(c); t != nil && !isConditionalFlowTypeLocation(node) && c.readsWithoutMemo(key) {
 				return t
 			}
 		}
@@ -26745,11 +26762,11 @@ func (c *Checker) getDeclaredTypeOfSymbol(symbol *ast.Symbol) *Type {
 	switch {
 	case symbol.Flags()&ast.SymbolFlagsTypeAlias != 0 && symbol.Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface|ast.SymbolFlagsTypeParameter) == 0:
 		if links := c.typeAliasLinks.TryGet(symbol); links != nil && c.memoErrorStates == 0 {
-			t = links.declaredType.peek()
+			t = links.declaredType.peek(c)
 		}
 	case symbol.Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface|ast.SymbolFlagsTypeParameter|ast.SymbolFlagsEnum|ast.SymbolFlagsEnumMember|ast.SymbolFlagsAlias) != 0:
 		if links := c.declaredTypeLinks.TryGet(symbol); links != nil {
-			t = links.declaredType.peek()
+			t = links.declaredType.peek(c)
 		}
 	}
 	if t != nil && c.readsWithoutMemo(key) {
@@ -26969,10 +26986,10 @@ func (c *Checker) getDeclaredTypeOfTypeAlias(symbol *ast.Symbol) *Type {
 			t = c.errorType
 		}
 		nodeReports := c.endCurrentNodeErrors(reports)
-		if links.declaredType.peek() == nil {
+		if links.declaredType.peek(c) == nil {
 			links.declaredType.setReported(c, t, nodeReports)
 		}
-		return links.declaredType.peek()
+		return links.declaredType.peek(c)
 	}
 	return links.declaredType.cached(c)
 }
@@ -27048,7 +27065,7 @@ func (c *Checker) computeEnumMemberValues(node *ast.Node) {
 
 func (c *Checker) computeEnumMemberValuesUncached(node *ast.Node) {
 	nodeLinks := c.nodeLinks.Get(node)
-	if nodeLinks.flags&NodeCheckFlagsEnumValuesComputed == 0 {
+	if flagMemoBits(c, &nodeLinks.flags, NodeCheckFlagsEnumValuesComputed) == 0 {
 		setFlagMemoBits(c, memoKeyOf(node, memoEnumMemberValue), &nodeLinks.flags, NodeCheckFlagsEnumValuesComputed, NodeCheckFlagsEnumValuesComputed)
 		autoValue := new(jsnum.Number)
 		var previous *ast.Node
@@ -30666,7 +30683,7 @@ func (c *Checker) getBaseConstraintOfType(t *Type) *Type {
 }
 
 func (c *Checker) getResolvedBaseConstraint(t *Type, stack []RecursionId) *Type {
-	if constrained := t.AsConstrainedType(); constrained != nil && constrained.resolvedBaseConstraint.peek() != nil {
+	if constrained := t.AsConstrainedType(); constrained != nil && constrained.resolvedBaseConstraint.peek(c) != nil {
 		// A resolved base constraint is only read.
 		return constrained.resolvedBaseConstraint.cached(c)
 	}
@@ -32868,7 +32885,7 @@ func (c *Checker) getContextuallyTypedParameterType(parameter *ast.Node) *Type {
 			return c.getSpreadArgumentType(args, indexOfParameter, len(args), c.anyType, nil /*context*/, CheckModeNormal)
 		}
 		links := c.signatureLinks.Get(iife)
-		cached := links.resolvedSignature.swap(c.anySignature)
+		cached := links.resolvedSignature.swap(c, c.anySignature)
 		var t *Type
 		switch {
 		case indexOfParameter < len(args):
@@ -32878,7 +32895,7 @@ func (c *Checker) getContextuallyTypedParameterType(parameter *ast.Node) *Type {
 		default:
 			t = c.undefinedWideningType
 		}
-		links.resolvedSignature.swap(cached)
+		links.resolvedSignature.swap(c, cached)
 		return t
 	}
 	contextualSignature := c.getContextualSignature(fn)

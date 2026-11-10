@@ -831,7 +831,7 @@ func compareObjectMembers(t1, t2 *Type, withTypes bool) int {
 // created.
 func (c *Checker) peekTypeOfObjectLiteralMember(s *ast.Symbol) *Type {
 	if links := c.valueSymbolLinks.TryGet(s); links != nil {
-		return links.typeOfCreation()
+		return links.typeOfCreation(c)
 	}
 	return nil
 }

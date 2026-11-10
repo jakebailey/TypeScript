@@ -221,17 +221,58 @@ func (m *memo[T]) cached(c *Checker) T {
 	if c.observing() {
 		c.observeCell(&m.memoHeader)
 	}
+	if concurrentStores {
+		return m.load(c)
+	}
 	return m.memoValue
+}
+
+// load returns the result c reads: the store's, or c's own while the store
+// has none; see overlay.go.
+func (m *memo[T]) load(c *Checker) T {
+	v := m.memoValue
+	if c.overlaying() && isZeroValue(&v) {
+		if e, ok := c.overlayCell(m.overlayKey()); ok {
+			return e.value.(T)
+		}
+	}
+	return v
+}
+
+// store caches v, in c's overlay while c is overlaying; see overlay.go.
+// If discardable, discarding results discards it, as for set.
+func (m *memo[T]) store(c *Checker, v T, discardable bool) {
+	if c.overlaying() {
+		c.putOverlayCell(m.overlayKey(), m.overlayEntry(v), &m.memoHeader, m.key(), discardable)
+		return
+	}
+	m.memoValue = v
+}
+
+func (m *memo[T]) overlayKey() overlayKey {
+	return overlayKey{p: unsafe.Pointer(&m.memoValue)}
+}
+
+func (m *memo[T]) overlayEntry(v T) *overlayEntry {
+	return &overlayEntry{
+		value:     v,
+		publish:   func() { m.memoValue = v },
+		published: func() bool { return !isZeroValue(&m.memoValue) },
+	}
 }
 
 // set caches a result. When set outside the result's own computation (for
 // example, the types of binding elements assigned while resolving the type of
 // their declaration), the result depends on the computation setting it.
 func (m *memo[T]) set(c *Checker, v T) {
-	if c.logResults() {
-		m.logDiscard(c)
+	if c.overlaying() {
+		m.store(c, v, true)
+	} else {
+		if c.logResults() {
+			m.logDiscard(c)
+		}
+		m.memoValue = v
 	}
-	m.memoValue = v
 	if !c.checking {
 		c.attachCell(&m.memoHeader)
 	}
@@ -250,9 +291,13 @@ func setAfterMarker[T comparable, X any](c *Checker, m *memo[T], v T, x X, stale
 		restore := c.discardLog[n].restore
 		c.discardLog[n].restore = func() {
 			restore()
-			if stale(c, x, m.memoValue) {
+			if stale(c, x, m.load(c)) {
 				var zero T
-				m.memoValue = zero
+				if c.overlaying() {
+					c.overlay[m.overlayKey()] = &overlayEntry{value: zero, publish: func() {}, published: func() bool { return false }}
+				} else {
+					m.memoValue = zero
+				}
 			}
 		}
 	}
@@ -263,7 +308,7 @@ func setAfterMarker[T comparable, X any](c *Checker, m *memo[T], v T, x X, stale
 // it already has comes from the same computation, whose effects are already
 // retained, so it is only set when it changes.
 func setIfChanged[T comparable](c *Checker, m *memo[T], v T) {
-	if m.memoValue != v {
+	if m.load(c) != v {
 		m.set(c, v)
 	}
 }
@@ -275,7 +320,7 @@ func setIfChanged[T comparable](c *Checker, m *memo[T], v T) {
 // result exist, and an entity can outlive the cycle in caches that are kept
 // while having no way to compute its parts again.
 func (m *memo[T]) setIdentity(c *Checker, v T) {
-	m.memoValue = v
+	m.store(c, v, false)
 	if !c.checking {
 		c.attachCell(&m.memoHeader)
 	}
@@ -292,6 +337,9 @@ func (m *memoReported[T]) cached(c *Checker) T {
 	if c.observing() || c.memoErrorStates != 0 {
 		c.observeCell(&m.memoHeader)
 	}
+	if concurrentStores {
+		return m.load(c)
+	}
 	return m.memoValue
 }
 
@@ -303,12 +351,21 @@ func (m *memoReported[T]) cached(c *Checker) T {
 // for the current node.
 func (m *memoReported[T]) setReported(c *Checker, v T, r currentNodeErrors) {
 	if r.cyclic {
-		if c.logResults() {
-			m.logDiscard(c)
+		if c.overlaying() {
+			m.store(c, v, true)
+		} else {
+			if c.logResults() {
+				m.logDiscard(c)
+			}
+			m.memoValue = v
 		}
 		r.list = nil
+		if !c.checking {
+			c.attachCell(&m.memoHeader)
+		}
+	} else {
+		m.setIdentity(c, v)
 	}
-	m.setIdentity(c, v)
 	if r.list != nil || c.memoErrorStates != 0 && c.peekMemoState(m.key()) != nil {
 		if r.list != nil {
 			i := errorFilterIndex(m.key())
@@ -337,13 +394,30 @@ func (m *memo[T]) inProgress(c *Checker) T {
 // peek returns the cached result without accounting for effects. It is only
 // for a result whose computation is in progress, where reading it does not
 // observe it.
-func (m *memo[T]) peek() T {
+func (m *memo[T]) peek(c *Checker) T {
+	if concurrentStores {
+		return m.load(c)
+	}
+	return m.memoValue
+}
+
+// peekStore returns the result the store has, for inspecting it outside of
+// any checker.
+func (m *memo[T]) peekStore() T {
 	return m.memoValue
 }
 
 // swap replaces the cached result without accounting for effects. It is
 // only for speculative computations that restore the previous result after.
-func (m *memo[T]) swap(v T) T {
+func (m *memo[T]) swap(c *Checker, v T) T {
+	if c.overlaying() {
+		old := m.load(c)
+		if c.overlay == nil {
+			c.overlay = make(map[overlayKey]*overlayEntry)
+		}
+		c.overlay[m.overlayKey()] = m.overlayEntry(v)
+		return old
+	}
 	old := m.memoValue
 	m.memoValue = v
 	return old
@@ -371,7 +445,7 @@ func (c *Checker) memoCompute[T comparable](m *memo[T], compute func() T) T {
 	}
 	m.begin(c)
 	v := compute()
-	if cur := m.peek(); cur != zero {
+	if cur := m.peek(c); cur != zero {
 		v = cur
 	} else {
 		m.set(c, v)
@@ -616,7 +690,39 @@ func (m *memoMap[K, V]) cached(c *Checker, k K) (V, bool) {
 	if s := m.side.Load(); s != nil && (c.observing() || s.hasErrors.Load()) {
 		m.observe(c, k)
 	}
-	return m.get(k)
+	return m.load(c, k)
+}
+
+// load returns the entry for k that c reads: the store's, or c's own while
+// the store has none; see overlay.go.
+func (m *memoMap[K, V]) load(c *Checker, k K) (V, bool) {
+	v, ok := m.get(k)
+	if !ok && c.overlaying() {
+		if e, found := c.mapOverlay[mapOverlayKey{m, k}]; found {
+			return e.value.(V), true
+		}
+	}
+	return v, ok
+}
+
+// put caches v for k, in c's overlay while c is overlaying. If
+// discardable, discarding results discards it, as for set.
+func (m *memoMap[K, V]) put(c *Checker, k K, v V, discardable bool) {
+	if c.overlaying() {
+		c.putOverlayMapEntry(mapOverlayKey{m, k}, &overlayEntry{
+			value:   v,
+			publish: func() { m.store(k, v) },
+			published: func() bool {
+				_, ok := m.get(k)
+				return ok
+			},
+		}, c.memoTop != 0 && m.isOwnResolution(c, k), discardable)
+		return
+	}
+	if discardable && c.logResults() {
+		m.logDiscard(c, k)
+	}
+	m.store(k, v)
 }
 
 // observe is the out of line part of get, keeping get cheap enough to inline.
@@ -665,10 +771,8 @@ func (m *memoMap[K, V]) values() iter.Seq[V] {
 
 // set caches the result for k; see memo.set.
 func (m *memoMap[K, V]) set(c *Checker, k K, v V) {
-	if c.logResults() {
-		m.logDiscard(c, k)
-	}
-	m.setIdentity(c, k, v)
+	m.put(c, k, v, true)
+	m.attach(c, k)
 }
 
 //go:noinline
@@ -691,12 +795,10 @@ func (m *memoMap[K, V]) logDiscard(c *Checker, k K) {
 // setReported is setIdentity for an entry; see memo.setReported.
 func (m *memoMap[K, V]) setReported(c *Checker, k K, v V, r currentNodeErrors) {
 	if r.cyclic {
-		if c.logResults() {
-			m.logDiscard(c, k)
-		}
 		r.list = nil
 	}
-	m.setIdentity(c, k, v)
+	m.put(c, k, v, r.cyclic)
+	m.attach(c, k)
 	if r.list != nil || c.memoErrorStates != 0 && m.stateOf(k) != nil {
 		if r.list != nil {
 			m.sideTable().hasErrors.Store(true)
@@ -708,7 +810,7 @@ func (m *memoMap[K, V]) setReported(c *Checker, k K, v V, r currentNodeErrors) {
 // setIdentity is set for a result that defines the identity of what it
 // caches; see memo.setIdentity.
 func (m *memoMap[K, V]) setIdentity(c *Checker, k K, v V) {
-	m.store(k, v)
+	m.put(c, k, v, false)
 	m.attach(c, k)
 }
 
@@ -1773,7 +1875,9 @@ func (c *Checker) withChecking(fn func()) {
 	saveChecking := c.checking
 	c.checking = true
 	c.syncObserving()
+	c.beginOverlay()
 	fn()
+	c.endOverlay()
 	c.checking = saveChecking
 	c.syncObserving()
 }
@@ -2051,19 +2155,19 @@ func (c *Checker) objectFlagsKnown(t *Type, computed ObjectFlags) bool {
 // set while computing, so that a computation re-entering it finds no flags.
 func (c *Checker) objectFlagsCell(t *Type, field memoField, computed ObjectFlags, value ObjectFlags, inProgress bool, compute func() ObjectFlags) ObjectFlags {
 	key := memoKeyOf(t, field)
-	if t.objectFlags&computed != 0 {
+	if bits := flagMemoBits(c, &t.objectFlags, computed|value); bits&computed != 0 {
 		c.observeMemo(key)
-		return t.objectFlags & value
+		return bits & value
 	}
 	c.beginMemo(key)
 	if inProgress {
 		setFlagMemoBits(c, key, &t.objectFlags, computed|value, computed)
 	}
 	result := compute() & value
-	if inProgress || t.objectFlags&computed == 0 {
+	if bits := flagMemoBits(c, &t.objectFlags, computed|value); inProgress || bits&computed == 0 {
 		setFlagMemoBits(c, key, &t.objectFlags, computed|value, computed|result)
 	} else {
-		result = t.objectFlags & value
+		result = bits & value
 	}
 	c.endMemo()
 	return result
@@ -2072,6 +2176,16 @@ func (c *Checker) objectFlagsCell(t *Type, field memoField, computed ObjectFlags
 // setFlagMemoBits caches the bits of *p under mask as the result of the flag
 // memo identified by key.
 func setFlagMemoBits[T ~uint32](c *Checker, key memoKey, p *T, mask T, bits T) {
+	if c.overlaying() {
+		bits &= mask
+		c.putOverlayCell(overlayKey{unsafe.Pointer(p), uint32(mask)}, &overlayEntry{
+			value:     bits,
+			publish:   func() { *p = *p&^mask | bits },
+			published: func() bool { return *p&mask != 0 },
+		}, nil, key, true)
+		c.setFlagMemo(key)
+		return
+	}
 	if c.logResults() {
 		old := *p & mask
 		c.logMemoDiscard(nil, key, func() { *p = *p&^mask | old })
@@ -2083,12 +2197,63 @@ func setFlagMemoBits[T ~uint32](c *Checker, key memoKey, p *T, mask T, bits T) {
 // setFlagMemoValue caches v in *p as the result of the flag memo identified
 // by key.
 func (c *Checker) setFlagMemoValue[T any](key memoKey, p *T, v T) {
+	if c.overlaying() {
+		c.putOverlayCell(overlayKey{p: unsafe.Pointer(p)}, &overlayEntry{
+			value:     v,
+			publish:   func() { *p = v },
+			published: func() bool { return !isZeroValue(p) },
+		}, nil, key, true)
+		c.setFlagMemo(key)
+		return
+	}
 	if c.logResults() {
 		old := *p
 		c.logMemoDiscard(nil, key, func() { *p = old })
 	}
 	*p = v
 	c.setFlagMemo(key)
+}
+
+// setIdentityFlagMemoBits caches bits, whether t could contain type
+// variables, as part of creating t, so that discarding results never
+// discards them, as for setIdentity.
+func (c *Checker) setIdentityFlagMemoBits(key memoKey, t *Type, bits ObjectFlags) {
+	const mask = ObjectFlagsCouldContainTypeVariablesComputed | ObjectFlagsCouldContainTypeVariables
+	if c.overlaying() {
+		p := &t.objectFlags
+		c.putOverlayCell(overlayKey{unsafe.Pointer(p), uint32(mask)}, &overlayEntry{
+			value:     bits,
+			publish:   func() { *p = *p&^mask | bits },
+			published: func() bool { return *p&mask != 0 },
+		}, nil, key, false)
+	} else {
+		t.objectFlags |= bits
+	}
+	c.setFlagMemo(key)
+}
+
+// flagMemoBits returns the bits of *p under mask, which hold a flag memo:
+// those the store has, or c's own while the store has none; see overlay.go.
+func flagMemoBits[T ~uint32](c *Checker, p *T, mask T) T {
+	bits := *p & mask
+	if bits == 0 && c.overlaying() {
+		if e, ok := c.overlayCell(overlayKey{unsafe.Pointer(p), uint32(mask)}); ok {
+			return e.value.(T)
+		}
+	}
+	return bits
+}
+
+// flagMemoValue returns *p, which holds a flag memo: the value the store has,
+// or c's own while the store has none; see overlay.go.
+func flagMemoValue[T any](c *Checker, p *T) T {
+	v := *p
+	if c.overlaying() && isZeroValue(&v) {
+		if e, ok := c.overlayCell(overlayKey{p: unsafe.Pointer(p)}); ok {
+			return e.value.(T)
+		}
+	}
+	return v
 }
 
 // endCircularity discards the results cached since the outermost cycle in

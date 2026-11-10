@@ -1208,9 +1208,10 @@ func (c *Checker) getIntrinsicAttributesTypeFromJsxOpeningLikeElementUncached(no
 	}
 	result := c.errorType
 	symbol := c.getIntrinsicTagSymbol(node)
-	if links.jsxFlags&JsxFlagsIntrinsicNamedElement != 0 {
+	jsxFlags := flagMemoBits(c, &links.jsxFlags, JsxFlagsIntrinsicNamedElement|JsxFlagsIntrinsicIndexedElement)
+	if jsxFlags&JsxFlagsIntrinsicNamedElement != 0 {
 		result = core.OrElse(c.getTypeOfSymbol(symbol), c.errorType)
-	} else if links.jsxFlags&JsxFlagsIntrinsicIndexedElement != 0 {
+	} else if jsxFlags&JsxFlagsIntrinsicIndexedElement != 0 {
 		indexInfo := c.getApplicableIndexInfoForName(c.getJsxType(JsxNames.IntrinsicElements, node), node.TagName().Text())
 		if indexInfo != nil {
 			result = indexInfo.valueType
@@ -1489,9 +1490,9 @@ func markAsSynthetic(node *ast.Node) bool {
 func (c *Checker) getJsxNamespaceContainerForImplicitImport(location *ast.Node) *ast.Symbol {
 	file := ast.GetSourceFileOfNode(location)
 	links := c.jsxElementLinks.Get(file.AsNode())
-	if links.jsxImplicitImportContainer != nil {
+	if container := flagMemoValue(c, &links.jsxImplicitImportContainer); container != nil {
 		c.observeFlagMemo(memoKeyOf(links, memoJsxImplicitImportContainer))
-		return core.IfElse(links.jsxImplicitImportContainer == c.unknownSymbol, nil, links.jsxImplicitImportContainer)
+		return core.IfElse(container == c.unknownSymbol, nil, container)
 	}
 	c.beginMemo(memoKeyOf(links, memoJsxImplicitImportContainer))
 	result := c.getJsxNamespaceContainerForImplicitImportUncached(file, links)
