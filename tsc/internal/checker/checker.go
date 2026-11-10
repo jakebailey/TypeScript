@@ -15138,8 +15138,18 @@ func (c *Checker) hasParseDiagnostics(sourceFile *ast.SourceFile) bool {
 	return len(sourceFile.Diagnostics()) > 0
 }
 
+// countUp increments a counter of the store and returns its new value,
+// atomically if checkers may share the store concurrently.
+func countUp(p *uint32) uint32 {
+	if concurrentStores {
+		return atomic.AddUint32(p, 1)
+	}
+	*p++
+	return *p
+}
+
 func (c *Checker) newSymbol(flags ast.SymbolFlags, name string) *ast.Symbol {
-	c.SymbolCount++
+	countUp(&c.SymbolCount)
 	result := c.symbolWithDataArena.New().Initialize()
 	result.SetFlags(flags | ast.SymbolFlagsTransient)
 	result.SetName(name)
@@ -15147,7 +15157,7 @@ func (c *Checker) newSymbol(flags ast.SymbolFlags, name string) *ast.Symbol {
 }
 
 func (c *Checker) newSharedDataSymbol(symbol *ast.Symbol) *ast.Symbol {
-	c.SymbolCount++
+	countUp(&c.SymbolCount)
 	result := c.symbolArena.New()
 	result.SetFlags(symbol.Flags() | ast.SymbolFlagsTransient)
 	result.SetSymbolData(symbol)
@@ -21781,10 +21791,9 @@ func (c *Checker) createMemberLayout(t *Type, baseTypes []*Type) *MemberLayout {
 		}
 	}
 	layout := c.memberLayoutArena.New()
-	layout.id = c.memberLayoutCount
+	layout.id = countUp(&c.memberLayoutCount) - 1
 	layout.members = layoutMembers.Clone()
 	layout.baseIndices = slices.Clone(layoutBaseIndices)
-	c.memberLayoutCount++
 	layoutMembers.Clear()
 	layoutBaseIndices = layoutBaseIndices[:0]
 	c.layoutMembers, c.layoutBaseIndices = layoutMembers, layoutBaseIndices
@@ -24990,7 +24999,7 @@ func (c *Checker) instantiateTypeWithAlias(t *Type, m *TypeMapper, alias *TypeAl
 			return cached.result
 		}
 	}
-	c.TotalInstantiationCount++
+	countUp(&c.TotalInstantiationCount)
 	c.instantiationCount++
 	c.instantiationStack = append(c.instantiationStack, t)
 	result := c.instantiateTypeWorker(t, m, alias)
@@ -28110,10 +28119,10 @@ func isUnaryTupleTypeNode(node *ast.Node) bool {
 }
 
 func (c *Checker) newType(flags TypeFlags, objectFlags ObjectFlags, t *Type, kind typeKind) *Type {
-	c.TypeCount++
+	id := countUp(&c.TypeCount)
 	t.flags = flags
 	t.objectFlags = objectFlags &^ (ObjectFlagsCouldContainTypeVariablesComputed | ObjectFlagsCouldContainTypeVariables | ObjectFlagsMembersResolved)
-	t.id = TypeId(c.TypeCount)
+	t.id = TypeId(id)
 	t.kind = kind //nolint:customlint
 	t.checker = c.root
 	if c.tracer != nil {
@@ -28382,9 +28391,9 @@ func (c *Checker) newSubstitutionType(baseType *Type, constraint *Type) *Type {
 }
 
 func (c *Checker) newSignature(flags SignatureFlags, declaration *ast.Node, typeParameters []*Type, thisParameter *ast.Symbol, parameters []*ast.Symbol, resolvedReturnType *Type, resolvedTypePredicate *TypePredicate, minArgumentCount int) *Signature {
-	c.SignatureCount++
+	id := countUp(&c.SignatureCount)
 	sig := c.signatureArena.New()
-	sig.id = SignatureId(c.SignatureCount)
+	sig.id = SignatureId(id)
 	sig.flags = flags
 	sig.declaration = declaration
 	sig.setTypeParameters(c, typeParameters)
