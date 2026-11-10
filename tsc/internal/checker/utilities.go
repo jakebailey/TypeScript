@@ -833,7 +833,6 @@ func createdProperties(t *Type) []*ast.Symbol {
 // type, so they are compared by what they declare rather than by identity,
 // pairwise since getNamedMembers sorts the properties.
 func (ch *Checker) compareObjectMembers(t1, t2 *Type, withTypes bool) int {
-	c := t1.checker
 	p1 := createdProperties(t1)
 	p2 := createdProperties(t2)
 	if n := len(p1) - len(p2); n != 0 {
@@ -841,14 +840,14 @@ func (ch *Checker) compareObjectMembers(t1, t2 *Type, withTypes bool) int {
 	}
 	for i, s1 := range p1 {
 		s2 := p2[i]
-		if r := c.compareSymbolDeclarationsAndNames(s1, s2); r != 0 {
+		if r := ch.compareSymbolDeclarationsAndNames(s1, s2); r != 0 {
 			return r
 		}
 		if r := int(s1.Flags()&ast.SymbolFlagsOptional) - int(s2.Flags()&ast.SymbolFlagsOptional); r != 0 {
 			return r
 		}
 		if withTypes {
-			if r := ch.compareTypes(c.peekTypeOfObjectLiteralMember(s1), c.peekTypeOfObjectLiteralMember(s2)); r != 0 {
+			if r := ch.compareTypes(ch.peekTypeOfObjectLiteralMember(s1), ch.peekTypeOfObjectLiteralMember(s2)); r != 0 {
 				return r
 			}
 		}
