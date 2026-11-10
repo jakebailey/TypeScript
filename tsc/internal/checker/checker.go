@@ -1206,11 +1206,11 @@ func (c *Checker) initCheckerState() {
 	c.evaluate = evaluator.NewEvaluator(c.evaluateEntity, ast.OEKParentheses)
 	c.resolveName = c.createNameResolver().Resolve
 	c.resolveNameForSymbolSuggestion = c.createNameResolverForSuggestion().Resolve
-	c.uniqueLiteralMapper = newFunctionTypeMapper(c.getUniqueLiteralTypeForTypeParameter)
-	c.reportUnreliableMapper = newFunctionTypeMapper(c.reportUnreliableWorker)
-	c.reportUnmeasurableMapper = newFunctionTypeMapper(c.reportUnmeasurableWorker)
-	c.restrictiveMapper = newFunctionTypeMapper(c.restrictiveMapperWorker)
-	c.permissiveMapper = newFunctionTypeMapper(c.permissiveMapperWorker)
+	c.uniqueLiteralMapper = newFunctionTypeMapper((*Checker).getUniqueLiteralTypeForTypeParameter)
+	c.reportUnreliableMapper = newFunctionTypeMapper((*Checker).reportUnreliableWorker)
+	c.reportUnmeasurableMapper = newFunctionTypeMapper((*Checker).reportUnmeasurableWorker)
+	c.restrictiveMapper = newFunctionTypeMapper((*Checker).restrictiveMapperWorker)
+	c.permissiveMapper = newFunctionTypeMapper((*Checker).permissiveMapperWorker)
 	c.getGlobalESSymbolType = c.getGlobalTypeResolver("Symbol", 0 /*arity*/, false /*reportErrors*/)
 	c.getGlobalBigIntType = c.getGlobalTypeResolver("BigInt", 0 /*arity*/, false /*reportErrors*/)
 	c.getGlobalImportMetaType = c.getGlobalTypeResolver("ImportMeta", 0 /*arity*/, true /*reportErrors*/)
@@ -7049,9 +7049,9 @@ func (c *Checker) getIterationTypesOfMethod(t *Type, resolver *IterationTypesRes
 			mapper := methodType.Mapper()
 			var nextType *Type
 			if methodName == "next" {
-				nextType = getMappedType(typeParameters[2], mapper)
+				nextType = getMappedType(c, typeParameters[2], mapper)
 			}
-			return IterationTypes{getMappedType(typeParameters[0], mapper), getMappedType(typeParameters[1], mapper), nextType}
+			return IterationTypes{getMappedType(c, typeParameters[0], mapper), getMappedType(c, typeParameters[1], mapper), nextType}
 		}
 	}
 	// Extract the first parameter and return type of each signature.
@@ -18726,8 +18726,8 @@ func (c *Checker) getInferredTypeParameterConstraint(t *Type, omitTypeReferences
 								//   type Foo<T extends string, U extends T> = [T, U];
 								//   type Bar<T> = T extends Foo<infer X, infer X> ? Foo<X, X> : T;
 								// the instantiated constraint for U is X, so we discard that inference.
-								mapper := newDeferredTypeMapper(typeParameters, core.MapIndex(typeParameters, func(_ *Type, index int) func() *Type {
-									return func() *Type {
+								mapper := newDeferredTypeMapper(typeParameters, core.MapIndex(typeParameters, func(_ *Type, index int) func(c *Checker) *Type {
+									return func(c *Checker) *Type {
 										return c.getEffectiveTypeArgumentAtIndex(parent, typeParameters, index)
 									}
 								}))
@@ -23864,7 +23864,7 @@ func (c *Checker) getArrayMemberCallSignatures(t *Type) []*Signature {
 	}
 	// Transform the type from `(A[] | B[])["member"]` to `(A | B)[]["member"]` (since we pretend array is covariant anyway).
 	arrayArg := c.mapType(t, func(t *Type) *Type {
-		return getMappedType(core.IfElse(c.isReadonlyArraySymbol(t.symbol.Parent()), c.globalReadonlyArrayType, c.globalArrayType).AsInterfaceType().TypeParameters()[0], t.Mapper())
+		return getMappedType(c, core.IfElse(c.isReadonlyArraySymbol(t.symbol.Parent()), c.globalReadonlyArrayType, c.globalArrayType).AsInterfaceType().TypeParameters()[0], t.Mapper())
 	})
 	arrayType := c.createArrayTypeEx(arrayArg, someType(t, func(t *Type) bool {
 		return c.isReadonlyArraySymbol(t.symbol.Parent())
@@ -25206,7 +25206,7 @@ func (c *Checker) instantiateTypeWorker(t *Type, m *TypeMapper, alias *TypeAlias
 	flags := t.flags
 	switch {
 	case flags&TypeFlagsTypeParameter != 0:
-		return getMappedType(t, m)
+		return getMappedType(c, t, m)
 	case flags&TypeFlagsObject != 0:
 		objectFlags := t.objectFlags
 		if objectFlags&(ObjectFlagsReference|ObjectFlagsAnonymous|ObjectFlagsMapped) != 0 {
@@ -25486,7 +25486,7 @@ func (c *Checker) getConditionalTypeInstantiation(t *Type, mapper *TypeMapper, f
 		// We are instantiating a conditional type that has one or more type parameters in scope. Apply the
 		// mapper to the type parameters to produce the effective list of type arguments, and compute the
 		// instantiation cache key from the type IDs of the type arguments.
-		typeArguments := core.Map(root.outerTypeParameters, mapper.Map)
+		typeArguments := core.Map(root.outerTypeParameters, func(t *Type) *Type { return mapper.Map(c, t) })
 		key := getConditionalTypeKey(typeArguments, alias, forConstraint)
 		result, _ := root.instantiations.cached(c, key)
 		if result == nil {
@@ -25496,7 +25496,7 @@ func (c *Checker) getConditionalTypeInstantiation(t *Type, mapper *TypeMapper, f
 			checkType := root.checkType
 			var distributionType *Type
 			if root.isDistributive {
-				distributionType = c.getReducedType(getMappedType(checkType, newMapper))
+				distributionType = c.getReducedType(getMappedType(c, checkType, newMapper))
 			}
 			// Distributive conditional types are distributed over union types. For example, when the
 			// distributive conditional type T extends U ? X : Y is instantiated with A | B for T, the
@@ -27598,11 +27598,11 @@ func (c *Checker) getTailRecursionRoot(newType *Type, newMapper *TypeMapper) (*C
 		newRoot := newType.AsConditionalType().root
 		if len(newRoot.outerTypeParameters) != 0 {
 			typeParamMapper := c.combineTypeMappers(newType.AsConditionalType().mapper, newMapper)
-			typeArguments := core.Map(newRoot.outerTypeParameters, typeParamMapper.Map)
+			typeArguments := core.Map(newRoot.outerTypeParameters, func(t *Type) *Type { return typeParamMapper.Map(c, t) })
 			newRootMapper := newTypeMapper(newRoot.outerTypeParameters, typeArguments)
 			var newCheckType *Type
 			if newRoot.isDistributive {
-				newCheckType = getMappedType(newRoot.checkType, newRootMapper)
+				newCheckType = getMappedType(c, newRoot.checkType, newRootMapper)
 			}
 			if newCheckType == nil || newCheckType == newRoot.checkType || newCheckType.flags&(TypeFlagsUnion|TypeFlagsNever) == 0 {
 				return newRoot, newRootMapper
@@ -28428,7 +28428,7 @@ func (c *Checker) newConditionalType(root *ConditionalRoot, mapper *TypeMapper, 
 	// restrictive forms, which leave the distributive constraint meaningless;
 	// see getConstraintOfDistributiveConditionalType.
 	if mapper != nil {
-		data.restrictive = core.Some(root.outerTypeParameters, func(p *Type) bool { return isRestrictiveTypeParameter(mapper.Map(p)) })
+		data.restrictive = core.Some(root.outerTypeParameters, func(p *Type) bool { return isRestrictiveTypeParameter(mapper.Map(c, p)) })
 	}
 	return c.newType(TypeFlagsConditional, ObjectFlagsNone, data.AsType(), typeKindConditional)
 }

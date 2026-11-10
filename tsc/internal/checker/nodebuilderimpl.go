@@ -3790,7 +3790,7 @@ func (b *NodeBuilderImpl) lookupInstantiatedTypeArgumentNodes(chain []*ast.Symbo
 		params := b.getTypeParametersOfClassOrInterface(targetSymbol)
 		targetMapper := b.ch.valueSymbolLinks.Get(nextSymbol).mapper
 		if targetMapper != nil {
-			params = core.Map(params, targetMapper.Map)
+			params = core.Map(params, func(t *Type) *Type { return targetMapper.Map(b.ch, t) })
 		}
 		return b.mapToTypeNodes(params, false /*isBareList*/)
 	}

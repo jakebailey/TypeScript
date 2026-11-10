@@ -415,17 +415,17 @@ func TestTypeMapperDispatch(t *testing.T) {
 		{array, TypeMapperKindArray, target},
 		{merged, TypeMapperKindMerged, target},
 		{newArrayToSingleTypeMapper([]*Type{source}, target), TypeMapperKindArrayToSingle, target},
-		{newDeferredTypeMapper([]*Type{source}, []func() *Type{func() *Type { return target }}), TypeMapperKindDeferred, target},
-		{newFunctionTypeMapper(func(typ *Type) *Type {
+		{newDeferredTypeMapper([]*Type{source}, []func(*Checker) *Type{func(*Checker) *Type { return target }}), TypeMapperKindDeferred, target},
+		{newFunctionTypeMapper(func(_ *Checker, typ *Type) *Type {
 			if typ == source {
 				return target
 			}
 			return typ
 		}), TypeMapperKindFunction, target},
-		{newCompositeTypeMapper(c, newSimpleTypeMapper(other, target), simple), TypeMapperKindComposite, target},
+		{newCompositeTypeMapper(newSimpleTypeMapper(other, target), simple), TypeMapperKindComposite, target},
 	} {
 		assert.Equal(t, test.mapper.Kind(), test.kind)
-		assert.Equal(t, test.mapper.Map(source), test.result)
+		assert.Equal(t, test.mapper.Map(c, source), test.result)
 		assert.Assert(t, !test.mapper.MapsThisOnly())
 	}
 	assert.Equal(t, compareTypeMappers(simple, newSimpleTypeMapper(source, target)), 0)
@@ -437,11 +437,11 @@ func TestTypeMapperDispatch(t *testing.T) {
 		newSimpleTypeMapper(this, target),
 		newArrayTypeMapper([]*Type{this}, []*Type{target}),
 		newArrayToSingleTypeMapper([]*Type{this}, target),
-		newDeferredTypeMapper([]*Type{this}, []func() *Type{func() *Type { return target }}),
+		newDeferredTypeMapper([]*Type{this}, []func(*Checker) *Type{func(*Checker) *Type { return target }}),
 	} {
 		assert.Assert(t, mapper.MapsThisOnly())
-		assert.Equal(t, mapper.Map(this), target)
-		assert.Equal(t, mapper.Map(other), other)
+		assert.Equal(t, mapper.Map(c, this), target)
+		assert.Equal(t, mapper.Map(c, other), other)
 	}
 }
 
@@ -457,7 +457,7 @@ func TestCompactTypeMapperLayout(t *testing.T) {
 		castTypeMapper[ArrayTypeMapper](mapper, TypeMapperKindArray)
 	}()
 	runtime.GC()
-	assert.Equal(t, mapper.Map(types[0]), types[1])
+	assert.Equal(t, mapper.Map(c, types[0]), types[1])
 	runtime.KeepAlive(c)
 }
 
@@ -468,17 +468,17 @@ func TestInferenceContextMappers(t *testing.T) { //nolint:paralleltest
 	info.inferredType = types[1]
 	info.candidates = []*Type{types[1]}
 	context := c.newInferenceContextWorker([]*InferenceInfo{info}, nil, InferenceFlagsNone, nil)
-	assert.Equal(t, context.nonFixingMapper.Map(types[0]), types[1])
+	assert.Equal(t, context.nonFixingMapper.Map(c, types[0]), types[1])
 	assert.Assert(t, !info.isFixed)
 	clone := c.cloneInferenceContext(context, InferenceFlagsNone)
 	clone.inferences[0].candidates[0] = types[2]
 	assert.Equal(t, info.candidates[0], types[1])
-	assert.Equal(t, context.mapper.Map(types[0]), types[0])
+	assert.Equal(t, context.mapper.Map(c, types[0]), types[0])
 	assert.Assert(t, info.isFixed)
 	assert.Assert(t, !clone.inferences[0].isFixed)
-	assert.Equal(t, context.mapper.Map(types[2]), types[2])
+	assert.Equal(t, context.mapper.Map(c, types[2]), types[2])
 	runtime.GC()
-	assert.Equal(t, context.nonFixingMapper.Map(types[0]), types[0])
+	assert.Equal(t, context.nonFixingMapper.Map(c, types[0]), types[0])
 	if !race.Enabled {
 		assert.Equal(t, testing.AllocsPerRun(10, func() {
 			c.newInferenceContextWorker([]*InferenceInfo{info}, nil, InferenceFlagsNone, nil)
