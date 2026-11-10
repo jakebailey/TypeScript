@@ -1,6 +1,8 @@
 package checker
 
 import (
+	"sync"
+	"sync/atomic"
 	"unsafe"
 )
 
@@ -66,7 +68,7 @@ func (c *Checker) endOverlay() {
 }
 
 func (c *Checker) publishOverlay() {
-	if len(c.overlay) == 0 && len(c.mapOverlay) == 0 {
+	if len(c.overlay) == 0 && len(c.mapOverlay) == 0 && len(c.memoStates) == 0 && len(c.mapStates) == 0 {
 		return
 	}
 	// Publishing must not interleave with another checker's, which could
@@ -88,6 +90,10 @@ func (c *Checker) publishOverlay() {
 			}
 		}
 	}
+	if !conflict {
+		c.publishStates()
+	}
+	c.dropStates()
 	if conflict {
 		c.overlayDrops++
 	} else {
@@ -101,6 +107,102 @@ func (c *Checker) publishOverlay() {
 	}
 	clear(c.overlay)
 	clear(c.mapOverlay)
+}
+
+// sharedMemoStates holds the memo states that checkers sharing a store
+// concurrently published with their overlays. A checker holds the states of
+// the results in its overlay itself, so that no other checker sees them
+// before the results.
+type sharedMemoStates struct {
+	mu      sync.RWMutex
+	states  map[memoKey]*memoState
+	filter  atomic.Pointer[[1 << sharedStateFilterBits / 64]atomic.Uint64]
+	pending atomic.Int64 // Published states with unreplayed effects
+}
+
+const sharedStateFilterBits = 20
+
+func sharedStateFilterIndex(key memoKey) uint64 {
+	return memoKeyBits(key) >> (64 - sharedStateFilterBits)
+}
+
+func (s *sharedMemoStates) get(key memoKey) *memoState {
+	f := s.filter.Load()
+	if f == nil {
+		return nil
+	}
+	if i := sharedStateFilterIndex(key); f[i/64].Load()&(1<<(i%64)) == 0 {
+		return nil
+	}
+	s.mu.RLock()
+	state := s.states[key]
+	s.mu.RUnlock()
+	return state
+}
+
+// statePublisher is a memo map, which publishes the memo states of its
+// entries.
+type statePublisher interface {
+	publishState(k any, state *memoState)
+}
+
+func (m *memoMap[K, V]) publishState(k any, state *memoState) {
+	key := k.(K)
+	s := m.sideTable()
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	if s.memoStates == nil {
+		s.memoStates = make(map[K]*memoState)
+	}
+	s.memoStates[key] = state
+	if s.keyBits != nil {
+		s.stateKeys.add(s.keyBits(key), s.memoStates, s.keyBits)
+	}
+	if state.errors != nil {
+		s.hasErrors.Store(true)
+	}
+}
+
+// publishStates publishes the memo states c holds with the overlay it
+// publishes.
+func (c *Checker) publishStates() {
+	if len(c.memoStates) != 0 {
+		s := &c.sharedStates
+		f := s.filter.Load()
+		if f == nil {
+			f = new([1 << sharedStateFilterBits / 64]atomic.Uint64)
+			s.filter.Store(f)
+		}
+		s.mu.Lock()
+		if s.states == nil {
+			s.states = make(map[memoKey]*memoState)
+		}
+		for key, state := range c.memoStates {
+			if state.pending != nil {
+				s.pending.Add(1)
+			}
+			s.states[key] = state
+			i := sharedStateFilterIndex(key)
+			f[i/64].Or(1 << (i % 64))
+		}
+		s.mu.Unlock()
+	}
+	for key, state := range c.mapStates {
+		if state.pending != nil {
+			c.sharedStates.pending.Add(1)
+		}
+		key.source.(statePublisher).publishState(key.key, state)
+	}
+}
+
+// dropStates forgets the memo states c holds, once published or dropped
+// with its overlay.
+func (c *Checker) dropStates() {
+	clear(c.memoStates)
+	c.stateFilter = stateKeyFilter{}
+	c.memoPendingCount = 0
+	clear(c.mapStates)
+	c.syncObserving()
 }
 
 // overlayCell returns the overlay entry stored under k.

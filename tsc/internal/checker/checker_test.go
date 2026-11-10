@@ -435,6 +435,9 @@ var notCacheOwners = []string{"LanguageFeatureMinimumTargetMap", "accessibleChai
 // unmemoizedCheckerFields lists the fields of Checker, other than those in
 // checkerProgressFields, like unmemoizedCacheFields.
 var unmemoizedCheckerFields = map[string]string{
+	"Checker.memoStates":                         unmemoizedMemoState,
+	"Checker.memoPendingCount":                   unmemoizedMemoState,
+	"Checker.stateFilter":                        unmemoizedMemoState,
 	"Checker.overlayPublishes":                   unmemoizedCounter,
 	"Checker.overlayDrops":                       unmemoizedCounter,
 	"Checker.awaitedTypeErrors":                  "Counter compared only within one computation",
@@ -587,6 +590,7 @@ var unmemoizedCacheFields = map[string]string{
 	"memoStore.program":                                 unmemoizedImmutable,
 	"memoStore.compilerOptions":                         unmemoizedImmutable,
 	"memoStore.files":                                   unmemoizedImmutable,
+	"memoStore.sharedStates":                            unmemoizedMemoState,
 	"ResolvedMembers.members":                           unmemoizedFlagMemo,
 	"ResolvedMembers.properties":                        unmemoizedFlagMemo,
 	"ResolvedMembers.extra":                             unmemoizedFlagMemo,
@@ -747,10 +751,7 @@ var unmemoizedCacheFields = map[string]string{
 	"memoStore.packagesMap":                             unmemoizedProgram,
 	"memoStore.ambientModulesOnce":                      unmemoizedProgram,
 	"memoStore.ambientModules":                          unmemoizedProgram,
-	"memoStore.memoStates":                              unmemoizedMemoState,
-	"memoStore.memoPendingCount":                        unmemoizedMemoState,
 	"memoStore.memoErrorStates":                         unmemoizedMemoState,
-	"memoStore.stateFilter":                             unmemoizedMemoState,
 	"memoStore.errorFilter":                             unmemoizedMemoState,
 	"memoStore.mu":                                      unmemoizedMemoState,
 	"memoStore.diagnostics":                             unmemoizedChecking,

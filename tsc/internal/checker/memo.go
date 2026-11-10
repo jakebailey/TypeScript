@@ -334,7 +334,7 @@ type memoReported[T comparable] struct {
 }
 
 func (m *memoReported[T]) cached(c *Checker) T {
-	if c.observing() || c.memoErrorStates != 0 {
+	if c.observing() || c.errorStateCount() != 0 {
 		c.observeCell(&m.memoHeader)
 	}
 	if concurrentStores {
@@ -366,10 +366,9 @@ func (m *memoReported[T]) setReported(c *Checker, v T, r currentNodeErrors) {
 	} else {
 		m.setIdentity(c, v)
 	}
-	if r.list != nil || c.memoErrorStates != 0 && c.peekMemoState(m.key()) != nil {
+	if r.list != nil || c.errorStateCount() != 0 && c.peekMemoState(m.key()) != nil {
 		if r.list != nil {
-			i := errorFilterIndex(m.key())
-			c.errorFilter[i/64] |= 1 << (i % 64)
+			c.setErrorFilter(m.key())
 		}
 		c.memoState(m.key()).setErrors(c, r.list)
 	}
@@ -672,7 +671,12 @@ func (m *memoMap[K, V]) setKeyBits(keyBits func(K) uint64) {
 }
 
 // stateOf returns the memo state of the entry for k, or nil.
-func (m *memoMap[K, V]) stateOf(k K) *memoState {
+func (m *memoMap[K, V]) stateOf(c *Checker, k K) *memoState {
+	if c.overlaying() && c.mapStates != nil {
+		if state := c.mapStates[mapOverlayKey{m, k}]; state != nil {
+			return state
+		}
+	}
 	s := m.side.Load()
 	if s == nil {
 		return nil
@@ -691,7 +695,10 @@ func (m *memoMap[K, V]) stateOf(k K) *memoState {
 }
 
 // hasStates reports whether any entry has a memo state.
-func (m *memoMap[K, V]) hasStates() bool {
+func (m *memoMap[K, V]) hasStates(c *Checker) bool {
+	if c.overlaying() && len(c.mapStates) != 0 {
+		return true
+	}
 	s := m.side.Load()
 	if s == nil {
 		return false
@@ -760,7 +767,7 @@ func (m *memoMap[K, V]) put(c *Checker, k K, v V, discardable bool) {
 //
 //go:noinline
 func (m *memoMap[K, V]) observe(c *Checker, k K) {
-	if r := m.peekResolvingIn(c); (r == nil || len(r.keys) == 0) && !m.hasStates() {
+	if r := m.peekResolvingIn(c); (r == nil || len(r.keys) == 0) && !m.hasStates(c) {
 		return
 	}
 	if c.checking && c.memoPendingCount == 0 && !m.side.Load().hasErrors.Load() {
@@ -769,7 +776,7 @@ func (m *memoMap[K, V]) observe(c *Checker, k K) {
 	}
 	// A computation in progress may not have a memo state yet; see
 	// resolutionState.
-	if state := m.stateOf(k); c.observeState(state) || state == nil && !c.checking {
+	if state := m.stateOf(c, k); c.observeState(state) || state == nil && !c.checking {
 		c.memoCycle(m.resolvingIndex(c, k))
 	}
 }
@@ -830,11 +837,11 @@ func (m *memoMap[K, V]) setReported(c *Checker, k K, v V, r currentNodeErrors) {
 	}
 	m.put(c, k, v, r.cyclic)
 	m.attach(c, k)
-	if r.list != nil || c.memoErrorStates != 0 && m.stateOf(k) != nil {
+	if r.list != nil || c.errorStateCount() != 0 && m.stateOf(c, k) != nil {
 		if r.list != nil {
 			m.sideTable().hasErrors.Store(true)
 		}
-		m.state(k).setErrors(c, r.list)
+		m.state(c, k).setErrors(c, r.list)
 	}
 }
 
@@ -865,7 +872,7 @@ func (m *memoMap[K, V]) attach(c *Checker, k K) {
 	if m.isCurrentResolution(c, &c.resolutions[c.memoTop-1], k) {
 		return
 	}
-	c.attachState(m.state(k))
+	c.attachState(m.state(c, k))
 }
 
 // isCurrentResolution reports whether f is the computation of the entry for
@@ -943,7 +950,7 @@ func (m *memoMap[K, V]) begin(c *Checker, k K) {
 		return
 	}
 	// Looked up after marking a cycle, which may give the entry a state.
-	state := m.stateOf(k)
+	state := m.stateOf(c, k)
 	if c.checking {
 		if c.memoPendingCount != 0 && state != nil {
 			c.replayPending(state)
@@ -996,11 +1003,11 @@ func (m *memoMap[K, V]) isOwnResolution(c *Checker, k K) bool {
 }
 
 func (m *memoMap[K, V]) stateAt(c *Checker, i int) *memoState {
-	return m.state(m.peekResolvingIn(c).keys[i])
+	return m.state(c, m.peekResolvingIn(c).keys[i])
 }
 
 func (m *memoMap[K, V]) peekStateAt(c *Checker, i int) *memoState {
-	return m.stateOf(m.peekResolvingIn(c).keys[i])
+	return m.stateOf(c, m.peekResolvingIn(c).keys[i])
 }
 
 func (m *memoMap[K, V]) popState(c *Checker, i int) {
@@ -1051,8 +1058,24 @@ func (r *mapResolving[K]) countResolving(k K, i int) {
 	r.count[k] = o
 }
 
-func (m *memoMap[K, V]) state(k K) *memoState {
-	if state := m.stateOf(k); state != nil {
+func (m *memoMap[K, V]) state(c *Checker, k K) *memoState {
+	if c.overlaying() {
+		// Held in the overlay with the entry; see publishOverlay.
+		key := mapOverlayKey{m, k}
+		if state := c.mapStates[key]; state != nil {
+			return state
+		}
+		state := &memoState{}
+		if shared := m.stateOf(c, k); shared != nil {
+			*state = *shared
+		}
+		if c.mapStates == nil {
+			c.mapStates = make(map[mapOverlayKey]*memoState)
+		}
+		c.mapStates[key] = state
+		return state
+	}
+	if state := m.stateOf(c, k); state != nil {
 		return state
 	}
 	s := m.sideTable()
@@ -1101,7 +1124,7 @@ func (s *memoSet[K]) once(c *Checker, k K, fn func()) {
 // memoActive reports whether reading a cached result must account for its
 // effects: false in a check with nothing pending.
 func (c *Checker) memoActive() bool {
-	return !c.checking || c.memoPendingCount|c.memoErrorStates != 0
+	return !c.checking || c.memoPendingCount != 0 || c.errorStateCount() != 0
 }
 
 // observing reports whether reading a cached result that cannot have errors
@@ -1230,6 +1253,13 @@ func (c *Checker) memoState(key memoKey) *memoState {
 			c.memoStates = make(map[memoKey]*memoState)
 		}
 		state = &memoState{}
+		if concurrentStores {
+			// The checker's states are held in its overlay with the
+			// results they belong to; see publishOverlay.
+			if shared := c.sharedStates.get(key); shared != nil {
+				*state = *shared
+			}
+		}
 		c.memoStates[key] = state
 		c.stateFilter.add(memoKeyBits(key), c.memoStates, memoKeyBits)
 	}
@@ -1292,9 +1322,52 @@ func errorFilterIndex(key memoKey) uint64 {
 // nil if it has none, consulting a filter first since most results have none.
 func (c *Checker) peekMemoState(key memoKey) *memoState {
 	if !c.stateFilter.mayContain(memoKeyBits(key)) {
+		if concurrentStores {
+			return c.sharedStates.get(key)
+		}
 		return nil
 	}
-	return c.memoStates[key]
+	if state := c.memoStates[key]; state != nil || !concurrentStores {
+		return state
+	}
+	return c.sharedStates.get(key)
+}
+
+// errorStateCount returns the number of memo states with reports.
+func (c *Checker) errorStateCount() int64 {
+	if concurrentStores {
+		return atomic.LoadInt64(&c.memoErrorStates)
+	}
+	return c.memoErrorStates
+}
+
+func (c *Checker) addErrorStates(n int64) {
+	if concurrentStores {
+		atomic.AddInt64(&c.memoErrorStates, n)
+	} else {
+		c.memoErrorStates += n
+	}
+}
+
+// setErrorFilter records that the result identified by key may have
+// reports; see mayHaveErrors.
+func (c *Checker) setErrorFilter(key memoKey) {
+	i := errorFilterIndex(key)
+	if concurrentStores {
+		atomic.OrUint64(&c.errorFilter[i/64], 1<<(i%64))
+	} else {
+		c.errorFilter[i/64] |= 1 << (i % 64)
+	}
+}
+
+// mayHaveErrors reports whether the result identified by key may have
+// reports, consulting only a filter.
+func (c *Checker) mayHaveErrors(key memoKey) bool {
+	i := errorFilterIndex(key)
+	if concurrentStores {
+		return atomic.LoadUint64(&c.errorFilter[i/64])&(1<<(i%64)) != 0
+	}
+	return c.errorFilter[i/64]&(1<<(i%64)) != 0
 }
 
 // memoAttach makes the result identified by key depend on the innermost
@@ -1394,7 +1467,7 @@ func (c *Checker) observeMemo(key memoKey) {
 	if c.checking && c.memoPendingCount == 0 {
 		// Only reports are replayed, which few results have, so a filter
 		// small enough to stay in cache rules out most.
-		if i := errorFilterIndex(key); c.errorFilter[i/64]&(1<<(i%64)) == 0 {
+		if !c.mayHaveErrors(key) {
 			return
 		}
 	}
@@ -1495,10 +1568,10 @@ func (c *Checker) endCurrentNodeErrors(mark currentNodeErrorsMark) currentNodeEr
 func (s *memoState) setErrors(c *Checker, reports []*currentNodeError) {
 	switch {
 	case s.errors == nil && reports != nil:
-		c.memoErrorStates++
+		c.addErrorStates(1)
 		c.syncObserving()
 	case s.errors != nil && reports == nil:
-		c.memoErrorStates--
+		c.addErrorStates(-1)
 		c.syncObserving()
 	}
 	if reports == nil {

@@ -698,26 +698,30 @@ type Checker struct {
 	overlayDepth                                int                // Requests in progress writing to the overlay; see overlay.go
 	overlay                                     map[overlayKey]*overlayEntry
 	mapOverlay                                  map[mapOverlayKey]*overlayEntry
-	overlayPublishes                            int                        // Requests whose overlay was published
-	resolvingMembers                            map[*Type]*ResolvedMembers // Members of types whose resolution is in progress
-	overlayDrops                                int                        // Requests whose overlay conflicted with the store
-	resolving                                   resolvingTable             // Index in resolutions of the outermost computation of each key in progress
-	typeResolutionTop                           int                        // 1-based index in resolutions of the innermost resolution, or 0
-	resolutionStart                             int                        // Index in resolutions below which resolutions are not searched for cycles
-	visibleStart                                int                        // Index in resolutions below which nothing in progress is visible; see yieldCycle
-	cycleYields                                 []cycleYield               // Canonical recomputations in progress; see yieldCycle
-	circularityStart                            int                        // 1-based index in resolutions of the outermost cycle in progress, or 0; see memo.go
-	currentNodeErrors                           []*currentNodeError        // Errors reported at the current node while collecting; see startCurrentNodeErrors
-	currentNodeErrorCollectors                  int                        // Number of computations collecting currentNodeErrors
-	currentNodeErrorsCyclic                     bool                       // Whether a cycle was observed while collecting currentNodeErrors; see endCurrentNodeErrors
-	discardLog                                  []discardEntry             // Restores what was cached while anything may be discarded; see "Discard log" in memo.go
-	discardLogFloor                             int                        // Length of the discard log kept for measurements hidden by a canonical variance remeasurement; see trimDiscardLog
-	circularityMark                             int                        // Length of discard log when the cycle in progress was detected
-	innerCycles                                 []innerCycle               // Cycles detected inside the one in progress; see extendCircularity
-	flowDepthFailures                           map[FlowLoopKey]int        // Largest depth budget known to be too small for a flow walk from a node; see getTypeAtFlowNode
-	observedHead                                int32                      // 1 + index in resolutions of the lowest head of a cycle observed by the innermost type resolution in progress, or 0
-	cycleParticipants                           []*memoHeader              // Computations that observed a cycle in progress
-	effectsMarkDepth                            int                        // 1 + resolution index of the innermost effects mark that may be discarded, or 0
+	overlayPublishes                            int                          // Requests whose overlay was published
+	memoStates                                  map[memoKey]*memoState       // Memo state of results; see memo.go
+	stateFilter                                 stateKeyFilter               // Memo keys that may have a memo state; see memoState
+	memoPendingCount                            int                          // Number of memoStates with unreplayed effects
+	mapStates                                   map[mapOverlayKey]*memoState // Memo states of memo map entries held in the overlay
+	resolvingMembers                            map[*Type]*ResolvedMembers   // Members of types whose resolution is in progress
+	overlayDrops                                int                          // Requests whose overlay conflicted with the store
+	resolving                                   resolvingTable               // Index in resolutions of the outermost computation of each key in progress
+	typeResolutionTop                           int                          // 1-based index in resolutions of the innermost resolution, or 0
+	resolutionStart                             int                          // Index in resolutions below which resolutions are not searched for cycles
+	visibleStart                                int                          // Index in resolutions below which nothing in progress is visible; see yieldCycle
+	cycleYields                                 []cycleYield                 // Canonical recomputations in progress; see yieldCycle
+	circularityStart                            int                          // 1-based index in resolutions of the outermost cycle in progress, or 0; see memo.go
+	currentNodeErrors                           []*currentNodeError          // Errors reported at the current node while collecting; see startCurrentNodeErrors
+	currentNodeErrorCollectors                  int                          // Number of computations collecting currentNodeErrors
+	currentNodeErrorsCyclic                     bool                         // Whether a cycle was observed while collecting currentNodeErrors; see endCurrentNodeErrors
+	discardLog                                  []discardEntry               // Restores what was cached while anything may be discarded; see "Discard log" in memo.go
+	discardLogFloor                             int                          // Length of the discard log kept for measurements hidden by a canonical variance remeasurement; see trimDiscardLog
+	circularityMark                             int                          // Length of discard log when the cycle in progress was detected
+	innerCycles                                 []innerCycle                 // Cycles detected inside the one in progress; see extendCircularity
+	flowDepthFailures                           map[FlowLoopKey]int          // Largest depth budget known to be too small for a flow walk from a node; see getTypeAtFlowNode
+	observedHead                                int32                        // 1 + index in resolutions of the lowest head of a cycle observed by the innermost type resolution in progress, or 0
+	cycleParticipants                           []*memoHeader                // Computations that observed a cycle in progress
+	effectsMarkDepth                            int                          // 1 + resolution index of the innermost effects mark that may be discarded, or 0
 	varianceStack                               []VarianceStackEntry
 	varianceCycleRoot                           int                // 1 + index in varianceStack of the outermost measurement re-entered in progress, or 0; see getRecursiveVariances
 	heldEffects                                 []func(c *Checker) // See holdEffect
@@ -1061,11 +1065,9 @@ type memoStore struct {
 	checkedRegularExpressions               memoSet[*ast.Node]
 	nonExistentPropertyNodes                collections.Set[*ast.Node] // Property names reported as nonexistent
 	deferredDiagnosticCallbacks             []func(c *Checker)
-	memoStates                              map[memoKey]*memoState // Memo state of results computed by queries; see memo.go
-	stateFilter                             stateKeyFilter         // Memo keys that may have a memo state; see memoState
-	errorFilter                             errorKeyFilter         // Memo keys that may have reports; see observeMemo
-	memoPendingCount                        int                    // Number of memoStates with unreplayed effects
-	memoErrorStates                         int                    // Number of memoStates with reports; see setReported
+	errorFilter                             errorKeyFilter   // Memo keys that may have reports; see observeMemo
+	memoErrorStates                         int64            // Number of memo states with reports; see setReported
+	sharedStates                            sharedMemoStates // Memo states published by checkers sharing the store; see overlay.go
 
 	mu sync.Mutex
 }
@@ -26777,7 +26779,7 @@ func (c *Checker) getDeclaredTypeOfSymbol(symbol *ast.Symbol) *Type {
 	var t *Type
 	switch {
 	case symbol.Flags()&ast.SymbolFlagsTypeAlias != 0 && symbol.Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface|ast.SymbolFlagsTypeParameter) == 0:
-		if links := c.typeAliasLinks.TryGet(symbol); links != nil && c.memoErrorStates == 0 {
+		if links := c.typeAliasLinks.TryGet(symbol); links != nil && c.errorStateCount() == 0 {
 			t = links.declaredType.peek(c)
 		}
 	case symbol.Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface|ast.SymbolFlagsTypeParameter|ast.SymbolFlagsEnum|ast.SymbolFlagsEnumMember|ast.SymbolFlagsAlias) != 0:
