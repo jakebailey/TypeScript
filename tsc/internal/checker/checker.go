@@ -692,6 +692,7 @@ type Checker struct {
 	reportUnmeasurableMapper                    *TypeMapper
 	restrictiveMapper                           *TypeMapper
 	permissiveMapper                            *TypeMapper
+	ownDeferredCallbacks                        []func(c *Checker)  // See deferredCallbacks
 	resolving                                   resolvingTable      // Index in resolutions of the outermost computation of each key in progress
 	typeResolutionTop                           int                 // 1-based index in resolutions of the innermost resolution, or 0
 	resolutionStart                             int                 // Index in resolutions below which resolutions are not searched for cycles
@@ -14981,13 +14982,27 @@ func (c *Checker) addDeferredDiagnostic(callback func(c *Checker)) {
 		c.holdEffect(func(c *Checker) { c.addDeferredDiagnostic(callback) })
 		return
 	}
+	// The store's callbacks are produced by any checker sharing it, unless
+	// checkers may share it concurrently, in which case each checker
+	// produces its own.
+	if concurrentStores {
+		c.ownDeferredCallbacks = append(c.ownDeferredCallbacks, callback)
+		return
+	}
 	c.deferredDiagnosticCallbacks = append(c.deferredDiagnosticCallbacks, callback)
 }
 
 func (c *Checker) produceDeferredDiagnostics() {
-	for len(c.deferredDiagnosticCallbacks) != 0 {
-		callbacks := c.deferredDiagnosticCallbacks
-		c.deferredDiagnosticCallbacks = nil
+	for {
+		var callbacks []func(c *Checker)
+		if concurrentStores {
+			callbacks, c.ownDeferredCallbacks = c.ownDeferredCallbacks, nil
+		} else {
+			callbacks, c.deferredDiagnosticCallbacks = c.deferredDiagnosticCallbacks, nil
+		}
+		if len(callbacks) == 0 {
+			return
+		}
 		for _, cb := range callbacks {
 			cb(c)
 		}

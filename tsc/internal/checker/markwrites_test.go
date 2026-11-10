@@ -25,6 +25,7 @@ var markFields = map[string]bool{
 	"requestedExternalEmitHelpers": true,
 	"nonExistentPropertyNodes":     true,
 	"deferredDiagnosticCallbacks":  true,
+	"ownDeferredCallbacks":         true,
 }
 
 // Marks may only be written by functions that test whether they may be,
@@ -93,5 +94,6 @@ var allowedMarkWriters = map[string]string{
 	"checkDeferredNodes: deferredNodes":                        "called by checkSourceFileWorker",
 	"checkExternalHelperRequests: externalHelperRequests":      "called by checkSourceFileWorker",
 	"produceDeferredDiagnostics: deferredDiagnosticCallbacks":  "called by checkSourceFileWorker",
+	"produceDeferredDiagnostics: ownDeferredCallbacks":         "called by checkSourceFileWorker",
 	"checkExternalEmitHelpersAt: requestedExternalEmitHelpers": "called by checkExternalEmitHelpers once it may write, and checkExternalHelperRequests",
 }

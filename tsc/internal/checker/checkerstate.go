@@ -41,6 +41,7 @@ var checkerProgressFields = []string{
 	"markingForEmit",
 	"memoTop",
 	"observedHead",
+	"ownDeferredCallbacks",
 	"observingMemos",
 	"queryRoot",
 	"querySave",
