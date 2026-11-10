@@ -157,8 +157,8 @@ type TypeMapperBase struct {
 	TypeMapper
 }
 
-func (m *TypeMapperBase) Map(c *Checker, t *Type) *Type  { return t }
-func (m *TypeMapperBase) MapsThisOnly() bool { return false }
+func (m *TypeMapperBase) Map(c *Checker, t *Type) *Type { return t }
+func (m *TypeMapperBase) MapsThisOnly() bool            { return false }
 
 // SimpleTypeMapper
 
