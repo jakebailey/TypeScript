@@ -2116,8 +2116,8 @@ func (c *Checker) getMinArgumentCountEx(signature *Signature, flags MinArgumentC
 	if voidIsNonOptional != 0 {
 		return c.getMinArgumentCountUncached(signature, flags)
 	}
-	if count := signature.resolvedMinArgumentCount.cached(c); count != -1 {
-		return int(count)
+	if count := signature.resolvedMinArgumentCount.cached(c); count != 0 {
+		return int(count) - 1
 	}
 	signature.resolvedMinArgumentCount.begin(c)
 	result := c.getMinArgumentCountUncached(signature, flags)
@@ -2161,7 +2161,7 @@ func (c *Checker) getMinArgumentCountUncached(signature *Signature, flags MinArg
 			}
 			minArgumentCount = i
 		}
-		signature.resolvedMinArgumentCount.set(c, int32(minArgumentCount))
+		signature.resolvedMinArgumentCount.set(c, int32(minArgumentCount)+1)
 		return minArgumentCount
 	}
 }

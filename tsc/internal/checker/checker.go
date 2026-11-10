@@ -28452,7 +28452,6 @@ func (c *Checker) newSignature(flags SignatureFlags, declaration *ast.Node, type
 	sig.resolvedReturnType.intern(resolvedReturnType)
 	sig.initResolvedTypePredicate(c, resolvedTypePredicate)
 	sig.minArgumentCount = int32(minArgumentCount)
-	sig.resolvedMinArgumentCount.intern(-1)
 	return sig
 }
 

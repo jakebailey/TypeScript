@@ -1691,7 +1691,7 @@ type Signature struct {
 	id                       SignatureId
 	flags                    SignatureFlags
 	minArgumentCount         int32
-	resolvedMinArgumentCount memo[int32]
+	resolvedMinArgumentCount memo[int32] // 1 + the minimum argument count, or 0 until computed
 	declaration              *ast.Node
 	parameters               []*ast.Symbol
 	resolvedReturnType       memo[*Type]
