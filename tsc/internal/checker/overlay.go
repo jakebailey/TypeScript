@@ -130,6 +130,15 @@ func (c *Checker) putOverlayCell(key overlayKey, e *overlayEntry, memo *memoHead
 	c.overlay[key] = e
 }
 
+// putOverlayEntry caches e under key in the overlay, without logging how to
+// discard it; the caller does.
+func (c *Checker) putOverlayEntry(key overlayKey, e *overlayEntry) {
+	if c.overlay == nil {
+		c.overlay = make(map[overlayKey]*overlayEntry)
+	}
+	c.overlay[key] = e
+}
+
 // putOverlayMapEntry is putOverlayCell for an entry of a memo map, logging
 // the restore as own if it is the result of the current computation.
 func (c *Checker) putOverlayMapEntry(k mapOverlayKey, e *overlayEntry, own bool, discardable bool) {

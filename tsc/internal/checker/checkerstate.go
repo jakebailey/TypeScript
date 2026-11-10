@@ -44,6 +44,7 @@ var checkerProgressFields = []string{
 	"ownDeferredCallbacks",
 	"overlayDepth",
 	"overlay",
+	"resolvingMembers",
 	"mapOverlay",
 	"observingMemos",
 	"queryRoot",

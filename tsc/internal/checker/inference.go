@@ -1121,7 +1121,7 @@ func (c *Checker) inferReverseMappedTypeWorker(source *Type, target *Type, const
 	return c.getWidenedType(core.OrElse(c.getTypeFromInference(inference), c.unknownType))
 }
 
-func (c *Checker) resolveReverseMappedTypeMembers(t *Type) {
+func (c *Checker) resolveReverseMappedTypeMembers(t *Type, resolved *ResolvedMembers) {
 	r := t.AsReverseMappedType()
 	indexInfo := c.getIndexInfoOfType(r.source, c.stringType)
 	modifiers := getMappedTypeModifiers(r.mappedType)
@@ -1169,7 +1169,7 @@ func (c *Checker) resolveReverseMappedTypeMembers(t *Type) {
 		}
 		members.Set(prop.Name(), inferredProp)
 	}
-	c.setStructuredTypeData(t, members, nil, nil, indexInfos)
+	c.setStructuredTypeData(resolved, members, nil, nil, indexInfos)
 }
 
 func (c *Checker) getTypeOfReverseMappedSymbol(symbol *ast.Symbol) *Type {

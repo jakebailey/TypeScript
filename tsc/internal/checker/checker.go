@@ -680,6 +680,7 @@ type Checker struct {
 	valueSymbolExtraArena                       core.Arena[valueSymbolExtra]
 	structuredTypeExtraArena                    core.Arena[structuredTypeExtra]
 	lazyStateArena                              core.Arena[LazyState]
+	resolvedMembersArena                        core.Arena[ResolvedMembers]
 	memberLayoutArena                           core.Arena[MemberLayout]
 	layoutMembers                               ast.SymbolTable
 	layoutBaseIndices                           []int32
@@ -697,25 +698,26 @@ type Checker struct {
 	overlayDepth                                int                // Requests in progress writing to the overlay; see overlay.go
 	overlay                                     map[overlayKey]*overlayEntry
 	mapOverlay                                  map[mapOverlayKey]*overlayEntry
-	overlayPublishes                            int                 // Requests whose overlay was published
-	overlayDrops                                int                 // Requests whose overlay conflicted with the store
-	resolving                                   resolvingTable      // Index in resolutions of the outermost computation of each key in progress
-	typeResolutionTop                           int                 // 1-based index in resolutions of the innermost resolution, or 0
-	resolutionStart                             int                 // Index in resolutions below which resolutions are not searched for cycles
-	visibleStart                                int                 // Index in resolutions below which nothing in progress is visible; see yieldCycle
-	cycleYields                                 []cycleYield        // Canonical recomputations in progress; see yieldCycle
-	circularityStart                            int                 // 1-based index in resolutions of the outermost cycle in progress, or 0; see memo.go
-	currentNodeErrors                           []*currentNodeError // Errors reported at the current node while collecting; see startCurrentNodeErrors
-	currentNodeErrorCollectors                  int                 // Number of computations collecting currentNodeErrors
-	currentNodeErrorsCyclic                     bool                // Whether a cycle was observed while collecting currentNodeErrors; see endCurrentNodeErrors
-	discardLog                                  []discardEntry      // Restores what was cached while anything may be discarded; see "Discard log" in memo.go
-	discardLogFloor                             int                 // Length of the discard log kept for measurements hidden by a canonical variance remeasurement; see trimDiscardLog
-	circularityMark                             int                 // Length of discard log when the cycle in progress was detected
-	innerCycles                                 []innerCycle        // Cycles detected inside the one in progress; see extendCircularity
-	flowDepthFailures                           map[FlowLoopKey]int // Largest depth budget known to be too small for a flow walk from a node; see getTypeAtFlowNode
-	observedHead                                int32               // 1 + index in resolutions of the lowest head of a cycle observed by the innermost type resolution in progress, or 0
-	cycleParticipants                           []*memoHeader       // Computations that observed a cycle in progress
-	effectsMarkDepth                            int                 // 1 + resolution index of the innermost effects mark that may be discarded, or 0
+	overlayPublishes                            int                        // Requests whose overlay was published
+	resolvingMembers                            map[*Type]*ResolvedMembers // Members of types whose resolution is in progress
+	overlayDrops                                int                        // Requests whose overlay conflicted with the store
+	resolving                                   resolvingTable             // Index in resolutions of the outermost computation of each key in progress
+	typeResolutionTop                           int                        // 1-based index in resolutions of the innermost resolution, or 0
+	resolutionStart                             int                        // Index in resolutions below which resolutions are not searched for cycles
+	visibleStart                                int                        // Index in resolutions below which nothing in progress is visible; see yieldCycle
+	cycleYields                                 []cycleYield               // Canonical recomputations in progress; see yieldCycle
+	circularityStart                            int                        // 1-based index in resolutions of the outermost cycle in progress, or 0; see memo.go
+	currentNodeErrors                           []*currentNodeError        // Errors reported at the current node while collecting; see startCurrentNodeErrors
+	currentNodeErrorCollectors                  int                        // Number of computations collecting currentNodeErrors
+	currentNodeErrorsCyclic                     bool                       // Whether a cycle was observed while collecting currentNodeErrors; see endCurrentNodeErrors
+	discardLog                                  []discardEntry             // Restores what was cached while anything may be discarded; see "Discard log" in memo.go
+	discardLogFloor                             int                        // Length of the discard log kept for measurements hidden by a canonical variance remeasurement; see trimDiscardLog
+	circularityMark                             int                        // Length of discard log when the cycle in progress was detected
+	innerCycles                                 []innerCycle               // Cycles detected inside the one in progress; see extendCircularity
+	flowDepthFailures                           map[FlowLoopKey]int        // Largest depth budget known to be too small for a flow walk from a node; see getTypeAtFlowNode
+	observedHead                                int32                      // 1 + index in resolutions of the lowest head of a cycle observed by the innermost type resolution in progress, or 0
+	cycleParticipants                           []*memoHeader              // Computations that observed a cycle in progress
+	effectsMarkDepth                            int                        // 1 + resolution index of the innermost effects mark that may be discarded, or 0
 	varianceStack                               []VarianceStackEntry
 	varianceCycleRoot                           int                // 1 + index in varianceStack of the outermost measurement re-entered in progress, or 0; see getRecursiveVariances
 	heldEffects                                 []func(c *Checker) // See holdEffect
@@ -4834,9 +4836,7 @@ func (c *Checker) getTypeWithoutSignatures(t *Type) *Type {
 		resolved := c.resolveStructuredTypeMembers(t)
 		if len(resolved.getSignatures()) != 0 {
 			result := c.newObjectType(ObjectFlagsAnonymous, t.symbol)
-			result.objectFlags |= ObjectFlagsMembersResolved
-			result.AsObjectType().members = resolved.getMembers(c)
-			result.AsObjectType().properties = resolved.getProperties(c)
+			result.AsStructuredType().resolved.intern(&ResolvedMembers{members: resolved.getMembers(c), properties: resolved.getProperties(c)})
 			return result
 		}
 	case t.flags&TypeFlagsIntersection != 0:
@@ -21227,7 +21227,7 @@ func (c *Checker) getPropertyOfTypeEx(t *Type, name string, skipObjectFunctionPr
 	t = c.getReducedApparentType(t)
 	switch {
 	case t.flags&TypeFlagsObject != 0:
-		if t.objectFlags&ObjectFlagsMembersResolved == 0 && len(c.resolvingObjectTypeStack) != 0 {
+		if len(c.resolvingObjectTypeStack) != 0 && c.peekResolvedMembers(t) == nil {
 			if symbol := c.getDeclaredPropertyOfResolvingType(t, name); symbol != nil {
 				return symbol
 			}
@@ -21432,21 +21432,22 @@ func (c *Checker) isApplicableIndexType(source *Type, target *Type) bool {
 		target == c.numberType && (source == c.numericStringType || source.flags&TypeFlagsStringLiteral != 0 && isNumericLiteralName(getStringLiteralValue(source)))
 }
 
-func (c *Checker) resolveStructuredTypeMembers(t *Type) *StructuredType {
-	if t.objectFlags&ObjectFlagsMembersResolved != 0 && !c.observingMemos {
-		return t.asResolvedStructuredType()
+func (c *Checker) resolveStructuredTypeMembers(t *Type) *ResolvedMembers {
+	r := t.resolvedMembersFast()
+	if r == nil || c.observingMemos {
+		r = c.resolveStructuredTypeMembersSlow(t)
 	}
-	return c.resolveStructuredTypeMembersSlow(t)
+	return r
 }
 
 // resolveStructuredTypeMembersSlow is the part of resolveStructuredTypeMembers
 // past reading resolved members, out of line so that the rest inlines.
-func (c *Checker) resolveStructuredTypeMembersSlow(t *Type) *StructuredType {
+func (c *Checker) resolveStructuredTypeMembersSlow(t *Type) *ResolvedMembers {
 	key := memoKeyOf(t, memoStructuredMembers)
-	if t.objectFlags&ObjectFlagsMembersResolved != 0 {
+	if r := t.AsStructuredType().resolved.peek(c); r != nil {
 		// Resolved members are only read.
 		c.observeMemo(key)
-		return t.AsStructuredType()
+		return r
 	}
 	published := false
 	enclosing, inProgress := c.resolvingAnyIndex(key)
@@ -21475,11 +21476,14 @@ func (c *Checker) resolveStructuredTypeMembersSlow(t *Type) *StructuredType {
 		published = c.resolutions[enclosing].membersPublished
 	}
 	c.beginMemo(key)
-	if !published {
-		c.resolveStructuredTypeMembersUncached(t, enclosing)
+	var r *ResolvedMembers
+	if published {
+		r = c.resolvingMembers[t]
+	} else {
+		r = c.resolveStructuredTypeMembersUncached(t, enclosing)
 	}
 	c.endMemo()
-	return t.AsStructuredType()
+	return r
 }
 
 // resolveStructuredTypeMembersUncached resolves the members of t in the memo
@@ -21490,45 +21494,77 @@ func (c *Checker) resolveStructuredTypeMembersSlow(t *Type) *StructuredType {
 // the members before any are available starts, makes its result available
 // to the rest of the enclosing resolution at index enclosing, which may be
 // hidden by a cycle yield.
-func (c *Checker) resolveStructuredTypeMembersUncached(t *Type, enclosing int) {
+func (c *Checker) resolveStructuredTypeMembersUncached(t *Type, enclosing int) *ResolvedMembers {
 	outermost := enclosing < 0
 	if outermost && c.isModuleTableType(t) {
-		c.resolveModuleTableMembers(t)
-		return
+		return c.resolveModuleTableMembers(t)
 	}
+	r := c.beginResolvingMembers(t)
 	c.beginTypeResolution(t, TypeSystemPropertyNameStructuredMembers, nil)
 	defer func() {
 		c.popTypeResolution()
 		if outermost {
-			t.objectFlags |= ObjectFlagsMembersResolved
+			delete(c.resolvingMembers, t)
+			c.setResolvedMembers(t, r)
 		} else {
 			c.resolutions[enclosing].membersPublished = true
-		}
-		if c.logResults() {
-			c.logMembersDiscard(t)
+			if c.logResults() {
+				c.logMembersDiscard(t)
+			}
 		}
 	}()
 	switch {
 	case t.flags&TypeFlagsObject != 0:
 		switch {
 		case t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsReference) != 0:
-			c.resolveObjectTypeMembers(t)
+			c.resolveObjectTypeMembers(t, r)
 		case t.objectFlags&ObjectFlagsReverseMapped != 0:
-			c.resolveReverseMappedTypeMembers(t)
+			c.resolveReverseMappedTypeMembers(t, r)
 		case t.objectFlags&ObjectFlagsAnonymous != 0:
-			c.resolveAnonymousTypeMembers(t)
+			c.resolveAnonymousTypeMembers(t, r)
 		case t.objectFlags&ObjectFlagsMapped != 0:
-			c.resolveMappedTypeMembers(t)
+			c.resolveMappedTypeMembers(t, r)
 		default:
 			panic("Unhandled case in resolveStructuredTypeMembers")
 		}
 	case t.flags&TypeFlagsUnion != 0:
-		c.resolveUnionTypeMembers(t)
+		c.resolveUnionTypeMembers(t, r)
 	case t.flags&TypeFlagsIntersection != 0:
-		c.resolveIntersectionTypeMembers(t)
+		c.resolveIntersectionTypeMembers(t, r)
 	default:
 		panic("Unhandled case in resolveStructuredTypeMembers")
 	}
+	return r
+}
+
+// beginResolvingMembers returns the members of t, whose resolution begins,
+// which the resolution sets as it goes; nested resolutions of the same
+// members share them.
+func (c *Checker) beginResolvingMembers(t *Type) *ResolvedMembers {
+	r := c.resolvingMembers[t]
+	if r == nil {
+		r = c.resolvedMembersArena.New()
+		if c.resolvingMembers == nil {
+			c.resolvingMembers = make(map[*Type]*ResolvedMembers)
+		}
+		c.resolvingMembers[t] = r
+	}
+	return r
+}
+
+// setResolvedMembers caches r, the members of t, once their outermost
+// resolution completes.
+func (c *Checker) setResolvedMembers(t *Type, r *ResolvedMembers) {
+	t.AsStructuredType().resolved.storeUnlogged(c, r)
+	if c.logResults() {
+		c.logMembersDiscard(t)
+	}
+}
+
+// clearResolvedMembers forgets the resolved members of t, which are then
+// resolved again when next requested.
+func (c *Checker) clearResolvedMembers(t *Type) {
+	t.AsStructuredType().resolved.storeUnlogged(c, nil)
 }
 
 // markMembersPublished records that the members of t, whose resolution is
@@ -21542,11 +21578,11 @@ func (c *Checker) markMembersPublished(t *Type) {
 // publishStructuredTypeMembers sets the members of t while they are being
 // resolved, making them available to computations re-entering the resolution
 // before it completes.
-func (c *Checker) publishStructuredTypeMembers(t *Type, members ast.SymbolTable, callSignatures []*Signature, constructSignatures []*Signature, indexInfos []*IndexInfo) {
+func (c *Checker) publishStructuredTypeMembers(t *Type, r *ResolvedMembers, members ast.SymbolTable, callSignatures []*Signature, constructSignatures []*Signature, indexInfos []*IndexInfo) {
 	// Listing the properties may re-enter the resolution, which then sees
 	// the members.
 	c.markMembersPublished(t)
-	c.setStructuredTypeData(t, members, callSignatures, constructSignatures, indexInfos)
+	c.setStructuredTypeData(r, members, callSignatures, constructSignatures, indexInfos)
 }
 
 // isModuleTableType reports whether t is the type of a module object, whose
@@ -21582,12 +21618,13 @@ func (c *Checker) compareModuleTables(a, b TypeSystemEntity) int {
 // resolved first, discarding whatever was computed starting from another,
 // and a table that a cycle entered elsewhere passes through is resolved
 // again as if the cycle had been entered at the table.
-func (c *Checker) resolveModuleTableMembers(t *Type) {
+func (c *Checker) resolveModuleTableMembers(t *Type) *ResolvedMembers {
+	r := c.beginResolvingMembers(t)
 	mark := c.markDiscard()
 	hidden := false
 	for {
 		c.beginTypeResolution(t, TypeSystemPropertyNameStructuredMembers, nil)
-		c.resolveAnonymousTypeMembers(t)
+		c.resolveAnonymousTypeMembers(t, r)
 		restart := c.topTypeResolution().restartHidden && !hidden
 		if restart {
 			// Discard while the cycle is still in progress, as
@@ -21598,7 +21635,7 @@ func (c *Checker) resolveModuleTableMembers(t *Type) {
 		if canonical == nil && !restart {
 			break
 		}
-		c.clearStructuredMembers(t)
+		*r = ResolvedMembers{}
 		key := memoKeyOf(t, memoStructuredMembers)
 		i, _ := c.resolving.get(key)
 		c.resolutions[i].membersPublished = false
@@ -21615,23 +21652,10 @@ func (c *Checker) resolveModuleTableMembers(t *Type) {
 	if hidden {
 		c.endCycleYield()
 	}
-	t.objectFlags |= ObjectFlagsMembersResolved
+	delete(c.resolvingMembers, t)
 	c.releaseDiscardMark(mark)
-	if c.logResults() {
-		c.logMembersDiscard(t)
-	}
-}
-
-func (c *Checker) clearStructuredMembers(t *Type) {
-	t.objectFlags &^= ObjectFlagsMembersResolved
-	data := t.AsStructuredType()
-	data.members = nil
-	data.properties = nil
-	if data.extra != nil {
-		data.extra.signatures = nil
-		data.extra.callSignatureCount = 0
-		data.extra.indexInfos = nil
-	}
+	c.setResolvedMembers(t, r)
+	return r
 }
 
 // logMembersDiscard discards the members of t when the cycle in progress
@@ -21645,10 +21669,7 @@ func (c *Checker) logMembersDiscard(t *Type) {
 			// An enclosing resolution of the same members sets them again.
 			return
 		}
-		c.clearStructuredMembers(t)
-		if t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsReference) != 0 {
-			t.AsTypeReference().lazy = nil
-		}
+		c.clearResolvedMembers(t)
 	})
 }
 
@@ -21657,18 +21678,16 @@ func (c *Checker) logMembersDiscard(t *Type) {
 // base type whose members the cycle discards.
 //
 //go:noinline
-func (c *Checker) logPropertySlotDiscard(t *StructuredType, lazy *LazyState, index int) {
+func (c *Checker) logPropertySlotDiscard(t *ResolvedMembers, index int) {
 	properties := t.properties
 	c.logRestore(func() {
 		properties[index] = nil
-		lazy.propertiesResolved = false
-		if t.AsType().AsTypeReference().lazy == lazy {
-			t.members = nil
-		}
+		t.lazy.propertiesResolved = false
+		t.members = nil
 	})
 }
 
-func (c *Checker) resolveObjectTypeMembers(t *Type) {
+func (c *Checker) resolveObjectTypeMembers(t *Type, r *ResolvedMembers) {
 	var mapper *TypeMapper
 	var typeParameters []*Type
 	var typeArguments []*Type
@@ -21719,20 +21738,19 @@ func (c *Checker) resolveObjectTypeMembers(t *Type) {
 			return findIndexInfo(indexInfos, info.keyType) == nil
 		}))
 	}
-	c.setStructuredTypeData(t, nil, callSignatures, constructSignatures, indexInfos)
+	c.setStructuredTypeData(r, nil, callSignatures, constructSignatures, indexInfos)
 	lazyState := c.lazyStateArena.New()
 	lazyState.layout = layout
 	lazyState.mapper = mapper
 	lazyState.baseTypes = instantiatedBaseTypes
-	t.AsTypeReference().lazy = lazyState
-	c.propagateResolvedDeclaredMembers()
+	r.lazy = lazyState
+	c.propagateResolvedDeclaredMembers(r)
 	c.resolvingObjectTypeStack = c.resolvingObjectTypeStack[:len(c.resolvingObjectTypeStack)-1]
 }
 
 // Propagate members resolved by getDeclaredPropertyOfResolvingType
-func (c *Checker) propagateResolvedDeclaredMembers() {
+func (c *Checker) propagateResolvedDeclaredMembers(s *ResolvedMembers) {
 	r := &c.resolvingObjectTypeStack[len(c.resolvingObjectTypeStack)-1]
-	s := r.t.AsTypeReference()
 	for symbol := range r.resolvedMembers.Values() {
 		if index := s.lazy.layout.members.Find(symbol.Name()); index >= 0 {
 			if s.properties == nil {
@@ -21767,9 +21785,8 @@ func (c *Checker) getMemberLayoutKey(t *Type, baseTypes []*Type) CacheHashKey {
 	b.writeInt(len(baseTypes))
 	for _, baseType := range baseTypes {
 		if baseType.objectFlags&ObjectFlagsReference != 0 {
-			c.resolveStructuredTypeMembers(baseType)
 			b.writeByte('+')
-			b.writeUint32(baseType.AsTypeReference().lazy.layout.id)
+			b.writeUint32(c.resolveStructuredTypeMembers(baseType).lazy.layout.id)
 		} else {
 			b.writeByte('-')
 			b.writeType(baseType)
@@ -21799,8 +21816,7 @@ func (c *Checker) createMemberLayout(t *Type, baseTypes []*Type) *MemberLayout {
 	// Add inherited members
 	for baseIndex, baseType := range baseTypes {
 		if baseType.objectFlags&(ObjectFlagsReference|ObjectFlagsClassOrInterface) != 0 {
-			c.resolveStructuredTypeMembers(baseType)
-			for symbol := range baseType.AsTypeReference().lazy.layout.members.Values() {
+			for symbol := range c.resolveStructuredTypeMembers(baseType).lazy.layout.members.Values() {
 				if !isStaticPrivateIdentifierProperty(symbol) {
 					addMember(symbol, baseIndex)
 				}
@@ -21884,8 +21900,8 @@ func (c *Checker) getBaseTypesUncached(t *Type) []*Type {
 		// for resolution of type parameter defaults to cause circularity errors, possibly leaving
 		// members partially resolved. Here we ensure any such partial resolution is reset.
 		// See https://github.com/microsoft/TypeScript/issues/16861 for an example.
-		if t.objectFlags&ObjectFlagsMembersResolved != 0 {
-			t.objectFlags &^= ObjectFlagsMembersResolved
+		if c.peekResolvedMembers(t) != nil {
+			c.clearResolvedMembers(t)
 		}
 		if c.overlaying() {
 			c.putOverlayCell(overlayKey{p: unsafe.Pointer(&data.baseTypesResolved)}, &overlayEntry{
@@ -23419,25 +23435,25 @@ func (c *Checker) instantiateIndexInfo(info *IndexInfo, m *TypeMapper) *IndexInf
 	return c.newIndexInfo(info.keyType, newValueType, info.isReadonly, info.declaration, info.components)
 }
 
-func (c *Checker) resolveAnonymousTypeMembers(t *Type) {
+func (c *Checker) resolveAnonymousTypeMembers(t *Type, r *ResolvedMembers) {
 	d := t.AsObjectType()
 	if d.target != nil {
-		c.publishStructuredTypeMembers(t, nil, nil, nil, nil)
+		c.publishStructuredTypeMembers(t, r, nil, nil, nil, nil)
 		members := c.createInstantiatedSymbolTable(c.getPropertiesOfObjectType(d.target), d.mapper)
 		callSignatures := c.instantiateSignatures(c.getSignaturesOfType(d.target, SignatureKindCall), d.mapper)
 		constructSignatures := c.instantiateSignatures(c.getSignaturesOfType(d.target, SignatureKindConstruct), d.mapper)
 		indexInfos := c.instantiateIndexInfos(c.getIndexInfosOfType(d.target), d.mapper)
-		c.publishStructuredTypeMembers(t, members, callSignatures, constructSignatures, indexInfos)
+		c.publishStructuredTypeMembers(t, r, members, callSignatures, constructSignatures, indexInfos)
 		return
 	}
 	symbol := c.getMergedSymbol(t.symbol)
 	if symbol.Flags()&ast.SymbolFlagsTypeLiteral != 0 {
-		c.publishStructuredTypeMembers(t, nil, nil, nil, nil)
+		c.publishStructuredTypeMembers(t, r, nil, nil, nil, nil)
 		members := c.getMembersOfSymbol(symbol)
 		callSignatures := c.getSignaturesOfSymbol(members.Get(ast.InternalSymbolNameCall))
 		constructSignatures := c.getSignaturesOfSymbol(members.Get(ast.InternalSymbolNameNew))
 		indexInfos := c.getIndexInfosOfSymbol(symbol)
-		c.publishStructuredTypeMembers(t, members, callSignatures, constructSignatures, indexInfos)
+		c.publishStructuredTypeMembers(t, r, members, callSignatures, constructSignatures, indexInfos)
 		return
 	}
 	// Combinations of function, class, enum and module
@@ -23462,7 +23478,7 @@ func (c *Checker) resolveAnonymousTypeMembers(t *Type) {
 			baseConstructorIndexInfo = c.anyBaseTypeIndexInfo
 		}
 	}
-	c.publishStructuredTypeMembers(t, members, nil, nil, nil)
+	c.publishStructuredTypeMembers(t, r, members, nil, nil, nil)
 	var indexInfos []*IndexInfo
 	if indexSymbol := members.Get(ast.InternalSymbolNameIndex); indexSymbol != nil {
 		indexInfos = c.getIndexInfosOfIndexSymbol(indexSymbol, slices.Collect(members.Values()))
@@ -23470,14 +23486,14 @@ func (c *Checker) resolveAnonymousTypeMembers(t *Type) {
 		if baseConstructorIndexInfo != nil {
 			indexInfos = append(indexInfos, baseConstructorIndexInfo)
 		}
-		if symbol.Flags()&ast.SymbolFlagsEnum != 0 && (c.getDeclaredTypeOfSymbol(symbol).flags&TypeFlagsEnum != 0 || core.Some(d.getProperties(c), func(prop *ast.Symbol) bool {
+		if symbol.Flags()&ast.SymbolFlagsEnum != 0 && (c.getDeclaredTypeOfSymbol(symbol).flags&TypeFlagsEnum != 0 || core.Some(r.getProperties(c), func(prop *ast.Symbol) bool {
 			return c.getTypeOfSymbol(prop).flags&TypeFlagsNumberLike != 0
 		})) {
 			indexInfos = append(indexInfos, c.enumNumberIndexInfo)
 		}
 	}
 	if len(indexInfos) != 0 {
-		d.ensureExtra().indexInfos = indexInfos
+		r.ensureExtra(c).indexInfos = indexInfos
 	}
 	// We resolve the members before computing the signatures because a signature may use
 	// typeof with a qualified name expression that circularly references the type we are
@@ -23486,7 +23502,7 @@ func (c *Checker) resolveAnonymousTypeMembers(t *Type) {
 	if symbol.Flags()&(ast.SymbolFlagsFunction|ast.SymbolFlagsMethod) != 0 {
 		signatures := c.getSignaturesOfSymbol(symbol)
 		if len(signatures) != 0 {
-			extra := d.ensureExtra()
+			extra := r.ensureExtra(c)
 			extra.signatures = signatures
 			extra.callSignatureCount = len(signatures)
 		}
@@ -23499,7 +23515,7 @@ func (c *Checker) resolveAnonymousTypeMembers(t *Type) {
 			constructSignatures = c.getDefaultConstructSignatures(classType)
 		}
 		if len(constructSignatures) != 0 {
-			extra := d.ensureExtra()
+			extra := r.ensureExtra(c)
 			extra.signatures = append(extra.signatures, constructSignatures...)
 		}
 	}
@@ -23645,11 +23661,11 @@ func (c *Checker) getDefaultConstructSignatures(classType *Type) []*Signature {
 	return result
 }
 
-func (c *Checker) resolveMappedTypeMembers(t *Type) {
+func (c *Checker) resolveMappedTypeMembers(t *Type, r *ResolvedMembers) {
 	members := ast.NewSymbolTable()
 	var indexInfos []*IndexInfo
 	// Resolve upfront such that recursive references see an empty object type.
-	c.publishStructuredTypeMembers(t, nil, nil, nil, nil)
+	c.publishStructuredTypeMembers(t, r, nil, nil, nil, nil)
 	// In { [P in K]: T }, we refer to P as the type parameter type, K as the constraint type,
 	// and T as the template type.
 	typeParameter := c.getTypeParameterFromMappedType(t)
@@ -23732,7 +23748,7 @@ func (c *Checker) resolveMappedTypeMembers(t *Type) {
 	} else {
 		forEachType(c.getLowerBoundOfKeyType(constraintType), addMemberForKeyType)
 	}
-	c.publishStructuredTypeMembers(t, members, nil, nil, indexInfos)
+	c.publishStructuredTypeMembers(t, r, members, nil, nil, indexInfos)
 }
 
 // mappedTypeContainsError reports whether the type of a property of the
@@ -23812,7 +23828,7 @@ func (c *Checker) getLowerBoundOfKeyType(t *Type) *Type {
 	return t
 }
 
-func (c *Checker) resolveUnionTypeMembers(t *Type) {
+func (c *Checker) resolveUnionTypeMembers(t *Type, r *ResolvedMembers) {
 	// The members and properties collections are empty for union types. To get all properties of a union
 	// type use getPropertiesOfType (only the language service uses this).
 	callSignatures := c.getUnionSignatures(core.Map(t.Types(), func(t *Type) []*Signature {
@@ -23828,7 +23844,7 @@ func (c *Checker) resolveUnionTypeMembers(t *Type) {
 		return c.getSignaturesOfType(t, SignatureKindConstruct)
 	}))
 	indexInfos := c.getUnionIndexInfos(t.Types())
-	c.setStructuredTypeData(t, nil, callSignatures, constructSignatures, indexInfos)
+	c.setStructuredTypeData(r, nil, callSignatures, constructSignatures, indexInfos)
 }
 
 func (c *Checker) getArrayMemberCallSignatures(t *Type) []*Signature {
@@ -24062,7 +24078,7 @@ func (c *Checker) combineUnionOrIntersectionThisParam(left *ast.Symbol, right *a
 	return c.createSymbolWithType(left, thisType)
 }
 
-func (c *Checker) resolveIntersectionTypeMembers(t *Type) {
+func (c *Checker) resolveIntersectionTypeMembers(t *Type, r *ResolvedMembers) {
 	// The members and properties collections are empty for intersection types. To get all properties of an
 	// intersection type use getPropertiesOfType (only the language service uses this).
 	var callSignatures []*Signature
@@ -24092,7 +24108,7 @@ func (c *Checker) resolveIntersectionTypeMembers(t *Type) {
 			indexInfos = c.appendIndexInfo(indexInfos, info, false /*union*/)
 		}
 	}
-	c.setStructuredTypeData(t, nil, callSignatures, constructSignatures, indexInfos)
+	c.setStructuredTypeData(r, nil, callSignatures, constructSignatures, indexInfos)
 }
 
 func (c *Checker) appendSignatures(signatures []*Signature, newSignatures []*Signature) []*Signature {
@@ -24500,7 +24516,7 @@ func (c *Checker) getSymbolWithType(source *ast.Symbol, t *Type) *ast.Symbol {
 // internObjectType returns an existing object type with the given content, or
 // creates one with the given creation.
 func (c *Checker) internObjectType(symbol *ast.Symbol, flags ObjectFlags, members ast.SymbolTable, indexInfos []*IndexInfo, create func() *Type) *Type {
-	key := c.getObjectTypeContentKey(symbol, flags&^(ObjectFlagsCouldContainTypeVariablesComputed|ObjectFlagsCouldContainTypeVariables|ObjectFlagsMembersResolved), members, indexInfos)
+	key := c.getObjectTypeContentKey(symbol, flags&^(ObjectFlagsCouldContainTypeVariablesComputed|ObjectFlagsCouldContainTypeVariables), members, indexInfos)
 	if existing, _ := c.objectContentTypes.get(key); existing != nil {
 		return existing
 	}
@@ -28153,7 +28169,7 @@ func isUnaryTupleTypeNode(node *ast.Node) bool {
 func (c *Checker) newType(flags TypeFlags, objectFlags ObjectFlags, t *Type, kind typeKind) *Type {
 	id := countUp(&c.TypeCount)
 	t.flags = flags
-	t.objectFlags = objectFlags &^ (ObjectFlagsCouldContainTypeVariablesComputed | ObjectFlagsCouldContainTypeVariables | ObjectFlagsMembersResolved)
+	t.objectFlags = objectFlags &^ (ObjectFlagsCouldContainTypeVariablesComputed | ObjectFlagsCouldContainTypeVariables)
 	t.id = TypeId(id)
 	t.kind = kind //nolint:customlint
 	t.checker = c.root
@@ -28294,7 +28310,7 @@ func (c *Checker) createDeferredTypeReference(target *Type, node *ast.Node, mapp
 
 func (c *Checker) cloneTypeReference(source *Type) *Type {
 	t := c.newObjectType(ObjectFlagsReference, source.symbol)
-	t.objectFlags = source.objectFlags &^ ObjectFlagsMembersResolved
+	t.objectFlags = source.objectFlags
 	t.AsTypeReference().target = source.AsTypeReference().target
 	t.AsTypeReference().resolvedTypeArguments.intern(c.getTypeArguments(source))
 	return t
@@ -28303,22 +28319,22 @@ func (c *Checker) cloneTypeReference(source *Type) *Type {
 // setStructuredTypeMembers sets the members of a type being created, which
 // are then resolved.
 func (c *Checker) setStructuredTypeMembers(t *Type, members ast.SymbolTable, callSignatures []*Signature, constructSignatures []*Signature, indexInfos []*IndexInfo) {
-	t.objectFlags |= ObjectFlagsMembersResolved
-	c.setStructuredTypeData(t, members, callSignatures, constructSignatures, indexInfos)
+	r := c.resolvedMembersArena.New()
+	c.setStructuredTypeData(r, members, callSignatures, constructSignatures, indexInfos)
+	t.AsStructuredType().resolved.intern(r)
 }
 
-func (c *Checker) setStructuredTypeData(t *Type, members ast.SymbolTable, callSignatures []*Signature, constructSignatures []*Signature, indexInfos []*IndexInfo) {
-	data := t.AsStructuredType()
+func (c *Checker) setStructuredTypeData(data *ResolvedMembers, members ast.SymbolTable, callSignatures []*Signature, constructSignatures []*Signature, indexInfos []*IndexInfo) {
 	data.members = members
 	data.properties = c.getNamedMembers(members)
 	c.setStructuredTypeSignatures(data, callSignatures, constructSignatures, indexInfos)
 }
 
-func (c *Checker) setStructuredTypeSignatures(data *StructuredType, callSignatures []*Signature, constructSignatures []*Signature, indexInfos []*IndexInfo) {
+func (c *Checker) setStructuredTypeSignatures(data *ResolvedMembers, callSignatures []*Signature, constructSignatures []*Signature, indexInfos []*IndexInfo) {
 	if data.extra == nil && callSignatures == nil && constructSignatures == nil && indexInfos == nil {
 		return
 	}
-	extra := data.ensureExtra()
+	extra := data.ensureExtra(c)
 	if len(callSignatures) != 0 {
 		if len(constructSignatures) != 0 {
 			extra.signatures = core.Concatenate(callSignatures, constructSignatures)
@@ -29139,7 +29155,7 @@ func (c *Checker) removeSubtypes(types []*Type, hasObjectTypes bool) []*Type {
 	// are no any and unknown types in the array. Thus, the only possible supertypes for primitive types are empty
 	// object types, and if none of those are present we can exclude primitive types from the subtype check.
 	hasEmptyObject := hasObjectTypes && core.Some(types, func(t *Type) bool {
-		return t.flags&TypeFlagsObject != 0 && !c.isGenericMappedType(t) && c.isEmptyResolvedType(c.resolveStructuredTypeMembers(t))
+		return t.flags&TypeFlagsObject != 0 && !c.isGenericMappedType(t) && c.isEmptyResolvedType(t, c.resolveStructuredTypeMembers(t))
 	})
 	length := len(types)
 	i := length
@@ -29692,18 +29708,18 @@ func (c *Checker) filterTypes(types []*Type, predicate func(*Type) bool) {
 }
 
 func (c *Checker) IsEmptyAnonymousObjectType(t *Type) bool {
-	return t.objectFlags&ObjectFlagsAnonymous != 0 && (t.objectFlags&ObjectFlagsMembersResolved != 0 && c.isEmptyResolvedType(t.AsStructuredType()) ||
+	return t.objectFlags&ObjectFlagsAnonymous != 0 && (c.peekResolvedMembers(t) != nil && c.isEmptyResolvedType(t, c.peekResolvedMembers(t)) ||
 		t.symbol != nil && t.symbol.Flags()&ast.SymbolFlagsTypeLiteral != 0 && c.getMembersOfSymbol(t.symbol).Len() == 0)
 }
 
-func (c *Checker) isEmptyResolvedType(t *StructuredType) bool {
-	return t.AsType() != c.anyFunctionType && !t.hasProperties() && len(t.getSignatures()) == 0 && len(t.getIndexInfos()) == 0
+func (c *Checker) isEmptyResolvedType(t *Type, r *ResolvedMembers) bool {
+	return t != c.anyFunctionType && !r.hasProperties() && len(r.getSignatures()) == 0 && len(r.getIndexInfos()) == 0
 }
 
 func (c *Checker) isEmptyObjectType(t *Type) bool {
 	switch {
 	case t.flags&TypeFlagsObject != 0:
-		return !c.isGenericMappedType(t) && c.isEmptyResolvedType(c.resolveStructuredTypeMembers(t))
+		return !c.isGenericMappedType(t) && c.isEmptyResolvedType(t, c.resolveStructuredTypeMembers(t))
 	case t.flags&TypeFlagsNonPrimitive != 0:
 		return true
 	case t.flags&TypeFlagsUnion != 0:
@@ -30374,7 +30390,11 @@ func (c *Checker) getPropertyTypeForIndexType(originalObjectType *Type, objectTy
 					c.addDiagnostic(createDiagnosticForNode(accessExpression, diagnostics.Property_0_does_not_exist_on_type_1, indexType.AsLiteralType().value, c.TypeToString(objectType)))
 					return c.undefinedType
 				} else if indexType.flags&(TypeFlagsNumber|TypeFlagsString) != 0 {
-					types := core.Map(objectType.AsStructuredType().getProperties(c), func(prop *ast.Symbol) *Type {
+					var properties []*ast.Symbol
+					if r := c.peekResolvedMembers(objectType); r != nil {
+						properties = r.getProperties(c)
+					}
+					types := core.Map(properties, func(prop *ast.Symbol) *Type {
 						return c.getTypeOfSymbol(prop)
 					})
 					return c.getUnionType(append(types, c.undefinedType))
@@ -31464,13 +31484,13 @@ func (c *Checker) getRegularTypeOfObjectLiteral(t *Type) *Type {
 	members := c.transformTypeOfMembers(t, c.getRegularTypeOfObjectLiteral)
 	create := func() *Type {
 		regular := c.newAnonymousType(t.symbol, members, resolved.CallSignatures(), resolved.ConstructSignatures(), resolved.getIndexInfos())
-		regular.flags = resolved.flags
-		regular.objectFlags |= resolved.objectFlags & ^ObjectFlagsFreshLiteral
+		regular.flags = t.flags
+		regular.objectFlags |= t.objectFlags & ^ObjectFlagsFreshLiteral
 		return regular
 	}
 	var regular *Type
-	if len(resolved.CallSignatures()) == 0 && len(resolved.ConstructSignatures()) == 0 && resolved.flags == TypeFlagsObject {
-		regular = c.internObjectType(t.symbol, ObjectFlagsAnonymous|resolved.objectFlags&^ObjectFlagsFreshLiteral, members, resolved.getIndexInfos(), create)
+	if len(resolved.CallSignatures()) == 0 && len(resolved.ConstructSignatures()) == 0 && t.flags == TypeFlagsObject {
+		regular = c.internObjectType(t.symbol, ObjectFlagsAnonymous|t.objectFlags&^ObjectFlagsFreshLiteral, members, resolved.getIndexInfos(), create)
 	} else {
 		regular = create()
 	}
@@ -35108,7 +35128,7 @@ func (c *Checker) getSymbolAtLocation(node *ast.Node, ignoreErrors bool) *ast.Sy
 			// member should more exactly be the kind of (declarationless) symbol we want.
 			// (See #44364 and #45031 for relevant implementation PRs)
 			if metaProp.KeywordToken == ast.KindImportKeyword && node.Text() == "meta" {
-				return c.getGlobalImportMetaExpressionType().AsObjectType().getMember(c, "meta")
+				return c.resolveStructuredTypeMembers(c.getGlobalImportMetaExpressionType()).getMember(c, "meta")
 			}
 			// no other meta properties are valid syntax, thus no others should have symbols
 			return nil

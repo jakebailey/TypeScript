@@ -892,7 +892,7 @@ func (c *Checker) typeGeneration(t *Type) int {
 		} else if t.symbol != nil && t.symbol.Flags()&ast.SymbolFlagsObjectLiteral != 0 {
 			// Object literals are built from the types of their properties,
 			// except for those resolved lazily, such as accessors.
-			for prop := range t.AsStructuredType().members.Values() {
+			for prop := range c.peekResolvedMembers(t).members.Values() {
 				if prop.Flags()&ast.SymbolFlagsTransient == 0 || prop.CheckFlags()&(ast.CheckFlagsInstantiated|ast.CheckFlagsMapped|ast.CheckFlagsReverseMapped|ast.CheckFlagsDeferredType) != 0 {
 					continue
 				}

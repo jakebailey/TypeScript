@@ -558,13 +558,13 @@ func TestUnionIntersectionPropertyCacheModes(t *testing.T) {
 
 func TestCompactStructuredTypeLayout(t *testing.T) {
 	t.Parallel()
-	assert.Equal(t, unsafe.Sizeof(StructuredType{}), unsafe.Sizeof(ConstrainedType{})+5*unsafe.Sizeof(uintptr(0)))
+	assert.Equal(t, unsafe.Sizeof(StructuredType{}), unsafe.Sizeof(ConstrainedType{})+unsafe.Sizeof(uintptr(0)))
 }
 
 func TestStructuredTypeExtra(t *testing.T) {
 	t.Parallel()
 	c, types := newCompositeTestChecker()
-	data := c.newAnonymousType(nil, nil, nil, nil, nil).AsStructuredType()
+	data := c.newAnonymousType(nil, nil, nil, nil, nil).AsStructuredType().resolved.peekStore()
 	assert.Assert(t, data.extra == nil)
 	assert.Assert(t, data.CallSignatures() == nil)
 	assert.Assert(t, data.ConstructSignatures() == nil)
@@ -585,7 +585,7 @@ func TestStructuredTypeExtra(t *testing.T) {
 	extra.objectTypeWithoutAbstractConstructSignatures = types[2]
 	for range 1024 {
 		other := c.newAnonymousType(nil, nil, []*Signature{call}, nil, nil)
-		assert.Assert(t, other.AsStructuredType().extra != extra)
+		assert.Assert(t, other.AsStructuredType().resolved.peekStore().extra != extra)
 	}
 	runtime.GC()
 	assert.Equal(t, data.CallSignatures()[0], call)

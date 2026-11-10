@@ -586,23 +586,23 @@ func (b *NodeBuilderImpl) tryReuseExistingNonParameterTypeNode(existing *ast.Typ
 	return nil
 }
 
-func (b *NodeBuilderImpl) getResolvedTypeWithoutAbstractConstructSignatures(t *StructuredType) *Type {
-	if len(t.ConstructSignatures()) == 0 {
-		return t.AsType()
+func (b *NodeBuilderImpl) getResolvedTypeWithoutAbstractConstructSignatures(t *Type, r *ResolvedMembers) *Type {
+	if len(r.ConstructSignatures()) == 0 {
+		return t
 	}
-	if t.extra.objectTypeWithoutAbstractConstructSignatures != nil {
-		return t.extra.objectTypeWithoutAbstractConstructSignatures
+	if r.extra.objectTypeWithoutAbstractConstructSignatures != nil {
+		return r.extra.objectTypeWithoutAbstractConstructSignatures
 	}
-	constructSignatures := core.Filter(t.ConstructSignatures(), func(signature *Signature) bool {
+	constructSignatures := core.Filter(r.ConstructSignatures(), func(signature *Signature) bool {
 		return signature.flags&SignatureFlagsAbstract == 0
 	})
-	if len(constructSignatures) == len(t.ConstructSignatures()) {
-		t.extra.objectTypeWithoutAbstractConstructSignatures = t.AsType()
-		return t.AsType()
+	if len(constructSignatures) == len(r.ConstructSignatures()) {
+		r.extra.objectTypeWithoutAbstractConstructSignatures = t
+		return t
 	}
-	typeCopy := b.ch.newAnonymousType(t.symbol, t.getMembers(b.ch), t.CallSignatures(), core.IfElse(len(constructSignatures) > 0, constructSignatures, []*Signature{}), t.getIndexInfos())
-	t.extra.objectTypeWithoutAbstractConstructSignatures = typeCopy
-	typeCopy.AsStructuredType().ensureExtra().objectTypeWithoutAbstractConstructSignatures = typeCopy
+	typeCopy := b.ch.newAnonymousType(t.symbol, r.getMembers(b.ch), r.CallSignatures(), core.IfElse(len(constructSignatures) > 0, constructSignatures, []*Signature{}), r.getIndexInfos())
+	r.extra.objectTypeWithoutAbstractConstructSignatures = typeCopy
+	typeCopy.AsStructuredType().resolved.peekStore().ensureExtra(b.ch).objectTypeWithoutAbstractConstructSignatures = typeCopy
 	return typeCopy
 }
 
@@ -2766,7 +2766,7 @@ func (b *NodeBuilderImpl) addPropertyToElementList(propertySymbol *ast.Symbol, t
 	return typeElements
 }
 
-func (b *NodeBuilderImpl) createTypeNodesFromResolvedType(resolvedType *StructuredType) *ast.NodeList {
+func (b *NodeBuilderImpl) createTypeNodesFromResolvedType(t *Type, resolvedType *ResolvedMembers) *ast.NodeList {
 	if b.checkTruncationLength() {
 		if b.ctx.flags&nodebuilder.FlagsNoTruncation != 0 {
 			elem := b.f.NewNotEmittedTypeElement()
@@ -2786,7 +2786,7 @@ func (b *NodeBuilderImpl) createTypeNodesFromResolvedType(resolvedType *Structur
 	}
 	for _, info := range resolvedType.getIndexInfos() {
 		var typeNode *ast.TypeNode
-		if resolvedType.objectFlags&ObjectFlagsReverseMapped != 0 && b.ctx.flags&nodebuilder.FlagsAllowAnonymousIdentifier != 0 {
+		if t.objectFlags&ObjectFlagsReverseMapped != 0 && b.ctx.flags&nodebuilder.FlagsAllowAnonymousIdentifier != 0 {
 			typeNode = b.createElidedInformationPlaceholder()
 		}
 		typeElements = slices.Concat(typeElements, b.indexInfoToObjectComputedNamesOrSignatureDeclaration(info, typeNode))
@@ -2878,14 +2878,14 @@ func (b *NodeBuilderImpl) createTypeNodeFromObjectType(t *Type) *ast.TypeNode {
 		// and not `(abstract new () => {}) & {}`
 		if typeElementCount != 0 {
 			// create a copy of the object type without any abstract construct signatures.
-			types = append(types, b.getResolvedTypeWithoutAbstractConstructSignatures(resolved))
+			types = append(types, b.getResolvedTypeWithoutAbstractConstructSignatures(t, resolved))
 		}
 		return b.typeToTypeNode(b.ch.getIntersectionType(types))
 	}
 
 	restoreFlags := b.saveRestoreFlags()
 	b.ctx.flags |= nodebuilder.FlagsInObjectTypeLiteral
-	members := b.createTypeNodesFromResolvedType(resolved)
+	members := b.createTypeNodesFromResolvedType(t, resolved)
 	restoreFlags()
 	typeLiteralNode := b.f.NewTypeLiteralNode(members)
 	b.ctx.approximateLength += 2

@@ -1167,9 +1167,18 @@ func (t *ConstrainedType) AsConstrainedType() *ConstrainedType { return t }
 
 type StructuredType struct {
 	ConstrainedType
+	resolved memo[*ResolvedMembers] // Set once the members are resolved
+}
+
+// ResolvedMembers are the resolved members of a structured type. The
+// members of class, interface and reference types are resolved lazily from
+// their member layout: properties are instantiated on first use, and the
+// member table is built only when needed.
+type ResolvedMembers struct {
 	members    ast.SymbolTable
 	properties []*ast.Symbol
 	extra      *structuredTypeExtra
+	lazy       *LazyState // For class, interface and reference types
 }
 
 type structuredTypeExtra struct {
@@ -1182,21 +1191,21 @@ type structuredTypeExtra struct {
 
 func (t *StructuredType) AsStructuredType() *StructuredType { return t }
 
-func (t *StructuredType) CallSignatures() []*Signature {
+func (t *ResolvedMembers) CallSignatures() []*Signature {
 	if t.extra == nil {
 		return nil
 	}
 	return slices.Clip(t.extra.signatures[:t.extra.callSignatureCount])
 }
 
-func (t *StructuredType) ConstructSignatures() []*Signature {
+func (t *ResolvedMembers) ConstructSignatures() []*Signature {
 	if t.extra == nil {
 		return nil
 	}
 	return slices.Clip(t.extra.signatures[t.extra.callSignatureCount:])
 }
 
-func (t *StructuredType) getMember(c *Checker, name string) *ast.Symbol {
+func (t *ResolvedMembers) getMember(c *Checker, name string) *ast.Symbol {
 	if t.members != nil {
 		return t.members.Get(name)
 	}
@@ -1211,7 +1220,7 @@ func (t *StructuredType) getMember(c *Checker, name string) *ast.Symbol {
 	return t.getPropertyAt(c, index)
 }
 
-func (t *StructuredType) getMembers(c *Checker) ast.SymbolTable {
+func (t *ResolvedMembers) getMembers(c *Checker) ast.SymbolTable {
 	if t.members == nil {
 		if properties := t.getProperties(c); len(properties) != 0 {
 			t.members = ast.NewSymbolTableWithCapacity(len(properties))
@@ -1223,7 +1232,7 @@ func (t *StructuredType) getMembers(c *Checker) ast.SymbolTable {
 	return t.members
 }
 
-func (t *StructuredType) getPropertyAt(c *Checker, index int) *ast.Symbol {
+func (t *ResolvedMembers) getPropertyAt(c *Checker, index int) *ast.Symbol {
 	lazy := t.getLazyState()
 	if lazy == nil {
 		return t.properties[index]
@@ -1242,23 +1251,23 @@ func (t *StructuredType) getPropertyAt(c *Checker, index int) *ast.Symbol {
 		}
 		t.properties[index] = member
 		if c.logResults() {
-			c.logPropertySlotDiscard(t, lazy, index)
+			c.logPropertySlotDiscard(t, index)
 		}
 	}
 	return member
 }
 
-func (t *StructuredType) getProperties(c *Checker) []*ast.Symbol {
+func (t *ResolvedMembers) getProperties(c *Checker) []*ast.Symbol {
 	if lazy := t.getLazyState(); lazy != nil && !lazy.propertiesResolved {
 		for i := range lazy.layout.members.Len() {
 			t.getPropertyAt(c, i)
 		}
 		lazy.propertiesResolved = true
 	}
-	return t.AsStructuredType().properties
+	return t.properties
 }
 
-func (t *StructuredType) hasProperties() bool {
+func (t *ResolvedMembers) hasProperties() bool {
 	if len(t.properties) != 0 {
 		return true
 	}
@@ -1269,36 +1278,38 @@ func (t *StructuredType) hasProperties() bool {
 	return lazy.layout.members.Len() != 0
 }
 
-func (t *StructuredType) getLazyState() *LazyState {
-	if t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsReference) != 0 {
-		return t.AsType().AsTypeReference().lazy
-	}
-	return nil
+func (t *ResolvedMembers) getLazyState() *LazyState {
+	return t.lazy
 }
 
-func (t *StructuredType) getSignatures() []*Signature {
+func (t *ResolvedMembers) getSignatures() []*Signature {
 	if t.extra == nil {
 		return nil
 	}
 	return t.extra.signatures
 }
 
-func (t *StructuredType) getIndexInfos() []*IndexInfo {
+func (t *ResolvedMembers) getIndexInfos() []*IndexInfo {
 	if t.extra == nil {
 		return nil
 	}
 	return t.extra.indexInfos
 }
 
-func (t *StructuredType) ensureExtra() *structuredTypeExtra {
+func (t *ResolvedMembers) ensureExtra(c *Checker) *structuredTypeExtra {
 	if t.extra == nil {
-		t.extra = t.checker.structuredTypeExtraArena.New()
+		t.extra = c.structuredTypeExtraArena.New()
 	}
 	return t.extra
 }
 
+// Properties returns the properties of the type, if its members are
+// resolved.
 func (t *StructuredType) Properties() []*ast.Symbol {
-	return t.getProperties(t.checker)
+	if r := t.resolved.peekStore(); r != nil {
+		return r.getProperties(t.checker)
+	}
+	return nil
 }
 
 // Except for tuple type references and reverse mapped types, all object types have an associated symbol.
@@ -1349,7 +1360,6 @@ type TypeReference struct {
 	ObjectType
 	node                  *ast.Node // TypeReferenceNode | ArrayTypeNode | TupleTypeNode when deferred, else nil
 	resolvedTypeArguments memo[[]*Type]
-	lazy                  *LazyState // Resolved member layout and instantiation state
 }
 
 type LazyState struct {

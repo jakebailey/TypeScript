@@ -401,6 +401,37 @@ func (m *memo[T]) peek(c *Checker) T {
 	return m.memoValue
 }
 
+// resolvedMembersFast returns the resolved members of the structured type t
+// from the store, for the fast path of resolveStructuredTypeMembers, which
+// reads them when nothing must be accounted for and leaves anything else to
+// its slow path. It is not generic, so that the fast path inlines.
+func (t *Type) resolvedMembersFast() *ResolvedMembers {
+	// SAFETY: Callers only pass structured types, which embed StructuredType
+	// at offset zero.
+	return (*StructuredType)(unsafe.Pointer(t)).resolved.memoValue
+}
+
+// storeUnlogged caches v, or forgets the cached result if v is zero, for a
+// result whose caller logs how to discard it itself.
+func (m *memo[T]) storeUnlogged(c *Checker, v T) {
+	if c.overlaying() {
+		if isZeroValue(&v) {
+			delete(c.overlay, m.overlayKey())
+		} else {
+			c.putOverlayEntry(m.overlayKey(), m.overlayEntry(v))
+		}
+		return
+	}
+	m.memoValue = v
+}
+
+// peekResolvedMembers returns the members of t if they are resolved, or nil,
+// without resolving them or accounting for anything. Whether they are
+// resolved yet depends on what was resolved first.
+func (c *Checker) peekResolvedMembers(t *Type) *ResolvedMembers {
+	return t.AsStructuredType().resolved.peek(c)
+}
+
 // peekStore returns the result the store has, for inspecting it outside of
 // any checker.
 func (m *memo[T]) peekStore() T {

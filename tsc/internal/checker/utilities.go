@@ -798,6 +798,15 @@ func hasObjectLiteralMembers(t *Type) bool {
 	return t.symbol.Flags()&ast.SymbolFlagsObjectLiteral != 0
 }
 
+// createdProperties returns the properties of a type created with its
+// members, which the store has from its creation.
+func createdProperties(t *Type) []*ast.Symbol {
+	if r := t.AsStructuredType().resolved.peekStore(); r != nil {
+		return r.properties
+	}
+	return nil
+}
+
 // compareObjectMembers orders resolved object types by what their members
 // declare, and with withTypes, by the types of members of object literal
 // types, which are set when the members are created. Members are created per
@@ -805,8 +814,8 @@ func hasObjectLiteralMembers(t *Type) bool {
 // pairwise since getNamedMembers sorts the properties.
 func compareObjectMembers(t1, t2 *Type, withTypes bool) int {
 	c := t1.checker
-	p1 := t1.AsStructuredType().properties
-	p2 := t2.AsStructuredType().properties
+	p1 := createdProperties(t1)
+	p2 := createdProperties(t2)
 	if n := len(p1) - len(p2); n != 0 {
 		return n
 	}
