@@ -3,6 +3,7 @@ package compiler
 import (
 	"context"
 	"math"
+	"os"
 	"slices"
 	"sort"
 	"sync"
@@ -380,21 +381,35 @@ func (p *checkerPool) getCheckerNonExclusive() (*checker.Checker, func()) {
 	return p.checkers[0], noop
 }
 
+// sharedStoreExperiment makes every checker of a pool share one store.
+var sharedStoreExperiment = os.Getenv("TSGO_SHARED_STORE") != ""
+
 func (p *checkerPool) createCheckers() {
 	p.createCheckersOnce.Do(func() {
 		checkerCount := len(p.checkers)
-		wg := core.NewWorkGroup(core.WorkGroupConcurrency(p.program.SingleThreaded()))
-		for i := range checkerCount {
-			wg.Queue(func() {
-				var tracer *checker.Tracer
-				if p.tracing != nil {
-					tracer = checker.NewTracer(p.tracing, i)
-				}
-				p.checkers[i], p.locks[i] = checker.NewChecker(p.program, tracer)
-			})
+		if sharedStoreExperiment {
+			// Every checker shares the store of the first.
+			var tracer *checker.Tracer
+			if p.tracing != nil {
+				tracer = checker.NewTracer(p.tracing, 0)
+			}
+			p.checkers[0], p.locks[0] = checker.NewChecker(p.program, tracer)
+			for i := 1; i < checkerCount; i++ {
+				p.checkers[i], p.locks[i] = p.checkers[0].Clone(), p.locks[0]
+			}
+		} else {
+			wg := core.NewWorkGroup(core.WorkGroupConcurrency(p.program.SingleThreaded()))
+			for i := range checkerCount {
+				wg.Queue(func() {
+					var tracer *checker.Tracer
+					if p.tracing != nil {
+						tracer = checker.NewTracer(p.tracing, i)
+					}
+					p.checkers[i], p.locks[i] = checker.NewChecker(p.program, tracer)
+				})
+			}
+			wg.RunAndWait()
 		}
-
-		wg.RunAndWait()
 
 		associations := p.associations
 		if associations == nil {
