@@ -384,6 +384,10 @@ func (p *checkerPool) getCheckerNonExclusive() (*checker.Checker, func()) {
 // sharedStoreExperiment makes every checker of a pool share one store.
 var sharedStoreExperiment = os.Getenv("TSGO_SHARED_STORE") != ""
 
+// sharedStoreConcurrent makes the checkers sharing a store run concurrently,
+// which the store does not support yet.
+var sharedStoreConcurrent = os.Getenv("TSGO_SHARED_STORE") == "concurrent"
+
 func (p *checkerPool) createCheckers() {
 	p.createCheckersOnce.Do(func() {
 		checkerCount := len(p.checkers)
@@ -396,6 +400,9 @@ func (p *checkerPool) createCheckers() {
 			p.checkers[0], p.locks[0] = checker.NewChecker(p.program, tracer)
 			for i := 1; i < checkerCount; i++ {
 				p.checkers[i], p.locks[i] = p.checkers[0].Clone(), p.locks[0]
+				if sharedStoreConcurrent {
+					p.locks[i] = &sync.Mutex{}
+				}
 			}
 		} else {
 			wg := core.NewWorkGroup(core.WorkGroupConcurrency(p.program.SingleThreaded()))

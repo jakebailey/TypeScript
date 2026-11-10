@@ -1,7 +1,8 @@
 package core
 
 import (
-	"slices"
+	"sync"
+	"sync/atomic"
 )
 
 // Links store
@@ -40,29 +41,53 @@ const (
 )
 
 // PagedLinkStore implements a sparse-array-like structure for storing elements keyed by dense uint64 keys.
-// Elements are allocated in an area, element references are stored in fixed-size pages of 256 entries, and
+// Elements are allocated in an arena, element references are stored in fixed-size pages of 256 entries, and
 // an index of pages is maintained in a growable list.
-
+//
+// It is safe for concurrent use. Looking up an element that exists takes
+// only atomic loads; creating an element, its page, or a longer index takes
+// a lock, and publishes it with an atomic store.
 type PagedLinkStore[V any] struct {
-	pages []*[LinkPageSize]*V
+	pages atomic.Pointer[[]atomic.Pointer[linkPage[V]]]
+	mu    sync.Mutex // Guards growing pages, creating pages and elements, and arena
 	arena Arena[V]
 }
 
+type linkPage[V any] [LinkPageSize]atomic.Pointer[V]
+
 func (s *PagedLinkStore[V]) Get(key uint64) *V {
-	pageIndex := key >> LinkPageShift
-	if int(pageIndex) >= len(s.pages) {
-		// Grow the length of the list to pageIndex+1
-		s.pages = slices.Grow(s.pages, int(pageIndex)-len(s.pages)+1)[:pageIndex+1]
+	if link := s.TryGet(key); link != nil {
+		return link
 	}
-	page := s.pages[pageIndex]
+	return s.create(key)
+}
+
+func (s *PagedLinkStore[V]) create(key uint64) *V {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	pageIndex := int(key >> LinkPageShift)
+	pages := s.pages.Load()
+	if pages == nil || pageIndex >= len(*pages) {
+		var old []atomic.Pointer[linkPage[V]]
+		if pages != nil {
+			old = *pages
+		}
+		grown := make([]atomic.Pointer[linkPage[V]], max(pageIndex+1, 2*len(old)))
+		for i := range old {
+			grown[i].Store(old[i].Load())
+		}
+		pages = &grown
+		s.pages.Store(pages)
+	}
+	page := (*pages)[pageIndex].Load()
 	if page == nil {
-		page = new([LinkPageSize]*V)
-		s.pages[pageIndex] = page
+		page = new(linkPage[V])
+		(*pages)[pageIndex].Store(page)
 	}
-	link := page[key&LinkPageMask]
+	link := page[key&LinkPageMask].Load()
 	if link == nil {
 		link = s.arena.New()
-		page[key&LinkPageMask] = link
+		page[key&LinkPageMask].Store(link)
 	}
 	return link
 }
@@ -72,10 +97,11 @@ func (s *PagedLinkStore[V]) Has(key uint64) bool {
 }
 
 func (s *PagedLinkStore[V]) TryGet(key uint64) *V {
-	pageIndex := key >> LinkPageShift
-	if int(pageIndex) < len(s.pages) {
-		if page := s.pages[pageIndex]; page != nil {
-			return page[key&LinkPageMask]
+	if pages := s.pages.Load(); pages != nil {
+		if pageIndex := key >> LinkPageShift; pageIndex < uint64(len(*pages)) {
+			if page := (*pages)[pageIndex].Load(); page != nil {
+				return page[key&LinkPageMask].Load()
+			}
 		}
 	}
 	return nil

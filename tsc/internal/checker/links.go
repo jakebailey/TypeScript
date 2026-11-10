@@ -74,3 +74,20 @@ func (s *symbolLinkStore[V]) TryGet(symbol *ast.Symbol) *V {
 	}
 	return s.links.TryGet(id)
 }
+
+// sourceFileLinkStore is a nodeLinkStore keyed by source files.
+type sourceFileLinkStore[V any] struct {
+	nodes nodeLinkStore[V]
+}
+
+func (s *sourceFileLinkStore[V]) Get(file *ast.SourceFile) *V {
+	return s.nodes.Get(file.AsNode())
+}
+
+func (s *sourceFileLinkStore[V]) Has(file *ast.SourceFile) bool {
+	return s.nodes.Has(file.AsNode())
+}
+
+func (s *sourceFileLinkStore[V]) TryGet(file *ast.SourceFile) *V {
+	return s.nodes.TryGet(file.AsNode())
+}

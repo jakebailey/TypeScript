@@ -60,7 +60,10 @@ const (
 	BlockIdSize   = core.LinkPageSize
 )
 
+// NodeIdGenerator gives ids from blocks of consecutive ids. It is safe for
+// concurrent use.
 type NodeIdGenerator struct {
+	mu     sync.Mutex
 	nextId uint64
 	lastId uint64
 }
@@ -68,20 +71,30 @@ type NodeIdGenerator struct {
 func (a *NodeIdGenerator) GetNodeId(node *Node) NodeId {
 	id := node.id.Load()
 	if id == 0 {
-		if a.nextId == a.lastId {
-			a.nextId = nextNodeBlockId.Add(BlockIdSize) - BlockIdSize
-			a.lastId = a.nextId + BlockIdSize
-		}
-		id = a.nextId + BlockIdOffset
-		a.nextId++
-		if !node.id.CompareAndSwap(0, id) {
-			id = node.id.Load()
-		}
+		id = a.assign(node)
 	}
 	return NodeId(id)
 }
 
+func (a *NodeIdGenerator) assign(node *Node) uint64 {
+	a.mu.Lock()
+	if a.nextId == a.lastId {
+		a.nextId = nextNodeBlockId.Add(BlockIdSize) - BlockIdSize
+		a.lastId = a.nextId + BlockIdSize
+	}
+	id := a.nextId + BlockIdOffset
+	a.nextId++
+	a.mu.Unlock()
+	if !node.id.CompareAndSwap(0, id) {
+		id = node.id.Load()
+	}
+	return id
+}
+
+// SymbolIdGenerator gives ids from blocks of consecutive ids. It is safe for
+// concurrent use.
 type SymbolIdGenerator struct {
+	mu     sync.Mutex
 	nextId uint64
 	lastId uint64
 }
@@ -89,17 +102,24 @@ type SymbolIdGenerator struct {
 func (a *SymbolIdGenerator) GetSymbolId(symbol *Symbol) SymbolId {
 	id := symbol.id.Load()
 	if id == 0 {
-		if a.nextId == a.lastId {
-			a.nextId = nextSymbolBlockId.Add(BlockIdSize) - BlockIdSize
-			a.lastId = a.nextId + BlockIdSize
-		}
-		id = a.nextId + BlockIdOffset
-		a.nextId++
-		if !symbol.id.CompareAndSwap(0, id) {
-			id = symbol.id.Load()
-		}
+		id = a.assign(symbol)
 	}
 	return SymbolId(id)
+}
+
+func (a *SymbolIdGenerator) assign(symbol *Symbol) uint64 {
+	a.mu.Lock()
+	if a.nextId == a.lastId {
+		a.nextId = nextSymbolBlockId.Add(BlockIdSize) - BlockIdSize
+		a.lastId = a.nextId + BlockIdSize
+	}
+	id := a.nextId + BlockIdOffset
+	a.nextId++
+	a.mu.Unlock()
+	if !symbol.id.CompareAndSwap(0, id) {
+		id = symbol.id.Load()
+	}
+	return id
 }
 
 func GetSymbolTable(data *SymbolTable) SymbolTable {
