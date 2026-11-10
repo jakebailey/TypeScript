@@ -3354,7 +3354,7 @@ func (c *Checker) isTypeSubsetOfUnion(source *Type, target *Type) bool {
 		if len(sourceTypes) > len(targetTypes) {
 			return false
 		}
-		// Scan by identity unless a few source types are looked for in a large target. A CompareTypes call costs
+		// Scan by identity unless a few source types are looked for in a large target. A compareTypes call costs
 		// roughly 8 pointer comparisons, so there a binary search is cheaper than walking the target.
 		if len(sourceTypes)*bits.Len(uint(len(targetTypes)))*8 >= len(targetTypes) {
 			for _, t := range sourceTypes {
@@ -3362,13 +3362,13 @@ func (c *Checker) isTypeSubsetOfUnion(source *Type, target *Type) bool {
 				if i < 0 {
 					return false
 				}
-				// Union types are sorted by CompareTypes, so the next source type can only appear after this one.
+				// Union types are sorted by compareTypes, so the next source type can only appear after this one.
 				targetTypes = targetTypes[i+1:]
 			}
 			return true
 		}
 		for _, t := range sourceTypes {
-			i, found := slices.BinarySearchFunc(targetTypes, t, CompareTypes)
+			i, found := slices.BinarySearchFunc(targetTypes, t, c.compareTypes)
 			if !found {
 				return false
 			}
@@ -3379,7 +3379,7 @@ func (c *Checker) isTypeSubsetOfUnion(source *Type, target *Type) bool {
 	if source.flags&TypeFlagsEnumLike != 0 && c.getBaseTypeOfEnumLikeType(source) == target {
 		return true
 	}
-	return containsType(target.Types(), source)
+	return c.containsType(target.Types(), source)
 }
 
 func (r *Relater) unionOrIntersectionRelatedTo(source *Type, target *Type, reportErrors bool, intersectionState IntersectionState) Ternary {
@@ -3453,7 +3453,7 @@ func (r *Relater) unionOrIntersectionRelatedTo(source *Type, target *Type, repor
 
 func (r *Relater) someTypeRelatedToType(source *Type, target *Type, reportErrors bool, intersectionState IntersectionState) Ternary {
 	sourceTypes := source.Types()
-	if source.flags&TypeFlagsUnion != 0 && containsType(sourceTypes, target) {
+	if source.flags&TypeFlagsUnion != 0 && r.c.containsType(sourceTypes, target) {
 		return TernaryTrue
 	}
 	for i, t := range sourceTypes {
@@ -3507,7 +3507,7 @@ func (r *Relater) getUndefinedStrippedTargetIfNeeded(source *Type, target *Type)
 func (r *Relater) typeRelatedToSomeType(source *Type, target *Type, reportErrors bool, intersectionState IntersectionState) Ternary {
 	targetTypes := target.Types()
 	if target.flags&TypeFlagsUnion != 0 {
-		if containsType(targetTypes, source) {
+		if r.c.containsType(targetTypes, source) {
 			return TernaryTrue
 		}
 		if r.relation != r.c.comparableRelation && target.objectFlags&ObjectFlagsPrimitiveUnion != 0 && source.flags&TypeFlagsEnumLiteral == 0 &&
@@ -3534,7 +3534,7 @@ func (r *Relater) typeRelatedToSomeType(source *Type, target *Type, reportErrors
 			case source.flags&TypeFlagsBigIntLiteral != 0:
 				primitive = r.c.bigintType
 			}
-			if primitive != nil && containsType(targetTypes, primitive) || alternateForm != nil && containsType(targetTypes, alternateForm) {
+			if primitive != nil && r.c.containsType(targetTypes, primitive) || alternateForm != nil && r.c.containsType(targetTypes, alternateForm) {
 				return TernaryTrue
 			}
 			return TernaryFalse

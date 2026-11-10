@@ -26935,7 +26935,7 @@ func (c *Checker) getInferTypeParameters(node *ast.Node) []*Type {
 			result = append(result, c.getDeclaredTypeOfSymbol(symbol))
 		}
 	}
-	slices.SortFunc(result, CompareTypes)
+	slices.SortFunc(result, c.compareTypes)
 	return result
 }
 
@@ -28920,7 +28920,7 @@ func (c *Checker) getUnionTypeWorker(types []*Type, unionReduction UnionReductio
 		namedUnions := c.addNamedUnions(nil, types)
 		var reducedTypes []*Type
 		for _, t := range typeSet {
-			if !core.Some(namedUnions, func(u *Type) bool { return containsType(u.Types(), t) }) {
+			if !core.Some(namedUnions, func(u *Type) bool { return c.containsType(u.Types(), t) }) {
 				reducedTypes = append(reducedTypes, t)
 			}
 		}
@@ -28935,7 +28935,7 @@ func (c *Checker) getUnionTypeWorker(types []*Type, unionReduction UnionReductio
 		}
 		if namedTypesCount+len(reducedTypes) == len(typeSet) {
 			for _, t := range namedUnions {
-				reducedTypes, _ = insertType(reducedTypes, t)
+				reducedTypes, _ = c.insertType(reducedTypes, t)
 			}
 			origin = c.newUnionType(ObjectFlagsNone, reducedTypes)
 		}
@@ -29019,7 +29019,7 @@ func (c *Checker) addTypesToUnion(sourceTypes []*Type, types []*Type) ([]*Type, 
 	}
 	if len(types) >= 2 {
 		// Sort and deduplicate types
-		slices.SortStableFunc(types, CompareTypes)
+		slices.SortStableFunc(types, c.compareTypes)
 		unique := 1
 		for _, t := range types[1:] {
 			if t != types[unique-1] {
@@ -29058,7 +29058,7 @@ func (c *Checker) removeRedundantLiteralTypes(types []*Type, includes TypeFlags,
 			flags&TypeFlagsBigIntLiteral != 0 && includes&TypeFlagsBigInt != 0 ||
 			flags&TypeFlagsUniqueESSymbol != 0 && includes&TypeFlagsESSymbol != 0 ||
 			reduceVoidUndefined && flags&TypeFlagsUndefined != 0 && includes&TypeFlagsVoid != 0 ||
-			isFreshLiteralType(t) && containsType(types, t.AsLiteralType().regularType)
+			isFreshLiteralType(t) && c.containsType(types, t.AsLiteralType().regularType)
 		if remove {
 			types = slices.Delete(types, i, i+1)
 		}
@@ -29115,14 +29115,14 @@ func (c *Checker) removeConstrainedTypeVariables(types []*Type) []*Type {
 					index = 1
 				}
 				if t.AsIntersectionType().types[index] == typeVariable {
-					primitives, _ = insertType(primitives, t.AsIntersectionType().types[1-index])
+					primitives, _ = c.insertType(primitives, t.AsIntersectionType().types[1-index])
 				}
 			}
 		}
 		// If every constituent in the type variable's constraint is covered by an intersection of the type
 		// variable and that constituent, remove those intersections and substitute the type variable.
 		constraint := c.getBaseConstraintOfType(typeVariable)
-		if everyType(constraint, func(t *Type) bool { return containsType(primitives, t) }) {
+		if everyType(constraint, func(t *Type) bool { return c.containsType(primitives, t) }) {
 			i := len(types)
 			for i > 0 {
 				i--
@@ -29132,12 +29132,12 @@ func (c *Checker) removeConstrainedTypeVariables(types []*Type) []*Type {
 					if t.AsIntersectionType().types[0].flags&TypeFlagsTypeVariable == 0 {
 						index = 1
 					}
-					if t.AsIntersectionType().types[index] == typeVariable && containsType(primitives, t.AsIntersectionType().types[1-index]) {
+					if t.AsIntersectionType().types[index] == typeVariable && c.containsType(primitives, t.AsIntersectionType().types[1-index]) {
 						types = slices.Delete(types, i, i+1)
 					}
 				}
 			}
-			types, _ = insertType(types, typeVariable)
+			types, _ = c.insertType(types, typeVariable)
 		}
 	}
 	return types
@@ -29606,7 +29606,7 @@ func (c *Checker) intersectUnionsOfPrimitiveTypes(types []*Type) ([]*Type, bool)
 	for _, u := range unionTypes {
 		for _, t := range u.Types() {
 			var inserted bool
-			if checked, inserted = insertType(checked, t); inserted {
+			if checked, inserted = c.insertType(checked, t); inserted {
 				if c.eachUnionContains(unionTypes, t) {
 					// undefinedType/missingType are always sorted first so we leverage that here
 					if t == c.undefinedType && len(result) != 0 && result[0] == c.missingType {
@@ -29616,7 +29616,7 @@ func (c *Checker) intersectUnionsOfPrimitiveTypes(types []*Type) ([]*Type, bool)
 						result[0] = c.missingType
 						continue
 					}
-					result, _ = insertType(result, t)
+					result, _ = c.insertType(result, t)
 				}
 			}
 		}
@@ -29640,14 +29640,14 @@ func (c *Checker) eachUnionContains(unionTypes []*Type, t *Type) bool {
 
 func (c *Checker) unionContainsType(union *Type, t *Type, matchSymbol bool) bool {
 	types := union.Types()
-	if containsType(types, t) {
+	if c.containsType(types, t) {
 		return true
 	}
 	if t == c.missingType {
-		return containsType(types, c.undefinedType)
+		return c.containsType(types, c.undefinedType)
 	}
 	if t == c.undefinedType {
-		return containsType(types, c.missingType)
+		return c.containsType(types, c.missingType)
 	}
 	var primitive *Type
 	switch {
@@ -29660,7 +29660,7 @@ func (c *Checker) unionContainsType(union *Type, t *Type, matchSymbol bool) bool
 	case t.flags&TypeFlagsUniqueESSymbol != 0 && matchSymbol:
 		primitive = c.esSymbolType
 	}
-	return primitive != nil && containsType(types, primitive)
+	return primitive != nil && c.containsType(types, primitive)
 }
 
 func (c *Checker) getCrossProductIntersections(types []*Type, flags IntersectionFlags) []*Type {
@@ -29834,11 +29834,11 @@ func (c *Checker) removeType(t *Type, targetType *Type) *Type {
 		}
 		return t
 	}
-	if origin := t.AsUnionType().origin; origin != nil && origin.flags&TypeFlagsUnion != 0 && containsType(origin.Types(), targetType) {
+	if origin := t.AsUnionType().origin; origin != nil && origin.flags&TypeFlagsUnion != 0 && c.containsType(origin.Types(), targetType) {
 		return c.filterType(t, func(t *Type) bool { return t != targetType })
 	}
 	types := t.Types()
-	if i, ok := slices.BinarySearchFunc(types, targetType, CompareTypes); ok {
+	if i, ok := slices.BinarySearchFunc(types, targetType, c.compareTypes); ok {
 		if len(types) == 2 {
 			return types[1-i]
 		}
@@ -29853,13 +29853,13 @@ func (c *Checker) removeType(t *Type, targetType *Type) *Type {
 	return t
 }
 
-func containsType(types []*Type, t *Type) bool {
-	_, ok := slices.BinarySearchFunc(types, t, CompareTypes)
+func (c *Checker) containsType(types []*Type, t *Type) bool {
+	_, ok := slices.BinarySearchFunc(types, t, c.compareTypes)
 	return ok
 }
 
-func insertType(types []*Type, t *Type) ([]*Type, bool) {
-	if i, ok := slices.BinarySearchFunc(types, t, CompareTypes); !ok {
+func (c *Checker) insertType(types []*Type, t *Type) ([]*Type, bool) {
+	if i, ok := slices.BinarySearchFunc(types, t, c.compareTypes); !ok {
 		return slices.Insert(types, i, t), true
 	}
 	return types, false
@@ -30511,7 +30511,7 @@ func (c *Checker) getSuggestionForNonexistentIndexSignature(objectType *Type, ex
 
 func (c *Checker) getSuggestedTypeForNonexistentStringLiteralType(source *Type, target *Type) *Type {
 	candidates := core.FilterSeq(target.Types(), func(t *Type) bool { return t.flags&TypeFlagsStringLiteral != 0 })
-	return core.GetSpellingSuggestionWithMaxCandidateCount(getStringLiteralValue(source), candidates, getStringLiteralValue, CompareTypes, 1000)
+	return core.GetSpellingSuggestionWithMaxCandidateCount(getStringLiteralValue(source), candidates, getStringLiteralValue, c.compareTypes, 1000)
 }
 
 func getIndexNodeForAccessExpression(accessNode *ast.Node) *ast.Node {
@@ -34296,7 +34296,7 @@ func (c *Checker) instantiateContextualType(contextualType *Type, node *ast.Node
 				// literals actually end up widening to 'boolean' (see #48363).
 				t := c.instantiateInstantiableTypes(contextualType, inferenceContext.returnMapper)
 				if t.flags&TypeFlagsAnyOrUnknown == 0 {
-					if t.flags&TypeFlagsUnion != 0 && containsType(t.Types(), c.regularFalseType) && containsType(t.Types(), c.regularTrueType) {
+					if t.flags&TypeFlagsUnion != 0 && c.containsType(t.Types(), c.regularFalseType) && c.containsType(t.Types(), c.regularTrueType) {
 						return c.filterType(t, func(t *Type) bool {
 							return t != c.regularFalseType && t != c.regularTrueType
 						})

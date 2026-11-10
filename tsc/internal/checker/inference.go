@@ -424,7 +424,7 @@ func (c *Checker) compareTypesAndDepth(t1, t2 *Type) int {
 	if d1 != d2 {
 		return d2 - d1 // Largest depth sorts first
 	}
-	return CompareTypes(t1, t2)
+	return c.compareTypes(t1, t2)
 }
 
 // Return the depth of the given type up to the given maximum depth. For generic aliased types

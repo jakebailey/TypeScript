@@ -427,7 +427,27 @@ func (c *Checker) compareNodes(n1, n2 *ast.Node) int {
 	return n1.Pos() - n2.Pos()
 }
 
+// CompareTypes orders types as unions do; see compareTypes.
 func CompareTypes(t1, t2 *Type) int {
+	if t1 == nil || t2 == nil {
+		return compareNilTypes(t1, t2)
+	}
+	return t1.checker.compareTypes(t1, t2)
+}
+
+func compareNilTypes(t1, t2 *Type) int {
+	switch {
+	case t1 == t2:
+		return 0
+	case t1 == nil:
+		return -1
+	}
+	return 1
+}
+
+// compareTypes orders types as unions do. Members of object literal types
+// are read as ch sees them.
+func (ch *Checker) compareTypes(t1, t2 *Type) int {
 	if t1 == t2 {
 		return 0
 	}
@@ -445,7 +465,7 @@ func CompareTypes(t1, t2 *Type) int {
 		return c
 	}
 	// Order named types by name and, in the case of aliased types, by alias type arguments.
-	if c := compareTypeNames(t1, t2); c != 0 {
+	if c := ch.compareTypeNames(t1, t2); c != 0 {
 		return c
 	}
 	// We have unnamed types or types with identical names. Now sort by data specific to the type.
@@ -465,13 +485,13 @@ func CompareTypes(t1, t2 *Type) int {
 			}
 			// A single instantiation expression can produce multiple types for union constituents,
 			// so compare their source declarations before comparing the shared expression node.
-			if c := t1.checker.compareNodes(declaration1, declaration2); c != 0 {
+			if c := ch.compareNodes(declaration1, declaration2); c != 0 {
 				return c
 			}
-			if c := t1.checker.compareNodes(t1.AsInstantiationExpressionType().node, t2.AsInstantiationExpressionType().node); c != 0 {
+			if c := ch.compareNodes(t1.AsInstantiationExpressionType().node, t2.AsInstantiationExpressionType().node); c != 0 {
 				return c
 			}
-		} else if c := t1.checker.compareSymbols(t1.symbol, t2.symbol); c != 0 {
+		} else if c := ch.compareSymbols(t1.symbol, t2.symbol); c != 0 {
 			return c
 		}
 		// When object types have the same or no symbol, order by kind. We order type references before other kinds.
@@ -487,22 +507,22 @@ func CompareTypes(t1, t2 *Type) int {
 			// Here we know we have references to instantiations of the same type because we have matching targets.
 			if r1.node == nil && r2.node == nil {
 				// Non-deferred type references with the same target are sorted by their type argument lists.
-				if c := compareTypeLists(r1.typeArgumentsOfCreation(), r2.typeArgumentsOfCreation()); c != 0 {
+				if c := ch.compareTypeLists(r1.typeArgumentsOfCreation(), r2.typeArgumentsOfCreation()); c != 0 {
 					return c
 				}
 			} else {
 				// Deferred type references with the same target are ordered by the source location of the reference.
-				if c := t1.checker.compareNodes(r1.node, r2.node); c != 0 {
+				if c := ch.compareNodes(r1.node, r2.node); c != 0 {
 					return c
 				}
 				// Instantiations of the same deferred type reference are ordered by their associated type mappers
 				// (which reflect the mapping of in-scope type parameters to type arguments).
-				if c := compareTypeMappers(t1.AsObjectType().mapper, t2.AsObjectType().mapper); c != 0 {
+				if c := ch.compareTypeMappers(t1.AsObjectType().mapper, t2.AsObjectType().mapper); c != 0 {
 					return c
 				}
 			}
 			if r1.target != r2.target && r1.target.objectFlags&r2.target.objectFlags&ObjectFlagsTuple != 0 {
-				if c := t1.checker.compareTupleLabelDeclarations(r1.target.AsTupleType(), r2.target.AsTupleType()); c != 0 {
+				if c := ch.compareTupleLabelDeclarations(r1.target.AsTupleType(), r2.target.AsTupleType()); c != 0 {
 					return c
 				}
 			}
@@ -522,13 +542,13 @@ func CompareTypes(t1, t2 *Type) int {
 			if t1.objectFlags&ObjectFlagsReverseMapped != 0 {
 				r1 := t1.AsReverseMappedType()
 				r2 := t2.AsReverseMappedType()
-				if c := CompareTypes(r1.source, r2.source); c != 0 {
+				if c := ch.compareTypes(r1.source, r2.source); c != 0 {
 					return c
 				}
-				if c := CompareTypes(r1.mappedType, r2.mappedType); c != 0 {
+				if c := ch.compareTypes(r1.mappedType, r2.mappedType); c != 0 {
 					return c
 				}
-				if c := CompareTypes(r1.constraintType, r2.constraintType); c != 0 {
+				if c := ch.compareTypes(r1.constraintType, r2.constraintType); c != 0 {
 					return c
 				}
 			}
@@ -544,11 +564,11 @@ func CompareTypes(t1, t2 *Type) int {
 					m2 = castTypeMapper[CompositeTypeMapper](m2, TypeMapperKindComposite).m2
 				}
 			}
-			if c := compareTypeMappers(m1, m2); c != 0 {
+			if c := ch.compareTypeMappers(m1, m2); c != 0 {
 				return c
 			}
 			if hasObjectLiteralMembers(t1) && hasObjectLiteralMembers(t2) {
-				if c := compareObjectMembers(t1, t2, true /*withTypes*/); c != 0 {
+				if c := ch.compareObjectMembers(t1, t2, true /*withTypes*/); c != 0 {
 					return c
 				}
 				// Fresh, regular, and widened copies of the same literal differ only in
@@ -562,10 +582,10 @@ func CompareTypes(t1, t2 *Type) int {
 				// Instantiations of rest types, whose members may not be resolved yet, are
 				// ordered by the rest types they instantiate, which are created resolved.
 				if d1, d2 := t1.AsObjectType().target, t2.AsObjectType().target; d1 != nil && d2 != nil {
-					if c := CompareTypes(d1, d2); c != 0 {
+					if c := ch.compareTypes(d1, d2); c != 0 {
 						return c
 					}
-				} else if c := compareObjectMembers(t1, t2, false /*withTypes*/); c != 0 {
+				} else if c := ch.compareObjectMembers(t1, t2, false /*withTypes*/); c != 0 {
 					return c
 				}
 			}
@@ -575,7 +595,7 @@ func CompareTypes(t1, t2 *Type) int {
 		o1 := t1.AsUnionType().origin
 		o2 := t2.AsUnionType().origin
 		if o1 == nil && o2 == nil {
-			if c := compareTypeLists(t1.Types(), t2.Types()); c != 0 {
+			if c := ch.compareTypeLists(t1.Types(), t2.Types()); c != 0 {
 				return c
 			}
 		} else if o1 == nil {
@@ -583,18 +603,18 @@ func CompareTypes(t1, t2 *Type) int {
 		} else if o2 == nil {
 			return -1
 		} else {
-			if c := CompareTypes(o1, o2); c != 0 {
+			if c := ch.compareTypes(o1, o2); c != 0 {
 				return c
 			}
 		}
 	case t1.flags&TypeFlagsIntersection != 0:
 		// Intersections are ordered by their constituent type lists.
-		if c := compareTypeLists(t1.Types(), t2.Types()); c != 0 {
+		if c := ch.compareTypeLists(t1.Types(), t2.Types()); c != 0 {
 			return c
 		}
 	case t1.flags&(TypeFlagsEnum|TypeFlagsEnumLiteral|TypeFlagsUniqueESSymbol) != 0:
 		// Enum members are ordered by their symbol (and thus their declaration order).
-		if c := t1.checker.compareSymbols(t1.symbol, t2.symbol); c != 0 {
+		if c := ch.compareSymbols(t1.symbol, t2.symbol); c != 0 {
 			return c
 		}
 	case t1.flags&TypeFlagsStringLiteral != 0:
@@ -621,52 +641,52 @@ func CompareTypes(t1, t2 *Type) int {
 			return -1
 		}
 	case t1.flags&TypeFlagsTypeParameter != 0:
-		if c := t1.checker.compareSymbols(t1.symbol, t2.symbol); c != 0 {
+		if c := ch.compareSymbols(t1.symbol, t2.symbol); c != 0 {
 			return c
 		}
-		if c := compareTypeParameterOrigins(t1, t2); c != 0 {
+		if c := ch.compareTypeParameterOrigins(t1, t2); c != 0 {
 			return c
 		}
 	case t1.flags&TypeFlagsIndex != 0:
-		if c := CompareTypes(t1.AsIndexType().target, t2.AsIndexType().target); c != 0 {
+		if c := ch.compareTypes(t1.AsIndexType().target, t2.AsIndexType().target); c != 0 {
 			return c
 		}
 		if c := int(t1.AsIndexType().indexFlags) - int(t2.AsIndexType().indexFlags); c != 0 {
 			return c
 		}
 	case t1.flags&TypeFlagsIndexedAccess != 0:
-		if c := CompareTypes(t1.AsIndexedAccessType().objectType, t2.AsIndexedAccessType().objectType); c != 0 {
+		if c := ch.compareTypes(t1.AsIndexedAccessType().objectType, t2.AsIndexedAccessType().objectType); c != 0 {
 			return c
 		}
-		if c := CompareTypes(t1.AsIndexedAccessType().indexType, t2.AsIndexedAccessType().indexType); c != 0 {
+		if c := ch.compareTypes(t1.AsIndexedAccessType().indexType, t2.AsIndexedAccessType().indexType); c != 0 {
 			return c
 		}
 		if c := int(t1.AsIndexedAccessType().accessFlags) - int(t2.AsIndexedAccessType().accessFlags); c != 0 {
 			return c
 		}
 	case t1.flags&TypeFlagsConditional != 0:
-		if c := t1.checker.compareNodes(t1.AsConditionalType().root.node.AsNode(), t2.AsConditionalType().root.node.AsNode()); c != 0 {
+		if c := ch.compareNodes(t1.AsConditionalType().root.node.AsNode(), t2.AsConditionalType().root.node.AsNode()); c != 0 {
 			return c
 		}
-		if c := compareTypeMappers(t1.AsConditionalType().mapper, t2.AsConditionalType().mapper); c != 0 {
+		if c := ch.compareTypeMappers(t1.AsConditionalType().mapper, t2.AsConditionalType().mapper); c != 0 {
 			return c
 		}
 	case t1.flags&TypeFlagsSubstitution != 0:
-		if c := CompareTypes(t1.AsSubstitutionType().baseType, t2.AsSubstitutionType().baseType); c != 0 {
+		if c := ch.compareTypes(t1.AsSubstitutionType().baseType, t2.AsSubstitutionType().baseType); c != 0 {
 			return c
 		}
-		if c := CompareTypes(t1.AsSubstitutionType().constraint, t2.AsSubstitutionType().constraint); c != 0 {
+		if c := ch.compareTypes(t1.AsSubstitutionType().constraint, t2.AsSubstitutionType().constraint); c != 0 {
 			return c
 		}
 	case t1.flags&TypeFlagsTemplateLiteral != 0:
 		if c := slices.Compare(t1.AsTemplateLiteralType().texts, t2.AsTemplateLiteralType().texts); c != 0 {
 			return c
 		}
-		if c := compareTypeLists(t1.AsTemplateLiteralType().types, t2.AsTemplateLiteralType().types); c != 0 {
+		if c := ch.compareTypeLists(t1.AsTemplateLiteralType().types, t2.AsTemplateLiteralType().types); c != 0 {
 			return c
 		}
 	case t1.flags&TypeFlagsStringMapping != 0:
-		if c := CompareTypes(t1.AsStringMappingType().target, t2.AsStringMappingType().target); c != 0 {
+		if c := ch.compareTypes(t1.AsStringMappingType().target, t2.AsStringMappingType().target); c != 0 {
 			return c
 		}
 	}
@@ -674,7 +694,7 @@ func CompareTypes(t1, t2 *Type) int {
 	if t1.flags&TypeFlagsObject != 0 {
 		p1, _ := t1.checker.patternForType.get(t1)
 		p2, _ := t2.checker.patternForType.get(t2)
-		if c := t1.checker.compareNodes(p1, p2); c != 0 {
+		if c := ch.compareNodes(p1, p2); c != 0 {
 			return c
 		}
 	}
@@ -696,11 +716,11 @@ func getSortOrderFlags(t *Type) int {
 	return int(t.flags)
 }
 
-func compareTypeNames(t1, t2 *Type) int {
+func (ch *Checker) compareTypeNames(t1, t2 *Type) int {
 	s1 := getTypeNameSymbol(t1)
 	s2 := getTypeNameSymbol(t2)
 	if s1 == s2 {
-		return compareTypeLists(t1.alias.TypeArguments(), t2.alias.TypeArguments())
+		return ch.compareTypeLists(t1.alias.TypeArguments(), t2.alias.TypeArguments())
 	}
 	if s1 == nil {
 		return 1
@@ -712,7 +732,7 @@ func compareTypeNames(t1, t2 *Type) int {
 		return c
 	}
 	// Keep distinct same-named declarations together before comparing alias arguments or structure.
-	return t1.checker.compareSymbols(s1, s2)
+	return ch.compareSymbols(s1, s2)
 }
 
 func getTypeNameSymbol(t *Type) *ast.Symbol {
@@ -812,7 +832,7 @@ func createdProperties(t *Type) []*ast.Symbol {
 // types, which are set when the members are created. Members are created per
 // type, so they are compared by what they declare rather than by identity,
 // pairwise since getNamedMembers sorts the properties.
-func compareObjectMembers(t1, t2 *Type, withTypes bool) int {
+func (ch *Checker) compareObjectMembers(t1, t2 *Type, withTypes bool) int {
 	c := t1.checker
 	p1 := createdProperties(t1)
 	p2 := createdProperties(t2)
@@ -828,7 +848,7 @@ func compareObjectMembers(t1, t2 *Type, withTypes bool) int {
 			return r
 		}
 		if withTypes {
-			if r := CompareTypes(c.peekTypeOfObjectLiteralMember(s1), c.peekTypeOfObjectLiteralMember(s2)); r != 0 {
+			if r := ch.compareTypes(c.peekTypeOfObjectLiteralMember(s1), c.peekTypeOfObjectLiteralMember(s2)); r != 0 {
 				return r
 			}
 		}
@@ -874,7 +894,7 @@ func getTypeParameterOrigin(tp *TypeParameter) typeParameterOrigin {
 
 // Type parameters that share a symbol are copies derived from a common original.
 // Order them by how they were derived rather than by creation order.
-func compareTypeParameterOrigins(t1, t2 *Type) int {
+func (ch *Checker) compareTypeParameterOrigins(t1, t2 *Type) int {
 	p1 := t1.AsTypeParameter()
 	p2 := t2.AsTypeParameter()
 	o1 := getTypeParameterOrigin(p1)
@@ -887,22 +907,22 @@ func compareTypeParameterOrigins(t1, t2 *Type) int {
 		// Tuple this types have no symbol; their constraint is the tuple target,
 		// initialized at creation.
 		if t1.symbol == nil {
-			return CompareTypes(p1.constraintOfCreation(), p2.constraintOfCreation())
+			return ch.compareTypes(p1.constraintOfCreation(), p2.constraintOfCreation())
 		}
 	case typeParameterOriginDistributed:
-		return CompareTypes(p1.distributedType, p2.distributedType)
+		return ch.compareTypes(p1.distributedType, p2.distributedType)
 	case typeParameterOriginRestrictive:
-		return CompareTypes(p1.origin, p2.origin)
+		return ch.compareTypes(p1.origin, p2.origin)
 	case typeParameterOriginTupleElement:
-		if c := CompareTypes(p1.origin, p2.origin); c != 0 {
+		if c := ch.compareTypes(p1.origin, p2.origin); c != 0 {
 			return c
 		}
 		return slices.Index(p1.origin.AsTupleType().allTypeParameters, t1) - slices.Index(p2.origin.AsTupleType().allTypeParameters, t2)
 	case typeParameterOriginClone:
-		if c := CompareTypes(p1.target, p2.target); c != 0 {
+		if c := ch.compareTypes(p1.target, p2.target); c != 0 {
 			return c
 		}
-		return compareTypeMappers(getCloneOuterMapper(t1), getCloneOuterMapper(t2))
+		return ch.compareTypeMappers(getCloneOuterMapper(t1), getCloneOuterMapper(t2))
 	}
 	return 0
 }
@@ -937,19 +957,19 @@ func mapperTargetsType(m *TypeMapper, t *Type) bool {
 	return false
 }
 
-func compareTypeLists(s1, s2 []*Type) int {
+func (ch *Checker) compareTypeLists(s1, s2 []*Type) int {
 	if len(s1) != len(s2) {
 		return len(s1) - len(s2)
 	}
 	for i, t1 := range s1 {
-		if c := CompareTypes(t1, s2[i]); c != 0 {
+		if c := ch.compareTypes(t1, s2[i]); c != 0 {
 			return c
 		}
 	}
 	return 0
 }
 
-func compareTypeMappers(m1, m2 *TypeMapper) int {
+func (ch *Checker) compareTypeMappers(m1, m2 *TypeMapper) int {
 	if m1 == m2 {
 		return 0
 	}
@@ -968,24 +988,24 @@ func compareTypeMappers(m1, m2 *TypeMapper) int {
 	case TypeMapperKindSimple:
 		m1 := castTypeMapper[SimpleTypeMapper](m1, TypeMapperKindSimple)
 		m2 := castTypeMapper[SimpleTypeMapper](m2, TypeMapperKindSimple)
-		if c := CompareTypes(m1.source, m2.source); c != 0 {
+		if c := ch.compareTypes(m1.source, m2.source); c != 0 {
 			return c
 		}
-		return CompareTypes(m1.target, m2.target)
+		return ch.compareTypes(m1.target, m2.target)
 	case TypeMapperKindArray:
 		m1 := castTypeMapper[ArrayTypeMapper](m1, TypeMapperKindArray)
 		m2 := castTypeMapper[ArrayTypeMapper](m2, TypeMapperKindArray)
-		if c := compareTypeLists(m1.sources, m2.sources); c != 0 {
+		if c := ch.compareTypeLists(m1.sources, m2.sources); c != 0 {
 			return c
 		}
-		return compareTypeLists(m1.targets, m2.targets)
+		return ch.compareTypeLists(m1.targets, m2.targets)
 	case TypeMapperKindMerged:
 		m1 := castTypeMapper[MergedTypeMapper](m1, TypeMapperKindMerged)
 		m2 := castTypeMapper[MergedTypeMapper](m2, TypeMapperKindMerged)
-		if c := compareTypeMappers(m1.m1, m2.m1); c != 0 {
+		if c := ch.compareTypeMappers(m1.m1, m2.m1); c != 0 {
 			return c
 		}
-		return compareTypeMappers(m1.m2, m2.m2)
+		return ch.compareTypeMappers(m1.m2, m2.m2)
 	}
 	return 0
 }

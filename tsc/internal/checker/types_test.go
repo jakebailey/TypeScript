@@ -428,9 +428,9 @@ func TestTypeMapperDispatch(t *testing.T) {
 		assert.Equal(t, test.mapper.Map(c, source), test.result)
 		assert.Assert(t, !test.mapper.MapsThisOnly())
 	}
-	assert.Equal(t, compareTypeMappers(simple, newSimpleTypeMapper(source, target)), 0)
-	assert.Equal(t, compareTypeMappers(array, newArrayTypeMapper([]*Type{source, other}, []*Type{target, source})), 0)
-	assert.Equal(t, compareTypeMappers(merged, newMergedTypeMapper(simple, array)), 0)
+	assert.Equal(t, c.compareTypeMappers(simple, newSimpleTypeMapper(source, target)), 0)
+	assert.Equal(t, c.compareTypeMappers(array, newArrayTypeMapper([]*Type{source, other}, []*Type{target, source})), 0)
+	assert.Equal(t, c.compareTypeMappers(merged, newMergedTypeMapper(simple, array)), 0)
 	this := c.newTypeParameter(nil)
 	this.AsTypeParameter().isThisType = true
 	for _, mapper := range []*TypeMapper{
