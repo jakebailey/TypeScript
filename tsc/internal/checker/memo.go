@@ -4,7 +4,10 @@ import (
 	"iter"
 	"maps"
 	"math/bits"
+	"os"
 	"slices"
+	"sync"
+	"sync/atomic"
 	"unsafe"
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
@@ -379,36 +382,86 @@ func (c *Checker) memoCompute[T comparable](m *memo[T], compute func() T) T {
 	return v
 }
 
+// concurrentStores reports whether checkers may share a store concurrently,
+// in which case its maps take locks. It is set once, before any checker is
+// created, so that checkers that do not share a store pay nothing for it.
+var concurrentStores = os.Getenv("TSGO_SHARED_STORE") == "concurrent"
+
+// ConcurrentStores reports whether checkers may share a store concurrently.
+func ConcurrentStores() bool {
+	return concurrentStores
+}
+
 // internMap is a map of results each constructed from the inputs in its key
 // alone, without consulting any cached result, so caching or reusing one has
 // no effects to account for.
 type internMap[K comparable, V any] struct {
 	_       memoNoCopy
+	mu      sync.RWMutex // Guards entries if concurrentStores
 	entries map[K]V
 }
 
 func (m *internMap[K, V]) get(k K) (V, bool) {
+	if concurrentStores {
+		m.mu.RLock()
+		v, ok := m.entries[k]
+		m.mu.RUnlock()
+		return v, ok
+	}
 	v, ok := m.entries[k]
 	return v, ok
 }
 
 func (m *internMap[K, V]) has(k K) bool {
-	_, ok := m.entries[k]
+	_, ok := m.get(k)
 	return ok
 }
 
+// intern caches v for k, replacing any value cached for it.
 func (m *internMap[K, V]) intern(k K, v V) {
+	if concurrentStores {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+	}
 	if m.entries == nil {
 		m.entries = make(map[K]V)
 	}
 	m.entries[k] = v
 }
 
+// internFirst caches v for k unless a value is cached for it already, and
+// returns the value cached. A value constructed for k is only used if it is
+// the one cached, so that checkers sharing a store constructing it at once
+// agree on one.
+func (m *internMap[K, V]) internFirst(k K, v V) V {
+	if concurrentStores {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+	}
+	if existing, ok := m.entries[k]; ok {
+		return existing
+	}
+	if m.entries == nil {
+		m.entries = make(map[K]V)
+	}
+	m.entries[k] = v
+	return v
+}
+
 func (m *internMap[K, V]) isEmpty() bool {
+	if concurrentStores {
+		m.mu.RLock()
+		defer m.mu.RUnlock()
+	}
 	return len(m.entries) == 0
 }
 
 func (m *internMap[K, V]) values() iter.Seq[V] {
+	if concurrentStores {
+		m.mu.RLock()
+		defer m.mu.RUnlock()
+		return slices.Values(slices.Collect(maps.Values(m.entries)))
+	}
 	return maps.Values(m.entries)
 }
 
@@ -418,40 +471,87 @@ func (m *internMap[K, V]) values() iter.Seq[V] {
 //
 // Most maps never need anything but their entries, and many are embedded in
 // types, so everything else lives in a side table allocated on first use.
+// The entries of the map in progress on a checker are the checker's own; see
+// mapResolving.
 //
 // An entry should be computed between enter and endMemo, so that reusing it
 // replays the effects of computing that entry alone. An entry set outside its
 // own computation depends on the whole enclosing computation instead.
 type memoMap[K comparable, V any] struct {
 	_           memoNoCopy
+	mu          sync.RWMutex // Guards memoEntries, and the memo states and stateKeys of side, if concurrentStores
 	memoEntries map[K]V
-	side        *memoMapSide[K]
+	side        atomic.Pointer[memoMapSide[K]]
 	// The number of writes to memoEntries, with which a caller can tell
 	// that an entry it read is still current without reading it again.
-	writes uint32
+	writes atomic.Uint32
 }
 
 type memoMapSide[K comparable] struct {
-	memoStates    map[K]*memoState
-	resolvingKeys []K     // Keys of computations in progress without a memo state yet
-	resolvingAt   []int32 // Index in Checker.resolutions of each
-	// The occurrences of each key in resolvingKeys, kept while there are
-	// many, so that looking one up does not scan them all.
-	resolvingCount map[K]resolvingOccurrences
+	memoStates map[K]*memoState
 	// If set, keyBits returns well-mixed bits of a key, with which stateKeys
 	// filters the keys that may have a memo state, since few do and looking
 	// up one that does not costs as much as one that does.
 	keyBits   func(K) uint64
 	stateKeys stateKeyFilter
-	hasErrors bool    // Whether an entry ever had reports; see setReported
-	reentry   reentry // What re-entering an entry means; see memoReentry
+	hasErrors atomic.Bool // Whether an entry ever had reports; see setReported
+	reentry   reentry     // What re-entering an entry means; see memoReentry
+	// The entries in progress on each checker that computed one. A
+	// checker adds its own the first time, under the map's lock, and then
+	// alone reads and writes it.
+	resolving atomic.Pointer[[]*mapResolving[K]]
+}
+
+// mapResolving holds the entries of a memo map whose computations are in
+// progress on a checker.
+type mapResolving[K comparable] struct {
+	c    *Checker
+	keys []K     // Keys of computations in progress
+	at   []int32 // Index in Checker.resolutions of each
+	// The occurrences of each key in keys, kept while there are many, so
+	// that looking one up does not scan them all.
+	count map[K]resolvingOccurrences
 }
 
 func (m *memoMap[K, V]) sideTable() *memoMapSide[K] {
-	if m.side == nil {
-		m.side = &memoMapSide[K]{}
+	if s := m.side.Load(); s != nil {
+		return s
 	}
-	return m.side
+	m.side.CompareAndSwap(nil, &memoMapSide[K]{})
+	return m.side.Load()
+}
+
+// resolvingIn returns the entries of the map in progress on c.
+func (m *memoMap[K, V]) resolvingIn(c *Checker) *mapResolving[K] {
+	if r := m.peekResolvingIn(c); r != nil {
+		return r
+	}
+	s := m.sideTable()
+	if concurrentStores {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+	}
+	var list []*mapResolving[K]
+	if p := s.resolving.Load(); p != nil {
+		list = *p
+	}
+	r := &mapResolving[K]{c: c}
+	list = append(slices.Clip(list), r)
+	s.resolving.Store(&list)
+	return r
+}
+
+func (m *memoMap[K, V]) peekResolvingIn(c *Checker) *mapResolving[K] {
+	if s := m.side.Load(); s != nil {
+		if p := s.resolving.Load(); p != nil {
+			for _, r := range *p {
+				if r.c == c {
+					return r
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // setReentry sets what re-entering an entry of the map means, which is
@@ -460,24 +560,30 @@ func (m *memoMap[K, V]) setReentry(r reentry) {
 	m.sideTable().reentry = r
 }
 
+func (m *memoMap[K, V]) reentry() reentry {
+	if s := m.side.Load(); s != nil {
+		return s.reentry
+	}
+	return reentryCircular
+}
+
 // setKeyBits makes the map filter the keys that may have a memo state with
 // keyBits; see memoMapSide.
 func (m *memoMap[K, V]) setKeyBits(keyBits func(K) uint64) {
 	m.sideTable().keyBits = keyBits
 }
 
-// states returns the memo states of the entries, or nil.
-func (m *memoMap[K, V]) states() map[K]*memoState {
-	if m.side == nil {
-		return nil
-	}
-	return m.side.memoStates
-}
-
 // stateOf returns the memo state of the entry for k, or nil.
 func (m *memoMap[K, V]) stateOf(k K) *memoState {
-	s := m.side
-	if s == nil || s.memoStates == nil {
+	s := m.side.Load()
+	if s == nil {
+		return nil
+	}
+	if concurrentStores {
+		m.mu.RLock()
+		defer m.mu.RUnlock()
+	}
+	if s.memoStates == nil {
 		return nil
 	}
 	if s.keyBits != nil && !s.stateKeys.mayContain(s.keyBits(k)) {
@@ -486,24 +592,48 @@ func (m *memoMap[K, V]) stateOf(k K) *memoState {
 	return s.memoStates[k]
 }
 
-// cached returns the cached result for k, accounting for the effects of
-// computing it.
-func (m *memoMap[K, V]) cached(c *Checker, k K) (V, bool) {
-	if m.side != nil && (c.observing() || m.side.hasErrors) {
-		m.observe(c, k)
+// hasStates reports whether any entry has a memo state.
+func (m *memoMap[K, V]) hasStates() bool {
+	s := m.side.Load()
+	if s == nil {
+		return false
+	}
+	if concurrentStores {
+		m.mu.RLock()
+		defer m.mu.RUnlock()
+	}
+	return s.memoStates != nil
+}
+
+// get returns the entry for k without accounting for anything.
+func (m *memoMap[K, V]) get(k K) (V, bool) {
+	if concurrentStores {
+		m.mu.RLock()
+		v, ok := m.memoEntries[k]
+		m.mu.RUnlock()
+		return v, ok
 	}
 	v, ok := m.memoEntries[k]
 	return v, ok
+}
+
+// cached returns the cached result for k, accounting for the effects of
+// computing it.
+func (m *memoMap[K, V]) cached(c *Checker, k K) (V, bool) {
+	if s := m.side.Load(); s != nil && (c.observing() || s.hasErrors.Load()) {
+		m.observe(c, k)
+	}
+	return m.get(k)
 }
 
 // observe is the out of line part of get, keeping get cheap enough to inline.
 //
 //go:noinline
 func (m *memoMap[K, V]) observe(c *Checker, k K) {
-	if m.side.memoStates == nil && len(m.side.resolvingKeys) == 0 {
+	if r := m.peekResolvingIn(c); (r == nil || len(r.keys) == 0) && !m.hasStates() {
 		return
 	}
-	if c.checking && c.memoPendingCount == 0 && !m.side.hasErrors {
+	if c.checking && c.memoPendingCount == 0 && !m.side.Load().hasErrors.Load() {
 		// Only reports are replayed; see observeMemo.
 		return
 	}
@@ -522,12 +652,21 @@ func (m *memoMap[K, V]) hasCached(c *Checker, k K) bool {
 
 // isEmpty reports whether no result is cached, without observing any.
 func (m *memoMap[K, V]) isEmpty() bool {
+	if concurrentStores {
+		m.mu.RLock()
+		defer m.mu.RUnlock()
+	}
 	return len(m.memoEntries) == 0
 }
 
 // values iterates the cached results without observing them, for
 // inspection outside of checking.
 func (m *memoMap[K, V]) values() iter.Seq[V] {
+	if concurrentStores {
+		m.mu.RLock()
+		defer m.mu.RUnlock()
+		return slices.Values(slices.Collect(maps.Values(m.memoEntries)))
+	}
 	return maps.Values(m.memoEntries)
 }
 
@@ -541,9 +680,13 @@ func (m *memoMap[K, V]) set(c *Checker, k K, v V) {
 
 //go:noinline
 func (m *memoMap[K, V]) logDiscard(c *Checker, k K) {
-	old, ok := m.memoEntries[k]
+	old, ok := m.get(k)
 	c.logResultDiscard(c.memoTop != 0 && m.isOwnResolution(c, k), nil, func() {
-		m.writes++
+		if concurrentStores {
+			m.mu.Lock()
+			defer m.mu.Unlock()
+		}
+		m.writes.Add(1)
 		if ok {
 			m.memoEntries[k] = old
 		} else {
@@ -563,7 +706,7 @@ func (m *memoMap[K, V]) setReported(c *Checker, k K, v V, r currentNodeErrors) {
 	m.setIdentity(c, k, v)
 	if r.list != nil || c.memoErrorStates != 0 && m.stateOf(k) != nil {
 		if r.list != nil {
-			m.sideTable().hasErrors = true
+			m.sideTable().hasErrors.Store(true)
 		}
 		m.state(k).setErrors(c, r.list)
 	}
@@ -572,12 +715,20 @@ func (m *memoMap[K, V]) setReported(c *Checker, k K, v V, r currentNodeErrors) {
 // setIdentity is set for a result that defines the identity of what it
 // caches; see memo.setIdentity.
 func (m *memoMap[K, V]) setIdentity(c *Checker, k K, v V) {
+	m.store(k, v)
+	m.attach(c, k)
+}
+
+func (m *memoMap[K, V]) store(k K, v V) {
+	if concurrentStores {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+	}
 	if m.memoEntries == nil {
 		m.memoEntries = make(map[K]V)
 	}
 	m.memoEntries[k] = v
-	m.writes++
-	m.attach(c, k)
+	m.writes.Add(1)
 }
 
 // attach is memoAttach for the entry for k.
@@ -585,20 +736,44 @@ func (m *memoMap[K, V]) attach(c *Checker, k K) {
 	if c.memoTop == 0 || c.checking {
 		return
 	}
-	if f := &c.resolutions[c.memoTop-1]; f.source == memoStateSource(m) && m.side.resolvingKeys[f.index] == k {
+	if m.isCurrentResolution(c, &c.resolutions[c.memoTop-1], k) {
 		return
 	}
 	c.attachState(m.state(k))
 }
 
+// isCurrentResolution reports whether f is the computation of the entry for
+// k.
+func (m *memoMap[K, V]) isCurrentResolution(c *Checker, f *resolution, k K) bool {
+	if f.source != memoStateSource(m) {
+		return false
+	}
+	r := m.peekResolvingIn(c)
+	return r != nil && r.keys[f.index] == k
+}
+
 // intern caches a result constructed from the inputs in k alone, without
 // consulting any cached result, so computing it has no effects to account for.
 func (m *memoMap[K, V]) intern(k K, v V) {
+	m.store(k, v)
+}
+
+// internFirst is intern, unless a result is cached for k already, and
+// returns the result cached; see internMap.internFirst.
+func (m *memoMap[K, V]) internFirst(k K, v V) V {
+	if concurrentStores {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+	}
+	if existing, ok := m.memoEntries[k]; ok {
+		return existing
+	}
 	if m.memoEntries == nil {
 		m.memoEntries = make(map[K]V)
 	}
 	m.memoEntries[k] = v
-	m.writes++
+	m.writes.Add(1)
+	return v
 }
 
 // compute computes and caches the result for k in a computation of its own.
@@ -612,22 +787,22 @@ func (m *memoMap[K, V]) compute(c *Checker, k K, fn func() V) V {
 
 // begin starts the computation of the result for k; see beginMemo.
 func (m *memoMap[K, V]) begin(c *Checker, k K) {
-	side := m.sideTable()
+	r := m.resolvingIn(c)
 	outer := 0
-	if len(side.resolvingKeys) != 0 {
+	if len(r.keys) != 0 {
 		outer = m.resolvingIndex(c, k)
 	}
 	if outer != 0 {
-		c.reenter(outer-1, side.reentry)
+		c.reenter(outer-1, m.reentry())
 	}
-	side.resolvingKeys = append(side.resolvingKeys, k)
-	side.resolvingAt = append(side.resolvingAt, int32(len(c.resolutions)))
-	if side.resolvingCount != nil {
-		side.countResolving(k, len(side.resolvingKeys)-1)
-	} else if len(side.resolvingKeys) > resolvingCountMin {
-		side.countAllResolving()
+	r.keys = append(r.keys, k)
+	r.at = append(r.at, int32(len(c.resolutions)))
+	if r.count != nil {
+		r.countResolving(k, len(r.keys)-1)
+	} else if len(r.keys) > resolvingCountMin {
+		r.countAllResolving()
 	}
-	c.beginResolution(m, len(side.resolvingKeys)-1)
+	c.beginResolution(m, len(r.keys)-1)
 	if c.checking && c.memoPendingCount == 0 && c.memoTop|c.currentNodeResolution != 0 && !c.checkingRecords() {
 		// beginCheckedMemo for the common case, without the calls. The memo
 		// state of the result is looked up only if needed; see
@@ -656,28 +831,29 @@ func (m *memoMap[K, V]) begin(c *Checker, k K) {
 // resolvingIndex returns 1 + the index in resolutions of the computation of
 // the entry for k in progress, or 0.
 func (m *memoMap[K, V]) resolvingIndex(c *Checker, k K) int {
-	if m.side == nil {
+	r := m.peekResolvingIn(c)
+	if r == nil {
 		return 0
 	}
 	start := 0
-	if m.side.resolvingCount != nil {
-		o, ok := m.side.resolvingCount[k]
+	if r.count != nil {
+		o, ok := r.count[k]
 		if !ok {
 			return 0
 		}
 		start = int(o.first)
 		if o.count == 1 {
-			if j := int(m.side.resolvingAt[start]); j >= c.visibleStart {
+			if j := int(r.at[start]); j >= c.visibleStart {
 				return j + 1
 			}
 			return 0
 		}
 	}
-	for i := start; i < len(m.side.resolvingKeys); i++ {
-		if m.side.resolvingKeys[i] != k {
+	for i := start; i < len(r.keys); i++ {
+		if r.keys[i] != k {
 			continue
 		}
-		j := int(m.side.resolvingAt[i])
+		j := int(r.at[i])
 		debug.Assert(c.resolutions[j].source == memoStateSource(m) && int(c.resolutions[j].index) == i, "entry in progress without a resolution")
 		if j >= c.visibleStart {
 			return j + 1
@@ -690,24 +866,24 @@ func (m *memoMap[K, V]) resolvingIndex(c *Checker, k K) int {
 // isOwnResolution reports whether the current resolution computes the entry
 // for k.
 func (m *memoMap[K, V]) isOwnResolution(c *Checker, k K) bool {
-	f := c.currentResolution()
-	return f.source == memoStateSource(m) && m.side.resolvingKeys[f.index] == k
+	return m.isCurrentResolution(c, c.currentResolution(), k)
 }
 
-func (m *memoMap[K, V]) stateAt(i int) *memoState {
-	return m.state(m.side.resolvingKeys[i])
+func (m *memoMap[K, V]) stateAt(c *Checker, i int) *memoState {
+	return m.state(m.peekResolvingIn(c).keys[i])
 }
 
-func (m *memoMap[K, V]) peekStateAt(i int) *memoState {
-	return m.stateOf(m.side.resolvingKeys[i])
+func (m *memoMap[K, V]) peekStateAt(c *Checker, i int) *memoState {
+	return m.stateOf(m.peekResolvingIn(c).keys[i])
 }
 
-func (m *memoMap[K, V]) popState(i int) {
-	if counts := m.side.resolvingCount; counts != nil {
+func (m *memoMap[K, V]) popState(c *Checker, i int) {
+	r := m.peekResolvingIn(c)
+	if counts := r.count; counts != nil {
 		if i < resolvingCountMin/4 {
-			m.side.resolvingCount = nil
+			r.count = nil
 		} else {
-			for _, k := range m.side.resolvingKeys[i:] {
+			for _, k := range r.keys[i:] {
 				// Keys are popped last in first out, so the first
 				// occurrence is popped last.
 				if o := counts[k]; o.count == 1 {
@@ -719,9 +895,9 @@ func (m *memoMap[K, V]) popState(i int) {
 			}
 		}
 	}
-	clear(m.side.resolvingKeys[i:])
-	m.side.resolvingKeys = m.side.resolvingKeys[:i]
-	m.side.resolvingAt = m.side.resolvingAt[:i]
+	clear(r.keys[i:])
+	r.keys = r.keys[:i]
+	r.at = r.at[:i]
 }
 
 // Number of computations of a memo map in progress above which they are
@@ -729,38 +905,45 @@ func (m *memoMap[K, V]) popState(i int) {
 const resolvingCountMin = 64
 
 type resolvingOccurrences struct {
-	first int32 // Index in resolvingKeys of the first
+	first int32 // Index in keys of the first
 	count int32
 }
 
-func (side *memoMapSide[K]) countAllResolving() {
-	side.resolvingCount = make(map[K]resolvingOccurrences, 2*len(side.resolvingKeys))
-	for i, k := range side.resolvingKeys {
-		side.countResolving(k, i)
+func (r *mapResolving[K]) countAllResolving() {
+	r.count = make(map[K]resolvingOccurrences, 2*len(r.keys))
+	for i, k := range r.keys {
+		r.countResolving(k, i)
 	}
 }
 
-func (side *memoMapSide[K]) countResolving(k K, i int) {
-	o, ok := side.resolvingCount[k]
+func (r *mapResolving[K]) countResolving(k K, i int) {
+	o, ok := r.count[k]
 	if !ok {
 		o.first = int32(i)
 	}
 	o.count++
-	side.resolvingCount[k] = o
+	r.count[k] = o
 }
 
 func (m *memoMap[K, V]) state(k K) *memoState {
-	state := m.stateOf(k)
-	if state == nil {
-		s := m.sideTable()
-		if s.memoStates == nil {
-			s.memoStates = make(map[K]*memoState)
+	if state := m.stateOf(k); state != nil {
+		return state
+	}
+	s := m.sideTable()
+	if concurrentStores {
+		m.mu.Lock()
+		defer m.mu.Unlock()
+		if state := s.memoStates[k]; state != nil {
+			return state
 		}
-		state = &memoState{}
-		s.memoStates[k] = state
-		if s.keyBits != nil {
-			s.stateKeys.add(s.keyBits(k), s.memoStates, s.keyBits)
-		}
+	}
+	if s.memoStates == nil {
+		s.memoStates = make(map[K]*memoState)
+	}
+	state := &memoState{}
+	s.memoStates[k] = state
+	if s.keyBits != nil {
+		s.stateKeys.add(s.keyBits(k), s.memoStates, s.keyBits)
 	}
 	return state
 }
@@ -1239,7 +1422,7 @@ func (c *Checker) endMemo() {
 			c.deferredAttach = c.deferredAttach[:f.attachStart]
 		}
 		if f.source != nil {
-			f.source.popState(int(f.index))
+			f.source.popState(c, int(f.index))
 		}
 		c.dropResolution(n)
 		return
@@ -1295,7 +1478,7 @@ func (c *Checker) resolutionState(f *resolution) *memoState {
 	if f.result == nil {
 		switch {
 		case f.source != nil:
-			f.result = f.source.stateAt(int(f.index))
+			f.result = f.source.stateAt(c, int(f.index))
 		case f.key != 0:
 			f.result = c.memoState(f.key)
 		default:
@@ -1312,7 +1495,7 @@ func (c *Checker) peekResolutionState(f *resolution) *memoState {
 	if f.result == nil {
 		switch {
 		case f.source != nil:
-			f.result = f.source.peekStateAt(int(f.index))
+			f.result = f.source.peekStateAt(c, int(f.index))
 		case f.key != 0:
 			f.result = c.peekMemoState(f.key)
 		}

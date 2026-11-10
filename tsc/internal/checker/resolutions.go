@@ -60,9 +60,9 @@ type resolution struct {
 // A memoStateSource creates the memo state of a computation in progress on
 // demand, since few computations do work worth storing.
 type memoStateSource interface {
-	stateAt(i int) *memoState
-	peekStateAt(i int) *memoState
-	popState(i int)
+	stateAt(c *Checker, i int) *memoState
+	peekStateAt(c *Checker, i int) *memoState
+	popState(c *Checker, i int)
 }
 
 func (c *Checker) initResolutions() {
@@ -125,7 +125,7 @@ func (c *Checker) endResolution() {
 		c.deferredAttach = c.deferredAttach[:f.attachStart]
 	}
 	if f.source != nil {
-		f.source.popState(int(f.index))
+		f.source.popState(c, int(f.index))
 	}
 	c.dropResolution(n)
 	if fromCheck {
@@ -138,7 +138,7 @@ func (c *Checker) endResolution() {
 func (c *Checker) forgetResult() {
 	f := c.currentResolution()
 	if f.source != nil {
-		f.source.popState(int(f.index))
+		f.source.popState(c, int(f.index))
 	}
 	c.endResolving(f)
 	f.key, f.source = 0, nil

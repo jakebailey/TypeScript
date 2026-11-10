@@ -416,7 +416,7 @@ func (c *Checker) checkTypeRelatedToWithKey(
 	r.topSource, r.topTarget = source, target
 	if hasKey {
 		r.topKey, r.topConstrained, r.topHasKey = id, constrained, true
-		r.topEntry, r.topEntryWrites, r.topEntryRead = entry, relation.results.writes, true
+		r.topEntry, r.topEntryWrites, r.topEntryRead = entry, relation.results.writes.Load(), true
 	}
 	var result Ternary
 	if entry&RelationComparisonResultOverflow != 0 {
@@ -3031,7 +3031,7 @@ func (r *Relater) beginTop() bool {
 	}
 	// A comparison made before now may have cached a result for the key,
 	// unless nothing was cached since the caller read it.
-	if !r.topEntryRead || r.topEntryWrites != r.relation.results.writes {
+	if !r.topEntryRead || r.topEntryWrites != r.relation.results.writes.Load() {
 		r.topEntry = r.relation.cached(c, r.topKey)
 	}
 	r.topEntryValid = true
