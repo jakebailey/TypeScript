@@ -564,12 +564,39 @@ func (p *checkerPool) forEachCheckerGroupDo(ctx context.Context, files []*ast.So
 			fmt.Fprintf(os.Stderr, "warm: %v\n", time.Since(start))
 		}
 	}
+	// Experiment: every checker first checks the same sample of files, to
+	// measure the work a frozen base checking them would save.
+	var simWarm []*ast.SourceFile
+	simOnly := os.Getenv("TSGO_SIMWARM_ONLY") != ""
+	if k, _ := strconv.Atoi(os.Getenv("TSGO_SIMWARM")); k > 0 && !p.warmed {
+		p.warmed = true
+		var sources []*ast.SourceFile
+		for _, f := range files {
+			if !f.IsDeclarationFile {
+				sources = append(sources, f)
+			}
+		}
+		for j := range min(k, len(sources)) {
+			simWarm = append(simWarm, sources[j*len(sources)/min(k, len(sources))])
+		}
+	}
 	wg := core.NewWorkGroup(core.WorkGroupConcurrency(singleThreaded))
 	for checkerIdx := range checkerCount {
 		wg.Queue(func() {
 			p.locks[checkerIdx].Lock()
 			defer p.locks[checkerIdx].Unlock()
 			start := time.Now()
+			if simWarm != nil && (!simOnly || checkerIdx == 0) {
+				for _, f := range simWarm {
+					p.checkers[checkerIdx].GetDiagnostics(ctx, f)
+				}
+				if os.Getenv("TSGO_OVERLAY_STATS") != "" {
+					fmt.Fprintf(os.Stderr, "checker %d warm: %v\n", checkerIdx, time.Since(start))
+				}
+			}
+			if simOnly {
+				return
+			}
 			n := 0
 			for i, file := range files {
 				if checker := p.checkers[checkerIdx]; checker == p.fileAssociations[file] && !warmed[file] {
