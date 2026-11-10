@@ -2,6 +2,7 @@ package compiler
 
 import (
 	"context"
+	"fmt"
 	"math"
 	"os"
 	"slices"
@@ -503,6 +504,9 @@ func (p *checkerPool) forEachCheckerParallel(cb func(idx int, c *checker.Checker
 }
 
 func (p *checkerPool) GetGlobalDiagnostics() []*ast.Diagnostic {
+	if os.Getenv("TSGO_OVERLAY_STATS") != "" {
+		fmt.Fprintln(os.Stderr, checker.DebugOverlayStats())
+	}
 	p.createCheckers()
 	globalDiagnostics := make([][]*ast.Diagnostic, len(p.checkers))
 	p.forEachCheckerParallel(func(idx int, checker *checker.Checker) {

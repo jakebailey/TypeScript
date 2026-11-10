@@ -319,7 +319,7 @@ func (a *tracedTypeAdapter) Pattern() *ast.Node {
 	if a.checker == nil {
 		return nil
 	}
-	p, _ := a.checker.patternForType.get(a.t)
+	p, _ := a.checker.patternForType.get(a.checker, a.t)
 	return p
 }
 

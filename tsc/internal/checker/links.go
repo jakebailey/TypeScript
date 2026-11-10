@@ -1,6 +1,8 @@
 package checker
 
 import (
+	"sync"
+
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 )
@@ -15,6 +17,7 @@ const maxPageLinkCount = 0x100_0000 // 16M
 
 type nodeLinkStore[V any] struct {
 	gen   ast.NodeIdGenerator
+	mu    sync.Mutex // Guards links if concurrentStores
 	links core.LinkStore[uint64, V]
 	pages core.PagedLinkStore[V]
 }
@@ -23,6 +26,10 @@ func (s *nodeLinkStore[V]) Get(node *ast.Node) *V {
 	id := uint64(s.gen.GetNodeId(node))
 	if id >= ast.BlockIdOffset && id < ast.BlockIdOffset+maxPageLinkCount {
 		return s.pages.Get(id - ast.BlockIdOffset)
+	}
+	if concurrentStores {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 	}
 	return s.links.Get(id)
 }
@@ -41,11 +48,16 @@ func (s *nodeLinkStore[V]) TryGet(node *ast.Node) *V {
 	if id >= ast.BlockIdOffset && id < ast.BlockIdOffset+maxPageLinkCount {
 		return s.pages.TryGet(id - ast.BlockIdOffset)
 	}
+	if concurrentStores {
+		s.mu.Lock()
+		defer s.mu.Unlock()
+	}
 	return s.links.TryGet(id)
 }
 
 type symbolLinkStore[V any] struct {
 	gen   ast.SymbolIdGenerator
+	mu    sync.Mutex // Guards links if concurrentStores
 	links core.LinkStore[uint64, V]
 	pages core.PagedLinkStore[V]
 }
@@ -54,6 +66,10 @@ func (s *symbolLinkStore[V]) Get(symbol *ast.Symbol) *V {
 	id := uint64(s.gen.GetSymbolId(symbol))
 	if id >= ast.BlockIdOffset && id < ast.BlockIdOffset+maxPageLinkCount {
 		return s.pages.Get(id - ast.BlockIdOffset)
+	}
+	if concurrentStores {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 	}
 	return s.links.Get(id)
 }
@@ -71,6 +87,10 @@ func (s *symbolLinkStore[V]) TryGet(symbol *ast.Symbol) *V {
 	}
 	if id >= ast.BlockIdOffset && id < ast.BlockIdOffset+maxPageLinkCount {
 		return s.pages.TryGet(id - ast.BlockIdOffset)
+	}
+	if concurrentStores {
+		s.mu.Lock()
+		defer s.mu.Unlock()
 	}
 	return s.links.TryGet(id)
 }

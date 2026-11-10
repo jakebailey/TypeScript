@@ -692,8 +692,8 @@ func (ch *Checker) compareTypes(t1, t2 *Type) int {
 	}
 	// Types implied by binding patterns are ordered by their patterns.
 	if t1.flags&TypeFlagsObject != 0 {
-		p1, _ := t1.checker.patternForType.get(t1)
-		p2, _ := t2.checker.patternForType.get(t2)
+		p1, _ := ch.patternForType.get(ch, t1)
+		p2, _ := ch.patternForType.get(ch, t2)
 		if c := ch.compareNodes(p1, p2); c != 0 {
 			return c
 		}

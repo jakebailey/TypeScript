@@ -1728,13 +1728,15 @@ func (s *Signature) setThisParameter(c *Checker, parameter *ast.Symbol) {
 }
 
 func (s *Signature) getResolvedTypePredicate(c *Checker) *TypePredicate {
-	if p := s.getStoredTypePredicate(c); p != nil || !c.overlaying() {
-		return p
+	if c.overlaying() {
+		if e, ok := c.overlayCell(s.typePredicateOverlayKey()); ok {
+			return e.value.(*TypePredicate)
+		}
+		if c.recentlyPublished(s.typePredicateOverlayKey().hash()) {
+			return nil
+		}
 	}
-	if e, ok := c.overlayCell(s.typePredicateOverlayKey()); ok {
-		return e.value.(*TypePredicate)
-	}
-	return nil
+	return s.getStoredTypePredicate(c)
 }
 
 func (s *Signature) getStoredTypePredicate(c *Checker) *TypePredicate {

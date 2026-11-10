@@ -1408,16 +1408,16 @@ func (c *Checker) getTypeAtFlowLoopLabel(f *FlowState, flow *ast.FlowNode) FlowT
 		return FlowType{t: f.declaredType}
 	}
 	key := FlowLoopKey{flowNode: flow, refKey: f.refKey}
-	entry, _ := c.flowLoopCache.get(key)
+	entry, _ := c.flowLoopCache.get(c, key)
 	if entry == nil {
 		entry = &flowLoopCacheEntry{}
-		c.flowLoopCache.intern(key, entry)
+		c.flowLoopCache.intern(c, key, entry)
 	}
 	// If we have previously computed the control flow type for the reference at
 	// this flow loop junction, return the cached type.
-	if entry.t != nil {
+	if t := guarded(c, &entry.t); t != nil {
 		c.observeFlagMemo(memoKeyOf(entry, memoFlowLoopType))
-		return FlowType{t: entry.t}
+		return FlowType{t: t}
 	}
 	c.beginMemo(memoKeyOf(entry, memoFlowLoopType))
 	result := c.getTypeAtFlowLoopLabelUncached(f, flow, key, entry)
@@ -1470,8 +1470,8 @@ func (c *Checker) getTypeAtFlowLoopLabelUncached(f *FlowState, flow *ast.FlowNod
 			// If we see a value appear in the cache it is a sign that control flow analysis
 			// was restarted and completed by checkExpressionCached. We can simply pick up
 			// the resulting type and bail out.
-			if entry.t != nil {
-				return FlowType{t: entry.t}
+			if t := guarded(c, &entry.t); t != nil {
+				return FlowType{t: t}
 			}
 		}
 		antecedentTypes = core.AppendIfUnique(antecedentTypes, flowType.t)
@@ -1497,7 +1497,7 @@ func (c *Checker) getTypeAtFlowLoopLabelUncached(f *FlowState, flow *ast.FlowNod
 	// Kept even if a cycle in progress discards what it computed: analyzing
 	// the loop again after the cycle starts from wherever the next reference
 	// is, and may then reach a different fixed point.
-	entry.t = result
+	setGuarded(c, &entry.t, result)
 	return FlowType{t: result}
 }
 
@@ -1612,7 +1612,7 @@ func (c *Checker) getEvolvingArrayType(elementType *Type) *Type {
 	if result == nil {
 		result = c.newObjectType(ObjectFlagsEvolvingArray, nil)
 		result.AsEvolvingArrayType().elementType = elementType
-		c.cachedTypes.intern(key, result)
+		c.cachedTypes.intern(c, key, result)
 	}
 	return result
 }
@@ -2777,20 +2777,20 @@ func (c *Checker) isPostSuperFlowNodeWorker(f *FlowState, flow *ast.FlowNode, no
 // Check if a parameter, catch variable, or mutable local variable is definitely assigned anywhere
 func (c *Checker) isSymbolAssignedDefinitely(symbol *ast.Symbol) bool {
 	c.ensureAssignmentsMarked(symbol)
-	return c.markedAssignmentSymbolLinks.Get(symbol).hasDefiniteAssignment
+	return guarded(c, &c.markedAssignmentSymbolLinks.Get(symbol).hasDefiniteAssignment)
 }
 
 // Check if a parameter, catch variable, or mutable local variable is assigned anywhere
 func (c *Checker) isSymbolAssigned(symbol *ast.Symbol) bool {
 	c.ensureAssignmentsMarked(symbol)
-	return c.markedAssignmentSymbolLinks.Get(symbol).lastAssignmentPos != 0
+	return guarded(c, &c.markedAssignmentSymbolLinks.Get(symbol).lastAssignmentPos) != 0
 }
 
 // Return true if there are no assignments to the given symbol or if the given location
 // is past the last assignment to the symbol.
 func (c *Checker) isPastLastAssignment(symbol *ast.Symbol, location *ast.Node) bool {
 	c.ensureAssignmentsMarked(symbol)
-	lastAssignmentPos := c.markedAssignmentSymbolLinks.Get(symbol).lastAssignmentPos
+	lastAssignmentPos := guarded(c, &c.markedAssignmentSymbolLinks.Get(symbol).lastAssignmentPos)
 	return lastAssignmentPos == 0 || location != nil && int(lastAssignmentPos) < location.Pos()
 }
 
@@ -2820,17 +2820,17 @@ func (c *Checker) markNodeAssignmentsWorker(node *ast.Node) bool {
 			symbol := c.getResolvedSymbol(node)
 			if c.isParameterOrMutableLocalVariable(symbol) {
 				links := c.markedAssignmentSymbolLinks.Get(symbol)
-				if pos := links.lastAssignmentPos; pos == 0 || pos != math.MaxInt32 {
+				if pos := guarded(c, &links.lastAssignmentPos); pos == 0 || pos != math.MaxInt32 {
 					referencingFunction := ast.FindAncestor(node, ast.IsFunctionOrSourceFile)
 					declaringFunction := ast.FindAncestor(symbol.ValueDeclaration(), ast.IsFunctionOrSourceFile)
 					if referencingFunction == declaringFunction {
-						links.lastAssignmentPos = int32(c.extendAssignmentPosition(node, symbol.ValueDeclaration()))
+						setGuarded(c, &links.lastAssignmentPos, int32(c.extendAssignmentPosition(node, symbol.ValueDeclaration())))
 					} else {
-						links.lastAssignmentPos = math.MaxInt32
+						setGuarded(c, &links.lastAssignmentPos, math.MaxInt32)
 					}
 				}
 				if assignmentKind == AssignmentKindDefinite {
-					links.hasDefiniteAssignment = true
+					setGuarded(c, &links.hasDefiniteAssignment, true)
 				}
 			}
 		}
@@ -2841,8 +2841,7 @@ func (c *Checker) markNodeAssignmentsWorker(node *ast.Node) bool {
 		if !node.IsTypeOnly() && !exportDeclaration.IsTypeOnly && exportDeclaration.ModuleSpecifier == nil && !ast.IsStringLiteral(name) {
 			symbol := c.resolveEntityName(name, ast.SymbolFlagsValue, true /*ignoreErrors*/, true /*dontResolveAlias*/, nil)
 			if symbol != nil && c.isParameterOrMutableLocalVariable(symbol) {
-				links := c.markedAssignmentSymbolLinks.Get(symbol)
-				links.lastAssignmentPos = math.MaxInt32
+				setGuarded(c, &c.markedAssignmentSymbolLinks.Get(symbol).lastAssignmentPos, math.MaxInt32)
 			}
 		}
 		return false

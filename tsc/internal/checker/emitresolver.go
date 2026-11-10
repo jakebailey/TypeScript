@@ -124,7 +124,7 @@ func (r *EmitResolver) GetEnumMemberValue(node *ast.Node) evaluator.Result {
 	if !r.checker.enumMemberLinks.Has(node) {
 		return evaluator.NewResult(nil, false, false, false)
 	}
-	return r.checker.enumMemberLinks.Get(node).value
+	return guarded(r.checker, &r.checker.enumMemberLinks.Get(node).value)
 }
 
 func (r *EmitResolver) IsDeclarationVisible(node *ast.Node) bool {

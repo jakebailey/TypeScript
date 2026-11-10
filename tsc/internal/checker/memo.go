@@ -230,11 +230,21 @@ func (m *memo[T]) cached(c *Checker) T {
 // load returns the result c reads: the store's, or c's own while the store
 // has none; see overlay.go.
 func (m *memo[T]) load(c *Checker) T {
-	v := m.memoValue
-	if c.overlaying() && isZeroValue(&v) {
+	// A checker reads its own result first, even once another checker
+	// publishes one, so that what it computes stays consistent with what
+	// it already computed.
+	if !c.overlaying() {
+		return loadLive(&m.memoValue)
+	}
+	if len(c.overlay) != 0 {
 		if e, ok := c.overlayCell(m.overlayKey()); ok {
 			return e.value.(T)
 		}
+	}
+	v := loadLive(&m.memoValue)
+	if !isZeroValue(&v) && c.recentlyPublished(m.overlayKey().hash()) {
+		var zero T
+		return zero
 	}
 	return v
 }
@@ -256,7 +266,7 @@ func (m *memo[T]) overlayKey() overlayKey {
 func (m *memo[T]) overlayEntry(v T) *overlayEntry {
 	return &overlayEntry{
 		value:     v,
-		publish:   func() { m.memoValue = v },
+		publish:   func() { storeLive(&m.memoValue, v) },
 		published: func() bool { return !isZeroValue(&m.memoValue) },
 	}
 }
@@ -407,6 +417,10 @@ func (m *memo[T]) peek(c *Checker) T {
 func (t *Type) resolvedMembersFast() *ResolvedMembers {
 	// SAFETY: Callers only pass structured types, which embed StructuredType
 	// at offset zero.
+	if concurrentStores {
+		// The slow path reads the checker's own members first.
+		return nil
+	}
 	return (*StructuredType)(unsafe.Pointer(t)).resolved.memoValue
 }
 
@@ -434,7 +448,7 @@ func (c *Checker) peekResolvedMembers(t *Type) *ResolvedMembers {
 // peekStore returns the result the store has, for inspecting it outside of
 // any checker.
 func (m *memo[T]) peekStore() T {
-	return m.memoValue
+	return loadLive(&m.memoValue)
 }
 
 // swap replaces the cached result without accounting for effects. It is
@@ -498,24 +512,49 @@ type internMap[K comparable, V any] struct {
 	entries map[K]V
 }
 
-func (m *internMap[K, V]) get(k K) (V, bool) {
+func (m *internMap[K, V]) get(c *Checker, k K) (V, bool) {
 	if concurrentStores {
+		if c.overlaying() && len(c.mapOverlay) != 0 {
+			if e, found := c.mapOverlay[mapOverlayKey{m, k}]; found {
+				return e.value.(V), true
+			}
+		}
 		m.mu.RLock()
 		v, ok := m.entries[k]
 		m.mu.RUnlock()
+		if ok && c.overlaying() && c.recentlyPublished(mapEntryHash(unsafe.Pointer(m), k)) {
+			var zero V
+			return zero, false
+		}
 		return v, ok
 	}
 	v, ok := m.entries[k]
 	return v, ok
 }
 
-func (m *internMap[K, V]) has(k K) bool {
-	_, ok := m.get(k)
+func (m *internMap[K, V]) has(c *Checker, k K) bool {
+	_, ok := m.get(c, k)
 	return ok
 }
 
-// intern caches v for k, replacing any value cached for it.
-func (m *internMap[K, V]) intern(k K, v V) {
+// intern caches v for k, replacing any value cached for it. A checker
+// sharing a store holds it in its overlay, with the results describing
+// what it constructed, since another checker may only use v once those
+// are published; see overlay.go.
+func (m *internMap[K, V]) intern(c *Checker, k K, v V) {
+	if c.overlaying() {
+		c.putOverlayMapEntry(mapOverlayKey{m, k}, &overlayEntry{
+			value:     v,
+			publish:   func() { m.store(k, v) },
+			published: func() bool { return m.storeHas(k) },
+			hash:      mapEntryHash(unsafe.Pointer(m), k),
+		}, false, false)
+		return
+	}
+	m.store(k, v)
+}
+
+func (m *internMap[K, V]) store(k K, v V) {
 	if concurrentStores {
 		m.mu.Lock()
 		defer m.mu.Unlock()
@@ -526,23 +565,11 @@ func (m *internMap[K, V]) intern(k K, v V) {
 	m.entries[k] = v
 }
 
-// internFirst caches v for k unless a value is cached for it already, and
-// returns the value cached. A value constructed for k is only used if it is
-// the one cached, so that checkers sharing a store constructing it at once
-// agree on one.
-func (m *internMap[K, V]) internFirst(k K, v V) V {
-	if concurrentStores {
-		m.mu.Lock()
-		defer m.mu.Unlock()
-	}
-	if existing, ok := m.entries[k]; ok {
-		return existing
-	}
-	if m.entries == nil {
-		m.entries = make(map[K]V)
-	}
-	m.entries[k] = v
-	return v
+func (m *internMap[K, V]) storeHas(k K) bool {
+	m.mu.RLock()
+	defer m.mu.RUnlock()
+	_, ok := m.entries[k]
+	return ok
 }
 
 func (m *internMap[K, V]) isEmpty() bool {
@@ -734,11 +761,18 @@ func (m *memoMap[K, V]) cached(c *Checker, k K) (V, bool) {
 // load returns the entry for k that c reads: the store's, or c's own while
 // the store has none; see overlay.go.
 func (m *memoMap[K, V]) load(c *Checker, k K) (V, bool) {
-	v, ok := m.get(k)
-	if !ok && c.overlaying() {
+	if !c.overlaying() {
+		return m.get(k)
+	}
+	if len(c.mapOverlay) != 0 {
 		if e, found := c.mapOverlay[mapOverlayKey{m, k}]; found {
 			return e.value.(V), true
 		}
+	}
+	v, ok := m.get(k)
+	if ok && c.recentlyPublished(mapEntryHash(unsafe.Pointer(m), k)) {
+		var zero V
+		return zero, false
 	}
 	return v, ok
 }
@@ -754,6 +788,7 @@ func (m *memoMap[K, V]) put(c *Checker, k K, v V, discardable bool) {
 				_, ok := m.get(k)
 				return ok
 			},
+			hash: mapEntryHash(unsafe.Pointer(m), k),
 		}, c.memoTop != 0 && m.isOwnResolution(c, k), discardable)
 		return
 	}
@@ -887,26 +922,8 @@ func (m *memoMap[K, V]) isCurrentResolution(c *Checker, f *resolution, k K) bool
 
 // intern caches a result constructed from the inputs in k alone, without
 // consulting any cached result, so computing it has no effects to account for.
-func (m *memoMap[K, V]) intern(k K, v V) {
-	m.store(k, v)
-}
-
-// internFirst is intern, unless a result is cached for k already, and
-// returns the result cached; see internMap.internFirst.
-func (m *memoMap[K, V]) internFirst(k K, v V) V {
-	if concurrentStores {
-		m.mu.Lock()
-		defer m.mu.Unlock()
-	}
-	if existing, ok := m.memoEntries[k]; ok {
-		return existing
-	}
-	if m.memoEntries == nil {
-		m.memoEntries = make(map[K]V)
-	}
-	m.memoEntries[k] = v
-	m.writes.Add(1)
-	return v
+func (m *memoMap[K, V]) intern(c *Checker, k K, v V) {
+	m.put(c, k, v, false)
 }
 
 // compute computes and caches the result for k in a computation of its own.
@@ -2304,7 +2321,7 @@ func (c *Checker) setFlagMemoValue[T any](key memoKey, p *T, v T) {
 	if c.overlaying() {
 		c.putOverlayCell(overlayKey{p: unsafe.Pointer(p)}, &overlayEntry{
 			value:     v,
-			publish:   func() { *p = v },
+			publish:   func() { storeLive(p, v) },
 			published: func() bool { return !isZeroValue(p) },
 		}, nil, key, true)
 		c.setFlagMemo(key)
@@ -2339,23 +2356,78 @@ func (c *Checker) setIdentityFlagMemoBits(key memoKey, t *Type, bits ObjectFlags
 // flagMemoBits returns the bits of *p under mask, which hold a flag memo:
 // those the store has, or c's own while the store has none; see overlay.go.
 func flagMemoBits[T ~uint32](c *Checker, p *T, mask T) T {
-	bits := *p & mask
-	if bits == 0 && c.overlaying() {
-		if e, ok := c.overlayCell(overlayKey{unsafe.Pointer(p), uint32(mask)}); ok {
+	if !c.overlaying() {
+		return loadLive(p) & mask
+	}
+	key := overlayKey{unsafe.Pointer(p), uint32(mask)}
+	if len(c.overlay) != 0 {
+		if e, ok := c.overlayCell(key); ok {
 			return e.value.(T)
 		}
 	}
+	bits := loadLive(p) & mask
+	if bits != 0 && c.recentlyPublished(key.hash()) {
+		return 0
+	}
 	return bits
+}
+
+// setGuarded sets *p, a field set only within the computation of the
+// result it is part of. A checker sharing a store holds it in its overlay
+// with that result; see overlay.go.
+func setGuarded[T any](c *Checker, p *T, v T) {
+	if c.overlaying() {
+		c.putOverlayEntry(overlayKey{p: unsafe.Pointer(p)}, &overlayEntry{
+			value:     v,
+			publish:   func() { storeLive(p, v) },
+			published: func() bool { return !isZeroValue(p) },
+		})
+		return
+	}
+	*p = v
+}
+
+// clearGuarded clears *p, a field set by setGuarded that a computation in
+// progress is about to set again, returning how to restore it.
+func (c *Checker) clearGuarded(p *ast.SymbolTable) func() {
+	if c.overlaying() {
+		k := overlayKey{p: unsafe.Pointer(p)}
+		e, had := c.overlay[k]
+		delete(c.overlay, k)
+		return func() {
+			if had {
+				c.overlay[k] = e
+			} else {
+				delete(c.overlay, k)
+			}
+		}
+	}
+	saved := *p
+	*p = nil
+	return func() { *p = saved }
+}
+
+// guarded returns *p, a field set by setGuarded.
+func guarded[T any](c *Checker, p *T) T {
+	return flagMemoValue(c, p)
 }
 
 // flagMemoValue returns *p, which holds a flag memo: the value the store has,
 // or c's own while the store has none; see overlay.go.
 func flagMemoValue[T any](c *Checker, p *T) T {
-	v := *p
-	if c.overlaying() && isZeroValue(&v) {
-		if e, ok := c.overlayCell(overlayKey{p: unsafe.Pointer(p)}); ok {
+	if !c.overlaying() {
+		return loadLive(p)
+	}
+	key := overlayKey{p: unsafe.Pointer(p)}
+	if len(c.overlay) != 0 {
+		if e, ok := c.overlayCell(key); ok {
 			return e.value.(T)
 		}
+	}
+	v := loadLive(p)
+	if !isZeroValue(&v) && c.recentlyPublished(key.hash()) {
+		var zero T
+		return zero
 	}
 	return v
 }

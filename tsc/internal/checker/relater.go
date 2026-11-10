@@ -1276,13 +1276,16 @@ const discriminantFlagsMask = ast.CheckFlagsIsDiscriminantComputed | ast.CheckFl
 // whether it is a discriminant: the store's, or c's own while the store has
 // none; see overlay.go.
 func (c *Checker) discriminantFlags(prop *ast.Symbol) ast.CheckFlags {
-	flags := prop.CheckFlags() & discriminantFlagsMask
-	if flags == 0 && c.overlaying() {
-		if e, ok := c.overlayCell(overlayKey{unsafe.Pointer(prop), uint32(discriminantFlagsMask)}); ok {
+	if c.overlaying() {
+		key := overlayKey{unsafe.Pointer(prop), uint32(discriminantFlagsMask)}
+		if e, ok := c.overlayCell(key); ok {
 			return e.value.(ast.CheckFlags)
 		}
+		if c.recentlyPublished(key.hash()) {
+			return 0
+		}
 	}
-	return flags
+	return prop.CheckFlags() & discriminantFlagsMask
 }
 
 // setDiscriminantFlags caches whether the synthetic property prop is a
@@ -1325,8 +1328,8 @@ func (c *Checker) getMatchingUnionConstituentForType(unionType *Type, t *Type) *
 func (c *Checker) getKeyPropertyName(t *Type) string {
 	u := t.AsUnionType()
 	name := c.memoCompute(&u.keyPropertyName, func() string {
-		var name string
-		name, u.constituentMap = c.computeKeyPropertyNameAndMap(t)
+		name, constituentMap := c.computeKeyPropertyNameAndMap(t)
+		setGuarded(c, &u.constituentMap, constituentMap)
 		return name
 	})
 	if name == ast.InternalSymbolNameMissing {
@@ -1338,7 +1341,7 @@ func (c *Checker) getKeyPropertyName(t *Type) string {
 // Given a union type for which getKeyPropertyName returned a non-empty string, return the constituent
 // that corresponds to the given key type for that property name.
 func (c *Checker) getConstituentTypeForKeyType(t *Type, keyType *Type) *Type {
-	result := t.AsUnionType().constituentMap[c.getRegularTypeOfLiteralType(keyType)]
+	result := guarded(c, &t.AsUnionType().constituentMap)[c.getRegularTypeOfLiteralType(keyType)]
 	if result != c.unknownType {
 		return result
 	}
@@ -1794,7 +1797,7 @@ func (c *Checker) isMarkerType(t *Type) bool {
 		return false
 	}
 	if t.alias != nil && t.alias.symbol.Flags()&ast.SymbolFlagsTypeAlias != 0 &&
-		c.isMarkerInstantiation(t.alias.symbol, c.typeAliasLinks.Get(t.alias.symbol).typeParameters, t.alias.typeArguments) {
+		c.isMarkerInstantiation(t.alias.symbol, guarded(c, &c.typeAliasLinks.Get(t.alias.symbol).typeParameters), t.alias.typeArguments) {
 		return true
 	}
 	if t.objectFlags&ObjectFlagsReference != 0 && t.AsTypeReference().node == nil {
@@ -4070,7 +4073,7 @@ func (r *Relater) structuredTypeRelatedToWorker(source *Type, target *Type, repo
 		if len(variances) == 0 {
 			return TernaryUnknown
 		}
-		params := r.c.typeAliasLinks.Get(source.alias.symbol).typeParameters
+		params := guarded(r.c, &r.c.typeAliasLinks.Get(source.alias.symbol).typeParameters)
 		minParams := r.c.getMinTypeArgumentCount(params)
 		nodeIsInJsFile := ast.IsInJSFile(source.alias.symbol.ValueDeclaration())
 		sourceTypes := r.c.fillMissingTypeArguments(source.alias.typeArguments, params, minParams, nodeIsInJsFile)

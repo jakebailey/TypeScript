@@ -1,6 +1,12 @@
 package checker
 
 import (
+	"fmt"
+	"hash/maphash"
+	"os"
+	"runtime"
+	"slices"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"unsafe"
@@ -27,6 +33,37 @@ type overlayEntry struct {
 	value     any
 	publish   func()      // Writes value to the store
 	published func() bool // Reports whether the store has a result
+	hash      uint64      // Of the key, for recent filters; see markRecent
+	site      string
+}
+
+func dbgSite() string {
+	if os.Getenv("TSGO_OVERLAY_SITES") == "" {
+		return "-"
+	}
+	var pcs [6]uintptr
+	n := runtime.Callers(3, pcs[:])
+	frames := runtime.CallersFrames(pcs[:n])
+	var b strings.Builder
+	for {
+		f, more := frames.Next()
+		name := f.Function[strings.LastIndexByte(f.Function, '.')+1:]
+		if b.Len() > 0 {
+			b.WriteString("<")
+		}
+		b.WriteString(name)
+		if !more || b.Len() > 120 {
+			break
+		}
+	}
+	return b.String()
+}
+
+var dbgConflictSites sync.Map
+
+func dbgConflict(site string) {
+	v, _ := dbgConflictSites.LoadOrStore(site, new(atomic.Int64))
+	v.(*atomic.Int64).Add(1)
 }
 
 // overlayKey identifies a memo cell or flag memo in an overlay by where its
@@ -36,9 +73,10 @@ type overlayKey struct {
 	mask uint32
 }
 
-// mapOverlayKey identifies an entry of a memo map in an overlay.
+// mapOverlayKey identifies an entry of a memo map or intern map in an
+// overlay.
 type mapOverlayKey struct {
-	source memoStateSource
+	source any
 	key    any
 }
 
@@ -52,8 +90,14 @@ func (c *Checker) overlaying() bool {
 func (c *Checker) beginOverlay() {
 	if concurrentStores {
 		c.overlayDepth++
+		if c.overlayDepth == 1 && dbgSerial {
+			dbgSerialMu.Lock()
+		}
 	}
 }
+
+var dbgSerial = os.Getenv("TSGO_SHARED_SERIAL") != ""
+var dbgSerialMu sync.Mutex
 
 // endOverlay ends a request, publishing the overlay once the outermost
 // request ends.
@@ -64,6 +108,24 @@ func (c *Checker) endOverlay() {
 	c.overlayDepth--
 	if c.overlayDepth == 0 {
 		c.publishOverlay()
+		if dbgSerial {
+			dbgSerialMu.Unlock()
+		}
+	}
+}
+
+// publishCheckpoint publishes the overlay while a check is in progress, at
+// a point where nothing it computes is: between the statements of a file,
+// so that a conflict drops only what was computed since.
+func (c *Checker) publishCheckpoint() {
+	if c.overlayDepth == 1 && c.memoTop == 0 && len(c.resolutions) == 1 && len(c.discardLog) == 0 &&
+		c.circularityStart == 0 && c.memoPendingCount == 0 && len(c.heldEffects) == 0 && c.currentNodeErrorCollectors == 0 {
+		c.publishOverlay()
+		if dbgSerial {
+			dbgSerialMu.Unlock()
+			runtime.Gosched()
+			dbgSerialMu.Lock()
+		}
 	}
 }
 
@@ -79,25 +141,28 @@ func (c *Checker) publishOverlay() {
 	for _, e := range c.overlay {
 		if e.published() {
 			conflict = true
-			break
+			dbgConflict(e.site)
+		}
+	}
+	for _, e := range c.mapOverlay {
+		if e.published() {
+			conflict = true
+			dbgConflict(e.site)
 		}
 	}
 	if !conflict {
-		for _, e := range c.mapOverlay {
-			if e.published() {
-				conflict = true
-				break
-			}
-		}
-	}
-	if !conflict {
+		c.markRecent()
 		c.publishStates()
 	}
 	c.dropStates()
 	if conflict {
 		c.overlayDrops++
+		dbgDrops.Add(1)
+		dbgDropEntries.Add(int64(len(c.overlay) + len(c.mapOverlay)))
 	} else {
 		c.overlayPublishes++
+		dbgPubs.Add(1)
+		dbgPubEntries.Add(int64(len(c.overlay) + len(c.mapOverlay)))
 		for _, e := range c.overlay {
 			e.publish()
 		}
@@ -107,6 +172,95 @@ func (c *Checker) publishOverlay() {
 	}
 	clear(c.overlay)
 	clear(c.mapOverlay)
+	// The next request starts here, while no other checker is publishing.
+	if r := c.recent; r != nil {
+		r.mu.Lock()
+		for i := range r.bits {
+			r.bits[i].Store(0)
+		}
+		clear(r.keys)
+		r.mu.Unlock()
+	}
+}
+
+// Snapshots
+//
+// A checker sees the store as it was when its request started, with its own
+// results on top. Otherwise, a result another checker publishes meanwhile
+// could refer to that checker's copy of an object of which the checker has
+// its own, and the checker would compute from both. Each checker keeps the
+// keys published since its request started, which publishers add before
+// writing their results, and reads a result whose key is among them as if
+// the store had none. A filter of the keys rules out most reads without a
+// lock. The keys must be exact: a result set when its owner was created is
+// never published, and is never computed again if read as missing.
+
+const recentFilterBits = 16
+
+type recentFilter struct {
+	bits [1 << recentFilterBits / 64]atomic.Uint64
+	mu   sync.Mutex
+	keys map[uint64]struct{}
+}
+
+func (k overlayKey) hash() uint64 {
+	return mixHash(uint64(uintptr(k.p))) ^ uint64(k.mask)*0xD6E8FEB86659FD93
+}
+
+func mixHash(h uint64) uint64 {
+	h *= 0x9E3779B97F4A7C15
+	return h ^ h>>29
+}
+
+var mapKeySeed = maphash.MakeSeed()
+
+// mapEntryHash returns the hash of the key of an entry of the map at m.
+func mapEntryHash[K comparable](m unsafe.Pointer, k K) uint64 {
+	return mixHash(uint64(uintptr(m))) ^ maphash.Comparable(mapKeySeed, k)
+}
+
+// markRecent marks the keys of the overlay c publishes in the recent filters
+// of the other checkers sharing the store.
+func (c *Checker) markRecent() {
+	for _, other := range c.sharers {
+		if other == c || other.recent == nil {
+			continue
+		}
+		r := other.recent
+		r.mu.Lock()
+		if r.keys == nil {
+			r.keys = make(map[uint64]struct{})
+		}
+		mark := func(h uint64) {
+			r.keys[h] = struct{}{}
+			i := mixHash(h) >> (64 - recentFilterBits)
+			r.bits[i/64].Or(1 << (i % 64))
+		}
+		for _, e := range c.overlay {
+			mark(e.hash)
+		}
+		for _, e := range c.mapOverlay {
+			mark(e.hash)
+		}
+		r.mu.Unlock()
+	}
+}
+
+// recentlyPublished reports whether the result with key hash h may have been
+// published since the request of c started, in which case c reads it as if
+// the store had none.
+func (c *Checker) recentlyPublished(h uint64) bool {
+	r := c.recent
+	if r == nil {
+		return false
+	}
+	if i := mixHash(h) >> (64 - recentFilterBits); r.bits[i/64].Load()&(1<<(i%64)) == 0 {
+		return false
+	}
+	r.mu.Lock()
+	_, ok := r.keys[h]
+	r.mu.Unlock()
+	return ok
 }
 
 // sharedMemoStates holds the memo states that checkers sharing a store
@@ -180,6 +334,7 @@ func (c *Checker) publishStates() {
 		for key, state := range c.memoStates {
 			if state.pending != nil {
 				s.pending.Add(1)
+				dbgPendingPublished.Add(1)
 			}
 			s.states[key] = state
 			i := sharedStateFilterIndex(key)
@@ -190,6 +345,7 @@ func (c *Checker) publishStates() {
 	for key, state := range c.mapStates {
 		if state.pending != nil {
 			c.sharedStates.pending.Add(1)
+			dbgPendingPublished.Add(1)
 		}
 		key.source.(statePublisher).publishState(key.key, state)
 	}
@@ -216,6 +372,7 @@ func (c *Checker) overlayCell(k overlayKey) (*overlayEntry, bool) {
 // discarded, it logs how to restore the previous entry, as set does for the
 // store.
 func (c *Checker) putOverlayCell(key overlayKey, e *overlayEntry, memo *memoHeader, memoKey memoKey, discardable bool) {
+	e.hash = key.hash()
 	if c.overlay == nil {
 		c.overlay = make(map[overlayKey]*overlayEntry)
 	}
@@ -229,14 +386,21 @@ func (c *Checker) putOverlayCell(key overlayKey, e *overlayEntry, memo *memoHead
 			}
 		})
 	}
+	if e.site == "" {
+		e.site = dbgSite()
+	}
 	c.overlay[key] = e
 }
 
 // putOverlayEntry caches e under key in the overlay, without logging how to
 // discard it; the caller does.
 func (c *Checker) putOverlayEntry(key overlayKey, e *overlayEntry) {
+	e.hash = key.hash()
 	if c.overlay == nil {
 		c.overlay = make(map[overlayKey]*overlayEntry)
+	}
+	if e.site == "" {
+		e.site = dbgSite()
 	}
 	c.overlay[key] = e
 }
@@ -257,6 +421,9 @@ func (c *Checker) putOverlayMapEntry(k mapOverlayKey, e *overlayEntry, own bool,
 			}
 		})
 	}
+	if e.site == "" {
+		e.site = dbgSite()
+	}
 	c.mapOverlay[k] = e
 }
 
@@ -271,4 +438,26 @@ func isZeroValue[T any](v *T) bool {
 		}
 	}
 	return true
+}
+
+var dbgPubs, dbgDrops, dbgPubEntries, dbgDropEntries, dbgPendingPublished atomic.Int64
+
+func DebugOverlayStats() string {
+	type kv struct {
+		k string
+		v int64
+	}
+	var all []kv
+	dbgConflictSites.Range(func(k, v any) bool {
+		all = append(all, kv{k.(string), v.(*atomic.Int64).Load()})
+		return true
+	})
+	slices.SortFunc(all, func(a, b kv) int { return int(b.v - a.v) })
+	for i, e := range all {
+		if i == 40 {
+			break
+		}
+		fmt.Fprintf(os.Stderr, "conflict %d %s\n", e.v, e.k)
+	}
+	return fmt.Sprintf("publishes=%d (%d entries) drops=%d (%d entries) pendingPublished=%d", dbgPubs.Load(), dbgPubEntries.Load(), dbgDrops.Load(), dbgDropEntries.Load(), dbgPendingPublished.Load())
 }

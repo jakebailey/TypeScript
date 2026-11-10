@@ -280,7 +280,7 @@ func (c *Checker) inferFromTypes(n *InferenceState, source *Type, target *Type) 
 func (c *Checker) inferFromAliasTypeArguments(n *InferenceState, source *Type, target *Type) {
 	// Source and target are types originating in the same generic type alias declaration.
 	// Simply infer from source type arguments to target type arguments, with defaults applied.
-	params := c.typeAliasLinks.Get(source.alias.symbol).typeParameters
+	params := guarded(c, &c.typeAliasLinks.Get(source.alias.symbol).typeParameters)
 	minParams := c.getMinTypeArgumentCount(params)
 	nodeIsInJsFile := ast.IsInJSFile(source.alias.symbol.ValueDeclaration())
 	sourceTypes := c.fillMissingTypeArguments(source.alias.typeArguments, params, minParams, nodeIsInJsFile)
@@ -984,7 +984,7 @@ func (c *Checker) inferToMappedType(n *InferenceState, source *Type, target *Typ
 	if constraintType.flags&TypeFlagsTypeParameter != 0 {
 		// We're inferring from some source type S to a mapped type { [P in K]: X }, where K is a type
 		// parameter. First infer from 'keyof S' to K.
-		c.inferWithPriority(n, c.getIndexTypeEx(source, core.IfElse(c.patternForType.has(source), IndexFlagsNoIndexSignatures, IndexFlagsNone)), constraintType, InferencePriorityMappedTypeConstraint)
+		c.inferWithPriority(n, c.getIndexTypeEx(source, core.IfElse(c.patternForType.has(c, source), IndexFlagsNoIndexSignatures, IndexFlagsNone)), constraintType, InferencePriorityMappedTypeConstraint)
 		// If K is constrained to a type C, also infer to C. Thus, for a mapped type { [P in K]: X },
 		// where K extends keyof T, we make the same inferences as for a homomorphic mapped type
 		// { [P in keyof T]: X }. This enables us to make meaningful inferences when the target is a

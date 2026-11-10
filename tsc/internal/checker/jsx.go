@@ -1036,7 +1036,7 @@ func (c *Checker) instantiateAliasOrInterfaceWithDefaults(managedSym *ast.Symbol
 	declaredManagedType := c.getDeclaredTypeOfSymbol(managedSym)
 	// fetches interface type, or initializes symbol links type parameters
 	if managedSym.Flags()&ast.SymbolFlagsTypeAlias != 0 {
-		params := c.typeAliasLinks.Get(managedSym).typeParameters
+		params := guarded(c, &c.typeAliasLinks.Get(managedSym).typeParameters)
 		if len(params) >= len(typeArguments) {
 			args := c.fillMissingTypeArguments(typeArguments, params, len(typeArguments), inJavaScript)
 			if len(args) == 0 {
