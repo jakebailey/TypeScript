@@ -332,25 +332,25 @@ func (b *NodeBuilderImpl) appendReferenceToType(root ast.TypeNode, ref ast.TypeN
 
 // referenceToExpression returns a type reference, or a reference that is
 // already an expression, as an expression.
-func (b *NodeBuilderImpl) referenceToExpression(ref *ast.Node) *ast.Expression {
+func (b *NodeBuilderImpl) referenceToExpression(ref ast.Node) ast.Expression {
 	if ast.IsTypeReferenceNode(ref) {
-		return b.createExpressionWithTypeArguments(b.createAccessExpression(ref.AsTypeReferenceNode().TypeName), ref.TypeArgumentList())
+		return b.createExpressionWithTypeArguments(b.createAccessExpression(ref.AsTypeReferenceNode().TypeName()), ref.TypeArgumentList())
 	}
 	return b.createAccessExpression(ref)
 }
 
 // appendReferenceToExpression returns ref, a reference expression, as a
 // reference to a member of root.
-func (b *NodeBuilderImpl) appendReferenceToExpression(root *ast.Expression, ref *ast.Expression) *ast.Expression {
+func (b *NodeBuilderImpl) appendReferenceToExpression(root ast.Expression, ref ast.Expression) ast.Expression {
 	switch {
 	case ast.IsIdentifier(ref):
-		return b.f.NewPropertyAccessExpression(root, nil /*questionDotToken*/, ref, ast.NodeFlagsNone)
+		return b.f.NewPropertyAccessExpression(root, ast.Node{} /*questionDotToken*/, ref, ast.NodeFlagsNone)
 	case ast.IsPropertyAccessExpression(ref):
-		return b.f.NewPropertyAccessExpression(b.appendReferenceToExpression(root, ref.Expression()), nil /*questionDotToken*/, ref.Name(), ast.NodeFlagsNone)
+		return b.f.NewPropertyAccessExpression(b.appendReferenceToExpression(root, ref.Expression()), ast.Node{} /*questionDotToken*/, ref.Name(), ast.NodeFlagsNone)
 	case ast.IsExpressionWithTypeArguments(ref):
-		return b.f.NewExpressionWithTypeArguments(b.appendReferenceToExpression(root, ref.Expression()), ref.AsExpressionWithTypeArguments().TypeArguments)
+		return b.f.NewExpressionWithTypeArguments(b.appendReferenceToExpression(root, ref.Expression()), ref.AsExpressionWithTypeArguments().TypeArguments())
 	default:
-		panic("unexpected reference kind: " + ref.Kind.String())
+		panic("unexpected reference kind: " + ref.Kind().String())
 	}
 }
 
