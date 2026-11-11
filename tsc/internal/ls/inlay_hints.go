@@ -710,14 +710,14 @@ func (s *inlayHintState) getInlayHintLabelParts(node ast.Node, idToSymbol map[as
 				visitDisplayPartList(node.ModifierNodes(), " ")
 				parts = append(parts, &lsproto.InlayHintLabelPart{Value: " "})
 			}
-			if node.Kind == ast.KindGetAccessor {
+			if node.Kind() == ast.KindGetAccessor {
 				parts = append(parts, &lsproto.InlayHintLabelPart{Value: "get "})
 			} else {
 				parts = append(parts, &lsproto.InlayHintLabelPart{Value: "set "})
 			}
 			visitForDisplayParts(node.Name())
 			visitParametersAndTypeParameters(node)
-			if node.Type() != nil {
+			if !node.Type().IsNil() {
 				parts = append(parts, &lsproto.InlayHintLabelPart{Value: ": "})
 				visitForDisplayParts(node.Type())
 			}
