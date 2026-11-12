@@ -16,6 +16,17 @@ defaults:
     shell: bash
 
 jobs:
+  verify-actions-lock:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - run: gh extension install github/gh-actions-lock --pin v0.4.1
+      - run: gh actions-lock --verify
+
   build:
     runs-on: ubuntu-latest
     steps:
@@ -410,6 +421,7 @@ jobs:
       - test
       - test-extra
       - tidy
+      - verify-actions-lock
     steps:
       - name: Check required jobs
         env:
