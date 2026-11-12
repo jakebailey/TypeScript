@@ -54,16 +54,16 @@ jobs:
             echo "Release branch name must start with 'release-' or match 'ts<number>-release'." >&2
             exit 1
           fi
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7.0.1
         with:
           ref: ${{ inputs.branch_name }}
           filter: blob:none
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+      - uses: actions/setup-node@v7.1.0
         with:
           node-version: 24
-      - uses: ./.github/actions/setup-go
+      - uses: $/.github/actions/setup-go
       - name: Merge main
         env:
           BRANCH_NAME: ${{ inputs.branch_name }}
@@ -114,7 +114,7 @@ jobs:
             git status --short
             exit 1
           fi
-      - uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+      - uses: azure/login@v3.1.0
         if: ${{ !cancelled() }}
         with:
           client-id: ${{ vars.AZURE_CLIENT_ID }}
@@ -123,7 +123,7 @@ jobs:
       - name: Create GitHub App token
         if: ${{ !cancelled() }}
         id: app-token
-        uses: microsoft/create-github-app-token-via-key-vault@5ba0d436e9c3cac52feff4d1f2f66f9698ce4a2d # v1
+        uses: microsoft/create-github-app-token-via-key-vault@main
         with:
           client-id: ${{ vars.TYPESCRIPT_AUTOMATION_GITHUB_APP_CLIENT_ID }}
           key-id: ${{ vars.TYPESCRIPT_AUTOMATION_GITHUB_APP_KEY_ID }}
