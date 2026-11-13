@@ -25,36 +25,36 @@ func getChildren(node ast.Node) []ast.Node {
 
 func TestVisitEachChildRequiredChild(t *testing.T) {
 	t.Parallel()
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	for _, test := range []struct {
 		name  string
-		node  *ast.Node
+		node  ast.Node
 		kind  ast.Kind
 		hooks ast.NodeVisitorHooks
 	}{
 		{name: "node", node: factory.NewExpressionStatement(factory.NewIdentifier("x")), kind: ast.KindIdentifier},
-		{name: "embedded statement", node: factory.NewIfStatement(factory.NewIdentifier("x"), factory.NewEmptyStatement(), nil), kind: ast.KindEmptyStatement},
-		{name: "raw list", node: factory.NewSyntaxList([]*ast.Node{factory.NewIdentifier("x")}), kind: ast.KindIdentifier},
+		{name: "embedded statement", node: factory.NewIfStatement(factory.NewIdentifier("x"), factory.NewEmptyStatement(), ast.Node{}), kind: ast.KindEmptyStatement},
+		{name: "raw list", node: factory.NewSyntaxList([]ast.Node{factory.NewIdentifier("x")}), kind: ast.KindIdentifier},
 		{
 			name: "hook",
 			node: factory.NewExpressionStatement(factory.NewIdentifier("x")),
 			hooks: ast.NodeVisitorHooks{
-				VisitNode: func(node *ast.Node, v *ast.NodeVisitor) *ast.Node { return nil },
+				VisitNode: func(node ast.Node, v *ast.NodeVisitor) ast.Node { return ast.Node{} },
 			},
 		},
 		{
 			name: "list hook",
 			node: factory.NewBlock(factory.NewNodeList(nil), false),
 			hooks: ast.NodeVisitorHooks{
-				VisitNodes: func(nodes *ast.NodeList, v *ast.NodeVisitor) *ast.NodeList { return nil },
+				VisitNodes: func(nodes ast.NodeList, v *ast.NodeVisitor) ast.NodeList { return ast.NodeList{} },
 			},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
-			visitor := ast.NewNodeVisitor(func(node *ast.Node) *ast.Node {
-				if node.Kind == test.kind {
-					return nil
+			visitor := ast.NewNodeVisitor(func(node ast.Node) ast.Node {
+				if node.Kind() == test.kind {
+					return ast.Node{}
 				}
 				return node
 			}, factory, test.hooks)
@@ -67,12 +67,12 @@ func TestVisitEachChildRequiredChild(t *testing.T) {
 
 func TestVisitEachChildElision(t *testing.T) {
 	t.Parallel()
-	factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+	factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 	node := factory.NewReturnStatement(factory.NewIdentifier("x"))
-	visitor := ast.NewNodeVisitor(func(node *ast.Node) *ast.Node { return nil }, factory, ast.NodeVisitorHooks{})
-	assert.Assert(t, visitor.VisitEachChild(node).AsReturnStatement().Expression == nil)
-	block := factory.NewBlock(factory.NewNodeList([]*ast.Node{node}), false)
-	assert.Equal(t, len(visitor.VisitEachChild(block).AsBlock().Statements.Nodes), 0)
+	visitor := ast.NewNodeVisitor(func(node ast.Node) ast.Node { return ast.Node{} }, factory, ast.NodeVisitorHooks{})
+	assert.Assert(t, visitor.VisitEachChild(node).AsReturnStatement().Expression().IsNil())
+	block := factory.NewBlock(factory.NewNodeList([]ast.Node{node}), false)
+	assert.Equal(t, visitor.VisitEachChild(block).AsBlock().Statements().Len(), 0)
 }
 
 func TestDeepCloneNodeSanityCheck(t *testing.T) {
