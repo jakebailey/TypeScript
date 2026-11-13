@@ -401,7 +401,7 @@ func (tx *TypeEraserTransformer) visit(node ast.Node) ast.Node {
 
 	case ast.KindExportAssignment:
 		n := node.AsExportAssignment()
-		return tx.Factory().UpdateExportAssignment(n, tx.Visitor().VisitModifiers(n.Modifiers()), n.IsExportEquals, nil, tx.Visitor().VisitNode(n.Expression))
+		return tx.Factory().UpdateExportAssignment(n, tx.Visitor().VisitModifiers(n.Modifiers()), n.IsExportEquals(), ast.Node{}, tx.Visitor().VisitNode(n.Expression()))
 
 	case ast.KindEnumDeclaration:
 		if !ast.IsEnumConst(node) {

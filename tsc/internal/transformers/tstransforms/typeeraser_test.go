@@ -23,12 +23,12 @@ func TestTypeEraserJSDocExportAssignment(t *testing.T) {
 				FileName: "/main.js",
 			}, "/** @type {"+typeText+"} */\nexport default foo;", core.ScriptKindJS)
 			parsetestutil.CheckDiagnostics(t, file)
-			assert.Assert(t, file.Statements.Nodes[0].AsExportAssignment().Type != nil)
+			assert.Assert(t, !file.Statements.At(0).AsExportAssignment().Type().IsNil())
 			transformed := tstransforms.NewTypeEraserTransformer(&transformers.TransformOptions{
 				CompilerOptions: &core.CompilerOptions{},
 				Context:         printer.NewEmitContext(),
 			}).TransformSourceFile(file)
-			assert.Assert(t, transformed.Statements.Nodes[0].AsExportAssignment().Type == nil)
+			assert.Assert(t, transformed.Statements.At(0).AsExportAssignment().Type().IsNil())
 			emittestutil.CheckEmit(t, nil, transformed, "/** @type {"+typeText+"} */\nexport default foo;")
 		})
 	}
