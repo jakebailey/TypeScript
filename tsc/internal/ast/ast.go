@@ -2522,7 +2522,7 @@ func (node *SourceFile) ForEachChild(v Visitor) bool {
 }
 
 func (node *SourceFile) VisitEachChild(v *NodeVisitor) Node {
-	return v.Factory.UpdateSourceFile(node, v.visitTopLevelStatements(node.Statements), v.visitToken(node.EndOfFileToken))
+	return v.Factory.UpdateSourceFile(node, requiredChild(node.Statements, v.visitTopLevelStatements(node.Statements)), requiredChild(node.EndOfFileToken, v.visitToken(node.EndOfFileToken)))
 }
 
 func (node *SourceFile) IsJS() bool {
@@ -2917,5 +2917,5 @@ func forEachChild_JSDocParameterOrPropertyTag(node JSDocParameterOrPropertyTag, 
 }
 
 func visitEachChild_JSDocParameterOrPropertyTag(node JSDocParameterOrPropertyTag, v *NodeVisitor) Node {
-	return v.Factory.UpdateJSDocParameterOrPropertyTag(node, v.visitNode(node.TagName()), v.visitNode(node.Name()), node.IsBracketed(), v.visitNode(node.TypeExpression()), node.IsNameFirst(), v.visitNodes(node.Comment()))
+	return v.Factory.UpdateJSDocParameterOrPropertyTag(node, requiredChild(node.TagName(), v.visitNode(node.TagName())), requiredChild(node.Name(), v.visitNode(node.Name())), node.IsBracketed(), v.visitNode(node.TypeExpression()), node.IsNameFirst(), v.visitNodes(node.Comment()))
 }

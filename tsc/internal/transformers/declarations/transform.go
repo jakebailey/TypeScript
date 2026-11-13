@@ -8,6 +8,7 @@ import (
 
 	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
+	"github.com/microsoft/TypeScript/tsc/internal/contentmapper"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/debug"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
@@ -1609,6 +1610,7 @@ func (tx *DeclarationTransformer) rewriteModuleSpecifier(parent ast.Node, input 
 		specifier := tspath.ToModuleSpecifier(input.Text())
 		rewrites := tx.host.ContentMapperExtensionRewrites()
 		caseSensitivity := tx.host.CaseSensitivity()
+		rewrites = contentmapper.RewritesForImport(rewrites, tx.state.currentSourceFile.FileName(), specifier, tx.host.ContentMapperExtensionForFileName, caseSensitivity)
 		if !specifier.ShouldRewriteExtension(rewrites, caseSensitivity) {
 			return input
 		}
@@ -2110,13 +2112,13 @@ func (tx *DeclarationTransformer) visitThisPropertyAssignments(node ast.Node) as
 	thisContainer := ast.GetThisContainer(node, false, false)
 	thisTarget = thisContainer.Parent()
 	if thisTarget.IsNil() {
-		return ast.Node{} // thisContainer was source file, can't have expando-this
+		return node // thisContainer was source file, can't have expando-this
 	}
 	if ast.HasStaticModifier(thisContainer) || ast.IsClassStaticBlockDeclaration(thisContainer) {
 		isStatic = true
 	}
 	if thisTarget != tx.enclosingDeclaration {
-		return ast.Node{} // stop searching within new `this` contexts
+		return node // stop searching within new `this` contexts
 	}
 caseBlock:
 	switch ast.GetAssignmentDeclarationKind(node) {

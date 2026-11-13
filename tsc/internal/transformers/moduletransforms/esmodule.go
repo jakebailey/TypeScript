@@ -13,14 +13,15 @@ import (
 
 type ESModuleTransformer struct {
 	transformers.Transformer
-	compilerOptions                *core.CompilerOptions
-	resolver                       binder.ReferenceResolver
-	getEmitModuleFormatOfFile      func(file ast.HasFileName) core.ModuleKind
-	contentMapperExtensionRewrites []tspath.ExtensionRewrite
-	caseSensitivity                tspath.CaseSensitivity
-	currentSourceFile              *ast.SourceFile
-	importRequireStatements        *importRequireStatements
-	helperNameSubstitutions        map[string]ast.IdentifierNode
+	compilerOptions                   *core.CompilerOptions
+	resolver                          binder.ReferenceResolver
+	getEmitModuleFormatOfFile         func(file ast.HasFileName) core.ModuleKind
+	contentMapperExtensionRewrites    []tspath.ExtensionRewrite
+	contentMapperExtensionForFileName func(tspath.RootedFilePath) string
+	caseSensitivity                   tspath.CaseSensitivity
+	currentSourceFile                 *ast.SourceFile
+	importRequireStatements           *importRequireStatements
+	helperNameSubstitutions           map[string]ast.IdentifierNode
 }
 
 type importRequireStatements struct {
@@ -31,6 +32,7 @@ type importRequireStatements struct {
 func NewESModuleTransformer(opts *transformers.TransformOptions) *transformers.Transformer {
 	compilerOptions := opts.CompilerOptions
 	tx := &ESModuleTransformer{compilerOptions: compilerOptions, resolver: opts.Resolver, getEmitModuleFormatOfFile: opts.GetEmitModuleFormatOfFile, contentMapperExtensionRewrites: opts.ContentMapperExtensionRewrites, caseSensitivity: opts.CaseSensitivity}
+	tx.contentMapperExtensionForFileName = opts.ContentMapperExtensionForFileName
 	return tx.NewTransformer(tx.visit, opts.Context)
 }
 
@@ -107,7 +109,7 @@ func (tx *ESModuleTransformer) visitImportDeclaration(node ast.ImportDeclaration
 	if !tx.compilerOptions.RewriteRelativeImportExtensions.IsTrue() {
 		return node.AsNode()
 	}
-	updatedModuleSpecifier := rewriteModuleSpecifier(tx.EmitContext(), node.ModuleSpecifier(), tx.compilerOptions, tx.contentMapperExtensionRewrites, tx.caseSensitivity)
+	updatedModuleSpecifier := rewriteModuleSpecifier(tx.EmitContext(), node.ModuleSpecifier(), tx.compilerOptions, tx.contentMapperExtensionRewrites, tx.caseSensitivity, tx.currentSourceFile, tx.contentMapperExtensionForFileName)
 	return tx.Factory().UpdateImportDeclaration(
 		node,
 		ast.ModifierList{}, /*modifiers*/
@@ -201,7 +203,7 @@ func (tx *ESModuleTransformer) visitExportDeclaration(node ast.ExportDeclaration
 		return node.AsNode()
 	}
 
-	updatedModuleSpecifier := rewriteModuleSpecifier(tx.EmitContext(), node.ModuleSpecifier(), tx.compilerOptions, tx.contentMapperExtensionRewrites, tx.caseSensitivity)
+	updatedModuleSpecifier := rewriteModuleSpecifier(tx.EmitContext(), node.ModuleSpecifier(), tx.compilerOptions, tx.contentMapperExtensionRewrites, tx.caseSensitivity, tx.currentSourceFile, tx.contentMapperExtensionForFileName)
 	if tx.compilerOptions.Module > core.ModuleKindES2015 || node.ExportClause().IsNil() || !ast.IsNamespaceExport(node.ExportClause()) {
 		// Either ill-formed or don't need to be transformed.
 		return tx.Factory().UpdateExportDeclaration(
@@ -269,7 +271,7 @@ func (tx *ESModuleTransformer) visitImportOrRequireCall(node ast.CallExpression)
 
 	var argument ast.Expression
 	if ast.IsStringLiteralLike(node.Arguments().At(0)) {
-		argument = rewriteModuleSpecifier(tx.EmitContext(), node.Arguments().At(0), tx.compilerOptions, tx.contentMapperExtensionRewrites, tx.caseSensitivity)
+		argument = rewriteModuleSpecifier(tx.EmitContext(), node.Arguments().At(0), tx.compilerOptions, tx.contentMapperExtensionRewrites, tx.caseSensitivity, tx.currentSourceFile, tx.contentMapperExtensionForFileName)
 	} else {
 		argument = tx.Factory().NewRewriteRelativeImportExtensionsHelper(node.Arguments().At(0), tx.compilerOptions.Jsx == core.JsxEmitPreserve, tx.contentMapperExtensionRewrites, tx.caseSensitivity)
 	}
@@ -297,7 +299,7 @@ func (tx *ESModuleTransformer) createRequireCall(node ast.Node /*ImportDeclarati
 
 	var args []ast.Expression
 	if !moduleName.IsNil() {
-		args = append(args, rewriteModuleSpecifier(tx.EmitContext(), moduleName, tx.compilerOptions, tx.contentMapperExtensionRewrites, tx.caseSensitivity))
+		args = append(args, rewriteModuleSpecifier(tx.EmitContext(), moduleName, tx.compilerOptions, tx.contentMapperExtensionRewrites, tx.caseSensitivity, tx.currentSourceFile, tx.contentMapperExtensionForFileName))
 	}
 
 	if tx.compilerOptions.GetEmitModuleKind() == core.ModuleKindPreserve {

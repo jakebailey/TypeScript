@@ -2631,6 +2631,7 @@ func (c *Checker) isPostSuperFlowNodeWorker(f *FlowState, flow ast.FlowNode, noC
 				}
 				postSuper := c.isPostSuperFlowNodeWorker(f, flow, true /*noCacheCheck*/)
 				c.flowNodePostSuper[key] = postSuper
+				return postSuper
 			}
 			noCacheCheck = false
 		}
