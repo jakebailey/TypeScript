@@ -8635,7 +8635,7 @@ func (c *Checker) checkImportCallExpression(node ast.Node) *Type {
 	return c.createPromiseReturnType(node, c.anyType)
 }
 
-func (c *Checker) checkDynamicImportExtensionRewriting(node *ast.Node) {
+func (c *Checker) checkDynamicImportExtensionRewriting(node ast.Node) {
 	for _, rewrite := range c.program.ContentMapperExtensionRewrites() {
 		if !rewrite.Runtime && rewrite.Source != rewrite.Target {
 			c.error(node, diagnostics.Non_literal_import_paths_cannot_be_rewritten_when_a_content_mapper_uses_both_include_and_an_outputExtensions_mapping_Set_disableDynamicImportExtensionRewriting_to_disable_rewriting_of_non_literal_import_paths)
