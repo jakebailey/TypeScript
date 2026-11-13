@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/microsoft/TypeScript/tsc/internal/ast"
 	"github.com/microsoft/TypeScript/tsc/internal/collections"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
 	"github.com/microsoft/TypeScript/tsc/internal/diagnostics"
@@ -23,7 +24,7 @@ func TestConvertJsonOptionNumericList(t *testing.T) { //nolint:paralleltest // M
 	for _, preserve := range []bool{false, true} {
 		option := &CommandLineOption{Name: name, Kind: CommandLineOptionTypeList, listPreserveFalsyValues: preserve}
 		values := []any{float64(0), float64(1), float64(-1), math.Copysign(0, -1), nil}
-		got, errors := convertJsonOptionOfListType(option, values, "/project", nil, nil, nil)
+		got, errors := convertJsonOptionOfListType(option, values, "/project", ast.PropertyAssignment{}, ast.Node{}, nil)
 		assert.Equal(t, len(errors), 0)
 		expected := []any{float64(1), float64(-1)}
 		if preserve {
