@@ -556,9 +556,7 @@ func typeNodeCouldReferToUndefined(node ast.Node) bool {
 	case ast.KindTypeReference, ast.KindIndexedAccessType, ast.KindTypeQuery, ast.KindOptionalType, ast.KindRestType, ast.KindImportType:
 		return true
 	case ast.KindIntersectionType:
-		// TODO: why is this not `core.Every`? strada treated unions and intersections the same, but logically every intersection member needs to contain a possible `undefined`
-		// for the result type to contain `undefined`. Likely a bug persisting from strada.
-		return node.AsIntersectionTypeNode().Types().Some(typeNodeCouldReferToUndefined)
+		return node.AsIntersectionTypeNode().Types().Every(typeNodeCouldReferToUndefined)
 	case ast.KindUnionType:
 		return node.AsUnionTypeNode().Types().Some(typeNodeCouldReferToUndefined)
 	case ast.KindConditionalType: // suspect - should be treated as a union of both branches instead, likely a bug persisted from strada
