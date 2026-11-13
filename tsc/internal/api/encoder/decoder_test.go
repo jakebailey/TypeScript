@@ -353,6 +353,46 @@ func TestDecodeSourceFile_Positions(t *testing.T) {
 	assert.Equal(t, decoded.AsNode().End(), len(code))
 }
 
+func TestDecodeSourceFile_UnicodePositions(t *testing.T) {
+	t.Parallel()
+	unicodeFixture, readErr := os.ReadFile(filepath.Join(repo.TestDataPath(), "tests/cases/conformance/parser/ecmascript5/parserUnicode2.ts"))
+	assert.NilError(t, readErr)
+	for name, code := range map[string]string{
+		"multibyte":      "const café = '日本語';\nasync function élève(名: string) { return 名; }",
+		"astral":         "const face = '😀';\nasync function f(x: string) { return `😃${x}終`; }",
+		"synthetic":      "const x = '😀';",
+		"parserUnicode2": string(unicodeFixture),
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			sourceFile := parseSourceFile(code)
+			if name == "synthetic" {
+				sourceFile.Statements.Loc = core.NewTextRange(-1, -1)
+				sourceFile.EndOfFileToken.Loc = core.NewTextRange(-1, -1)
+			}
+			buf, originalTable, err := encoder.EncodeSourceFile(sourceFile)
+			assert.NilError(t, err)
+			decoded, err := encoder.DecodeSourceFile(buf)
+			assert.NilError(t, err)
+			assert.Equal(t, decoded.End(), len(code))
+			assert.Equal(t, decoded.Statements.Loc, sourceFile.Statements.Loc)
+			assert.Equal(t, decoded.EndOfFileToken.Loc, sourceFile.EndOfFileToken.Loc)
+
+			decodedTable := encoder.BuildNodeIndexTable(decoded)
+			assert.Equal(t, len(decodedTable.Nodes), len(originalTable.Nodes))
+			for i, original := range originalTable.Nodes {
+				if original != nil {
+					assert.Equal(t, decodedTable.Nodes[i].Loc, original.Loc, "node %d (%v)", i, original.Kind)
+				}
+			}
+			reencoded, _, err := encoder.EncodeSourceFile(decoded)
+			assert.NilError(t, err)
+			// The decoder does not reconstruct the parser's content hash.
+			assert.DeepEqual(t, reencoded[encoder.HeaderOffsetParseOptions:], buf[encoder.HeaderOffsetParseOptions:])
+		})
+	}
+}
+
 func TestDecodeNodes_RawNodeLists(t *testing.T) {
 	t.Parallel()
 	for _, kind := range []ast.Kind{ast.KindSyntaxList, ast.KindJSDocTypeLiteral} {

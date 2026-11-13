@@ -30,6 +30,7 @@ type astDecoder struct {
 }
 
 // DecodeSourceFile decodes binary-encoded data into an *ast.SourceFile.
+// Text ranges use UTF-8 byte offsets into the decoded source text.
 func DecodeSourceFile(data []byte) (*ast.SourceFile, error) {
 	node, err := DecodeNodes(data)
 	if err != nil {
@@ -42,6 +43,8 @@ func DecodeSourceFile(data []byte) (*ast.SourceFile, error) {
 }
 
 // DecodeNodes decodes binary-encoded AST data into a tree of *ast.Node objects.
+// For a non-SourceFile root, ranges retain their UTF-16 wire offsets because the
+// encoding does not include the source text needed to convert them.
 func DecodeNodes(data []byte) (*ast.Node, error) {
 	d, err := newASTDecoder(data)
 	if err != nil {
@@ -146,6 +149,29 @@ func (d *astDecoder) decode() (*ast.Node, error) {
 		return nil, errors.New("no nodes to decode")
 	}
 
+	// Read the source text before constructing children so their ranges, including
+	// ranges copied into modifier lists, use UTF-8 offsets from the outset.
+	var positionMap *ast.PositionMap
+	if d.nodeField(1, NodeOffsetKind) == uint32(ast.KindSourceFile) {
+		data := d.nodeField(1, NodeOffsetData)
+		if data&NodeDataTypeMask == NodeDataTypeExtendedData {
+			extOff := int(d.extData) + int(data&NodeDataStringIndexMask)
+			text, err := d.getString(readLE32(d.raw, extOff))
+			if err != nil {
+				return nil, err
+			}
+			positionMap = ast.ComputePositionMap(text)
+		}
+	}
+	textRange := func(pos, end uint32) core.TextRange {
+		start, finish := int(int32(pos)), int(int32(end))
+		if positionMap != nil {
+			start = positionMap.UTF16ToUTF8(start)
+			finish = positionMap.UTF16ToUTF8(finish)
+		}
+		return core.NewTextRange(start, finish)
+	}
+
 	d.nodes = make([]*ast.Node, d.nodeCount)
 	d.nodeLists = make([]*ast.NodeList, d.nodeCount)
 	// Pre-allocate arena for NodeList child slices. Each node can appear as a
@@ -168,7 +194,7 @@ func (d *astDecoder) decode() (*ast.Node, error) {
 				}
 			}
 			nl := d.factory.NewNodeList(childNodes)
-			nl.Loc = core.NewTextRange(int(pos), int(end))
+			nl.Loc = textRange(pos, end)
 			d.nodeLists[i] = nl
 			continue
 		}
@@ -177,7 +203,7 @@ func (d *astDecoder) decode() (*ast.Node, error) {
 		if err != nil {
 			return nil, fmt.Errorf("at node %d (kind %v): %w", i, ast.Kind(kind), err)
 		}
-		node.Loc = core.NewTextRange(int(pos), int(end))
+		node.Loc = textRange(pos, end)
 		node.Flags = ast.NodeFlags(d.nodeField(i, NodeOffsetFlags))
 		if kind == uint32(ast.KindSourceFile) {
 			node.AsSourceFile().IsDeclarationFile = node.Flags&ast.NodeFlagsAmbient != 0
