@@ -891,9 +891,9 @@ function emitSingleChildDecoder(w: CodeWriter, node: NodeType, info: EncoderNode
         else if (m === cp) {
             if (ct === "rawNodeList") {
                 w.write(`nodes := d.allocNodeSlice(len(childIndices))`);
-                w.write("for i, ci := range childIndices {");
+                w.write("for _, ci := range childIndices {");
                 w.push();
-                w.write("nodes[i] = d.nodes[ci]");
+                w.write("nodes = append(nodes, d.nodes[ci])");
                 w.pop();
                 w.write("}");
                 args.push("nodes");

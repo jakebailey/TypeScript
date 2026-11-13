@@ -353,6 +353,53 @@ func TestDecodeSourceFile_Positions(t *testing.T) {
 	assert.Equal(t, decoded.AsNode().End(), len(code))
 }
 
+func TestDecodeNodes_RawNodeLists(t *testing.T) {
+	t.Parallel()
+	for _, kind := range []ast.Kind{ast.KindSyntaxList, ast.KindJSDocTypeLiteral} {
+		for _, count := range []int{0, 1, 2} {
+			t.Run(kind.String()+string(rune('0'+count)), func(t *testing.T) {
+				t.Parallel()
+				factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+				children := make([]*ast.Node, 0, count)
+				for i := range count {
+					name := factory.NewIdentifier(string(rune('a' + i)))
+					if kind == ast.KindJSDocTypeLiteral {
+						name = factory.NewJSDocParameterOrPropertyTag(ast.KindJSDocPropertyTag, factory.NewIdentifier("property"), name, false, nil, true, nil)
+					}
+					children = append(children, name)
+				}
+				var node *ast.Node
+				if kind == ast.KindSyntaxList {
+					node = factory.NewSyntaxList(children)
+				} else {
+					node = factory.NewJSDocTypeLiteral(children, true)
+				}
+				buf, _, err := encoder.EncodeNode(node, nil)
+				assert.NilError(t, err)
+				decoded, err := encoder.DecodeNodes(buf)
+				assert.NilError(t, err)
+				var decodedChildren []*ast.Node
+				if kind == ast.KindSyntaxList {
+					decodedChildren = decoded.AsSyntaxList().Children
+				} else {
+					decodedChildren = decoded.AsJSDocTypeLiteral().JSDocPropertyTags
+					assert.Assert(t, decoded.AsJSDocTypeLiteral().IsArrayType)
+				}
+				assert.Equal(t, len(decodedChildren), count)
+				for i, child := range decodedChildren {
+					if kind == ast.KindJSDocTypeLiteral {
+						child = child.Name()
+					}
+					assert.Equal(t, child.Text(), string(rune('a'+i)))
+				}
+				reencoded, _, err := encoder.EncodeNode(decoded, nil)
+				assert.NilError(t, err)
+				assert.DeepEqual(t, reencoded, buf)
+			})
+		}
+	}
+}
+
 func TestDecodeSourceFile_ClassDeclaration(t *testing.T) {
 	t.Parallel()
 	sf := parseSourceFile("class Foo { bar(): void {} }")

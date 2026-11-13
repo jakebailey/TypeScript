@@ -913,8 +913,8 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 		return d.factory.NewJsxExpression(dotDotDotToken, expression), nil
 	case ast.KindSyntaxList:
 		nodes := d.allocNodeSlice(len(childIndices))
-		for i, ci := range childIndices {
-			nodes[i] = d.nodes[ci]
+		for _, ci := range childIndices {
+			nodes = append(nodes, d.nodes[ci])
 		}
 		return d.factory.NewSyntaxList(nodes), nil
 	case ast.KindJSDoc:
@@ -1130,8 +1130,8 @@ func (d *astDecoder) createChildrenNode(kind ast.Kind, data uint32, childIndices
 	case ast.KindJSDocTypeLiteral:
 		isArrayType := commonData&1 != 0
 		nodes := d.allocNodeSlice(len(childIndices))
-		for i, ci := range childIndices {
-			nodes[i] = d.nodes[ci]
+		for _, ci := range childIndices {
+			nodes = append(nodes, d.nodes[ci])
 		}
 		return d.factory.NewJSDocTypeLiteral(nodes, isArrayType), nil
 	case ast.KindJSDocParameterTag, ast.KindJSDocPropertyTag:
