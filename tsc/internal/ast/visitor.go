@@ -192,8 +192,8 @@ func (v *NodeVisitor) VisitEachChild(node Node) Node {
 	return node.VisitEachChild(v)
 }
 
-func requiredChild[T any](original *T, child *T) *T {
-	if original != nil && child == nil {
+func requiredChild[T interface{ IsNil() bool }](original T, child T) T {
+	if !original.IsNil() && child.IsNil() {
 		panic("Visitor returned nil for a required child")
 	}
 	return child
