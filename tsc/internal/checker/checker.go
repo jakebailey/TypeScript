@@ -2809,7 +2809,7 @@ func (c *Checker) checkTypeParameterDeferred(node ast.Node) {
 				}
 				source := c.createMarkerType(symbol, typeParameter, core.IfElse(modifiers == ast.ModifierFlagsOut, c.markerSubTypeForCheck, c.markerSuperTypeForCheck))
 				target := c.createMarkerType(symbol, typeParameter, core.IfElse(modifiers == ast.ModifierFlagsOut, c.markerSuperTypeForCheck, c.markerSubTypeForCheck))
-				saveVarianceTypeParameter := typeParameter
+				saveVarianceTypeParameter := c.varianceTypeParameter
 				c.varianceTypeParameter = typeParameter
 				c.checkTypeAssignableTo(source, target, node, diagnostics.Type_0_is_not_assignable_to_type_1_as_implied_by_variance_annotation)
 				c.varianceTypeParameter = saveVarianceTypeParameter
@@ -16311,6 +16311,14 @@ func (c *Checker) createDefaultPropertyWrapperForModule(symbol ast.SymbolId, ori
 	return c.newAnonymousType(anonymousSymbol, memberTable, nil, nil, nil)
 }
 
+// isModuleWrapperSymbol reports whether symbol is that of the object type
+// wrapping a module for a synthetic default import, which has the module's
+// declarations. A module is never within the scope of a type parameter.
+func (c *Checker) isModuleWrapperSymbol(symbol ast.SymbolId) bool {
+	d := c.symbolDeclarations(symbol).At(0)
+	return ast.IsSourceFile(d) || ast.IsModuleDeclaration(d)
+}
+
 func (c *Checker) cloneTypeAsModuleType(symbol ast.SymbolId, moduleType *Type, referenceParent ast.Node) ast.SymbolId {
 	result := c.newSymbol(c.symbolFlags(symbol), c.symbolName(symbol))
 	c.setSymbolDeclarations(result, c.symbolDeclarations(symbol))
@@ -19846,6 +19854,9 @@ func (c *Checker) resolveObjectTypeMembers(t *Type) {
 		indexInfos = c.instantiateIndexInfos(resolved.iface(c).declaredIndexInfos, mapper)
 	}
 	baseTypes := c.getBaseTypes(source)
+	// Declared members are available while the base types are instantiated,
+	// as their type arguments can refer back to this type.
+	c.resolvingObjectTypeStack = append(c.resolvingObjectTypeStack, ResolvingObjectType{t: t, mapper: mapper})
 	instantiatedBaseTypes := baseTypes
 	thisArgument := c.typ(core.LastOrNil(typeArguments))
 	if len(baseTypes) != 0 && thisArgument != nil {
@@ -19855,7 +19866,7 @@ func (c *Checker) resolveObjectTypeMembers(t *Type) {
 			instantiatedBaseTypes[i] = c.getTypeWithThisArgument(c.instantiateType(baseType, mapper), thisArgument, false /*needsApparentType*/).ref()
 		}
 	}
-	c.resolvingObjectTypeStack = append(c.resolvingObjectTypeStack, ResolvingObjectType{t: t, mapper: mapper, baseTypes: instantiatedBaseTypes})
+	c.resolvingObjectTypeStack[len(c.resolvingObjectTypeStack)-1].baseTypes = instantiatedBaseTypes
 	// Member layout must be computed before inherited signatures, which may circularly depend on it
 	layout := c.getMemberLayout(t, instantiatedBaseTypes)
 	for _, instantiatedBaseTypeId := range instantiatedBaseTypes {
@@ -23114,7 +23125,7 @@ func (c *Checker) couldContainTypeVariablesWorker(t *Type) bool {
 	}
 	result := t.flags&TypeFlagsInstantiable != 0 ||
 		t.flags&TypeFlagsObject != 0 && !c.isNonGenericTopLevelType(t) && (objectFlags&ObjectFlagsReference != 0 && (!c.nodeOf(t.AsTypeReference().node(c)).IsNil() || c.typesSome(c.getTypeArguments(t), c.couldContainTypeVariables)) ||
-			objectFlags&ObjectFlagsAnonymous != 0 && c.symbolOfType(t) != 0 && c.symbolFlags(c.symbolOfType(t))&(ast.SymbolFlagsFunction|ast.SymbolFlagsMethod|ast.SymbolFlagsClass|ast.SymbolFlagsTypeLiteral|ast.SymbolFlagsObjectLiteral) != 0 && c.symbolDeclarations(c.symbolOfType(t)).Len() != 0 ||
+			objectFlags&ObjectFlagsAnonymous != 0 && c.symbolOfType(t) != 0 && c.symbolFlags(c.symbolOfType(t))&(ast.SymbolFlagsFunction|ast.SymbolFlagsMethod|ast.SymbolFlagsClass|ast.SymbolFlagsTypeLiteral|ast.SymbolFlagsObjectLiteral) != 0 && c.symbolDeclarations(c.symbolOfType(t)).Len() != 0 && !c.isModuleWrapperSymbol(c.symbolOfType(t)) ||
 			objectFlags&(ObjectFlagsMapped|ObjectFlagsReverseMapped|ObjectFlagsObjectRestType|ObjectFlagsInstantiationExpressionType) != 0) ||
 		t.flags&TypeFlagsUnionOrIntersection != 0 && t.flags&TypeFlagsEnumLiteral == 0 && !c.isNonGenericTopLevelType(t) && c.typesSome(t.Types(c), c.couldContainTypeVariables)
 	t.objectFlags |= ObjectFlagsCouldContainTypeVariablesComputed | core.IfElse(result, ObjectFlagsCouldContainTypeVariables, 0)
