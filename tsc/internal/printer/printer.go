@@ -1224,6 +1224,10 @@ func (p *Printer) emitComputedPropertyName(node *ast.ComputedPropertyName) {
 }
 
 func (p *Printer) emitEntityName(node *ast.EntityName) {
+	if display := p.emitContext.DisplayExpression(node); display != nil {
+		p.emitExpression(display, ast.OperatorPrecedenceDisallowComma)
+		return
+	}
 	switch node.Kind {
 	case ast.KindIdentifier:
 		p.emitIdentifierReference(node.AsIdentifier())
@@ -1910,8 +1914,12 @@ func (p *Printer) emitTypeArguments(parentNode *ast.Node, nodes *ast.TypeArgumen
 
 func (p *Printer) emitTypeReference(node *ast.TypeReferenceNode) {
 	state := p.enterNode(node.AsNode())
-	p.emitEntityName(node.TypeName)
-	p.emitTypeArguments(node.AsNode(), node.TypeArguments)
+	if display := p.emitContext.DisplayExpression(node.AsNode()); display != nil {
+		p.emitExpression(display, ast.OperatorPrecedenceDisallowComma)
+	} else {
+		p.emitEntityName(node.TypeName)
+		p.emitTypeArguments(node.AsNode(), node.TypeArguments)
+	}
 	p.exitNode(node.AsNode(), state)
 }
 
@@ -2366,13 +2374,6 @@ func (p *Printer) emitTypeNode(node *ast.TypeNode, precedence ast.TypePrecedence
 		p.emitTemplateTypeSpan(node.AsTemplateLiteralTypeSpan())
 	case ast.KindImportType:
 		p.emitImportTypeNode(node.AsImportTypeNode())
-
-	case ast.KindPropertyAccessExpression:
-		// Occurs in pseudo-types such as `f<T>.C`, where `f` is a generic function and `C` is a local type
-		p.emitPropertyAccessExpression(node.AsPropertyAccessExpression())
-	case ast.KindExpressionWithTypeArguments:
-		// !!! Should this actually be considered a type?
-		p.emitExpressionWithTypeArguments(node.AsExpressionWithTypeArguments())
 
 	case ast.KindJSDocAllType:
 		p.emitJSDocAllType(node)

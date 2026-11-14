@@ -272,12 +272,6 @@ func (b *NodeBuilderImpl) checkTypeExpandability(t *Type) {
 }
 
 func (b *NodeBuilderImpl) appendReferenceToType(root *ast.TypeNode, ref *ast.TypeNode) *ast.TypeNode {
-	if !ast.IsImportTypeNode(root) && (ast.IsExpressionWithTypeArguments(root) || ast.IsExpressionWithTypeArguments(ref)) {
-		// Type arguments precede the last name of root or ref, so the
-		// reference is an expression with type arguments rather than a
-		// qualified name.
-		return b.appendReferenceToExpression(b.referenceToExpression(root), b.referenceToExpression(ref))
-	}
 	if ast.IsImportTypeNode(root) {
 		// first shift type arguments
 
@@ -310,29 +304,36 @@ func (b *NodeBuilderImpl) appendReferenceToType(root *ast.TypeNode, ref *ast.Typ
 		return b.f.UpdateImportTypeNode(imprt, imprt.IsTypeOf, imprt.Argument, imprt.Attributes, qualifier, ref.TypeArgumentList())
 	} else if ast.IsTypeReferenceNode(root) {
 		typeRef := root.AsTypeReferenceNode()
-		if b.ctx.flags&nodebuilder.FlagsUseInstantiationExpressions != 0 && typeRef.TypeArguments != nil && len(typeRef.TypeArguments.Nodes) != 0 {
-			expr := b.createExpressionWithTypeArguments(b.createAccessExpression(typeRef.TypeName), typeRef.TypeArguments)
-			for _, id := range getAccessStack(ref) {
-				expr = b.f.NewPropertyAccessExpression(expr, nil, id, ast.NodeFlagsNone)
-			}
-			return expr
-		}
 		var typeName *ast.Node = typeRef.TypeName
 		for _, id := range getAccessStack(ref) {
 			typeName = b.f.NewQualifiedName(typeName, id)
 		}
-		return b.f.UpdateTypeReferenceNode(root.AsTypeReferenceNode(), typeName, ref.TypeArgumentList())
+		result := b.f.UpdateTypeReferenceNode(root.AsTypeReferenceNode(), typeName, ref.TypeArgumentList())
+		rootDisplay := b.e.DisplayExpression(root)
+		refDisplay := b.e.DisplayExpression(ref)
+		if rootDisplay != nil && ast.IsExpressionWithTypeArguments(rootDisplay) ||
+			refDisplay != nil && ast.IsExpressionWithTypeArguments(refDisplay) {
+			display := b.appendReferenceToExpression(b.referenceToExpression(root), b.referenceToExpression(ref))
+			b.e.SetDisplayExpression(result, display)
+		} else if rootDisplay != nil ||
+			b.ctx.flags&nodebuilder.FlagsUseInstantiationExpressions != 0 && typeRef.TypeArguments != nil && len(typeRef.TypeArguments.Nodes) != 0 {
+			// Appending names to an outer instantiation historically omits
+			// the final arguments; they remain in the canonical type tree.
+			displayRef := b.createAccessExpression(ref.AsTypeReferenceNode().TypeName)
+			display := b.appendReferenceToExpression(b.referenceToExpression(root), displayRef)
+			b.e.SetDisplayExpression(result, display)
+		}
+		return result
 	}
-	expr := b.createAccessExpression(root)
-	for _, id := range getAccessStack(ref) {
-		expr = b.f.NewPropertyAccessExpression(expr, nil, id, ast.NodeFlagsNone)
-	}
-	return expr
+	panic("unexpected type reference kind: " + root.Kind.String())
 }
 
 // referenceToExpression returns a type reference, or a reference that is
 // already an expression, as an expression.
 func (b *NodeBuilderImpl) referenceToExpression(ref *ast.Node) *ast.Expression {
+	if display := b.e.DisplayExpression(ref); display != nil {
+		return b.f.DeepCloneNode(display)
+	}
 	if ast.IsTypeReferenceNode(ref) {
 		return b.createExpressionWithTypeArguments(b.createAccessExpression(ref.AsTypeReferenceNode().TypeName), ref.TypeArgumentList())
 	}
@@ -761,17 +762,16 @@ func (b *NodeBuilderImpl) symbolToTypeNode(symbol *ast.Symbol, mask ast.SymbolFl
 	if ast.IsIndexedAccessTypeNode(entityName) {
 		return entityName // Indexed accesses can never be `typeof`
 	}
-	if ast.IsEntityName(entityName) {
-		if isTypeOf {
-			return b.f.NewTypeQueryNode(entityName, nil)
-		}
-		return b.f.NewTypeReferenceNode(entityName, typeArguments)
+	debug.Assert(ast.IsEntityName(entityName))
+	if isTypeOf {
+		return b.f.NewTypeQueryNode(entityName, typeArguments)
 	}
-	if isTypeOf && ast.IsExpressionWithTypeArguments(entityName) {
-		expr := entityName.AsExpressionWithTypeArguments()
-		return b.f.NewTypeQueryNode(b.f.DeepCloneNode(expr.Expression), expr.TypeArguments)
+	result := b.f.NewTypeReferenceNode(entityName, typeArguments)
+	if b.ctx.flags&nodebuilder.FlagsUseInstantiationExpressions != 0 && ast.IsQualifiedName(entityName) &&
+		(b.e.DisplayExpression(entityName) != nil || typeArguments != nil && len(typeArguments.Nodes) != 0) {
+		b.e.SetDisplayExpression(result, b.createExpressionWithTypeArguments(b.createAccessExpression(entityName), typeArguments))
 	}
-	return entityName
+	return result
 }
 
 func getTopmostIndexedAccessType(node *ast.IndexedAccessTypeNode) *ast.IndexedAccessTypeNode {
@@ -869,10 +869,16 @@ func (b *NodeBuilderImpl) createAccessFromSymbolChain(chain []*ast.Symbol, index
 
 	if index > stopper {
 		lhs := b.createAccessFromSymbolChain(chain, index-1, stopper, overrideTypeArguments)
-		if b.ctx.flags&nodebuilder.FlagsUseInstantiationExpressions == 0 || ast.IsEntityName(lhs) && (typeParameterNodes == nil || len(typeParameterNodes.Nodes) == 0) {
-			return b.f.NewQualifiedName(lhs, identifier)
+		name := b.f.NewQualifiedName(lhs, identifier)
+		if b.ctx.flags&nodebuilder.FlagsUseInstantiationExpressions != 0 &&
+			(b.e.DisplayExpression(lhs) != nil || index < len(chain)-1 && typeParameterNodes != nil && len(typeParameterNodes.Nodes) != 0) {
+			expr := b.f.NewPropertyAccessExpression(b.createAccessExpression(lhs), nil, identifier, ast.NodeFlagsNone)
+			if index < len(chain)-1 {
+				expr = b.createExpressionWithTypeArguments(expr, typeParameterNodes)
+			}
+			b.e.SetDisplayExpression(name, expr)
 		}
-		return b.createExpressionWithTypeArguments(b.f.NewPropertyAccessExpression(b.createAccessExpression(lhs), nil, identifier, ast.NodeFlagsNone), typeParameterNodes)
+		return name
 	}
 	return identifier
 }
@@ -3753,6 +3759,9 @@ func (b *NodeBuilderImpl) newIdentifier(text string, symbol *ast.Symbol) *ast.No
 }
 
 func (b *NodeBuilderImpl) createAccessExpression(node *ast.Node) *ast.Expression {
+	if display := b.e.DisplayExpression(node); display != nil {
+		return b.f.DeepCloneNode(display)
+	}
 	switch {
 	case ast.IsQualifiedName(node):
 		return b.f.NewPropertyAccessExpression(b.createAccessExpression(node.AsQualifiedName().Left), nil /*questionDotToken*/, b.f.DeepCloneNode(node.AsQualifiedName().Right), ast.NodeFlagsNone)

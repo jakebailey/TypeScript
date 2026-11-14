@@ -534,6 +534,7 @@ type emitNode struct {
 	leadingComments           []SynthesizedComment
 	trailingComments          []SynthesizedComment
 	typeNode                  *ast.TypeNode
+	displayExpression         *ast.Expression
 	snippetElement            *SnippetElement
 }
 
@@ -546,10 +547,24 @@ func (e *emitNode) copyFrom(source *emitNode) {
 	e.tokenSourceMapRanges = maps.Clone(source.tokenSourceMapRanges)
 	e.helpers = slices.Clone(source.helpers)
 	e.externalHelpersModuleName = source.externalHelpersModuleName
+	e.displayExpression = source.displayExpression
 	if source.snippetElement != nil {
 		snippetElement := *source.snippetElement
 		e.snippetElement = &snippetElement
 	}
+}
+
+// DisplayExpression supplies a display-only spelling, such as f<string>.C,
+// while the syntax tree retains canonical type and entity-name children.
+func (c *EmitContext) DisplayExpression(node *ast.Node) *ast.Expression {
+	if emitNode := c.emitNodes.TryGet(node); emitNode != nil {
+		return emitNode.displayExpression
+	}
+	return nil
+}
+
+func (c *EmitContext) SetDisplayExpression(node *ast.Node, expression *ast.Expression) {
+	c.emitNodes.Get(node).displayExpression = expression
 }
 
 func (c *EmitContext) EmitFlags(node *ast.Node) EmitFlags {

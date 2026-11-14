@@ -34,6 +34,7 @@ import {
     isTemplateTail,
     isTypeAliasDeclaration,
     isTypeNode,
+    isTypeReferenceNode,
     isVariableDeclarationList,
     isVariableStatement,
     type Node,
@@ -49,6 +50,7 @@ import {
 import {
     cloneNode,
     createArrayTypeNode,
+    createExpressionWithTypeArguments,
     createFunctionTypeNode,
     createIdentifier,
     createKeywordTypeNode,
@@ -93,6 +95,7 @@ import {
     ModuleKind,
     ModuleResolutionKind,
     type ModuleResolver,
+    NodeBuilderFlags,
     type NumberLiteralType,
     ObjectFlags,
     type Program,
@@ -8946,6 +8949,45 @@ export const obj = { m: 1, s: "hi", b: true };
         assert.strictEqual(await checker.typeToTypeNode(type, await project.program.getSourceFile("/main.ts")), undefined);
     });
 
+    test("typeToTypeNode keeps nested qualified instantiations in type syntax", async () => {
+        const source = `function f<T>(x: T) {
+    class C<U> { value = x; other!: U; }
+    return new C<number>();
+}
+const value = f("hello");
+const nested = { value };`;
+        await using api = spawnAPI({ "/tsconfig.json": "{}", "/main.ts": source });
+        const snapshot = await api.createSnapshot({ openProjects: ["/tsconfig.json"] });
+        const project = snapshot.getConfiguredProject("/tsconfig.json")!;
+        const { checker } = project;
+        const file = await project.program.getSourceFile("/main.ts");
+        for (const name of ["value", "nested"]) {
+            const symbol = await checker.getSymbolAtPosition("/main.ts", source.indexOf(`const ${name}`) + 6);
+            assert.ok(symbol);
+            const type = await checker.getTypeOfSymbol(symbol);
+            const node = await checker.typeToTypeNode(type, file, NodeBuilderFlags.UseInstantiationExpressions);
+            assert.ok(node);
+            assert.strictEqual(node.kind, name === "value" ? SyntaxKind.TypeReference : SyntaxKind.TypeLiteral);
+            (function visit(child: Node): Node {
+                assert.notStrictEqual(child.kind, SyntaxKind.PropertyAccessExpression);
+                assert.notStrictEqual(child.kind, SyntaxKind.ExpressionWithTypeArguments);
+                return visitEachChild(child, visit);
+            })(node);
+            if (name === "value") {
+                assert.ok(isTypeReferenceNode(node));
+                assert.strictEqual(node.typeArguments?.[0].kind, SyntaxKind.NumberKeyword);
+                assert.strictEqual(await api.printer.printNode(node), "f.C<number>");
+            }
+        }
+    });
+
+    test("instantiation expressions are expressions, not type nodes", () => {
+        const expression = createExpressionWithTypeArguments(createIdentifier("f"), [
+            createKeywordTypeNode(SyntaxKind.StringKeyword),
+        ]);
+        assert.strictEqual(isTypeNode(expression), false);
+    });
+
     test("visitEachChild on typeToTypeNode result with keyword types", async () => {
         await using api = spawnAPI(emitterFiles);
 
@@ -8979,7 +9021,6 @@ export const obj = { m: 1, s: "hi", b: true };
             SyntaxKind.ObjectKeyword,
             SyntaxKind.SymbolKeyword,
             SyntaxKind.IntrinsicKeyword,
-            SyntaxKind.ExpressionWithTypeArguments,
             SyntaxKind.JSDocAllType,
             SyntaxKind.JSDocNullableType,
             SyntaxKind.JSDocNonNullableType,
