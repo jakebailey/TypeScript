@@ -1898,7 +1898,11 @@ func (p *Printer) emitTypePredicate(node *ast.TypePredicateNode) {
 }
 
 func (p *Printer) emitTypeArgument(node *ast.TypeNode) {
-	p.emitTypeNodeOutsideExtends(node)
+	if declaration := p.emitContext.DisplayTypeParameter(node); declaration != nil {
+		p.emitTypeParameter(declaration.AsTypeParameterDeclaration())
+	} else {
+		p.emitTypeNodeOutsideExtends(node)
+	}
 }
 
 func (p *Printer) emitTypeArguments(parentNode *ast.Node, nodes *ast.TypeArgumentList) {

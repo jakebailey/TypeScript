@@ -11,6 +11,8 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/checker"
 	"github.com/microsoft/TypeScript/tsc/internal/compiler"
 	"github.com/microsoft/TypeScript/tsc/internal/core"
+	"github.com/microsoft/TypeScript/tsc/internal/nodebuilder"
+	"github.com/microsoft/TypeScript/tsc/internal/printer"
 	"github.com/microsoft/TypeScript/tsc/internal/repo"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
@@ -18,6 +20,42 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/vfs/vfstest"
 	"gotest.tools/v3/assert"
 )
+
+func TestQualifiedDisplayTypeParameterMetadata(t *testing.T) {
+	t.Parallel()
+
+	fs := bundled.WrapFS(vfstest.FromMap(map[string]string{
+		"/main.ts":       `class C<out T extends string = "a"> {} C.prototype;`,
+		"/tsconfig.json": `{"files":["main.ts"]}`,
+	}, tspath.CaseInsensitive))
+	host := compiler.NewCompilerHost(fs, bundled.LibPath(), nil, nil, nil)
+	config, errors := tsoptions.GetParsedCommandLineOfConfigFile("/tsconfig.json", &core.CompilerOptions{}, nil, tsoptions.NewDefaultParseConfigHost(fs), nil)
+	assert.Equal(t, len(errors), 0)
+	program, err := compiler.NewProgram(t.Context(), compiler.ProgramOptions{Config: config, Host: host})
+	assert.NilError(t, err)
+	program.BindSourceFiles()
+	c, done := program.GetTypeChecker(t.Context())
+	defer done()
+	file := program.GetSourceFile("/main.ts")
+	access := file.Statements.Nodes[1].Expression()
+	emitContext := printer.NewEmitContext()
+	defer emitContext.Factory.ReleaseArenas()
+	builder := checker.NewNodeBuilderEx(c, emitContext, nil)
+	display := builder.SymbolToExpression(c.GetSymbolAtLocation(access), ast.SymbolFlagsValue, access, nodebuilder.FlagsWriteTypeParametersInQualifiedName, nodebuilder.InternalFlagsNone, nil)
+	owner := display.Expression().AsExpressionWithTypeArguments()
+	reference := owner.TypeArguments.Nodes[0]
+	assert.Equal(t, reference.Kind, ast.KindTypeReference)
+	factory := emitContext.Factory
+	updatedReference := factory.UpdateTypeReferenceNode(reference.AsTypeReferenceNode(), factory.NewIdentifier("T"), nil)
+	updatedOwner := factory.UpdateExpressionWithTypeArguments(owner, owner.Expression, factory.NewNodeList([]*ast.Node{updatedReference}))
+	updated := factory.UpdatePropertyAccessExpression(display.AsPropertyAccessExpression(), updatedOwner, nil, display.Name(), ast.NodeFlagsNone)
+	for _, variant := range []*ast.Node{display, factory.DeepCloneNode(display), updated} {
+		p := printer.NewPrinter(printer.PrinterOptions{}, printer.PrintHandlers{}, emitContext)
+		assert.Equal(t, p.Emit(variant, file), `C<out T extends string = "a">.prototype`)
+		syntaxPrinter := printer.NewPrinter(printer.PrinterOptions{}, printer.PrintHandlers{}, nil)
+		assert.Equal(t, syntaxPrinter.Emit(variant, file), `C<T>.prototype`)
+	}
+}
 
 func TestGetSymbolAtLocation(t *testing.T) {
 	t.Parallel()

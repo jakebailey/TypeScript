@@ -534,6 +534,7 @@ type emitNode struct {
 	leadingComments           []SynthesizedComment
 	trailingComments          []SynthesizedComment
 	typeNode                  *ast.TypeNode
+	displayTypeParameter      *ast.TypeParameterDeclarationNode
 	snippetElement            *SnippetElement
 }
 
@@ -546,10 +547,24 @@ func (e *emitNode) copyFrom(source *emitNode) {
 	e.tokenSourceMapRanges = maps.Clone(source.tokenSourceMapRanges)
 	e.helpers = slices.Clone(source.helpers)
 	e.externalHelpersModuleName = source.externalHelpersModuleName
+	e.displayTypeParameter = source.displayTypeParameter
 	if source.snippetElement != nil {
 		snippetElement := *source.snippetElement
 		e.snippetElement = &snippetElement
 	}
+}
+
+// DisplayTypeParameter supplies declaration details for a synthesized display
+// argument without storing a declaration in the AST's type argument list.
+func (c *EmitContext) DisplayTypeParameter(node *ast.TypeNode) *ast.TypeParameterDeclarationNode {
+	if emitNode := c.emitNodes.TryGet(node); emitNode != nil {
+		return emitNode.displayTypeParameter
+	}
+	return nil
+}
+
+func (c *EmitContext) SetDisplayTypeParameter(node *ast.TypeNode, declaration *ast.TypeParameterDeclarationNode) {
+	c.emitNodes.Get(node).displayTypeParameter = declaration
 }
 
 func (c *EmitContext) EmitFlags(node *ast.Node) EmitFlags {

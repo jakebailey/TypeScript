@@ -1065,7 +1065,7 @@ func (b *NodeBuilderImpl) getTypeParametersOfClassOrInterface(symbol *ast.Symbol
 	return result
 }
 
-func (b *NodeBuilderImpl) lookupTypeParameterNodes(chain []*ast.Symbol, index int) *ast.TypeParameterList {
+func (b *NodeBuilderImpl) lookupTypeParameterNodes(chain []*ast.Symbol, index int) *ast.TypeList {
 	debug.Assert(chain != nil && 0 <= index && index < len(chain))
 	symbol := chain[index]
 	symbolId := ast.GetSymbolId(symbol)
@@ -1078,7 +1078,7 @@ func (b *NodeBuilderImpl) lookupTypeParameterNodes(chain []*ast.Symbol, index in
 		if typeArgumentNodes := b.lookupInstantiatedTypeArgumentNodes(chain, index); typeArgumentNodes != nil {
 			return typeArgumentNodes
 		} else {
-			typeParameterNodes := b.typeParametersToTypeParameterDeclarations(symbol)
+			typeParameterNodes := b.typeParametersToTypeArgumentNodes(symbol)
 			if len(typeParameterNodes) > 0 {
 				return b.f.NewNodeList(typeParameterNodes)
 			}
@@ -1742,20 +1742,27 @@ func (b *NodeBuilderImpl) symbolToTypeParameterDeclarations(symbol *ast.Symbol) 
 }
 
 func (b *NodeBuilderImpl) typeParametersToTypeParameterDeclarations(symbol *ast.Symbol) []*ast.Node {
+	if parameters := b.getTypeParametersOfSymbol(symbol); len(parameters) > 0 {
+		return core.Map(parameters, b.typeParameterToDeclaration)
+	}
+	return nil
+}
+
+func (b *NodeBuilderImpl) typeParametersToTypeArgumentNodes(symbol *ast.Symbol) []*ast.TypeNode {
+	return core.Map(b.getTypeParametersOfSymbol(symbol), func(parameter *Type) *ast.TypeNode {
+		declaration := b.typeParameterToDeclaration(parameter)
+		reference := b.f.NewTypeReferenceNode(declaration.Name(), nil)
+		b.e.SetDisplayTypeParameter(reference, declaration)
+		return reference
+	})
+}
+
+func (b *NodeBuilderImpl) getTypeParametersOfSymbol(symbol *ast.Symbol) []*Type {
 	targetSymbol := b.ch.getTargetSymbol(symbol)
 	if targetSymbol.Flags()&(ast.SymbolFlagsClass|ast.SymbolFlagsInterface|ast.SymbolFlagsAlias) != 0 {
-		var results []*ast.Node
-		params := b.ch.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol)
-		for _, param := range params {
-			results = append(results, b.typeParameterToDeclaration(param))
-		}
-		return results
+		return b.ch.getLocalTypeParametersOfClassOrInterfaceOrTypeAlias(symbol)
 	} else if targetSymbol.Flags()&ast.SymbolFlagsFunction != 0 {
-		var results []*ast.Node
-		for _, param := range b.ch.getTypeParametersFromDeclaration(symbol.ValueDeclaration()) {
-			results = append(results, b.typeParameterToDeclaration(param))
-		}
-		return results
+		return b.ch.getTypeParametersFromDeclaration(symbol.ValueDeclaration())
 	}
 	return nil
 }
@@ -3770,7 +3777,7 @@ func (b *NodeBuilderImpl) createExpressionWithTypeArguments(expr *ast.Expression
 	return b.f.NewExpressionWithTypeArguments(expr, typeArguments)
 }
 
-func (b *NodeBuilderImpl) lookupInstantiatedTypeArgumentNodes(chain []*ast.Symbol, index int) *ast.TypeParameterList {
+func (b *NodeBuilderImpl) lookupInstantiatedTypeArgumentNodes(chain []*ast.Symbol, index int) *ast.TypeList {
 	if b.shouldWriteTypeParametersInQualifiedName(chain, index) {
 		symbol := chain[index]
 		nextSymbol := chain[index+1]
@@ -3797,7 +3804,7 @@ func (b *NodeBuilderImpl) lookupInstantiatedTypeArgumentNodes(chain []*ast.Symbo
 	return nil
 }
 
-func (b *NodeBuilderImpl) lookupExpressionChainTypeArgumentNodes(chain []*ast.Symbol, index int) *ast.TypeParameterList {
+func (b *NodeBuilderImpl) lookupExpressionChainTypeArgumentNodes(chain []*ast.Symbol, index int) *ast.TypeList {
 	if b.shouldWriteTypeParametersInQualifiedName(chain, index) {
 		symbol := chain[index]
 		symbolId := ast.GetSymbolId(symbol)
@@ -3809,7 +3816,7 @@ func (b *NodeBuilderImpl) lookupExpressionChainTypeArgumentNodes(chain []*ast.Sy
 		if typeArgumentNodes := b.lookupInstantiatedTypeArgumentNodes(chain, index); typeArgumentNodes != nil {
 			return typeArgumentNodes
 		}
-		typeParameterNodes := b.typeParametersToTypeParameterDeclarations(symbol)
+		typeParameterNodes := b.typeParametersToTypeArgumentNodes(symbol)
 		if len(typeParameterNodes) > 0 {
 			return b.f.NewNodeList(typeParameterNodes)
 		}
