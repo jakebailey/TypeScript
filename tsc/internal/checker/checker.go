@@ -19557,7 +19557,7 @@ func (c *Checker) getLayoutPropertiesOfType(t *Type) []ast.SymbolId {
 func (c *Checker) getPropertyCountOfType(t *Type) int {
 	t = c.getReducedApparentType(t)
 	if lazy := c.getLazyStateOfType(t); lazy != nil {
-		return lazy.layout.members.Len()
+		return lazy.layout.table(c).Len()
 	}
 	return len(c.getPropertiesOfType(t))
 }
