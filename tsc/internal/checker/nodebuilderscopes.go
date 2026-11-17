@@ -185,10 +185,10 @@ func (b *NodeBuilderImpl) enterNewScope(declaration ast.Node, expandedParams []a
 							for _, e := range p.Elements().All() {
 								switch e.Kind() {
 								case ast.KindOmittedExpression:
-									return
+									continue
 								case ast.KindBindingElement:
 									bindElement(e.AsBindingElement())
-									return
+									continue
 								default:
 									panic("Unhandled binding element kind")
 								}

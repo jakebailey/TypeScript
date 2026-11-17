@@ -5226,7 +5226,11 @@ func (c *Checker) checkInterfaceDeclaration(node ast.Node) {
 		if c.checkInheritedPropertiesAreIdentical(t, firstInterfaceDeclaration.Name()) {
 			for _, baseTypeId := range c.getBaseTypes(t) {
 				baseType := c.typ(baseTypeId)
-				c.checkTypeAssignableTo(typeWithThis, c.getTypeWithThisArgument(baseType, c.typ(t.AsInterfaceType().iface(c).thisType), false), firstInterfaceDeclaration.Name(), diagnostics.Interface_0_incorrectly_extends_interface_1)
+				message := diagnostics.Interface_0_incorrectly_extends_interface_1
+				if baseType.flags&TypeFlagsTypeParameter != 0 {
+					message = diagnostics.Interface_0_cannot_extend_type_parameter_1
+				}
+				c.checkTypeAssignableTo(typeWithThis, c.getTypeWithThisArgument(baseType, c.typ(t.AsInterfaceType().iface(c).thisType), false), firstInterfaceDeclaration.Name(), message)
 			}
 			c.checkIndexConstraints(t, symbol /*isStaticIndex*/, false)
 		}
@@ -19550,6 +19554,14 @@ func (c *Checker) getLayoutPropertiesOfType(t *Type) []ast.SymbolId {
 	return layout.layoutProperties
 }
 
+func (c *Checker) getPropertyCountOfType(t *Type) int {
+	t = c.getReducedApparentType(t)
+	if lazy := c.getLazyStateOfType(t); lazy != nil {
+		return lazy.layout.members.Len()
+	}
+	return len(c.getPropertiesOfType(t))
+}
+
 func (c *Checker) getLazyStateOfType(t *Type) *LazyState {
 	if t.flags&TypeFlagsObject != 0 {
 		return c.resolveStructuredTypeMembers(t).getLazyState(c)
@@ -19562,7 +19574,29 @@ func (c *Checker) getPropertiesOfUnionOrIntersectionType(t *Type) []ast.SymbolId
 	if d.resolvedProperties(c) == nil {
 		var checked collections.Set[ast.SymbolName]
 		props := []ast.SymbolId{}
-		for _, currentId := range d.types(c) {
+		types := d.types(c)
+		if t.flags&TypeFlagsUnion != 0 {
+			// Find the constituent type of the union with the fewest properties and no index signature. This type will be used
+			// as the representative for checking properties of the union, as all properties must be present in all constituent types.
+			var smallestType TypeId
+			var smallestPropertyCount int
+			for _, currentId := range d.types(c) {
+				current := c.typ(currentId)
+				if len(c.getIndexInfosOfType(current)) == 0 {
+					if count := c.getPropertyCountOfType(current); smallestType == 0 || count < smallestPropertyCount {
+						smallestType = currentId
+						smallestPropertyCount = count
+						if count == 0 {
+							break
+						}
+					}
+				}
+			}
+			if smallestType != 0 {
+				types = []TypeId{smallestType}
+			}
+		}
+		for _, currentId := range types {
 			current := c.typ(currentId)
 			for _, prop := range c.getPropertiesOfType(current) {
 				if !checked.Has(c.symbolName(prop)) {
@@ -19572,11 +19606,6 @@ func (c *Checker) getPropertiesOfUnionOrIntersectionType(t *Type) []ast.SymbolId
 						props = append(props, combinedProp)
 					}
 				}
-			}
-			// The properties of a union type are those that are present in all constituent types, so
-			// we only need to check the properties of the first type without index signature
-			if t.flags&TypeFlagsUnion != 0 && len(c.getIndexInfosOfType(current)) == 0 {
-				break
 			}
 		}
 		d.setResolvedProperties(c, listOf(&c.symbolListArena, props))
@@ -28490,7 +28519,7 @@ func (c *Checker) getPropertyNameFromIndex(indexType *Type, accessNode ast.Node)
 }
 
 func (c *Checker) isStringIndexSignatureOnlyTypeWorker(t *Type) bool {
-	return t.flags&TypeFlagsObject != 0 && t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsReference) == 0 && !c.isGenericMappedType(t) && len(c.getLayoutPropertiesOfType(t)) == 0 && len(c.getIndexInfosOfType(t)) == 1 && c.getIndexInfoOfType(t, c.stringType) != nil ||
+	return t.flags&TypeFlagsObject != 0 && t.objectFlags&(ObjectFlagsClassOrInterface|ObjectFlagsReference) == 0 && !c.isGenericMappedType(t) && c.getPropertyCountOfType(t) == 0 && len(c.getIndexInfosOfType(t)) == 1 && c.getIndexInfoOfType(t, c.stringType) != nil ||
 		t.flags&TypeFlagsUnionOrIntersection != 0 && c.typesEvery(t.Types(c), c.isStringIndexSignatureOnlyType)
 }
 
