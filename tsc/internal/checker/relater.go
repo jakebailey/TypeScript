@@ -227,6 +227,9 @@ func (c *Checker) isTypeRelatedTo(source *Type, target *Type, relation *Relation
 		id, _ := c.getRelationKey(source, target, IntersectionStateNone, relation == c.identityRelation, false)
 		related := relation.get(id)
 		if related != RelationComparisonResultNone {
+			// Propagate the reliability flags recorded with the cached result so that variance measurement
+			// doesn't lose `Unmeasurable`/`Unreliable` when a probe is answered from the cache.
+			c.reliabilityFlags |= related & (RelationComparisonResultReportsUnmeasurable | RelationComparisonResultReportsUnreliable)
 			return related&RelationComparisonResultSucceeded != 0
 		}
 	}
@@ -714,7 +717,7 @@ func (c *Checker) elaborateArrowFunction(node ast.Node, source *Type, target *Ty
 func (c *Checker) isWeakType(t *Type) bool {
 	if t.flags&TypeFlagsObject != 0 {
 		resolved := c.resolveStructuredTypeMembers(t)
-		return len(resolved.getSignatures()) == 0 && len(resolved.getIndexInfos()) == 0 && len(c.getLayoutPropertiesOfType(t)) > 0 && core.Every(c.getLayoutPropertiesOfType(t), func(p ast.SymbolId) bool {
+		return len(resolved.getSignatures()) == 0 && len(resolved.getIndexInfos()) == 0 && c.getPropertyCountOfType(t) != 0 && core.Every(c.getLayoutPropertiesOfType(t), func(p ast.SymbolId) bool {
 			return c.symbolFlags(p)&ast.SymbolFlagsOptional != 0
 		})
 	}
