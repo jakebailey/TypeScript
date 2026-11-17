@@ -739,16 +739,16 @@ func createGetIsolatedDeclarationErrors(resolver printer.EmitResolver) func(node
 // for the declaration currently being emitted. Diagnostics are rarely reported, so for the common
 // node-based contexts the selector closure is only created once a diagnostic is actually needed.
 type symbolAccessibilityDiagnosticContext struct {
-	node        *ast.Node
+	node        ast.Node
 	forNodeName bool
 	custom      GetSymbolAccessibilityDiagnostic
 }
 
-func diagnosticContextForNode(node *ast.Node) symbolAccessibilityDiagnosticContext {
+func diagnosticContextForNode(node ast.Node) symbolAccessibilityDiagnosticContext {
 	return symbolAccessibilityDiagnosticContext{node: node}
 }
 
-func diagnosticContextForNodeName(node *ast.Node) symbolAccessibilityDiagnosticContext {
+func diagnosticContextForNodeName(node ast.Node) symbolAccessibilityDiagnosticContext {
 	return symbolAccessibilityDiagnosticContext{node: node, forNodeName: true}
 }
 
@@ -760,7 +760,7 @@ func (c symbolAccessibilityDiagnosticContext) getDiagnostic(symbolAccessibilityR
 	switch {
 	case c.custom != nil:
 		return c.custom(symbolAccessibilityResult)
-	case c.node == nil:
+	case c.node.IsNil():
 		return throwDiagnostic(symbolAccessibilityResult)
 	case c.forNodeName:
 		return createGetSymbolAccessibilityDiagnosticForNodeName(c.node)(symbolAccessibilityResult)
