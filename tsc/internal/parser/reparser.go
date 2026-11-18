@@ -165,7 +165,7 @@ func (p *Parser) reparseJSDocSignature(jsSignature ast.Node, fun ast.Node, jsDoc
 		signature.FunctionLikeData().SetTypeParameters(p.gatherTypeParameters(jsDoc, false /*typedefOrCallback*/))
 	}
 	parameters := p.nodeSliceArena.NewSlice(0)
-	for pi, param := range jsSignature.ParameterList().All() {
+	for pi, param := range jsSignature.AsJSDocSignature().Parameters().All() {
 		var parameter ast.Node
 		if param.Kind() == ast.KindJSDocThisTag {
 			thisTag := param.AsJSDocThisTag()
@@ -232,8 +232,8 @@ func (p *Parser) reparseJSDocSignature(jsSignature ast.Node, fun ast.Node, jsDoc
 	}
 	signature.FunctionLikeData().SetParameters(p.newNodeList(jsSignature.AsJSDocSignature().Parameters().Loc(), parameters))
 
-	if !jsSignature.Type().IsNil() && !jsSignature.Type().TypeExpression().IsNil() {
-		signature.FunctionLikeData().SetType(p.addDeepCloneReparse(jsSignature.Type().TypeExpression().Type()))
+	if returnTag := jsSignature.AsJSDocSignature().Type(); !returnTag.IsNil() && !returnTag.TypeExpression().IsNil() {
+		signature.FunctionLikeData().SetType(p.addDeepCloneReparse(returnTag.TypeExpression().Type()))
 	}
 	loc := jsSignature
 	if tag.Kind() == ast.KindJSDocOverloadTag {
@@ -601,13 +601,26 @@ func (p *Parser) reparseHosted(tag ast.Node, parent ast.Node, jsDoc ast.Node) {
 				return node.AsHeritageClause().Token() == ast.KindExtendsKeyword
 			}); !extendsClause.IsNil() && extendsClause.AsHeritageClause().Types().Len() == 1 {
 				target := extendsClause.AsHeritageClause().Types().At(0).AsExpressionWithTypeArguments()
-				source := tag.ClassName().AsExpressionWithTypeArguments()
-				if target.TypeArguments().IsNil() && !source.TypeArguments().IsNil() && target.Expression().Kind() != ast.KindNullKeyword && (!ast.IsEntityNameExpression(target.Expression()) || ast.HasSamePropertyAccessName(target.Expression(), source.Expression())) {
+				source := tag.ClassName().AsTypeReferenceNode()
+				if target.TypeArguments().IsNil() && !source.TypeArguments().IsNil() && target.Expression().Kind() != ast.KindNullKeyword && (!ast.IsEntityNameExpression(target.Expression()) || isSameEntityName(target.Expression(), source.TypeName())) {
 					p.setReparsedTypeArguments(target, source.TypeArguments())
 				}
 			}
 		}
 	}
+}
+
+// isSameEntityName reports whether an entity name expression, such as a.b,
+// spells the same name as an entity name.
+func isSameEntityName(expression ast.Expression, name ast.EntityName) bool {
+	switch {
+	case ast.IsIdentifier(expression) && ast.IsIdentifier(name):
+		return expression.Text() == name.Text()
+	case ast.IsPropertyAccessExpression(expression) && ast.IsQualifiedName(name):
+		return expression.Name().Text() == name.AsQualifiedName().Right().Text() &&
+			isSameEntityName(expression.Expression(), name.AsQualifiedName().Left())
+	}
+	return false
 }
 
 func (p *Parser) setReparsedTypeArguments(target ast.ExpressionWithTypeArguments, source ast.NodeList) {

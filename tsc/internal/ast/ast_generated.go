@@ -1354,7 +1354,6 @@ var functionLikeBaseTypeParametersOffsets = [kindFlowReduceLabelData + 1]uint8{
 	KindFunctionExpression:  uint8(unsafe.Offsetof(functionExpressionData{}.typeParameters) + 1),
 	KindFunctionType:        uint8(unsafe.Offsetof(functionTypeNodeData{}.typeParameters) + 1),
 	KindConstructorType:     uint8(unsafe.Offsetof(constructorTypeNodeData{}.typeParameters) + 1),
-	KindJSDocSignature:      uint8(unsafe.Offsetof(jsDocSignatureData{}.typeParameters) + 1),
 }
 
 func (n Node) functionLikeBaseTypeParameters() *listRef {
@@ -1378,7 +1377,6 @@ var functionLikeBaseParametersOffsets = [kindFlowReduceLabelData + 1]uint8{
 	KindFunctionExpression:  uint8(unsafe.Offsetof(functionExpressionData{}.parameters) + 1),
 	KindFunctionType:        uint8(unsafe.Offsetof(functionTypeNodeData{}.parameters) + 1),
 	KindConstructorType:     uint8(unsafe.Offsetof(constructorTypeNodeData{}.parameters) + 1),
-	KindJSDocSignature:      uint8(unsafe.Offsetof(jsDocSignatureData{}.parameters) + 1),
 }
 
 func (n Node) functionLikeBaseParameters() *listRef {
@@ -1402,7 +1400,6 @@ var functionLikeBaseTypeFieldOffsets = [kindFlowReduceLabelData + 1]uint8{
 	KindFunctionExpression:  uint8(unsafe.Offsetof(functionExpressionData{}.typeField) + 1),
 	KindFunctionType:        uint8(unsafe.Offsetof(functionTypeNodeData{}.typeField) + 1),
 	KindConstructorType:     uint8(unsafe.Offsetof(constructorTypeNodeData{}.typeField) + 1),
-	KindJSDocSignature:      uint8(unsafe.Offsetof(jsDocSignatureData{}.typeField) + 1),
 }
 
 func (n Node) functionLikeBaseTypeField() *nodeRef {
@@ -1426,7 +1423,6 @@ var functionLikeBaseFullSignatureOffsets = [kindFlowReduceLabelData + 1]uint8{
 	KindFunctionExpression:  uint8(unsafe.Offsetof(functionExpressionData{}.fullSignature) + 1),
 	KindFunctionType:        uint8(unsafe.Offsetof(functionTypeNodeData{}.fullSignature) + 1),
 	KindConstructorType:     uint8(unsafe.Offsetof(constructorTypeNodeData{}.fullSignature) + 1),
-	KindJSDocSignature:      uint8(unsafe.Offsetof(jsDocSignatureData{}.fullSignature) + 1),
 }
 
 func (n Node) functionLikeBaseFullSignature() *nodeRef {
@@ -2443,7 +2439,7 @@ type (
 	ModuleName                     = Node // Identifier | StringLiteral
 	ModuleExportName               = Node // Identifier | StringLiteral
 	PropertyName                   = Node // Identifier | StringLiteral | NoSubstitutionTemplateLiteral | NumericLiteral | ComputedPropertyName | PrivateIdentifier | BigIntLiteral
-	ModuleBody                     = Node // ModuleBlock | ModuleDeclaration
+	ModuleBody                     = Node // ModuleBlock | ModuleDeclaration | Identifier
 	JSDocFullName                  = Node // Identifier | ModuleDeclaration
 	ForInitializer                 = Node // Expression | MissingDeclaration | VariableDeclarationList
 	ModuleReference                = Node // Identifier | QualifiedName | ExternalModuleReference
@@ -13125,7 +13121,7 @@ func IsJSDocSeeTag(node Node) bool {
 type jsDocImplementsTagData struct {
 	tagName   nodeRef // IdentifierNode
 	comment   listRef // NodeList. Optional
-	className nodeRef // ExpressionWithTypeArgumentsNode
+	className nodeRef // TypeReferenceNodeNode
 }
 
 type JSDocImplementsTag struct{ Node }
@@ -13143,15 +13139,15 @@ func (node JSDocImplementsTag) SetComment(value NodeList) {
 	node.setListRef(&node.data().comment, value)
 }
 
-func (node JSDocImplementsTag) ClassName() ExpressionWithTypeArgumentsNode {
+func (node JSDocImplementsTag) ClassName() TypeReferenceNodeNode {
 	return node.deref(&node.data().className)
 }
 
-func (node JSDocImplementsTag) SetClassName(value ExpressionWithTypeArgumentsNode) {
+func (node JSDocImplementsTag) SetClassName(value TypeReferenceNodeNode) {
 	node.setRef(&node.data().className, value)
 }
 
-func (f *NodeFactory) NewJSDocImplementsTag(tagName IdentifierNode, className ExpressionWithTypeArgumentsNode, comment NodeList) Node {
+func (f *NodeFactory) NewJSDocImplementsTag(tagName IdentifierNode, className TypeReferenceNodeNode, comment NodeList) Node {
 	s := f.nodeStore()
 	data, i := newRecord[jsDocImplementsTagData](s, layoutJSDocImplementsTag)
 	setNodeRef(&data.tagName, i, tagName)
@@ -13160,7 +13156,7 @@ func (f *NodeFactory) NewJSDocImplementsTag(tagName IdentifierNode, className Ex
 	return f.newNode(KindJSDocImplementsTag, layoutJSDocImplementsTag, i)
 }
 
-func (f *NodeFactory) UpdateJSDocImplementsTag(node JSDocImplementsTag, tagName IdentifierNode, className ExpressionWithTypeArgumentsNode, comment NodeList) Node {
+func (f *NodeFactory) UpdateJSDocImplementsTag(node JSDocImplementsTag, tagName IdentifierNode, className TypeReferenceNodeNode, comment NodeList) Node {
 	if tagName != node.TagName() || className != node.ClassName() || comment != node.Comment() {
 		return updateNode(f.NewJSDocImplementsTag(tagName, className, comment), node.AsNode(), f.hooks)
 	}
@@ -13190,7 +13186,7 @@ func IsJSDocImplementsTag(node Node) bool {
 type jsDocAugmentsTagData struct {
 	tagName   nodeRef // IdentifierNode
 	comment   listRef // NodeList. Optional
-	className nodeRef // ExpressionWithTypeArgumentsNode
+	className nodeRef // TypeReferenceNodeNode
 }
 
 type JSDocAugmentsTag struct{ Node }
@@ -13208,15 +13204,15 @@ func (node JSDocAugmentsTag) Comment() NodeList { return node.derefList(&node.da
 
 func (node JSDocAugmentsTag) SetComment(value NodeList) { node.setListRef(&node.data().comment, value) }
 
-func (node JSDocAugmentsTag) ClassName() ExpressionWithTypeArgumentsNode {
+func (node JSDocAugmentsTag) ClassName() TypeReferenceNodeNode {
 	return node.deref(&node.data().className)
 }
 
-func (node JSDocAugmentsTag) SetClassName(value ExpressionWithTypeArgumentsNode) {
+func (node JSDocAugmentsTag) SetClassName(value TypeReferenceNodeNode) {
 	node.setRef(&node.data().className, value)
 }
 
-func (f *NodeFactory) NewJSDocAugmentsTag(tagName IdentifierNode, className ExpressionWithTypeArgumentsNode, comment NodeList) Node {
+func (f *NodeFactory) NewJSDocAugmentsTag(tagName IdentifierNode, className TypeReferenceNodeNode, comment NodeList) Node {
 	s := f.nodeStore()
 	data, i := newRecord[jsDocAugmentsTagData](s, layoutJSDocAugmentsTag)
 	setNodeRef(&data.tagName, i, tagName)
@@ -13225,7 +13221,7 @@ func (f *NodeFactory) NewJSDocAugmentsTag(tagName IdentifierNode, className Expr
 	return f.newNode(KindJSDocAugmentsTag, layoutJSDocAugmentsTag, i)
 }
 
-func (f *NodeFactory) UpdateJSDocAugmentsTag(node JSDocAugmentsTag, tagName IdentifierNode, className ExpressionWithTypeArgumentsNode, comment NodeList) Node {
+func (f *NodeFactory) UpdateJSDocAugmentsTag(node JSDocAugmentsTag, tagName IdentifierNode, className TypeReferenceNodeNode, comment NodeList) Node {
 	if tagName != node.TagName() || className != node.ClassName() || comment != node.Comment() {
 		return updateNode(f.NewJSDocAugmentsTag(tagName, className, comment), node.AsNode(), f.hooks)
 	}
@@ -13737,10 +13733,9 @@ func IsJSDocTypedefTag(node Node) bool {
 // ──────────────────────────────────────────────────────────────────────
 
 type jsDocSignatureData struct {
-	typeParameters listRef // TypeParameterList. Optional
-	parameters     listRef // ParameterList
-	typeField      nodeRef // TypeNode. Optional
-	fullSignature  nodeRef // TypeNode. Optional
+	typeParameters listRef // NodeList. Optional
+	parameters     listRef // NodeList
+	typeField      nodeRef // JSDocReturnTagNode. Optional
 }
 
 type JSDocSignature struct{ Node }
@@ -13749,34 +13744,25 @@ func (node JSDocSignature) data() *jsDocSignatureData {
 	return (*jsDocSignatureData)(node.payload(unsafe.Sizeof(jsDocSignatureData{}) <= 4))
 }
 
-func (node JSDocSignature) Symbol() Symbol              { return node.Node.binderSymbol() }
-func (node JSDocSignature) SetSymbol(value Symbol)      { node.Node.setBinderSymbol(value) }
-func (node JSDocSignature) Locals() SymbolTable         { return node.Node.binderLocals() }
-func (node JSDocSignature) SetLocals(value SymbolTable) { node.Node.setBinderLocals(value) }
-func (node JSDocSignature) NextContainer() Node         { return node.Node.binderNextContainer() }
-func (node JSDocSignature) SetNextContainer(value Node) { node.Node.setBinderNextContainer(value) }
-func (node JSDocSignature) TypeParameters() TypeParameterList {
+func (node JSDocSignature) Symbol() Symbol         { return node.Node.binderSymbol() }
+func (node JSDocSignature) SetSymbol(value Symbol) { node.Node.setBinderSymbol(value) }
+func (node JSDocSignature) TypeParameters() NodeList {
 	return node.derefList(&node.data().typeParameters)
 }
 
-func (node JSDocSignature) SetTypeParameters(value TypeParameterList) {
+func (node JSDocSignature) SetTypeParameters(value NodeList) {
 	node.setListRef(&node.data().typeParameters, value)
 }
-
-func (node JSDocSignature) Parameters() ParameterList { return node.derefList(&node.data().parameters) }
-
-func (node JSDocSignature) SetParameters(value ParameterList) {
+func (node JSDocSignature) Parameters() NodeList { return node.derefList(&node.data().parameters) }
+func (node JSDocSignature) SetParameters(value NodeList) {
 	node.setListRef(&node.data().parameters, value)
 }
-func (node JSDocSignature) Type() TypeNode          { return node.deref(&node.data().typeField) }
-func (node JSDocSignature) SetType(value TypeNode)  { node.setRef(&node.data().typeField, value) }
-func (node JSDocSignature) FullSignature() TypeNode { return node.deref(&node.data().fullSignature) }
-
-func (node JSDocSignature) SetFullSignature(value TypeNode) {
-	node.setRef(&node.data().fullSignature, value)
+func (node JSDocSignature) Type() JSDocReturnTagNode { return node.deref(&node.data().typeField) }
+func (node JSDocSignature) SetType(value JSDocReturnTagNode) {
+	node.setRef(&node.data().typeField, value)
 }
 
-func (f *NodeFactory) NewJSDocSignature(typeParameters TypeParameterList, parameters ParameterList, typeNode TypeNode) Node {
+func (f *NodeFactory) NewJSDocSignature(typeParameters NodeList, parameters NodeList, typeNode JSDocReturnTagNode) Node {
 	s := f.nodeStore()
 	data, i := newRecord[jsDocSignatureData](s, layoutJSDocSignature)
 	setListRefAt(&data.typeParameters, i, typeParameters)
@@ -13785,7 +13771,7 @@ func (f *NodeFactory) NewJSDocSignature(typeParameters TypeParameterList, parame
 	return f.newNode(KindJSDocSignature, layoutJSDocSignature, i)
 }
 
-func (f *NodeFactory) UpdateJSDocSignature(node JSDocSignature, typeParameters TypeParameterList, parameters ParameterList, typeNode TypeNode) Node {
+func (f *NodeFactory) UpdateJSDocSignature(node JSDocSignature, typeParameters NodeList, parameters NodeList, typeNode JSDocReturnTagNode) Node {
 	if typeParameters != node.TypeParameters() || parameters != node.Parameters() || typeNode != node.Type() {
 		return updateNode(f.NewJSDocSignature(typeParameters, parameters, typeNode), node.AsNode(), f.hooks)
 	}
@@ -17764,7 +17750,6 @@ var kindHasLocalsContainerBase = [kindFlowReduceLabelData + 1]bool{
 	KindMappedType:                  true,
 	KindFunctionType:                true,
 	KindConstructorType:             true,
-	KindJSDocSignature:              true,
 	KindSourceFile:                  true,
 	KindModuleDeclaration:           true,
 }
@@ -17790,7 +17775,6 @@ var kindHasFunctionLikeBase = [kindFlowReduceLabelData + 1]bool{
 	KindFunctionExpression:  true,
 	KindFunctionType:        true,
 	KindConstructorType:     true,
-	KindJSDocSignature:      true,
 }
 
 func (n Node) FunctionLikeData() FunctionLikeBase {

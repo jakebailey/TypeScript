@@ -17424,12 +17424,11 @@ func (c *Checker) checkDeclarationInitializer(declaration ast.Node, checkMode Ch
 func (c *Checker) padObjectLiteralType(t *Type, pattern ast.Node) *Type {
 	var missingElements []ast.Node
 	for _, e := range pattern.ElementList().All() {
-		if hasDotDotDotToken(e) {
-			continue
-		}
-		name := c.getPropertyNameFromBindingElement(e)
-		if name != ast.InternalSymbolNameMissing && c.getPropertyOfType(t, name) == 0 {
-			missingElements = append(missingElements, e)
+		if !e.Initializer().IsNil() {
+			name := c.getPropertyNameFromBindingElement(e)
+			if name != ast.InternalSymbolNameMissing && c.getPropertyOfType(t, name) == 0 {
+				missingElements = append(missingElements, e)
+			}
 		}
 	}
 	if len(missingElements) == 0 {
@@ -17441,7 +17440,7 @@ func (c *Checker) padObjectLiteralType(t *Type, pattern ast.Node) *Type {
 	}
 	for _, e := range missingElements {
 		symbol := c.newSymbol(ast.SymbolFlagsProperty|ast.SymbolFlagsOptional, c.getPropertyNameFromBindingElement(e))
-		c.valueSymbolLinks.Get(symbol).resolvedType = c.getTypeFromBindingElement(e, false /*includePatternInType*/, true /*reportErrors*/)
+		c.valueSymbolLinks.Get(symbol).resolvedType = c.getTypeFromBindingElement(e, false /*includePatternInType*/, false /*reportErrors*/)
 		members.SetId(c.symbols, c.symbolName(symbol), symbol)
 	}
 	result := c.newAnonymousType(c.symbolOfType(t), members, nil, nil, c.getIndexInfosOfType(t))
@@ -23965,8 +23964,14 @@ func isSimpleIdentifierTypeReference(node ast.Node) bool {
 	return ast.IsTypeReferenceNode(node) && ast.IsIdentifier(node.AsTypeReferenceNode().TypeName()) && node.TypeArgumentList().IsNil()
 }
 
+// isHeritageTypeReference reports whether node names the class or interface
+// in a heritage clause or a JSDoc @augments or @implements tag.
+func isHeritageTypeReference(node ast.Node) bool {
+	return ast.IsHeritageClause(node.Parent()) || ast.IsJSDocAugmentsTag(node.Parent()) || ast.IsJSDocImplementsTag(node.Parent())
+}
+
 func (c *Checker) getIntendedTypeFromJSDocTypeReference(node ast.Node) *Type {
-	if node.Flags()&ast.NodeFlagsJSDoc != 0 && ast.IsTypeReferenceNode(node) {
+	if node.Flags()&ast.NodeFlagsJSDoc != 0 && ast.IsTypeReferenceNode(node) && !isHeritageTypeReference(node) {
 		typeName := node.AsTypeReferenceNode().TypeName()
 		if ast.IsIdentifier(typeName) {
 			typeArgs := node.TypeArguments()
@@ -24125,7 +24130,7 @@ func (c *Checker) getTypeFromClassOrInterfaceReference(node ast.Node, symbol ast
 		if !isJsImplicitAny && (numTypeArguments < minTypeArgumentCount || numTypeArguments > len(typeParameters)) {
 			var message *diagnostics.Message
 
-			missingAugmentsTag := isJs && ast.IsExpressionWithTypeArguments(node) && !ast.IsJSDocAugmentsTag(node.Parent())
+			missingAugmentsTag := isJs && ast.IsExpressionWithTypeArguments(node)
 			if missingAugmentsTag {
 				message = diagnostics.Expected_0_type_arguments_provide_these_with_an_extends_tag
 				if minTypeArgumentCount < len(typeParameters) {
@@ -24324,10 +24329,15 @@ func (n *TupleNormalizer) normalize(c *Checker, elementTypes []*Type, elementInf
 			} else if isTupleType(t) {
 				spreadTypes := c.getElementTypes(t)
 				if len(spreadTypes)+len(n.types) >= 10_000 {
-					message := core.IfElse(ast.IsPartOfTypeNode(c.currentNode),
-						diagnostics.Type_produces_a_tuple_type_that_is_too_large_to_represent,
-						diagnostics.Expression_produces_a_tuple_type_that_is_too_large_to_represent)
-					c.error(c.currentNode, message)
+					// c.currentNode is nil when declaration emit resolves a type through the emit
+					// resolver. There is no location to report against, and a diagnostic raised
+					// during emit would never be shown on the command line or in the editor.
+					if c.currentNode != nil {
+						message := core.IfElse(ast.IsPartOfTypeNode(c.currentNode),
+							diagnostics.Type_produces_a_tuple_type_that_is_too_large_to_represent,
+							diagnostics.Expression_produces_a_tuple_type_that_is_too_large_to_represent)
+						c.error(c.currentNode, message)
+					}
 					return false
 				}
 				// Spread variadic elements with tuple types into the resulting tuple.
