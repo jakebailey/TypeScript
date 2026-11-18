@@ -115,7 +115,7 @@ func (c *Checker) checkJSDocAugmentsTagMatchesExtends(node ast.Node, baseTypeNod
 			}
 			sourceTypeNode := tag.ClassName()
 			sourceType := c.getTypeFromTypeNode(sourceTypeNode)
-			sourceName := getLastIdentifierOfEntityName(sourceTypeNode.AsTypeReferenceNode().TypeName)
+			sourceName := getLastIdentifierOfEntityName(sourceTypeNode.AsTypeReferenceNode().TypeName())
 			if ast.IsEntityNameExpression(baseTypeNode.Expression()) {
 				if c.isTypeIdenticalTo(sourceType, baseType) {
 					continue
