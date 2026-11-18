@@ -3290,13 +3290,15 @@ func (b *NodeBuilderImpl) visitAndTransformType(t *Type, transform func(b *NodeB
 	isConstructorObject := t.objectFlags&ObjectFlagsAnonymous != 0 && b.ch.symbolOfType(t) != 0 && b.ch.symbolFlags(b.ch.symbolOfType(t))&ast.SymbolFlagsClass != 0
 	var id *CompositeSymbolIdentity
 	switch {
-	case isArrayOrTuple:
-		// Do not bound finite container nesting by the shared Array symbol or tuple origin.
-		id = nil
 	case t.objectFlags&ObjectFlagsReference != 0 && !b.ch.nodeOf(t.AsTypeReference().node(b.ch)).IsNil():
+		// A deferred reference, array and tuple ones included, nests through its
+		// node, which is how a recursive type nests without end.
 		id = &CompositeSymbolIdentity{false, 0, ast.GetNodeId(b.ch.nodeOf(t.AsTypeReference().node(b.ch)))}
 	case t.flags&TypeFlagsConditional != 0:
 		id = &CompositeSymbolIdentity{false, 0, ast.GetNodeId(t.AsConditionalType().cond(b.ch).root.node.AsNode())}
+	case isArrayOrTuple:
+		// Do not bound finite container nesting by the shared Array symbol or tuple origin.
+		id = nil
 	case b.ch.symbolOfType(t) != 0:
 		id = &CompositeSymbolIdentity{isConstructorObject, ast.GetSymbolSerial(b.ch.symbolOf(b.ch.symbolOfType(t))), 0}
 	default:
