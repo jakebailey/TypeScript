@@ -1628,14 +1628,14 @@ func (tx *classFieldsTransformer) createPrivateIdentifierAssignment(info *privat
 	receiver = tx.Visitor().VisitNode(receiver)
 	if ast.IsLogicalOrCoalescingAssignmentOperator(operator) {
 		readExpression, initializeExpression := tx.createCopiableReceiverExpr(receiver)
-		if initializeExpression == nil {
+		if initializeExpression.IsNil() {
 			initializeExpression = readExpression
 		}
 		setterReceiver := readExpression.Clone(tx.Factory())
 		return tx.Factory().NewBinaryExpression(
-			nil,
+			ast.ModifierList{},
 			tx.createPrivateIdentifierAccessHelper(info, initializeExpression),
-			nil,
+			ast.Node{},
 			tx.Factory().NewToken(transformers.GetNonAssignmentOperatorForCompoundAssignment(operator)),
 			tx.createPrivateIdentifierAssignment(info, setterReceiver, right, ast.KindEqualsToken, true),
 		)
