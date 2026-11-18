@@ -100,23 +100,23 @@ func TestFormatPrintedFragment(t *testing.T) {
 			t.Parallel()
 			source := parsetestutil.ParseTypeScript(tt.text, false)
 			parsetestutil.CheckDiagnostics(t, source)
-			var fragment *ast.Node
+			var fragment ast.Node
 			var visit ast.Visitor
-			visit = func(node *ast.Node) bool {
-				if node.Kind == tt.kind {
+			visit = func(node ast.Node) bool {
+				if node.Kind() == tt.kind {
 					fragment = node
 					return true
 				}
 				return node.ForEachChild(visit)
 			}
 			source.AsNode().ForEachChild(visit)
-			assert.Assert(t, fragment != nil)
-			factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
+			assert.Assert(t, !fragment.IsNil())
+			factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
 			text, positioned := printer.PrintAndPositionNode(factory, fragment, source, "\n", 4, nil)
 			file := printer.CreateSyntheticSourceFile(factory, text, source.ParseOptions())
 			// A source-file context must remain a valid AST for ordinary consumers.
-			file.AsNode().ForEachChild(func(child *ast.Node) bool {
-				assert.Assert(t, ast.IsStatement(child) || child.Kind == ast.KindEndOfFile, "invalid source-file child: %v", child.Kind)
+			file.AsNode().ForEachChild(func(child ast.Node) bool {
+				assert.Assert(t, ast.IsStatement(child) || child.Kind() == ast.KindEndOfFile, "invalid source-file child: %v", child.Kind())
 				return false
 			})
 			options := lsutil.GetDefaultFormatCodeSettings()
@@ -133,8 +133,8 @@ func BenchmarkFormatPrintedFragmentBranches(b *testing.B) {
 		b.Run(strconv.Itoa(branches), func(b *testing.B) {
 			source := parsetestutil.ParseTypeScript("function f() {\n"+strings.Repeat("if (x)\na();\nelse\nb();\n", branches)+"}", false)
 			assert.Equal(b, len(source.Diagnostics()), 0)
-			factory := ast.NewNodeFactory(ast.NodeFactoryHooks{})
-			text, positioned := printer.PrintAndPositionNode(factory, source.Statements.Nodes[0], source, "\n", 4, nil)
+			factory := ast.NewNodeFactory(nil, ast.NodeFactoryHooks{})
+			text, positioned := printer.PrintAndPositionNode(factory, source.Statements.At(0), source, "\n", 4, nil)
 			ctx := format.WithFormatCodeSettings(b.Context(), lsutil.GetDefaultFormatCodeSettings(), "\n")
 			b.ReportAllocs()
 			for b.Loop() {
