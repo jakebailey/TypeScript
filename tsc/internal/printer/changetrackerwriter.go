@@ -145,7 +145,7 @@ func (ct *ChangeTrackerWriter) assignPositionsToNodeWorker(
 	}
 	newNode.ForEachChild(func(child ast.Node) bool {
 		child.SetParent(newNode)
-		return true
+		return false
 	})
 	newNode.SetLoc(core.NewTextRange(ct.getPos(node), ct.getEnd(node)))
 	return newNode

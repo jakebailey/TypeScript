@@ -4416,7 +4416,7 @@ func (s *Session) handleFormatNodeForInsertion(ctx context.Context, params *Form
 
 	factory := ast.NewNodeFactory(store, ast.NodeFactoryHooks{})
 	text, nodeWithPos := printer.PrintAndPositionNode(factory, node, nil, newLine, formatOptions.IndentSize, nil)
-	syntheticFile := printer.CreateSyntheticSourceFile(factory, nodeWithPos, text, targetSourceFile.ParseOptions())
+	syntheticFile := printer.CreateSyntheticSourceFile(factory, text, targetSourceFile.ParseOptions())
 
 	isAtLineStart := format.GetLineStartPositionForPosition(pos, targetSourceFile) == pos
 	initialIndentation := format.GetIndentation(pos, targetSourceFile, formatOptions, isAtLineStart)
