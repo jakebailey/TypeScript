@@ -25,8 +25,9 @@ type astDecoder struct {
 	// Arena for batch-allocating []ast.Node slices used by NodeLists.
 	nodeArena []ast.Node
 	// Results
-	nodes     []ast.Node
-	nodeLists []ast.NodeList
+	nodes         []ast.Node
+	nodeLists     []ast.NodeList
+	onNodeDecoded func(node ast.Node, index int)
 }
 
 // DecodeSourceFile decodes binary-encoded data into an *ast.SourceFile.
@@ -45,14 +46,18 @@ func DecodeSourceFile(data []byte) (*ast.SourceFile, error) {
 // DecodeNodes decodes binary-encoded AST data into a tree of ast.Node objects,
 // made in store, or, if store is nil, in a new store.
 func DecodeNodes(data []byte, store *ast.NodeStore) (ast.Node, error) {
-	d, err := newASTDecoder(data, store)
+	return DecodeNodesWithCallback(data, store, nil)
+}
+
+func DecodeNodesWithCallback(data []byte, store *ast.NodeStore, onNodeDecoded func(node ast.Node, index int)) (ast.Node, error) {
+	d, err := newASTDecoder(data, store, onNodeDecoded)
 	if err != nil {
 		return ast.Node{}, err
 	}
 	return d.decode()
 }
 
-func newASTDecoder(data []byte, store *ast.NodeStore) (*astDecoder, error) {
+func newASTDecoder(data []byte, store *ast.NodeStore, onNodeDecoded func(node ast.Node, index int)) (*astDecoder, error) {
 	if len(data) < HeaderSize {
 		return nil, fmt.Errorf("data too short for header: %d bytes", len(data))
 	}
@@ -79,12 +84,13 @@ func newASTDecoder(data []byte, store *ast.NodeStore) (*astDecoder, error) {
 	}
 
 	d := &astDecoder{
-		raw:      data,
-		strTable: strTable,
-		strData:  strData,
-		extData:  extData,
-		nodeOff:  nodeOff,
-		factory:  ast.NewNodeFactory(store, ast.NodeFactoryHooks{}),
+		raw:           data,
+		strTable:      strTable,
+		strData:       strData,
+		extData:       extData,
+		nodeOff:       nodeOff,
+		factory:       ast.NewNodeFactory(store, ast.NodeFactoryHooks{}),
+		onNodeDecoded: onNodeDecoded,
 	}
 
 	d.nodeCount = (len(data) - int(d.nodeOff)) / NodeSize
@@ -183,6 +189,9 @@ func (d *astDecoder) decode() (ast.Node, error) {
 		node.SetFlags(ast.NodeFlags(d.nodeField(i, NodeOffsetFlags)))
 		if kind == uint32(ast.KindSourceFile) {
 			node.AsSourceFile().IsDeclarationFile = node.Flags()&ast.NodeFlagsAmbient != 0
+		}
+		if d.onNodeDecoded != nil {
+			d.onNodeDecoded(node, i)
 		}
 		d.nodes[i] = node
 	}
