@@ -317,6 +317,10 @@ func (c *Checker) getNodeBuilder() (*NodeBuilder, func()) {
 		// the old one is collected once nothing, such as a cache entry,
 		// references its nodes.
 		c.typeToStringNodebuilder.EmitContext().NewStore()
+		if c.typeToStringNodebuilder.impl.ctx == nil {
+			// Nested operations return during the outermost operation, so only the outermost one clears.
+			c.typeToStringNodebuilder.EmitContext().ClearDisplayTypeArguments()
+		}
 	}
 }
 
