@@ -1539,6 +1539,17 @@ func TestWatchRejectsNetworkPaths(t *testing.T) {
 			// On POSIX systems, //dir resolves to /dir, so this is an existing
 			// directory that must still be refused.
 			networkPaths = append(networkPaths, "/"+dir)
+		} else {
+			// The link is never followed, so no connection is attempted.
+			link := filepath.Join(dir, "unc")
+			out, err := exec.Command("cmd", "/c", "mklink", "/D", link, `\\127.0.0.1\share`).CombinedOutput()
+			if err != nil && strings.Contains(string(out), "privilege") {
+				t.Skip("symlink support is not enabled without elevation or developer mode")
+			}
+			if err != nil {
+				t.Fatal(err, string(out))
+			}
+			networkPaths = append(networkPaths, link)
 		}
 		for _, networkPath := range networkPaths {
 			_, err := watcherImpl.WatchDirectories([]WatchDirectoryRequest{

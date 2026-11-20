@@ -24,9 +24,9 @@ var errRootPath = errors.New("fswatch: cannot watch a root path")
 // [Watcher.WatchFile] when the supplied path is not absolute.
 var errNotAbsolute = errors.New("fswatch: path must be absolute")
 
-// errNetworkPath is returned by [Watcher.WatchDirectory] and
-// [Watcher.WatchFile] when the supplied path may refer to a network
-// location. See [nativepath.IsNetworkPath].
+// errNetworkPath is returned by [Watcher.WatchDirectory],
+// [Watcher.WatchDirectories], and [Watcher.WatchFile] when the supplied path
+// or the watched directory is rejected by [nativepath.CheckLocalPath].
 var errNetworkPath = errors.New("fswatch: network paths are not supported")
 
 // ErrOverflow indicates that the kernel event queue overflowed and
@@ -538,6 +538,10 @@ func (w *watcher) WatchDirectories(requests []WatchDirectoryRequest) ([]Watch, e
 			return nil, errNotAbsolute
 		}
 		dir = canonicalizePath(dir)
+		if _, ok := nativepath.CheckLocalPath(dir); !ok {
+			rollback()
+			return nil, errNetworkPath
+		}
 		if w.canShareRecursiveDirWatches() {
 			if err := validateWatchDirectory(dir); err != nil {
 				rollback()
