@@ -2,6 +2,7 @@ package osvfs_test
 
 import (
 	"os"
+	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
@@ -147,4 +148,52 @@ func TestOS(t *testing.T) {
 			assert.Assert(t, fs.CaseSensitivity().IsCaseSensitive())
 		}
 	})
+}
+
+func TestRootedLinkTargets(t *testing.T) {
+	t.Parallel()
+	if runtime.GOOS != "windows" {
+		t.Skip("links to rooted targets are only refused on Windows")
+	}
+
+	dir := t.TempDir()
+	target := filepath.Join(dir, "target")
+	assert.NilError(t, os.Mkdir(target, 0o777))
+	assert.NilError(t, os.WriteFile(filepath.Join(target, "a.ts"), []byte("a"), 0o666))
+
+	// A root-relative target (`\...`) names a directory on this drive, so
+	// unguarded accesses would succeed.
+	err := os.Symlink(target[len(filepath.VolumeName(target)):], filepath.Join(dir, "rooted"))
+	if err != nil && strings.Contains(err.Error(), "A required privilege is not held by the client") {
+		t.Skip("symlink support is not enabled without elevation or developer mode")
+	}
+	assert.NilError(t, err)
+	assert.NilError(t, os.Symlink("rooted", filepath.Join(dir, "chained")))
+	assert.NilError(t, os.Symlink("target", filepath.Join(dir, "relative")))
+	assert.NilError(t, exec.Command("cmd", "/c", "mklink", "/J", filepath.Join(dir, "junction"), target).Run())
+
+	fs := osvfs.FS()
+	root := tspath.RootedDirectoryPathFromAbsolute(dir)
+	entries := fs.GetAccessibleEntries(root)
+	assert.DeepEqual(t, entries.Directories, []string{"junction", "relative", "target"})
+
+	for _, name := range []string{"junction", "relative", "target"} {
+		file := root.ResolveDirectory(name).ResolveFile("a.ts")
+		assert.Assert(t, fs.FileExists(file), name)
+		_, ok := fs.ReadFile(file)
+		assert.Assert(t, ok, name)
+	}
+	for _, name := range []string{"rooted", "chained"} {
+		dir := root.ResolveDirectory(name)
+		file := dir.ResolveFile("a.ts")
+		assert.Assert(t, !fs.DirectoryExists(dir), name)
+		assert.Assert(t, !fs.FileExists(file), name)
+		_, ok := fs.ReadFile(file)
+		assert.Assert(t, !ok, name)
+		assert.Assert(t, fs.Stat(file.AsPath()) == nil, name)
+		assert.Equal(t, fs.Realpath(file.AsPath()), file.AsPath(), name)
+		assert.Assert(t, fs.WriteFile(dir.ResolveFile("b.ts"), "b") != nil, name)
+	}
+	_, err = os.Stat(filepath.Join(target, "b.ts"))
+	assert.Assert(t, os.IsNotExist(err))
 }

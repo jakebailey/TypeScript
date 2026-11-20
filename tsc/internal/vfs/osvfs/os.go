@@ -36,6 +36,7 @@ var osVFS vfs.FS = &osFS{
 	common: internal.Common{
 		RootFor:        os.DirFS,
 		IsReparsePoint: isReparsePoint,
+		SkipLink:       isNonLocalPath,
 	},
 }
 
@@ -90,47 +91,47 @@ func (vfs *osFS) CaseSensitivity() tspath.CaseSensitivity {
 	return fileSystemCaseSensitivity
 }
 
-// errNetworkPath is returned when writing to a path that refers to a network
-// location. Such paths are never accessed; see [nativepath.IsNetworkPath].
+// errNetworkPath is returned when modifying a path rejected by
+// [nativepath.CheckLocalPath].
 var errNetworkPath = errors.New("network paths are not supported")
 
 func (vfs *osFS) ReadFile(path tspath.RootedFilePath) (contents string, ok bool) {
-	if nativepath.IsNetworkPath(path.AsString()) {
+	defer readSema.Acquire()()
+	if kind, ok := checkLocalPath(path.AsString()); !ok || kind == nativepath.PathDirectory || kind == nativepath.PathMissing {
 		return "", false
 	}
-	defer readSema.Acquire()()
 	return vfs.common.ReadFile(path)
 }
 
 func (vfs *osFS) DirectoryExists(path tspath.RootedDirectoryPath) bool {
-	if nativepath.IsNetworkPath(path.AsString()) {
-		return false
-	}
 	defer blockingOpSema.Acquire()()
+	if kind, ok := checkLocalPath(path.AsString()); !ok || kind != nativepath.PathUnknown {
+		return ok && kind == nativepath.PathDirectory
+	}
 	return vfs.common.DirectoryExists(path)
 }
 
 func (vfs *osFS) FileExists(path tspath.RootedFilePath) bool {
-	if nativepath.IsNetworkPath(path.AsString()) {
-		return false
-	}
 	defer blockingOpSema.Acquire()()
+	if kind, ok := checkLocalPath(path.AsString()); !ok || kind != nativepath.PathUnknown {
+		return ok && kind == nativepath.PathFile
+	}
 	return vfs.common.FileExists(path)
 }
 
 func (vfs *osFS) GetAccessibleEntries(path tspath.RootedDirectoryPath) (entries vfs.Entries) {
-	if nativepath.IsNetworkPath(path.AsString()) {
+	defer blockingOpSema.Acquire()()
+	if kind, ok := checkLocalPath(path.AsString()); !ok || kind == nativepath.PathFile || kind == nativepath.PathMissing {
 		return entries
 	}
-	defer blockingOpSema.Acquire()()
 	return vfs.common.GetAccessibleEntries(path)
 }
 
 func (vfs *osFS) Stat(path tspath.RootedPath) vfs.FileInfo {
-	if nativepath.IsNetworkPath(path.AsString()) {
+	defer blockingOpSema.Acquire()()
+	if kind, ok := checkLocalPath(path.AsString()); !ok || kind == nativepath.PathMissing {
 		return nil
 	}
-	defer blockingOpSema.Acquire()()
 	return vfs.common.Stat(path)
 }
 
@@ -141,7 +142,7 @@ func (vfs *osFS) Realpath(path tspath.RootedPath) tspath.RootedPath {
 
 func osFSRealpath(path tspath.RootedPath) tspath.RootedPath {
 	orig := path
-	if nativepath.IsNetworkPath(orig.AsString()) {
+	if kind, ok := checkLocalPath(orig.AsString()); !ok || kind == nativepath.PathMissing {
 		return orig
 	}
 	nativePath := filepath.FromSlash(path.AsString())
@@ -168,6 +169,15 @@ func isReparsePoint(path string) bool {
 	return nativepath.IsSymlinkOrReparsePoint(filepath.FromSlash(path))
 }
 
+func checkLocalPath(path string) (nativepath.PathKind, bool) {
+	return nativepath.CheckLocalPath(filepath.FromSlash(path))
+}
+
+func isNonLocalPath(path string) bool {
+	_, ok := checkLocalPath(path)
+	return !ok
+}
+
 func (vfs *osFS) writeFileWithFlag(path string, content string, flag int) error {
 	defer writeSema.Acquire()()
 
@@ -184,13 +194,18 @@ func (vfs *osFS) writeFileWithFlag(path string, content string, flag int) error 
 	return nil
 }
 
+func (vfs *osFS) isNonLocalPathBlocking(path string) bool {
+	defer blockingOpSema.Acquire()()
+	return isNonLocalPath(path)
+}
+
 func (vfs *osFS) ensureDirectoryExists(directoryPath string) error {
 	defer blockingOpSema.Acquire()()
 	return os.MkdirAll(directoryPath, 0o777)
 }
 
 func (vfs *osFS) writeFileEnsuringDir(path tspath.RootedFilePath, content string, flag int) error {
-	if nativepath.IsNetworkPath(path.AsString()) {
+	if vfs.isNonLocalPathBlocking(path.AsString()) {
 		return errNetworkPath
 	}
 	pathString := path.AsString()
@@ -212,19 +227,19 @@ func (vfs *osFS) AppendFile(path tspath.RootedFilePath, content string) error {
 }
 
 func (vfs *osFS) Remove(path tspath.RootedPath) error {
-	if nativepath.IsNetworkPath(path.AsString()) {
+	defer blockingOpSema.Acquire()()
+	if isNonLocalPath(path.AsString()) {
 		return errNetworkPath
 	}
-	defer blockingOpSema.Acquire()()
 	// todo: #701 add retry mechanism?
 	return os.RemoveAll(path.AsString())
 }
 
 func (vfs *osFS) Chtimes(path tspath.RootedPath, aTime time.Time, mTime time.Time) error {
-	if nativepath.IsNetworkPath(path.AsString()) {
+	defer blockingOpSema.Acquire()()
+	if isNonLocalPath(path.AsString()) {
 		return errNetworkPath
 	}
-	defer blockingOpSema.Acquire()()
 	return os.Chtimes(path.AsString(), aTime, mTime)
 }
 

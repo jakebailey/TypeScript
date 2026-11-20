@@ -15,6 +15,9 @@ import (
 type Common struct {
 	RootFor        func(root string) fs.FS
 	IsReparsePoint func(path string) bool
+	// SkipLink reports whether a link found in a directory listing must be
+	// omitted without following it.
+	SkipLink func(path string) bool
 }
 
 func RootLength(p string) int {
@@ -93,7 +96,11 @@ func (vfs *Common) GetAccessibleEntries(path tspath.RootedDirectoryPath) (result
 
 		if entryType&fs.ModeSymlink != 0 {
 			// Easy case; UNIX-like system will clearly mark symlinks.
-			if stat := vfs.Stat(path.ResolveFile(entry.Name()).AsPath()); stat != nil {
+			fullPath := path.ResolveFile(entry.Name())
+			if vfs.SkipLink != nil && vfs.SkipLink(fullPath.AsString()) {
+				continue
+			}
+			if stat := vfs.Stat(fullPath.AsPath()); stat != nil {
 				addToResult(entry.Name(), stat.Mode(), true)
 			}
 			continue
@@ -104,6 +111,9 @@ func (vfs *Common) GetAccessibleEntries(path tspath.RootedDirectoryPath) (result
 			// Check using the OS-specific helper.
 			fullPath := path.ResolveFile(entry.Name())
 			if vfs.IsReparsePoint(fullPath.AsString()) {
+				if vfs.SkipLink != nil && vfs.SkipLink(fullPath.AsString()) {
+					continue
+				}
 				if stat := vfs.Stat(fullPath.AsPath()); stat != nil {
 					addToResult(entry.Name(), stat.Mode(), true)
 				}
