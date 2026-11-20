@@ -14,16 +14,30 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/nativepath"
 )
 
-// makeProfileDir creates profileDir, refusing network paths so that
-// profiling requests cannot trigger connections to remote hosts.
+// checkProfilePath refuses network paths and paths through rooted links so
+// that profiling requests cannot trigger connections to remote hosts.
+func checkProfilePath(path string) error {
+	if _, ok := nativepath.CheckLocalPath(path); !ok {
+		return errors.New("network paths are not supported: " + path)
+	}
+	return nil
+}
+
 func makeProfileDir(profileDir string) error {
-	if nativepath.IsNetworkPath(profileDir) {
-		return errors.New("network paths are not supported: " + profileDir)
+	if err := checkProfilePath(profileDir); err != nil {
+		return err
 	}
 	if err := os.MkdirAll(profileDir, 0o755); err != nil {
 		return fmt.Errorf("failed to create profile directory: %w", err)
 	}
 	return nil
+}
+
+func createProfile(path string) (*os.File, error) {
+	if err := checkProfilePath(path); err != nil {
+		return nil, err
+	}
+	return os.Create(path)
 }
 
 var defaultMemProfileRate = runtime.MemProfileRate
@@ -55,7 +69,7 @@ func BeginProfiling(profileDir string, logWriter io.Writer) *ProfileSession {
 
 	cpuProfilePath := filepath.Join(profileDir, fmt.Sprintf("%d-cpuprofile.pb.gz", pid))
 	memProfilePath := filepath.Join(profileDir, fmt.Sprintf("%d-memprofile.pb.gz", pid))
-	cpuFile, err := os.Create(cpuProfilePath)
+	cpuFile, err := createProfile(cpuProfilePath)
 	if err != nil {
 		panic(err)
 	}
@@ -78,7 +92,7 @@ func (p *ProfileSession) Stop() {
 		p.cpuFile.Close()
 
 		if p.memFilePath != "" {
-			memFile, err := os.Create(p.memFilePath)
+			memFile, err := createProfile(p.memFilePath)
 			if err != nil {
 				panic(err)
 			}
@@ -116,7 +130,7 @@ func (c *CPUProfiler) StartCPUProfile(profileDir string) error {
 	}
 
 	cpuProfilePath := filepath.Join(profileDir, fmt.Sprintf("%d-%d-cpuprofile.pb.gz", os.Getpid(), time.Now().UnixMilli()))
-	cpuFile, err := os.Create(cpuProfilePath)
+	cpuFile, err := createProfile(cpuProfilePath)
 	if err != nil {
 		return fmt.Errorf("failed to create CPU profile file: %w", err)
 	}
@@ -158,7 +172,7 @@ func SaveHeapProfile(profileDir string) (string, error) {
 	}
 
 	heapProfilePath := filepath.Join(profileDir, fmt.Sprintf("%d-%d-heapprofile.pb.gz", os.Getpid(), time.Now().UnixMilli()))
-	heapFile, err := os.Create(heapProfilePath)
+	heapFile, err := createProfile(heapProfilePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to create heap profile file: %w", err)
 	}
@@ -180,7 +194,7 @@ func SaveAllocProfile(profileDir string) (string, error) {
 	}
 
 	allocProfilePath := filepath.Join(profileDir, fmt.Sprintf("%d-%d-allocprofile.pb.gz", os.Getpid(), time.Now().UnixMilli()))
-	allocFile, err := os.Create(allocProfilePath)
+	allocFile, err := createProfile(allocProfilePath)
 	if err != nil {
 		return "", fmt.Errorf("failed to create alloc profile file: %w", err)
 	}
