@@ -21,3 +21,28 @@ func IsNetworkPath(path string) bool {
 func isAnyDirectorySeparator(char byte) bool {
 	return char == '/' || char == '\\'
 }
+
+// PathKind is the kind of entry a path names, as found by [CheckLocalPath].
+type PathKind uint8
+
+const (
+	// PathUnknown means the path was not examined; access it normally.
+	PathUnknown PathKind = iota
+	PathMissing
+	PathFile
+	PathDirectory
+)
+
+// CheckLocalPath reports whether resolving path stays on local volumes, and
+// on Windows, the kind of entry it names. Paths for which ok is false must
+// not be accessed.
+//
+// Network paths (see [IsNetworkPath]) are refused on every platform. On
+// Windows, links are also resolved one at a time, and a path is refused if
+// it passes through a link whose target could reach the network.
+func CheckLocalPath(path string) (kind PathKind, ok bool) {
+	if IsNetworkPath(path) {
+		return PathUnknown, false
+	}
+	return checkLocalPath(path)
+}
