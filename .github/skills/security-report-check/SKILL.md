@@ -36,6 +36,16 @@ The compiler does not make HTTP requests or spawn child processes except through
 **Safe exit.**
 Certain adversarial inputs may cause crashes, but these crashes will unwind the process normally, and will not be a source of buffer overrun or other memory safety exploit vectors.
 
+### No network access through file paths
+
+On Windows, opening a UNC path (`\\server\share`) can make the system authenticate to that server, leaking the user's credentials.
+`tsc` never accesses UNC, device (`\\?\...`, `\\.\...`), or NT object (`\??\...`) paths.
+On Windows, it also refuses paths that resolve through a symbolic link or junction whose target begins with a slash, so a project cannot redirect file accesses to a network location.
+
+These checks are made against the file system as it is when a build starts.
+Changes made to the file system while a build is running, such as by a checkout, a package install, or another process, may not be detected until the next build.
+Each rebuild in watch mode and each language service update checks again.
+
 ## Non-Guarantees
 
 ### Arbitrary file writes
@@ -109,6 +119,7 @@ We recommend using `govulncheck` instead of a blanket version-based scan to iden
 - Running `tsc malicious.ts` executes top-level code from `malicious.ts`, even though `--runExternalCode` was not passed.
 - A specially crafted source file causes `tsc` to launch an attacker-chosen executable, even though  `--runExternalCode` was not passed.
 - A malformed input exploits a memory-safety flaw to execute arbitrary native code rather than merely causing the `tsc` process to exit.
+- On Windows, a symbolic link in a project makes `tsc` connect to a remote host when the project is built.
 
 ### Hypothetically Invalid Security Reports
 
@@ -119,4 +130,5 @@ We recommend using `govulncheck` instead of a blanket version-based scan to iden
 - Attacker-controlled TypeScript produces attacker-controlled JavaScript that performs a malicious action when executed.
 - A malformed source file crashes `tsc` without escaping the process or causing memory corruption.
 - A content mapper executes code after the caller explicitly enables content mappers with `--runExternalCode`.
+- A directory is replaced with a link to a network location while a build is running, and the same build then follows the link.
 
