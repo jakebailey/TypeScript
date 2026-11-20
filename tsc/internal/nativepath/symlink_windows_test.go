@@ -226,6 +226,24 @@ func TestCheckLocalPathRetargetedJunction(t *testing.T) {
 	assertKind(t, link, PathMissing)
 }
 
+func TestClearLocalPathCache(t *testing.T) {
+	t.Parallel()
+
+	tmp := t.TempDir()
+	target := filepath.Join(tmp, "target")
+	dir := filepath.Join(tmp, "dir")
+	assert.NilError(t, os.Mkdir(target, 0o777))
+	assert.NilError(t, os.Mkdir(dir, 0o777))
+	assert.NilError(t, os.WriteFile(filepath.Join(target, "file.ts"), nil, 0o666))
+	file := filepath.Join(dir, "file.ts")
+	assertKind(t, file, PathMissing)
+
+	assert.NilError(t, os.Remove(dir))
+	dirSymlink(t, target[len(filepath.VolumeName(target)):], dir)
+	ClearLocalPathCache()
+	assert.Assert(t, !isLocal(file))
+}
+
 // setJunctionTarget points an existing junction at target in place.
 func setJunctionTarget(t *testing.T, link string, target string) {
 	t.Helper()

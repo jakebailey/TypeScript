@@ -43,10 +43,14 @@ const maxCheckedDirectories = 10_000
 func rememberCheckedDirectory(dir string) {
 	if _, loaded := checkedDirectories.LoadOrStore(dir, struct{}{}); !loaded {
 		if checkedDirectoriesCount.Add(1) > maxCheckedDirectories {
-			checkedDirectories.Clear()
-			checkedDirectoriesCount.Store(0)
+			clearLocalPathCache()
 		}
 	}
+}
+
+func clearLocalPathCache() {
+	checkedDirectories.Clear()
+	checkedDirectoriesCount.Store(0)
 }
 
 func probe(full string, links int) (PathKind, bool) {

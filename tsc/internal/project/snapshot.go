@@ -19,6 +19,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/ls/lsutil"
 	"github.com/microsoft/TypeScript/tsc/internal/lsp/lsproto"
 	"github.com/microsoft/TypeScript/tsc/internal/module"
+	"github.com/microsoft/TypeScript/tsc/internal/nativepath"
 	"github.com/microsoft/TypeScript/tsc/internal/project/ata"
 	"github.com/microsoft/TypeScript/tsc/internal/project/dirty"
 	"github.com/microsoft/TypeScript/tsc/internal/project/logging"
@@ -443,6 +444,7 @@ func (s *Snapshot) Clone(
 	if s.apiError != nil {
 		panic(fmt.Sprintf("cannot clone snapshot with API error: %v", s.apiError))
 	}
+	nativepath.ClearLocalPathCache()
 	store := s.host
 	var logger *logging.LogTree
 

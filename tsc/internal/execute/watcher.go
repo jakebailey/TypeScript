@@ -16,6 +16,7 @@ import (
 	"github.com/microsoft/TypeScript/tsc/internal/execute/tsc"
 	"github.com/microsoft/TypeScript/tsc/internal/execute/watchmanager"
 	"github.com/microsoft/TypeScript/tsc/internal/fswatch"
+	"github.com/microsoft/TypeScript/tsc/internal/nativepath"
 	"github.com/microsoft/TypeScript/tsc/internal/outputpaths"
 	"github.com/microsoft/TypeScript/tsc/internal/tsoptions"
 	"github.com/microsoft/TypeScript/tsc/internal/tspath"
@@ -297,6 +298,7 @@ func (w *Watcher) DoCycle(ctx context.Context) {
 	if ctx.Err() != nil {
 		return
 	}
+	nativepath.ClearLocalPathCache()
 
 	changedPaths, overflow := w.wm.DrainEvents()
 	hasEvents := len(changedPaths) > 0 || overflow

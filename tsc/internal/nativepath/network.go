@@ -46,3 +46,10 @@ func CheckLocalPath(path string) (kind PathKind, ok bool) {
 	}
 	return checkLocalPath(path)
 }
+
+// ClearLocalPathCache makes later [CheckLocalPath] calls check every
+// directory again. Call it when a build starts, so that no build relies on
+// checks made against an earlier state of the file system.
+func ClearLocalPathCache() {
+	clearLocalPathCache()
+}
