@@ -2326,6 +2326,10 @@ type TypePredicate struct {
 	t              *Type
 }
 
+func NewTypePredicate(kind TypePredicateKind, parameterName string, parameterIndex int32, t *Type) *TypePredicate {
+	return &TypePredicate{kind: kind, parameterName: ast.MakeSymbolName(parameterName), parameterIndex: parameterIndex, t: t}
+}
+
 func (typePredicate *TypePredicate) Type() *Type {
 	return typePredicate.t
 }
@@ -2355,6 +2359,10 @@ type IndexInfo struct {
 	declaration ast.Node     // IndexSignatureDeclaration
 	indexSymbol ast.SymbolId // Synthetic property symbol for this index signature
 	components  []ast.Node   // ElementWithComputedPropertyName
+}
+
+func NewIndexInfo(keyType *Type, valueType *Type, isReadonly bool, declaration ast.Node) *IndexInfo {
+	return &IndexInfo{keyType: keyType, valueType: valueType, isReadonly: isReadonly, declaration: declaration}
 }
 
 func (info *IndexInfo) KeyType() *Type {

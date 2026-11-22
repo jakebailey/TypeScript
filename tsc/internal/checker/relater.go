@@ -4349,7 +4349,7 @@ func (r *Relater) propertiesRelatedTo(source *Type, target *Type, reportErrors b
 	numericNamesOnly := isTupleType(source) && isTupleType(target)
 	for _, targetProp := range r.c.excludeProperties(properties, excludedProperties) {
 		name := r.c.symbolName(targetProp)
-		if r.c.symbolFlags(targetProp)&ast.SymbolFlagsPrototype == 0 && (!numericNamesOnly || isNumericLiteralName(name.String()) || name == ast.SymbolNameLength) && (!optionalsOnly || r.c.symbolFlags(targetProp)&ast.SymbolFlagsOptional != 0) {
+		if r.c.symbolFlags(targetProp)&ast.SymbolFlagsPrototype == 0 && (!numericNamesOnly || jsnum.IsNumericLiteralName(name.String()) || name == ast.SymbolNameLength) && (!optionalsOnly || r.c.symbolFlags(targetProp)&ast.SymbolFlagsOptional != 0) {
 			sourceProp := r.c.getPropertyOfType(source, name)
 			if sourceProp != 0 && sourceProp != targetProp {
 				related := r.propertyRelatedTo(source, target, sourceProp, targetProp, r.c.getNonMissingTypeOfSymbol, reportErrors, intersectionState, r.relation == r.c.comparableRelation)
