@@ -2529,6 +2529,10 @@ type TypePredicate struct {
 	t              TypeId
 }
 
+func (c *Checker) NewTypePredicate(kind TypePredicateKind, parameterName ast.SymbolName, parameterIndex int32, t *Type) *TypePredicate {
+	return c.newTypePredicate(kind, parameterName, parameterIndex, t)
+}
+
 func (typePredicate *TypePredicate) Type(c *Checker) *Type {
 	return c.typ(typePredicate.t)
 }
@@ -2558,6 +2562,10 @@ type IndexInfo struct {
 	declaration ast.Node     // IndexSignatureDeclaration
 	indexSymbol ast.SymbolId // Synthetic property symbol for this index signature
 	components  []ast.Node   // ElementWithComputedPropertyName
+}
+
+func (c *Checker) NewIndexInfo(keyType *Type, valueType *Type, isReadonly bool, declaration ast.Node) *IndexInfo {
+	return c.newIndexInfo(keyType, valueType, isReadonly, declaration, nil)
 }
 
 func (info *IndexInfo) KeyType(c *Checker) *Type {

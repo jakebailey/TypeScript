@@ -769,6 +769,7 @@ func (l *LanguageService) getCompletionData(
 						if parent != previousToken.Parent() &&
 							parent.Initializer().IsNil() &&
 							!astnav.FindChildOfKind(parent, ast.KindEqualsToken, file).IsNil() {
+							jsxInitializer.isInitializer = true
 							jsxInitializer.initializer = previousToken
 						}
 					}
@@ -1899,7 +1900,7 @@ func (l *LanguageService) completionInfoFromData(
 	}
 
 	for _, literal := range literals {
-		literalEntry := createCompletionItemForLiteral(file, preferences, literal)
+		literalEntry := createCompletionItemForLiteral(file, preferences, literal, data.jsxInitializer.isInitializer)
 		uniqueNames.Add(literalEntry.Label)
 		sortedEntries = append(sortedEntries, &CompletionItem{CompletionItem: literalEntry})
 	}
@@ -2166,13 +2167,24 @@ func createCompletionItemForLiteral(
 	file *ast.SourceFile,
 	preferences lsutil.UserPreferences,
 	literal literalValue,
+	isJsxInitializer bool,
 ) *lsproto.CompletionItem {
-	return &lsproto.CompletionItem{
+	item := &lsproto.CompletionItem{
 		Label:            completionNameForLiteral(file, preferences, literal),
 		Kind:             new(lsproto.CompletionItemKindConstant),
 		SortText:         new(string(SortTextLocationPriority)),
 		CommitCharacters: new([]string{}),
 	}
+	if isJsxInitializer {
+		insertText := "{" + item.Label + "}"
+		if value, ok := literal.(string); ok {
+			insertText = jsxAttributeInitializerText(file, preferences, value)
+		}
+		if insertText != item.Label {
+			item.InsertText = &insertText
+		}
+	}
+	return item
 }
 
 func (l *LanguageService) createCompletionItem(
@@ -2199,6 +2211,12 @@ func (l *LanguageService) createCompletionItem(
 	source := getSourceFromOrigin(origin)
 	var labelDetails *lsproto.CompletionItemLabelDetails
 	preferences := l.UserPreferences()
+	if data.completionKind == CompletionKindString {
+		escaped := printer.EscapeString(name, stringCompletionQuoteChar(contextToken))
+		if escaped != name {
+			insertText = escaped
+		}
+	}
 	insertQuestionDot := originIsNullableMember(origin)
 	useBraces := originIsSymbolMember(origin) || needsConvertPropertyAccess
 	if originIsThisTypeNode(origin) {
@@ -2403,7 +2421,7 @@ func (l *LanguageService) createCompletionItem(
 	parentNamedImportOrExport := ast.FindAncestor(data.location, isNamedImportsOrExports)
 	if !parentNamedImportOrExport.IsNil() {
 		if !scanner.IsIdentifierText(name, core.LanguageVariantStandard) {
-			insertText = quotePropertyName(file, preferences, name)
+			insertText = quote(file, preferences, name)
 
 			if parentNamedImportOrExport.Kind() == ast.KindNamedImports {
 				// Check if it is `import { ^here as name } from '...'``.
@@ -3707,8 +3725,7 @@ func (l *LanguageService) createRangeFromStringLiteralLikeContent(file *ast.Sour
 }
 
 func quotePropertyName(file *ast.SourceFile, preferences lsutil.UserPreferences, name string) string {
-	r, _ := utf8.DecodeRuneInString(name)
-	if unicode.IsDigit(r) {
+	if len(name) > 0 && name[0] >= '0' && name[0] <= '9' && jsnum.IsNumericLiteralName(name) {
 		return name
 	}
 	return quote(file, preferences, name)
