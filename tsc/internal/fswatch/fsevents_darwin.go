@@ -6,12 +6,15 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"runtime"
+	"runtime/cgo"
 	"slices"
 	"sort"
+	"strings"
+	"structs"
 	"sync"
 	"sync/atomic"
 	"syscall"
+	"unicode/utf8"
 	"unsafe"
 
 	"golang.org/x/sys/unix"
@@ -26,49 +29,12 @@ import (
 // coalesced by the kernel and delivered in batches.
 //
 // This file contains the event classification and stream lifecycle logic.
-// The low-level FFI plumbing (cgo-free CoreFoundation/CoreServices calls,
-// assembly trampolines, pipe-based callback synchronization) lives in
-// fsevents_darwin_ffi.go and the companion .s files.
-//
-//	┌───────────────────────────────────────────────────────────┐
-//	│ fsEventsBackend                                           │
-//	│ (no event loop; start() just signals readiness)           │
-//	│                                                           │
-//	│ subscribe/closeWatch rebuild the shared stream set:       │
-//	│      │                                                    │
-//	│      ▼                                                    │
-//	│ ┌─────────────────────────────────────────────────────┐   │
-//	│ │ fseventsStream[]                                    │   │
-//	│ │                                                     │   │
-//	│ │  each FSEventStream watches up to N paths ────────► │   │
-//	│ │  per-stream GCD dispatch queue                      │   │
-//	│ │  (UseCFTypes | FileEvents = 0x11)                   │   │
-//	│ │                                                     │   │
-//	│ │  callback fires on GCD thread:                      │   │
-//	│ │    ┌─────────────────────────────────────────┐      │   │
-//	│ │    │ asm: retain/copy callback payload       │      │   │
-//	│ │    │ asm: write(eventPipe) ──────────────►   │      │   │
-//	│ │    │                          eventLoop()    │      │   │
-//	│ │    │                          goroutine      │      │   │
-//	│ │    │                              │          │      │   │
-//	│ │    │                     fsEventsCallback()  │      │   │
-//	│ │    │ asm: return to FSEvents                 │      │   │
-//	│ │    └─────────────────────────────────────────┘      │   │
-//	│ └─────────────────────────────────────────────────────┘   │
-//	└───────────────────────────────────────────────────────────┘
+// The CoreFoundation, CoreServices, and libdispatch bindings live in
+// fsevents_darwin_bindings.go (using Go's cgo bindings without a C compiler).
 //
 // Goroutines and threading:
-//   - FSEvents delivers the raw C callback on a GCD dispatch queue thread
-//     (an OS thread managed by libdispatch, not a Go goroutine).
-//   - The assembly callback (fsEventsCallbackASM, in the .s files) runs on
-//     that GCD thread in the C calling convention. It never enters Go ABI.
-//     It retains/copies the callback payload and passes it to Go through
-//     eventPipe.
-//   - One Go goroutine per stream chunk (eventLoop, in fsevents_darwin_ffi.go)
-//     blocks on eventFile.Read(), integrated with Go's netpoll so it parks
-//     without consuming an OS thread. When woken by the asm callback, it calls
-//     fsEventsCallback() to classify events and route them to matching
-//     dirWatch event lists.
+//   - FSEvents delivers callbacks on a per-stream serial GCD dispatch queue
+//     thread directly into the exported Go callback (fswatchFSEventsCallback).
 //   - subscribe/closeWatch rebuild the stream chunks on the caller's goroutine
 //     under watcherBase.mu. Old streams are swapped out before teardown so a
 //     callback cannot deadlock against stream teardown while routing events.
@@ -77,7 +43,7 @@ import (
 //   dirWatch.notify() posts to the shared process-wide debouncer. After a
 //   coalescing window (50 ms min / 500 ms max), the debouncer invokes all
 //   registered WatchCallbacks on its own dedicated goroutine; never on
-//   the GCD thread, the eventLoop goroutine, or the caller's goroutine.
+//   the GCD thread or the caller's goroutine.
 //   On all backends, events matching a WithIgnore function are filtered
 //   per-subscriber before delivery.
 //
@@ -88,7 +54,7 @@ import (
 //   FSEvents watches recursively via the kernel, and event classification uses
 //   only the flags.
 //
-// Event classification (fsEventsCallback, on eventLoop goroutine):
+// Event classification (fsEventsProcessBatch, on GCD callback thread):
 //   Each batch delivers arrays of paths, flags, and event IDs. The flags
 //   bitmask may combine multiple states (created + modified + renamed).
 //   Pure removes emit EventDelete with no syscalls. Renames and
@@ -128,9 +94,8 @@ const (
 	flagItemIsLastHardlink = 0x00200000
 	flagItemCloned         = 0x00400000
 
-	// kFSEventStreamCreateFlagUseCFTypes (0x1) |
-	// kFSEventStreamCreateFlagFileEvents (0x10) is hardcoded in the
-	// arch-specific assembly trampolines (fsevents_darwin_ffi_{arm64,amd64}.s).
+	flagCreateUseCFTypes = 0x01
+	flagCreateFileEvents = 0x10
 
 	cfStringEncodingUTF8 = 0x08000100
 
@@ -140,6 +105,124 @@ const (
 
 const ignoredFlags = flagItemIsHardlink | flagItemIsLastHardlink |
 	flagItemIsSymlink | flagItemIsDir | flagItemIsFile | flagItemCloned
+
+const (
+	cfStringNormalizationFormC = 2 // kCFStringNormalizationFormC
+	nativePathFolding          = true
+)
+
+// isASCII reports whether every byte in s is below 0x80. Pure-ASCII paths
+// are identical in every Unicode normalization form, so we can skip the
+// CoreFoundation round-trip entirely, which is the overwhelming common case.
+func isASCII(s string) bool {
+	for i := range len(s) {
+		if s[i] >= 0x80 {
+			return false
+		}
+	}
+	return true
+}
+
+// cfStringToNFC returns the CFString at src as a NFC-normalized Go string.
+// If normalization fails, it falls back to the unnormalized UTF-8 contents.
+// Returns "" only if both the normalized and unnormalized conversions fail
+// (e.g. src is not a CFString, or allocation fails).
+func cfStringToNFC(src uintptr) string {
+	if src == 0 {
+		return ""
+	}
+	if s := cfStringNormalizedToGo(src); s != "" {
+		return s
+	}
+	return cfStringToGo(src)
+}
+
+// cfStringNormalizedToGo returns the CFString at src as a NFC-normalized Go
+// string, or "" on any failure.
+func cfStringNormalizedToGo(src uintptr) string {
+	mut := cfStringCreateMutableCopy(0, 0, src)
+	if mut == 0 {
+		return ""
+	}
+	defer cfRelease(mut)
+
+	cfStringNormalize(mut, cfStringNormalizationFormC)
+	return cfStringToGo(mut)
+}
+
+// cfStringToGo extracts the UTF-8 contents of the CFString at src as a Go
+// string, or "" on failure.
+func cfStringToGo(src uintptr) string {
+	length := cfStringGetLength(src)
+	bufSize := cfStringGetMaximumSizeForEncoding(length, cfStringEncodingUTF8) + 1
+	buf := make([]byte, bufSize)
+	if cfStringGetCString(src, &buf[0], bufSize, cfStringEncodingUTF8) == 0 {
+		return ""
+	}
+	// CFStringGetCString writes a NUL terminator; trim it.
+	n := 0
+	for n < len(buf) && buf[n] != 0 {
+		n++
+	}
+	return string(buf[:n])
+}
+
+// normalizeNFC returns s in Unicode NFC (canonical composed) form. ASCII
+// inputs are returned unchanged. Non-ASCII inputs go through CoreFoundation;
+// if any step fails (e.g. invalid UTF-8 from a corrupt path), the original
+// string is returned so the caller still sees *something* rather than nothing.
+func normalizeNFC(s string) string {
+	if isASCII(s) {
+		return s
+	}
+
+	cstr := append([]byte(s), 0)
+	src := cfStringCreate(0, &cstr[0], cfStringEncodingUTF8)
+	if src == 0 {
+		return s
+	}
+	defer cfRelease(src)
+
+	normalized := cfStringToNFC(src)
+	if normalized == "" {
+		return s
+	}
+	return normalized
+}
+
+// foldNativePath is a comparison form, never a displayed or opened path.
+// Case folding expands sharp s and ligatures without making diacritics,
+// dotless i, circled letters, or character widths interchangeable.
+func foldNativePath(s string) string {
+	if isASCII(s) {
+		return strings.ToLower(s)
+	}
+	if !utf8.ValidString(s) || strings.IndexByte(s, 0) >= 0 {
+		return ""
+	}
+	cstr := append([]byte(s), 0)
+	src := cfStringCreate(0, &cstr[0], cfStringEncodingUTF8)
+	if src == 0 {
+		panic("fswatch: cannot create CFString for path folding")
+	}
+	defer cfRelease(src)
+	mut := cfStringCreateMutableCopy(0, 0, src)
+	if mut == 0 {
+		panic("fswatch: cannot copy CFString for path folding")
+	}
+	defer cfRelease(mut)
+	// Normalize before folding as well: a decomposed capital I with dot
+	// must have the same comparison form as precomposed dotted capital I.
+	cfStringNormalize(mut, cfStringNormalizationFormC)
+	const cfCompareCaseInsensitive = 1
+	cfStringFold(mut, cfCompareCaseInsensitive, 0)
+	cfStringNormalize(mut, cfStringNormalizationFormC)
+	folded := cfStringToGo(mut)
+	if folded == "" {
+		panic("fswatch: cannot extract folded CFString")
+	}
+	return folded
+}
 
 // fsEventStreamContext mirrors the C struct of the same name.
 //
@@ -151,7 +234,8 @@ const ignoredFlags = flagItemIsHardlink | flagItemIsLastHardlink |
 //	  void   *copyDescription;  // pointer
 //	} FSEventStreamContext;
 type fsEventStreamContext struct {
-	version         int
+	_               structs.HostLayout
+	version         int64
 	info            uintptr
 	retain          uintptr
 	release         uintptr
@@ -163,9 +247,10 @@ type fseventsState struct {
 }
 
 type fseventsStream struct {
-	stream atomic.Uintptr
-	cb     *streamCallback
-	pinner runtime.Pinner
+	stream  atomic.Uintptr
+	queue   uintptr
+	handle  cgo.Handle
+	watches []fseventsWatchSnapshot
 }
 
 // ----- the watcherImpl -------------------------------------------------------
@@ -303,8 +388,7 @@ func (b *fsEventsBackend) startStream(paths []string, watches []fseventsWatchSna
 	cfStrings := make([]uintptr, 0, len(paths))
 	for _, path := range paths {
 		dirCStr := append([]byte(path), 0)
-		// SAFETY: dirCStr is NUL-terminated and stays alive for the call, which copies it.
-		cfDir := cfStringCreate(0, unsafe.Pointer(&dirCStr[0]), cfStringEncodingUTF8)
+		cfDir := cfStringCreate(0, &dirCStr[0], cfStringEncodingUTF8)
 		if cfDir == 0 {
 			for _, cfString := range cfStrings {
 				cfRelease(cfString)
@@ -319,67 +403,51 @@ func (b *fsEventsBackend) startStream(paths []string, watches []fseventsWatchSna
 		}
 	}()
 
-	// SAFETY: cfStrings is non-empty and stays alive for the call, which copies its elements.
-	pathsToWatch := cfArrayCreate(0, unsafe.Pointer(&cfStrings[0]), len(cfStrings), 0)
+	pathsToWatch := cfArrayCreate(0, &cfStrings[0], int64(len(cfStrings)), 0)
 	if pathsToWatch == 0 {
 		return nil, errCFArrayCreateNull
 	}
 	defer cfRelease(pathsToWatch)
 
-	cb, err := newStreamCallback(watches)
-	if err != nil {
-		return nil, err
-	}
-	state := &fseventsStream{cb: cb}
-	state.pinner.Pin(cb)
-
-	// SAFETY: cb is pinned until the stream is stopped, so FSEvents may hold its address.
-	ctx := fsEventStreamContext{info: uintptr(unsafe.Pointer(cb))}
-
-	stream := fsEventStreamCreate(
-		0,
-		fsEventsCallbackAsmAddr,
-		// SAFETY: ctx stays alive for the call, and FSEventStreamCreate copies it.
-		unsafe.Pointer(&ctx),
-		pathsToWatch,
-		eventIDSinceNow,
-		0.001,
-	)
-	if stream == 0 {
-		cb.close()
-		state.cb = nil
-		state.pinner.Unpin()
+	label := []byte("typescript.fswatch.fsevents.stream\x00")
+	queue := dispatchQueueCreate(&label[0], 0)
+	if queue == 0 {
 		return nil, errStreamCreateNull
 	}
 
-	fsEventStreamSetDispatchQueue(stream, cb.queue)
+	state := &fseventsStream{
+		queue:   queue,
+		watches: slices.Clone(watches),
+	}
+	state.handle = cgo.NewHandle(state)
+
+	ctx := fsEventStreamContext{info: uintptr(state.handle)}
+	stream := fsEventStreamCreate(
+		0,
+		fsEventsCallbackPtr(),
+		&ctx,
+		pathsToWatch,
+		eventIDSinceNow,
+		0.001,
+		flagCreateUseCFTypes|flagCreateFileEvents,
+	)
+	if stream == 0 {
+		dispatchRelease(queue)
+		state.handle.Delete()
+		return nil, errStreamCreateNull
+	}
+
+	fsEventStreamSetDispatchQueue(stream, queue)
 	if fsEventStreamStart(stream) == 0 {
 		fsEventStreamInvalidate(stream)
 		fsEventStreamRelease(stream)
-		cb.close()
-		state.cb = nil
-		state.pinner.Unpin()
+		dispatchRelease(queue)
+		state.handle.Delete()
 		return nil, errStreamStartFailed
 	}
 	fsEventStreamFlushSync(stream)
 	state.stream.Store(stream)
 	return state, nil
-}
-
-// teardownStream performs the full FSEventStream cleanup. Stop and Invalidate
-// prevent new callbacks, waitDispatchQueue waits for callbacks already queued
-// on the stream's serial dispatch queue, and cb.close joins the Go event loop
-// after it drains payloads already written to the pipe.
-func teardownStream(stream uintptr, cb *streamCallback) {
-	fsEventStreamStop(stream)
-	if cb != nil {
-		fsEventStreamInvalidate(stream)
-		cb.waitDispatchQueue()
-		cb.close()
-	} else {
-		fsEventStreamInvalidate(stream)
-	}
-	fsEventStreamRelease(stream)
 }
 
 // The atomic Swap gates teardown so concurrent or repeated calls are safe:
@@ -398,10 +466,18 @@ func stopFSEventsStream(state *fseventsStream) {
 	if stream == 0 {
 		return
 	}
-	cb := state.cb
-	teardownStream(stream, cb)
-	state.cb = nil
-	state.pinner.Unpin()
+	fsEventStreamStop(stream)
+	fsEventStreamInvalidate(stream)
+	if state.queue != 0 {
+		dispatchSync(state.queue, 0, dispatchNoopPtr())
+		dispatchRelease(state.queue)
+		state.queue = 0
+	}
+	fsEventStreamRelease(stream)
+	if state.handle != 0 {
+		state.handle.Delete()
+		state.handle = 0
+	}
 }
 
 // subscribe mirrors `fsEventsBackend::subscribe`.
@@ -477,39 +553,20 @@ func (b *fsEventsBackend) closeWatch(w *dirWatch) error {
 	return nil
 }
 
-// fsEventsCallback processes a batch of FSEvents. The payload contains callback
-// data retained/copied by the assembly before it returned control to Go.
-//
-// Called by streamCallback.eventLoop on a per-stream Go goroutine (not the
-// dispatch queue thread). The C callback assembly signals the event loop via a
-// pipe; see fsevents_darwin_ffi.go.
-func fsEventsCallback(cb *streamCallback, payload *fsEventsCallbackPayload) {
-	defer payload.close()
-
-	const (
-		flagSize = unsafe.Sizeof(uint32(0))
-		idSize   = unsafe.Sizeof(uint64(0))
-	)
-
-	if payload == nil || payload.paths == 0 || payload.flags == 0 || payload.ids == 0 {
+// fsEventsProcessBatch processes a batch of FSEvents.
+func fsEventsProcessBatch(watches []fseventsWatchSnapshot, numEvents uint64, paths uintptr, eventFlags *uint32, eventIDs *uint64) {
+	if paths == 0 || eventFlags == nil || eventIDs == nil || numEvents == 0 {
 		return
 	}
 
-	numEvents := payload.numEvents
-	paths := payload.paths
-	flags := payload.flags
-	ids := payload.ids
-
-	watches := cb.watches
+	flags := unsafe.Slice(eventFlags, numEvents)
+	ids := unsafe.Slice(eventIDs, numEvents)
 	touched := map[*dirWatch]struct{}{}
 
 	for i := range numEvents {
-		// SAFETY: flags and ids are non-nil C arrays of numEvents elements, owned by payload
-		// until it is closed.
-		flag := *(*uint32)(unsafe.Add(nil, flags+i*flagSize))
-		// SAFETY: ids has the same length and ownership as flags above.
-		eventID := *(*uint64)(unsafe.Add(nil, ids+i*idSize))
-		pathRef := cfArrayGetValueAtIndex(paths, int(i))
+		flag := flags[i]
+		eventID := ids[i]
+		pathRef := cfArrayGetValueAtIndex(paths, int64(i))
 		path := cfStringToNFC(pathRef)
 		if path == "" {
 			continue
