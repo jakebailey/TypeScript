@@ -177,6 +177,7 @@ const (
 	CachedTypeKindDecoratorContextStatic
 	CachedTypeKindDecoratorContextPrivate
 	CachedTypeKindDecoratorContextPrivateStatic
+	CachedTypeKindNonDistributedConditionalType
 	CachedTypeKindSimplifiedConditionalTypeForReading
 	CachedTypeKindSimplifiedConditionalTypeForWriting
 )
@@ -9810,7 +9811,7 @@ func (c *Checker) inferTypeArguments(node ast.Node, signature *Signature, args [
 					outerReturnMapper = c.createOuterReturnMapper(outerContext)
 				}
 				returnSourceType := c.instantiateType(contextualType, outerReturnMapper)
-				c.inferTypes(returnContext.inferences, returnSourceType, inferenceTargetType, InferencePriorityNone, false)
+				c.inferTypes(returnContext.inferences, returnSourceType, inferenceTargetType, InferencePriorityReturnType, false)
 				if core.Some(returnContext.inferences, hasInferenceCandidates) {
 					context.returnMapper = c.getMapperFromContext(c.cloneInferredPartOfContext(returnContext))
 				} else {
@@ -17835,6 +17836,21 @@ func (c *Checker) getConstraintOfIndexedAccess(t *Type) *Type {
 
 func (c *Checker) getConstraintFromIndexedAccess(t *Type) *Type {
 	d := t.AsIndexedAccessType()
+	resolvedConstraint := d.resolvedConstraint(c)
+	if resolvedConstraint == nil {
+		// The constraint is cached because it can be expensive to compute (e.g. when the index type is constrained
+		// to a large union) and type relations may request it many times, such as once per constituent of a target union.
+		resolvedConstraint = core.OrElse(c.computeConstraintFromIndexedAccess(t), c.noConstraintType)
+		d.setResolvedConstraint(resolvedConstraint)
+	}
+	if resolvedConstraint != c.noConstraintType {
+		return resolvedConstraint
+	}
+	return nil
+}
+
+func (c *Checker) computeConstraintFromIndexedAccess(t *Type) *Type {
+	d := t.AsIndexedAccessType()
 	if c.isMappedTypeGenericIndexedAccess(t) {
 		// For indexed access types of the form { [P in K]: E }[X], where K is non-generic and X is generic,
 		// we substitute an instantiation of E where P is replaced with X.
@@ -23394,7 +23410,12 @@ func (c *Checker) getObjectTypeInstantiation(t *Type, m *TypeMapper, alias *Type
 	key := c.getTypeInstantiationKey(typeArguments, newAlias, t.objectFlags&ObjectFlagsSingleSignatureType != 0)
 	if data.instantiations(c) == nil {
 		data.setInstantiations(c, make(map[CacheHashKey]TypeId))
-		data.instantiations(c)[c.getTypeInstantiationKey(typeParameters, target.Alias(c), false)] = target.ref()
+		// The identity instantiation isn't the declared type itself when the type is declared in a
+		// distributive context, as instantiation maps distributed type parameters back to their
+		// non-distributed form.
+		if !c.isInDistributiveContext(declaration, 0 /*symbol*/) {
+			data.instantiations(c)[c.getTypeInstantiationKey(typeParameters, target.Alias(c), false)] = target.ref()
+		}
 	}
 	result := c.typ(data.instantiations(c)[key])
 	if result == nil {
@@ -23551,7 +23572,7 @@ func (c *Checker) cloneTypeParameter(tp *Type) *Type {
 }
 
 func (c *Checker) getHomomorphicTypeVariable(t *Type) *Type {
-	constraintType := c.getConstraintTypeFromMappedType(t)
+	constraintType := c.getActualTypeVariable(c.getConstraintTypeFromMappedType(t))
 	if constraintType.flags&TypeFlagsIndex != 0 {
 		typeVariable := c.getActualTypeVariable(constraintType.AsIndexType().target(c))
 		if typeVariable.flags&TypeFlagsTypeParameter != 0 {
@@ -24060,18 +24081,29 @@ func (c *Checker) getTypeFromTypeReference(node ast.Node) *Type {
 }
 
 func (c *Checker) getDistributedTypeParameter(node ast.Node, t *Type) *Type {
-	if t.flags&TypeFlagsTypeParameter != 0 && !t.AsTypeParameter().isDistributed() {
-		for n := node.Parent(); !n.IsNil() && !ast.IsStatement(n); n = n.Parent() {
-			if ast.IsConditionalTypeNode(n) {
-				if checkTypeNode := n.AsConditionalTypeNode().CheckType(); isSimpleIdentifierTypeReference(checkTypeNode) && c.getSymbolFromTypeReference(checkTypeNode) == c.symbolOfType(t) {
-					// If node is contained in a distributive conditional type for the given type parameter,
-					// return the distributed form of the type parameter.
-					return c.getDistributedTypeFromTypeParameter(t)
+	if t.flags&TypeFlagsTypeParameter != 0 && !t.AsTypeParameter().isDistributed() && c.isInDistributiveContext(node, c.symbolOfType(t)) {
+		// If node is contained in a distributive conditional type for the given type parameter,
+		// return the distributed form of the type parameter.
+		return c.getDistributedTypeFromTypeParameter(t)
+	}
+	return t
+}
+
+// Returns true if the node is, or is contained in, a distributive conditional type for the given type
+// parameter symbol, or for any type parameter when symbol is 0. Types declared in such a context may
+// reference distributed type parameters, so their identity instantiation isn't the declared type itself
+// (instantiation maps distributed type parameters back to their non-distributed form).
+func (c *Checker) isInDistributiveContext(node ast.Node, symbol ast.SymbolId) bool {
+	for n := node; !n.IsNil() && !ast.IsStatement(n); n = n.Parent() {
+		if ast.IsConditionalTypeNode(n) {
+			if checkTypeNode := n.AsConditionalTypeNode().CheckType(); isSimpleIdentifierTypeReference(checkTypeNode) {
+				if s := c.getSymbolFromTypeReference(checkTypeNode); s != 0 && c.symbolFlags(s)&ast.SymbolFlagsTypeParameter != 0 && (symbol == 0 || s == symbol) {
+					return true
 				}
 			}
 		}
 	}
-	return t
+	return false
 }
 
 func (c *Checker) getDistributedTypeFromTypeParameter(t *Type) *Type {
@@ -24082,6 +24114,25 @@ func (c *Checker) getDistributedTypeFromTypeParameter(t *Type) *Type {
 		tp.distributedType(c).AsTypeParameter().setConstraint(t)
 	}
 	return tp.distributedType(c)
+}
+
+// Returns the given conditional type with references to the distributed form of its check type parameter
+// mapped back to the non-distributed form. This is the identity instantiation of the conditional type,
+// which is cached in the instantiation map of the conditional type's root.
+func (c *Checker) getNonDistributedConditionalType(t *Type) *Type {
+	checkType := t.AsConditionalType().checkType(c)
+	typeParameter := getNonDistributedTypeParameter(c, checkType)
+	if typeParameter == checkType {
+		return t
+	}
+	key := CachedTypeKey{kind: CachedTypeKindNonDistributedConditionalType, typeId: t.Id()}
+	if cached, ok := typeLookup(c, c.cachedTypes, key); ok {
+		return cached
+	}
+	result := c.instantiateType(t, newSimpleTypeMapper(typeParameter, typeParameter))
+	debug.Assert(result.flags&TypeFlagsConditional != 0, "Identity instantiation of a conditional type should remain deferred")
+	c.cachedTypes[key] = result.ref()
+	return result
 }
 
 func getNonDistributedTypeParameter(c *Checker, t *Type) *Type {
@@ -25386,7 +25437,12 @@ func (c *Checker) getTypeFromConditionalTypeNode(node ast.Node) *Type {
 		c.resolvedTypes.set(node, c.getConditionalType(root, nil /*mapper*/, false /*forConstraint*/, nil))
 		if outerTypeParameters != nil {
 			root.instantiations = make(map[CacheHashKey]TypeId)
-			root.instantiations[c.getConditionalTypeKey(outerTypeParameters, nil /*alias*/, false /*forConstraint*/)] = c.resolvedTypes.get(node).ref()
+			// The identity instantiation isn't the declared type itself when the type is declared in a
+			// distributive context, as instantiation maps distributed type parameters back to their
+			// non-distributed form.
+			if !c.isInDistributiveContext(node, 0 /*symbol*/) {
+				root.instantiations[c.getConditionalTypeKey(outerTypeParameters, nil /*alias*/, false /*forConstraint*/)] = c.resolvedTypes.get(node).ref()
+			}
 		}
 	}
 	return c.resolvedTypes.get(node)
@@ -26593,6 +26649,19 @@ func (c *Checker) getEnumLiteralType(value any, enumSymbol ast.SymbolId, symbol 
 	return t
 }
 
+// Look up the plain literal that contains this enum member without creating a new type.
+func (c *Checker) getMatchingNonEnumLiteral(t *Type) *Type {
+	if t.flags&TypeFlagsEnumLiteral != 0 {
+		switch {
+		case t.flags&TypeFlagsStringLiteral != 0:
+			return c.typ(c.stringLiteralTypes[c.getStringLiteralValue(t)])
+		case t.flags&TypeFlagsNumberLiteral != 0:
+			return c.typ(c.numberLiteralTypes[getNumberLiteralValue(c, t)])
+		}
+	}
+	return nil
+}
+
 func (c *Checker) isLiteralType(t *Type) bool {
 	if t.flags&TypeFlagsBoolean != 0 {
 		return true
@@ -27524,6 +27593,18 @@ func (c *Checker) addTypeToIntersection(typeSet *orderedSet[TypeId], includes Ty
 			}
 			if !typeSet.contains(t.ref()) {
 				if t.flags&TypeFlagsUnit != 0 && includes&TypeFlagsUnit != 0 {
+					// An enum member is a subtype of the plain literal with the same value.
+					if flags&TypeFlagsEnumLiteral != 0 {
+						if literal := c.getMatchingNonEnumLiteral(t); literal != nil && typeSet.replace(literal.ref(), t.ref()) {
+							return includes | flags&TypeFlagsIncludesMask
+						}
+					} else if flags&TypeFlagsStringOrNumberLiteral != 0 && includes&TypeFlagsEnumLiteral != 0 {
+						for _, existing := range typeSet.values {
+							if c.getMatchingNonEnumLiteral(c.typ(existing)) == t {
+								return includes
+							}
+						}
+					}
 					// We have seen two distinct unit types which means we should reduce to an
 					// empty intersection. Adding TypeFlags.NonPrimitive causes that to happen.
 					includes |= TypeFlagsNonPrimitive
@@ -27638,12 +27719,13 @@ func (c *Checker) intersectUnionsOfPrimitiveTypes(types []TypeId) ([]TypeId, boo
 }
 
 // Check that the given type has a match in every union. A given type is matched by
-// an identical type, and a literal type is additionally matched by its corresponding
-// primitive type, and missingType is matched by undefinedType (and vice versa).
+// an identical type, a literal type by its corresponding primitive type, an enum member
+// by its plain literal, and missingType by undefinedType (and vice versa).
 func (c *Checker) eachUnionContains(unionTypes []TypeId, t *Type) bool {
+	literal := c.getMatchingNonEnumLiteral(t)
 	for _, uId := range unionTypes {
 		u := c.typ(uId)
-		if !c.unionContainsType(u, t, true /*matchSymbol*/) {
+		if !c.unionContainsType(u, t, true /*matchSymbol*/) && (literal == nil || !c.containsType(u.Types(c), literal)) {
 			return false
 		}
 	}
@@ -28093,7 +28175,7 @@ func (c *Checker) checkComputedPropertyName(node ast.Node) *Type {
 			c.resolvedTypes.set(node, c.errorType)
 			return c.resolvedTypes.get(node)
 		}
-		c.resolvedTypes.set(node, c.checkExpression(node.Expression()))
+		c.resolvedTypes.set(node, c.getRegularTypeOfLiteralType(c.checkExpression(node.Expression())))
 		// This will allow types number, string, symbol or any. It will also allow enums, the unknown
 		// type, and any union of these types (like string | number).
 		if c.resolvedTypes.get(node).flags&TypeFlagsNullable != 0 ||
@@ -32186,7 +32268,7 @@ func (c *Checker) instantiateContextualType(contextualType *Type, node ast.Node,
 				// the 'boolean' type from the contextual type such that contextually typed boolean
 				// literals actually end up widening to 'boolean' (see #48363).
 				t := c.instantiateInstantiableTypes(contextualType, inferenceContext.returnMapper)
-				if t.flags&TypeFlagsAnyOrUnknown == 0 {
+				if t.flags&(TypeFlagsAnyOrUnknown|TypeFlagsNever) == 0 {
 					if t.flags&TypeFlagsUnion != 0 && c.containsType(t.Types(c), c.regularFalseType) && c.containsType(t.Types(c), c.regularTrueType) {
 						return c.filterType(t, func(t *Type) bool {
 							return t != c.regularFalseType && t != c.regularTrueType

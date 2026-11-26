@@ -2871,10 +2871,10 @@ func (p *Printer) getBinaryExpressionPrecedence(node ast.BinaryExpression) (left
 
 func (p *Printer) emitBinaryExpression(node ast.BinaryExpression) {
 	leftPrec, rightPrec := p.getBinaryExpressionPrecedence(node)
-	if emittedLeft := ast.SkipPartiallyEmittedExpressions(node.Left()); ast.NodeIsSynthesized(emittedLeft) && emittedLeft.Kind() == ast.KindBinaryExpression && mixingBinaryOperatorsRequiresParentheses(node.OperatorToken().Kind(), emittedLeft.AsBinaryExpression().OperatorToken().Kind()) {
+	if emittedLeft := ast.SkipPartiallyEmittedExpressions(node.Left()); isSynthesizedForEmit(emittedLeft) && emittedLeft.Kind() == ast.KindBinaryExpression && mixingBinaryOperatorsRequiresParentheses(node.OperatorToken().Kind(), emittedLeft.AsBinaryExpression().OperatorToken().Kind()) {
 		leftPrec = ast.OperatorPrecedenceHighest
 	}
-	if emittedRight := ast.SkipPartiallyEmittedExpressions(node.Right()); ast.NodeIsSynthesized(emittedRight) && emittedRight.Kind() == ast.KindBinaryExpression && mixingBinaryOperatorsRequiresParentheses(node.OperatorToken().Kind(), emittedRight.AsBinaryExpression().OperatorToken().Kind()) {
+	if emittedRight := ast.SkipPartiallyEmittedExpressions(node.Right()); isSynthesizedForEmit(emittedRight) && emittedRight.Kind() == ast.KindBinaryExpression && mixingBinaryOperatorsRequiresParentheses(node.OperatorToken().Kind(), emittedRight.AsBinaryExpression().OperatorToken().Kind()) {
 		rightPrec = ast.OperatorPrecedenceHighest
 	}
 	state := p.enterNode(node.AsNode())
@@ -3065,8 +3065,7 @@ func (p *Printer) syntheticLeadingCommentWillEmitNewLine(comment SynthesizedComm
 }
 
 func (p *Printer) hasSyntheticLeadingCommentIntroducingNewLine(node ast.Expression) bool {
-	return p.emitContext.EmitFlags(node)&EFNoLeadingComments == 0 &&
-		slices.ContainsFunc(p.emitContext.GetSyntheticLeadingComments(node), p.syntheticLeadingCommentWillEmitNewLine)
+	return slices.ContainsFunc(p.emitContext.GetSyntheticLeadingComments(node), p.syntheticLeadingCommentWillEmitNewLine)
 }
 
 func (p *Printer) willEmitLeadingNewLine(node ast.Expression) bool {
@@ -4884,6 +4883,10 @@ func (p *Printer) hasTrailingComma(parentNode ast.Node, children ast.NodeList) b
 	return false
 }
 
+func isArrayHole(node ast.Node) bool {
+	return ast.IsOmittedExpression(node) || ast.IsBindingElement(node) && node.Name().IsNil()
+}
+
 func (p *Printer) writeDelimiter(format ListFormat) {
 	switch format & LFDelimitersMask {
 	case LFNone:
@@ -5008,7 +5011,8 @@ func (p *Printer) emitListItems(
 
 	// Write a trailing comma, if requested.
 	skipTrailingComments := p.commentsDisabled || !p.shouldEmitTrailingComments(previousSibling)
-	emitTrailingComma := hasTrailingComma && format&LFAllowTrailingComma != 0 && format&LFCommaDelimited != 0
+	// A trailing hole is only an element if it is followed by a comma.
+	emitTrailingComma := (hasTrailingComma || !previousSibling.IsNil() && isArrayHole(previousSibling)) && format&LFAllowTrailingComma != 0 && format&LFCommaDelimited != 0
 	if emitTrailingComma {
 		if !previousSibling.IsNil() && !skipTrailingComments {
 			p.emitToken(ast.KindCommaToken, previousSibling.End(), WriteKindPunctuation, previousSibling)
@@ -5483,9 +5487,6 @@ func (p *Printer) emitTrailingCommentsOfNode(node ast.Node, emitFlags EmitFlags,
 }
 
 func (p *Printer) emitLeadingSyntheticCommentsOfNode(node ast.Node, emitFlags EmitFlags) {
-	if emitFlags&EFNoLeadingComments != 0 {
-		return
-	}
 	synth := p.emitContext.GetSyntheticLeadingComments(node)
 	for _, c := range synth {
 		p.emitLeadingSynthesizedComment(c)
@@ -5505,9 +5506,6 @@ func (p *Printer) emitLeadingSynthesizedComment(comment SynthesizedComment) {
 }
 
 func (p *Printer) emitTrailingSyntheticCommentsOfNode(node ast.Node, emitFlags EmitFlags) {
-	if emitFlags&EFNoTrailingComments != 0 {
-		return
-	}
 	synth := p.emitContext.GetSyntheticTrailingComments(node)
 	for _, c := range synth {
 		p.emitTrailingSynthesizedComment(c)

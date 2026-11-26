@@ -578,10 +578,11 @@ func (c *Checker) inferToMultipleTypesWithPriority(n *InferenceState, source *Ty
 
 func (c *Checker) inferToConditionalType(n *InferenceState, source *Type, target *Type) {
 	if source.flags&TypeFlagsConditional != 0 {
-		c.inferFromTypes(n, getNonDistributedTypeParameter(c, source.AsConditionalType().checkType(c)), target.AsConditionalType().checkType(c))
-		c.inferFromTypes(n, getNonDistributedTypeParameter(c, source.AsConditionalType().extendsType(c)), target.AsConditionalType().extendsType(c))
-		c.inferFromTypes(n, getNonDistributedTypeParameter(c, c.getTrueTypeFromConditionalType(source)), c.getTrueTypeFromConditionalType(target))
-		c.inferFromTypes(n, getNonDistributedTypeParameter(c, c.getFalseTypeFromConditionalType(source)), c.getFalseTypeFromConditionalType(target))
+		source := c.getNonDistributedConditionalType(source)
+		c.inferFromTypes(n, source.AsConditionalType().checkType(c), target.AsConditionalType().checkType(c))
+		c.inferFromTypes(n, source.AsConditionalType().extendsType(c), target.AsConditionalType().extendsType(c))
+		c.inferFromTypes(n, c.getTrueTypeFromConditionalType(source), c.getTrueTypeFromConditionalType(target))
+		c.inferFromTypes(n, c.getFalseTypeFromConditionalType(source), c.getFalseTypeFromConditionalType(target))
 	} else {
 		targetTypes := []TypeId{c.getTrueTypeFromConditionalType(target).ref(), c.getFalseTypeFromConditionalType(target).ref()}
 		c.inferToMultipleTypesWithPriority(n, source, targetTypes, target.flags, core.IfElse(n.contravariant, InferencePriorityContravariantConditional, 0))

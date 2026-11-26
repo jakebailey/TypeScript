@@ -2217,8 +2217,8 @@ func (t *IndexType) setTarget(v *Type)          { t.data[0] = uint32(v.ref()) }
 func (t *IndexType) indexFlags() IndexFlags     { return IndexFlags(t.data[1]) }
 func (t *IndexType) setIndexFlags(v IndexFlags) { t.data[1] = uint32(v) }
 
-// IndexedAccessType: the object and index types in words 0 and 1, and the access flags (only AccessFlags.Persistent)
-// in word 2.
+// IndexedAccessType: the object and index types in words 0 and 1, the access flags (only AccessFlags.Persistent)
+// in word 2, and the cached constraint in word 3.
 
 type IndexedAccessType struct {
 	ConstrainedType
@@ -2232,6 +2232,10 @@ func (t *IndexedAccessType) indexType(c *Checker) *Type   { return c.typ(TypeId(
 func (t *IndexedAccessType) setIndexType(v *Type)         { t.data[1] = uint32(v.ref()) }
 func (t *IndexedAccessType) accessFlags() AccessFlags     { return AccessFlags(t.data[2]) }
 func (t *IndexedAccessType) setAccessFlags(v AccessFlags) { t.data[2] = uint32(v) }
+func (t *IndexedAccessType) resolvedConstraint(c *Checker) *Type {
+	return c.typ(TypeId(t.data[3]))
+}
+func (t *IndexedAccessType) setResolvedConstraint(v *Type) { t.data[3] = uint32(v.ref()) }
 
 // TemplateLiteralType: in word 0 the index plus one of the texts (always one element longer than the types) in the
 // checker's template texts, and the types' list handle (always at least one) in words 1 and 2.
