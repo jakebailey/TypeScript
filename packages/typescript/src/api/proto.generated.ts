@@ -19,7 +19,10 @@ import type {
     CompilerOptions,
     PluginImport,
 } from "./compilerOptions.generated.ts";
-import type { UserPreferences } from "./userPreferences.generated.ts";
+import type {
+    FormatCodeSettings,
+    UserPreferences,
+} from "./userPreferences.generated.ts";
 
 export { CaseSensitivity } from "../../enums/caseSensitivity.js";
 export { JsxEmit } from "../../enums/jsxEmit.js";
@@ -33,7 +36,7 @@ export { SymbolOwnerKind } from "../../enums/symbolOwnerKind.js";
 export type { PathKey, RootedDirectoryPath, RootedFilePath, RootedPath } from "../ast/index.ts";
 export type { CompilerOptions, PluginImport } from "./compilerOptions.generated.ts";
 export * from "./compilerOptions.generated.ts";
-export type { UserPreferences } from "./userPreferences.generated.ts";
+export type { FormatCodeSettings, UserPreferences } from "./userPreferences.generated.ts";
 
 export type APIMethod<TParams, TResult> = { params: TParams; result: TResult; };
 
@@ -42,9 +45,10 @@ export interface APIMethodInfo {
     releaseSourceFile: APIMethod<ReleaseSourceFileParams, unknown>;
     retainSourceFile: APIMethod<RetainSourceFileParams, RetainSourceFileResponse>;
     getCachedSourceFile: APIMethod<GetCachedSourceFileParams, SourceFileResponse>;
-    getSymbolOfDeclaration: APIMethod<GetSymbolOfDeclarationParams, SymbolResponse>;
+    getSymbolOfDeclaration: APIMethod<GetSymbolOfDeclarationParams, SymbolResponse | null>;
     batchRequests: APIMethod<BatchRequestsParams, BatchRequestsResponse>;
     initialize: APIMethod<null, InitializeResponse>;
+    getDefaultFormatCodeSettings: APIMethod<null, FormatCodeSettings>;
     createSnapshot: APIMethod<CreateSnapshotParams, CreateSnapshotResponse>;
     updateSnapshot: APIMethod<UpdateSnapshotParams, CreateSnapshotResponse>;
     getCurrentLanguageServerSnapshot: APIMethod<GetCurrentLanguageServerSnapshotParams, CreateSnapshotResponse>;
@@ -57,6 +61,9 @@ export interface APIMethodInfo {
     createModuleResolver: APIMethod<CreateModuleResolverParams, number>;
     releaseModuleResolver: APIMethod<ReleaseModuleResolverParams, unknown>;
     resolveModuleName: APIMethod<ResolveModuleNameParams, ResolveModuleNameResult>;
+    resolveTypeReferenceDirective: APIMethod<ResolveTypeReferenceDirectiveParams, ResolveTypeReferenceDirectiveResult>;
+    getEffectiveTypeRoots: APIMethod<CompilerOptionsParams, RootedDirectoryPath[]>;
+    getTsBuildInfoEmitOutputFilePath: APIMethod<CompilerOptionsParams, RootedFilePath | null>;
     parseCommandLine: APIMethod<ParseCommandLineParams, ConfigFileResponse>;
     readConfigFile: APIMethod<ReadConfigFileParams, ReadConfigFileResponse>;
     parseConfigFileTextToJson: APIMethod<ParseConfigFileTextToJsonParams, ReadConfigFileResponse>;
@@ -427,6 +434,25 @@ export interface ResolveModuleNameResult {
     resolvedModule?: ResolvedModule | undefined;
     /** Trace is provided when compilerOptions.traceResolution is true. */
     trace?: string[] | undefined;
+}
+
+export interface ResolveTypeReferenceDirectiveParams {
+    snapshot?: number | undefined;
+    inProgressSnapshot?: number | undefined;
+    resolver: number;
+    typeReferenceDirectiveName: string;
+    containingFile: DocumentIdentifier;
+    resolutionMode?: ResolutionMode | undefined;
+}
+
+export interface ResolveTypeReferenceDirectiveResult {
+    resolvedTypeReferenceDirective?: ResolvedTypeReferenceDirective | undefined;
+    /** Trace is provided when compilerOptions.traceResolution is true. */
+    trace?: string[] | undefined;
+}
+
+export interface CompilerOptionsParams {
+    compilerOptions: CompilerOptions;
 }
 
 export interface ParseCommandLineParams {
@@ -1212,6 +1238,10 @@ export interface PrintNodeParams {
     neverAsciiEscape?: boolean | undefined;
     terminateUnterminatedLiterals?: boolean | undefined;
     emitNodes?: Record<number, PrintEmitNode | null> | undefined;
+    /** OriginalFiles are the source files containing the nodes referenced by OriginalNodes. */
+    originalFiles?: readonly SourceFileDescriptor[] | undefined;
+    /** OriginalNodes maps encoded node indices to the parsed nodes they were created from. */
+    originalNodes?: Record<number, PrintOriginalNode | null> | undefined;
 }
 
 export interface EmitParams {
@@ -1344,10 +1374,12 @@ export interface BatchRequest {
         | "getDeclarationDiagnostics"
         | "getDeclarationEmit"
         | "getDeclaredTypeOfSymbol"
+        | "getDefaultFormatCodeSettings"
         | "getDefaultFromTypeParameter"
         | "getDefaultProjectForFile"
         | "getDocumentationComment"
         | "getESSymbolType"
+        | "getEffectiveTypeRoots"
         | "getExportSpecifierLocalTargetSymbol"
         | "getExportSymbolOfSymbol"
         | "getExportSymbolOfSymbolForChecker"
@@ -1438,6 +1470,7 @@ export interface BatchRequest {
         | "getThisTypeOfType"
         | "getTrueType"
         | "getTrueTypeOfConditionalType"
+        | "getTsBuildInfoEmitOutputFilePath"
         | "getTypeArguments"
         | "getTypeArgumentsForResolvedSignature"
         | "getTypeAtLocation"
@@ -1483,6 +1516,7 @@ export interface BatchRequest {
         | "releaseSourceFile"
         | "resolveModuleName"
         | "resolveName"
+        | "resolveTypeReferenceDirective"
         | "retainSourceFile"
         | "saveHeapProfile"
         | "signatureToSignatureDeclaration"
@@ -1554,10 +1588,12 @@ export interface BatchResponse {
         | "getDeclarationDiagnostics"
         | "getDeclarationEmit"
         | "getDeclaredTypeOfSymbol"
+        | "getDefaultFormatCodeSettings"
         | "getDefaultFromTypeParameter"
         | "getDefaultProjectForFile"
         | "getDocumentationComment"
         | "getESSymbolType"
+        | "getEffectiveTypeRoots"
         | "getExportSpecifierLocalTargetSymbol"
         | "getExportSymbolOfSymbol"
         | "getExportSymbolOfSymbolForChecker"
@@ -1648,6 +1684,7 @@ export interface BatchResponse {
         | "getThisTypeOfType"
         | "getTrueType"
         | "getTrueTypeOfConditionalType"
+        | "getTsBuildInfoEmitOutputFilePath"
         | "getTypeArguments"
         | "getTypeArgumentsForResolvedSignature"
         | "getTypeAtLocation"
@@ -1693,6 +1730,7 @@ export interface BatchResponse {
         | "releaseSourceFile"
         | "resolveModuleName"
         | "resolveName"
+        | "resolveTypeReferenceDirective"
         | "retainSourceFile"
         | "saveHeapProfile"
         | "signatureToSignatureDeclaration"
@@ -1921,6 +1959,15 @@ export interface PrintEmitNode {
     emitFlags?: number | undefined;
     leadingComments?: PrintSynthesizedComment[] | undefined;
     trailingComments?: PrintSynthesizedComment[] | undefined;
+}
+
+/**
+ * PrintOriginalNode identifies a parsed node by the index of its source file in
+ * PrintNodeParams.OriginalFiles and its index within that file.
+ */
+export interface PrintOriginalNode {
+    file: number;
+    index: number;
 }
 
 export interface EmitOutputFile {

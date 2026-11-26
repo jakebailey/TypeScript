@@ -2059,20 +2059,23 @@ func (t *IndexType) setTarget(v *Type)          { t.data.p0 = toPayload(v) }
 func (t *IndexType) indexFlags() IndexFlags     { return IndexFlags(t.data.w0) }
 func (t *IndexType) setIndexFlags(v IndexFlags) { t.data.w0 = uint32(v) }
 
-// IndexedAccessType: the object and index types in p0 and p1, and the access flags (only AccessFlags.Persistent) in w0.
+// IndexedAccessType: the object and index types in p0 and p1, the cached constraint in p2, and the access flags (only
+// AccessFlags.Persistent) in w0.
 
 type IndexedAccessType struct {
 	ConstrainedType
 }
 
-func (t *IndexedAccessType) ObjectType() *Type            { return t.objectType() }
-func (t *IndexedAccessType) IndexType() *Type             { return t.indexType() }
-func (t *IndexedAccessType) objectType() *Type            { return fromPayload[Type](t.data.p0) }
-func (t *IndexedAccessType) setObjectType(v *Type)        { t.data.p0 = toPayload(v) }
-func (t *IndexedAccessType) indexType() *Type             { return fromPayload[Type](t.data.p1) }
-func (t *IndexedAccessType) setIndexType(v *Type)         { t.data.p1 = toPayload(v) }
-func (t *IndexedAccessType) accessFlags() AccessFlags     { return AccessFlags(t.data.w0) }
-func (t *IndexedAccessType) setAccessFlags(v AccessFlags) { t.data.w0 = uint32(v) }
+func (t *IndexedAccessType) ObjectType() *Type             { return t.objectType() }
+func (t *IndexedAccessType) IndexType() *Type              { return t.indexType() }
+func (t *IndexedAccessType) objectType() *Type             { return fromPayload[Type](t.data.p0) }
+func (t *IndexedAccessType) setObjectType(v *Type)         { t.data.p0 = toPayload(v) }
+func (t *IndexedAccessType) indexType() *Type              { return fromPayload[Type](t.data.p1) }
+func (t *IndexedAccessType) setIndexType(v *Type)          { t.data.p1 = toPayload(v) }
+func (t *IndexedAccessType) accessFlags() AccessFlags      { return AccessFlags(t.data.w0) }
+func (t *IndexedAccessType) setAccessFlags(v AccessFlags)  { t.data.w0 = uint32(v) }
+func (t *IndexedAccessType) resolvedConstraint() *Type     { return fromPayload[Type](t.data.p2) }
+func (t *IndexedAccessType) setResolvedConstraint(v *Type) { t.data.p2 = toPayload(v) }
 
 // TemplateLiteralType: the texts in p0 and w0 (always one element longer than the types), the types (always at least
 // one) in p1 and w1.
